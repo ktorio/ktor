@@ -4,12 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <parent>
-        <artifactId>korral</artifactId>
-        <groupId>org.jetbrains</groupId>
-        <version>0.1-SNAPSHOT</version>
-    </parent>
-
+    <groupId>org.jetbrains</groupId>
+    <version>0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <artifactId>ktor</artifactId>
 
@@ -69,9 +65,6 @@
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <version>0.1-SNAPSHOT</version>
-                <configuration>
-
-                </configuration>
 
                 <executions>
                     <execution>

@@ -25,8 +25,8 @@ public open class ContextConfig(val context: Context) : Config {
     /** Prints the entire config to a nicely formatted string. */
     public override fun toString(): String {
         val builder = StringBuilder("Configuration:\n")
-        for (item in context.list("").toList().sortBy { it.getName()!! }) {
-            val name = item.getName()!!
+        for (item in context.list("").toList().sortBy { it.getName() }) {
+            val name = item.getName()
             val filler = "                              "
             if (name.length >= filler.length)
                 builder.append("  ${name} = ${get(name)}\n")

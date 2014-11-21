@@ -21,11 +21,7 @@ open class ServletApplicationHost() : HttpServlet() {
         loader.dispose()
     }
 
-    protected override fun service(req: HttpServletRequest?, resp: HttpServletResponse?) {
-        dispatch(req!!, resp!!)
-    }
-
-    private fun dispatch(request: HttpServletRequest, response: HttpServletResponse) {
+    protected override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         response.setCharacterEncoding("UTF-8")
         request.setCharacterEncoding("UTF-8")
 

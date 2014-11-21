@@ -14,5 +14,5 @@ fun Long.toHttpDateString(): String {
 fun String.fromHttpDateString(): Long {
     val dateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US);
     dateFormat.setTimeZone(TimeZone.getTimeZone("GMT"));
-    return dateFormat.parse(this)!!.getTime()
+    return dateFormat.parse(this).getTime()
 }

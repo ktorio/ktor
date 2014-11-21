@@ -10,7 +10,7 @@ fun main(args: Array<String>) {
     val map = HashMap<String, String>()
     for (arg in args) {
         val data = arg.split('=')
-        if (data.size == 2) {
+        if (data.size() == 2) {
             map[data[0]] = data[1]
         }
     }

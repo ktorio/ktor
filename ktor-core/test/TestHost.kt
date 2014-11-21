@@ -37,13 +37,8 @@ class TestApplicationRequest(override val application: Application) : Applicatio
     var response: TestApplicationResponse? = null
     val headers = arrayListOf<Pair<String, String>>()
 
-    override fun header(name: String): String? {
-        return headers.find{ it.first == name }?.second
-    }
-
-    override fun hasResponse(): Boolean {
-        return response != null
-    }
+    override fun header(name: String): String? = headers.firstOrNull { it.first == name }?.second
+    override fun hasResponse(): Boolean = response != null
 
     override fun response(): ApplicationResponse {
         if (response != null)

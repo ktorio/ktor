@@ -22,13 +22,13 @@ public class ApplicationLoader(val config: ApplicationConfig)  {
     public val application: Application
         get() = synchronized(applicationInstanceLock) {
             if (config.isDevelopment()) {
-                val changes = packageWatchKeys.flatMap { it.pollEvents()!! }
+                val changes = packageWatchKeys.flatMap { it.pollEvents() }
                 if (changes.size() > 0) {
                     config.log.info("Changes in application detected.")
                     var count = changes.size()
                     while (true) {
                         Thread.sleep(200)
-                        val moreChanges = packageWatchKeys.flatMap { it.pollEvents()!! }
+                        val moreChanges = packageWatchKeys.flatMap { it.pollEvents() }
                         if (moreChanges.size() == 0)
                             break
                         config.log.debug("Waiting for more changes.")
@@ -60,7 +60,7 @@ public class ApplicationLoader(val config: ApplicationConfig)  {
         if (config.isDevelopment())
             watchUrls(config.classPath)
 
-        val defaultClassLoader = javaClass.getClassLoader()!!
+        val defaultClassLoader = javaClass.getClassLoader()
         val classLoader = if (config.isDevelopment())
             URLClassLoader(config.classPath, defaultClassLoader)
         else
@@ -98,13 +98,13 @@ public class ApplicationLoader(val config: ApplicationConfig)  {
             val path = url.getPath()
             if (path != null) {
                 val folder = File(URLDecoder.decode(path, "utf-8")).toPath()
-                val visitor = object : SimpleFileVisitor<Path?>() {
-                    override fun preVisitDirectory(dir: Path?, attrs: BasicFileAttributes): FileVisitResult {
-                        paths.add(dir!!)
+                val visitor = object : SimpleFileVisitor<Path>() {
+                    override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
+                        paths.add(dir)
                         return FileVisitResult.CONTINUE
                     }
-                    override fun visitFile(file: Path?, attrs: BasicFileAttributes): FileVisitResult {
-                        val dir = file?.getParent()
+                    override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
+                        val dir = file.getParent()
                         if (dir != null)
                             paths.add(dir)
                         return FileVisitResult.CONTINUE
@@ -114,11 +114,11 @@ public class ApplicationLoader(val config: ApplicationConfig)  {
             }
         }
 
-        val watcher = FileSystems.getDefault()!!.newWatchService();
+        val watcher = FileSystems.getDefault().newWatchService();
         paths.forEach {
             config.log.debug("Watching ${it} for changes.")
         }
-        packageWatchKeys.addAll(paths.map { it.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY)!! })
+        packageWatchKeys.addAll(paths.map { it.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY) })
     }
 
     public fun dispose() {

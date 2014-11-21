@@ -19,19 +19,21 @@ class HandlerSpek : Spek() {{
             }
         }
     }
+
     given("application with transparent handler") {
         val testHost = createTestHost()
-            testHost.application.intercept { request, next -> next(request) }
-            on("making a request") {
-                val request = testHost.makeRequest { }
-                it("should not be handled") {
-                    shouldBeFalse(request.handled)
-                }
-                it("should not contain response") {
-                    shouldBeNull(request.response)
-                }
+        testHost.application.intercept { request, next -> next(request) }
+        on("making a request") {
+            val request = testHost.makeRequest { }
+            it("should not be handled") {
+                shouldBeFalse(request.handled)
+            }
+            it("should not contain response") {
+                shouldBeNull(request.response)
             }
         }
+    }
+
     given("application with handler returning true") {
         val testHost = createTestHost()
         testHost.application.intercept { request, next -> true }
@@ -48,9 +50,11 @@ class HandlerSpek : Spek() {{
 
     given("application with handler that returns a valid response") {
         val testHost = createTestHost()
-        testHost.application.intercept { request, next -> request.response {
+        testHost.application.intercept { request, next ->
+            request.response {
             }
-            true }
+            true
+        }
         on("making a request") {
             val request = testHost.makeRequest { }
 
@@ -62,12 +66,14 @@ class HandlerSpek : Spek() {{
             }
         }
     }
+
     given("application with handler that returns two responses") {
         val testHost = createTestHost()
         testHost.application.intercept { request, next ->
             request.response { }
             request.response { }
-            true }
+            true
+        }
         on("making a request") {
             val request = fails {
                 testHost.makeRequest { }
@@ -77,15 +83,14 @@ class HandlerSpek : Spek() {{
             }
         }
     }
-    given("application with handler that returns true on POST method") {
 
+    given("application with handler that returns true on POST method") {
         val testHost = createTestHost()
         testHost.application.intercept { request, next ->
             if (request.httpMethod == HttpMethod.Post) {
                 request.response().status(HttpStatusCode.OK)
                 true
-            }
-            else
+            } else
                 false
         }
         on("making a GET request") {
@@ -107,36 +112,37 @@ class HandlerSpek : Spek() {{
             }
         }
     }
-/*
-TODO: This is fundamentally wrong since you shouldn't be setting ApplicationRequest "contentType" or "accept" since these are values passed in.
-    given("application with handler that returns true on text/plain content type") {
-        val testHost = createTestHost()
-        testHost.application.intercept { request, next ->
-            if (request.contentType() == ContentType.Text.Plain ) {
-                request.response().status(HttpStatusCode.OK)
-                true
+    /*
+    TODO: This is fundamentally wrong since you shouldn't be setting ApplicationRequest "contentType" or "accept" since these are values passed in.
+        given("application with handler that returns true on text/plain content type") {
+            val testHost = createTestHost()
+            testHost.application.intercept { request, next ->
+                if (request.contentType() == ContentType.Text.Plain ) {
+                    request.response().status(HttpStatusCode.OK)
+                    true
+                }
+                else
+                    false
             }
-            else
-                false
+            on("making a request for content type text/plain") {
+                val request = testHost.makeRequest { contentType = ContentType.Text.Plain }
+                it("should be handled") {
+                    shouldBeTrue(request.handled)
+                }
+                it("should return response") {
+                    shouldNotBeNull(request.response)
+                }
+            }
+            on("making a request for content type any") {
+                val request = testHost.makeRequest { contentType = ContentType.Any }
+                it("should not be handled") {
+                    shouldBeFalse(request.handled)
+                }
+                it("should not return response") {
+                    shouldBeNull(request.response)
+                }
+            }
         }
-        on("making a request for content type text/plain") {
-            val request = testHost.makeRequest { contentType = ContentType.Text.Plain }
-            it("should be handled") {
-                shouldBeTrue(request.handled)
-            }
-            it("should return response") {
-                shouldNotBeNull(request.response)
-            }
-        }
-        on("making a request for content type any") {
-            val request = testHost.makeRequest { contentType = ContentType.Any }
-            it("should not be handled") {
-                shouldBeFalse(request.handled)
-            }
-            it("should not return response") {
-                shouldBeNull(request.response)
-            }
-        }
-    }
-*/
-}}
+    */
+}
+}

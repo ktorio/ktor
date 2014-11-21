@@ -13,7 +13,7 @@ public open class ApplicationConfig(
 : Config by config {
 
     public open val classPath: Array<URL>
-        get() = if (classPathUrl == null) array<URL>() else array<URL>(classPathUrl)
+        get() = if (classPathUrl == null) array() else array(classPathUrl)
 
     public val environment: String get() = tryGet("ktor.environment") ?: "development"
 

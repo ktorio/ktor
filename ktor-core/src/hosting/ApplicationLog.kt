@@ -12,7 +12,7 @@ public trait ApplicationLog {
 public class NullApplicationLog : ApplicationLog {}
 
 public class SL4JApplicationLog(name : String) : ApplicationLog {
-    val logger = LoggerFactory.getLogger(name)!!
+    val logger: Logger = LoggerFactory.getLogger(name)
 
     override fun info(message: String) {
         logger.info(message)

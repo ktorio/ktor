@@ -18,12 +18,7 @@ class JettyApplicationHost(val config: ApplicationConfig) {
 
     inner class Handler() : AbstractHandler() {
 
-        override fun handle(target: String?, baseRequest: Request?, request: HttpServletRequest?, response: HttpServletResponse?) {
-            target!!
-            baseRequest!!
-            request!!
-            response!!
-
+        override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             response.setCharacterEncoding("UTF-8")
             val query = request.getQueryString()
             val method = request.getMethod()
@@ -31,8 +26,7 @@ class JettyApplicationHost(val config: ApplicationConfig) {
                 if (application.handle(ServletApplicationRequest(application, request, response))) {
                     baseRequest.setHandled(true)
                     config.log.info("$method -- ${request.getRequestURL()}${if (query != null) "?" + query else ""} -- OK")
-                }
-                else {
+                } else {
                     for (resourceHandler in resourceHandlers) {
                         resourceHandler.handle(target, baseRequest, request, response)
                         if (baseRequest.isHandled()) {
@@ -44,8 +38,7 @@ class JettyApplicationHost(val config: ApplicationConfig) {
                 if (!baseRequest.isHandled()) {
                     config.log.info("$method -- ${request.getRequestURL()}${if (query != null) "?" + query else ""} -- FAIL")
                 }
-            }
-            catch(ex: Throwable) {
+            } catch(ex: Throwable) {
                 config.log.warning("dispatch error: ${ex.getMessage()}");
                 ex.printStackTrace()
                 val out = response.getWriter()
@@ -61,8 +54,7 @@ class JettyApplicationHost(val config: ApplicationConfig) {
         var port: Int
         try {
             port = config.port.toInt()
-        }
-        catch (ex: Exception) {
+        } catch (ex: Exception) {
             throw RuntimeException("${config.port} is not a valid port number")
         }
         server = Server(port)

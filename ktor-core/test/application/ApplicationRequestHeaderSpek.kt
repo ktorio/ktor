@@ -9,72 +9,67 @@ class ApplicationRequestHeaderSpek : Spek() {{
 
     given("an application that handles requests to /foo") {
         val testHost = createTestHost()
-
-
-        var parsedUri = ""
-        var parsedAuthorization: String?
-        var parsedQueryString = ""
-
-        testHost.application.routing {
-            get("/foo") {
-                parsedUri = uri
-                parsedAuthorization = authorization()
-                parsedQueryString = queryString()
-
-            }
-        }
         on("making an unauthenticated request to /foo") {
-            val response = testHost.makeRequest {
+            testHost.application.routing {
+                get("/foo") {
+                    it("should map uri to /foo") {
+                        shouldEqual("/foo", uri)
+                    }
+                    it("should map authorization to empty string") {
+                        shouldEqual("", authorization())
+                    }
+                    it("should return empty string as queryString") {
+                        shouldEqual("", queryString())
+                    }
+
+                }
+            }
+
+            testHost.makeRequest {
                 uri = "/foo"
                 httpMethod = HttpMethod.Get
                 headers.add(Pair("Authorization", ""))
             }
-            it("should map uri to /foo") {
-                shouldEqual("/foo", parsedUri)
-            }
-            it("should map authorization to empty string") {
-                shouldEqual("", parsedAuthorization)
-            }
-            it("should return empty string as queryString") {
-                shouldEqual("", parsedQueryString)
-            }
         }
-
     }
 
     given("an application that handles requests to /foo with parameters") {
         val testHost = createTestHost()
-
-        var parsedUri = ""
-        var parsedQueryString = ""
-        var parsedDocument = ""
-        var parsedPath = ""
-
-        testHost.application.routing {
-            get("/foo") {
-                parsedUri = uri
-                parsedQueryString = queryString()
-                parsedDocument = document()
-                parsedPath = path()
-            }
-        }
         on("making a request to /foo?key1=value1&key2=value2") {
-            val response = testHost.makeRequest {
+            testHost.application.routing {
+                get("/foo") {
+                    it("shoud map uri to /foo?key1=value1&key2=value2") {
+                        shouldEqual("/foo?key1=value1&key2=value2", uri)
+                    }
+                    it("shoud map two parameters key1=value1 and key2=value2") {
+                        val params = queryParameters()
+                        shouldEqual("value1", params["key1"]?.single())
+                        shouldEqual("value2", params["key2"]?.single())
+                    }
+                    it("should map queryString to key1=value1&key2=value2") {
+                        shouldEqual("key1=value1&key2=value2", queryString())
+                    }
+                    it("should map document to foo") {
+                        shouldEqual("foo", document())
+                    }
+                    it("should map path to /foo") {
+                        shouldEqual("/foo", path())
+                    }
+                    it("should map host to host.name.com") {
+                        shouldEqual("host.name.com", host())
+                    }
+                    it("should map port to 8888") {
+                        shouldEqual(8888, port())
+                    }
+                }
+            }
+
+            testHost.makeRequest {
                 uri = "/foo?key1=value1&key2=value2"
                 httpMethod = HttpMethod.Get
+                headers.add("Host" to "host.name.com:8888")
             }
-            it("shoud map uri to /foo?key1=value1&key2=value2") {
-                shouldEqual("/foo?key1=value1&key2=value2", parsedUri)
-            }
-            it("should map queryString to key1=value1&key2=value2") {
-                shouldEqual("key1=value1&key2=value2", parsedQueryString)
-            }
-            it("should map document to foo") {
-                shouldEqual("foo", parsedDocument)
-            }
-            it("should map path to /foo") {
-                shouldEqual("/foo", parsedPath)
-            }
+
         }
     }
 

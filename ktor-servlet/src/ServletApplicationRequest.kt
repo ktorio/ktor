@@ -5,8 +5,8 @@ import ktor.application.*
 import java.util.*
 
 public class ServletApplicationRequest(override val application: Application, val request: HttpServletRequest, val response: HttpServletResponse) : ApplicationRequest {
-    override val uri: String = request.getRequestURI() ?: ""
-    override val httpMethod: String = request.getMethod() ?: "EMPTY"
+    override val uri: String = request.getRequestURI()
+    override val httpMethod: String = request.getMethod()
 
     var appResponse: Response? = null
 
