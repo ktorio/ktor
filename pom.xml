@@ -4,16 +4,27 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.jetbrains</groupId>
+    <parent>
+        <artifactId>korral</artifactId>
+        <groupId>org.jetbrains</groupId>
+        <version>0.1-SNAPSHOT</version>
+    </parent>
+
     <packaging>pom</packaging>
-    <version>1.0-SNAPSHOT</version>
     <artifactId>ktor</artifactId>
 
     <modules>
-        <module>ktor-jetty</module>
         <module>ktor-core</module>
         <module>ktor-servlet</module>
+        <module>ktor-jetty</module>
     </modules>
+
+    <repositories>
+        <repository>
+            <id>jetbrains-all</id>
+            <url>http://repository.jetbrains.com/all</url>
+        </repository>
+    </repositories>
 
     <dependencies>
         <dependency>
@@ -36,7 +47,17 @@
             <artifactId>slf4j-api</artifactId>
             <version>1.5.10</version>
         </dependency>
-
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.spek</groupId>
+            <artifactId>spek</artifactId>
+            <version>0.1-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -48,6 +69,9 @@
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
                 <version>0.1-SNAPSHOT</version>
+                <configuration>
+
+                </configuration>
 
                 <executions>
                     <execution>

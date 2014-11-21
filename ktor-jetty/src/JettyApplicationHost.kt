@@ -9,7 +9,7 @@ import ktor.application.*
 
 /** A Runnable responsible for managing a Jetty server instance.
  */
-public class JettyApplicationHost(val config: ApplicationConfig) {
+class JettyApplicationHost(val config: ApplicationConfig) {
     var server: Server? = null
     val resourceHandlers = ArrayList<ResourceHandler>()
     val loader = ApplicationLoader(config)
