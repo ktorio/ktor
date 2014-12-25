@@ -11,6 +11,7 @@
 
     <modules>
         <module>ktor-core</module>
+        <module>ktor-components</module>
         <module>ktor-servlet</module>
         <module>ktor-jetty</module>
         <module>ktor-samples</module>
