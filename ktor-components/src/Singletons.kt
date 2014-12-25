@@ -14,7 +14,7 @@ enum class ComponentState
     Disposed
 }
 
-public abstract class SingletonDescriptor(val container: IComponentContainer) : ComponentDescriptor, Closeable
+public abstract class SingletonDescriptor(val container: ComponentContainer) : ComponentDescriptor, Closeable
 {
     private var instance: Any? = null
     protected var state: ComponentState = ComponentState.Null
@@ -38,7 +38,7 @@ public abstract class SingletonDescriptor(val container: IComponentContainer) : 
 
     protected abstract fun createInstance(context: ValueResolveContext): Any
 
-    private fun createInstance(container: IComponentContainer)
+    private fun createInstance(container: ComponentContainer)
     {
         when (state)
         {

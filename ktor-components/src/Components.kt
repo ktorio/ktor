@@ -2,13 +2,13 @@ package ktor.application
 
 import java.io.Closeable
 
-abstract class SingletonComponentDescriptor(container: IComponentContainer, val klass: Class<*>) : SingletonDescriptor(container) {
+abstract class SingletonComponentDescriptor(container: ComponentContainer, val klass: Class<*>) : SingletonDescriptor(container) {
     public override fun getRegistrations(): Iterable<Class<*>> {
         return (klass.getInterfaces() + klass).toList()
     }
 }
 
-public class SingletonTypeComponentDescriptor(container: IComponentContainer, klass: Class<*>) : SingletonComponentDescriptor(container, klass) {
+public class SingletonTypeComponentDescriptor(container: ComponentContainer, klass: Class<*>) : SingletonComponentDescriptor(container, klass) {
     override fun createInstance(context: ValueResolveContext): Any = createInstanceOf(klass, context)
     private fun createInstanceOf(klass: Class<*>, context: ValueResolveContext): Any {
         val binding = klass.bindToConstructor(context)
@@ -28,7 +28,7 @@ public class SingletonTypeComponentDescriptor(container: IComponentContainer, kl
     }
 }
 
-public class TransientTypeComponentDescriptor(container: IComponentContainer, val klass: Class<*>) : TransientDescriptor(container) {
+public class TransientTypeComponentDescriptor(container: ComponentContainer, val klass: Class<*>) : TransientDescriptor(container) {
     protected override fun createInstance(context: ValueResolveContext): Any {
         val binding = klass.bindToConstructor(context)
         val constructor = binding.constructor

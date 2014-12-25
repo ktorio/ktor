@@ -13,13 +13,13 @@ public trait ValueResolveContext
     fun resolve(registration: Class<*>): ValueDescriptor?
 }
 
-internal class ComponentResolveContext(val container: ComponentContainer, val requestingDescriptor: ValueDescriptor) : ValueResolveContext
+internal class ComponentResolveContext(val container: StorageComponentContainer, val requestingDescriptor: ValueDescriptor) : ValueResolveContext
 {
     override fun resolve(registration: Class<*>): ValueDescriptor? = container.resolve(registration, this)
     public override fun toString(): String = "for $requestingDescriptor in $container"
 }
 
-fun IComponentContainer.createInstance(klass: Class<*>): Any {
+fun ComponentContainer.createInstance(klass: Class<*>): Any {
     val context = createResolveContext(DynamicComponentDescriptor)
     return klass.bindToConstructor(context).createInstance()
 }
