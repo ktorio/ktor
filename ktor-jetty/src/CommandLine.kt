@@ -5,6 +5,7 @@ import java.util.*
 import java.net.*
 import java.io.File
 import javax.naming.InitialContext
+import com.typesafe.config.ConfigFactory
 
 fun main(args: Array<String>) {
     val map = HashMap<String, String>()
@@ -18,8 +19,9 @@ fun main(args: Array<String>) {
     val jar = map["-jar"]?.let { File(it).toURI().toURL() }
     val classPath = if (jar == null) array<URL>() else array<URL>(jar)
 
-    val config = ContextConfig(InitialContext())
-    config.set("ktor.environment", map["-env"] ?: "development")
+    val namingContext = InitialContext()
+    val config = ConfigFactory.parseMap(namingContext.getEnvironment() as Map<String, out Any>)
+//    config.set("ktor.environment", map["-env"] ?: "development")
     //config.loadJsonResourceConfig(classPath)
 
     val log = SL4JApplicationLog("<Application>")

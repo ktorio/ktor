@@ -13,14 +13,8 @@
         <module>ktor-core</module>
         <module>ktor-servlet</module>
         <module>ktor-jetty</module>
+        <module>ktor-samples</module>
     </modules>
-
-    <repositories>
-        <repository>
-            <id>jetbrains-all</id>
-            <url>http://repository.jetbrains.com/all</url>
-        </repository>
-    </repositories>
 
     <dependencies>
         <dependency>
@@ -53,6 +47,11 @@
             <artifactId>spek</artifactId>
             <version>0.1-SNAPSHOT</version>
             <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+            <version>1.2.1</version>
         </dependency>
     </dependencies>
 
@@ -87,4 +86,41 @@
         </plugins>
     </build>
 
+    <pluginRepositories>
+        <pluginRepository>
+            <id>sonatype.oss.snapshots</id>
+            <name>Sonatype OSS Snapshot Repository</name>
+            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
+    <repositories>
+        <repository>
+            <id>sonatype.oss.snapshots</id>
+            <name>Sonatype OSS Snapshot Repository</name>
+            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>org.jetbrains.kotlinx</id>
+            <name>kotlinx</name>
+            <url>http://repository.jetbrains.com/kotlinx</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>

@@ -18,5 +18,6 @@
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-classic:1.1.2" level="project" />
     <orderEntry type="library" name="Maven: ch.qos.logback:logback-core:1.1.2" level="project" />
     <orderEntry type="library" scope="TEST" name="Maven: org.jetbrains.spek:spek:0.1-SNAPSHOT" level="project" />
+    <orderEntry type="library" name="Maven: com.typesafe:config:1.2.1" level="project" />
   </component>
 </module>

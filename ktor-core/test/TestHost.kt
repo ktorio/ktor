@@ -6,13 +6,17 @@ import ktor.application.ApplicationLoader
 import ktor.application.ApplicationRequest
 import ktor.application.queryParameters
 import ktor.application.ApplicationResponse
-import ktor.application.MemoryConfig
 import ktor.application.SL4JApplicationLog
+import com.typesafe.config.ConfigFactory
 
 fun createTestHost(): TestApplicationHost {
-    val config = ApplicationConfig(MemoryConfig { set("environment", "test")}, SL4JApplicationLog("<Test>"))
-    config.set("ktor.application.package", "ktor.tests")
-    config.set("ktor.application.class", "ktor.tests.TestApplication")
+    val testConfig = ConfigFactory.parseMap(
+            mapOf(
+                    "ktor.environment" to "test",
+                    "ktor.application.package" to "ktor.tests",
+                    "ktor.application.class" to "ktor.tests.TestApplication"
+                 ))
+    val config = ApplicationConfig(testConfig, SL4JApplicationLog("<Test>"))
     return TestApplicationHost(config)
 }
 
@@ -58,6 +62,7 @@ class TestApplicationResponse : ApplicationResponse {
     override fun header(name: String, value: String): ApplicationResponse {
         throw UnsupportedOperationException()
     }
+
     override fun header(name: String, value: Int): ApplicationResponse {
         throw UnsupportedOperationException()
     }
@@ -71,18 +76,22 @@ class TestApplicationResponse : ApplicationResponse {
     override fun contentType(value: String): ApplicationResponse {
         throw UnsupportedOperationException()
     }
+
     override fun content(text: String, encoding: String): ApplicationResponse {
         throw UnsupportedOperationException()
     }
+
     override fun content(bytes: ByteArray): ApplicationResponse {
         throw UnsupportedOperationException()
     }
+
     override fun send() {
         throw UnsupportedOperationException()
     }
+
     override fun sendRedirect(url: String) {
         throw UnsupportedOperationException()
     }
 }
 
-class TestApplication(config : ApplicationConfig, classLoader : ClassLoader) : Application(config, classLoader)
+class TestApplication(config: ApplicationConfig, classLoader: ClassLoader) : Application(config, classLoader)

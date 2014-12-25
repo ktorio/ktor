@@ -6,10 +6,12 @@ import javax.servlet.*
 import ktor.application.*
 import kotlin.properties.Delegates
 import javax.naming.InitialContext
+import com.typesafe.config.ConfigFactory
 
 open class ServletApplicationHost() : HttpServlet() {
     private val loader: ApplicationLoader by Delegates.lazy {
-        val config = ContextConfig(InitialContext())
+        val namingContext = InitialContext()
+        val config = ConfigFactory.parseMap(namingContext.getEnvironment() as Map<String, out Any>)
         val appConfig = ApplicationConfig(config)
         ApplicationLoader(appConfig)
     }

@@ -61,11 +61,7 @@ public class ApplicationLoader(val config: ApplicationConfig)  {
             watchUrls(config.classPath)
 
         val defaultClassLoader = javaClass.getClassLoader()
-        val classLoader = if (config.isDevelopment())
-            URLClassLoader(config.classPath, defaultClassLoader)
-        else
-            defaultClassLoader
-
+        val classLoader = URLClassLoader(config.classPath, defaultClassLoader)
         val appClassObject = classLoader.loadClass(config.applicationClassName)
         if (appClassObject == null)
             throw RuntimeException("Expected class ${config.applicationClassName} to be defined")
@@ -123,17 +119,5 @@ public class ApplicationLoader(val config: ApplicationConfig)  {
 
     public fun dispose() {
         destroyApplication()
-    }
-
-    class RestrictedClassLoader(restrictions: List<String>, allows: List<String>, urls: Array<URL>, parent: ClassLoader) : URLClassLoader(urls, parent) {
-        val restrictor: Pattern = Pattern.compile(restrictions.map { it.replace(".", "\\.").replace("*", ".*") }.makeString("|"))
-        val allower: Pattern = Pattern.compile(allows.map { it.replace(".", "\\.").replace("*", ".*") }.makeString("|"))
-
-        protected override fun findClass(name: String): Class<out Any?> {
-            if (!allower.matcher(name).matches() && restrictor.matcher(name).matches()) {
-                throw ClassNotFoundException("$name is in hot package")
-            }
-            return super<URLClassLoader>.findClass(name)
-        }
     }
 }
