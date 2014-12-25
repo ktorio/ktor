@@ -112,49 +112,46 @@ class ComponentContainerTests {
     }
 
     Test fun should_resolve_multiple_types() {
-        val container = StorageComponentContainer("test")
+        StorageComponentContainer("test")
                 .register<TestComponent>()
                 .register<TestClientComponent>()
                 .register<TestClientComponent2>()
                 .compose()
-
-        container.use {
-            val descriptor = container.resolveMultiple<TestClientComponentInterface>()
-            assertNotNull(descriptor)
-            assertEquals(2, descriptor.count())
-        }
+                .use {
+                    val descriptor = it.resolveMultiple<TestClientComponentInterface>()
+                    assertNotNull(descriptor)
+                    assertEquals(2, descriptor.count())
+                }
     }
 
     Test fun should_resolve_transient_types_to_different_instances() {
-        val container = StorageComponentContainer("test")
+        StorageComponentContainer("test")
                 .register<TestComponent>()
                 .register<TestClientComponent>(ComponentLifetime.Transient)
                 .compose()
-
-        container.use {
-            val descriptor1 = container.resolve<TestClientComponentInterface>()
-            assertNotNull(descriptor1)
-            val descriptor2 = container.resolve<TestClientComponentInterface>()
-            assertNotNull(descriptor2)
-            assertTrue(descriptor1 == descriptor2)
-            assertFalse(descriptor1!!.getValue() == descriptor2!!.getValue())
-        }
+                .use {
+                    val descriptor1 = it.resolve<TestClientComponentInterface>()
+                    assertNotNull(descriptor1)
+                    val descriptor2 = it.resolve<TestClientComponentInterface>()
+                    assertNotNull(descriptor2)
+                    assertTrue(descriptor1 == descriptor2)
+                    assertFalse(descriptor1!!.getValue() == descriptor2!!.getValue())
+                }
     }
 
     Test fun should_resolve_singleton_types_to_same_instances() {
-        val container = StorageComponentContainer("test")
+        StorageComponentContainer("test")
                 .register<TestComponent>()
                 .register<TestClientComponent>(ComponentLifetime.Singleton)
                 .compose()
-
-        container.use {
-            val descriptor1 = container.resolve<TestClientComponentInterface>()
-            assertNotNull(descriptor1)
-            val descriptor2 = container.resolve<TestClientComponentInterface>()
-            assertNotNull(descriptor2)
-            assertTrue(descriptor1 == descriptor2)
-            assertTrue(descriptor1!!.getValue() == descriptor2!!.getValue())
-        }
+                .use {
+                    val descriptor1 = it.resolve<TestClientComponentInterface>()
+                    assertNotNull(descriptor1)
+                    val descriptor2 = it.resolve<TestClientComponentInterface>()
+                    assertNotNull(descriptor2)
+                    assertTrue(descriptor1 == descriptor2)
+                    assertTrue(descriptor1!!.getValue() == descriptor2!!.getValue())
+                }
     }
 
 }

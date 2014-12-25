@@ -13,9 +13,9 @@ class InvalidPropertyException(val modelClass : Class<out Any>, val property : S
 
 fun Class<out Any>.objectInstance(): Any? {
     try {
-        val field = getDeclaredField("instance\$")
+        val field = getDeclaredField("INSTANCE\$")
         if (Modifier.isStatic(field.getModifiers()) && Modifier.isPublic(field.getModifiers())) {
-            return field.get(null)!!
+            return field.get(null)
         }
         return null
     }
@@ -26,9 +26,9 @@ fun Class<out Any>.objectInstance(): Any? {
 
 fun Class<out Any>.classObjectInstance(): Any? {
     try {
-        val field = getDeclaredField("object\$")
+        val field = getDeclaredField("OBJECT\$")
         if (Modifier.isStatic(field.getModifiers()) && Modifier.isPublic(field.getModifiers())) {
-            return field.get(null)!!
+            return field.get(null)
         }
         return null
     }
@@ -110,9 +110,9 @@ fun Class<out Any>.properties(): List<String> {
     val answer = ArrayList<String>()
 
     for (method in getDeclaredMethods()) {
-        val name = method.getName()!!
-        if (name.startsWith("get") && method.getParameterTypes()?.size() == 0) {
-            answer.add(Introspector.decapitalize(name.substring(3))!!)
+        val name = method.getName()
+        if (name.startsWith("get") && method.getParameterTypes().size() == 0) {
+            answer.add(Introspector.decapitalize(name.substring(3)))
         }
     }
 
