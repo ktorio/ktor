@@ -21,11 +21,9 @@ public open class ApplicationConfig(
     public val applicationClassName: String = getString("ktor.application.class")
 
     /** Directories where publicly available files (like stylesheets, scripts, and images) will go. */
-    public val publicDirectories: List<String>
-        get() = getStringList("ktor.application.static")
+    public val publicDirectories: List<String> = getStringList("ktor.application.folders.public")
 
     /** The port to run the server on. */
-    public val port: Int
-        get() = getInt("ktor.application.port")
+    public val port: Int = getInt("ktor.application.port")
 
 }
