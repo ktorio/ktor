@@ -3,7 +3,7 @@ package ktor.application
 import java.io.Closeable
 
 abstract class SingletonComponentDescriptor(container: IComponentContainer, val klass: Class<*>) : SingletonDescriptor(container) {
-    public override fun getRegistrations(): Iterable<Class<out Any?>> {
+    public override fun getRegistrations(): Iterable<Class<*>> {
         return (klass.getInterfaces() + klass).toList()
     }
 }
@@ -37,7 +37,7 @@ public class TransientTypeComponentDescriptor(container: IComponentContainer, va
         return instance
     }
 
-    public override fun getRegistrations(): Iterable<Class<out Any?>> {
+    public override fun getRegistrations(): Iterable<Class<*>> {
         return (klass.getInterfaces() + klass).toList()
     }
 

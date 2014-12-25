@@ -15,7 +15,7 @@ public trait ValueResolveContext
 
 internal class ComponentResolveContext(val container: ComponentContainer, val requestingDescriptor: ValueDescriptor) : ValueResolveContext
 {
-    override fun resolve(registration: Class<out Any?>): ValueDescriptor? = container.resolve(registration, this)
+    override fun resolve(registration: Class<*>): ValueDescriptor? = container.resolve(registration, this)
     public override fun toString(): String = "for $requestingDescriptor in $container"
 }
 

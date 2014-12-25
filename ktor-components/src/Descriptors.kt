@@ -13,5 +13,5 @@ public trait ComponentDescriptor : ValueDescriptor
 
 public class ObjectComponentDescriptor(val instance: Any) : ComponentDescriptor {
     override fun getValue(): Any = instance
-    override fun getRegistrations(): Iterable<Class<out Any?>> = instance.javaClass.getInterfaces().toList()
+    override fun getRegistrations(): Iterable<Class<*>> = instance.javaClass.getInterfaces().toList()
 }

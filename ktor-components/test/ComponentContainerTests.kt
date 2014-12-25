@@ -52,18 +52,18 @@ class ComponentContainerTests {
     Test fun should_throw_when_not_composed() {
         val container = ComponentContainer("test")
         fails {
-            container.resolve(javaClass<TestComponentInterface>(), container.unknownContext)
+            container.resolve<TestComponentInterface>(container.unknownContext)
         }
     }
 
     Test fun should_resolve_to_null_when_empty() {
         val container = ComponentContainer("test").compose()
-        assertNull(container.resolve(javaClass<TestComponentInterface>(), container.unknownContext))
+        assertNull(container.resolve<TestComponentInterface>(container.unknownContext))
     }
 
     Test fun should_resolve_to_instance_when_registered() {
-        val container = ComponentContainer("test").register(javaClass<TestComponent>()).compose()
-        val descriptor = container.resolve(javaClass<TestComponentInterface>(), container.unknownContext)
+        val container = ComponentContainer("test").register<TestComponent>().compose()
+        val descriptor = container.resolve<TestComponentInterface>(container.unknownContext)
         assertNotNull(descriptor)
         val instance = descriptor!!.getValue() as TestComponentInterface
         assertNotNull(instance)
@@ -75,9 +75,9 @@ class ComponentContainerTests {
     Test fun should_resolve_instance_dependency() {
         val container = ComponentContainer("test")
                 .registerInstance(ManualTestComponent("name"))
-                .register(javaClass<TestClientComponent>())
+                .register<TestClientComponent>()
                 .compose()
-        val descriptor = container.resolve(javaClass<TestClientComponent>(), container.unknownContext)
+        val descriptor = container.resolve<TestClientComponent>(container.unknownContext)
         assertNotNull(descriptor)
         val instance = descriptor!!.getValue() as TestClientComponent
         assertNotNull(instance)
@@ -94,11 +94,11 @@ class ComponentContainerTests {
 
     Test fun should_resolve_type_dependency() {
         val container = ComponentContainer("test")
-                .register(javaClass<TestComponent>())
-                .register(javaClass<TestClientComponent>())
+                .register<TestComponent>()
+                .register<TestClientComponent>()
                 .compose()
 
-        val descriptor = container.resolve(javaClass<TestClientComponent>(), container.unknownContext)
+        val descriptor = container.resolve<TestClientComponent>(container.unknownContext)
         assertNotNull(descriptor)
         val instance = descriptor!!.getValue() as TestClientComponent
         assertNotNull(instance)
@@ -113,13 +113,13 @@ class ComponentContainerTests {
 
     Test fun should_resolve_multiple_types() {
         val container = ComponentContainer("test")
-                .register(javaClass<TestComponent>())
-                .register(javaClass<TestClientComponent>())
-                .register(javaClass<TestClientComponent2>())
+                .register<TestComponent>()
+                .register<TestClientComponent>()
+                .register<TestClientComponent2>()
                 .compose()
 
         container.use {
-            val descriptor = container.resolveMultiple(javaClass<TestClientComponentInterface>(), container.unknownContext)
+            val descriptor = container.resolveMultiple<TestClientComponentInterface>(container.unknownContext)
             assertNotNull(descriptor)
             assertEquals(2, descriptor.count())
         }
@@ -127,14 +127,14 @@ class ComponentContainerTests {
 
     Test fun should_resolve_transient_types_to_different_instances() {
         val container = ComponentContainer("test")
-                .register(javaClass<TestComponent>())
-                .register(javaClass<TestClientComponent>(), ComponentLifetime.Transient)
+                .register<TestComponent>()
+                .register<TestClientComponent>(ComponentLifetime.Transient)
                 .compose()
 
         container.use {
-            val descriptor1 = container.resolve(javaClass<TestClientComponentInterface>(), container.unknownContext)
+            val descriptor1 = container.resolve<TestClientComponentInterface>(container.unknownContext)
             assertNotNull(descriptor1)
-            val descriptor2 = container.resolve(javaClass<TestClientComponentInterface>(), container.unknownContext)
+            val descriptor2 = container.resolve<TestClientComponentInterface>(container.unknownContext)
             assertNotNull(descriptor2)
             assertTrue(descriptor1 == descriptor2)
             assertFalse(descriptor1!!.getValue() == descriptor2!!.getValue())
@@ -143,14 +143,14 @@ class ComponentContainerTests {
 
     Test fun should_resolve_singleton_types_to_same_instances() {
         val container = ComponentContainer("test")
-                .register(javaClass<TestComponent>())
-                .register(javaClass<TestClientComponent>(), ComponentLifetime.Singleton)
+                .register<TestComponent>()
+                .register<TestClientComponent>(ComponentLifetime.Singleton)
                 .compose()
 
         container.use {
-            val descriptor1 = container.resolve(javaClass<TestClientComponentInterface>(), container.unknownContext)
+            val descriptor1 = container.resolve<TestClientComponentInterface>(container.unknownContext)
             assertNotNull(descriptor1)
-            val descriptor2 = container.resolve(javaClass<TestClientComponentInterface>(), container.unknownContext)
+            val descriptor2 = container.resolve<TestClientComponentInterface>(container.unknownContext)
             assertNotNull(descriptor2)
             assertTrue(descriptor1 == descriptor2)
             assertTrue(descriptor1!!.getValue() == descriptor2!!.getValue())

@@ -11,12 +11,12 @@ public enum class ComponentStorageState {
     Disposed
 }
 
-enum class ComponentInstantiation {
+public enum class ComponentInstantiation {
     WithEnvironment
     OnDemand
 }
 
-enum class ComponentLifetime {
+public enum class ComponentLifetime {
     Singleton
     Transient
 }
