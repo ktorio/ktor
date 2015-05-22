@@ -1,11 +1,12 @@
 package ktor.application.jetty
 
-import ktor.application.*
-import java.util.*
-import java.net.*
-import java.io.File
-import javax.naming.InitialContext
 import com.typesafe.config.ConfigFactory
+import ktor.application.ApplicationConfig
+import ktor.application.SL4JApplicationLog
+import java.io.File
+import java.net.URL
+import java.util.HashMap
+import javax.naming.InitialContext
 
 fun main(args: Array<String>) {
     val map = HashMap<String, String>()
@@ -17,7 +18,7 @@ fun main(args: Array<String>) {
     }
 
     val jar = map["-jar"]?.let { File(it).toURI().toURL() }
-    val classPath = if (jar == null) array<URL>() else array<URL>(jar)
+    val classPath = if (jar == null) arrayOf<URL>() else arrayOf<URL>(jar)
 
     val namingContext = InitialContext()
     //val namingConfig = ConfigFactory.parseMap(namingContext.getEnvironment() as Map<String, out Any>)

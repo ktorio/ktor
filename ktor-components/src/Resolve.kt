@@ -3,12 +3,12 @@ package ktor.application
 import java.lang.reflect.*
 import java.util.ArrayList
 
-public trait ValueResolver
+public interface ValueResolver
 {
     fun resolve(request: Class<*>, context: ValueResolveContext): ValueDescriptor?
 }
 
-public trait ValueResolveContext
+public interface ValueResolveContext
 {
     fun resolve(registration: Class<*>): ValueDescriptor?
 }

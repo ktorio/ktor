@@ -5,7 +5,7 @@ import java.io.Closeable
 
 class ContainerConsistencyException(message: String) : Exception(message)
 
-public trait ComponentContainer {
+public interface ComponentContainer {
     fun createResolveContext(requestingDescriptor: ValueDescriptor): ValueResolveContext
 }
 

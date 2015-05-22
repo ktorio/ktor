@@ -2,7 +2,7 @@ package ktor.application
 
 /** Established connection with client, encapsulates request and response facilities
  */
-public trait ApplicationRequest {
+public interface ApplicationRequest {
     public val application : Application
 
     public val uri : String
@@ -16,7 +16,7 @@ public trait ApplicationRequest {
     public fun response(body : ApplicationResponse.()->Unit) : ApplicationResponse
 }
 
-public trait ApplicationResponse {
+public interface ApplicationResponse {
     public fun header(name : String, value : String) : ApplicationResponse
     public fun header(name : String, value : Int) : ApplicationResponse
     public fun status(code : Int) : ApplicationResponse

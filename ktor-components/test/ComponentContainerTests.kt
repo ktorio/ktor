@@ -5,12 +5,12 @@ import org.junit.*
 import kotlin.test.*
 import java.io.Closeable
 
-trait TestComponentInterface {
+interface TestComponentInterface {
     public val disposed: Boolean
     fun foo()
 }
 
-trait TestClientComponentInterface {
+interface TestClientComponentInterface {
 }
 
 class TestComponent : TestComponentInterface, Closeable {

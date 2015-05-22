@@ -2,16 +2,24 @@ package ktor.samples.hello
 
 import ktor.application.Application
 import ktor.application.ApplicationConfig
+import ktor.routing.get
+import ktor.routing.routing
 
 class HelloApplication(config: ApplicationConfig, classLoader: ClassLoader) : Application(config, classLoader) {
     init {
-        intercept { request, next ->
-            request.response {
-                content("Hello World!")
-                send()
+        routing {
+            get("/") {
+              response {
+                  content("Hello World!")
+                  send()
+              }
             }
-            next(request)
-            true
+            get("/bye") {
+                response {
+                    content("Goodbye World!")
+                    send()
+                }
+            }
         }
     }
 }

@@ -1,12 +1,12 @@
 package ktor.application
 
 
-public trait ValueDescriptor
+public interface ValueDescriptor
 {
     fun getValue(): Any
 }
 
-public trait ComponentDescriptor : ValueDescriptor
+public interface ComponentDescriptor : ValueDescriptor
 {
     fun getRegistrations(): Iterable<Class<*>>
 }

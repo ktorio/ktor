@@ -2,7 +2,7 @@ package ktor.application
 
 import org.slf4j.*
 
-public trait ApplicationLog {
+public interface ApplicationLog {
     public fun info(message : String) {}
     public fun debug(message : String) {}
     public fun error(message : String) {}
