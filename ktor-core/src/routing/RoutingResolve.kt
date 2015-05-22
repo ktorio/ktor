@@ -15,8 +15,8 @@ data class RoutingResolveResult(val succeeded: Boolean,
 class RoutingApplicationRequest(applicationRequest: ApplicationRequest,
                                 resolveResult: RoutingResolveResult) : ApplicationRequest by applicationRequest {
 
-    override val parameters: Map<String, List<String>>;
-    {
+    override val parameters: Map<String, List<String>>
+    init {
         val result = HashMap<String, MutableList<String>>()
         for ((key, values) in applicationRequest.parameters) {
             result.getOrPut(key, { arrayListOf() }).addAll(values)

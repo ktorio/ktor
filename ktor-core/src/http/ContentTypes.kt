@@ -22,7 +22,7 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
         else -> false
     }
 
-    class object {
+    companion object {
         fun parse(value: String): ContentType {
             val parts = value.split(";")
             val content = parts[0].split("/")
@@ -38,61 +38,62 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
         }
 
         val Any = ContentType("*", "*")
-        object Application {
-            val Any by AnyReflectionContentTypeProperty()
-            val Atom by XmlReflectionContentTypeProperty()
-            val Json  by ReflectionContentTypeProperty()
-            val JavaScript  by ReflectionContentTypeProperty()
-            val Octet_Stream  by ReflectionContentTypeProperty()
-            val Font_Woff  by ReflectionContentTypeProperty()
-            val Rss  by XmlReflectionContentTypeProperty()
-            val Xml  by ReflectionContentTypeProperty()
-            val Xml_Dtd  by ReflectionContentTypeProperty()
-            val Zip  by ReflectionContentTypeProperty()
-            val GZip  by ReflectionContentTypeProperty()
-        }
-        object Audio {
-            val Any by AnyReflectionContentTypeProperty()
-            val MP4  by ReflectionContentTypeProperty()
-            val MPEG  by ReflectionContentTypeProperty()
-            val OGG  by ReflectionContentTypeProperty()
-        }
-        object Image {
-            val Any by AnyReflectionContentTypeProperty()
-            val GIF  by ReflectionContentTypeProperty()
-            val JPEG  by ReflectionContentTypeProperty()
-            val PNG  by ReflectionContentTypeProperty()
-            val SVG  by XmlReflectionContentTypeProperty()
-        }
-        object Message {
-            val Any by AnyReflectionContentTypeProperty()
-            val Http  by ReflectionContentTypeProperty()
-        }
-        object MultiPart {
-            val Any by AnyReflectionContentTypeProperty()
-            val Mixed  by ReflectionContentTypeProperty()
-            val Alternative  by ReflectionContentTypeProperty()
-            val Related  by ReflectionContentTypeProperty()
-            val Form_Data  by ReflectionContentTypeProperty()
-            val Signed  by ReflectionContentTypeProperty()
-            val Encrypted  by ReflectionContentTypeProperty()
-        }
-        object Text {
-            val Any by AnyReflectionContentTypeProperty()
-            val Plain by ReflectionContentTypeProperty()
-            val CSS by ReflectionContentTypeProperty()
-            val Html by ReflectionContentTypeProperty()
-            val JavaScript by ReflectionContentTypeProperty()
-            val VCard by ReflectionContentTypeProperty()
-            val Xml by ReflectionContentTypeProperty()
-        }
-        object Video {
-            val Any by AnyReflectionContentTypeProperty()
-            val MPEG  by ReflectionContentTypeProperty()
-            val MP4  by ReflectionContentTypeProperty()
-            val OGG  by ReflectionContentTypeProperty()
-            val QuickTime  by ReflectionContentTypeProperty()
-        }
+    }
+
+    object Application {
+        val Any by AnyReflectionContentTypeProperty()
+        val Atom by XmlReflectionContentTypeProperty()
+        val Json  by ReflectionContentTypeProperty()
+        val JavaScript  by ReflectionContentTypeProperty()
+        val Octet_Stream  by ReflectionContentTypeProperty()
+        val Font_Woff  by ReflectionContentTypeProperty()
+        val Rss  by XmlReflectionContentTypeProperty()
+        val Xml  by ReflectionContentTypeProperty()
+        val Xml_Dtd  by ReflectionContentTypeProperty()
+        val Zip  by ReflectionContentTypeProperty()
+        val GZip  by ReflectionContentTypeProperty()
+    }
+    object Audio {
+        val Any by AnyReflectionContentTypeProperty()
+        val MP4  by ReflectionContentTypeProperty()
+        val MPEG  by ReflectionContentTypeProperty()
+        val OGG  by ReflectionContentTypeProperty()
+    }
+    object Image {
+        val Any by AnyReflectionContentTypeProperty()
+        val GIF  by ReflectionContentTypeProperty()
+        val JPEG  by ReflectionContentTypeProperty()
+        val PNG  by ReflectionContentTypeProperty()
+        val SVG  by XmlReflectionContentTypeProperty()
+    }
+    object Message {
+        val Any by AnyReflectionContentTypeProperty()
+        val Http  by ReflectionContentTypeProperty()
+    }
+    object MultiPart {
+        val Any by AnyReflectionContentTypeProperty()
+        val Mixed  by ReflectionContentTypeProperty()
+        val Alternative  by ReflectionContentTypeProperty()
+        val Related  by ReflectionContentTypeProperty()
+        val Form_Data  by ReflectionContentTypeProperty()
+        val Signed  by ReflectionContentTypeProperty()
+        val Encrypted  by ReflectionContentTypeProperty()
+    }
+    object Text {
+        val Any by AnyReflectionContentTypeProperty()
+        val Plain by ReflectionContentTypeProperty()
+        val CSS by ReflectionContentTypeProperty()
+        val Html by ReflectionContentTypeProperty()
+        val JavaScript by ReflectionContentTypeProperty()
+        val VCard by ReflectionContentTypeProperty()
+        val Xml by ReflectionContentTypeProperty()
+    }
+    object Video {
+        val Any by AnyReflectionContentTypeProperty()
+        val MPEG  by ReflectionContentTypeProperty()
+        val MP4  by ReflectionContentTypeProperty()
+        val OGG  by ReflectionContentTypeProperty()
+        val QuickTime  by ReflectionContentTypeProperty()
     }
 }
 

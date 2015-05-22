@@ -5,7 +5,7 @@ import org.jetbrains.spek.api.*
 import kotlin.test.*
 import ktor.tests.*
 
-class HandlerSpek : Spek() {{
+class HandlerSpek : Spek() {init{
 
     given("application with empty handler") {
         val testHost = createTestHost()

@@ -3,7 +3,7 @@ package ktor.tests.routing
 import ktor.routing.*
 import org.jetbrains.spek.api.*
 
-class RoutingResolveSpek : Spek() {{
+class RoutingResolveSpek : Spek() {init{
     given("empty routing") {
         val entry = RoutingEntry()
         val result = entry.resolve(RoutingResolveContext("/foo/bar"))

@@ -10,8 +10,8 @@ public class ServletApplicationRequest(override val application: Application, va
 
     var appResponse: Response? = null
 
-    override val parameters: Map<String, List<String>>;
-    {
+    override val parameters: Map<String, List<String>>
+    init {
         val result = HashMap<String, MutableList<String>>()
         val parametersMap = request.getParameterMap()
         if (parametersMap != null) {

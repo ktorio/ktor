@@ -5,7 +5,7 @@ import kotlin.test.*
 import org.jetbrains.spek.api.*
 import com.typesafe.config.ConfigFactory
 
-class ApplicationLoaderSpek : Spek() {{
+class ApplicationLoaderSpek : Spek() {init{
 
     given("an invalid class") {
         val testConfig = ConfigFactory.parseMap(

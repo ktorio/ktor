@@ -5,7 +5,7 @@ import org.jetbrains.spek.api.*
 import ktor.tests.*
 import ktor.routing.*
 
-class ApplicationRequestHeaderSpek : Spek() {{
+class ApplicationRequestHeaderSpek : Spek() {init{
 
     given("an application that handles requests to /foo") {
         val testHost = createTestHost()
