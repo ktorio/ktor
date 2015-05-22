@@ -6,7 +6,7 @@ import ktor.application.*
 fun RoutingEntry.location(path: String, build: RoutingEntry.() -> Unit) {
     val parts = pathToParts(path)
     var current: RoutingEntry = this;
-    for ((index, part) in parts.withIndices()) {
+    for ((index, part) in parts.withIndex()) {
         val entry = RoutingEntry()
         val selector = when {
             part == "*" -> UriPartWildcardRoutingSelector()

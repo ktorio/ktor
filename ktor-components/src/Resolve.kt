@@ -50,7 +50,7 @@ fun Class<*>.bindToConstructor(context: ValueResolveContext): Binding
             {
                 if (unsatisfied == null)
                     unsatisfied = ArrayList<Type>()
-                unsatisfied!!.add(parameter)
+                unsatisfied.add(parameter)
             } else {
                 arguments.add(descriptor)
             }
@@ -59,7 +59,7 @@ fun Class<*>.bindToConstructor(context: ValueResolveContext): Binding
         if (unsatisfied == null) // constructor is satisfied with arguments
             resolved.add(Binding(candidate, arguments))
         else
-            rejected.add(candidate to unsatisfied!!)
+            rejected.add(candidate to unsatisfied)
     }
 
     if (resolved.size() != 1)

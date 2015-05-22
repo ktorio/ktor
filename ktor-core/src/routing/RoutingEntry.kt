@@ -11,7 +11,7 @@ open class RoutingEntry() {
     val interceptors = ArrayList<RoutingInterceptor>()
 
     public fun add(selector: RoutingSelector, entry: RoutingEntry): RoutingEntry {
-        val existingEntry = children.find { it.selector.equals(selector) }?.entry
+        val existingEntry = children.firstOrNull { it.selector.equals(selector) }?.entry
         if (existingEntry == null) {
             children.add(RoutingNode(selector, entry))
             return entry

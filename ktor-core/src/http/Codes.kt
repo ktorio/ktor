@@ -1,66 +1,66 @@
 package ktor.application
 
 enum class HttpStatusCode(val value: Int) {
-    open val description: String
-        get() = this.toString().replaceAll("([A-Z])", " $1")
+    Continue(100),
+    SwitchingProtocols(101),
+    Processing(102),
 
-    Continue : HttpStatusCode(100)
-    SwitchingProtocols : HttpStatusCode(101)
-    Processing : HttpStatusCode(102)
-
-    OK : HttpStatusCode(200)
-    Created : HttpStatusCode(201)
-    Accepted : HttpStatusCode(202)
-    NonAuthoritativeInformation : HttpStatusCode(203)
-    NoContent : HttpStatusCode(204)
-    ResetContent : HttpStatusCode(205)
-    PartialContent : HttpStatusCode(206)
+    OK(200),
+    Created(201),
+    Accepted(202),
+    NonAuthoritativeInformation(203),
+    NoContent(204),
+    ResetContent(205),
+    PartialContent(206),
 
     // 3XX
-    MultipleChoices : HttpStatusCode(300)
-    MovedPermanently : HttpStatusCode(301)
-    Found : HttpStatusCode(302)
-    SeeOther : HttpStatusCode(303)
-    NotModified : HttpStatusCode(304)
-    UseProxy : HttpStatusCode(305)
-    SwitchProxy : HttpStatusCode(306)
-    TemporaryRedirect : HttpStatusCode(307)
-    PermanentRedirect : HttpStatusCode(308)
+    MultipleChoices(300),
+    MovedPermanently(301),
+    Found(302),
+    SeeOther(303),
+    NotModified(304),
+    UseProxy(305),
+    SwitchProxy(306),
+    TemporaryRedirect(307),
+    PermanentRedirect(308),
 
     // 4XX
-    BadRequest : HttpStatusCode(400)
-    Unauthorized : HttpStatusCode(401)
-    PaymentRequired : HttpStatusCode(402)
-    Forbidden : HttpStatusCode(403)
-    NotFound : HttpStatusCode(404)
-    MethodNotAllowed : HttpStatusCode(405)
-    NotAcceptable : HttpStatusCode(406)
-    ProxyAuthenticationRequired : HttpStatusCode(407)
-    RequestTimeout : HttpStatusCode(408)
-    Conflict : HttpStatusCode(409)
-    Gone : HttpStatusCode(410)
-    LengthRequired : HttpStatusCode(411)
-    PreconditionFailed : HttpStatusCode(412)
-    RequestEntityTooLarge : HttpStatusCode(413)
-    RequestURITooLarge : HttpStatusCode(414) {
+    BadRequest(400),
+    Unauthorized(401),
+    PaymentRequired(402),
+    Forbidden(403),
+    NotFound(404),
+    MethodNotAllowed(405),
+    NotAcceptable(406),
+    ProxyAuthenticationRequired(407),
+    RequestTimeout(408),
+    Conflict(409),
+    Gone(410),
+    LengthRequired(411),
+    PreconditionFailed(412),
+    RequestEntityTooLarge(413),
+    RequestURITooLarge(414) {
         override val description: String = "Request-URI Too Large"
-    }
-    UnsupportedMediaType : HttpStatusCode(415)
-    RequestedRageNotSatisfiable : HttpStatusCode(416)
-    ExceptionFailed : HttpStatusCode(417)
-    TooManyRequests : HttpStatusCode(429)
-    RequestHeaderFieldTooLarge : HttpStatusCode(431)
+    },
+    UnsupportedMediaType(415),
+    RequestedRageNotSatisfiable(416),
+    ExceptionFailed(417),
+    TooManyRequests(429),
+    RequestHeaderFieldTooLarge(431),
 
     // 5XX
-    InternalServerError : HttpStatusCode(500)
-    NotImplemented : HttpStatusCode(501)
-    BadGateway : HttpStatusCode(502)
-    ServiceUnavailable : HttpStatusCode(503)
-    GatewayTimeout : HttpStatusCode(504)
-    VersionNotSupported : HttpStatusCode(505)
-    VariantAlsoNegotiates : HttpStatusCode(506)
-    InsufficientStorage : HttpStatusCode(507)
-    BandwidthLimitExceeded : HttpStatusCode(509)
+    InternalServerError(500),
+    NotImplemented(501),
+    BadGateway(502),
+    ServiceUnavailable(503),
+    GatewayTimeout(504),
+    VersionNotSupported(505),
+    VariantAlsoNegotiates(506),
+    InsufficientStorage(507),
+    BandwidthLimitExceeded(509);
+
+    open val description: String
+        get() = this.toString().replace("([A-Z])".toRegex(), " $1")
 }
 
 fun ApplicationResponse.status(code: HttpStatusCode) = status(code.value)

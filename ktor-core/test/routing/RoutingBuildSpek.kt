@@ -7,7 +7,7 @@ class RoutingBuildSpek : Spek() {init{
     given("empty routing") {
         fun On.itShouldHaveSpecificStructure(entry: RoutingEntry) {
             it("should have single child at root") {
-                shouldEqual(1, entry.children.size)
+                shouldEqual(1, entry.children.size())
             }
             it("should have child of type UriPartConstantRoutingSelector") {
                 shouldBeTrue(entry.children[0].selector is UriPartConstantRoutingSelector)
@@ -16,7 +16,7 @@ class RoutingBuildSpek : Spek() {init{
                 shouldEqual("foo", (entry.children[0].selector as UriPartConstantRoutingSelector).name)
             }
             it("should have single child at second level") {
-                shouldEqual(1, entry.children[0].entry.children.size)
+                shouldEqual(1, entry.children[0].entry.children.size())
             }
             it("should have second level child of type UriPartOptionalParameterRoutingSelector") {
                 shouldBeTrue(entry.children[0].entry.children[0].selector is UriPartOptionalParameterRoutingSelector)

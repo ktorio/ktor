@@ -6,7 +6,7 @@ fun ApplicationResponse.contentType(value : ContentType) = contentType(value.toS
 
 class ContentType(val contentType: String, val contentSubtype: String, val parameters: List<Pair<String, String>> = listOf()) {
 
-    override fun toString() = if (parameters.size == 0) "$contentType/$contentSubtype" else "$contentType/$contentSubtype; ${parameters.map { "${it.first}=${it.second}" }.makeString("; ")}"
+    override fun toString() = if (parameters.size() == 0) "$contentType/$contentSubtype" else "$contentType/$contentSubtype; ${parameters.map { "${it.first}=${it.second}" }.join("; ")}"
 
     fun withParameter(name: String, value: String): ContentType {
         val newParameters = ArrayList<Pair<String, String>>(parameters)
@@ -17,8 +17,8 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
     override fun equals(other: Any?) = when (other) {
         is ContentType -> contentType == other.contentType
         && contentSubtype == other.contentSubtype
-        && parameters.size == other.parameters.size
-        && parameters.withIndices().all { it.second == other.parameters[it.first] }
+        && parameters.size() == other.parameters.size()
+        && parameters.withIndex().all { it.value == other.parameters[it.index] }
         else -> false
     }
 
@@ -26,11 +26,11 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
         fun parse(value: String): ContentType {
             val parts = value.split(";")
             val content = parts[0].split("/")
-            if (content.size != 2)
+            if (content.size() != 2)
                 throw BadContentTypeFormat(value)
             val parameters = parts.drop(1).map {
                 val pair = it.trim().split("=")
-                if (pair.size != 2)
+                if (pair.size() != 2)
                     throw BadContentTypeFormat(value)
                 pair[0].trim() to pair[1].trim()
             }

@@ -6,11 +6,11 @@ import java.io.Closeable
 
 enum class ComponentState
 {
-    Null
-    Initializing
-    Initialized
-    Corrupted
-    Disposing
+    Null,
+    Initializing,
+    Initialized,
+    Corrupted,
+    Disposing,
     Disposed
 }
 

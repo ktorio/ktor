@@ -14,7 +14,7 @@ public open class ApplicationConfig(
 : Config by config {
 
     public open val classPath: Array<URL>
-        get() = if (classPathUrl == null) array() else array(classPathUrl)
+        get() = if (classPathUrl == null) arrayOf() else arrayOf(classPathUrl)
 
     public val environment: String get() = getString("ktor.environment")
     public val applicationPackageName: String = getString("ktor.application.package")

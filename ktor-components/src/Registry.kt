@@ -74,7 +74,7 @@ internal class ComponentRegistry {
 
         for (key in newMap.keys()) {
             val entry = interfaceMap.getOrPut(key, { ComponentRegisterEntry() })
-            entry.removeAll(newMap[key]!!)
+            entry.removeAll(newMap[key])
         }
         registrationMap = interfaceMap
     }

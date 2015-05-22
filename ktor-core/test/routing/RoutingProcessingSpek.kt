@@ -64,7 +64,7 @@ class RoutingProcessingSpek : Spek() {init{
                 httpMethod = HttpMethod.Get
             }
             it("should have processed username once") {
-                shouldEqual(1, username.size)
+                shouldEqual(1, username.size())
             }
             it("should have extracted username") {
                 shouldEqual("john", username.first())

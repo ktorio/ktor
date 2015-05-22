@@ -5,19 +5,19 @@ import ktor.datastructures.*
 import java.io.Closeable
 
 public enum class ComponentStorageState {
-    Initial
-    Initialized
-    Disposing
+    Initial,
+    Initialized,
+    Disposing,
     Disposed
 }
 
 public enum class ComponentInstantiation {
-    WithEnvironment
+    WithEnvironment,
     OnDemand
 }
 
 public enum class ComponentLifetime {
-    Singleton
+    Singleton,
     Transient
 }
 

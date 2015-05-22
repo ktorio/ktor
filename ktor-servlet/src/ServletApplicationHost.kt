@@ -11,7 +11,7 @@ import com.typesafe.config.ConfigFactory
 open class ServletApplicationHost() : HttpServlet() {
     private val loader: ApplicationLoader by Delegates.lazy {
         val namingContext = InitialContext()
-        val config = ConfigFactory.parseMap(namingContext.getEnvironment() as Map<String, out Any>)
+        val config = ConfigFactory.parseMap(namingContext.getEnvironment() as Map<String, Any>)
         val appConfig = ApplicationConfig(config)
         ApplicationLoader(appConfig)
     }
