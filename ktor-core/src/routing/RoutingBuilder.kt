@@ -40,6 +40,7 @@ fun RoutingEntry.methodAndLocation(method: String, path: String, build: RoutingA
         }
     }
 }
+
 fun RoutingEntry.method(method: String, body: RoutingApplicationRequest.() -> Unit) {
     methodParam(method) {
         intercept { request, next -> request.body(); request.hasResponse() }

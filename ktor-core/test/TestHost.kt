@@ -35,15 +35,19 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
 }
 
 class TestApplicationRequest(override val application: Application) : ApplicationRequest {
+
     override var uri: String = "http://localhost/"
     override var httpMethod: String = "GET"
     override val parameters: Map<String, List<String>> get() = queryParameters()
 
     var response: TestApplicationResponse? = null
-    val headers = arrayListOf<Pair<String, String>>()
+    val headers = hashMapOf<String, String>()
 
-    override fun header(name: String): String? = headers.firstOrNull { it.first == name }?.second
+    override fun header(name: String): String? = headers[name]
+    override fun headers(): Map<String, String> = headers
+
     override fun hasResponse(): Boolean = response != null
+
 
     override fun response(): ApplicationResponse {
         if (response != null)

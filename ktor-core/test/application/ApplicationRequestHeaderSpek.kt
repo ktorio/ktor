@@ -28,7 +28,7 @@ class ApplicationRequestHeaderSpek : Spek() {init{
             val status = testHost.makeRequest {
                 uri = "/foo"
                 httpMethod = HttpMethod.Get
-                headers.add(Pair("Authorization", ""))
+                headers.put("Authorization", "")
             }.response?.status
 
             it("should handle request") {
@@ -72,7 +72,7 @@ class ApplicationRequestHeaderSpek : Spek() {init{
             val status = testHost.makeRequest {
                 uri = "/foo?key1=value1&key2=value2"
                 httpMethod = HttpMethod.Get
-                headers.add("Host" to "host.name.com:8888")
+                headers.put("Host", "host.name.com:8888")
             }.response?.status
 
             it("should handle request") {

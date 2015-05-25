@@ -12,6 +12,7 @@ public interface ApplicationRequest {
 
     public val parameters: Map<String, List<String>>
     public fun header(name: String): String?
+    public fun headers(): Map<String, String>
 
     public fun hasResponse(): Boolean
     public fun response(): ApplicationResponse

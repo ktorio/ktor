@@ -39,20 +39,13 @@ fun pathToParts(path: String) =
 fun Application.routing(body: RoutingEntry.() -> Unit) {
     val table = RoutingEntry()
     table.body()
-    route(table)
+    interceptRoute(table)
 }
 
-fun Application.route(routing: RoutingEntry) {
+fun Application.interceptRoute(routing: RoutingEntry) {
     intercept { request, next ->
-        val parameters = HashMap<String, MutableList<String>>()
-        parameters.put("@method", arrayListOf(request.httpMethod))
-        // TODO: add agent type detection
-        for ((key, values) in request.parameters) {
-            parameters.getOrPut(key, { arrayListOf() }).addAll(values)
-        }
-        // TODO: add request.headers() to parameters
-        val routingRequest = RoutingResolveContext(request.path(), parameters)
-        val resolveResult = routing.resolve(routingRequest)
+        val resolveContext = RoutingResolveContext(request.path(), request.parameters)
+        val resolveResult = routing.resolve(resolveContext)
         when {
             resolveResult.succeeded -> {
                 val chain = arrayListOf<RoutingInterceptor>()

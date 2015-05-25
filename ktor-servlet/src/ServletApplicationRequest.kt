@@ -1,9 +1,9 @@
 package ktor.application
 
-import javax.servlet.http.*
-import ktor.application.*
 import java.io.Writer
-import java.util.*
+import java.util.HashMap
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 
 public class ServletApplicationRequest(override val application: Application, val request: HttpServletRequest, val response: HttpServletResponse) : ApplicationRequest {
     override val uri: String = request.getRequestURI()
@@ -12,8 +12,10 @@ public class ServletApplicationRequest(override val application: Application, va
     var appResponse: Response? = null
 
     override val parameters: Map<String, List<String>>
+
     init {
         val result = HashMap<String, MutableList<String>>()
+        result.put("@method", arrayListOf(httpMethod))
         val parametersMap = request.getParameterMap()
         if (parametersMap != null) {
             for ((key, values) in parametersMap) {
@@ -25,10 +27,19 @@ public class ServletApplicationRequest(override val application: Application, va
                 }
             }
         }
+
+        for ((key, value) in headers()) {
+            result.getOrPut(key, { arrayListOf() }).addAll(Headers.splitKnownHeaders(key, value))
+        }
+
         parameters = result
     }
 
     override fun header(name: String): String? = request.getHeader(name)
+
+    override fun headers(): Map<String, String> {
+        return request.getHeaderNames().asSequence().toMap({ it }, { request.getHeader(it) })
+    }
 
     override fun hasResponse(): Boolean = appResponse != null
     override fun response(): ApplicationResponse {
