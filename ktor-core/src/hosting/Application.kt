@@ -4,7 +4,7 @@ import java.util.*
 
 /** Current executing application
  */
-public open class Application(val config: ApplicationConfig, val classLoader: ClassLoader) {
+public open class Application(val config: ApplicationConfig) {
 
     private val interceptors = ArrayList<(ApplicationRequest, (ApplicationRequest) -> Boolean) -> Boolean>()
     public fun intercept(handler: (request: ApplicationRequest, proceed: (ApplicationRequest) -> Boolean) -> Boolean) {

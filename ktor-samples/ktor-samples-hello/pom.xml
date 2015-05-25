@@ -22,9 +22,14 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>org.jetbrains.kotlinx</groupId>
+            <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlinx.html</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>0.3.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlin</groupId>
+            <artifactId>kotlinx.html.jvm</artifactId>
+            <version>0.3.3-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>

@@ -2,6 +2,7 @@ package ktor.application
 
 import javax.servlet.http.*
 import ktor.application.*
+import java.io.Writer
 import java.util.*
 
 public class ServletApplicationRequest(override val application: Application, val request: HttpServletRequest, val response: HttpServletResponse) : ApplicationRequest {
@@ -70,6 +71,12 @@ public class ServletApplicationRequest(override val application: Application, va
             response.setCharacterEncoding(encoding)
             val writer = response.getWriter()
             writer?.write(text)
+            return this
+        }
+
+        override fun contentStream(streamer: Writer.() -> Unit): ApplicationResponse {
+            val writer = response.getWriter()
+            writer.streamer()
             return this
         }
 

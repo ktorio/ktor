@@ -7,8 +7,8 @@ fun ApplicationRequest.queryParameters(): Map<String, List<String>> {
     if (query.isEmpty())
         return mapOf()
     val parameters = hashMapOf<String, MutableList<String>>()
-    for (item in query.split("&")) {
-        val pair = item.split("=")
+    for (item in query.splitBy("&")) {
+        val pair = item.splitBy("=")
         when(pair.size()) {
             1 -> parameters.getOrPut(pair[0], { arrayListOf() }).add("")
             2 -> parameters.getOrPut(pair[0], { arrayListOf() }).add(pair[1])

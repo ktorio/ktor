@@ -8,6 +8,7 @@ import ktor.application.queryParameters
 import ktor.application.ApplicationResponse
 import ktor.application.SL4JApplicationLog
 import com.typesafe.config.ConfigFactory
+import java.io.Writer
 
 fun createTestHost(): TestApplicationHost {
     val testConfig = ConfigFactory.parseMap(
@@ -85,6 +86,10 @@ class TestApplicationResponse : ApplicationResponse {
         throw UnsupportedOperationException()
     }
 
+    override fun contentStream(streamer: Writer.() -> Unit): ApplicationResponse {
+        throw UnsupportedOperationException()
+    }
+
     override fun send() {
         throw UnsupportedOperationException()
     }
@@ -94,4 +99,4 @@ class TestApplicationResponse : ApplicationResponse {
     }
 }
 
-class TestApplication(config: ApplicationConfig, classLoader: ClassLoader) : Application(config, classLoader)
+class TestApplication(config: ApplicationConfig) : Application(config)

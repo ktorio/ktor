@@ -66,8 +66,8 @@ public class ApplicationLoader(val config: ApplicationConfig)  {
         if (appClassObject == null)
             throw RuntimeException("Expected class ${config.applicationClassName} to be defined")
         val applicationClass = appClassObject as Class<Application>
-        val cons = applicationClass.getConstructor(javaClass<ApplicationConfig>(), javaClass<ClassLoader>())
-        val application = cons.newInstance(config, classLoader)
+        val cons = applicationClass.getConstructor(javaClass<ApplicationConfig>())
+        val application = cons.newInstance(config)
         if (application !is Application)
             throw RuntimeException("Expected class ${config.applicationClassName} to be inherited from Application")
 

@@ -34,7 +34,7 @@ fun pathToParts(path: String) =
         if (path == "/")
             listOf("")
         else
-            path.split("/").filter { it.length() > 0 }.toList()
+            path.splitBy("/").filter { it.length() > 0 }.toList()
 
 fun Application.routing(body: RoutingEntry.() -> Unit) {
     val table = RoutingEntry()

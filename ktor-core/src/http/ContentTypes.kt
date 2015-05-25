@@ -24,12 +24,12 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
 
     companion object {
         fun parse(value: String): ContentType {
-            val parts = value.split(";")
-            val content = parts[0].split("/")
+            val parts = value.splitBy(";")
+            val content = parts[0].splitBy("/")
             if (content.size() != 2)
                 throw BadContentTypeFormat(value)
             val parameters = parts.drop(1).map {
-                val pair = it.trim().split("=")
+                val pair = it.trim().splitBy("=")
                 if (pair.size() != 2)
                     throw BadContentTypeFormat(value)
                 pair[0].trim() to pair[1].trim()
