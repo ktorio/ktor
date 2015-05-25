@@ -1,17 +1,41 @@
-package ktor.application
+package org.jetbrains.container
 
+import java.lang.reflect.ParameterizedType
+import java.util.ArrayList
+import java.util.LinkedHashSet
 
-public interface ValueDescriptor
-{
-    fun getValue(): Any
+public interface ValueDescriptor {
+    public fun getValue(): Any
 }
 
-public interface ComponentDescriptor : ValueDescriptor
-{
+public interface ComponentDescriptor : ValueDescriptor {
     fun getRegistrations(): Iterable<Class<*>>
+    fun getDependencies(context: ValueResolveContext): Collection<Class<*>>
 }
 
-public class ObjectComponentDescriptor(val instance: Any) : ComponentDescriptor {
-    override fun getValue(): Any = instance
-    override fun getRegistrations(): Iterable<Class<*>> = instance.javaClass.getInterfaces().toList()
+private fun collectInterfacesRecursive(cl: Class<*>, result: MutableSet<Class<*>>) {
+    val interfaces = cl.getInterfaces()
+    interfaces.forEach {
+        if (result.add(it)) {
+            collectInterfacesRecursive(it, result)
+        }
+    }
+}
+
+private fun getRegistrationsForClass(klass: Class<*>): List<Class<*>> {
+    val registrations = ArrayList<Class<*>>()
+    val superClasses = sequence(klass) {
+        val superclass = it.getGenericSuperclass()
+        when (superclass) {
+            is ParameterizedType -> superclass.getRawType() as? Class<*>
+            is Class<*> -> superclass
+            else -> null
+        }
+        // todo: do not publish as Object
+    }
+    registrations.addAll(superClasses)
+    val interfaces = LinkedHashSet<Class<*>>()
+    superClasses.forEach { collectInterfacesRecursive(it, interfaces) }
+    registrations.addAll(interfaces)
+    return registrations
 }

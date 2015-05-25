@@ -1,44 +1,25 @@
-package ktor.application
+package org.jetbrains.container
 
 import java.io.Closeable
+import java.lang.reflect.Method
 
-abstract class SingletonComponentDescriptor(container: ComponentContainer, val klass: Class<*>) : SingletonDescriptor(container) {
-    public override fun getRegistrations(): Iterable<Class<*>> {
-        return (klass.getInterfaces() + klass).toList()
+public class InstanceComponentDescriptor(val instance: Any) : ComponentDescriptor {
+
+    override fun getValue(): Any = instance
+    override fun getRegistrations(): Iterable<Class<*>> {
+        return getRegistrationsForClass(instance.javaClass)
     }
+
+    override fun getDependencies(context: ValueResolveContext): Collection<Class<*>> = emptyList()
 }
 
-public class SingletonTypeComponentDescriptor(container: ComponentContainer, klass: Class<*>) : SingletonComponentDescriptor(container, klass) {
-    override fun createInstance(context: ValueResolveContext): Any = createInstanceOf(klass, context)
-    private fun createInstanceOf(klass: Class<*>, context: ValueResolveContext): Any {
-        val binding = klass.bindToConstructor(context)
-        state = ComponentState.Initializing
-        for (argumentDescriptor in binding.argumentDescriptors) {
-            if (argumentDescriptor is Closeable && argumentDescriptor !is SingletonDescriptor) {
-                registerDisposableObject(argumentDescriptor)
-            }
-        }
-
-        val constructor = binding.constructor
-        val arguments = bindArguments(binding.argumentDescriptors)
-
-        val instance = constructor.newInstance(*arguments.toTypedArray())!!
-        state = ComponentState.Initialized
-        return instance
+public class ProviderComponentDescriptor(val instance: Any, val method: Method) : ComponentDescriptor {
+    override fun getValue(): Any = method.invoke(instance)
+    override fun getRegistrations(): Iterable<Class<*>> {
+        return getRegistrationsForClass(method.getReturnType())
     }
+
+    // TODO: method parameters could be dependencies, for now we assume no params
+    override fun getDependencies(context: ValueResolveContext): Collection<Class<*>> = emptyList()
 }
 
-public class TransientTypeComponentDescriptor(container: ComponentContainer, val klass: Class<*>) : TransientDescriptor(container) {
-    protected override fun createInstance(context: ValueResolveContext): Any {
-        val binding = klass.bindToConstructor(context)
-        val constructor = binding.constructor
-        val arguments = bindArguments(binding.argumentDescriptors)
-        val instance = constructor.newInstance(*arguments.toTypedArray())!!
-        return instance
-    }
-
-    public override fun getRegistrations(): Iterable<Class<*>> {
-        return (klass.getInterfaces() + klass).toList()
-    }
-
-}

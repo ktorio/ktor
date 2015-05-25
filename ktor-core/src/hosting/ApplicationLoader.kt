@@ -50,19 +50,11 @@ public class ApplicationLoader(val config: ApplicationConfig)  {
             instance!!
         }
 
-    public fun requestClassloader(current: ClassLoader): ClassLoader =
-            if (config.isDevelopment()) {
-                URLClassLoader(config.classPath, current)
-            } else
-                current
-
     fun createApplication(): Application {
         if (config.isDevelopment())
             watchUrls(config.classPath)
 
-        val defaultClassLoader = javaClass.getClassLoader()
-        val classLoader = URLClassLoader(config.classPath, defaultClassLoader)
-        val appClassObject = classLoader.loadClass(config.applicationClassName)
+        val appClassObject = config.classLoader.loadClass(config.applicationClassName)
         if (appClassObject == null)
             throw RuntimeException("Expected class ${config.applicationClassName} to be defined")
         val applicationClass = appClassObject as Class<Application>

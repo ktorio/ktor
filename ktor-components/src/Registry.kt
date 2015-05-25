@@ -1,7 +1,6 @@
-package ktor.application
+package org.jetbrains.container
 
 import java.util.*
-import ktor.datastructures.Multimap
 
 public fun ComponentRegisterEntry(value: ComponentRegisterEntry): ComponentRegisterEntry {
     val entry = ComponentRegisterEntry()
@@ -15,11 +14,13 @@ class ComponentRegisterEntry() : Iterable<ComponentDescriptor> {
 
     override fun iterator(): Iterator<ComponentDescriptor> = descriptors.iterator()
 
-    public fun singleOrDefault(): ComponentDescriptor? {
+    public fun singleOrNull(): ComponentDescriptor? {
         if (descriptors.size() == 1)
             return descriptors[0]
-        else
+        else if (descriptors.size() == 0)
             return null
+
+        throw UnresolvedDependenciesException("Invalid arity")
     }
 
     public fun add(item: ComponentDescriptor) {
@@ -48,12 +49,12 @@ internal class ComponentRegistry {
         return registrationMap
     }
 
-    private var registrationMap = HashMap<Any, ComponentRegisterEntry>(8)
+    private var registrationMap = LinkedHashMap<Any, ComponentRegisterEntry>(8)
 
     public fun addAll(descriptors: Collection<ComponentDescriptor>) {
         val updateMap = buildRegistrationMap(descriptors)
         val lastMap = registrationMap
-        val newMap = HashMap<Any, ComponentRegisterEntry>(lastMap.size())
+        val newMap = LinkedHashMap<Any, ComponentRegisterEntry>(lastMap.size())
         for ((key, value) in lastMap)
             newMap.put(key, ComponentRegisterEntry(value))
 
@@ -68,7 +69,7 @@ internal class ComponentRegistry {
     public fun removeAll(descriptors: Collection<ComponentDescriptor>) {
         val newMap = buildRegistrationMap(descriptors)
         val lastMap = registrationMap
-        val interfaceMap = HashMap<Any, ComponentRegisterEntry>(lastMap.size())
+        val interfaceMap = LinkedHashMap<Any, ComponentRegisterEntry>(lastMap.size())
         for ((key, value) in lastMap)
             interfaceMap.put(key, ComponentRegisterEntry(value))
 

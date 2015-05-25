@@ -2,6 +2,7 @@ package ktor.application
 
 import com.typesafe.config.Config
 import java.net.URL
+import java.net.URLClassLoader
 
 /**
  * Store application configuration.
@@ -12,6 +13,8 @@ public open class ApplicationConfig(private val config: Config,
 
     public open val classPath: Array<URL>
         get() = if (classPathUrl == null) arrayOf() else arrayOf(classPathUrl)
+
+    public val classLoader: URLClassLoader = URLClassLoader(classPath, javaClass.getClassLoader())
 
     public val environment: String get() = config.getString("ktor.environment")
     public val applicationPackageName: String = config.getString("ktor.application.package")

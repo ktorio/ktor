@@ -1,8 +1,9 @@
-package ktor.application
+package org.jetbrains.container
 
-import java.util.*
-import ktor.datastructures.*
 import java.io.Closeable
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
+import java.util.*
 
 public enum class ComponentStorageState {
     Initial,
@@ -24,8 +25,9 @@ public enum class ComponentLifetime {
 public class ComponentStorage(val myId: String) : ValueResolver {
     var state = ComponentStorageState.Initial
     val registry = ComponentRegistry()
-    val descriptors = HashSet<ComponentDescriptor>()
-    val dependencies = Multimap<ComponentDescriptor, Class<*>>();
+    val descriptors = LinkedHashSet<ComponentDescriptor>()
+    val dependencies = Multimap<ComponentDescriptor, Class<*>>()
+    val composingDescriptors = LinkedHashSet<ComponentDescriptor>()
 
     override fun resolve(request: Class<*>, context: ValueResolveContext): ValueDescriptor? {
         if (state == ComponentStorageState.Initial)
@@ -35,7 +37,7 @@ public class ComponentStorage(val myId: String) : ValueResolver {
         if (entry != null) {
             registerDependency(request, context)
 
-            val descriptor = entry.singleOrDefault()
+            val descriptor = entry.singleOrNull()
             return descriptor // we have single component or null (none or multiple)
         }
         return null
@@ -62,7 +64,7 @@ public class ComponentStorage(val myId: String) : ValueResolver {
         return registry.tryGetEntry(request) ?: listOf()
     }
 
-    public fun registerDescriptors(items: List<ComponentDescriptor>) {
+    public fun registerDescriptors(context: ComponentResolveContext, items: List<ComponentDescriptor>) {
         if (state == ComponentStorageState.Disposed) {
             throw ContainerConsistencyException("Cannot register descriptors in $state state")
         }
@@ -71,26 +73,75 @@ public class ComponentStorage(val myId: String) : ValueResolver {
             descriptors.add(descriptor);
 
         if (state == ComponentStorageState.Initialized)
-            composeDescriptors(items);
+            composeDescriptors(context, items);
 
     }
 
-    public fun compose() {
+    public fun compose(context: ComponentResolveContext) {
         if (state != ComponentStorageState.Initial)
             throw ContainerConsistencyException("Container $myId was already composed.");
 
         state = ComponentStorageState.Initialized;
-        composeDescriptors(descriptors);
+        composeDescriptors(context, descriptors);
     }
 
-    private fun composeDescriptors(descriptors: Collection<ComponentDescriptor>) {
+    private fun composeDescriptors(context: ComponentResolveContext, descriptors: Collection<ComponentDescriptor>) {
+        if (descriptors.isEmpty()) return
+
+        composingDescriptors.addAll(descriptors)
         registry.addAll(descriptors);
-        InstantiateDescriptors(descriptors);
+
+        // inspect descriptors and register providers
+        // TODO
+
+        // inspect dependencies and register implicit
+        val implicits = LinkedHashSet<ComponentDescriptor>()
+        for (descriptor in descriptors) {
+            registerImplicits(context, descriptor, implicits, hashSetOf<Class<*>>())
+        }
+        registry.addAll(implicits)
+
+        // instantiate and inject properties
+        for (value in (descriptors + implicits).map { it.getValue() }) {
+            injectProperties(value, context)
+        }
     }
 
-    fun InstantiateDescriptors(descriptors: Collection<ComponentDescriptor>) {
-        for (descriptor in descriptors)
-            descriptor.getValue();
+    private fun registerImplicits(context: ComponentResolveContext, descriptor: ComponentDescriptor, implicits: MutableSet<ComponentDescriptor>, visitedTypes: HashSet<Class<*>>) {
+        val dependencies = descriptor.getDependencies(context)
+        for (type in dependencies) {
+            if (type in visitedTypes)
+                continue
+            visitedTypes.add(type)
+            val entry = registry.tryGetEntry(type)
+            if (entry == null) {
+                val modifiers = type.getModifiers()
+                if (!Modifier.isInterface(modifiers) && !Modifier.isAbstract(modifiers) && !type.isPrimitive()) {
+                    val implicitDescriptor = SingletonTypeComponentDescriptor(context.container, type)
+                    implicits.add(implicitDescriptor)
+                    registerImplicits(context, implicitDescriptor, implicits, visitedTypes)
+                }
+            }
+        }
+    }
+
+    private fun injectProperties(instance: Any, context: ValueResolveContext) {
+        val type = instance.javaClass
+        val injectors = LinkedHashSet<Method>()
+        for (member in type.getMethods()) {
+            val annotations = member.getDeclaredAnnotations()
+            for (annotation in annotations) {
+                val annotationType = annotation.annotationType()
+                if (annotationType.getName().substringAfterLast('.') == "Inject") {
+                    injectors.add(member)
+                }
+            }
+        }
+
+        injectors.forEach { injector ->
+            val methodBinding = injector.bindToMethod(context)
+            methodBinding.invoke(instance)
+        }
     }
 
     public fun dispose() {

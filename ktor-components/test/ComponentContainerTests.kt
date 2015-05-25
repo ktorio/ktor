@@ -1,6 +1,6 @@
 package ktor.tests.application
 
-import ktor.application.*
+import org.jetbrains.container.*
 import org.junit.*
 import kotlin.test.*
 import java.io.Closeable
