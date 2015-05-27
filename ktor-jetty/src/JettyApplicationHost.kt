@@ -30,20 +30,21 @@ class JettyApplicationHost(val config: ApplicationConfig) {
             val query = request.getQueryString()
             val method = request.getMethod()
             try {
+                val requestLogString = "$method -- ${request.getRequestURL()}${if (query != null) "?" + query else ""}"
                 if (application.handle(ServletApplicationRequest(application, request, response))) {
                     baseRequest.setHandled(true)
-                    config.log.info("$method -- ${request.getRequestURL()}${if (query != null) "?" + query else ""} -- OK")
+                    config.log.info("$requestLogString -- OK")
                 } else {
                     for (resourceHandler in resourceHandlers) {
                         resourceHandler.handle(target, baseRequest, request, response)
                         if (baseRequest.isHandled()) {
-                            config.log.info("$method -- ${request.getRequestURL()}${if (query != null) "?" + query else ""} -- OK @${resourceHandler.getResourceBase()}")
+                            config.log.info("$requestLogString -- OK @${resourceHandler.getResourceBase()}")
                             break;
                         }
                     }
                 }
                 if (!baseRequest.isHandled()) {
-                    config.log.info("$method -- ${request.getRequestURL()}${if (query != null) "?" + query else ""} -- FAIL")
+                    config.log.info("$requestLogString -- FAIL")
                 }
             } catch(ex: Throwable) {
                 config.log.warning("dispatch error: ${ex.getMessage()}");
@@ -85,6 +86,7 @@ class JettyApplicationHost(val config: ApplicationConfig) {
         server?.start()
         config.log.info("Server running.")
         server?.join()
+        config.log.info("Server stopped.")
     }
 
     public fun stop() {

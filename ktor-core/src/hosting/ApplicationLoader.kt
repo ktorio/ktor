@@ -1,18 +1,19 @@
 package ktor.application
 
-import java.net.*
-import java.util.regex.Pattern
-import java.util.*
-import kotlin.properties.*
-import java.nio.file.*
-
 import java.io.File
-import java.nio.file.StandardWatchEventKinds.*
+import java.net.URL
+import java.net.URLDecoder
+import java.nio.file.*
+import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
+import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
+import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
 import java.nio.file.attribute.BasicFileAttributes
+import java.util.ArrayList
+import java.util.HashSet
 
 /** Controls the loading of a Ktor app from a directory.
  */
-public class ApplicationLoader(val config: ApplicationConfig)  {
+public class ApplicationLoader(val config: ApplicationConfig) {
     private var _applicationInstance: Application? = null
     private val applicationInstanceLock = Object()
     private val packageWatchKeys = ArrayList<WatchKey>()
@@ -55,8 +56,7 @@ public class ApplicationLoader(val config: ApplicationConfig)  {
             watchUrls(config.classPath)
 
         val appClassObject = config.classLoader.loadClass(config.applicationClassName)
-        if (appClassObject == null)
-            throw RuntimeException("Expected class ${config.applicationClassName} to be defined")
+                ?: throw RuntimeException("Expected class ${config.applicationClassName} to be defined")
         val applicationClass = appClassObject as Class<Application>
         val cons = applicationClass.getConstructor(javaClass<ApplicationConfig>())
         val application = cons.newInstance(config)
@@ -91,6 +91,7 @@ public class ApplicationLoader(val config: ApplicationConfig)  {
                         paths.add(dir)
                         return FileVisitResult.CONTINUE
                     }
+
                     override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
                         val dir = file.getParent()
                         if (dir != null)

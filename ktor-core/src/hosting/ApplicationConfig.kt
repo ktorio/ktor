@@ -17,7 +17,6 @@ public open class ApplicationConfig(private val config: Config,
     public val classLoader: URLClassLoader = URLClassLoader(classPath, javaClass.getClassLoader())
 
     public val environment: String get() = config.getString("ktor.environment")
-    public val applicationPackageName: String = config.getString("ktor.application.package")
     public val applicationClassName: String = config.getString("ktor.application.class")
 
     /** Directories where publicly available files (like stylesheets, scripts, and images) will go. */

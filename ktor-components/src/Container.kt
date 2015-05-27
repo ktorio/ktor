@@ -39,7 +39,7 @@ public class StorageComponentContainer(id: String) : ComponentContainer, Closeab
 
     override fun close() = componentStorage.dispose()
 
-    overloads public fun resolve(request: Class<*>, context: ValueResolveContext = unknownContext): ValueDescriptor? {
+    jvmOverloads public fun resolve(request: Class<*>, context: ValueResolveContext = unknownContext): ValueDescriptor? {
         val storageResolve = componentStorage.resolve(request, context)
         if (storageResolve != null)
             return storageResolve

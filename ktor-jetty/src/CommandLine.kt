@@ -24,7 +24,6 @@ fun main(args: Array<String>) {
     //val namingConfig = ConfigFactory.parseMap(namingContext.getEnvironment() as Map<String, out Any>)
     val applicationConfig = ConfigFactory.load()
     val commandLineConfig = ConfigFactory.parseMap(mapOf("ktor.environment" to (map["-env"] ?: "development")))
-    //config.loadJsonResourceConfig(classPath)
 
     val combinedConfig = applicationConfig.withFallback(commandLineConfig)
     val log = SL4JApplicationLog("<Application>")

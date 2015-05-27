@@ -16,7 +16,7 @@ public class TransientTypeComponentDescriptor(container: ComponentContainer, val
         val binding = klass.bindToConstructor(context)
         val constructor = binding.constructor
         val arguments = bindArguments(binding.argumentDescriptors)
-        val instance = constructor.newInstance(*arguments.copyToArray())!!
+        val instance = constructor.newInstance(*arguments.toTypedArray())!!
         return instance
     }
 
