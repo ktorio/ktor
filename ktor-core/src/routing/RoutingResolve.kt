@@ -37,6 +37,7 @@ fun pathToParts(path: String) =
             path.splitBy("/").filter { it.length() > 0 }.toList()
 
 fun Application.routing(body: RoutingEntry.() -> Unit) {
+    // TODO: do not build new interceptor for each call
     val table = RoutingEntry()
     table.body()
     interceptRoute(table)
