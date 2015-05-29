@@ -54,7 +54,7 @@ fun Application.interceptRoute(routing: RoutingEntry) {
                 }
                 processChain(chain, RoutingApplicationRequest(request, resolveResult))
             }
-            else -> false
+            else -> next(request)
         }
     }
 }
