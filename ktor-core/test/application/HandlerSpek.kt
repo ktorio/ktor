@@ -1,9 +1,9 @@
 package ktor.tests.application
 
-import ktor.application.*
+import ktor.http.*
+import ktor.tests.*
 import org.jetbrains.spek.api.*
 import kotlin.test.*
-import ktor.tests.*
 
 class HandlerSpek : Spek() {init{
 

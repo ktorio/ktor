@@ -1,14 +1,8 @@
 package ktor.tests
 
-import ktor.application.ApplicationConfig
-import ktor.application.Application
-import ktor.application.ApplicationLoader
-import ktor.application.ApplicationRequest
-import ktor.application.queryParameters
-import ktor.application.ApplicationResponse
-import ktor.application.SL4JApplicationLog
-import com.typesafe.config.ConfigFactory
-import java.io.Writer
+import com.typesafe.config.*
+import ktor.application.*
+import java.io.*
 
 fun createTestHost(): TestApplicationHost {
     val testConfig = ConfigFactory.parseMap(

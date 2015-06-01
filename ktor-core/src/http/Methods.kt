@@ -1,4 +1,4 @@
-package ktor.application
+package ktor.http
 
 object HttpMethod {
     public val Get : String = "GET"

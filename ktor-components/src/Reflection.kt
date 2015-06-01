@@ -1,9 +1,8 @@
 package org.jetbrains.container
 
-import java.beans.Introspector
-import java.lang.reflect.Method
-import java.lang.reflect.Modifier
-import java.util.ArrayList
+import java.beans.*
+import java.lang.reflect.*
+import java.util.*
 
 /**
  * Thrown by the form builder if an invalid model property is specified.

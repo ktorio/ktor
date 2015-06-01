@@ -1,9 +1,9 @@
 package ktor.tests.application
 
+import com.typesafe.config.*
 import ktor.application.*
-import kotlin.test.*
 import org.jetbrains.spek.api.*
-import com.typesafe.config.ConfigFactory
+import kotlin.test.*
 
 class ApplicationLoaderSpek : Spek() {init{
 

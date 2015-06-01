@@ -1,6 +1,6 @@
 package ktor.application
 
-import java.io.Writer
+import java.io.*
 
 /** Established connection with client, encapsulates request and response facilities
  */

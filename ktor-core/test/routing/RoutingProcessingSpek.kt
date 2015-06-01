@@ -1,8 +1,8 @@
 package ktor.tests.routing
 
+import ktor.http.*
 import ktor.routing.*
 import ktor.tests.*
-import ktor.application.*
 import org.jetbrains.spek.api.*
 
 class RoutingProcessingSpek : Spek() {init{

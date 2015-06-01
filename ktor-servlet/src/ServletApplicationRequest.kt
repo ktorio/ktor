@@ -1,9 +1,10 @@
-package ktor.application
+package ktor.application.servlet
 
-import java.io.Writer
-import java.util.HashMap
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import ktor.application.*
+import ktor.http.*
+import java.io.*
+import java.util.*
+import javax.servlet.http.*
 
 public class ServletApplicationRequest(override val application: Application, val request: HttpServletRequest, val response: HttpServletResponse) : ApplicationRequest {
     override val uri: String = request.getRequestURI()

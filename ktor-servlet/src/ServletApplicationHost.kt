@@ -1,12 +1,10 @@
-package ktor.application
+package ktor.application.servlet
 
-import javax.servlet.http.*
-import java.io.*
-import javax.servlet.*
+import com.typesafe.config.*
 import ktor.application.*
-import kotlin.properties.Delegates
-import javax.naming.InitialContext
-import com.typesafe.config.ConfigFactory
+import javax.naming.*
+import javax.servlet.http.*
+import kotlin.properties.*
 
 open class ServletApplicationHost() : HttpServlet() {
     private val loader: ApplicationLoader by Delegates.lazy {

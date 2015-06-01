@@ -1,13 +1,10 @@
 package ktor.samples.hello
 
 import html4k.*
-import html4k.stream.appendHTML
-import ktor.application.Application
-import ktor.application.ApplicationConfig
-import ktor.application.ContentType
-import ktor.application.contentType
-import ktor.routing.get
-import ktor.routing.routing
+import html4k.stream.*
+import ktor.application.*
+import ktor.http.*
+import ktor.routing.*
 
 class HelloApplication(config: ApplicationConfig) : Application(config) {
     init {

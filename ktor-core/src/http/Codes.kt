@@ -1,4 +1,4 @@
-package ktor.application
+package ktor.http
 
 enum class HttpStatusCode(val value: Int) {
     Continue(100),
@@ -63,4 +63,3 @@ enum class HttpStatusCode(val value: Int) {
         get() = this.toString().replace("([A-Z])".toRegex(), " $1")
 }
 
-fun ApplicationResponse.status(code: HttpStatusCode) = status(code.value)

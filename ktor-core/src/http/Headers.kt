@@ -1,4 +1,4 @@
-package ktor.application
+package ktor.http
 
 object Headers {
     val knownCommaHeaders = listOf(

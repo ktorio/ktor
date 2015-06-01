@@ -1,15 +1,11 @@
 package ktor.application
 
-import java.io.File
-import java.net.URL
-import java.net.URLDecoder
+import java.io.*
+import java.net.*
 import java.nio.file.*
-import java.nio.file.StandardWatchEventKinds.ENTRY_CREATE
-import java.nio.file.StandardWatchEventKinds.ENTRY_DELETE
-import java.nio.file.StandardWatchEventKinds.ENTRY_MODIFY
-import java.nio.file.attribute.BasicFileAttributes
-import java.util.ArrayList
-import java.util.HashSet
+import java.nio.file.StandardWatchEventKinds.*
+import java.nio.file.attribute.*
+import java.util.*
 
 /** Controls the loading of a Ktor app from a directory.
  */

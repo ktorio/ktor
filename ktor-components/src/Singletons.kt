@@ -1,8 +1,8 @@
 package org.jetbrains.container
 
-import java.io.Closeable
-import java.util.ArrayList
-import kotlin.properties.Delegates
+import java.io.*
+import java.util.*
+import kotlin.properties.*
 
 enum class ComponentState {
     Null,

@@ -2,8 +2,8 @@ package ktor.tests.application
 
 import org.jetbrains.container.*
 import org.junit.*
+import java.io.*
 import kotlin.test.*
-import java.io.Closeable
 
 interface TestComponentInterface {
     public val disposed: Boolean

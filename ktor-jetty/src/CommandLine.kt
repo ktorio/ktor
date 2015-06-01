@@ -1,12 +1,11 @@
 package ktor.application.jetty
 
-import com.typesafe.config.ConfigFactory
-import ktor.application.ApplicationConfig
-import ktor.application.SL4JApplicationLog
-import java.io.File
-import java.net.URL
-import java.util.HashMap
-import javax.naming.InitialContext
+import com.typesafe.config.*
+import ktor.application.*
+import java.io.*
+import java.net.*
+import java.util.*
+import javax.naming.*
 
 fun main(args: Array<String>) {
     val map = HashMap<String, String>()

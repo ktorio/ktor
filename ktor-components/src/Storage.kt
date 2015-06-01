@@ -1,8 +1,7 @@
 package org.jetbrains.container
 
-import java.io.Closeable
-import java.lang.reflect.Method
-import java.lang.reflect.Modifier
+import java.io.*
+import java.lang.reflect.*
 import java.util.*
 
 public enum class ComponentStorageState {

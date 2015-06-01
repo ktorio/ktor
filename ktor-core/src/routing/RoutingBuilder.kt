@@ -1,8 +1,5 @@
 package ktor.routing
 
-import ktor.routing.*
-import ktor.application.*
-
 fun RoutingEntry.location(path: String, build: RoutingEntry.() -> Unit) {
     val parts = pathToParts(path)
     var current: RoutingEntry = this;
@@ -52,14 +49,4 @@ fun RoutingEntry.handle(body: RoutingApplicationRequest.() -> Unit) {
 }
 
 fun RoutingEntry.methodParam(method: String, build: RoutingEntry.() -> Unit) = param("@method", method, build)
-
-public fun RoutingEntry.get(path: String, body: RoutingApplicationRequest.() -> Unit): Unit = methodAndLocation(HttpMethod.Get, path, body)
-public fun RoutingEntry.put(path: String, body: RoutingApplicationRequest.() -> Unit): Unit = methodAndLocation(HttpMethod.Put, path, body)
-public fun RoutingEntry.delete(path: String, body: RoutingApplicationRequest.() -> Unit): Unit = methodAndLocation(HttpMethod.Delete, path, body)
-public fun RoutingEntry.post(path: String, body: RoutingApplicationRequest.() -> Unit): Unit = methodAndLocation(HttpMethod.Post, path, body)
-
-public fun RoutingEntry.get(body: RoutingEntry.() -> Unit): Unit = methodParam(HttpMethod.Get, body)
-public fun RoutingEntry.put(body: RoutingEntry.() -> Unit): Unit = methodParam(HttpMethod.Put, body)
-public fun RoutingEntry.delete(body: RoutingEntry.() -> Unit): Unit = methodParam(HttpMethod.Delete, body)
-public fun RoutingEntry.post(body: RoutingEntry.() -> Unit): Unit = methodParam(HttpMethod.Post, body)
 

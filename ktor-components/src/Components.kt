@@ -1,7 +1,6 @@
 package org.jetbrains.container
 
-import java.io.Closeable
-import java.lang.reflect.Method
+import java.lang.reflect.*
 
 public class InstanceComponentDescriptor(val instance: Any) : ComponentDescriptor {
 

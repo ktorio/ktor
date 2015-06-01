@@ -1,9 +1,10 @@
 package ktor.tests.application
 
 import ktor.application.*
-import org.jetbrains.spek.api.*
-import ktor.tests.*
+import ktor.http.*
 import ktor.routing.*
+import ktor.tests.*
+import org.jetbrains.spek.api.*
 
 class ApplicationRequestHeaderSpek : Spek() {init{
 

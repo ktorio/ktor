@@ -1,7 +1,5 @@
 package ktor.application
 
-import java.io.*
-
 /** Simple text result.
  */
 fun ApplicationRequest.sendText(text: String) = response {

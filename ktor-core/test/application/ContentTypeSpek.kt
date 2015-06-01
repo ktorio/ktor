@@ -1,6 +1,6 @@
 package ktor.tests.application
 
-import ktor.application.*
+import ktor.http.*
 import org.jetbrains.spek.api.*
 import kotlin.test.*
 

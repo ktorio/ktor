@@ -1,8 +1,6 @@
-package ktor.application
+package ktor.http
 
-import java.util.ArrayList
-
-fun ApplicationResponse.contentType(value : ContentType) = contentType(value.toString())
+import java.util.*
 
 class ContentType(val contentType: String, val contentSubtype: String, val parameters: List<Pair<String, String>> = listOf()) {
 

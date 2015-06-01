@@ -1,5 +1,7 @@
 package ktor.application
 
+import ktor.http.*
+
 fun ApplicationRequest.queryString(): String = uri.substringAfter('?', "")
 
 fun ApplicationRequest.queryParameters(): Map<String, List<String>> {

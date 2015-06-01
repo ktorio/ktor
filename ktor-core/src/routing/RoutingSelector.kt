@@ -1,7 +1,5 @@
 package ktor.routing
 
-import java.util.HashMap
-
 data class RouteSelectorEvaluation(val succeeded: Boolean, val values: Map<String, List<String>> = mapOf(), val incrementIndex : Int = 0) {
 }
 
@@ -98,7 +96,7 @@ data class AndRoutingSelector(val first: RoutingSelector, val second: RoutingSel
         val result2 = second.evaluate(context, index + result1.incrementIndex)
         if (!result2.succeeded)
             return result2
-        val resultValues = HashMap<String, MutableList<String>>()
+        val resultValues = hashMapOf<String, MutableList<String>>()
         for ((key, values) in result1.values) {
             resultValues.getOrPut(key, { arrayListOf() }).addAll(values)
         }

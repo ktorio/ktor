@@ -1,8 +1,8 @@
 package org.jetbrains.container
 
-import java.io.Closeable
-import java.lang.reflect.Modifier
-import kotlin.properties.Delegates
+import java.io.*
+import java.lang.reflect.*
+import kotlin.properties.*
 
 class ContainerConsistencyException(message: String) : Exception(message)
 

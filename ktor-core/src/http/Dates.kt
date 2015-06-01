@@ -1,7 +1,7 @@
-package ktor.application
+package ktor.http
 
+import java.text.*
 import java.util.*
-import java.text.SimpleDateFormat
 
 fun Long.toHttpDateString(): String {
     val calendar = Calendar.getInstance();

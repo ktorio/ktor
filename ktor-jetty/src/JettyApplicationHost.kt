@@ -1,18 +1,12 @@
 package ktor.application.jetty
 
-import ktor.application.Application
-import ktor.application.ApplicationConfig
-import ktor.application.ApplicationLoader
-import ktor.application.ServletApplicationRequest
-import org.eclipse.jetty.server.Request
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.server.handler.AbstractHandler
-import org.eclipse.jetty.server.handler.ResourceHandler
-import org.eclipse.jetty.server.session.HashSessionManager
-import org.eclipse.jetty.server.session.SessionHandler
-import java.util.ArrayList
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import ktor.application.*
+import ktor.application.servlet.*
+import org.eclipse.jetty.server.*
+import org.eclipse.jetty.server.handler.*
+import org.eclipse.jetty.server.session.*
+import java.util.*
+import javax.servlet.http.*
 
 /** A Runnable responsible for managing a Jetty server instance.
  */

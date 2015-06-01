@@ -1,8 +1,7 @@
 package ktor.application
 
-import com.typesafe.config.Config
-import java.net.URL
-import java.net.URLClassLoader
+import com.typesafe.config.*
+import java.net.*
 
 /**
  * Store application configuration.
