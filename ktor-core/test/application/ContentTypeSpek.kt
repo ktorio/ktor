@@ -4,7 +4,7 @@ import ktor.http.*
 import org.jetbrains.spek.api.*
 import kotlin.test.*
 
-class ContentTypeSpek : Spek() {init{
+class ContentTypeSpek : Spek() {init {
 
     given("ContentType text/plain") {
         val ct = ContentType.Text.Plain

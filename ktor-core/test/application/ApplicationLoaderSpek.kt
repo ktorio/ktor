@@ -5,7 +5,7 @@ import ktor.application.*
 import org.jetbrains.spek.api.*
 import kotlin.test.*
 
-class ApplicationLoaderSpek : Spek() {init{
+class ApplicationLoaderSpek : Spek() {init {
 
     given("an invalid class") {
         val testConfig = ConfigFactory.parseMap(
@@ -44,6 +44,7 @@ class ApplicationLoaderSpek : Spek() {init{
             }
         }
     }
-}}
+}
+}
 
 

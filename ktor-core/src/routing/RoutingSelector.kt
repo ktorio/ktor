@@ -1,10 +1,9 @@
 package ktor.routing
 
-data class RouteSelectorEvaluation(val succeeded: Boolean, val values: Map<String, List<String>> = mapOf(), val incrementIndex : Int = 0) {
-}
+data class RouteSelectorEvaluation(val succeeded: Boolean, val values: Map<String, List<String>> = mapOf(), val incrementIndex: Int = 0)
 
 abstract data class RoutingSelector {
-    abstract fun evaluate(context: RoutingResolveContext, index : Int): RouteSelectorEvaluation
+    abstract fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation
 }
 
 data class ConstantParameterRoutingSelector(val name: String, val value: String) : RoutingSelector() {
@@ -59,6 +58,7 @@ data class UriPartOptionalParameterRoutingSelector(val name: String) : RoutingSe
         return RouteSelectorEvaluation(true)
     }
 }
+
 data class UriPartWildcardRoutingSelector() : RoutingSelector() {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         if (index < context.parts.size()) {
@@ -68,7 +68,7 @@ data class UriPartWildcardRoutingSelector() : RoutingSelector() {
     }
 }
 
-data class UriPartTailcardRoutingSelector(val name : String = "") : RoutingSelector() {
+data class UriPartTailcardRoutingSelector(val name: String = "") : RoutingSelector() {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         if (index <= context.parts.size()) {
             val values = if (name.isEmpty()) mapOf() else mapOf(name to context.parts.drop(index))

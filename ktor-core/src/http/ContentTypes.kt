@@ -14,9 +14,9 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
 
     override fun equals(other: Any?) = when (other) {
         is ContentType -> contentType == other.contentType
-        && contentSubtype == other.contentSubtype
-        && parameters.size() == other.parameters.size()
-        && parameters.withIndex().all { it.value == other.parameters[it.index] }
+                && contentSubtype == other.contentSubtype
+                && parameters.size() == other.parameters.size()
+                && parameters.withIndex().all { it.value == other.parameters[it.index] }
         else -> false
     }
 
@@ -51,12 +51,14 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
         val Zip  by ReflectionContentTypeProperty()
         val GZip  by ReflectionContentTypeProperty()
     }
+
     object Audio {
         val Any by AnyReflectionContentTypeProperty()
         val MP4  by ReflectionContentTypeProperty()
         val MPEG  by ReflectionContentTypeProperty()
         val OGG  by ReflectionContentTypeProperty()
     }
+
     object Image {
         val Any by AnyReflectionContentTypeProperty()
         val GIF  by ReflectionContentTypeProperty()
@@ -64,10 +66,12 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
         val PNG  by ReflectionContentTypeProperty()
         val SVG  by XmlReflectionContentTypeProperty()
     }
+
     object Message {
         val Any by AnyReflectionContentTypeProperty()
         val Http  by ReflectionContentTypeProperty()
     }
+
     object MultiPart {
         val Any by AnyReflectionContentTypeProperty()
         val Mixed  by ReflectionContentTypeProperty()
@@ -77,6 +81,7 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
         val Signed  by ReflectionContentTypeProperty()
         val Encrypted  by ReflectionContentTypeProperty()
     }
+
     object Text {
         val Any by AnyReflectionContentTypeProperty()
         val Plain by ReflectionContentTypeProperty()
@@ -86,6 +91,7 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
         val VCard by ReflectionContentTypeProperty()
         val Xml by ReflectionContentTypeProperty()
     }
+
     object Video {
         val Any by AnyReflectionContentTypeProperty()
         val MPEG  by ReflectionContentTypeProperty()

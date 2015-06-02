@@ -5,7 +5,7 @@ import ktor.routing.*
 import ktor.tests.*
 import org.jetbrains.spek.api.*
 
-class RoutingProcessingSpek : Spek() {init{
+class RoutingProcessingSpek : Spek() {init {
     given("host with routing on GET /foo/bar") {
         val testHost = createTestHost()
         testHost.application.routing {

@@ -8,13 +8,15 @@ class RoutingApplicationRequest(applicationRequest: ApplicationRequest,
                                 resolveResult: RoutingResolveResult) : ApplicationRequest by applicationRequest {
 
     override val parameters: Map<String, List<String>>
+
     init {
         val result = HashMap<String, MutableList<String>>()
         for ((key, values) in applicationRequest.parameters) {
             result.getOrPut(key, { arrayListOf() }).addAll(values)
         }
         for ((key, values) in resolveResult.values) {
-            if (!result.containsKey(key)) { // HACK: should think about strategy of merging params and resolution values
+            if (!result.containsKey(key)) {
+                // HACK: should think about strategy of merging params and resolution values
                 result.getOrPut(key, { arrayListOf() }).addAll(values)
             }
         }

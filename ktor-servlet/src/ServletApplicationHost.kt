@@ -29,8 +29,7 @@ open class ServletApplicationHost() : HttpServlet() {
             if (!application.handle(ServletApplicationRequest(application, request, response))) {
                 response.sendError(HttpServletResponse.SC_NOT_FOUND)
             }
-        }
-        catch (ex: Throwable) {
+        } catch (ex: Throwable) {
             println(ex.printStackTrace())
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage())
         }

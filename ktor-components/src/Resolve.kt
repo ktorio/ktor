@@ -48,8 +48,7 @@ fun Class<*>.bindToConstructor(context: ValueResolveContext): ConstructorBinding
             if (unsatisfied == null)
                 unsatisfied = ArrayList<Type>()
             unsatisfied.add(parameter)
-        }
-        else {
+        } else {
             arguments.add(descriptor)
         }
     }
@@ -71,8 +70,7 @@ fun Method.bindToMethod(context: ValueResolveContext): MethodBinding {
             if (unsatisfied == null)
                 unsatisfied = ArrayList<Type>()
             unsatisfied.add(parameter)
-        }
-        else {
+        } else {
             arguments.add(descriptor)
         }
     }

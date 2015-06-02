@@ -15,8 +15,7 @@ public open class Application(val config: ApplicationConfig) {
         fun handle(index: Int, request: ApplicationRequest): Boolean {
             return if (index < interceptors.size()) {
                 interceptors[index](request) { handle(index + 1, it) }
-            }
-            else {
+            } else {
                 false
             }
         }

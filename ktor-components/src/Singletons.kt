@@ -40,8 +40,7 @@ public abstract class SingletonDescriptor(val container: ComponentContainer) : C
                 try {
                     instance = createInstance(container.createResolveContext(this));
                     return;
-                }
-                catch (ex: Throwable) {
+                } catch (ex: Throwable) {
                     state = ComponentState.Corrupted;
                     for (disposable in disposableObjects)
                         disposable.close();
@@ -70,8 +69,7 @@ public abstract class SingletonDescriptor(val container: ComponentContainer) : C
                 wereInstance.close();
             for (disposable in disposableObjects)
                 disposable.close();
-        }
-        catch(ex: Throwable) {
+        } catch(ex: Throwable) {
             state = ComponentState.Corrupted;
             throw ex;
         }

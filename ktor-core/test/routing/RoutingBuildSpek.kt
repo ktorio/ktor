@@ -3,7 +3,7 @@ package ktor.tests.routing
 import ktor.routing.*
 import org.jetbrains.spek.api.*
 
-class RoutingBuildSpek : Spek() {init{
+class RoutingBuildSpek : Spek() {init {
     given("empty routing") {
         fun On.itShouldHaveSpecificStructure(entry: RoutingEntry) {
             it("should have single child at root") {

@@ -7,7 +7,7 @@ import java.util.*
 /**
  * Thrown by the form builder if an invalid model property is specified.
  */
-class InvalidPropertyException(val modelClass : Class<out Any>, val property : String) : RuntimeException("Invalid property ${property} on type ${modelClass.getName()}") {
+class InvalidPropertyException(val modelClass: Class<out Any>, val property: String) : RuntimeException("Invalid property ${property} on type ${modelClass.getName()}") {
 
 }
 
@@ -18,8 +18,7 @@ fun Class<out Any>.objectInstance(): Any? {
             return field.get(null)
         }
         return null
-    }
-    catch (e: NoSuchFieldException) {
+    } catch (e: NoSuchFieldException) {
         return null
     }
 }
@@ -31,15 +30,14 @@ fun Class<out Any>.classObjectInstance(): Any? {
             return field.get(null)
         }
         return null
-    }
-    catch (e: NoSuchFieldException) {
+    } catch (e: NoSuchFieldException) {
         return null
     }
 }
 
 fun String?.asNotEmpty(): String? = if (this == null) null else if (!isEmpty()) this else null
 
-fun String.appendPathElement(part : String) : String {
+fun String.appendPathElement(part: String): String {
     val b = StringBuilder()
     b.append(this)
     if (!this.endsWith("/")) {
@@ -48,8 +46,7 @@ fun String.appendPathElement(part : String) : String {
 
     if (part.startsWith('/')) {
         b.append(part.substring(1))
-    }
-    else {
+    } else {
         b.append(part)
     }
 
@@ -63,8 +60,7 @@ fun Class<out Any>.propertyGetter(property: String): Method {
             property.length() > 2 && property[1].isLowerCase() -> property.capitalize()
             else -> property
         }}")
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
         throw InvalidPropertyException(this, property)
     }
 }
@@ -76,8 +72,7 @@ fun Class<out Any>.propertySetter(property: String): Method {
             property.length() > 2 && property[1].isLowerCase() -> property.capitalize()
             else -> property
         }}")
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
         throw InvalidPropertyException(this, property)
     }
 }
@@ -95,8 +90,7 @@ fun Class<out Any>.propertyReadonly(property: String): Boolean {
             else -> property
         }}", valueType)
         return false
-    }
-    catch (e: Exception) {
+    } catch (e: Exception) {
         return true
     }
 }
