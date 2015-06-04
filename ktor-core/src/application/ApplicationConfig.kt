@@ -23,4 +23,6 @@ public open class ApplicationConfig(private val config: Config,
 
     /** The port to run the server on. */
     public val port: Int = config.getInt("ktor.application.port")
+
+    public fun get(configuration: String): String = config.getString(configuration)
 }

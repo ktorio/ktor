@@ -24,7 +24,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlinx.html.jvm</artifactId>
-            <version>0.3.5-SNAPSHOT</version>
+            <version>[0.3.2,0.4)</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
