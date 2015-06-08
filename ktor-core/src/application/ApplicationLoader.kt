@@ -16,6 +16,10 @@ public class ApplicationLoader(val config: ApplicationConfig) {
 
     public fun ApplicationConfig.isDevelopment(): Boolean = environment == "development"
 
+    init {
+        application // eagerly create application
+    }
+
     public val application: Application
         get() = synchronized(applicationInstanceLock) {
             if (config.isDevelopment()) {
@@ -54,12 +58,12 @@ public class ApplicationLoader(val config: ApplicationConfig) {
         val appClassObject = config.classLoader.loadClass(config.applicationClassName)
                 ?: throw RuntimeException("Expected class ${config.applicationClassName} to be defined")
         val applicationClass = appClassObject as Class<Application>
+        config.log.debug("Application class: ${applicationClass.toString()}")
         val cons = applicationClass.getConstructor(javaClass<ApplicationConfig>())
         val application = cons.newInstance(config)
         if (application !is Application)
             throw RuntimeException("Expected class ${config.applicationClassName} to be inherited from Application")
 
-        config.log.debug("Application class: ${application.javaClass.toString()}")
         return application
     }
 

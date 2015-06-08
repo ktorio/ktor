@@ -63,3 +63,5 @@ public fun processChain(interceptors: List<RoutingInterceptor>, request: Routing
 
     return handle(0, request)
 }
+
+class Routing : RoutingEntry()
