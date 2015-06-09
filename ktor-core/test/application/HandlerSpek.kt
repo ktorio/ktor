@@ -10,7 +10,7 @@ class HandlerSpek : Spek() {init {
     given("application with empty handler") {
         val testHost = createTestHost()
         on("making a request") {
-            val request = testHost.makeRequest { }
+            val request = testHost.getRequest { }
             it("should not be handled") {
                 shouldBeFalse(request.handled)
             }
@@ -24,7 +24,7 @@ class HandlerSpek : Spek() {init {
         val testHost = createTestHost()
         testHost.application.intercept { request, next -> next(request) }
         on("making a request") {
-            val request = testHost.makeRequest { }
+            val request = testHost.getRequest { }
             it("should not be handled") {
                 shouldBeFalse(request.handled)
             }
@@ -38,7 +38,7 @@ class HandlerSpek : Spek() {init {
         val testHost = createTestHost()
         testHost.application.intercept { request, next -> true }
         on("making a request") {
-            val request = testHost.makeRequest { }
+            val request = testHost.getRequest { }
             it("should be handled") {
                 shouldBeTrue(request.handled)
             }
@@ -56,7 +56,7 @@ class HandlerSpek : Spek() {init {
             true
         }
         on("making a request") {
-            val request = testHost.makeRequest { }
+            val request = testHost.getRequest { }
 
             it("should be handled") {
                 shouldBeTrue(request.handled)
@@ -76,7 +76,7 @@ class HandlerSpek : Spek() {init {
         }
         on("making a request") {
             val request = fails {
-                testHost.makeRequest { }
+                testHost.getRequest { }
             }!!
             it("should throw invalid operation") {
                 shouldEqual(request.javaClass, javaClass<IllegalStateException>())
@@ -94,7 +94,7 @@ class HandlerSpek : Spek() {init {
                 false
         }
         on("making a GET request") {
-            val request = testHost.makeRequest { httpMethod = HttpMethod.Get }
+            val request = testHost.getRequest { httpMethod = HttpMethod.Get }
             it("should not be handled") {
                 shouldBeFalse(request.handled)
             }
@@ -103,7 +103,7 @@ class HandlerSpek : Spek() {init {
             }
         }
         on("making a POST request") {
-            val request = testHost.makeRequest { httpMethod = HttpMethod.Post }
+            val request = testHost.getRequest { httpMethod = HttpMethod.Post }
             it("should be handled") {
                 shouldBeTrue(request.handled)
             }

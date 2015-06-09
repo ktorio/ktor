@@ -20,7 +20,7 @@ data class RequestResult(val handled: Boolean, val response: TestApplicationResp
 class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     val application: Application = ApplicationLoader(applicationConfig).application
 
-    fun makeRequest(setup: TestApplicationRequest.() -> Unit): RequestResult {
+    fun getRequest(setup: TestApplicationRequest.() -> Unit): RequestResult {
         val request = TestApplicationRequest(application)
         request.setup()
         val result = application.handle(request)
@@ -32,7 +32,9 @@ class TestApplicationRequest(override val application: Application) : Applicatio
 
     override var uri: String = "http://localhost/"
     override var httpMethod: String = "GET"
-    override val parameters: Map<String, List<String>> get() = queryParameters()
+    override val parameters: Map<String, List<String>> get() {
+        return queryParameters() + ("@method" to arrayListOf(httpMethod))
+    }
 
     var response: TestApplicationResponse? = null
     val headers = hashMapOf<String, String>()

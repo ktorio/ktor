@@ -15,7 +15,7 @@ class RoutingProcessingSpek : Spek() {init {
         }
 
         on("making get request to /foo/bar") {
-            val result = testHost.makeRequest {
+            val result = testHost.getRequest {
                 uri = "/foo/bar"
                 httpMethod = HttpMethod.Get
             }
@@ -31,7 +31,7 @@ class RoutingProcessingSpek : Spek() {init {
         }
 
         on("making post request to /foo/bar") {
-            val result = testHost.makeRequest {
+            val result = testHost.getRequest {
                 uri = "/foo/bar"
                 httpMethod = HttpMethod.Post
             }
@@ -59,7 +59,7 @@ class RoutingProcessingSpek : Spek() {init {
             }
         }
         on("making get request to /user with query parameters") {
-            val result = testHost.makeRequest {
+            val result = testHost.getRequest {
                 uri = "/user?name=john"
                 httpMethod = HttpMethod.Get
             }
@@ -100,7 +100,7 @@ class RoutingProcessingSpek : Spek() {init {
         }
 
         on("handling GET /user/john") {
-            val result = testHost.makeRequest {
+            val result = testHost.getRequest {
                 uri = "/user/john"
                 httpMethod = HttpMethod.Get
             }

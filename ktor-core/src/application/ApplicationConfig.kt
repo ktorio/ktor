@@ -19,10 +19,23 @@ public open class ApplicationConfig(private val config: Config,
     public val applicationClassName: String = config.getString("ktor.application.class")
 
     /** Directories where publicly available files (like stylesheets, scripts, and images) will go. */
-    public val publicDirectories: List<String> = config.getStringList("ktor.application.folders.public")
+    public val publicDirectories: List<String> = config.getStringListOrEmpty("ktor.application.folders.public")
 
     /** The port to run the server on. */
-    public val port: Int = config.getInt("ktor.application.port")
+    public val port: Int = config.getIntOrDefault("ktor.application.port", 80)
 
     public fun get(configuration: String): String = config.getString(configuration)
+
+    private fun Config.getStringListOrEmpty(path: String): List<String> =
+            if (hasPath(path))
+                getStringList(path)
+            else
+                emptyList()
+
+    private fun Config.getIntOrDefault(path: String, default: Int): Int =
+            if (hasPath(path))
+                getInt(path)
+            else
+                default
 }
+
