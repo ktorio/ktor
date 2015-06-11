@@ -33,4 +33,14 @@
             <scope>runtime</scope>
         </dependency>
     </dependencies>
+    <repositories>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>bintray-cy6ergn0m-maven</id>
+            <name>bintray</name>
+            <url>http://dl.bintray.com/cy6ergn0m/maven</url>
+        </repository>
+    </repositories>
 </project>
