@@ -59,7 +59,7 @@ class RoutingProcessingSpek : Spek() {init {
             }
         }
         on("making get request to /user with query parameters") {
-            val result = testHost.getRequest {
+            testHost.getRequest {
                 uri = "/user?name=john"
                 httpMethod = HttpMethod.Get
             }
@@ -100,7 +100,7 @@ class RoutingProcessingSpek : Spek() {init {
         }
 
         on("handling GET /user/john") {
-            val result = testHost.getRequest {
+            testHost.getRequest {
                 uri = "/user/john"
                 httpMethod = HttpMethod.Get
             }
