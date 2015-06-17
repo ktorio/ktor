@@ -12,6 +12,9 @@ public open class Application(val config: ApplicationConfig) {
     }
 
     public fun handle(request: ApplicationRequest): Boolean {
+        val queryString = request.queryString()
+        val requestLogString = "${request.httpMethod} -- ${request.uri}${if (queryString.isNotEmpty()) "?$queryString" else ""}"
+
         fun handle(index: Int, request: ApplicationRequest): Boolean {
             return if (index < interceptors.size()) {
                 interceptors[index](request) { handle(index + 1, it) }
@@ -20,7 +23,9 @@ public open class Application(val config: ApplicationConfig) {
             }
         }
 
-        return handle(0, request)
+        val result = handle(0, request)
+        config.log.info("$requestLogString -- ${ if(result) "OK" else "FAIL"}")
+        return result
     }
 
     public open fun dispose() {

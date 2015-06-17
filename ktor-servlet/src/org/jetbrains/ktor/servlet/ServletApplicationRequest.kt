@@ -6,7 +6,9 @@ import java.io.*
 import java.util.*
 import javax.servlet.http.*
 
-public class ServletApplicationRequest(override val application: Application, val request: HttpServletRequest, val response: HttpServletResponse) : ApplicationRequest {
+public class ServletApplicationRequest(override val application: Application,
+                                       private val request: HttpServletRequest,
+                                       private val response: HttpServletResponse) : ApplicationRequest {
     override val uri: String = request.getRequestURI()
     override val httpMethod: String = request.getMethod()
 
@@ -49,7 +51,7 @@ public class ServletApplicationRequest(override val application: Application, va
             appResponse = Response()
             return appResponse!!
         } else
-            throw IllegalStateException("Response already aquired for this request")
+            throw IllegalStateException("Response already acquired for this request")
     }
 
     override fun response(body: ApplicationResponse.() -> Unit): ApplicationResponse {

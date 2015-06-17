@@ -13,7 +13,6 @@ import javax.servlet.http.*
  */
 class JettyApplicationHost(val config: ApplicationConfig) {
     var server: Server? = null
-    val resourceHandlers = ArrayList<ResourceHandler>()
     val loader = ApplicationLoader(config)
 
     val application: Application get() = loader.application
@@ -22,24 +21,9 @@ class JettyApplicationHost(val config: ApplicationConfig) {
 
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             response.setCharacterEncoding("UTF-8")
-            val query = request.getQueryString()
-            val method = request.getMethod()
             try {
-                val requestLogString = "$method -- ${request.getRequestURL()}${if (query != null) "?" + query else ""}"
                 if (application.handle(ServletApplicationRequest(application, request, response))) {
                     baseRequest.setHandled(true)
-                    config.log.info("$requestLogString -- OK")
-                } else {
-                    for (resourceHandler in resourceHandlers) {
-                        resourceHandler.handle(target, baseRequest, request, response)
-                        if (baseRequest.isHandled()) {
-                            config.log.info("$requestLogString -- OK @${resourceHandler.getResourceBase()}")
-                            break;
-                        }
-                    }
-                }
-                if (!baseRequest.isHandled()) {
-                    config.log.info("$requestLogString -- FAIL")
                 }
             } catch(ex: Throwable) {
                 config.log.warning("dispatch error: ${ex.getMessage()}");
@@ -68,7 +52,7 @@ class JettyApplicationHost(val config: ApplicationConfig) {
             resourceHandler.setDirectoriesListed(false)
             resourceHandler.setResourceBase("./${it}")
             resourceHandler.setWelcomeFiles(arrayOf("index.html"))
-            resourceHandlers.add(resourceHandler)
+            //TODO: resourceHandlers.add(resourceHandler)
         }
 
         val sessionHandler = SessionHandler()

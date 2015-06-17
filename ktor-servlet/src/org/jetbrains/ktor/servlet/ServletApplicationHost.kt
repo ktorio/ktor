@@ -2,16 +2,28 @@ package org.jetbrains.ktor.servlet
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
-import javax.naming.*
 import javax.servlet.http.*
 import kotlin.properties.*
 
 open class ServletApplicationHost() : HttpServlet() {
     private val loader: ApplicationLoader by Delegates.lazy {
-        val namingContext = InitialContext()
-        val config = ConfigFactory.parseMap(namingContext.getEnvironment() as Map<String, Any>)
-        val appConfig = ApplicationConfig(config)
-        ApplicationLoader(appConfig)
+        val servletContext = getServletContext()
+        val parameterNames = servletContext.getInitParameterNames().toList().filter { it.startsWith("org.jetbrains.ktor") }
+        val parameters = parameterNames.toMap({ it.removePrefix("org.jetbrains.") }, { servletContext.getInitParameter(it) })
+
+        val config = ConfigFactory.parseMap(parameters)
+        val configPath = "ktor.config"
+
+        val combinedConfig = if (config.hasPath(configPath)) {
+            val configStream = servletContext.getClassLoader().getResourceAsStream(config.getString(configPath))
+            val loadedKtorConfig = ConfigFactory.parseReader(configStream.bufferedReader())
+            config.withFallback(loadedKtorConfig)
+        } else
+            config
+
+        val applicationLog = SL4JApplicationLog("<Application>")
+        val applicationConfig = ApplicationConfig(combinedConfig, applicationLog)
+        ApplicationLoader(applicationConfig)
     }
 
     val application: Application get() = loader.application

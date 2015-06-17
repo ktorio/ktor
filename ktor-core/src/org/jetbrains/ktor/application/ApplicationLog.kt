@@ -1,6 +1,9 @@
 package org.jetbrains.ktor.application
 
 import org.slf4j.*
+import org.slf4j.Logger
+import java.util.logging
+import java.util.logging.*
 
 public interface ApplicationLog {
     fun info(message : String) {}
@@ -38,5 +41,32 @@ public class SL4JApplicationLog(name: String) : ApplicationLog {
 
     override fun trace(message: String) {
         logger.trace(message)
+    }
+}
+
+public class JULApplicationLog(name: String) : ApplicationLog {
+    val logger: logging.Logger = java.util.logging.Logger.getLogger(name)
+
+    override fun info(message: String) {
+        logger.log(Level.INFO, message)
+    }
+
+    override fun debug(message: String) {
+        logger.log(Level.FINEST, message)
+    }
+
+    override fun error(message: String, exception: Throwable?) {
+        if (exception != null)
+            logger.log(Level.SEVERE, message, exception)
+        else
+            logger.log(Level.SEVERE, message)
+    }
+
+    override fun warning(message: String) {
+        logger.log(Level.WARNING, message)
+    }
+
+    override fun trace(message: String) {
+        logger.log(Level.FINE, message)
     }
 }

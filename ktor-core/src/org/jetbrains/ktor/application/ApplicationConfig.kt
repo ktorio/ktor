@@ -15,14 +15,14 @@ public open class ApplicationConfig(private val config: Config,
 
     public val classLoader: URLClassLoader = URLClassLoader(classPath, javaClass.getClassLoader())
 
-    public val environment: String get() = config.getString("ktor.environment")
+    public val environment: String get() = config.getString("ktor.deployment.environment")
     public val applicationClassName: String = config.getString("ktor.application.class")
 
     /** Directories where publicly available files (like stylesheets, scripts, and images) will go. */
     public val publicDirectories: List<String> = config.getStringListOrEmpty("ktor.application.folders.public")
 
     /** The port to run the server on. */
-    public val port: Int = config.getIntOrDefault("ktor.application.port", 80)
+    public val port: Int = config.getIntOrDefault("ktor.deployment.port", 80)
 
     public fun get(configuration: String): String = config.getString(configuration)
 
