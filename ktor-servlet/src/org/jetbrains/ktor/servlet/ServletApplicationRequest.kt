@@ -7,19 +7,17 @@ import java.util.*
 import javax.servlet.http.*
 
 public class ServletApplicationRequest(override val application: Application,
-                                       private val request: HttpServletRequest,
-                                       private val response: HttpServletResponse) : ApplicationRequest {
-    override val uri: String = request.getRequestURI()
-    override val httpMethod: String = request.getMethod()
-
-    var appResponse: Response? = null
+                                       private val servletRequest: HttpServletRequest,
+                                       private val servletResponse: HttpServletResponse) : ApplicationRequest {
+    override val uri: String = servletRequest.getRequestURI()
+    override val httpMethod: String = servletRequest.getMethod()
 
     override val parameters: Map<String, List<String>>
 
     init {
         val result = HashMap<String, MutableList<String>>()
         result.put("@method", arrayListOf(httpMethod))
-        val parametersMap = request.getParameterMap()
+        val parametersMap = servletRequest.getParameterMap()
         if (parametersMap != null) {
             for ((key, values) in parametersMap) {
                 if (values != null) {
@@ -38,75 +36,70 @@ public class ServletApplicationRequest(override val application: Application,
         parameters = result
     }
 
-    override fun header(name: String): String? = request.getHeader(name)
+    override fun header(name: String): String? = servletRequest.getHeader(name)
 
     override fun headers(): Map<String, String> {
-        return request.getHeaderNames().asSequence().toMap({ it }, { request.getHeader(it) })
+        return servletRequest.getHeaderNames().asSequence().toMap({ it }, { servletRequest.getHeader(it) })
     }
 
-    override fun hasResponse(): Boolean = appResponse != null
-    override fun response(): ApplicationResponse {
-        val currentResponse = appResponse
-        if (currentResponse == null) {
-            appResponse = Response()
-            return appResponse!!
-        } else
-            throw IllegalStateException("Response already acquired for this request")
-    }
-
-    override fun response(body: ApplicationResponse.() -> Unit): ApplicationResponse {
-        val r = response()
-        r.body()
-        return r
+    var response: Response? = null
+    override fun respond(handle: ApplicationResponse.() -> ApplicationRequestStatus): ApplicationRequestStatus {
+        val currentResponse = response
+        if (currentResponse != null)
+            throw IllegalStateException("There should be only one response for a single request. Make sure you haven't called response more than once.")
+        response = Response()
+        return response!!.handle()
     }
 
     inner class Response : ApplicationResponse {
         override fun header(name: String, value: String): ApplicationResponse {
-            response.setHeader(name, value)
+            servletResponse.setHeader(name, value)
             return this
         }
 
         override fun header(name: String, value: Int): ApplicationResponse {
-            response.setIntHeader(name, value)
+            servletResponse.setIntHeader(name, value)
             return this
         }
 
         override fun status(code: Int): ApplicationResponse {
-            response.setStatus(code)
+            servletResponse.setStatus(code)
             return this
         }
 
         override fun contentType(value: String): ApplicationResponse {
-            response.setContentType(value)
+            servletResponse.setContentType(value)
             return this
         }
 
         override fun content(text: String, encoding: String): ApplicationResponse {
-            response.setCharacterEncoding(encoding)
-            val writer = response.getWriter()
+            servletResponse.setCharacterEncoding(encoding)
+            val writer = servletResponse.getWriter()
             writer?.write(text)
             return this
         }
 
         override fun contentStream(streamer: Writer.() -> Unit): ApplicationResponse {
-            val writer = response.getWriter()
+            val writer = servletResponse.getWriter()
             writer.streamer()
             return this
         }
 
         override fun content(bytes: ByteArray): ApplicationResponse {
-            val writer = response.getOutputStream()
+            val writer = servletResponse.getOutputStream()
             writer?.write(bytes)
             return this
         }
 
-        override fun send() {
-            response.flushBuffer()
+        override fun send(): ApplicationRequestStatus {
+            servletResponse.flushBuffer()
+            return ApplicationRequestStatus.Handled
         }
 
-        override fun sendRedirect(url: String) {
-            response.sendRedirect(url)
-            response.flushBuffer()
+        override fun sendRedirect(url: String): ApplicationRequestStatus {
+            servletResponse.sendRedirect(url)
+            servletResponse.flushBuffer()
+            return ApplicationRequestStatus.Handled
         }
 
     }

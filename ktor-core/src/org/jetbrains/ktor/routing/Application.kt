@@ -31,7 +31,7 @@ public fun Application.routing(body: RoutingEntry.() -> Unit) {
 }
 
 fun Application.interceptRoute(routing: RoutingEntry) {
-    intercept { request, next ->
+    intercept { request, proceed ->
         val resolveContext = RoutingResolveContext(request.path(), request.parameters)
         val resolveResult = routing.resolve(resolveContext)
         when {
@@ -42,23 +42,23 @@ fun Application.interceptRoute(routing: RoutingEntry) {
                 }
                 processChain(chain, RoutingApplicationRequest(request, resolveResult))
             }
-            else -> next(request)
+            else -> proceed(request)
         }
     }
 }
 
-public fun RoutingEntry.response(body: ApplicationResponse.() -> Unit) {
+public fun RoutingEntry.respond(body: ApplicationResponse.() -> ApplicationRequestStatus) {
     handle {
-        response {
+        respond {
             body()
         }
     }
 }
 
-public fun RoutingEntry.get(path: String, body: RoutingApplicationRequest.() -> Unit): Unit = methodAndLocation(HttpMethod.Get, path, body)
-public fun RoutingEntry.put(path: String, body: RoutingApplicationRequest.() -> Unit): Unit = methodAndLocation(HttpMethod.Put, path, body)
-public fun RoutingEntry.delete(path: String, body: RoutingApplicationRequest.() -> Unit): Unit = methodAndLocation(HttpMethod.Delete, path, body)
-public fun RoutingEntry.post(path: String, body: RoutingApplicationRequest.() -> Unit): Unit = methodAndLocation(HttpMethod.Post, path, body)
+public fun RoutingEntry.get(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndLocation(HttpMethod.Get, path, body)
+public fun RoutingEntry.put(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndLocation(HttpMethod.Put, path, body)
+public fun RoutingEntry.delete(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndLocation(HttpMethod.Delete, path, body)
+public fun RoutingEntry.post(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndLocation(HttpMethod.Post, path, body)
 
 public fun RoutingEntry.get(body: RoutingEntry.() -> Unit): Unit = methodParam(HttpMethod.Get, body)
 public fun RoutingEntry.put(body: RoutingEntry.() -> Unit): Unit = methodParam(HttpMethod.Put, body)

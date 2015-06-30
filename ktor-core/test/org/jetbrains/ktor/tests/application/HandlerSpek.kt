@@ -1,18 +1,20 @@
 package org.jetbrains.ktor.tests.application
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.tests.*
 import org.jetbrains.spek.api.*
+import org.junit.*
 import kotlin.test.*
 
-class HandlerSpek : Spek() {init {
+class HandlerSpek  {
 
-    given("application with empty handler") {
+    Test fun `application with empty handler`() {
         val testHost = createTestHost()
         on("making a request") {
-            val request = testHost.getRequest { }
+            val request = testHost.handleRequest { }
             it("should not be handled") {
-                shouldBeFalse(request.handled)
+                shouldEqual(ApplicationRequestStatus.Unhandled, request.requestResult)
             }
             it("should not contain response") {
                 shouldBeNull(request.response)
@@ -20,13 +22,13 @@ class HandlerSpek : Spek() {init {
         }
     }
 
-    given("application with transparent handler") {
+    Test fun `application with transparent handler`() {
         val testHost = createTestHost()
         testHost.application.intercept { request, next -> next(request) }
         on("making a request") {
-            val request = testHost.getRequest { }
+            val request = testHost.handleRequest { }
             it("should not be handled") {
-                shouldBeFalse(request.handled)
+                shouldEqual(ApplicationRequestStatus.Unhandled, request.requestResult)
             }
             it("should not contain response") {
                 shouldBeNull(request.response)
@@ -34,13 +36,13 @@ class HandlerSpek : Spek() {init {
         }
     }
 
-    given("application with handler returning true") {
+    Test fun `application with handler returning true`() {
         val testHost = createTestHost()
-        testHost.application.intercept { request, next -> true }
+        testHost.application.intercept { request, next -> ApplicationRequestStatus.Handled }
         on("making a request") {
-            val request = testHost.getRequest { }
+            val request = testHost.handleRequest { }
             it("should be handled") {
-                shouldBeTrue(request.handled)
+                shouldEqual(ApplicationRequestStatus.Handled, request.requestResult)
             }
             it("should not contain response") {
                 shouldBeNull(request.response)
@@ -48,18 +50,19 @@ class HandlerSpek : Spek() {init {
         }
     }
 
-    given("application with handler that returns a valid response") {
+    Test fun `application with handler that returns a valid response`() {
         val testHost = createTestHost()
         testHost.application.intercept { request, next ->
-            request.response {
+            request.respond {
+                send()
             }
-            true
+            ApplicationRequestStatus.Handled
         }
         on("making a request") {
-            val request = testHost.getRequest { }
+            val request = testHost.handleRequest { }
 
             it("should be handled") {
-                shouldBeTrue(request.handled)
+                shouldEqual(ApplicationRequestStatus.Handled, request.requestResult)
             }
             it("should contain response") {
                 shouldNotBeNull(request.response)
@@ -67,16 +70,16 @@ class HandlerSpek : Spek() {init {
         }
     }
 
-    given("application with handler that returns two responses") {
+    Test fun `application with handler that returns two responses`() {
         val testHost = createTestHost()
         testHost.application.intercept { request, next ->
-            request.response { }
-            request.response { }
-            true
+            request.respond { send() }
+            request.respond { send() }
+            ApplicationRequestStatus.Handled
         }
         on("making a request") {
             val request = fails {
-                testHost.getRequest { }
+                testHost.handleRequest { }
             }!!
             it("should throw invalid operation") {
                 shouldEqual(request.javaClass, javaClass<IllegalStateException>())
@@ -84,28 +87,31 @@ class HandlerSpek : Spek() {init {
         }
     }
 
-    given("application with handler that returns true on POST method") {
+    Test fun `application with handler that returns true on POST method`() {
         val testHost = createTestHost()
         testHost.application.intercept { request, next ->
             if (request.httpMethod == HttpMethod.Post) {
-                request.response().status(HttpStatusCode.OK)
-                true
+                request.respond {
+                    status(HttpStatusCode.OK)
+                    send()
+                }
+                ApplicationRequestStatus.Handled
             } else
-                false
+                ApplicationRequestStatus.Unhandled
         }
         on("making a GET request") {
-            val request = testHost.getRequest { httpMethod = HttpMethod.Get }
+            val request = testHost.handleRequest { httpMethod = HttpMethod.Get }
             it("should not be handled") {
-                shouldBeFalse(request.handled)
+                shouldEqual(ApplicationRequestStatus.Unhandled, request.requestResult)
             }
             it("should not return response") {
                 shouldBeNull(request.response)
             }
         }
         on("making a POST request") {
-            val request = testHost.getRequest { httpMethod = HttpMethod.Post }
+            val request = testHost.handleRequest { httpMethod = HttpMethod.Post }
             it("should be handled") {
-                shouldBeTrue(request.handled)
+                shouldEqual(ApplicationRequestStatus.Handled, request.requestResult)
             }
             it("should return response") {
                 shouldNotBeNull(request.response)
@@ -114,7 +120,7 @@ class HandlerSpek : Spek() {init {
     }
     /*
     TODO: This is fundamentally wrong since you shouldn't be setting ApplicationRequest "contentType" or "accept" since these are values passed in.
-        given("application with handler that returns true on text/plain content type") {
+        Test fun `application with handler that returns true on text/plain content type`() {
             val testHost = createTestHost()
             testHost.application.intercept { request, next ->
                 if (request.contentType() == ContentType.Text.Plain ) {
@@ -145,4 +151,4 @@ class HandlerSpek : Spek() {init {
         }
     */
 }
-}
+

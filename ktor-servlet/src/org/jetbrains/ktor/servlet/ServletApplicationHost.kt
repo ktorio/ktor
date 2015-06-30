@@ -38,8 +38,13 @@ open class ServletApplicationHost() : HttpServlet() {
         request.setCharacterEncoding("UTF-8")
 
         try {
-            if (!application.handle(ServletApplicationRequest(application, request, response))) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND)
+            val requestResult = application.handle(ServletApplicationRequest(application, request, response))
+            when (requestResult) {
+                ApplicationRequestStatus.Handled -> {
+                    /* do nothing, request is handled */
+                }
+                ApplicationRequestStatus.Unhandled -> response.sendError(HttpServletResponse.SC_NOT_FOUND)
+                ApplicationRequestStatus.Asynchronous -> request.startAsync()
             }
         } catch (ex: Throwable) {
             println(ex.printStackTrace())

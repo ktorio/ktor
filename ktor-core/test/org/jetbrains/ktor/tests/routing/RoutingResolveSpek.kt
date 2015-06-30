@@ -1,10 +1,12 @@
 package org.jetbrains.ktor.tests.routing
 
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.tests.*
 import org.jetbrains.spek.api.*
+import org.junit.*
 
-class RoutingResolveSpek : Spek() {init {
-    given("empty routing") {
+class RoutingResolveSpek {
+    Test fun `empty routing`() {
         val entry = RoutingEntry()
         val result = entry.resolve(RoutingResolveContext("/foo/bar"))
         on("resolving any request") {
@@ -17,7 +19,7 @@ class RoutingResolveSpek : Spek() {init {
         }
     }
 
-    given("routing with /foo") {
+    Test fun `routing with foo`() {
         val entry = RoutingEntry()
         val fooEntry = RoutingEntry()
         entry.add(UriPartConstantRoutingSelector("foo"), fooEntry)
@@ -42,7 +44,7 @@ class RoutingResolveSpek : Spek() {init {
         }
     }
 
-    given("routing with /foo/bar") {
+    Test fun `routing with foo-bar`() {
         val entry = RoutingEntry()
         val fooEntry = RoutingEntry()
         val barEntry = RoutingEntry()
@@ -80,7 +82,7 @@ class RoutingResolveSpek : Spek() {init {
         }
     }
 
-    given("routing /foo with parameter") {
+    Test fun `routing foo with parameter`() {
         val entry = RoutingEntry()
         val fooEntry = RoutingEntry()
         val paramEntry = RoutingEntry()
@@ -101,7 +103,7 @@ class RoutingResolveSpek : Spek() {init {
         }
     }
 
-    given("routing /foo with multiply parameters") {
+    Test fun `routing foo with multiply parameters`() {
         val entry = RoutingEntry()
         val fooEntry = RoutingEntry()
         entry.add(UriPartConstantRoutingSelector("foo"), fooEntry)
@@ -121,7 +123,7 @@ class RoutingResolveSpek : Spek() {init {
         }
     }
 
-    given("routing /foo with multivalue parameter") {
+    Test fun `routing foo with multivalue parameter`() {
         val entry = RoutingEntry()
         val fooEntry = RoutingEntry()
         entry.add(UriPartConstantRoutingSelector("foo"), fooEntry)
@@ -140,7 +142,7 @@ class RoutingResolveSpek : Spek() {init {
         }
     }
 
-    given("routing /foo with optional parameter") {
+    Test fun `routing foo with optional parameter`() {
         val entry = RoutingEntry()
         val fooEntry = RoutingEntry()
         val paramEntry = RoutingEntry()
@@ -175,7 +177,7 @@ class RoutingResolveSpek : Spek() {init {
         }
     }
 
-    given("routing /foo with wildcard") {
+    Test fun `routing foo with wildcard`() {
         val entry = RoutingEntry()
         val fooEntry = RoutingEntry()
         val paramEntry = RoutingEntry()
@@ -204,7 +206,7 @@ class RoutingResolveSpek : Spek() {init {
         }
     }
 
-    given("routing /foo with anonymous tailcard") {
+    Test fun `routing foo with anonymous tailcard`() {
         val entry = RoutingEntry()
         val fooEntry = RoutingEntry()
         val paramEntry = RoutingEntry()
@@ -244,7 +246,7 @@ class RoutingResolveSpek : Spek() {init {
         }
     }
 
-    given("routing /foo with named tailcard") {
+    Test fun `routing foo with named tailcard`() {
         val entry = RoutingEntry()
         val fooEntry = RoutingEntry()
         val paramEntry = RoutingEntry()
@@ -293,7 +295,7 @@ class RoutingResolveSpek : Spek() {init {
         }
     }
 
-    given("routing /foo with parameter entry") {
+    Test fun `routing foo with parameter entry`() {
         val entry = RoutingEntry()
         val fooEntry = RoutingEntry()
         val paramEntry = RoutingEntry()
@@ -341,5 +343,4 @@ class RoutingResolveSpek : Spek() {init {
             }
         }
     }
-}
 }

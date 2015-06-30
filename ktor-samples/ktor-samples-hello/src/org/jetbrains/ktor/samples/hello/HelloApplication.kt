@@ -10,7 +10,7 @@ class HelloApplication(config: ApplicationConfig) : Application(config) {
     init {
         routing {
             get("/") {
-                response {
+                respond {
                     contentType(ContentType.Text.Html)
                     contentStream {
                         appendHTML().html {
@@ -35,7 +35,7 @@ class HelloApplication(config: ApplicationConfig) : Application(config) {
                 }
             }
             get("/bye") {
-                response {
+                respond {
                     content("Goodbye World!")
                     send()
                 }

@@ -6,7 +6,6 @@ import org.eclipse.jetty.server.session.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.servlet.*
 import java.io.*
-import java.util.*
 import javax.servlet.http.*
 
 /** A Runnable responsible for managing a Jetty server instance.
@@ -22,8 +21,11 @@ class JettyApplicationHost(val config: ApplicationConfig) {
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             response.setCharacterEncoding("UTF-8")
             try {
-                if (application.handle(ServletApplicationRequest(application, request, response))) {
-                    baseRequest.setHandled(true)
+                val requestResult = application.handle(ServletApplicationRequest(application, request, response))
+                when (requestResult) {
+                    ApplicationRequestStatus.Handled -> baseRequest.setHandled(true)
+                    ApplicationRequestStatus.Unhandled -> baseRequest.setHandled(false)
+                    ApplicationRequestStatus.Asynchronous -> baseRequest.startAsync()
                 }
             } catch(ex: Throwable) {
                 config.log.warning("dispatch error: ${ex.getMessage()}");

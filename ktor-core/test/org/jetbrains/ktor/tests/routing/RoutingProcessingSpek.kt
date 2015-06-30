@@ -1,26 +1,31 @@
 package org.jetbrains.ktor.tests.routing
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.tests.*
 import org.jetbrains.spek.api.*
+import org.junit.*
 
-class RoutingProcessingSpek : Spek() {init {
-    given("host with routing on GET /foo/bar") {
+class RoutingProcessingSpek {
+    Test fun `host with routing on GET foo-bar`() {
         val testHost = createTestHost()
         testHost.application.routing {
             get("/foo/bar") {
-                response().status(HttpStatusCode.OK)
+                respond {
+                    status(HttpStatusCode.OK)
+                    send()
+                }
             }
         }
 
         on("making get request to /foo/bar") {
-            val result = testHost.getRequest {
+            val result = testHost.handleRequest {
                 uri = "/foo/bar"
                 httpMethod = HttpMethod.Get
             }
             it("should be handled") {
-                shouldBeTrue(result.handled)
+                shouldEqual(ApplicationRequestStatus.Handled, result.requestResult)
             }
             it("should have a response") {
                 shouldNotBeNull(result.response)
@@ -31,12 +36,12 @@ class RoutingProcessingSpek : Spek() {init {
         }
 
         on("making post request to /foo/bar") {
-            val result = testHost.getRequest {
+            val result = testHost.handleRequest {
                 uri = "/foo/bar"
                 httpMethod = HttpMethod.Post
             }
             it("should not be handled") {
-                shouldBeFalse(result.handled)
+                shouldEqual(ApplicationRequestStatus.Unhandled, result.requestResult)
             }
             it("should have no response") {
                 shouldBeNull(result.response)
@@ -44,7 +49,7 @@ class RoutingProcessingSpek : Spek() {init {
         }
     }
 
-    given("host with routing on GET /user with parameter") {
+    Test fun `host with routing on GET user with parameter`() {
         val testHost = createTestHost()
         var username = listOf<String>()
         testHost.application.routing {
@@ -53,13 +58,14 @@ class RoutingProcessingSpek : Spek() {init {
                     get {
                         handle {
                             username = parameters["name"] ?: listOf()
+                            ApplicationRequestStatus.Handled
                         }
                     }
                 }
             }
         }
         on("making get request to /user with query parameters") {
-            testHost.getRequest {
+            testHost.handleRequest {
                 uri = "/user?name=john"
                 httpMethod = HttpMethod.Get
             }
@@ -73,7 +79,7 @@ class RoutingProcessingSpek : Spek() {init {
 
     }
 
-    given("host with routing on GET /user/username with interceptors") {
+    Test fun `host with routing on GET -user-username with interceptors`() {
         val testHost = createTestHost()
 
         var userIntercepted = false
@@ -93,14 +99,17 @@ class RoutingProcessingSpek : Spek() {init {
                     }
                 }
                 get(":username") {
-                    userName = parameters["username"]?.first() ?: ""
-                    userNameGotWithinInterceptor = wrappedWithInterceptor
+                    handle {
+                        userName = parameters["username"]?.first() ?: ""
+                        userNameGotWithinInterceptor = wrappedWithInterceptor
+                        ApplicationRequestStatus.Handled
+                    }
                 }
             }
         }
 
         on("handling GET /user/john") {
-            testHost.getRequest {
+            testHost.handleRequest {
                 uri = "/user/john"
                 httpMethod = HttpMethod.Get
             }
@@ -115,5 +124,4 @@ class RoutingProcessingSpek : Spek() {init {
             }
         }
     }
-}
 }

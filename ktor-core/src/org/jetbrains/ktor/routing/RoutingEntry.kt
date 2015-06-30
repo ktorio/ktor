@@ -1,10 +1,11 @@
 package org.jetbrains.ktor.routing
 
+import org.jetbrains.ktor.application.*
 import java.util.*
 
 data class RoutingNode(val selector: RoutingSelector, val entry: RoutingEntry)
 
-data class RoutingInterceptor(val handler: (RoutingApplicationRequest, (RoutingApplicationRequest) -> Boolean) -> Boolean)
+data class RoutingInterceptor(val handler: (RoutingApplicationRequest, (RoutingApplicationRequest) -> ApplicationRequestStatus) -> ApplicationRequestStatus)
 
 open class RoutingEntry() {
     val children = ArrayList<RoutingNode> ()
@@ -47,18 +48,15 @@ open class RoutingEntry() {
         return resolve(request, 0, RoutingResolveResult(false, this, HashMap<String, MutableList<String>>()))
     }
 
-    public fun intercept(handler: (request: RoutingApplicationRequest, proceed: (RoutingApplicationRequest) -> Boolean) -> Boolean) {
+    public fun intercept(handler: (request: RoutingApplicationRequest, proceed: (RoutingApplicationRequest) -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
         interceptors.add(RoutingInterceptor(handler))
     }
 }
 
-public fun processChain(interceptors: List<RoutingInterceptor>, request: RoutingApplicationRequest): Boolean {
-    fun handle(index: Int, request: RoutingApplicationRequest): Boolean {
-        return if (index < interceptors.size()) {
-            interceptors[index].handler(request) { request -> handle(index + 1, request) }
-        } else {
-            false
-        }
+public fun processChain(interceptors: List<RoutingInterceptor>, request: RoutingApplicationRequest): ApplicationRequestStatus {
+    fun handle(index: Int, request: RoutingApplicationRequest): ApplicationRequestStatus = when (index) {
+        in interceptors.indices -> interceptors[index].handler(request) { request -> handle(index + 1, request) }
+        else -> ApplicationRequestStatus.Unhandled
     }
 
     return handle(0, request)

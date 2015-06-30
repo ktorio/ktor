@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.routing
 
+import org.jetbrains.ktor.application.*
+
 fun RoutingEntry.location(path: String, build: RoutingEntry.() -> Unit) {
     val parts = pathToParts(path)
     var current: RoutingEntry = this;
@@ -30,22 +32,22 @@ fun RoutingEntry.param(name: String, build: RoutingEntry.() -> Unit) {
     add(selector, entry).build()
 }
 
-fun RoutingEntry.methodAndLocation(method: String, path: String, build: RoutingApplicationRequest.() -> Unit) {
+fun RoutingEntry.methodAndLocation(method: String, path: String, body: RoutingEntry.() -> Unit) {
     methodParam(method) {
         location(path) {
-            intercept { request, next -> request.build(); request.hasResponse() }
+            body()
         }
     }
 }
 
-fun RoutingEntry.method(method: String, body: RoutingApplicationRequest.() -> Unit) {
+fun RoutingEntry.method(method: String, body: RoutingEntry.() -> Unit) {
     methodParam(method) {
-        intercept { request, next -> request.body(); request.hasResponse() }
+        body()
     }
 }
 
-fun RoutingEntry.handle(body: RoutingApplicationRequest.() -> Unit) {
-    intercept { request, next -> request.body(); request.hasResponse() }
+fun RoutingEntry.handle(handle: RoutingApplicationRequest.() -> ApplicationRequestStatus) {
+    intercept { request, next -> request.handle() }
 }
 
 fun RoutingEntry.methodParam(method: String, build: RoutingEntry.() -> Unit) = param("@method", method, build)

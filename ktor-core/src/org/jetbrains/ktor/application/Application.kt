@@ -6,30 +6,29 @@ import java.util.*
  */
 public open class Application(val config: ApplicationConfig) {
 
-    private val interceptors = ArrayList<(ApplicationRequest, (ApplicationRequest) -> Boolean) -> Boolean>()
-    public fun intercept(handler: (request: ApplicationRequest, proceed: (ApplicationRequest) -> Boolean) -> Boolean) {
+    private val interceptors = ArrayList<(ApplicationRequest, (ApplicationRequest) -> ApplicationRequestStatus) -> ApplicationRequestStatus>()
+    public fun intercept(handler: (request: ApplicationRequest, proceed: (ApplicationRequest) -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
         interceptors.add(handler)
     }
 
-    public fun handle(request: ApplicationRequest): Boolean {
+    public fun handle(request: ApplicationRequest): ApplicationRequestStatus {
         val queryString = request.queryString()
         val requestLogString = "${request.httpMethod} -- ${request.uri}${if (queryString.isNotEmpty()) "?$queryString" else ""}"
 
-        fun handle(index: Int, request: ApplicationRequest): Boolean {
-            return if (index < interceptors.size()) {
-                interceptors[index](request) { handle(index + 1, it) }
-            } else {
-                false
+        fun handle(index: Int, request: ApplicationRequest): ApplicationRequestStatus = when (index) {
+            in interceptors.indices -> {
+                val interceptor = interceptors[index]
+                val proceed: (ApplicationRequest) -> ApplicationRequestStatus = { augmentedRequest -> handle(index + 1, augmentedRequest) }
+                interceptor(request, proceed)
             }
+            else -> ApplicationRequestStatus.Unhandled
         }
 
         val result = handle(0, request)
-        config.log.info("$requestLogString -- ${ if(result) "OK" else "FAIL"}")
+        config.log.info("$requestLogString -- $result")
         return result
     }
 
     public open fun dispose() {
-
     }
 }
-

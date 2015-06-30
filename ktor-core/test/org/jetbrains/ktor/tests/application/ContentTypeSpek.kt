@@ -1,12 +1,14 @@
 package org.jetbrains.ktor.tests.application
 
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.tests.*
 import org.jetbrains.spek.api.*
+import org.junit.*
 import kotlin.test.*
 
-class ContentTypeSpek : Spek() {init {
+class ContentTypeSpek  {
 
-    given("ContentType text/plain") {
+    Test fun `ContentType text-plain`() {
         val ct = ContentType.Text.Plain
         on("parsing parts") {
             it("should have text contentType") {
@@ -21,7 +23,7 @@ class ContentTypeSpek : Spek() {init {
         }
     }
 
-    given("text/plain") {
+    Test fun `text-plain`() {
         val ct = ContentType.parse("text/plain")
         on("parsing parts") {
             it("should have text contentType") {
@@ -36,7 +38,7 @@ class ContentTypeSpek : Spek() {init {
         }
     }
 
-    given("text/plain ; charset = utf-8") {
+    Test fun `text-plain charset is utf-8`() {
         val ct = ContentType.parse("text/plain ; charset = utf-8")
         on("parsing content") {
             it("should have text contentType") {
@@ -66,7 +68,7 @@ class ContentTypeSpek : Spek() {init {
         }
     }
 
-    given("text/plain ; charset = utf-8;foo=bar") {
+    Test fun `text-plain charset is utf-8 with parameter foo-bar`() {
         val ct = ContentType.parse("text/plain ; charset = utf-8;foo=bar")
 
         on("doing a toString") {
@@ -77,7 +79,7 @@ class ContentTypeSpek : Spek() {init {
         }
     }
 
-    given("text/plain/invalid") {
+    Test fun `text-plain-invalid`() {
         on("parsing parts") {
             val error = fails {
                 ContentType.Companion.parse("text/plain/something")
@@ -88,5 +90,4 @@ class ContentTypeSpek : Spek() {init {
             }
         }
     }
-}
 }

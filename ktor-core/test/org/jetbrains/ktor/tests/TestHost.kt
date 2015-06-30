@@ -7,7 +7,7 @@ import java.io.*
 fun createTestHost(): TestApplicationHost {
     val testConfig = ConfigFactory.parseMap(
             mapOf(
-                    "ktor.environment" to "test",
+                    "ktor.deployment.environment" to "test",
                     "ktor.application.package" to "org.jetbrains.ktor.tests",
                     "ktor.application.class" to "org.jetbrains.ktor.tests.TestApplication"
                  ))
@@ -15,16 +15,16 @@ fun createTestHost(): TestApplicationHost {
     return TestApplicationHost(config)
 }
 
-data class RequestResult(val handled: Boolean, val response: TestApplicationResponse?)
+data class RequestResult(val requestResult: ApplicationRequestStatus, val response: TestApplicationResponse?)
 
 class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     val application: Application = ApplicationLoader(applicationConfig).application
 
-    fun getRequest(setup: TestApplicationRequest.() -> Unit): RequestResult {
+    fun handleRequest(setup: TestApplicationRequest.() -> Unit): RequestResult {
         val request = TestApplicationRequest(application)
         request.setup()
-        val result = application.handle(request)
-        return RequestResult(result, request.response)
+        val status = application.handle(request)
+        return RequestResult(status, request.response)
     }
 }
 
@@ -36,26 +36,17 @@ class TestApplicationRequest(override val application: Application) : Applicatio
         return queryParameters() + ("@method" to arrayListOf(httpMethod))
     }
 
-    var response: TestApplicationResponse? = null
     val headers = hashMapOf<String, String>()
 
     override fun header(name: String): String? = headers[name]
     override fun headers(): Map<String, String> = headers
 
-    override fun hasResponse(): Boolean = response != null
-
-
-    override fun response(): ApplicationResponse {
+    var response: TestApplicationResponse? = null
+    override fun respond(handle: ApplicationResponse.() -> ApplicationRequestStatus): ApplicationRequestStatus {
         if (response != null)
             throw IllegalStateException("There should be only one response for a single request. Make sure you haven't called response more than once.")
         response = TestApplicationResponse()
-        return response!!
-    }
-
-    override fun response(body: ApplicationResponse.() -> Unit): ApplicationResponse {
-        val response = response()
-        response.body()
-        return response
+        return response!!.handle()
     }
 }
 
@@ -90,12 +81,12 @@ class TestApplicationResponse : ApplicationResponse {
         throw UnsupportedOperationException()
     }
 
-    override fun send() {
-        throw UnsupportedOperationException()
+    override fun send(): ApplicationRequestStatus {
+        return ApplicationRequestStatus.Handled
     }
 
-    override fun sendRedirect(url: String) {
-        throw UnsupportedOperationException()
+    override fun sendRedirect(url: String): ApplicationRequestStatus {
+        return ApplicationRequestStatus.Handled
     }
 }
 
