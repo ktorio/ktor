@@ -17,14 +17,7 @@ fun main(args: Array<String>) {
     }
 
     val jar = map["-jar"]?.let { File(it).toURI().toURL() }
-    val classPath = if (jar == null) arrayOf<URL>() else arrayOf<URL>(jar)
-
-    val namingContext = InitialContext()
-    //val namingConfig = ConfigFactory.parseMap(namingContext.getEnvironment() as Map<String, out Any>)
-    val applicationConfig = ConfigFactory.load()
-    val commandLineConfig = ConfigFactory.parseMap(mapOf("ktor.environment" to (map["-env"] ?: "development")))
-
-    val combinedConfig = applicationConfig.withFallback(commandLineConfig)
+    val combinedConfig = ConfigFactory.load()
     val log = SL4JApplicationLog("<Application>")
     val appConfig = ApplicationConfig(combinedConfig, log, jar)
 
