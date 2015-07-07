@@ -4,10 +4,10 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.tests.*
-import org.jetbrains.spek.api.*
 import org.junit.*
+import kotlin.test.*
 
-class RoutingProcessingSpek {
+class RoutingProcessingTest {
     Test fun `host with routing on GET foo-bar`() {
         val testHost = createTestHost()
         testHost.application.routing {
@@ -25,13 +25,13 @@ class RoutingProcessingSpek {
                 httpMethod = HttpMethod.Get
             }
             it("should be handled") {
-                shouldEqual(ApplicationRequestStatus.Handled, result.requestResult)
+                assertEquals(ApplicationRequestStatus.Handled, result.requestResult)
             }
             it("should have a response") {
-                shouldNotBeNull(result.response)
+                assertNotNull(result.response)
             }
             it("should have a response with OK status") {
-                shouldEqual(HttpStatusCode.OK.value, result.response!!.status)
+                assertEquals(HttpStatusCode.OK.value, result.response!!.status)
             }
         }
 
@@ -41,10 +41,10 @@ class RoutingProcessingSpek {
                 httpMethod = HttpMethod.Post
             }
             it("should not be handled") {
-                shouldEqual(ApplicationRequestStatus.Unhandled, result.requestResult)
+                assertEquals(ApplicationRequestStatus.Unhandled, result.requestResult)
             }
             it("should have no response") {
-                shouldBeNull(result.response)
+                assertNull(result.response)
             }
         }
     }
@@ -70,10 +70,10 @@ class RoutingProcessingSpek {
                 httpMethod = HttpMethod.Get
             }
             it("should have processed username once") {
-                shouldEqual(1, username.size())
+                assertEquals(1, username.size())
             }
             it("should have extracted username") {
-                shouldEqual("john", username.first())
+                assertEquals("john", username.first())
             }
         }
 
@@ -114,13 +114,13 @@ class RoutingProcessingSpek {
                 httpMethod = HttpMethod.Get
             }
             it("should have processed interceptor on /user node") {
-                shouldBeTrue(userIntercepted)
+                assertTrue(userIntercepted)
             }
             it("should have processed get handler on /user/username node") {
-                shouldEqual(userName, "john")
+                assertEquals(userName, "john")
             }
             it("should have processed /user/username in context of interceptor") {
-                shouldBeTrue(userNameGotWithinInterceptor)
+                assertTrue(userNameGotWithinInterceptor)
             }
         }
     }

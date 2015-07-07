@@ -2,19 +2,19 @@ package org.jetbrains.ktor.tests.routing
 
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.tests.*
-import org.jetbrains.spek.api.*
 import org.junit.*
+import kotlin.test.*
 
-class RoutingResolveSpek {
+class RoutingResolveTest {
     Test fun `empty routing`() {
         val entry = RoutingEntry()
         val result = entry.resolve(RoutingResolveContext("/foo/bar"))
         on("resolving any request") {
             it("should not succeed") {
-                shouldBeFalse(result.succeeded)
+                assertFalse(result.succeeded)
             }
             it("should have root as fail entry") {
-                shouldEqual(entry, result.entry)
+                assertEquals(entry, result.entry)
             }
         }
     }
@@ -27,19 +27,19 @@ class RoutingResolveSpek {
         on("resolving /foo") {
             val result = entry.resolve(RoutingResolveContext("/foo"))
             it("should succeed") {
-                shouldBeTrue(result.succeeded)
+                assertTrue(result.succeeded)
             }
             it("should have fooEntry as success entry") {
-                shouldEqual(fooEntry, result.entry)
+                assertEquals(fooEntry, result.entry)
             }
         }
         on("resolving /foo/bar") {
             val result = entry.resolve(RoutingResolveContext("/foo/bar"))
             it("should not succeed") {
-                shouldBeFalse(result.succeeded)
+                assertFalse(result.succeeded)
             }
             it("should have fooEntry as fail entry") {
-                shouldEqual(fooEntry, result.entry)
+                assertEquals(fooEntry, result.entry)
             }
         }
     }
@@ -54,30 +54,30 @@ class RoutingResolveSpek {
         on("resolving /foo") {
             val result = entry.resolve(RoutingResolveContext("/foo"))
             it("should succeed") {
-                shouldBeTrue(result.succeeded)
+                assertTrue(result.succeeded)
             }
             it("should have fooEntry as success entry") {
-                shouldEqual(fooEntry, result.entry)
+                assertEquals(fooEntry, result.entry)
             }
         }
 
         on("resolving /foo/bar") {
             val result = entry.resolve(RoutingResolveContext("/foo/bar"))
             it("should succeed") {
-                shouldBeTrue(result.succeeded)
+                assertTrue(result.succeeded)
             }
             it("should have barEntry as success entry") {
-                shouldEqual(barEntry, result.entry)
+                assertEquals(barEntry, result.entry)
             }
         }
 
         on("resolving /other/bar") {
             val result = entry.resolve(RoutingResolveContext("/other/bar"))
             it("should not succeed") {
-                shouldBeFalse(result.succeeded)
+                assertFalse(result.succeeded)
             }
             it("should have root as fail entry") {
-                shouldEqual(entry, result.entry)
+                assertEquals(entry, result.entry)
             }
         }
     }
@@ -92,13 +92,13 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo/value"))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                shouldEqual(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.entry)
             }
             it("should have parameter value equal to 'value'") {
-                shouldEqual("value", resolveResult.values["param"]?.first())
+                assertEquals("value", resolveResult.values["param"]?.first())
             }
         }
     }
@@ -114,11 +114,11 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo/value1/value2"))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should have parameter values equal to 'value1' and 'value2'") {
-                shouldEqual("value1", resolveResult.values["param1"]?.first())
-                shouldEqual("value2", resolveResult.values["param2"]?.first())
+                assertEquals("value1", resolveResult.values["param1"]?.first())
+                assertEquals("value2", resolveResult.values["param2"]?.first())
             }
         }
     }
@@ -134,10 +134,10 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo/value1/value2"))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should have parameter value equal to [value1, value2]") {
-                shouldEqual(listOf("value1", "value2"), resolveResult.values["param"])
+                assertEquals(listOf("value1", "value2"), resolveResult.values["param"])
             }
         }
     }
@@ -152,13 +152,13 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo/value"))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                shouldEqual(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.entry)
             }
             it("should have parameter value equal to 'value'") {
-                shouldEqual("value", resolveResult.values["param"]?.first())
+                assertEquals("value", resolveResult.values["param"]?.first())
             }
         }
 
@@ -166,13 +166,13 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo"))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                shouldEqual(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.entry)
             }
             it("should not have parameter value") {
-                shouldBeNull(resolveResult.values["param"])
+                assertNull(resolveResult.values["param"])
             }
         }
     }
@@ -187,10 +187,10 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo/value"))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                shouldEqual(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.entry)
             }
         }
 
@@ -198,10 +198,10 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo"))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should resolve to fooEntry") {
-                shouldEqual(fooEntry, resolveResult.entry)
+                assertEquals(fooEntry, resolveResult.entry)
             }
         }
     }
@@ -216,10 +216,10 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo/value"))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                shouldEqual(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.entry)
             }
         }
 
@@ -227,10 +227,10 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo"))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                shouldEqual(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.entry)
             }
         }
 
@@ -238,10 +238,10 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo/bar/baz/blah"))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                shouldEqual(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.entry)
             }
         }
     }
@@ -256,13 +256,13 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo/value"))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                shouldEqual(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.entry)
             }
             it("should have parameter value") {
-                shouldEqual(listOf("value"), resolveResult.values["items"])
+                assertEquals(listOf("value"), resolveResult.values["items"])
             }
         }
 
@@ -270,13 +270,13 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo"))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should resolve to fooEntry") {
-                shouldEqual(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.entry)
             }
             it("should have empty parameter") {
-                shouldBeTrue(resolveResult.values["items"]?.none())
+                assertTrue(resolveResult.values["items"]?.none() ?: true)
             }
         }
 
@@ -284,13 +284,13 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo/bar/baz/blah"))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                shouldEqual(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.entry)
             }
             it("should have parameter value") {
-                shouldEqual(listOf("bar", "baz", "blah"), resolveResult.values["items"])
+                assertEquals(listOf("bar", "baz", "blah"), resolveResult.values["items"])
             }
         }
     }
@@ -305,13 +305,13 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo", mapOf("name" to listOf("value"))))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                shouldEqual(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.entry)
             }
             it("should have parameter value") {
-                shouldEqual(listOf("value"), resolveResult.values["name"])
+                assertEquals(listOf("value"), resolveResult.values["name"])
             }
         }
 
@@ -319,13 +319,13 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo"))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should resolve to fooEntry") {
-                shouldEqual(fooEntry, resolveResult.entry)
+                assertEquals(fooEntry, resolveResult.entry)
             }
             it("should have no parameter") {
-                shouldBeNull(resolveResult.values["name"])
+                assertNull(resolveResult.values["name"])
             }
         }
 
@@ -333,13 +333,13 @@ class RoutingResolveSpek {
             val resolveResult = entry.resolve(RoutingResolveContext("/foo", mapOf("name" to listOf("value1", "value2"))))
 
             it("should successfully resolve") {
-                shouldBeTrue(resolveResult.succeeded)
+                assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                shouldEqual(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.entry)
             }
             it("should have parameter value") {
-                shouldEqual(listOf("value1", "value2"), resolveResult.values["name"])
+                assertEquals(listOf("value1", "value2"), resolveResult.values["name"])
             }
         }
     }

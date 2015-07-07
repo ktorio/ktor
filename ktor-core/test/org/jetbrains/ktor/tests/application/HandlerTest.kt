@@ -3,21 +3,20 @@ package org.jetbrains.ktor.tests.application
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.tests.*
-import org.jetbrains.spek.api.*
 import org.junit.*
 import kotlin.test.*
 
-class HandlerSpek  {
+class HandlerTest {
 
     Test fun `application with empty handler`() {
         val testHost = createTestHost()
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should not be handled") {
-                shouldEqual(ApplicationRequestStatus.Unhandled, request.requestResult)
+                assertEquals(ApplicationRequestStatus.Unhandled, request.requestResult)
             }
             it("should not contain response") {
-                shouldBeNull(request.response)
+                assertNull(request.response)
             }
         }
     }
@@ -28,10 +27,10 @@ class HandlerSpek  {
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should not be handled") {
-                shouldEqual(ApplicationRequestStatus.Unhandled, request.requestResult)
+                assertEquals(ApplicationRequestStatus.Unhandled, request.requestResult)
             }
             it("should not contain response") {
-                shouldBeNull(request.response)
+                assertNull(request.response)
             }
         }
     }
@@ -42,10 +41,10 @@ class HandlerSpek  {
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should be handled") {
-                shouldEqual(ApplicationRequestStatus.Handled, request.requestResult)
+                assertEquals(ApplicationRequestStatus.Handled, request.requestResult)
             }
             it("should not contain response") {
-                shouldBeNull(request.response)
+                assertNull(request.response)
             }
         }
     }
@@ -62,10 +61,10 @@ class HandlerSpek  {
             val request = testHost.handleRequest { }
 
             it("should be handled") {
-                shouldEqual(ApplicationRequestStatus.Handled, request.requestResult)
+                assertEquals(ApplicationRequestStatus.Handled, request.requestResult)
             }
             it("should contain response") {
-                shouldNotBeNull(request.response)
+                assertNotNull(request.response)
             }
         }
     }
@@ -82,7 +81,7 @@ class HandlerSpek  {
                 testHost.handleRequest { }
             }!!
             it("should throw invalid operation") {
-                shouldEqual(request.javaClass, javaClass<IllegalStateException>())
+                assertEquals(request.javaClass, javaClass<IllegalStateException>())
             }
         }
     }
@@ -102,19 +101,19 @@ class HandlerSpek  {
         on("making a GET request") {
             val request = testHost.handleRequest { httpMethod = HttpMethod.Get }
             it("should not be handled") {
-                shouldEqual(ApplicationRequestStatus.Unhandled, request.requestResult)
+                assertEquals(ApplicationRequestStatus.Unhandled, request.requestResult)
             }
             it("should not return response") {
-                shouldBeNull(request.response)
+                assertNull(request.response)
             }
         }
         on("making a POST request") {
             val request = testHost.handleRequest { httpMethod = HttpMethod.Post }
             it("should be handled") {
-                shouldEqual(ApplicationRequestStatus.Handled, request.requestResult)
+                assertEquals(ApplicationRequestStatus.Handled, request.requestResult)
             }
             it("should return response") {
-                shouldNotBeNull(request.response)
+                assertNotNull(request.response)
             }
         }
     }
@@ -133,7 +132,7 @@ class HandlerSpek  {
             on("making a request for content type text/plain") {
                 val request = testHost.makeRequest { contentType = ContentType.Text.Plain }
                 it("should be handled") {
-                    shouldBeTrue(request.handled)
+                    assertTrue(request.handled)
                 }
                 it("should return response") {
                     shouldNotBeNull(request.response)

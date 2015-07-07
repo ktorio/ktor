@@ -1,20 +1,8 @@
 package org.jetbrains.ktor.tests
 
-import org.jetbrains.spek.api.*
+object On
 
-fun on(comment: String, body: On.() -> Unit) {
-    object : On {
-        override fun it(description: String, body: It.() -> Unit) {
-            object : It {}.body()
-/*
-            try {
-                object : It {}.body()
-            } catch(e: Throwable) {
-                throw SpecificationFailedException(description, e)
-            }
-*/
-        }
-    }.body()
-}
+object It
 
-class SpecificationFailedException(message: String, e: Throwable) : Exception(message, e)
+fun on(comment: String, body: On.() -> Unit) = On.body()
+inline fun On.it(description: String, body: It.() -> Unit) = It.body()
