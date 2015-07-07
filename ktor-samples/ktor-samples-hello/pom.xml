@@ -22,9 +22,9 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>org.jetbrains.kotlin</groupId>
+            <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx.html.jvm</artifactId>
-            <version>[0.3.2,0.4)</version>
+            <version>[0.4,0.5)</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
@@ -40,12 +40,9 @@
     </dependencies>
     <repositories>
         <repository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>bintray-cy6ergn0m-maven</id>
+            <id>bintray-kotlinx</id>
             <name>bintray</name>
-            <url>http://dl.bintray.com/cy6ergn0m/maven</url>
+            <url>http://dl.bintray.com/kotlinx/kotlinx</url>
         </repository>
     </repositories>
 </project>

@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.samples.hello
 
-import html4k.*
-import html4k.stream.*
+import kotlinx.html.*
+import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
