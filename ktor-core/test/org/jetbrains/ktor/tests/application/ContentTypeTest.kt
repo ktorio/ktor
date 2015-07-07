@@ -79,7 +79,7 @@ class ContentTypeTest {
     }
 
     Test fun `text-plain-invalid`() {
-        on("parsing parts") {
+        on("parsing text/plain/something") {
             val error = fails {
                 ContentType.Companion.parse("text/plain/something")
             }

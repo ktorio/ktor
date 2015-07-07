@@ -50,10 +50,10 @@ class ApplicationRequestHeaderTest {
             testHost.application.routing {
                 get("/foo") {
                     handle {
-                        it("shoud map uri to /foo?key1=value1&key2=value2") {
+                        it("should map uri to /foo?key1=value1&key2=value2") {
                             assertEquals("/foo?key1=value1&key2=value2", uri)
                         }
-                        it("shoud map two parameters key1=value1 and key2=value2") {
+                        it("should map two parameters key1=value1 and key2=value2") {
                             val params = queryParameters()
                             assertEquals("value1", params["key1"]?.single())
                             assertEquals("value2", params["key2"]?.single())
@@ -99,10 +99,10 @@ class ApplicationRequestHeaderTest {
             testHost.application.routing {
                 get("/") {
                     handle {
-                        it("shoud map uri to /?key1=value1&key2=value2") {
+                        it("should map uri to /?key1=value1&key2=value2") {
                             assertEquals("/?key1=value1&key2=value2", uri)
                         }
-                        it("shoud map two parameters key1=value1 and key2=value2") {
+                        it("should map two parameters key1=value1 and key2=value2") {
                             val params = queryParameters()
                             assertEquals("value1", params["key1"]?.single())
                             assertEquals("value2", params["key2"]?.single())
