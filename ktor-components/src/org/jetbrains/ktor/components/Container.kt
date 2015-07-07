@@ -23,7 +23,7 @@ object UnidentifiedComponentDescriptor : ComponentDescriptor {
 }
 
 public class StorageComponentContainer(id: String) : ComponentContainer, Closeable {
-    public val unknownContext: ComponentResolveContext by Delegates.lazy { ComponentResolveContext(this, DynamicComponentDescriptor) }
+    public val unknownContext: ComponentResolveContext by lazy { ComponentResolveContext(this, DynamicComponentDescriptor) }
     val componentStorage = ComponentStorage(id)
 
     override fun createResolveContext(requestingDescriptor: ValueDescriptor): ValueResolveContext {

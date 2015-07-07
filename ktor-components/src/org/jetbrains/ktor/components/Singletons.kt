@@ -16,7 +16,7 @@ enum class ComponentState {
 public abstract class SingletonDescriptor(val container: ComponentContainer) : ComponentDescriptor, Closeable {
     private var instance: Any? = null
     protected var state: ComponentState = ComponentState.Null
-    private val disposableObjects by Delegates.lazy { ArrayList<Closeable>() }
+    private val disposableObjects by lazy { ArrayList<Closeable>() }
 
     public override fun getValue(): Any {
         if (state == ComponentState.Corrupted)

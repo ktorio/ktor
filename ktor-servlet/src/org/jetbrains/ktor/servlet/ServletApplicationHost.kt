@@ -6,7 +6,7 @@ import javax.servlet.http.*
 import kotlin.properties.*
 
 open class ServletApplicationHost() : HttpServlet() {
-    private val loader: ApplicationLoader by Delegates.lazy {
+    private val loader: ApplicationLoader by lazy {
         val servletContext = getServletContext()
         val parameterNames = servletContext.getInitParameterNames().toList().filter { it.startsWith("org.jetbrains.ktor") }
         val parameters = parameterNames.toMap({ it.removePrefix("org.jetbrains.") }, { servletContext.getInitParameter(it) })

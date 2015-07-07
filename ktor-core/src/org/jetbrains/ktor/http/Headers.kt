@@ -10,7 +10,7 @@ object Headers {
 
     fun splitKnownHeaders(key: String, value: String): List<String> {
         if (key in knownCommaHeaders) {
-            return value.splitBy(",").map { it.trim() }
+            return value.split(",").map { it.trim() }
         }
 
         return listOf(value)

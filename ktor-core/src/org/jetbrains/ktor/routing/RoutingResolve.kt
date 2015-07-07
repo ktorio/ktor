@@ -14,5 +14,5 @@ fun pathToParts(path: String) =
         if (path == "/")
             listOf("")
         else
-            path.splitBy("/").filter { it.length() > 0 }.toList()
+            path.split("/").filter { it.length() > 0 }.toList()
 
