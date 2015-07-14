@@ -25,10 +25,10 @@ public class ComponentStorage(val myId: String) : ValueResolver {
     var state = ComponentStorageState.Initial
     val registry = ComponentRegistry()
     val descriptors = LinkedHashSet<ComponentDescriptor>()
-    val dependencies = Multimap<ComponentDescriptor, Class<*>>()
+    val dependencies = Multimap<ComponentDescriptor, Type>()
     val composingDescriptors = LinkedHashSet<ComponentDescriptor>()
 
-    override fun resolve(request: Class<*>, context: ValueResolveContext): ValueDescriptor? {
+    override fun resolve(request: Type, context: ValueResolveContext): ValueDescriptor? {
         if (state == ComponentStorageState.Initial)
             throw ContainerConsistencyException("Container was not composed before resolving")
 
@@ -42,7 +42,7 @@ public class ComponentStorage(val myId: String) : ValueResolver {
         return null
     }
 
-    private fun registerDependency(request: Class<*>, context: ValueResolveContext) {
+    private fun registerDependency(request: Type, context: ValueResolveContext) {
         if (context is ComponentResolveContext) {
             val descriptor = context.requestingDescriptor
             if (descriptor is ComponentDescriptor) {
@@ -58,7 +58,7 @@ public class ComponentStorage(val myId: String) : ValueResolver {
         }
     }
 
-    public fun resolveMultiple(request: Class<*>, context: ValueResolveContext): Iterable<ValueDescriptor> {
+    public fun resolveMultiple(request: Type, context: ValueResolveContext): Iterable<ValueDescriptor> {
         registerDependency(request, context)
         return registry.tryGetEntry(request) ?: listOf()
     }
@@ -107,19 +107,19 @@ public class ComponentStorage(val myId: String) : ValueResolver {
         }
     }
 
-    private fun registerImplicits(context: ComponentResolveContext, descriptor: ComponentDescriptor, implicits: MutableSet<ComponentDescriptor>, visitedTypes: HashSet<Class<*>>) {
+    private fun registerImplicits(context: ComponentResolveContext, descriptor: ComponentDescriptor, implicits: MutableSet<ComponentDescriptor>, visitedClasses: HashSet<Class<*>>) {
         val dependencies = descriptor.getDependencies(context)
         for (type in dependencies) {
-            if (type in visitedTypes)
+            if (type !is Class<*> || !visitedClasses.add(type))
                 continue
-            visitedTypes.add(type)
+            visitedClasses.add(type)
             val entry = registry.tryGetEntry(type)
             if (entry == null) {
                 val modifiers = type.getModifiers()
                 if (!Modifier.isInterface(modifiers) && !Modifier.isAbstract(modifiers) && !type.isPrimitive()) {
                     val implicitDescriptor = SingletonTypeComponentDescriptor(context.container, type)
                     implicits.add(implicitDescriptor)
-                    registerImplicits(context, implicitDescriptor, implicits, visitedTypes)
+                    registerImplicits(context, implicitDescriptor, implicits, visitedClasses)
                 }
             }
         }

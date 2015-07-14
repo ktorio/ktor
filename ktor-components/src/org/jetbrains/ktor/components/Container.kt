@@ -11,13 +11,13 @@ public interface ComponentContainer {
 }
 
 object DynamicComponentDescriptor : ComponentDescriptor {
-    override fun getDependencies(context: ValueResolveContext): Collection<Class<*>> = throw UnsupportedOperationException()
-    override fun getRegistrations(): Iterable<Class<*>> = throw UnsupportedOperationException()
+    override fun getDependencies(context: ValueResolveContext): Collection<Type> = throw UnsupportedOperationException()
+    override fun getRegistrations(): Iterable<Type> = throw UnsupportedOperationException()
     override fun getValue(): Any = throw UnsupportedOperationException()
 }
 
 object UnidentifiedComponentDescriptor : ComponentDescriptor {
-    override fun getDependencies(context: ValueResolveContext): Collection<Class<*>> = throw UnsupportedOperationException()
+    override fun getDependencies(context: ValueResolveContext): Collection<Type> = throw UnsupportedOperationException()
     override fun getRegistrations(): Iterable<Class<*>> = throw UnsupportedOperationException()
     override fun getValue(): Any = throw UnsupportedOperationException()
 }
@@ -39,17 +39,29 @@ public class StorageComponentContainer(id: String) : ComponentContainer, Closeab
 
     override fun close() = componentStorage.dispose()
 
-    jvmOverloads public fun resolve(request: Class<*>, context: ValueResolveContext = unknownContext): ValueDescriptor? {
+    jvmOverloads public fun resolve(request: Type, context: ValueResolveContext = unknownContext): ValueDescriptor? {
         val storageResolve = componentStorage.resolve(request, context)
         if (storageResolve != null)
             return storageResolve
 
-        val modifiers = request.getModifiers()
+        if (request is ParameterizedType) {
+            val typeArguments = request.getActualTypeArguments()
+            val rawType = request.getRawType()
+            if (rawType == javaClass<Iterable<*>>()) {
+                if (typeArguments.size() == 1) {
+                    val iterableTypeArgument = typeArguments[0]
+                    if (iterableTypeArgument is WildcardType) {
+                        val upperBounds = iterableTypeArgument.getUpperBounds()
+                        if (upperBounds.size() == 1) {
+                            val iterableType = upperBounds[0]
+                            return IterableDescriptor(componentStorage.resolveMultiple(iterableType, context))
 
-        if (Modifier.isInterface(modifiers) || Modifier.isAbstract(modifiers) || request.isPrimitive())
-            return null
-
-        return SingletonTypeComponentDescriptor(this, request)
+                        }
+                    }
+                }
+            }
+        }
+        return null
     }
 
     public fun resolveMultiple(request: Class<*>, context: ValueResolveContext = unknownContext): Iterable<ValueDescriptor> {

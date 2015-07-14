@@ -124,4 +124,36 @@ class ComponentContainerTests {
                 }
     }
 
+    Test fun should_resolve_iterable() {
+        StorageComponentContainer("test")
+                .register<TestComponent>()
+                .register<TestClientComponent>()
+                .register<TestClientComponent2>()
+                .register<TestIterableComponent>()
+                .compose()
+                .use {
+                    val descriptor = it.resolve<TestIterableComponent>()
+                    assertNotNull(descriptor)
+                    val iterableComponent = descriptor!!.getValue() as TestIterableComponent
+                    assertEquals(2, iterableComponent.components.count())
+                    assertTrue(iterableComponent.components.any { it is TestClientComponent })
+                    assertTrue(iterableComponent.components.any { it is TestClientComponent2 })
+                }
+    }
+
+    Test fun should_distinguish_generic() {
+        StorageComponentContainer("test")
+                .register<TestGenericClient>()
+                .register<TestStringComponent>()
+                .register<TestIntComponent>()
+                .compose()
+                .use {
+                    val descriptor = it.resolve<TestGenericClient>()
+                    assertNotNull(descriptor)
+                    val genericClient = descriptor!!.getValue() as TestGenericClient
+                    assertTrue(genericClient.component1 is TestStringComponent)
+                    assertTrue(genericClient.component2 is TestIntComponent)
+                }
+    }
+
 }

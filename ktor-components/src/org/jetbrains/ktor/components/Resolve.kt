@@ -4,15 +4,15 @@ import java.lang.reflect.*
 import java.util.*
 
 public interface ValueResolver {
-    fun resolve(request: Class<*>, context: ValueResolveContext): ValueDescriptor?
+    fun resolve(request: Type, context: ValueResolveContext): ValueDescriptor?
 }
 
 public interface ValueResolveContext {
-    fun resolve(registration: Class<*>): ValueDescriptor?
+    fun resolve(registration: Type): ValueDescriptor?
 }
 
 internal class ComponentResolveContext(val container: StorageComponentContainer, val requestingDescriptor: ValueDescriptor) : ValueResolveContext {
-    override fun resolve(registration: Class<*>): ValueDescriptor? = container.resolve(registration, this)
+    override fun resolve(registration: Type): ValueDescriptor? = container.resolve(registration, this)
     public override fun toString(): String = "for $requestingDescriptor in $container"
 }
 
@@ -38,7 +38,7 @@ public fun bindArguments(argumentDescriptors: List<ValueDescriptor>): List<Any> 
 
 fun Class<*>.bindToConstructor(context: ValueResolveContext): ConstructorBinding {
     val candidate = getConstructors().single()
-    val parameters = candidate.getParameterTypes()!!
+    val parameters = candidate.getGenericParameterTypes()!!
     val arguments = ArrayList<ValueDescriptor>(parameters.size())
     var unsatisfied: MutableList<Type>? = null
 

@@ -5,7 +5,7 @@ import java.lang.reflect.*
 public class InstanceComponentDescriptor(val instance: Any) : ComponentDescriptor {
 
     override fun getValue(): Any = instance
-    override fun getRegistrations(): Iterable<Class<*>> {
+    override fun getRegistrations(): Iterable<Type> {
         return getRegistrationsForClass(instance.javaClass)
     }
 
@@ -14,7 +14,7 @@ public class InstanceComponentDescriptor(val instance: Any) : ComponentDescripto
 
 public class ProviderComponentDescriptor(val instance: Any, val method: Method) : ComponentDescriptor {
     override fun getValue(): Any = method.invoke(instance)
-    override fun getRegistrations(): Iterable<Class<*>> {
+    override fun getRegistrations(): Iterable<Type> {
         return getRegistrationsForClass(method.getReturnType())
     }
 

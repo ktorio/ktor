@@ -3,6 +3,7 @@ package org.jetbrains.ktor.components
 import java.io.*
 import java.util.*
 import kotlin.properties.*
+import java.lang.reflect.*
 
 enum class ComponentState {
     Null,
@@ -96,7 +97,7 @@ public abstract class SingletonDescriptor(val container: ComponentContainer) : C
 }
 
 public abstract class SingletonComponentDescriptor(container: ComponentContainer, val klass: Class<*>) : SingletonDescriptor(container) {
-    public override fun getRegistrations(): Iterable<Class<*>> = getRegistrationsForClass(klass)
+    public override fun getRegistrations(): Iterable<Type> = getRegistrationsForClass(klass)
 }
 
 public class SingletonTypeComponentDescriptor(container: ComponentContainer, klass: Class<*>) : SingletonComponentDescriptor(container, klass) {
@@ -118,16 +119,16 @@ public class SingletonTypeComponentDescriptor(container: ComponentContainer, kla
         return instance
     }
 
-    override fun getDependencies(context: ValueResolveContext): Collection<Class<*>> {
-        val dependencies = ArrayList<Class<*>>()
-        dependencies.addAll(klass.getConstructors().single().getParameterTypes())
+    override fun getDependencies(context: ValueResolveContext): Collection<Type> {
+        val dependencies = ArrayList<Type>()
+        dependencies.addAll(klass.getConstructors().single().getGenericParameterTypes())
 
         for (member in klass.getMethods()) {
             val annotations = member.getDeclaredAnnotations()
             for (annotation in annotations) {
                 val annotationType = annotation.annotationType()
                 if (annotationType.getName().substringAfterLast('.') == "Inject") {
-                    dependencies.addAll(member.getParameterTypes())
+                    dependencies.addAll(member.getGenericParameterTypes())
                 }
             }
         }

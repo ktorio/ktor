@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.components
 
 import java.util.*
+import java.lang.reflect.*
 
 public fun ComponentRegisterEntry(value: ComponentRegisterEntry): ComponentRegisterEntry {
     val entry = ComponentRegisterEntry()
@@ -41,8 +42,8 @@ class ComponentRegisterEntry() : Iterable<ComponentDescriptor> {
 }
 
 internal class ComponentRegistry {
-    fun buildRegistrationMap(descriptors: Collection<ComponentDescriptor>): Multimap<Class<*>, ComponentDescriptor> {
-        val registrationMap = Multimap<Class<*>, ComponentDescriptor>()
+    fun buildRegistrationMap(descriptors: Collection<ComponentDescriptor>): Multimap<Type, ComponentDescriptor> {
+        val registrationMap = Multimap<Type, ComponentDescriptor>()
         for (descriptor in descriptors)
             for (registration in descriptor.getRegistrations())
                 registrationMap.put(registration, descriptor)
@@ -80,7 +81,7 @@ internal class ComponentRegistry {
         registrationMap = interfaceMap
     }
 
-    public fun tryGetEntry(request: Class<*>): ComponentRegisterEntry? {
+    public fun tryGetEntry(request: Type): ComponentRegisterEntry? {
         return registrationMap.getOrElse(request, { null })
     }
 }

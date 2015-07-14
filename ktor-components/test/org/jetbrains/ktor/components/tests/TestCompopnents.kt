@@ -53,3 +53,11 @@ class TestAdhocComponent1(val service: TestAdhocComponentService) {
 class TestAdhocComponent2(val service: TestAdhocComponentService) {
 
 }
+
+class TestIterableComponent(val components: Iterable<TestClientComponentInterface>)
+
+interface TestGenericComponent<T>
+
+class TestGenericClient(val component1 : TestGenericComponent<String>, val component2: TestGenericComponent<Int>)
+class TestStringComponent : TestGenericComponent<String>
+class TestIntComponent : TestGenericComponent<Int>
