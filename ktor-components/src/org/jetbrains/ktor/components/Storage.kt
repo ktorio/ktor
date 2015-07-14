@@ -95,8 +95,9 @@ public class ComponentStorage(val myId: String) : ValueResolver {
 
         // inspect dependencies and register implicit
         val implicits = LinkedHashSet<ComponentDescriptor>()
+        val visitedTypes = hashSetOf<Class<*>>()
         for (descriptor in descriptors) {
-            registerImplicits(context, descriptor, implicits, hashSetOf<Class<*>>())
+            registerImplicits(context, descriptor, implicits, visitedTypes)
         }
         registry.addAll(implicits)
 

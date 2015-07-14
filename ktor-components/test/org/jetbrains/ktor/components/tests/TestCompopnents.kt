@@ -44,3 +44,12 @@ class TestClientComponent(val dep: TestComponentInterface) : TestClientComponent
 
 class TestClientComponent2() : TestClientComponentInterface {
 }
+
+class TestAdhocComponentService
+class TestAdhocComponent1(val service: TestAdhocComponentService) {
+
+}
+
+class TestAdhocComponent2(val service: TestAdhocComponentService) {
+
+}

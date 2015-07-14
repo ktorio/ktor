@@ -108,4 +108,20 @@ class ComponentContainerTests {
                 }
     }
 
+    Test fun should_resolve_adhoc_types_to_same_instances() {
+        StorageComponentContainer("test")
+                .register<TestAdhocComponent1>()
+                .register<TestAdhocComponent2>()
+                .compose()
+                .use {
+                    val descriptor1 = it.resolve<TestAdhocComponent1>()
+                    assertNotNull(descriptor1)
+                    val descriptor2 = it.resolve<TestAdhocComponent2>()
+                    assertNotNull(descriptor2)
+                    val component1 = descriptor1!!.getValue() as TestAdhocComponent1
+                    val component2 = descriptor2!!.getValue() as TestAdhocComponent2
+                    assertTrue(component1.service === component2.service)
+                }
+    }
+
 }
