@@ -16,13 +16,11 @@ class ComponentContainerTests {
     }
 
     Test fun should_resolve_to_instance_when_registered() {
-        val container = StorageComponentContainer("test").register<TestComponent>().compose()
-        val descriptor = container.resolve<TestComponentInterface>()
-        assertNotNull(descriptor)
-        val instance = descriptor!!.getValue() as TestComponentInterface
-        assertNotNull(instance)
-        fails {
-            instance.foo()
+        StorageComponentContainer("test").register<TestComponent>().compose().use {
+            val instance = it.getComponent<TestComponentInterface>()
+            fails {
+                instance.foo()
+            }
         }
     }
 
@@ -114,12 +112,8 @@ class ComponentContainerTests {
                 .register<TestAdhocComponent2>()
                 .compose()
                 .use {
-                    val descriptor1 = it.resolve<TestAdhocComponent1>()
-                    assertNotNull(descriptor1)
-                    val descriptor2 = it.resolve<TestAdhocComponent2>()
-                    assertNotNull(descriptor2)
-                    val component1 = descriptor1!!.getValue() as TestAdhocComponent1
-                    val component2 = descriptor2!!.getValue() as TestAdhocComponent2
+                    val component1 = it.getComponent<TestAdhocComponent1>()
+                    val component2 = it.getComponent<TestAdhocComponent2>()
                     assertTrue(component1.service === component2.service)
                 }
     }
@@ -132,9 +126,7 @@ class ComponentContainerTests {
                 .register<TestIterableComponent>()
                 .compose()
                 .use {
-                    val descriptor = it.resolve<TestIterableComponent>()
-                    assertNotNull(descriptor)
-                    val iterableComponent = descriptor!!.getValue() as TestIterableComponent
+                    val iterableComponent = it.getComponent<TestIterableComponent>()
                     assertEquals(2, iterableComponent.components.count())
                     assertTrue(iterableComponent.components.any { it is TestClientComponent })
                     assertTrue(iterableComponent.components.any { it is TestClientComponent2 })
@@ -148,12 +140,25 @@ class ComponentContainerTests {
                 .register<TestIntComponent>()
                 .compose()
                 .use {
-                    val descriptor = it.resolve<TestGenericClient>()
-                    assertNotNull(descriptor)
-                    val genericClient = descriptor!!.getValue() as TestGenericClient
+                    val genericClient = it.getComponent<TestGenericClient>()
                     assertTrue(genericClient.component1 is TestStringComponent)
                     assertTrue(genericClient.component2 is TestIntComponent)
                 }
     }
 
+
+    Test fun should_fail_with_invalid_cardinality() {
+        StorageComponentContainer("test")
+                .register<TestComponent>()
+                .registerInstance(TestComponent())
+                .compose()
+                .use {
+                    assertTrue {
+                        val exception = fails {
+                            it.resolve<TestComponent>()
+                        }
+                        exception is UnresolvedDependenciesException
+                    }
+                }
+    }
 }

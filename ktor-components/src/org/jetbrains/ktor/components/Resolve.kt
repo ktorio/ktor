@@ -16,11 +16,6 @@ internal class ComponentResolveContext(val container: StorageComponentContainer,
     public override fun toString(): String = "for $requestingDescriptor in $container"
 }
 
-fun ComponentContainer.createInstance(klass: Class<*>): Any {
-    val context = createResolveContext(DynamicComponentDescriptor)
-    return klass.bindToConstructor(context).createInstance()
-}
-
 public class ConstructorBinding(val constructor: Constructor<*>, val argumentDescriptors: List<ValueDescriptor>) {
     fun createInstance(): Any = constructor.createInstance(argumentDescriptors)
 }

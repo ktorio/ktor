@@ -13,7 +13,7 @@ enum class ComponentState {
     Disposed
 }
 
-public abstract class SingletonDescriptor(val container: ComponentContainer) : ComponentDescriptor, Closeable {
+public class SingletonDescriptor(val container: ComponentContainer, val klass: Class<*>) : ComponentDescriptor, Closeable {
     private var instance: Any? = null
     protected var state: ComponentState = ComponentState.Null
     private val disposableObjects by lazy { ArrayList<Closeable>() }
@@ -32,13 +32,11 @@ public abstract class SingletonDescriptor(val container: ComponentContainer) : C
         disposableObjects.add(ownedObject);
     }
 
-    protected abstract fun createInstance(context: ValueResolveContext): Any
-
     private fun createInstance(container: ComponentContainer) {
         when (state) {
             ComponentState.Null -> {
                 try {
-                    instance = createInstance(container.createResolveContext(this));
+                    instance = createInstanceOf(klass, container.createResolveContext(this));
                     return;
                 } catch (ex: Throwable) {
                     state = ComponentState.Corrupted;
@@ -93,14 +91,7 @@ public abstract class SingletonDescriptor(val container: ComponentContainer) : C
                 throw ContainerConsistencyException("The component has already been destroyed.");
         }
     }
-}
 
-public abstract class SingletonComponentDescriptor(container: ComponentContainer, val klass: Class<*>) : SingletonDescriptor(container) {
-    public override fun getRegistrations(): Iterable<Type> = calculateClassRegistrations(klass)
-}
-
-public class SingletonTypeComponentDescriptor(container: ComponentContainer, klass: Class<*>) : SingletonComponentDescriptor(container, klass) {
-    override fun createInstance(context: ValueResolveContext): Any = createInstanceOf(klass, context)
     private fun createInstanceOf(klass: Class<*>, context: ValueResolveContext): Any {
         val binding = klass.bindToConstructor(context)
         state = ComponentState.Initializing
@@ -118,7 +109,6 @@ public class SingletonTypeComponentDescriptor(container: ComponentContainer, kla
         return instance
     }
 
-    override fun getDependencies(context: ValueResolveContext): Collection<Type> {
-        return calculateClassDependencies(klass)
-    }
+    override fun getDependencies(context: ValueResolveContext): Collection<Type> = calculateClassDependencies(klass)
+    override fun getRegistrations(): Iterable<Type> = calculateClassRegistrations(klass)
 }

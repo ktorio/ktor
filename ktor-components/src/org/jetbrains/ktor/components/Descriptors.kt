@@ -3,19 +3,6 @@ package org.jetbrains.ktor.components
 import java.lang.reflect.*
 import java.util.*
 
-public interface ValueDescriptor {
-    public fun getValue(): Any
-}
-
-public interface ComponentDescriptor : ValueDescriptor {
-    fun getRegistrations(): Iterable<Type>
-    fun getDependencies(context: ValueResolveContext): Collection<Type>
-}
-
-public class IterableDescriptor(val descriptors: Iterable<ValueDescriptor>) : ValueDescriptor {
-    override fun getValue(): Any = descriptors.map { it.getValue() }
-}
-
 private fun collectInterfacesRecursive(type: Type, result: MutableSet<Type>) {
     val cl : Class<*>? = when(type) {
         is Class<*> -> type

@@ -2,9 +2,8 @@ package org.jetbrains.ktor.components
 
 import java.io.*
 import java.lang.reflect.*
-import kotlin.properties.*
 
-class ContainerConsistencyException(message: String) : Exception(message)
+public class ContainerConsistencyException(message: String) : Exception(message)
 
 public interface ComponentContainer {
     fun createResolveContext(requestingDescriptor: ValueDescriptor): ValueResolveContext
@@ -24,7 +23,8 @@ object UnidentifiedComponentDescriptor : ComponentDescriptor {
 
 public class StorageComponentContainer(id: String) : ComponentContainer, Closeable {
     public val unknownContext: ComponentResolveContext by lazy { ComponentResolveContext(this, DynamicComponentDescriptor) }
-    val componentStorage = ComponentStorage(id)
+
+    private val componentStorage = ComponentStorage(id)
 
     override fun createResolveContext(requestingDescriptor: ValueDescriptor): ValueResolveContext {
         if (requestingDescriptor == DynamicComponentDescriptor) // cache unknown component descriptor
@@ -72,45 +72,66 @@ public class StorageComponentContainer(id: String) : ComponentContainer, Closeab
         componentStorage.registerDescriptors(unknownContext, descriptors)
         return this
     }
-
 }
 
 public fun StorageComponentContainer.register(klass: Class<*>, lifetime: ComponentLifetime = ComponentLifetime.Singleton): StorageComponentContainer =
         when (lifetime) {
             ComponentLifetime.Singleton -> registerSingleton(klass)
             ComponentLifetime.Transient -> registerTransient(klass)
+            else -> throw IllegalArgumentException("Unknown lifetime: ${lifetime}}")
         }
 
 
 public fun StorageComponentContainer.registerSingleton(klass: Class<*>): StorageComponentContainer {
-    return registerDescriptors(listOf(SingletonTypeComponentDescriptor(this, klass)))
+    return registerDescriptors(listOf(SingletonDescriptor(this, klass)))
 }
 
 public fun StorageComponentContainer.registerTransient(klass: Class<*>): StorageComponentContainer {
-    return registerDescriptors(listOf(TransientTypeComponentDescriptor(this, klass)))
+    return registerDescriptors(listOf(TransientDescriptor(this, klass)))
 }
 
 public fun StorageComponentContainer.registerInstance(instance: Any): StorageComponentContainer {
-    return registerDescriptors(listOf(InstanceComponentDescriptor(instance)))
+    return registerDescriptors(listOf(InstanceDescriptor(instance)))
 }
 
 public inline fun <reified T> StorageComponentContainer.register(lifetime: ComponentLifetime = ComponentLifetime.Singleton): StorageComponentContainer =
         if (lifetime == ComponentLifetime.Singleton) registerSingleton<T>()
         else if (lifetime == ComponentLifetime.Transient) registerTransient<T>()
-        else throw IllegalStateException("Unknown lifetime: ${lifetime}}")
+        else throw IllegalArgumentException("Unknown lifetime: ${lifetime}}")
 
 public inline fun <reified T> StorageComponentContainer.registerSingleton(): StorageComponentContainer {
-    return registerDescriptors(listOf(SingletonTypeComponentDescriptor(this, javaClass<T>())))
+    return registerDescriptors(listOf(SingletonDescriptor(this, javaClass<T>())))
 }
 
 public inline fun <reified T>  StorageComponentContainer.registerTransient(): StorageComponentContainer {
-    return registerDescriptors(listOf(TransientTypeComponentDescriptor(this, javaClass<T>())))
+    return registerDescriptors(listOf(TransientDescriptor(this, javaClass<T>())))
 }
 
 public inline fun <reified T> StorageComponentContainer.resolve(context: ValueResolveContext = unknownContext): ValueDescriptor? {
     return resolve(javaClass<T>(), context)
 }
 
+public inline fun <reified T : Any> StorageComponentContainer.tryGetComponent(context: ValueResolveContext = unknownContext): T? {
+    return resolve(javaClass<T>(), context)?.getValue() as? T
+}
+
+public inline fun <reified T : Any> StorageComponentContainer.getComponent(context: ValueResolveContext = unknownContext): T {
+    val klass = javaClass<T>()
+    val descriptor = resolve(klass, context) ?: throw ContainerConsistencyException("Required component $klass cannot be resolved")
+    return descriptor.getValue() as T
+}
+
 public inline fun <reified T> StorageComponentContainer.resolveMultiple(context: ValueResolveContext = unknownContext): Iterable<ValueDescriptor> {
     return resolveMultiple(javaClass<T>(), context)
 }
+
+fun ComponentContainer.createInstance(klass: Class<*>): Any {
+    val context = createResolveContext(DynamicComponentDescriptor)
+    return klass.bindToConstructor(context).createInstance()
+}
+
+inline fun ComponentContainer.createInstance<reified T>(): T {
+    val context = createResolveContext(DynamicComponentDescriptor)
+    return javaClass<T>().bindToConstructor(context).createInstance() as T
+}
+

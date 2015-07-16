@@ -1,17 +1,17 @@
 package org.jetbrains.ktor.components
 
-import java.util.*
 import java.lang.reflect.*
+import java.util.*
 
-public fun ComponentRegisterEntry(value: ComponentRegisterEntry): ComponentRegisterEntry {
-    val entry = ComponentRegisterEntry()
-    entry.descriptors.addAll(value.descriptors)
-    return entry
-}
-
-
-class ComponentRegisterEntry() : Iterable<ComponentDescriptor> {
+class ComponentRegisterEntry : Iterable<ComponentDescriptor> {
     val descriptors: MutableList<ComponentDescriptor> = ArrayList()
+
+    constructor() {
+    }
+
+    constructor(value: ComponentRegisterEntry) {
+        descriptors.addAll(value.descriptors)
+    }
 
     override fun iterator(): Iterator<ComponentDescriptor> = descriptors.iterator()
 
