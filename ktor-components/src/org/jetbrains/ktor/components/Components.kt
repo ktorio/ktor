@@ -6,7 +6,7 @@ public class InstanceComponentDescriptor(val instance: Any) : ComponentDescripto
 
     override fun getValue(): Any = instance
     override fun getRegistrations(): Iterable<Type> {
-        return getRegistrationsForClass(instance.javaClass)
+        return calculateClassRegistrations(instance.javaClass)
     }
 
     override fun getDependencies(context: ValueResolveContext): Collection<Class<*>> = emptyList()
@@ -15,7 +15,7 @@ public class InstanceComponentDescriptor(val instance: Any) : ComponentDescripto
 public class ProviderComponentDescriptor(val instance: Any, val method: Method) : ComponentDescriptor {
     override fun getValue(): Any = method.invoke(instance)
     override fun getRegistrations(): Iterable<Type> {
-        return getRegistrationsForClass(method.getReturnType())
+        return calculateClassRegistrations(method.getReturnType())
     }
 
     // TODO: method parameters could be dependencies, for now we assume no params

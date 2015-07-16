@@ -78,7 +78,7 @@ class ComponentContainerTests {
                 }
     }
 
-    Ignore Test fun should_resolve_transient_types_to_different_instances() {
+    Test fun should_resolve_transient_types_to_different_instances() {
         StorageComponentContainer("test")
                 .register<TestComponent>()
                 .register<TestClientComponent>(ComponentLifetime.Transient)

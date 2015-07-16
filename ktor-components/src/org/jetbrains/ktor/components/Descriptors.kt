@@ -12,6 +12,10 @@ public interface ComponentDescriptor : ValueDescriptor {
     fun getDependencies(context: ValueResolveContext): Collection<Type>
 }
 
+public class IterableDescriptor(val descriptors: Iterable<ValueDescriptor>) : ValueDescriptor {
+    override fun getValue(): Any = descriptors.map { it.getValue() }
+}
+
 private fun collectInterfacesRecursive(type: Type, result: MutableSet<Type>) {
     val cl : Class<*>? = when(type) {
         is Class<*> -> type
@@ -27,7 +31,7 @@ private fun collectInterfacesRecursive(type: Type, result: MutableSet<Type>) {
     }
 }
 
-private fun getRegistrationsForClass(klass: Class<*>): List<Type> {
+private fun calculateClassRegistrations(klass: Class<*>): List<Type> {
     val registrations = ArrayList<Type>()
     val superClasses = sequence<Type>(klass) {
         when (it) {
@@ -44,8 +48,20 @@ private fun getRegistrationsForClass(klass: Class<*>): List<Type> {
     return registrations
 }
 
-public class IterableDescriptor(val descriptors: Iterable<ValueDescriptor>) : ValueDescriptor {
-    override fun getValue(): Any {
-        return descriptors.map { it.getValue() }
+public fun calculateClassDependencies(klass: Class<*>): ArrayList<Type> {
+    val dependencies = ArrayList<Type>()
+    dependencies.addAll(klass.getConstructors().single().getGenericParameterTypes())
+
+    for (member in klass.getMethods()) {
+        val annotations = member.getDeclaredAnnotations()
+        for (annotation in annotations) {
+            val annotationType = annotation.annotationType()
+            if (annotationType.getName().substringAfterLast('.') == "Inject") {
+                dependencies.addAll(member.getGenericParameterTypes())
+            }
+        }
     }
+
+    return dependencies
 }
+

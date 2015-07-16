@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.components
 
+import java.lang.reflect.*
+
 public abstract class TransientDescriptor(val container: ComponentContainer) : ComponentDescriptor {
     public override fun getValue(): Any = createInstance(container.createResolveContext(this));
 
@@ -7,9 +9,8 @@ public abstract class TransientDescriptor(val container: ComponentContainer) : C
 }
 
 public class TransientTypeComponentDescriptor(container: ComponentContainer, val klass: Class<*>) : TransientDescriptor(container) {
-    override fun getDependencies(context: ValueResolveContext): Collection<Class<*>> {
-        // TODO: impl
-        throw UnsupportedOperationException()
+    override fun getDependencies(context: ValueResolveContext): Collection<Type> {
+        return calculateClassDependencies(klass)
     }
 
     protected override fun createInstance(context: ValueResolveContext): Any {
