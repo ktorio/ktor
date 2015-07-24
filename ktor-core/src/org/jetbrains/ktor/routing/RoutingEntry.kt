@@ -5,7 +5,8 @@ import java.util.*
 
 data class RoutingNode(val selector: RoutingSelector, val entry: RoutingEntry)
 
-data class RoutingInterceptor(val handler: (RoutingApplicationRequest, (RoutingApplicationRequest) -> ApplicationRequestStatus) -> ApplicationRequestStatus)
+data class RoutingInterceptor(val function: (RoutingApplicationRequest, (RoutingApplicationRequest) -> ApplicationRequestStatus) -> ApplicationRequestStatus,
+                              val leafOnly : Boolean = true)
 
 open class RoutingEntry() {
     val children = ArrayList<RoutingNode> ()
@@ -48,14 +49,14 @@ open class RoutingEntry() {
         return resolve(request, 0, RoutingResolveResult(false, this, HashMap<String, MutableList<String>>()))
     }
 
-    public fun intercept(handler: (request: RoutingApplicationRequest, proceed: (RoutingApplicationRequest) -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
-        interceptors.add(RoutingInterceptor(handler))
+    public fun intercept(leafOnly: Boolean, handler: (RoutingApplicationRequest, (RoutingApplicationRequest) -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
+        interceptors.add(RoutingInterceptor(handler, leafOnly))
     }
 }
 
 public fun processChain(interceptors: List<RoutingInterceptor>, request: RoutingApplicationRequest): ApplicationRequestStatus {
     fun handle(index: Int, request: RoutingApplicationRequest): ApplicationRequestStatus = when (index) {
-        in interceptors.indices -> interceptors[index].handler(request) { request -> handle(index + 1, request) }
+        in interceptors.indices -> interceptors[index].function(request) { request -> handle(index + 1, request) }
         else -> ApplicationRequestStatus.Unhandled
     }
 

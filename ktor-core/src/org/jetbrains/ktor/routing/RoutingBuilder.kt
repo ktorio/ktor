@@ -57,11 +57,11 @@ fun RoutingEntry.method(method: String, body: RoutingEntry.() -> Unit) {
 }
 
 fun RoutingEntry.handle(handle: RoutingApplicationRequest.() -> ApplicationRequestStatus) {
-    addInterceptor(handle)
+    addInterceptor(true, handle)
 }
 
-fun RoutingEntry.addInterceptor(handle: RoutingApplicationRequest.() -> ApplicationRequestStatus) {
-    intercept { request, next ->
+fun RoutingEntry.addInterceptor(leafOnly: Boolean, handle: RoutingApplicationRequest.() -> ApplicationRequestStatus) {
+    intercept(leafOnly) { request, next ->
         val result = request.handle()
         if (result == ApplicationRequestStatus.Unhandled)
             next(request)

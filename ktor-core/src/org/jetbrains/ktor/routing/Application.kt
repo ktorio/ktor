@@ -38,8 +38,11 @@ fun Application.interceptRoute(routing: RoutingEntry) {
             resolveResult.succeeded -> {
                 val chain = arrayListOf<RoutingInterceptor>()
                 for (entry in resolveResult.entries) {
-                    chain.addAll(entry.interceptors)
+                    val interceptors = entry.interceptors.filter { !it.leafOnly }
+                    chain.addAll(interceptors)
                 }
+                val handlers = resolveResult.entry.interceptors.filter { it.leafOnly }
+                chain.addAll(handlers)
                 processChain(chain, RoutingApplicationRequest(request, resolveResult))
             }
             else -> proceed(request)
