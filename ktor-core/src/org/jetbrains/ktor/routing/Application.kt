@@ -4,8 +4,8 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import java.util.*
 
-class RoutingApplicationRequest(applicationRequest: ApplicationRequest,
-                                resolveResult: RoutingResolveResult) : ApplicationRequest by applicationRequest {
+open class RoutingApplicationRequest(applicationRequest: ApplicationRequest,
+                                     val resolveResult: RoutingResolveResult) : ApplicationRequest by applicationRequest {
 
     override val parameters: Map<String, List<String>>
 

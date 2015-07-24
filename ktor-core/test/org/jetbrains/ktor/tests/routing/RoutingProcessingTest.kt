@@ -53,7 +53,7 @@ class RoutingProcessingTest {
         val testHost = createTestHost()
         var username = listOf<String>()
         testHost.application.routing {
-            location("user") {
+            path("user") {
                 param("name") {
                     get {
                         handle {
@@ -88,7 +88,7 @@ class RoutingProcessingTest {
         var userNameGotWithinInterceptor = false
 
         testHost.application.routing {
-            location("user") {
+            path("user") {
                 intercept { request, next ->
                     userIntercepted = true
                     try {

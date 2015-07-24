@@ -36,26 +36,26 @@ class RoutingBuildTest {
         }
         on("adding routing from string") {
             val entry = RoutingEntry()
-            entry.location("/foo/:?new") { }
+            entry.path("/foo/:?new") { }
             itShouldHaveSpecificStructure(entry)
         }
         on("adding routing from string in nested blocks") {
             val entry = RoutingEntry()
-            entry.location("/foo") {
-                location("/:?new") { }
+            entry.path("/foo") {
+                path("/:?new") { }
             }
             itShouldHaveSpecificStructure(entry)
         }
         on("adding routing from string in separate blocks") {
             val entry = RoutingEntry()
-            entry.location("/foo") { }
-            entry.location("/foo/:?new") { }
+            entry.path("/foo") { }
+            entry.path("/foo/:?new") { }
             itShouldHaveSpecificStructure(entry)
         }
 
         on("creating route with non-optional parameter") {
             val entry = RoutingEntry()
-            entry.location("/foo/:new") { }
+            entry.path("/foo/:new") { }
             it("should have second level child of type UriPartParameterRoutingSelector") {
                 assertTrue(entry.children[0].entry.children[0].selector is UriPartParameterRoutingSelector)
             }
@@ -66,14 +66,14 @@ class RoutingBuildTest {
 
         on("creating route with wildcard") {
             val entry = RoutingEntry()
-            entry.location("/foo/*") { }
+            entry.path("/foo/*") { }
             it("should have second level child of type UriPartWildcardRoutingSelector") {
                 assertTrue(entry.children[0].entry.children[0].selector is UriPartWildcardRoutingSelector)
             }
         }
         on("creating route with tailcard") {
             val entry = RoutingEntry()
-            entry.location("/foo/**") { }
+            entry.path("/foo/**") { }
             it("should have second level child of type UriPartTailcardRoutingSelector") {
                 assertTrue(entry.children[0].entry.children[0].selector is UriPartTailcardRoutingSelector)
             }

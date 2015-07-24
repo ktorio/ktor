@@ -1,12 +1,18 @@
 package org.jetbrains.ktor.routing
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.http.*
 
-fun RoutingEntry.location(path: String, build: RoutingEntry.() -> Unit) {
+fun RoutingEntry.path(path: String, build: RoutingEntry.() -> Unit) {
+    val current: RoutingEntry = createRoutingEntry(this, path) { RoutingEntry() }
+    current.build()
+}
+
+public fun createRoutingEntry(routingEntry: RoutingEntry, path: String, entryBuilder: () -> RoutingEntry): RoutingEntry {
     val parts = pathToParts(path)
-    var current: RoutingEntry = this;
-    for ((index, part) in parts.withIndex()) {
-        val entry = RoutingEntry()
+    var current: RoutingEntry = routingEntry;
+    for (part in parts) {
+        val entry = entryBuilder()
         val selector = when {
             part == "*" -> UriPartWildcardRoutingSelector()
             part.startsWith("**") -> UriPartTailcardRoutingSelector(part.drop(2))
@@ -17,13 +23,17 @@ fun RoutingEntry.location(path: String, build: RoutingEntry.() -> Unit) {
         // there may already be entry with same selector, so join them
         current = current.add(selector, entry)
     }
-    current.build()
+    return current
 }
 
 fun RoutingEntry.param(name: String, value: String, build: RoutingEntry.() -> Unit) {
     val selector = ConstantParameterRoutingSelector(name, value)
     val entry = RoutingEntry()
     add(selector, entry).build()
+}
+
+fun RoutingEntry.contentType(contentType: ContentType, build: RoutingEntry.() -> Unit) {
+    param("ContentType", "${contentType.contentType}/${contentType.contentSubtype}", build)
 }
 
 fun RoutingEntry.param(name: String, build: RoutingEntry.() -> Unit) {
@@ -34,7 +44,7 @@ fun RoutingEntry.param(name: String, build: RoutingEntry.() -> Unit) {
 
 fun RoutingEntry.methodAndLocation(method: String, path: String, body: RoutingEntry.() -> Unit) {
     methodParam(method) {
-        location(path) {
+        path(path) {
             body()
         }
     }
@@ -47,7 +57,17 @@ fun RoutingEntry.method(method: String, body: RoutingEntry.() -> Unit) {
 }
 
 fun RoutingEntry.handle(handle: RoutingApplicationRequest.() -> ApplicationRequestStatus) {
-    intercept { request, next -> request.handle() }
+    addInterceptor(handle)
+}
+
+fun RoutingEntry.addInterceptor(handle: RoutingApplicationRequest.() -> ApplicationRequestStatus) {
+    intercept { request, next ->
+        val result = request.handle()
+        if (result == ApplicationRequestStatus.Unhandled)
+            next(request)
+        else
+            result
+    }
 }
 
 fun RoutingEntry.methodParam(method: String, build: RoutingEntry.() -> Unit) = param("@method", method, build)
