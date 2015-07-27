@@ -47,7 +47,7 @@ open class ServletApplicationHost() : HttpServlet() {
                 ApplicationRequestStatus.Asynchronous -> request.startAsync()
             }
         } catch (ex: Throwable) {
-            println(ex.printStackTrace())
+            application.config.log.error("ServletApplicationHost cannot service the request", ex)
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage())
         }
     }

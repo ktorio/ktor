@@ -21,6 +21,6 @@ fun main(args: Array<String>) {
     val log = SL4JApplicationLog("<Application>")
     val appConfig = ApplicationConfig(combinedConfig, log, jar)
 
-    println(combinedConfig.getObject("ktor").render())
+    log.info(combinedConfig.getObject("ktor").render())
     JettyApplicationHost(appConfig).start()
 }

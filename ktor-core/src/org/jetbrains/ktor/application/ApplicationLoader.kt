@@ -72,9 +72,7 @@ public class ApplicationLoader(val config: ApplicationConfig) {
         try {
             _applicationInstance?.dispose()
         } catch(e: Throwable) {
-            println("Failed to destroy application instance.")
-            println(e.getMessage())
-            println(e.printStackTrace())
+            config.log.error("Failed to destroy application instance.", e)
         }
         packageWatchKeys.forEach { it.cancel() }
         packageWatchKeys.clear()
