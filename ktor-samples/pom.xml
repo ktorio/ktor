@@ -14,6 +14,7 @@
 
     <modules>
         <module>ktor-samples-hello</module>
+        <module>ktor-samples-locations</module>
     </modules>
 
     <dependencies>

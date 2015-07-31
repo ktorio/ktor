@@ -25,7 +25,7 @@ open class RoutingApplicationRequest(applicationRequest: ApplicationRequest,
 }
 
 public fun Application.routing(body: RoutingEntry.() -> Unit) {
-    val table = RoutingEntry()
+    val table = Routing()
     table.body()
     interceptRoute(table)
 }
