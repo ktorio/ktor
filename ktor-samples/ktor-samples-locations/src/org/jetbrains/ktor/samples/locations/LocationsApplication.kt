@@ -7,15 +7,13 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
 import java.util.*
 
-object ApplicationLocations {
-    at("/") data class index()
-    at("/number") data class number(val value: Int)
-}
+at("/") data class index()
+at("/number") data class number(val value: Int)
 
 class LocationsApplication(config: ApplicationConfig) : Application(config) {
     init {
         locations {
-            get<ApplicationLocations.index>() {
+            get<index>() {
                 contentType(ContentType.Text.Html)
                 contentStream {
                     appendHTML().html {
@@ -30,7 +28,7 @@ class LocationsApplication(config: ApplicationConfig) : Application(config) {
                                 val rnd = Random()
                                 (0..5).forEach {
                                     li {
-                                        val number = ApplicationLocations.number(rnd.nextInt(1000))
+                                        val number = number(rnd.nextInt(1000))
                                         a(href = Locations.href(number)) {
                                             +"Number #${number.value}"
                                         }
@@ -42,7 +40,7 @@ class LocationsApplication(config: ApplicationConfig) : Application(config) {
                 }
             }
 
-            get<ApplicationLocations.number>() { number ->
+            get<number>() { number ->
                 contentType(ContentType.Text.Html)
                 contentStream {
                     appendHTML().html {
