@@ -1,42 +1,54 @@
 package org.jetbrains.ktor.locations
 
-import jet.runtime.typeinfo.*
 import org.jetbrains.ktor.routing.*
+import kotlin.reflect.*
+import kotlin.reflect.jvm.*
 
 open public class LocationService {
-    fun resolve<T : Any> (dataClass: Class<*>, request: LocationRoutingApplicationRequest<T>): T {
-        val enclosingClass = dataClass.enclosingClass
+    fun resolve<T : Any> (dataClass: KClass<*>, request: LocationRoutingApplicationRequest<T>): T {
+        val enclosingClass = dataClass.java.enclosingClass?.kotlin
 
-        val constructors = dataClass.constructors.filterNot {
-            it.parameterTypes.any { it.name == "kotlin.jvm.internal.DefaultConstructorMarker" }
-        }
-        val constructor = constructors.single()
+        val constructor = dataClass.constructors.single()
         val parameters = constructor.parameters
-        val args = Array(constructor.parameterCount) { index ->
+        val javaParameters = constructor.javaConstructor!!.parameters
+        val args = Array(parameters.size()) { index ->
             val parameter = parameters[index]
-            val parameterAnnotation = parameter.getAnnotation(javaClass<JetValueParameter>())
             val parameterType = parameter.type
-            val parameterName = parameterAnnotation.name
-            if (parameterType === enclosingClass)
-                enclosingClass?.getAnnotation(javaClass<at>())?.let {
+            val javaParameterType = javaParameters[index].type!!
+            val parameterName = parameter.name
+            if (enclosingClass != null && javaParameterType === enclosingClass.java) {
+                enclosingClass.java.getAnnotation(javaClass<at>())?.let {
                     resolve(enclosingClass, request)
                 }
-            else
-                request.parameters[parameterName]?.single()?.convertTo(parameterType)
+            } else {
+                val requestParameters = request.parameters[parameterName]
+                requestParameters?.singleOrNull()?.convertTo(javaParameterType)
+            }
         }
-        return constructor.newInstance(*args) as T
+        return constructor.call(*args) as T
     }
 
-    fun href(location: Any): String {
-        val dataClass = location.javaClass
-        val at = dataClass.getAnnotation(javaClass<at>())
-        val relativeParts = pathToParts(at.url)
+    data class hrefInfo(val path: String, val query: List<Pair<String, String>>) {
+        fun combine(relativePath: String, queryValues: List<Pair<String, String>>): hrefInfo {
+            val combinedPath = (pathToParts(path) + pathToParts(relativePath)).join("/", "/")
+            return hrefInfo(combinedPath, query + queryValues)
+        }
+
+        companion object {
+            val root = hrefInfo("", emptyList())
+        }
+    }
+
+    fun pathAndQuery(location: Any): hrefInfo {
+        val dataClass = location.javaClass.kotlin
+        val at = dataClass.java.getAnnotation(javaClass<at>())
+        val relativeParts = if (at == null) pathToParts("/") else pathToParts(at.url)
         val usedProperties = arrayListOf<String>()
 
         fun locationValue(name: String): String? {
             usedProperties.add(name)
-            val valueGetter = dataClass.methods.single { it.name.equals("get$name", ignoreCase = true) && it.parameterCount == 0 }
-            return valueGetter(location)?.toString()
+            val valueGetter = dataClass.memberProperties.single { it.name == name }
+            return valueGetter.get(location)?.toString()
         }
 
         val substituteParts = relativeParts.map {
@@ -47,49 +59,41 @@ open public class LocationService {
                 else -> it
             }
         }
+
         val relativePath = substituteParts.filterNot { it.isEmpty() }.join("/")
 
-        val enclosingClass = dataClass.enclosingClass
-        val parentUrl = if (enclosingClass != null) {
-            val enclosingAt = enclosingClass.getAnnotation(javaClass<at>())
+        val enclosingClass = dataClass.java.enclosingClass?.kotlin
+        val parentInfo = if (enclosingClass != null) {
+            val enclosingAt = enclosingClass.java.getAnnotation(javaClass<at>())
             if (enclosingAt != null) {
-                val enclosingGetter = dataClass.methods.singleOrNull {
-                    it.returnType == enclosingClass
-                            && it.parameterCount == 0
-                            && it.name.startsWith("get")
+                val enclosingProperty = dataClass.memberProperties.singleOrNull {
+                    it.getter.javaMethod!!.returnType == enclosingClass.java
                 }
-                if (enclosingGetter != null) {
-                    usedProperties.add(enclosingGetter.name.drop(3).decapitalize())
-                    val enclosingLocation = enclosingGetter(location)
-                    href(enclosingLocation)
+                if (enclosingProperty != null) {
+                    usedProperties.add(enclosingProperty.name)
+                    val enclosingLocation = enclosingProperty.call(location)!!
+                    pathAndQuery(enclosingLocation)
                 } else {
-                    enclosingAt.url
+                    hrefInfo(at.url, emptyList())
                 }
-            } else null
-        } else null
+            } else hrefInfo.root
+        } else hrefInfo.root
 
 
-        val constructors = dataClass.constructors.filterNot {
-            it.parameterTypes.any { it.name == "kotlin.jvm.internal.DefaultConstructorMarker" }
-        }
-        val parameters = constructors.single().parameters
-        val queryValues = parameters
-                .map {
-                    val parameterAnnotation = it.getAnnotation(javaClass<JetValueParameter>())
-                    parameterAnnotation.name
-                }
-                .filterNot { usedProperties.contains(it) }
-                .map { property -> locationValue(property)?.let { value -> "${property}=${value.toString()}" } }
+        val queryValues = dataClass.memberProperties
+                .filterNot { usedProperties.contains(it.name) }
+                .map { property -> locationValue(property.name)?.let { value -> property.name to value } }
                 .filterNotNull()
-        val relativeUrl = relativePath + if (queryValues.any())
-            "?" + queryValues.joinToString("&")
+
+        return parentInfo.combine(relativePath, queryValues)
+    }
+
+    fun href(location: Any): String {
+        val info = pathAndQuery(location)
+        return info.path + if (info.query.any())
+            "?" + info.query.map { "${it.first}=${it.second}" }.joinToString("&")
         else
             ""
-
-        if (parentUrl != null)
-            return "$parentUrl/$relativeUrl"
-
-        return "/$relativeUrl"
     }
 
     fun <T> createEntry(parent: RoutingEntry, dataClass: Class<T>): RoutingEntry {
@@ -104,6 +108,8 @@ open public class LocationService {
             parent
 
         val annotation = dataClass.getAnnotation(javaClass<at>())
+        if (annotation == null)
+            return createRoutingEntry(hierarchyEntry, "/") { RoutingEntry() }
         return createRoutingEntry(hierarchyEntry, annotation.url) { RoutingEntry() }
     }
 
