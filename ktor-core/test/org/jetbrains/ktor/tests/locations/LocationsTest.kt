@@ -76,6 +76,7 @@ class LocationsTest {
         }
         urlShouldBeHandled(testHost, href)
         urlShouldBeUnhandled(testHost, "/favorite/123")
+        urlShouldBeUnhandled(testHost, "/favorite")
     }
 
     @location("/container/:id") data class pathContainer(val id: Int) {
@@ -190,6 +191,28 @@ class LocationsTest {
         urlShouldBeHandled(testHost, "/container/123/items?optional=text")
     }
 
+    @location("/container") data class simpleContainer() {
+        @location("/items") data class items()
+    }
+
+    Test fun `location with simple path container and items`() {
+        val href = Locations.href(simpleContainer.items())
+        assertEquals("/container/items", href)
+        val testHost = createTestHost()
+        testHost.application.locations {
+            get<simpleContainer.items> {
+                status(HttpStatusCode.OK)
+                send()
+            }
+            get<simpleContainer> {
+                status(HttpStatusCode.OK)
+                send()
+            }
+        }
+        urlShouldBeHandled(testHost, href)
+        urlShouldBeHandled(testHost, "/container")
+        urlShouldBeUnhandled(testHost, "/items")
+    }
 
     @location("/container/**path") data class tailCard(val path: List<String>)
 

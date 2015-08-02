@@ -3,16 +3,12 @@ package org.jetbrains.ktor.routing
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 
-fun RoutingEntry.path(path: String, build: RoutingEntry.() -> Unit) {
-    val current: RoutingEntry = createRoutingEntry(this, path) { RoutingEntry() }
-    current.build()
-}
+fun RoutingEntry.path(path: String, build: RoutingEntry.() -> Unit) = createRoutingEntry(this, path).build()
 
-public fun createRoutingEntry(routingEntry: RoutingEntry, path: String, entryBuilder: () -> RoutingEntry): RoutingEntry {
+public fun createRoutingEntry(routingEntry: RoutingEntry, path: String): RoutingEntry {
     val parts = pathToParts(path)
     var current: RoutingEntry = routingEntry;
     for (part in parts) {
-        val entry = entryBuilder()
         val selector = when {
             part == "*" -> UriPartWildcardRoutingSelector()
             part.startsWith("**") -> UriPartTailcardRoutingSelector(part.drop(2))
@@ -21,15 +17,14 @@ public fun createRoutingEntry(routingEntry: RoutingEntry, path: String, entryBui
             else -> UriPartConstantRoutingSelector(part)
         }
         // there may already be entry with same selector, so join them
-        current = current.add(selector, entry)
+        current = current.select(selector)
     }
     return current
 }
 
 fun RoutingEntry.param(name: String, value: String, build: RoutingEntry.() -> Unit) {
     val selector = ConstantParameterRoutingSelector(name, value)
-    val entry = RoutingEntry()
-    add(selector, entry).build()
+    select(selector).build()
 }
 
 fun RoutingEntry.contentType(contentType: ContentType, build: RoutingEntry.() -> Unit) {
@@ -38,8 +33,7 @@ fun RoutingEntry.contentType(contentType: ContentType, build: RoutingEntry.() ->
 
 fun RoutingEntry.param(name: String, build: RoutingEntry.() -> Unit) {
     val selector = ParameterRoutingSelector(name)
-    val entry = RoutingEntry()
-    add(selector, entry).build()
+    select(selector).build()
 }
 
 fun RoutingEntry.methodAndLocation(method: String, path: String, body: RoutingEntry.() -> Unit) {

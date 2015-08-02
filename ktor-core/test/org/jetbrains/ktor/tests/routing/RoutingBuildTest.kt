@@ -11,6 +11,9 @@ class RoutingBuildTest {
             it("should have single child at root") {
                 assertEquals(1, entry.children.size())
             }
+            it("should have correct parent for single child") {
+                assertEquals(entry, entry.children[0].entry.parent)
+            }
             it("should have child of type UriPartConstantRoutingSelector") {
                 assertTrue(entry.children[0].selector is UriPartConstantRoutingSelector)
             }
@@ -29,32 +32,32 @@ class RoutingBuildTest {
         }
 
         on("adding routing rules manually") {
-            val entry = RoutingEntry()
-            entry.add(UriPartConstantRoutingSelector("foo"), RoutingEntry())
-                    .add(UriPartOptionalParameterRoutingSelector("new"), RoutingEntry())
+            val entry = Routing()
+            entry.select(UriPartConstantRoutingSelector("foo"))
+                    .select(UriPartOptionalParameterRoutingSelector("new"))
             itShouldHaveSpecificStructure(entry)
         }
         on("adding routing from string") {
-            val entry = RoutingEntry()
+            val entry = Routing()
             entry.path("/foo/:?new") { }
             itShouldHaveSpecificStructure(entry)
         }
         on("adding routing from string in nested blocks") {
-            val entry = RoutingEntry()
+            val entry = Routing()
             entry.path("/foo") {
                 path("/:?new") { }
             }
             itShouldHaveSpecificStructure(entry)
         }
         on("adding routing from string in separate blocks") {
-            val entry = RoutingEntry()
+            val entry = Routing()
             entry.path("/foo") { }
             entry.path("/foo/:?new") { }
             itShouldHaveSpecificStructure(entry)
         }
 
         on("creating route with non-optional parameter") {
-            val entry = RoutingEntry()
+            val entry = Routing()
             entry.path("/foo/:new") { }
             it("should have second level child of type UriPartParameterRoutingSelector") {
                 assertTrue(entry.children[0].entry.children[0].selector is UriPartParameterRoutingSelector)
@@ -65,14 +68,14 @@ class RoutingBuildTest {
         }
 
         on("creating route with wildcard") {
-            val entry = RoutingEntry()
+            val entry = Routing()
             entry.path("/foo/*") { }
             it("should have second level child of type UriPartWildcardRoutingSelector") {
                 assertTrue(entry.children[0].entry.children[0].selector is UriPartWildcardRoutingSelector)
             }
         }
         on("creating route with tailcard") {
-            val entry = RoutingEntry()
+            val entry = Routing()
             entry.path("/foo/**") { }
             it("should have second level child of type UriPartTailcardRoutingSelector") {
                 assertTrue(entry.children[0].entry.children[0].selector is UriPartTailcardRoutingSelector)

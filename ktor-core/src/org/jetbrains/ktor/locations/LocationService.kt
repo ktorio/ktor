@@ -16,11 +16,11 @@ open public class LocationService {
 
     private data class UriInfo(val path: String, val query: List<Pair<String, String>>)
     private data class LocationInfo(val klass: KClass<*>,
-                            val parent: LocationInfo?,
-                            val parentParameter: LocationInfoProperty?,
-                            val path: String,
-                            val pathParameters: List<LocationInfoProperty>,
-                            val queryParameters: List<LocationInfoProperty>) {
+                                    val parent: LocationInfo?,
+                                    val parentParameter: LocationInfoProperty?,
+                                    val path: String,
+                                    val pathParameters: List<LocationInfoProperty>,
+                                    val queryParameters: List<LocationInfoProperty>) {
 
         private val constructor = klass.constructors.single()
 
@@ -55,7 +55,7 @@ open public class LocationService {
                 javaClass<Int>(), javaClass<lang.Integer>() -> toInt()
                 javaClass<Float>(), javaClass<lang.Float>() -> toFloat()
                 javaClass<Double>(), javaClass<lang.Double>() -> toDouble()
-                javaClass<Long>(), javaClass<lang.Long>()  -> toLong()
+                javaClass<Long>(), javaClass<lang.Long>() -> toLong()
                 javaClass<Boolean>(), javaClass<lang.Boolean>() -> toBoolean()
                 javaClass<String>(), javaClass<lang.String>() -> this
                 else -> throw UnsupportedOperationException("Type $type is not supported in automatic location data class processing")
@@ -140,7 +140,7 @@ open public class LocationService {
         }
     }
 
-    fun resolve<T : Any>(dataClass: KClass<*>, request: LocationRoutingApplicationRequest<T>): T {
+    fun resolve<T : Any>(dataClass: KClass<*>, request: RoutingApplicationRequest): T {
         return getOrCreateInfo(dataClass).create(request) as T
     }
 
@@ -168,10 +168,14 @@ open public class LocationService {
 
         val relativePath = substituteParts.filterNotNull().filterNot { it.isEmpty() }.join("/")
 
-        val parentInfo = if (info.parent != null && info.parentParameter != null) {
+        val parentInfo = if (info.parent == null)
+            rootUri
+        else if (info.parentParameter != null) {
             val enclosingLocation = info.parentParameter.getter.call(location)!!
             pathAndQuery(enclosingLocation)
-        } else rootUri
+        } else {
+            UriInfo(info.parent.path, emptyList())
+        }
 
         val queryValues = info.queryParameters
                 .flatMap { property ->
@@ -196,20 +200,19 @@ open public class LocationService {
 
     private fun createEntry(parent: RoutingEntry, info: LocationInfo): RoutingEntry {
         val hierarchyEntry = info.parent?.let { createEntry(parent, it) } ?: parent
-        val pathEntry = createRoutingEntry(hierarchyEntry, info.path) { RoutingEntry() }
+        val pathEntry = createRoutingEntry(hierarchyEntry, info.path)
 
-        return info.queryParameters.fold(pathEntry) { entry, query ->
+        val queryEntry = info.queryParameters.fold(pathEntry) { entry, query ->
             val selector = if (query.isOptional)
                 OptionalParameterRoutingSelector(query.name)
             else
                 ParameterRoutingSelector(query.name)
-            entry.add(selector, RoutingEntry())
+            entry.select(selector)
         }
+        return queryEntry
     }
 
     fun createEntry(parent: RoutingEntry, dataClass: KClass<*>): RoutingEntry {
         return createEntry(parent, getOrCreateInfo(dataClass))
     }
-
-    fun routing(routing: Routing): LocationRouting = LocationRouting(this, routing)
 }

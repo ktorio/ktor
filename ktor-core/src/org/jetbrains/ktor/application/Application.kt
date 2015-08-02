@@ -12,7 +12,6 @@ public open class Application(val config: ApplicationConfig) {
     }
 
     public fun handle(request: ApplicationRequest): ApplicationRequestStatus {
-        val queryString = request.queryString()
         val requestLogString = "${request.httpMethod} -- ${request.uri}"
 
         fun handle(index: Int, request: ApplicationRequest): ApplicationRequestStatus = when (index) {

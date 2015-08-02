@@ -8,53 +8,56 @@ annotation class location(val path: String)
 
 object Locations : LocationService()
 
-open class LocationRoutingEntry<T>(val locationService: LocationService, val entry: RoutingEntry)
-class LocationRouting(locationService: LocationService, routing: Routing) : LocationRoutingEntry<Any>(locationService, routing)
+val locationServiceKey = Routing.Key<LocationService>("LocationService")
 
-
-class LocationRoutingApplicationRequest<T>(val locationService: LocationService,
-                                           request: ApplicationRequest,
-                                           resolveResult: RoutingResolveResult) : RoutingApplicationRequest(request, resolveResult)
-
-public fun Application.locations(body: LocationRouting.() -> Unit) {
+public fun Application.locations(body: Routing.() -> Unit) {
     val routing = Routing()
-    Locations.routing(routing).body()
+    routing.withLocations(Locations, body)
     interceptRoute(routing)
 }
 
-inline fun LocationRoutingEntry<*>.location<reified T : Any>(noinline body: LocationRoutingEntry<T>.() -> Unit) {
+public fun Routing.withLocations(locations: LocationService, body: Routing.() -> Unit) {
+    addService(locationServiceKey, locations)
+    body()
+}
+
+inline fun RoutingEntry.location<reified T : Any>(noinline body: RoutingEntry.() -> Unit) {
     location(T::class, body)
 }
 
-inline fun LocationRoutingEntry<*>.get<reified T : Any>(noinline body: ApplicationResponse.(T) -> Unit) {
+inline fun RoutingEntry.get<reified T : Any>(noinline body: ApplicationResponse.(T) -> Unit) {
     location(T::class) {
-        handle { location->
-            respond {
-                body(location)
-                send()
+        get {
+            handle<T> { location ->
+                respond {
+                    body(location)
+                    send()
+                }
             }
         }
     }
 }
 
-fun LocationRoutingEntry<*>.location<T>(data: KClass<T>, body: LocationRoutingEntry<T>.() -> Unit) {
-    val dataEntry = locationService.createEntry(entry, data)
-    LocationRoutingEntry<T>(locationService, dataEntry).body()
+fun RoutingEntry.location<T>(data: KClass<T>, body: RoutingEntry.() -> Unit) {
+    val locationService = getService(locationServiceKey)
+    val entry = locationService.createEntry(this, data)
+    entry.body()
 }
 
-inline fun <reified T> LocationRoutingEntry<T>.handle(noinline body: LocationRoutingApplicationRequest<T>.(T) -> ApplicationRequestStatus) {
+inline fun <reified T> RoutingEntry.handle(noinline body: RoutingApplicationRequest.(T) -> ApplicationRequestStatus) {
     return handle(T::class, body)
 }
 
-fun <T> LocationRoutingEntry<T>.handle(dataClass: KClass<T>, body: LocationRoutingApplicationRequest<T>.(T) -> ApplicationRequestStatus) {
-    entry.addInterceptor(true) {
-        val locationRequest = LocationRoutingApplicationRequest<T>(locationService, this, resolveResult)
-        val location = locationService.resolve(dataClass, locationRequest)
-        locationRequest.body(location)
+fun <T> RoutingEntry.handle(dataClass: KClass<T>, body: RoutingApplicationRequest.(T) -> ApplicationRequestStatus) {
+    addInterceptor(true) {
+        val locationService = getService(locationServiceKey)
+        val location = locationService.resolve<T>(dataClass, this)
+        body(location)
     }
 }
 
-fun <T> LocationRoutingApplicationRequest<*>.sendRedirect(location: T): ApplicationRequestStatus {
+fun <T> RoutingApplicationRequest.sendRedirect(location: T): ApplicationRequestStatus {
+    val locationService = resolveResult.entry.getService(locationServiceKey)
     return sendRedirect(locationService.href(location))
 }
 
