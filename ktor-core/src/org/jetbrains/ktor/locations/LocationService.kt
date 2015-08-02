@@ -5,84 +5,118 @@ import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
 open public class LocationService {
-    fun resolve<T : Any> (dataClass: KClass<*>, request: LocationRoutingApplicationRequest<T>): T {
-        val enclosingClass = dataClass.java.enclosingClass?.kotlin
+    val rootUri = UriInfo("", emptyList())
 
-        val constructor = dataClass.constructors.single()
-        val parameters = constructor.parameters
-        val javaParameters = constructor.javaConstructor!!.parameters
-        val args = Array(parameters.size()) { index ->
-            val parameter = parameters[index]
-            val parameterType = parameter.type
-            val javaParameterType = javaParameters[index].type!!
-            val parameterName = parameter.name
-            if (enclosingClass != null && javaParameterType === enclosingClass.java) {
-                enclosingClass.java.getAnnotation(javaClass<at>())?.let {
-                    resolve(enclosingClass, request)
+    data class UriInfo(val path: String, val query: List<Pair<String, String>>)
+    data class LocationInfo(val klass: KClass<*>,
+                            val parent: LocationInfo?,
+                            val parentParameter: String?,
+                            val path: String,
+                            val pathParameters: List<String>,
+                            val queryParameters: List<String>) {
+
+        private val constructor = klass.constructors.single()
+
+        fun create(request: RoutingApplicationRequest): Any {
+            val parameters = constructor.parameters
+            val javaParameters = constructor.javaConstructor!!.parameters
+            val args = Array(parameters.size()) { index ->
+                val parameter = parameters[index]
+                val parameterType = parameter.type
+                val javaParameterType = javaParameters[index].type!!
+                val parameterName = parameter.name
+                if (parent != null && javaParameterType === parent.klass.java) {
+                    parent.create(request)
+                } else {
+                    val requestParameters = request.parameters[parameterName]
+                    if (requestParameters == null) {
+                        throw IllegalArgumentException("Parameter '$parameterName' required to construct '$klass' was not found in request")
+                    }
+                    if (requestParameters.size() != 1) {
+                        throw IllegalArgumentException("There are multiply '$parameterName' parameters when trying to construct $klass")
+                    }
+                    requestParameters[0].convertTo(javaParameterType)
                 }
-            } else {
-                val requestParameters = request.parameters[parameterName]
-                requestParameters?.singleOrNull()?.convertTo(javaParameterType)
             }
-        }
-        return constructor.call(*args) as T
-    }
-
-    data class hrefInfo(val path: String, val query: List<Pair<String, String>>) {
-        fun combine(relativePath: String, queryValues: List<Pair<String, String>>): hrefInfo {
-            val combinedPath = (pathToParts(path) + pathToParts(relativePath)).join("/", "/")
-            return hrefInfo(combinedPath, query + queryValues)
-        }
-
-        companion object {
-            val root = hrefInfo("", emptyList())
+            return constructor.call(*args)!!
         }
     }
 
-    fun pathAndQuery(location: Any): hrefInfo {
-        val dataClass = location.javaClass.kotlin
-        val at = dataClass.java.getAnnotation(javaClass<at>())
-        val relativeParts = if (at == null) pathToParts("/") else pathToParts(at.url)
-        val usedProperties = arrayListOf<String>()
+    fun UriInfo.combine(relativePath: String, queryValues: List<Pair<String, String>>): UriInfo {
+        val combinedPath = (pathToParts(path) + pathToParts(relativePath)).join("/", "/")
+        return UriInfo(combinedPath, query + queryValues)
+    }
 
-        fun locationValue(name: String): String? {
-            usedProperties.add(name)
-            val valueGetter = dataClass.memberProperties.single { it.name == name }
-            return valueGetter.get(location)?.toString()
+    val info = hashMapOf<KClass<*>, LocationInfo>()
+
+    fun getOrCreateInfo(dataClass: KClass<*>): LocationInfo {
+        return info.getOrPut(dataClass) {
+            val enclosingClass = dataClass.java.enclosingClass?.kotlin
+            val parent = enclosingClass?.java?.getAnnotation(javaClass<location>())?.let {
+                getOrCreateInfo(enclosingClass!!)
+            }
+
+            val path = dataClass.java.getAnnotation(javaClass<location>())?.let {
+                it.path
+            } ?: ""
+
+            // TODO: use primary ctor parameters
+            val properties = dataClass.memberProperties
+            val parentParameter = properties.firstOrNull {
+                (it as KProperty1<Any?, *>).getter.javaMethod?.returnType === enclosingClass?.java
+            }?.name
+            val parameterNames = properties.map { it.name }
+
+            val pathParameters = pathToParts(path).map {
+                when {
+                    it.startsWith("**") -> it.drop(2)
+                    it.startsWith(":?") -> it.drop(2)
+                    it.startsWith(":") -> it.drop(1)
+                    else -> null
+                }
+            }.filterNotNull()
+            val invalidParameters = pathParameters.filter { it !in parameterNames }
+            if (invalidParameters.any()) {
+                throw IllegalArgumentException("Parameters '$invalidParameters' are not bound to '$dataClass' properties")
+            }
+
+            val queryParameters = parameterNames.filterNot { pathParameters.contains(it) || it == parentParameter }
+            LocationInfo(dataClass, parent, parentParameter, path, pathParameters, queryParameters)
+        }
+    }
+
+
+    fun resolve<T : Any>(dataClass: KClass<*>, request: LocationRoutingApplicationRequest<T>): T {
+        return getOrCreateInfo(dataClass).create(request) as T
+    }
+
+
+    fun pathAndQuery(location: Any): UriInfo {
+        val info = getOrCreateInfo(location.javaClass.kotlin)
+
+        fun propertyValue(instance: Any, name: String): Any? {
+            val valueGetter = info.klass.memberProperties.single { it.name == name }
+            return valueGetter.call(instance)
         }
 
-        val substituteParts = relativeParts.map {
+        val substituteParts = pathToParts(info.path).map {
             when {
-                it.startsWith("**") -> locationValue(it.drop(2)) ?: ""
-                it.startsWith(":?") -> locationValue(it.drop(2)) ?: "null"
-                it.startsWith(":") -> locationValue(it.drop(1)) ?: "null"
+                it.startsWith("**") -> propertyValue(location, it.drop(2)).toString()
+                it.startsWith(":?") -> propertyValue(location, it.drop(2)).toString()
+                it.startsWith(":") -> propertyValue(location, it.drop(1)).toString()
                 else -> it
             }
         }
 
         val relativePath = substituteParts.filterNot { it.isEmpty() }.join("/")
 
-        val enclosingClass = dataClass.java.enclosingClass?.kotlin
-        val parentInfo = if (enclosingClass != null) {
-            val enclosingAt = enclosingClass.java.getAnnotation(javaClass<at>())
-            if (enclosingAt != null) {
-                val enclosingProperty = dataClass.memberProperties.singleOrNull {
-                    it.getter.javaMethod!!.returnType == enclosingClass.java
-                }
-                if (enclosingProperty != null) {
-                    usedProperties.add(enclosingProperty.name)
-                    val enclosingLocation = enclosingProperty.call(location)!!
+        val parentInfo = if (info.parent != null && info.parentParameter != null) {
+                    val enclosingLocation = propertyValue(location, info.parentParameter)!!
                     pathAndQuery(enclosingLocation)
-                } else {
-                    hrefInfo(at.url, emptyList())
-                }
-            } else hrefInfo.root
-        } else hrefInfo.root
+        } else rootUri
 
-
-        val queryValues = dataClass.memberProperties
-                .filterNot { usedProperties.contains(it.name) }
-                .map { property -> locationValue(property.name)?.let { value -> property.name to value } }
+        val queryValues = info.queryParameters
+                .map { property -> propertyValue(location, property)?.let { value -> property to value.toString() } }
                 .filterNotNull()
 
         return parentInfo.combine(relativePath, queryValues)
@@ -96,21 +130,18 @@ open public class LocationService {
             ""
     }
 
-    fun <T> createEntry(parent: RoutingEntry, dataClass: Class<T>): RoutingEntry {
-        val enclosingClass = dataClass.enclosingClass
-        val hierarchyEntry = if (enclosingClass != null) {
-            val annotation = enclosingClass.getAnnotation(javaClass<at>())
-            if (annotation != null)
-                createEntry(parent, enclosingClass)
-            else
-                parent
-        } else
-            parent
+    fun createEntry(parent: RoutingEntry, info: LocationInfo): RoutingEntry {
+        val hierarchyEntry = info.parent?.let { createEntry(parent, it) } ?: parent
+        val pathEntry = createRoutingEntry(hierarchyEntry, info.path) { RoutingEntry() }
 
-        val annotation = dataClass.getAnnotation(javaClass<at>())
-        if (annotation == null)
-            return createRoutingEntry(hierarchyEntry, "/") { RoutingEntry() }
-        return createRoutingEntry(hierarchyEntry, annotation.url) { RoutingEntry() }
+        return info.queryParameters.fold(pathEntry) { entry, query ->
+            val selector = ParameterRoutingSelector(query)
+            entry.add(selector, RoutingEntry())
+        }
+    }
+
+    fun createEntry(parent: RoutingEntry, dataClass: KClass<*>): RoutingEntry {
+        return createEntry(parent, getOrCreateInfo(dataClass))
     }
 
     fun routing(routing: Routing): LocationRouting = LocationRouting(this, routing)

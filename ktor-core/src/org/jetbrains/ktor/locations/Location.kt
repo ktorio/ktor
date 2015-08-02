@@ -4,7 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.routing.*
 import kotlin.reflect.*
 
-annotation class at(val url: String)
+annotation class location(val path: String)
 
 object Locations : LocationService()
 
@@ -23,11 +23,11 @@ public fun Application.locations(body: LocationRouting.() -> Unit) {
 }
 
 inline fun LocationRoutingEntry<*>.location<reified T : Any>(noinline body: LocationRoutingEntry<T>.() -> Unit) {
-    location(javaClass<T>(), body)
+    location(T::class, body)
 }
 
 inline fun LocationRoutingEntry<*>.get<reified T : Any>(noinline body: ApplicationResponse.(T) -> Unit) {
-    location(javaClass<T>()) {
+    location(T::class) {
         handle { location->
             respond {
                 body(location)
@@ -37,7 +37,7 @@ inline fun LocationRoutingEntry<*>.get<reified T : Any>(noinline body: Applicati
     }
 }
 
-fun LocationRoutingEntry<*>.location<T>(data: Class<T>, body: LocationRoutingEntry<T>.() -> Unit) {
+fun LocationRoutingEntry<*>.location<T>(data: KClass<T>, body: LocationRoutingEntry<T>.() -> Unit) {
     val dataEntry = locationService.createEntry(entry, data)
     LocationRoutingEntry<T>(locationService, dataEntry).body()
 }

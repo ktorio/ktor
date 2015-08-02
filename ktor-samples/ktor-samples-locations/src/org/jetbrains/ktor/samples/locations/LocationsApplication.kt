@@ -7,8 +7,8 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
 import java.util.*
 
-at("/") data class index()
-at("/number") data class number(val value: Int)
+location("/") data class index()
+location("/number") data class number(val value: Int)
 
 class LocationsApplication(config: ApplicationConfig) : Application(config) {
     init {

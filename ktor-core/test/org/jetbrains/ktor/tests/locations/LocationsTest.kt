@@ -9,7 +9,7 @@ import kotlin.test.*
 
 
 class LocationsTest {
-    data class index()
+    @location("/") data class index()
 
     Test fun `location without URL`() {
         val href = Locations.href(index())
@@ -26,7 +26,7 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/index")
     }
 
-    @at("/about") data class about()
+    @location("/about") data class about()
 
     Test fun `location with URL`() {
         val href = Locations.href(about())
@@ -43,7 +43,7 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/about/123")
     }
 
-    @at("/user/:id") data class user(val id: Int)
+    @location("/user/:id") data class user(val id: Int)
 
     Test fun `location with path param`() {
         val href = Locations.href(user(123))
@@ -60,7 +60,7 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/user?id=123")
     }
 
-    @at("/favorite") data class favorite(val id: Int)
+    @location("/favorite") data class favorite(val id: Int)
 
     Test fun `location with query param`() {
         val href = Locations.href(favorite(123))
@@ -77,8 +77,8 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/favorite/123")
     }
 
-    @at("/container/:id") data class container(val id: Int) {
-        @at("/items") data class items(val container: container)
+    @location("/container/:id") data class container(val id: Int) {
+        @location("/items") data class items(val container: container)
     }
 
     Test fun `location with query parameter and nested data`() {
@@ -98,8 +98,8 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/container/items?id=123")
     }
 
-    @at("/container") data class queryContainer(val id: Int) {
-        @at("/items") data class items(val container: queryContainer)
+    @location("/container") data class queryContainer(val id: Int) {
+        @location("/items") data class items(val container: queryContainer)
     }
 
     Test fun `location with path parameter and nested data`() {
