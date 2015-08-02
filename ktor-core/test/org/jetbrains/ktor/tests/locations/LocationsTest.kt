@@ -5,6 +5,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.tests.*
 import org.junit.*
+import kotlin.reflect.jvm.*
 import kotlin.test.*
 
 
@@ -77,20 +78,24 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/favorite/123")
     }
 
-    @location("/container/:id") data class container(val id: Int) {
-        @location("/items") data class items(val container: container)
+    @location("/container/:id") data class pathContainer(val id: Int) {
+        @location("/items") data class items(val container: pathContainer)
+        @location("/items") data class badItems()
     }
 
     Test fun `location with path parameter and nested data`() {
-        val c = container(123)
-        val href = Locations.href(container.items(c))
+        val c = pathContainer(123)
+        val href = Locations.href(pathContainer.items(c))
         assertEquals("/container/123/items", href)
         val testHost = createTestHost()
         testHost.application.locations {
-            get<container.items> { items ->
+            get<pathContainer.items> { items ->
                 assertEquals(123, items.container.id)
                 status(HttpStatusCode.OK)
                 send()
+            }
+            failsWith(InconsistentRoutingException::class.java) {
+                get<pathContainer.badItems> { }
             }
         }
         urlShouldBeHandled(testHost, href)
@@ -100,6 +105,7 @@ class LocationsTest {
 
     @location("/container") data class queryContainer(val id: Int) {
         @location("/items") data class items(val container: queryContainer)
+        @location("/items") data class badItems()
     }
 
     Test fun `location with query parameter and nested data`() {
@@ -113,6 +119,9 @@ class LocationsTest {
                 status(HttpStatusCode.OK)
                 send()
             }
+            failsWith(InconsistentRoutingException::class.java) {
+                get<queryContainer.badItems> { }
+            }
         }
         urlShouldBeHandled(testHost, href)
         urlShouldBeUnhandled(testHost, "/container/items")
@@ -121,7 +130,7 @@ class LocationsTest {
 
     @location("/container") data class optionalName(val id: Int, val optional: String? = null)
 
-    Test fun `location with missing optional query parameter and nested data`() {
+    Test fun `location with missing optional query parameter`() {
         val href = Locations.href(optionalName(123))
         assertEquals("/container?id=123", href)
         val testHost = createTestHost()
@@ -138,7 +147,86 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/container/123")
     }
 
-    private fun urlShouldBeHandled(testHost: TestApplicationHost, url: String) {
+    Test fun `location with specified optional query parameter`() {
+        val href = Locations.href(optionalName(123, "text"))
+        assertEquals("/container?id=123&optional=text", href)
+        val testHost = createTestHost()
+        testHost.application.locations {
+            get<optionalName> {
+                assertEquals(123, it.id)
+                assertEquals("text", it.optional)
+                status(HttpStatusCode.OK)
+                send()
+            }
+        }
+        urlShouldBeHandled(testHost, href)
+        urlShouldBeUnhandled(testHost, "/container")
+        urlShouldBeUnhandled(testHost, "/container/123")
+    }
+
+    @location("/container/:?id") data class optionalContainer(val id: Int? = null) {
+        @location("/items") data class items(val optional: String? = null)
+    }
+
+    Test fun `location with optional path and query parameter`() {
+        val href = Locations.href(optionalContainer())
+        assertEquals("/container", href)
+        val testHost = createTestHost()
+        testHost.application.locations {
+            get<optionalContainer> {
+                assertEquals(null, it.id)
+                status(HttpStatusCode.OK)
+                send()
+            }
+            get<optionalContainer.items> {
+                assertEquals("text", it.optional)
+                status(HttpStatusCode.OK)
+                send()
+            }
+
+        }
+        urlShouldBeHandled(testHost, href)
+        urlShouldBeHandled(testHost, "/container")
+        urlShouldBeHandled(testHost, "/container/123/items?optional=text")
+    }
+
+
+    @location("/container/**path") data class tailCard(val path: List<String>)
+
+    Test fun `location with tailcard`() {
+        val href = Locations.href(tailCard(emptyList()))
+        assertEquals("/container", href)
+        val testHost = createTestHost()
+        testHost.application.locations {
+            get<tailCard> {
+                status(HttpStatusCode.OK)
+                content(it.path.toString())
+                send()
+            }
+
+        }
+        urlShouldBeHandled(testHost, href, "[]")
+        urlShouldBeHandled(testHost, "/container/some", "[some]")
+        urlShouldBeHandled(testHost, "/container/123/items?optional=text", "[123, items]")
+    }
+
+    @location("/") data class multiquery(val value: List<Int>)
+    Test fun `location with multiple query values`() {
+        val href = Locations.href(multiquery(listOf(1,2,3)))
+        assertEquals("/?value=1&value=2&value=3", href)
+        val testHost = createTestHost()
+        testHost.application.locations {
+            get<multiquery> {
+                status(HttpStatusCode.OK)
+                content(it.value.toString())
+                send()
+            }
+
+        }
+        urlShouldBeHandled(testHost, href, "[1, 2, 3]")
+    }
+
+    private fun urlShouldBeHandled(testHost: TestApplicationHost, url: String, content: String? = null) {
         on("making get request to $url") {
             val result = testHost.handleRequest {
                 uri = url
@@ -152,6 +240,11 @@ class LocationsTest {
             }
             it("should have a response with OK status") {
                 assertEquals(HttpStatusCode.OK.value, result.response!!.status)
+            }
+            if (content != null) {
+                it("should have a response with content '$content'") {
+                    assertEquals(content, result.response!!.content)
+                }
             }
         }
     }

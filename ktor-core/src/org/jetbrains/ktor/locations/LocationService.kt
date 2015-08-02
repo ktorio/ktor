@@ -1,16 +1,21 @@
 package org.jetbrains.ktor.locations
 
 import org.jetbrains.ktor.routing.*
+import java.lang
+import java.lang.reflect.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
+class InconsistentRoutingException(message: String) : Exception(message)
+
 open public class LocationService {
-    val rootUri = UriInfo("", emptyList())
+    private val rootUri = UriInfo("", emptyList())
+    private val info = hashMapOf<KClass<*>, LocationInfo>()
 
-    class LocationInfoProperty(val name: String, val getter: KProperty1.Getter<*, *>, val isOptional: Boolean)
+    private class LocationInfoProperty(val name: String, val getter: KProperty1.Getter<*, *>, val isOptional: Boolean)
 
-    data class UriInfo(val path: String, val query: List<Pair<String, String>>)
-    data class LocationInfo(val klass: KClass<*>,
+    private data class UriInfo(val path: String, val query: List<Pair<String, String>>)
+    private data class LocationInfo(val klass: KClass<*>,
                             val parent: LocationInfo?,
                             val parentParameter: LocationInfoProperty?,
                             val path: String,
@@ -21,11 +26,11 @@ open public class LocationService {
 
         fun create(request: RoutingApplicationRequest): Any {
             val parameters = constructor.parameters
-            val javaParameters = constructor.javaConstructor!!.parameters
+            val javaParameters = constructor.javaConstructor!!.genericParameterTypes
             val args = Array(parameters.size()) { index ->
                 val parameter = parameters[index]
                 val parameterType = parameter.type
-                val javaParameterType = javaParameters[index].type!!
+                val javaParameterType = javaParameters[index]
                 val parameterName = parameter.name
                 if (parent != null && javaParameterType === parent.klass.java) {
                     parent.create(request)
@@ -33,29 +38,53 @@ open public class LocationService {
                     val requestParameters = request.parameters[parameterName]
                     if (requestParameters == null) {
                         if (!parameterType.isMarkedNullable) {
-                            throw IllegalArgumentException("Parameter '$parameterName' required to construct '$klass' was not found in request")
+                            throw InconsistentRoutingException("Parameter '$parameterName' required to construct '$klass' was not found in the request")
                         }
                         null
                     } else {
-                        if (requestParameters.size() != 1) {
-                            throw IllegalArgumentException("There are multiply '$parameterName' parameters when trying to construct $klass")
-                        }
-                        requestParameters[0].convertTo(javaParameterType)
+                        requestParameters.convertTo(javaParameterType)
                     }
                 }
             }
             return constructor.call(*args)!!
         }
+
+        fun String.convertTo(type: Type): Any {
+            return when (type) {
+                is WildcardType -> convertTo(type.upperBounds.single())
+                javaClass<Int>(), javaClass<lang.Integer>() -> toInt()
+                javaClass<Float>(), javaClass<lang.Float>() -> toFloat()
+                javaClass<Double>(), javaClass<lang.Double>() -> toDouble()
+                javaClass<Long>(), javaClass<lang.Long>()  -> toLong()
+                javaClass<Boolean>(), javaClass<lang.Boolean>() -> toBoolean()
+                javaClass<String>(), javaClass<lang.String>() -> this
+                else -> throw UnsupportedOperationException("Type $type is not supported in automatic location data class processing")
+            }
+        }
+
+        fun List<String>.convertTo(type: Type): Any {
+            if (type is ParameterizedType) {
+                val rawType = type.rawType as Class<List<*>>
+                if (rawType.isAssignableFrom(List::class.java)) {
+                    val itemType = type.actualTypeArguments.single()
+                    return map { it.convertTo(itemType) }
+                }
+            }
+
+            if (size() != 1) {
+                throw InconsistentRoutingException("There are multiply values in request when trying to construct single value $type")
+            }
+
+            return get(0).convertTo(type)
+        }
     }
 
-    fun UriInfo.combine(relativePath: String, queryValues: List<Pair<String, String>>): UriInfo {
+    private fun UriInfo.combine(relativePath: String, queryValues: List<Pair<String, String>>): UriInfo {
         val combinedPath = (pathToParts(path) + pathToParts(relativePath)).join("/", "/")
         return UriInfo(combinedPath, query + queryValues)
     }
 
-    val info = hashMapOf<KClass<*>, LocationInfo>()
-
-    fun getOrCreateInfo(dataClass: KClass<*>): LocationInfo {
+    private fun getOrCreateInfo(dataClass: KClass<*>): LocationInfo {
         return info.getOrPut(dataClass) {
             val enclosingClass = dataClass.java.enclosingClass?.kotlin
             val parent = enclosingClass?.java?.getAnnotation(javaClass<location>())?.let {
@@ -68,16 +97,31 @@ open public class LocationService {
 
             // TODO: use primary ctor parameters
             val declaredProperties = dataClass.memberProperties.map {
-                LocationInfoProperty(it.name, (it as KProperty1<Any?, *>).getter, it.returnType.isMarkedNullable)
+                LocationInfoProperty(it.name, (it as KProperty1<out Any?, *>).getter, it.returnType.isMarkedNullable)
             }
 
             val parentParameter = declaredProperties.firstOrNull {
                 it.getter.javaMethod?.returnType === enclosingClass?.java
             }
 
+            if (parent != null && parentParameter == null) {
+                if (parent.parentParameter != null)
+                    throw InconsistentRoutingException("Nested location '$dataClass' should have parameter for parent location because it is chained to its parent")
+                if (parent.pathParameters.any { !it.isOptional })
+                    throw InconsistentRoutingException("Nested location '$dataClass' should have parameter for parent location because of non-optional path parameters ${parent.pathParameters.filter { !it.isOptional }}")
+                if (parent.queryParameters.any { !it.isOptional })
+                    throw InconsistentRoutingException("Nested location '$dataClass' should have parameter for parent location because of non-optional query parameters ${parent.queryParameters.filter { !it.isOptional }}")
+            }
+
             val pathParameterNames = pathToParts(path).map {
                 when {
-                    it.startsWith("**") -> it.drop(2)
+                    it.startsWith("**") -> {
+                        val tailcard = it.drop(2)
+                        if (tailcard.isEmpty())
+                            null
+                        else
+                            tailcard
+                    }
                     it.startsWith(":?") -> it.drop(2)
                     it.startsWith(":") -> it.drop(1)
                     else -> null
@@ -87,7 +131,7 @@ open public class LocationService {
             val declaredParameterNames = declaredProperties.map { it.name }.toSet()
             val invalidParameters = pathParameterNames.filter { it !in declaredParameterNames }
             if (invalidParameters.any()) {
-                throw IllegalArgumentException("Parameters '$invalidParameters' are not bound to '$dataClass' properties")
+                throw InconsistentRoutingException("Path parameters '$invalidParameters' are not bound to '$dataClass' properties")
             }
 
             val pathParameters = declaredProperties.filter { it.name in pathParameterNames }
@@ -96,31 +140,33 @@ open public class LocationService {
         }
     }
 
-
     fun resolve<T : Any>(dataClass: KClass<*>, request: LocationRoutingApplicationRequest<T>): T {
         return getOrCreateInfo(dataClass).create(request) as T
     }
 
 
-    fun pathAndQuery(location: Any): UriInfo {
+    private fun pathAndQuery(location: Any): UriInfo {
         val info = getOrCreateInfo(location.javaClass.kotlin)
 
-        fun propertyValue(instance: Any, name: String): Any? {
+        fun propertyValue(instance: Any, name: String): String? {
             // TODO: Cache properties by name in info
             val valueGetter = info.klass.memberProperties.single { it.name == name }
-            return valueGetter.call(instance)
+            val value = valueGetter.call(instance)
+            if (value is Iterable<*>)
+                return value.joinToString("/")
+            return value?.toString()
         }
 
         val substituteParts = pathToParts(info.path).map {
             when {
-                it.startsWith("**") -> propertyValue(location, it.drop(2)).toString()
-                it.startsWith(":?") -> propertyValue(location, it.drop(2)).toString()
-                it.startsWith(":") -> propertyValue(location, it.drop(1)).toString()
+                it.startsWith("**") -> propertyValue(location, it.drop(2))
+                it.startsWith(":?") -> propertyValue(location, it.drop(2))
+                it.startsWith(":") -> propertyValue(location, it.drop(1))
                 else -> it
             }
         }
 
-        val relativePath = substituteParts.filterNot { it.isEmpty() }.join("/")
+        val relativePath = substituteParts.filterNotNull().filterNot { it.isEmpty() }.join("/")
 
         val parentInfo = if (info.parent != null && info.parentParameter != null) {
             val enclosingLocation = info.parentParameter.getter.call(location)!!
@@ -128,8 +174,14 @@ open public class LocationService {
         } else rootUri
 
         val queryValues = info.queryParameters
-                .map { property -> property.getter.call(location)?.let { value -> property.name to value.toString() } }
-                .filterNotNull()
+                .flatMap { property ->
+                    val value = property.getter.call(location)
+                    when (value) {
+                        null -> emptyList<Pair<String, String>>()
+                        is Iterable<*> -> value.map { property.name to it.toString() }
+                        else -> listOf(property.name to value.toString())
+                    }
+                }
 
         return parentInfo.combine(relativePath, queryValues)
     }
@@ -142,7 +194,7 @@ open public class LocationService {
             ""
     }
 
-    fun createEntry(parent: RoutingEntry, info: LocationInfo): RoutingEntry {
+    private fun createEntry(parent: RoutingEntry, info: LocationInfo): RoutingEntry {
         val hierarchyEntry = info.parent?.let { createEntry(parent, it) } ?: parent
         val pathEntry = createRoutingEntry(hierarchyEntry, info.path) { RoutingEntry() }
 
@@ -160,16 +212,4 @@ open public class LocationService {
     }
 
     fun routing(routing: Routing): LocationRouting = LocationRouting(this, routing)
-}
-
-fun String.convertTo(type: Class<*>): Any {
-    return when (type) {
-        javaClass<Int>() -> toInt()
-        javaClass<Float>() -> toFloat()
-        javaClass<Double>() -> toDouble()
-        javaClass<Long>() -> toLong()
-        javaClass<Boolean>() -> toBoolean()
-        javaClass<String>() -> this
-        else -> throw UnsupportedOperationException("Type $type is not supported in automatic location data class processing")
-    }
 }

@@ -69,8 +69,10 @@ class TestApplicationResponse : ApplicationResponse {
         throw UnsupportedOperationException()
     }
 
+    public var content: String? = null
     override fun content(text: String, encoding: String): ApplicationResponse {
-        throw UnsupportedOperationException()
+        content = text
+        return this
     }
 
     override fun content(bytes: ByteArray): ApplicationResponse {
