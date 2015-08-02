@@ -81,7 +81,7 @@ class LocationsTest {
         @location("/items") data class items(val container: container)
     }
 
-    Test fun `location with query parameter and nested data`() {
+    Test fun `location with path parameter and nested data`() {
         val c = container(123)
         val href = Locations.href(container.items(c))
         assertEquals("/container/123/items", href)
@@ -102,7 +102,7 @@ class LocationsTest {
         @location("/items") data class items(val container: queryContainer)
     }
 
-    Test fun `location with path parameter and nested data`() {
+    Test fun `location with query parameter and nested data`() {
         val c = queryContainer(123)
         val href = Locations.href(queryContainer.items(c))
         assertEquals("/container/items?id=123", href)
@@ -117,6 +117,25 @@ class LocationsTest {
         urlShouldBeHandled(testHost, href)
         urlShouldBeUnhandled(testHost, "/container/items")
         urlShouldBeUnhandled(testHost, "/container/123/items")
+    }
+
+    @location("/container") data class optionalName(val id: Int, val optional: String? = null)
+
+    Test fun `location with missing optional query parameter and nested data`() {
+        val href = Locations.href(optionalName(123))
+        assertEquals("/container?id=123", href)
+        val testHost = createTestHost()
+        testHost.application.locations {
+            get<optionalName> {
+                assertEquals(123, it.id)
+                assertNull(it.optional)
+                status(HttpStatusCode.OK)
+                send()
+            }
+        }
+        urlShouldBeHandled(testHost, href)
+        urlShouldBeUnhandled(testHost, "/container")
+        urlShouldBeUnhandled(testHost, "/container/123")
     }
 
     private fun urlShouldBeHandled(testHost: TestApplicationHost, url: String) {

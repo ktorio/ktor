@@ -7,13 +7,15 @@ import kotlin.reflect.jvm.*
 open public class LocationService {
     val rootUri = UriInfo("", emptyList())
 
+    class LocationInfoProperty(val name: String, val getter: KProperty1.Getter<*, *>, val isOptional: Boolean)
+
     data class UriInfo(val path: String, val query: List<Pair<String, String>>)
     data class LocationInfo(val klass: KClass<*>,
                             val parent: LocationInfo?,
-                            val parentParameter: String?,
+                            val parentParameter: LocationInfoProperty?,
                             val path: String,
-                            val pathParameters: List<String>,
-                            val queryParameters: List<String>) {
+                            val pathParameters: List<LocationInfoProperty>,
+                            val queryParameters: List<LocationInfoProperty>) {
 
         private val constructor = klass.constructors.single()
 
@@ -30,12 +32,16 @@ open public class LocationService {
                 } else {
                     val requestParameters = request.parameters[parameterName]
                     if (requestParameters == null) {
-                        throw IllegalArgumentException("Parameter '$parameterName' required to construct '$klass' was not found in request")
+                        if (!parameterType.isMarkedNullable) {
+                            throw IllegalArgumentException("Parameter '$parameterName' required to construct '$klass' was not found in request")
+                        }
+                        null
+                    } else {
+                        if (requestParameters.size() != 1) {
+                            throw IllegalArgumentException("There are multiply '$parameterName' parameters when trying to construct $klass")
+                        }
+                        requestParameters[0].convertTo(javaParameterType)
                     }
-                    if (requestParameters.size() != 1) {
-                        throw IllegalArgumentException("There are multiply '$parameterName' parameters when trying to construct $klass")
-                    }
-                    requestParameters[0].convertTo(javaParameterType)
                 }
             }
             return constructor.call(*args)!!
@@ -61,26 +67,31 @@ open public class LocationService {
             } ?: ""
 
             // TODO: use primary ctor parameters
-            val properties = dataClass.memberProperties
-            val parentParameter = properties.firstOrNull {
-                (it as KProperty1<Any?, *>).getter.javaMethod?.returnType === enclosingClass?.java
-            }?.name
-            val parameterNames = properties.map { it.name }
+            val declaredProperties = dataClass.memberProperties.map {
+                LocationInfoProperty(it.name, (it as KProperty1<Any?, *>).getter, it.returnType.isMarkedNullable)
+            }
 
-            val pathParameters = pathToParts(path).map {
+            val parentParameter = declaredProperties.firstOrNull {
+                it.getter.javaMethod?.returnType === enclosingClass?.java
+            }
+
+            val pathParameterNames = pathToParts(path).map {
                 when {
                     it.startsWith("**") -> it.drop(2)
                     it.startsWith(":?") -> it.drop(2)
                     it.startsWith(":") -> it.drop(1)
                     else -> null
                 }
-            }.filterNotNull()
-            val invalidParameters = pathParameters.filter { it !in parameterNames }
+            }.filterNotNull().toSet()
+
+            val declaredParameterNames = declaredProperties.map { it.name }.toSet()
+            val invalidParameters = pathParameterNames.filter { it !in declaredParameterNames }
             if (invalidParameters.any()) {
                 throw IllegalArgumentException("Parameters '$invalidParameters' are not bound to '$dataClass' properties")
             }
 
-            val queryParameters = parameterNames.filterNot { pathParameters.contains(it) || it == parentParameter }
+            val pathParameters = declaredProperties.filter { it.name in pathParameterNames }
+            val queryParameters = declaredProperties.filterNot { pathParameterNames.contains(it.name) || it == parentParameter }
             LocationInfo(dataClass, parent, parentParameter, path, pathParameters, queryParameters)
         }
     }
@@ -95,6 +106,7 @@ open public class LocationService {
         val info = getOrCreateInfo(location.javaClass.kotlin)
 
         fun propertyValue(instance: Any, name: String): Any? {
+            // TODO: Cache properties by name in info
             val valueGetter = info.klass.memberProperties.single { it.name == name }
             return valueGetter.call(instance)
         }
@@ -111,12 +123,12 @@ open public class LocationService {
         val relativePath = substituteParts.filterNot { it.isEmpty() }.join("/")
 
         val parentInfo = if (info.parent != null && info.parentParameter != null) {
-                    val enclosingLocation = propertyValue(location, info.parentParameter)!!
-                    pathAndQuery(enclosingLocation)
+            val enclosingLocation = info.parentParameter.getter.call(location)!!
+            pathAndQuery(enclosingLocation)
         } else rootUri
 
         val queryValues = info.queryParameters
-                .map { property -> propertyValue(location, property)?.let { value -> property to value.toString() } }
+                .map { property -> property.getter.call(location)?.let { value -> property.name to value.toString() } }
                 .filterNotNull()
 
         return parentInfo.combine(relativePath, queryValues)
@@ -135,7 +147,10 @@ open public class LocationService {
         val pathEntry = createRoutingEntry(hierarchyEntry, info.path) { RoutingEntry() }
 
         return info.queryParameters.fold(pathEntry) { entry, query ->
-            val selector = ParameterRoutingSelector(query)
+            val selector = if (query.isOptional)
+                OptionalParameterRoutingSelector(query.name)
+            else
+                ParameterRoutingSelector(query.name)
             entry.add(selector, RoutingEntry())
         }
     }
