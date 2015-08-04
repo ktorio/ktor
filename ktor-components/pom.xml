@@ -10,4 +10,11 @@
     </parent>
 
     <artifactId>ktor-components</artifactId>
+    <dependencies>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>ktor-core</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+    </dependencies>
 </project>
