@@ -85,7 +85,9 @@ class TestApplicationResponse : ApplicationResponse {
     }
 
     override fun contentStream(streamer: Writer.() -> Unit): ApplicationResponse {
-        throw UnsupportedOperationException()
+        val writer = StringWriter()
+        writer.streamer()
+        return content(writer.toString())
     }
 
     override fun send(): ApplicationRequestStatus {
