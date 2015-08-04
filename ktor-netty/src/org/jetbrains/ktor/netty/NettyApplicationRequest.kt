@@ -31,7 +31,7 @@ class NettyApplicationRequest(override val application: Application,
     }
 
     inner class Response(val context: ChannelHandlerContext) : ApplicationResponse {
-        val response = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND)
+        val response = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
 
         override fun header(name: String, value: String): ApplicationResponse {
             response.headers().set(name, value)
@@ -45,11 +45,6 @@ class NettyApplicationRequest(override val application: Application,
 
         override fun status(code: Int): ApplicationResponse {
             response.setStatus(HttpResponseStatus(code, "$code"))
-            return this
-        }
-
-        override fun contentType(value: String): ApplicationResponse {
-            response.headers().set("Content-Type", value)
             return this
         }
 
@@ -69,7 +64,7 @@ class NettyApplicationRequest(override val application: Application,
         }
 
         override fun send(): ApplicationRequestStatus {
-            context.write(response, context.newProgressivePromise())
+            context.write(response)
             context.flush()
             context.close()
             return ApplicationRequestStatus.Handled

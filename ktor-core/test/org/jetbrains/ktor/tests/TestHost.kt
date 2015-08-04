@@ -74,10 +74,6 @@ class TestApplicationResponse : ApplicationResponse {
         return this
     }
 
-    override fun contentType(value: String): ApplicationResponse {
-        throw UnsupportedOperationException()
-    }
-
     public var content: String? = null
     override fun content(text: String, encoding: String): ApplicationResponse {
         content = text

@@ -58,11 +58,6 @@ public class ServletApplicationRequest(override val application: Application,
             return this
         }
 
-        override fun contentType(value: String): ApplicationResponse {
-            servletResponse.contentType = value
-            return this
-        }
-
         override fun content(text: String, encoding: String): ApplicationResponse {
             servletResponse.characterEncoding = encoding
             val writer = servletResponse.writer
