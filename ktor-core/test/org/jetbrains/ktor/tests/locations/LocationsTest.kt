@@ -253,7 +253,7 @@ class LocationsTest {
         on("making get request to $url") {
             val result = testHost.handleRequest {
                 uri = url
-                httpMethod = HttpMethod.Get
+                method = HttpMethod.Get
             }
             it("should be handled") {
                 assertEquals(ApplicationRequestStatus.Handled, result.requestResult)
@@ -276,7 +276,7 @@ class LocationsTest {
         on("making post request to $url") {
             val result = testHost.handleRequest {
                 uri = url
-                httpMethod = HttpMethod.Post
+                method = HttpMethod.Post
             }
             it("should not be handled") {
                 assertEquals(ApplicationRequestStatus.Unhandled, result.requestResult)

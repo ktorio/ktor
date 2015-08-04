@@ -22,7 +22,7 @@ class RoutingProcessingTest {
         on("making get request to /foo/bar") {
             val result = testHost.handleRequest {
                 uri = "/foo/bar"
-                httpMethod = HttpMethod.Get
+                method = HttpMethod.Get
             }
             it("should be handled") {
                 assertEquals(ApplicationRequestStatus.Handled, result.requestResult)
@@ -38,7 +38,7 @@ class RoutingProcessingTest {
         on("making post request to /foo/bar") {
             val result = testHost.handleRequest {
                 uri = "/foo/bar"
-                httpMethod = HttpMethod.Post
+                method = HttpMethod.Post
             }
             it("should not be handled") {
                 assertEquals(ApplicationRequestStatus.Unhandled, result.requestResult)
@@ -67,7 +67,7 @@ class RoutingProcessingTest {
         on("making get request to /user with query parameters") {
             testHost.handleRequest {
                 uri = "/user?name=john"
-                httpMethod = HttpMethod.Get
+                method = HttpMethod.Get
             }
             it("should have processed username once") {
                 assertEquals(1, username.size())
@@ -111,7 +111,7 @@ class RoutingProcessingTest {
         on("handling GET /user/john") {
             testHost.handleRequest {
                 uri = "/user/john"
-                httpMethod = HttpMethod.Get
+                method = HttpMethod.Get
             }
             it("should have processed interceptor on /user node") {
                 assertTrue(userIntercepted)

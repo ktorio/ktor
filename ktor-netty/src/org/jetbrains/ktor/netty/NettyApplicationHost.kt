@@ -6,8 +6,6 @@ import io.netty.channel.nio.*
 import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
 import io.netty.handler.codec.http.*
-import io.netty.handler.logging.*
-import io.netty.handler.stream.*
 import org.jetbrains.ktor.application.*
 
 public class NettyApplicationHost(val config: ApplicationConfig) {
@@ -25,24 +23,7 @@ public class NettyApplicationHost(val config: ApplicationConfig) {
                 with (ch.pipeline()) {
                     addLast(HttpServerCodec())
                     addLast(HttpObjectAggregator(1048576))
-                    addLast(LoggingHandler(LogLevel.DEBUG))
-                    addLast(object : SimpleChannelInboundHandler<Any>() {
-                        override fun channelRead0(context: ChannelHandlerContext, request: Any) {
-                            when(request) {
-                                is HttpRequest -> application.handle(NettyApplicationRequest(application, context, request))
-                            }
-                        }
-
-                        override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-                            config.log.error(cause)
-                            ctx.close()
-                        }
-
-                        override fun channelReadComplete(ctx: ChannelHandlerContext) {
-                            ctx.flush()
-
-                        }
-                    })
+                    addLast(HostHttpHandler())
                 }
             }
         })
@@ -60,6 +41,23 @@ public class NettyApplicationHost(val config: ApplicationConfig) {
         workerEventGroup.shutdownGracefully()
         mainEventGroup.shutdownGracefully()
         loader.dispose()
+    }
+
+    inner class HostHttpHandler : SimpleChannelInboundHandler<Any>() {
+        override fun channelRead0(context: ChannelHandlerContext, request: Any) {
+            when (request) {
+                is HttpRequest -> application.handle(NettyApplicationRequest(application, context, request))
+            }
+        }
+
+        override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
+            config.log.error(cause)
+            ctx.close()
+        }
+
+        override fun channelReadComplete(ctx: ChannelHandlerContext) {
+            ctx.flush()
+        }
     }
 }
 

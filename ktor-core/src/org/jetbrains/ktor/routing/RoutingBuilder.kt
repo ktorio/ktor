@@ -28,7 +28,7 @@ fun RoutingEntry.param(name: String, value: String, build: RoutingEntry.() -> Un
 }
 
 fun RoutingEntry.contentType(contentType: ContentType, build: RoutingEntry.() -> Unit) {
-    param("ContentType", "${contentType.contentType}/${contentType.contentSubtype}", build)
+    header("ContentType", "${contentType.contentType}/${contentType.contentSubtype}", build)
 }
 
 fun RoutingEntry.param(name: String, build: RoutingEntry.() -> Unit) {
@@ -64,5 +64,13 @@ fun RoutingEntry.addInterceptor(leafOnly: Boolean, handle: RoutingApplicationReq
     }
 }
 
-fun RoutingEntry.methodParam(method: String, build: RoutingEntry.() -> Unit) = param("@method", method, build)
+fun RoutingEntry.methodParam(method: String, build: RoutingEntry.() -> Unit) {
+    val selector = HttpMethodRoutingSelector(method)
+    select(selector).build()
+}
+
+fun RoutingEntry.header(name: String, value: String, build: RoutingEntry.() -> Unit) {
+    val selector = HttpHeaderRoutingSelector(name, value)
+    select(selector).build()
+}
 

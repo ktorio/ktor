@@ -1,7 +1,15 @@
 package org.jetbrains.ktor.routing
 
-class RoutingResolveContext(val uri: String, val parameters: Map<String, List<String>> = mapOf()) {
-    val parts = pathToParts(uri)
+import org.jetbrains.ktor.http.*
+
+fun RoutingResolveContext(path: String, parameters: Map<String, List<String>> = mapOf()): RoutingResolveContext {
+    return RoutingResolveContext(HttpVerb(HttpMethod.Get, path, "HTTP/1.1"), parameters)
+}
+
+class RoutingResolveContext(val verb: HttpVerb,
+                            val parameters: Map<String, List<String>> = mapOf(),
+                            val headers: Map<String, String> = mapOf()) {
+    val parts = pathToParts(verb.path())
 }
 
 data class RoutingResolveResult(val succeeded: Boolean,

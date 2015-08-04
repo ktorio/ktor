@@ -89,7 +89,7 @@ class HandlerTest {
     Test fun `application with handler that returns true on POST method`() {
         val testHost = createTestHost()
         testHost.application.intercept { request, next ->
-            if (request.httpMethod == HttpMethod.Post) {
+            if (request.method == HttpMethod.Post) {
                 request.respond {
                     status(HttpStatusCode.OK)
                     send()
@@ -99,7 +99,7 @@ class HandlerTest {
                 ApplicationRequestStatus.Unhandled
         }
         on("making a GET request") {
-            val request = testHost.handleRequest { httpMethod = HttpMethod.Get }
+            val request = testHost.handleRequest { method = HttpMethod.Get }
             it("should not be handled") {
                 assertEquals(ApplicationRequestStatus.Unhandled, request.requestResult)
             }
@@ -108,7 +108,7 @@ class HandlerTest {
             }
         }
         on("making a POST request") {
-            val request = testHost.handleRequest { httpMethod = HttpMethod.Post }
+            val request = testHost.handleRequest { method = HttpMethod.Post }
             it("should be handled") {
                 assertEquals(ApplicationRequestStatus.Handled, request.requestResult)
             }

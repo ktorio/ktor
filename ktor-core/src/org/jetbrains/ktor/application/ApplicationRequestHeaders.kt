@@ -2,7 +2,7 @@ package org.jetbrains.ktor.application
 
 import org.jetbrains.ktor.http.*
 
-fun ApplicationRequest.queryString(): String = uri.substringAfter('?', "")
+fun ApplicationRequest.queryString(): String = verb.queryString()
 
 fun ApplicationRequest.queryParameters(): Map<String, List<String>> {
     val query = queryString()
@@ -20,8 +20,8 @@ fun ApplicationRequest.queryParameters(): Map<String, List<String>> {
 }
 
 fun ApplicationRequest.contentType(): ContentType = header("Content-Type")?.let { ContentType.parse(it) } ?: ContentType.Any
-fun ApplicationRequest.document(): String = uri.substringAfterLast('/', "").substringBefore('?')
-fun ApplicationRequest.path(): String = uri.substringBefore("?")
+fun ApplicationRequest.document(): String = verb.document()
+fun ApplicationRequest.path(): String = verb.path()
 fun ApplicationRequest.authorization(): String? = header("Authorization")
 fun ApplicationRequest.accept(): String? = header("Accept")
 fun ApplicationRequest.acceptEncoding(): String? = header("Accept-Encoding")

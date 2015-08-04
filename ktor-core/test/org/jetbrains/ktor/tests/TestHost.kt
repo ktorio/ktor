@@ -2,6 +2,7 @@ package org.jetbrains.ktor.tests
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.http.*
 import java.io.*
 
 fun createTestHost(): TestApplicationHost {
@@ -29,17 +30,25 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
 }
 
 class TestApplicationRequest(override val application: Application) : ApplicationRequest {
+    override var verb: HttpVerb = HttpVerb(HttpMethod.Get, "/", "HTTP/1.1")
 
-    override var uri: String = "http://localhost/"
-    override var httpMethod: String = "GET"
+    var uri: String
+        get() = verb.uri
+        set(value) {
+            verb = verb.copy(uri = value)
+        }
+
+    var method: String
+        get() = verb.method
+        set(value) {
+            verb = verb.copy(method = value)
+        }
+
     override val parameters: Map<String, List<String>> get() {
-        return queryParameters() + ("@method" to arrayListOf(httpMethod))
+        return queryParameters()
     }
 
-    val headers = hashMapOf<String, String>()
-
-    override fun header(name: String): String? = headers[name]
-    override fun headers(): Map<String, String> = headers
+    override val headers = hashMapOf<String, String>()
 
     var response: TestApplicationResponse? = null
     override fun respond(handle: ApplicationResponse.() -> ApplicationRequestStatus): ApplicationRequestStatus {

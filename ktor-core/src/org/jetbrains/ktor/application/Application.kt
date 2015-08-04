@@ -12,8 +12,6 @@ public open class Application(val config: ApplicationConfig) {
     }
 
     public fun handle(request: ApplicationRequest): ApplicationRequestStatus {
-        val requestLogString = "${request.httpMethod} -- ${request.uri}"
-
         fun handle(index: Int, request: ApplicationRequest): ApplicationRequestStatus = when (index) {
             in interceptors.indices -> {
                 val interceptor = interceptors[index]
@@ -24,7 +22,7 @@ public open class Application(val config: ApplicationConfig) {
         }
 
         val result = handle(0, request)
-        config.log.info("$requestLogString -- $result")
+        config.log.info("$result: ${request.verb}")
         return result
     }
 

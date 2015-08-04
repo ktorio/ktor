@@ -34,7 +34,7 @@ class ApplicationRequestHeaderTest {
 
             val status = testHost.handleRequest {
                 uri = "/foo"
-                httpMethod = HttpMethod.Get
+                method = HttpMethod.Get
                 headers.put("Authorization", "")
             }.response?.status
 
@@ -83,7 +83,7 @@ class ApplicationRequestHeaderTest {
 
             val status = testHost.handleRequest {
                 uri = "/foo?key1=value1&key2=value2"
-                httpMethod = HttpMethod.Get
+                method = HttpMethod.Get
                 headers.put("Host", "host.name.com:8888")
             }.response?.status
 
@@ -126,7 +126,7 @@ class ApplicationRequestHeaderTest {
 
             val status = testHost.handleRequest {
                 uri = "/?key1=value1&key2=value2"
-                httpMethod = HttpMethod.Get
+                method = HttpMethod.Get
             }.response?.status
 
             it("should handle request") {

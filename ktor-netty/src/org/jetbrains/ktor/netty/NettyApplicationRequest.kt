@@ -10,38 +10,16 @@ import java.util.*
 class NettyApplicationRequest(override val application: Application,
                               val context: ChannelHandlerContext,
                               val request: HttpRequest) : ApplicationRequest {
-    val headers by lazy {
+    override val headers by lazy {
         request.headers().toMap({ it.key }, { it.value })
     }
-    override val uri: String = request.uri
-    override val httpMethod: String = request.method.name()
-
-    override val parameters: Map<String, List<String>>
-
-    init {
-        val result = HashMap<String, MutableList<String>>()
-        result.put("@method", arrayListOf(httpMethod))
-        val parametersMap = QueryStringDecoder(request.uri).parameters()
-        if (parametersMap != null) {
-            for ((key, values) in parametersMap) {
-                if (values != null) {
-                    val list = result.getOrPut(key, { arrayListOf() })
-                    for (value in values) {
-                        list.add(value)
-                    }
-                }
-            }
-        }
-
-        for ((key, value) in headers()) {
-            result.getOrPut(key, { arrayListOf() }).addAll(Headers.splitKnownHeaders(key, value))
-        }
-
-        parameters = result
+    override val verb: HttpVerb by lazy {
+        HttpVerb(request.method.name(), request.uri, request.protocolVersion.text())
     }
 
-    override fun header(name: String): String? = headers[name]
-    override fun headers(): Map<String, String> = headers
+    override val parameters: Map<String, List<String>> by lazy {
+        QueryStringDecoder(request.uri).parameters()
+    }
 
     var response: Response? = null
     override fun respond(handle: ApplicationResponse.() -> ApplicationRequestStatus): ApplicationRequestStatus {
@@ -92,6 +70,8 @@ class NettyApplicationRequest(override val application: Application,
 
         override fun send(): ApplicationRequestStatus {
             context.write(response, context.newProgressivePromise())
+            context.flush()
+            context.close()
             return ApplicationRequestStatus.Handled
         }
 

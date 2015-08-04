@@ -106,3 +106,19 @@ data class AndRoutingSelector(val first: RoutingSelector, val second: RoutingSel
         return RouteSelectorEvaluation(true, resultValues, result1.incrementIndex + result2.incrementIndex)
     }
 }
+
+data class HttpMethodRoutingSelector(val method: String) : RoutingSelector() {
+    override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
+        if (context.verb.method == method)
+            return RouteSelectorEvaluation(true)
+        return RouteSelectorEvaluation(false)
+    }
+}
+
+data class HttpHeaderRoutingSelector(val name: String, val value: String) : RoutingSelector() {
+    override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
+        if (context.headers[name] == value)
+            return RouteSelectorEvaluation(true)
+        return RouteSelectorEvaluation(false)
+    }
+}

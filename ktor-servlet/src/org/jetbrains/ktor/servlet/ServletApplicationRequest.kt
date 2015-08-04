@@ -9,37 +9,28 @@ import javax.servlet.http.*
 public class ServletApplicationRequest(override val application: Application,
                                        private val servletRequest: HttpServletRequest,
                                        private val servletResponse: HttpServletResponse) : ApplicationRequest {
-    override val uri: String = servletRequest.getRequestURI()
-    override val httpMethod: String = servletRequest.getMethod()
+    override val verb: HttpVerb by lazy {
+        HttpVerb(servletRequest.method, servletRequest.requestURI, servletRequest.protocol)
+    }
 
-    override val parameters: Map<String, List<String>>
-
-    init {
+    override val parameters: Map<String, List<String>> by lazy {
         val result = HashMap<String, MutableList<String>>()
-        result.put("@method", arrayListOf(httpMethod))
-        val parametersMap = servletRequest.getParameterMap()
+        val parametersMap = servletRequest.parameterMap
         if (parametersMap != null) {
             for ((key, values) in parametersMap) {
                 if (values != null) {
-                    val list = result.getOrPut(key, { arrayListOf() })
-                    for (value in values) {
-                        list.add(value)
-                    }
+                    result.getOrPut(key, { arrayListOf() }).addAll(values)
                 }
             }
         }
-
-        for ((key, value) in headers()) {
-            result.getOrPut(key, { arrayListOf() }).addAll(Headers.splitKnownHeaders(key, value))
-        }
-
-        parameters = result
+        result
     }
 
-    override fun header(name: String): String? = servletRequest.getHeader(name)
-
-    override fun headers(): Map<String, String> {
-        return servletRequest.getHeaderNames().asSequence().toMap({ it }, { servletRequest.getHeader(it) })
+    override val headers: Map<String, String> by lazy {
+        // TODO: consider doing the opposite, splitting headers by comma and making it String to List<String> map
+        servletRequest.headerNames.asSequence().toMap({ it }, {
+            servletRequest.getHeaders(it).asSequence().join(", ")
+        })
     }
 
     var response: Response? = null
@@ -63,30 +54,30 @@ public class ServletApplicationRequest(override val application: Application,
         }
 
         override fun status(code: Int): ApplicationResponse {
-            servletResponse.setStatus(code)
+            servletResponse.status = code
             return this
         }
 
         override fun contentType(value: String): ApplicationResponse {
-            servletResponse.setContentType(value)
+            servletResponse.contentType = value
             return this
         }
 
         override fun content(text: String, encoding: String): ApplicationResponse {
-            servletResponse.setCharacterEncoding(encoding)
-            val writer = servletResponse.getWriter()
+            servletResponse.characterEncoding = encoding
+            val writer = servletResponse.writer
             writer?.write(text)
             return this
         }
 
         override fun contentStream(streamer: Writer.() -> Unit): ApplicationResponse {
-            val writer = servletResponse.getWriter()
+            val writer = servletResponse.writer
             writer.streamer()
             return this
         }
 
         override fun content(bytes: ByteArray): ApplicationResponse {
-            val writer = servletResponse.getOutputStream()
+            val writer = servletResponse.outputStream
             writer?.write(bytes)
             return this
         }

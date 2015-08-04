@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.application
 
+import org.jetbrains.ktor.http.*
 import java.io.*
 
 /** Established connection with client, encapsulates request and response facilities
@@ -7,12 +8,9 @@ import java.io.*
 public interface ApplicationRequest {
     public val application: Application
 
-    public val uri: String
-    public val httpMethod: String
-
+    public val verb: HttpVerb
     public val parameters: Map<String, List<String>>
-    public fun header(name: String): String?
-    public fun headers(): Map<String, String>
+    public val headers: Map<String, String>
 
     public fun respond(handle: ApplicationResponse.() -> ApplicationRequestStatus) : ApplicationRequestStatus
 }
@@ -31,6 +29,12 @@ public interface ApplicationResponse {
 }
 
 
+val ApplicationRequest.uri : String get() = verb.uri
+val ApplicationRequest.method : String get() = verb.method
+val ApplicationRequest.version : String get() = verb.version
+
+fun ApplicationRequest.header(name: String): String? = headers[name]
+fun ApplicationRequest.parameter(name: String): String? = headers[name]
 
 
 
