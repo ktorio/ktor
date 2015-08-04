@@ -9,13 +9,7 @@
         <version>0.1-SNAPSHOT</version>
     </parent>
 
-    <artifactId>ktor-samples</artifactId>
-    <packaging>pom</packaging>
-
-    <modules>
-        <module>ktor-samples-hello</module>
-        <module>ktor-samples-locations</module>
-    </modules>
+    <artifactId>ktor-netty</artifactId>
 
     <dependencies>
         <dependency>
@@ -24,23 +18,14 @@
             <version>0.1-SNAPSHOT</version>
         </dependency>
         <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jul-to-slf4j</artifactId>
-            <version>1.7.12</version>
-        </dependency>
-
-        <!-- runtime dependencies -->
-        <dependency>
             <groupId>org.jetbrains</groupId>
-            <artifactId>ktor-jetty</artifactId>
+            <artifactId>ktor-servlet</artifactId>
             <version>0.1-SNAPSHOT</version>
-            <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>ktor-netty</artifactId>
-            <version>0.1-SNAPSHOT</version>
-            <scope>runtime</scope>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>4.0.30.Final</version>
         </dependency>
     </dependencies>
 </project>

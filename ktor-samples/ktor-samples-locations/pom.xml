@@ -26,17 +26,6 @@
             <artifactId>kotlinx.html.jvm</artifactId>
             <version>[0.4,0.5)</version>
         </dependency>
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>ktor-jetty</artifactId>
-            <version>0.1-SNAPSHOT</version>
-            <scope>runtime</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>jul-to-slf4j</artifactId>
-            <version>1.7.12</version>
-        </dependency>
     </dependencies>
     <repositories>
         <repository>
