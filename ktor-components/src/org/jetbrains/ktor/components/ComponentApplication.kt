@@ -5,7 +5,7 @@ import org.jetbrains.ktor.components.*
 import org.jetbrains.ktor.routing.*
 import kotlin.util.*
 
-public class ComponentApplication(config: ApplicationConfig) : Application(config) {
+public open class ComponentApplication(config: ApplicationConfig) : Application(config) {
     val container = StorageComponentContainer("Application")
 
     init {
