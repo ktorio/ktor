@@ -9,7 +9,7 @@ fun RoutingResolveContext(path: String, parameters: Map<String, List<String>> = 
 class RoutingResolveContext(val verb: HttpVerb,
                             val parameters: Map<String, List<String>> = mapOf(),
                             val headers: Map<String, String> = mapOf()) {
-    val parts = pathToParts(verb.path())
+    val path = RoutingPath.parse(verb.path())
 }
 
 data class RoutingResolveResult(val succeeded: Boolean,
@@ -18,9 +18,4 @@ data class RoutingResolveResult(val succeeded: Boolean,
                                 val entries: MutableList<RoutingEntry> = arrayListOf())
 
 
-fun pathToParts(path: String) =
-        if (path == "/")
-            listOf("")
-        else
-            path.split("/").filter { it.length() > 0 }.toList()
 

@@ -41,7 +41,7 @@ open class RoutingEntry(val parent: RoutingEntry?) {
         }
 
         when (pathIndex) {
-            request.parts.size() -> return RoutingResolveResult(true, this, current.values, arrayListOf(this))
+            request.path.parts.size() -> return RoutingResolveResult(true, this, current.values, arrayListOf(this))
             else -> return RoutingResolveResult(false, failEntry ?: this)
         }
     }

@@ -9,12 +9,12 @@ import kotlin.reflect.jvm.*
 class InconsistentRoutingException(message: String) : Exception(message)
 
 open public class LocationService {
-    private val rootUri = UriInfo("", emptyList())
+    private val rootUri = ResolvedUriInfo("", emptyList())
     private val info = hashMapOf<KClass<*>, LocationInfo>()
 
     private class LocationInfoProperty(val name: String, val getter: KProperty1.Getter<*, *>, val isOptional: Boolean)
 
-    private data class UriInfo(val path: String, val query: List<Pair<String, String>>)
+    private data class ResolvedUriInfo(val path: String, val query: List<Pair<String, String>>)
     private data class LocationInfo(val klass: KClass<*>,
                                     val parent: LocationInfo?,
                                     val parentParameter: LocationInfoProperty?,
@@ -78,9 +78,10 @@ open public class LocationService {
         }
     }
 
-    private fun UriInfo.combine(relativePath: String, queryValues: List<Pair<String, String>>): UriInfo {
-        val combinedPath = (pathToParts(path) + pathToParts(relativePath)).join("/", "/")
-        return UriInfo(combinedPath, query + queryValues)
+    private fun ResolvedUriInfo.combine(relativePath: String, queryValues: List<Pair<String, String>>): ResolvedUriInfo {
+        val pathElements = (path.split("/") + relativePath.split("/")).filterNot { it.isEmpty() }
+        val combinedPath = pathElements.join("/", "/")
+        return ResolvedUriInfo(combinedPath, query + queryValues)
     }
 
     inline fun <reified T:Annotation> KAnnotatedElement.annotation() : T? {
@@ -117,21 +118,9 @@ open public class LocationService {
                     throw InconsistentRoutingException("Nested location '$dataClass' should have parameter for parent location because of non-optional query parameters ${parent.queryParameters.filter { !it.isOptional }}")
             }
 
-            val pathParameterNames = pathToParts(path).map {
-                when {
-                    it.startsWith("**") -> {
-                        val tailcard = it.drop(2)
-                        if (tailcard.isEmpty())
-                            null
-                        else
-                            tailcard
-                    }
-                    it.startsWith(":?") -> it.drop(2)
-                    it.startsWith(":") -> it.drop(1)
-                    else -> null
-                }
-            }.filterNotNull().toSet()
-
+            val pathParameterNames = RoutingPath.parse(path).parts.filter {
+                it.kind == RoutingPathPartKind.Parameter || it.kind == RoutingPathPartKind.TailCard
+            }.map { it.value }
             val declaredParameterNames = declaredProperties.map { it.name }.toSet()
             val invalidParameters = pathParameterNames.filter { it !in declaredParameterNames }
             if (invalidParameters.any()) {
@@ -149,7 +138,7 @@ open public class LocationService {
     }
 
 
-    private fun pathAndQuery(location: Any): UriInfo {
+    private fun pathAndQuery(location: Any): ResolvedUriInfo {
         val info = getOrCreateInfo(location.javaClass.kotlin)
 
         fun propertyValue(instance: Any, name: String): String? {
@@ -161,12 +150,11 @@ open public class LocationService {
             return value?.toString()
         }
 
-        val substituteParts = pathToParts(info.path).map {
-            when {
-                it.startsWith("**") -> propertyValue(location, it.drop(2))
-                it.startsWith(":?") -> propertyValue(location, it.drop(2))
-                it.startsWith(":") -> propertyValue(location, it.drop(1))
-                else -> it
+        val substituteParts = RoutingPath.parse(info.path).parts.map { it ->
+            when(it.kind) {
+                RoutingPathPartKind.Parameter -> propertyValue(location, it.value)
+                RoutingPathPartKind.TailCard -> propertyValue(location, it.value)
+                else -> it.value
             }
         }
 
@@ -178,7 +166,7 @@ open public class LocationService {
             val enclosingLocation = info.parentParameter.getter.call(location)!!
             pathAndQuery(enclosingLocation)
         } else {
-            UriInfo(info.parent.path, emptyList())
+            ResolvedUriInfo(info.parent.path, emptyList())
         }
 
         val queryValues = info.queryParameters
