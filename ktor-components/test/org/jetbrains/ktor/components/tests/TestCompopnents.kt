@@ -2,6 +2,8 @@ package org.jetbrains.ktor.components.tests
 
 import java.io.*
 
+annotation class Inject()
+
 interface TestComponentInterface {
     public val disposed: Boolean
     fun foo()
@@ -61,3 +63,15 @@ interface TestGenericComponent<T>
 class TestGenericClient(val component1 : TestGenericComponent<String>, val component2: TestGenericComponent<Int>)
 class TestStringComponent : TestGenericComponent<String>
 class TestIntComponent : TestGenericComponent<Int>
+
+class TestInjectMembers {
+    var component1 : TestGenericComponent<String>? = null
+        get@Inject set
+
+    var component2 : TestGenericComponent<Int>? = null
+
+    @Inject
+    fun setComponents(component : TestGenericComponent<Int>) {
+        component2 = component
+    }
+}

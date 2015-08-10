@@ -146,6 +146,19 @@ class ComponentContainerTests {
                 }
     }
 
+    Test fun should_inject_members() {
+        StorageComponentContainer("test")
+                .register<TestInjectMembers>()
+                .register<TestStringComponent>()
+                .register<TestIntComponent>()
+                .compose()
+                .use {
+                    val genericClient = it.getComponent<TestInjectMembers>()
+                    assertTrue(genericClient.component1 is TestStringComponent)
+                    assertTrue(genericClient.component2 is TestIntComponent)
+                }
+    }
+
 
     Test fun should_fail_with_invalid_cardinality() {
         StorageComponentContainer("test")
