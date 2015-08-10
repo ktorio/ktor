@@ -3,11 +3,11 @@ package org.jetbrains.ktor.tests.locations
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.junit.*
 import kotlin.reflect.jvm.*
 import kotlin.test.*
-
 
 class LocationsTest {
     @location("/") data class index()

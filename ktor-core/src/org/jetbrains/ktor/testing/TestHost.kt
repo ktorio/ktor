@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.tests
+package org.jetbrains.ktor.testing
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
@@ -9,8 +9,7 @@ fun createTestHost(): TestApplicationHost {
     val testConfig = ConfigFactory.parseMap(
             mapOf(
                     "ktor.deployment.environment" to "test",
-                    "ktor.application.package" to "org.jetbrains.ktor.tests",
-                    "ktor.application.class" to "org.jetbrains.ktor.tests.TestApplication"
+                    "ktor.application.class" to "org.jetbrains.ktor.testing.TestApplication"
                  ))
     val config = ApplicationConfig(testConfig, SL4JApplicationLog("<Test>"))
     return TestApplicationHost(config)

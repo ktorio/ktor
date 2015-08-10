@@ -11,7 +11,6 @@ class ApplicationLoaderTests {
         val testConfig = ConfigFactory.parseMap(
                 mapOf(
                         "ktor.deployment.environment" to "test",
-                        "ktor.application.package" to "ktor.test",
                         "ktor.application.class" to "NonExistingApplicationName"
                      ))
         val config = ApplicationConfig(testConfig)
@@ -23,8 +22,7 @@ class ApplicationLoaderTests {
         val testConfig = ConfigFactory.parseMap(
                 mapOf(
                         "ktor.deployment.environment" to "test",
-                        "ktor.application.package" to "ktor.tests",
-                        "ktor.application.class" to "org.jetbrains.ktor.tests.TestApplication"
+                        "ktor.application.class" to "org.jetbrains.ktor.testing.TestApplication"
                      ))
 
         val config = ApplicationConfig(testConfig)
