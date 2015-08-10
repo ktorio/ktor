@@ -1,22 +1,27 @@
 package org.jetbrains.ktor.routing
 
-class RoutingPath  {
+class RoutingPath {
     public val parts: List<RoutingPathPart>
 
     companion object {
+        val root: RoutingPath = RoutingPath(listOf())
         fun parse(path: String): RoutingPath {
-            val parts = if (path == "/")
-                listOf()
-            else
-                path.split("/").filter { it.length() > 0 }.map {
-                    when {
-                        it.startsWith("**") -> RoutingPathPart(it.drop(2), RoutingPathPartKind.TailCard, true)
-                        it.startsWith("*") -> RoutingPathPart(it.drop(1), RoutingPathPartKind.Constant, true)
-                        it.startsWith(":?") -> RoutingPathPart(it.drop(2), RoutingPathPartKind.Parameter, true)
-                        it.startsWith(":") -> RoutingPathPart(it.drop(1), RoutingPathPartKind.Parameter, false)
-                        else -> RoutingPathPart(it, RoutingPathPartKind.Constant, false)
+            if (path == "/") return root
+            val splitted = path.split("/").filter { it.length() > 0 }
+            val parts = splitted.map {
+                when {
+                    it == "*" -> RoutingPathPart("", RoutingPathPartKind.Constant, true)
+                    it.startsWith("{") && it.endsWith("}") -> {
+                        val signature = it.removeSurrounding("{", "}")
+                        when {
+                            signature.endsWith("?") -> RoutingPathPart(signature.dropLast(1), RoutingPathPartKind.Parameter, true)
+                            signature.endsWith("...") -> RoutingPathPart(signature.dropLast(3), RoutingPathPartKind.TailCard, true)
+                            else -> RoutingPathPart(signature, RoutingPathPartKind.Parameter, false)
+                        }
                     }
+                    else -> RoutingPathPart(it, RoutingPathPartKind.Constant, false)
                 }
+            }
 
             return RoutingPath(parts)
         }
@@ -35,7 +40,7 @@ class RoutingPath  {
     }
 }
 
-data class RoutingPathPart(val value: String, val kind: RoutingPathPartKind, val optional : Boolean)
+data class RoutingPathPart(val value: String, val kind: RoutingPathPartKind, val optional: Boolean)
 
 enum class RoutingPathPartKind {
     Constant, Parameter, TailCard

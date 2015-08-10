@@ -44,7 +44,7 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/about/123")
     }
 
-    @location("/user/:id") data class user(val id: Int)
+    @location("/user/{id}") data class user(val id: Int)
 
     Test fun `location with path param`() {
         val href = Locations.href(user(123))
@@ -79,7 +79,7 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/favorite")
     }
 
-    @location("/container/:id") data class pathContainer(val id: Int) {
+    @location("/container/{id}") data class pathContainer(val id: Int) {
         @location("/items") data class items(val container: pathContainer)
         @location("/items") data class badItems()
     }
@@ -165,7 +165,7 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/container/123")
     }
 
-    @location("/container/:?id") data class optionalContainer(val id: Int? = null) {
+    @location("/container/{id?}") data class optionalContainer(val id: Int? = null) {
         @location("/items") data class items(val optional: String? = null)
     }
 
@@ -214,7 +214,7 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/items")
     }
 
-    @location("/container/**path") data class tailCard(val path: List<String>)
+    @location("/container/{path...}") data class tailCard(val path: List<String>)
 
     Test fun `location with tailcard`() {
         val href = Locations.href(tailCard(emptyList()))

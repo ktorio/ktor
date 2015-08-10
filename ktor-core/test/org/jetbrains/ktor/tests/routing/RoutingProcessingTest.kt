@@ -98,7 +98,7 @@ class RoutingProcessingTest {
                         wrappedWithInterceptor = false
                     }
                 }
-                get(":username") {
+                get("{username}") {
                     handle {
                         userName = parameters["username"]?.first() ?: ""
                         userNameGotWithinInterceptor = wrappedWithInterceptor
