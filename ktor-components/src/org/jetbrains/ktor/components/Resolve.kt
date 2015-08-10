@@ -51,7 +51,7 @@ fun Class<*>.bindToConstructor(context: ValueResolveContext): ConstructorBinding
     if (unsatisfied == null) // constructor is satisfied with arguments
         return ConstructorBinding(candidate, arguments)
 
-    throw UnresolvedDependenciesException("Dependencies for type `$this` cannot be satisfied:\n  ${unsatisfied}")
+    throw UnresolvedDependenciesException("Dependencies for type `$this` cannot be satisfied:\n  $unsatisfied")
 }
 
 fun Method.bindToMethod(context: ValueResolveContext): MethodBinding {
@@ -73,7 +73,7 @@ fun Method.bindToMethod(context: ValueResolveContext): MethodBinding {
     if (unsatisfied == null) // constructor is satisfied with arguments
         return MethodBinding(this, arguments)
 
-    throw UnresolvedDependenciesException("Dependencies for method `$this` cannot be satisfied:\n  ${unsatisfied}")
+    throw UnresolvedDependenciesException("Dependencies for method `$this` cannot be satisfied:\n  $unsatisfied")
 }
 
 class UnresolvedDependenciesException(message: String) : Exception(message)

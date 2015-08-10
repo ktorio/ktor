@@ -103,8 +103,8 @@ public class ComponentStorage(val myId: String) : ValueResolver {
             visitedClasses.add(type)
             val entry = registry.tryGetEntry(type)
             if (entry == null) {
-                val modifiers = type.getModifiers()
-                if (!Modifier.isInterface(modifiers) && !Modifier.isAbstract(modifiers) && !type.isPrimitive()) {
+                val modifiers = type.modifiers
+                if (!Modifier.isInterface(modifiers) && !Modifier.isAbstract(modifiers) && !type.isPrimitive) {
                     val implicitDescriptor = SingletonDescriptor(context.container, type)
                     implicitComponents.add(implicitDescriptor)
                     discoverImplicitComponents(context, implicitDescriptor, implicitComponents, visitedClasses)
@@ -116,11 +116,11 @@ public class ComponentStorage(val myId: String) : ValueResolver {
     private fun injectMethods(instance: Any, context: ValueResolveContext) {
         val type = instance.javaClass
         val injectors = LinkedHashSet<Method>()
-        for (member in type.getMethods()) {
-            val annotations = member.getDeclaredAnnotations()
+        for (member in type.methods) {
+            val annotations = member.declaredAnnotations
             for (annotation in annotations) {
                 val annotationType = annotation.annotationType()
-                if (annotationType.getName().substringAfterLast('.') == "Inject") {
+                if (annotationType.name.substringAfterLast('.') == "Inject") {
                     injectors.add(member)
                 }
             }

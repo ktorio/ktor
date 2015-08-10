@@ -4,9 +4,8 @@ import java.lang.reflect.*
 
 public class TransientDescriptor(val container: ComponentContainer, val klass: Class<*>) : ComponentDescriptor {
     public override fun getValue(): Any = createInstance(container.createResolveContext(this));
-    override fun getDependencies(context: ValueResolveContext): Collection<Type> {
-        return calculateClassDependencies(klass)
-    }
+    public override fun getRegistrations(): Iterable<Class<*>> = (klass.interfaces + klass).toList()
+    public override fun getDependencies(context: ValueResolveContext): Collection<Type> = calculateClassDependencies(klass)
 
     protected fun createInstance(context: ValueResolveContext): Any {
         val binding = klass.bindToConstructor(context)
@@ -16,7 +15,4 @@ public class TransientDescriptor(val container: ComponentContainer, val klass: C
         return instance
     }
 
-    public override fun getRegistrations(): Iterable<Class<*>> {
-        return (klass.getInterfaces() + klass).toList()
-    }
 }

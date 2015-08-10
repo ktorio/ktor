@@ -15,12 +15,6 @@ object DynamicComponentDescriptor : ComponentDescriptor {
     override fun getValue(): Any = throw UnsupportedOperationException()
 }
 
-object UnidentifiedComponentDescriptor : ComponentDescriptor {
-    override fun getDependencies(context: ValueResolveContext): Collection<Type> = throw UnsupportedOperationException()
-    override fun getRegistrations(): Iterable<Class<*>> = throw UnsupportedOperationException()
-    override fun getValue(): Any = throw UnsupportedOperationException()
-}
-
 public class StorageComponentContainer(id: String) : ComponentContainer, Closeable {
     public val unknownContext: ComponentResolveContext by lazy { ComponentResolveContext(this, DynamicComponentDescriptor) }
 
@@ -45,13 +39,13 @@ public class StorageComponentContainer(id: String) : ComponentContainer, Closeab
             return storageResolve
 
         if (request is ParameterizedType) {
-            val typeArguments = request.getActualTypeArguments()
-            val rawType = request.getRawType()
+            val typeArguments = request.actualTypeArguments
+            val rawType = request.rawType
             if (rawType == javaClass<Iterable<*>>()) {
                 if (typeArguments.size() == 1) {
                     val iterableTypeArgument = typeArguments[0]
                     if (iterableTypeArgument is WildcardType) {
-                        val upperBounds = iterableTypeArgument.getUpperBounds()
+                        val upperBounds = iterableTypeArgument.upperBounds
                         if (upperBounds.size() == 1) {
                             val iterableType = upperBounds[0]
                             return IterableDescriptor(componentStorage.resolveMultiple(iterableType, context))
@@ -78,7 +72,7 @@ public fun StorageComponentContainer.register(klass: Class<*>, lifetime: Compone
         when (lifetime) {
             ComponentLifetime.Singleton -> registerSingleton(klass)
             ComponentLifetime.Transient -> registerTransient(klass)
-            else -> throw IllegalArgumentException("Unknown lifetime: ${lifetime}}")
+            else -> throw IllegalArgumentException("Unknown lifetime: $lifetime}")
         }
 
 
@@ -97,7 +91,7 @@ public fun StorageComponentContainer.registerInstance(instance: Any): StorageCom
 public inline fun <reified T> StorageComponentContainer.register(lifetime: ComponentLifetime = ComponentLifetime.Singleton): StorageComponentContainer =
         if (lifetime == ComponentLifetime.Singleton) registerSingleton<T>()
         else if (lifetime == ComponentLifetime.Transient) registerTransient<T>()
-        else throw IllegalArgumentException("Unknown lifetime: ${lifetime}}")
+        else throw IllegalArgumentException("Unknown lifetime: $lifetime}")
 
 public inline fun <reified T> StorageComponentContainer.registerSingleton(): StorageComponentContainer {
     return registerDescriptors(listOf(SingletonDescriptor(this, javaClass<T>())))

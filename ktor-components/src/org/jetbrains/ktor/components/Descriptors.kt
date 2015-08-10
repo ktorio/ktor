@@ -4,13 +4,13 @@ import java.lang.reflect.*
 import java.util.*
 
 private fun collectInterfacesRecursive(type: Type, result: MutableSet<Type>) {
-    val cl : Class<*>? = when(type) {
+    val cl: Class<*>? = when (type) {
         is Class<*> -> type
-        is ParameterizedType -> type.getRawType() as? Class<*>
+        is ParameterizedType -> type.rawType as? Class<*>
         else -> null
     }
 
-    val interfaces = cl?.getGenericInterfaces()
+    val interfaces = cl?.genericInterfaces
     interfaces?.forEach {
         if (result.add(it) && it is Class<*>) {
             collectInterfacesRecursive(it, result)
@@ -22,8 +22,8 @@ private fun calculateClassRegistrations(klass: Class<*>): List<Type> {
     val registrations = ArrayList<Type>()
     val superClasses = sequence<Type>(klass) {
         when (it) {
-            is Class<*> -> it.getGenericSuperclass()
-            is ParameterizedType -> it.getRawType() as? Class<*>
+            is Class<*> -> it.genericSuperclass
+            is ParameterizedType -> it.rawType as? Class<*>
             else -> null
         }
         // todo: do not publish as Object
@@ -35,16 +35,16 @@ private fun calculateClassRegistrations(klass: Class<*>): List<Type> {
     return registrations
 }
 
-public fun calculateClassDependencies(klass: Class<*>): ArrayList<Type> {
-    val dependencies = ArrayList<Type>()
-    dependencies.addAll(klass.getConstructors().single().getGenericParameterTypes())
+public fun calculateClassDependencies(klass: Class<*>): Set<Type> {
+    val dependencies = hashSetOf<Type>()
+    dependencies.addAll(klass.constructors.single().genericParameterTypes)
 
-    for (member in klass.getMethods()) {
-        val annotations = member.getDeclaredAnnotations()
+    for (member in klass.methods) {
+        val annotations = member.declaredAnnotations
         for (annotation in annotations) {
             val annotationType = annotation.annotationType()
-            if (annotationType.getName().substringAfterLast('.') == "Inject") {
-                dependencies.addAll(member.getGenericParameterTypes())
+            if (annotationType.name.substringAfterLast('.') == "Inject") {
+                dependencies.addAll(member.genericParameterTypes)
             }
         }
     }
