@@ -26,13 +26,12 @@ open public class LocationService {
 
         fun create(request: RoutingApplicationRequest): Any {
             val parameters = constructor.parameters
-            val javaParameters = constructor.javaConstructor!!.genericParameterTypes
             val args = Array(parameters.size()) { index ->
                 val parameter = parameters[index]
                 val parameterType = parameter.type
-                val javaParameterType = javaParameters[index]
+                val javaParameterType = parameterType.javaType
                 val parameterName = parameter.name
-                if (parent != null && javaParameterType === parent.klass.java) {
+                if (parent != null && parameterType.javaType === parent.klass.java) {
                     parent.create(request)
                 } else {
                     val requestParameters = request.parameters[parameterName]
@@ -46,7 +45,7 @@ open public class LocationService {
                     }
                 }
             }
-            return constructor.call(*args)!!
+            return constructor.call(*args)
         }
 
         fun String.convertTo(type: Type): Any {
@@ -64,7 +63,7 @@ open public class LocationService {
 
         fun List<String>.convertTo(type: Type): Any {
             if (type is ParameterizedType) {
-                val rawType = type.rawType as Class<List<*>>
+                val rawType = type.rawType as Class<*>
                 if (rawType.isAssignableFrom(List::class.java)) {
                     val itemType = type.actualTypeArguments.single()
                     return map { it.convertTo(itemType) }
@@ -84,14 +83,19 @@ open public class LocationService {
         return UriInfo(combinedPath, query + queryValues)
     }
 
+    inline fun <reified T:Annotation> KAnnotatedElement.annotation() : T? {
+        return annotations.singleOrNull { it.annotationType() == T::class.java } as T?
+    }
+
     private fun getOrCreateInfo(dataClass: KClass<*>): LocationInfo {
         return info.getOrPut(dataClass) {
-            val enclosingClass = dataClass.java.enclosingClass?.kotlin
-            val parent = enclosingClass?.java?.getAnnotation(javaClass<location>())?.let {
-                getOrCreateInfo(enclosingClass!!)
+            val parentClass = dataClass.java.enclosingClass?.kotlin
+            val parentAnnotation = parentClass?.annotation<location>()
+            val parent = parentAnnotation?.let {
+                getOrCreateInfo(parentClass!!)
             }
 
-            val path = dataClass.java.getAnnotation(javaClass<location>())?.let {
+            val path = dataClass.annotation<location>()?.let {
                 it.path
             } ?: ""
 
@@ -101,7 +105,7 @@ open public class LocationService {
             }
 
             val parentParameter = declaredProperties.firstOrNull {
-                it.getter.javaMethod?.returnType === enclosingClass?.java
+                it.getter.returnType.javaType === parentClass?.java
             }
 
             if (parent != null && parentParameter == null) {
