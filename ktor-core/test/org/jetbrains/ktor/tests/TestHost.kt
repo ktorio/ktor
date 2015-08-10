@@ -30,18 +30,18 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
 }
 
 class TestApplicationRequest(override val application: Application) : ApplicationRequest {
-    override var verb: HttpVerb = HttpVerb(HttpMethod.Get, "/", "HTTP/1.1")
+    override var requestLine: HttpRequestLine = HttpRequestLine(HttpMethod.Get, "/", "HTTP/1.1")
 
     var uri: String
-        get() = verb.uri
+        get() = requestLine.uri
         set(value) {
-            verb = verb.copy(uri = value)
+            requestLine = requestLine.copy(uri = value)
         }
 
     var method: String
-        get() = verb.method
+        get() = requestLine.method
         set(value) {
-            verb = verb.copy(method = value)
+            requestLine = requestLine.copy(method = value)
         }
 
     override val parameters: Map<String, List<String>> get() {

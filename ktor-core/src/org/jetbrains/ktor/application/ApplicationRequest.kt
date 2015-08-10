@@ -8,7 +8,7 @@ import java.io.*
 public interface ApplicationRequest {
     public val application: Application
 
-    public val verb: HttpVerb
+    public val requestLine: HttpRequestLine
     public val parameters: Map<String, List<String>>
     public val headers: Map<String, String>
 
@@ -28,9 +28,9 @@ public interface ApplicationResponse {
 }
 
 
-val ApplicationRequest.uri : String get() = verb.uri
-val ApplicationRequest.method : String get() = verb.method
-val ApplicationRequest.version : String get() = verb.version
+val ApplicationRequest.uri : String get() = requestLine.uri
+val ApplicationRequest.method : String get() = requestLine.method
+val ApplicationRequest.version : String get() = requestLine.version
 
 fun ApplicationRequest.header(name: String): String? = headers[name]
 fun ApplicationRequest.parameter(name: String): String? = headers[name]

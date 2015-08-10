@@ -13,8 +13,8 @@ class NettyApplicationRequest(override val application: Application,
     override val headers by lazy {
         request.headers().toMap({ it.key }, { it.value })
     }
-    override val verb: HttpVerb by lazy {
-        HttpVerb(request.method.name(), request.uri, request.protocolVersion.text())
+    override val requestLine: HttpRequestLine by lazy {
+        HttpRequestLine(request.method.name(), request.uri, request.protocolVersion.text())
     }
 
     override val parameters: Map<String, List<String>> by lazy {

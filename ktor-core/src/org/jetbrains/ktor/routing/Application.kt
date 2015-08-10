@@ -32,7 +32,7 @@ public fun Application.routing(body: RoutingEntry.() -> Unit) {
 
 fun Application.interceptRoute(routing: RoutingEntry) {
     intercept { request, proceed ->
-        val resolveContext = RoutingResolveContext(request.verb, request.parameters, request.headers)
+        val resolveContext = RoutingResolveContext(request.requestLine, request.parameters, request.headers)
         val resolveResult = routing.resolve(resolveContext)
         when {
             resolveResult.succeeded -> {

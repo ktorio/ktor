@@ -10,8 +10,8 @@ import javax.servlet.http.*
 public class ServletApplicationRequest(override val application: Application,
                                        private val servletRequest: HttpServletRequest,
                                        private val servletResponse: HttpServletResponse) : ApplicationRequest {
-    override val verb: HttpVerb by lazy {
-        HttpVerb(servletRequest.method, servletRequest.requestURI, servletRequest.protocol)
+    override val requestLine: HttpRequestLine by lazy {
+        HttpRequestLine(servletRequest.method, servletRequest.requestURI, servletRequest.protocol)
     }
 
     override val parameters: Map<String, List<String>> by lazy {

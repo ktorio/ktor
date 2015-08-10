@@ -22,7 +22,7 @@ public open class Application(val config: ApplicationConfig) {
         }
 
         val result = handle(0, request)
-        config.log.info("$result: ${request.verb}")
+        config.log.info("$result: ${request.requestLine}")
         return result
     }
 
