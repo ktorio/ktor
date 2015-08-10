@@ -4,6 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import java.io.*
 import java.util.*
+import javax.servlet.*
 import javax.servlet.http.*
 
 public class ServletApplicationRequest(override val application: Application,
@@ -31,6 +32,11 @@ public class ServletApplicationRequest(override val application: Application,
         servletRequest.headerNames.asSequence().toMap({ it }, {
             servletRequest.getHeaders(it).asSequence().join(", ")
         })
+    }
+
+    private var asyncContext: AsyncContext? = null
+    fun continueAsync(asyncContext: AsyncContext) {
+        this.asyncContext = asyncContext
     }
 
     var response: Response? = null
@@ -79,6 +85,9 @@ public class ServletApplicationRequest(override val application: Application,
 
         override fun send(): ApplicationRequestStatus {
             servletResponse.flushBuffer()
+            if (asyncContext != null) {
+                asyncContext?.complete()
+            }
             return ApplicationRequestStatus.Handled
         }
 
@@ -89,4 +98,5 @@ public class ServletApplicationRequest(override val application: Application,
         }
 
     }
+
 }

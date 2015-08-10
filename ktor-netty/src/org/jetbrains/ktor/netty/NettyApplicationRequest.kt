@@ -21,6 +21,11 @@ class NettyApplicationRequest(override val application: Application,
         QueryStringDecoder(request.uri).parameters()
     }
 
+    var async : Boolean = false
+    fun continueAsync() {
+        this.async = true
+    }
+
     var response: Response? = null
     override fun respond(handle: ApplicationResponse.() -> ApplicationRequestStatus): ApplicationRequestStatus {
         val currentResponse = response
@@ -66,10 +71,12 @@ class NettyApplicationRequest(override val application: Application,
         override fun send(): ApplicationRequestStatus {
             context.write(response)
             context.flush()
-            context.close()
+            if (async)
+                context.close()
             return ApplicationRequestStatus.Handled
         }
 
         override fun sendRedirect(url: String) = throw UnsupportedOperationException()
     }
+
 }

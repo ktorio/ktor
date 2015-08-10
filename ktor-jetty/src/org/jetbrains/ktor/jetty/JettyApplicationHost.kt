@@ -19,20 +19,20 @@ class JettyApplicationHost(val config: ApplicationConfig) {
     inner class Handler() : AbstractHandler() {
 
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-            response.setCharacterEncoding("UTF-8")
+            response.characterEncoding = "UTF-8"
             try {
-                val requestResult = application.handle(ServletApplicationRequest(application, request, response))
+                val appRequest = ServletApplicationRequest(application, request, response)
+                val requestResult = application.handle(appRequest)
                 when (requestResult) {
-                    ApplicationRequestStatus.Handled -> baseRequest.setHandled(true)
-                    ApplicationRequestStatus.Unhandled -> baseRequest.setHandled(false)
-                    ApplicationRequestStatus.Asynchronous -> baseRequest.startAsync()
+                    ApplicationRequestStatus.Handled -> baseRequest.isHandled = true
+                    ApplicationRequestStatus.Unhandled -> baseRequest.isHandled = false
+                    ApplicationRequestStatus.Asynchronous -> {
+                        val asyncContext = baseRequest.startAsync()
+                        appRequest.continueAsync(asyncContext)
+                    }
                 }
             } catch(ex: Throwable) {
-                config.log.warning("dispatch error: ${ex.getMessage()}");
-                ex.printStackTrace()
-                val out = response.getWriter()
-                out?.print(ex.getMessage())
-                out?.flush()
+                config.log.error("Application ${application.javaClass} cannot fulfill the request", ex);
             }
         }
     }
