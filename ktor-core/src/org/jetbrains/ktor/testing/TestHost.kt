@@ -4,15 +4,21 @@ import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import java.io.*
+import kotlin.reflect.*
 
-fun createTestHost(): TestApplicationHost {
+inline fun withApplication<reified T : Application>(noinline test: TestApplicationHost.() -> Unit) {
+    withApplication(T::class, test)
+}
+
+fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() -> Unit) {
     val testConfig = ConfigFactory.parseMap(
             mapOf(
                     "ktor.deployment.environment" to "test",
-                    "ktor.application.class" to "org.jetbrains.ktor.testing.TestApplication"
+                    "ktor.application.class" to applicationClass.qualifiedName
                  ))
     val config = ApplicationConfig(testConfig, SL4JApplicationLog("<Test>"))
-    return TestApplicationHost(config)
+    val host = TestApplicationHost(config)
+    host.test()
 }
 
 data class RequestResult(val requestResult: ApplicationRequestStatus, val response: TestApplicationResponse?)
@@ -27,6 +33,15 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
         return RequestResult(status, request.response)
     }
 }
+
+fun TestApplicationHost.handleRequest(method: String, uri: String, setup: TestApplicationRequest.() -> Unit = {}): RequestResult {
+    return handleRequest {
+        this.uri = uri
+        this.method = method
+        setup()
+    }
+}
+
 
 class TestApplicationRequest(override val application: Application) : ApplicationRequest {
     override var requestLine: HttpRequestLine = HttpRequestLine(HttpMethod.Get, "/", "HTTP/1.1")
@@ -59,15 +74,13 @@ class TestApplicationRequest(override val application: Application) : Applicatio
 }
 
 class TestApplicationResponse : ApplicationResponse {
+    val headers = hashMapOf<String, String>()
     override fun header(name: String, value: String): ApplicationResponse {
-        throw UnsupportedOperationException()
+        headers.put(name, value)
+        return this
     }
 
-    override fun header(name: String, value: Int): ApplicationResponse {
-        throw UnsupportedOperationException()
-    }
-
-    public var status: Int = 0
+    public var status: Int = 501
     override fun status(code: Int): ApplicationResponse {
         status = code
         return this

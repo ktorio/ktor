@@ -54,11 +54,6 @@ public class ServletApplicationRequest(override val application: Application,
             return this
         }
 
-        override fun header(name: String, value: Int): ApplicationResponse {
-            servletResponse.setIntHeader(name, value)
-            return this
-        }
-
         override fun status(code: Int): ApplicationResponse {
             servletResponse.status = code
             return this

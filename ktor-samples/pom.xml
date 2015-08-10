@@ -17,6 +17,7 @@
         <module>ktor-samples-locations</module>
         <module>ktor-samples-components</module>
         <module>ktor-samples-async</module>
+        <module>ktor-samples-testable</module>
     </modules>
 
     <dependencies>

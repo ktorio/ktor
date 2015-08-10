@@ -12,12 +12,17 @@ public interface ApplicationRequest {
     public val parameters: Map<String, List<String>>
     public val headers: Map<String, String>
 
-    public fun respond(handle: ApplicationResponse.() -> ApplicationRequestStatus) : ApplicationRequestStatus
+    public fun respond(handle: ApplicationResponse.() -> ApplicationRequestStatus): ApplicationRequestStatus
 }
+
+val ApplicationRequest.uri: String get() = requestLine.uri
+val ApplicationRequest.method: String get() = requestLine.method
+val ApplicationRequest.version: String get() = requestLine.version
+fun ApplicationRequest.header(name: String): String? = headers[name]
+fun ApplicationRequest.parameter(name: String): String? = headers[name]
 
 public interface ApplicationResponse {
     public fun header(name: String, value: String): ApplicationResponse
-    public fun header(name: String, value: Int): ApplicationResponse
     public fun status(code: Int): ApplicationResponse
     public fun content(text: String, encoding: String = "UTF-8"): ApplicationResponse
     public fun content(bytes: ByteArray): ApplicationResponse
@@ -27,13 +32,8 @@ public interface ApplicationResponse {
     public fun sendRedirect(url: String): ApplicationRequestStatus
 }
 
+fun ApplicationResponse.header(name: String, value: Int): ApplicationResponse = header(name, value.toString())
 
-val ApplicationRequest.uri : String get() = requestLine.uri
-val ApplicationRequest.method : String get() = requestLine.method
-val ApplicationRequest.version : String get() = requestLine.version
-
-fun ApplicationRequest.header(name: String): String? = headers[name]
-fun ApplicationRequest.parameter(name: String): String? = headers[name]
 
 
 

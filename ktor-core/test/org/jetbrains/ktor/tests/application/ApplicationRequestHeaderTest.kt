@@ -3,17 +3,15 @@ package org.jetbrains.ktor.tests.application
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
-import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.junit.*
 import kotlin.test.*
 
 class ApplicationRequestHeaderTest {
 
-    Test fun `an application that handles requests to foo`() {
-        val testHost = createTestHost()
+    Test fun `an application that handles requests to foo`() = withTestApplication {
         on("making an unauthenticated request to /foo") {
-            testHost.application.routing {
+            application.routing {
                 get("/foo") {
                     handle {
                         it("should map uri to /foo") {
@@ -33,7 +31,7 @@ class ApplicationRequestHeaderTest {
                 }
             }
 
-            val status = testHost.handleRequest {
+            val status = handleRequest {
                 uri = "/foo"
                 method = HttpMethod.Get
                 headers.put("Authorization", "")
@@ -45,10 +43,9 @@ class ApplicationRequestHeaderTest {
         }
     }
 
-    Test fun `an application that handles requests to foo with parameters`() {
-        val testHost = createTestHost()
+    Test fun `an application that handles requests to foo with parameters`() = withTestApplication {
         on("making a request to /foo?key1=value1&key2=value2") {
-            testHost.application.routing {
+            application.routing {
                 get("/foo") {
                     handle {
                         it("should map uri to /foo?key1=value1&key2=value2") {
@@ -82,7 +79,7 @@ class ApplicationRequestHeaderTest {
                 }
             }
 
-            val status = testHost.handleRequest {
+            val status = handleRequest {
                 uri = "/foo?key1=value1&key2=value2"
                 method = HttpMethod.Get
                 headers.put("Host", "host.name.com:8888")
@@ -94,10 +91,9 @@ class ApplicationRequestHeaderTest {
         }
     }
 
-    Test fun `an application that handles requests to root with parameters`() {
-        val testHost = createTestHost()
+    Test fun `an application that handles requests to root with parameters`() = withTestApplication {
         on("making a request to /?key1=value1&key2=value2") {
-            testHost.application.routing {
+            application.routing {
                 get("/") {
                     handle {
                         it("should map uri to /?key1=value1&key2=value2") {
@@ -125,7 +121,7 @@ class ApplicationRequestHeaderTest {
                 }
             }
 
-            val status = testHost.handleRequest {
+            val status = handleRequest {
                 uri = "/?key1=value1&key2=value2"
                 method = HttpMethod.Get
             }.response?.status

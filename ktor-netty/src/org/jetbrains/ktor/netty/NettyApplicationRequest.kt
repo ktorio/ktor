@@ -43,11 +43,6 @@ class NettyApplicationRequest(override val application: Application,
             return this
         }
 
-        override fun header(name: String, value: Int): ApplicationResponse {
-            response.headers().set(name, value)
-            return this
-        }
-
         override fun status(code: Int): ApplicationResponse {
             response.setStatus(HttpResponseStatus(code, "$code"))
             return this
