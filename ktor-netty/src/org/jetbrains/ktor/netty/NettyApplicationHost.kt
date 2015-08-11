@@ -43,27 +43,23 @@ public class NettyApplicationHost(val config: ApplicationConfig) {
         loader.dispose()
     }
 
-    inner class HostHttpHandler : SimpleChannelInboundHandler<Any>() {
-        override fun channelRead0(context: ChannelHandlerContext, request: Any) {
-            when (request) {
-                is HttpRequest -> {
-                    val appRequest = NettyApplicationRequest(application, context, request)
-                    val requestResult = application.handle(appRequest)
-                    when (requestResult) {
-                        ApplicationRequestStatus.Unhandled -> {
-                            val notFound = DefaultFullHttpResponse(request.protocolVersion, HttpResponseStatus.NOT_FOUND)
-                            notFound.headers().set("Content-Type", "text/html; charset=UTF-8")
-                            notFound.content().writeBytes("""
+    inner class HostHttpHandler : SimpleChannelInboundHandler<FullHttpRequest>() {
+        override fun channelRead0(context: ChannelHandlerContext, request: FullHttpRequest) {
+            val appRequest = NettyApplicationRequest(application, context, request)
+            val requestResult = application.handle(appRequest)
+            when (requestResult) {
+                ApplicationRequestStatus.Unhandled -> {
+                    val notFound = DefaultFullHttpResponse(request.protocolVersion, HttpResponseStatus.NOT_FOUND)
+                    notFound.headers().set("Content-Type", "text/html; charset=UTF-8")
+                    notFound.content().writeBytes("""
                             <h1>Not Found</h1>
                             Cannot find resource with the requested URI: ${request.uri}
                             """.toByteArray(Charsets.UTF_8))
-                            context.writeAndFlush(notFound)
-                            context.close()
-                        }
-                        ApplicationRequestStatus.Handled -> context.close()
-                        ApplicationRequestStatus.Asynchronous -> appRequest.continueAsync()
-                    }
+                    context.writeAndFlush(notFound)
+                    context.close()
                 }
+                ApplicationRequestStatus.Handled -> context.close()
+                ApplicationRequestStatus.Asynchronous -> appRequest.continueAsync()
             }
         }
 

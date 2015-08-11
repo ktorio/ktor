@@ -5,11 +5,11 @@ import io.netty.handler.codec.http.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import java.io.*
-import java.util.*
+import java.nio.charset.*
 
 class NettyApplicationRequest(override val application: Application,
                               val context: ChannelHandlerContext,
-                              val request: HttpRequest) : ApplicationRequest {
+                              val request: FullHttpRequest) : ApplicationRequest {
     override val headers by lazy {
         request.headers().toMap({ it.key }, { it.value })
     }
@@ -17,13 +17,19 @@ class NettyApplicationRequest(override val application: Application,
         HttpRequestLine(request.method.name(), request.uri, request.protocolVersion.text())
     }
 
-    override val body: String = TODO()
+    override val body: String
+        get() {
+            val byteBuf = request.content()
+            val charsetName = contentType().parameter("charset")
+            val charset = charsetName?.let { Charset.forName(it) } ?: Charsets.ISO_8859_1
+            return byteBuf.toString(charset)
+        }
 
     override val parameters: Map<String, List<String>> by lazy {
         QueryStringDecoder(request.uri).parameters()
     }
 
-    var async : Boolean = false
+    var async: Boolean = false
     fun continueAsync() {
         this.async = true
     }
