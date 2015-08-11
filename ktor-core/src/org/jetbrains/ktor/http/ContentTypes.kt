@@ -6,6 +6,8 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
 
     override fun toString() = if (parameters.size() == 0) "$contentType/$contentSubtype" else "$contentType/$contentSubtype; ${parameters.map { "${it.first}=${it.second}" }.join("; ")}"
 
+    fun parameter(name: String) = parameters.firstOrNull { it.first == name }?.second
+
     fun withParameter(name: String, value: String): ContentType {
         val newParameters = ArrayList<Pair<String, String>>(parameters)
         newParameters.add(name to value)
