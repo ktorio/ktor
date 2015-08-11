@@ -4,7 +4,7 @@ import org.jetbrains.ktor.application.*
 import java.util.*
 import java.util.concurrent.*
 
-public class ExecutorJobService(val log: ApplicationLog) : JobService {
+open public class ExecutorJobService(val log: ApplicationLog) : JobService {
     val executor: ScheduledExecutorService by lazy { Executors.newScheduledThreadPool(4) }
 
     public override fun async(name: String, body: () -> Unit) {
