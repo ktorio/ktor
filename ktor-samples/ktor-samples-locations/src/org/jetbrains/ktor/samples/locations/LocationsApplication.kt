@@ -5,6 +5,7 @@ import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.routing.*
 import java.util.*
 
 location("/") data class index()
@@ -13,6 +14,11 @@ location("/number") data class number(val value: Int)
 class LocationsApplication(config: ApplicationConfig) : Application(config) {
     init {
         locations {
+            post {
+                handle {
+                    ApplicationRequestStatus.Handled
+                }
+            }
             get<index>() {
                 contentType(ContentType.Text.Html)
                 contentStream {

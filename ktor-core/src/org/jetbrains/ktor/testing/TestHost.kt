@@ -58,6 +58,8 @@ class TestApplicationRequest(override val application: Application) : Applicatio
             requestLine = requestLine.copy(method = value)
         }
 
+    override var body: String = ""
+
     override val parameters: Map<String, List<String>> get() {
         return queryParameters()
     }

@@ -17,6 +17,8 @@ class NettyApplicationRequest(override val application: Application,
         HttpRequestLine(request.method.name(), request.uri, request.protocolVersion.text())
     }
 
+    override val body: String = TODO()
+
     override val parameters: Map<String, List<String>> by lazy {
         QueryStringDecoder(request.uri).parameters()
     }

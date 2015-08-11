@@ -2,7 +2,6 @@ package org.jetbrains.ktor.tests.application
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.junit.*
 import kotlin.test.*
@@ -85,6 +84,25 @@ class HandlerTest {
                 assertEquals(request.javaClass, javaClass<IllegalStateException>())
             }
         }
+    }
+
+    Test fun `application with handler that checks body on POST method`() = withTestApplication {
+        application.intercept { request, next ->
+            if (request.method == HttpMethod.Post) {
+                request.respond {
+                    status(HttpStatusCode.OK)
+                    assertEquals(request.body, "Body")
+                    send()
+                }
+                ApplicationRequestStatus.Handled
+            } else
+                ApplicationRequestStatus.Unhandled
+        }
+        val result = handleRequest {
+            method = HttpMethod.Post
+            body = "Body"
+        }
+        assertEquals(ApplicationRequestStatus.Handled, result.requestResult)
     }
 
     Test fun `application with handler that returns true on POST method`() {

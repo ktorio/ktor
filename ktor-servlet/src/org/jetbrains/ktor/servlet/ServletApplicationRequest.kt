@@ -14,6 +14,11 @@ public class ServletApplicationRequest(override val application: Application,
         HttpRequestLine(servletRequest.method, servletRequest.requestURI, servletRequest.protocol)
     }
 
+    override val body : String
+        get() {
+            return servletRequest.inputStream.reader().readText()
+        }
+
     override val parameters: Map<String, List<String>> by lazy {
         val result = HashMap<String, MutableList<String>>()
         val parametersMap = servletRequest.parameterMap
