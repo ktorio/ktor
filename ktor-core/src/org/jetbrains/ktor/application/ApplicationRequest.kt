@@ -20,7 +20,7 @@ val ApplicationRequest.uri: String get() = requestLine.uri
 val ApplicationRequest.method: String get() = requestLine.method
 val ApplicationRequest.version: String get() = requestLine.version
 fun ApplicationRequest.header(name: String): String? = headers[name]
-fun ApplicationRequest.parameter(name: String): String? = headers[name]
+fun ApplicationRequest.parameter(name: String): String? = parameters[name]?.singleOrNull()
 
 public interface ApplicationResponse {
     public fun header(name: String, value: String): ApplicationResponse
