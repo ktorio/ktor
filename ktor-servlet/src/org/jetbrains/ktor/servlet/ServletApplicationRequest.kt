@@ -3,6 +3,7 @@ package org.jetbrains.ktor.servlet
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import java.io.*
+import java.nio.charset.*
 import java.util.*
 import javax.servlet.*
 import javax.servlet.http.*
@@ -16,7 +17,9 @@ public class ServletApplicationRequest(override val application: Application,
 
     override val body : String
         get() {
-            return servletRequest.inputStream.reader().readText()
+            val charsetName = contentType().parameter("charset")
+            val charset = charsetName?.let { Charset.forName(it) } ?: Charsets.ISO_8859_1
+            return servletRequest.inputStream.reader(charset).readText()
         }
 
     override val parameters: Map<String, List<String>> by lazy {
