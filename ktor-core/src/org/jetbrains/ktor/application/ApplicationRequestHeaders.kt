@@ -23,6 +23,7 @@ fun ApplicationRequest.contentType(): ContentType = header("Content-Type")?.let 
 fun ApplicationRequest.document(): String = requestLine.document()
 fun ApplicationRequest.path(): String = requestLine.path()
 fun ApplicationRequest.authorization(): String? = header("Authorization")
+fun ApplicationRequest.location(): String? = header("Location")
 fun ApplicationRequest.accept(): String? = header("Accept")
 fun ApplicationRequest.acceptEncoding(): String? = header("Accept-Encoding")
 fun ApplicationRequest.acceptLanguage(): String? = header("Accept-Language")

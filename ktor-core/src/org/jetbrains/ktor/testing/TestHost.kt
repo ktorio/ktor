@@ -107,10 +107,6 @@ class TestApplicationResponse : ApplicationResponse {
     override fun send(): ApplicationRequestStatus {
         return ApplicationRequestStatus.Handled
     }
-
-    override fun sendRedirect(url: String): ApplicationRequestStatus {
-        return ApplicationRequestStatus.Handled
-    }
 }
 
 class TestApplication(config: ApplicationConfig) : Application(config)

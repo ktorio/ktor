@@ -55,9 +55,8 @@ public class ApplicationLoader(val config: ApplicationConfig) {
         if (config.isDevelopment())
             watchUrls(config.classPath)
 
-        val appClassObject = config.classLoader.loadClass(config.applicationClassName)
+        val applicationClass = config.classLoader.loadClass(config.applicationClassName)
                 ?: throw RuntimeException("Expected class ${config.applicationClassName} to be defined")
-        val applicationClass = appClassObject as Class<Application>
         config.log.debug("Application class: ${applicationClass.toString()}")
         val cons = applicationClass.getConstructor(javaClass<ApplicationConfig>())
         val application = cons.newInstance(config)

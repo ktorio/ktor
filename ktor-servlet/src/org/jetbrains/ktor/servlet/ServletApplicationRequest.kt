@@ -93,13 +93,6 @@ public class ServletApplicationRequest(override val application: Application,
             }
             return ApplicationRequestStatus.Handled
         }
-
-        override fun sendRedirect(url: String): ApplicationRequestStatus {
-            servletResponse.sendRedirect(url)
-            servletResponse.flushBuffer()
-            return ApplicationRequestStatus.Handled
-        }
-
     }
 
 }

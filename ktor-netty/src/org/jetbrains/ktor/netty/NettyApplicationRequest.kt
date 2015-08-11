@@ -78,8 +78,5 @@ class NettyApplicationRequest(override val application: Application,
                 context.close()
             return ApplicationRequestStatus.Handled
         }
-
-        override fun sendRedirect(url: String) = throw UnsupportedOperationException()
     }
-
 }

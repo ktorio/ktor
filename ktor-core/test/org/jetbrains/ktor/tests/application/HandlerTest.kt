@@ -88,7 +88,7 @@ class HandlerTest {
 
     Test fun `application with handler that checks body on POST method`() = withTestApplication {
         application.intercept { request, next ->
-            if (request.method == HttpMethod.Post) {
+            if (request.httpMethod == HttpMethod.Post) {
                 request.respond {
                     status(HttpStatusCode.OK)
                     assertEquals(request.body, "Body")
@@ -108,7 +108,7 @@ class HandlerTest {
     Test fun `application with handler that returns true on POST method`() {
         val testHost = createTestHost()
         testHost.application.intercept { request, next ->
-            if (request.method == HttpMethod.Post) {
+            if (request.httpMethod == HttpMethod.Post) {
                 request.respond {
                     status(HttpStatusCode.OK)
                     send()

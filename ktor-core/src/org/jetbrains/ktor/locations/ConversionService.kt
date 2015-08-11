@@ -11,6 +11,7 @@ public interface ConversionService {
 }
 
 public open class DefaultConversionService : ConversionService {
+    @suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     override fun toURI(value: Any?, name: String, optional: Boolean): List<String> {
         return when (value) {
             null -> listOf<String>()
@@ -30,6 +31,7 @@ public open class DefaultConversionService : ConversionService {
         }
     }
 
+    @suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     open fun convert(value: String, type: Type): Any {
         return when (type) {
             is WildcardType -> convert(value, type.upperBounds.single())
