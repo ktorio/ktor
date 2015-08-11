@@ -1,14 +1,12 @@
 package org.jetbrains.ktor.locations
 
 import org.jetbrains.ktor.routing.*
-import java.lang
-import java.lang.reflect.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
 class InconsistentRoutingException(message: String) : Exception(message)
 
-open public class LocationService {
+open public class LocationService(val conversionService: ConversionService) {
     private val rootUri = ResolvedUriInfo("", emptyList())
     private val info = hashMapOf<KClass<*>, LocationInfo>()
 
@@ -20,63 +18,26 @@ open public class LocationService {
                                     val parentParameter: LocationInfoProperty?,
                                     val path: String,
                                     val pathParameters: List<LocationInfoProperty>,
-                                    val queryParameters: List<LocationInfoProperty>) {
+                                    val queryParameters: List<LocationInfoProperty>)
 
-        private val constructor = klass.constructors.single()
-
-        fun create(request: RoutingApplicationRequest): Any {
-            val parameters = constructor.parameters
-            val args = Array(parameters.size()) { index ->
-                val parameter = parameters[index]
-                val parameterType = parameter.type
-                val javaParameterType = parameterType.javaType
-                val parameterName = parameter.name
-                if (parent != null && parameterType.javaType === parent.klass.java) {
-                    parent.create(request)
-                } else {
-                    val requestParameters = request.parameters[parameterName]
-                    if (requestParameters == null) {
-                        if (!parameterType.isMarkedNullable) {
-                            throw InconsistentRoutingException("Parameter '$parameterName' required to construct '$klass' was not found in the request")
-                        }
-                        null
-                    } else {
-                        requestParameters.convertTo(javaParameterType)
-                    }
-                }
-            }
-            return constructor.call(*args)
-        }
-
-        fun String.convertTo(type: Type): Any {
-            return when (type) {
-                is WildcardType -> convertTo(type.upperBounds.single())
-                javaClass<Int>(), javaClass<lang.Integer>() -> toInt()
-                javaClass<Float>(), javaClass<lang.Float>() -> toFloat()
-                javaClass<Double>(), javaClass<lang.Double>() -> toDouble()
-                javaClass<Long>(), javaClass<lang.Long>() -> toLong()
-                javaClass<Boolean>(), javaClass<lang.Boolean>() -> toBoolean()
-                javaClass<String>(), javaClass<lang.String>() -> this
-                else -> throw UnsupportedOperationException("Type $type is not supported in automatic location data class processing")
+    fun LocationInfo.create(request: RoutingApplicationRequest): Any {
+        val constructor = klass.constructors.single()
+        val parameters = constructor.parameters
+        val args = Array(parameters.size()) { index ->
+            val parameter = parameters[index]
+            val parameterType = parameter.type
+            val javaParameterType = parameterType.javaType
+            val parameterName = parameter.name ?: getParameterNameFromAnnotation(parameter)
+            if (parent != null && parameterType.javaType === parent.klass.java) {
+                parent.create(request)
+            } else {
+                conversionService.fromRequest(request, parameterName, javaParameterType, parameterType.isMarkedNullable)
             }
         }
-
-        fun List<String>.convertTo(type: Type): Any {
-            if (type is ParameterizedType) {
-                val rawType = type.rawType as Class<*>
-                if (rawType.isAssignableFrom(List::class.java)) {
-                    val itemType = type.actualTypeArguments.single()
-                    return map { it.convertTo(itemType) }
-                }
-            }
-
-            if (size() != 1) {
-                throw InconsistentRoutingException("There are multiply values in request when trying to construct single value $type")
-            }
-
-            return get(0).convertTo(type)
-        }
+        return constructor.call(*args)
     }
+
+    private fun getParameterNameFromAnnotation(parameter: KParameter): String = TODO()
 
     private fun ResolvedUriInfo.combine(relativePath: String, queryValues: List<Pair<String, String>>): ResolvedUriInfo {
         val pathElements = (path.split("/") + relativePath.split("/")).filterNot { it.isEmpty() }
@@ -84,7 +45,7 @@ open public class LocationService {
         return ResolvedUriInfo(combinedPath, query + queryValues)
     }
 
-    inline fun <reified T:Annotation> KAnnotatedElement.annotation() : T? {
+    inline fun <reified T : Annotation> KAnnotatedElement.annotation(): T? {
         return annotations.singleOrNull { it.annotationType() == T::class.java } as T?
     }
 
@@ -141,20 +102,17 @@ open public class LocationService {
     private fun pathAndQuery(location: Any): ResolvedUriInfo {
         val info = getOrCreateInfo(location.javaClass.kotlin)
 
-        fun propertyValue(instance: Any, name: String): String? {
+        fun propertyValue(instance: Any, name: String): List<String> {
             // TODO: Cache properties by name in info
-            val valueGetter = info.klass.memberProperties.single { it.name == name }
-            val value = valueGetter.call(instance)
-            if (value is Iterable<*>)
-                return value.joinToString("/")
-            return value?.toString()
+            val property = info.klass.memberProperties.single { it.name == name }
+            val value = property.call(instance)
+            return conversionService.toURI(value, name, property.returnType.isMarkedNullable)
         }
 
-        val substituteParts = RoutingPath.parse(info.path).parts.map { it ->
-            when(it.kind) {
-                RoutingPathPartKind.Parameter -> propertyValue(location, it.value)
-                RoutingPathPartKind.TailCard -> propertyValue(location, it.value)
-                else -> it.value
+        val substituteParts = RoutingPath.parse(info.path).parts.flatMap { it ->
+            when (it.kind) {
+                RoutingPathPartKind.Constant -> listOf(it.value)
+                else -> propertyValue(location, it.value)
             }
         }
 
@@ -172,11 +130,7 @@ open public class LocationService {
         val queryValues = info.queryParameters
                 .flatMap { property ->
                     val value = property.getter.call(location)
-                    when (value) {
-                        null -> emptyList<Pair<String, String>>()
-                        is Iterable<*> -> value.map { property.name to it.toString() }
-                        else -> listOf(property.name to value.toString())
-                    }
+                    conversionService.toURI(value, property.name, property.isOptional).map { property.name to it }
                 }
 
         return parentInfo.combine(relativePath, queryValues)
@@ -208,3 +162,4 @@ open public class LocationService {
         return createEntry(parent, getOrCreateInfo(dataClass))
     }
 }
+

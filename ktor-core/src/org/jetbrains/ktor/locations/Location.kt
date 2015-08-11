@@ -6,7 +6,7 @@ import kotlin.reflect.*
 
 annotation class location(val path: String)
 
-object Locations : LocationService()
+object Locations : LocationService(DefaultConversionService())
 
 val locationServiceKey = Routing.Key<LocationService>("LocationService")
 
