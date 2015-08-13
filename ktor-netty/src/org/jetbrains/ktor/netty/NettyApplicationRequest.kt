@@ -4,6 +4,7 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.http.HttpMethod
 import java.io.*
 import java.nio.charset.*
 
@@ -13,8 +14,9 @@ class NettyApplicationRequest(override val application: Application,
     override val headers by lazy {
         request.headers().toMap({ it.key }, { it.value })
     }
+
     override val requestLine: HttpRequestLine by lazy {
-        HttpRequestLine(request.method.name(), request.uri, request.protocolVersion.text())
+        HttpRequestLine(HttpMethod.parse(request.method.name()), request.uri, request.protocolVersion.text())
     }
 
     override val body: String

@@ -1,10 +1,24 @@
 package org.jetbrains.ktor.http
 
-object HttpMethod {
-    public val Get: String = "GET"
-    public val Post: String = "POST"
-    public val Put: String = "PUT"
-    public val Delete: String = "DELETE"
-    public val Header: String = "HEADER"
-    public val Options: String = "OPTIONS"
+data class HttpMethod(val value: String) {
+    companion object {
+        val Get = HttpMethod("GET")
+        val Post = HttpMethod("POST")
+        val Put = HttpMethod("PUT")
+        val Delete = HttpMethod("DELETE")
+        val Header = HttpMethod("HEADER")
+        val Options = HttpMethod("OPTIONS")
+
+        fun parse(method: String): HttpMethod {
+            return when (method) {
+                Get.value -> Get
+                Post.value -> Post
+                Put.value -> Put
+                Delete.value -> Delete
+                Header.value -> Header
+                Options.value -> Options
+                else -> HttpMethod(method)
+            }
+        }
+    }
 }

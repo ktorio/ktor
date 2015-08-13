@@ -34,7 +34,7 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     }
 }
 
-fun TestApplicationHost.handleRequest(method: String, uri: String, setup: TestApplicationRequest.() -> Unit = {}): RequestResult {
+fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: TestApplicationRequest.() -> Unit = {}): RequestResult {
     return handleRequest {
         this.uri = uri
         this.method = method
@@ -52,7 +52,7 @@ class TestApplicationRequest(override val application: Application) : Applicatio
             requestLine = requestLine.copy(uri = value)
         }
 
-    var method: String
+    var method: HttpMethod
         get() = requestLine.method
         set(value) {
             requestLine = requestLine.copy(method = value)

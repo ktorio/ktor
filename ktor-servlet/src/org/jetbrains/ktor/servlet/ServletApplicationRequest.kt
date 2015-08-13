@@ -12,7 +12,7 @@ public class ServletApplicationRequest(override val application: Application,
                                        private val servletRequest: HttpServletRequest,
                                        private val servletResponse: HttpServletResponse) : ApplicationRequest {
     override val requestLine: HttpRequestLine by lazy {
-        HttpRequestLine(servletRequest.method, servletRequest.requestURI, servletRequest.protocol)
+        HttpRequestLine(HttpMethod.parse(servletRequest.method), servletRequest.requestURI, servletRequest.protocol)
     }
 
     override val body : String

@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.routing
 
+import org.jetbrains.ktor.http.*
+
 data class RouteSelectorEvaluation(val succeeded: Boolean, val values: Map<String, List<String>> = mapOf(), val incrementIndex: Int = 0)
 
 abstract data class RoutingSelector {
@@ -107,7 +109,7 @@ data class AndRoutingSelector(val first: RoutingSelector, val second: RoutingSel
     }
 }
 
-data class HttpMethodRoutingSelector(val method: String) : RoutingSelector() {
+data class HttpMethodRoutingSelector(val method: HttpMethod) : RoutingSelector() {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         if (context.verb.method == method)
             return RouteSelectorEvaluation(true)

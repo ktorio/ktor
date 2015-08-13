@@ -3,7 +3,7 @@ package org.jetbrains.ktor.http
 import org.jetbrains.ktor.application.*
 
 val ApplicationRequest.uri: String get() = requestLine.uri
-val ApplicationRequest.httpMethod: String get() = requestLine.method
+val ApplicationRequest.httpMethod: HttpMethod get() = requestLine.method
 val ApplicationRequest.httpVersion: String get() = requestLine.version
 fun ApplicationRequest.header(name: String): String? = headers[name]
 fun ApplicationRequest.parameter(name: String): String? = parameters[name]?.singleOrNull()

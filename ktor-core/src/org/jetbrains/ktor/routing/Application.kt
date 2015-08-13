@@ -58,13 +58,28 @@ public fun RoutingEntry.respond(body: ApplicationResponse.() -> ApplicationReque
     }
 }
 
-public fun RoutingEntry.get(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndLocation(HttpMethod.Get, path, body)
-public fun RoutingEntry.put(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndLocation(HttpMethod.Put, path, body)
-public fun RoutingEntry.delete(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndLocation(HttpMethod.Delete, path, body)
-public fun RoutingEntry.post(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndLocation(HttpMethod.Post, path, body)
+fun RoutingEntry.methodAndPath(method: HttpMethod, path: String, body: RoutingEntry.() -> Unit) {
+    method(method) {
+        path(path) {
+            body()
+        }
+    }
+}
 
-public fun RoutingEntry.get(body: RoutingEntry.() -> Unit): Unit = methodParam(HttpMethod.Get, body)
-public fun RoutingEntry.put(body: RoutingEntry.() -> Unit): Unit = methodParam(HttpMethod.Put, body)
-public fun RoutingEntry.delete(body: RoutingEntry.() -> Unit): Unit = methodParam(HttpMethod.Delete, body)
-public fun RoutingEntry.post(body: RoutingEntry.() -> Unit): Unit = methodParam(HttpMethod.Post, body)
+fun RoutingEntry.contentType(contentType: ContentType, build: RoutingEntry.() -> Unit) {
+    header("Accept", "${contentType.contentType}/${contentType.contentSubtype}", build)
+}
+
+
+public fun RoutingEntry.get(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndPath(HttpMethod.Get, path, body)
+public fun RoutingEntry.put(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndPath(HttpMethod.Put, path, body)
+public fun RoutingEntry.delete(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndPath(HttpMethod.Delete, path, body)
+public fun RoutingEntry.post(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndPath(HttpMethod.Post, path, body)
+public fun RoutingEntry.options(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndPath(HttpMethod.Options, path, body)
+
+public fun RoutingEntry.get(body: RoutingEntry.() -> Unit): Unit = method(HttpMethod.Get, body)
+public fun RoutingEntry.put(body: RoutingEntry.() -> Unit): Unit = method(HttpMethod.Put, body)
+public fun RoutingEntry.delete(body: RoutingEntry.() -> Unit): Unit = method(HttpMethod.Delete, body)
+public fun RoutingEntry.post(body: RoutingEntry.() -> Unit): Unit = method(HttpMethod.Post, body)
+public fun RoutingEntry.options(body: RoutingEntry.() -> Unit): Unit = method(HttpMethod.Options, body)
 
