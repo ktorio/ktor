@@ -50,7 +50,7 @@ class ContentTypeTest {
                 assertEquals(1, ct.parameters.size())
             }
             it("should have utf-8 charset") {
-                assertEquals("charset" to "utf-8", ct.parameters[0])
+                assertEquals(ContentTypeParameter("charset", "utf-8"), ct.parameters[0])
             }
 
         }
@@ -84,7 +84,7 @@ class ContentTypeTest {
                 ContentType.Companion.parse("text/plain/something")
             }
             it("should throw BadContentTypeFormat exception") {
-                assertEquals(javaClass<BadContentTypeFormat>(), error?.javaClass)
+                assertEquals(javaClass<BadContentTypeFormatException>(), error?.javaClass)
 
             }
         }

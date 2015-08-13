@@ -1,23 +1,24 @@
 package org.jetbrains.ktor.http
 
-import java.util.*
+data class ContentTypeParameter(val name: String, val value: String)
+class ContentType(val contentType: String, val contentSubtype: String, val parameters: List<ContentTypeParameter> = listOf()) {
 
-class ContentType(val contentType: String, val contentSubtype: String, val parameters: List<Pair<String, String>> = listOf()) {
+    override fun toString() = if (parameters.isEmpty())
+        "$contentType/$contentSubtype"
+    else
+        "$contentType/$contentSubtype; ${parameters.map { "${it.name}=${it.value}" }.join("; ")}"
 
-    override fun toString() = if (parameters.size() == 0) "$contentType/$contentSubtype" else "$contentType/$contentSubtype; ${parameters.map { "${it.first}=${it.second}" }.join("; ")}"
-
-    fun parameter(name: String) = parameters.firstOrNull { it.first == name }?.second
+    fun parameter(name: String) = parameters.firstOrNull { it.name == name }?.value
 
     fun withParameter(name: String, value: String): ContentType {
-        val newParameters = ArrayList<Pair<String, String>>(parameters)
-        newParameters.add(name to value)
-        return ContentType(contentType, contentSubtype, newParameters)
+        return ContentType(contentType, contentSubtype, parameters + ContentTypeParameter(name, value))
     }
 
     override fun equals(other: Any?) = when (other) {
         is ContentType -> contentType == other.contentType
                 && contentSubtype == other.contentSubtype
                 && parameters.size() == other.parameters.size()
+                // TODO: does equality necessary impose order of parameters?
                 && parameters.withIndex().all { it.value == other.parameters[it.index] }
         else -> false
     }
@@ -27,12 +28,12 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
             val parts = value.split(";")
             val content = parts[0].split("/")
             if (content.size() != 2)
-                throw BadContentTypeFormat(value)
+                throw BadContentTypeFormatException(value)
             val parameters = parts.drop(1).map {
                 val pair = it.trim().split("=")
                 if (pair.size() != 2)
-                    throw BadContentTypeFormat(value)
-                pair[0].trim() to pair[1].trim()
+                    throw BadContentTypeFormatException(value)
+                ContentTypeParameter(pair[0].trim(), pair[1].trim())
             }
             return ContentType(content[0].trim(), content[1].trim(), parameters)
         }
@@ -41,91 +42,66 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
     }
 
     object Application {
-        val Any by AnyReflectionContentTypeProperty()
-        val Atom by XmlReflectionContentTypeProperty()
-        val Json  by ReflectionContentTypeProperty()
-        val JavaScript  by ReflectionContentTypeProperty()
-        val Octet_Stream  by ReflectionContentTypeProperty()
-        val Font_Woff  by ReflectionContentTypeProperty()
-        val Rss  by XmlReflectionContentTypeProperty()
-        val Xml  by ReflectionContentTypeProperty()
-        val Xml_Dtd  by ReflectionContentTypeProperty()
-        val Zip  by ReflectionContentTypeProperty()
-        val GZip  by ReflectionContentTypeProperty()
+        val Any = ContentType("application", "*")
+        val Atom = ContentType("application", "atom+xml")
+        val Json = ContentType("application", "json")
+        val JavaScript = ContentType("application", "javascript")
+        val OctetStream = ContentType("application", "octet-stream")
+        val FontWoff = ContentType("application", "font-woff")
+        val Rss = ContentType("application", "rss+xml")
+        val Xml = ContentType("application", "xml")
+        val Xml_Dtd = ContentType("application", "xml-dtd")
+        val Zip = ContentType("application", "zip")
+        val GZip = ContentType("application", "gzip")
     }
 
     object Audio {
-        val Any by AnyReflectionContentTypeProperty()
-        val MP4  by ReflectionContentTypeProperty()
-        val MPEG  by ReflectionContentTypeProperty()
-        val OGG  by ReflectionContentTypeProperty()
+        val Any = ContentType("audio", "*")
+        val MP4 = ContentType("audio", "mp4")
+        val MPEG = ContentType("audio", "mpeg")
+        val OGG = ContentType("audio", "ogg")
     }
 
     object Image {
-        val Any by AnyReflectionContentTypeProperty()
-        val GIF  by ReflectionContentTypeProperty()
-        val JPEG  by ReflectionContentTypeProperty()
-        val PNG  by ReflectionContentTypeProperty()
-        val SVG  by XmlReflectionContentTypeProperty()
+        val Any = ContentType("image", "*")
+        val GIF = ContentType("image", "gif")
+        val JPEG = ContentType("image", "jpeg")
+        val PNG = ContentType("image", "png")
+        val SVG = ContentType("image", "svg+xml")
     }
 
     object Message {
-        val Any by AnyReflectionContentTypeProperty()
-        val Http  by ReflectionContentTypeProperty()
+        val Any = ContentType("message", "*")
+        val Http = ContentType("message", "http")
     }
 
     object MultiPart {
-        val Any by AnyReflectionContentTypeProperty()
-        val Mixed  by ReflectionContentTypeProperty()
-        val Alternative  by ReflectionContentTypeProperty()
-        val Related  by ReflectionContentTypeProperty()
-        val Form_Data  by ReflectionContentTypeProperty()
-        val Signed  by ReflectionContentTypeProperty()
-        val Encrypted  by ReflectionContentTypeProperty()
+        val Any = ContentType("multipart", "*")
+        val Mixed = ContentType("multipart", "mixed")
+        val Alternative = ContentType("multipart", "alternative")
+        val Related = ContentType("multipart", "related")
+        val FormData = ContentType("multipart", "form-data")
+        val Signed = ContentType("multipart", "signed")
+        val Encrypted = ContentType("multipart", "encrypted")
     }
 
     object Text {
-        val Any by AnyReflectionContentTypeProperty()
-        val Plain by ReflectionContentTypeProperty()
-        val CSS by ReflectionContentTypeProperty()
-        val Html by ReflectionContentTypeProperty()
-        val JavaScript by ReflectionContentTypeProperty()
-        val VCard by ReflectionContentTypeProperty()
-        val Xml by ReflectionContentTypeProperty()
+        val Any = ContentType("text", "*")
+        val Plain = ContentType("text", "plain")
+        val CSS = ContentType("text", "css")
+        val Html = ContentType("text", "html")
+        val JavaScript = ContentType("text", "javascript")
+        val VCard = ContentType("text", "vcard")
+        val Xml = ContentType("text", "xml")
     }
 
     object Video {
-        val Any by AnyReflectionContentTypeProperty()
-        val MPEG  by ReflectionContentTypeProperty()
-        val MP4  by ReflectionContentTypeProperty()
-        val OGG  by ReflectionContentTypeProperty()
-        val QuickTime  by ReflectionContentTypeProperty()
+        val Any = ContentType("video", "*")
+        val MPEG = ContentType("video", "mpeg")
+        val MP4 = ContentType("video", "mp4")
+        val OGG = ContentType("video", "ogg")
+        val QuickTime = ContentType("video", "quicktime")
     }
 }
 
-
-class BadContentTypeFormat(value: String) : Exception("Bad Content-Type format: $value")
-
-class ReflectionContentTypeProperty(val parameters: List<Pair<String, String>> = listOf()) {
-    public fun get(group: Any, property: PropertyMetadata): ContentType {
-        val contentType = group.javaClass.getSimpleName().toLowerCase()
-        val contentSubtype = property.name.toLowerCase().replace("_", "-")
-        return ContentType(contentType, contentSubtype, parameters)
-    }
-}
-
-class XmlReflectionContentTypeProperty(val parameters: List<Pair<String, String>> = listOf()) {
-    public fun get(group: Any, property: PropertyMetadata): ContentType {
-        val contentType = group.javaClass.getSimpleName().toLowerCase()
-        val contentSubtype = property.name.toLowerCase().replace("_", "-") + "+xml"
-        return ContentType(contentType, contentSubtype, parameters)
-    }
-}
-
-class AnyReflectionContentTypeProperty(val parameters: List<Pair<String, String>> = listOf()) {
-    public fun get(group: Any, property: PropertyMetadata): ContentType {
-        val contentType = group.javaClass.getSimpleName().toLowerCase()
-        val contentSubtype = "*"
-        return ContentType(contentType, contentSubtype, parameters)
-    }
-}
+class BadContentTypeFormatException(value: String) : Exception("Bad Content-Type format: $value")
