@@ -57,6 +57,10 @@ public class ServletApplicationRequest(override val application: Application,
         response!!
     }
 
+    override val close = Interceptable0<Unit> {
+        response?.close?.call()
+    }
+
     inner class Response : ApplicationResponse {
         override val header = Interceptable2<String, String, ApplicationResponse> { name, value ->
             servletResponse.setHeader(name, value)
@@ -73,14 +77,15 @@ public class ServletApplicationRequest(override val application: Application,
         }
 
         override val stream = Interceptable1<OutputStream.() -> Unit, ApplicationRequestStatus> { body ->
-            val stream = servletResponse.outputStream
-            stream.body()
-            stream.close()
+            servletResponse.outputStream.body()
+            ApplicationRequestStatus.Handled
+        }
+
+        override val close = Interceptable0 {
             servletResponse.flushBuffer()
             if (asyncContext != null) {
                 asyncContext?.complete()
             }
-            ApplicationRequestStatus.Handled
         }
     }
 }

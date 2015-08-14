@@ -31,6 +31,7 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
         val request = TestApplicationRequest(application)
         request.setup()
         val status = application.handle(request)
+        request.close()
         return RequestResult(status, request.response)
     }
 }
@@ -74,6 +75,10 @@ class TestApplicationRequest(override val application: Application) : Applicatio
         response = TestApplicationResponse()
         response!!
     }
+
+    override val close = Interceptable0<Unit> {
+        response?.close?.call()
+    }
 }
 
 class TestApplicationResponse : ApplicationResponse {
@@ -100,6 +105,8 @@ class TestApplicationResponse : ApplicationResponse {
         content = stream.toString()
         ApplicationRequestStatus.Handled
     }
+
+    override val close = Interceptable0<Unit> {}
 }
 
 class TestApplication(config: ApplicationConfig) : Application(config)

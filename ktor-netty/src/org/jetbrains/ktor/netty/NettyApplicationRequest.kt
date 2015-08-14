@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.netty
 
+import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import org.jetbrains.ktor.application.*
@@ -42,11 +43,16 @@ class NettyApplicationRequest(override val application: Application,
         val currentResponse = response
         if (currentResponse != null)
             throw IllegalStateException("There should be only one response for a single request. Make sure you haven't called response more than once.")
-        response = Response(context)
+        response = Response()
         response!!
     }
 
-    inner class Response(val context: ChannelHandlerContext) : ApplicationResponse {
+    override val close = Interceptable0<Unit> {
+        response?.close?.call()
+        context.close()
+    }
+
+    inner class Response() : ApplicationResponse {
         val response = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
 
         override val header = Interceptable2<String, String, ApplicationResponse> { name, value ->
@@ -64,14 +70,14 @@ class NettyApplicationRequest(override val application: Application,
         }
 
         override val stream = Interceptable1<OutputStream.() -> Unit, ApplicationRequestStatus> { body ->
-            val stream = ByteArrayOutputStream()
+            val stream = ByteBufOutputStream(response.content())
             stream.body()
-            response.content().writeBytes(stream.toByteArray())
+            ApplicationRequestStatus.Handled
+        }
+
+        override val close = Interceptable0<Unit> {
             context.write(response)
             context.flush()
-            if (async)
-                context.close()
-            ApplicationRequestStatus.Handled
         }
     }
 }
