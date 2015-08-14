@@ -144,6 +144,20 @@ class HandlerTest {
             next(request)
         }
 
+        application.handler.intercept { request, handler ->
+            request.createResponse.intercept { createResponse ->
+                val response = createResponse()
+                response.header.intercept { name, value, header ->
+                    if (name == "Content-Type" && value == "text/plain")
+                        header(name, "text/xml")
+                    else
+                        header(name, value)
+                }
+                response
+            }
+            handler(request)
+        }
+
         on("not asking for a response") {
             application.handler.intercept { request, next -> next(request); ApplicationRequestStatus.Handled }
             handleRequest { method = HttpMethod.Get }.let {
@@ -160,7 +174,12 @@ class HandlerTest {
         }
 
         on("asking for a response") {
-            application.handler.intercept { request, next -> request.respond { ApplicationRequestStatus.Asynchronous } }
+            application.handler.intercept { request, next ->
+                request.respond {
+                    contentType(ContentType.Text.Plain)
+                    ApplicationRequestStatus.Asynchronous
+                }
+            }
             handleRequest { method = HttpMethod.Get }.let {
                 it("should be handled overwritten by prior interception") {
                     assertEquals(it.requestResult, ApplicationRequestStatus.Handled)
@@ -170,6 +189,9 @@ class HandlerTest {
                 }
                 it("should return response") {
                     assertNotNull(it.response)
+                }
+                it("should have modified content type to text/xml") {
+                    assertEquals(it.response!!.headers["Content-Type"], "text/xml")
                 }
                 it("should have injected header") {
                     assertEquals(it.response!!.headers["intercepted"], "header")
