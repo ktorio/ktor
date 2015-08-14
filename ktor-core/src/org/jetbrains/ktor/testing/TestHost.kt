@@ -77,6 +77,10 @@ class TestApplicationRequest(override val application: Application) : Applicatio
 }
 
 class TestApplicationResponse : ApplicationResponse {
+    override val send = Interceptable1<Any, ApplicationRequestStatus> { value ->
+        throw UnsupportedOperationException("No known way to stream value $value")
+    }
+
     val headers = hashMapOf<String, String>()
     override val header = Interceptable2<String, String, ApplicationResponse> { name, value ->
         headers.put(name, value)
@@ -90,11 +94,11 @@ class TestApplicationResponse : ApplicationResponse {
     }
 
     public var content: String? = null
-    override fun stream(body: OutputStream.() -> Unit): ApplicationRequestStatus {
+    override val stream = Interceptable1<OutputStream.() -> Unit, ApplicationRequestStatus> { body ->
         val stream = ByteArrayOutputStream()
         stream.body()
         content = stream.toString()
-        return ApplicationRequestStatus.Handled
+        ApplicationRequestStatus.Handled
     }
 }
 

@@ -68,7 +68,11 @@ public class ServletApplicationRequest(override val application: Application,
             this
         }
 
-        override fun stream(body: OutputStream.() -> Unit): ApplicationRequestStatus {
+        override val send = Interceptable1<Any, ApplicationRequestStatus> { value ->
+            throw UnsupportedOperationException("No known way to stream value $value")
+        }
+
+        override val stream = Interceptable1<OutputStream.() -> Unit, ApplicationRequestStatus> { body ->
             //val stream = servletResponse.outputStream
             val stream = ByteArrayOutputStream()
             stream.body()
@@ -80,7 +84,7 @@ public class ServletApplicationRequest(override val application: Application,
             if (asyncContext != null) {
                 asyncContext?.complete()
             }
-            return ApplicationRequestStatus.Handled
+            ApplicationRequestStatus.Handled
         }
     }
 }

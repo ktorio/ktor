@@ -59,7 +59,11 @@ class NettyApplicationRequest(override val application: Application,
             this
         }
 
-        override fun stream(body: OutputStream.() -> Unit): ApplicationRequestStatus {
+        override val send = Interceptable1<Any, ApplicationRequestStatus> { value ->
+            throw UnsupportedOperationException("No known way to stream value $value")
+        }
+
+        override val stream = Interceptable1<OutputStream.() -> Unit, ApplicationRequestStatus> { body ->
             val stream = ByteArrayOutputStream()
             stream.body()
             response.content().writeBytes(stream.toByteArray())
@@ -67,7 +71,7 @@ class NettyApplicationRequest(override val application: Application,
             context.flush()
             if (async)
                 context.close()
-            return ApplicationRequestStatus.Handled
+            ApplicationRequestStatus.Handled
         }
     }
 }
