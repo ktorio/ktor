@@ -21,7 +21,7 @@ class LocationsApplication(config: ApplicationConfig) : Application(config) {
             }
             get<index>() {
                 contentType(ContentType.Text.Html)
-                contentStream {
+                write {
                     appendHTML().html {
                         head {
                             title { +"Numbers" }
@@ -48,7 +48,7 @@ class LocationsApplication(config: ApplicationConfig) : Application(config) {
 
             get<number>() { number ->
                 contentType(ContentType.Text.Html)
-                contentStream {
+                write {
                     appendHTML().html {
                         head {
                             title { +"Numbers" }

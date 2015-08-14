@@ -5,7 +5,7 @@ public data class HttpRequestLine(val method: HttpMethod,
                                   val version: String
                                  ) {
     override fun toString(): String {
-        return "$version - $method $uri"
+        return "$version - ${method.value} $uri"
     }
 }
 

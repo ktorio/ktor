@@ -11,8 +11,7 @@ class TestableApplication(config: ApplicationConfig) : Application(config) {
                 respond {
                     status(HttpStatusCode.OK)
                     contentType(ContentType.Text.Plain)
-                    content("Test String")
-                    send()
+                    sendText("Test String")
                 }
             }
         }

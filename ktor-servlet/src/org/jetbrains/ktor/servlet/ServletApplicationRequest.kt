@@ -68,26 +68,14 @@ public class ServletApplicationRequest(override val application: Application,
             this
         }
 
-        override fun content(text: String, encoding: String): ApplicationResponse {
-            servletResponse.characterEncoding = encoding
-            val writer = servletResponse.writer
-            writer?.write(text)
-            return this
-        }
+        override fun stream(body: OutputStream.() -> Unit): ApplicationRequestStatus {
+            //val stream = servletResponse.outputStream
+            val stream = ByteArrayOutputStream()
+            stream.body()
+            stream.flush()
 
-        override fun contentStream(streamer: Writer.() -> Unit): ApplicationResponse {
-            val writer = servletResponse.writer
-            writer.streamer()
-            return this
-        }
-
-        override fun content(bytes: ByteArray): ApplicationResponse {
-            val writer = servletResponse.outputStream
-            writer?.write(bytes)
-            return this
-        }
-
-        override fun send(): ApplicationRequestStatus {
+            val content = stream.toString()
+            servletResponse.writer.write(content)
             servletResponse.flushBuffer()
             if (asyncContext != null) {
                 asyncContext?.complete()
@@ -95,5 +83,4 @@ public class ServletApplicationRequest(override val application: Application,
             return ApplicationRequestStatus.Handled
         }
     }
-
 }

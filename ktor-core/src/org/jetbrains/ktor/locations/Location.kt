@@ -25,13 +25,12 @@ inline fun RoutingEntry.location<reified T : Any>(noinline body: RoutingEntry.()
     location(T::class, body)
 }
 
-inline fun RoutingEntry.get<reified T : Any>(noinline body: ApplicationResponse.(T) -> Unit) {
+inline fun RoutingEntry.get<reified T : Any>(noinline body: ApplicationResponse.(T) -> ApplicationRequestStatus) {
     location(T::class) {
         get {
             handle<T> { location ->
                 respond {
                     body(location)
-                    send()
                 }
             }
         }

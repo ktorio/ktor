@@ -12,7 +12,7 @@ class HelloApplication(config: ApplicationConfig) : Application(config) {
             get("/") {
                 respond {
                     contentType(ContentType.Text.Html)
-                    contentStream {
+                    write {
                         appendHTML().html {
                             head {
                                 title { +"Hello World." }
@@ -31,13 +31,11 @@ class HelloApplication(config: ApplicationConfig) : Application(config) {
                             }
                         }
                     }
-                    send()
                 }
             }
             get("/bye") {
                 respond {
-                    content("Goodbye World!")
-                    send()
+                    sendText("Goodbye World!")
                 }
             }
         }

@@ -25,8 +25,7 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
             }
             get("/bye") {
                 respond {
-                    content("Goodbye World!")
-                    send()
+                    sendText("Goodbye World!")
                 }
             }
         }
@@ -44,7 +43,7 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
 
         respond {
             contentType(ContentType.Text.Html)
-            contentStream {
+            write {
                 appendHTML().html {
                     head {
                         title { +"Async World" }
@@ -56,7 +55,6 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
                     }
                 }
             }
-            send()
         }
     }
 }

@@ -90,22 +90,10 @@ class TestApplicationResponse : ApplicationResponse {
     }
 
     public var content: String? = null
-    override fun content(text: String, encoding: String): ApplicationResponse {
-        content = text
-        return this
-    }
-
-    override fun content(bytes: ByteArray): ApplicationResponse {
-        throw UnsupportedOperationException()
-    }
-
-    override fun contentStream(streamer: Writer.() -> Unit): ApplicationResponse {
-        val writer = StringWriter()
-        writer.streamer()
-        return content(writer.toString())
-    }
-
-    override fun send(): ApplicationRequestStatus {
+    override fun stream(body: OutputStream.() -> Unit): ApplicationRequestStatus {
+        val stream = ByteArrayOutputStream()
+        stream.body()
+        content = stream.toString()
         return ApplicationRequestStatus.Handled
     }
 }

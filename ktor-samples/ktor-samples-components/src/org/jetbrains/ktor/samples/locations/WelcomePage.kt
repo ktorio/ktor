@@ -2,6 +2,7 @@ package org.jetbrains.ktor.samples.locations
 
 import kotlinx.html.*
 import kotlinx.html.stream.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.components.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
@@ -12,7 +13,7 @@ component public class WelcomePage(routing: Routing) {
             get("/") {
                 respond {
                     contentType(ContentType.Text.Html)
-                    contentStream {
+                    write {
                         appendHTML().html {
                             head {
                                 title { +"Welcome" }
@@ -28,7 +29,6 @@ component public class WelcomePage(routing: Routing) {
                             }
                         }
                     }
-                    send()
                 }
             }
 

@@ -53,9 +53,8 @@ class HandlerTest {
         val testHost = createTestHost()
         testHost.application.handler.intercept { request, next ->
             request.respond {
-                send()
+                ApplicationRequestStatus.Handled
             }
-            ApplicationRequestStatus.Handled
         }
         on("making a request") {
             val request = testHost.handleRequest { }
@@ -72,9 +71,8 @@ class HandlerTest {
     Test fun `application with handler that returns two responses`() {
         val testHost = createTestHost()
         testHost.application.handler.intercept { request, next ->
-            request.respond { send() }
-            request.respond { send() }
-            ApplicationRequestStatus.Handled
+            request.respond { ApplicationRequestStatus.Handled }
+            request.respond { ApplicationRequestStatus.Handled }
         }
         on("making a request") {
             val request = fails {
@@ -92,9 +90,8 @@ class HandlerTest {
                 request.respond {
                     status(HttpStatusCode.OK)
                     assertEquals(request.body, "Body")
-                    send()
+                    ApplicationRequestStatus.Handled
                 }
-                ApplicationRequestStatus.Handled
             } else
                 ApplicationRequestStatus.Unhandled
         }
@@ -110,9 +107,8 @@ class HandlerTest {
             if (request.httpMethod == HttpMethod.Post) {
                 request.respond {
                     status(HttpStatusCode.OK)
-                    send()
+                    ApplicationRequestStatus.Handled
                 }
-                ApplicationRequestStatus.Handled
             } else
                 ApplicationRequestStatus.Unhandled
         }

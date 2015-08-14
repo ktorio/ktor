@@ -2,6 +2,7 @@ package org.jetbrains.ktor.samples.locations
 
 import kotlinx.html.*
 import kotlinx.html.stream.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.components.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
@@ -12,7 +13,7 @@ component public class InformationService(routing: Routing, providers: Iterable<
             get("/information.html") {
                 respond {
                     contentType(org.jetbrains.ktor.http.ContentType.Text.Html)
-                    contentStream {
+                    write {
                         appendHTML().html {
                             head {
                                 title { +"Information" }
@@ -32,7 +33,6 @@ component public class InformationService(routing: Routing, providers: Iterable<
                             }
                         }
                     }
-                    send()
                 }
             }
 

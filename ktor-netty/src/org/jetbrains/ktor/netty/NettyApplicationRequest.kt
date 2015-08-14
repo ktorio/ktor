@@ -59,22 +59,10 @@ class NettyApplicationRequest(override val application: Application,
             this
         }
 
-        override fun content(text: String, encoding: String): ApplicationResponse {
-            return content(text.toByteArray(encoding))
-        }
-
-        override fun content(bytes: ByteArray): ApplicationResponse {
-            response.content().writeBytes(bytes)
-            return this
-        }
-
-        override fun contentStream(streamer: Writer.() -> Unit): ApplicationResponse {
-            val writer = StringWriter()
-            writer.streamer()
-            return content(writer.toString())
-        }
-
-        override fun send(): ApplicationRequestStatus {
+        override fun stream(body: OutputStream.() -> Unit): ApplicationRequestStatus {
+            val stream = ByteArrayOutputStream()
+            stream.body()
+            response.content().writeBytes(stream.toByteArray())
             context.write(response)
             context.flush()
             if (async)

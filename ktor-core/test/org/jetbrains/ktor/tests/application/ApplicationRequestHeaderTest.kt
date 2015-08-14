@@ -25,7 +25,7 @@ class ApplicationRequestHeaderTest {
                         }
                         respond {
                             status(HttpStatusCode.OK)
-                            send()
+                            ApplicationRequestStatus.Handled
                         }
                     }
                 }
@@ -73,7 +73,7 @@ class ApplicationRequestHeaderTest {
                         }
                         respond {
                             status(HttpStatusCode.OK)
-                            send()
+                            ApplicationRequestStatus.Handled
                         }
                     }
                 }
@@ -115,7 +115,7 @@ class ApplicationRequestHeaderTest {
                         }
                         respond {
                             status(HttpStatusCode.OK)
-                            send()
+                            ApplicationRequestStatus.Handled
                         }
                     }
                 }
