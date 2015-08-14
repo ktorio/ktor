@@ -11,7 +11,7 @@ data class Item(val key: String, val value: String)
 
 class JsonApplication(config: ApplicationConfig) : Application(config) {
     /*
-         > curl --compress d--header "Accept: application/json" http://localhost:8080/v1
+         > curl -v --compress --header "Accept: application/json" http://localhost:8080/v1
          {"name":"root","items":[{"key":"A","value":"Apache"},{"key":"B","value":"Bing"}]}
      */
     init {
