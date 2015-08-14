@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.routing
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.interception.*
 import java.util.*
 
 data class RoutingNode(val selector: RoutingSelector, val entry: RoutingEntry)

@@ -32,7 +32,7 @@ class RoutingProcessingTest {
                 assertNotNull(result.response)
             }
             it("should have a response with OK status") {
-                assertEquals(HttpStatusCode.OK.value, result.response!!.status)
+                assertEquals(HttpStatusCode.OK.value, result.response!!.code)
             }
         }
 

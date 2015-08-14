@@ -5,6 +5,7 @@ import io.netty.handler.codec.http.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpMethod
+import org.jetbrains.ktor.interception.*
 import java.io.*
 import java.nio.charset.*
 
@@ -37,25 +38,25 @@ class NettyApplicationRequest(override val application: Application,
     }
 
     var response: Response? = null
-    override fun respond(handle: ApplicationResponse.() -> ApplicationRequestStatus): ApplicationRequestStatus {
+    override val createResponse = Interceptable0<ApplicationResponse> {
         val currentResponse = response
         if (currentResponse != null)
             throw IllegalStateException("There should be only one response for a single request. Make sure you haven't called response more than once.")
         response = Response(context)
-        return response!!.handle()
+        response!!
     }
 
     inner class Response(val context: ChannelHandlerContext) : ApplicationResponse {
         val response = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
 
-        override fun header(name: String, value: String): ApplicationResponse {
+        override val header = Interceptable2<String, String, ApplicationResponse> { name, value ->
             response.headers().set(name, value)
-            return this
+            this
         }
 
-        override fun status(code: Int): ApplicationResponse {
+        override val status = Interceptable1<Int, ApplicationResponse> { code ->
             response.setStatus(HttpResponseStatus(code, "$code"))
-            return this
+            this
         }
 
         override fun content(text: String, encoding: String): ApplicationResponse {

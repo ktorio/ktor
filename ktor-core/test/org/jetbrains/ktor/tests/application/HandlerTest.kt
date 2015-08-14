@@ -23,7 +23,7 @@ class HandlerTest {
 
     Test fun `application with transparent handler`() {
         val testHost = createTestHost()
-        testHost.application.intercept { request, next -> next(request) }
+        testHost.application.handler.intercept { request, next -> next(request) }
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should not be handled") {
@@ -37,7 +37,7 @@ class HandlerTest {
 
     Test fun `application with handler returning true`() {
         val testHost = createTestHost()
-        testHost.application.intercept { request, next -> ApplicationRequestStatus.Handled }
+        testHost.application.handler.intercept { request, next -> ApplicationRequestStatus.Handled }
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should be handled") {
@@ -51,7 +51,7 @@ class HandlerTest {
 
     Test fun `application with handler that returns a valid response`() {
         val testHost = createTestHost()
-        testHost.application.intercept { request, next ->
+        testHost.application.handler.intercept { request, next ->
             request.respond {
                 send()
             }
@@ -71,7 +71,7 @@ class HandlerTest {
 
     Test fun `application with handler that returns two responses`() {
         val testHost = createTestHost()
-        testHost.application.intercept { request, next ->
+        testHost.application.handler.intercept { request, next ->
             request.respond { send() }
             request.respond { send() }
             ApplicationRequestStatus.Handled
@@ -87,7 +87,7 @@ class HandlerTest {
     }
 
     Test fun `application with handler that checks body on POST method`() = withTestApplication {
-        application.intercept { request, next ->
+        application.handler.intercept { request, next ->
             if (request.httpMethod == HttpMethod.Post) {
                 request.respond {
                     status(HttpStatusCode.OK)
@@ -105,9 +105,8 @@ class HandlerTest {
         assertEquals(ApplicationRequestStatus.Handled, result.requestResult)
     }
 
-    Test fun `application with handler that returns true on POST method`() {
-        val testHost = createTestHost()
-        testHost.application.intercept { request, next ->
+    Test fun `application with handler that returns true on POST method`() = withTestApplication {
+        application.handler.intercept { request, next ->
             if (request.httpMethod == HttpMethod.Post) {
                 request.respond {
                     status(HttpStatusCode.OK)
@@ -118,7 +117,7 @@ class HandlerTest {
                 ApplicationRequestStatus.Unhandled
         }
         on("making a GET request") {
-            val request = testHost.handleRequest { method = HttpMethod.Get }
+            val request = handleRequest { method = HttpMethod.Get }
             it("should not be handled") {
                 assertEquals(ApplicationRequestStatus.Unhandled, request.requestResult)
             }
@@ -127,7 +126,7 @@ class HandlerTest {
             }
         }
         on("making a POST request") {
-            val request = testHost.handleRequest { method = HttpMethod.Post }
+            val request = handleRequest { method = HttpMethod.Post }
             it("should be handled") {
                 assertEquals(ApplicationRequestStatus.Handled, request.requestResult)
             }
@@ -136,6 +135,53 @@ class HandlerTest {
             }
         }
     }
+
+    Test fun `application with handler that intercepts creation of response`() = withTestApplication {
+        var interceptedResponse = false
+        application.handler.intercept { request, next ->
+            request.createResponse.intercept { next ->
+                val response = next()
+                interceptedResponse = true
+                response.header("intercepted", "header")
+                response
+            }
+            next(request)
+        }
+
+        on("not asking for a response") {
+            application.handler.intercept { request, next -> next(request); ApplicationRequestStatus.Handled }
+            handleRequest { method = HttpMethod.Get }.let {
+                it("should be handled") {
+                    assertEquals(it.requestResult, ApplicationRequestStatus.Handled)
+                }
+                it("response interceptor shouldn't be called") {
+                    assertFalse(interceptedResponse)
+                }
+                it("should not return response") {
+                    assertNull(it.response)
+                }
+            }
+        }
+
+        on("asking for a response") {
+            application.handler.intercept { request, next -> request.respond { ApplicationRequestStatus.Asynchronous } }
+            handleRequest { method = HttpMethod.Get }.let {
+                it("should be handled overwritten by prior interception") {
+                    assertEquals(it.requestResult, ApplicationRequestStatus.Handled)
+                }
+                it("response interceptor should be called") {
+                    assertTrue(interceptedResponse)
+                }
+                it("should return response") {
+                    assertNotNull(it.response)
+                }
+                it("should have injected header") {
+                    assertEquals(it.response!!.headers["intercepted"], "header")
+                }
+            }
+        }
+    }
+
     /*
     TODO: This is fundamentally wrong since you shouldn't be setting ApplicationRequest "contentType" or "accept" since these are values passed in.
         Test fun `application with handler that returns true on text/plain content type`() {

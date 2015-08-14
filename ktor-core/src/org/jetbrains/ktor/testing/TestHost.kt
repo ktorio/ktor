@@ -3,6 +3,7 @@ package org.jetbrains.ktor.testing
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.interception.*
 import java.io.*
 import kotlin.reflect.*
 
@@ -67,25 +68,25 @@ class TestApplicationRequest(override val application: Application) : Applicatio
     override val headers = hashMapOf<String, String>()
 
     var response: TestApplicationResponse? = null
-    override fun respond(handle: ApplicationResponse.() -> ApplicationRequestStatus): ApplicationRequestStatus {
+    override val createResponse = Interceptable0<ApplicationResponse> {
         if (response != null)
             throw IllegalStateException("There should be only one response for a single request. Make sure you haven't called response more than once.")
         response = TestApplicationResponse()
-        return response!!.handle()
+        response!!
     }
 }
 
 class TestApplicationResponse : ApplicationResponse {
     val headers = hashMapOf<String, String>()
-    override fun header(name: String, value: String): ApplicationResponse {
+    override val header = Interceptable2<String, String, ApplicationResponse> { name, value ->
         headers.put(name, value)
-        return this
+        this
     }
 
-    public var status: Int = 501
-    override fun status(code: Int): ApplicationResponse {
-        status = code
-        return this
+    public var code: Int = 501
+    override val status = Interceptable1<Int, ApplicationResponse> { code ->
+        this.code = code
+        this
     }
 
     public var content: String? = null

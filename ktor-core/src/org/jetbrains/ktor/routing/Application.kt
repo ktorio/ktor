@@ -31,7 +31,7 @@ public fun Application.routing(body: RoutingEntry.() -> Unit) {
 }
 
 fun Application.interceptRoute(routing: RoutingEntry) {
-    intercept { request, proceed ->
+    handler.intercept { request, next ->
         val resolveContext = RoutingResolveContext(request.requestLine, request.parameters, request.headers)
         val resolveResult = routing.resolve(resolveContext)
         when {
@@ -45,7 +45,7 @@ fun Application.interceptRoute(routing: RoutingEntry) {
                 chain.addAll(handlers)
                 processChain(chain, RoutingApplicationRequest(request, resolveResult))
             }
-            else -> proceed(request)
+            else -> next(request)
         }
     }
 }

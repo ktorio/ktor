@@ -262,7 +262,7 @@ class LocationsTest {
                 assertNotNull(result.response)
             }
             it("should have a response with OK status") {
-                assertEquals(HttpStatusCode.OK.value, result.response!!.status)
+                assertEquals(HttpStatusCode.OK.value, result.response!!.code)
             }
             if (content != null) {
                 it("should have a response with content '$content'") {

@@ -35,7 +35,7 @@ class ApplicationRequestHeaderTest {
                 uri = "/foo"
                 method = HttpMethod.Get
                 headers.put("Authorization", "")
-            }.response?.status
+            }.response?.code
 
             it("should handle request") {
                 assertEquals(HttpStatusCode.OK.value, status)
@@ -83,7 +83,7 @@ class ApplicationRequestHeaderTest {
                 uri = "/foo?key1=value1&key2=value2"
                 method = HttpMethod.Get
                 headers.put("Host", "host.name.com:8888")
-            }.response?.status
+            }.response?.code
 
             it("should handle request") {
                 assertEquals(HttpStatusCode.OK.value, status)
@@ -124,7 +124,7 @@ class ApplicationRequestHeaderTest {
             val status = handleRequest {
                 uri = "/?key1=value1&key2=value2"
                 method = HttpMethod.Get
-            }.response?.status
+            }.response?.code
 
             it("should handle request") {
                 assertEquals(HttpStatusCode.OK.value, status)

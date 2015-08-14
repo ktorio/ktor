@@ -1,27 +1,17 @@
 package org.jetbrains.ktor.application
 
-import java.util.*
+import org.jetbrains.ktor.interception.*
 
 /** Current executing application
  */
 public open class Application(val config: ApplicationConfig) {
 
-    private val interceptors = ArrayList<(ApplicationRequest, (ApplicationRequest) -> ApplicationRequestStatus) -> ApplicationRequestStatus>()
-    public fun intercept(handler: (request: ApplicationRequest, proceed: (ApplicationRequest) -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
-        interceptors.add(handler)
+    public val handler: Interceptable1<ApplicationRequest, ApplicationRequestStatus> = Interceptable1 {
+        ApplicationRequestStatus.Unhandled
     }
 
     public fun handle(request: ApplicationRequest): ApplicationRequestStatus {
-        fun handle(index: Int, request: ApplicationRequest): ApplicationRequestStatus = when (index) {
-            in interceptors.indices -> {
-                val interceptor = interceptors[index]
-                val proceed: (ApplicationRequest) -> ApplicationRequestStatus = { augmentedRequest -> handle(index + 1, augmentedRequest) }
-                interceptor(request, proceed)
-            }
-            else -> ApplicationRequestStatus.Unhandled
-        }
-
-        val result = handle(0, request)
+        val result = handler.call(request)
         config.log.info("$result: ${request.requestLine}")
         return result
     }
