@@ -73,13 +73,9 @@ public class ServletApplicationRequest(override val application: Application,
         }
 
         override val stream = Interceptable1<OutputStream.() -> Unit, ApplicationRequestStatus> { body ->
-            //val stream = servletResponse.outputStream
-            val stream = ByteArrayOutputStream()
+            val stream = servletResponse.outputStream
             stream.body()
-            stream.flush()
-
-            val content = stream.toString()
-            servletResponse.writer.write(content)
+            stream.close()
             servletResponse.flushBuffer()
             if (asyncContext != null) {
                 asyncContext?.complete()
