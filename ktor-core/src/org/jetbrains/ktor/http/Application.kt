@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
+import java.time.temporal.*
 
 val ApplicationRequest.uri: String get() = requestLine.uri
 val ApplicationRequest.httpMethod: HttpMethod get() = requestLine.method
@@ -12,6 +13,7 @@ fun ApplicationResponse.status(code: HttpStatusCode) = status(code.value)
 fun ApplicationResponse.contentType(value: ContentType) = contentType(value.toString())
 fun ApplicationResponse.contentType(value: String) = header("Content-Type", value)
 fun ApplicationResponse.header(name: String, value: Int) = header(name, value.toString())
+fun ApplicationResponse.header(name: String, date: Temporal) = header(name, date.toHttpDateString())
 
 fun ApplicationResponse.sendRedirect(url: String, permanent: Boolean = false): ApplicationRequestStatus {
     status(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
