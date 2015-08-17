@@ -37,17 +37,39 @@ fun Application.interceptRoute(routing: RoutingEntry) {
         when {
             resolveResult.succeeded -> {
                 val chain = arrayListOf<RoutingInterceptor>()
-                for (entry in resolveResult.entries) {
-                    val interceptors = entry.interceptors.filter { !it.leafOnly }
-                    chain.addAll(interceptors)
+                var current: RoutingEntry? = resolveResult.entry
+                while (current != null) {
+                    chain.addAll(0, current.interceptors)
+                    current = current.parent
                 }
-                val handlers = resolveResult.entry.interceptors.filter { it.leafOnly }
-                chain.addAll(handlers)
-                processChain(chain, RoutingApplicationRequestContext(this, resolveResult))
+
+                val handlers = resolveResult.entry.handlers
+                val context = RoutingApplicationRequestContext(this, resolveResult)
+                processChain(chain, context, handlers)
             }
             else -> next()
         }
     }
+}
+
+private fun processChain(interceptors: List<RoutingInterceptor>, request: RoutingApplicationRequestContext, handlers: ArrayList<RoutingApplicationRequestContext.() -> ApplicationRequestStatus>): ApplicationRequestStatus {
+    fun handle(index: Int, context: RoutingApplicationRequestContext): ApplicationRequestStatus {
+        when (index) {
+            in interceptors.indices -> {
+                return interceptors[index].function(context) { request -> handle(index + 1, request) }
+            }
+            else -> {
+                for (handler in handlers) {
+                    val handlerResult = context.handler()
+                    if (handlerResult != ApplicationRequestStatus.Unhandled)
+                        return handlerResult
+                }
+                return ApplicationRequestStatus.Unhandled
+            }
+        }
+    }
+
+    return handle(0, request)
 }
 
 fun RoutingEntry.contentType(contentType: ContentType, build: RoutingEntry.() -> Unit) {

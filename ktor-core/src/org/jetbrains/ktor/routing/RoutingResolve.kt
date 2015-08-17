@@ -14,8 +14,7 @@ class RoutingResolveContext(val verb: HttpRequestLine,
 
 data class RoutingResolveResult(val succeeded: Boolean,
                                 val entry: RoutingEntry,
-                                val values: MutableMap<String, MutableList<String>> = hashMapOf(),
-                                val entries: MutableList<RoutingEntry> = arrayListOf())
+                                val values: MutableMap<String, MutableList<String>> = hashMapOf())
 
 
 
