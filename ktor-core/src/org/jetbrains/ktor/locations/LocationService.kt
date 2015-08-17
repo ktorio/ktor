@@ -80,7 +80,7 @@ open public class LocationService(val conversionService: ConversionService) {
             }
 
             val pathParameterNames = RoutingPath.parse(path).parts.filter {
-                it.kind == RoutingPathPartKind.Parameter || it.kind == RoutingPathPartKind.TailCard
+                it.kind == RoutingPathSegmentKind.Parameter || it.kind == RoutingPathSegmentKind.TailCard
             }.map { it.value }
             val declaredParameterNames = declaredProperties.map { it.name }.toSet()
             val invalidParameters = pathParameterNames.filter { it !in declaredParameterNames }
@@ -111,7 +111,7 @@ open public class LocationService(val conversionService: ConversionService) {
 
         val substituteParts = RoutingPath.parse(info.path).parts.flatMap { it ->
             when (it.kind) {
-                RoutingPathPartKind.Constant -> listOf(it.value)
+                RoutingPathSegmentKind.Constant -> listOf(it.value)
                 else -> propertyValue(location, it.value)
             }
         }

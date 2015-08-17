@@ -23,15 +23,15 @@ open class RoutingEntry(val parent: RoutingEntry?) {
         return existingEntry
     }
 
-    protected fun resolve(request: RoutingResolveContext, pathIndex: Int, current: RoutingResolveResult): RoutingResolveResult {
+    protected fun resolve(request: RoutingResolveContext, segmentIndex: Int, current: RoutingResolveResult): RoutingResolveResult {
         var failEntry: RoutingEntry? = null
         for ((selector, entry) in children) {
-            val result = selector.evaluate(request, pathIndex)
+            val result = selector.evaluate(request, segmentIndex)
             if (result.succeeded) {
                 for ((key, values) in result.values) {
                     current.values.getOrPut(key, { arrayListOf() }).addAll(values)
                 }
-                val subtreeResult = entry.resolve(request, pathIndex + result.incrementIndex, current)
+                val subtreeResult = entry.resolve(request, segmentIndex + result.segmentIncrement, current)
                 if (subtreeResult.succeeded) {
                     subtreeResult.entries.add(0, this)
                     return subtreeResult
@@ -41,7 +41,7 @@ open class RoutingEntry(val parent: RoutingEntry?) {
             }
         }
 
-        when (pathIndex) {
+        when (segmentIndex) {
             request.path.parts.size() -> return RoutingResolveResult(true, this, current.values, arrayListOf(this))
             else -> return RoutingResolveResult(false, failEntry ?: this)
         }

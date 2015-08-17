@@ -1,34 +1,34 @@
 package org.jetbrains.ktor.routing
 
 class RoutingPath {
-    public val parts: List<RoutingPathPart>
+    public val parts: List<RoutingPathSegment>
 
     companion object {
         val root: RoutingPath = RoutingPath(listOf())
         fun parse(path: String): RoutingPath {
             if (path == "/") return root
             val splitted = path.split("/").filter { it.length() > 0 }
-            val parts = splitted.map {
+            val segments = splitted.map {
                 when {
-                    it == "*" -> RoutingPathPart("", RoutingPathPartKind.Constant, true)
+                    it == "*" -> RoutingPathSegment("", RoutingPathSegmentKind.Constant, true)
                     it.startsWith("{") && it.endsWith("}") -> {
                         val signature = it.removeSurrounding("{", "}")
                         when {
-                            signature.endsWith("?") -> RoutingPathPart(signature.dropLast(1), RoutingPathPartKind.Parameter, true)
-                            signature.endsWith("...") -> RoutingPathPart(signature.dropLast(3), RoutingPathPartKind.TailCard, true)
-                            else -> RoutingPathPart(signature, RoutingPathPartKind.Parameter, false)
+                            signature.endsWith("?") -> RoutingPathSegment(signature.dropLast(1), RoutingPathSegmentKind.Parameter, true)
+                            signature.endsWith("...") -> RoutingPathSegment(signature.dropLast(3), RoutingPathSegmentKind.TailCard, true)
+                            else -> RoutingPathSegment(signature, RoutingPathSegmentKind.Parameter, false)
                         }
                     }
-                    else -> RoutingPathPart(it, RoutingPathPartKind.Constant, false)
+                    else -> RoutingPathSegment(it, RoutingPathSegmentKind.Constant, false)
                 }
             }
 
-            return RoutingPath(parts)
+            return RoutingPath(segments)
         }
     }
 
-    private constructor(parts: List<RoutingPathPart>) {
-        this.parts = parts
+    private constructor(segments: List<RoutingPathSegment>) {
+        this.parts = segments
     }
 
     public fun combine(path: RoutingPath): RoutingPath {
@@ -40,9 +40,9 @@ class RoutingPath {
     }
 }
 
-data class RoutingPathPart(val value: String, val kind: RoutingPathPartKind, val optional: Boolean)
+data class RoutingPathSegment(val value: String, val kind: RoutingPathSegmentKind, val optional: Boolean)
 
-enum class RoutingPathPartKind {
+enum class RoutingPathSegmentKind {
     Constant, Parameter, TailCard
 }
 

@@ -8,12 +8,12 @@ public fun createRoutingEntry(routingEntry: RoutingEntry, path: String): Routing
     var current: RoutingEntry = routingEntry;
     for (part in parts) {
         val selector = when (part.kind) {
-            RoutingPathPartKind.TailCard -> UriPartTailcardRoutingSelector(part.value)
-            RoutingPathPartKind.Parameter -> when {
+            RoutingPathSegmentKind.TailCard -> UriPartTailcardRoutingSelector(part.value)
+            RoutingPathSegmentKind.Parameter -> when {
                 part.optional -> UriPartOptionalParameterRoutingSelector(part.value)
                 else -> UriPartParameterRoutingSelector(part.value)
             }
-            RoutingPathPartKind.Constant ->
+            RoutingPathSegmentKind.Constant ->
                 when {
                     part.optional -> UriPartWildcardRoutingSelector()
                     else -> UriPartConstantRoutingSelector(part.value)
