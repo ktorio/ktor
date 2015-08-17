@@ -56,7 +56,7 @@ public fun ClassLoader.tryLoadClass(fqName: String): Class<*>? {
     }
 }
 
-public fun urlDecode(encoded: String): String {
+private fun urlDecode(encoded: String): String {
     try {
         return URLDecoder.decode(encoded, "UTF-8")
     } catch(e: Exception) {

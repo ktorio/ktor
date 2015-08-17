@@ -81,7 +81,5 @@ internal class ComponentRegistry {
         registrationMap = interfaceMap
     }
 
-    public fun tryGetEntry(request: Type): ComponentRegisterEntry? {
-        return registrationMap.getOrElse(request, { null })
-    }
+    public fun tryGetEntry(request: Type): ComponentRegisterEntry? = registrationMap[request]
 }

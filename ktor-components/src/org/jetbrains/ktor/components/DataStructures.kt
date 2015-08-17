@@ -34,7 +34,7 @@ public fun topologicalSort<T>(items: Iterable<T>, dependencies: (T) -> Iterable<
 public class CycleInTopoSortException : Exception()
 
 class Multimap<K, V> : Iterable<Map.Entry<K, V>> {
-    val map = LinkedHashMap<K, MutableSet<V>>()
+    private val map = LinkedHashMap<K, MutableSet<V>>()
 
     class Entry<K, V>(key: K, value: V) : Map.Entry<K, V> {
         private val _key = key
