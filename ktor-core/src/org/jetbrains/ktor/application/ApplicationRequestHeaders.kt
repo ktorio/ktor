@@ -32,4 +32,4 @@ fun ApplicationRequest.isChunked(): Boolean = header("Transfer-Encoding")?.compa
 fun ApplicationRequest.userAgent(): String? = header("User-Agent")
 fun ApplicationRequest.cacheControl(): String? = header("Cache-Control")
 fun ApplicationRequest.host(): String? = header("Host")?.substringBefore(':')
-fun ApplicationRequest.port(): Int = header("Host")?.substringAfter(':')?.toInt() ?: 80
+fun ApplicationRequest.port(): Int = header("Host")?.substringAfter(':', "80")?.toInt() ?: 80
