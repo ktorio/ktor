@@ -49,12 +49,12 @@ public class StorageComponentContainer(id: String) : ComponentContainer, Closeab
                         if (upperBounds.size() == 1) {
                             val iterableType = upperBounds[0]
                             return IterableDescriptor(componentStorage.resolveMultiple(iterableType, context))
-
                         }
                     }
                 }
             }
         }
+
         return null
     }
 

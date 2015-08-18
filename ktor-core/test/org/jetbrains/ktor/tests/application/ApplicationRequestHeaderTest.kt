@@ -77,6 +77,18 @@ class ApplicationRequestHeaderTest {
                         }
                     }
                 }
+                get("/default-port") {
+                    handle {
+                        it("should map port to 80") {
+                            assertEquals(80, port())
+                        }
+
+                        respond {
+                            status(HttpStatusCode.OK)
+                            ApplicationRequestStatus.Handled
+                        }
+                    }
+                }
             }
 
             val status = handleRequest {
@@ -87,6 +99,16 @@ class ApplicationRequestHeaderTest {
 
             it("should handle request") {
                 assertEquals(HttpStatusCode.OK.value, status)
+            }
+
+            val status2 = handleRequest {
+                uri = "/default-port"
+                method = HttpMethod.Get
+                headers.put("Host", "host.name.com")
+            }.response?.code
+
+            it("should handle second request") {
+                assertEquals(HttpStatusCode.OK.value, status2)
             }
         }
     }

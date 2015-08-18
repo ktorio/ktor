@@ -60,8 +60,7 @@ public class ComponentStorage(val myId: String) : ValueResolver {
             throw ContainerConsistencyException("Cannot register descriptors in $state state")
         }
 
-        for (descriptor in items)
-            descriptors.add(descriptor);
+        descriptors.addAll(items)
 
         if (state == ComponentStorageState.Initialized)
             composeDescriptors(context, items);
@@ -78,7 +77,7 @@ public class ComponentStorage(val myId: String) : ValueResolver {
     private fun composeDescriptors(context: ComponentResolveContext, descriptors: Collection<ComponentDescriptor>) {
         if (descriptors.isEmpty()) return
 
-        registry.addAll(descriptors);
+        registry.addAll(descriptors)
 
         // inspect dependencies and register implicit
         val implicitComponents = LinkedHashSet<ComponentDescriptor>()
@@ -115,15 +114,8 @@ public class ComponentStorage(val myId: String) : ValueResolver {
 
     private fun injectMethods(instance: Any, context: ValueResolveContext) {
         val type = instance.javaClass
-        val injectors = LinkedHashSet<Method>()
-        for (member in type.methods) {
-            val annotations = member.declaredAnnotations
-            for (annotation in annotations) {
-                val annotationType = annotation.annotationType()
-                if (annotationType.name.substringAfterLast('.') == "Inject") {
-                    injectors.add(member)
-                }
-            }
+        val injectors = type.methods.filter { member ->
+            member.declaredAnnotations.any { it.annotationType().simpleName == "Inject" }
         }
 
         injectors.forEach { injector ->
