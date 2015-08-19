@@ -25,13 +25,11 @@ inline fun RoutingEntry.location<reified T : Any>(noinline body: RoutingEntry.()
     location(T::class, body)
 }
 
-inline fun RoutingEntry.get<reified T : Any>(noinline body: ApplicationResponse.(T) -> ApplicationRequestStatus) {
+inline fun RoutingEntry.get<reified T : Any>(noinline body: ApplicationRequestContext.(T) -> ApplicationRequestStatus) {
     location(T::class) {
         get {
             handle<T> { location ->
-                respond {
                     body(location)
-                }
             }
         }
     }
@@ -43,11 +41,11 @@ fun RoutingEntry.location<T>(data: KClass<T>, body: RoutingEntry.() -> Unit) {
     entry.body()
 }
 
-inline fun <reified T> RoutingEntry.handle(noinline body: RoutingApplicationRequest.(T) -> ApplicationRequestStatus) {
+inline fun <reified T> RoutingEntry.handle(noinline body: RoutingApplicationRequestContext.(T) -> ApplicationRequestStatus) {
     return handle(T::class, body)
 }
 
-fun <T> RoutingEntry.handle(dataClass: KClass<T>, body: RoutingApplicationRequest.(T) -> ApplicationRequestStatus) {
+fun <T> RoutingEntry.handle(dataClass: KClass<T>, body: RoutingApplicationRequestContext.(T) -> ApplicationRequestStatus) {
     addInterceptor(true) {
         val locationService = getService(locationServiceKey)
         val location = locationService.resolve<T>(dataClass, this)
@@ -55,7 +53,7 @@ fun <T> RoutingEntry.handle(dataClass: KClass<T>, body: RoutingApplicationReques
     }
 }
 
-fun <T> RoutingApplicationRequest.sendRedirect(location: T): ApplicationRequestStatus {
+fun <T> RoutingApplicationRequestContext.sendRedirect(location: T): ApplicationRequestStatus {
     val locationService = resolveResult.entry.getService(locationServiceKey)
     return sendRedirect(locationService.href(location))
 }

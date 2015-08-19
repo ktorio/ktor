@@ -38,7 +38,7 @@ open class ServletApplicationHost() : HttpServlet() {
         request.setCharacterEncoding("UTF-8")
 
         try {
-            val applicationRequest = ServletApplicationRequest(application, request, response)
+            val applicationRequest = ServletApplicationRequestContext(application, request, response)
             val requestResult = application.handle(applicationRequest)
             when (requestResult) {
                 ApplicationRequestStatus.Handled -> {

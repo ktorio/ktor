@@ -11,9 +11,9 @@ component public class AboutPage(routing: Routing) {
     init {
         with(routing) {
             get("/about.html") {
-                respond {
-                    contentType(ContentType.Text.Html)
-                    write {
+                handle {
+                    response.contentType(ContentType.Text.Html)
+                    response.write {
                         appendHTML().html {
                             head {
                                 title { +"About" }

@@ -10,7 +10,6 @@ public interface ApplicationResponse {
 
     public val send: Interceptable1<Any, ApplicationRequestStatus>
     public val stream: Interceptable1<OutputStream.() -> Unit, ApplicationRequestStatus>
-    public val close: Interceptable0<Unit>
 }
 
 public fun ApplicationResponse.stream(body: OutputStream.() -> Unit): ApplicationRequestStatus {

@@ -21,7 +21,7 @@ class JettyApplicationHost(val config: ApplicationConfig) {
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             response.characterEncoding = "UTF-8"
             try {
-                val appRequest = ServletApplicationRequest(application, request, response)
+                val appRequest = ServletApplicationRequestContext(application, request, response)
                 val requestResult = application.handle(appRequest)
                 when (requestResult) {
                     ApplicationRequestStatus.Handled -> baseRequest.isHandled = true

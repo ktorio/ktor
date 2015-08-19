@@ -6,7 +6,7 @@ import java.util.*
 
 data class RoutingNode(val selector: RoutingSelector, val entry: RoutingEntry)
 
-data class RoutingInterceptor(val function: (RoutingApplicationRequest, (RoutingApplicationRequest) -> ApplicationRequestStatus) -> ApplicationRequestStatus,
+data class RoutingInterceptor(val function: (RoutingApplicationRequestContext, (RoutingApplicationRequestContext) -> ApplicationRequestStatus) -> ApplicationRequestStatus,
                               val leafOnly: Boolean = true)
 
 open class RoutingEntry(val parent: RoutingEntry?) {
@@ -51,20 +51,20 @@ open class RoutingEntry(val parent: RoutingEntry?) {
         return resolve(request, 0, RoutingResolveResult(false, this, HashMap<String, MutableList<String>>()))
     }
 
-    public fun intercept(leafOnly: Boolean, handler: (RoutingApplicationRequest, (RoutingApplicationRequest) -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
+    public fun intercept(leafOnly: Boolean, handler: (RoutingApplicationRequestContext, (RoutingApplicationRequestContext) -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
         interceptors.add(RoutingInterceptor(handler, leafOnly))
     }
 
     open fun createChild(): RoutingEntry = RoutingEntry(this)
 }
 
-public fun processChain(interceptors: List<RoutingInterceptor>, request: RoutingApplicationRequest): ApplicationRequestStatus {
-    fun handle(index: Int, request: RoutingApplicationRequest): ApplicationRequestStatus = when (index) {
-        in interceptors.indices -> interceptors[index].function(request) { request -> handle(index + 1, request) }
+public fun processChain(interceptors: List<RoutingInterceptor>, context: RoutingApplicationRequestContext): ApplicationRequestStatus {
+    fun handle(index: Int, context: RoutingApplicationRequestContext): ApplicationRequestStatus = when (index) {
+        in interceptors.indices -> interceptors[index].function(context) { context -> handle(index + 1, context) }
         else -> ApplicationRequestStatus.Unhandled
     }
 
-    return handle(0, request)
+    return handle(0, context)
 }
 
 class Routing : RoutingEntry(null) {

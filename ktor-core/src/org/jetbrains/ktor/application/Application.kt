@@ -6,13 +6,13 @@ import org.jetbrains.ktor.interception.*
  */
 public open class Application(val config: ApplicationConfig) {
 
-    public val handler: Interceptable1<ApplicationRequest, ApplicationRequestStatus> = Interceptable1 {
+    public val handler: Interceptable1<ApplicationRequestContext, ApplicationRequestStatus> = Interceptable1 {
         ApplicationRequestStatus.Unhandled
     }
 
-    public fun handle(request: ApplicationRequest): ApplicationRequestStatus {
-        val result = handler.call(request)
-        config.log.info("$result: ${request.requestLine}")
+    public fun handle(context: ApplicationRequestContext): ApplicationRequestStatus {
+        val result = handler.call(context)
+        config.log.info("$result: ${context.request.requestLine}")
         return result
     }
 

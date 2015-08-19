@@ -15,18 +15,16 @@ class ApplicationRequestHeaderTest {
                 get("/foo") {
                     handle {
                         it("should map uri to /foo") {
-                            assertEquals("/foo", uri)
+                            assertEquals("/foo", request.uri)
                         }
                         it("should map authorization to empty string") {
-                            assertEquals("", authorization())
+                            assertEquals("", request.authorization())
                         }
                         it("should return empty string as queryString") {
-                            assertEquals("", queryString())
+                            assertEquals("", request.queryString())
                         }
-                        respond {
-                            status(HttpStatusCode.OK)
-                            ApplicationRequestStatus.Handled
-                        }
+                        response.status(HttpStatusCode.OK)
+                        ApplicationRequestStatus.Handled
                     }
                 }
             }
@@ -49,44 +47,43 @@ class ApplicationRequestHeaderTest {
                 get("/foo") {
                     handle {
                         it("should map uri to /foo?key1=value1&key2=value2") {
-                            assertEquals("/foo?key1=value1&key2=value2", uri)
+                            assertEquals("/foo?key1=value1&key2=value2", request.uri)
                         }
                         it("should map two parameters key1=value1 and key2=value2") {
-                            val params = queryParameters()
+                            val params = request.queryParameters()
                             assertEquals("value1", params["key1"]?.single())
                             assertEquals("value2", params["key2"]?.single())
                         }
                         it("should map queryString to key1=value1&key2=value2") {
-                            assertEquals("key1=value1&key2=value2", queryString())
+                            assertEquals("key1=value1&key2=value2", request.queryString())
                         }
                         it("should map document to foo") {
-                            assertEquals("foo", document())
+                            assertEquals("foo", request.document())
                         }
                         it("should map path to /foo") {
-                            assertEquals("/foo", path())
+                            assertEquals("/foo", request.path())
                         }
                         it("should map host to host.name.com") {
-                            assertEquals("host.name.com", host())
+                            assertEquals("host.name.com", request.host())
                         }
                         it("should map port to 8888") {
-                            assertEquals(8888, port())
+                            assertEquals(8888, request.port())
                         }
-                        respond {
-                            status(HttpStatusCode.OK)
-                            ApplicationRequestStatus.Handled
-                        }
+
+                        response.status(HttpStatusCode.OK)
+                        ApplicationRequestStatus.Handled
+
                     }
                 }
                 get("/default-port") {
                     handle {
                         it("should map port to 80") {
-                            assertEquals(80, port())
+                            assertEquals(80, request.port())
                         }
 
-                        respond {
-                            status(HttpStatusCode.OK)
-                            ApplicationRequestStatus.Handled
-                        }
+                        response.status(HttpStatusCode.OK)
+                        ApplicationRequestStatus.Handled
+
                     }
                 }
             }
@@ -119,26 +116,24 @@ class ApplicationRequestHeaderTest {
                 get("/") {
                     handle {
                         it("should map uri to /?key1=value1&key2=value2") {
-                            assertEquals("/?key1=value1&key2=value2", uri)
+                            assertEquals("/?key1=value1&key2=value2", request.uri)
                         }
                         it("should map two parameters key1=value1 and key2=value2") {
-                            val params = queryParameters()
+                            val params = request.queryParameters()
                             assertEquals("value1", params["key1"]?.single())
                             assertEquals("value2", params["key2"]?.single())
                         }
                         it("should map queryString to key1=value1&key2=value2") {
-                            assertEquals("key1=value1&key2=value2", queryString())
+                            assertEquals("key1=value1&key2=value2", request.queryString())
                         }
                         it("should map document to empty") {
-                            assertEquals("", document())
+                            assertEquals("", request.document())
                         }
                         it("should map path to empty") {
-                            assertEquals("/", path())
+                            assertEquals("/", request.path())
                         }
-                        respond {
-                            status(HttpStatusCode.OK)
-                            ApplicationRequestStatus.Handled
-                        }
+                        response.status(HttpStatusCode.OK)
+                        ApplicationRequestStatus.Handled
                     }
                 }
             }

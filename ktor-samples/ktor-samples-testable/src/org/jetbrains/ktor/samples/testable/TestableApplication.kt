@@ -8,10 +8,10 @@ class TestableApplication(config: ApplicationConfig) : Application(config) {
     init {
         routing {
             get("/") {
-                respond {
-                    status(HttpStatusCode.OK)
-                    contentType(ContentType.Text.Plain)
-                    sendText("Test String")
+                handle {
+                    response.status(HttpStatusCode.OK)
+                    response.contentType(ContentType.Text.Plain)
+                    response.sendText("Test String")
                 }
             }
         }

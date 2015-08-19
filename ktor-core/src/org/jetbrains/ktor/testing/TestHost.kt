@@ -28,11 +28,12 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     val application: Application = ApplicationLoader(applicationConfig).application
 
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): RequestResult {
-        val request = TestApplicationRequest(application)
+        val request = TestApplicationRequest()
         request.setup()
-        val status = application.handle(request)
-        request.close()
-        return RequestResult(status, request.response)
+        val context = TestApplicationRequestContext(application, request)
+        val status = application.handle(context)
+        context.close()
+        return RequestResult(status, context.response)
     }
 }
 
@@ -44,8 +45,13 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
     }
 }
 
+class TestApplicationRequestContext(override val application: Application, override val request: TestApplicationRequest) : ApplicationRequestContext {
+    override val close = Interceptable0<Unit>{}
 
-class TestApplicationRequest(override val application: Application) : ApplicationRequest {
+    override val response = TestApplicationResponse()
+}
+
+class TestApplicationRequest() : ApplicationRequest {
     override var requestLine: HttpRequestLine = HttpRequestLine(HttpMethod.Get, "/", "HTTP/1.1")
 
     var uri: String
@@ -67,18 +73,6 @@ class TestApplicationRequest(override val application: Application) : Applicatio
     }
 
     override val headers = hashMapOf<String, String>()
-
-    var response: TestApplicationResponse? = null
-    override val createResponse = Interceptable0<ApplicationResponse> {
-        if (response != null)
-            throw IllegalStateException("There should be only one response for a single request. Make sure you haven't called response more than once.")
-        response = TestApplicationResponse()
-        response!!
-    }
-
-    override val close = Interceptable0<Unit> {
-        response?.close?.call()
-    }
 }
 
 class TestApplicationResponse : ApplicationResponse {
@@ -105,8 +99,6 @@ class TestApplicationResponse : ApplicationResponse {
         content = stream.toString()
         ApplicationRequestStatus.Handled
     }
-
-    override val close = Interceptable0<Unit> {}
 }
 
 class TestApplication(config: ApplicationConfig) : Application(config)

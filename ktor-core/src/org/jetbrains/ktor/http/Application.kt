@@ -16,22 +16,22 @@ fun ApplicationResponse.header(name: String, value: Int): ApplicationResponse = 
 fun ApplicationResponse.sendRedirect(url: String, permanent: Boolean = false): ApplicationRequestStatus {
     status(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
     header("Location", url)
-    return stream {  }
+    return stream { }
 }
 
-fun ApplicationRequest.respondText(text: String) = respond {
+fun ApplicationRequestContext.respondText(text: String) = with(response) {
     status(HttpStatusCode.OK)
     contentType(ContentType.Text.Plain)
     sendText(text)
 }
 
-fun ApplicationRequest.respondRedirect(url: String, permanent: Boolean = false) = respond { sendRedirect(url, permanent) }
-fun ApplicationRequest.respondError(code: Int, message: String) = respond {
+fun ApplicationRequestContext.respondRedirect(url: String, permanent: Boolean = false) = with(response) { sendRedirect(url, permanent) }
+fun ApplicationRequestContext.respondError(code: Int, message: String) = with(response) {
     status(code)
     sendText(message)
 }
 
-fun ApplicationRequest.respondAuthenticationRequest(realm: String) = respond {
+fun ApplicationRequestContext.respondAuthenticationRequest(realm: String) = with(response) {
     status(HttpStatusCode.Unauthorized)
     header("WWW-Authenticate", "Basic realm=\"$realm\"")
     sendText("Not authorized")

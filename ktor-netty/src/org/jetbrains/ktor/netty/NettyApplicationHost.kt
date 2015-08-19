@@ -45,7 +45,7 @@ public class NettyApplicationHost(val config: ApplicationConfig) {
 
     inner class HostHttpHandler : SimpleChannelInboundHandler<FullHttpRequest>() {
         override fun channelRead0(context: ChannelHandlerContext, request: FullHttpRequest) {
-            val applicationRequest = NettyApplicationRequest(application, context, request)
+            val applicationRequest = NettyApplicationRequestContext(application, context, request)
             val requestResult = application.handle(applicationRequest)
             when (requestResult) {
                 ApplicationRequestStatus.Unhandled -> {
@@ -59,7 +59,7 @@ public class NettyApplicationHost(val config: ApplicationConfig) {
                     applicationRequest.close()
                 }
                 ApplicationRequestStatus.Handled -> applicationRequest.close()
-                ApplicationRequestStatus.Asynchronous -> applicationRequest.continueAsync()
+                ApplicationRequestStatus.Asynchronous -> { /* do nothing */}
             }
         }
 
@@ -73,6 +73,7 @@ public class NettyApplicationHost(val config: ApplicationConfig) {
         }
     }
 }
+
 
 
 

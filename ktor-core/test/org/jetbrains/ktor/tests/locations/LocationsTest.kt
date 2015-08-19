@@ -19,7 +19,7 @@ class LocationsTest {
         val testHost = createTestHost()
         testHost.application.locations {
             get<index> {
-                status(HttpStatusCode.OK)
+                response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
             }
         }
@@ -36,7 +36,7 @@ class LocationsTest {
         val testHost = createTestHost()
         testHost.application.locations {
             get<about> {
-                status(HttpStatusCode.OK)
+                response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
             }
         }
@@ -53,7 +53,7 @@ class LocationsTest {
         testHost.application.locations {
             get<user> { user ->
                 assertEquals(123, user.id)
-                status(HttpStatusCode.OK)
+                response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
             }
         }
@@ -70,7 +70,7 @@ class LocationsTest {
         testHost.application.locations {
             get<favorite> { favorite ->
                 assertEquals(123, favorite.id)
-                status(HttpStatusCode.OK)
+                response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
             }
         }
@@ -92,7 +92,7 @@ class LocationsTest {
         testHost.application.locations {
             get<pathContainer.items> { items ->
                 assertEquals(123, items.container.id)
-                status(HttpStatusCode.OK)
+                response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
             }
             failsWith(InconsistentRoutingException::class.java) {
@@ -117,7 +117,7 @@ class LocationsTest {
         testHost.application.locations {
             get<queryContainer.items> { items ->
                 assertEquals(123, items.container.id)
-                status(HttpStatusCode.OK)
+                response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
             }
             failsWith(InconsistentRoutingException::class.java) {
@@ -139,7 +139,7 @@ class LocationsTest {
             get<optionalName> {
                 assertEquals(123, it.id)
                 assertNull(it.optional)
-                status(HttpStatusCode.OK)
+                response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
             }
         }
@@ -156,7 +156,7 @@ class LocationsTest {
             get<optionalName> {
                 assertEquals(123, it.id)
                 assertEquals("text", it.optional)
-                status(HttpStatusCode.OK)
+                response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
             }
         }
@@ -176,12 +176,12 @@ class LocationsTest {
         testHost.application.locations {
             get<optionalContainer> {
                 assertEquals(null, it.id)
-                status(HttpStatusCode.OK)
+                response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
             }
             get<optionalContainer.items> {
                 assertEquals("text", it.optional)
-                status(HttpStatusCode.OK)
+                response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
             }
 
@@ -201,11 +201,11 @@ class LocationsTest {
         val testHost = createTestHost()
         testHost.application.locations {
             get<simpleContainer.items> {
-                status(HttpStatusCode.OK)
+                response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
             }
             get<simpleContainer> {
-                status(HttpStatusCode.OK)
+                response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
             }
         }
@@ -222,8 +222,8 @@ class LocationsTest {
         val testHost = createTestHost()
         testHost.application.locations {
             get<tailCard> {
-                status(HttpStatusCode.OK)
-                sendText(it.path.toString())
+                response.status(HttpStatusCode.OK)
+                response.sendText(it.path.toString())
             }
 
         }
@@ -240,8 +240,8 @@ class LocationsTest {
         val testHost = createTestHost()
         testHost.application.locations {
             get<multiquery> {
-                status(HttpStatusCode.OK)
-                sendText(it.value.toString())
+                response.status(HttpStatusCode.OK)
+                response.sendText(it.value.toString())
             }
 
         }
@@ -256,9 +256,6 @@ class LocationsTest {
             }
             it("should be handled") {
                 assertEquals(ApplicationRequestStatus.Handled, result.requestResult)
-            }
-            it("should have a response") {
-                assertNotNull(result.response)
             }
             it("should have a response with OK status") {
                 assertEquals(HttpStatusCode.OK.value, result.response!!.code)
@@ -279,9 +276,6 @@ class LocationsTest {
             }
             it("should not be handled") {
                 assertEquals(ApplicationRequestStatus.Unhandled, result.requestResult)
-            }
-            it("should have no response") {
-                assertNull(result.response)
             }
         }
     }

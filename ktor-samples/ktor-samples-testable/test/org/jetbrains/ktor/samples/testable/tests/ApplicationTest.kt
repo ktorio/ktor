@@ -15,7 +15,6 @@ public class ApplicationTest {
         }
         with (handleRequest(HttpMethod.Get, "/index.html")) {
             assertEquals(requestResult, ApplicationRequestStatus.Unhandled)
-            assertNull(response)
         }
     }
 }

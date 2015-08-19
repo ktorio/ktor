@@ -15,83 +15,49 @@ class HandlerTest {
             it("should not be handled") {
                 assertEquals(ApplicationRequestStatus.Unhandled, request.requestResult)
             }
-            it("should not contain response") {
-                assertNull(request.response)
-            }
         }
     }
 
     Test fun `application with transparent handler`() {
         val testHost = createTestHost()
-        testHost.application.handler.intercept { request, next -> next(request) }
+        testHost.application.handler.intercept { context, next -> next(context) }
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should not be handled") {
                 assertEquals(ApplicationRequestStatus.Unhandled, request.requestResult)
-            }
-            it("should not contain response") {
-                assertNull(request.response)
             }
         }
     }
 
     Test fun `application with handler returning true`() {
         val testHost = createTestHost()
-        testHost.application.handler.intercept { request, next -> ApplicationRequestStatus.Handled }
+        testHost.application.handler.intercept { context, next -> ApplicationRequestStatus.Handled }
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should be handled") {
                 assertEquals(ApplicationRequestStatus.Handled, request.requestResult)
-            }
-            it("should not contain response") {
-                assertNull(request.response)
             }
         }
     }
 
     Test fun `application with handler that returns a valid response`() {
         val testHost = createTestHost()
-        testHost.application.handler.intercept { request, next ->
-            request.respond {
-                ApplicationRequestStatus.Handled
-            }
-        }
+        testHost.application.handler.intercept { context, next -> ApplicationRequestStatus.Handled }
         on("making a request") {
             val request = testHost.handleRequest { }
-
             it("should be handled") {
                 assertEquals(ApplicationRequestStatus.Handled, request.requestResult)
-            }
-            it("should contain response") {
-                assertNotNull(request.response)
-            }
-        }
-    }
-
-    Test fun `application with handler that returns two responses`() {
-        val testHost = createTestHost()
-        testHost.application.handler.intercept { request, next ->
-            request.respond { ApplicationRequestStatus.Handled }
-            request.respond { ApplicationRequestStatus.Handled }
-        }
-        on("making a request") {
-            val request = fails {
-                testHost.handleRequest { }
-            }!!
-            it("should throw invalid operation") {
-                assertEquals(request.javaClass, javaClass<IllegalStateException>())
             }
         }
     }
 
     Test fun `application with handler that checks body on POST method`() = withTestApplication {
-        application.handler.intercept { request, next ->
-            if (request.httpMethod == HttpMethod.Post) {
-                request.respond {
-                    status(HttpStatusCode.OK)
-                    assertEquals(request.body, "Body")
-                    ApplicationRequestStatus.Handled
-                }
+        application.handler.intercept { context, next ->
+            if (context.request.httpMethod == HttpMethod.Post) {
+                assertEquals(context.request.body, "Body")
+                context.response.status(HttpStatusCode.OK)
+                ApplicationRequestStatus.Handled
+
             } else
                 ApplicationRequestStatus.Unhandled
         }
@@ -103,12 +69,10 @@ class HandlerTest {
     }
 
     Test fun `application with handler that returns true on POST method`() = withTestApplication {
-        application.handler.intercept { request, next ->
-            if (request.httpMethod == HttpMethod.Post) {
-                request.respond {
-                    status(HttpStatusCode.OK)
-                    ApplicationRequestStatus.Handled
-                }
+        application.handler.intercept { context, next ->
+            if (context.request.httpMethod == HttpMethod.Post) {
+                context.response.status(HttpStatusCode.OK)
+                ApplicationRequestStatus.Handled
             } else
                 ApplicationRequestStatus.Unhandled
         }
@@ -117,84 +81,38 @@ class HandlerTest {
             it("should not be handled") {
                 assertEquals(ApplicationRequestStatus.Unhandled, request.requestResult)
             }
-            it("should not return response") {
-                assertNull(request.response)
-            }
         }
         on("making a POST request") {
             val request = handleRequest { method = HttpMethod.Post }
             it("should be handled") {
                 assertEquals(ApplicationRequestStatus.Handled, request.requestResult)
             }
-            it("should return response") {
-                assertNotNull(request.response)
-            }
         }
     }
 
-    Test fun `application with handler that intercepts creation of response`() = withTestApplication {
-        var interceptedResponse = false
-        application.handler.intercept { request, next ->
-            request.createResponse.intercept { next ->
-                val response = next()
-                interceptedResponse = true
-                response.header("intercepted", "header")
-                response
+    Test fun `application with handler that intercepts creation of headers`() = withTestApplication {
+        application.handler.intercept { context, handler ->
+            context.response.header.intercept { name, value, header ->
+                if (name == "Content-Type" && value == "text/plain")
+                    header(name, "text/xml")
+                else
+                    header(name, value)
             }
-            next(request)
-        }
-
-        application.handler.intercept { request, handler ->
-            request.createResponse.intercept { createResponse ->
-                val response = createResponse()
-                response.header.intercept { name, value, header ->
-                    if (name == "Content-Type" && value == "text/plain")
-                        header(name, "text/xml")
-                    else
-                        header(name, value)
-                }
-                response
-            }
-            handler(request)
-        }
-
-        on("not asking for a response") {
-            application.handler.intercept { request, next -> next(request); ApplicationRequestStatus.Handled }
-            handleRequest { method = HttpMethod.Get }.let {
-                it("should be handled") {
-                    assertEquals(it.requestResult, ApplicationRequestStatus.Handled)
-                }
-                it("response interceptor shouldn't be called") {
-                    assertFalse(interceptedResponse)
-                }
-                it("should not return response") {
-                    assertNull(it.response)
-                }
-            }
+            handler(context)
         }
 
         on("asking for a response") {
             application.handler.intercept { request, next ->
-                request.respond {
-                    contentType(ContentType.Text.Plain)
-                    ApplicationRequestStatus.Asynchronous
-                }
+                request.response.contentType(ContentType.Text.Plain)
+                ApplicationRequestStatus.Asynchronous
+
             }
             handleRequest { method = HttpMethod.Get }.let {
                 it("should be handled overwritten by prior interception") {
-                    assertEquals(it.requestResult, ApplicationRequestStatus.Handled)
-                }
-                it("response interceptor should be called") {
-                    assertTrue(interceptedResponse)
-                }
-                it("should return response") {
-                    assertNotNull(it.response)
+                    assertEquals(ApplicationRequestStatus.Asynchronous, it.requestResult)
                 }
                 it("should have modified content type to text/xml") {
-                    assertEquals(it.response!!.headers["Content-Type"], "text/xml")
-                }
-                it("should have injected header") {
-                    assertEquals(it.response!!.headers["intercepted"], "header")
+                    assertEquals("text/xml", it.response!!.headers["Content-Type"])
                 }
             }
         }

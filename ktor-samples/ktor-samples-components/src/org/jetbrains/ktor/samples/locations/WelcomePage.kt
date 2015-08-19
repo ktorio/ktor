@@ -11,9 +11,9 @@ component public class WelcomePage(routing: Routing) {
     init {
         with(routing) {
             get("/") {
-                respond {
-                    contentType(ContentType.Text.Html)
-                    write {
+                handle {
+                    response.contentType(ContentType.Text.Html)
+                    response.write {
                         appendHTML().html {
                             head {
                                 title { +"Welcome" }

@@ -20,7 +20,7 @@ open public class LocationService(val conversionService: ConversionService) {
                                     val pathParameters: List<LocationInfoProperty>,
                                     val queryParameters: List<LocationInfoProperty>)
 
-    fun LocationInfo.create(request: RoutingApplicationRequest): Any {
+    fun LocationInfo.create(request: RoutingApplicationRequestContext): Any {
         val constructor = klass.constructors.single()
         val parameters = constructor.parameters
         val args = Array(parameters.size()) { index ->
@@ -31,7 +31,7 @@ open public class LocationService(val conversionService: ConversionService) {
             if (parent != null && parameterType.javaType === parent.klass.java) {
                 parent.create(request)
             } else {
-                conversionService.fromRequest(request, parameterName, javaParameterType, parameterType.isMarkedNullable)
+                conversionService.fromContext(request, parameterName, javaParameterType, parameterType.isMarkedNullable)
             }
         }
         return constructor.call(*args)
@@ -94,7 +94,7 @@ open public class LocationService(val conversionService: ConversionService) {
         }
     }
 
-    fun resolve<T : Any>(dataClass: KClass<*>, request: RoutingApplicationRequest): T {
+    fun resolve<T : Any>(dataClass: KClass<*>, request: RoutingApplicationRequestContext): T {
         return getOrCreateInfo(dataClass).create(request) as T
     }
 

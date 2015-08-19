@@ -15,46 +15,40 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
          {"name":"root","items":[{"key":"A","value":"Apache"},{"key":"B","value":"Bing"}]}
      */
     init {
-        handler.intercept { request, handler ->
+        handler.intercept { context, next ->
             when {
-                request.acceptEncoding()?.contains("deflate") ?: false -> {
-                    request.createResponse.intercept { createResponse ->
-                        createResponse().apply {
-                            header("Content-Encoding", "deflate")
-                            stream.intercept { content, stream ->
-                                stream {
-                                    DeflaterOutputStream(this).apply {
-                                        content()
-                                        close()
-                                    }
-                                }
+                context.request.acceptEncoding()?.contains("deflate") ?: false -> {
+                    context.response.header("Content-Encoding", "deflate")
+                    context.response.stream.intercept { content, stream ->
+                        stream {
+                            DeflaterOutputStream(this).apply {
+                                content()
+                                close()
                             }
                         }
                     }
                 }
             }
 
-            handler(request)
+            next(context)
         }
 
-        handler.intercept { request, handler ->
-            if (request.accept() == "application/json") {
-                request.createResponse.intercept { createResponse ->
-                    createResponse().apply {
-                        send.intercept { value, send ->
-                            contentType(ContentType.Application.Json)
-                            sendText(GsonBuilder().create().toJson(value))
-                        }
+        handler.intercept { context, handler ->
+            if (context.request.accept() == "application/json") {
+                with(context.response) {
+                    send.intercept { value, send ->
+                        contentType(ContentType.Application.Json)
+                        sendText(GsonBuilder().create().toJson(value))
                     }
                 }
             }
-            handler(request)
+            handler(context)
         }
 
         routing {
             get("/v1") {
-                respond {
-                    send(Model("root", listOf(Item("A", "Apache"), Item("B", "Bing"))))
+                handle {
+                    response.send(Model("root", listOf(Item("A", "Apache"), Item("B", "Bing"))))
                 }
             }
         }

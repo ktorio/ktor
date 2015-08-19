@@ -24,14 +24,14 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
                 }
             }
             get("/bye") {
-                respond {
-                    sendText("Goodbye World!")
+                handle {
+                    response.sendText("Goodbye World!")
                 }
             }
         }
     }
 
-    private fun RoutingApplicationRequest.handleLongCalculation() {
+    private fun RoutingApplicationRequestContext.handleLongCalculation() {
         var number = 0
         val random = Random()
         val time = measureTimeMillis {
@@ -41,17 +41,15 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
             }
         }
 
-        respond {
-            contentType(ContentType.Text.Html)
-            write {
-                appendHTML().html {
-                    head {
-                        title { +"Async World" }
-                    }
-                    body {
-                        h1 {
-                            +"We calculated this after ${time}ms: $number"
-                        }
+        response.contentType(ContentType.Text.Html)
+        response.write {
+            appendHTML().html {
+                head {
+                    title { +"Async World" }
+                }
+                body {
+                    h1 {
+                        +"We calculated this after ${time}ms: $number"
                     }
                 }
             }

@@ -9,9 +9,7 @@ import java.util.*
 import javax.servlet.*
 import javax.servlet.http.*
 
-public class ServletApplicationRequest(override val application: Application,
-                                       private val servletRequest: HttpServletRequest,
-                                       private val servletResponse: HttpServletResponse) : ApplicationRequest {
+public class ServletApplicationRequest(private val servletRequest: HttpServletRequest) : ApplicationRequest {
     override val requestLine: HttpRequestLine by lazy {
         HttpRequestLine(HttpMethod.parse(servletRequest.method), servletRequest.requestURI, servletRequest.protocol)
     }
@@ -41,51 +39,5 @@ public class ServletApplicationRequest(override val application: Application,
         servletRequest.headerNames.asSequence().toMap({ it }, {
             servletRequest.getHeaders(it).asSequence().join(", ")
         })
-    }
-
-    private var asyncContext: AsyncContext? = null
-    fun continueAsync(asyncContext: AsyncContext) {
-        this.asyncContext = asyncContext
-    }
-
-    var response: Response? = null
-    override val createResponse = Interceptable0<ApplicationResponse> {
-        val currentResponse = response
-        if (currentResponse != null)
-            throw IllegalStateException("There should be only one response for a single request. Make sure you haven't called response more than once.")
-        response = Response()
-        response!!
-    }
-
-    override val close = Interceptable0<Unit> {
-        response?.close?.call()
-    }
-
-    inner class Response : ApplicationResponse {
-        override val header = Interceptable2<String, String, ApplicationResponse> { name, value ->
-            servletResponse.setHeader(name, value)
-            this
-        }
-
-        override val status = Interceptable1<Int, ApplicationResponse> { code ->
-            servletResponse.status = code
-            this
-        }
-
-        override val send = Interceptable1<Any, ApplicationRequestStatus> { value ->
-            throw UnsupportedOperationException("No known way to stream value $value")
-        }
-
-        override val stream = Interceptable1<OutputStream.() -> Unit, ApplicationRequestStatus> { body ->
-            servletResponse.outputStream.body()
-            ApplicationRequestStatus.Handled
-        }
-
-        override val close = Interceptable0 {
-            servletResponse.flushBuffer()
-            if (asyncContext != null) {
-                asyncContext?.complete()
-            }
-        }
     }
 }

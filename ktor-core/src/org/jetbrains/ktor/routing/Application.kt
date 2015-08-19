@@ -4,14 +4,13 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import java.util.*
 
-open class RoutingApplicationRequest(applicationRequest: ApplicationRequest,
-                                     val resolveResult: RoutingResolveResult) : ApplicationRequest by applicationRequest {
-
-    override val parameters: Map<String, List<String>>
+open class RoutingApplicationRequestContext(context: ApplicationRequestContext, val resolveResult: RoutingResolveResult)
+: ApplicationRequestContext by context {
+    val parameters: Map<String, List<String>>
 
     init {
         val result = HashMap<String, MutableList<String>>()
-        for ((key, values) in applicationRequest.parameters) {
+        for ((key, values) in context.request.parameters) {
             result.getOrPut(key, { arrayListOf() }).addAll(values)
         }
         for ((key, values) in resolveResult.values) {
@@ -31,8 +30,8 @@ public fun Application.routing(body: RoutingEntry.() -> Unit) {
 }
 
 fun Application.interceptRoute(routing: RoutingEntry) {
-    handler.intercept { request, next ->
-        val resolveContext = RoutingResolveContext(request.requestLine, request.parameters, request.headers)
+    handler.intercept { context, next ->
+        val resolveContext = RoutingResolveContext(context.request.requestLine, context.request.parameters, context.request.headers)
         val resolveResult = routing.resolve(resolveContext)
         when {
             resolveResult.succeeded -> {
@@ -43,17 +42,9 @@ fun Application.interceptRoute(routing: RoutingEntry) {
                 }
                 val handlers = resolveResult.entry.interceptors.filter { it.leafOnly }
                 chain.addAll(handlers)
-                processChain(chain, RoutingApplicationRequest(request, resolveResult))
+                processChain(chain, RoutingApplicationRequestContext(context, resolveResult))
             }
-            else -> next(request)
-        }
-    }
-}
-
-public fun RoutingEntry.respond(body: ApplicationResponse.() -> ApplicationRequestStatus) {
-    handle {
-        respond {
-            body()
+            else -> next(context)
         }
     }
 }

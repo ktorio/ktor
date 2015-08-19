@@ -6,7 +6,7 @@ import java.lang.reflect.*
 import kotlin.reflect.jvm.*
 
 public interface ConversionService {
-    fun fromRequest(request: RoutingApplicationRequest, name: String, type: Type, optional: Boolean): Any?
+    fun fromContext(context: RoutingApplicationRequestContext, name: String, type: Type, optional: Boolean): Any?
     fun toURI(value: Any?, name: String, optional: Boolean): List<String>
 }
 
@@ -61,8 +61,8 @@ public open class DefaultConversionService : ConversionService {
         return convert(values.single(), type)
     }
 
-    override fun fromRequest(request: RoutingApplicationRequest, name: String, type: Type, optional: Boolean): Any? {
-        val requestParameters = request.parameters[name]
+    override fun fromContext(context: RoutingApplicationRequestContext, name: String, type: Type, optional: Boolean): Any? {
+        val requestParameters = context.parameters[name]
         return if (requestParameters == null) {
             if (!optional) {
                 throw InconsistentRoutingException("Parameter '$name' was not found in the request")

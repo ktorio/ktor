@@ -11,9 +11,9 @@ component public class InformationService(routing: Routing, providers: Iterable<
     init {
         with(routing) {
             get("/information.html") {
-                respond {
-                    contentType(org.jetbrains.ktor.http.ContentType.Text.Html)
-                    write {
+                handle {
+                    response.contentType(org.jetbrains.ktor.http.ContentType.Text.Html)
+                    response.write {
                         appendHTML().html {
                             head {
                                 title { +"Information" }

@@ -12,8 +12,8 @@ class RoutingProcessingTest {
         val testHost = createTestHost()
         testHost.application.routing {
             get("/foo/bar") {
-                respond {
-                    status(HttpStatusCode.OK)
+                handle {
+                    response.status(HttpStatusCode.OK)
                     ApplicationRequestStatus.Handled
                 }
             }
@@ -27,9 +27,6 @@ class RoutingProcessingTest {
             it("should be handled") {
                 assertEquals(ApplicationRequestStatus.Handled, result.requestResult)
             }
-            it("should have a response") {
-                assertNotNull(result.response)
-            }
             it("should have a response with OK status") {
                 assertEquals(HttpStatusCode.OK.value, result.response!!.code)
             }
@@ -42,9 +39,6 @@ class RoutingProcessingTest {
             }
             it("should not be handled") {
                 assertEquals(ApplicationRequestStatus.Unhandled, result.requestResult)
-            }
-            it("should have no response") {
-                assertNull(result.response)
             }
         }
     }

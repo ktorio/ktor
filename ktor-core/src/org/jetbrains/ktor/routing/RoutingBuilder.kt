@@ -47,15 +47,15 @@ fun RoutingEntry.header(name: String, value: String, build: RoutingEntry.() -> U
     select(selector).build()
 }
 
-fun RoutingEntry.handle(handle: RoutingApplicationRequest.() -> ApplicationRequestStatus) {
+fun RoutingEntry.handle(handle: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
     addInterceptor(true, handle)
 }
 
-fun RoutingEntry.addInterceptor(leafOnly: Boolean, handle: RoutingApplicationRequest.() -> ApplicationRequestStatus) {
-    intercept(leafOnly) { request, next ->
-        val result = request.handle()
+fun RoutingEntry.addInterceptor(leafOnly: Boolean, handle: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
+    intercept(leafOnly) { context, next ->
+        val result = context.handle()
         if (result == ApplicationRequestStatus.Unhandled)
-            next(request)
+            next(context)
         else
             result
     }

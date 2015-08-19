@@ -10,9 +10,9 @@ class HelloApplication(config: ApplicationConfig) : Application(config) {
     init {
         routing {
             get("/") {
-                respond {
-                    contentType(ContentType.Text.Html)
-                    write {
+                handle {
+                    response.contentType(ContentType.Text.Html)
+                    response.write {
                         appendHTML().html {
                             head {
                                 title { +"Hello World." }
@@ -34,8 +34,8 @@ class HelloApplication(config: ApplicationConfig) : Application(config) {
                 }
             }
             get("/bye") {
-                respond {
-                    sendText("Goodbye World!")
+                handle {
+                    response.sendText("Goodbye World!")
                 }
             }
         }
