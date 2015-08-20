@@ -12,6 +12,7 @@ class NettyApplicationRequestContext(override val application: Application,
 
     override val close = Interceptable0<Unit> {
         context.writeAndFlush(httpResponse)
+        context.close()
     }
 
     override val request: NettyApplicationRequest = NettyApplicationRequest(httpRequest)

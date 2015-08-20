@@ -14,16 +14,11 @@ public open class Application(val config: ApplicationConfig) {
     }
 
     public fun handle(context: ApplicationRequestContext): ApplicationRequestStatus {
-        var status = 0
-        context.response.interceptStatus { code, next ->
-            status = code
-            next(code)
-        }
         val result = handler.call(context)
-        if (result == ApplicationRequestStatus.Handled) {
-            config.log.info("$status: ${context.request.requestLine}")
-        } else {
-            config.log.info("<Unhandled>: ${context.request.requestLine}")
+        when (result) {
+            ApplicationRequestStatus.Handled -> config.log.info("${context.response.status()}: ${context.request.requestLine}")
+            ApplicationRequestStatus.Unhandled -> config.log.info("<Unhandled>: ${context.request.requestLine}")
+            ApplicationRequestStatus.Asynchronous -> config.log.info("<Async>: ${context.request.requestLine}")
         }
         return result
     }

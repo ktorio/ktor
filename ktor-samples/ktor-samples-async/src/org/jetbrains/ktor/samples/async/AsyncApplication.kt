@@ -50,5 +50,6 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
                 }
             }
         }
+        close()
     }
 }
