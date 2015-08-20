@@ -10,5 +10,6 @@
     </root>
 
     <logger name="org.eclipse.jetty" level="INFO"/>
+    <logger name="io.netty" level="INFO"/>
 
 </configuration>
