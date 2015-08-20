@@ -256,11 +256,11 @@ class LocationsTest {
                 assertEquals(ApplicationRequestStatus.Handled, result.requestResult)
             }
             it("should have a response with OK status") {
-                assertEquals(HttpStatusCode.OK.value, result.response!!.code)
+                assertEquals(HttpStatusCode.OK.value, result.response.status())
             }
             if (content != null) {
                 it("should have a response with content '$content'") {
-                    assertEquals(content, result.response!!.content)
+                    assertEquals(content, result.response.content)
                 }
             }
         }

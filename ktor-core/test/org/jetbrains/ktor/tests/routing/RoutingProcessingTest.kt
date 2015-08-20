@@ -26,7 +26,7 @@ class RoutingProcessingTest {
                 assertEquals(ApplicationRequestStatus.Handled, result.requestResult)
             }
             it("should have a response with OK status") {
-                assertEquals(HttpStatusCode.OK.value, result.response!!.code)
+                assertEquals(HttpStatusCode.OK.value, result.response.status())
             }
         }
 

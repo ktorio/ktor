@@ -11,23 +11,24 @@ fun ApplicationRequest.parameter(name: String): String? = parameters[name]?.sing
 fun ApplicationResponse.status(code: HttpStatusCode) = status(code.value)
 fun ApplicationResponse.contentType(value: ContentType) = contentType(value.toString())
 fun ApplicationResponse.contentType(value: String) = header("Content-Type", value)
-fun ApplicationResponse.header(name: String, value: Int): ApplicationResponse = header(name, value.toString())
+fun ApplicationResponse.header(name: String, value: Int) = header(name, value.toString())
 
 fun ApplicationResponse.sendRedirect(url: String, permanent: Boolean = false): ApplicationRequestStatus {
     status(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
     header("Location", url)
-    return stream { }
+    return ApplicationRequestStatus.Handled
 }
 
-fun ApplicationRequestContext.respondRedirect(url: String, permanent: Boolean = false) = with(response) { sendRedirect(url, permanent) }
-fun ApplicationRequestContext.respondError(code: Int, message: String) = with(response) {
+fun ApplicationResponse.sendError(code: Int, message: String): ApplicationRequestStatus {
     status(code)
     streamText(message)
+    return ApplicationRequestStatus.Handled
 }
 
-fun ApplicationRequestContext.respondAuthenticationRequest(realm: String) = with(response) {
+fun ApplicationResponse.sendAuthenticationRequest(realm: String): ApplicationRequestStatus {
     status(HttpStatusCode.Unauthorized)
     header("WWW-Authenticate", "Basic realm=\"$realm\"")
     streamText("Not authorized")
+    return ApplicationRequestStatus.Handled
 }
 

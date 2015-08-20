@@ -22,7 +22,7 @@ fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() ->
     host.test()
 }
 
-data class RequestResult(val requestResult: ApplicationRequestStatus, val response: TestApplicationResponse?)
+data class RequestResult(val requestResult: ApplicationRequestStatus, val response: TestApplicationResponse)
 
 class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     val application: Application = ApplicationLoader(applicationConfig).application
@@ -76,29 +76,37 @@ class TestApplicationRequest() : ApplicationRequest {
 }
 
 class TestApplicationResponse : ApplicationResponse {
-    override val send = Interceptable1<Any, ApplicationRequestStatus> { value ->
-        throw UnsupportedOperationException("No known way to stream value $value")
-    }
 
-    val headers = hashMapOf<String, String>()
-    override val header = Interceptable2<String, String, ApplicationResponse> { name, value ->
-        headers.put(name, value)
-        this
-    }
+    private val headers = hashMapOf<String, String>()
+    private var statusCode: Int? = null
 
-    public var code: Int = 501
-    override val status = Interceptable1<Int, ApplicationResponse> { code ->
-        this.code = code
-        this
-    }
-
-    public var content: String? = null
-    override val stream = Interceptable1<OutputStream.() -> Unit, ApplicationRequestStatus> { body ->
+    private val header = Interceptable2<String, String, Unit> { name, value -> headers.put(name, value) }
+    private val status = Interceptable1<Int, Unit> { code -> this.statusCode = code }
+    private val stream = Interceptable1<OutputStream.() -> Unit, Unit> { body ->
         val stream = ByteArrayOutputStream()
         stream.body()
         content = stream.toString()
         ApplicationRequestStatus.Handled
     }
+    private val send = Interceptable1<Any, ApplicationRequestStatus> { value ->
+        throw UnsupportedOperationException("No known way to stream value $value")
+    }
+
+    public override fun header(name: String): String? = headers.get(name)
+    public override fun header(name: String, value: String) = header.call(name, value)
+    public override fun interceptHeader(handler: (String, String, (String, String) -> Unit) -> Unit) = header.intercept(handler)
+
+    public override fun status(): Int? = statusCode
+    public override fun status(value: Int) = status.call(value)
+    public override fun interceptStatus(handler: (Int, (Int) -> Unit) -> Unit) = status.intercept(handler)
+
+    public var content: String? = null
+
+    override fun send(message: Any): ApplicationRequestStatus = send.call(message)
+    override fun interceptSend(handler: (Any, (Any) -> ApplicationRequestStatus) -> ApplicationRequestStatus) = send.intercept(handler)
+
+    override fun stream(body: OutputStream.() -> Unit): Unit = stream.call(body)
+    override fun interceptStream(handler: (OutputStream.() -> Unit, (OutputStream.() -> Unit) -> Unit) -> Unit) = stream.intercept(handler)
 }
 
 class TestApplication(config: ApplicationConfig) : Application(config)

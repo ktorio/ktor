@@ -11,6 +11,7 @@ component public class InformationService(routing: Routing, providers: Iterable<
     init {
         with(routing) {
             get("/information.html") {
+                response.status(HttpStatusCode.OK)
                 response.contentType(org.jetbrains.ktor.http.ContentType.Text.Html)
                 response.write {
                     appendHTML().html {
@@ -32,6 +33,7 @@ component public class InformationService(routing: Routing, providers: Iterable<
                         }
                     }
                 }
+                ApplicationRequestStatus.Handled
             }
 
         }

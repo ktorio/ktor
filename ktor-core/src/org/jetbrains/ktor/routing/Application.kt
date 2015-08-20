@@ -31,7 +31,7 @@ public fun Application.routing(body: RoutingEntry.() -> Unit) {
 }
 
 fun Application.interceptRoute(routing: RoutingEntry) {
-    handler.intercept { context, next ->
+    intercept { context, next ->
         val resolveContext = RoutingResolveContext(context.request.requestLine, context.request.parameters, context.request.headers)
         val resolveResult = routing.resolve(resolveContext)
         when {

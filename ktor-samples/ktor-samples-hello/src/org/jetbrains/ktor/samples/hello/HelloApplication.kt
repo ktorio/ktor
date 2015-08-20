@@ -10,6 +10,7 @@ class HelloApplication(config: ApplicationConfig) : Application(config) {
     init {
         routing {
             get("/") {
+                response.status(HttpStatusCode.OK)
                 response.contentType(ContentType.Text.Html)
                 response.write {
                     appendHTML().html {
@@ -30,6 +31,7 @@ class HelloApplication(config: ApplicationConfig) : Application(config) {
                         }
                     }
                 }
+                ApplicationRequestStatus.Handled
             }
             get("/bye") {
                 response.sendText("Goodbye World!")

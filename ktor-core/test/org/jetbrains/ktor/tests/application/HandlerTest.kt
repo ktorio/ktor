@@ -20,7 +20,7 @@ class HandlerTest {
 
     Test fun `application with transparent handler`() {
         val testHost = createTestHost()
-        testHost.application.handler.intercept { context, next -> next(context) }
+        testHost.application.intercept { context, next -> next(context) }
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should not be handled") {
@@ -31,7 +31,7 @@ class HandlerTest {
 
     Test fun `application with handler returning true`() {
         val testHost = createTestHost()
-        testHost.application.handler.intercept { context, next -> ApplicationRequestStatus.Handled }
+        testHost.application.intercept { context, next -> ApplicationRequestStatus.Handled }
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should be handled") {
@@ -42,7 +42,7 @@ class HandlerTest {
 
     Test fun `application with handler that returns a valid response`() {
         val testHost = createTestHost()
-        testHost.application.handler.intercept { context, next -> ApplicationRequestStatus.Handled }
+        testHost.application.intercept { context, next -> ApplicationRequestStatus.Handled }
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should be handled") {
@@ -52,7 +52,7 @@ class HandlerTest {
     }
 
     Test fun `application with handler that checks body on POST method`() = withTestApplication {
-        application.handler.intercept { context, next ->
+        application.intercept { context, next ->
             if (context.request.httpMethod == HttpMethod.Post) {
                 assertEquals(context.request.body, "Body")
                 context.response.status(HttpStatusCode.OK)
@@ -69,7 +69,7 @@ class HandlerTest {
     }
 
     Test fun `application with handler that returns true on POST method`() = withTestApplication {
-        application.handler.intercept { context, next ->
+        application.intercept { context, next ->
             if (context.request.httpMethod == HttpMethod.Post) {
                 context.response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
@@ -91,8 +91,8 @@ class HandlerTest {
     }
 
     Test fun `application with handler that intercepts creation of headers`() = withTestApplication {
-        application.handler.intercept { context, handler ->
-            context.response.header.intercept { name, value, header ->
+        application.intercept { context, handler ->
+            context.response.interceptHeader { name, value, header ->
                 if (name == "Content-Type" && value == "text/plain")
                     header(name, "text/xml")
                 else
@@ -102,7 +102,7 @@ class HandlerTest {
         }
 
         on("asking for a response") {
-            application.handler.intercept { request, next ->
+            application.intercept { request, next ->
                 request.response.contentType(ContentType.Text.Plain)
                 ApplicationRequestStatus.Asynchronous
 
@@ -112,7 +112,7 @@ class HandlerTest {
                     assertEquals(ApplicationRequestStatus.Asynchronous, it.requestResult)
                 }
                 it("should have modified content type to text/xml") {
-                    assertEquals("text/xml", it.response!!.headers["Content-Type"])
+                    assertEquals("text/xml", it.response.header("Content-Type"))
                 }
             }
         }

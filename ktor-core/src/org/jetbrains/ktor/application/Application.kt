@@ -5,14 +5,17 @@ import org.jetbrains.ktor.interception.*
 /** Current executing application
  */
 public open class Application(val config: ApplicationConfig) {
-
-    public val handler: Interceptable1<ApplicationRequestContext, ApplicationRequestStatus> = Interceptable1 {
+    private val handler: Interceptable1<ApplicationRequestContext, ApplicationRequestStatus> = Interceptable1 {
         ApplicationRequestStatus.Unhandled
+    }
+
+    public fun intercept(interceptor: (ApplicationRequestContext, (ApplicationRequestContext) -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
+        handler.intercept(interceptor)
     }
 
     public fun handle(context: ApplicationRequestContext): ApplicationRequestStatus {
         var status = 0
-        context.response.status.intercept { code, next ->
+        context.response.interceptStatus { code, next ->
             status = code
             next(code)
         }

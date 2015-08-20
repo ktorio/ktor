@@ -11,6 +11,7 @@ component public class WelcomePage(routing: Routing) {
     init {
         with(routing) {
             get("/") {
+                response.status(HttpStatusCode.OK)
                 response.contentType(ContentType.Text.Html)
                 response.write {
                     appendHTML().html {
@@ -28,6 +29,7 @@ component public class WelcomePage(routing: Routing) {
                         }
                     }
                 }
+                ApplicationRequestStatus.Handled
             }
 
         }

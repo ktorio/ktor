@@ -15,6 +15,7 @@ class LocationsApplication(config: ApplicationConfig) : Application(config) {
     init {
         locations {
             get<index>() {
+                response.status(HttpStatusCode.OK)
                 response.contentType(ContentType.Text.Html)
                 response.write {
                     appendHTML().html {
@@ -39,9 +40,11 @@ class LocationsApplication(config: ApplicationConfig) : Application(config) {
                         }
                     }
                 }
+                ApplicationRequestStatus.Handled
             }
 
             get<number>() { number ->
+                response.status(HttpStatusCode.OK)
                 response.contentType(ContentType.Text.Html)
                 response.write {
                     appendHTML().html {
@@ -55,6 +58,7 @@ class LocationsApplication(config: ApplicationConfig) : Application(config) {
                         }
                     }
                 }
+                ApplicationRequestStatus.Handled
             }
         }
     }
