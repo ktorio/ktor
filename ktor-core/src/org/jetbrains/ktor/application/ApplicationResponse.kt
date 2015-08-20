@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.application
 
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import java.io.*
 import java.nio.charset.*
@@ -20,12 +21,27 @@ public fun ApplicationResponse.send(message: Any): ApplicationRequestStatus {
     return send.call(message)
 }
 
-public fun ApplicationResponse.sendBytes(bytes: ByteArray): ApplicationRequestStatus {
+public fun ApplicationResponse.streamBytes(bytes: ByteArray): ApplicationRequestStatus {
     return stream { write(bytes) }
 }
 
-public fun ApplicationResponse.sendText(text: String, encoding: String = "UTF-8"): ApplicationRequestStatus {
+public fun ApplicationResponse.sendBytes(bytes: ByteArray): ApplicationRequestStatus {
+    status(HttpStatusCode.OK)
+    return streamBytes(bytes)
+}
+
+public fun ApplicationResponse.streamText(text: String, encoding: String = "UTF-8"): ApplicationRequestStatus {
     return sendBytes(text.toByteArray(Charset.forName(encoding)))
+}
+
+public fun ApplicationResponse.sendText(contentType: ContentType, text: String): ApplicationRequestStatus {
+    contentType(contentType)
+    val encoding = contentType.parameter("charset") ?: "UTF-8"
+    return sendBytes(text.toByteArray(Charset.forName(encoding)))
+}
+
+public fun ApplicationResponse.sendText(text: String): ApplicationRequestStatus {
+    return sendText(ContentType.Text.Plain.withParameter("charset", "UTF-8"), text)
 }
 
 public fun ApplicationResponse.write(body: Writer.() -> Unit): ApplicationRequestStatus = stream {

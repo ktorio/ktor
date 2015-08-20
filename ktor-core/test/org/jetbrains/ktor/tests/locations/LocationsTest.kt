@@ -222,7 +222,6 @@ class LocationsTest {
         val testHost = createTestHost()
         testHost.application.locations {
             get<tailCard> {
-                response.status(HttpStatusCode.OK)
                 response.sendText(it.path.toString())
             }
 
@@ -240,7 +239,6 @@ class LocationsTest {
         val testHost = createTestHost()
         testHost.application.locations {
             get<multiquery> {
-                response.status(HttpStatusCode.OK)
                 response.sendText(it.value.toString())
             }
 

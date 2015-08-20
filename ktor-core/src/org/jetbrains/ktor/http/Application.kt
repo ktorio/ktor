@@ -19,21 +19,15 @@ fun ApplicationResponse.sendRedirect(url: String, permanent: Boolean = false): A
     return stream { }
 }
 
-fun ApplicationRequestContext.respondText(text: String) = with(response) {
-    status(HttpStatusCode.OK)
-    contentType(ContentType.Text.Plain)
-    sendText(text)
-}
-
 fun ApplicationRequestContext.respondRedirect(url: String, permanent: Boolean = false) = with(response) { sendRedirect(url, permanent) }
 fun ApplicationRequestContext.respondError(code: Int, message: String) = with(response) {
     status(code)
-    sendText(message)
+    streamText(message)
 }
 
 fun ApplicationRequestContext.respondAuthenticationRequest(realm: String) = with(response) {
     status(HttpStatusCode.Unauthorized)
     header("WWW-Authenticate", "Basic realm=\"$realm\"")
-    sendText("Not authorized")
+    streamText("Not authorized")
 }
 

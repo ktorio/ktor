@@ -37,8 +37,7 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
             if (context.request.accept() == "application/json") {
                 with(context.response) {
                     send.intercept { value, send ->
-                        contentType(ContentType.Application.Json)
-                        sendText(GsonBuilder().create().toJson(value))
+                        sendText(ContentType.Application.Json, GsonBuilder().create().toJson(value))
                     }
                 }
             }
