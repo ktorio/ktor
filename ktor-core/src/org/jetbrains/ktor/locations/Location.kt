@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.locations
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import kotlin.reflect.*
 
@@ -27,10 +28,8 @@ inline fun RoutingEntry.location<reified T : Any>(noinline body: RoutingEntry.()
 
 inline fun RoutingEntry.get<reified T : Any>(noinline body: ApplicationRequestContext.(T) -> ApplicationRequestStatus) {
     location(T::class) {
-        get {
-            handle<T> { location ->
-                    body(location)
-            }
+        method(HttpMethod.Get) {
+            handle<T> { location -> body(location) }
         }
     }
 }

@@ -14,11 +14,6 @@ location("/number") data class number(val value: Int)
 class LocationsApplication(config: ApplicationConfig) : Application(config) {
     init {
         locations {
-            post {
-                handle {
-                    ApplicationRequestStatus.Handled
-                }
-            }
             get<index>() {
                 response.contentType(ContentType.Text.Html)
                 response.write {

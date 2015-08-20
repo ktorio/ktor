@@ -15,23 +15,19 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
     init {
         routing {
             get("/") {
-                handle {
-                    jobService.async("Respond async task") {
-                        handleLongCalculation()
+                jobService.async("Respond async task") {
+                    handleLongCalculation()
 
-                    }
-                    ApplicationRequestStatus.Asynchronous
                 }
+                ApplicationRequestStatus.Asynchronous
             }
             get("/bye") {
-                handle {
-                    response.sendText("Goodbye World!")
-                }
+                response.sendText("Goodbye World!")
             }
         }
     }
 
-    private fun RoutingApplicationRequestContext.handleLongCalculation() {
+    private fun ApplicationRequestContext.handleLongCalculation() {
         var number = 0
         val random = Random()
         val time = measureTimeMillis {

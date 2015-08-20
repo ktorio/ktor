@@ -12,10 +12,8 @@ class RoutingProcessingTest {
         val testHost = createTestHost()
         testHost.application.routing {
             get("/foo/bar") {
-                handle {
-                    response.status(HttpStatusCode.OK)
-                    ApplicationRequestStatus.Handled
-                }
+                response.status(HttpStatusCode.OK)
+                ApplicationRequestStatus.Handled
             }
         }
 
@@ -47,9 +45,9 @@ class RoutingProcessingTest {
         val testHost = createTestHost()
         var username = listOf<String>()
         testHost.application.routing {
-            path("user") {
+            route("user") {
                 param("name") {
-                    get {
+                    method(HttpMethod.Get) {
                         handle {
                             username = parameters["name"] ?: listOf()
                             ApplicationRequestStatus.Handled
@@ -82,7 +80,7 @@ class RoutingProcessingTest {
         var userNameGotWithinInterceptor = false
 
         testHost.application.routing {
-            path("user") {
+            route("user") {
                 intercept(false) { request, next ->
                     userIntercepted = true
                     try {
@@ -93,11 +91,9 @@ class RoutingProcessingTest {
                     }
                 }
                 get("{username}") {
-                    handle {
-                        userName = parameters["username"]?.first() ?: ""
-                        userNameGotWithinInterceptor = wrappedWithInterceptor
-                        ApplicationRequestStatus.Handled
-                    }
+                    userName = parameters["username"]?.first() ?: ""
+                    userNameGotWithinInterceptor = wrappedWithInterceptor
+                    ApplicationRequestStatus.Handled
                 }
             }
         }

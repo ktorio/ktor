@@ -10,33 +10,29 @@ class HelloApplication(config: ApplicationConfig) : Application(config) {
     init {
         routing {
             get("/") {
-                handle {
-                    response.contentType(ContentType.Text.Html)
-                    response.write {
-                        appendHTML().html {
-                            head {
-                                title { +"Hello World." }
+                response.contentType(ContentType.Text.Html)
+                response.write {
+                    appendHTML().html {
+                        head {
+                            title { +"Hello World." }
+                        }
+                        body {
+                            h1 {
+                                +"Hello, World!"
                             }
-                            body {
-                                h1 {
-                                    +"Hello, World!"
+                            for (index in 0..2000) {
+                                div {
+                                    +"Line #$index"
                                 }
-                                for (index in 0..2000) {
-                                    div {
-                                        +"Line #$index"
-                                    }
-                                    flush()
-                                    Thread.sleep(5)
-                                }
+                                flush()
+                                Thread.sleep(5)
                             }
                         }
                     }
                 }
             }
             get("/bye") {
-                handle {
-                    response.sendText("Goodbye World!")
-                }
+                response.sendText("Goodbye World!")
             }
         }
     }

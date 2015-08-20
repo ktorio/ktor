@@ -11,21 +11,19 @@ component public class AboutPage(routing: Routing) {
     init {
         with(routing) {
             get("/about.html") {
-                handle {
-                    response.contentType(ContentType.Text.Html)
-                    response.write {
-                        appendHTML().html {
-                            head {
-                                title { +"About" }
+                response.contentType(ContentType.Text.Html)
+                response.write {
+                    appendHTML().html {
+                        head {
+                            title { +"About" }
+                        }
+                        body {
+                            h1 {
+                                +"About Component Application"
                             }
-                            body {
-                                h1 {
-                                    +"About Component Application"
-                                }
-                                +"This application sample shows how to use components to compose the application."
-                                +"You often don't need to create special Application type, because ComponentApplication"
-                                +"will compose it all"
-                            }
+                            +"This application sample shows how to use components to compose the application."
+                            +"You often don't need to create special Application type, because ComponentApplication"
+                            +"will compose it all"
                         }
                     }
                 }

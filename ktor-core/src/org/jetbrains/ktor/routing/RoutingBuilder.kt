@@ -3,8 +3,6 @@ package org.jetbrains.ktor.routing
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 
-fun RoutingEntry.path(path: String, build: RoutingEntry.() -> Unit) = createRoutingEntry(this, path).build()
-
 public fun createRoutingEntry(routingEntry: RoutingEntry, path: String): RoutingEntry {
     val parts = RoutingPath.parse(path).parts
     var current: RoutingEntry = routingEntry;
@@ -27,6 +25,18 @@ public fun createRoutingEntry(routingEntry: RoutingEntry, path: String): Routing
     return current
 }
 
+fun RoutingEntry.route(path: String, build: RoutingEntry.() -> Unit) = createRoutingEntry(this, path).build()
+
+fun RoutingEntry.route(method: HttpMethod, path: String, build: RoutingEntry.() -> Unit) {
+    val selector = HttpMethodRoutingSelector(method)
+    select(selector).route(path, build)
+}
+
+fun RoutingEntry.method(method: HttpMethod, body: RoutingEntry.() -> Unit) {
+    val selector = HttpMethodRoutingSelector(method)
+    select(selector).body()
+}
+
 fun RoutingEntry.param(name: String, value: String, build: RoutingEntry.() -> Unit) {
     val selector = ConstantParameterRoutingSelector(name, value)
     select(selector).build()
@@ -37,10 +47,6 @@ fun RoutingEntry.param(name: String, build: RoutingEntry.() -> Unit) {
     select(selector).build()
 }
 
-fun RoutingEntry.method(method: HttpMethod, body: RoutingEntry.() -> Unit) {
-    val selector = HttpMethodRoutingSelector(method)
-    select(selector).body()
-}
 
 fun RoutingEntry.header(name: String, value: String, build: RoutingEntry.() -> Unit) {
     val selector = HttpHeaderRoutingSelector(name, value)

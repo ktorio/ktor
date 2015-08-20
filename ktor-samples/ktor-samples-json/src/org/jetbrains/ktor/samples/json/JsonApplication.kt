@@ -47,9 +47,7 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
 
         routing {
             get("/v1") {
-                handle {
-                    response.send(Model("root", listOf(Item("A", "Apache"), Item("B", "Bing"))))
-                }
+                response.send(Model("root", listOf(Item("A", "Apache"), Item("B", "Bing"))))
             }
         }
     }

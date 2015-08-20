@@ -2,6 +2,7 @@ package org.jetbrains.ktor.routing
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.locations.*
 import java.util.*
 
 open class RoutingApplicationRequestContext(context: ApplicationRequestContext, val resolveResult: RoutingResolveResult)
@@ -49,28 +50,30 @@ fun Application.interceptRoute(routing: RoutingEntry) {
     }
 }
 
-fun RoutingEntry.methodAndPath(method: HttpMethod, path: String, body: RoutingEntry.() -> Unit) {
-    method(method) {
-        path(path) {
-            body()
-        }
-    }
-}
-
 fun RoutingEntry.contentType(contentType: ContentType, build: RoutingEntry.() -> Unit) {
     header("Accept", "${contentType.contentType}/${contentType.contentSubtype}", build)
 }
 
+fun RoutingEntry.get(path: String, body: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
+    route(HttpMethod.Get, path) { handle(body) }
+}
 
-public fun RoutingEntry.get(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndPath(HttpMethod.Get, path, body)
-public fun RoutingEntry.put(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndPath(HttpMethod.Put, path, body)
-public fun RoutingEntry.delete(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndPath(HttpMethod.Delete, path, body)
-public fun RoutingEntry.post(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndPath(HttpMethod.Post, path, body)
-public fun RoutingEntry.options(path: String, body: RoutingEntry.() -> Unit): Unit = methodAndPath(HttpMethod.Options, path, body)
+fun RoutingEntry.post(path: String, body: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
+    route(HttpMethod.Post, path) { handle(body) }
+}
 
-public fun RoutingEntry.get(body: RoutingEntry.() -> Unit): Unit = method(HttpMethod.Get, body)
-public fun RoutingEntry.put(body: RoutingEntry.() -> Unit): Unit = method(HttpMethod.Put, body)
-public fun RoutingEntry.delete(body: RoutingEntry.() -> Unit): Unit = method(HttpMethod.Delete, body)
-public fun RoutingEntry.post(body: RoutingEntry.() -> Unit): Unit = method(HttpMethod.Post, body)
-public fun RoutingEntry.options(body: RoutingEntry.() -> Unit): Unit = method(HttpMethod.Options, body)
+fun RoutingEntry.header(path: String, body: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
+    route(HttpMethod.Header, path) { handle(body) }
+}
 
+fun RoutingEntry.put(path: String, body: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
+    route(HttpMethod.Put, path) { handle(body) }
+}
+
+fun RoutingEntry.delete(path: String, body: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
+    route(HttpMethod.Delete, path) { handle(body) }
+}
+
+fun RoutingEntry.options(path: String, body: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
+    route(HttpMethod.Options, path) { handle(body) }
+}

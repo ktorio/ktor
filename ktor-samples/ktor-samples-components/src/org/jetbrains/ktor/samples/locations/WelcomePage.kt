@@ -11,21 +11,19 @@ component public class WelcomePage(routing: Routing) {
     init {
         with(routing) {
             get("/") {
-                handle {
-                    response.contentType(ContentType.Text.Html)
-                    response.write {
-                        appendHTML().html {
-                            head {
-                                title { +"Welcome" }
+                response.contentType(ContentType.Text.Html)
+                response.write {
+                    appendHTML().html {
+                        head {
+                            title { +"Welcome" }
+                        }
+                        body {
+                            h1 {
+                                +"Welcome to Component Application"
                             }
-                            body {
-                                h1 {
-                                    +"Welcome to Component Application"
-                                }
-                                ul {
-                                    li { a(href = "/about.html") { +"About" } }
-                                    li { a(href = "/information.html") { +"Information" } }
-                                }
+                            ul {
+                                li { a(href = "/about.html") { +"About" } }
+                                li { a(href = "/information.html") { +"Information" } }
                             }
                         }
                     }

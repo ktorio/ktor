@@ -11,23 +11,21 @@ component public class InformationService(routing: Routing, providers: Iterable<
     init {
         with(routing) {
             get("/information.html") {
-                handle {
-                    response.contentType(org.jetbrains.ktor.http.ContentType.Text.Html)
-                    response.write {
-                        appendHTML().html {
-                            head {
-                                title { +"Information" }
+                response.contentType(org.jetbrains.ktor.http.ContentType.Text.Html)
+                response.write {
+                    appendHTML().html {
+                        head {
+                            title { +"Information" }
+                        }
+                        body {
+                            h1 {
+                                +"Information"
                             }
-                            body {
-                                h1 {
-                                    +"Information"
-                                }
-                                ul {
-                                    for (information in providers.map { it.information() }) {
-                                        li {
-                                            div { strong { +information.name } }
-                                            div { +information.description }
-                                        }
+                            ul {
+                                for (information in providers.map { it.information() }) {
+                                    li {
+                                        div { strong { +information.name } }
+                                        div { +information.description }
                                     }
                                 }
                             }
