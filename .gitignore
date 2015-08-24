@@ -1,4 +1,7 @@
 target
-.idea
+.idea/*
+!.idea/runConfigurations
+!.idea/runConfigurations/*
+!.idea/vcs.xml
 out
 *.iml
