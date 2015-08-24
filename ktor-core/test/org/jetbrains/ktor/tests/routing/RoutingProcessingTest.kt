@@ -65,7 +65,7 @@ class RoutingProcessingTest {
                 assertEquals(1, username.size())
             }
             it("should have extracted username") {
-                assertEquals("john", username.first())
+                assertEquals("john", username.single())
             }
         }
 

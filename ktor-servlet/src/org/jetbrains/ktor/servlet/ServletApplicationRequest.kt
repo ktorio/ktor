@@ -2,11 +2,7 @@ package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.interception.*
-import java.io.*
 import java.nio.charset.*
-import java.util.*
-import javax.servlet.*
 import javax.servlet.http.*
 
 public class ServletApplicationRequest(private val servletRequest: HttpServletRequest) : ApplicationRequest {
@@ -25,24 +21,25 @@ public class ServletApplicationRequest(private val servletRequest: HttpServletRe
             return servletRequest.inputStream.reader(charset).readText()
         }
 
-    override val parameters: Map<String, List<String>> by lazy {
-        val result = HashMap<String, MutableList<String>>()
-        val parametersMap = servletRequest.parameterMap
-        if (parametersMap != null) {
-            for ((key, values) in parametersMap) {
-                if (values != null) {
-                    result.getOrPut(key, { arrayListOf() }).addAll(values)
+    override val parameters: ValuesMap by lazy {
+        ValuesMap.build {
+            val parametersMap = servletRequest.parameterMap
+            if (parametersMap != null) {
+                for ((key, values) in parametersMap) {
+                    if (values != null) {
+                        appendAll(key, values.asList())
+                    }
                 }
             }
         }
-        result
     }
 
-    override val headers: Map<String, String> by lazy {
-        // TODO: consider doing the opposite, splitting headers by comma and making it String to List<String> map
-        servletRequest.headerNames.asSequence().toMap({ it }, {
-            servletRequest.getHeaders(it).asSequence().join(", ")
-        })
+    override val headers: ValuesMap by lazy {
+        ValuesMap.build {
+            servletRequest.headerNames.asSequence().forEach {
+                appendAll(it, servletRequest.getHeaders(it).toList())
+            }
+        }
     }
 
     override val attributes = Attributes()

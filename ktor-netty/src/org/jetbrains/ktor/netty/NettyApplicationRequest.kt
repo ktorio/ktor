@@ -8,7 +8,7 @@ import java.nio.charset.*
 
 class NettyApplicationRequest(val request: FullHttpRequest) : ApplicationRequest {
     override val headers by lazy {
-        request.headers().toMap({ it.key }, { it.value })
+        ValuesMap.build { request.headers().forEach { append(it.key, it.value) } }
     }
 
     override val requestLine: HttpRequestLine by lazy {
@@ -23,8 +23,12 @@ class NettyApplicationRequest(val request: FullHttpRequest) : ApplicationRequest
             return byteBuf.toString(charset)
         }
 
-    override val parameters: Map<String, List<String>> by lazy {
-        QueryStringDecoder(request.uri).parameters()
+    override val parameters: ValuesMap by lazy {
+        ValuesMap.build {
+            QueryStringDecoder(request.uri).parameters().forEach {
+                appendAll(it.key, it.value)
+            }
+        }
     }
 
 

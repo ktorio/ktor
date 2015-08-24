@@ -7,8 +7,8 @@ import org.jetbrains.ktor.interception.*
  */
 public interface ApplicationRequest {
     public val requestLine: HttpRequestLine
-    public val parameters: Map<String, List<String>>
-    public val headers: Map<String, String>
+    public val parameters: ValuesMap
+    public val headers: ValuesMap
     public val body: String
     public val attributes: Attributes
 }

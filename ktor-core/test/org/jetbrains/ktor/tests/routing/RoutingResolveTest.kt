@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.tests.routing
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.tests.*
 import org.junit.*
@@ -292,7 +293,7 @@ class RoutingResolveTest {
         val paramEntry = fooEntry.select(ParameterRoutingSelector("name"))
 
         on("resolving /foo with query string name=value") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo", mapOf("name" to listOf("value"))))
+            val resolveResult = root.resolve(RoutingResolveContext("/foo", valuesOf("name" to listOf("value"))))
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -320,7 +321,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo with multiple parameters") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo", mapOf("name" to listOf("value1", "value2"))))
+            val resolveResult = root.resolve(RoutingResolveContext("/foo", valuesOf("name" to listOf("value1", "value2"))))
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)

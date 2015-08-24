@@ -2,25 +2,11 @@ package org.jetbrains.ktor.routing
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.locations.*
-import java.util.*
 
 open class RoutingApplicationRequestContext(context: ApplicationRequestContext, val resolveResult: RoutingResolveResult)
 : ApplicationRequestContext by context {
-    val parameters: Map<String, List<String>>
-
-    init {
-        val result = HashMap<String, MutableList<String>>()
-        for ((key, values) in context.request.parameters) {
-            result.getOrPut(key, { arrayListOf() }).addAll(values)
-        }
-        for ((key, values) in resolveResult.values) {
-            if (!result.containsKey(key)) {
-                // HACK: should think about strategy of merging params and resolution values
-                result.getOrPut(key, { arrayListOf() }).addAll(values)
-            }
-        }
-        parameters = result
+    val parameters = ValuesMap.build {
+        appendAll(resolveResult.values)
     }
 }
 

@@ -1,8 +1,9 @@
 package org.jetbrains.ktor.routing
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 
-data class RouteSelectorEvaluation(val succeeded: Boolean, val values: Map<String, List<String>> = mapOf(), val segmentIncrement: Int = 0)
+data class RouteSelectorEvaluation(val succeeded: Boolean, val values: ValuesMap = ValuesMap.Empty, val segmentIncrement: Int = 0)
 
 interface RoutingSelector {
     fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation
@@ -10,8 +11,7 @@ interface RoutingSelector {
 
 data class ConstantParameterRoutingSelector(val name: String, val value: String) : RoutingSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
-        val param = context.parameters[name]
-        if (param != null && param.contains(value))
+        if (context.parameters.contains(name, value))
             return RouteSelectorEvaluation(true)
         return RouteSelectorEvaluation(false)
     }
@@ -21,7 +21,7 @@ data class ParameterRoutingSelector(val name: String) : RoutingSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         val param = context.parameters[name]
         if (param != null)
-            return RouteSelectorEvaluation(true, mapOf(name to param))
+            return RouteSelectorEvaluation(true, valuesOf(name to param))
         return RouteSelectorEvaluation(false)
     }
 }
@@ -30,7 +30,7 @@ data class OptionalParameterRoutingSelector(val name: String) : RoutingSelector 
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         val param = context.parameters[name]
         if (param != null)
-            return RouteSelectorEvaluation(true, mapOf(name to param))
+            return RouteSelectorEvaluation(true, valuesOf(name to param))
         return RouteSelectorEvaluation(true)
     }
 }
@@ -45,7 +45,7 @@ data class UriPartParameterRoutingSelector(val name: String) : RoutingSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         if (index < context.path.parts.size()) {
             val part = context.path.parts[index].value
-            return RouteSelectorEvaluation(true, mapOf(name to listOf(part)), segmentIncrement = 1)
+            return RouteSelectorEvaluation(true, valuesOf(name to listOf(part)), segmentIncrement = 1)
         }
         return RouteSelectorEvaluation(false)
     }
@@ -55,7 +55,7 @@ data class UriPartOptionalParameterRoutingSelector(val name: String) : RoutingSe
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         if (index < context.path.parts.size()) {
             val part = context.path.parts[index].value
-            return RouteSelectorEvaluation(true, mapOf(name to listOf(part)), segmentIncrement = 1)
+            return RouteSelectorEvaluation(true, valuesOf(name to listOf(part)), segmentIncrement = 1)
         }
         return RouteSelectorEvaluation(true)
     }
@@ -73,7 +73,7 @@ data class UriPartWildcardRoutingSelector() : RoutingSelector {
 data class UriPartTailcardRoutingSelector(val name: String = "") : RoutingSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         if (index <= context.path.parts.size()) {
-            val values = if (name.isEmpty()) mapOf() else mapOf(name to context.path.parts.drop(index).map { it.value })
+            val values = if (name.isEmpty()) valuesOf() else valuesOf(name to context.path.parts.drop(index).map { it.value })
             return RouteSelectorEvaluation(true, values, segmentIncrement = context.path.parts.size() - index)
         }
         return RouteSelectorEvaluation(false)
@@ -98,12 +98,9 @@ data class AndRoutingSelector(val first: RoutingSelector, val second: RoutingSel
         val result2 = second.evaluate(context, index + result1.segmentIncrement)
         if (!result2.succeeded)
             return result2
-        val resultValues = hashMapOf<String, MutableList<String>>()
-        for ((key, values) in result1.values) {
-            resultValues.getOrPut(key, { arrayListOf() }).addAll(values)
-        }
-        for ((key, values) in result2.values) {
-            resultValues.getOrPut(key, { arrayListOf() }).addAll(values)
+        val resultValues = ValuesMap.build {
+            appendAll(result1.values)
+            appendAll(result2.values)
         }
         return RouteSelectorEvaluation(true, resultValues, result1.segmentIncrement + result2.segmentIncrement)
     }
@@ -119,7 +116,7 @@ data class HttpMethodRoutingSelector(val method: HttpMethod) : RoutingSelector {
 
 data class HttpHeaderRoutingSelector(val name: String, val value: String) : RoutingSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
-        if (context.headers[name] == value)
+        if (context.headers.contains(name, value))
             return RouteSelectorEvaluation(true)
         return RouteSelectorEvaluation(false)
     }

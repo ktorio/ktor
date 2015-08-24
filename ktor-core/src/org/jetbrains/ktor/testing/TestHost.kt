@@ -5,6 +5,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import java.io.*
+import java.util.*
 import kotlin.reflect.*
 
 inline fun withApplication<reified T : Application>(noinline test: TestApplicationHost.() -> Unit) {
@@ -46,7 +47,7 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
 }
 
 class TestApplicationRequestContext(override val application: Application, override val request: TestApplicationRequest) : ApplicationRequestContext {
-    override val close = Interceptable0<Unit>{}
+    override val close = Interceptable0<Unit> {}
 
     override val response = TestApplicationResponse()
 }
@@ -68,11 +69,17 @@ class TestApplicationRequest() : ApplicationRequest {
 
     override var body: String = ""
 
-    override val parameters: Map<String, List<String>> get() {
+    override val parameters: ValuesMap get() {
         return queryParameters()
     }
 
-    override val headers = hashMapOf<String, String>()
+    private val headersMap = hashMapOf<String, ArrayList<String>>()
+    fun addHeader(name: String, value: String) {
+        headersMap.getOrPut(name, { arrayListOf() }).add(value)
+    }
+
+    override val headers = ValuesMap(headersMap)
+
     override val attributes = Attributes()
 }
 

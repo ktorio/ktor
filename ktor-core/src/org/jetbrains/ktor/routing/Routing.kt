@@ -21,17 +21,17 @@ class Routing() : RoutingEntry(parent = null) {
         application.intercept { next -> interceptor(next) }
     }
 
-    protected fun resolve(entry: RoutingEntry, request: RoutingResolveContext, segmentIndex: Int, current: RoutingResolveResult): RoutingResolveResult {
+    protected fun resolve(entry: RoutingEntry, request: RoutingResolveContext, segmentIndex: Int): RoutingResolveResult {
         var failEntry: RoutingEntry? = null
         for ((selector, child) in entry.children) {
             val result = selector.evaluate(request, segmentIndex)
             if (result.succeeded) {
-                for ((key, values) in result.values) {
-                    current.values.getOrPut(key, { arrayListOf() }).addAll(values)
-                }
-                val subtreeResult = resolve(child, request, segmentIndex + result.segmentIncrement, current)
+                val subtreeResult = resolve(child, request, segmentIndex + result.segmentIncrement)
                 if (subtreeResult.succeeded) {
-                    return subtreeResult
+                    return RoutingResolveResult(true, subtreeResult.entry, ValuesMap.build {
+                        appendAll(result.values)
+                        appendAll(subtreeResult.values)
+                    })
                 } else {
                     failEntry = subtreeResult.entry
                 }
@@ -39,13 +39,13 @@ class Routing() : RoutingEntry(parent = null) {
         }
 
         when (segmentIndex) {
-            request.path.parts.size() -> return RoutingResolveResult(true, entry, current.values)
-            else -> return RoutingResolveResult(false, failEntry ?: entry)
+            request.path.parts.size() -> return RoutingResolveResult(true, entry, ValuesMap.Empty)
+            else -> return RoutingResolveResult(false, failEntry ?: entry, ValuesMap.Empty)
         }
     }
 
     public fun resolve(request: RoutingResolveContext): RoutingResolveResult {
-        return resolve(this, request, 0, RoutingResolveResult(false, this, HashMap<String, MutableList<String>>()))
+        return resolve(this, request, 0)
     }
 
     private fun ApplicationRequestContext.interceptor(next: ApplicationRequestContext.() -> ApplicationRequestStatus): ApplicationRequestStatus {
