@@ -15,11 +15,11 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
          {"name":"root","items":[{"key":"A","value":"Apache"},{"key":"B","value":"Bing"}]}
      */
     init {
-        intercept { context, next ->
+        intercept { next ->
             when {
-                context.request.acceptEncoding()?.contains("deflate") ?: false -> {
-                    context.response.header("Content-Encoding", "deflate")
-                    context.response.interceptStream { content, stream ->
+                request.acceptEncoding()?.contains("deflate") ?: false -> {
+                    response.header("Content-Encoding", "deflate")
+                    response.interceptStream { content, stream ->
                         stream {
                             DeflaterOutputStream(this).apply {
                                 content()
@@ -30,18 +30,19 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
                 }
             }
 
-            next(context)
+            next()
         }
 
-        intercept { context, handler ->
-            if (context.request.accept() == "application/json") {
-                with(context.response) {
-                    interceptSend { value, send ->
-                        sendText(ContentType.Application.Json, GsonBuilder().create().toJson(value))
+        intercept { next ->
+            if (request.accept() == "application/json") {
+                    response.interceptSend { value, send ->
+                        if (value is Model)
+                            response.sendText(ContentType.Application.Json, GsonBuilder().create().toJson(value))
+                        else
+                            send(value)
                     }
-                }
             }
-            handler(context)
+            next()
         }
 
         routing {

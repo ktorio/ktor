@@ -31,8 +31,8 @@ public fun Application.routing(body: RoutingEntry.() -> Unit) {
 }
 
 fun Application.interceptRoute(routing: RoutingEntry) {
-    intercept { context, next ->
-        val resolveContext = RoutingResolveContext(context.request.requestLine, context.request.parameters, context.request.headers)
+    intercept { next ->
+        val resolveContext = RoutingResolveContext(request.requestLine, request.parameters, request.headers)
         val resolveResult = routing.resolve(resolveContext)
         when {
             resolveResult.succeeded -> {
@@ -43,9 +43,9 @@ fun Application.interceptRoute(routing: RoutingEntry) {
                 }
                 val handlers = resolveResult.entry.interceptors.filter { it.leafOnly }
                 chain.addAll(handlers)
-                processChain(chain, RoutingApplicationRequestContext(context, resolveResult))
+                processChain(chain, RoutingApplicationRequestContext(this, resolveResult))
             }
-            else -> next(context)
+            else -> next()
         }
     }
 }

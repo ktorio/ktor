@@ -9,7 +9,7 @@ public open class Application(val config: ApplicationConfig) {
         ApplicationRequestStatus.Unhandled
     }
 
-    public fun intercept(interceptor: (ApplicationRequestContext, (ApplicationRequestContext) -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
+    public fun intercept(interceptor: ApplicationRequestContext.(ApplicationRequestContext.() -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
         handler.intercept(interceptor)
     }
 

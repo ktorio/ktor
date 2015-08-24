@@ -20,7 +20,7 @@ class HandlerTest {
 
     Test fun `application with transparent handler`() {
         val testHost = createTestHost()
-        testHost.application.intercept { context, next -> next(context) }
+        testHost.application.intercept { next -> next() }
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should not be handled") {
@@ -31,7 +31,7 @@ class HandlerTest {
 
     Test fun `application with handler returning true`() {
         val testHost = createTestHost()
-        testHost.application.intercept { context, next -> ApplicationRequestStatus.Handled }
+        testHost.application.intercept { next -> ApplicationRequestStatus.Handled }
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should be handled") {
@@ -42,7 +42,7 @@ class HandlerTest {
 
     Test fun `application with handler that returns a valid response`() {
         val testHost = createTestHost()
-        testHost.application.intercept { context, next -> ApplicationRequestStatus.Handled }
+        testHost.application.intercept { next -> ApplicationRequestStatus.Handled }
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should be handled") {
@@ -52,10 +52,10 @@ class HandlerTest {
     }
 
     Test fun `application with handler that checks body on POST method`() = withTestApplication {
-        application.intercept { context, next ->
-            if (context.request.httpMethod == HttpMethod.Post) {
-                assertEquals(context.request.body, "Body")
-                context.response.status(HttpStatusCode.OK)
+        application.intercept { next ->
+            if (request.httpMethod == HttpMethod.Post) {
+                assertEquals(request.body, "Body")
+                response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
 
             } else
@@ -69,9 +69,9 @@ class HandlerTest {
     }
 
     Test fun `application with handler that returns true on POST method`() = withTestApplication {
-        application.intercept { context, next ->
-            if (context.request.httpMethod == HttpMethod.Post) {
-                context.response.status(HttpStatusCode.OK)
+        application.intercept { next ->
+            if (request.httpMethod == HttpMethod.Post) {
+                response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
             } else
                 ApplicationRequestStatus.Unhandled
@@ -91,19 +91,19 @@ class HandlerTest {
     }
 
     Test fun `application with handler that intercepts creation of headers`() = withTestApplication {
-        application.intercept { context, handler ->
-            context.response.interceptHeader { name, value, header ->
+        application.intercept { handler ->
+            response.interceptHeader { name, value, header ->
                 if (name == "Content-Type" && value == "text/plain")
                     header(name, "text/xml")
                 else
                     header(name, value)
             }
-            handler(context)
+            handler()
         }
 
         on("asking for a response") {
-            application.intercept { request, next ->
-                request.response.contentType(ContentType.Text.Plain)
+            application.intercept { next ->
+                response.contentType(ContentType.Text.Plain)
                 ApplicationRequestStatus.Asynchronous
 
             }
