@@ -11,7 +11,11 @@ import javax.servlet.http.*
 
 public class ServletApplicationRequest(private val servletRequest: HttpServletRequest) : ApplicationRequest {
     override val requestLine: HttpRequestLine by lazy {
-        HttpRequestLine(HttpMethod.parse(servletRequest.method), servletRequest.requestURI, servletRequest.protocol)
+        val uri = servletRequest.requestURI
+        val query = servletRequest.queryString
+        HttpRequestLine(HttpMethod.parse(servletRequest.method),
+                        if (query == null) uri else "$uri?$query",
+                        servletRequest.protocol)
     }
 
     override val body: String
