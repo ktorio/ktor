@@ -30,7 +30,7 @@ public open class ComponentApplication(config: ApplicationConfig) : Application(
         }
         config.log.info("Composition took $compositionTime ms")
 
-        interceptRoute(routing)
+        routing.installInto(this)
     }
 }
 

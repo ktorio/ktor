@@ -14,7 +14,7 @@ val locationServiceKey = Routing.Key<LocationService>("LocationService")
 public fun Application.locations(body: Routing.() -> Unit) {
     val routing = Routing()
     routing.withLocations(Locations, body)
-    interceptRoute(routing)
+    routing.installInto(this)
 }
 
 public fun Routing.withLocations(locations: LocationService, body: Routing.() -> Unit) {
