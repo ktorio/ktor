@@ -4,21 +4,18 @@ import kotlinx.html.*
 import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.jobs.*
 import org.jetbrains.ktor.routing.*
 import java.util.*
+import java.util.concurrent.*
 import kotlin.util.*
 
 class AsyncApplication(config: ApplicationConfig) : Application(config) {
-    val jobService = ExecutorJobService(config.log)
+    val executor: ScheduledExecutorService by lazy { Executors.newScheduledThreadPool(4) }
 
     init {
         routing {
             get("/") {
-                jobService.async("Respond async task") {
-                    handleLongCalculation()
-
-                }
+                executor.submit { handleLongCalculation() }
                 ApplicationRequestStatus.Asynchronous
             }
             get("/bye") {
