@@ -2,6 +2,7 @@ package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.http.cookies.*
 import javax.servlet.http.*
 
 public class ServletApplicationRequest(private val servletRequest: HttpServletRequest) : ApplicationRequest {
@@ -38,4 +39,9 @@ public class ServletApplicationRequest(private val servletRequest: HttpServletRe
     }
 
     override val attributes = Attributes()
+    override val cookies = ServletRequestCookies(servletRequest, this)
+}
+
+public class ServletRequestCookies(val servletRequest: HttpServletRequest, request: ApplicationRequest) : RequestCookies(request) {
+    override val parsedRawCookies: Map<String, String> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { servletRequest.cookies?.toMap({ it.name }, { it.value }) ?: emptyMap() }
 }
