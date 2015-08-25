@@ -2,6 +2,8 @@ package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.http.cookies.*
+import org.jetbrains.ktor.http.cookies.Cookie
 import org.jetbrains.ktor.interception.*
 import java.io.*
 import javax.servlet.http.*
@@ -11,6 +13,9 @@ public class ServletApplicationResponse(private val servletResponse: HttpServlet
     private val status = Interceptable1<HttpStatusCode, Unit> { code ->
         _status = code
         servletResponse.status = code.value
+    }
+    private val cookies = Interceptable1<Cookie, Unit> { cookie ->
+        header("Set-Cookie", renderSetCookieHeader(cookie))
     }
 
     override val headers: ResponseHeaders = object: ResponseHeaders() {
@@ -25,6 +30,9 @@ public class ServletApplicationResponse(private val servletResponse: HttpServlet
     public override fun status(): HttpStatusCode? = _status
     public override fun status(value: HttpStatusCode) = status.call(value)
     public override fun interceptStatus(handler: (HttpStatusCode, (HttpStatusCode) -> Unit) -> Unit) = status.intercept(handler)
+
+    override fun cookie(item: Cookie) = cookies.call(item)
+    override fun interceptCookie(handler: (Cookie, (Cookie) -> Unit) -> Unit) = cookies.intercept(handler)
 
     private val send = Interceptable1<Any, ApplicationRequestStatus> { value ->
         throw UnsupportedOperationException("No known way to stream value $value")
