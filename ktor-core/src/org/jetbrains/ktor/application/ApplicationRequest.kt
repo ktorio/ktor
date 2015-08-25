@@ -10,4 +10,5 @@ public interface ApplicationRequest {
     public val parameters: Map<String, List<String>>
     public val headers: Map<String, String>
     public val body: String
+    public val attributes: Attributes
 }

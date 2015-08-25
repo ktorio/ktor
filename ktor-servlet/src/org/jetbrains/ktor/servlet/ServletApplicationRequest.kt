@@ -44,4 +44,6 @@ public class ServletApplicationRequest(private val servletRequest: HttpServletRe
             servletRequest.getHeaders(it).asSequence().join(", ")
         })
     }
+
+    override val attributes = Attributes()
 }
