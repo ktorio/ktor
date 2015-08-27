@@ -18,7 +18,7 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
         intercept { next ->
             when {
                 request.acceptEncoding()?.contains("deflate") ?: false -> {
-                    response.header("Content-Encoding", "deflate")
+                    response.header(HttpHeaders.ContentEncoding, "deflate")
                     response.interceptStream { content, stream ->
                         stream {
                             DeflaterOutputStream(this).apply {
@@ -35,12 +35,12 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
 
         intercept { next ->
             if (request.accept() == "application/json") {
-                    response.interceptSend { value, send ->
-                        if (value is Model)
-                            response.sendText(ContentType.Application.Json, GsonBuilder().create().toJson(value))
-                        else
-                            send(value)
-                    }
+                response.interceptSend { value, send ->
+                    if (value is Model)
+                        response.sendText(ContentType.Application.Json, GsonBuilder().create().toJson(value))
+                    else
+                        send(value)
+                }
             }
             next()
         }
