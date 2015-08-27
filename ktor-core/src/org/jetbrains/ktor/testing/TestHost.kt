@@ -73,6 +73,7 @@ class TestApplicationRequest() : ApplicationRequest {
     }
 
     override val headers = hashMapOf<String, String>()
+    override val attributes = Attributes()
 }
 
 class TestApplicationResponse : ApplicationResponse {

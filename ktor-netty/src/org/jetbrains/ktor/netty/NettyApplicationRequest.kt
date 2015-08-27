@@ -26,4 +26,7 @@ class NettyApplicationRequest(val request: FullHttpRequest) : ApplicationRequest
     override val parameters: Map<String, List<String>> by lazy {
         QueryStringDecoder(request.uri).parameters()
     }
+
+
+    override val attributes = Attributes()
 }
