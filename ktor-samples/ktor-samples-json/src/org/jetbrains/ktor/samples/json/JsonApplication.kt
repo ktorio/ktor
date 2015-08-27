@@ -13,6 +13,9 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
     /*
          > curl -v --compress --header "Accept: application/json" http://localhost:8080/v1
          {"name":"root","items":[{"key":"A","value":"Apache"},{"key":"B","value":"Bing"}]}
+
+         > curl -v --compress --header "Accept: application/json" http://localhost:8080/v1/item/A
+         {"key":"A","value":"Apache"}
      */
     init {
         intercept { next ->
@@ -36,18 +39,19 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
         intercept { next ->
             if (request.accept() == "application/json") {
                 response.interceptSend { value, send ->
-                    if (value is Model)
-                        response.sendText(ContentType.Application.Json, GsonBuilder().create().toJson(value))
-                    else
-                        send(value)
+                    response.sendText(ContentType.Application.Json, GsonBuilder().create().toJson(value))
                 }
             }
             next()
         }
 
+        val model = Model("root", listOf(Item("A", "Apache"), Item("B", "Bing")))
         routing {
             get("/v1") {
-                response.send(Model("root", listOf(Item("A", "Apache"), Item("B", "Bing"))))
+                response.send(model)
+            }
+            get("/v1/item/{key}") {
+                response.send(model.items.first { it.key == parameters["key"]?.singleOrNull() })
             }
         }
     }
