@@ -88,20 +88,20 @@ public fun StorageComponentContainer.registerInstance(instance: Any): StorageCom
     return registerDescriptors(listOf(InstanceDescriptor(instance)))
 }
 
-public inline fun <reified T> StorageComponentContainer.register(lifetime: ComponentLifetime = ComponentLifetime.Singleton): StorageComponentContainer =
+public inline fun <reified T : Any> StorageComponentContainer.register(lifetime: ComponentLifetime = ComponentLifetime.Singleton): StorageComponentContainer =
         if (lifetime == ComponentLifetime.Singleton) registerSingleton<T>()
         else if (lifetime == ComponentLifetime.Transient) registerTransient<T>()
         else throw IllegalArgumentException("Unknown lifetime: $lifetime}")
 
-public inline fun <reified T> StorageComponentContainer.registerSingleton(): StorageComponentContainer {
+public inline fun <reified T : Any> StorageComponentContainer.registerSingleton(): StorageComponentContainer {
     return registerDescriptors(listOf(SingletonDescriptor(this, javaClass<T>())))
 }
 
-public inline fun <reified T>  StorageComponentContainer.registerTransient(): StorageComponentContainer {
+public inline fun <reified T : Any>  StorageComponentContainer.registerTransient(): StorageComponentContainer {
     return registerDescriptors(listOf(TransientDescriptor(this, javaClass<T>())))
 }
 
-public inline fun <reified T> StorageComponentContainer.resolve(context: ValueResolveContext = unknownContext): ValueDescriptor? {
+public inline fun <reified T : Any> StorageComponentContainer.resolve(context: ValueResolveContext = unknownContext): ValueDescriptor? {
     return resolve(javaClass<T>(), context)
 }
 
@@ -115,7 +115,7 @@ public inline fun <reified T : Any> StorageComponentContainer.getComponent(conte
     return descriptor.getValue() as T
 }
 
-public inline fun <reified T> StorageComponentContainer.resolveMultiple(context: ValueResolveContext = unknownContext): Iterable<ValueDescriptor> {
+public inline fun <reified T : Any> StorageComponentContainer.resolveMultiple(context: ValueResolveContext = unknownContext): Iterable<ValueDescriptor> {
     return resolveMultiple(javaClass<T>(), context)
 }
 
@@ -124,7 +124,7 @@ fun ComponentContainer.createInstance(klass: Class<*>): Any {
     return klass.bindToConstructor(context).createInstance()
 }
 
-inline fun ComponentContainer.createInstance<reified T>(): T {
+inline fun <reified T : Any> ComponentContainer.createInstance(): T {
     val context = createResolveContext(DynamicComponentDescriptor)
     return javaClass<T>().bindToConstructor(context).createInstance() as T
 }

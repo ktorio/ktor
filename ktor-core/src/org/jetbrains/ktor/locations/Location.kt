@@ -34,17 +34,17 @@ inline fun RoutingEntry.get<reified T : Any>(noinline body: ApplicationRequestCo
     }
 }
 
-fun RoutingEntry.location<T>(data: KClass<T>, body: RoutingEntry.() -> Unit) {
+fun <T : Any> RoutingEntry.location(data: KClass<T>, body: RoutingEntry.() -> Unit) {
     val locationService = getService(locationServiceKey)
     val entry = locationService.createEntry(this, data)
     entry.body()
 }
 
-inline fun <reified T> RoutingEntry.handle(noinline body: RoutingApplicationRequestContext.(T) -> ApplicationRequestStatus) {
+inline fun <reified T : Any> RoutingEntry.handle(noinline body: RoutingApplicationRequestContext.(T) -> ApplicationRequestStatus) {
     return handle(T::class, body)
 }
 
-fun <T> RoutingEntry.handle(dataClass: KClass<T>, body: RoutingApplicationRequestContext.(T) -> ApplicationRequestStatus) {
+fun <T : Any> RoutingEntry.handle(dataClass: KClass<T>, body: RoutingApplicationRequestContext.(T) -> ApplicationRequestStatus) {
     addHandler {
         val locationService = getService(locationServiceKey)
         val location = locationService.resolve<T>(dataClass, it)
@@ -52,7 +52,7 @@ fun <T> RoutingEntry.handle(dataClass: KClass<T>, body: RoutingApplicationReques
     }
 }
 
-fun <T> RoutingApplicationRequestContext.sendRedirect(location: T): ApplicationRequestStatus {
+fun <T : Any> RoutingApplicationRequestContext.sendRedirect(location: T): ApplicationRequestStatus {
     val locationService = resolveResult.entry.getService(locationServiceKey)
     return sendRedirect(locationService.href(location))
 }

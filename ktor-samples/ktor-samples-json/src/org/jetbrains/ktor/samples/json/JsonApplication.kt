@@ -19,15 +19,13 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
      */
     init {
         intercept { next ->
-            when {
-                request.acceptEncoding()?.contains("deflate") ?: false -> {
-                    response.header(HttpHeaders.ContentEncoding, "deflate")
-                    response.interceptStream { content, stream ->
-                        stream {
-                            DeflaterOutputStream(this).apply {
-                                content()
-                                close()
-                            }
+            if (request.acceptEncoding()?.contains("deflate") ?: false) {
+                response.header(HttpHeaders.ContentEncoding, "deflate")
+                response.interceptStream { content, stream ->
+                    stream {
+                        DeflaterOutputStream(this).apply {
+                            content()
+                            close()
                         }
                     }
                 }

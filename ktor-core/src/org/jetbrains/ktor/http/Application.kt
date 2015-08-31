@@ -27,6 +27,10 @@ fun ApplicationResponse.sendError(code: Int, message: String): ApplicationReques
     return ApplicationRequestStatus.Handled
 }
 
+fun ApplicationResponse.sendError(code: HttpStatusCode, message: String = code.description): ApplicationRequestStatus {
+    return sendError(code.value, message)
+}
+
 fun ApplicationResponse.sendAuthenticationRequest(realm: String): ApplicationRequestStatus {
     status(HttpStatusCode.Unauthorized)
     header(HttpHeaders.WWWAuthenticate, "Basic realm=\"$realm\"")
