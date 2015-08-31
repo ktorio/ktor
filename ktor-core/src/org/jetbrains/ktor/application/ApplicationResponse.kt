@@ -9,9 +9,9 @@ public interface ApplicationResponse {
     public fun header(name: String, value: String)
     public fun interceptHeader(handler: (name: String, value: String, next: (name: String, value: String) -> Unit) -> Unit)
 
-    public fun status(): Int?
-    public fun status(value: Int)
-    public fun interceptStatus(handler: (value: Int, next: (value: Int) -> Unit) -> Unit)
+    public fun status(): HttpStatusCode?
+    public fun status(value: HttpStatusCode)
+    public fun interceptStatus(handler: (value: HttpStatusCode, next: (value: HttpStatusCode) -> Unit) -> Unit)
 
     public fun stream(body: OutputStream.() -> Unit): Unit
     public fun interceptStream(handler: (body: OutputStream.() -> Unit, next: (body: OutputStream.() -> Unit) -> Unit) -> Unit)

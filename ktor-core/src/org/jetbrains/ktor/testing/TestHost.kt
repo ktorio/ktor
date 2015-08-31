@@ -86,10 +86,10 @@ class TestApplicationRequest() : ApplicationRequest {
 class TestApplicationResponse : ApplicationResponse {
 
     private val headers = hashMapOf<String, String>()
-    private var statusCode: Int? = null
+    private var statusCode: HttpStatusCode? = null
 
     private val header = Interceptable2<String, String, Unit> { name, value -> headers.put(name, value) }
-    private val status = Interceptable1<Int, Unit> { code -> this.statusCode = code }
+    private val status = Interceptable1<HttpStatusCode, Unit> { code -> this.statusCode = code }
     private val stream = Interceptable1<OutputStream.() -> Unit, Unit> { body ->
         val stream = ByteArrayOutputStream()
         stream.body()
@@ -104,9 +104,9 @@ class TestApplicationResponse : ApplicationResponse {
     public override fun header(name: String, value: String) = header.call(name, value)
     public override fun interceptHeader(handler: (String, String, (String, String) -> Unit) -> Unit) = header.intercept(handler)
 
-    public override fun status(): Int? = statusCode
-    public override fun status(value: Int) = status.call(value)
-    public override fun interceptStatus(handler: (Int, (Int) -> Unit) -> Unit) = status.intercept(handler)
+    public override fun status(): HttpStatusCode? = statusCode
+    public override fun status(value: HttpStatusCode) = status.call(value)
+    public override fun interceptStatus(handler: (HttpStatusCode, (HttpStatusCode) -> Unit) -> Unit) = status.intercept(handler)
 
     public var content: String? = null
 

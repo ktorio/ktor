@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import java.io.*
 import javax.servlet.http.*
@@ -9,17 +10,20 @@ public class ServletApplicationResponse(private val servletResponse: HttpServlet
     private val header = Interceptable2<String, String, Unit> { name, value ->
         servletResponse.setHeader(name, value)
     }
-    private val status = Interceptable1<Int, Unit> { code ->
-        servletResponse.status = code
+
+    var _status: HttpStatusCode? = null
+    private val status = Interceptable1<HttpStatusCode, Unit> { code ->
+        _status = code
+        servletResponse.status = code.value
     }
 
     public override fun header(name: String): String = servletResponse.getHeader(name)
     public override fun header(name: String, value: String) = header.call(name, value)
     public override fun interceptHeader(handler: (String, String, (String, String) -> Unit) -> Unit) = header.intercept(handler)
 
-    public override fun status(): Int? = servletResponse.status
-    public override fun status(value: Int) = status.call(value)
-    public override fun interceptStatus(handler: (Int, (Int) -> Unit) -> Unit) = status.intercept(handler)
+    public override fun status(): HttpStatusCode? = _status
+    public override fun status(value: HttpStatusCode) = status.call(value)
+    public override fun interceptStatus(handler: (HttpStatusCode, (HttpStatusCode) -> Unit) -> Unit) = status.intercept(handler)
 
     private val send = Interceptable1<Any, ApplicationRequestStatus> { value ->
         throw UnsupportedOperationException("No known way to stream value $value")

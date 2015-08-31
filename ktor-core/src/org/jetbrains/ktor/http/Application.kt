@@ -9,7 +9,6 @@ val ApplicationRequest.httpVersion: String get() = requestLine.version
 fun ApplicationRequest.header(name: String): String? = headers[name]?.singleOrNull()
 fun ApplicationRequest.parameter(name: String): String? = parameters[name]?.singleOrNull()
 
-fun ApplicationResponse.status(code: HttpStatusCode) = status(code.value)
 fun ApplicationResponse.contentType(value: ContentType) = contentType(value.toString())
 fun ApplicationResponse.contentType(value: String) = header(HttpHeaders.ContentType, value)
 fun ApplicationResponse.header(name: String, value: Int) = header(name, value.toString())
@@ -21,14 +20,10 @@ fun ApplicationResponse.sendRedirect(url: String, permanent: Boolean = false): A
     return ApplicationRequestStatus.Handled
 }
 
-fun ApplicationResponse.sendError(code: Int, message: String): ApplicationRequestStatus {
+fun ApplicationResponse.sendError(code: HttpStatusCode, message: String = code.description): ApplicationRequestStatus {
     status(code)
     streamText(message)
     return ApplicationRequestStatus.Handled
-}
-
-fun ApplicationResponse.sendError(code: HttpStatusCode, message: String = code.description): ApplicationRequestStatus {
-    return sendError(code.value, message)
 }
 
 fun ApplicationResponse.sendAuthenticationRequest(realm: String): ApplicationRequestStatus {

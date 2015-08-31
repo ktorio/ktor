@@ -10,7 +10,7 @@ import kotlin.test.*
 public class ApplicationTest {
     Test fun testRequest() = withApplication<TestableApplication> {
         with (handleRequest(HttpMethod.Get, "/")) {
-            assertEquals(HttpStatusCode.OK.value, response.status())
+            assertEquals(HttpStatusCode.OK, response.status())
             assertEquals("Test String", response.content)
         }
         with (handleRequest(HttpMethod.Get, "/index.html")) {

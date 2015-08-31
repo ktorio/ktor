@@ -34,7 +34,7 @@ class ApplicationRequestHeaderTest {
             }.response.status()
 
             it("should handle request") {
-                assertEquals(HttpStatusCode.OK.value, status)
+                assertEquals(HttpStatusCode.OK, status)
             }
         }
     }
@@ -87,7 +87,7 @@ class ApplicationRequestHeaderTest {
             }.response.status()
 
             it("should handle request") {
-                assertEquals(HttpStatusCode.OK.value, status)
+                assertEquals(HttpStatusCode.OK, status)
             }
 
             val status2 = handleRequest {
@@ -97,7 +97,7 @@ class ApplicationRequestHeaderTest {
             }.response.status()
 
             it("should handle second request") {
-                assertEquals(HttpStatusCode.OK.value, status2)
+                assertEquals(HttpStatusCode.OK, status2)
             }
         }
     }
@@ -134,7 +134,7 @@ class ApplicationRequestHeaderTest {
             }.response.status()
 
             it("should handle request") {
-                assertEquals(HttpStatusCode.OK.value, status)
+                assertEquals(HttpStatusCode.OK, status)
             }
         }
     }
