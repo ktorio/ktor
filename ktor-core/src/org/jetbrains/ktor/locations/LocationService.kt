@@ -21,20 +21,20 @@ open public class LocationService(val conversionService: ConversionService) {
                                     val queryParameters: List<LocationInfoProperty>)
 
     fun LocationInfo.create(request: RoutingApplicationRequestContext): Any {
-        val constructor = klass.constructors.single()
+        val constructor: KFunction<Any> = klass.primaryConstructor ?: klass.constructors.single()
         val parameters = constructor.parameters
-        val args = Array(parameters.size()) { index ->
-            val parameter = parameters[index]
+        val arguments = parameters.map { parameter ->
             val parameterType = parameter.type
-            val javaParameterType = parameterType.javaType
             val parameterName = parameter.name ?: getParameterNameFromAnnotation(parameter)
-            if (parent != null && parameterType.javaType === parent.klass.java) {
+            val value: Any? = if (parent != null && parameterType == parent.klass.defaultType) {
                 parent.create(request)
             } else {
-                conversionService.fromContext(request, parameterName, javaParameterType, parameterType.isMarkedNullable)
+                conversionService.fromContext(request, parameterName, parameterType.javaType, parameter.isOptional)
             }
-        }
-        return constructor.call(*args)
+            parameter to value
+        }.filterNot { it.first.isOptional && it.second == null }.toMap()
+
+        return constructor.callBy(arguments)
     }
 
     private fun getParameterNameFromAnnotation(parameter: KParameter): String = TODO()
@@ -52,22 +52,24 @@ open public class LocationService(val conversionService: ConversionService) {
     private fun getOrCreateInfo(dataClass: KClass<*>): LocationInfo {
         return info.getOrPut(dataClass) {
             val parentClass = dataClass.java.enclosingClass?.kotlin
-            val parentAnnotation = parentClass?.annotation<location>()
-            val parent = parentAnnotation?.let {
+            val parent = parentClass?.annotation<location>()?.let {
                 getOrCreateInfo(parentClass!!)
             }
 
-            val path = dataClass.annotation<location>()?.let {
-                it.path
-            } ?: ""
+            val path = dataClass.annotation<location>()?.let { it.path } ?: ""
 
-            // TODO: use primary ctor parameters
-            val declaredProperties = dataClass.memberProperties.map {
-                LocationInfoProperty(it.name, (it as KProperty1<out Any?, *>).getter, it.returnType.isMarkedNullable)
+            val constructor: KFunction<Any> = dataClass.primaryConstructor ?: dataClass.constructors.single()
+
+            val declaredProperties = constructor.parameters.map { parameter ->
+                val property = dataClass.declaredMemberProperties.singleOrNull { property -> property.name == parameter.name }
+                if (property == null) {
+                    throw InconsistentRoutingException("Parameter ${parameter.name} of constructor for class ${dataClass.qualifiedName} should have corresponding property")
+                }
+                LocationInfoProperty(parameter.name ?: "<unnamed>", (property as KProperty1<out Any?, *>).getter, parameter.isOptional)
             }
 
             val parentParameter = declaredProperties.firstOrNull {
-                it.getter.returnType.javaType === parentClass?.java
+                it.getter.returnType == parentClass?.defaultType
             }
 
             if (parent != null && parentParameter == null) {

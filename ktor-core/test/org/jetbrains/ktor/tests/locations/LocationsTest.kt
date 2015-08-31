@@ -131,7 +131,7 @@ class LocationsTest {
 
     @location("/container") data class optionalName(val id: Int, val optional: String? = null)
 
-    Test fun `location with missing optional query parameter`() {
+    Test fun `location with missing optional String parameter`() {
         val href = Locations.href(optionalName(123))
         assertEquals("/container?id=123", href)
         val testHost = createTestHost()
@@ -144,6 +144,26 @@ class LocationsTest {
             }
         }
         urlShouldBeHandled(testHost, href)
+        urlShouldBeUnhandled(testHost, "/container")
+        urlShouldBeUnhandled(testHost, "/container/123")
+    }
+
+
+    @location("/container") data class optionalIndex(val id: Int, val optional: Int = 42)
+
+    Test fun `location with missing optional Int parameter`() {
+        val href = Locations.href(optionalIndex(123))
+        //assertEquals("/container?id=123", href)
+        val testHost = createTestHost()
+        testHost.application.locations {
+            get<optionalIndex> {
+                assertEquals(123, it.id)
+                assertEquals(42, it.optional)
+                response.status(HttpStatusCode.OK)
+                ApplicationRequestStatus.Handled
+            }
+        }
+        urlShouldBeHandled(testHost, "/container?id=123")
         urlShouldBeUnhandled(testHost, "/container")
         urlShouldBeUnhandled(testHost, "/container/123")
     }

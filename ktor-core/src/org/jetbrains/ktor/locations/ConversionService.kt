@@ -3,7 +3,6 @@ package org.jetbrains.ktor.locations
 import org.jetbrains.ktor.routing.*
 import java.lang
 import java.lang.reflect.*
-import kotlin.reflect.jvm.*
 
 public interface ConversionService {
     fun fromContext(context: RoutingApplicationRequestContext, name: String, type: Type, optional: Boolean): Any?
