@@ -8,7 +8,6 @@ import org.jetbrains.ktor.interception.*
 import java.io.*
 
 public class NettyApplicationResponse(val response: FullHttpResponse) : ApplicationResponse {
-    private val header = Interceptable2<String, String, Unit> { name, value -> response.headers().set(name, value) }
     private val status = Interceptable1<HttpStatusCode, Unit> {
         status ->
         response.setStatus(HttpResponseStatus(status.value, status.description))
@@ -23,9 +22,14 @@ public class NettyApplicationResponse(val response: FullHttpResponse) : Applicat
         ApplicationRequestStatus.Handled
     }
 
-    public override fun header(name: String): String? = response.headers().get(name)
-    public override fun header(name: String, value: String) = header.call(name, value)
-    public override fun interceptHeader(handler: (String, String, (String, String) -> Unit) -> Unit) = header.intercept(handler)
+    override val headers: ResponseHeaders = object: ResponseHeaders() {
+        override fun hostAppendHeader(name: String, value: String) {
+            response.headers().add(name, value)
+        }
+
+        override fun getHostHeaderNames(): List<String> = response.headers().map { it.key }
+        override fun getHostHeaderValues(name: String): List<String> = response.headers().getAll(name) ?: emptyList()
+    }
 
     public override fun status(): HttpStatusCode? = response.status?.let { HttpStatusCode(it.code(), it.reasonPhrase()) }
     public override fun status(value: HttpStatusCode) = status.call(value)

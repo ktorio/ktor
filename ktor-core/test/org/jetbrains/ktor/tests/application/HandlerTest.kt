@@ -92,7 +92,7 @@ class HandlerTest {
 
     Test fun `application with handler that intercepts creation of headers`() = withTestApplication {
         application.intercept { handler ->
-            response.interceptHeader { name, value, header ->
+            response.headers.intercept { name, value, header ->
                 if (name == "Content-Type" && value == "text/plain")
                     header(name, "text/xml")
                 else
@@ -112,7 +112,7 @@ class HandlerTest {
                     assertEquals(ApplicationRequestStatus.Asynchronous, it.requestResult)
                 }
                 it("should have modified content type to text/xml") {
-                    assertEquals("text/xml", it.response.header("Content-Type"))
+                    assertEquals("text/xml", it.response.headers["Content-Type"])
                 }
             }
         }

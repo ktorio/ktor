@@ -84,11 +84,8 @@ class TestApplicationRequest() : ApplicationRequest {
 }
 
 class TestApplicationResponse : ApplicationResponse {
-
-    private val headers = hashMapOf<String, String>()
     private var statusCode: HttpStatusCode? = null
 
-    private val header = Interceptable2<String, String, Unit> { name, value -> headers.put(name, value) }
     private val status = Interceptable1<HttpStatusCode, Unit> { code -> this.statusCode = code }
     private val stream = Interceptable1<OutputStream.() -> Unit, Unit> { body ->
         val stream = ByteArrayOutputStream()
@@ -100,9 +97,16 @@ class TestApplicationResponse : ApplicationResponse {
         throw UnsupportedOperationException("No known way to stream value $value")
     }
 
-    public override fun header(name: String): String? = headers.get(name)
-    public override fun header(name: String, value: String) = header.call(name, value)
-    public override fun interceptHeader(handler: (String, String, (String, String) -> Unit) -> Unit) = header.intercept(handler)
+    override val headers: ResponseHeaders = object: ResponseHeaders() {
+        private val headersMap = HashMap<String, MutableList<String>>()
+
+        override fun hostAppendHeader(name: String, value: String) {
+            headersMap.getOrPut(name) { ArrayList() }.add(value)
+        }
+
+        override fun getHostHeaderNames(): List<String> = headersMap.keySet().toList()
+        override fun getHostHeaderValues(name: String): List<String> = headersMap[name] ?: emptyList()
+    }
 
     public override fun status(): HttpStatusCode? = statusCode
     public override fun status(value: HttpStatusCode) = status.call(value)
