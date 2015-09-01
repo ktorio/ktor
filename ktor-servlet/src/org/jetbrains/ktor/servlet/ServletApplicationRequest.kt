@@ -2,7 +2,6 @@ package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
-import java.nio.charset.*
 import javax.servlet.http.*
 
 public class ServletApplicationRequest(private val servletRequest: HttpServletRequest) : ApplicationRequest {
@@ -15,11 +14,7 @@ public class ServletApplicationRequest(private val servletRequest: HttpServletRe
     }
 
     override val body: String
-        get() {
-            val charsetName = contentType().parameter("charset")
-            val charset = charsetName?.let { Charset.forName(it) } ?: Charsets.ISO_8859_1
-            return servletRequest.inputStream.reader(charset).readText()
-        }
+        get() = servletRequest.inputStream.reader(contentCharset ?: Charsets.ISO_8859_1).readText()
 
     override val parameters: ValuesMap by lazy {
         ValuesMap.build {
