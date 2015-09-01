@@ -4,7 +4,6 @@ import io.netty.handler.codec.http.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpMethod
-import java.nio.charset.*
 
 class NettyApplicationRequest(val request: FullHttpRequest) : ApplicationRequest {
     override val headers by lazy {
@@ -18,9 +17,7 @@ class NettyApplicationRequest(val request: FullHttpRequest) : ApplicationRequest
     override val body: String
         get() {
             val byteBuf = request.content()
-            val charsetName = contentType().parameter("charset")
-            val charset = charsetName?.let { Charset.forName(it) } ?: Charsets.ISO_8859_1
-            return byteBuf.toString(charset)
+            return byteBuf.toString(contentCharset ?: Charsets.ISO_8859_1)
         }
 
     override val parameters: ValuesMap by lazy {
