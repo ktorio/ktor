@@ -14,9 +14,6 @@ public class ServletApplicationResponse(private val servletResponse: HttpServlet
         _status = code
         servletResponse.status = code.value
     }
-    private val cookies = Interceptable1<Cookie, Unit> { cookie ->
-        header("Set-Cookie", renderSetCookieHeader(cookie))
-    }
 
     override val headers: ResponseHeaders = object: ResponseHeaders() {
         override fun hostAppendHeader(name: String, value: String) {
@@ -30,9 +27,6 @@ public class ServletApplicationResponse(private val servletResponse: HttpServlet
     public override fun status(): HttpStatusCode? = _status
     public override fun status(value: HttpStatusCode) = status.call(value)
     public override fun interceptStatus(handler: (HttpStatusCode, (HttpStatusCode) -> Unit) -> Unit) = status.intercept(handler)
-
-    override fun cookie(item: Cookie) = cookies.call(item)
-    override fun interceptCookie(handler: (Cookie, (Cookie) -> Unit) -> Unit) = cookies.intercept(handler)
 
     private val send = Interceptable1<Any, ApplicationRequestStatus> { value ->
         throw UnsupportedOperationException("No known way to stream value $value")

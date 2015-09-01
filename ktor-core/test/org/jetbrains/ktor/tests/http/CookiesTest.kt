@@ -125,7 +125,7 @@ class CookiesTest {
                 }
 
                 cookie("first", "1")
-                header("Set-Cookie", "second=2")
+                headers.append("Set-Cookie", "second=2")
 
                 assertEquals(listOf("first", "second"), found)
             }
@@ -143,10 +143,19 @@ class CookiesTest {
         }
     }
 
+    test fun `add multiple cookies`() {
+        with(TestApplicationResponse()) {
+            cookie("a", "1")
+            cookie("b", "2")
+
+            assertEquals(listOf("a=1", "b=2"), headers.values("Set-Cookie").map { it.cutSetCookieHeader() })
+        }
+    }
+
     private fun testSetCookies(expectedHeaderContent: String, block: ApplicationResponse.() -> Unit) {
         val response = TestApplicationResponse()
         with(response, block)
-        assertEquals(expectedHeaderContent, response.header("Set-Cookie")?.substringBeforeLast("\$x-enc")?.trimEnd()?.removeSuffix(";"))
+        assertEquals(expectedHeaderContent, response.headers["Set-Cookie"]?.cutSetCookieHeader())
     }
 
     private fun withRawCookies(header: String, block: TestApplicationRequest.() -> Unit) {
@@ -155,6 +164,8 @@ class CookiesTest {
             block()
         }
     }
+
+    private fun String.cutSetCookieHeader() = substringBeforeLast("\$x-enc").trimEnd().removeSuffix(";")
 }
 
 class DQuotesEncodingTest {

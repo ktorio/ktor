@@ -13,10 +13,10 @@ public interface ApplicationResponse {
     public fun status(value: HttpStatusCode)
     public fun interceptStatus(handler: (value: HttpStatusCode, next: (value: HttpStatusCode) -> Unit) -> Unit)
 
-    public fun cookie(name: String): Cookie? = header("Set-Cookie")?.let { listOf(parseServerSetCookieHeader(it)).firstOrNull { it.name == name } } // TODO multiheader
-    public fun cookie(item: Cookie): Unit = header("Set-Cookie", renderSetCookieHeader(item))
+    public fun cookie(name: String): Cookie? = headers.values("Set-Cookie").map { parseServerSetCookieHeader(it) }.firstOrNull { it.name == name }
+    public fun cookie(item: Cookie): Unit = headers.append("Set-Cookie", renderSetCookieHeader(item))
     public fun interceptCookie(handler: (cookie: Cookie, next: (value: Cookie) -> Unit) -> Unit) {
-        interceptHeader { name, value, next ->
+        headers.intercept { name, value, next ->
             if (name == "Set-Cookie") {
                 handler(parseServerSetCookieHeader(value)) { intercepted ->
                     next(name, renderSetCookieHeader(intercepted))
