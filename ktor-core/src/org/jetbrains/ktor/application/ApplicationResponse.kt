@@ -1,13 +1,12 @@
 package org.jetbrains.ktor.application
 
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.interception.*
 import java.io.*
 import java.nio.charset.*
 
 public interface ApplicationResponse {
-    public fun header(name: String): String?
-    public fun header(name: String, value: String)
-    public fun interceptHeader(handler: (name: String, value: String, next: (name: String, value: String) -> Unit) -> Unit)
+    public val headers: ResponseHeaders
 
     public fun status(): HttpStatusCode?
     public fun status(value: HttpStatusCode)
@@ -20,6 +19,31 @@ public interface ApplicationResponse {
     public fun interceptSend(handler: (message: Any, next: (message: Any) -> ApplicationRequestStatus) -> ApplicationRequestStatus)
 }
 
+public abstract class ResponseHeaders {
+    private val headersChain = Interceptable2<String, String, Unit> { name, value ->
+        hostAppendHeader(name, value)
+    }
+
+    public fun contains(name: String): Boolean = getHostHeaderValues(name).isNotEmpty()
+    public fun get(name: String): String? = getHostHeaderValues(name).firstOrNull()
+    public fun values(name: String): List<String> = getHostHeaderValues(name)
+    public fun allValues(): ValuesMap = getHostHeaderNames().fold(ValuesMap.Builder()) { builder, headerName ->
+        builder.appendAll(headerName, getHostHeaderValues(headerName))
+        builder
+    }.build()
+
+    public fun append(name: String, value: String) {
+        headersChain.call(name, value)
+    }
+
+    public final fun intercept(handler: (name: String, value: String, next: (name: String, value: String) -> Unit) -> Unit) {
+        headersChain.intercept(handler)
+    }
+
+    protected abstract fun hostAppendHeader(name: String, value: String)
+    protected abstract fun getHostHeaderNames(): List<String>
+    protected abstract fun getHostHeaderValues(name: String): List<String>
+}
 
 public fun ApplicationResponse.streamBytes(bytes: ByteArray) {
     stream { write(bytes) }
