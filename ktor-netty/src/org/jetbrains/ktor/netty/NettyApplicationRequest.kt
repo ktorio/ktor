@@ -25,6 +25,10 @@ class NettyApplicationRequest(val request: FullHttpRequest) : ApplicationRequest
             QueryStringDecoder(request.uri).parameters().forEach {
                 appendAll(it.key, it.value)
             }
+            // as far as we have full request we can access request body many times
+            if (contentType().match(ContentType.Application.FormUrlEncoded)) {
+                appendAll(parseUrlEncodedParameters())
+            }
         }
     }
 

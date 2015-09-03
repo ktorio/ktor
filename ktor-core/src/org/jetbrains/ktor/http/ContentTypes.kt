@@ -62,6 +62,7 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
         val Xml_Dtd = ContentType("application", "xml-dtd")
         val Zip = ContentType("application", "zip")
         val GZip = ContentType("application", "gzip")
+        val FormUrlEncoded = ContentType("application", "x-www-form-urlencoded")
     }
 
     object Audio {
