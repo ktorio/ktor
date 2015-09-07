@@ -14,6 +14,15 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
         return ContentType(contentType, contentSubtype, parameters + ContentTypeParameter(name, value))
     }
 
+    fun match(other: ContentType): Boolean =
+            (other.contentType == "*" || other.contentType == contentType)
+            && (other.contentSubtype == "*" || other.contentSubtype == contentSubtype)
+            && (other.parameters.filter { it.name != "*" && it.value != "*" }.all { parameter(it.name) == it.value })
+            && (other.parameters.filter { it.name != "*" && it.value == "*" }.all { parameter(it.name) != null })
+            && (other.parameters.filter { it.name == "*" && it.value != "*" }.all { this.parameters.any { p -> p.value == it.value } })
+
+    fun match(pattern: String): Boolean = match(ContentType.parse(pattern))
+
     override fun equals(other: Any?) = when (other) {
         is ContentType -> contentType == other.contentType
                 && contentSubtype == other.contentSubtype
@@ -29,7 +38,7 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
             val content = parts[0].split("/")
             if (content.size() != 2)
                 throw BadContentTypeFormatException(value)
-            val parameters = parts.drop(1).map {
+            val parameters = parts.drop(1).filter { it.isNotBlank() }.map {
                 val pair = it.trim().split("=")
                 if (pair.size() != 2)
                     throw BadContentTypeFormatException(value)
@@ -53,6 +62,7 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
         val Xml_Dtd = ContentType("application", "xml-dtd")
         val Zip = ContentType("application", "zip")
         val GZip = ContentType("application", "gzip")
+        val FormUrlEncoded = ContentType("application", "x-www-form-urlencoded")
     }
 
     object Audio {

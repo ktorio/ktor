@@ -89,4 +89,14 @@ class ContentTypeTest {
             }
         }
     }
+
+    Test
+    fun `content type with empty parameters block`() {
+        on("parsing empty parameters block so we have trailing semicolon and possibly whitespaces") {
+            it("shouldn't fail and should pass equality checks") {
+                assertEquals(ContentType.Text.Plain, ContentType.parse("text/plain; "))
+                assertEquals(ContentType.Text.Plain, ContentType.parse("text/plain;"))
+            }
+        }
+    }
 }
