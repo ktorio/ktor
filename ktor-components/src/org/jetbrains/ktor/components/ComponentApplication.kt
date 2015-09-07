@@ -34,5 +34,5 @@ public open class ComponentApplication(config: ApplicationConfig) : Application(
     }
 }
 
-annotation(AnnotationRetention.RUNTIME)
-public class component
+@Retention(AnnotationRetention.RUNTIME)
+annotation public class component
