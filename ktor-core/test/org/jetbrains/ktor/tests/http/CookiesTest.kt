@@ -53,64 +53,64 @@ class CookiesTest {
 
     test fun `add cookies simple`() {
         testSetCookies("SESSION=123") {
-            cookie("SESSION", "123")
+            cookies.append("SESSION", "123")
         }
     }
 
     test fun `add cookies with max age`() {
         testSetCookies("SESSION=123; Max-Age=7") {
-            cookie("SESSION", "123", maxAge = 7)
+            cookies.append("SESSION", "123", maxAge = 7)
         }
     }
 
     test fun `add cookies with expires`() {
         val date = LocalDate.parse("20150818", DateTimeFormatter.ofPattern("yyyyMMdd")).atStartOfDay(ZoneId.of("GMT"))
         testSetCookies("SESSION=123; Expires=Tue, 18 Aug 2015 00:00:00 GMT") {
-            cookie("SESSION", "123", expires = date)
+            cookies.append("SESSION", "123", expires = date)
         }
     }
 
     test fun `add cookies old Date`() {
         val date = SimpleDateFormat("yyyyMMdd z").parse("20150818 GMT")
         testSetCookies("SESSION=123; Expires=Tue, 18 Aug 2015 00:00:00 GMT") {
-            cookie("SESSION", "123", expires = date.toInstant())
+            cookies.append("SESSION", "123", expires = date.toInstant())
         }
     }
 
     test fun `add cookies with expires at specified time zone`() {
         val date = LocalDate.parse("20150818", DateTimeFormatter.ofPattern("yyyyMMdd")).atStartOfDay(ZoneId.of("Europe/Moscow"))
         testSetCookies("SESSION=123; Expires=Mon, 17 Aug 2015 21:00:00 GMT") {
-            cookie("SESSION", "123", expires = date)
+            cookies.append("SESSION", "123", expires = date)
         }
     }
 
     test fun `add cookies with flags and extensions`() {
         testSetCookies("SESSION=123; Secure; Flag; Test=1") {
-            cookie("SESSION", "123", secure = true, extensions = linkedMapOf("Flag" to null, "Test" to "1"))
+            cookies.append("SESSION", "123", secure = true, extensions = linkedMapOf("Flag" to null, "Test" to "1"))
         }
     }
 
     test fun `add cookies expired`() {
         testSetCookies("SESSION=; Expires=Thu, 01 Jan 1970 00:00:00 GMT") {
-            cookieExpired("SESSION")
+            cookies.appendExpired("SESSION")
         }
     }
 
     test fun `add cookies bad characters`() {
         testSetCookies("AB=1%3A2") {
-            cookie("AB", "1:2")
+            cookies.append("AB", "1:2")
         }
     }
 
     test fun `add cookies encoding simple no quotes`() {
         testSetCookies("A=1") {
-            cookie("A", "1", encoding = CookieEncoding.DQUOTES)
+            cookies.append("A", "1", encoding = CookieEncoding.DQUOTES)
         }
     }
 
     test fun `add cookies encoding simple with quotes`() {
         testSetCookies("A=\"1 2\"") {
-            cookie("A", "1 2", encoding = CookieEncoding.DQUOTES)
+            cookies.append("A", "1 2", encoding = CookieEncoding.DQUOTES)
         }
     }
 
@@ -119,12 +119,12 @@ class CookiesTest {
             with(TestApplicationResponse()) {
                 val found = ArrayList<String>()
 
-                interceptCookie { cookie, next ->
+                cookies.intercept { cookie, next ->
                     found.add(cookie.name)
                     next(cookie)
                 }
 
-                cookie("first", "1")
+                cookies.append("first", "1")
                 headers.append("Set-Cookie", "second=2")
 
                 assertEquals(listOf("first", "second"), found)
@@ -135,18 +135,18 @@ class CookiesTest {
     test fun `add cookie and get it`() {
         with(TestApplicationRequest()) {
             with(TestApplicationResponse()) {
-                cookie("key", "value")
+                cookies.append("key", "value")
 
-                assertEquals("value", cookie("key")?.value)
-                assertNull(cookie("other"))
+                assertEquals("value", cookies["key"]?.value)
+                assertNull(cookies["other"])
             }
         }
     }
 
     test fun `add multiple cookies`() {
         with(TestApplicationResponse()) {
-            cookie("a", "1")
-            cookie("b", "2")
+            cookies.append("a", "1")
+            cookies.append("b", "2")
 
             assertEquals(listOf("a=1", "b=2"), headers.values("Set-Cookie").map { it.cutSetCookieHeader() })
         }

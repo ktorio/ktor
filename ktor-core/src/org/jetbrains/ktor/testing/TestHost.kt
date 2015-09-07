@@ -109,6 +109,7 @@ class TestApplicationResponse : ApplicationResponse {
         override fun getHostHeaderNames(): List<String> = headersMap.keySet().toList()
         override fun getHostHeaderValues(name: String): List<String> = headersMap[name] ?: emptyList()
     }
+    override val cookies = ResponseCookies(this)
 
     public override fun status(): HttpStatusCode? = statusCode
     public override fun status(value: HttpStatusCode) = status.call(value)

@@ -37,6 +37,50 @@ public open class RequestCookies(val request: ApplicationRequest) {
     }
 }
 
+public class ResponseCookies(val response: ApplicationResponse) {
+    public fun get(name: String): Cookie? = response.headers.values("Set-Cookie").map { parseServerSetCookieHeader(it) }.firstOrNull { it.name == name }
+    public fun append(item: Cookie): Unit = response.headers.append("Set-Cookie", renderSetCookieHeader(item))
+    public fun intercept(handler: (cookie: Cookie, next: (value: Cookie) -> Unit) -> Unit) {
+        response.headers.intercept { name, value, next ->
+            if (name == "Set-Cookie") {
+                handler(parseServerSetCookieHeader(value)) { intercepted ->
+                    next(name, renderSetCookieHeader(intercepted))
+                }
+            } else {
+                next(name, value)
+            }
+        }
+    }
+
+    public fun append(name: String,
+                                          value: String,
+                                          encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
+                                          maxAge: Int = 0,
+                                          expires: Temporal? = null,
+                                          domain: String = "",
+                                          path: String = "",
+                                          secure: Boolean = false,
+                                          httpOnly: Boolean = false,
+                                          extensions: Map<String, String?> = emptyMap()) {
+        append(Cookie(
+                name,
+                value,
+                encoding,
+                maxAge,
+                expires,
+                domain,
+                path,
+                secure,
+                httpOnly,
+                extensions
+        ))
+    }
+
+    public fun appendExpired(name: String, domain: String = "", path: String = "") {
+        append(name, "", domain = domain, path = path, expires = Instant.EPOCH)
+    }
+}
+
 private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "secure", "httponly", "\$x-enc")
 public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     val asMap = parseClientCookiesHeader(cookiesHeader, false)
@@ -112,35 +156,6 @@ public fun renderSetCookieHeader(name: String,
         } + cookiePartExt("\$x-enc", encoding.name(), CookieEncoding.RAW)
                 ).filter { it.isNotEmpty() }
                 .joinToString("; ")
-
-
-public fun ApplicationResponse.cookie(name: String,
-                                      value: String,
-                                      encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-                                      maxAge: Int = 0,
-                                      expires: Temporal? = null,
-                                      domain: String = "",
-                                      path: String = "",
-                                      secure: Boolean = false,
-                                      httpOnly: Boolean = false,
-                                      extensions: Map<String, String?> = emptyMap()) {
-    cookie(Cookie(
-            name,
-            value,
-            encoding,
-            maxAge,
-            expires,
-            domain,
-            path,
-            secure,
-            httpOnly,
-            extensions
-    ))
-}
-
-public fun ApplicationResponse.cookieExpired(name: String, domain: String = "", path: String = "") {
-    cookie(name, "", domain = domain, path = path, expires = Instant.EPOCH)
-}
 
 public fun encodeCookieValue(value: String, encoding: CookieEncoding): String =
         when (encoding) {

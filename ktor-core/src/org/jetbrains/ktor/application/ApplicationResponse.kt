@@ -8,24 +8,11 @@ import java.nio.charset.*
 
 public interface ApplicationResponse {
     public val headers: ResponseHeaders
+    public val cookies: ResponseCookies
 
     public fun status(): HttpStatusCode?
     public fun status(value: HttpStatusCode)
     public fun interceptStatus(handler: (value: HttpStatusCode, next: (value: HttpStatusCode) -> Unit) -> Unit)
-
-    public fun cookie(name: String): Cookie? = headers.values("Set-Cookie").map { parseServerSetCookieHeader(it) }.firstOrNull { it.name == name }
-    public fun cookie(item: Cookie): Unit = headers.append("Set-Cookie", renderSetCookieHeader(item))
-    public fun interceptCookie(handler: (cookie: Cookie, next: (value: Cookie) -> Unit) -> Unit) {
-        headers.intercept { name, value, next ->
-            if (name == "Set-Cookie") {
-                handler(parseServerSetCookieHeader(value)) { intercepted ->
-                    next(name, renderSetCookieHeader(intercepted))
-                }
-            } else {
-                next(name, value)
-            }
-        }
-    }
 
     public fun stream(body: OutputStream.() -> Unit): Unit
     public fun interceptStream(handler: (body: OutputStream.() -> Unit, next: (body: OutputStream.() -> Unit) -> Unit) -> Unit)
