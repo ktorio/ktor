@@ -3,6 +3,7 @@ package org.jetbrains.ktor.testing
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.http.cookies.*
 import org.jetbrains.ktor.interception.*
 import java.io.*
 import java.util.*
@@ -81,6 +82,7 @@ class TestApplicationRequest() : ApplicationRequest {
     override val headers = ValuesMap(headersMap)
 
     override val attributes = Attributes()
+    override val cookies = RequestCookies(this)
 }
 
 class TestApplicationResponse : ApplicationResponse {
@@ -107,6 +109,7 @@ class TestApplicationResponse : ApplicationResponse {
         override fun getHostHeaderNames(): List<String> = headersMap.keySet().toList()
         override fun getHostHeaderValues(name: String): List<String> = headersMap[name] ?: emptyList()
     }
+    override val cookies = ResponseCookies(this)
 
     public override fun status(): HttpStatusCode? = statusCode
     public override fun status(value: HttpStatusCode) = status.call(value)

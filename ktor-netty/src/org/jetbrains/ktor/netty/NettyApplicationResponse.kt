@@ -4,6 +4,7 @@ import io.netty.buffer.*
 import io.netty.handler.codec.http.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.http.cookies.*
 import org.jetbrains.ktor.interception.*
 import java.io.*
 
@@ -30,6 +31,7 @@ public class NettyApplicationResponse(val response: FullHttpResponse) : Applicat
         override fun getHostHeaderNames(): List<String> = response.headers().map { it.key }
         override fun getHostHeaderValues(name: String): List<String> = response.headers().getAll(name) ?: emptyList()
     }
+    override val cookies = ResponseCookies(this)
 
     public override fun status(): HttpStatusCode? = response.status?.let { HttpStatusCode(it.code(), it.reasonPhrase()) }
     public override fun status(value: HttpStatusCode) = status.call(value)

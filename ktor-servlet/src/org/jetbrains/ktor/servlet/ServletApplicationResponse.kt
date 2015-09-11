@@ -2,6 +2,8 @@ package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.http.cookies.*
+import org.jetbrains.ktor.http.cookies.Cookie
 import org.jetbrains.ktor.interception.*
 import java.io.*
 import javax.servlet.http.*
@@ -21,6 +23,7 @@ public class ServletApplicationResponse(private val servletResponse: HttpServlet
         override fun getHostHeaderNames(): List<String> = servletResponse.headerNames.toList()
         override fun getHostHeaderValues(name: String): List<String> = servletResponse.getHeaders(name).toList()
     }
+    override val cookies = ResponseCookies(this)
 
     public override fun status(): HttpStatusCode? = _status
     public override fun status(value: HttpStatusCode) = status.call(value)

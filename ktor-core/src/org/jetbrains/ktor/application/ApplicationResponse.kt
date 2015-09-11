@@ -1,12 +1,14 @@
 package org.jetbrains.ktor.application
 
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.http.cookies.*
 import org.jetbrains.ktor.interception.*
 import java.io.*
 import java.nio.charset.*
 
 public interface ApplicationResponse {
     public val headers: ResponseHeaders
+    public val cookies: ResponseCookies
 
     public fun status(): HttpStatusCode?
     public fun status(value: HttpStatusCode)
