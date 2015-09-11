@@ -10,7 +10,7 @@ public interface ConversionService {
 }
 
 public open class DefaultConversionService : ConversionService {
-    @suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     override fun toURI(value: Any?, name: String, optional: Boolean): List<String> {
         return when (value) {
             null -> listOf<String>()
@@ -18,28 +18,28 @@ public open class DefaultConversionService : ConversionService {
             else -> {
                 val type = value.javaClass
                 listOf(when (type) {
-                           javaClass<Int>(), javaClass<lang.Integer>(),
-                           javaClass<Float>(), javaClass<lang.Float>(),
-                           javaClass<Double>(), javaClass<lang.Double>(),
-                           javaClass<Long>(), javaClass<lang.Long>(),
-                           javaClass<Boolean>(), javaClass<lang.Boolean>(),
-                           javaClass<String>(), javaClass<lang.String>() -> value.toString()
+                           Int::class.java, lang.Integer::class.java,
+                           Float::class.java, lang.Float::class.java,
+                           Double::class.java, lang.Double::class.java,
+                           Long::class.java, lang.Long::class.java,
+                           Boolean::class.java, lang.Boolean::class.java,
+                           String::class.java, lang.String::class.java -> value.toString()
                            else -> throw UnsupportedOperationException("Type $type is not supported in automatic location data class processing")
                        })
             }
         }
     }
 
-    @suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     open fun convert(value: String, type: Type): Any {
         return when (type) {
             is WildcardType -> convert(value, type.upperBounds.single())
-            javaClass<Int>(), javaClass<lang.Integer>() -> value.toInt()
-            javaClass<Float>(), javaClass<lang.Float>() -> value.toFloat()
-            javaClass<Double>(), javaClass<lang.Double>() -> value.toDouble()
-            javaClass<Long>(), javaClass<lang.Long>() -> value.toLong()
-            javaClass<Boolean>(), javaClass<lang.Boolean>() -> value.toBoolean()
-            javaClass<String>(), javaClass<lang.String>() -> value
+            Int::class.java, lang.Integer::class.java -> value.toInt()
+            Float::class.java, lang.Float::class.java -> value.toFloat()
+            Double::class.java, lang.Double::class.java -> value.toDouble()
+            Long::class.java, lang.Long::class.java -> value.toLong()
+            Boolean::class.java, lang.Boolean::class.java -> value.toBoolean()
+            String::class.java, lang.String::class.java -> value
             else -> throw UnsupportedOperationException("Type $type is not supported in automatic location data class processing")
         }
     }

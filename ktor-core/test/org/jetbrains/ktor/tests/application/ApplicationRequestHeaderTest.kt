@@ -9,7 +9,7 @@ import kotlin.test.*
 
 class ApplicationRequestHeaderTest {
 
-    Test fun `an application that handles requests to foo`() = withTestApplication {
+    @Test fun `an application that handles requests to foo`() = withTestApplication {
         on("making an unauthenticated request to /foo") {
             application.routing {
                 get("/foo") {
@@ -39,7 +39,7 @@ class ApplicationRequestHeaderTest {
         }
     }
 
-    Test fun `an application that handles requests to foo with parameters`() = withTestApplication {
+    @Test fun `an application that handles requests to foo with parameters`() = withTestApplication {
         on("making a request to /foo?key1=value1&key2=value2") {
             application.routing {
                 get("/foo") {
@@ -102,7 +102,7 @@ class ApplicationRequestHeaderTest {
         }
     }
 
-    Test fun `an application that handles requests to root with parameters`() = withTestApplication {
+    @Test fun `an application that handles requests to root with parameters`() = withTestApplication {
         on("making a request to /?key1=value1&key2=value2") {
             application.routing {
                 get("/") {

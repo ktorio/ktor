@@ -33,7 +33,7 @@ public class StorageComponentContainer(id: String) : ComponentContainer, Closeab
 
     override fun close() = componentStorage.dispose()
 
-    jvmOverloads public fun resolve(request: Type, context: ValueResolveContext = unknownContext): ValueDescriptor? {
+    @JvmOverloads public fun resolve(request: Type, context: ValueResolveContext = unknownContext): ValueDescriptor? {
         val storageResolve = componentStorage.resolve(request, context)
         if (storageResolve != null)
             return storageResolve
@@ -41,7 +41,7 @@ public class StorageComponentContainer(id: String) : ComponentContainer, Closeab
         if (request is ParameterizedType) {
             val typeArguments = request.actualTypeArguments
             val rawType = request.rawType
-            if (rawType == javaClass<Iterable<*>>()) {
+            if (rawType == Iterable::class.java) {
                 if (typeArguments.size() == 1) {
                     val iterableTypeArgument = typeArguments[0]
                     if (iterableTypeArgument is WildcardType) {
@@ -94,29 +94,29 @@ public inline fun <reified T : Any> StorageComponentContainer.register(lifetime:
         else throw IllegalArgumentException("Unknown lifetime: $lifetime}")
 
 public inline fun <reified T : Any> StorageComponentContainer.registerSingleton(): StorageComponentContainer {
-    return registerDescriptors(listOf(SingletonDescriptor(this, javaClass<T>())))
+    return registerDescriptors(listOf(SingletonDescriptor(this, T::class.java)))
 }
 
 public inline fun <reified T : Any>  StorageComponentContainer.registerTransient(): StorageComponentContainer {
-    return registerDescriptors(listOf(TransientDescriptor(this, javaClass<T>())))
+    return registerDescriptors(listOf(TransientDescriptor(this, T::class.java)))
 }
 
 public inline fun <reified T : Any> StorageComponentContainer.resolve(context: ValueResolveContext = unknownContext): ValueDescriptor? {
-    return resolve(javaClass<T>(), context)
+    return resolve(T::class.java, context)
 }
 
 public inline fun <reified T : Any> StorageComponentContainer.tryGetComponent(context: ValueResolveContext = unknownContext): T? {
-    return resolve(javaClass<T>(), context)?.getValue() as? T
+    return resolve(T::class.java, context)?.getValue() as? T
 }
 
 public inline fun <reified T : Any> StorageComponentContainer.getComponent(context: ValueResolveContext = unknownContext): T {
-    val klass = javaClass<T>()
+    val klass = T::class.java
     val descriptor = resolve(klass, context) ?: throw ContainerConsistencyException("Required component $klass cannot be resolved")
     return descriptor.getValue() as T
 }
 
 public inline fun <reified T : Any> StorageComponentContainer.resolveMultiple(context: ValueResolveContext = unknownContext): Iterable<ValueDescriptor> {
-    return resolveMultiple(javaClass<T>(), context)
+    return resolveMultiple(T::class.java, context)
 }
 
 fun ComponentContainer.createInstance(klass: Class<*>): Any {
@@ -126,6 +126,6 @@ fun ComponentContainer.createInstance(klass: Class<*>): Any {
 
 inline fun <reified T : Any> ComponentContainer.createInstance(): T {
     val context = createResolveContext(DynamicComponentDescriptor)
-    return javaClass<T>().bindToConstructor(context).createInstance() as T
+    return T::class.java.bindToConstructor(context).createInstance() as T
 }
 

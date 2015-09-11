@@ -13,7 +13,7 @@ public open class ApplicationConfig(private val config: Config,
     public open val classPath: Array<URL>
         get() = if (classPathUrl == null) arrayOf() else arrayOf(classPathUrl)
 
-    public val classLoader: URLClassLoader = URLClassLoader(classPath, javaClass.getClassLoader())
+    public val classLoader: URLClassLoader = URLClassLoader(classPath, javaClass.classLoader)
 
     public val environment: String get() = config.getString("ktor.deployment.environment")
     public val applicationClassName: String = config.getString("ktor.application.class")

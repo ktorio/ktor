@@ -12,7 +12,7 @@ import kotlin.test.*
 class LocationsTest {
     @location("/") data class index()
 
-    Test fun `location without URL`() {
+    @Test fun `location without URL`() {
         val href = Locations.href(index())
         assertEquals("/", href)
 
@@ -29,7 +29,7 @@ class LocationsTest {
 
     @location("/about") data class about()
 
-    Test fun `location with URL`() {
+    @Test fun `location with URL`() {
         val href = Locations.href(about())
         assertEquals("/about", href)
 
@@ -46,7 +46,7 @@ class LocationsTest {
 
     @location("/user/{id}") data class user(val id: Int)
 
-    Test fun `location with path param`() {
+    @Test fun `location with path param`() {
         val href = Locations.href(user(123))
         assertEquals("/user/123", href)
         val testHost = createTestHost()
@@ -63,7 +63,7 @@ class LocationsTest {
 
     @location("/favorite") data class favorite(val id: Int)
 
-    Test fun `location with query param`() {
+    @Test fun `location with query param`() {
         val href = Locations.href(favorite(123))
         assertEquals("/favorite?id=123", href)
         val testHost = createTestHost()
@@ -84,7 +84,7 @@ class LocationsTest {
         @location("/items") data class badItems()
     }
 
-    Test fun `location with path parameter and nested data`() {
+    @Test fun `location with path parameter and nested data`() {
         val c = pathContainer(123)
         val href = Locations.href(pathContainer.items(c))
         assertEquals("/container/123/items", href)
@@ -95,7 +95,7 @@ class LocationsTest {
                 response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
             }
-            failsWith(InconsistentRoutingException::class.java) {
+            assertFailsWith(InconsistentRoutingException::class.java) {
                 get<pathContainer.badItems> { ApplicationRequestStatus.Handled }
             }
         }
@@ -109,7 +109,7 @@ class LocationsTest {
         @location("/items") data class badItems()
     }
 
-    Test fun `location with query parameter and nested data`() {
+    @Test fun `location with query parameter and nested data`() {
         val c = queryContainer(123)
         val href = Locations.href(queryContainer.items(c))
         assertEquals("/container/items?id=123", href)
@@ -120,7 +120,7 @@ class LocationsTest {
                 response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
             }
-            failsWith(InconsistentRoutingException::class.java) {
+            assertFailsWith(InconsistentRoutingException::class.java) {
                 get<queryContainer.badItems> { ApplicationRequestStatus.Handled }
             }
         }
@@ -131,7 +131,7 @@ class LocationsTest {
 
     @location("/container") data class optionalName(val id: Int, val optional: String? = null)
 
-    Test fun `location with missing optional String parameter`() {
+    @Test fun `location with missing optional String parameter`() {
         val href = Locations.href(optionalName(123))
         assertEquals("/container?id=123", href)
         val testHost = createTestHost()
@@ -151,7 +151,7 @@ class LocationsTest {
 
     @location("/container") data class optionalIndex(val id: Int, val optional: Int = 42)
 
-    Test fun `location with missing optional Int parameter`() {
+    @Test fun `location with missing optional Int parameter`() {
         val href = Locations.href(optionalIndex(123))
         //assertEquals("/container?id=123", href)
         val testHost = createTestHost()
@@ -168,7 +168,7 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/container/123")
     }
 
-    Test fun `location with specified optional query parameter`() {
+    @Test fun `location with specified optional query parameter`() {
         val href = Locations.href(optionalName(123, "text"))
         assertEquals("/container?id=123&optional=text", href)
         val testHost = createTestHost()
@@ -189,7 +189,7 @@ class LocationsTest {
         @location("/items") data class items(val optional: String? = null)
     }
 
-    Test fun `location with optional path and query parameter`() {
+    @Test fun `location with optional path and query parameter`() {
         val href = Locations.href(optionalContainer())
         assertEquals("/container", href)
         val testHost = createTestHost()
@@ -215,7 +215,7 @@ class LocationsTest {
         @location("/items") data class items()
     }
 
-    Test fun `location with simple path container and items`() {
+    @Test fun `location with simple path container and items`() {
         val href = Locations.href(simpleContainer.items())
         assertEquals("/container/items", href)
         val testHost = createTestHost()
@@ -236,7 +236,7 @@ class LocationsTest {
 
     @location("/container/{path...}") data class tailCard(val path: List<String>)
 
-    Test fun `location with tailcard`() {
+    @Test fun `location with tailcard`() {
         val href = Locations.href(tailCard(emptyList()))
         assertEquals("/container", href)
         val testHost = createTestHost()
@@ -253,7 +253,7 @@ class LocationsTest {
 
     @location("/") data class multiquery(val value: List<Int>)
 
-    Test fun `location with multiple query values`() {
+    @Test fun `location with multiple query values`() {
         val href = Locations.href(multiquery(listOf(1, 2, 3)))
         assertEquals("/?value=1&value=2&value=3", href)
         val testHost = createTestHost()

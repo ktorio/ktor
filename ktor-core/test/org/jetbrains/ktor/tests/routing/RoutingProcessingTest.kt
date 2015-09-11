@@ -8,7 +8,7 @@ import org.junit.*
 import kotlin.test.*
 
 class RoutingProcessingTest {
-    Test fun `host with routing on GET foo-bar`() {
+    @Test fun `host with routing on GET foo-bar`() {
         val testHost = createTestHost()
         testHost.application.routing {
             get("/foo/bar") {
@@ -41,7 +41,7 @@ class RoutingProcessingTest {
         }
     }
 
-    Test fun `host with routing on GET user with parameter`() {
+    @Test fun `host with routing on GET user with parameter`() {
         val testHost = createTestHost()
         var username = listOf<String>()
         testHost.application.routing {
@@ -71,7 +71,7 @@ class RoutingProcessingTest {
 
     }
 
-    Test fun `host with routing on GET -user-username with interceptors`() {
+    @Test fun `host with routing on GET -user-username with interceptors`() {
         val testHost = createTestHost()
 
         var userIntercepted = false

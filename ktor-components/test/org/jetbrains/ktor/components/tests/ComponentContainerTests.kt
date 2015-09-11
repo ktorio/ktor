@@ -5,26 +5,26 @@ import org.junit.*
 import kotlin.test.*
 
 class ComponentContainerTests {
-    Test fun `should throw when not composed`() {
+    @Test fun `should throw when not composed`() {
         val container = StorageComponentContainer("test")
-        fails { container.resolve<TestComponentInterface>() }
+        assertFails { container.resolve<TestComponentInterface>() }
     }
 
-    Test fun should_resolve_to_null_when_empty() {
+    @Test fun should_resolve_to_null_when_empty() {
         val container = StorageComponentContainer("test").compose()
         assertNull(container.resolve<TestComponentInterface>())
     }
 
-    Test fun should_resolve_to_instance_when_registered() {
+    @Test fun should_resolve_to_instance_when_registered() {
         StorageComponentContainer("test").register<TestComponent>().compose().use {
             val instance = it.getComponent<TestComponentInterface>()
-            fails {
+            assertFails {
                 instance.foo()
             }
         }
     }
 
-    Test fun should_resolve_instance_dependency() {
+    @Test fun should_resolve_instance_dependency() {
         val container = StorageComponentContainer("test")
                 .registerInstance(ManualTestComponent("name"))
                 .register<TestClientComponent>()
@@ -34,7 +34,7 @@ class ComponentContainerTests {
         val instance = descriptor!!.getValue() as TestClientComponent
         assertNotNull(instance)
         assertNotNull(instance.dep)
-        fails {
+        assertFails {
             instance.dep.foo()
         }
         assertTrue(instance.dep is ManualTestComponent)
@@ -44,7 +44,7 @@ class ComponentContainerTests {
         assertFalse(instance.dep.disposed) // should not dispose manually passed instances
     }
 
-    Test fun should_resolve_type_dependency() {
+    @Test fun should_resolve_type_dependency() {
         val container = StorageComponentContainer("test")
                 .register<TestComponent>()
                 .register<TestClientComponent>()
@@ -55,7 +55,7 @@ class ComponentContainerTests {
         val instance = descriptor!!.getValue() as TestClientComponent
         assertNotNull(instance)
         assertNotNull(instance.dep)
-        fails {
+        assertFails {
             instance.dep.foo()
         }
         container.close()
@@ -63,7 +63,7 @@ class ComponentContainerTests {
         assertTrue(instance.dep.disposed)
     }
 
-    Test fun should_resolve_multiple_types() {
+    @Test fun should_resolve_multiple_types() {
         StorageComponentContainer("test")
                 .register<TestComponent>()
                 .register<TestClientComponent>()
@@ -76,7 +76,7 @@ class ComponentContainerTests {
                 }
     }
 
-    Test fun should_resolve_transient_types_to_different_instances() {
+    @Test fun should_resolve_transient_types_to_different_instances() {
         StorageComponentContainer("test")
                 .register<TestComponent>()
                 .register<TestClientComponent>(ComponentLifetime.Transient)
@@ -91,7 +91,7 @@ class ComponentContainerTests {
                 }
     }
 
-    Test fun should_resolve_singleton_types_to_same_instances() {
+    @Test fun should_resolve_singleton_types_to_same_instances() {
         StorageComponentContainer("test")
                 .register<TestComponent>()
                 .register<TestClientComponent>(ComponentLifetime.Singleton)
@@ -106,7 +106,7 @@ class ComponentContainerTests {
                 }
     }
 
-    Test fun should_resolve_adhoc_types_to_same_instances() {
+    @Test fun should_resolve_adhoc_types_to_same_instances() {
         StorageComponentContainer("test")
                 .register<TestAdhocComponent1>()
                 .register<TestAdhocComponent2>()
@@ -118,7 +118,7 @@ class ComponentContainerTests {
                 }
     }
 
-    Test fun should_resolve_iterable() {
+    @Test fun should_resolve_iterable() {
         StorageComponentContainer("test")
                 .register<TestComponent>()
                 .register<TestClientComponent>()
@@ -133,7 +133,7 @@ class ComponentContainerTests {
                 }
     }
 
-    Test fun should_distinguish_generic() {
+    @Test fun should_distinguish_generic() {
         StorageComponentContainer("test")
                 .register<TestGenericClient>()
                 .register<TestStringComponent>()
@@ -146,7 +146,7 @@ class ComponentContainerTests {
                 }
     }
 
-    Test fun should_inject_members() {
+    @Test fun should_inject_members() {
         StorageComponentContainer("test")
                 .register<TestInjectMembers>()
                 .register<TestStringComponent>()
@@ -160,17 +160,14 @@ class ComponentContainerTests {
     }
 
 
-    Test fun should_fail_with_invalid_cardinality() {
+    @Test fun should_fail_with_invalid_cardinality() {
         StorageComponentContainer("test")
                 .register<TestComponent>()
                 .registerInstance(TestComponent())
                 .compose()
                 .use {
-                    assertTrue {
-                        val exception = fails {
-                            it.resolve<TestComponent>()
-                        }
-                        exception is UnresolvedDependenciesException
+                    assertFailsWith(UnresolvedDependenciesException::class) {
+                        it.resolve<TestComponent>()
                     }
                 }
     }

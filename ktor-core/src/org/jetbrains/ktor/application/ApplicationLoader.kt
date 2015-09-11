@@ -58,7 +58,7 @@ public class ApplicationLoader(val config: ApplicationConfig) {
         val applicationClass = config.classLoader.loadClass(config.applicationClassName)
                 ?: throw RuntimeException("Expected class ${config.applicationClassName} to be defined")
         config.log.debug("Application class: ${applicationClass.toString()}")
-        val cons = applicationClass.getConstructor(javaClass<ApplicationConfig>())
+        val cons = applicationClass.getConstructor(ApplicationConfig::class.java)
         val application = cons.newInstance(config)
         if (application !is Application)
             throw RuntimeException("Expected class ${config.applicationClassName} to be inherited from Application")
@@ -80,7 +80,7 @@ public class ApplicationLoader(val config: ApplicationConfig) {
     fun watchUrls(urls: Array<URL>) {
         val paths = HashSet<Path>()
         for (url in urls) {
-            val path = url.getPath()
+            val path = url.path
             if (path != null) {
                 val folder = File(URLDecoder.decode(path, "utf-8")).toPath()
                 val visitor = object : SimpleFileVisitor<Path>() {
@@ -90,7 +90,7 @@ public class ApplicationLoader(val config: ApplicationConfig) {
                     }
 
                     override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-                        val dir = file.getParent()
+                        val dir = file.parent
                         if (dir != null)
                             paths.add(dir)
                         return FileVisitResult.CONTINUE

@@ -7,15 +7,15 @@ import kotlin.properties.*
 
 open class ServletApplicationHost() : HttpServlet() {
     private val loader: ApplicationLoader by lazy {
-        val servletContext = getServletContext()
-        val parameterNames = servletContext.getInitParameterNames().toList().filter { it.startsWith("org.jetbrains.ktor") }
+        val servletContext = servletContext
+        val parameterNames = servletContext.initParameterNames.toList().filter { it.startsWith("org.jetbrains.ktor") }
         val parameters = parameterNames.toMap({ it.removePrefix("org.jetbrains.") }, { servletContext.getInitParameter(it) })
 
         val config = ConfigFactory.parseMap(parameters)
         val configPath = "ktor.config"
 
         val combinedConfig = if (config.hasPath(configPath)) {
-            val configStream = servletContext.getClassLoader().getResourceAsStream(config.getString(configPath))
+            val configStream = servletContext.classLoader.getResourceAsStream(config.getString(configPath))
             val loadedKtorConfig = ConfigFactory.parseReader(configStream.bufferedReader())
             config.withFallback(loadedKtorConfig)
         } else
@@ -34,8 +34,8 @@ open class ServletApplicationHost() : HttpServlet() {
     }
 
     protected override fun service(request: HttpServletRequest, response: HttpServletResponse) {
-        response.setCharacterEncoding("UTF-8")
-        request.setCharacterEncoding("UTF-8")
+        response.characterEncoding = "UTF-8"
+        request.characterEncoding = "UTF-8"
 
         try {
             val applicationRequest = ServletApplicationRequestContext(application, request, response)

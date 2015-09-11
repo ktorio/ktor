@@ -20,7 +20,7 @@ public open class ComponentApplication(config: ApplicationConfig) : Application(
         val introspectionTime = measureTimeMillis {
             config.classLoader
                     .scanForClasses("")
-                    .filter { it.getAnnotation(javaClass<component>()) != null }
+                    .filter { it.getAnnotation(component::class.java) != null }
                     .forEach { container.registerSingleton(it) }
         }
         config.log.info("Introspection took $introspectionTime ms")

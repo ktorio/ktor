@@ -7,7 +7,7 @@ import kotlin.test.*
 
 class ContentTypeTest {
 
-    Test fun `ContentType text-plain`() {
+    @Test fun `ContentType text-plain`() {
         val ct = ContentType.Text.Plain
         on("parsing parts") {
             it("should have text contentType") {
@@ -22,7 +22,7 @@ class ContentTypeTest {
         }
     }
 
-    Test fun `text-plain`() {
+    @Test fun `text-plain`() {
         val ct = ContentType.parse("text/plain")
         on("parsing parts") {
             it("should have text contentType") {
@@ -37,7 +37,7 @@ class ContentTypeTest {
         }
     }
 
-    Test fun `text-plain charset is utf-8`() {
+    @Test fun `text-plain charset is utf-8`() {
         val ct = ContentType.parse("text/plain ; charset = utf-8")
         on("parsing content") {
             it("should have text contentType") {
@@ -67,7 +67,7 @@ class ContentTypeTest {
         }
     }
 
-    Test fun `text-plain charset is utf-8 with parameter foo-bar`() {
+    @Test fun `text-plain charset is utf-8 with parameter foo-bar`() {
         val ct = ContentType.parse("text/plain ; charset = utf-8;foo=bar")
 
         on("doing a toString") {
@@ -78,19 +78,17 @@ class ContentTypeTest {
         }
     }
 
-    Test fun `text-plain-invalid`() {
+    @Test fun `text-plain-invalid`() {
         on("parsing text/plain/something") {
-            val error = fails {
-                ContentType.Companion.parse("text/plain/something")
-            }
             it("should throw BadContentTypeFormat exception") {
-                assertEquals(javaClass<BadContentTypeFormatException>(), error?.javaClass)
-
+                assertFailsWith(BadContentTypeFormatException::class) {
+                    ContentType.Companion.parse("text/plain/something")
+                }
             }
         }
     }
 
-    Test
+    @Test
     fun `content type with empty parameters block`() {
         on("parsing empty parameters block so we have trailing semicolon and possibly whitespaces") {
             it("shouldn't fail and should pass equality checks") {

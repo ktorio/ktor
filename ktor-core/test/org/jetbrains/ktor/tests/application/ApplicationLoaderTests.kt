@@ -7,18 +7,17 @@ import kotlin.test.*
 
 class ApplicationLoaderTests {
 
-    Test fun `invalid class name should throw`() {
+    @Test fun `invalid class name should throw`() {
         val testConfig = ConfigFactory.parseMap(
                 mapOf(
                         "ktor.deployment.environment" to "test",
                         "ktor.application.class" to "NonExistingApplicationName"
                      ))
         val config = ApplicationConfig(testConfig)
-        val result = fails { ApplicationLoader(config).application }
-        assertEquals(result?.javaClass, javaClass<ClassNotFoundException>())
+        val result = assertFailsWith(ClassNotFoundException::class) { ApplicationLoader(config).application }
     }
 
-    Test fun `valid class name should create application`() {
+    @Test fun `valid class name should create application`() {
         val testConfig = ConfigFactory.parseMap(
                 mapOf(
                         "ktor.deployment.environment" to "test",

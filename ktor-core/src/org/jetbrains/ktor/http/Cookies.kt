@@ -190,24 +190,24 @@ private fun String.assertCookieName() = when {
 private val cookieCharsShouldBeEscaped = setOf(';', ',', '=', '"')
 private fun Char.shouldEscapeInCookies() = this.isWhitespace() || this < ' ' || this in cookieCharsShouldBeEscaped
 
-suppress("NOTHING_TO_INLINE")
+@Suppress("NOTHING_TO_INLINE")
 private inline fun cookiePart(name: String, value: Any?, encoding: CookieEncoding) =
         if (value != null) "$name=${encodeCookieValue(value.toString(), encoding)}" else ""
 
-suppress("NOTHING_TO_INLINE")
+@Suppress("NOTHING_TO_INLINE")
 private inline fun cookiePartUnencoded(name: String, value: Any?) =
         if (value != null) "$name=${value.toString()}" else ""
 
 
-suppress("NOTHING_TO_INLINE")
+@Suppress("NOTHING_TO_INLINE")
 private inline fun cookiePartFlag(name: String, value: Boolean) =
         if (value) name else ""
 
-suppress("NOTHING_TO_INLINE")
+@Suppress("NOTHING_TO_INLINE")
 private inline fun cookiePartExt(name: String, value: String?, encoding: CookieEncoding) =
         if (value == null) cookiePartFlag(name, true) else cookiePart(name, value, encoding)
 
-suppress("NOTHING_TO_INLINE")
+@Suppress("NOTHING_TO_INLINE")
 private inline fun String.nullIfEmpty() = if (this.isEmpty()) null else this
 
 private data class CookiesKey(val encoding: CookieEncoding) : AttributeKey<Map<String, String>>()

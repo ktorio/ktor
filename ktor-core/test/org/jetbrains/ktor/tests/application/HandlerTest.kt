@@ -8,7 +8,7 @@ import kotlin.test.*
 
 class HandlerTest {
 
-    Test fun `application with empty handler`() {
+    @Test fun `application with empty handler`() {
         val testHost = createTestHost()
         on("making a request") {
             val request = testHost.handleRequest { }
@@ -18,7 +18,7 @@ class HandlerTest {
         }
     }
 
-    Test fun `application with transparent handler`() {
+    @Test fun `application with transparent handler`() {
         val testHost = createTestHost()
         testHost.application.intercept { next -> next() }
         on("making a request") {
@@ -29,7 +29,7 @@ class HandlerTest {
         }
     }
 
-    Test fun `application with handler returning true`() {
+    @Test fun `application with handler returning true`() {
         val testHost = createTestHost()
         testHost.application.intercept { next -> ApplicationRequestStatus.Handled }
         on("making a request") {
@@ -40,7 +40,7 @@ class HandlerTest {
         }
     }
 
-    Test fun `application with handler that returns a valid response`() {
+    @Test fun `application with handler that returns a valid response`() {
         val testHost = createTestHost()
         testHost.application.intercept { next -> ApplicationRequestStatus.Handled }
         on("making a request") {
@@ -51,7 +51,7 @@ class HandlerTest {
         }
     }
 
-    Test fun `application with handler that checks body on POST method`() = withTestApplication {
+    @Test fun `application with handler that checks body on POST method`() = withTestApplication {
         application.intercept { next ->
             if (request.httpMethod == HttpMethod.Post) {
                 assertEquals(request.body, "Body")
@@ -68,7 +68,7 @@ class HandlerTest {
         assertEquals(ApplicationRequestStatus.Handled, result.requestResult)
     }
 
-    Test fun `application with handler that returns true on POST method`() = withTestApplication {
+    @Test fun `application with handler that returns true on POST method`() = withTestApplication {
         application.intercept { next ->
             if (request.httpMethod == HttpMethod.Post) {
                 response.status(HttpStatusCode.OK)
@@ -90,7 +90,7 @@ class HandlerTest {
         }
     }
 
-    Test fun `application with handler that intercepts creation of headers`() = withTestApplication {
+    @Test fun `application with handler that intercepts creation of headers`() = withTestApplication {
         application.intercept { handler ->
             response.headers.intercept { name, value, header ->
                 if (name == "Content-Type" && value == "text/plain")

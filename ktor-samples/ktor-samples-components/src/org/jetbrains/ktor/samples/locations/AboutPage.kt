@@ -7,7 +7,7 @@ import org.jetbrains.ktor.components.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 
-component public class AboutPage(routing: Routing) {
+@component public class AboutPage(routing: Routing) {
     init {
         with(routing) {
             get("/about.html") {

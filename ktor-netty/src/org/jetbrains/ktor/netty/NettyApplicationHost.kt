@@ -17,7 +17,7 @@ public class NettyApplicationHost(val config: ApplicationConfig) {
 
     val bootstrap = ServerBootstrap().apply {
         group(mainEventGroup, workerEventGroup)
-        channel(javaClass<NioServerSocketChannel>())
+        channel(NioServerSocketChannel::class.java)
         childHandler(object : ChannelInitializer<SocketChannel>() {
             protected override fun initChannel(ch: SocketChannel) {
                 with (ch.pipeline()) {

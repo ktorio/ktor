@@ -51,18 +51,18 @@ class JettyApplicationHost(val config: ApplicationConfig) {
         config.publicDirectories.forEach {
             config.log.info("Attaching resource handler: ${it}")
             val resourceHandler = ResourceHandler()
-            resourceHandler.setDirectoriesListed(false)
-            resourceHandler.setResourceBase("./${it}")
-            resourceHandler.setWelcomeFiles(arrayOf("index.html"))
+            resourceHandler.isDirectoriesListed = false
+            resourceHandler.resourceBase = "./${it}"
+            resourceHandler.welcomeFiles = arrayOf("index.html")
             //TODO: resourceHandlers.add(resourceHandler)
         }
 
         val sessionHandler = SessionHandler()
         val sessionManager = HashSessionManager()
-        sessionManager.setStoreDirectory(File("tmp/sessions"))
-        sessionHandler.setSessionManager(sessionManager)
-        sessionHandler.setHandler(Handler())
-        server?.setHandler(sessionHandler)
+        sessionManager.storeDirectory = File("tmp/sessions")
+        sessionHandler.sessionManager = sessionManager
+        sessionHandler.handler = Handler()
+        server?.handler = sessionHandler
 
         server?.start()
         config.log.info("Server running.")
