@@ -10,4 +10,4 @@ public interface ApplicationRequestContext {
     public val close: Interceptable0<Unit>
 }
 
-public inline fun ApplicationRequestContext.close(): Unit = close.call()
+public fun ApplicationRequestContext.close(): Unit = close.call()

@@ -2,7 +2,6 @@ package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.http.cookies.*
 import javax.servlet.http.*
 
 public class ServletApplicationRequest(private val servletRequest: HttpServletRequest) : ApplicationRequest {

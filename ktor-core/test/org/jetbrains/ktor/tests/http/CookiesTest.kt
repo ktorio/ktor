@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.http.cookies.*
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.testing.*
 import java.text.*
 import java.time.*

@@ -1,9 +1,7 @@
-package org.jetbrains.ktor.http.cookies
+package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.http.*
 import java.net.*
-import java.time.*
 import java.time.temporal.*
 import java.util.*
 
@@ -22,63 +20,6 @@ public data class Cookie(
 
 public enum class CookieEncoding {
     RAW, DQUOTES, URI_ENCODING, BASE64_ENCODING
-}
-
-public open class RequestCookies(val request: ApplicationRequest) {
-    private val defaultDecoded: Map<String, String> by lazy { decode(CookieEncoding.URI_ENCODING) }
-
-    public fun get(name: String): String? = defaultDecoded[name]
-    public fun decode(encoding: CookieEncoding): Map<String, String> = request.attributes.computeIfAbsent(CookiesKey(encoding)) {
-        parsedRawCookies.mapValues { decodeCookieValue(it.value, encoding) }
-    }
-
-    public open val parsedRawCookies: Map<String, String> by lazy {
-        request.headers["Cookie"]?.fold(HashMap<String, String>()) { acc,e -> acc.putAll(parseClientCookiesHeader(e)); acc } ?: emptyMap<String, String>()
-    }
-}
-
-public class ResponseCookies(val response: ApplicationResponse) {
-    public fun get(name: String): Cookie? = response.headers.values("Set-Cookie").map { parseServerSetCookieHeader(it) }.firstOrNull { it.name == name }
-    public fun append(item: Cookie): Unit = response.headers.append("Set-Cookie", renderSetCookieHeader(item))
-    public fun intercept(handler: (cookie: Cookie, next: (value: Cookie) -> Unit) -> Unit) {
-        response.headers.intercept { name, value, next ->
-            if (name == "Set-Cookie") {
-                handler(parseServerSetCookieHeader(value)) { intercepted ->
-                    next(name, renderSetCookieHeader(intercepted))
-                }
-            } else {
-                next(name, value)
-            }
-        }
-    }
-
-    public fun append(name: String,
-                                          value: String,
-                                          encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-                                          maxAge: Int = 0,
-                                          expires: Temporal? = null,
-                                          domain: String = "",
-                                          path: String = "",
-                                          secure: Boolean = false,
-                                          httpOnly: Boolean = false,
-                                          extensions: Map<String, String?> = emptyMap()) {
-        append(Cookie(
-                name,
-                value,
-                encoding,
-                maxAge,
-                expires,
-                domain,
-                path,
-                secure,
-                httpOnly,
-                extensions
-        ))
-    }
-
-    public fun appendExpired(name: String, domain: String = "", path: String = "") {
-        append(name, "", domain = domain, path = path, expires = Instant.EPOCH)
-    }
 }
 
 private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "secure", "httponly", "\$x-enc")
@@ -210,5 +151,5 @@ private inline fun cookiePartExt(name: String, value: String?, encoding: CookieE
 @Suppress("NOTHING_TO_INLINE")
 private inline fun String.nullIfEmpty() = if (this.isEmpty()) null else this
 
-private data class CookiesKey(val encoding: CookieEncoding) : AttributeKey<Map<String, String>>()
+public data class CookiesKey(val encoding: CookieEncoding) : AttributeKey<Map<String, String>>()
 

@@ -18,7 +18,7 @@ private fun collectInterfacesRecursive(type: Type, result: MutableSet<Type>) {
     }
 }
 
-private fun calculateClassRegistrations(klass: Class<*>): List<Type> {
+internal fun calculateClassRegistrations(klass: Class<*>): List<Type> {
     val registrations = ArrayList<Type>()
     val superClasses = sequence<Type>(klass) {
         when (it) {
@@ -35,7 +35,7 @@ private fun calculateClassRegistrations(klass: Class<*>): List<Type> {
     return registrations
 }
 
-public fun calculateClassDependencies(klass: Class<*>): Set<Type> {
+internal fun calculateClassDependencies(klass: Class<*>): Set<Type> {
     val dependencies = hashSetOf<Type>()
     dependencies.addAll(klass.constructors.single().genericParameterTypes)
 
