@@ -51,14 +51,14 @@ public fun ApplicationResponse.streamBytes(bytes: ByteArray) {
     stream { write(bytes) }
 }
 
+public fun ApplicationResponse.streamText(text: String, encoding: String = "UTF-8") {
+    streamBytes(text.toByteArray(Charset.forName(encoding)))
+}
+
 public fun ApplicationResponse.sendBytes(bytes: ByteArray): ApplicationRequestStatus {
     status(HttpStatusCode.OK)
     streamBytes(bytes)
     return ApplicationRequestStatus.Handled
-}
-
-public fun ApplicationResponse.streamText(text: String, encoding: String = "UTF-8"): ApplicationRequestStatus {
-    return sendBytes(text.toByteArray(Charset.forName(encoding)))
 }
 
 public fun ApplicationResponse.sendText(contentType: ContentType, text: String): ApplicationRequestStatus {
