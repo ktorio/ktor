@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.application
 
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.util.*
 
 fun ApplicationRequest.queryString(): String = requestLine.queryString()
 fun ApplicationRequest.queryParameters(): ValuesMap = parseQueryString(queryString())

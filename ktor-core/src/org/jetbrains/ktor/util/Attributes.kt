@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.application
+package org.jetbrains.ktor.util
 
 import java.util.concurrent.*
 

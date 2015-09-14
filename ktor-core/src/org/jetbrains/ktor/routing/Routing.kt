@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.routing
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.util.*
 import java.util.*
 
 class Routing() : RoutingEntry(parent = null) {

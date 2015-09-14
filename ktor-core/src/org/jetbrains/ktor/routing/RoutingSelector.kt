@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.routing
 
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.util.*
 
 data class RouteSelectorEvaluation(val succeeded: Boolean, val values: ValuesMap = ValuesMap.Empty, val segmentIncrement: Int = 0)
 

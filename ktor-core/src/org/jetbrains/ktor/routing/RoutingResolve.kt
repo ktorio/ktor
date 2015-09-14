@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.routing
 
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.util.*
 
 fun RoutingResolveContext(path: String, parameters: ValuesMap = ValuesMap.Empty): RoutingResolveContext {
     return RoutingResolveContext(HttpRequestLine(HttpMethod.Get, path, "HTTP/1.1"), parameters)
