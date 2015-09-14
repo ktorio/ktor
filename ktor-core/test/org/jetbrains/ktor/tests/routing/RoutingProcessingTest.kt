@@ -43,13 +43,13 @@ class RoutingProcessingTest {
 
     @Test fun `host with routing on GET user with parameter`() {
         val testHost = createTestHost()
-        var username = listOf<String>()
+        var username = ""
         testHost.application.routing {
             route("user") {
                 param("name") {
                     method(HttpMethod.Get) {
                         handle {
-                            username = parameters["name"] ?: listOf()
+                            username = parameters["name"] ?: ""
                             ApplicationRequestStatus.Handled
                         }
                     }
@@ -61,11 +61,8 @@ class RoutingProcessingTest {
                 uri = "/user?name=john"
                 method = HttpMethod.Get
             }
-            it("should have processed username once") {
-                assertEquals(1, username.size())
-            }
             it("should have extracted username") {
-                assertEquals("john", username.single())
+                assertEquals("john", username)
             }
         }
 
@@ -91,7 +88,7 @@ class RoutingProcessingTest {
                     }
                 }
                 get("{username}") {
-                    userName = parameters["username"]?.first() ?: ""
+                    userName = parameters["username"] ?: ""
                     userNameGotWithinInterceptor = wrappedWithInterceptor
                     ApplicationRequestStatus.Handled
                 }

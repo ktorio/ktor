@@ -95,7 +95,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.entry)
             }
             it("should have parameter value equal to 'value'") {
-                assertEquals("value", resolveResult.values["param"]?.first())
+                assertEquals("value", resolveResult.values["param"])
             }
         }
     }
@@ -113,8 +113,8 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should have parameter values equal to 'value1' and 'value2'") {
-                assertEquals("value1", resolveResult.values["param1"]?.first())
-                assertEquals("value2", resolveResult.values["param2"]?.first())
+                assertEquals("value1", resolveResult.values["param1"])
+                assertEquals("value2", resolveResult.values["param2"])
             }
         }
     }
@@ -132,7 +132,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should have parameter value equal to [value1, value2]") {
-                assertEquals(listOf("value1", "value2"), resolveResult.values["param"])
+                assertEquals(listOf("value1", "value2"), resolveResult.values.getAll("param"))
             }
         }
     }
@@ -152,7 +152,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.entry)
             }
             it("should have parameter value equal to 'value'") {
-                assertEquals("value", resolveResult.values["param"]?.first())
+                assertEquals("value", resolveResult.values["param"])
             }
         }
 
@@ -254,7 +254,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.entry)
             }
             it("should have parameter value") {
-                assertEquals(listOf("value"), resolveResult.values["items"])
+                assertEquals("value", resolveResult.values["items"])
             }
         }
 
@@ -268,7 +268,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.entry)
             }
             it("should have empty parameter") {
-                assertTrue(resolveResult.values["items"]?.none() ?: true)
+                assertNull(resolveResult.values["items"])
             }
         }
 
@@ -282,7 +282,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.entry)
             }
             it("should have parameter value") {
-                assertEquals(listOf("bar", "baz", "blah"), resolveResult.values["items"])
+                assertEquals(listOf("bar", "baz", "blah"), resolveResult.values.getAll("items"))
             }
         }
     }
@@ -302,7 +302,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.entry)
             }
             it("should have parameter value") {
-                assertEquals(listOf("value"), resolveResult.values["name"])
+                assertEquals(listOf("value"), resolveResult.values.getAll("name"))
             }
         }
 
@@ -330,7 +330,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.entry)
             }
             it("should have parameter value") {
-                assertEquals(listOf("value1", "value2"), resolveResult.values["name"])
+                assertEquals(listOf("value1", "value2"), resolveResult.values.getAll("name"))
             }
         }
     }

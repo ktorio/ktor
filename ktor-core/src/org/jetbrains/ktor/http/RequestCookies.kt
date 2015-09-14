@@ -16,6 +16,7 @@ public open class RequestCookies(private val request: ApplicationRequest) {
     }
 
     public open val parsedRawCookies: Map<String, String> by lazy {
-        request.headers["Cookie"]?.fold(HashMap<String, String>()) { acc, e -> acc.putAll(parseClientCookiesHeader(e)); acc } ?: emptyMap<String, String>()
+        request.headers.getAll("Cookie")?.fold(HashMap<String, String>()) { acc, e -> acc.putAll(parseClientCookiesHeader(e)); acc }
+                ?: emptyMap<String, String>()
     }
 }

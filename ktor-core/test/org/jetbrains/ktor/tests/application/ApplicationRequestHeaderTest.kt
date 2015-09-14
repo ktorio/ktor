@@ -48,8 +48,8 @@ class ApplicationRequestHeaderTest {
                     }
                     it("should map two parameters key1=value1 and key2=value2") {
                         val params = request.queryParameters()
-                        assertEquals("value1", params["key1"]?.single())
-                        assertEquals("value2", params["key2"]?.single())
+                        assertEquals("value1", params["key1"])
+                        assertEquals("value2", params["key2"])
                     }
                     it("should map queryString to key1=value1&key2=value2") {
                         assertEquals("key1=value1&key2=value2", request.queryString())
@@ -111,8 +111,8 @@ class ApplicationRequestHeaderTest {
                     }
                     it("should map two parameters key1=value1 and key2=value2") {
                         val params = request.queryParameters()
-                        assertEquals("value1", params["key1"]?.single())
-                        assertEquals("value2", params["key2"]?.single())
+                        assertEquals("value1", params["key1"])
+                        assertEquals("value2", params["key2"])
                     }
                     it("should map queryString to key1=value1&key2=value2") {
                         assertEquals("key1=value1&key2=value2", request.queryString())

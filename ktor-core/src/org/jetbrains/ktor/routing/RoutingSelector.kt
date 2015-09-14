@@ -19,7 +19,7 @@ data class ConstantParameterRoutingSelector(val name: String, val value: String)
 
 data class ParameterRoutingSelector(val name: String) : RoutingSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
-        val param = context.parameters[name]
+        val param = context.parameters.getAll(name)
         if (param != null)
             return RouteSelectorEvaluation(true, valuesOf(name to param))
         return RouteSelectorEvaluation(false)
@@ -28,7 +28,7 @@ data class ParameterRoutingSelector(val name: String) : RoutingSelector {
 
 data class OptionalParameterRoutingSelector(val name: String) : RoutingSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
-        val param = context.parameters[name]
+        val param = context.parameters.getAll(name)
         if (param != null)
             return RouteSelectorEvaluation(true, valuesOf(name to param))
         return RouteSelectorEvaluation(true)

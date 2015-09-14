@@ -7,8 +7,8 @@ import java.time.temporal.*
 val ApplicationRequest.uri: String get() = requestLine.uri
 val ApplicationRequest.httpMethod: HttpMethod get() = requestLine.method
 val ApplicationRequest.httpVersion: String get() = requestLine.version
-fun ApplicationRequest.header(name: String): String? = headers[name]?.singleOrNull()
-fun ApplicationRequest.parameter(name: String): String? = parameters[name]?.singleOrNull()
+fun ApplicationRequest.header(name: String): String? = headers[name]
+fun ApplicationRequest.parameter(name: String): String? = parameters[name]
 
 val ApplicationRequest.contentCharset: Charset?
     get() = contentType().parameter("charset")?.let { Charset.forName(it) }

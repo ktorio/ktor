@@ -61,7 +61,7 @@ public open class DefaultConversionService : ConversionService {
     }
 
     override fun fromContext(context: RoutingApplicationRequestContext, name: String, type: Type, optional: Boolean): Any? {
-        val requestParameters = context.parameters[name]
+        val requestParameters = context.parameters.getAll(name)
         return if (requestParameters == null) {
             if (!optional) {
                 throw InconsistentRoutingException("Parameter '$name' was not found in the request")

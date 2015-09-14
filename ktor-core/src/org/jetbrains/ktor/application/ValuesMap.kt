@@ -2,20 +2,24 @@ package org.jetbrains.ktor.application
 
 import java.util.*
 
-public class ValuesMap(val map: Map<String, List<String>>) {
+public class ValuesMap(private val map: Map<String, List<String>>) {
     companion object {
         val Empty = ValuesMap(mapOf())
 
         inline fun build(body: Builder.() -> Unit): ValuesMap = Builder().apply(body).build()
     }
 
-    fun get(name: String): List<String>? = map[name]
+    fun get(name: String): String? = map[name]?.singleOrNull()
+    fun getAll(name: String): List<String>? = map[name]
+
+    fun entries(): Set<Map.Entry<String, List<String>>> = map.entrySet()
+    fun names(): Set<String> = map.keySet()
 
     fun contains(name: String) = map.containsKey(name)
     fun contains(name: String, value: String) = map[name]?.contains(value) ?: false
 
     class Builder {
-        private val map = hashMapOf<String, ArrayList<String>>()
+        private val map = linkedMapOf<String, ArrayList<String>>()
 
         fun appendAll(valuesMap: ValuesMap) {
             for ((key, values) in valuesMap.map)

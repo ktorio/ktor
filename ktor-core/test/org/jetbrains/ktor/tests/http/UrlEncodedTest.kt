@@ -12,7 +12,7 @@ class UrlEncodedTest {
             body = "field1=%D0%A2%D0%B5%D1%81%D1%82"
 
             val parsed = parseUrlEncodedParameters()
-            assertEquals("\u0422\u0435\u0441\u0442", parsed["field1"]?.single())
+            assertEquals("\u0422\u0435\u0441\u0442", parsed["field1"])
         }
     }
 
@@ -23,7 +23,7 @@ class UrlEncodedTest {
             addHeader(HttpHeaders.ContentType, "application/x-www-form-urlencoded")
 
             val parsed = parseUrlEncodedParameters()
-            assertEquals("\u0422\u0435\u0441\u0442", parsed["field1"]?.single())
+            assertEquals("\u0422\u0435\u0441\u0442", parsed["field1"])
         }
     }
 
@@ -34,7 +34,7 @@ class UrlEncodedTest {
             addHeader(HttpHeaders.ContentType, "application/x-www-form-urlencoded; charset=utf-8")
 
             val parsed = parseUrlEncodedParameters()
-            assertEquals("\u0422\u0435\u0441\u0442", parsed["field1"]?.single())
+            assertEquals("\u0422\u0435\u0441\u0442", parsed["field1"])
         }
     }
 
@@ -45,7 +45,7 @@ class UrlEncodedTest {
             addHeader(HttpHeaders.ContentType, "application/x-www-form-urlencoded; charset=windows-1251")
 
             val parsed = parseUrlEncodedParameters()
-            assertEquals("\u0422\u0435\u0441\u0442", parsed["field1"]?.single())
+            assertEquals("\u0422\u0435\u0441\u0442", parsed["field1"])
         }
     }
 
@@ -56,7 +56,7 @@ class UrlEncodedTest {
             addHeader(HttpHeaders.ContentType, "application/x-www-form-urlencoded")
 
             val parsed = parseUrlEncodedParameters()
-            assertEquals("\u0422\u0435\u0441\u0442", parsed["field1"]?.single())
+            assertEquals("\u0422\u0435\u0441\u0442", parsed["field1"])
         }
     }
 }

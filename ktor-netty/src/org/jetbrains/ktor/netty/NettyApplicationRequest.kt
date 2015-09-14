@@ -41,8 +41,9 @@ class NettyApplicationRequest(private val request: FullHttpRequest) : Applicatio
 
 private class NettyRequestCookies(val owner: ApplicationRequest) : RequestCookies(owner) {
     override val parsedRawCookies: Map<String, String> by lazy {
-        owner.headers["Cookie"]?.fold(HashMap<String, String>()) { acc, e ->
-            acc.putAll(ServerCookieDecoder.LAX.decode(owner.header("Cookie") ?: "").toMap({ it.name() }, { it.value() }))
+        owner.headers.getAll("Cookie")?.fold(HashMap<String, String>()) { acc, e ->
+            val cookieHeader = owner.header("Cookie") ?: ""
+            acc.putAll(ServerCookieDecoder.LAX.decode(cookieHeader).toMap({ it.name() }, { it.value() }))
             acc
         } ?: emptyMap<String, String>()
     }

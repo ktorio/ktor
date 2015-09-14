@@ -49,7 +49,7 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
                 response.send(model)
             }
             get("/v1/item/{key}") {
-                response.send(model.items.first { it.key == parameters["key"]?.singleOrNull() })
+                response.send(model.items.first { it.key == parameters["key"] })
             }
         }
     }
