@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.http
 
-import org.jetbrains.ktor.application.*
 import java.net.*
 import java.time.temporal.*
 import java.util.*
@@ -150,6 +149,3 @@ private inline fun cookiePartExt(name: String, value: String?, encoding: CookieE
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun String.nullIfEmpty() = if (this.isEmpty()) null else this
-
-public data class CookiesKey(val encoding: CookieEncoding) : AttributeKey<Map<String, String>>()
-
