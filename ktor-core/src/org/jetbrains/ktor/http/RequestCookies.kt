@@ -2,13 +2,17 @@ package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
 import java.util.*
+import java.util.concurrent.*
 
-public open class RequestCookies(val request: ApplicationRequest) {
-    private val defaultDecoded: Map<String, String> by lazy { decode(CookieEncoding.URI_ENCODING) }
+public open class RequestCookies(private val request: ApplicationRequest) {
+    private val map = ConcurrentHashMap<Pair<CookieEncoding, String>, String>()
 
-    public fun get(name: String): String? = defaultDecoded[name]
-    public fun decode(encoding: CookieEncoding): Map<String, String> = request.attributes.computeIfAbsent(CookiesKey(encoding)) {
-        parsedRawCookies.mapValues { decodeCookieValue(it.value, encoding) }
+    // TODO: Remove in favor of default parameter value when KT-9140 is fixed
+    public fun get(name: String): String? = get(name, CookieEncoding.URI_ENCODING)
+
+    public fun get(name: String, encoding: CookieEncoding): String? {
+        val rawValue = parsedRawCookies[name] ?: return null
+        return map.computeIfAbsent(encoding to name) { decodeCookieValue(rawValue, encoding) }
     }
 
     public open val parsedRawCookies: Map<String, String> by lazy {

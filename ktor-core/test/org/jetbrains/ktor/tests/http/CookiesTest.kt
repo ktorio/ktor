@@ -47,7 +47,7 @@ class CookiesTest {
 
     @test fun `decode dquotes encoded cookies`() {
         withRawCookies("SESSION=\"1 2\"") {
-            assertEquals("1 2", cookies.decode(CookieEncoding.DQUOTES)["SESSION"])
+            assertEquals("1 2", cookies.get("SESSION", CookieEncoding.DQUOTES))
         }
     }
 
