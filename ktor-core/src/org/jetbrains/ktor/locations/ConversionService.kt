@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.locations
 
 import org.jetbrains.ktor.routing.*
-import java.lang
 import java.lang.reflect.*
 
 public interface ConversionService {
@@ -18,12 +17,12 @@ public open class DefaultConversionService : ConversionService {
             else -> {
                 val type = value.javaClass
                 listOf(when (type) {
-                           Int::class.java, lang.Integer::class.java,
-                           Float::class.java, lang.Float::class.java,
-                           Double::class.java, lang.Double::class.java,
-                           Long::class.java, lang.Long::class.java,
-                           Boolean::class.java, lang.Boolean::class.java,
-                           String::class.java, lang.String::class.java -> value.toString()
+                           Int::class.java, java.lang.Integer::class.java,
+                           Float::class.java, java.lang.Float::class.java,
+                           Double::class.java, java.lang.Double::class.java,
+                           Long::class.java, java.lang.Long::class.java,
+                           Boolean::class.java, java.lang.Boolean::class.java,
+                           String::class.java, java.lang.String::class.java -> value.toString()
                            else -> throw UnsupportedOperationException("Type $type is not supported in automatic location data class processing")
                        })
             }
@@ -34,12 +33,12 @@ public open class DefaultConversionService : ConversionService {
     open fun convert(value: String, type: Type): Any {
         return when (type) {
             is WildcardType -> convert(value, type.upperBounds.single())
-            Int::class.java, lang.Integer::class.java -> value.toInt()
-            Float::class.java, lang.Float::class.java -> value.toFloat()
-            Double::class.java, lang.Double::class.java -> value.toDouble()
-            Long::class.java, lang.Long::class.java -> value.toLong()
-            Boolean::class.java, lang.Boolean::class.java -> value.toBoolean()
-            String::class.java, lang.String::class.java -> value
+            Int::class.java, java.lang.Integer::class.java -> value.toInt()
+            Float::class.java, java.lang.Float::class.java -> value.toFloat()
+            Double::class.java, java.lang.Double::class.java -> value.toDouble()
+            Long::class.java, java.lang.Long::class.java -> value.toLong()
+            Boolean::class.java, java.lang.Boolean::class.java -> value.toBoolean()
+            String::class.java, java.lang.String::class.java -> value
             else -> throw UnsupportedOperationException("Type $type is not supported in automatic location data class processing")
         }
     }

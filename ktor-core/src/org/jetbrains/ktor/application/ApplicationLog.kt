@@ -2,7 +2,6 @@ package org.jetbrains.ktor.application
 
 import org.slf4j.*
 import org.slf4j.Logger
-import java.util.logging
 import java.util.logging.*
 
 public interface ApplicationLog {
@@ -18,7 +17,7 @@ public interface ApplicationLog {
 public class NullApplicationLog : ApplicationLog {}
 
 public class SL4JApplicationLog(name: String) : ApplicationLog {
-    val logger: Logger = LoggerFactory.getLogger(name)
+    private val logger: Logger = LoggerFactory.getLogger(name)
 
     override fun info(message: String) {
         logger.info(message)
@@ -45,7 +44,7 @@ public class SL4JApplicationLog(name: String) : ApplicationLog {
 }
 
 public class JULApplicationLog(name: String) : ApplicationLog {
-    val logger: logging.Logger = java.util.logging.Logger.getLogger(name)
+    private val logger = java.util.logging.Logger.getLogger(name)
 
     override fun info(message: String) {
         logger.log(Level.INFO, message)
