@@ -1,11 +1,13 @@
 package org.jetbrains.ktor.netty
 
+import io.netty.buffer.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.cookie.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpMethod
 import org.jetbrains.ktor.util.*
+import java.io.*
 import java.util.*
 
 class NettyApplicationRequest(private val request: FullHttpRequest) : ApplicationRequest {
@@ -16,12 +18,6 @@ class NettyApplicationRequest(private val request: FullHttpRequest) : Applicatio
     override val requestLine: HttpRequestLine by lazy {
         HttpRequestLine(HttpMethod.parse(request.method.name()), request.uri, request.protocolVersion.text())
     }
-
-    override val body: String
-        get() {
-            val byteBuf = request.content()
-            return byteBuf.toString(contentCharset ?: Charsets.ISO_8859_1)
-        }
 
     override val parameters: ValuesMap by lazy {
         ValuesMap.build {
@@ -35,6 +31,9 @@ class NettyApplicationRequest(private val request: FullHttpRequest) : Applicatio
         }
     }
 
+    override val content: ApplicationRequestContent = object : ApplicationRequestContent(this) {
+        override fun getInputStream(): InputStream = ByteBufInputStream(request.content())
+    }
 
     override val attributes = Attributes()
     override val cookies = NettyRequestCookies(this)

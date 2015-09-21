@@ -68,7 +68,7 @@ class TestApplicationRequest() : ApplicationRequest {
             requestLine = requestLine.copy(method = value)
         }
 
-    override var body: String = ""
+    var body: String = ""
 
     override val parameters: ValuesMap get() {
         return queryParameters()
@@ -80,6 +80,10 @@ class TestApplicationRequest() : ApplicationRequest {
     }
 
     override val headers = ValuesMap(headersMap)
+
+    override val content: ApplicationRequestContent = object : ApplicationRequestContent(this) {
+        override fun getInputStream(): InputStream = ByteArrayInputStream(body.toByteArray("UTF-8"))
+    }
 
     override val attributes = Attributes()
     override val cookies = RequestCookies(this)

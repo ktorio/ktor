@@ -54,7 +54,7 @@ class HandlerTest {
     @Test fun `application with handler that checks body on POST method`() = withTestApplication {
         application.intercept { next ->
             if (request.httpMethod == HttpMethod.Post) {
-                assertEquals(request.body, "Body")
+                assertEquals(request.content.get<String>(), "Body")
                 response.status(HttpStatusCode.OK)
                 ApplicationRequestStatus.Handled
 

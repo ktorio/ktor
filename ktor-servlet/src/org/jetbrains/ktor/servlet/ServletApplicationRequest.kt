@@ -3,6 +3,7 @@ package org.jetbrains.ktor.servlet
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
+import java.io.*
 import javax.servlet.http.*
 
 public class ServletApplicationRequest(private val servletRequest: HttpServletRequest) : ApplicationRequest {
@@ -13,9 +14,6 @@ public class ServletApplicationRequest(private val servletRequest: HttpServletRe
                         if (query == null) uri else "$uri?$query",
                         servletRequest.protocol)
     }
-
-    override val body: String
-        get() = servletRequest.inputStream.reader(contentCharset ?: Charsets.ISO_8859_1).readText()
 
     override val parameters: ValuesMap by lazy {
         ValuesMap.build {
@@ -36,6 +34,10 @@ public class ServletApplicationRequest(private val servletRequest: HttpServletRe
                 appendAll(it, servletRequest.getHeaders(it).toList())
             }
         }
+    }
+
+    override val content: ApplicationRequestContent = object : ApplicationRequestContent(this) {
+        override fun getInputStream(): InputStream = servletRequest.inputStream
     }
 
     override val attributes = Attributes()
