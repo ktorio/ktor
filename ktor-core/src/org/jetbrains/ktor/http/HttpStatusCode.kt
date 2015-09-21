@@ -1,6 +1,8 @@
 package org.jetbrains.ktor.http
 
 data class HttpStatusCode(val value: Int, val description: String) {
+    override fun toString(): String = "$value $description"
+
     companion object {
         val Continue = HttpStatusCode(100, "Continue")
         val SwitchingProtocols = HttpStatusCode(101, "Switching Protocols")
