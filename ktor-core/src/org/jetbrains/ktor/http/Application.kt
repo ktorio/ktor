@@ -30,11 +30,6 @@ fun ApplicationResponse.sendError(code: HttpStatusCode, message: String = code.d
     return send(TextErrorContent(code, message))
 }
 
-fun ApplicationResponse.sendAuthenticationRequest(realm: String): ApplicationRequestStatus {
-    headers.append(HttpHeaders.WWWAuthenticate, "Basic realm=\"$realm\"")
-    return send(HttpStatusCode.Unauthorized)
-}
-
 public fun ApplicationResponse.sendBytes(bytes: ByteArray): ApplicationRequestStatus {
     status(HttpStatusCode.OK)
     streamBytes(bytes)
