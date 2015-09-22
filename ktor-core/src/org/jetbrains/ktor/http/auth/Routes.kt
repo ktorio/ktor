@@ -3,21 +3,17 @@ package org.jetbrains.ktor.http.auth
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.routing.*
 
-fun <C: Credential, P: Principal> RoutingEntry.withAuth(extractor: CredentialProvider<C>, validator: AuthenticationProvider<C, P>, onFailed: (ApplicationRequestContext) -> ApplicationRequestStatus) {
-    addInterceptor { ctx, next ->
-        val credentials = extractor.extract(ctx.request)
-        val principal = when (credentials) {
-            null -> null
-            else -> validator.authenticate(credentials)
-        }
+fun <T: Any> RoutingEntry.auth(credentialsExtractor: RoutingApplicationRequestContext.() -> T?,
+                               validator: (T) -> Boolean,
+                               onSuccess: RoutingApplicationRequestContext.(T, RoutingApplicationRequestContext.() -> ApplicationRequestStatus) -> ApplicationRequestStatus,
+                               onFailed: RoutingApplicationRequestContext.(RoutingApplicationRequestContext.() -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
 
-        if (principal == null) {
-            onFailed(ctx)
+    intercept { next ->
+        val credentials = credentialsExtractor()
+        if (credentials == null || !validator(credentials)) {
+            onFailed(next)
         } else {
-            ctx.request.attributes.put(PrincipalKey, principal)
-            next(ctx)
+            onSuccess(credentials, next)
         }
     }
 }
-
-public val PrincipalKey: AttributeKey<Principal> = AttributeKey()

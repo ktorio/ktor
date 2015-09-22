@@ -5,19 +5,19 @@ import kotlin.test.*
 import org.junit.Test as test
 
 class AuthorizeHeaderParserTest {
-    test fun empty() {
+    @test fun empty() {
         testParserParameterized("Basic", emptyMap(), "Basic")
     }
 
-    test fun emptyWithTrailingSpaces() {
+    @test fun emptyWithTrailingSpaces() {
         testParserParameterized("Basic", emptyMap(), "Basic ")
     }
 
-    test fun singleSimple() {
-        testParserSingle("Basic", "erfwegwergwe==", "Basic erfwegwergwe==")
+    @test fun singleSimple() {
+        testParserSingle("Basic", "abc==", "Basic abc==")
     }
 
-    test fun testParameterizedSimple() {
+    @test fun testParameterizedSimple() {
         testParserParameterized("Basic", mapOf("a" to "1"), "Basic a=1")
         testParserParameterized("Basic", mapOf("a" to "1"), "Basic a =1")
         testParserParameterized("Basic", mapOf("a" to "1"), "Basic a = 1")
@@ -26,7 +26,7 @@ class AuthorizeHeaderParserTest {
         testParserParameterized("Basic", mapOf("a" to "1"), "Basic a=1 ")
     }
 
-    test fun testParameterizedSimpleTwoParams() {
+    @test fun testParameterizedSimpleTwoParams() {
         testParserParameterized("Basic", mapOf("a" to "1", "b" to "2"), "Basic a=1, b=2")
         testParserParameterized("Basic", mapOf("a" to "1", "b" to "2"), "Basic a=1,b=2")
         testParserParameterized("Basic", mapOf("a" to "1", "b" to "2"), "Basic a=1 ,b=2")
@@ -34,16 +34,16 @@ class AuthorizeHeaderParserTest {
         testParserParameterized("Basic", mapOf("a" to "1", "b" to "2"), "Basic a=1 , b=2 ")
     }
 
-    test fun testParameterizedQuoted() {
+    @test fun testParameterizedQuoted() {
         testParserParameterized("Basic", mapOf("a" to "1 2"), "Basic a=\"1 2\"")
     }
 
-    test fun testParameterizedQuotedEscaped() {
+    @test fun testParameterizedQuotedEscaped() {
         testParserParameterized("Basic", mapOf("a" to "1 \" 2"), "Basic a=\"1 \\\" 2\"")
         testParserParameterized("Basic", mapOf("a" to "1 A 2"), "Basic a=\"1 \\A 2\"")
     }
 
-    test fun testParameterizedQuotedEscapedInTheMiddle() {
+    @test fun testParameterizedQuotedEscapedInTheMiddle() {
         testParserParameterized("Basic", mapOf("a" to "1 \" 2", "b" to "2"), "Basic a=\"1 \\\" 2\", b= 2")
     }
 
