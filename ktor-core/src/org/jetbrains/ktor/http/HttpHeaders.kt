@@ -83,21 +83,49 @@ public object HttpHeaders {
     val Via = "Via"
     val Warning = "Warning"
     val WWWAuthenticate = "WWW-Authenticate"
-
-    val MultiValueHeaders = listOf(
-            Accept,
-            AcceptCharset,
-            AcceptEncoding,
-            AcceptLanguage,
-            TE,
-            Via
-                                  )
-
 }
 
-fun splitKnownHeaders(key: String, value: String): List<String> {
-    if (key in HttpHeaders.MultiValueHeaders) {
-        return value.split(",").map { it.trim() }
+public data class HeaderItemParam(val name: String, val value: String)
+public data class HeaderItem(val value: String, val params: List<HeaderItemParam> = listOf()) {
+    val quality: Float = params.firstOrNull { it.name == "q" }?.let { it.value.toFloat() } ?: 1.0f
+}
+
+public fun String?.orderedHeaderItems(): List<HeaderItem> {
+    return headerItems().sortedByDescending { it.quality }
+}
+
+public fun String?.orderedContentTypeHeaderItems(): List<HeaderItem> {
+    return headerItems().sortedWith(
+            compareByDescending<HeaderItem> { it.quality }
+                    thenBy {
+                val contentType = ContentType.parse(it.value)
+                var asterisks = 0
+                if (contentType.contentType == "*")
+                    asterisks++
+                if (contentType.contentSubtype == "*")
+                    asterisks++
+                asterisks
+            } thenByDescending {
+                it.params.size()
+            })
+}
+
+public fun String?.headerItems(): List<HeaderItem> {
+    if (this == null)
+        return listOf()
+
+    return split(",").map {
+        val valueParams = it.trim().split(";")
+        val name = valueParams[0]
+        if (valueParams.size() == 1) // only value
+            return@map HeaderItem(name, listOf())
+        val params = valueParams.drop(1).map {
+            val nameValue = it.trim().split("=", limit = 2).map { it.trim() }
+            if (nameValue.size() == 1)
+                HeaderItemParam(nameValue[0], "")
+            else
+                HeaderItemParam(nameValue[0], nameValue[1])
+        }
+        HeaderItem(name, params)
     }
-    return listOf(value)
 }
