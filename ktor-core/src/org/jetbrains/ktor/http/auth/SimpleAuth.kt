@@ -2,16 +2,17 @@ package org.jetbrains.ktor.http.auth.simple
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.http.auth.*
-import org.jetbrains.ktor.http.auth.Principal
 import java.security.*
 import java.util.*
+import javax.crypto.*
+import javax.crypto.spec.*
 
-data class SimpleUserPrincipal(override val name: String) : Principal
-data class SimpleUserPassword(val name: String, val password: String) : Credential
+data class SimpleUserPrincipal(val name: String, val groups: List<String> = emptyList())
+data class SimpleUserPassword(val name: String, val password: String)
 
-class SimpleUserTableAuth(val digester: (String) -> ByteArray = getShaDigestFunction("SHA256", "ktor"), val table: Map<String, ByteArray>) : AuthenticationProvider<SimpleUserPassword, SimpleUserPrincipal> {
+public class SimpleUserHashedTableAuth(val digester: (String) -> ByteArray = getDigestFunction("SHA-256", "ktor"), val table: Map<String, ByteArray>) {
 
-    constructor(config: Config) : this(getShaDigestFunction(config.getString("hashAlgorithm"), config.getString("salt")), config.parseUsers())
+    constructor(config: Config) : this(getDigestFunction(config.getString("hashAlgorithm"), config.getString("salt")), config.parseUsers())
 
     init {
         if (table.isEmpty()) {
@@ -19,7 +20,7 @@ class SimpleUserTableAuth(val digester: (String) -> ByteArray = getShaDigestFunc
         }
     }
 
-    override fun authenticate(credential: SimpleUserPassword): SimpleUserPrincipal? {
+    fun authenticate(credential: SimpleUserPassword): SimpleUserPrincipal? {
         val userPasswordHash = table[credential.name]
         if (userPasswordHash != null && Arrays.equals(digester(credential.password), userPasswordHash)) {
             return SimpleUserPrincipal(credential.name)
@@ -29,19 +30,43 @@ class SimpleUserTableAuth(val digester: (String) -> ByteArray = getShaDigestFunc
     }
 }
 
-public fun getShaDigestFunction(algorithm: String, salt: String): (String) -> ByteArray = { e -> shaDigest(e, algorithm, salt) }
+public class SimpleUserEncryptedTableAuth(val decryptor: PasswordDecryptor, val table: Map<String, String>) {
+    fun authenticate(credential: SimpleUserPassword): SimpleUserPrincipal? {
+        if (decrypt(credential.name) == credential.password) {
+            return SimpleUserPrincipal(credential.name)
+        }
 
-public fun shaDigest(text: String, algorithm: String, salt: String): ByteArray = with(MessageDigest.getInstance(algorithm)) {
+        return null
+    }
+
+    private fun decrypt(name: String) = table[name]?.let { decryptor.decrypt(it) }
+}
+
+public fun getDigestFunction(algorithm: String, salt: String): (String) -> ByteArray = { e -> getDigest(e, algorithm, salt) }
+
+public fun getDigest(text: String, algorithm: String, salt: String): ByteArray = with(MessageDigest.getInstance(algorithm)) {
     update(salt.toByteArray())
     digest(text.toByteArray())
 }
 
+public class SimpleJavaCryptoPasswordDecryptor(val algorithmWithTransformation: String, val key: String, val salt: String) : PasswordDecryptor {
+    private val iv: IvParameterSpec by lazy { IvParameterSpec(salt.toByteArray()) }
+    private val keySpec: SecretKeySpec by lazy { SecretKeySpec(key.toByteArray(), algorithmWithTransformation.substringBefore('/')) }
+
+    override fun decrypt(encrypted: String): String {
+        val encryptedBytes = Base64.getDecoder().decode(encrypted)
+
+        val cipher = Cipher.getInstance(algorithmWithTransformation)
+        cipher.init(Cipher.DECRYPT_MODE, keySpec, iv)
+
+        return cipher.doFinal(encryptedBytes).toString(Charsets.UTF_8)
+    }
+}
+
 private fun Config.parseUsers(name: String = "users") =
         getConfigList(name)
-                .map { it.getString("name")!! to it.getString("hash").decodeHex() }
+                .map { it.getString("name")!! to it.getString("hash").decodeBase64() }
                 .toMap()
 
-private fun String.decodeHex(): ByteArray {
-    require(length() mod 2 == 0) { "HEX string is not valid: $this" }
-    return (0..length() step 2).map { java.lang.Byte.valueOf(this[it].toString() + this[it + 1], 16) }.toByteArray()
-}
+private fun String.decodeBase64() = Base64.getDecoder().decode(this)
+private fun ByteArray.toBase64() = Base64.getEncoder().encodeToString(this)
