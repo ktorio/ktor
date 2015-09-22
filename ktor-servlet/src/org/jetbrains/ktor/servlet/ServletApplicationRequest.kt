@@ -6,7 +6,7 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import javax.servlet.http.*
 
-internal class ServletApplicationRequest(private val servletRequest: HttpServletRequest) : ApplicationRequest {
+public class ServletApplicationRequest(internal val servletRequest: HttpServletRequest) : ApplicationRequest {
     override val requestLine: HttpRequestLine by lazy {
         val uri = servletRequest.requestURI
         val query = servletRequest.queryString
