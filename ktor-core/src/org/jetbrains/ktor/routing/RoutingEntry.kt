@@ -22,11 +22,11 @@ open class RoutingEntry(val parent: RoutingEntry?) {
         return existingEntry
     }
 
-    public fun addInterceptor(interceptor: (RoutingApplicationRequestContext, (RoutingApplicationRequestContext) -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
+    public fun intercept(interceptor: RoutingApplicationRequestContext.(RoutingApplicationRequestContext.() -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
         interceptors.add(RoutingInterceptor(interceptor))
     }
 
-    public fun addHandler(handler: (RoutingApplicationRequestContext) -> ApplicationRequestStatus) {
+    public fun handle(handler: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
         handlers.add(handler)
     }
 }

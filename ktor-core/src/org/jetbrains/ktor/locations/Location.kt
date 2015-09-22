@@ -45,10 +45,10 @@ inline fun <reified T : Any> RoutingEntry.handle(noinline body: RoutingApplicati
 }
 
 fun <T : Any> RoutingEntry.handle(dataClass: KClass<T>, body: RoutingApplicationRequestContext.(T) -> ApplicationRequestStatus) {
-    addHandler {
+    handle {
         val locationService = getService(locationServiceKey)
-        val location = locationService.resolve<T>(dataClass, it)
-        it.body(location)
+        val location = locationService.resolve<T>(dataClass, this)
+        body(location)
     }
 }
 
