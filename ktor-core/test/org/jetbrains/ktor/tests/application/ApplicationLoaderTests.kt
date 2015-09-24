@@ -14,7 +14,7 @@ class ApplicationLoaderTests {
                         "ktor.application.class" to "NonExistingApplicationName"
                      ))
         val config = ApplicationConfig(testConfig)
-        val result = assertFailsWith(ClassNotFoundException::class) { ApplicationLoader(config).application }
+        assertFailsWith(ClassNotFoundException::class) { ApplicationLoader(config).application }
     }
 
     @Test fun `valid class name should create application`() {

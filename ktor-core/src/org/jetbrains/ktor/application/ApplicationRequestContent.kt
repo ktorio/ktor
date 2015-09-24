@@ -8,7 +8,7 @@ import kotlin.reflect.*
 public abstract class ApplicationRequestContent(private val request: ApplicationRequest) {
     private val contentsChain = Interceptable1<KClass<*>, Any> { type ->
         when (type) {
-            InputStream::class -> return@Interceptable1 getInputStream()
+            InputStream::class -> getInputStream()
             String::class -> getInputStream().reader(request.contentCharset ?: Charsets.ISO_8859_1).readText()
             else -> throw UnknownContentAccessorRequest("Requested content accessor '$type' cannot be provided")
         }
@@ -20,6 +20,7 @@ public abstract class ApplicationRequestContent(private val request: Application
         contentsChain.intercept(handler)
     }
 
+    @Suppress("UNCHECKED_CAST")
     public fun get<T : Any>(type: KClass<T>): T = contentsChain.call(type) as T
     public inline fun get<reified T : Any>(): T = get(T::class)
 }

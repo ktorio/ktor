@@ -174,8 +174,7 @@ class RoutingResolveTest {
     @Test fun `routing foo with wildcard`() {
         val root = Routing()
         val fooEntry = root.select(UriPartConstantRoutingSelector("foo"))
-        val paramEntry = fooEntry
-                .select(UriPartWildcardRoutingSelector())
+        val paramEntry = fooEntry.select(UriPartWildcardRoutingSelector)
 
         on("resolving /foo/value") {
             val resolveResult = root.resolve(RoutingResolveContext("/foo/value"))

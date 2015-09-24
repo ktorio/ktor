@@ -8,8 +8,8 @@ import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.routing.*
 import java.util.*
 
-@location("/") data class index()
-@location("/number") data class number(val value: Int)
+@location("/") class index()
+@location("/number") class number(val value: Int)
 
 class LocationsApplication(config: ApplicationConfig) : Application(config) {
     init {

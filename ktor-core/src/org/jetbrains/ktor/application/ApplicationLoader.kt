@@ -20,6 +20,7 @@ public class ApplicationLoader(val config: ApplicationConfig) {
         application // eagerly create application
     }
 
+    @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
     public val application: Application
         get() = synchronized(applicationInstanceLock) {
             if (config.isDevelopment()) {

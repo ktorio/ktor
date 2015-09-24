@@ -61,7 +61,7 @@ data class UriPartOptionalParameterRoutingSelector(val name: String) : RoutingSe
     }
 }
 
-data class UriPartWildcardRoutingSelector() : RoutingSelector {
+object UriPartWildcardRoutingSelector : RoutingSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         if (index < context.path.parts.size()) {
             return RouteSelectorEvaluation(true, segmentIncrement = 1)

@@ -37,6 +37,7 @@ open public class LocationService(val conversionService: ConversionService) {
         return constructor.callBy(arguments)
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun getParameterNameFromAnnotation(parameter: KParameter): String = TODO()
 
     private fun ResolvedUriInfo.combine(relativePath: String, queryValues: List<Pair<String, String>>): ResolvedUriInfo {
@@ -53,7 +54,7 @@ open public class LocationService(val conversionService: ConversionService) {
         return info.getOrPut(dataClass) {
             val parentClass = dataClass.java.enclosingClass?.kotlin
             val parent = parentClass?.annotation<location>()?.let {
-                getOrCreateInfo(parentClass!!)
+                getOrCreateInfo(parentClass)
             }
 
             val path = dataClass.annotation<location>()?.let { it.path } ?: ""
@@ -96,6 +97,7 @@ open public class LocationService(val conversionService: ConversionService) {
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun resolve<T : Any>(dataClass: KClass<*>, request: RoutingApplicationRequestContext): T {
         return getOrCreateInfo(dataClass).create(request) as T
     }

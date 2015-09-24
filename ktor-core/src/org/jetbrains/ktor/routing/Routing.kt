@@ -13,6 +13,7 @@ class Routing() : RoutingEntry(parent = null) {
         services.put(key, service)
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun getService<T : Any>(key: Key<T>): T {
         val service = services[key] ?: throw UnsupportedOperationException("Cannot find service for key $key")
         return service as T

@@ -15,7 +15,7 @@ public fun createRoutingEntry(routingEntry: RoutingEntry, path: String): Routing
             }
             RoutingPathSegmentKind.Constant ->
                 when {
-                    part.optional -> UriPartWildcardRoutingSelector()
+                    part.optional -> UriPartWildcardRoutingSelector
                     else -> UriPartConstantRoutingSelector(part.value)
                 }
         }

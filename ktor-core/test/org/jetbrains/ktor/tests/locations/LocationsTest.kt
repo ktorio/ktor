@@ -9,7 +9,7 @@ import org.junit.*
 import kotlin.test.*
 
 class LocationsTest {
-    @location("/") data class index()
+    @location("/") class index()
 
     @Test fun `location without URL`() {
         val href = Locations.href(index())
@@ -26,7 +26,7 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/index")
     }
 
-    @location("/about") data class about()
+    @location("/about") class about()
 
     @Test fun `location with URL`() {
         val href = Locations.href(about())
@@ -43,7 +43,7 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/about/123")
     }
 
-    @location("/user/{id}") data class user(val id: Int)
+    @location("/user/{id}") class user(val id: Int)
 
     @Test fun `location with path param`() {
         val href = Locations.href(user(123))
@@ -60,7 +60,7 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/user?id=123")
     }
 
-    @location("/favorite") data class favorite(val id: Int)
+    @location("/favorite") class favorite(val id: Int)
 
     @Test fun `location with query param`() {
         val href = Locations.href(favorite(123))
@@ -78,9 +78,9 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/favorite")
     }
 
-    @location("/container/{id}") data class pathContainer(val id: Int) {
-        @location("/items") data class items(val container: pathContainer)
-        @location("/items") data class badItems()
+    @location("/container/{id}") class pathContainer(val id: Int) {
+        @location("/items") class items(val container: pathContainer)
+        @location("/items") class badItems()
     }
 
     @Test fun `location with path parameter and nested data`() {
@@ -103,9 +103,9 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/container/items?id=123")
     }
 
-    @location("/container") data class queryContainer(val id: Int) {
-        @location("/items") data class items(val container: queryContainer)
-        @location("/items") data class badItems()
+    @location("/container") class queryContainer(val id: Int) {
+        @location("/items") class items(val container: queryContainer)
+        @location("/items") class badItems()
     }
 
     @Test fun `location with query parameter and nested data`() {
@@ -128,7 +128,7 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/container/123/items")
     }
 
-    @location("/container") data class optionalName(val id: Int, val optional: String? = null)
+    @location("/container") class optionalName(val id: Int, val optional: String? = null)
 
     @Test fun `location with missing optional String parameter`() {
         val href = Locations.href(optionalName(123))
@@ -148,11 +148,11 @@ class LocationsTest {
     }
 
 
-    @location("/container") data class optionalIndex(val id: Int, val optional: Int = 42)
+    @location("/container") class optionalIndex(val id: Int, val optional: Int = 42)
 
     @Test fun `location with missing optional Int parameter`() {
         val href = Locations.href(optionalIndex(123))
-        //assertEquals("/container?id=123", href)
+        assertEquals("/container?id=123&optional=42", href)
         val testHost = createTestHost()
         testHost.application.locations {
             get<optionalIndex> {
@@ -184,8 +184,8 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/container/123")
     }
 
-    @location("/container/{id?}") data class optionalContainer(val id: Int? = null) {
-        @location("/items") data class items(val optional: String? = null)
+    @location("/container/{id?}") class optionalContainer(val id: Int? = null) {
+        @location("/items") class items(val optional: String? = null)
     }
 
     @Test fun `location with optional path and query parameter`() {
@@ -210,8 +210,8 @@ class LocationsTest {
         urlShouldBeHandled(testHost, "/container/123/items?optional=text")
     }
 
-    @location("/container") data class simpleContainer() {
-        @location("/items") data class items()
+    @location("/container") class simpleContainer() {
+        @location("/items") class items()
     }
 
     @Test fun `location with simple path container and items`() {
@@ -233,7 +233,7 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/items")
     }
 
-    @location("/container/{path...}") data class tailCard(val path: List<String>)
+    @location("/container/{path...}") class tailCard(val path: List<String>)
 
     @Test fun `location with tailcard`() {
         val href = Locations.href(tailCard(emptyList()))
@@ -250,7 +250,7 @@ class LocationsTest {
         urlShouldBeHandled(testHost, "/container/123/items?optional=text", "[123, items]")
     }
 
-    @location("/") data class multiquery(val value: List<Int>)
+    @location("/") class multiquery(val value: List<Int>)
 
     @Test fun `location with multiple query values`() {
         val href = Locations.href(multiquery(listOf(1, 2, 3)))
