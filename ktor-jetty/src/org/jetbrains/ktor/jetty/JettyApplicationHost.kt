@@ -4,8 +4,10 @@ import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
 import org.eclipse.jetty.server.session.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.servlet.*
 import java.io.*
+import javax.servlet.*
 import javax.servlet.http.*
 
 /** A Runnable responsible for managing a Jetty server instance.
@@ -15,6 +17,7 @@ class JettyApplicationHost(val config: ApplicationConfig) {
     val loader = ApplicationLoader(config)
 
     val application: Application get() = loader.application
+    val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"));
 
     inner class Handler() : AbstractHandler() {
 
@@ -22,6 +25,12 @@ class JettyApplicationHost(val config: ApplicationConfig) {
             response.characterEncoding = "UTF-8"
             try {
                 val appRequest = ServletApplicationRequestContext(application, request, response)
+                val contentType = request.contentType
+                if (contentType != null && ContentType.parse(contentType).match(ContentType.MultiPart.Any)) {
+                    baseRequest.setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, MULTI_PART_CONFIG)
+                    // TODO someone reported auto-cleanup issues so we have to check it
+                }
+
                 val requestResult = application.handle(appRequest)
                 when (requestResult) {
                     ApplicationRequestStatus.Handled -> baseRequest.isHandled = true

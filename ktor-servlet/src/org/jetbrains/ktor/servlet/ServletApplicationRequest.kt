@@ -11,8 +11,8 @@ internal class ServletApplicationRequest(private val servletRequest: HttpServlet
         val uri = servletRequest.requestURI
         val query = servletRequest.queryString
         HttpRequestLine(HttpMethod.parse(servletRequest.method),
-                        if (query == null) uri else "$uri?$query",
-                        servletRequest.protocol)
+                if (query == null) uri else "$uri?$query",
+                servletRequest.protocol)
     }
 
     override val parameters: ValuesMap by lazy {
@@ -37,6 +37,17 @@ internal class ServletApplicationRequest(private val servletRequest: HttpServlet
     }
 
     override val content: ApplicationRequestContent = object : ApplicationRequestContent(this) {
+        private val multipart = ServletMultiPartData(servletRequest)
+
+        init {
+            intercept { type, next ->
+                when (type) {
+                    ServletMultiPartData::class, MultiPartData::class -> multipart
+                    else -> next(type)
+                }
+            }
+        }
+
         override fun getInputStream(): InputStream = servletRequest.inputStream
     }
 
