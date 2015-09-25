@@ -2,7 +2,7 @@ package org.jetbrains.ktor.util
 
 import java.util.*
 
-public class ValuesMap(private val map: Map<String, List<String>>) {
+class ValuesMap(private val map: Map<String, List<String>>) {
     companion object {
         val Empty = ValuesMap(mapOf())
 
@@ -17,6 +17,8 @@ public class ValuesMap(private val map: Map<String, List<String>>) {
 
     operator fun contains(name: String) = map.containsKey(name)
     fun contains(name: String, value: String) = map[name]?.contains(value) ?: false
+
+    fun toCaseInsensitive() = CaseInsensitiveValuesMap(map)
 
     class Builder {
         private val map = linkedMapOf<String, ArrayList<String>>()
@@ -35,6 +37,29 @@ public class ValuesMap(private val map: Map<String, List<String>>) {
         }
 
         fun build(): ValuesMap = ValuesMap(map)
+    }
+}
+
+class CaseInsensitiveValuesMap (private val map: Map<String, List<String>>) {
+    private val lowerCased by lazy {
+        ValuesMap.build {
+            map.forEach { e ->
+                appendAll(e.key.toLowerCase(), e.value)
+            }
+        }
+    }
+
+    operator fun get(name: String): String? = lowerCased[name.toLowerCase()]
+    fun getAll(name: String): List<String>? = lowerCased.getAll(name.toLowerCase())
+
+    fun entries(): Set<Map.Entry<String, List<String>>> = map.entrySet()
+    fun names(): Set<String> = map.keySet()
+
+    operator fun contains(name: String) = lowerCased.contains(name)
+    fun contains(name: String, value: String) = lowerCased.contains(name, value)
+
+    companion object {
+        val Empty = CaseInsensitiveValuesMap(emptyMap())
     }
 }
 

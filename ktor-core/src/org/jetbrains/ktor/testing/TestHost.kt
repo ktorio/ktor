@@ -81,7 +81,7 @@ class TestApplicationRequest() : ApplicationRequest {
         headersMap.getOrPut(name, { arrayListOf() }).add(value)
     }
 
-    override val headers = ValuesMap(headersMap)
+    override val headers = ValuesMap(headersMap).toCaseInsensitive()
 
     override val content: ApplicationRequestContent = object : ApplicationRequestContent(this) {
         override fun getInputStream(): InputStream = ByteArrayInputStream(body.toByteArray("UTF-8"))

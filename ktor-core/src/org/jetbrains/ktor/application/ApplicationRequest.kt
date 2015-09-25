@@ -8,7 +8,7 @@ import org.jetbrains.ktor.util.*
 public interface ApplicationRequest {
     public val requestLine: HttpRequestLine
     public val parameters: ValuesMap
-    public val headers: ValuesMap
+    public val headers: CaseInsensitiveValuesMap
     public val cookies: RequestCookies
     public val content: ApplicationRequestContent
 }
