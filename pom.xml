@@ -5,34 +5,53 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.jetbrains</groupId>
-    <version>0.1-SNAPSHOT</version>
+    <version>${ktor.version}</version>
     <packaging>pom</packaging>
     <artifactId>ktor</artifactId>
 
+    <properties>
+        <kotlin.version>0.1-SNAPSHOT</kotlin.version>
+        <ktor.version>0.1-SNAPSHOT</ktor.version>
+    </properties>
+
     <modules>
         <module>ktor-core</module>
-        <module>ktor-components</module>
         <module>ktor-servlet</module>
         <module>ktor-jetty</module>
         <module>ktor-netty</module>
-        <module>ktor-samples</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>development</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>ktor-components</module>
+                <module>ktor-samples</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>bintray</id>
+        </profile>
+    </profiles>
 
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-runtime</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>${kotlin.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-reflect</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>${kotlin.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
             <artifactId>kotlin-stdlib</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>${kotlin.version}</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
@@ -70,6 +89,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
+                <version>2.4</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -82,7 +102,7 @@
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>
                 <artifactId>kotlin-maven-plugin</artifactId>
-                <version>0.1-SNAPSHOT</version>
+                <version>${kotlin.version}</version>
 
                 <executions>
                     <execution>
@@ -131,4 +151,17 @@
             </snapshots>
         </repository>
     </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>bintray</id>
+            <url>https://api.bintray.com/maven/kotlin/ktor/${pom.artifactId}/</url>
+        </repository>
+    </distributionManagement>
+
+    <scm>
+        <connection>scm:git:https://github.com/Kotlin/ktor.git</connection>
+        <url>https://github.com/Kotlin/ktor</url>
+        <tag>HEAD</tag>
+    </scm>
 </project>
