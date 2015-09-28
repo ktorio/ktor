@@ -6,7 +6,7 @@
     <parent>
         <artifactId>ktor</artifactId>
         <groupId>org.jetbrains</groupId>
-        <version>${ktor.version}</version>
+        <version>0.1.0</version>
     </parent>
 
     <artifactId>ktor-samples</artifactId>
@@ -25,7 +25,7 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>ktor-core</artifactId>
-            <version>${ktor.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -37,13 +37,13 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>ktor-jetty</artifactId>
-            <version>${ktor.version}</version>
+            <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>ktor-netty</artifactId>
-            <version>${ktor.version}</version>
+            <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
     </dependencies>

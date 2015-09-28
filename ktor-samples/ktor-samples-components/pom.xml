@@ -7,7 +7,7 @@
     <parent>
         <artifactId>ktor-samples</artifactId>
         <groupId>org.jetbrains</groupId>
-        <version>${ktor.version}</version>
+        <version>0.1.0</version>
     </parent>
 
     <artifactId>ktor-samples-components</artifactId>
@@ -24,7 +24,7 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>ktor-components</artifactId>
-            <version>${ktor.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>

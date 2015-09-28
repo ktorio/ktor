@@ -4,3 +4,29 @@
 # ktor
 
 Web backend framework for Kotlin
+
+## Maven
+
+Add a repository
+
+```
+<repository>
+    <snapshots>
+        <enabled>false</enabled>
+    </snapshots>
+    <id>bintray-kotlin-ktor</id>
+    <name>bintray</name>
+    <url>http://dl.bintray.com/kotlin/ktor</url>
+</repository>
+```
+
+Add a dependency:
+
+```
+<dependency>
+    <groupId>org.jetbrains</groupId>
+    <artifactId>ktor-core</artifactId>
+    <version>LATEST</version>
+</dependency>
+```
+

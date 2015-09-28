@@ -6,7 +6,7 @@
     <parent>
         <artifactId>ktor</artifactId>
         <groupId>org.jetbrains</groupId>
-        <version>${ktor.version}</version>
+        <version>0.1.0</version>
     </parent>
 
     <artifactId>ktor-netty</artifactId>
@@ -15,12 +15,12 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>ktor-core</artifactId>
-            <version>${ktor.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>ktor-servlet</artifactId>
-            <version>${ktor.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>

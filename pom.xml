@@ -5,13 +5,12 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.jetbrains</groupId>
-    <version>${ktor.version}</version>
+    <version>0.1.0</version>
     <packaging>pom</packaging>
     <artifactId>ktor</artifactId>
 
     <properties>
         <kotlin.version>0.1-SNAPSHOT</kotlin.version>
-        <ktor.version>0.1.0</ktor.version>
     </properties>
 
     <modules>
