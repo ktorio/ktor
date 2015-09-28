@@ -37,7 +37,7 @@ public class ApplicationLoader(val config: ApplicationConfig) {
                         count += moreChanges.size()
                     }
 
-                    config.log.debug("Changes to ${count} files caused application restart.")
+                    config.log.debug("Changes to $count files caused application restart.")
                     changes.take(5).forEach { config.log.debug("...  ${it.context()}") }
                     destroyApplication()
                     _applicationInstance = null
@@ -102,8 +102,8 @@ public class ApplicationLoader(val config: ApplicationConfig) {
         }
 
         val watcher = FileSystems.getDefault().newWatchService();
-        paths.forEach {
-            config.log.debug("Watching ${it} for changes.")
+        paths.forEach { path ->
+            config.log.debug("Watching $path for changes.")
         }
         packageWatchKeys.addAll(paths.map { it.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY) })
     }

@@ -3,9 +3,7 @@ package org.jetbrains.ktor.netty
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import java.io.*
-import java.net.*
 import java.util.*
-import javax.naming.*
 
 fun main(args: Array<String>) {
     val map = HashMap<String, String>()

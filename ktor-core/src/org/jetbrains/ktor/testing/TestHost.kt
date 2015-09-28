@@ -48,7 +48,7 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
 }
 
 class TestApplicationRequestContext(override val application: Application, override val request: TestApplicationRequest) : ApplicationRequestContext {
-    override val close = Interceptable0<Unit> {}
+    override val close = Interceptable0 {}
 
     override val response = TestApplicationResponse()
 }

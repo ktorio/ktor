@@ -5,7 +5,6 @@ import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
-import org.jetbrains.ktor.routing.*
 import java.util.*
 
 @location("/") class index()

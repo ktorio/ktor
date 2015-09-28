@@ -3,7 +3,6 @@ package org.jetbrains.ktor.servlet
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import javax.servlet.http.*
-import kotlin.properties.*
 
 open class ServletApplicationHost() : HttpServlet() {
     private val loader: ApplicationLoader by lazy {

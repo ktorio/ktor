@@ -48,11 +48,11 @@ class JettyApplicationHost(val config: ApplicationConfig) {
         }
         server = Server(port)
 
-        config.publicDirectories.forEach {
-            config.log.info("Attaching resource handler: ${it}")
+        config.publicDirectories.forEach { path ->
+            config.log.info("Attaching resource handler: $path")
             val resourceHandler = ResourceHandler()
             resourceHandler.isDirectoriesListed = false
-            resourceHandler.resourceBase = "./${it}"
+            resourceHandler.resourceBase = "./$path"
             resourceHandler.welcomeFiles = arrayOf("index.html")
             //TODO: resourceHandlers.add(resourceHandler)
         }

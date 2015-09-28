@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.routing
 
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 
 public fun createRoutingEntry(routingEntry: RoutingEntry, path: String): RoutingEntry {

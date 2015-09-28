@@ -8,8 +8,8 @@ public abstract class ResponseHeaders {
         hostAppendHeader(name, value)
     }
 
-    public fun contains(name: String): Boolean = getHostHeaderValues(name).isNotEmpty()
-    public fun get(name: String): String? = getHostHeaderValues(name).firstOrNull()
+    public operator fun contains(name: String): Boolean = getHostHeaderValues(name).isNotEmpty()
+    public operator fun get(name: String): String? = getHostHeaderValues(name).firstOrNull()
     public fun values(name: String): List<String> = getHostHeaderValues(name)
     public fun allValues(): ValuesMap = getHostHeaderNames().fold(ValuesMap.Builder()) { builder, headerName ->
         builder.appendAll(headerName, getHostHeaderValues(headerName))

@@ -9,13 +9,13 @@ public class ValuesMap(private val map: Map<String, List<String>>) {
         inline fun build(body: Builder.() -> Unit): ValuesMap = Builder().apply(body).build()
     }
 
-    fun get(name: String): String? = map[name]?.singleOrNull()
+    operator fun get(name: String): String? = map[name]?.singleOrNull()
     fun getAll(name: String): List<String>? = map[name]
 
     fun entries(): Set<Map.Entry<String, List<String>>> = map.entrySet()
     fun names(): Set<String> = map.keySet()
 
-    fun contains(name: String) = map.containsKey(name)
+    operator fun contains(name: String) = map.containsKey(name)
     fun contains(name: String, value: String) = map[name]?.contains(value) ?: false
 
     class Builder {

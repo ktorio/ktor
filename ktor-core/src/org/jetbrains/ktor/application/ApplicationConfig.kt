@@ -25,7 +25,7 @@ public open class ApplicationConfig(private val config: Config,
     public val port: Int = config.getIntOrDefault("ktor.deployment.port", 80)
     public val async: Boolean = config.getBooleanOrDefault("ktor.deployment.async", false)
 
-    public fun get(configuration: String): String = config.getString(configuration)
+    public operator fun get(configuration: String): String = config.getString(configuration)
 
     private fun Config.getStringListOrEmpty(path: String): List<String> =
             if (hasPath(path))

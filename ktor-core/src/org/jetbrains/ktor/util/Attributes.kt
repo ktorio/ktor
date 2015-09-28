@@ -10,7 +10,7 @@ public class Attributes {
     }
 
     @Suppress("UNCHECKED_CAST")
-    public fun <T> get(key: AttributeKey<T>): T = map[key] as T
+    public operator fun <T> get(key: AttributeKey<T>): T = map[key] as T
 
     public fun <T> put(key: AttributeKey<T>, value: T) {
         map[key] = value

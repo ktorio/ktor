@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.components
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.components.*
 import org.jetbrains.ktor.routing.*
 import kotlin.util.*
 
