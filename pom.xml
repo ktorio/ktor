@@ -155,7 +155,7 @@
     <distributionManagement>
         <repository>
             <id>bintray</id>
-            <url>https://api.bintray.com/maven/kotlin/ktor/${pom.artifactId}</url>
+            <url>https://api.bintray.com/maven/kotlin/ktor/${project.artifactId}</url>
         </repository>
     </distributionManagement>
 
