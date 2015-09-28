@@ -11,7 +11,7 @@
 
     <properties>
         <kotlin.version>0.1-SNAPSHOT</kotlin.version>
-        <ktor.version>0.1-SNAPSHOT</ktor.version>
+        <ktor.version>0.1.0</ktor.version>
     </properties>
 
     <modules>
@@ -155,7 +155,7 @@
     <distributionManagement>
         <repository>
             <id>bintray</id>
-            <url>https://api.bintray.com/maven/kotlin/ktor/${pom.artifactId}/</url>
+            <url>https://api.bintray.com/maven/kotlin/ktor/${pom.artifactId}</url>
         </repository>
     </distributionManagement>
 
