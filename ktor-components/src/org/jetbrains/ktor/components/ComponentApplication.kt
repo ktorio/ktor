@@ -19,7 +19,7 @@ public open class ComponentApplication(config: ApplicationConfig) : Application(
         val introspectionTime = measureTimeMillis {
             config.classLoader
                     .scanForClasses("")
-                    .filter { it.getAnnotation(component::class.java) != null }
+                    .filter { it.getAnnotation(Component::class.java) != null }
                     .forEach { container.registerSingleton(it) }
         }
         config.log.info("Introspection took $introspectionTime ms")
@@ -34,4 +34,4 @@ public open class ComponentApplication(config: ApplicationConfig) : Application(
 }
 
 @Retention(AnnotationRetention.RUNTIME)
-annotation public class component
+annotation public class Component

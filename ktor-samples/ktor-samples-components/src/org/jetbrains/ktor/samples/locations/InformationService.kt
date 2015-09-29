@@ -7,7 +7,8 @@ import org.jetbrains.ktor.components.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 
-@component public class InformationService(routing: Routing, providers: Iterable<InformationProvider>) {
+@Component
+public class InformationService(routing: Routing, providers: Iterable<InformationProvider>) {
     init {
         with(routing) {
             get("/information.html") {
