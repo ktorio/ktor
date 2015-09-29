@@ -6,6 +6,7 @@ import kotlin.util.*
 
 public open class ComponentApplication(config: ApplicationConfig) : Application(config) {
     val container = StorageComponentContainer("Application")
+    val routing = Routing()
 
     init {
         container.registerInstance(this)
@@ -13,7 +14,6 @@ public open class ComponentApplication(config: ApplicationConfig) : Application(
         container.registerInstance(config.log)
         container.registerInstance(config.classLoader)
 
-        val routing = Routing()
         container.registerInstance(routing)
 
         val introspectionTime = measureTimeMillis {
@@ -31,6 +31,8 @@ public open class ComponentApplication(config: ApplicationConfig) : Application(
 
         routing.installInto(this)
     }
+
+    fun routing(body: RoutingEntry.() -> Unit) = routing.apply(body)
 }
 
 @Retention(AnnotationRetention.RUNTIME)
