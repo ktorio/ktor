@@ -13,7 +13,8 @@ class NettyApplicationRequestContext(override val application: Application,
 
     override val close = Interceptable0<Unit> {
         if (response.headers.get(HttpHeaders.TransferEncoding) == null
-                && response.headers.get(HttpHeaders.ContentLength) == null) {
+                && response.headers.get(HttpHeaders.ContentLength) == null
+                && httpResponse.content().writerIndex() > 0) {
             response.headers.append(HttpHeaders.TransferEncoding, "chunked")
         }
         context.writeAndFlush(httpResponse)
