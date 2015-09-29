@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
 import java.nio.charset.*
 import java.time.temporal.*
 
@@ -27,13 +28,12 @@ fun ApplicationResponse.sendRedirect(url: String, permanent: Boolean = false): A
 }
 
 fun ApplicationResponse.sendError(code: HttpStatusCode, message: String = code.description): ApplicationRequestStatus {
-    status(code)
-    streamText(message)
+    send(ErrorResponse(code, message))
     return ApplicationRequestStatus.Handled
 }
 
 fun ApplicationResponse.sendStatus(code: HttpStatusCode): ApplicationRequestStatus {
-    status(code)
+    send(code)
     return ApplicationRequestStatus.Handled
 }
 

@@ -7,6 +7,7 @@ import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
 import io.netty.handler.codec.http.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 
 public class NettyApplicationHost(val config: ApplicationConfig) {
@@ -46,18 +47,15 @@ public class NettyApplicationHost(val config: ApplicationConfig) {
 
     inner class HostHttpHandler : SimpleChannelInboundHandler<FullHttpRequest>() {
         override fun channelRead0(context: ChannelHandlerContext, request: FullHttpRequest) {
-            val applicationRequest = NettyApplicationRequestContext(application, context, request)
-            val requestResult = application.handle(applicationRequest)
+            val applicationContext = NettyApplicationRequestContext(application, context, request)
+            val requestResult = application.handle(applicationContext)
             when (requestResult) {
                 ApplicationRequestStatus.Unhandled -> {
-                    applicationRequest.response.status(HttpStatusCode.NotFound)
-                    applicationRequest.response.sendText(ContentType.Text.Html, """
-                            <h1>Not Found</h1>
-                            Cannot find resource with the requested URI: ${request.uri}
-                            """)
-                    applicationRequest.close()
+                    val response = ErrorResponse(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")
+                    applicationContext.response.send(response)
+                    applicationContext.close()
                 }
-                ApplicationRequestStatus.Handled -> applicationRequest.close()
+                ApplicationRequestStatus.Handled -> applicationContext.close()
                 ApplicationRequestStatus.Asynchronous -> { /* do nothing */}
             }
         }
