@@ -2,6 +2,7 @@ package org.jetbrains.ktor.testing
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.util.*
@@ -89,18 +90,15 @@ class TestApplicationRequest() : ApplicationRequest {
     override val cookies = RequestCookies(this)
 }
 
-class TestApplicationResponse : ApplicationResponse {
+class TestApplicationResponse : BaseApplicationResponse() {
     private var statusCode: HttpStatusCode? = null
 
-    private val status = Interceptable1<HttpStatusCode, Unit> { code -> this.statusCode = code }
-    private val stream = Interceptable1<OutputStream.() -> Unit, Unit> { body ->
+    override val status = Interceptable1<HttpStatusCode, Unit> { code -> this.statusCode = code }
+    override val stream = Interceptable1<OutputStream.() -> Unit, Unit> { body ->
         val stream = ByteArrayOutputStream()
         stream.body()
         content = stream.toString()
         ApplicationRequestStatus.Handled
-    }
-    private val send = Interceptable1<Any, ApplicationRequestStatus> { value ->
-        throw UnsupportedOperationException("No known way to stream value $value")
     }
 
     override val headers: ResponseHeaders = object: ResponseHeaders() {
@@ -113,19 +111,10 @@ class TestApplicationResponse : ApplicationResponse {
         override fun getHostHeaderNames(): List<String> = headersMap.keySet().toList()
         override fun getHostHeaderValues(name: String): List<String> = headersMap[name] ?: emptyList()
     }
-    override val cookies = ResponseCookies(this)
 
     public override fun status(): HttpStatusCode? = statusCode
-    public override fun status(value: HttpStatusCode) = status.call(value)
-    public override fun interceptStatus(handler: (HttpStatusCode, (HttpStatusCode) -> Unit) -> Unit) = status.intercept(handler)
 
     public var content: String? = null
-
-    override fun send(message: Any): ApplicationRequestStatus = send.call(message)
-    override fun interceptSend(handler: (Any, (Any) -> ApplicationRequestStatus) -> ApplicationRequestStatus) = send.intercept(handler)
-
-    override fun stream(body: OutputStream.() -> Unit): Unit = stream.call(body)
-    override fun interceptStream(handler: (OutputStream.() -> Unit, (OutputStream.() -> Unit) -> Unit) -> Unit) = stream.intercept(handler)
 }
 
 class TestApplication(config: ApplicationConfig) : Application(config)
