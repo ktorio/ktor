@@ -116,7 +116,8 @@ data class HttpMethodRoutingSelector(val method: HttpMethod) : RoutingSelector {
 
 data class HttpHeaderRoutingSelector(val name: String, val value: String) : RoutingSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
-        if (context.headers.contains(name, value))
+        val headers = context.headers[name]
+        if (headers.orderedHeaderItems().any { it.value == value })
             return RouteSelectorEvaluation(true)
         return RouteSelectorEvaluation(false)
     }
