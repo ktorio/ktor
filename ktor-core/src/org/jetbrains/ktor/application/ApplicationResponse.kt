@@ -27,24 +27,10 @@ public fun ApplicationResponse.streamText(text: String, encoding: String = "UTF-
     streamBytes(text.toByteArray(Charset.forName(encoding)))
 }
 
-public fun ApplicationResponse.sendBytes(bytes: ByteArray): ApplicationRequestStatus {
-    status(HttpStatusCode.OK)
-    streamBytes(bytes)
-    return ApplicationRequestStatus.Handled
-}
-
-public fun ApplicationResponse.sendText(contentType: ContentType, text: String): ApplicationRequestStatus {
-    contentType(contentType)
-    val encoding = contentType.parameter("charset") ?: "UTF-8"
-    return sendBytes(text.toByteArray(Charset.forName(encoding)))
-}
-
-public fun ApplicationResponse.sendText(text: String): ApplicationRequestStatus {
-    return sendText(ContentType.Text.Plain.withParameter("charset", "UTF-8"), text)
-}
-
 public fun ApplicationResponse.write(body: Writer.() -> Unit) {
     stream {
-        writer().use { writer -> writer.body() }
+        writer().use { writer ->
+            writer.body()
+        }
     }
 }

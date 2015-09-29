@@ -7,14 +7,26 @@ import org.jetbrains.ktor.interception.*
 import java.io.*
 
 public abstract class BaseApplicationResponse : ApplicationResponse {
-    protected abstract val stream : Interceptable1<OutputStream.() -> Unit, Unit>
-    protected abstract val status : Interceptable1<HttpStatusCode, Unit>
+    protected abstract val stream: Interceptable1<OutputStream.() -> Unit, Unit>
+    protected abstract val status: Interceptable1<HttpStatusCode, Unit>
 
     protected open val send = Interceptable1<Any, ApplicationRequestStatus> { value ->
         when (value) {
-            is ErrorResponse -> {
+            is String -> {
+                status() ?: status(HttpStatusCode.OK)
+                val encoding = headers[HttpHeaders.ContentType]?.let {
+                    ContentType.parse(it).parameter("charset")
+                } ?: "UTF-8"
+                streamText(value, encoding)
+                ApplicationRequestStatus.Handled
+            }
+            is TextContent -> {
+                contentType(value.contentType)
+                send(value.text)
+            }
+            is TextErrorContent -> {
                 status(value.code)
-                sendText(ContentType.Text.Html, "<H1>${value.code}</H1>${value.message}")
+                send(TextContent(ContentType.Text.Html, "<H1>${value.code}</H1>${value.message}"))
             }
             is HttpStatusCode -> {
                 status(value)

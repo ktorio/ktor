@@ -22,25 +22,31 @@ fun ApplicationResponse.header(name: String, value: Long) = headers.append(name,
 fun ApplicationResponse.header(name: String, date: Temporal) = headers.append(name, date.toHttpDateString())
 
 fun ApplicationResponse.sendRedirect(url: String, permanent: Boolean = false): ApplicationRequestStatus {
-    status(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
     headers.append(HttpHeaders.Location, url)
-    return ApplicationRequestStatus.Handled
+    return send(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
 }
 
 fun ApplicationResponse.sendError(code: HttpStatusCode, message: String = code.description): ApplicationRequestStatus {
-    send(ErrorResponse(code, message))
-    return ApplicationRequestStatus.Handled
-}
-
-fun ApplicationResponse.sendStatus(code: HttpStatusCode): ApplicationRequestStatus {
-    send(code)
-    return ApplicationRequestStatus.Handled
+    return send(TextErrorContent(code, message))
 }
 
 fun ApplicationResponse.sendAuthenticationRequest(realm: String): ApplicationRequestStatus {
-    status(HttpStatusCode.Unauthorized)
     headers.append(HttpHeaders.WWWAuthenticate, "Basic realm=\"$realm\"")
-    streamText("Not authorized")
+    return send(HttpStatusCode.Unauthorized)
+}
+
+public fun ApplicationResponse.sendBytes(bytes: ByteArray): ApplicationRequestStatus {
+    status(HttpStatusCode.OK)
+    streamBytes(bytes)
     return ApplicationRequestStatus.Handled
 }
+
+public fun ApplicationResponse.sendText(contentType: ContentType, text: String): ApplicationRequestStatus {
+    return send(TextContent(contentType, text))
+}
+
+public fun ApplicationResponse.sendText(text: String): ApplicationRequestStatus {
+    return sendText(ContentType.Text.Plain, text)
+}
+
 
