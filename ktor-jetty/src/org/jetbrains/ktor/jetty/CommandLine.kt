@@ -1,3 +1,5 @@
+@file:JvmName("DevelopmentHost")
+
 package org.jetbrains.ktor.jetty
 
 import com.typesafe.config.*
