@@ -40,7 +40,6 @@ public class ServletApplicationRequest(private val servletRequest: HttpServletRe
         override fun getInputStream(): InputStream = servletRequest.inputStream
     }
 
-    override val attributes = Attributes()
     override val cookies = ServletRequestCookies(servletRequest, this)
 }
 

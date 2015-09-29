@@ -49,6 +49,7 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
 }
 
 class TestApplicationRequestContext(override val application: Application, override val request: TestApplicationRequest) : ApplicationRequestContext {
+    override val attributes = Attributes()
     override val close = Interceptable0 {}
 
     override val response = TestApplicationResponse()
@@ -86,7 +87,6 @@ class TestApplicationRequest() : ApplicationRequest {
         override fun getInputStream(): InputStream = ByteArrayInputStream(body.toByteArray("UTF-8"))
     }
 
-    override val attributes = Attributes()
     override val cookies = RequestCookies(this)
 }
 

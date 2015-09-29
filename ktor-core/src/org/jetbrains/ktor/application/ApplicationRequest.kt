@@ -9,7 +9,6 @@ public interface ApplicationRequest {
     public val requestLine: HttpRequestLine
     public val parameters: ValuesMap
     public val headers: ValuesMap
-    public val attributes: Attributes
     public val cookies: RequestCookies
     public val content: ApplicationRequestContent
 }

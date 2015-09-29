@@ -5,10 +5,13 @@ import io.netty.handler.codec.http.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.interception.*
+import org.jetbrains.ktor.util.*
 
 class NettyApplicationRequestContext(override val application: Application,
                                      val context: ChannelHandlerContext,
                                      val httpRequest: FullHttpRequest) : ApplicationRequestContext {
+
+    override val attributes = Attributes()
     val httpResponse = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
 
     override val close = Interceptable0<Unit> {

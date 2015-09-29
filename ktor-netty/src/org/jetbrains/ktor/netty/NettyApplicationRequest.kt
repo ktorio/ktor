@@ -35,7 +35,6 @@ class NettyApplicationRequest(private val request: FullHttpRequest) : Applicatio
         override fun getInputStream(): InputStream = ByteBufInputStream(request.content())
     }
 
-    override val attributes = Attributes()
     override val cookies = NettyRequestCookies(this)
 }
 
