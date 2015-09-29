@@ -7,10 +7,12 @@ import kotlin.util.*
 public open class ComponentApplication(config: ApplicationConfig) : Application(config) {
     val container = StorageComponentContainer("Application")
     val routing = Routing()
+    val log = config.log.fork("components")
 
     init {
         container.registerInstance(this)
         container.registerInstance(config)
+        // TODO: instead of registering log itself, register component resolver, that can fork log for each component
         container.registerInstance(config.log)
         container.registerInstance(config.classLoader)
 
@@ -22,12 +24,12 @@ public open class ComponentApplication(config: ApplicationConfig) : Application(
                     .filter { it.getAnnotation(Component::class.java) != null }
                     .forEach { container.registerSingleton(it) }
         }
-        config.log.info("Introspection took $introspectionTime ms")
+        log.info("Introspection took $introspectionTime ms")
 
         val compositionTime = measureTimeMillis {
             container.compose()
         }
-        config.log.info("Composition took $compositionTime ms")
+        log.info("Composition took $compositionTime ms")
 
         routing.installInto(this)
     }

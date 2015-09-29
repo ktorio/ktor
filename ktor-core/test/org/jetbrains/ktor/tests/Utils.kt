@@ -24,6 +24,6 @@ fun createTestHost(): TestApplicationHost {
                     "ktor.deployment.environment" to "test",
                     "ktor.application.class" to TestApplication::class.qualifiedName
                  ))
-    val config = ApplicationConfig(testConfig, SL4JApplicationLog("<Test>"))
+    val config = ApplicationConfig(testConfig, SL4JApplicationLog("ktor.test"))
     return TestApplicationHost(config)
 }

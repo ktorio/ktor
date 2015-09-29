@@ -18,7 +18,7 @@ fun main(args: Array<String>) {
 
     val jar = map["-jar"]?.let { File(it).toURI().toURL() }
     val combinedConfig = ConfigFactory.load()
-    val log = SL4JApplicationLog("<Application>")
+    val log = SL4JApplicationLog("ktor.application")
     val appConfig = ApplicationConfig(combinedConfig, log, jar)
 
     log.info(combinedConfig.getObject("ktor").render())
