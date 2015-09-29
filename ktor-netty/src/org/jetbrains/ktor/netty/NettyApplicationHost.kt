@@ -7,6 +7,7 @@ import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
 import io.netty.handler.codec.http.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.http.*
 
 public class NettyApplicationHost(val config: ApplicationConfig) {
     private val loader: ApplicationLoader = ApplicationLoader(config)
@@ -49,13 +50,11 @@ public class NettyApplicationHost(val config: ApplicationConfig) {
             val requestResult = application.handle(applicationRequest)
             when (requestResult) {
                 ApplicationRequestStatus.Unhandled -> {
-                    val notFound = DefaultFullHttpResponse(request.protocolVersion, HttpResponseStatus.NOT_FOUND)
-                    notFound.headers().set("Content-Type", "text/html; charset=UTF-8")
-                    notFound.content().writeBytes("""
+                    applicationRequest.response.status(HttpStatusCode.NotFound)
+                    applicationRequest.response.sendText(ContentType.Text.Html, """
                             <h1>Not Found</h1>
                             Cannot find resource with the requested URI: ${request.uri}
-                            """.toByteArray(Charsets.UTF_8))
-                    context.writeAndFlush(notFound)
+                            """)
                     applicationRequest.close()
                 }
                 ApplicationRequestStatus.Handled -> applicationRequest.close()
