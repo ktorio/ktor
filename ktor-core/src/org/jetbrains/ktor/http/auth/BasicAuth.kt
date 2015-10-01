@@ -9,10 +9,10 @@ import java.util.*
 
 val BasicAuthAttributeKey = AttributeKey<SimpleUserPassword>()
 
-public fun RoutingEntry.basicAuthValidate(vararg challenges: HttpAuthChallenge = arrayOf(HttpBasicAuthChallenge("ktor")), validator: (SimpleUserPassword) -> Boolean) {
+public fun RoutingEntry.basicAuthValidate(vararg challenges: HttpAuthChallenge = arrayOf(HttpAuthChallenge.basic("ktor")), validator: (SimpleUserPassword) -> Boolean) {
     auth(ApplicationRequestContext::basicAuth, validator,
             onSuccess = { t, next ->
-                request.attributes.put(BasicAuthAttributeKey, t)
+                attributes.put(BasicAuthAttributeKey, t)
                 next()
             },
             onFailed = { next ->
