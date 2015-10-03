@@ -28,12 +28,12 @@ public class ServletApplicationRequest(private val servletRequest: HttpServletRe
         }
     }
 
-    override val headers: ValuesMap by lazy {
+    override val headers by lazy {
         ValuesMap.build {
             servletRequest.headerNames.asSequence().forEach {
                 appendAll(it, servletRequest.getHeaders(it).toList())
             }
-        }
+        }.toCaseInsensitive()
     }
 
     override val content: ApplicationRequestContent = object : ApplicationRequestContent(this) {

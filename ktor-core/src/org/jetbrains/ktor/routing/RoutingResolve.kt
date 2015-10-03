@@ -9,7 +9,7 @@ fun RoutingResolveContext(path: String, parameters: ValuesMap = ValuesMap.Empty)
 
 class RoutingResolveContext(val verb: HttpRequestLine,
                             val parameters: ValuesMap = ValuesMap.Empty,
-                            val headers: ValuesMap = ValuesMap.Empty) {
+                            val headers: CaseInsensitiveValuesMap = CaseInsensitiveValuesMap.Empty) {
     val path = RoutingPath.parse(verb.path())
 }
 
