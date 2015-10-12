@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.http
 
+import java.util.*
+
 public object HttpHeaders {
     // Permanently registered standard HTTP headers
     // The list is taken from http://www.iana.org/assignments/message-headers/message-headers.xml#perm-headers
@@ -112,20 +114,27 @@ public fun String?.orderedContentTypeHeaderItems(): List<HeaderItem> {
 
 public fun String?.headerItems(): List<HeaderItem> {
     if (this == null)
-        return listOf()
+        return emptyList()
 
-    return split(",").map {
-        val valueParams = it.trim().split(";")
-        val name = valueParams[0]
-        if (valueParams.size() == 1) // only value
-            return@map HeaderItem(name, listOf())
-        val params = valueParams.drop(1).map {
-            val nameValue = it.trim().split("=", limit = 2).map { it.trim() }
-            if (nameValue.size() == 1)
-                HeaderItemParam(nameValue[0], "")
-            else
-                HeaderItemParam(nameValue[0], nameValue[1])
-        }
-        HeaderItem(name, params)
-    }
+    // TODO support RFC2184 and RFC5987
+    val valuePatternPart = """
+    ("((\\.)|[^\\"]+)*")|[^;,]*
+    """.trim()
+    data class MatchedPart(val name: String, val value: String?, val delimiter: Char?)
+    val pattern = """(^|;|,)\s*([^=;,\s]+)\s*(=\s*($valuePatternPart))?\s*""".toRegex()
+    return pattern.matchAll(this)
+            .map { MatchedPart(it.groups[2]?.value ?: "", it.groups[4]?.value?.unquoteAndUnescape(), it.groups[1]?.value?.firstOrNull()) }
+            .fold(ArrayList<ArrayList<MatchedPart>>()) { acc, e ->
+                if (e.delimiter == ',' || acc.isEmpty()) {
+                    acc.add(ArrayList())
+                }
+                acc.last().add(e)
+                acc
+            }
+            .map {
+                HeaderItem(
+                    value = it.firstOrNull()?.name ?: "",
+                    params = it.drop(1).map { p -> HeaderItemParam(p.name, p.value ?: "") }
+                )
+            }
 }
