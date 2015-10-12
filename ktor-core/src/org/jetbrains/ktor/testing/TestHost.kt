@@ -10,7 +10,7 @@ import java.io.*
 import java.util.*
 import kotlin.reflect.*
 
-inline fun withApplication<reified T : Application>(noinline test: TestApplicationHost.() -> Unit) {
+inline fun <reified T : Application> withApplication(noinline test: TestApplicationHost.() -> Unit) {
     withApplication(T::class, test)
 }
 
@@ -76,12 +76,17 @@ class TestApplicationRequest() : ApplicationRequest {
         return queryParameters()
     }
 
-    private val headersMap = hashMapOf<String, ArrayList<String>>()
+    private var headersMap : MutableMap<String, MutableList<String>>? = hashMapOf()
     fun addHeader(name: String, value: String) {
-        headersMap.getOrPut(name, { arrayListOf() }).add(value)
+        val map = headersMap ?: throw Exception("Headers were already acquired for this request")
+        map.getOrPut(name, { arrayListOf() }).add(value)
     }
 
-    override val headers = ValuesMap(headersMap)
+    override val headers by lazy {
+        val map = headersMap ?: throw Exception("Headers were already acquired for this request")
+        headersMap = null
+        ValuesMap(map, caseInsensitiveKey = true)
+    }
 
     override val content: ApplicationRequestContent = object : ApplicationRequestContent(this) {
         override fun getInputStream(): InputStream = ByteArrayInputStream(body.toByteArray("UTF-8"))

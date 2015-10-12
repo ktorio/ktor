@@ -12,7 +12,7 @@ import java.util.*
 
 class NettyApplicationRequest(private val request: FullHttpRequest) : ApplicationRequest {
     override val headers by lazy {
-        ValuesMap.build { request.headers().forEach { append(it.key, it.value) } }
+        ValuesMap.build(caseInsensitiveKey = true) { request.headers().forEach { append(it.key, it.value) } }
     }
 
     override val requestLine: HttpRequestLine by lazy {

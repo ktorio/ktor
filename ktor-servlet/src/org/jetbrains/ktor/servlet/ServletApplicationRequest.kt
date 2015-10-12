@@ -29,7 +29,7 @@ public class ServletApplicationRequest(private val servletRequest: HttpServletRe
     }
 
     override val headers: ValuesMap by lazy {
-        ValuesMap.build {
+        ValuesMap.build(caseInsensitiveKey = true) {
             servletRequest.headerNames.asSequence().forEach {
                 appendAll(it, servletRequest.getHeaders(it).toList())
             }
