@@ -8,7 +8,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import java.io.*
 
-public class NettyApplicationResponse(val response: FullHttpResponse) : BaseApplicationResponse() {
+internal class NettyApplicationResponse(val response: FullHttpResponse) : BaseApplicationResponse() {
     override val status = Interceptable1<HttpStatusCode, Unit> {
         status ->
         response.setStatus(HttpResponseStatus(status.value, status.description))

@@ -10,7 +10,7 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.*
 
-class NettyApplicationRequest(private val request: FullHttpRequest) : ApplicationRequest {
+internal class NettyApplicationRequest(private val request: FullHttpRequest) : ApplicationRequest {
     override val headers by lazy {
         ValuesMap.build(caseInsensitiveKey = true) { request.headers().forEach { append(it.key, it.value) } }
     }
@@ -35,7 +35,7 @@ class NettyApplicationRequest(private val request: FullHttpRequest) : Applicatio
         override fun getInputStream(): InputStream = ByteBufInputStream(request.content())
     }
 
-    override val cookies = NettyRequestCookies(this)
+    override val cookies : RequestCookies = NettyRequestCookies(this)
 }
 
 private class NettyRequestCookies(val owner: ApplicationRequest) : RequestCookies(owner) {

@@ -6,7 +6,7 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import javax.servlet.http.*
 
-public class ServletApplicationRequest(private val servletRequest: HttpServletRequest) : ApplicationRequest {
+internal class ServletApplicationRequest(private val servletRequest: HttpServletRequest) : ApplicationRequest {
     override val requestLine: HttpRequestLine by lazy {
         val uri = servletRequest.requestURI
         val query = servletRequest.queryString
@@ -40,9 +40,9 @@ public class ServletApplicationRequest(private val servletRequest: HttpServletRe
         override fun getInputStream(): InputStream = servletRequest.inputStream
     }
 
-    override val cookies = ServletRequestCookies(servletRequest, this)
+    override val cookies : RequestCookies = ServletRequestCookies(servletRequest, this)
 }
 
-public class ServletRequestCookies(val servletRequest: HttpServletRequest, request: ApplicationRequest) : RequestCookies(request) {
+private class ServletRequestCookies(val servletRequest: HttpServletRequest, request: ApplicationRequest) : RequestCookies(request) {
     override val parsedRawCookies: Map<String, String> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { servletRequest.cookies?.toMap({ it.name }, { it.value }) ?: emptyMap() }
 }

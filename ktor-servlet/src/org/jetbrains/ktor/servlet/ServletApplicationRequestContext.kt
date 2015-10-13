@@ -10,8 +10,8 @@ public class ServletApplicationRequestContext(override val application: Applicat
                                               private val servletRequest: HttpServletRequest,
                                               private val servletResponse: HttpServletResponse) : ApplicationRequestContext {
     override val attributes = Attributes()
-    override val request = ServletApplicationRequest(servletRequest)
-    override val response = ServletApplicationResponse(servletResponse)
+    override val request : ApplicationRequest = ServletApplicationRequest(servletRequest)
+    override val response : ApplicationResponse = ServletApplicationResponse(servletResponse)
 
     private var asyncContext: AsyncContext? = null
 

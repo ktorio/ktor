@@ -7,7 +7,7 @@ import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.util.*
 
-class NettyApplicationRequestContext(override val application: Application,
+public class NettyApplicationRequestContext(override val application: Application,
                                      val context: ChannelHandlerContext,
                                      val httpRequest: FullHttpRequest) : ApplicationRequestContext {
 
@@ -24,6 +24,6 @@ class NettyApplicationRequestContext(override val application: Application,
         context.close()
     }
 
-    override val request: NettyApplicationRequest = NettyApplicationRequest(httpRequest)
-    override val response: NettyApplicationResponse = NettyApplicationResponse(httpResponse)
+    override val request: ApplicationRequest = NettyApplicationRequest(httpRequest)
+    override val response: ApplicationResponse = NettyApplicationResponse(httpResponse)
 }

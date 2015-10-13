@@ -7,7 +7,7 @@ import org.jetbrains.ktor.interception.*
 import java.io.*
 import javax.servlet.http.*
 
-public class ServletApplicationResponse(private val servletResponse: HttpServletResponse) : BaseApplicationResponse() {
+internal class ServletApplicationResponse(private val servletResponse: HttpServletResponse) : BaseApplicationResponse() {
     var _status: HttpStatusCode? = null
     override val status = Interceptable1<HttpStatusCode, Unit> { code ->
         _status = code
