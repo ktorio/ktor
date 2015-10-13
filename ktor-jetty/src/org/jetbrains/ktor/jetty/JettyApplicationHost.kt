@@ -46,7 +46,17 @@ class JettyApplicationHost(val config: ApplicationConfig) {
         } catch (ex: Exception) {
             throw RuntimeException("${config.port} is not a valid port number")
         }
-        server = Server(port)
+
+        server = Server().apply {
+            val httpConfig = HttpConfiguration().apply {
+                sendServerVersion = false
+            }
+            val connectionFactory = HttpConnectionFactory(httpConfig)
+            val connector = ServerConnector(this, connectionFactory).apply {
+                setPort(port)
+            }
+            connectors = arrayOf(connector)
+        }
 
         config.publicDirectories.forEach { path ->
             config.log.info("Attaching resource handler: $path")
