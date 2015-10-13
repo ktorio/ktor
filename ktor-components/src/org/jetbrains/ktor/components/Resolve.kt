@@ -11,7 +11,7 @@ public interface ValueResolveContext {
     fun resolve(registration: Type): ValueDescriptor?
 }
 
-internal class ComponentResolveContext(val container: StorageComponentContainer, val requestingDescriptor: ValueDescriptor) : ValueResolveContext {
+class ComponentResolveContext(val container: StorageComponentContainer, val requestingDescriptor: ValueDescriptor) : ValueResolveContext {
     override fun resolve(registration: Type): ValueDescriptor? = container.resolve(registration, this)
     public override fun toString(): String = "for $requestingDescriptor in $container"
 }
@@ -21,7 +21,7 @@ public class ConstructorBinding(val constructor: Constructor<*>, val argumentDes
 }
 
 public class MethodBinding(val method: Method, val argumentDescriptors: List<ValueDescriptor>) {
-    fun invoke(instance: Any) {
+    operator fun invoke(instance: Any) {
         val arguments = bindArguments(argumentDescriptors).toTypedArray()
         method.invoke(instance, *arguments)
     }

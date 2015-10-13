@@ -37,13 +37,13 @@ data class OptionalParameterRoutingSelector(val name: String) : RoutingSelector 
 
 data class UriPartConstantRoutingSelector(val name: String) : RoutingSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
-        return RouteSelectorEvaluation(index < context.path.parts.size() && context.path.parts[index].value == name, segmentIncrement = 1)
+        return RouteSelectorEvaluation(index < context.path.parts.size && context.path.parts[index].value == name, segmentIncrement = 1)
     }
 }
 
 data class UriPartParameterRoutingSelector(val name: String) : RoutingSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
-        if (index < context.path.parts.size()) {
+        if (index < context.path.parts.size) {
             val part = context.path.parts[index].value
             return RouteSelectorEvaluation(true, valuesOf(name to listOf(part)), segmentIncrement = 1)
         }
@@ -53,7 +53,7 @@ data class UriPartParameterRoutingSelector(val name: String) : RoutingSelector {
 
 data class UriPartOptionalParameterRoutingSelector(val name: String) : RoutingSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
-        if (index < context.path.parts.size()) {
+        if (index < context.path.parts.size) {
             val part = context.path.parts[index].value
             return RouteSelectorEvaluation(true, valuesOf(name to listOf(part)), segmentIncrement = 1)
         }
@@ -63,7 +63,7 @@ data class UriPartOptionalParameterRoutingSelector(val name: String) : RoutingSe
 
 object UriPartWildcardRoutingSelector : RoutingSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
-        if (index < context.path.parts.size()) {
+        if (index < context.path.parts.size) {
             return RouteSelectorEvaluation(true, segmentIncrement = 1)
         }
         return RouteSelectorEvaluation(false)
@@ -72,9 +72,9 @@ object UriPartWildcardRoutingSelector : RoutingSelector {
 
 data class UriPartTailcardRoutingSelector(val name: String = "") : RoutingSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
-        if (index <= context.path.parts.size()) {
+        if (index <= context.path.parts.size) {
             val values = if (name.isEmpty()) valuesOf() else valuesOf(name to context.path.parts.drop(index).map { it.value })
-            return RouteSelectorEvaluation(true, values, segmentIncrement = context.path.parts.size() - index)
+            return RouteSelectorEvaluation(true, values, segmentIncrement = context.path.parts.size - index)
         }
         return RouteSelectorEvaluation(false)
     }
@@ -117,7 +117,7 @@ data class HttpMethodRoutingSelector(val method: HttpMethod) : RoutingSelector {
 data class HttpHeaderRoutingSelector(val name: String, val value: String) : RoutingSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         val headers = context.headers[name]
-        if (headers.orderedHeaderItems().any { it.value == value })
+        if (parseAndSortHeader(headers).any { it.value == value })
             return RouteSelectorEvaluation(true)
         return RouteSelectorEvaluation(false)
     }

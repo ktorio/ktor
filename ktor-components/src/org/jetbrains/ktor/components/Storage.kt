@@ -22,10 +22,10 @@ public enum class ComponentLifetime {
 }
 
 public class ComponentStorage(val myId: String) : ValueResolver {
-    var state = ComponentStorageState.Initial
-    val registry = ComponentRegistry()
-    val descriptors = LinkedHashSet<ComponentDescriptor>()
-    val dependencies = Multimap<ComponentDescriptor, Type>()
+    private var state = ComponentStorageState.Initial
+    private val registry = ComponentRegistry()
+    private val descriptors = LinkedHashSet<ComponentDescriptor>()
+    private val dependencies = Multimap<ComponentDescriptor, Type>()
 
     override fun resolve(request: Type, context: ValueResolveContext): ValueDescriptor? {
         if (state == ComponentStorageState.Initial)

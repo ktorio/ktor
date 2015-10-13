@@ -9,7 +9,7 @@ class RoutingBuildTest {
     @Test fun `build routing`() {
         fun On.itShouldHaveSpecificStructure(entry: RoutingEntry) {
             it("should have single child at root") {
-                assertEquals(1, entry.children.size())
+                assertEquals(1, entry.children.size)
             }
             it("should have correct parent for single child") {
                 assertEquals(entry, entry.children[0].entry.parent)
@@ -21,7 +21,7 @@ class RoutingBuildTest {
                 assertEquals("foo", (entry.children[0].selector as UriPartConstantRoutingSelector).name)
             }
             it("should have single child at second level") {
-                assertEquals(1, entry.children[0].entry.children.size())
+                assertEquals(1, entry.children[0].entry.children.size)
             }
             it("should have second level child of type UriPartOptionalParameterRoutingSelector") {
                 assertTrue(entry.children[0].entry.children[0].selector is UriPartOptionalParameterRoutingSelector)

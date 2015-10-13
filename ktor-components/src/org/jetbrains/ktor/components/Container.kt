@@ -16,7 +16,7 @@ object DynamicComponentDescriptor : ComponentDescriptor {
 }
 
 public class StorageComponentContainer(id: String) : ComponentContainer, Closeable {
-    public val unknownContext: ComponentResolveContext by lazy { ComponentResolveContext(this, DynamicComponentDescriptor) }
+    val unknownContext: ComponentResolveContext by lazy { ComponentResolveContext(this, DynamicComponentDescriptor) }
 
     private val componentStorage = ComponentStorage(id)
 

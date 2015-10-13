@@ -36,7 +36,7 @@ class RoutingPath {
     }
 
     override fun toString(): String {
-        return parts.map { it.value }.join("/")
+        return parts.map { it.value }.joinToString("/")
     }
 }
 

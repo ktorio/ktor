@@ -9,12 +9,12 @@ class Routing() : RoutingEntry(parent = null) {
     data class Key<T : Any>(val name: String)
 
     val services = hashMapOf<Key<*>, Any>()
-    fun addService<T : Any>(key: Key<T>, service: T) {
+    fun <T : Any> addService(key: Key<T>, service: T) {
         services.put(key, service)
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun getService<T : Any>(key: Key<T>): T {
+    fun <T : Any> getService(key: Key<T>): T {
         val service = services[key] ?: throw UnsupportedOperationException("Cannot find service for key $key")
         return service as T
     }
@@ -41,7 +41,7 @@ class Routing() : RoutingEntry(parent = null) {
         }
 
         when (segmentIndex) {
-            request.path.parts.size() -> return RoutingResolveResult(true, entry, ValuesMap.Empty)
+            request.path.parts.size -> return RoutingResolveResult(true, entry, ValuesMap.Empty)
             else -> return RoutingResolveResult(false, failEntry ?: entry, ValuesMap.Empty)
         }
     }
@@ -91,7 +91,7 @@ class Routing() : RoutingEntry(parent = null) {
     }
 }
 
-fun RoutingEntry.getService<T : Any>(key: Routing.Key<T>): T {
+fun <T : Any> RoutingEntry.getService(key: Routing.Key<T>): T {
     return if (this is Routing)
         getService(key)
     else

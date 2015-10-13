@@ -52,7 +52,7 @@ public open class DefaultConversionService : ConversionService {
             }
         }
 
-        if (values.size() != 1) {
+        if (values.size != 1) {
             throw InconsistentRoutingException("There are multiply values in request when trying to construct single value $type")
         }
 

@@ -20,7 +20,7 @@ open public class LocationService(val conversionService: ConversionService) {
                                     val pathParameters: List<LocationInfoProperty>,
                                     val queryParameters: List<LocationInfoProperty>)
 
-    fun LocationInfo.create(request: RoutingApplicationRequestContext): Any {
+    private fun LocationInfo.create(request: RoutingApplicationRequestContext): Any {
         val constructor: KFunction<Any> = klass.primaryConstructor ?: klass.constructors.single()
         val parameters = constructor.parameters
         val arguments = parameters.map { parameter ->
@@ -42,7 +42,7 @@ open public class LocationService(val conversionService: ConversionService) {
 
     private fun ResolvedUriInfo.combine(relativePath: String, queryValues: List<Pair<String, String>>): ResolvedUriInfo {
         val pathElements = (path.split("/") + relativePath.split("/")).filterNot { it.isEmpty() }
-        val combinedPath = pathElements.join("/", "/")
+        val combinedPath = pathElements.joinToString("/", "/")
         return ResolvedUriInfo(combinedPath, query + queryValues)
     }
 
@@ -98,7 +98,7 @@ open public class LocationService(val conversionService: ConversionService) {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun resolve<T : Any>(dataClass: KClass<*>, request: RoutingApplicationRequestContext): T {
+    fun <T : Any> resolve(dataClass: KClass<*>, request: RoutingApplicationRequestContext): T {
         return getOrCreateInfo(dataClass).create(request) as T
     }
 
@@ -120,7 +120,7 @@ open public class LocationService(val conversionService: ConversionService) {
             }
         }
 
-        val relativePath = substituteParts.filterNotNull().filterNot { it.isEmpty() }.join("/")
+        val relativePath = substituteParts.filterNotNull().filterNot { it.isEmpty() }.joinToString("/")
 
         val parentInfo = if (info.parent == null)
             rootUri

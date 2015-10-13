@@ -6,7 +6,7 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
     override fun toString() = if (parameters.isEmpty())
         "$contentType/$contentSubtype"
     else
-        "$contentType/$contentSubtype; ${parameters.map { "${it.name}=${it.value}" }.join("; ")}"
+        "$contentType/$contentSubtype; ${parameters.map { "${it.name}=${it.value}" }.joinToString("; ")}"
 
     fun parameter(name: String) = parameters.firstOrNull { it.name == name }?.value
 
@@ -26,7 +26,7 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
     override fun equals(other: Any?) = when (other) {
         is ContentType -> contentType == other.contentType
                 && contentSubtype == other.contentSubtype
-                && parameters.size() == other.parameters.size()
+                && parameters.size == other.parameters.size
                 // TODO: does equality necessary impose order of parameters?
                 && parameters.withIndex().all { it.value == other.parameters[it.index] }
         else -> false
@@ -36,11 +36,11 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
         fun parse(value: String): ContentType {
             val parts = value.split(";")
             val content = parts[0].split("/")
-            if (content.size() != 2)
+            if (content.size != 2)
                 throw BadContentTypeFormatException(value)
             val parameters = parts.drop(1).filter { it.isNotBlank() }.map {
                 val pair = it.trim().split("=")
-                if (pair.size() != 2)
+                if (pair.size != 2)
                     throw BadContentTypeFormatException(value)
                 ContentTypeParameter(pair[0].trim(), pair[1].trim())
             }

@@ -21,8 +21,8 @@ public abstract class ApplicationRequestContent(private val request: Application
     }
 
     @Suppress("UNCHECKED_CAST")
-    public operator fun get<T : Any>(type: KClass<T>): T = contentsChain.call(type) as T
-    public inline fun get<reified T : Any>(): T = get(T::class)
+    public operator fun <T : Any> get(type: KClass<T>): T = contentsChain.call(type) as T
+    public inline fun <reified T : Any> get(): T = get(T::class)
 }
 
 public class UnknownContentAccessorRequest(message: String) : Exception(message)

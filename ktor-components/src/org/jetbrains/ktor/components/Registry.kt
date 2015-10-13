@@ -16,12 +16,11 @@ class ComponentRegisterEntry : Iterable<ComponentDescriptor> {
     override fun iterator(): Iterator<ComponentDescriptor> = descriptors.iterator()
 
     public fun singleOrNull(): ComponentDescriptor? {
-        if (descriptors.size() == 1)
-            return descriptors[0]
-        else if (descriptors.size() == 0)
-            return null
-
-        throw UnresolvedDependenciesException("Invalid arity")
+        when (descriptors.size) {
+            1 -> return descriptors[0]
+            0 -> return null
+            else -> throw UnresolvedDependenciesException("Invalid arity")
+        }
     }
 
     public fun add(item: ComponentDescriptor) {
@@ -55,7 +54,7 @@ internal class ComponentRegistry {
     public fun addAll(descriptors: Collection<ComponentDescriptor>) {
         val updateMap = buildRegistrationMap(descriptors)
         val lastMap = registrationMap
-        val newMap = LinkedHashMap<Any, ComponentRegisterEntry>(lastMap.size())
+        val newMap = LinkedHashMap<Any, ComponentRegisterEntry>(lastMap.size)
         for ((key, value) in lastMap)
             newMap.put(key, ComponentRegisterEntry(value))
 
@@ -70,7 +69,7 @@ internal class ComponentRegistry {
     public fun removeAll(descriptors: Collection<ComponentDescriptor>) {
         val newMap = buildRegistrationMap(descriptors)
         val lastMap = registrationMap
-        val interfaceMap = LinkedHashMap<Any, ComponentRegisterEntry>(lastMap.size())
+        val interfaceMap = LinkedHashMap<Any, ComponentRegisterEntry>(lastMap.size)
         for ((key, value) in lastMap)
             interfaceMap.put(key, ComponentRegisterEntry(value))
 

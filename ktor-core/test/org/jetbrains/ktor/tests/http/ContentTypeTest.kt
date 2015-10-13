@@ -17,7 +17,7 @@ class ContentTypeTest {
                 assertEquals("plain", ct.contentSubtype)
             }
             it("should have 0 parameters") {
-                assertEquals(0, ct.parameters.size())
+                assertEquals(0, ct.parameters.size)
             }
         }
     }
@@ -32,7 +32,7 @@ class ContentTypeTest {
                 assertEquals("plain", ct.contentSubtype)
             }
             it("should have 0 parameters") {
-                assertEquals(0, ct.parameters.size())
+                assertEquals(0, ct.parameters.size)
             }
         }
     }
@@ -47,7 +47,7 @@ class ContentTypeTest {
                 assertEquals("plain", ct.contentSubtype)
             }
             it("should have 1 parameters") {
-                assertEquals(1, ct.parameters.size())
+                assertEquals(1, ct.parameters.size)
             }
             it("should have utf-8 charset") {
                 assertEquals(ContentTypeParameter("charset", "utf-8"), ct.parameters[0])

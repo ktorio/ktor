@@ -25,16 +25,16 @@ public class ApplicationLoader(val config: ApplicationConfig) {
         get() = synchronized(applicationInstanceLock) {
             if (config.isDevelopment()) {
                 val changes = packageWatchKeys.flatMap { it.pollEvents() }
-                if (changes.size() > 0) {
+                if (changes.size > 0) {
                     config.log.info("Changes in application detected.")
-                    var count = changes.size()
+                    var count = changes.size
                     while (true) {
                         Thread.sleep(200)
                         val moreChanges = packageWatchKeys.flatMap { it.pollEvents() }
-                        if (moreChanges.size() == 0)
+                        if (moreChanges.size == 0)
                             break
                         config.log.debug("Waiting for more changes.")
-                        count += moreChanges.size()
+                        count += moreChanges.size
                     }
 
                     config.log.debug("Changes to $count files caused application restart.")

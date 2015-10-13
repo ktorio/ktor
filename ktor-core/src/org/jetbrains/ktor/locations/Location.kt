@@ -22,11 +22,11 @@ public fun Routing.withLocations(locations: LocationService, body: Routing.() ->
     body()
 }
 
-inline fun RoutingEntry.location<reified T : Any>(noinline body: RoutingEntry.() -> Unit) {
+inline fun <reified T : Any> RoutingEntry.location(noinline body: RoutingEntry.() -> Unit) {
     location(T::class, body)
 }
 
-inline fun RoutingEntry.get<reified T : Any>(noinline body: ApplicationRequestContext.(T) -> ApplicationRequestStatus) {
+inline fun <reified T : Any> RoutingEntry.get(noinline body: ApplicationRequestContext.(T) -> ApplicationRequestStatus) {
     location(T::class) {
         method(HttpMethod.Get) {
             handle<T> { location -> body(location) }

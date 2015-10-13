@@ -8,7 +8,7 @@ public class Interceptable0<TResult>(val function: () -> TResult) {
     }
 
     fun invokeAt(index: Int): TResult = when {
-        index < interceptors.size() -> interceptors[index]({ invokeAt(index + 1) })
+        index < interceptors.size -> interceptors[index]({ invokeAt(index + 1) })
         else -> function()
     }
 
@@ -23,7 +23,7 @@ public class Interceptable1<TParam0, TResult>(val function: (TParam0) -> TResult
     }
 
     fun invokeAt(param: TParam0, index: Int): TResult = when {
-        index < interceptors.size() -> interceptors[index](param, { param -> invokeAt(param, index + 1) })
+        index < interceptors.size -> interceptors[index](param, { param -> invokeAt(param, index + 1) })
         else -> function(param)
     }
 
@@ -38,7 +38,7 @@ public class Interceptable2<TParam0, TParam1, TResult>(val function: (TParam0, T
     }
 
     fun invokeAt(param1: TParam0, param2: TParam1, index: Int): TResult = when {
-        index < interceptors.size() -> interceptors[index](param1, param2, { param1, param2 -> invokeAt(param1, param2, index + 1) })
+        index < interceptors.size -> interceptors[index](param1, param2, { param1, param2 -> invokeAt(param1, param2, index + 1) })
         else -> function(param1, param2)
     }
 

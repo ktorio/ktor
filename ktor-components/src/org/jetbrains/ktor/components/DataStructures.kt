@@ -2,7 +2,7 @@ package org.jetbrains.ktor.components
 
 import java.util.*
 
-public fun topologicalSort<T>(items: Iterable<T>, dependencies: (T) -> Iterable<T>): List<T> {
+public fun <T> topologicalSort(items: Iterable<T>, dependencies: (T) -> Iterable<T>): List<T> {
     val itemsInProgress = HashSet<T>();
     val completedItems = HashSet<T>();
     val result = ArrayList<T>()
@@ -36,12 +36,7 @@ public class CycleInTopoSortException : Exception()
 class Multimap<K, V> : Iterable<Map.Entry<K, V>> {
     private val map = LinkedHashMap<K, MutableSet<V>>()
 
-    class Entry<K, V>(key: K, value: V) : Map.Entry<K, V> {
-        private val _key = key
-        private val _value = value
-        override fun getKey(): K = _key
-        override fun getValue(): V = _value
-    }
+    class Entry<K, V>(override val key: K, override val value: V) : Map.Entry<K, V>
 
     override fun iterator(): Iterator<Map.Entry<K, V>> = entries().iterator()
 
@@ -56,7 +51,7 @@ class Multimap<K, V> : Iterable<Map.Entry<K, V>> {
     operator fun get(key: K): Set<V> = map.get(key) ?: emptySet()
     fun isEmpty(): Boolean = map.isEmpty()
     fun keys(): Set<K> = map.keySet()
-    fun size(): Int = map.size()
+    fun size(): Int = map.size
     fun values(): Collection<Set<V>> = map.values()
 
 }

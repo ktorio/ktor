@@ -6,9 +6,9 @@ import org.jetbrains.ktor.util.*
 /** Established connection with client, encapsulates request and response facilities
  */
 public interface ApplicationRequest {
-    public val requestLine: HttpRequestLine
-    public val parameters: ValuesMap
-    public val headers: ValuesMap
-    public val cookies: RequestCookies
-    public val content: ApplicationRequestContent
+    val requestLine: HttpRequestLine
+    val parameters: ValuesMap
+    val headers: ValuesMap
+    val cookies: RequestCookies
+    val content: ApplicationRequestContent
 }
