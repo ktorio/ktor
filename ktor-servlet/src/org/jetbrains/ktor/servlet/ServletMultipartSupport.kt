@@ -10,7 +10,7 @@ internal class ServletMultiPartData(val request: HttpServletRequest) : MultiPart
             isMultipart -> request.parts.asSequence().map {
                 when {
                     it.isFormField -> PartData.FormItem(
-                            value = it.inputStream.reader(it.charset ?: request.characterEncoding ?: "ISO-8859-1").use { it.readText() },
+                            value = it.inputStream.reader(it.charset ?: request.characterEncoding ?: Charsets.ISO_8859_1.name()).use { it.readText() },
                             dispose = { it.delete() },
                             partHeaders = it.toHeadersMap()
                     )

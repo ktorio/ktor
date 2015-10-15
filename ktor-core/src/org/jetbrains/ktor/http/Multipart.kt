@@ -8,13 +8,21 @@ class ContentDisposition(val disposition: String, val parameters: ValuesMap) {
         get() = parameters["name"]
 
     override fun toString(): String {
-        return (listOf(disposition) + parameters.entries().flatMap { it.value.map { e -> it.key to e } }.map { "${it.first}=${it.second}" }).joinToString("; ") // TODO we should be able to escape values if needed
+        return (listOf(disposition) + parameters.entries()
+                .flatMap { it.value.map { e -> it.key to e } }
+                .map { "${it.first}=${it.second.escapeIfNeeded()}" })
+                .joinToString("; ")
+    }
+
+    private fun String.escapeIfNeeded() = when {
+        indexOfAny("\"=;,\\/".toCharArray()) != -1 -> quote()
+        else -> this
     }
 
     companion object {
         fun parse(value: String) = parseHeaderValue(value).let { preParsed ->
             ContentDisposition(preParsed.single().value,
-                    parameters = ValuesMap(preParsed.single().params.groupBy({ it.name }, { it.value }), true)
+                    parameters = ValuesMap(preParsed.single().params.groupBy({ it.name }, { it.value }), caseInsensitiveKey = true)
             )
         }
     }
@@ -45,3 +53,4 @@ interface MultiPartData {
 fun <T> Iterable<T>.groupBy(key: (T) -> String, value: (T) -> String): Map<String, List<String>> =
         groupBy(key).mapValues { it.value.map(value) }
 
+private fun String.quote() = "\"" + replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r").replace("\"", "\\\"")
