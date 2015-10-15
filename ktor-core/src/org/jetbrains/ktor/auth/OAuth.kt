@@ -104,7 +104,7 @@ fun ApplicationResponse.redirectAuthenticateOAuth2(settings: OAuthServerSettings
 
 fun ApplicationResponse.redirectAuthenticateOAuth2(authenticateUrl: String, callbackRedirectUrl: String, clientId: String, state: String, scopes: List<String> = emptyList(), parameters: List<Pair<String, String>> = emptyList()): ApplicationRequestStatus {
     return sendRedirect(authenticateUrl
-            .appendUrlParameters("client_id=${clientId.encodeURL()}&redirect_uri=${callbackRedirectUrl.encodeURL()}&${optionalParameter("scope", scopes.join(","))}&state=${state.encodeURL()}")
+            .appendUrlParameters("client_id=${clientId.encodeURL()}&redirect_uri=${callbackRedirectUrl.encodeURL()}&${optionalParameter("scope", scopes.joinToString(","))}&state=${state.encodeURL()}")
             .appendUrlParameters("response_type=code")
             .appendUrlParameters(parameters.formUrlEncode())
     )
@@ -411,8 +411,10 @@ fun <T: Any> RoutingEntry.oauthWithType(type: KClass<T>,
     fun RoutingApplicationRequestContext.urlProviderLocal(s: OAuthServerSettings): String = urlProvider(resolve(), s)
     fun RoutingApplicationRequestContext.onSuccessLocal(response: OAuthAccessTokenResponse): Unit = onSuccess(resolve(), response)
 
-    oauth1a(exec, RoutingApplicationRequestContext::providerLookupLocal, RoutingApplicationRequestContext::urlProviderLocal, RoutingApplicationRequestContext::onSuccessLocal)
-    oauth2(exec, RoutingApplicationRequestContext::providerLookupLocal, RoutingApplicationRequestContext::urlProviderLocal, RoutingApplicationRequestContext::onSuccessLocal)
+    oauth(exec,
+            RoutingApplicationRequestContext::providerLookupLocal,
+            RoutingApplicationRequestContext::urlProviderLocal,
+            RoutingApplicationRequestContext::onSuccessLocal)
 }
 
 private fun ApplicationRequestContext.oauthHandleFail(redirectUrl: String) = { t: Throwable ->

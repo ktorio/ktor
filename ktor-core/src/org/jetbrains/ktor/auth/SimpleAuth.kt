@@ -2,10 +2,8 @@ package org.jetbrains.ktor.auth.simple
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.auth.*
-import java.security.*
+import org.jetbrains.ktor.auth.crypto.*
 import java.util.*
-import javax.crypto.*
-import javax.crypto.spec.*
 
 data class SimpleUserPrincipal(val name: String, val groups: List<String> = emptyList())
 data class SimpleUserPassword(val name: String, val password: String)
@@ -42,31 +40,7 @@ public class SimpleUserEncryptedTableAuth(val decryptor: PasswordDecryptor, val 
     private fun decrypt(name: String) = table[name]?.let { decryptor.decrypt(it) }
 }
 
-public fun getDigestFunction(algorithm: String, salt: String): (String) -> ByteArray = { e -> getDigest(e, algorithm, salt) }
-
-public fun getDigest(text: String, algorithm: String, salt: String): ByteArray = with(MessageDigest.getInstance(algorithm)) {
-    update(salt.toByteArray())
-    digest(text.toByteArray())
-}
-
-public class SimpleJavaCryptoPasswordDecryptor(val algorithmWithTransformation: String, val key: String, val salt: String) : PasswordDecryptor {
-    private val iv: IvParameterSpec by lazy { IvParameterSpec(salt.toByteArray()) }
-    private val keySpec: SecretKeySpec by lazy { SecretKeySpec(key.toByteArray(), algorithmWithTransformation.substringBefore('/')) }
-
-    override fun decrypt(encrypted: String): String {
-        val encryptedBytes = Base64.getDecoder().decode(encrypted)
-
-        val cipher = Cipher.getInstance(algorithmWithTransformation)
-        cipher.init(Cipher.DECRYPT_MODE, keySpec, iv)
-
-        return cipher.doFinal(encryptedBytes).toString(Charsets.UTF_8)
-    }
-}
-
 private fun Config.parseUsers(name: String = "users") =
         getConfigList(name)
-                .map { it.getString("name")!! to it.getString("hash").decodeBase64() }
+                .map { it.getString("name")!! to base64(it.getString("hash")) }
                 .toMap()
-
-private fun String.decodeBase64() = Base64.getDecoder().decode(this)
-private fun ByteArray.toBase64() = Base64.getEncoder().encodeToString(this)
