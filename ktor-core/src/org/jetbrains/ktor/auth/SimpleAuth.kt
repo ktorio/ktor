@@ -1,7 +1,7 @@
-package org.jetbrains.ktor.http.auth.simple
+package org.jetbrains.ktor.auth.simple
 
 import com.typesafe.config.*
-import org.jetbrains.ktor.http.auth.*
+import org.jetbrains.ktor.auth.*
 import java.security.*
 import java.util.*
 import javax.crypto.*

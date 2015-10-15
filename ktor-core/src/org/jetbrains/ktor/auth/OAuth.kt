@@ -1,8 +1,8 @@
-package org.jetbrains.ktor.http.auth.oauth
+package org.jetbrains.ktor.auth.oauth
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.http.auth.*
+import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*

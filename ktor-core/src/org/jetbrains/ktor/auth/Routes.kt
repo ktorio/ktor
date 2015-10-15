@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.http.auth
+package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.routing.*

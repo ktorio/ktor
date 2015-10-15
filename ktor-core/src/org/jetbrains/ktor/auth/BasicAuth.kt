@@ -1,8 +1,8 @@
-package org.jetbrains.ktor.http.auth.basic
+package org.jetbrains.ktor.auth.basic
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.http.auth.*
-import org.jetbrains.ktor.http.auth.simple.*
+import org.jetbrains.ktor.auth.*
+import org.jetbrains.ktor.auth.simple.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 import java.util.*

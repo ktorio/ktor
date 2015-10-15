@@ -1,6 +1,6 @@
 package org.jetbrains.ktor.tests.http.auth.tests
 
-import org.jetbrains.ktor.http.auth.*
+import org.jetbrains.ktor.auth.*
 import kotlin.test.*
 import org.junit.Test as test
 
