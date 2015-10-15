@@ -10,7 +10,7 @@
         <version>0.1.0</version>
     </parent>
 
-    <artifactId>ktor-samples-oauth</artifactId>
+    <artifactId>ktor-samples-auth</artifactId>
 
     <build>
         <sourceDirectory>src</sourceDirectory>
