@@ -51,7 +51,7 @@ open class ServletApplicationHost() : HttpServlet() {
             }
         } catch (ex: Throwable) {
             application.config.log.error("ServletApplicationHost cannot service the request", ex)
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage())
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.message)
         }
     }
 

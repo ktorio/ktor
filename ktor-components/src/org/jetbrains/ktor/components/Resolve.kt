@@ -34,7 +34,7 @@ public fun bindArguments(argumentDescriptors: List<ValueDescriptor>): List<Any> 
 fun Class<*>.bindToConstructor(context: ValueResolveContext): ConstructorBinding {
     val candidate = constructors.single()
     val parameters = candidate.genericParameterTypes
-    val arguments = ArrayList<ValueDescriptor>(parameters.size())
+    val arguments = ArrayList<ValueDescriptor>(parameters.size)
     var unsatisfied: MutableList<Type>? = null
 
     for (parameter in parameters) {
@@ -56,7 +56,7 @@ fun Class<*>.bindToConstructor(context: ValueResolveContext): ConstructorBinding
 
 fun Method.bindToMethod(context: ValueResolveContext): MethodBinding {
     val parameters = genericParameterTypes
-    val arguments = ArrayList<ValueDescriptor>(parameters.size())
+    val arguments = ArrayList<ValueDescriptor>(parameters.size)
     var unsatisfied: MutableList<Type>? = null
 
     for (parameter in parameters) {

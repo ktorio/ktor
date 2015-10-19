@@ -20,5 +20,5 @@ public class Attributes {
     public fun <T> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T = map.computeIfAbsent(key) { block() } as T
 
     public val allKeys: List<AttributeKey<*>>
-        get() = map.keySet().toList()
+        get() = map.keys.toList()
 }

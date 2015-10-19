@@ -7,7 +7,7 @@ class RoutingPath {
         val root: RoutingPath = RoutingPath(listOf())
         fun parse(path: String): RoutingPath {
             if (path == "/") return root
-            val splitted = path.split("/").filter { it.length() > 0 }
+            val splitted = path.split("/").filter { it.length > 0 }
             val segments = splitted.map {
                 when {
                     it == "*" -> RoutingPathSegment("", RoutingPathSegmentKind.Constant, true)

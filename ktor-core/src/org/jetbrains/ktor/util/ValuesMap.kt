@@ -21,11 +21,11 @@ public class ValuesMap(map: Map<String, List<String>>, val caseInsensitiveKey: B
     operator fun get(name: String): String? = map[makeKey(name)]?.firstOrNull()
     fun getAll(name: String): List<String>? = map[makeKey(name)]
 
-    fun entries(): Set<Map.Entry<String, List<String>>> = map.entrySet()
+    fun entries(): Set<Map.Entry<String, List<String>>> = map.entries
 
     /* TODO: Ideally key case should be preserved for case insensitive map, but what to do with keys
        that are different but case-insensitively equal? */
-    fun names(): Set<String> = map.keySet()
+    fun names(): Set<String> = map.keys
 
     operator fun contains(name: String) = map.containsKey(makeKey(name))
     fun contains(name: String, value: String) = map[makeKey(name)]?.contains(value) ?: false

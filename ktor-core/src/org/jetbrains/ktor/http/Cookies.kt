@@ -24,7 +24,7 @@ public enum class CookieEncoding {
 private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "secure", "httponly", "\$x-enc")
 public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     val asMap = parseClientCookiesHeader(cookiesHeader, false)
-    val first = asMap.entrySet().first { !it.key.startsWith("$") }
+    val first = asMap.entries.first { !it.key.startsWith("$") }
     val encoding = asMap["\$x-enc"]?.let { CookieEncoding.valueOf(it) } ?: CookieEncoding.URI_ENCODING
     val loweredMap = asMap.mapKeys { it.key.toLowerCase() }
 
@@ -47,7 +47,7 @@ public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
 public fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true): Map<String, String> {
     val pattern = """(^|;|,)\s*([^()<>@,;:/\\"\[\]\?=\{\}\s]+)\s*(=\s*("[^"]*"|[^;,]*))?""".toRegex()
 
-    return pattern.matchAll(cookiesHeader)
+    return pattern.findAll(cookiesHeader)
         .map { (it.groups[2]?.value ?: "") to (it.groups[4]?.value ?: "") }
         .filter { !skipEscaped || !it.first.startsWith("$") }
         .map { when {
@@ -93,7 +93,7 @@ public fun renderSetCookieHeader(name: String,
                 cookiePartFlag("HttpOnly", httpOnly)
         ) + extensions.map {
             cookiePartExt(it.key.assertCookieName(), it.value, encoding)
-        } + cookiePartExt("\$x-enc", encoding.name(), CookieEncoding.RAW)
+        } + cookiePartExt("\$x-enc", encoding.name, CookieEncoding.RAW)
                 ).filter { it.isNotEmpty() }
                 .joinToString("; ")
 

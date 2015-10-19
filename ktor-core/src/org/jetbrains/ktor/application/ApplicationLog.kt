@@ -13,7 +13,7 @@ public interface ApplicationLog {
     fun warning(message: String) {}
     fun trace(message: String) {}
 
-    fun error(exception: Throwable) = error(exception.getMessage() ?: "Exception of type ${exception.javaClass}", exception)
+    fun error(exception: Throwable) = error(exception.message ?: "Exception of type ${exception.javaClass}", exception)
 
     fun fork(name: String): ApplicationLog
 }

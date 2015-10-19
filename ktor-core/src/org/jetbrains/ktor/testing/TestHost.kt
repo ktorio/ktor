@@ -113,7 +113,7 @@ class TestApplicationResponse : BaseApplicationResponse() {
             headersMap.getOrPut(name) { ArrayList() }.add(value)
         }
 
-        override fun getHostHeaderNames(): List<String> = headersMap.keySet().toList()
+        override fun getHostHeaderNames(): List<String> = headersMap.keys.toList()
         override fun getHostHeaderValues(name: String): List<String> = headersMap[name] ?: emptyList()
     }
 

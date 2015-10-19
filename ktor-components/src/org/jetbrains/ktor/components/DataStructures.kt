@@ -47,11 +47,11 @@ class Multimap<K, V> : Iterable<Map.Entry<K, V>> {
 
     fun containsKey(key: K): Boolean = map.containsKey(key)
     fun containsValue(value: V): Boolean = values().flatMap { it }.any { it == value }
-    fun entries(): List<Map.Entry<K, V>> = map.entrySet().flatMap { entry -> entry.value.map { Entry(entry.key, it) } }
+    fun entries(): List<Map.Entry<K, V>> = map.entries.flatMap { entry -> entry.value.map { Entry(entry.key, it) } }
     operator fun get(key: K): Set<V> = map.get(key) ?: emptySet()
     fun isEmpty(): Boolean = map.isEmpty()
-    fun keys(): Set<K> = map.keySet()
+    fun keys(): Set<K> = map.keys
     fun size(): Int = map.size
-    fun values(): Collection<Set<V>> = map.values()
+    fun values(): Collection<Set<V>> = map.values
 
 }

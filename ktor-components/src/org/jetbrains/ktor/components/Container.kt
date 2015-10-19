@@ -42,11 +42,11 @@ public class StorageComponentContainer(id: String) : ComponentContainer, Closeab
             val typeArguments = request.actualTypeArguments
             val rawType = request.rawType
             if (rawType == Iterable::class.java) {
-                if (typeArguments.size() == 1) {
+                if (typeArguments.size == 1) {
                     val iterableTypeArgument = typeArguments[0]
                     if (iterableTypeArgument is WildcardType) {
                         val upperBounds = iterableTypeArgument.upperBounds
-                        if (upperBounds.size() == 1) {
+                        if (upperBounds.size == 1) {
                             val iterableType = upperBounds[0]
                             return IterableDescriptor(componentStorage.resolveMultiple(iterableType, context))
                         }

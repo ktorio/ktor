@@ -24,7 +24,7 @@ private fun String.packageToPath() = replace(".", File.separator)
 
 private fun File.scanForClasses(prefix: String, classLoader: ClassLoader): Sequence<Class<*>> {
     val packageRoot = File(this, prefix.packageToPath())
-    return packageRoot.walkTopDown().filter {
+    return packageRoot.walkTopDown().treeFilter {
         it.isDirectory || (it.isFile && it.extension == "class")
     }.map {
         if (it.isFile) {
