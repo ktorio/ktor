@@ -60,6 +60,25 @@ class LocationsTest {
         urlShouldBeUnhandled(testHost, "/user?id=123")
     }
 
+    @location("/user/{id}/{name}") class named(val id: Int, val name: String)
+
+    @Test fun `location with urlencoded path param`() {
+        val href = Locations.href(named(123, "abc def"))
+        assertEquals("/user/123/abc+def", href)
+        val testHost = createTestHost()
+        testHost.application.locations {
+            get<named> { named ->
+                assertEquals(123, named.id)
+                assertEquals("abc def", named.name)
+                response.status(HttpStatusCode.OK)
+                ApplicationRequestStatus.Handled
+            }
+        }
+        urlShouldBeHandled(testHost, href)
+        urlShouldBeUnhandled(testHost, "/user?id=123")
+        urlShouldBeUnhandled(testHost, "/user/123")
+    }
+
     @location("/favorite") class favorite(val id: Int)
 
     @Test fun `location with query param`() {

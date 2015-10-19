@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.locations
 
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
@@ -120,7 +121,7 @@ open public class LocationService(val conversionService: ConversionService) {
             }
         }
 
-        val relativePath = substituteParts.filterNotNull().filterNot { it.isEmpty() }.joinToString("/")
+        val relativePath = substituteParts.filterNotNull().filterNot { it.isEmpty() }.map { it.encodeURL() }.joinToString("/")
 
         val parentInfo = if (info.parent == null)
             rootUri
@@ -143,7 +144,7 @@ open public class LocationService(val conversionService: ConversionService) {
     fun href(location: Any): String {
         val info = pathAndQuery(location)
         return info.path + if (info.query.any())
-            "?" + info.query.map { "${it.first}=${it.second}" }.joinToString("&")
+            "?" + info.query.map { "${it.first}=${it.second.encodeURL()}" }.joinToString("&")
         else
             ""
     }

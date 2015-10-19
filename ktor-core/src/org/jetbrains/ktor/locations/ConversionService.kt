@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.locations
 
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import java.lang.reflect.*
 
@@ -38,7 +39,7 @@ public open class DefaultConversionService : ConversionService {
             Double::class.java, java.lang.Double::class.java -> value.toDouble()
             Long::class.java, java.lang.Long::class.java -> value.toLong()
             Boolean::class.java, java.lang.Boolean::class.java -> value.toBoolean()
-            String::class.java, java.lang.String::class.java -> value
+            String::class.java, java.lang.String::class.java -> value.decodeURL()
             else -> throw UnsupportedOperationException("Type $type is not supported in automatic location data class processing")
         }
     }
