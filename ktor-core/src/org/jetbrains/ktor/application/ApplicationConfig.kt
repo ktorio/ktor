@@ -10,10 +10,10 @@ public open class ApplicationConfig(private val config: Config,
                                     public val log: ApplicationLog = NullApplicationLog(),
                                     private val classPathUrl: URL? = null) {
 
-    public open val classPath: Array<URL>
-        get() = if (classPathUrl == null) arrayOf() else arrayOf(classPathUrl)
+    public open val classPath: List<URL>
+        get() = if (classPathUrl == null) emptyList() else listOf(classPathUrl)
 
-    public val classLoader: URLClassLoader = URLClassLoader(classPath, javaClass.classLoader)
+    public val classLoader: URLClassLoader = URLClassLoader(classPath.toTypedArray(), javaClass.classLoader)
 
     public val environment: String get() = config.getString("ktor.deployment.environment")
     public val applicationClassName: String = config.getString("ktor.application.class")
