@@ -24,7 +24,7 @@ public class NullApplicationLog(override val name: String = "Application") : App
     }
 }
 
-public class SL4JApplicationLog(override val name: String) : ApplicationLog {
+public class SLF4JApplicationLog(override val name: String) : ApplicationLog {
     private val logger: Logger = LoggerFactory.getLogger("$name")
 
     override fun info(message: String) {
@@ -51,7 +51,7 @@ public class SL4JApplicationLog(override val name: String) : ApplicationLog {
     }
 
     override fun fork(name: String): ApplicationLog {
-        return SL4JApplicationLog("${this.name}.$name")
+        return SLF4JApplicationLog("${this.name}.$name")
     }
 }
 

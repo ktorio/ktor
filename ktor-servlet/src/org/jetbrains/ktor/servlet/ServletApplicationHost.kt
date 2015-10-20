@@ -20,7 +20,7 @@ open class ServletApplicationHost() : HttpServlet() {
         } else
             config
 
-        val applicationLog = SL4JApplicationLog("ktor.application")
+        val applicationLog = SLF4JApplicationLog("ktor.application")
         val applicationConfig = ApplicationConfig(combinedConfig, applicationLog)
         ApplicationLoader(applicationConfig)
     }
