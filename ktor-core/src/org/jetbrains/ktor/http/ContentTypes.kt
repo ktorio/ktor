@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.http
 
 data class ContentTypeParameter(val name: String, val value: String)
-class ContentType(val contentType: String, val contentSubtype: String, val parameters: List<ContentTypeParameter> = listOf()) {
+data class ContentType(val contentType: String, val contentSubtype: String, val parameters: List<ContentTypeParameter> = listOf()) {
 
     override fun toString() = if (parameters.isEmpty())
         "$contentType/$contentSubtype"
@@ -22,15 +22,6 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
             && (other.parameters.filter { it.name == "*" && it.value != "*" }.all { this.parameters.any { p -> p.value == it.value } })
 
     fun match(pattern: String): Boolean = match(ContentType.parse(pattern))
-
-    override fun equals(other: Any?) = when (other) {
-        is ContentType -> contentType == other.contentType
-                && contentSubtype == other.contentSubtype
-                && parameters.size == other.parameters.size
-                // TODO: does equality necessary impose order of parameters?
-                && parameters.withIndex().all { it.value == other.parameters[it.index] }
-        else -> false
-    }
 
     companion object {
         fun parse(value: String): ContentType {
