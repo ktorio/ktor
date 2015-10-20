@@ -7,7 +7,7 @@ import kotlin.util.*
 public open class ComponentApplication(config: ApplicationConfig) : Application(config) {
     val container = StorageComponentContainer("Application")
     val routing = Routing()
-    val log = config.log.fork("components")
+    val log = config.log.fork("Components")
 
     init {
         container.registerInstance(this)
@@ -32,6 +32,11 @@ public open class ComponentApplication(config: ApplicationConfig) : Application(
         log.info("Composition took $compositionTime ms")
 
         routing.installInto(this)
+    }
+
+    override fun dispose() {
+        super.dispose()
+        container.close()
     }
 
     fun routing(body: RoutingEntry.() -> Unit) = routing.apply(body)
