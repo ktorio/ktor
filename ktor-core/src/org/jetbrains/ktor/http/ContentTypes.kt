@@ -78,6 +78,7 @@ class ContentType(val contentType: String, val contentSubtype: String, val param
         val JPEG = ContentType("image", "jpeg")
         val PNG = ContentType("image", "png")
         val SVG = ContentType("image", "svg+xml")
+        val XIcon = ContentType("image", "x-icon")
     }
 
     object Message {
