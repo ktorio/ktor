@@ -13,6 +13,7 @@ public class ApplicationLoader(val config: ApplicationConfig) {
     private var _applicationInstance: Application? = null
     private val applicationInstanceLock = Object()
     private val packageWatchKeys = ArrayList<WatchKey>()
+    private val log = config.log.fork("Loader")
 
     public fun ApplicationConfig.isDevelopment(): Boolean = environment == "development"
 
@@ -26,19 +27,19 @@ public class ApplicationLoader(val config: ApplicationConfig) {
             if (config.isDevelopment()) {
                 val changes = packageWatchKeys.flatMap { it.pollEvents() }
                 if (changes.size > 0) {
-                    config.log.info("Changes in application detected.")
+                    log.info("Changes in application detected.")
                     var count = changes.size
                     while (true) {
                         Thread.sleep(200)
                         val moreChanges = packageWatchKeys.flatMap { it.pollEvents() }
                         if (moreChanges.size == 0)
                             break
-                        config.log.debug("Waiting for more changes.")
+                        log.debug("Waiting for more changes.")
                         count += moreChanges.size
                     }
 
-                    config.log.debug("Changes to $count files caused application restart.")
-                    changes.take(5).forEach { config.log.debug("...  ${it.context()}") }
+                    log.debug("Changes to $count files caused application restart.")
+                    changes.take(5).forEach { log.debug("...  ${it.context()}") }
                     destroyApplication()
                     _applicationInstance = null
                 }
@@ -52,13 +53,25 @@ public class ApplicationLoader(val config: ApplicationConfig) {
             instance!!
         }
 
-    fun createApplication(): Application {
-        if (config.isDevelopment())
-            watchUrls(config.classPath)
+    fun URLClassLoader.allURLs() : List<URL> {
+        val parent = parent ?: return urLs.toList()
+        if (parent is URLClassLoader)
+            return urLs.toList() + parent.allURLs()
+        return emptyList()
+    }
 
-        val applicationClass = config.classLoader.loadClass(config.applicationClassName)
+    fun createApplication(): Application {
+        val classLoader = config.classLoader
+        if (config.isDevelopment()) {
+            if (classLoader is URLClassLoader) {
+                watchUrls(classLoader.allURLs() + config.classPath)
+            } else
+                watchUrls(config.classPath)
+        }
+
+        val applicationClass = classLoader.loadClass(config.applicationClassName)
                 ?: throw RuntimeException("Expected class ${config.applicationClassName} to be defined")
-        config.log.debug("Application class: ${applicationClass.toString()}")
+        log.debug("Application class: ${applicationClass.toString()}")
         val cons = applicationClass.getConstructor(ApplicationConfig::class.java)
         val application = cons.newInstance(config)
         if (application !is Application)
@@ -72,13 +85,13 @@ public class ApplicationLoader(val config: ApplicationConfig) {
         try {
             _applicationInstance?.dispose()
         } catch(e: Throwable) {
-            config.log.error("Failed to destroy application instance.", e)
+            log.error("Failed to destroy application instance.", e)
         }
         packageWatchKeys.forEach { it.cancel() }
         packageWatchKeys.clear()
     }
 
-    fun watchUrls(urls: Array<URL>) {
+    fun watchUrls(urls: List<URL>) {
         val paths = HashSet<Path>()
         for (url in urls) {
             val path = url.path
@@ -103,7 +116,7 @@ public class ApplicationLoader(val config: ApplicationConfig) {
 
         val watcher = FileSystems.getDefault().newWatchService();
         paths.forEach { path ->
-            config.log.debug("Watching $path for changes.")
+            log.debug("Watching $path for changes.")
         }
         packageWatchKeys.addAll(paths.map { it.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY) })
     }
