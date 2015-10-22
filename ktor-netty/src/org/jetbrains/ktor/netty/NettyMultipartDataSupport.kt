@@ -61,7 +61,7 @@ internal class NettyMultiPartData(val request: FullHttpRequest) : MultiPartData 
             append(HttpHeaders.TransferEncoding, contentTransferEncoding)
         }
         if (filename != null) {
-            append(HttpHeaders.ContentDisposition, ContentDisposition("file", ValuesMap.build {
+            append(HttpHeaders.ContentDisposition, ContentDisposition.File.withParameters(ValuesMap.build {
                 append("name", name)
                 append("filename", filename)
             }).toString())
@@ -71,6 +71,6 @@ internal class NettyMultiPartData(val request: FullHttpRequest) : MultiPartData 
 
     private fun Attribute.headers() = ValuesMap.build(true) {
         append(HttpHeaders.ContentType, ContentType.MultiPart.Mixed.toString())
-        append(HttpHeaders.ContentDisposition, ContentDisposition("mixed", valuesOf("name" to listOf(name))).toString())
+        append(HttpHeaders.ContentDisposition, ContentDisposition.Mixed.withParameters(valuesOf("name" to listOf(name))).toString())
     }
 }

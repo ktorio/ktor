@@ -14,12 +14,18 @@ class ContentDisposition(val disposition: String, val parameters: ValuesMap) {
                 .joinToString("; ")
     }
 
+    fun withParameter(key: String, value: String) = ContentDisposition(disposition, ValuesMap.build { appendAll(parameters); append(key, value) })
+    fun withParameters(newParameters: ValuesMap) = ContentDisposition(disposition, ValuesMap.build { appendAll(parameters); appendAll(newParameters) })
+
     private fun String.escapeIfNeeded() = when {
         indexOfAny("\"=;,\\/".toCharArray()) != -1 -> quote()
         else -> this
     }
 
     companion object {
+        val File = ContentDisposition("file", ValuesMap.Empty)
+        val Mixed = ContentDisposition("mixed", ValuesMap.Empty)
+
         fun parse(value: String) = parseHeaderValue(value).let { preParsed ->
             ContentDisposition(preParsed.single().value,
                     parameters = ValuesMap(preParsed.single().params.groupBy({ it.name }, { it.value }), caseInsensitiveKey = true)
@@ -50,7 +56,7 @@ interface MultiPartData {
     // TODO think of possible async methods
 }
 
-fun <T> Iterable<T>.groupBy(key: (T) -> String, value: (T) -> String): Map<String, List<String>> =
+private fun <T> Iterable<T>.groupBy(key: (T) -> String, value: (T) -> String): Map<String, List<String>> =
         groupBy(key).mapValues { it.value.map(value) }
 
-private fun String.quote() = "\"" + replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r").replace("\"", "\\\"")
+private fun String.quote() = "\"" + replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r").replace("\"", "\\\"") + "\""
