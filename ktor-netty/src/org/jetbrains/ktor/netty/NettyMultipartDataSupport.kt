@@ -60,16 +60,16 @@ internal class NettyMultiPartData(val kRequest: ApplicationRequest, val request:
             append(HttpHeaders.TransferEncoding, contentTransferEncoding)
         }
         if (filename != null) {
-            append(HttpHeaders.ContentDisposition, ContentDisposition.File.withParameters(ValuesMap.build {
-                append("name", name)
-                append("filename", filename)
-            }).toString())
+            append(HttpHeaders.ContentDisposition, ContentDisposition.File.withParameters(listOf(
+                    HeaderValueParam(ContentDisposition.Parameters.Name, name),
+                    HeaderValueParam(ContentDisposition.Parameters.FileName, filename)
+            )).toString())
         }
         append(HttpHeaders.ContentLength, length().toString())
     }
 
     private fun Attribute.headers() = ValuesMap.build(true) {
         append(HttpHeaders.ContentType, ContentType.MultiPart.Mixed.toString())
-        append(HttpHeaders.ContentDisposition, ContentDisposition.Mixed.withParameters(valuesOf("name" to listOf(name))).toString())
+        append(HttpHeaders.ContentDisposition, ContentDisposition.Mixed.withParameter(ContentDisposition.Parameters.Name, name).toString())
     }
 }

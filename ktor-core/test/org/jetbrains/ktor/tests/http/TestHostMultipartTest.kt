@@ -49,7 +49,7 @@ class TestHostMultipartTest {
                             "plain field",
                             dispose = {},
                             partHeaders = valuesOf(
-                                    HttpHeaders.ContentDisposition to listOf(ContentDisposition.File.withParameter("name", "field1").toString())
+                                    HttpHeaders.ContentDisposition to listOf(ContentDisposition.File.withParameter(ContentDisposition.Parameters.Name, "field1").toString())
                             )
                     )
             )
@@ -81,8 +81,8 @@ class TestHostMultipartTest {
                             partHeaders = valuesOf(
                                     HttpHeaders.ContentDisposition to listOf(
                                             ContentDisposition.File
-                                                    .withParameter("name", "fileField")
-                                                    .withParameter("filename", "file.txt")
+                                                    .withParameter(ContentDisposition.Parameters.Name, "fileField")
+                                                    .withParameter(ContentDisposition.Parameters.FileName, "file.txt")
                                                     .toString()
                                     )
                             )

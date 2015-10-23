@@ -12,7 +12,7 @@ internal class ServletMultiPartData(val kRequest: ApplicationRequest, val reques
             kRequest.contentType().match(ContentType.MultiPart.FormData) -> request.parts.asSequence().map {
                 when {
                     it.isFormField -> PartData.FormItem(
-                            value = it.inputStream.reader(it.charset ?: request.characterEncoding ?: Charsets.ISO_8859_1.name()).use { it.readText() },
+                            value = it.inputStream.reader(it.charset ?: request.characterEncoding ?: Charsets.UTF_8.name()).use { it.readText() },
                             dispose = { it.delete() },
                             partHeaders = it.toHeadersMap()
                     )
@@ -38,6 +38,6 @@ internal class ServletMultiPartData(val kRequest: ApplicationRequest, val reques
 
     private val Part.charset: String?
         get() = contentType?.let { ContentType.parse(it).parameter("charset") }
-                ?: getHeader(HttpHeaders.ContentDisposition)?.let { ContentDisposition.parse(it).parameters["charset"] }
+                ?: getHeader(HttpHeaders.ContentDisposition)?.let { ContentDisposition.parse(it).parameter("charset") }
 }
 

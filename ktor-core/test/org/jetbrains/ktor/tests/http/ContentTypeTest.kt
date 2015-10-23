@@ -50,7 +50,7 @@ class ContentTypeTest {
                 assertEquals(1, ct.parameters.size)
             }
             it("should have utf-8 charset") {
-                assertEquals(ContentTypeParameter("charset", "utf-8"), ct.parameters[0])
+                assertEquals(HeaderValueParam("charset", "utf-8"), ct.parameters[0])
             }
 
         }
@@ -82,7 +82,7 @@ class ContentTypeTest {
         on("parsing text/plain/something") {
             it("should throw BadContentTypeFormat exception") {
                 assertFailsWith(BadContentTypeFormatException::class) {
-                    ContentType.Companion.parse("text/plain/something")
+                    ContentType.parse("text/plain/something")
                 }
             }
         }
@@ -94,6 +94,16 @@ class ContentTypeTest {
             it("shouldn't fail and should pass equality checks") {
                 assertEquals(ContentType.Text.Plain, ContentType.parse("text/plain; "))
                 assertEquals(ContentType.Text.Plain, ContentType.parse("text/plain;"))
+            }
+        }
+    }
+
+    @Test
+    fun `content type render works`() {
+        // rendering tests are in [HeadersTest] so it is just a smoke test
+        on("render content type with parameters") {
+            it("should be able to render something") {
+                assertEquals("text/plain; p1=v1", ContentType.Text.Plain.withParameter("p1", "v1").toString())
             }
         }
     }
