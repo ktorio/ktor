@@ -5,8 +5,8 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
          version="3.0">
     <servlet>
-        <display-name>Ktor Locations Sample</display-name>
-        <servlet-name>KtorLocationsSample</servlet-name>
+        <display-name>Ktor Post Sample</display-name>
+        <servlet-name>KtorPostRequestSample</servlet-name>
         <servlet-class>org.jetbrains.ktor.servlet.ServletApplicationHost</servlet-class>
         <multipart-config>
             <!-- 100mb max file upload -->
@@ -17,7 +17,7 @@
     </servlet>
 
     <servlet-mapping>
-        <servlet-name>KtorLocationsSample</servlet-name>
+        <servlet-name>KtorPostRequestSample</servlet-name>
         <url-pattern>/</url-pattern>
     </servlet-mapping>
 
