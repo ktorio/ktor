@@ -37,17 +37,7 @@ internal class ServletApplicationRequest(private val servletRequest: HttpServlet
     }
 
     override val content: ApplicationRequestContent = object : ApplicationRequestContent(this) {
-        private val multipart = ServletMultiPartData(servletRequest)
-
-        init {
-            intercept { type, next ->
-                when (type) {
-                    ServletMultiPartData::class, MultiPartData::class -> multipart
-                    else -> next(type)
-                }
-            }
-        }
-
+        override fun getMultiPartData(): MultiPartData = ServletMultiPartData(this@ServletApplicationRequest, servletRequest)
         override fun getInputStream(): InputStream = servletRequest.inputStream
     }
 

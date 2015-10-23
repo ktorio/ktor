@@ -15,7 +15,7 @@ class ContentDisposition(val disposition: String, val parameters: ValuesMap) {
     }
 
     fun withParameter(key: String, value: String) = ContentDisposition(disposition, ValuesMap.build { appendAll(parameters); append(key, value) })
-    fun withParameters(newParameters: ValuesMap) = ContentDisposition(disposition, ValuesMap.build { appendAll(parameters); appendAll(newParameters) })
+    fun withParameters(newParameters: ValuesMap) = ContentDisposition(disposition, parameters + newParameters)
 
     private fun String.escapeIfNeeded() = when {
         indexOfAny("\"=;,\\/".toCharArray()) != -1 -> quote()
@@ -44,14 +44,13 @@ sealed class PartData(open val dispose: () -> Unit, open val partHeaders: Values
         partHeaders[HttpHeaders.ContentDisposition]?.let { ContentDisposition.parse(it) }
     }
 
-    val name: String?
+    val partName: String?
         get() = contentDisposition?.name
 
     val contentType: ContentType? by lazy { partHeaders[HttpHeaders.ContentType]?.let { ContentType.parse(it) } }
 }
 
 interface MultiPartData {
-    val isMultipart: Boolean
     val parts: Sequence<PartData>
     // TODO think of possible async methods
 }

@@ -32,17 +32,7 @@ internal class NettyApplicationRequest(private val request: FullHttpRequest) : A
     }
 
     override val content: ApplicationRequestContent = object : ApplicationRequestContent(this) {
-        private val multipart = NettyMultiPartData(request)
-
-        init {
-            intercept { type, next ->
-                when (type) {
-                    NettyMultiPartData::class, MultiPartData::class -> multipart
-                    else -> next(type)
-                }
-            }
-        }
-
+        override fun getMultiPartData(): MultiPartData = NettyMultiPartData(this@NettyApplicationRequest, request)
         override fun getInputStream(): InputStream = ByteBufInputStream(request.content())
     }
 

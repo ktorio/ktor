@@ -6,7 +6,6 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.routing.*
-import java.util.*
 
 @location("/") class index()
 
@@ -42,13 +41,13 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
                 response.status(HttpStatusCode.OK)
                 response.contentType(ContentType.Text.Plain)
                 response.write {
-                    if (!multipart.isMultipart) {
+                    if (!request.isMultipart()) {
                         appendln("Not a multipart request")
                     } else {
                         multipart.parts.forEach { part ->
                             when (part) {
-                                is PartData.FormItem -> appendln("Form field: ${part.name} = ${part.value}")
-                                is PartData.FileItem -> appendln("File field: ${part.name} -> ${part.originalFileName}")
+                                is PartData.FormItem -> appendln("Form field: ${part.partName} = ${part.value}")
+                                is PartData.FileItem -> appendln("File field: ${part.partName} -> ${part.originalFileName}")
                             }
                             part.dispose()
                         }

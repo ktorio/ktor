@@ -2,9 +2,11 @@ package org.jetbrains.ktor.netty
 
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.multipart.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.util.*
+import java.io.*
 import kotlin.support.*
 
 
@@ -24,14 +26,14 @@ private class MultipartSequenceFull(val fullRequest: FullHttpRequest) : Sequence
     override fun iterator(): Iterator<InterfaceHttpData> = MultipartIterator(fullRequest)
 }
 
-internal class NettyMultiPartData(val request: FullHttpRequest) : MultiPartData {
+internal class NettyMultiPartData(val kRequest: ApplicationRequest, val request: FullHttpRequest) : MultiPartData {
     // netty's decoder doesn't provide us headers so we have to parse it or try to reconstruct
     // as far as we use FullHttpRequest we probably shouldn't use netty with multipart uploads at all
     // TODO original headers
 
     override val parts: Sequence<PartData>
         get() = when {
-            isMultipart -> MultipartSequenceFull(request).map {
+            kRequest.isMultipart() -> MultipartSequenceFull(request).map {
                 when (it) {
                     is FileUpload -> PartData.FileItem(
                             streamProvider = {
@@ -47,11 +49,8 @@ internal class NettyMultiPartData(val request: FullHttpRequest) : MultiPartData 
                     else -> null
                 }
             }.filterNotNull()
-            else -> emptySequence()
+            else -> throw IOException("The request content is not multipart encoded")
         }
-
-    override val isMultipart: Boolean
-        get() = request.headers().getAll(HttpHeaders.ContentType)?.all { ContentType.parse(it).match(ContentType.MultiPart.Any) } ?: false
 
     private fun FileUpload.headers() = ValuesMap.build(true) {
         if (contentType != null) {
