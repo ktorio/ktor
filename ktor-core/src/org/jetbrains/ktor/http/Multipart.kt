@@ -3,7 +3,9 @@ package org.jetbrains.ktor.http
 import org.jetbrains.ktor.util.*
 import java.io.*
 
-class ContentDisposition(val disposition: String, parameters: List<HeaderValueParam> = emptyList()) : HeaderValueWithParameters(disposition, parameters) {
+class ContentDisposition(disposition: String, parameters: List<HeaderValueParam> = emptyList()) : HeaderValueWithParameters(disposition, parameters) {
+    val disposition : String get() = content
+
     val name: String?
         get() = parameter(Parameters.Name)
 
@@ -34,7 +36,7 @@ class ContentDisposition(val disposition: String, parameters: List<HeaderValuePa
         val ModificationDate = "modification-date"
         val ReadDate = "read-date"
         val Size = "size"
-        val handling = "handling"
+        val Handling = "handling"
     }
 }
 

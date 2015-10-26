@@ -83,7 +83,7 @@ class ContentType(val contentType: String, val contentSubtype: String, parameter
         val FormData = ContentType("multipart", "form-data")
         val Signed = ContentType("multipart", "signed")
         val Encrypted = ContentType("multipart", "encrypted")
-        val Byteranges = ContentType("multipart", "byteranges")
+        val ByteRanges = ContentType("multipart", "byteranges")
     }
 
     object Text {
