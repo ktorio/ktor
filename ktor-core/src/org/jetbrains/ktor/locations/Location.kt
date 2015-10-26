@@ -34,6 +34,14 @@ inline fun <reified T : Any> RoutingEntry.get(noinline body: ApplicationRequestC
     }
 }
 
+inline fun <reified T : Any> RoutingEntry.post(noinline body: ApplicationRequestContext.(T) -> ApplicationRequestStatus) {
+    location(T::class) {
+        method(HttpMethod.Post) {
+            handle<T> { location -> body(location) }
+        }
+    }
+}
+
 fun <T : Any> RoutingEntry.location(data: KClass<T>, body: RoutingEntry.() -> Unit) {
     val locationService = getService(locationServiceKey)
     val entry = locationService.createEntry(this, data)
