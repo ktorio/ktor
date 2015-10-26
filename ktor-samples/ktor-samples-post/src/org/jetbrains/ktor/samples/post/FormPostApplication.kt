@@ -5,9 +5,9 @@ import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
-import org.jetbrains.ktor.routing.*
 
 @location("/") class index()
+@location("/form") class post()
 
 class FormPostApplication(config: ApplicationConfig) : Application(config) {
     init {
@@ -30,11 +30,11 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
                             p {
                                 +"File upload example"
                             }
-                            form("/form", encType = FormEncType.multipartFormData, method = FormMethod.post) {
+                            form(Locations.href(post()), encType = FormEncType.multipartFormData, method = FormMethod.post) {
                                 acceptCharset = "utf-8"
                                 textInput { name = "field1" }
                                 fileInput { name = "file1" }
-                                submitInput { value = "send"  }
+                                submitInput { value = "send" }
                             }
                         }
                     }
@@ -42,7 +42,7 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
                 ApplicationRequestStatus.Handled
             }
 
-            post("/form") {
+            post<post> {
                 val multipart = request.content.get<MultiPartData>()
 
                 response.status(HttpStatusCode.OK)
@@ -54,7 +54,7 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
                         multipart.parts.forEach { part ->
                             when (part) {
                                 is PartData.FormItem -> appendln("Form field: ${part.partName} = ${part.value}")
-                                is PartData.FileItem -> appendln("File field: ${part.partName} -> ${part.originalFileName}")
+                                is PartData.FileItem -> appendln("File field: ${part.partName} -> ${part.originalFileName} of ${part.contentType}")
                             }
                             part.dispose()
                         }
