@@ -11,7 +11,9 @@ fun buildDefaultConfig(args: Array<String>): ApplicationConfig {
     val argConfig = ConfigFactory.parseMap(argsMap.filterKeys { it.startsWith("-P:") }.mapKeys { it.key.removePrefix("-P:") }, "Command-line options")
     val combinedConfig = argConfig.withFallback(ConfigFactory.load())
 
-    val log = SLF4JApplicationLog(combinedConfig.getString("ktor.application.id") ?: "Application")
+    val applicationIdPath = "ktor.application.id"
+    val applicationId = if (combinedConfig.hasPath(applicationIdPath)) combinedConfig.getString(applicationIdPath) else "Application"
+    val log = SLF4JApplicationLog(applicationId)
     val appConfig = ApplicationConfig(combinedConfig, log, jar)
     log.info(combinedConfig.getObject("ktor").render())
 
