@@ -71,6 +71,7 @@ class TestApplicationRequest() : ApplicationRequest {
         }
 
     var body: String = ""
+    var multiPartEntries: List<PartData> = emptyList()
 
     override val parameters: ValuesMap get() {
         return queryParameters()
@@ -90,6 +91,13 @@ class TestApplicationRequest() : ApplicationRequest {
 
     override val content: ApplicationRequestContent = object : ApplicationRequestContent(this) {
         override fun getInputStream(): InputStream = ByteArrayInputStream(body.toByteArray("UTF-8"))
+        override fun getMultiPartData(): MultiPartData = object: MultiPartData {
+            override val parts: Sequence<PartData>
+                get() = when {
+                    isMultipart() -> multiPartEntries.asSequence()
+                    else -> throw IOException("The request content is not multipart encoded")
+                }
+        }
     }
 
     override val cookies = RequestCookies(this)

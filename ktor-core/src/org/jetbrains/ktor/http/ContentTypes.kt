@@ -1,17 +1,8 @@
 package org.jetbrains.ktor.http
 
-data class ContentTypeParameter(val name: String, val value: String)
-data class ContentType(val contentType: String, val contentSubtype: String, val parameters: List<ContentTypeParameter> = listOf()) {
-
-    override fun toString() = if (parameters.isEmpty())
-        "$contentType/$contentSubtype"
-    else
-        "$contentType/$contentSubtype; ${parameters.map { "${it.name}=${it.value}" }.joinToString("; ")}"
-
-    fun parameter(name: String) = parameters.firstOrNull { it.name == name }?.value
-
+class ContentType(val contentType: String, val contentSubtype: String, parameters: List<HeaderValueParam> = emptyList()) : HeaderValueWithParameters("$contentType/$contentSubtype", parameters) {
     fun withParameter(name: String, value: String): ContentType {
-        return ContentType(contentType, contentSubtype, parameters + ContentTypeParameter(name, value))
+        return ContentType(contentType, contentSubtype, parameters + HeaderValueParam(name, value))
     }
 
     fun match(other: ContentType): Boolean =
@@ -23,19 +14,26 @@ data class ContentType(val contentType: String, val contentSubtype: String, val 
 
     fun match(pattern: String): Boolean = match(ContentType.parse(pattern))
 
+    override fun equals(other: Any?): Boolean =
+        other is ContentType &&
+        contentType == other.contentType &&
+        contentSubtype == other.contentSubtype &&
+        parameters == other.parameters
+
+    override fun hashCode(): Int{
+        var result = contentType.hashCode()
+        result += 31 * result + contentSubtype.hashCode()
+        result += 31 * parameters.hashCode()
+        return result
+    }
+
     companion object {
-        fun parse(value: String): ContentType {
-            val parts = value.split(";")
-            val content = parts[0].split("/")
+        fun parse(value: String): ContentType = HeaderValueWithParameters.parse(value) { parts, parameters ->
+            val content = parts.split("/")
             if (content.size != 2)
                 throw BadContentTypeFormatException(value)
-            val parameters = parts.drop(1).filter { it.isNotBlank() }.map {
-                val pair = it.trim().split("=")
-                if (pair.size != 2)
-                    throw BadContentTypeFormatException(value)
-                ContentTypeParameter(pair[0].trim(), pair[1].trim())
-            }
-            return ContentType(content[0].trim(), content[1].trim(), parameters)
+
+            ContentType(content[0].trim(), content[1].trim(), parameters)
         }
 
         val Any = ContentType("*", "*")
@@ -85,6 +83,7 @@ data class ContentType(val contentType: String, val contentSubtype: String, val 
         val FormData = ContentType("multipart", "form-data")
         val Signed = ContentType("multipart", "signed")
         val Encrypted = ContentType("multipart", "encrypted")
+        val Byteranges = ContentType("multipart", "byteranges")
     }
 
     object Text {

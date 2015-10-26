@@ -19,6 +19,7 @@ fun ApplicationRequest.acceptLanguageItems(): List<HeaderValue> = parseAndSortHe
 fun ApplicationRequest.acceptCharset(): String? = header(HttpHeaders.AcceptCharset)
 fun ApplicationRequest.acceptCharsetItems(): List<HeaderValue> = parseAndSortHeader(header(HttpHeaders.AcceptCharset))
 fun ApplicationRequest.isChunked(): Boolean = header(HttpHeaders.TransferEncoding)?.compareTo("chunked", ignoreCase = true) == 0
+fun ApplicationRequest.isMultipart(): Boolean = contentType().match(ContentType.MultiPart.Any)
 fun ApplicationRequest.userAgent(): String? = header(HttpHeaders.UserAgent)
 fun ApplicationRequest.cacheControl(): String? = header(HttpHeaders.CacheControl)
 fun ApplicationRequest.host(): String? = header(HttpHeaders.Host)?.substringBefore(':')

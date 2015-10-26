@@ -10,11 +10,13 @@ public abstract class ApplicationRequestContent(private val request: Application
         when (type) {
             InputStream::class -> getInputStream()
             String::class -> getInputStream().reader(request.contentCharset ?: Charsets.ISO_8859_1).readText()
+            MultiPartData::class -> getMultiPartData()
             else -> throw UnknownContentAccessorRequest("Requested content accessor '$type' cannot be provided")
         }
     }
 
     protected abstract fun getInputStream(): InputStream
+    protected abstract fun getMultiPartData(): MultiPartData
 
     public final fun intercept(handler: (type: KClass<*>, next: (type: KClass<*>) -> Any) -> Any) {
         contentsChain.intercept(handler)

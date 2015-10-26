@@ -56,3 +56,8 @@ fun valuesOf(vararg pairs: Pair<String, Iterable<String>>): ValuesMap {
             appendAll(key, values)
     }
 }
+
+operator fun ValuesMap.plus(other: ValuesMap) = when {
+    caseInsensitiveKey == other.caseInsensitiveKey -> ValuesMap.build(caseInsensitiveKey) { appendAll(this@plus); appendAll(other) }
+    else -> throw IllegalArgumentException("It is forbidden to concatenate case sensitive and case insensitive maps")
+}
