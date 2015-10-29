@@ -1,8 +1,6 @@
-package org.jetbrains.ktor.auth.basic
+package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.auth.*
-import org.jetbrains.ktor.auth.simple.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 import java.util.*
@@ -11,13 +9,11 @@ val BasicAuthAttributeKey = AttributeKey<SimpleUserPassword>()
 
 public fun RoutingEntry.basicAuthValidate(vararg challenges: HttpAuthChallenge = arrayOf(HttpAuthChallenge.basic("ktor")), validator: (SimpleUserPassword) -> Boolean) {
     auth(ApplicationRequestContext::basicAuth, validator,
-            onSuccess = { t, next ->
-                attributes.put(BasicAuthAttributeKey, t)
+            onSuccess = { userPassword, next ->
+                attributes.put(BasicAuthAttributeKey, userPassword)
                 next()
             },
-            onFailed = { next ->
-                response.sendAuthenticationRequest(*challenges)
-            }
+            onFailed = { next -> response.sendAuthenticationRequest(*challenges) }
     )
 }
 

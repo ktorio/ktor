@@ -9,51 +9,9 @@ import kotlin.test.*
 
 class CryptoTest {
     @Test
-    fun testDecryptorsWithInputVector() {
-        val originalText = "Test string"
-        val iv = ByteArray(16)
-        val secretKey = with(KeyGenerator.getInstance("AES")) {
-            init(128)
-            generateKey()
-        }
-
-        val encrypted = with(Cipher.getInstance("AES/CBC/PKCS5Padding")) {
-            init(Cipher.ENCRYPT_MODE, secretKey, IvParameterSpec(iv))
-            doFinal(originalText.toByteArray())
-        }
-
-        val decryptor = SimpleJavaCryptoPasswordDecryptor("AES/CBC/PKCS5Padding", secretKey.encoded, iv)
-
-        assertEquals(originalText, decryptor.decrypt(base64(encrypted)))
-    }
-
-    @Test
-    fun testDecryptorsWithNoInputVector() {
-        val originalText = "Test string"
-        val secretKey = with(KeyGenerator.getInstance("AES")) {
-            init(128)
-            generateKey()
-        }
-
-        val (encrypted, iv) = with(Cipher.getInstance("AES/CBC/PKCS5Padding")) {
-            init(Cipher.ENCRYPT_MODE, secretKey)
-            doFinal(originalText.toByteArray()) to iv
-        }
-
-        val decryptor = SimpleJavaCryptoPasswordDecryptor("AES/CBC/PKCS5Padding", secretKey.encoded, iv)
-
-        assertEquals(originalText, decryptor.decrypt(base64(encrypted)))
-    }
-
-    @Test
-    fun testNoActualEncryption() {
-        assertEquals("a", PasswordNotEncrypted.decrypt("a"))
-    }
-
-    @Test
     fun testBase64() {
-        assertEquals("AAAA", base64(ByteArray(3)))
-        assertEquals(ByteArray(3), base64("AAAA"))
+        assertEquals("AAAA", encodeBase64(ByteArray(3)))
+        assertEquals(ByteArray(3), decodeBase64("AAAA"))
     }
 
     @Test

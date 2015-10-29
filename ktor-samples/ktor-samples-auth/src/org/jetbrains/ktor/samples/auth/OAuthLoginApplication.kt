@@ -1,10 +1,10 @@
-package org.jetbrains.ktor.samples.locations
+package org.jetbrains.ktor.samples.auth
 
 import kotlinx.html.*
 import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.auth.oauth.*
 import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.routing.*
 import java.util.concurrent.*
@@ -15,11 +15,11 @@ import java.util.concurrent.*
 /**
  * DISCLAIMER
  *
- * The constants above for only demo purposes. You should NEVER keep secret keys in the source code
- *  but keep them safe externally.
- *  You also can keep them encrypted but in this case you have to keep encryption key safe
+ * The constants are only for demo purposes. You should NEVER keep secret keys in the source code
+ * but store them safe externally instead.
+ * You also can keep them encrypted but in this case you have to keep encryption key safe
  *
- *  Also you SHOULD ALWAYS use HTTPS with OAuth2
+ * Also you SHOULD ALWAYS use HTTPS with OAuth2
  */
 val loginProviders = listOf(
         OAuthServerSettings.OAuth1aServerSettings(
@@ -98,9 +98,7 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
             oauthAtLocation<login>(exec,
                     providerLookup = { loginProviders[it.type] },
                     urlProvider = { l, p -> redirectUrl(login(p.name), false) },
-                    onSuccess = { l, accessToken ->
-                        loggedInSuccessResponse(accessToken)
-                    })
+                    onSuccess = { l, accessToken -> loggedInSuccessResponse(accessToken) })
 
             location<login>() {
                 param("error") {

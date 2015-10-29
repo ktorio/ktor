@@ -1,7 +1,6 @@
-package org.jetbrains.ktor.auth.ldap
+package org.jetbrains.ktor.auth
 
 import com.sun.jndi.ldap.*
-import org.jetbrains.ktor.auth.simple.*
 import java.util.*
 import javax.naming.*
 import javax.naming.directory.*

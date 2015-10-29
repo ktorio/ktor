@@ -1,8 +1,7 @@
-package org.jetbrains.ktor.auth.oauth
+package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
@@ -59,7 +58,7 @@ fun obtainRequestTokenHeader(
         nonce: String,
         timestamp: LocalDateTime = LocalDateTime.now()
 ) = HttpAuthCredentials.Parameterized(
-        authScheme = "OAuth",
+        authScheme = HttpAuthChallenge.OAuth,
         parameters = mapOf(
                 "oauth_callback" to callback,
                 "oauth_consumer_key" to consumerKey,
@@ -76,7 +75,7 @@ fun upgradeRequestTokenHeader(
         nonce: String,
         timestamp: LocalDateTime = LocalDateTime.now()
 ) = HttpAuthCredentials.Parameterized(
-        authScheme = "OAuth",
+        authScheme = HttpAuthChallenge.OAuth,
         parameters = mapOf(
                 "oauth_consumer_key" to consumerKey,
                 "oauth_token" to token,
@@ -440,8 +439,8 @@ private fun decodeContent(content: String, contentType: ContentType): ValuesMap 
     }
 }
 
-val nonceRandom = Random()
-fun nextNonce(): String =
+private val nonceRandom = Random()
+private fun nextNonce(): String =
         java.lang.Long.toHexString(nonceRandom.nextLong())
 
 private fun String.appendUrlParameters(parameters: String) =
@@ -475,7 +474,7 @@ private fun signatureBaseString(header: HttpAuthCredentials.Parameterized, metho
                 .map { it.encodeURL() }
                 .joinToString("&")
 
-fun HttpAuthCredentials.Parameterized.sign(method: HttpMethod, baseUrl: String, key: String, parameters: List<Pair<String, String>>) =
+private fun HttpAuthCredentials.Parameterized.sign(method: HttpMethod, baseUrl: String, key: String, parameters: List<Pair<String, String>>) =
         this.copy(
                 parameters = this.parameters + ("oauth_signature" to signatureBaseString(this, method, baseUrl, parameters).hmacSha1(key))
         )

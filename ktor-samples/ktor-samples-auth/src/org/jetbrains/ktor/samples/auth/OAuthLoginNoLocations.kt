@@ -1,7 +1,7 @@
-package org.jetbrains.ktor.samples.locations
+package org.jetbrains.ktor.samples.auth
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.auth.oauth.*
+import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.http.*
 import java.util.concurrent.*
 
@@ -19,7 +19,7 @@ class OAuthLoginNoLocationApplication(config: ApplicationConfig) : Application(c
 
             when (request.parameter("authStep")) {
                 "1" -> simpleOAuthAnyStep1(exec, loginProviders.values.first(), "/any?authStep=2", "/")
-                "2" -> simpleOAuthAnyStep2(exec,loginProviders.values.first(), "/any?authStep=2", "/") {
+                "2" -> simpleOAuthAnyStep2(exec, loginProviders.values.first(), "/any?authStep=2", "/") {
                     response.status(HttpStatusCode.OK)
                     response.sendText("success")
                 }

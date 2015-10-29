@@ -1,11 +1,10 @@
-package org.jetbrains.ktor.auth.simple
+package org.jetbrains.ktor.auth
 
 import com.typesafe.config.*
-import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.auth.crypto.*
 import java.util.*
 
-data class SimpleUserPrincipal(val name: String, val groups: List<String> = emptyList())
+data class SimpleUserPrincipal(val name: String)
 data class SimpleUserPassword(val name: String, val password: String)
 
 public class SimpleUserHashedTableAuth(val digester: (String) -> ByteArray = getDigestFunction("SHA-256", "ktor"), val table: Map<String, ByteArray>) {
@@ -28,19 +27,7 @@ public class SimpleUserHashedTableAuth(val digester: (String) -> ByteArray = get
     }
 }
 
-public class SimpleUserEncryptedTableAuth(val decryptor: PasswordDecryptor, val table: Map<String, String>) {
-    fun authenticate(credential: SimpleUserPassword): SimpleUserPrincipal? {
-        if (decrypt(credential.name) == credential.password) {
-            return SimpleUserPrincipal(credential.name)
-        }
-
-        return null
-    }
-
-    private fun decrypt(name: String) = table[name]?.let { decryptor.decrypt(it) }
-}
-
 private fun Config.parseUsers(name: String = "users") =
         getConfigList(name)
-                .map { it.getString("name")!! to base64(it.getString("hash")) }
+                .map { it.getString("name")!! to decodeBase64(it.getString("hash")) }
                 .toMap()

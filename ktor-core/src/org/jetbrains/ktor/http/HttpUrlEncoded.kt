@@ -19,7 +19,7 @@ public fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.
 }
 
 public fun List<Pair<String, *>>.formUrlEncode() =
-        StringBuilder {
+        StringBuilder().apply {
             formUrlEncodeTo(this)
         }.toString()
 
