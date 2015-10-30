@@ -128,7 +128,7 @@ class CookiesTest {
                 cookies.append("first", "1")
                 headers.append("Set-Cookie", "second=2")
 
-                assertEquals<List<String>>(listOf("first", "second"), found)
+                assertEquals(listOf("first", "second"), found)
             }
         }
     }

@@ -41,6 +41,8 @@ public fun parseHeaderValue(text: String?): List<HeaderValue> {
     return items.valueOrEmpty()
 }
 
+fun Iterable<Pair<String, String>>.toHeaderParamsList() = map { HeaderValueParam(it.first, it.second) }
+
 private fun <T> Lazy<List<T>>.valueOrEmpty(): List<T> = if (isInitialized()) value else emptyList()
 private fun String.subtrim(start: Int, end: Int): String {
     return substring(start, end).trim()

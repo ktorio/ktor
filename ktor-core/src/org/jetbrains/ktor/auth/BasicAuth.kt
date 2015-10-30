@@ -7,7 +7,7 @@ import java.util.*
 
 val BasicAuthAttributeKey = AttributeKey<SimpleUserPassword>()
 
-public fun RoutingEntry.basicAuthValidate(vararg challenges: HttpAuthChallenge = arrayOf(HttpAuthChallenge.basic("ktor")), validator: (SimpleUserPassword) -> Boolean) {
+public fun RoutingEntry.basicAuthValidate(vararg challenges: HttpAuthHeader = arrayOf(HttpAuthHeader.basic("ktor")), validator: (SimpleUserPassword) -> Boolean) {
     auth(ApplicationRequestContext::basicAuth, validator,
             onSuccess = { userPassword, next ->
                 attributes.put(BasicAuthAttributeKey, userPassword)
@@ -21,7 +21,7 @@ fun ApplicationRequestContext.basicAuth(): SimpleUserPassword? = request.basicAu
 
 fun ApplicationRequest.basicAuth(): SimpleUserPassword? {
     val parsed = parseAuthorizationHeader()
-    if (parsed is HttpAuthCredentials.Single) {
+    if (parsed is HttpAuthHeader.Single) {
         // here we can only use ISO 8859-1 character encoding because there is no character encoding specified as per RFC
         //     see http://greenbytes.de/tech/webdav/draft-reschke-basicauth-enc-latest.html
         //      http://tools.ietf.org/html/draft-ietf-httpauth-digest-15

@@ -57,15 +57,15 @@ fun obtainRequestTokenHeader(
         consumerKey: String,
         nonce: String,
         timestamp: LocalDateTime = LocalDateTime.now()
-) = HttpAuthCredentials.Parameterized(
-        authScheme = HttpAuthChallenge.OAuth,
+) = HttpAuthHeader.Parameterized(
+        authScheme = AuthScheme.OAuth,
         parameters = mapOf(
-                "oauth_callback" to callback,
-                "oauth_consumer_key" to consumerKey,
-                "oauth_nonce" to nonce,
-                "oauth_signature_method" to "HMAC-SHA1",
-                "oauth_timestamp" to timestamp.toEpochSecond(ZoneOffset.UTC).toString(),
-                "oauth_version" to "1.0"
+                HttpAuthHeader.Parameters.OAuthCallback to callback,
+                HttpAuthHeader.Parameters.OAuthConsumerKey to consumerKey,
+                HttpAuthHeader.Parameters.OAuthNonce to nonce,
+                HttpAuthHeader.Parameters.OAuthSignatureMethod to "HMAC-SHA1",
+                HttpAuthHeader.Parameters.OAuthTimestamp to timestamp.toEpochSecond(ZoneOffset.UTC).toString(),
+                HttpAuthHeader.Parameters.OAuthVersion to "1.0"
         )
 )
 
@@ -74,15 +74,15 @@ fun upgradeRequestTokenHeader(
         token: String,
         nonce: String,
         timestamp: LocalDateTime = LocalDateTime.now()
-) = HttpAuthCredentials.Parameterized(
-        authScheme = HttpAuthChallenge.OAuth,
+) = HttpAuthHeader.Parameterized(
+        authScheme = AuthScheme.OAuth,
         parameters = mapOf(
-                "oauth_consumer_key" to consumerKey,
-                "oauth_token" to token,
-                "oauth_nonce" to nonce,
-                "oauth_signature_method" to "HMAC-SHA1",
-                "oauth_timestamp" to timestamp.toEpochSecond(ZoneOffset.UTC).toString(),
-                "oauth_version" to "1.0"
+                HttpAuthHeader.Parameters.OAuthConsumerKey to consumerKey,
+                HttpAuthHeader.Parameters.OAuthToken to token,
+                HttpAuthHeader.Parameters.OAuthNonce to nonce,
+                HttpAuthHeader.Parameters.OAuthSignatureMethod to "HMAC-SHA1",
+                HttpAuthHeader.Parameters.OAuthTimestamp to timestamp.toEpochSecond(ZoneOffset.UTC).toString(),
+                HttpAuthHeader.Parameters.OAuthVersion to "1.0"
         )
 )
 
@@ -132,7 +132,7 @@ fun simpleOAuth1aStep1(secretKey: String, baseUrl: String, callback: String, con
     connection.connectTimeout = 15000
     connection.readTimeout = 15000
     connection.instanceFollowRedirects = false
-    connection.setRequestProperty(HttpHeaders.Authorization, authHeader.render())
+    connection.setRequestProperty(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
     connection.setRequestProperty(HttpHeaders.Accept, ContentType.Any.toString())
     connection.doInput = true
     connection.doOutput = true
@@ -142,7 +142,7 @@ fun simpleOAuth1aStep1(secretKey: String, baseUrl: String, callback: String, con
         val response = connection.inputStream.reader().readText().parseUrlEncodedParameters()
         require(response["oauth_callback_confirmed"] == "true") { "Response parameter oauth_callback_confirmed should be true" }
 
-        return OAuthCallback.TokenPair(response["oauth_token"]!!, response["oauth_token_secret"]!!)
+        return OAuthCallback.TokenPair(response[HttpAuthHeader.Parameters.OAuthToken]!!, response[HttpAuthHeader.Parameters.OAuthTokenSecret]!!)
     } catch (e: Throwable) {
         throw IOException("Failed to acquire request token due to ${connection.errorStream?.reader()?.readText()}", e)
     } finally {
@@ -164,7 +164,7 @@ fun simpleOAuth1aStep2(settings: OAuthServerSettings.OAuth1aServerSettings, call
 
 fun simpleOAuth1aStep2(secretKey: String, baseUrl: String, consumerKey: String, token: String, verifier: String, nonce: String = nextNonce(), extraParameters: Map<String, String> = emptyMap()): OAuthAccessTokenResponse.OAuth1a {
     val params = listOf(
-            "oauth_verifier" to verifier
+            HttpAuthHeader.Parameters.OAuthVerifier to verifier
     ) + extraParameters.toList()
     val authHeader = upgradeRequestTokenHeader(consumerKey, token, nonce).sign(HttpMethod.Post, baseUrl, secretKey, params)
 
@@ -173,7 +173,7 @@ fun simpleOAuth1aStep2(secretKey: String, baseUrl: String, consumerKey: String, 
     connection.connectTimeout = 15000
     connection.readTimeout = 15000
     connection.instanceFollowRedirects = false
-    connection.setRequestProperty(HttpHeaders.Authorization, authHeader.render())
+    connection.setRequestProperty(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
     connection.setRequestProperty(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
     connection.setRequestProperty(HttpHeaders.Accept, "*/*")
     connection.doInput = true
@@ -185,7 +185,7 @@ fun simpleOAuth1aStep2(secretKey: String, baseUrl: String, consumerKey: String, 
         }
 
         val response = connection.inputStream.reader().readText().parseUrlEncodedParameters()
-        return OAuthAccessTokenResponse.OAuth1a(response["oauth_token"]!!, response["oauth_token_secret"]!!, response)
+        return OAuthAccessTokenResponse.OAuth1a(response[HttpAuthHeader.Parameters.OAuthToken]!!, response[HttpAuthHeader.Parameters.OAuthTokenSecret]!!, response)
     } catch (e: Throwable) {
         throw IOException("Failed to acquire request token due to ${connection.errorStream?.reader()?.readText()}", e)
     } finally {
@@ -194,8 +194,8 @@ fun simpleOAuth1aStep2(secretKey: String, baseUrl: String, consumerKey: String, 
 }
 
 fun ApplicationRequestContext.oauth1aHandleCallback(): OAuthCallback.TokenPair? {
-    val token = request.parameter("oauth_token")
-    val verifier = request.parameter("oauth_verifier")
+    val token = request.parameter(HttpAuthHeader.Parameters.OAuthToken)
+    val verifier = request.parameter(HttpAuthHeader.Parameters.OAuthVerifier)
 
     return when {
         token != null && verifier != null -> OAuthCallback.TokenPair(token, verifier)
@@ -463,18 +463,17 @@ private fun String.hmacSha1(key: String): String {
     return Base64.getEncoder().encodeToString(mac.doFinal(this.toByteArray()))
 }
 
-private fun parametersString(parameters: List<Pair<String, String>>) =
+private fun parametersString(parameters: List<HeaderValueParam>) =
         parameters
-                .map { it.first.encodeURL() to it.second.encodeURL() }
+                .map { it.name.encodeURL() to it.value.encodeURL() }
                 .sortedWith(compareBy<Pair<String, String>> { it.first }.then(compareBy { it.second }))
                 .formUrlEncode()
 
-private fun signatureBaseString(header: HttpAuthCredentials.Parameterized, method: HttpMethod, baseUrl: String, parameters: List<Pair<String, String>>) =
-        listOf(method.value.toUpperCase(), baseUrl, parametersString(header.parameters.toList() + parameters))
+private fun signatureBaseString(header: HttpAuthHeader.Parameterized, method: HttpMethod, baseUrl: String, parameters: List<HeaderValueParam>) =
+        listOf(method.value.toUpperCase(), baseUrl, parametersString(header.parameters + parameters))
                 .map { it.encodeURL() }
                 .joinToString("&")
 
-private fun HttpAuthCredentials.Parameterized.sign(method: HttpMethod, baseUrl: String, key: String, parameters: List<Pair<String, String>>) =
-        this.copy(
-                parameters = this.parameters + ("oauth_signature" to signatureBaseString(this, method, baseUrl, parameters).hmacSha1(key))
-        )
+private fun HttpAuthHeader.Parameterized.sign(method: HttpMethod, baseUrl: String, key: String, parameters: List<Pair<String, String>>) =
+    withParameter(HttpAuthHeader.Parameters.OAuthSignature, signatureBaseString(this, method, baseUrl, parameters.toHeaderParamsList()).hmacSha1(key))
+

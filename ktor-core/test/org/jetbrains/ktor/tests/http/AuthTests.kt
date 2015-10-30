@@ -52,7 +52,7 @@ class AuthorizeHeaderParserTest {
 
         assertEquals(scheme, actual.authScheme)
 
-        if (actual is HttpAuthCredentials.Single) {
+        if (actual is HttpAuthHeader.Single) {
             assertEquals(value, actual.blob)
         } else {
             fail("It should return single-value credential")
@@ -64,8 +64,8 @@ class AuthorizeHeaderParserTest {
 
         assertEquals(scheme, actual.authScheme)
 
-        if (actual is HttpAuthCredentials.Parameterized) {
-            assertEquals(value, actual.parameters)
+        if (actual is HttpAuthHeader.Parameterized) {
+            assertEquals(value, actual.parameters.toMap({it.name}, {it.value}))
         } else {
             fail("It should return parameterized-value credential")
         }

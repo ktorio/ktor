@@ -16,9 +16,9 @@ abstract class HeaderValueWithParameters(protected val content: String, val para
     }
 }
 
-private fun String.escapeIfNeeded() = when {
+fun String.escapeIfNeeded() = when {
     indexOfAny("\"=;,\\/".toCharArray()) != -1 -> quote()
     else -> this
 }
 
-private fun String.quote() = "\"" + replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r").replace("\"", "\\\"") + "\""
+fun String.quote() = "\"" + replace("\\", "\\\\").replace("\n", "\\n").replace("\r", "\\r").replace("\"", "\\\"") + "\""
