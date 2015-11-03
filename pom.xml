@@ -10,7 +10,7 @@
     <artifactId>ktor</artifactId>
 
     <properties>
-        <kotlin.version>0.1-SNAPSHOT</kotlin.version>
+        <kotlin.version>1.0.0-beta-1103</kotlin.version>
     </properties>
 
     <modules>
