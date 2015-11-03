@@ -18,14 +18,19 @@ public open class DefaultConversionService : ConversionService {
             else -> {
                 val type = value.javaClass
                 listOf(when (type) {
-                           Int::class.java, java.lang.Integer::class.java,
-                           Float::class.java, java.lang.Float::class.java,
-                           Double::class.java, java.lang.Double::class.java,
-                           Long::class.java, java.lang.Long::class.java,
-                           Boolean::class.java, java.lang.Boolean::class.java,
-                           String::class.java, java.lang.String::class.java -> value.toString()
-                           else -> throw UnsupportedOperationException("Type $type is not supported in automatic location data class processing")
-                       })
+                    Int::class.java, java.lang.Integer::class.java,
+                    Float::class.java, java.lang.Float::class.java,
+                    Double::class.java, java.lang.Double::class.java,
+                    Long::class.java, java.lang.Long::class.java,
+                    Boolean::class.java, java.lang.Boolean::class.java,
+                    String::class.java, java.lang.String::class.java -> value.toString()
+                    else -> {
+                        if (type.isEnum) {
+                            (value as Enum<*>).name
+                        } else
+                            throw UnsupportedOperationException("Type $type is not supported in automatic location data class processing")
+                    }
+                })
             }
         }
     }
@@ -40,7 +45,12 @@ public open class DefaultConversionService : ConversionService {
             Long::class.java, java.lang.Long::class.java -> value.toLong()
             Boolean::class.java, java.lang.Boolean::class.java -> value.toBoolean()
             String::class.java, java.lang.String::class.java -> value.decodeURL()
-            else -> throw UnsupportedOperationException("Type $type is not supported in automatic location data class processing")
+            else ->
+                if (type is Class<*> && type.isEnum) {
+                    type.enumConstants.first { (it as Enum<*>).name == value }
+                } else
+                    throw UnsupportedOperationException("Type $type is not supported in automatic location data class processing")
+
         }
     }
 
