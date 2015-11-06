@@ -34,7 +34,7 @@ private fun ldapLogin(ldapURL: String, ldapLoginConfigurator: (MutableMap<String
 
 inline fun <C : ApplicationRequestContext, reified K : Credential, reified P : Principal> AuthBuilder<C>.verifyWithLdap(
         ldapUrl: String,
-        noinline ldapLoginConfigurator: (K, MutableMap<String, Any?>) -> Unit,
+        noinline ldapLoginConfigurator: (K, MutableMap<String, Any?>) -> Unit = { k, env -> },
         noinline verifyBlock: InitialDirContext.(K) -> P?
 ) {
     intercept { next ->
@@ -70,7 +70,7 @@ inline fun <C : ApplicationRequestContext, reified K : Credential, reified P : P
 fun <C : ApplicationRequestContext> AuthBuilder<C>.verifyWithLdapLoginWithUser(
         ldapUrl: String,
         userDNFormat: String,
-        ldapLoginConfigurator: (UserPasswordCredential, MutableMap<String, Any?>) -> Unit,
+        ldapLoginConfigurator: (UserPasswordCredential, MutableMap<String, Any?>) -> Unit = { cred, env -> },
         verifyBlock: InitialDirContext.(UserPasswordCredential) -> Boolean = { true }
 ) {
     verifyWithLdapLoginWithUser(ldapUrl, userDNFormat,
