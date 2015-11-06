@@ -11,6 +11,7 @@ fun ApplicationRequestContext.handleAsync(exec: ExecutorService, block: () -> Ap
             }
         } catch (e: Throwable) {
             failBlock(e)
+            close()
         }
     }
     return ApplicationRequestStatus.Asynchronous

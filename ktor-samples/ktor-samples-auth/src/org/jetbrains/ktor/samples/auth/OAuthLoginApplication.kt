@@ -4,6 +4,7 @@ import kotlinx.html.*
 import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
+import org.jetbrains.ktor.auth.httpclient.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.routing.*
@@ -97,17 +98,13 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
 
             location<login>() {
                 auth {
-                    oauthAtLocation<login>(exec,
+                    oauthAtLocation<login>(DefaultHttpClient, exec,
                             providerLookup = { loginProviders[it.type] },
                             urlProvider = { l, p -> redirectUrl(login(p.name), false) })
 
                     onSuccess { authContext, next ->
                         loggedInSuccessResponse(authContext.principals<OAuthAccessTokenResponse>().single())
                         ApplicationRequestStatus.Handled
-                    }
-
-                    onFail {
-                        sendRedirect(login())
                     }
                 }
 
