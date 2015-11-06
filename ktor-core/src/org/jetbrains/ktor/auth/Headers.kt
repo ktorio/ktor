@@ -49,7 +49,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
     abstract fun render(encoding: HeaderValueEncoding): String
 
     companion object {
-        fun basic(realm: String) = Parameterized(AuthScheme.Basic, mapOf(Parameters.Realm to realm))
+        fun basicAuthChallenge(realm: String) = Parameterized(AuthScheme.Basic, mapOf(Parameters.Realm to realm))
     }
 
     object Parameters {

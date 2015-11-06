@@ -1,13 +1,14 @@
 package org.jetbrains.ktor.auth
 
 import com.typesafe.config.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.crypto.*
 import java.util.*
 
-data class SimpleUserPrincipal(val name: String)
-data class SimpleUserPassword(val name: String, val password: String)
+data class UserIdPrincipal(val name: String) : Principal
+data class UserPasswordCredential(val name: String, val password: String) : Credential
 
-public class SimpleUserHashedTableAuth(val digester: (String) -> ByteArray = getDigestFunction("SHA-256", "ktor"), val table: Map<String, ByteArray>) {
+public class UserHashedTableAuth(val digester: (String) -> ByteArray = getDigestFunction("SHA-256", "ktor"), val table: Map<String, ByteArray>) {
 
     constructor(config: Config) : this(getDigestFunction(config.getString("hashAlgorithm"), config.getString("salt")), config.parseUsers())
 
@@ -17,14 +18,18 @@ public class SimpleUserHashedTableAuth(val digester: (String) -> ByteArray = get
         }
     }
 
-    fun authenticate(credential: SimpleUserPassword): SimpleUserPrincipal? {
+    fun authenticate(credential: UserPasswordCredential): UserIdPrincipal? {
         val userPasswordHash = table[credential.name]
         if (userPasswordHash != null && Arrays.equals(digester(credential.password), userPasswordHash)) {
-            return SimpleUserPrincipal(credential.name)
+            return UserIdPrincipal(credential.name)
         }
 
         return null
     }
+}
+
+fun <C: ApplicationRequestContext> AuthBuilder<C>.verifyWith(authTableAuth: UserHashedTableAuth) {
+    verifyWith { c: List<UserPasswordCredential> -> c.map { authTableAuth.authenticate(it) }.filterNotNull() }
 }
 
 private fun Config.parseUsers(name: String = "users") =

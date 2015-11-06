@@ -1,6 +1,8 @@
-package org.jetbrains.ktor.auth
+package org.jetbrains.ktor.auth.ldap
 
 import com.sun.jndi.ldap.*
+import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.auth.*
 import java.util.*
 import javax.naming.*
 import javax.naming.directory.*
@@ -30,17 +32,57 @@ private fun ldapLogin(ldapURL: String, ldapLoginConfigurator: (MutableMap<String
     return InitialDirContext(env)
 }
 
-fun ldapSimpleLoginVerify(ldapURL: String,
-                          userDNFormat: String,
-                          credentials: SimpleUserPassword,
-                          ldapLoginConfigurator: (MutableMap<String, Any?>) -> Unit = {}): SimpleUserPrincipal? {
+inline fun <C : ApplicationRequestContext, reified K : Credential, reified P : Principal> AuthBuilder<C>.verifyWithLdap(
+        ldapUrl: String,
+        noinline ldapLoginConfigurator: (K, MutableMap<String, Any?>) -> Unit,
+        noinline verifyBlock: InitialDirContext.(K) -> P?
+) {
+    intercept { next ->
+        val auth = AuthContext.from(this)
+        auth.addPrincipals(auth.credentials<K>().map { cred ->
+            ldapVerifyBase(ldapUrl,
+                    ldapLoginConfigurator = { config -> ldapLoginConfigurator(cred, config) },
+                    doVerify = { ctx -> ctx.verifyBlock(cred) })
+        }.filterNotNull())
 
-    return ldapVerifyBase(ldapURL, { env ->
-        env[Context.SECURITY_AUTHENTICATION] = "simple"
-        env[Context.SECURITY_PRINCIPAL] = userDNFormat.format(credentials.name)
-        env[Context.SECURITY_CREDENTIALS] = credentials.password
-
-        ldapLoginConfigurator(env)
-    },
-            { SimpleUserPrincipal(credentials.name) })
+        next()
+    }
 }
+
+inline fun <C : ApplicationRequestContext, reified K : Credential, reified P : Principal> AuthBuilder<C>.verifyWithLdapLoginWithUser(
+        ldapUrl: String,
+        userDNFormat: String,
+        noinline userNameExtractor: (K) -> String,
+        noinline userPasswordExtractor: (K) -> String,
+        noinline ldapLoginConfigurator: (K, MutableMap<String, Any?>) -> Unit = { k, env -> },
+        noinline verifyBlock: InitialDirContext.(K) -> P?
+) {
+    verifyWithLdap(ldapUrl,
+            ldapLoginConfigurator = { credentials, env ->
+                env[Context.SECURITY_AUTHENTICATION] = "simple"
+                env[Context.SECURITY_PRINCIPAL] = userDNFormat.format(userNameExtractor(credentials))
+                env[Context.SECURITY_CREDENTIALS] = userPasswordExtractor(credentials)
+
+                ldapLoginConfigurator(credentials, env)
+            }, verifyBlock = verifyBlock)
+}
+
+fun <C : ApplicationRequestContext> AuthBuilder<C>.verifyWithLdapLoginWithUser(
+        ldapUrl: String,
+        userDNFormat: String,
+        ldapLoginConfigurator: (UserPasswordCredential, MutableMap<String, Any?>) -> Unit,
+        verifyBlock: InitialDirContext.(UserPasswordCredential) -> Boolean = { true }
+) {
+    verifyWithLdapLoginWithUser(ldapUrl, userDNFormat,
+            { it.name }, { it.password },
+            ldapLoginConfigurator,
+            verifyBlock = { cred ->
+                if (verifyBlock(cred)) {
+                    UserIdPrincipal(cred.name)
+                } else {
+                    null
+                }
+            })
+}
+
+

@@ -95,12 +95,22 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
                 ApplicationRequestStatus.Handled
             }
 
-            oauthAtLocation<login>(exec,
-                    providerLookup = { loginProviders[it.type] },
-                    urlProvider = { l, p -> redirectUrl(login(p.name), false) },
-                    onSuccess = { l, accessToken -> loggedInSuccessResponse(accessToken) })
-
             location<login>() {
+                auth {
+                    oauthAtLocation<login>(exec,
+                            providerLookup = { loginProviders[it.type] },
+                            urlProvider = { l, p -> redirectUrl(login(p.name), false) })
+
+                    onSuccess { authContext, next ->
+                        loggedInSuccessResponse(authContext.principals<OAuthAccessTokenResponse>().single())
+                        ApplicationRequestStatus.Handled
+                    }
+
+                    onFail {
+                        sendRedirect(login())
+                    }
+                }
+
                 param("error") {
                     handle {
                         loginFailedPage(resolveResult.values.getAll("error").orEmpty())

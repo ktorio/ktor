@@ -10,23 +10,32 @@ import org.jetbrains.ktor.locations.*
 @location("/userTable") class SimpleUserTable()
 
 class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
-    val hashedUserTable = SimpleUserHashedTableAuth(table = mapOf(
+    val hashedUserTable = UserHashedTableAuth(table = mapOf(
             "test" to decodeBase64("VltM4nfheqcJSyH887H+4NEOm2tDuKCl83p5axYXlF0=") // sha256 for "test"
     ))
 
     init {
         locations {
+            auth {
+                basicAuth()
+
+                onFail {
+                    response.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor"))
+                }
+            }
             get<Manual>() {
-                basicAuthValidate { userPass ->
-                    userPass.name == userPass.password
+                auth {
+                    verifyWith { c: List<UserPasswordCredential> ->
+                        c.filter { it.name == it.password }.map { UserIdPrincipal(it.name) }
+                    }
                 }
 
                 response.status(HttpStatusCode.OK)
                 response.sendText("Success")
             }
             get<SimpleUserTable>() {
-                basicAuthValidate {
-                    hashedUserTable.authenticate(it) != null
+                auth {
+                    verifyWith(hashedUserTable)
                 }
 
                 response.status(HttpStatusCode.OK)
