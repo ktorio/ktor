@@ -8,6 +8,7 @@ import org.jetbrains.ktor.util.*
 import org.json.simple.*
 import java.io.*
 import java.net.*
+import java.security.*
 import java.time.*
 import java.util.*
 import java.util.concurrent.*
@@ -437,9 +438,17 @@ private fun decodeContent(content: String, contentType: ContentType): ValuesMap 
     }
 }
 
-private val nonceRandom = Random()
+private val nonceRandom by lazy { Random(SecureRandom().nextLong()).apply {
+    repeat((System.currentTimeMillis() % 17).toInt()) {
+        nextGaussian()
+    }
+} }
+
 private fun nextNonce(): String =
-        java.lang.Long.toHexString(nonceRandom.nextLong())
+        java.lang.Long.toHexString(nonceRandom.nextLong()) +
+                java.lang.Long.toHexString(nonceRandom.nextLong()) +
+                java.lang.Long.toHexString(nonceRandom.nextLong()) +
+                java.lang.Long.toHexString(nonceRandom.nextLong())
 
 private fun String.appendUrlParameters(parameters: String) =
         when {
@@ -463,15 +472,17 @@ private fun String.hmacSha1(key: String): String {
 
 private fun parametersString(parameters: List<HeaderValueParam>) =
         parameters
-                .map { it.name.encodeURL() to it.value.encodeURL() }
+                .map { it.name.percentEncode() to it.value.percentEncode() }
                 .sortedWith(compareBy<Pair<String, String>> { it.first }.then(compareBy { it.second }))
-                .formUrlEncode()
+                .joinToString("&") { "${it.first}=${it.second}" }
 
-private fun signatureBaseString(header: HttpAuthHeader.Parameterized, method: HttpMethod, baseUrl: String, parameters: List<HeaderValueParam>) =
+fun signatureBaseString(header: HttpAuthHeader.Parameterized, method: HttpMethod, baseUrl: String, parameters: List<HeaderValueParam>) =
         listOf(method.value.toUpperCase(), baseUrl, parametersString(header.parameters + parameters))
-                .map { it.encodeURL() }
+                .map { it.percentEncode() }
                 .joinToString("&")
 
-private fun HttpAuthHeader.Parameterized.sign(method: HttpMethod, baseUrl: String, key: String, parameters: List<Pair<String, String>>) =
+fun HttpAuthHeader.Parameterized.sign(method: HttpMethod, baseUrl: String, key: String, parameters: List<Pair<String, String>>) =
     withParameter(HttpAuthHeader.Parameters.OAuthSignature, signatureBaseString(this, method, baseUrl, parameters.toHeaderParamsList()).hmacSha1(key))
 
+
+private fun String.percentEncode() = encodeURL().replace("+", "%20").replace("*", "%2A").replace("%7E", "~")
