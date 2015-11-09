@@ -164,7 +164,7 @@ private fun simpleOAuth1aStep1(client: HttpClient, secretKey: String, baseUrl: S
         }
 
         val response = connection.responseStream.reader().readText().parseUrlEncodedParameters()
-        require(response["oauth_callback_confirmed"] == "true") { "Response parameter oauth_callback_confirmed should be true" }
+        require(response[HttpAuthHeader.Parameters.OAuthCallbackConfirmed] == "true") { "Response parameter oauth_callback_confirmed should be true" }
 
         return OAuthCallback.TokenPair(response[HttpAuthHeader.Parameters.OAuthToken]!!, response[HttpAuthHeader.Parameters.OAuthTokenSecret]!!)
     } catch (e: Throwable) {
