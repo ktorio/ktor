@@ -27,3 +27,15 @@ fun hex(s: String): ByteArray {
 fun hex(bytes: ByteArray) = bytes.map { Integer.toHexString(it.toInt() and 0xff).padStart(2, '0') }.joinToString("")
 
 fun raw(s: String) = s.toByteArray(Charsets.UTF_8)
+
+private val nonceRandom by lazy { Random(SecureRandom().nextLong()).apply {
+    repeat((System.currentTimeMillis() % 17).toInt()) {
+        nextGaussian()
+    }
+} }
+
+fun nextNonce(): String =
+        java.lang.Long.toHexString(nonceRandom.nextLong()) +
+                java.lang.Long.toHexString(nonceRandom.nextLong()) +
+                java.lang.Long.toHexString(nonceRandom.nextLong()) +
+                java.lang.Long.toHexString(nonceRandom.nextLong())

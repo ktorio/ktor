@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.auth.crypto.*
 import org.jetbrains.ktor.auth.httpclient.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
@@ -9,7 +10,6 @@ import org.jetbrains.ktor.util.*
 import org.json.simple.*
 import java.io.*
 import java.net.*
-import java.security.*
 import java.time.*
 import java.util.*
 import java.util.concurrent.*
@@ -461,18 +461,6 @@ private fun decodeContent(content: String, contentType: ContentType): ValuesMap 
         }
     }
 }
-
-private val nonceRandom by lazy { Random(SecureRandom().nextLong()).apply {
-    repeat((System.currentTimeMillis() % 17).toInt()) {
-        nextGaussian()
-    }
-} }
-
-private fun nextNonce(): String =
-        java.lang.Long.toHexString(nonceRandom.nextLong()) +
-                java.lang.Long.toHexString(nonceRandom.nextLong()) +
-                java.lang.Long.toHexString(nonceRandom.nextLong()) +
-                java.lang.Long.toHexString(nonceRandom.nextLong())
 
 private fun String.appendUrlParameters(parameters: String) =
         when {

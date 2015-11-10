@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.auth
 
+import org.jetbrains.ktor.auth.crypto.*
 import org.jetbrains.ktor.http.*
 
 object AuthScheme {
@@ -10,7 +11,8 @@ object AuthScheme {
 }
 
 enum class HeaderValueEncoding {
-    QUOTED,
+    QUOTED_WHEN_REQUIRED,
+    QUOTED_ALWAYS,
     URI_ENCODE
 }
 
@@ -24,11 +26,12 @@ sealed class HttpAuthHeader(val authScheme: String) {
             require(blob.matches(token68Pattern)) { "invalid blob value: it should be token68 but it is $blob" }
         }
 
-        override fun render(encoding: HeaderValueEncoding) = "$authScheme $blob"
+        override fun render() = "$authScheme $blob"
+        override fun render(encoding: HeaderValueEncoding) = render()
     }
 
-    class Parameterized(authScheme: String, val parameters: List<HeaderValueParam>) : HttpAuthHeader(authScheme) {
-        constructor(authScheme: String, parameters: Map<String, String>) : this(authScheme, parameters.entries.map { HeaderValueParam(it.key, it.value) })
+    class Parameterized(authScheme: String, val parameters: List<HeaderValueParam>, val encoding: HeaderValueEncoding = HeaderValueEncoding.QUOTED_WHEN_REQUIRED) : HttpAuthHeader(authScheme) {
+        constructor(authScheme: String, parameters: Map<String, String>, encoding: HeaderValueEncoding = HeaderValueEncoding.QUOTED_WHEN_REQUIRED) : this(authScheme, parameters.entries.map { HeaderValueParam(it.key, it.value) }, encoding)
 
         init {
             parameters.forEach {
@@ -41,15 +44,34 @@ sealed class HttpAuthHeader(val authScheme: String) {
         fun parameter(name: String) = parameters.singleOrNull { it.name == name }?.value
 
         private fun String.encode(encoding: HeaderValueEncoding) = when (encoding) {
-            HeaderValueEncoding.QUOTED -> escapeIfNeeded()
+            HeaderValueEncoding.QUOTED_WHEN_REQUIRED -> escapeIfNeeded()
+            HeaderValueEncoding.QUOTED_ALWAYS -> quote()
             HeaderValueEncoding.URI_ENCODE -> encodeURL()
         }
+
+        override fun render(): String = render(encoding)
     }
 
     abstract fun render(encoding: HeaderValueEncoding): String
+    abstract fun render(): String
 
     companion object {
         fun basicAuthChallenge(realm: String) = Parameterized(AuthScheme.Basic, mapOf(Parameters.Realm to realm))
+        fun digestAuthChallenge(realm: String, nonce: String = nextNonce(), domain: List<String> = emptyList(), opaque: String? = null, stale: Boolean? = null, algorithm: String = "MD5")
+                = Parameterized(AuthScheme.Digest, linkedMapOf<String, String>().apply {
+            put("realm", realm)
+            put("nonce", nonce)
+            if (domain.isNotEmpty()) {
+                put("domain", domain.joinToString(" "))
+            }
+            if (opaque != null) {
+                put("opaque", opaque)
+            }
+            if (stale != null) {
+                put("stale", stale.toString())
+            }
+            put("algorithm", algorithm)
+        }, HeaderValueEncoding.QUOTED_ALWAYS)
     }
 
     object Parameters {
