@@ -74,7 +74,8 @@ val loginProviders = listOf(
 
                 clientId = "***",
                 clientSecret = "***",
-                defaultScopes = listOf("***")
+                defaultScopes = listOf("***"),
+                accessTokenRequiresBasicAuth = true
         )
 ).toMapBy { it.name }
 

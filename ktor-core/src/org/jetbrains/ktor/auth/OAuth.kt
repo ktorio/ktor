@@ -40,7 +40,8 @@ sealed class OAuthServerSettings(val name: String, val version: OAuthVersion) {
 
             val clientId: String,
             val clientSecret: String,
-            val defaultScopes: List<String> = emptyList()
+            val defaultScopes: List<String> = emptyList(),
+            val accessTokenRequiresBasicAuth: Boolean = false
     ) : OAuthServerSettings(name, OAuthVersion.V20)
 }
 
@@ -248,11 +249,12 @@ private fun simpleOAuth2Step2(client: HttpClient, settings: OAuthServerSettings.
             callbackResponse.state,
             callbackResponse.token,
             extraParameters,
-            configure
+            configure,
+            settings.accessTokenRequiresBasicAuth
     )
 }
 
-private fun simpleOAuth2Step2(client: HttpClient, method: HttpMethod, usedRedirectUrl: String, baseUrl: String, clientId: String, clientSecret: String, state: String, code: String, extraParameters: Map<String, String> = emptyMap(), configure: RequestBuilder.() -> Unit = {}): OAuthAccessTokenResponse.OAuth2 {
+private fun simpleOAuth2Step2(client: HttpClient, method: HttpMethod, usedRedirectUrl: String, baseUrl: String, clientId: String, clientSecret: String, state: String, code: String, extraParameters: Map<String, String> = emptyMap(), configure: RequestBuilder.() -> Unit = {}, useBasicAuth: Boolean = false): OAuthAccessTokenResponse.OAuth2 {
     val urlParameters =
             (listOf(
                     OAuth2RequestParameters.ClientId to clientId,
@@ -272,6 +274,9 @@ private fun simpleOAuth2Step2(client: HttpClient, method: HttpMethod, usedRedire
     val connection = client.open(URL(getUri)) {
         this.method = method
         header(HttpHeaders.Accept, listOf(ContentType.Application.FormUrlEncoded, ContentType.Application.Json).joinToString(","))
+        if (useBasicAuth) {
+            header(HttpHeaders.Authorization, HttpAuthHeader.Single(AuthScheme.Basic, encodeBase64("${clientId}:${clientSecret}".toByteArray(Charsets.ISO_8859_1))).render())
+        }
         configure()
 
         if (method == HttpMethod.Post) {
