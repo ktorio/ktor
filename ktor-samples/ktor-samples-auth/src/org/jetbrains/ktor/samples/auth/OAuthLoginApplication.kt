@@ -65,6 +65,16 @@ val loginProviders = listOf(
                 clientId = "***",
                 clientSecret = "***",
                 defaultScopes = listOf("public_profile")
+        ),
+        OAuthServerSettings.OAuth2ServerSettings(
+                name = "hub",
+                authorizeUrl = "http://localhost:9099/api/rest/oauth2/auth",
+                accessTokenUrl = "http://localhost:9099/api/rest/oauth2/token",
+                requestMethod = HttpMethod.Post,
+
+                clientId = "***",
+                clientSecret = "***",
+                defaultScopes = listOf("***")
         )
 ).toMapBy { it.name }
 
