@@ -8,7 +8,7 @@ import kotlin.test.*
 
 class AuthBuildersTest {
     @Test
-    fun testSimpleExtractAndVerify() {
+    fun testSimpleExtractAndVerifyBatch() {
         val got = arrayListOf<UserIdPrincipal>()
 
         withTestApplication {
@@ -16,9 +16,9 @@ class AuthBuildersTest {
                 route("/") {
                     auth {
                         extractCredentials { UserPasswordCredential("name1", "ppp") }
-                        verifyWith { items: List<UserPasswordCredential> -> items.map { UserIdPrincipal(it.name) } }
+                        verifyBatchTypedWith { items: List<UserPasswordCredential> -> items.map { UserIdPrincipal(it.name) } }
 
-                        onSuccess { authContext, next ->
+                        success { authContext, next ->
                             got.addAll(authContext.principals())
                             next(authContext)
                         }
@@ -35,6 +35,60 @@ class AuthBuildersTest {
     }
 
     @Test
+    fun testSimpleExtractAndVerify() {
+        val got = arrayListOf<UserIdPrincipal>()
+
+        withTestApplication {
+            application.routing {
+                route("/") {
+                    auth {
+                        extractCredentials { UserPasswordCredential("name1", "ppp") }
+                        verifyWith { credential: UserPasswordCredential -> UserIdPrincipal(credential.name) }
+
+                        success { authContext, next ->
+                            got.addAll(authContext.principals())
+                            next(authContext)
+                        }
+                    }
+                }
+            }
+
+            handleRequest {
+                uri = "/"
+            }
+
+            assertEquals("name1", got.joinToString { it.name })
+        }
+    }
+
+    @Test
+    fun testSimpleExtractAndVerifyFailed() {
+        var failed = false
+
+        withTestApplication {
+            application.routing {
+                route("/") {
+                    auth {
+                        extractCredentials { UserPasswordCredential("name1", "ppp") }
+                        verifyWith { credential: UserPasswordCredential -> null }
+
+                        fail { next ->
+                            failed = true
+                            next()
+                        }
+                    }
+                }
+            }
+
+            handleRequest {
+                uri = "/"
+            }
+
+            assertTrue(failed, "auth should fail")
+        }
+    }
+
+    @Test
     fun testSimpleExtractAndVerifyAll() {
         val got = arrayListOf<UserIdPrincipal>()
         var gotTestCredential = false
@@ -46,10 +100,10 @@ class AuthBuildersTest {
                         extractCredentials { UserPasswordCredential("name1", "ppp") }
                         extractCredentials { TestCredential() }
 
-                        verifyWith { items: List<UserPasswordCredential> -> items.map { UserIdPrincipal(it.name) } }
-                        verifyAll { all -> if (all.filterIsInstance<TestCredential>().any()) gotTestCredential = true; emptyList() }
+                        verifyBatchTypedWith { items: List<UserPasswordCredential> -> items.map { UserIdPrincipal(it.name) } }
+                        verifyBatchAll { all -> if (all.filterIsInstance<TestCredential>().any()) gotTestCredential = true; emptyList() }
 
-                        onSuccess { authContext, next ->
+                        success { authContext, next ->
                             got.addAll(authContext.principals())
                             next(authContext)
                         }
@@ -77,11 +131,11 @@ class AuthBuildersTest {
                         extractCredentials { UserPasswordCredential("name1", "ppp") }
                         extractCredentials { UserPasswordCredential("name2", "ppp") }
 
-                        verifyWith { items: List<UserPasswordCredential> -> items.map { UserIdPrincipal(it.name) } }
+                        verifyBatchTypedWith { items: List<UserPasswordCredential> -> items.map { UserIdPrincipal(it.name) } }
 
                         postVerify { p: UserIdPrincipal -> p.name == "name1" }
 
-                        onSuccess { authContext, next ->
+                        success { authContext, next ->
                             got.addAll(authContext.principals())
                             next(authContext)
                         }

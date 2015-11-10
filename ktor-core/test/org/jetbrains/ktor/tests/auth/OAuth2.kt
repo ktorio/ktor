@@ -5,6 +5,7 @@ import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.auth.httpclient.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.jetbrains.ktor.util.*
 import org.json.simple.*

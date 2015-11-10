@@ -5,6 +5,7 @@ import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.auth.crypto.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.junit.*
 import kotlin.test.*
@@ -21,12 +22,8 @@ class BasicAuthTest {
 
             assertEquals(ApplicationRequestStatus.Handled, response.requestResult)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
-            assertNotNull(response.response.headers[HttpHeaders.WWWAuthenticate])
 
-            val header = parseAuthorizationHeader(response.response.headers[HttpHeaders.WWWAuthenticate]!!) as HttpAuthHeader.Parameterized
-
-            assertEquals(AuthScheme.Basic, header.authScheme)
-            assertEquals("ktor-test", header.parameter(HttpAuthHeader.Parameters.Realm))
+            assertWWWAuthenticateHeaderExist(response)
         }
     }
 
@@ -69,7 +66,17 @@ class BasicAuthTest {
             assertEquals(ApplicationRequestStatus.Handled, response.requestResult)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
             assertNotEquals("Secret info", response.response.content)
+
+            assertWWWAuthenticateHeaderExist(response)
         }
+    }
+
+    private fun assertWWWAuthenticateHeaderExist(response: RequestResult) {
+        assertNotNull(response.response.headers[HttpHeaders.WWWAuthenticate])
+        val header = parseAuthorizationHeader(response.response.headers[HttpHeaders.WWWAuthenticate]!!) as HttpAuthHeader.Parameterized
+
+        assertEquals(AuthScheme.Basic, header.authScheme)
+        assertEquals("ktor-test", header.parameter(HttpAuthHeader.Parameters.Realm))
     }
 
     private fun Application.configureServer() {
@@ -78,11 +85,11 @@ class BasicAuthTest {
                 auth {
                     basicAuth()
 
-                    verifyWith { credentials: List<UserPasswordCredential> ->
+                    verifyBatchTypedWith { credentials: List<UserPasswordCredential> ->
                         credentials.filter { it.name == it.password }.map { UserIdPrincipal(it.name) }
                     }
 
-                    onFail {
+                    fail {
                         response.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor-test"))
                     }
                 }

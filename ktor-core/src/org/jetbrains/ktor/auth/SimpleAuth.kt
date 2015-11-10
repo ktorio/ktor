@@ -28,8 +28,8 @@ public class UserHashedTableAuth(val digester: (String) -> ByteArray = getDigest
     }
 }
 
-fun <C: ApplicationRequestContext> AuthBuilder<C>.verifyWith(authTableAuth: UserHashedTableAuth) {
-    verifyWith { c: List<UserPasswordCredential> -> c.map { authTableAuth.authenticate(it) }.filterNotNull() }
+fun <C: ApplicationRequestContext> AuthBuilder<C>.verifyBatchTypedWith(authTableAuth: UserHashedTableAuth) {
+    verifyBatchTypedWith { c: List<UserPasswordCredential> -> c.map { authTableAuth.authenticate(it) }.filterNotNull() }
 }
 
 private fun Config.parseUsers(name: String = "users") =

@@ -39,7 +39,7 @@ fun <C: ApplicationRequestContext> AuthBuilder<C>.digestAuth(
 
     extractDigest()
 
-    verifyWith { digests: List<DigestCredential> ->
+    verifyBatchTypedWith { digests: List<DigestCredential> ->
         digests.filter { (it.algorithm ?: "MD5") == digestAlgorithm }
             .filter { it.verify(request.httpMethod, digester, userNameRealmPasswordDigestProvider) }
             .map { UserIdPrincipal(it.userName) }

@@ -44,7 +44,7 @@ class DigestTest {
                     auth {
                         extractDigest()
 
-                        verifyWith { digests: List<DigestCredential> -> foundDigests.addAll(digests); emptyList() }
+                        verifyBatchTypedWith { digests: List<DigestCredential> -> foundDigests.addAll(digests); emptyList() }
                     }
 
                     handle {
@@ -103,27 +103,30 @@ class DigestTest {
         assertTrue(digest.verify(HttpMethod.Get, digester) { user, realm -> digest(digester, "$user:$realm:$p") })
     }
 
-    @Test
-    fun testDigestFromRFCExample() {
-        val p = "Circle Of Life"
-        val digester = MessageDigest.getInstance("MD5")
+    private fun Application.configureDigestServer() {
+        routing {
+            route("/") {
+                auth {
+                    val p = "Circle Of Life"
+                    val digester = MessageDigest.getInstance("MD5")
 
-        withTestApplication {
-
-            application.routing {
-                route("/") {
-                    auth {
-                        digestAuth { userName, realm -> digest(digester, "$userName:$realm:$p") }
-                        onFail {
-                            response.sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge("testrealm@host.com"))
-                        }
-                    }
-
-                    handle {
-                        response.sendText("Secret info")
+                    digestAuth { userName, realm -> digest(digester, "$userName:$realm:$p") }
+                    fail {
+                        response.sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge("testrealm@host.com"))
                     }
                 }
+
+                handle {
+                    response.sendText("Secret info")
+                }
             }
+        }
+    }
+
+    @Test
+    fun testDigestFromRFCExample() {
+        withTestApplication {
+            application.configureDigestServer()
 
             val response = handleRequest {
                 uri = "/"
@@ -147,25 +150,8 @@ class DigestTest {
 
     @Test
     fun testDigestFromRFCExampleAuthFailed() {
-        val p = "Circle Of Life"
-        val digester = MessageDigest.getInstance("MD5")
-
         withTestApplication {
-
-            application.routing {
-                route("/") {
-                    auth {
-                        digestAuth { userName, realm -> digest(digester, "$userName:$realm:$p") }
-                        onFail {
-                            response.sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge("testrealm@host.com"))
-                        }
-                    }
-
-                    handle {
-                        response.sendText("Secret info")
-                    }
-                }
-            }
+            application.configureDigestServer()
 
             val response = handleRequest {
                 uri = "/"

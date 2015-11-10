@@ -14,19 +14,19 @@ interface Principal
 interface AuthBuilder<C: ApplicationRequestContext> {
     fun intercept(interceptor: C.(C.() -> ApplicationRequestStatus) -> ApplicationRequestStatus)
 
-    fun onSuccess(interceptor: C.(AuthContext, C.(AuthContext) -> ApplicationRequestStatus) -> ApplicationRequestStatus)
-    fun onFail(interceptor: C.(C.() -> ApplicationRequestStatus) -> ApplicationRequestStatus)
+    fun success(interceptor: C.(AuthContext, C.(AuthContext) -> ApplicationRequestStatus) -> ApplicationRequestStatus)
+    fun fail(interceptor: C.(C.() -> ApplicationRequestStatus) -> ApplicationRequestStatus)
 }
 
 abstract class AuthBuilderBase<C: ApplicationRequestContext> : AuthBuilder<C> {
     val successHandlers = InterceptableChain2<C, AuthContext, ApplicationRequestStatus>()
     val failureHandlers = InterceptableChain1<C, ApplicationRequestStatus>()
 
-    override fun onSuccess(interceptor: C.(AuthContext, C.(AuthContext) -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
+    override fun success(interceptor: C.(AuthContext, C.(AuthContext) -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
         successHandlers.intercept(interceptor)
     }
 
-    override fun onFail(interceptor: C.(C.() -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
+    override fun fail(interceptor: C.(C.() -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
         failureHandlers.intercept(interceptor)
     }
 
@@ -42,9 +42,7 @@ abstract class AuthBuilderBase<C: ApplicationRequestContext> : AuthBuilder<C> {
 private class RoutingEntryAuthBuilder(val entry: RoutingEntry) : AuthBuilderBase<RoutingApplicationRequestContext>() {
 
     override fun intercept(interceptor: RoutingApplicationRequestContext.(RoutingApplicationRequestContext.() -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
-        entry.intercept { next ->
-            interceptor { next() }
-        }
+        entry.intercept(interceptor)
     }
 }
 
@@ -69,6 +67,7 @@ private fun <C: ApplicationRequestContext> AuthBuilderBase<C>.finishAuth() {
 class AuthContext internal constructor() {
     private val collectedCredentials = ArrayList<Credential>()
     private val collectedPrincipals = ArrayList<Principal>()
+    private val collectedFailures = HashMap<Credential, MutableList<Throwable>>()
 
     val foundCredentials: List<Credential>
         get() = synchronized(this) { collectedCredentials.toList() }
@@ -118,6 +117,12 @@ class AuthContext internal constructor() {
         }
     }
 
+    fun addFailure(credential: Credential, t: Throwable) {
+        synchronized(this) {
+            collectedFailures.getOrPut(credential) { ArrayList() }.add(t)
+        }
+    }
+
     fun hasPrincipals(): Boolean = synchronized(this) { collectedPrincipals.isNotEmpty() }
 
     companion object {
@@ -138,11 +143,11 @@ fun <K: Credential, C: ApplicationRequestContext> AuthBuilder<C>.extractCredenti
     }
 }
 
-inline fun <reified K : Credential, C: ApplicationRequestContext> AuthBuilder<C>.verifyWith(noinline block: C.(List<K>) -> List<Principal>) {
-    verifyWith(K::class, block)
+inline fun <reified K : Credential, C: ApplicationRequestContext> AuthBuilder<C>.verifyBatchTypedWith(noinline block: C.(List<K>) -> List<Principal>) {
+    verifyBatchTypedWith(K::class, block)
 }
 
-fun <K : Credential, C: ApplicationRequestContext> AuthBuilder<C>.verifyWith(klass: KClass<K>, block: C.(List<K>) -> List<Principal>) {
+fun <K : Credential, C: ApplicationRequestContext> AuthBuilder<C>.verifyBatchTypedWith(klass: KClass<K>, block: C.(List<K>) -> List<Principal>) {
     intercept { next ->
         val auth = AuthContext.from(this)
 
@@ -156,8 +161,31 @@ fun <K : Credential, C: ApplicationRequestContext> AuthBuilder<C>.verifyWith(kla
     }
 }
 
-fun <C: ApplicationRequestContext> AuthBuilder<C>.verifyAll(block: C.(List<Credential>) -> List<Principal>) {
-    verifyWith(block)
+inline fun <reified K : Credential, C: ApplicationRequestContext> AuthBuilder<C>.verifyWith(noinline block: C.(K) -> Principal?) {
+    verifyWith(K::class, block)
+}
+
+fun <K : Credential, C: ApplicationRequestContext> AuthBuilder<C>.verifyWith(klass: KClass<K>, block: C.(K) -> Principal?) {
+    intercept { next ->
+        val auth = AuthContext.from(this)
+
+        auth.credentials(klass).let { found ->
+            auth.addPrincipals(found.map {
+                try {
+                    block(it)
+                } catch (t: Throwable) {
+                    auth.addFailure(it, t)
+                    null
+                }
+            }.filterNotNull())
+
+            next()
+        }
+    }
+}
+
+fun <C: ApplicationRequestContext> AuthBuilder<C>.verifyBatchAll(block: C.(List<Credential>) -> List<Principal>) {
+    verifyBatchTypedWith(block)
 }
 
 inline fun <reified P : Principal, C: ApplicationRequestContext> AuthBuilder<C>.postVerify(crossinline predicate: C.(P) -> Boolean) {

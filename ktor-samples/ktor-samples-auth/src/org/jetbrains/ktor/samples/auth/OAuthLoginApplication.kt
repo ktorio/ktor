@@ -113,7 +113,7 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
                             providerLookup = { loginProviders[it.type] },
                             urlProvider = { l, p -> redirectUrl(login(p.name), false) })
 
-                    onSuccess { authContext, next ->
+                    success { authContext, next ->
                         loggedInSuccessResponse(authContext.principals<OAuthAccessTokenResponse>().single())
                         ApplicationRequestStatus.Handled
                     }

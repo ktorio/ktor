@@ -19,13 +19,13 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
             auth {
                 basicAuth()
 
-                onFail {
+                fail {
                     response.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor"))
                 }
             }
             get<Manual>() {
                 auth {
-                    verifyWith { c: List<UserPasswordCredential> ->
+                    verifyBatchTypedWith { c: List<UserPasswordCredential> ->
                         c.filter { it.name == it.password }.map { UserIdPrincipal(it.name) }
                     }
                 }
@@ -35,7 +35,7 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
             }
             get<SimpleUserTable>() {
                 auth {
-                    verifyWith(hashedUserTable)
+                    verifyBatchTypedWith(hashedUserTable)
                 }
 
                 response.status(HttpStatusCode.OK)

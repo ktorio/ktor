@@ -16,9 +16,9 @@ class BasicAuthWithLdapApplication(config: ApplicationConfig) : Application(conf
                     basicAuth()
 
                     verifyWithLdapLoginWithUser("ldap://localhost:389", "cn=%s ou=users")
-                    verifyWith { credentials: List<UserPasswordCredential> -> credentials.filter { it.name == it.password }.map { UserIdPrincipal(it.name) } }
+                    verifyBatchTypedWith { credentials: List<UserPasswordCredential> -> credentials.filter { it.name == it.password }.map { UserIdPrincipal(it.name) } }
 
-                    onFail {
+                    fail {
                         response.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("files"))
                     }
                 }
