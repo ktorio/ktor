@@ -74,7 +74,7 @@ class TestApplicationRequest() : ApplicationRequest {
     var multiPartEntries: List<PartData> = emptyList()
 
     override val parameters: ValuesMap get() {
-        return queryParameters()
+        return queryParameters() + if (contentType().match(ContentType.Application.FormUrlEncoded)) body.parseUrlEncodedParameters() else ValuesMap.Empty
     }
 
     private var headersMap : MutableMap<String, MutableList<String>>? = hashMapOf()
