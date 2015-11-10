@@ -61,3 +61,5 @@ operator fun ValuesMap.plus(other: ValuesMap) = when {
     caseInsensitiveKey == other.caseInsensitiveKey -> ValuesMap.build(caseInsensitiveKey) { appendAll(this@plus); appendAll(other) }
     else -> throw IllegalArgumentException("It is forbidden to concatenate case sensitive and case insensitive maps")
 }
+
+fun ValuesMap.flattenEntries(): List<Pair<String, String>> = entries().flatMap { e -> e.value.map { e.key to it } }
