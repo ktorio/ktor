@@ -83,6 +83,7 @@ class AuthContext internal constructor() {
     }
 
     inline fun <reified P : Principal> principals(): List<P> = principals(P::class)
+    inline fun <reified P : Principal> principal(): P? = principals<P>().singleOrNull()
 
     @Suppress("UNCHECKED_CAST")
     fun <P : Principal> principals(type: KClass<P>): List<P> = synchronized(this) {
@@ -130,6 +131,14 @@ class AuthContext internal constructor() {
         fun from(context: ApplicationRequestContext) = context.attributes.computeIfAbsent(AttributeKey) { AuthContext() }!!
     }
 }
+
+val ApplicationRequestContext.authContext: AuthContext
+    get() = AuthContext.from(this)
+
+val ApplicationRequestContext.principals: List<Principal>
+    get() = AuthContext.from(this).foundPrincipals
+
+inline fun <reified P: Principal> ApplicationRequestContext.principals() = AuthContext.from(this).principals<P>()
 
 fun <K: Credential, C: ApplicationRequestContext> AuthBuilder<C>.extractCredentials(block: C.() -> K?) {
     intercept { next ->

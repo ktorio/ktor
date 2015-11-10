@@ -25,13 +25,17 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
             }
             get<Manual>() {
                 auth {
-                    verifyBatchTypedWith { c: List<UserPasswordCredential> ->
-                        c.filter { it.name == it.password }.map { UserIdPrincipal(it.name) }
+                    verifyWith { c: UserPasswordCredential ->
+                        if (c.name == c.password) {
+                            UserIdPrincipal(c.name)
+                        } else {
+                            null
+                        }
                     }
                 }
 
                 response.status(HttpStatusCode.OK)
-                response.sendText("Success")
+                response.sendText("Success, ${principals<UserIdPrincipal>().map { it.name }}")
             }
             get<SimpleUserTable>() {
                 auth {
