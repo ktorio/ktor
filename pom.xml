@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.jetbrains</groupId>
-    <version>0.1.1</version>
+    <version>0.1.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <artifactId>ktor</artifactId>
 
@@ -140,6 +140,7 @@
 
     <scm>
         <connection>scm:git:https://github.com/Kotlin/ktor.git</connection>
+        <developerConnection>scm:git:git@github.com:Kotlin/ktor.git</developerConnection>
         <url>https://github.com/Kotlin/ktor</url>
         <tag>HEAD</tag>
     </scm>

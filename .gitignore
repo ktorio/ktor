@@ -5,3 +5,7 @@ target
 !.idea/vcs.xml
 out
 *.iml
+
+*.versionsBackup
+*.releaseBackup
+release.properties
