@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.application
 
+import com.sun.nio.file.*
+import org.jetbrains.ktor.util.*
 import java.io.*
 import java.net.*
 import java.nio.file.*
@@ -53,31 +55,41 @@ public class ApplicationLoader(val config: ApplicationConfig) {
             instance!!
         }
 
-    fun URLClassLoader.allURLs() : List<URL> {
-        val parent = parent ?: return urLs.toList()
-        if (parent is URLClassLoader)
-            return urLs.toList() + parent.allURLs()
-        return emptyList()
+    fun ClassLoader.allURLs(): List<URL> {
+        val parentUrls = parent?.allURLs() ?: emptyList()
+        if (this is URLClassLoader) {
+            val urls = urLs.filterNotNull()
+            log.debug("ClassLoader $this: $urls")
+            return urls + parentUrls
+        }
+        return parentUrls
     }
 
     fun createApplication(): Application {
-        val classLoader = config.classLoader
-        if (config.isDevelopment()) {
-            if (classLoader is URLClassLoader) {
-                watchUrls(classLoader.allURLs() + config.classPath)
-            } else
-                watchUrls(config.classPath)
+        val classLoader = if (config.isDevelopment()) {
+            val allUrls = config.classLoader.allURLs()
+            val watchPatterns = config.watchPatterns
+            val watchUrls = allUrls.filter { url -> watchPatterns.any { pattern -> url.toString().contains(pattern) } }
+            watchUrls(watchUrls)
+            OverridingClassLoader(watchUrls, config.classLoader)
+        } else
+            config.classLoader
+
+        val currentThread = Thread.currentThread()
+        val oldThreadClassLoader = currentThread.contextClassLoader
+        currentThread.contextClassLoader = classLoader
+        try {
+            val applicationClass = classLoader.loadClass(config.applicationClassName)
+                    ?: throw RuntimeException("Application class ${config.applicationClassName} cannot be loaded")
+            log.debug("Application class: $applicationClass in ${applicationClass.classLoader}")
+            val cons = applicationClass.getConstructor(ApplicationConfig::class.java)
+            val application = cons.newInstance(config)
+            if (application !is Application)
+                throw RuntimeException("Application class ${config.applicationClassName} should inherit from ${Application::class}")
+            return application
+        } finally {
+            currentThread.contextClassLoader = oldThreadClassLoader
         }
-
-        val applicationClass = classLoader.loadClass(config.applicationClassName)
-                ?: throw RuntimeException("Expected class ${config.applicationClassName} to be defined")
-        log.debug("Application class: ${applicationClass.toString()}")
-        val cons = applicationClass.getConstructor(ApplicationConfig::class.java)
-        val application = cons.newInstance(config)
-        if (application !is Application)
-            throw RuntimeException("Expected class ${config.applicationClassName} to be inherited from Application")
-
-        return application
     }
 
 
@@ -118,7 +130,10 @@ public class ApplicationLoader(val config: ApplicationConfig) {
         paths.forEach { path ->
             log.debug("Watching $path for changes.")
         }
-        packageWatchKeys.addAll(paths.map { it.register(watcher, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY) })
+        val modifiers = get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH()?.let { arrayOf(it) } ?: emptyArray()
+        packageWatchKeys.addAll(paths.map {
+            it.register(watcher, arrayOf(ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY), *modifiers)
+        })
     }
 
     public fun dispose() {

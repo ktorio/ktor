@@ -20,7 +20,7 @@ fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() ->
                     "ktor.deployment.environment" to "test",
                     "ktor.application.class" to applicationClass.qualifiedName
                  ))
-    val config = ApplicationConfig(testConfig, SLF4JApplicationLog("ktor.test"))
+    val config = ApplicationConfig(testConfig, ApplicationConfig::class.java.classLoader, SLF4JApplicationLog("ktor.test"))
     val host = TestApplicationHost(config)
     host.test()
 }

@@ -7,16 +7,12 @@ import java.net.*
  * Store application configuration.
  */
 public open class ApplicationConfig(private val config: Config,
-                                    public val log: ApplicationLog = NullApplicationLog(),
-                                    private val classPathUrl: URL? = null) {
-
-    public open val classPath: List<URL>
-        get() = if (classPathUrl == null) emptyList() else listOf(classPathUrl)
-
-    public val classLoader: URLClassLoader = URLClassLoader(classPath.toTypedArray(), javaClass.classLoader)
-
+                                    public val classLoader: ClassLoader,
+                                    public val log: ApplicationLog = NullApplicationLog()
+) {
     public val environment: String get() = config.getString("ktor.deployment.environment")
     public val applicationClassName: String = config.getString("ktor.application.class")
+    public val watchPatterns: List<String> = config.getStringListOrEmpty("ktor.application.watch")
 
     /** Directories where publicly available files (like stylesheets, scripts, and images) will go. */
     public val publicDirectories: List<String> = config.getStringListOrEmpty("ktor.application.folders.public")

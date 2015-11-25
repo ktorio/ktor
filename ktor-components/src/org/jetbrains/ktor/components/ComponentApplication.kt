@@ -10,16 +10,17 @@ public open class ComponentApplication(config: ApplicationConfig) : Application(
     val log = config.log.fork("Components")
 
     init {
+        val componentClassLoader = Thread.currentThread().contextClassLoader
+
         container.registerInstance(this)
         container.registerInstance(config)
         // TODO: instead of registering log itself, register component resolver, that can fork log for each component
         container.registerInstance(config.log)
-        container.registerInstance(config.classLoader)
-
+        container.registerInstance(componentClassLoader)
         container.registerInstance(routing)
 
         val introspectionTime = measureTimeMillis {
-            config.classLoader
+            componentClassLoader
                     .scanForClasses("")
                     .filter { it.getAnnotation(Component::class.java) != null }
                     .forEach { container.registerSingleton(it) }

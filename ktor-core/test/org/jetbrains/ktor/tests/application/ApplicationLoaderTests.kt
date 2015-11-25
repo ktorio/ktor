@@ -13,7 +13,7 @@ class ApplicationLoaderTests {
                         "ktor.deployment.environment" to "test",
                         "ktor.application.class" to "NonExistingApplicationName"
                      ))
-        val config = ApplicationConfig(testConfig)
+        val config = ApplicationConfig(testConfig, ApplicationConfig::class.java.classLoader)
         assertFailsWith(ClassNotFoundException::class) { ApplicationLoader(config).application }
     }
 
@@ -24,7 +24,7 @@ class ApplicationLoaderTests {
                         "ktor.application.class" to "org.jetbrains.ktor.testing.TestApplication"
                      ))
 
-        val config = ApplicationConfig(testConfig)
+        val config = ApplicationConfig(testConfig, ApplicationConfig::class.java.classLoader)
         val application = ApplicationLoader(config).application
         assertNotNull(application)
     }
