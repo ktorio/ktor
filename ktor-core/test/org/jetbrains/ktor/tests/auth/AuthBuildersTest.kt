@@ -2,7 +2,7 @@ package org.jetbrains.ktor.tests.auth
 
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.routing.*
-import org.jetbrains.ktor.tests.*
+import org.jetbrains.ktor.testing.*
 import org.junit.*
 import kotlin.test.*
 

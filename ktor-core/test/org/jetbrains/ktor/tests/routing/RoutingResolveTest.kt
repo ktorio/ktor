@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.tests.routing
 
 import org.jetbrains.ktor.routing.*
-import org.jetbrains.ktor.tests.*
+import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
 import kotlin.test.*

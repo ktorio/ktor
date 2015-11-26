@@ -4,7 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
-import org.jetbrains.ktor.tests.*
+import org.jetbrains.ktor.testing.*
 import org.junit.*
 import java.security.*
 import kotlin.test.*
