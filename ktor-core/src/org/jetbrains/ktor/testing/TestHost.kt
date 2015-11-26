@@ -110,6 +110,7 @@ class TestApplicationResponse : BaseApplicationResponse() {
     override val stream = Interceptable1<OutputStream.() -> Unit, Unit> { body ->
         val stream = ByteArrayOutputStream()
         stream.body()
+        byteContent = stream.toByteArray()
         content = stream.toString()
         ApplicationRequestStatus.Handled
     }
@@ -128,6 +129,7 @@ class TestApplicationResponse : BaseApplicationResponse() {
     public override fun status(): HttpStatusCode? = statusCode
 
     public var content: String? = null
+    var byteContent: ByteArray? = null
 }
 
 class TestApplication(config: ApplicationConfig) : Application(config)
