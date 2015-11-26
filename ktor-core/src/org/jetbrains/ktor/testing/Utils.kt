@@ -1,8 +1,7 @@
-package org.jetbrains.ktor.tests
+package org.jetbrains.ktor.testing
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.testing.*
 
 object On
 
