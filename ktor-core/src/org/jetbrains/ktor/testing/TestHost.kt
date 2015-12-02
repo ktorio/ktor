@@ -9,6 +9,7 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.*
 import kotlin.reflect.*
+import kotlin.reflect.jvm.*
 
 inline fun <reified T : Application> withApplication(noinline test: TestApplicationHost.() -> Unit) {
     withApplication(T::class, test)
@@ -18,7 +19,7 @@ fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() ->
     val testConfig = ConfigFactory.parseMap(
             mapOf(
                     "ktor.deployment.environment" to "test",
-                    "ktor.application.class" to applicationClass.qualifiedName
+                    "ktor.application.class" to applicationClass.jvmName
                  ))
     val config = HoconApplicationConfig(testConfig, ApplicationConfig::class.java.classLoader, SLF4JApplicationLog("ktor.test"))
     val host = TestApplicationHost(config)
