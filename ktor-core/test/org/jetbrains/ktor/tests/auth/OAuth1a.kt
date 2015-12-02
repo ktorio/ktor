@@ -203,7 +203,7 @@ class OAuth1aFlowTest {
                 }
 
                 handle {
-                    response.sendText("Ho, ${AuthContext.from(this).foundPrincipals}")
+                    response.sendText("Ho, ${authContext.foundPrincipals}")
                 }
             }
         }

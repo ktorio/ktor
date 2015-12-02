@@ -22,7 +22,7 @@ fun <C: ApplicationRequestContext> AuthBuilder<C>.extractDigest() {
     intercept { next ->
         request.parseAuthorizationHeader()?.let { authHeader ->
             if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
-                AuthContext.from(this).addCredential(authHeader.toDigestCredential())
+                authContext.addCredential(authHeader.toDigestCredential())
             }
         }
 

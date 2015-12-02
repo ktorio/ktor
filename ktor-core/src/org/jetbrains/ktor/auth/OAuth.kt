@@ -376,7 +376,7 @@ private fun <C: ApplicationRequestContext> AuthBuilder<C>.oauth1a(client: HttpCl
                             response.redirectAuthenticateOAuth1a(provider, t)
                         } else {
                             val accessToken = simpleOAuth1aStep2(client, provider, token)
-                            AuthContext.from(this).addPrincipal(accessToken)
+                            authContext.addPrincipal(accessToken)
                             next()
                         }
                     }, failBlock = {
@@ -401,7 +401,7 @@ private fun <C: ApplicationRequestContext> AuthBuilder<C>.oauth2(client: HttpCli
                 } else {
                     handleAsync(exec, {
                         val accessToken = simpleOAuth2Step2(client, provider, urlProvider(provider), token)
-                        AuthContext.from(this).addPrincipal(accessToken)
+                        authContext.addPrincipal(accessToken)
                         next()
                     }, failBlock = {
                         next()

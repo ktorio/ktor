@@ -1,7 +1,10 @@
 package org.jetbrains.ktor.tests.auth
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.junit.*
 import kotlin.test.*
@@ -148,6 +151,39 @@ class AuthBuildersTest {
             }
 
             assertEquals("name1", got.joinToString { it.name })
+        }
+    }
+
+    @Test
+    fun testPrincipalsAccess() {
+        val username = "testuser"
+
+        withTestApplication {
+            application.routing {
+                route("/") {
+                    auth {
+                        formAuth()
+                        verifyWith { c: UserPasswordCredential -> UserIdPrincipal(c.name) }
+
+                        success { authContext, function ->
+                            assertEquals(username, authContext.principal<UserIdPrincipal>()?.name)
+                            ApplicationRequestStatus.Handled
+                        }
+
+                        fail {
+                            fail("login failed")
+                            ApplicationRequestStatus.Handled
+                        }
+                    }
+
+                    handle {
+                        assertEquals(username, authContext.principal<UserIdPrincipal>()?.name)
+                        ApplicationRequestStatus.Handled
+                    }
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/?user=$username&password=p")
         }
     }
 }

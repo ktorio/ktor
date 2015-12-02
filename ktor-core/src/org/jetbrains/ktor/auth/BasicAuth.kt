@@ -30,7 +30,7 @@ fun <C: ApplicationRequestContext> AuthBuilder<C>.basicAuth() {
         val userPass = request.basicAuth()
 
         if (userPass != null) {
-            AuthContext.from(this).addCredential(userPass)
+            authContext.addCredential(userPass)
         }
 
         next()

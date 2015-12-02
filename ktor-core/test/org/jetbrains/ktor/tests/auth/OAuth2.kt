@@ -60,7 +60,7 @@ class OAuth2Test {
 
                 handle {
                     response.status(HttpStatusCode.OK)
-                    response.sendText(ContentType.Text.Plain, "Hej, ${AuthContext.from(this).foundPrincipals}")
+                    response.sendText(ContentType.Text.Plain, "Hej, ${authContext.foundPrincipals}")
                 }
             }
         }
