@@ -64,6 +64,8 @@ object OAuth2RequestParameters {
     val State = "state"
     val RedirectUri = "redirect_uri"
     val ResponseType = "response_type"
+    val UserName = "username"
+    val Password = "password"
 }
 
 object OAuth2ResponseParameters {
@@ -73,6 +75,11 @@ object OAuth2ResponseParameters {
     val RefreshToken = "refresh_token"
     val Error = "error"
     val ErrorDescription = "error_description"
+}
+
+object OAuthGrandTypes {
+    val AuthorizationCode = "authorization_code"
+    val Password = "password"
 }
 
 fun obtainRequestTokenHeader(
@@ -254,16 +261,16 @@ private fun simpleOAuth2Step2(client: HttpClient, settings: OAuthServerSettings.
     )
 }
 
-private fun simpleOAuth2Step2(client: HttpClient, method: HttpMethod, usedRedirectUrl: String, baseUrl: String, clientId: String, clientSecret: String, state: String, code: String, extraParameters: Map<String, String> = emptyMap(), configure: RequestBuilder.() -> Unit = {}, useBasicAuth: Boolean = false): OAuthAccessTokenResponse.OAuth2 {
+private fun simpleOAuth2Step2(client: HttpClient, method: HttpMethod, usedRedirectUrl: String?, baseUrl: String, clientId: String, clientSecret: String, state: String?, code: String?, extraParameters: Map<String, String> = emptyMap(), configure: RequestBuilder.() -> Unit = {}, useBasicAuth: Boolean = false, grantType: String = OAuthGrandTypes.AuthorizationCode): OAuthAccessTokenResponse.OAuth2 {
     val urlParameters =
             (listOf(
                     OAuth2RequestParameters.ClientId to clientId,
                     OAuth2RequestParameters.ClientSecret to clientSecret,
-                    OAuth2RequestParameters.GrantType to "authorization_code",
+                    OAuth2RequestParameters.GrantType to grantType,
                     OAuth2RequestParameters.State to state,
                     OAuth2RequestParameters.Code to code,
                     OAuth2RequestParameters.RedirectUri to usedRedirectUrl
-            ) + extraParameters.toList()).formUrlEncode()
+            ).filterNotNull() + extraParameters.toList()).formUrlEncode()
 
     val getUri = when (method) {
         HttpMethod.Get -> baseUrl.appendUrlParameters(urlParameters)
@@ -275,7 +282,7 @@ private fun simpleOAuth2Step2(client: HttpClient, method: HttpMethod, usedRedire
         this.method = method
         header(HttpHeaders.Accept, listOf(ContentType.Application.FormUrlEncoded, ContentType.Application.Json).joinToString(","))
         if (useBasicAuth) {
-            header(HttpHeaders.Authorization, HttpAuthHeader.Single(AuthScheme.Basic, encodeBase64("${clientId}:${clientSecret}".toByteArray(Charsets.ISO_8859_1))).render())
+            header(HttpHeaders.Authorization, HttpAuthHeader.Single(AuthScheme.Basic, encodeBase64("$clientId:$clientSecret".toByteArray(Charsets.ISO_8859_1))).render())
         }
         configure()
 
@@ -410,6 +417,32 @@ private fun <C: ApplicationRequestContext> AuthBuilder<C>.oauth2(client: HttpCli
             }
             else -> next()
         }
+    }
+}
+
+/**
+ * Implements Resource Owner Password Credentials Grant
+ * see http://tools.ietf.org/html/rfc6749#section-4.3
+ *
+ * Takes [UserPasswordCredential] and validates it using OAuth2 sequence, provides [OAuthAccessTokenResponse.OAuth2] if succeeds
+ */
+fun <C: ApplicationRequestContext> AuthBuilder<C>.verifyWithOAuth2(client: HttpClient, settings: OAuthServerSettings.OAuth2ServerSettings) {
+    verifyWith { c: UserPasswordCredential ->
+        simpleOAuth2Step2(client, HttpMethod.Post,
+                usedRedirectUrl = null,
+                baseUrl = settings.accessTokenUrl,
+                clientId = settings.clientId,
+                clientSecret = settings.clientSecret,
+                code = null,
+                state = null,
+                configure = {},
+                extraParameters = mapOf(
+                        OAuth2RequestParameters.UserName to c.name,
+                        OAuth2RequestParameters.Password to c.password
+                ),
+                useBasicAuth = true,
+                grantType = OAuthGrandTypes.Password
+        )
     }
 }
 

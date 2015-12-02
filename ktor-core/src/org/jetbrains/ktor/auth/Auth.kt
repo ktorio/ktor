@@ -75,6 +75,9 @@ class AuthContext internal constructor() {
     val foundPrincipals: List<Principal>
         get() = synchronized(this) { collectedPrincipals.toList() }
 
+    val failures: Map<Credential, List<Throwable>>
+        get() = synchronized(this) { collectedFailures.mapValues { it.value.toList() } }
+
     inline fun <reified K : Credential> credentials(): List<K> = credentials(K::class)
 
     @Suppress("UNCHECKED_CAST")
