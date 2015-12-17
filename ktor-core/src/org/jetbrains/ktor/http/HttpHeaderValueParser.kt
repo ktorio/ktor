@@ -1,18 +1,11 @@
 package org.jetbrains.ktor.http
 
+import org.jetbrains.ktor.util.*
 import java.util.*
 
 public data class HeaderValueParam(val name: String, val value: String)
 public data class HeaderValue(val value: String, val params: List<HeaderValueParam> = listOf()) {
-    val quality: Float = params.firstOrNull { it.name == "q" }?.let { it.value.tryParseFloat() } ?: 1.0f
-}
-
-private fun String.tryParseFloat(): Float {
-    try {
-        return toFloat()
-    } catch(e: NumberFormatException) {
-        return 0f
-    }
+    val quality: Double = params.firstOrNull { it.name == "q" }?.value?.tryParseDouble() ?: 1.0
 }
 
 public fun parseAndSortHeader(header: String?): List<HeaderValue> = parseHeaderValue(header).sortedByDescending { it.quality }

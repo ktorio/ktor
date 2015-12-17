@@ -25,25 +25,42 @@ class Routing() : RoutingEntry(parent = null) {
 
     protected fun resolve(entry: RoutingEntry, request: RoutingResolveContext, segmentIndex: Int): RoutingResolveResult {
         var failEntry: RoutingEntry? = null
+        val results = ArrayList<RoutingResolveResult>()
         for ((selector, child) in entry.children) {
             val result = selector.evaluate(request, segmentIndex)
             if (result.succeeded) {
                 val subtreeResult = resolve(child, request, segmentIndex + result.segmentIncrement)
-                if (subtreeResult.succeeded) {
-                    return RoutingResolveResult(true, subtreeResult.entry, ValuesMap.build {
-                        appendAll(result.values)
-                        appendAll(subtreeResult.values)
-                    })
-                } else {
+                if (subtreeResult.succeeded ) {
+                    val combinedValues = when {
+                        result.values.isEmpty() -> subtreeResult.values
+                        subtreeResult.values.isEmpty() -> result.values
+                        else -> ValuesMap.build {
+                            appendAll(result.values)
+                            appendAll(subtreeResult.values)
+                        }
+                    }
+                    val combinedQuality = combineQuality(subtreeResult.quality, result.quality)
+                    val resolveResult = RoutingResolveResult(true, subtreeResult.entry, combinedValues, combinedQuality)
+                    results.add(resolveResult)
+                } else if (failEntry == null) {
+                    // save first entry that failed to match for better diagnostic
                     failEntry = subtreeResult.entry
                 }
             }
         }
 
-        when (segmentIndex) {
-            request.path.parts.size -> return RoutingResolveResult(true, entry, ValuesMap.Empty)
-            else -> return RoutingResolveResult(false, failEntry ?: entry, ValuesMap.Empty)
+        val bestChild = results.maxBy { it.quality }
+        if (bestChild == null) {
+            // no child matched, match is either current entry if path is done, or failure
+            if (segmentIndex == request.path.parts.size)
+                return RoutingResolveResult(true, entry, ValuesMap.Empty, 1.0)
+            return RoutingResolveResult(false, failEntry ?: entry, ValuesMap.Empty, 0.0)
         }
+        return bestChild
+    }
+
+    private fun combineQuality(quality1: Double, quality2: Double): Double {
+        return quality1 * quality2
     }
 
     public fun resolve(request: RoutingResolveContext): RoutingResolveResult {

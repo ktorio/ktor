@@ -12,3 +12,19 @@ fun String.unescapeIfQuoted() = when {
     else -> this
 }
 
+fun String.tryParseFloat(): Float {
+    try {
+        return toFloat()
+    } catch(e: NumberFormatException) {
+        return 0f
+    }
+}
+
+fun String.tryParseDouble(): Double {
+    try {
+        return toDouble()
+    } catch(e: NumberFormatException) {
+        return 0.0
+    }
+}
+

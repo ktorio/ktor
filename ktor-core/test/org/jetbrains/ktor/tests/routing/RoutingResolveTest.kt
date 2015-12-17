@@ -333,4 +333,91 @@ class RoutingResolveTest {
             }
         }
     }
+
+    @Test fun `routing foo with quality`() {
+        val root = Routing()
+        val fooEntry = root.select(UriPartConstantRoutingSelector("foo"))
+        val paramEntry = fooEntry.select(UriPartParameterRoutingSelector("name"))
+        val constantEntry = fooEntry.select(UriPartConstantRoutingSelector("admin"))
+
+        on("resolving /foo/value") {
+            val resolveResult = root.resolve(RoutingResolveContext("/foo/value"))
+
+            it("should successfully resolve") {
+                assertTrue(resolveResult.succeeded)
+            }
+            it("should resolve to paramEntry") {
+                assertEquals(paramEntry, resolveResult.entry)
+            }
+            it("should have parameter value equal to 'value'") {
+                assertEquals("value", resolveResult.values["name"])
+            }
+        }
+
+        on("resolving /foo/admin") {
+            val resolveResult = root.resolve(RoutingResolveContext("/foo/admin"))
+
+            it("should successfully resolve") {
+                assertTrue(resolveResult.succeeded)
+            }
+            it("should resolve to constantEntry") {
+                assertEquals(constantEntry, resolveResult.entry)
+            }
+            it("should not have parameter value") {
+                assertNull(resolveResult.values["name"])
+            }
+        }
+
+    }
+
+    @Test fun `routing foo with quality and headers`() {
+        val root = Routing()
+        val fooEntry = root.select(UriPartConstantRoutingSelector("foo"))
+        val plainEntry = fooEntry.select(HttpHeaderRoutingSelector("Accept", "text/plain"))
+        val htmlEntry = fooEntry.select(HttpHeaderRoutingSelector("Accept", "text/html"))
+
+        on("resolving /foo with more specific") {
+            val resolveResult = root.resolve(RoutingResolveContext("/foo", headers = valuesOf("Accept" to listOf("text/*, text/html, */*"))))
+
+            it("should successfully resolve") {
+                assertTrue(resolveResult.succeeded)
+            }
+            it("should resolve to htmlEntry") {
+                assertEquals(htmlEntry, resolveResult.entry)
+            }
+        }
+
+        on("resolving /foo with equal preference") {
+            val resolveResult = root.resolve(RoutingResolveContext("/foo", headers = valuesOf("Accept" to listOf("text/plain, text/html"))))
+
+            it("should successfully resolve") {
+                assertTrue(resolveResult.succeeded)
+            }
+            it("should resolve to plainEntry") {
+                assertEquals(plainEntry, resolveResult.entry)
+            }
+        }
+
+        on("resolving /foo with preference of text/plain") {
+            val resolveResult = root.resolve(RoutingResolveContext("/foo", headers = valuesOf("Accept" to listOf("text/plain, text/html; q=0.5"))))
+
+            it("should successfully resolve") {
+                assertTrue(resolveResult.succeeded)
+            }
+            it("should resolve to plainEntry") {
+                assertEquals(plainEntry, resolveResult.entry)
+            }
+        }
+
+        on("resolving /foo with preference of text/html") {
+            val resolveResult = root.resolve(RoutingResolveContext("/foo", headers = valuesOf("Accept" to listOf("text/plain; q=0.5, text/html"))))
+
+            it("should successfully resolve") {
+                assertTrue(resolveResult.succeeded)
+            }
+            it("should resolve to htmlEntry") {
+                assertEquals(htmlEntry, resolveResult.entry)
+            }
+        }
+    }
 }

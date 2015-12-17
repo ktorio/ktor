@@ -7,6 +7,10 @@ fun RoutingResolveContext(path: String, parameters: ValuesMap = ValuesMap.Empty)
     return RoutingResolveContext(HttpRequestLine(HttpMethod.Get, path, "HTTP/1.1"), parameters)
 }
 
+fun RoutingResolveContext(path: String, parameters: ValuesMap = ValuesMap.Empty, headers: ValuesMap = ValuesMap.Empty): RoutingResolveContext {
+    return RoutingResolveContext(HttpRequestLine(HttpMethod.Get, path, "HTTP/1.1"), parameters, headers)
+}
+
 class RoutingResolveContext(val verb: HttpRequestLine,
                             val parameters: ValuesMap = ValuesMap.Empty,
                             val headers: ValuesMap = ValuesMap.Empty) {
@@ -15,7 +19,8 @@ class RoutingResolveContext(val verb: HttpRequestLine,
 
 data class RoutingResolveResult(val succeeded: Boolean,
                                 val entry: RoutingEntry,
-                                val values: ValuesMap)
+                                val values: ValuesMap,
+                                val quality: Double)
 
 
 

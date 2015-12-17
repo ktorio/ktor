@@ -3,6 +3,7 @@ package org.jetbrains.ktor.util
 import java.util.*
 
 public class ValuesMap(map: Map<String, List<String>>, val caseInsensitiveKey: Boolean = false) {
+    fun isEmpty(): Boolean = map.isEmpty()
 
     companion object {
         val Empty = ValuesMap(mapOf())
