@@ -36,12 +36,23 @@ interface SessionTracker<S : Any> {
     fun unassign(context: ApplicationRequestContext)
 }
 
+/**
+ * Represents a session cookie transformation. Useful for such things like signing and encryption
+ */
+interface CookieTransformer {
+    fun transformRead(sessionCookieValue: String): String?
+    fun transformWrite(sessionCookieValue: String): String
+}
+
 data class CookiesSettings(
         val expireIn: TemporalAmount = Duration.ofDays(30),
-        val requireHttps: Boolean = false
+        val requireHttps: Boolean = false,
+        val transformers: List<CookieTransformer> = emptyList()
 )
 
-private fun CookiesSettings.newCookie(name: String, value: String) = Cookie(name, value, httpOnly = true, secure = requireHttps, expires = LocalDateTime.now().plus(expireIn))
+private fun CookiesSettings.newCookie(name: String, value: String) =
+        Cookie(name, value = transformers.fold(value) { value, t -> t.transformWrite(value) },
+                httpOnly = true, secure = requireHttps, expires = LocalDateTime.now().plus(expireIn))
 
 internal class CookieByValueSessionTracker<S : Any>(val settings: CookiesSettings, val cookieName: String, val serializer: SessionSerializer<S>) : SessionTracker<S> {
     override fun assign(context: ApplicationRequestContext, session: S) {
@@ -50,8 +61,16 @@ internal class CookieByValueSessionTracker<S : Any>(val settings: CookiesSetting
 
     override fun lookup(context: ApplicationRequestContext, injectSession: (S) -> Unit, next: ApplicationRequestContext.() -> ApplicationRequestStatus): ApplicationRequestStatus {
         val cookie = context.request.cookies[cookieName]
-        if (cookie != null) {
-            injectSession(serializer.deserialize(cookie))
+        var value = cookie
+        for (t in settings.transformers) {
+            if (value == null) {
+                break
+            }
+            value = t.transformRead(value)
+        }
+
+        if (value != null) {
+            injectSession(serializer.deserialize(value))
         }
         return next(context)
     }

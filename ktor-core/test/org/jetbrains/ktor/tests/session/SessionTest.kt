@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.tests.session
 
+import org.jetbrains.ktor.auth.crypto.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
@@ -107,6 +108,105 @@ class SessionTest {
 
             handleRequest(HttpMethod.Get, "/2") {
                 addHeader(HttpHeaders.Cookie, "SESSION_ID=$sessionId")
+            }
+        }
+    }
+
+    @Test
+    fun testDigestSession() {
+        withTestApplication {
+            application.withSessions<TestUserSession> {
+                withCookieByValue {
+                    settings = CookiesSettings(transformers = listOf(
+                            DigestCookieTransformer()
+                    ))
+                }
+            }
+
+            application.routing {
+                get("/1") {
+                    session(TestUserSession("id2", emptyList()))
+                    response.sendText("ok")
+                }
+                get("/2") {
+                    response.sendText("ok, ${sessionOrNull<TestUserSession>()?.userId}")
+                }
+            }
+
+            var sessionId = ""
+            handleRequest(HttpMethod.Get, "/1").let { response ->
+                val sessionCookie = response.response.cookies["SESSION"]
+                assertNotNull(sessionCookie, "No session cookie found")
+                sessionId = sessionCookie!!.value
+            }
+
+            handleRequest(HttpMethod.Get, "/2") {
+                addHeader(HttpHeaders.Cookie, "SESSION=${sessionId.encodeURL()}")
+            }.let { response ->
+                assertEquals("ok, id2", response.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/2") {
+//                addHeader(HttpHeaders.Cookie, "SESSION=$sessionId")
+            }.let { response ->
+                assertEquals("ok, null", response.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/2") {
+                val brokenSession = sessionId.mapIndexed { i, c -> if (i == sessionId.lastIndex) 'x' else c }.joinToString("")
+                addHeader(HttpHeaders.Cookie, "SESSION=${brokenSession.encodeURL()}")
+            }.let { response ->
+                assertEquals("ok, null", response.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testMacSession() {
+        val key = hex("03515606058610610561058")
+        withTestApplication {
+            application.withSessions<TestUserSession> {
+                withCookieByValue {
+                    settings = CookiesSettings(transformers = listOf(
+                            MessageAuthenticationCookieTransformer(key)
+                    ))
+                }
+            }
+
+            application.routing {
+                get("/1") {
+                    session(TestUserSession("id2", emptyList()))
+                    response.sendText("ok")
+                }
+                get("/2") {
+                    response.sendText("ok, ${sessionOrNull<TestUserSession>()?.userId}")
+                }
+            }
+
+            var sessionId = ""
+            handleRequest(HttpMethod.Get, "/1").let { response ->
+                val sessionCookie = response.response.cookies["SESSION"]
+                assertNotNull(sessionCookie, "No session cookie found")
+                sessionId = sessionCookie!!.value
+            }
+
+            handleRequest(HttpMethod.Get, "/2") {
+                addHeader(HttpHeaders.Cookie, "SESSION=${sessionId.encodeURL()}")
+            }.let { response ->
+                assertEquals("ok, id2", response.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/2") {
+                //                addHeader(HttpHeaders.Cookie, "SESSION=$sessionId")
+            }.let { response ->
+                assertEquals("ok, null", response.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/2") {
+                val brokenSession = sessionId.mapIndexed { i, c -> if (i == sessionId.lastIndex) 'x' else c }.joinToString("")
+                addHeader(HttpHeaders.Cookie, "SESSION=${brokenSession.encodeURL()}")
+            }.let { response ->
+                assertEquals("ok, null", response.response.content)
             }
         }
     }
