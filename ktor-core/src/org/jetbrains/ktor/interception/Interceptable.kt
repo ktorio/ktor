@@ -22,7 +22,7 @@ public class Interceptable1<TParam0, TResult>(val function: (TParam0) -> TResult
         interceptors.add(handler)
     }
 
-    fun invokeAt(param: TParam0, index: Int): TResult = when {
+    private fun invokeAt(param: TParam0, index: Int): TResult = when {
         index < interceptors.size -> interceptors[index](param, { param -> invokeAt(param, index + 1) })
         else -> function(param)
     }

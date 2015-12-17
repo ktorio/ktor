@@ -4,11 +4,9 @@ import kotlin.text.*
 
 fun String.substringAfterMatch(mr: MatchResult) = drop(mr.range.endInclusive + if (mr.range.isEmpty()) 0 else 1)
 
+private val escapeRegex = "\\\\.".toRegex()
 fun String.unescapeIfQuoted() = when {
-    startsWith('"') && endsWith('"') -> {
-        val escapeRegex = "\\\\.".toRegex()
-        removeSurrounding("\"").replace(escapeRegex) { it.value.takeLast(1) }
-    }
+    startsWith('"') && endsWith('"') -> removeSurrounding("\"").replace(escapeRegex) { it.value.takeLast(1) }
     else -> this
 }
 

@@ -178,5 +178,5 @@ class DigestTest {
         return digester.digest()
     }
 
-    private fun String.normalize() = lines().map { it.trim() }.joinToString(" ")
+    private fun String.normalize() = lineSequence().map { it.trim() }.joinToString(" ")
 }

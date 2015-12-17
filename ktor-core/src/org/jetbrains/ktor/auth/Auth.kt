@@ -214,12 +214,12 @@ public fun ApplicationRequest.parseAuthorizationHeader(): HttpAuthHeader? = auth
     parseAuthorizationHeader(it)
 }
 
-public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
-    val token68Pattern = "[a-zA-Z0-9\\-\\._~+/]+=*".toRegex()
-    val authSchemePattern = "\\S+".toRegex()
-    val valuePatternPart = """("((\\.)|[^\\\"])*")|[^\s,]*"""
-    val parameterPattern = "\\s*,?\\s*($token68Pattern)\\s*=\\s*($valuePatternPart)\\s*,?\\s*".toRegex()
+private val token68Pattern = "[a-zA-Z0-9\\-\\._~+/]+=*".toRegex()
+private val authSchemePattern = "\\S+".toRegex()
+private val valuePatternPart = """("((\\.)|[^\\\"])*")|[^\s,]*"""
+private val parameterPattern = "\\s*,?\\s*($token68Pattern)\\s*=\\s*($valuePatternPart)\\s*,?\\s*".toRegex()
 
+public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
     val schemeRegion = authSchemePattern.find(headerValue) ?: return null
     val authScheme = schemeRegion.value
     val remaining = headerValue.substringAfterMatch(schemeRegion).trimStart()
@@ -230,8 +230,7 @@ public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
     }
 
     val parameters = parameterPattern.findAll(remaining)
-            .map { it.groups[1]!!.value to it.groups[2]!!.value.unescapeIfQuoted() }
-            .toMap()
+            .toMap({ it.groups[1]!!.value }, { it.groups[2]!!.value.unescapeIfQuoted() })
 
     return HttpAuthHeader.Parameterized(authScheme, parameters)
 }
