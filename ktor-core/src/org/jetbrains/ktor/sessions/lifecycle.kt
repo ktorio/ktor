@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.sessions
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 import kotlin.reflect.*
 
@@ -28,8 +29,19 @@ fun <S : Any> ApplicationRequestContext.session(type: KClass<S>): S = attributes
 inline fun <reified S : Any> ApplicationRequestContext.sessionOrNull(): S? = sessionOrNull(S::class)
 fun <S : Any> ApplicationRequestContext.sessionOrNull(type: KClass<S>): S? = if (SessionKey in attributes) attributes[SessionKey].cast(type) else null
 
+@JvmName("withSessionsForRoutes")
+inline fun <reified S : Any> InterceptableWithContext<RoutingApplicationRequestContext>.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) {
+    withSessions(S::class, block)
+}
+
 inline fun <reified S : Any> InterceptableWithContext<ApplicationRequestContext>.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) =
     withSessions(S::class, block)
+
+@JvmName("withSessionsForRoutes")
+fun <S : Any> InterceptableWithContext<RoutingApplicationRequestContext>.withSessions(type: KClass<S>, block: SessionConfigBuilder<S>.() -> Unit) {
+    @Suppress("UNCHECKED_CAST")
+    (this as InterceptableWithContext<ApplicationRequestContext>).withSessions(type, block)
+}
 
 fun <S : Any> InterceptableWithContext<ApplicationRequestContext>.withSessions(type: KClass<S>, block: SessionConfigBuilder<S>.() -> Unit) {
     val sessionConfig = with(SessionConfigBuilder(type)) {

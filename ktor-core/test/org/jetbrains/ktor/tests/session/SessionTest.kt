@@ -210,6 +210,63 @@ class SessionTest {
             }
         }
     }
+
+    @Test
+    fun testRoutes() {
+        withTestApplication {
+            application.routing {
+                route("/") {
+                    withSessions<TestUserSession> {
+                        withCookieByValue()
+                    }
+
+                    get("/0") {
+                        response.sendText("It should be no session started")
+                    }
+                    get("/1") {
+                        var session: TestUserSession? = sessionOrNull()
+                        assertNull(session)
+
+                        assertFailsWith(IllegalArgumentException::class) {
+                            session<TestUserSession>() // no no-arg constructor
+                        }
+                        assertFailsWith(IllegalArgumentException::class) {
+                            session<EmptySession>() // bad class
+                        }
+
+                        session(TestUserSession("id1", emptyList()))
+                        session = session()
+                        assertNotNull(session)
+
+                        response.sendText("ok")
+                    }
+                    get("/2") {
+                        assertEquals(TestUserSession("id1", emptyList()), session<TestUserSession>())
+
+                        response.sendText("ok, ${session<TestUserSession>().userId}")
+                    }
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/0").let { response ->
+                assertNull(response.response.cookies["SESSION"], "It should be no session set by default")
+            }
+
+            var sessionParam: String = ""
+            handleRequest(HttpMethod.Get, "/1").let { response ->
+                val sessionCookie = response.response.cookies["SESSION"]
+                assertNotNull(sessionCookie, "No session cookie found")
+                sessionParam = sessionCookie!!.value
+
+                assertEquals(TestUserSession("id1", emptyList()), autoSerializerOf<TestUserSession>().deserialize(sessionParam))
+            }
+            handleRequest(HttpMethod.Get, "/2") {
+                addHeader(HttpHeaders.Cookie, "SESSION=${sessionParam.encodeURL()}")
+            }.let { response ->
+                assertEquals("ok, id1", response.response.content)
+            }
+        }
+    }
 }
 
 class EmptySession
