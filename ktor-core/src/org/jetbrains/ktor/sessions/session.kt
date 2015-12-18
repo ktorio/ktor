@@ -1,13 +1,87 @@
 package org.jetbrains.ktor.sessions
 
+import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.auth.crypto.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 import java.lang.reflect.*
 import java.math.*
+import java.time.*
+import java.time.temporal.*
 import java.util.*
 import java.util.concurrent.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
+
+interface SessionTracker<S : Any> {
+    fun lookup(context: ApplicationRequestContext, injectSession: (S) -> Unit, next: ApplicationRequestContext.() -> ApplicationRequestStatus): ApplicationRequestStatus
+    fun assign(context: ApplicationRequestContext, session: S)
+    fun unassign(context: ApplicationRequestContext)
+}
+
+class CookiesSettings {
+    val expireIn: TemporalAmount = Duration.ofDays(30)
+    val requireHttps: Boolean = false
+}
+
+private fun CookiesSettings.newCookie(name: String, value: String) = Cookie(name, value, httpOnly = true, secure = requireHttps, expires = LocalDateTime.now().plus(expireIn))
+
+class CookieByValueSessionTracker<S : Any>(val settings: CookiesSettings, val cookieName: String, val serializer: SessionSerializer<S>) : SessionTracker<S> {
+    override fun assign(context: ApplicationRequestContext, session: S) {
+        context.response.cookies.append(settings.newCookie(cookieName, serializer.serialize(session)))
+    }
+
+    override fun lookup(context: ApplicationRequestContext, injectSession: (S) -> Unit, next: ApplicationRequestContext.() -> ApplicationRequestStatus): ApplicationRequestStatus {
+        val cookie = context.request.cookies[cookieName]
+        if (cookie != null) {
+            injectSession(serializer.deserialize(cookie))
+        }
+        return next(context)
+    }
+
+    override fun unassign(context: ApplicationRequestContext) {
+        context.response.cookies.appendExpired(cookieName)
+    }
+}
+
+class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val settings: CookiesSettings, val cookieName: String = "SESSION_ID", val serializer: SessionSerializer<S>, val storage: SessionStorage) : SessionTracker<S> {
+
+    private val SessionIdKey = AttributeKey<String>()
+
+    override fun assign(context: ApplicationRequestContext, session: S) {
+        val sessionId = context.attributes.computeIfAbsent(SessionIdKey) { nextNonce() }
+        storage.save(sessionId) { out ->
+            out.bufferedWriter().use { writer ->
+                writer.write(serializer.serialize(session))
+            }
+        }
+        context.response.cookies.append(settings.newCookie(cookieName, sessionId))
+    }
+
+    override fun lookup(context: ApplicationRequestContext, injectSession: (S) -> Unit, next: ApplicationRequestContext.() -> ApplicationRequestStatus): ApplicationRequestStatus {
+        val sessionId = context.request.cookies[cookieName]
+        return if (sessionId == null) {
+            next(context)
+        } else {
+            context.attributes.put(SessionIdKey, sessionId)
+            context.handleAsync(exec, {
+                val session = serializer.deserialize(storage.read(sessionId) { input -> input.bufferedReader().readText() })
+                injectSession(session)
+                next(context)
+            }, {
+            })
+        }
+    }
+
+    override fun unassign(context: ApplicationRequestContext) {
+        context.attributes.remove(SessionIdKey)
+
+        context.request.cookies[cookieName]?.let { sessionId ->
+            context.response.cookies.appendExpired(cookieName)
+            storage.invalidate(sessionId)
+        }
+    }
+}
 
 interface SessionSerializer<T : Any> {
     fun serialize(session: T): String
