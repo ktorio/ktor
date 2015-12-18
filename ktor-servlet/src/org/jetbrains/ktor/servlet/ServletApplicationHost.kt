@@ -23,7 +23,7 @@ open class ServletApplicationHost() : HttpServlet() {
             config
 
         val applicationLog = SLF4JApplicationLog("ktor.application")
-        val applicationConfig = ApplicationConfig(combinedConfig, servletContext.classLoader, applicationLog)
+        val applicationConfig = HoconApplicationConfig(combinedConfig, servletContext.classLoader, applicationLog)
         ApplicationLoader(applicationConfig)
     }
 

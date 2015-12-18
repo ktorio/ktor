@@ -1,47 +1,25 @@
 package org.jetbrains.ktor.application
 
-import com.typesafe.config.*
-import java.net.*
+interface ApplicationConfig {
+    val classLoader: ClassLoader
+    val environment: String
+    val port: Int
+    val async: Boolean
+    val log: ApplicationLog
 
-/**
- * Store application configuration.
- */
-public open class ApplicationConfig(private val config: Config,
-                                    public val classLoader: ClassLoader,
-                                    public val log: ApplicationLog = NullApplicationLog()
-) {
-    public val environment: String get() = config.getString("ktor.deployment.environment")
-    public val applicationClassName: String = config.getString("ktor.application.class")
-    public val watchPatterns: List<String> = config.getStringListOrEmpty("ktor.application.watch")
+    fun getString(configuration: String): String
+    fun getStringListOrEmpty(configuration: String): List<String>
+}
 
-    /** Directories where publicly available files (like stylesheets, scripts, and images) will go. */
-    public val publicDirectories: List<String> = config.getStringListOrEmpty("ktor.application.folders.public")
+fun applicationConfig(builder: ApplicationConfigBuilder.() -> Unit): ApplicationConfig = ApplicationConfigBuilder().apply(builder)
 
-    /** The port to run the server on. */
-    public val port: Int = config.getIntOrDefault("ktor.deployment.port", 80)
-    public val async: Boolean = config.getBooleanOrDefault("ktor.deployment.async", false)
+class ApplicationConfigBuilder : ApplicationConfig {
+    override fun getString(configuration: String): String = throw UnsupportedOperationException()
+    override fun getStringListOrEmpty(configuration: String): List<String> = throw UnsupportedOperationException()
 
-    public operator fun get(configuration: String): String = config.getString(configuration)
-    public fun tryGet(configuration: String): String? = if (config.hasPath(configuration))
-        config.getString(configuration)
-    else
-        null
-
-    private fun Config.getStringListOrEmpty(path: String): List<String> =
-            if (hasPath(path))
-                getStringList(path)
-            else
-                emptyList()
-
-    private fun Config.getIntOrDefault(path: String, default: Int): Int =
-            if (hasPath(path))
-                getInt(path)
-            else
-                default
-
-    private fun Config.getBooleanOrDefault(path: String, default: Boolean): Boolean =
-            if (hasPath(path))
-                getBoolean(path)
-            else
-                default
+    public override var classLoader: ClassLoader = ApplicationConfigBuilder::class.java.classLoader
+    override var log: ApplicationLog = SLF4JApplicationLog("embedded")
+    override var environment: String = "development"
+    override var port: Int = 80
+    override var async: Boolean = false
 }

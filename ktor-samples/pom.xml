@@ -19,6 +19,7 @@
         <module>ktor-samples-testable</module>
         <module>ktor-samples-json</module>
         <module>ktor-samples-post</module>
+        <module>ktor-samples-embedded</module>
     </modules>
 
     <dependencies>

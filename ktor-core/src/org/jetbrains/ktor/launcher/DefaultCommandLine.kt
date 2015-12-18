@@ -17,7 +17,7 @@ fun buildDefaultConfig(args: Array<String>): ApplicationConfig {
     val log = SLF4JApplicationLog(applicationId)
     val classLoader = jar?.let { URLClassLoader(arrayOf(jar), ApplicationConfig::class.java.classLoader) }
             ?: ApplicationConfig::class.java.classLoader
-    val appConfig = ApplicationConfig(combinedConfig, classLoader, log)
+    val appConfig = HoconApplicationConfig(combinedConfig, classLoader, log)
     log.info(combinedConfig.getObject("ktor").render())
 
     return appConfig

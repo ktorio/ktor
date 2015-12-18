@@ -11,11 +11,13 @@ import java.util.*
 
 /** Controls the loading of a Ktor app from a directory.
  */
-public class ApplicationLoader(val config: ApplicationConfig) {
+public class ApplicationLoader(val config: ApplicationConfig) : ApplicationLifecycle {
     private var _applicationInstance: Application? = null
     private val applicationInstanceLock = Object()
     private val packageWatchKeys = ArrayList<WatchKey>()
     private val log = config.log.fork("Loader")
+    private val applicationClassName: String = config.getString("ktor.application.class")
+    private val watchPatterns: List<String> = config.getStringListOrEmpty("ktor.application.watch")
 
     public fun ApplicationConfig.isDevelopment(): Boolean = environment == "development"
 
@@ -24,7 +26,7 @@ public class ApplicationLoader(val config: ApplicationConfig) {
     }
 
     @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
-    public val application: Application
+    public override val application: Application
         get() = synchronized(applicationInstanceLock) {
             if (config.isDevelopment()) {
                 val changes = packageWatchKeys.flatMap { it.pollEvents() }
@@ -68,7 +70,7 @@ public class ApplicationLoader(val config: ApplicationConfig) {
     fun createApplication(): Application {
         val classLoader = if (config.isDevelopment()) {
             val allUrls = config.classLoader.allURLs()
-            val watchPatterns = config.watchPatterns
+            val watchPatterns = watchPatterns
             val watchUrls = allUrls.filter { url -> watchPatterns.any { pattern -> url.toString().contains(pattern) } }
             watchUrls(watchUrls)
             OverridingClassLoader(watchUrls, config.classLoader)
@@ -79,13 +81,13 @@ public class ApplicationLoader(val config: ApplicationConfig) {
         val oldThreadClassLoader = currentThread.contextClassLoader
         currentThread.contextClassLoader = classLoader
         try {
-            val applicationClass = classLoader.loadClass(config.applicationClassName)
-                    ?: throw RuntimeException("Application class ${config.applicationClassName} cannot be loaded")
+            val applicationClass = classLoader.loadClass(applicationClassName)
+                    ?: throw RuntimeException("Application class $applicationClassName cannot be loaded")
             log.debug("Application class: $applicationClass in ${applicationClass.classLoader}")
             val cons = applicationClass.getConstructor(ApplicationConfig::class.java)
             val application = cons.newInstance(config)
             if (application !is Application)
-                throw RuntimeException("Application class ${config.applicationClassName} should inherit from ${Application::class}")
+                throw RuntimeException("Application class ${applicationClassName} should inherit from ${Application::class}")
             return application
         } finally {
             currentThread.contextClassLoader = oldThreadClassLoader
@@ -136,7 +138,8 @@ public class ApplicationLoader(val config: ApplicationConfig) {
         })
     }
 
-    public fun dispose() {
+    public override fun dispose() {
         destroyApplication()
     }
 }
+

@@ -5,6 +5,7 @@ import org.eclipse.jetty.server.handler.*
 import org.eclipse.jetty.server.session.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.servlet.*
 import java.io.*
 import javax.servlet.*
@@ -12,11 +13,31 @@ import javax.servlet.http.*
 
 /** A Runnable responsible for managing a Jetty server instance.
  */
-class JettyApplicationHost(val config: ApplicationConfig) {
-    var server: Server? = null
-    val loader = ApplicationLoader(config)
+class JettyApplicationHost {
+    val applicationLifecycle: ApplicationLifecycle
+    val config: ApplicationConfig
+    val application: Application get() = applicationLifecycle.application
 
-    val application: Application get() = loader.application
+    constructor(config: ApplicationConfig) {
+        this.config = config
+        this.applicationLifecycle = ApplicationLoader(config)
+    }
+
+    constructor(config: ApplicationConfig, applicationFunction: ApplicationLifecycle) {
+        this.config = config
+        this.applicationLifecycle = applicationFunction
+    }
+
+    constructor(config: ApplicationConfig, application: Application) {
+        this.config = config
+        this.applicationLifecycle = object : ApplicationLifecycle {
+            override val application: Application = application
+            override fun dispose() {
+            }
+        }
+    }
+
+    var server: Server? = null
     val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"));
 
     inner class Handler() : AbstractHandler() {
@@ -67,15 +88,6 @@ class JettyApplicationHost(val config: ApplicationConfig) {
             connectors = arrayOf(connector)
         }
 
-        config.publicDirectories.forEach { path ->
-            config.log.info("Attaching resource handler: $path")
-            val resourceHandler = ResourceHandler()
-            resourceHandler.isDirectoriesListed = false
-            resourceHandler.resourceBase = "./$path"
-            resourceHandler.welcomeFiles = arrayOf("index.html")
-            //TODO: resourceHandlers.add(resourceHandler)
-        }
-
         val sessionHandler = SessionHandler()
         val sessionManager = HashSessionManager()
         sessionManager.storeDirectory = File("tmp/sessions")
@@ -101,4 +113,15 @@ class JettyApplicationHost(val config: ApplicationConfig) {
         this.start()
     }
 
+}
+
+fun embeddedJettyServer(port: Int, application: Routing.() -> Unit) = embeddedJettyServer(applicationConfig { this.port = port }, application)
+fun embeddedJettyServer(config: ApplicationConfig, application: Routing.() -> Unit) {
+    val applicationObject = object : Application(config) {
+        init {
+            Routing().apply(application).installInto(this)
+        }
+    }
+    val host = JettyApplicationHost(config, applicationObject)
+    host.start()
 }

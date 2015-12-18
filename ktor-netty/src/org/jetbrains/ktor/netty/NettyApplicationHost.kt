@@ -9,10 +9,31 @@ import io.netty.handler.codec.http.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.routing.*
 
-public class NettyApplicationHost(val config: ApplicationConfig) {
-    private val loader: ApplicationLoader = ApplicationLoader(config)
-    val application: Application get() = loader.application
+public class NettyApplicationHost {
+    val applicationLifecycle: ApplicationLifecycle
+    val config: ApplicationConfig
+    val application: Application get() = applicationLifecycle.application
+
+    constructor(config: ApplicationConfig) {
+        this.config = config
+        this.applicationLifecycle = ApplicationLoader(config)
+    }
+
+    constructor(config: ApplicationConfig, applicationFunction: ApplicationLifecycle) {
+        this.config = config
+        this.applicationLifecycle = applicationFunction
+    }
+
+    constructor(config: ApplicationConfig, application: Application) {
+        this.config = config
+        this.applicationLifecycle = object : ApplicationLifecycle {
+            override val application: Application = application
+            override fun dispose() {
+            }
+        }
+    }
 
     val mainEventGroup = NioEventLoopGroup()
     val workerEventGroup = NioEventLoopGroup()
@@ -33,6 +54,7 @@ public class NettyApplicationHost(val config: ApplicationConfig) {
     }
 
     public fun start(wait: Boolean = true) {
+        config.log.info("Server running.")
         val channel = bootstrap.bind(config.port).sync().channel()
         if (wait) {
             channel.closeFuture().sync()
@@ -42,7 +64,8 @@ public class NettyApplicationHost(val config: ApplicationConfig) {
     public fun stop() {
         workerEventGroup.shutdownGracefully()
         mainEventGroup.shutdownGracefully()
-        loader.dispose()
+        applicationLifecycle.dispose()
+        config.log.info("Server stopped.")
     }
 
     inner class HostHttpHandler : SimpleChannelInboundHandler<FullHttpRequest>() {
@@ -56,7 +79,9 @@ public class NettyApplicationHost(val config: ApplicationConfig) {
                     applicationContext.close()
                 }
                 ApplicationRequestStatus.Handled -> applicationContext.close()
-                ApplicationRequestStatus.Asynchronous -> { /* do nothing */}
+                ApplicationRequestStatus.Asynchronous -> {
+                    /* do nothing */
+                }
             }
         }
 
@@ -71,6 +96,15 @@ public class NettyApplicationHost(val config: ApplicationConfig) {
     }
 }
 
-
+fun embeddedNettyServer(port: Int, application: Routing.() -> Unit) = embeddedNettyServer(applicationConfig { this.port = port }, application)
+fun embeddedNettyServer(config: ApplicationConfig, application: Routing.() -> Unit) {
+    val applicationObject = object : Application(config) {
+        init {
+            Routing().apply(application).installInto(this)
+        }
+    }
+    val host = NettyApplicationHost(config, applicationObject)
+    host.start()
+}
 
 
