@@ -11,10 +11,10 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 
-public class NettyApplicationHost {
-    val applicationLifecycle: ApplicationLifecycle
-    val config: ApplicationConfig
-    val application: Application get() = applicationLifecycle.application
+public class NettyApplicationHost : ApplicationHost {
+    private val applicationLifecycle: ApplicationLifecycle
+    private val config: ApplicationConfig
+    private val application: Application get() = applicationLifecycle.application
 
     constructor(config: ApplicationConfig) {
         this.config = config
@@ -35,10 +35,10 @@ public class NettyApplicationHost {
         }
     }
 
-    val mainEventGroup = NioEventLoopGroup()
-    val workerEventGroup = NioEventLoopGroup()
+    private val mainEventGroup = NioEventLoopGroup()
+    private val workerEventGroup = NioEventLoopGroup()
 
-    val bootstrap = ServerBootstrap().apply {
+    private val bootstrap = ServerBootstrap().apply {
         group(mainEventGroup, workerEventGroup)
         channel(NioServerSocketChannel::class.java)
         childHandler(object : ChannelInitializer<SocketChannel>() {
@@ -53,15 +53,20 @@ public class NettyApplicationHost {
 
     }
 
-    public fun start(wait: Boolean = true) {
+    public override fun start() {
+        bootstrap.bind(config.port).sync()
         config.log.info("Server running.")
+    }
+
+    public fun start(wait: Boolean = true) {
         val channel = bootstrap.bind(config.port).sync().channel()
+        config.log.info("Server running.")
         if (wait) {
             channel.closeFuture().sync()
         }
     }
 
-    public fun stop() {
+    public override fun stop() {
         workerEventGroup.shutdownGracefully()
         mainEventGroup.shutdownGracefully()
         applicationLifecycle.dispose()
@@ -97,14 +102,13 @@ public class NettyApplicationHost {
 }
 
 fun embeddedNettyServer(port: Int, application: Routing.() -> Unit) = embeddedNettyServer(applicationConfig { this.port = port }, application)
-fun embeddedNettyServer(config: ApplicationConfig, application: Routing.() -> Unit) {
+fun embeddedNettyServer(config: ApplicationConfig, application: Routing.() -> Unit): ApplicationHost {
     val applicationObject = object : Application(config) {
         init {
             Routing().apply(application).installInto(this)
         }
     }
-    val host = NettyApplicationHost(config, applicationObject)
-    host.start()
+    return NettyApplicationHost(config, applicationObject)
 }
 
 

@@ -13,7 +13,7 @@ import javax.servlet.http.*
 
 /** A Runnable responsible for managing a Jetty server instance.
  */
-class JettyApplicationHost {
+class JettyApplicationHost : ApplicationHost {
     val applicationLifecycle: ApplicationLifecycle
     val config: ApplicationConfig
     val application: Application get() = applicationLifecycle.application
@@ -67,7 +67,7 @@ class JettyApplicationHost {
         }
     }
 
-    public fun start() {
+    public override fun start() {
         config.log.info("Starting server...")
 
         var port: Int
@@ -101,27 +101,20 @@ class JettyApplicationHost {
         config.log.info("Server stopped.")
     }
 
-    public fun stop() {
+    public override fun stop() {
         if (server != null) {
             server?.stop()
             server = null
         }
     }
-
-    public fun restart() {
-        this.stop()
-        this.start()
-    }
-
 }
 
 fun embeddedJettyServer(port: Int, application: Routing.() -> Unit) = embeddedJettyServer(applicationConfig { this.port = port }, application)
-fun embeddedJettyServer(config: ApplicationConfig, application: Routing.() -> Unit) {
+fun embeddedJettyServer(config: ApplicationConfig, application: Routing.() -> Unit) : ApplicationHost {
     val applicationObject = object : Application(config) {
         init {
             Routing().apply(application).installInto(this)
         }
     }
-    val host = JettyApplicationHost(config, applicationObject)
-    host.start()
+    return JettyApplicationHost(config, applicationObject)
 }
