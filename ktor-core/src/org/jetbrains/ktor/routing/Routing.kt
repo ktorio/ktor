@@ -4,7 +4,12 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.util.*
 import java.util.*
 
-class Routing() : RoutingEntry(parent = null) {
+class Routing() : RoutingEntry(parent = null, selector = Routing.RootRoutingSelector) {
+
+    object RootRoutingSelector : RoutingSelector {
+        override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation = throw UnsupportedOperationException()
+        override fun toString(): String = ""
+    }
 
     data class Key<T : Any>(val name: String)
 
@@ -26,8 +31,8 @@ class Routing() : RoutingEntry(parent = null) {
     protected fun resolve(entry: RoutingEntry, request: RoutingResolveContext, segmentIndex: Int): RoutingResolveResult {
         var failEntry: RoutingEntry? = null
         val results = ArrayList<RoutingResolveResult>()
-        for ((selector, child) in entry.children) {
-            val result = selector.evaluate(request, segmentIndex)
+        for (child in entry.children) {
+            val result = child.selector.evaluate(request, segmentIndex)
             if (result.succeeded) {
                 val subtreeResult = resolve(child, request, segmentIndex + result.segmentIncrement)
                 if (subtreeResult.succeeded ) {

@@ -27,6 +27,8 @@ data class ConstantParameterRoutingSelector(val name: String, val value: String)
             return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant)
         return RouteSelectorEvaluation.Failed
     }
+
+    override fun toString(): String = "[$name = $value]"
 }
 
 data class ParameterRoutingSelector(val name: String) : RoutingSelector {
@@ -36,6 +38,8 @@ data class ParameterRoutingSelector(val name: String) : RoutingSelector {
             return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, valuesOf(name to param))
         return RouteSelectorEvaluation.Failed
     }
+
+    override fun toString(): String = "[$name]"
 }
 
 data class OptionalParameterRoutingSelector(val name: String) : RoutingSelector {
@@ -45,6 +49,8 @@ data class OptionalParameterRoutingSelector(val name: String) : RoutingSelector 
             return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, valuesOf(name to param))
         return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityMissing)
     }
+
+    override fun toString(): String = "[$name?]"
 }
 
 data class UriPartConstantRoutingSelector(val name: String) : RoutingSelector {
@@ -53,6 +59,8 @@ data class UriPartConstantRoutingSelector(val name: String) : RoutingSelector {
             return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant, segmentIncrement = 1)
         return RouteSelectorEvaluation.Failed
     }
+
+    override fun toString(): String = "$name"
 }
 
 data class UriPartParameterRoutingSelector(val name: String) : RoutingSelector {
@@ -63,6 +71,8 @@ data class UriPartParameterRoutingSelector(val name: String) : RoutingSelector {
         }
         return RouteSelectorEvaluation.Failed
     }
+
+    override fun toString(): String = "{$name}"
 }
 
 data class UriPartOptionalParameterRoutingSelector(val name: String) : RoutingSelector {
@@ -73,6 +83,8 @@ data class UriPartOptionalParameterRoutingSelector(val name: String) : RoutingSe
         }
         return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityMissing)
     }
+
+    override fun toString(): String = "{$name?}"
 }
 
 object UriPartWildcardRoutingSelector : RoutingSelector {
@@ -82,6 +94,8 @@ object UriPartWildcardRoutingSelector : RoutingSelector {
         }
         return RouteSelectorEvaluation.Failed
     }
+
+    override fun toString(): String = "*"
 }
 
 data class UriPartTailcardRoutingSelector(val name: String = "") : RoutingSelector {
@@ -92,6 +106,8 @@ data class UriPartTailcardRoutingSelector(val name: String = "") : RoutingSelect
         }
         return RouteSelectorEvaluation.Failed
     }
+
+    override fun toString(): String = "{...}"
 }
 
 data class OrRoutingSelector(val first: RoutingSelector, val second: RoutingSelector) : RoutingSelector {
@@ -102,6 +118,8 @@ data class OrRoutingSelector(val first: RoutingSelector, val second: RoutingSele
         else
             return second.evaluate(context, index)
     }
+
+    override fun toString(): String = "{$first | $second}"
 }
 
 data class AndRoutingSelector(val first: RoutingSelector, val second: RoutingSelector) : RoutingSelector {
@@ -118,6 +136,8 @@ data class AndRoutingSelector(val first: RoutingSelector, val second: RoutingSel
         }
         return RouteSelectorEvaluation(true, result1.quality * result2.quality, resultValues, result1.segmentIncrement + result2.segmentIncrement)
     }
+
+    override fun toString(): String = "{$first & $second}"
 }
 
 data class HttpMethodRoutingSelector(val method: HttpMethod) : RoutingSelector {
@@ -126,6 +146,8 @@ data class HttpMethodRoutingSelector(val method: HttpMethod) : RoutingSelector {
             return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant)
         return RouteSelectorEvaluation.Failed
     }
+
+    override fun toString(): String = "(method:${method.value})"
 }
 
 data class HttpHeaderRoutingSelector(val name: String, val value: String) : RoutingSelector {
@@ -137,4 +159,6 @@ data class HttpHeaderRoutingSelector(val name: String, val value: String) : Rout
             return RouteSelectorEvaluation(true, header.quality)
         return RouteSelectorEvaluation.Failed
     }
+
+    override fun toString(): String = "(header:$name = $value)"
 }
