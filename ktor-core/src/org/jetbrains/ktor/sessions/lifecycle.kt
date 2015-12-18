@@ -14,8 +14,6 @@ class SessionConfig<T: Any>(
         val serializer: SessionSerializer<T> = autoSerializerOf(type),
         val storage: SessionStorage,
         val exec: ScheduledExecutorService = Executors.unconfigurableScheduledExecutorService(Executors.newScheduledThreadPool(1)),
-        val activateSession: (T) -> Unit = {},
-        val passivateSession: (T) -> Unit = {},
         val sessionCookieName: String = "SESSION"
 )
 
