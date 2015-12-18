@@ -3,9 +3,11 @@ package org.jetbrains.ktor.tests.http
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.testing.*
+import org.junit.*
 import java.text.*
 import java.time.*
 import java.time.format.*
+import java.time.temporal.*
 import java.util.*
 import kotlin.test.*
 import org.junit.Test as test
@@ -32,6 +34,7 @@ class CookiesTest {
         }
     }
 
+    @Ignore // it won't work with dates anyway so this feature was removed
     @test fun `comma separator instead of semicolon`() {
         withRawCookies("SESSION=000, HOST=zzz") {
             assertEquals("000", cookies["SESSION"])
@@ -264,5 +267,15 @@ class ParserServerSetCookieTest {
         assertEquals(999, parsed.maxAge)
         assertEquals("1", parsed.extensions["\$extension"])
         assertEquals(CookieEncoding.URI_ENCODING, parsed.encoding)
+    }
+
+    @test fun testParseExpires() {
+        val header = "SESSION=cart%3D%2523cl%26userId%3D%2523sid1; Expires=Sat, 16 Jan 2016 13:43:28 GMT; HttpOnly; \$x-enc=URI_ENCODING"
+        val parsed = parseServerSetCookieHeader(header)
+
+        assertNotNull(parsed.expires)
+        assertEquals(2016, parsed.expires!!.get(ChronoField.YEAR))
+        assertEquals(1, parsed.expires!!.get(ChronoField.MONTH_OF_YEAR))
+        assertEquals(16, parsed.expires!!.get(ChronoField.DAY_OF_MONTH))
     }
 }

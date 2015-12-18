@@ -45,7 +45,7 @@ public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
 }
 
 public fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true): Map<String, String> {
-    val pattern = """(^|;|,)\s*([^()<>@,;:/\\"\[\]\?=\{\}\s]+)\s*(=\s*("[^"]*"|[^;,]*))?""".toRegex()
+    val pattern = """(^|;)\s*([^()<>@;:/\\"\[\]\?=\{\}\s]+)\s*(=\s*("[^"]*"|[^;]*))?""".toRegex()
 
     return pattern.findAll(cookiesHeader)
         .map { (it.groups[2]?.value ?: "") to (it.groups[4]?.value ?: "") }
