@@ -9,9 +9,30 @@ import java.time.temporal.*
 import java.util.concurrent.*
 import kotlin.reflect.*
 
+class SessionConfig<S : Any>(
+        val type: KClass<S>,
+        val sessionTracker: SessionTracker<S>
+)
+
+/**
+ * SessionTracker provides ability to track and extract session by the context.
+ * For example it could track it by cookie with session id or by IP address (could be good enough for corporate applications)
+ */
 interface SessionTracker<S : Any> {
+    /**
+     * Lookup session using the context, call [injectSession] if available and pass execution to the [next] in any case.
+     * It is recommended to be async if there is external session store
+     */
     fun lookup(context: ApplicationRequestContext, injectSession: (S) -> Unit, next: ApplicationRequestContext.() -> ApplicationRequestStatus): ApplicationRequestStatus
+
+    /**
+     * Assign session using the context. Override if there is existing session. Could be blocking.
+     */
     fun assign(context: ApplicationRequestContext, session: S)
+
+    /**
+     * Unassign session if present. Does nothing if no session assigned.
+     */
     fun unassign(context: ApplicationRequestContext)
 }
 
@@ -22,7 +43,7 @@ data class CookiesSettings(
 
 private fun CookiesSettings.newCookie(name: String, value: String) = Cookie(name, value, httpOnly = true, secure = requireHttps, expires = LocalDateTime.now().plus(expireIn))
 
-private class CookieByValueSessionTracker<S : Any>(val settings: CookiesSettings, val cookieName: String, val serializer: SessionSerializer<S>) : SessionTracker<S> {
+internal class CookieByValueSessionTracker<S : Any>(val settings: CookiesSettings, val cookieName: String, val serializer: SessionSerializer<S>) : SessionTracker<S> {
     override fun assign(context: ApplicationRequestContext, session: S) {
         context.response.cookies.append(settings.newCookie(cookieName, serializer.serialize(session)))
     }
@@ -40,7 +61,7 @@ private class CookieByValueSessionTracker<S : Any>(val settings: CookiesSettings
     }
 }
 
-private class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val sessionIdProvider: () -> String = { nextNonce() }, val settings: CookiesSettings, val cookieName: String = "SESSION_ID", val serializer: SessionSerializer<S>, val storage: SessionStorage) : SessionTracker<S> {
+internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val sessionIdProvider: () -> String = { nextNonce() }, val settings: CookiesSettings, val cookieName: String = "SESSION_ID", val serializer: SessionSerializer<S>, val storage: SessionStorage) : SessionTracker<S> {
 
     private val SessionIdKey = AttributeKey<String>()
 
@@ -99,14 +120,14 @@ interface HasSerializer<S : Any> {
     var serializer: SessionSerializer<S>
 }
 
-fun <S : Any> HasTracker<S>.withCookieBySessionId(storage: SessionStorage, block: CookieByIdSessionTrackerBuilder<S>.() -> Unit) {
+fun <S : Any> HasTracker<S>.withCookieBySessionId(storage: SessionStorage, block: CookieByIdSessionTrackerBuilder<S>.() -> Unit = {}) {
     CookieByIdSessionTrackerBuilder(type, storage).apply {
         block()
         sessionTracker = build()
     }
 }
 
-fun <S : Any> HasTracker<S>.withCookieByValue(block: CookieByValueSessionTrackerBuilder<S>.() -> Unit) {
+fun <S : Any> HasTracker<S>.withCookieByValue(block: CookieByValueSessionTrackerBuilder<S>.() -> Unit = {}) {
     CookieByValueSessionTrackerBuilder(type).apply {
         block()
         sessionTracker = build()
