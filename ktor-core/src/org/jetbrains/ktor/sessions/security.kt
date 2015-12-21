@@ -23,8 +23,8 @@ class DigestCookieTransformer(val salt: String = "ktor", val algorithm: String =
     }
 }
 
-class MessageAuthenticationCookieTransformer(val key: ByteArray, val algorithm: String = "HmacSHA1") : CookieTransformer {
-    private val keySpec = SecretKeySpec(key, algorithm)
+class MessageAuthenticationCookieTransformer(val keySpec: SecretKeySpec, val algorithm: String = "HmacSHA1") : CookieTransformer {
+    constructor(key: ByteArray, algorithm: String = "HmacSHA1") : this(SecretKeySpec(key, algorithm), algorithm)
 
     override fun transformRead(sessionCookieValue: String): String? {
         val expectedSignature = sessionCookieValue.substringAfterLast('/', "")
@@ -36,7 +36,7 @@ class MessageAuthenticationCookieTransformer(val key: ByteArray, val algorithm: 
     override fun transformWrite(sessionCookieValue: String): String = "$sessionCookieValue/${mac(sessionCookieValue)}"
 
     private fun mac(value: String): String {
-        val mac = Mac.getInstance("HmacSHA1")
+        val mac = Mac.getInstance(algorithm)
         mac.init(keySpec)
 
         return hex(mac.doFinal(value.toByteArray()))
