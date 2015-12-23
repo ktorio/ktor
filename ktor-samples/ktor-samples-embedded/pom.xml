@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ktor-samples</artifactId>
         <groupId>org.jetbrains</groupId>
-        <version>0.1.5-SNAPSHOT</version>
+        <version>0.1.5</version>
     </parent>
 
     <artifactId>ktor-samples-embedded</artifactId>
@@ -14,12 +14,12 @@
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>ktor-netty</artifactId>
-            <version>0.1.5-SNAPSHOT</version>
+            <version>0.1.5</version>
         </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>ktor-jetty</artifactId>
-            <version>0.1.5-SNAPSHOT</version>
+            <version>0.1.5</version>
         </dependency>
     </dependencies>
 
