@@ -132,6 +132,23 @@
                     <autoVersionSubmodules>true</autoVersionSubmodules>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>com.devexperts.bintray</groupId>
+                <artifactId>bintray-maven-plugin</artifactId>
+                <version>1.0.1</version>
+                <executions>
+                    <execution>
+                        <id>bintray-deploy</id>
+                        <goals>
+                            <goal>publish</goal>
+                        </goals>
+                        <configuration>
+                            <id>bintray</id>
+                            <url>https://api.bintray.com/maven/kotlin/ktor/${project.artifactId}</url>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
@@ -141,6 +158,13 @@
             <url>https://api.bintray.com/maven/kotlin/ktor/${project.artifactId}</url>
         </repository>
     </distributionManagement>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jcenter</id>
+            <url>http://jcenter.bintray.com</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <scm>
         <connection>scm:git:https://github.com/Kotlin/ktor.git</connection>
