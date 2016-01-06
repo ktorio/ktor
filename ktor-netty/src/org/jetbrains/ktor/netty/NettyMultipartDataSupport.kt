@@ -7,7 +7,6 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.util.*
 import java.io.*
-import kotlin.support.*
 
 
 private class MultipartIterator(val decoder: HttpPostMultipartRequestDecoder) : AbstractIterator<InterfaceHttpData>() {

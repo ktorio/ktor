@@ -65,7 +65,7 @@ class AuthorizeHeaderParserTest {
         assertEquals(scheme, actual.authScheme)
 
         if (actual is HttpAuthHeader.Parameterized) {
-            assertEquals(value, actual.parameters.toMap({it.name}, {it.value}))
+            assertEquals(value, actual.parameters.toMapBy({ it.name }, { it.value }))
         } else {
             fail("It should return parameterized-value credential")
         }

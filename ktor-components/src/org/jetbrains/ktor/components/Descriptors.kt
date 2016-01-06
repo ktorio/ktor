@@ -42,8 +42,8 @@ internal fun calculateClassDependencies(klass: Class<*>): Set<Type> {
     for (member in klass.methods) {
         val annotations = member.declaredAnnotations
         for (annotation in annotations) {
-            val annotationType = annotation.annotationType()
-            if (annotationType.name.substringAfterLast('.') == "Inject") {
+            val annotationType = annotation.annotationClass
+            if (annotationType.simpleName == "Inject") {
                 dependencies.addAll(member.genericParameterTypes)
             }
         }

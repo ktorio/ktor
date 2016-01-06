@@ -45,5 +45,5 @@ public class ServletApplicationRequest(internal val servletRequest: HttpServletR
 }
 
 private class ServletRequestCookies(val servletRequest: HttpServletRequest, request: ApplicationRequest) : RequestCookies(request) {
-    override val parsedRawCookies: Map<String, String> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { servletRequest.cookies?.toMap({ it.name }, { it.value }) ?: emptyMap() }
+    override val parsedRawCookies: Map<String, String> by lazy(LazyThreadSafetyMode.SYNCHRONIZED) { servletRequest.cookies?.toMapBy({ it.name }, { it.value }) ?: emptyMap() }
 }

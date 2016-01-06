@@ -10,7 +10,7 @@ open class ServletApplicationHost() : HttpServlet() {
     private val loader: ApplicationLoader by lazy {
         val servletContext = servletContext
         val parameterNames = servletContext.initParameterNames.toList().filter { it.startsWith("org.jetbrains.ktor") }
-        val parameters = parameterNames.toMap({ it.removePrefix("org.jetbrains.") }, { servletContext.getInitParameter(it) })
+        val parameters = parameterNames.toMapBy({ it.removePrefix("org.jetbrains.") }, { servletContext.getInitParameter(it) })
 
         val config = ConfigFactory.parseMap(parameters)
         val configPath = "ktor.config"

@@ -48,7 +48,7 @@ open public class LocationService(val conversionService: ConversionService) {
     }
 
     inline fun <reified T : Annotation> KAnnotatedElement.annotation(): T? {
-        return annotations.singleOrNull { it.annotationType() == T::class.java } as T?
+        return annotations.singleOrNull { it.annotationClass == T::class } as T?
     }
 
     private fun getOrCreateInfo(dataClass: KClass<*>): LocationInfo {

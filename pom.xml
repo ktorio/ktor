@@ -8,7 +8,7 @@
     <artifactId>ktor</artifactId>
 
     <properties>
-        <kotlin.version>1.0.0-beta-4583</kotlin.version>
+        <kotlin.version>0.1-SNAPSHOT</kotlin.version>
     </properties>
 
     <modules>
@@ -159,17 +159,42 @@
         </repository>
     </distributionManagement>
 
-    <pluginRepositories>
-        <pluginRepository>
-            <id>jcenter</id>
-            <url>http://jcenter.bintray.com</url>
-        </pluginRepository>
-    </pluginRepositories>
-
     <scm>
         <connection>scm:git:https://github.com/Kotlin/ktor.git</connection>
         <developerConnection>scm:git:git@github.com:Kotlin/ktor.git</developerConnection>
         <url>https://github.com/Kotlin/ktor</url>
         <tag>HEAD</tag>
     </scm>
+
+    <repositories>
+        <repository>
+            <id>sonatype.oss.snapshots</id>
+            <name>Sonatype OSS Snapshot Repository</name>
+            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>jcenter</id>
+            <url>http://jcenter.bintray.com</url>
+        </pluginRepository>
+        <pluginRepository>
+            <id>sonatype.oss.snapshots</id>
+            <name>Sonatype OSS Snapshot Repository</name>
+            <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </pluginRepository>
+    </pluginRepositories>
 </project>

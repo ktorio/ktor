@@ -115,7 +115,7 @@ public class ComponentStorage(val myId: String) : ValueResolver {
     private fun injectMethods(instance: Any, context: ValueResolveContext) {
         val type = instance.javaClass
         val injectors = type.methods.filter { member ->
-            member.declaredAnnotations.any { it.annotationType().simpleName == "Inject" }
+            member.declaredAnnotations.any { it.annotationClass.simpleName == "Inject" }
         }
 
         injectors.forEach { injector ->

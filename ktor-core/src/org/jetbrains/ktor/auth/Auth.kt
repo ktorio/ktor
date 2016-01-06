@@ -230,7 +230,7 @@ public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
     }
 
     val parameters = parameterPattern.findAll(remaining)
-            .toMap({ it.groups[1]!!.value }, { it.groups[2]!!.value.unescapeIfQuoted() })
+            .toMapBy({ it.groups[1]!!.value }, { it.groups[2]!!.value.unescapeIfQuoted() })
 
     return HttpAuthHeader.Parameterized(authScheme, parameters)
 }
