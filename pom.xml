@@ -9,6 +9,7 @@
 
     <properties>
         <kotlin.version>0.1-SNAPSHOT</kotlin.version>
+        <dokka.version>0.9.4</dokka.version>
     </properties>
 
     <modules>
@@ -150,6 +151,28 @@
                         </configuration>
                     </execution>
                 </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jetbrains.dokka</groupId>
+                <artifactId>dokka-maven-plugin</artifactId>
+                <version>${dokka.version}</version>
+                <executions>
+                    <execution>
+                        <phase>pre-site</phase>
+                        <goals>
+                            <goal>dokka</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <sourceLinks>
+                        <link>
+                            <dir>${project.basedir}/src</dir>
+                            <url>http://github.com/Kotlin/ktor</url>
+                        </link>
+                    </sourceLinks>
+                </configuration>
             </plugin>
         </plugins>
     </build>

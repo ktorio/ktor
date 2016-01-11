@@ -18,6 +18,7 @@ public class NettyApplicationRequestContext(override val application: Applicatio
         if (response.headers.get(HttpHeaders.TransferEncoding) == null
                 && response.headers.get(HttpHeaders.ContentLength) == null
                 && httpResponse.content().writerIndex() > 0) {
+            // TODO: we probably cannot add headers like this in a non-Full response
             response.headers.append(HttpHeaders.TransferEncoding, "chunked")
         }
         context.writeAndFlush(httpResponse)

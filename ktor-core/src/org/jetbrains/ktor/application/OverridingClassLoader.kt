@@ -4,9 +4,6 @@ import java.net.*
 
 /**
  * A parent-last classloader that will try the child classloader first and then the parent.
- * This takes a fair bit of doing because java really prefers parent-first.
- *
- * For those not familiar with class loading trickery, be wary
  */
 class OverridingClassLoader(classpath: List<URL>, parentClassLoader: ClassLoader?) : ClassLoader(parentClassLoader) {
     private val childClassLoader = ChildURLClassLoader(classpath.toTypedArray(), parent)

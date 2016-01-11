@@ -3,17 +3,24 @@ package org.jetbrains.ktor.application
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 
-/** Current executing application
+/**
+ * Represents configured and running web application, capable of handling requests
  */
 public open class Application(val config: ApplicationConfig) : InterceptableWithContext<ApplicationRequestContext> {
     private val handler: Interceptable1<ApplicationRequestContext, ApplicationRequestStatus> = Interceptable1 {
         ApplicationRequestStatus.Unhandled
     }
 
+    /**
+     * Installs interceptor into the current Application handling chain
+     */
     override fun intercept(interceptor: ApplicationRequestContext.(ApplicationRequestContext.() -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
         handler.intercept(interceptor)
     }
 
+    /**
+     * Handles HTTP request coming from the host using interceptors
+     */
     public fun handle(context: ApplicationRequestContext): ApplicationRequestStatus {
         val result = handler.call(context)
         context.logResult(result)
@@ -34,6 +41,9 @@ public open class Application(val config: ApplicationConfig) : InterceptableWith
         }
     }
 
+    /**
+     * Called by host when Application is terminated
+     */
     public open fun dispose() {
     }
 }

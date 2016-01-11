@@ -9,7 +9,10 @@ import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.attribute.*
 import java.util.*
 
-/** Controls the loading of a Ktor app from a directory.
+/**
+ * Implements [ApplicationLifecycle] by loading an [Application] from a folder or jar.
+ *
+ * When [ApplicationConfig.environment] is "development", it watches changes in folder/jar and implements hot reloading
  */
 public class ApplicationLoader(val config: ApplicationConfig) : ApplicationLifecycle {
     private var _applicationInstance: Application? = null
@@ -19,7 +22,7 @@ public class ApplicationLoader(val config: ApplicationConfig) : ApplicationLifec
     private val applicationClassName: String = config.getString("ktor.application.class")
     private val watchPatterns: List<String> = config.getStringListOrEmpty("ktor.application.watch")
 
-    public fun ApplicationConfig.isDevelopment(): Boolean = environment == "development"
+    private fun ApplicationConfig.isDevelopment(): Boolean = environment == "development"
 
     init {
         application // eagerly create application

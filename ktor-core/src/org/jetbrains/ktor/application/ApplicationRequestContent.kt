@@ -5,6 +5,7 @@ import org.jetbrains.ktor.interception.*
 import java.io.*
 import kotlin.reflect.*
 
+// TODO: rename to RequestContent
 public abstract class ApplicationRequestContent(private val request: ApplicationRequest) {
     private val contentsChain = Interceptable1<KClass<*>, Any> { type ->
         when (type) {

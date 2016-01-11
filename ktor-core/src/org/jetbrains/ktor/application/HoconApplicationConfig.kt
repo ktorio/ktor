@@ -3,7 +3,7 @@ package org.jetbrains.ktor.application
 import com.typesafe.config.*
 
 /**
- * Store application configuration.
+ * Implements [ApplicationConfig] by loading configuration from HOCON data structures
  */
 public open class HoconApplicationConfig(private val config: Config,
                                          public override val classLoader: ClassLoader,
