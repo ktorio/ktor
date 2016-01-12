@@ -7,7 +7,6 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
-import kotlin.support.*
 
 interface SessionStorage {
     fun save(id: String, contentProvider: (OutputStream) -> Unit): Future<Unit>
