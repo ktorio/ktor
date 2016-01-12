@@ -18,8 +18,8 @@ fun Application.setupCompression() {
 fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
     val options = CompressionOptions()
     options.configure()
-    val supportedEncodings = setOf("gzip", "deflate", "*") + options.compressorRegistry.keys
-    val encoders = mapOf("gzip" to GzipEncoder, "deflate" to DeflateEncoder) + options.compressorRegistry
+    val supportedEncodings = setOf("gzip", "deflate", "identity", "*") + options.compressorRegistry.keys
+    val encoders = mapOf("gzip" to GzipEncoder, "deflate" to DeflateEncoder, "identity" to IdentityEncoder) + options.compressorRegistry
     val conditions = listOf(minSizeCondition(options), compressStreamCondition(options)) + options.conditions
 
     intercept { next ->
@@ -66,6 +66,10 @@ private object GzipEncoder : CompressionEncoder {
 
 private object DeflateEncoder : CompressionEncoder {
     override fun open(stream: OutputStream): OutputStream = DeflaterOutputStream(stream, Deflater(Deflater.BEST_COMPRESSION, true))
+}
+
+private object IdentityEncoder : CompressionEncoder {
+    override fun open(stream: OutputStream): OutputStream = stream
 }
 
 private fun minSizeCondition(options: CompressionOptions): ApplicationRequestContext.() -> Boolean = {
