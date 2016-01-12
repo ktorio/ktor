@@ -14,7 +14,6 @@ class LocationsApplication(config: ApplicationConfig) : Application(config) {
     init {
         locations {
             get<index>() {
-
                 response.status(HttpStatusCode.OK)
                 response.contentType(ContentType.Text.Html)
                 response.write {

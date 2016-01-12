@@ -2,6 +2,7 @@ package org.jetbrains.ktor.samples.json
 
 import com.google.gson.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import java.util.zip.*
@@ -23,10 +24,7 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
                 response.headers.append(HttpHeaders.ContentEncoding, "deflate")
                 response.interceptStream { content, stream ->
                     stream {
-                        DeflaterOutputStream(this).apply {
-                            content()
-                            close()
-                        }
+                        DeflaterOutputStream(this).use(content)
                     }
                 }
             }
@@ -37,7 +35,7 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
         intercept { next ->
             if (request.accept() == "application/json") {
                 response.interceptSend { value, send ->
-                    response.sendText(ContentType.Application.Json, GsonBuilder().create().toJson(value))
+                    send(TextContent(ContentType.Application.Json, GsonBuilder().create().toJson(value)))
                 }
             }
             next()
