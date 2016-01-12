@@ -65,7 +65,7 @@ private object GzipEncoder : CompressionEncoder {
 }
 
 private object DeflateEncoder : CompressionEncoder {
-    override fun open(stream: OutputStream): OutputStream = DeflaterOutputStream(stream)
+    override fun open(stream: OutputStream): OutputStream = DeflaterOutputStream(stream, Deflater(Deflater.BEST_COMPRESSION, true))
 }
 
 private fun minSizeCondition(options: CompressionOptions): ApplicationRequestContext.() -> Boolean = {

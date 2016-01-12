@@ -209,6 +209,6 @@ class CompressionTest {
         }
     }
 
-    private fun TestApplicationResponse.readDeflate() = InflaterInputStream(byteContent!!.inputStream()).reader().readText()
+    private fun TestApplicationResponse.readDeflate() = InflaterInputStream(byteContent!!.inputStream(), Inflater(true)).reader().readText()
     private fun TestApplicationResponse.readGzip() = GZIPInputStream(byteContent!!.inputStream()).reader().readText()
 }
