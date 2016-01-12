@@ -53,8 +53,10 @@ private class AutoSessionSerializer<T : Any>(val type: KClass<T>) : SessionSeria
                 value !is List<*> -> assignValue(instance, p, coerceType(p.returnType, value))
                 p is KMutableProperty1<T, *> -> p.setter.call(instance, coerceType(p.returnType, value))
                 originalValue is MutableList<*> -> {
-                    originalValue.clear()
-                    originalValue.addAll(value)
+                    originalValue.withUnsafe {
+                        clear()
+                        addAll(value)
+                    }
                 }
                 else -> throw IllegalStateException("Couldn't inject property ${p.name} from value $value")
             }
@@ -62,8 +64,10 @@ private class AutoSessionSerializer<T : Any>(val type: KClass<T>) : SessionSeria
                 value !is Set<*> -> assignValue(instance, p, coerceType(p.returnType, value))
                 p is KMutableProperty1<T, *> -> p.setter.call(instance, coerceType(p.returnType, value))
                 originalValue is MutableSet<*> -> {
-                    originalValue.clear()
-                    originalValue.addAll(value)
+                    originalValue.withUnsafe {
+                        clear()
+                        addAll(value)
+                    }
                 }
                 else -> throw IllegalStateException("Couldn't inject property ${p.name} from value $value")
             }
@@ -71,8 +75,10 @@ private class AutoSessionSerializer<T : Any>(val type: KClass<T>) : SessionSeria
                 value !is Map<*, *> -> assignValue(instance, p, coerceType(p.returnType, value))
                 p is KMutableProperty1<T, *> -> p.setter.call(instance, coerceType(p.returnType, value))
                 originalValue is MutableMap<*, *> -> {
-                    originalValue.clear()
-                    originalValue.putAll(value)
+                    originalValue.withUnsafe {
+                        clear()
+                        putAll(value)
+                    }
                 }
                 else -> throw IllegalStateException("Couldn't inject property ${p.name} from value $value")
             }
@@ -97,7 +103,7 @@ private class AutoSessionSerializer<T : Any>(val type: KClass<T>) : SessionSeria
                                 .filterAssignable(type)
                                 .firstHasNoArgConstructor()
                                 ?.callNoArgConstructor()
-                                ?.apply { addAll(value) }
+                                ?.withUnsafe { addAll(value); this }
                                 ?: throw IllegalArgumentException("Couldn't coerce type ${value.javaClass} to $type")
                     }
                 }
@@ -111,7 +117,7 @@ private class AutoSessionSerializer<T : Any>(val type: KClass<T>) : SessionSeria
                                 .filterAssignable(type)
                                 .firstHasNoArgConstructor()
                                 ?.callNoArgConstructor()
-                                ?.apply { addAll(value) }
+                                ?.withUnsafe { addAll(value); this }
                                 ?: throw IllegalArgumentException("Couldn't coerce type ${value.javaClass} to $type")
                     }
                 }
@@ -124,13 +130,31 @@ private class AutoSessionSerializer<T : Any>(val type: KClass<T>) : SessionSeria
                                 .filterAssignable(type)
                                 .firstHasNoArgConstructor()
                                 ?.callNoArgConstructor()
-                                ?.apply { putAll(value) }
+                                ?.withUnsafe { putAll(value); this }
                                 ?: throw IllegalArgumentException("Couldn't coerce type ${value.javaClass} to $type")
                     }
                 }
                 type.toJavaClass() == Float::class.java && value is Number -> value.toFloat()
                 else -> value
             }
+
+    private inline fun <R> MutableList<*>.withUnsafe(block: MutableList<Any?>.() -> R): R {
+        // it is potentially dangerous however it would be too slow to check every element
+        @Suppress("UNCHECKED_CAST")
+        return with(this as MutableList<Any?>, block)
+    }
+
+    private inline fun <R> MutableSet<*>.withUnsafe(block: MutableSet<Any?>.() -> R): R {
+        // it is potentially dangerous however it would be too slow to check every element
+        @Suppress("UNCHECKED_CAST")
+        return with(this as MutableSet<Any?>, block)
+    }
+
+    private inline fun <R> MutableMap<*, *>.withUnsafe(block: MutableMap<Any?, Any?>.() -> R): R {
+        // it is potentially dangerous however it would be too slow to check every element
+        @Suppress("UNCHECKED_CAST")
+        return with(this as MutableMap<Any?, Any?>, block)
+    }
 
     @Suppress("UNCHECKED_CAST")
     private fun <T: Any> List<KClass<*>>.toTypedList() = this as List<KClass<T>>
