@@ -16,6 +16,11 @@ fun <T: Any> autoSerializerOf(type: KClass<T>): SessionSerializer<T> = AutoSessi
 private class AutoSessionSerializer<T : Any>(val type: KClass<T>) : SessionSerializer<T> {
     val properties by lazy { type.memberProperties.sortedBy { it.name } }
 
+    // TODO this is a workaround for compiler crash, should be removed soon
+    private fun <T, R : Comparable<R>> Iterable<T>.sortedBy(selector: (T) -> R?): List<T> {
+        return sortedWith(compareBy(selector))
+    }
+
     override fun deserialize(s: String): T {
         val bundle = parseQueryString(s)
         val instance = newInstance(bundle)
