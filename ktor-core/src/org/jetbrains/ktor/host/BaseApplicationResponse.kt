@@ -32,7 +32,32 @@ public abstract class BaseApplicationResponse : ApplicationResponse {
                 status(value)
                 ApplicationRequestStatus.Handled
             }
+            is HasContent -> {
+                stream {
+                    value.stream(this)
+                }
+                ApplicationRequestStatus.Handled
+            }
             else -> throw UnsupportedOperationException("No known way to stream value $value")
+        }
+    }
+
+    init {
+        interceptSend { value, next ->
+            if (value is HasETag) {
+                header(HttpHeaders.ETag, value.etag())
+            }
+            if (value is HasLastModified) {
+                header(HttpHeaders.LastModified, value.lastModified)
+            }
+            if (value is HasContentType) {
+                contentType(value.contentType)
+            }
+            if (value is HasContentLength) {
+                header(HttpHeaders.ContentLength, value.contentLength) // TODO revisit it for partial request case
+            }
+
+            next(value)
         }
     }
 
