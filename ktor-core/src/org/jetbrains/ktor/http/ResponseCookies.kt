@@ -4,7 +4,7 @@ import org.jetbrains.ktor.application.*
 import java.time.*
 import java.time.temporal.*
 
-public class ResponseCookies(val response: ApplicationResponse) {
+public class ResponseCookies(private val response: ApplicationResponse) {
     public operator fun get(name: String): Cookie? = response.headers.values("Set-Cookie").map { parseServerSetCookieHeader(it) }.firstOrNull { it.name == name }
     public fun append(item: Cookie): Unit = response.headers.append("Set-Cookie", renderSetCookieHeader(item))
     public fun intercept(handler: (cookie: Cookie, next: (value: Cookie) -> Unit) -> Unit) {

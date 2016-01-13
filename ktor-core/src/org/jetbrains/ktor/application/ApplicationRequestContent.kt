@@ -28,3 +28,7 @@ public abstract class ApplicationRequestContent(private val request: Application
 }
 
 public class UnknownContentAccessorRequest(message: String) : Exception(message)
+
+interface InterceptableWithContext<C : ApplicationRequestContext> {
+    fun intercept(interceptor: C.(C.() -> ApplicationRequestStatus) -> ApplicationRequestStatus)
+}

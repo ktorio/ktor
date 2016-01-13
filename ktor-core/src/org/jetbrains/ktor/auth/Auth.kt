@@ -54,13 +54,17 @@ fun RoutingEntry.auth(block: AuthBuilder<RoutingApplicationRequestContext>.() ->
 
 private fun <C: ApplicationRequestContext> AuthBuilderBase<C>.finishAuth() {
     intercept { next ->
-        attributes[AuthContext.AttributeKey]?.let { auth ->
-            if (auth.hasPrincipals()) {
-                fireSuccess(this, auth, next)
-            } else {
-                fireFailure(this, next)
+        if (AuthContext.AttributeKey in attributes) {
+            attributes[AuthContext.AttributeKey].let { auth ->
+                if (auth.hasPrincipals()) {
+                    fireSuccess(this, auth, next)
+                } else {
+                    fireFailure(this, next)
+                }
             }
-        } ?: fireFailure(this, next)
+        } else {
+            fireFailure(this, next)
+        }
     }
 }
 
@@ -130,8 +134,8 @@ class AuthContext internal constructor() {
     fun hasPrincipals(): Boolean = synchronized(this) { collectedPrincipals.isNotEmpty() }
 
     companion object {
-        val AttributeKey = org.jetbrains.ktor.util.AttributeKey<AuthContext?>()
-        internal fun from(context: ApplicationRequestContext) = context.attributes.computeIfAbsent(AttributeKey) { AuthContext() }!!
+        val AttributeKey = org.jetbrains.ktor.util.AttributeKey<AuthContext>()
+        internal fun from(context: ApplicationRequestContext) = context.attributes.computeIfAbsent(AttributeKey) { AuthContext() }
     }
 }
 

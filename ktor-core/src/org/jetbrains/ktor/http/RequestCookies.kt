@@ -7,10 +7,7 @@ import java.util.concurrent.*
 public open class RequestCookies(private val request: ApplicationRequest) {
     private val map = ConcurrentHashMap<Pair<CookieEncoding, String>, String>()
 
-    // TODO: Remove in favor of default parameter value when KT-9140 is fixed
-    public operator fun get(name: String): String? = get(name, CookieEncoding.URI_ENCODING)
-
-    public operator fun get(name: String, encoding: CookieEncoding): String? {
+    public operator fun get(name: String, encoding: CookieEncoding = CookieEncoding.URI_ENCODING): String? {
         val rawValue = parsedRawCookies[name] ?: return null
         return map.computeIfAbsent(encoding to name) { decodeCookieValue(rawValue, encoding) }
     }

@@ -10,15 +10,21 @@ public class Attributes {
     }
 
     @Suppress("UNCHECKED_CAST")
-    public operator fun <T> get(key: AttributeKey<T>): T = map[key] as T
+    operator fun <T : Any> get(key: AttributeKey<T>): T = map[key] as T? ?: throw IllegalStateException("No instance for key $key")
 
-    public fun <T> put(key: AttributeKey<T>, value: T) {
+    operator fun contains(key: AttributeKey<*>) = map.containsKey(key)
+
+    fun <T : Any> put(key: AttributeKey<T>, value: T) {
         map[key] = value
     }
 
-    @Suppress("UNCHECKED_CAST")
-    public fun <T> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T = map.computeIfAbsent(key) { block() } as T
+    fun <T : Any> remove(key: AttributeKey<T>) {
+        map.remove(key)
+    }
 
-    public val allKeys: List<AttributeKey<*>>
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T = map.computeIfAbsent(key) { block() } as T
+
+    val allKeys: List<AttributeKey<*>>
         get() = map.keys.toList()
 }

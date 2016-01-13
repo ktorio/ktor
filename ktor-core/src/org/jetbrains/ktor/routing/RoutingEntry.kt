@@ -5,7 +5,7 @@ import java.util.*
 
 data class RoutingInterceptor(val function: (RoutingApplicationRequestContext, (RoutingApplicationRequestContext) -> ApplicationRequestStatus) -> ApplicationRequestStatus)
 
-open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) {
+open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : InterceptableWithContext<RoutingApplicationRequestContext> {
 
     val children = ArrayList<RoutingEntry> ()
     val interceptors = ArrayList<RoutingInterceptor>()
@@ -21,7 +21,7 @@ open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector
         return existingEntry
     }
 
-    public fun intercept(interceptor: RoutingApplicationRequestContext.(RoutingApplicationRequestContext.() -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
+    override fun intercept(interceptor: RoutingApplicationRequestContext.(RoutingApplicationRequestContext.() -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
         interceptors.add(RoutingInterceptor(interceptor))
     }
 
