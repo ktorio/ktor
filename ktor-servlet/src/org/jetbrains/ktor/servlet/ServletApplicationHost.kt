@@ -49,7 +49,7 @@ open class ServletApplicationHost() : HttpServlet() {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND)
                     applicationRequest.close()
                 }
-                ApplicationRequestStatus.Asynchronous -> request.startAsync()
+                ApplicationRequestStatus.Asynchronous -> applicationRequest.continueAsync(request.startAsync())
             }
         } catch (ex: Throwable) {
             application.config.log.error("ServletApplicationHost cannot service the request", ex)
