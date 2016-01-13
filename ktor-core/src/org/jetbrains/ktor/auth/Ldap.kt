@@ -38,7 +38,7 @@ inline fun <C : ApplicationRequestContext, reified K : Credential, reified P : P
         noinline verifyBlock: InitialDirContext.(K) -> P?
 ) {
     intercept { next ->
-        val auth = AuthContext.from(this)
+        val auth = authContext
         auth.addPrincipals(auth.credentials<K>().map { cred ->
             ldapVerifyBase(ldapUrl,
                     ldapLoginConfigurator = { config -> ldapLoginConfigurator(cred, config) },

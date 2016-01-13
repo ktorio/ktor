@@ -30,9 +30,22 @@ fun <C: ApplicationRequestContext> AuthBuilder<C>.basicAuth() {
         val userPass = request.basicAuth()
 
         if (userPass != null) {
-            AuthContext.from(this).addCredential(userPass)
+            authContext.addCredential(userPass)
         }
 
         next()
+    }
+}
+
+/**
+ * The function constructs general basic auth flow: parse auth header, verify with [verifier] function
+ * and send Unauthorized response with the specified [realm] in case of verification failure
+ */
+fun <C: ApplicationRequestContext, P: Principal> AuthBuilder<C>.basic(realm: String, verifier: C.(UserPasswordCredential) -> P?) {
+    basicAuth()
+    verifyWith(verifier)
+
+    fail {
+        response.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge(realm))
     }
 }

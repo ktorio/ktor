@@ -75,6 +75,9 @@ class AuthContext internal constructor() {
     val foundPrincipals: List<Principal>
         get() = synchronized(this) { collectedPrincipals.toList() }
 
+    val failures: Map<Credential, List<Throwable>>
+        get() = synchronized(this) { collectedFailures.mapValues { it.value.toList() } }
+
     inline fun <reified K : Credential> credentials(): List<K> = credentials(K::class)
 
     @Suppress("UNCHECKED_CAST")
@@ -128,7 +131,7 @@ class AuthContext internal constructor() {
 
     companion object {
         val AttributeKey = org.jetbrains.ktor.util.AttributeKey<AuthContext?>()
-        fun from(context: ApplicationRequestContext) = context.attributes.computeIfAbsent(AttributeKey) { AuthContext() }!!
+        internal fun from(context: ApplicationRequestContext) = context.attributes.computeIfAbsent(AttributeKey) { AuthContext() }!!
     }
 }
 
@@ -136,16 +139,16 @@ val ApplicationRequestContext.authContext: AuthContext
     get() = AuthContext.from(this)
 
 val ApplicationRequestContext.principals: List<Principal>
-    get() = AuthContext.from(this).foundPrincipals
+    get() = authContext.foundPrincipals
 
-inline fun <reified P: Principal> ApplicationRequestContext.principals() = AuthContext.from(this).principals<P>()
+inline fun <reified P: Principal> ApplicationRequestContext.principals() = authContext.principals<P>()
 
 fun <K: Credential, C: ApplicationRequestContext> AuthBuilder<C>.extractCredentials(block: C.() -> K?) {
     intercept { next ->
         val p = block()
 
         if (p != null) {
-            AuthContext.from(this).addCredential(p)
+            authContext.addCredential(p)
         }
 
         next()
@@ -158,7 +161,7 @@ inline fun <reified K : Credential, C: ApplicationRequestContext> AuthBuilder<C>
 
 fun <K : Credential, C: ApplicationRequestContext> AuthBuilder<C>.verifyBatchTypedWith(klass: KClass<K>, block: C.(List<K>) -> List<Principal>) {
     intercept { next ->
-        val auth = AuthContext.from(this)
+        val auth = authContext
 
         auth.credentials(klass).let { found ->
             if (found.isNotEmpty()) {
@@ -176,7 +179,7 @@ inline fun <reified K : Credential, C: ApplicationRequestContext> AuthBuilder<C>
 
 fun <K : Credential, C: ApplicationRequestContext> AuthBuilder<C>.verifyWith(klass: KClass<K>, block: C.(K) -> Principal?) {
     intercept { next ->
-        val auth = AuthContext.from(this)
+        val auth = authContext
 
         auth.credentials(klass).let { found ->
             auth.addPrincipals(found.map {
@@ -199,7 +202,7 @@ fun <C: ApplicationRequestContext> AuthBuilder<C>.verifyBatchAll(block: C.(List<
 
 inline fun <reified P : Principal, C: ApplicationRequestContext> AuthBuilder<C>.postVerify(crossinline predicate: C.(P) -> Boolean) {
     intercept { next ->
-        val auth = AuthContext.from(this)
+        val auth = authContext
 
         auth.principals(P::class).let { found ->
             val discarded = found.filterNot { predicate(it) }
