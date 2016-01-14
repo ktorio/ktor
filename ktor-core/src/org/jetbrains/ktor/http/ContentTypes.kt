@@ -39,6 +39,7 @@ class ContentType(val contentType: String, val contentSubtype: String, parameter
         val Any = ContentType("*", "*")
     }
 
+    @Suppress("unused")
     object Application {
         val Any = ContentType("application", "*")
         val Atom = ContentType("application", "atom+xml")
@@ -54,6 +55,7 @@ class ContentType(val contentType: String, val contentSubtype: String, parameter
         val FormUrlEncoded = ContentType("application", "x-www-form-urlencoded")
     }
 
+    @Suppress("unused")
     object Audio {
         val Any = ContentType("audio", "*")
         val MP4 = ContentType("audio", "mp4")
@@ -61,6 +63,7 @@ class ContentType(val contentType: String, val contentSubtype: String, parameter
         val OGG = ContentType("audio", "ogg")
     }
 
+    @Suppress("unused")
     object Image {
         val Any = ContentType("image", "*")
         val GIF = ContentType("image", "gif")
@@ -70,11 +73,13 @@ class ContentType(val contentType: String, val contentSubtype: String, parameter
         val XIcon = ContentType("image", "x-icon")
     }
 
+    @Suppress("unused")
     object Message {
         val Any = ContentType("message", "*")
         val Http = ContentType("message", "http")
     }
 
+    @Suppress("unused")
     object MultiPart {
         val Any = ContentType("multipart", "*")
         val Mixed = ContentType("multipart", "mixed")
@@ -86,6 +91,7 @@ class ContentType(val contentType: String, val contentSubtype: String, parameter
         val ByteRanges = ContentType("multipart", "byteranges")
     }
 
+    @Suppress("unused")
     object Text {
         val Any = ContentType("text", "*")
         val Plain = ContentType("text", "plain")
@@ -96,6 +102,7 @@ class ContentType(val contentType: String, val contentSubtype: String, parameter
         val Xml = ContentType("text", "xml")
     }
 
+    @Suppress("unused")
     object Video {
         val Any = ContentType("video", "*")
         val MPEG = ContentType("video", "mpeg")
