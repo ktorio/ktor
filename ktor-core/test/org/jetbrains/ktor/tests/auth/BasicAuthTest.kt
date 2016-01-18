@@ -2,11 +2,11 @@ package org.jetbrains.ktor.tests.auth
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
-import org.jetbrains.ktor.auth.crypto.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
+import org.jetbrains.ktor.util.*
 import org.junit.*
 import kotlin.test.*
 

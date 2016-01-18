@@ -2,7 +2,7 @@ package org.jetbrains.ktor.auth
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.auth.crypto.*
+import org.jetbrains.ktor.util.*
 import java.util.*
 
 data class UserIdPrincipal(val name: String) : Principal

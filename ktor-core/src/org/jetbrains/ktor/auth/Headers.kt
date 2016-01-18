@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.auth
 
-import org.jetbrains.ktor.auth.crypto.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.util.*
 
 object AuthScheme {
     val Basic = "Basic"

@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.sessions
 
 import org.jetbrains.ktor.auth.crypto.*
+import org.jetbrains.ktor.util.*
 import java.security.*
 import javax.crypto.*
 import javax.crypto.spec.*

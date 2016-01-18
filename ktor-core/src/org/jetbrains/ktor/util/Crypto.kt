@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.auth.crypto
+package org.jetbrains.ktor.util
 
 import java.security.*
 import java.util.*

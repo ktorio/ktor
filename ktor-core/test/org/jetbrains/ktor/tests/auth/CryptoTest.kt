@@ -1,10 +1,7 @@
 package org.jetbrains.ktor.tests.auth
 
-import org.jetbrains.ktor.auth.*
-import org.jetbrains.ktor.auth.crypto.*
+import org.jetbrains.ktor.util.*
 import org.junit.*
-import javax.crypto.*
-import javax.crypto.spec.*
 import kotlin.test.*
 
 class CryptoTest {
