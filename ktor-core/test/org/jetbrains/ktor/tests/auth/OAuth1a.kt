@@ -262,7 +262,7 @@ private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
                         listOf(
                                 HttpAuthHeader.Parameters.OAuthToken to rr.token,
                                 HttpAuthHeader.Parameters.OAuthTokenSecret to rr.tokenSecret,
-                                HttpAuthHeader.Parameters.OAuthCallbackConfirmed to rr.callbackConfirmed
+                                HttpAuthHeader.Parameters.OAuthCallbackConfirmed to rr.callbackConfirmed.toString()
                         ).formUrlEncode()
                 )
             }
