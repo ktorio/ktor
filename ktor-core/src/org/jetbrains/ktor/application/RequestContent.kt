@@ -5,8 +5,7 @@ import org.jetbrains.ktor.interception.*
 import java.io.*
 import kotlin.reflect.*
 
-// TODO: rename to RequestContent
-public abstract class ApplicationRequestContent(private val request: ApplicationRequest) {
+public abstract class RequestContent(private val request: ApplicationRequest) {
     private val contentsChain = Interceptable1<KClass<*>, Any> { type ->
         when (type) {
             InputStream::class -> getInputStream()
@@ -30,6 +29,6 @@ public abstract class ApplicationRequestContent(private val request: Application
 
 public class UnknownContentAccessorRequest(message: String) : Exception(message)
 
-interface InterceptableWithContext<C : ApplicationRequestContext> {
-    fun intercept(interceptor: C.(C.() -> ApplicationRequestStatus) -> ApplicationRequestStatus)
+interface InterceptableWithContext<C : ApplicationCall> {
+    fun intercept(interceptor: C.(C.() -> ApplicationCallResult) -> ApplicationCallResult)
 }

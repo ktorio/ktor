@@ -31,7 +31,7 @@ class HelloApplication(config: ApplicationConfig) : Application(config) {
                         }
                     }
                 }
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
             get("/bye") {
                 response.sendText("Goodbye World!")

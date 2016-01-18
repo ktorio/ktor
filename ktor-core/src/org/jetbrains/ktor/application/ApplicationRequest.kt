@@ -30,5 +30,5 @@ public interface ApplicationRequest {
     /**
      * Content for this request
      */
-    val content: ApplicationRequestContent
+    val content: RequestContent
 }

@@ -167,18 +167,18 @@ class AuthBuildersTest {
 
                         success { authContext, function ->
                             assertEquals(username, authContext.principal<UserIdPrincipal>()?.name)
-                            ApplicationRequestStatus.Handled
+                            ApplicationCallResult.Handled
                         }
 
                         fail {
                             fail("login failed")
-                            ApplicationRequestStatus.Handled
+                            ApplicationCallResult.Handled
                         }
                     }
 
                     handle {
                         assertEquals(username, authContext.principal<UserIdPrincipal>()?.name)
-                        ApplicationRequestStatus.Handled
+                        ApplicationCallResult.Handled
                     }
                 }
             }

@@ -20,17 +20,17 @@ interface SessionTracker<S : Any> {
      * Lookup session using the context, call [injectSession] if available and pass execution to the [next] in any case.
      * It is recommended to be async if there is external session store
      */
-    fun lookup(context: ApplicationRequestContext, injectSession: (S) -> Unit, next: ApplicationRequestContext.() -> ApplicationRequestStatus): ApplicationRequestStatus
+    fun lookup(context: ApplicationCall, injectSession: (S) -> Unit, next: ApplicationCall.() -> ApplicationCallResult): ApplicationCallResult
 
     /**
      * Assign session using the context. Override if there is existing session. Could be blocking.
      */
-    fun assign(context: ApplicationRequestContext, session: S)
+    fun assign(context: ApplicationCall, session: S)
 
     /**
      * Unassign session if present. Does nothing if no session assigned.
      */
-    fun unassign(context: ApplicationRequestContext)
+    fun unassign(context: ApplicationCall)
 }
 
 /**
@@ -52,11 +52,11 @@ fun CookiesSettings.newCookie(name: String, value: String) =
                 httpOnly = true, secure = requireHttps, expires = LocalDateTime.now().plus(expireIn))
 
 internal class CookieByValueSessionTracker<S : Any>(val settings: CookiesSettings, val cookieName: String, val serializer: SessionSerializer<S>) : SessionTracker<S> {
-    override fun assign(context: ApplicationRequestContext, session: S) {
+    override fun assign(context: ApplicationCall, session: S) {
         context.response.cookies.append(settings.newCookie(cookieName, serializer.serialize(session)))
     }
 
-    override fun lookup(context: ApplicationRequestContext, injectSession: (S) -> Unit, next: ApplicationRequestContext.() -> ApplicationRequestStatus): ApplicationRequestStatus {
+    override fun lookup(context: ApplicationCall, injectSession: (S) -> Unit, next: ApplicationCall.() -> ApplicationCallResult): ApplicationCallResult {
         val cookie = context.request.cookies[cookieName]
         var value = cookie
         for (t in settings.transformers) {
@@ -72,7 +72,7 @@ internal class CookieByValueSessionTracker<S : Any>(val settings: CookiesSetting
         return next(context)
     }
 
-    override fun unassign(context: ApplicationRequestContext) {
+    override fun unassign(context: ApplicationCall) {
         context.response.cookies.appendExpired(cookieName)
     }
 }

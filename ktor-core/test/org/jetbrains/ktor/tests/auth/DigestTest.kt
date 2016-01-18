@@ -24,7 +24,7 @@ class DigestTest {
             val response = handleRequest {
             }
 
-            assertEquals(ApplicationRequestStatus.Handled, response.requestResult)
+            assertEquals(ApplicationCallResult.Handled, response.requestResult)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
             assertEquals("""Digest
                  realm="testrealm@host.com",
@@ -48,7 +48,7 @@ class DigestTest {
                     }
 
                     handle {
-                        ApplicationRequestStatus.Handled
+                        ApplicationCallResult.Handled
                     }
                 }
             }
@@ -142,7 +142,7 @@ class DigestTest {
                  opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize())
             }
 
-            assertEquals(ApplicationRequestStatus.Handled, response.requestResult)
+            assertEquals(ApplicationCallResult.Handled, response.requestResult)
             assertEquals(HttpStatusCode.OK, response.response.status())
             assertEquals("Secret info", response.response.content)
         }
@@ -167,7 +167,7 @@ class DigestTest {
                  opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize())
             }
 
-            assertEquals(ApplicationRequestStatus.Handled, response.requestResult)
+            assertEquals(ApplicationCallResult.Handled, response.requestResult)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
         }
     }

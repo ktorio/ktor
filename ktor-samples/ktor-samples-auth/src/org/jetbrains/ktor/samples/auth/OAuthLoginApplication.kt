@@ -104,7 +104,7 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
                         }
                     }
                 }
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
 
             location<login>() {
@@ -115,7 +115,7 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
 
                     success { authContext, next ->
                         loggedInSuccessResponse(authContext.principals<OAuthAccessTokenResponse>().single())
-                        ApplicationRequestStatus.Handled
+                        ApplicationCallResult.Handled
                     }
                 }
 
@@ -132,7 +132,7 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
         }
     }
 
-    private fun <T : Any> ApplicationRequestContext.redirectUrl(t: T, secure: Boolean = true): String {
+    private fun <T : Any> ApplicationCall.redirectUrl(t: T, secure: Boolean = true): String {
         val hostPort = request.host()!! + request.port().let { port -> if (port == 80) "" else ":$port" }
         val protocol = when {
             secure -> "https"
@@ -141,7 +141,7 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
         return "$protocol://$hostPort${Locations.href(t)}"
     }
 
-    private fun ApplicationRequestContext.loginPage(): ApplicationRequestStatus {
+    private fun ApplicationCall.loginPage(): ApplicationCallResult {
         response.status(HttpStatusCode.OK)
         response.contentType(ContentType.Text.Html)
         response.write {
@@ -165,10 +165,10 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
             }
         }
 
-        return ApplicationRequestStatus.Handled
+        return ApplicationCallResult.Handled
     }
 
-    private fun ApplicationRequestContext.loginFailedPage(errors: List<String>): ApplicationRequestStatus {
+    private fun ApplicationCall.loginFailedPage(errors: List<String>): ApplicationCallResult {
         response.status(HttpStatusCode.OK)
         response.contentType(ContentType.Text.Html)
         response.write {
@@ -190,10 +190,10 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
             }
         }
 
-        return ApplicationRequestStatus.Handled
+        return ApplicationCallResult.Handled
     }
 
-    private fun ApplicationRequestContext.loggedInSuccessResponse(callback: OAuthAccessTokenResponse) {
+    private fun ApplicationCall.loggedInSuccessResponse(callback: OAuthAccessTokenResponse) {
         response.status(HttpStatusCode.OK)
         response.contentType(ContentType.Text.Html)
         response.write {

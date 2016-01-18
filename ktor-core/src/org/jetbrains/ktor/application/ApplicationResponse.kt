@@ -18,8 +18,8 @@ public interface ApplicationResponse {
     public fun stream(body: OutputStream.() -> Unit): Unit
     public fun interceptStream(handler: (body: OutputStream.() -> Unit, next: (body: OutputStream.() -> Unit) -> Unit) -> Unit)
 
-    public fun send(message: Any): ApplicationRequestStatus
-    public fun interceptSend(handler: (message: Any, next: (message: Any) -> ApplicationRequestStatus) -> ApplicationRequestStatus)
+    public fun send(message: Any): ApplicationCallResult
+    public fun interceptSend(handler: (message: Any, next: (message: Any) -> ApplicationCallResult) -> ApplicationCallResult)
 }
 
 public fun ApplicationResponse.streamBytes(bytes: ByteArray) {

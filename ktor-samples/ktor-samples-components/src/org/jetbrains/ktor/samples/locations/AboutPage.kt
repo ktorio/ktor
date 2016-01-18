@@ -29,7 +29,7 @@ public class AboutPage(routing: Routing) {
                         }
                     }
                 }
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
 
         }

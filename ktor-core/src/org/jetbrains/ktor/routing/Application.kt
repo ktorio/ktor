@@ -4,8 +4,8 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 
-open class RoutingApplicationRequestContext(context: ApplicationRequestContext, val resolveResult: RoutingResolveResult)
-: ApplicationRequestContext by context {
+open class RoutingApplicationCall(context: ApplicationCall, val resolveResult: RoutingResolveResult)
+: ApplicationCall by context {
     val parameters = ValuesMap.build {
         appendAll(resolveResult.values)
     }
@@ -19,26 +19,26 @@ fun RoutingEntry.contentType(contentType: ContentType, build: RoutingEntry.() ->
     header("Accept", "${contentType.contentType}/${contentType.contentSubtype}", build)
 }
 
-fun RoutingEntry.get(path: String, body: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
+fun RoutingEntry.get(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
     route(HttpMethod.Get, path) { handle(body) }
 }
 
-fun RoutingEntry.post(path: String, body: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
+fun RoutingEntry.post(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
     route(HttpMethod.Post, path) { handle(body) }
 }
 
-fun RoutingEntry.header(path: String, body: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
+fun RoutingEntry.header(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
     route(HttpMethod.Header, path) { handle(body) }
 }
 
-fun RoutingEntry.put(path: String, body: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
+fun RoutingEntry.put(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
     route(HttpMethod.Put, path) { handle(body) }
 }
 
-fun RoutingEntry.delete(path: String, body: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
+fun RoutingEntry.delete(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
     route(HttpMethod.Delete, path) { handle(body) }
 }
 
-fun RoutingEntry.options(path: String, body: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
+fun RoutingEntry.options(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
     route(HttpMethod.Options, path) { handle(body) }
 }

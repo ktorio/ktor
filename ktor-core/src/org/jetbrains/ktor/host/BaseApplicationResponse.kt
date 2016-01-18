@@ -10,7 +10,7 @@ public abstract class BaseApplicationResponse : ApplicationResponse {
     protected abstract val stream: Interceptable1<OutputStream.() -> Unit, Unit>
     protected abstract val status: Interceptable1<HttpStatusCode, Unit>
 
-    protected open val send = Interceptable1<Any, ApplicationRequestStatus> { value ->
+    protected open val send = Interceptable1<Any, ApplicationCallResult> { value ->
         when (value) {
             is String -> {
                 status() ?: status(HttpStatusCode.OK)
@@ -18,7 +18,7 @@ public abstract class BaseApplicationResponse : ApplicationResponse {
                     ContentType.parse(it).parameter("charset")
                 } ?: "UTF-8"
                 streamText(value, encoding)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
             is TextContent -> {
                 contentType(value.contentType)
@@ -30,13 +30,13 @@ public abstract class BaseApplicationResponse : ApplicationResponse {
             }
             is HttpStatusCode -> {
                 status(value)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
             is HasContent -> {
                 stream {
                     value.stream(this)
                 }
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
             else -> throw UnsupportedOperationException("No known way to stream value $value")
         }
@@ -61,8 +61,8 @@ public abstract class BaseApplicationResponse : ApplicationResponse {
         }
     }
 
-    override fun send(message: Any): ApplicationRequestStatus = send.call(message)
-    override fun interceptSend(handler: (Any, (Any) -> ApplicationRequestStatus) -> ApplicationRequestStatus) = send.intercept(handler)
+    override fun send(message: Any): ApplicationCallResult = send.call(message)
+    override fun interceptSend(handler: (Any, (Any) -> ApplicationCallResult) -> ApplicationCallResult) = send.intercept(handler)
 
     override val cookies = ResponseCookies(this)
 

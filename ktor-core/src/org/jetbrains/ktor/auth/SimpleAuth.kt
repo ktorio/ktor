@@ -28,7 +28,7 @@ public class UserHashedTableAuth(val digester: (String) -> ByteArray = getDigest
     }
 }
 
-fun <C: ApplicationRequestContext> AuthBuilder<C>.verifyBatchTypedWith(authTableAuth: UserHashedTableAuth) {
+fun <C: ApplicationCall> AuthBuilder<C>.verifyBatchTypedWith(authTableAuth: UserHashedTableAuth) {
     verifyBatchTypedWith { c: List<UserPasswordCredential> -> c.map { authTableAuth.authenticate(it) }.filterNotNull() }
 }
 

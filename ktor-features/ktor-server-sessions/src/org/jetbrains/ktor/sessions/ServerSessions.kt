@@ -34,7 +34,7 @@ internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val 
 
     private val SessionIdKey = AttributeKey<String>()
 
-    override fun assign(context: ApplicationRequestContext, session: S) {
+    override fun assign(context: ApplicationCall, session: S) {
         val sessionId = context.attributes.computeIfAbsent(SessionIdKey, sessionIdProvider)
         val serialized = serializer.serialize(session)
         storage.save(sessionId) { out ->
@@ -45,7 +45,7 @@ internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val 
         context.response.cookies.append(settings.newCookie(cookieName, sessionId))
     }
 
-    override fun lookup(context: ApplicationRequestContext, injectSession: (S) -> Unit, next: ApplicationRequestContext.() -> ApplicationRequestStatus): ApplicationRequestStatus {
+    override fun lookup(context: ApplicationCall, injectSession: (S) -> Unit, next: ApplicationCall.() -> ApplicationCallResult): ApplicationCallResult {
         val sessionId = context.request.cookies[cookieName]
         return if (sessionId == null) {
             next(context)
@@ -60,14 +60,14 @@ internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val 
                         next(context)
                     }, failBlock = {})
                 }
-                ApplicationRequestStatus.Asynchronous
+                ApplicationCallResult.Asynchronous
             }, failBlock = {})
 
-            ApplicationRequestStatus.Asynchronous
+            ApplicationCallResult.Asynchronous
         }
     }
 
-    override fun unassign(context: ApplicationRequestContext) {
+    override fun unassign(context: ApplicationCall) {
         context.attributes.remove(SessionIdKey)
 
         context.request.cookies[cookieName]?.let { sessionId ->

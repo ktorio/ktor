@@ -36,7 +36,7 @@ public class ServletApplicationRequest(internal val servletRequest: HttpServletR
         }
     }
 
-    override val content: ApplicationRequestContent = object : ApplicationRequestContent(this) {
+    override val content: RequestContent = object : RequestContent(this) {
         override fun getMultiPartData(): MultiPartData = ServletMultiPartData(this@ServletApplicationRequest, servletRequest)
         override fun getInputStream(): InputStream = servletRequest.inputStream
     }

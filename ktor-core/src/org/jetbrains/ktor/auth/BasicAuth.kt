@@ -3,7 +3,7 @@ package org.jetbrains.ktor.auth
 import org.jetbrains.ktor.application.*
 import java.util.*
 
-fun ApplicationRequestContext.basicAuth(): UserPasswordCredential? = request.basicAuth()
+fun ApplicationCall.basicAuth(): UserPasswordCredential? = request.basicAuth()
 fun ApplicationRequest.basicAuth(): UserPasswordCredential? {
     val parsed = parseAuthorizationHeader()
     if (parsed is HttpAuthHeader.Single) {
@@ -25,7 +25,7 @@ fun ApplicationRequest.basicAuth(): UserPasswordCredential? {
     return null
 }
 
-fun <C: ApplicationRequestContext> AuthBuilder<C>.basicAuth() {
+fun <C: ApplicationCall> AuthBuilder<C>.basicAuth() {
     intercept { next ->
         val userPass = request.basicAuth()
 
@@ -41,7 +41,7 @@ fun <C: ApplicationRequestContext> AuthBuilder<C>.basicAuth() {
  * The function constructs general basic auth flow: parse auth header, verify with [verifier] function
  * and send Unauthorized response with the specified [realm] in case of verification failure
  */
-fun <C: ApplicationRequestContext, P: Principal> AuthBuilder<C>.basic(realm: String, verifier: C.(UserPasswordCredential) -> P?) {
+fun <C: ApplicationCall, P: Principal> AuthBuilder<C>.basic(realm: String, verifier: C.(UserPasswordCredential) -> P?) {
     basicAuth()
     verifyWith(verifier)
 

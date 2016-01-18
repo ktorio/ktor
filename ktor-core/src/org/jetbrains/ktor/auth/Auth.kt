@@ -11,48 +11,48 @@ import kotlin.reflect.*
 interface Credential
 interface Principal
 
-interface AuthBuilder<C: ApplicationRequestContext> {
-    fun intercept(interceptor: C.(C.() -> ApplicationRequestStatus) -> ApplicationRequestStatus)
+interface AuthBuilder<C: ApplicationCall> {
+    fun intercept(interceptor: C.(C.() -> ApplicationCallResult) -> ApplicationCallResult)
 
-    fun success(interceptor: C.(AuthContext, C.(AuthContext) -> ApplicationRequestStatus) -> ApplicationRequestStatus)
-    fun fail(interceptor: C.(C.() -> ApplicationRequestStatus) -> ApplicationRequestStatus)
+    fun success(interceptor: C.(AuthContext, C.(AuthContext) -> ApplicationCallResult) -> ApplicationCallResult)
+    fun fail(interceptor: C.(C.() -> ApplicationCallResult) -> ApplicationCallResult)
 }
 
-abstract class AuthBuilderBase<C: ApplicationRequestContext> : AuthBuilder<C> {
-    val successHandlers = InterceptableChain2<C, AuthContext, ApplicationRequestStatus>()
-    val failureHandlers = InterceptableChain1<C, ApplicationRequestStatus>()
+abstract class AuthBuilderBase<C: ApplicationCall> : AuthBuilder<C> {
+    val successHandlers = InterceptableChain2<C, AuthContext, ApplicationCallResult>()
+    val failureHandlers = InterceptableChain1<C, ApplicationCallResult>()
 
-    override fun success(interceptor: C.(AuthContext, C.(AuthContext) -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
+    override fun success(interceptor: C.(AuthContext, C.(AuthContext) -> ApplicationCallResult) -> ApplicationCallResult) {
         successHandlers.intercept(interceptor)
     }
 
-    override fun fail(interceptor: C.(C.() -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
+    override fun fail(interceptor: C.(C.() -> ApplicationCallResult) -> ApplicationCallResult) {
         failureHandlers.intercept(interceptor)
     }
 
-    fun fireSuccess(ctx: C, auth: AuthContext, next: C.() -> ApplicationRequestStatus): ApplicationRequestStatus {
+    fun fireSuccess(ctx: C, auth: AuthContext, next: C.() -> ApplicationCallResult): ApplicationCallResult {
         return successHandlers.call(ctx, auth) { ctx, auth ->
             ctx.next()
         }
     }
 
-    fun fireFailure(ctx: C, next: C.() -> ApplicationRequestStatus): ApplicationRequestStatus = failureHandlers.call(ctx, next)
+    fun fireFailure(ctx: C, next: C.() -> ApplicationCallResult): ApplicationCallResult = failureHandlers.call(ctx, next)
 }
 
-private class RoutingEntryAuthBuilder(val entry: RoutingEntry) : AuthBuilderBase<RoutingApplicationRequestContext>() {
+private class RoutingEntryAuthBuilder(val entry: RoutingEntry) : AuthBuilderBase<RoutingApplicationCall>() {
 
-    override fun intercept(interceptor: RoutingApplicationRequestContext.(RoutingApplicationRequestContext.() -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
+    override fun intercept(interceptor: RoutingApplicationCall.(RoutingApplicationCall.() -> ApplicationCallResult) -> ApplicationCallResult) {
         entry.intercept(interceptor)
     }
 }
 
-fun RoutingEntry.auth(block: AuthBuilder<RoutingApplicationRequestContext>.() -> Unit) {
+fun RoutingEntry.auth(block: AuthBuilder<RoutingApplicationCall>.() -> Unit) {
     val builder = RoutingEntryAuthBuilder(this)
     builder.block()
     builder.finishAuth()
 }
 
-private fun <C: ApplicationRequestContext> AuthBuilderBase<C>.finishAuth() {
+private fun <C: ApplicationCall> AuthBuilderBase<C>.finishAuth() {
     intercept { next ->
         if (AuthContext.AttributeKey in attributes) {
             attributes[AuthContext.AttributeKey].let { auth ->
@@ -135,19 +135,19 @@ class AuthContext internal constructor() {
 
     companion object {
         val AttributeKey = org.jetbrains.ktor.util.AttributeKey<AuthContext>()
-        internal fun from(context: ApplicationRequestContext) = context.attributes.computeIfAbsent(AttributeKey) { AuthContext() }
+        internal fun from(context: ApplicationCall) = context.attributes.computeIfAbsent(AttributeKey) { AuthContext() }
     }
 }
 
-val ApplicationRequestContext.authContext: AuthContext
+val ApplicationCall.authContext: AuthContext
     get() = AuthContext.from(this)
 
-val ApplicationRequestContext.principals: List<Principal>
+val ApplicationCall.principals: List<Principal>
     get() = authContext.foundPrincipals
 
-inline fun <reified P: Principal> ApplicationRequestContext.principals() = authContext.principals<P>()
+inline fun <reified P: Principal> ApplicationCall.principals() = authContext.principals<P>()
 
-fun <K: Credential, C: ApplicationRequestContext> AuthBuilder<C>.extractCredentials(block: C.() -> K?) {
+fun <K: Credential, C: ApplicationCall> AuthBuilder<C>.extractCredentials(block: C.() -> K?) {
     intercept { next ->
         val p = block()
 
@@ -159,11 +159,11 @@ fun <K: Credential, C: ApplicationRequestContext> AuthBuilder<C>.extractCredenti
     }
 }
 
-inline fun <reified K : Credential, C: ApplicationRequestContext> AuthBuilder<C>.verifyBatchTypedWith(noinline block: C.(List<K>) -> List<Principal>) {
+inline fun <reified K : Credential, C: ApplicationCall> AuthBuilder<C>.verifyBatchTypedWith(noinline block: C.(List<K>) -> List<Principal>) {
     verifyBatchTypedWith(K::class, block)
 }
 
-fun <K : Credential, C: ApplicationRequestContext> AuthBuilder<C>.verifyBatchTypedWith(klass: KClass<K>, block: C.(List<K>) -> List<Principal>) {
+fun <K : Credential, C: ApplicationCall> AuthBuilder<C>.verifyBatchTypedWith(klass: KClass<K>, block: C.(List<K>) -> List<Principal>) {
     intercept { next ->
         val auth = authContext
 
@@ -177,11 +177,11 @@ fun <K : Credential, C: ApplicationRequestContext> AuthBuilder<C>.verifyBatchTyp
     }
 }
 
-inline fun <reified K : Credential, C: ApplicationRequestContext> AuthBuilder<C>.verifyWith(noinline block: C.(K) -> Principal?) {
+inline fun <reified K : Credential, C: ApplicationCall> AuthBuilder<C>.verifyWith(noinline block: C.(K) -> Principal?) {
     verifyWith(K::class, block)
 }
 
-fun <K : Credential, C: ApplicationRequestContext> AuthBuilder<C>.verifyWith(klass: KClass<K>, block: C.(K) -> Principal?) {
+fun <K : Credential, C: ApplicationCall> AuthBuilder<C>.verifyWith(klass: KClass<K>, block: C.(K) -> Principal?) {
     intercept { next ->
         val auth = authContext
 
@@ -200,11 +200,11 @@ fun <K : Credential, C: ApplicationRequestContext> AuthBuilder<C>.verifyWith(kla
     }
 }
 
-fun <C: ApplicationRequestContext> AuthBuilder<C>.verifyBatchAll(block: C.(List<Credential>) -> List<Principal>) {
+fun <C: ApplicationCall> AuthBuilder<C>.verifyBatchAll(block: C.(List<Credential>) -> List<Principal>) {
     verifyBatchTypedWith(block)
 }
 
-inline fun <reified P : Principal, C: ApplicationRequestContext> AuthBuilder<C>.postVerify(crossinline predicate: C.(P) -> Boolean) {
+inline fun <reified P : Principal, C: ApplicationCall> AuthBuilder<C>.postVerify(crossinline predicate: C.(P) -> Boolean) {
     intercept { next ->
         val auth = authContext
 
@@ -242,12 +242,12 @@ public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
     return HttpAuthHeader.Parameterized(authScheme, parameters)
 }
 
-public fun ApplicationResponse.sendAuthenticationRequest(vararg challenges: HttpAuthHeader = arrayOf(HttpAuthHeader.basicAuthChallenge("ktor"))): ApplicationRequestStatus {
+public fun ApplicationResponse.sendAuthenticationRequest(vararg challenges: HttpAuthHeader = arrayOf(HttpAuthHeader.basicAuthChallenge("ktor"))): ApplicationCallResult {
     require(challenges.isNotEmpty()) { "it should be at least one challenge requested, for example Basic" }
 
     status(HttpStatusCode.Unauthorized)
     contentType(ContentType.Text.Plain)
     headers.append(HttpHeaders.WWWAuthenticate, challenges.joinToString(", ") { it.render() })
     streamText("Not authorized")
-    return ApplicationRequestStatus.Handled
+    return ApplicationCallResult.Handled
 }

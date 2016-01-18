@@ -3,12 +3,10 @@ package org.jetbrains.ktor.application
 import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.util.*
 
-// TODO: rename to ApplicationCall
-// Other words: Interaction, Call, Exchange
 /**
  * Represents a single act of communication between client and server.
  */
-public interface ApplicationRequestContext {
+public interface ApplicationCall {
     /**
      * Application being called
      */
@@ -40,4 +38,4 @@ public interface ApplicationRequestContext {
 /**
  * Closes this call and sends out any remaining data
  */
-public fun ApplicationRequestContext.close(): Unit = close.call()
+public fun ApplicationCall.close(): Unit = close.call()

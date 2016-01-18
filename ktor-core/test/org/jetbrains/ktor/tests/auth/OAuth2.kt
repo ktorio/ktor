@@ -106,7 +106,7 @@ class OAuth2Test {
             uri = "/login"
         }
 
-        assertEquals(ApplicationRequestStatus.Handled, result.requestResult)
+        assertEquals(ApplicationCallResult.Handled, result.requestResult)
         assertEquals(HttpStatusCode.Found, result.response.status())
 
         val url = URI(result.response.headers[HttpHeaders.Location] ?: throw IllegalStateException("No location header in the response"))
@@ -129,7 +129,7 @@ class OAuth2Test {
             ).formUrlEncode()
         }
 
-        assertEquals(ApplicationRequestStatus.Asynchronous, result.requestResult)
+        assertEquals(ApplicationCallResult.Asynchronous, result.requestResult)
 
         waitExecutor()
 

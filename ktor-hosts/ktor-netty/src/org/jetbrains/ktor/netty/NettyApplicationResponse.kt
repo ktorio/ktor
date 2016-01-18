@@ -17,7 +17,7 @@ internal class NettyApplicationResponse(val response: FullHttpResponse) : BaseAp
     override val stream = Interceptable1<OutputStream.() -> Unit, Unit> { body ->
         val stream = ByteBufOutputStream(response.content())
         stream.body()
-        ApplicationRequestStatus.Handled
+        ApplicationCallResult.Handled
     }
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {

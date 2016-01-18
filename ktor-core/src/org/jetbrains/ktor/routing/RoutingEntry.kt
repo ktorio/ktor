@@ -3,13 +3,13 @@ package org.jetbrains.ktor.routing
 import org.jetbrains.ktor.application.*
 import java.util.*
 
-data class RoutingInterceptor(val function: (RoutingApplicationRequestContext, (RoutingApplicationRequestContext) -> ApplicationRequestStatus) -> ApplicationRequestStatus)
+data class RoutingInterceptor(val function: (RoutingApplicationCall, (RoutingApplicationCall) -> ApplicationCallResult) -> ApplicationCallResult)
 
-open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : InterceptableWithContext<RoutingApplicationRequestContext> {
+open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : InterceptableWithContext<RoutingApplicationCall> {
 
     val children = ArrayList<RoutingEntry> ()
     val interceptors = ArrayList<RoutingInterceptor>()
-    val handlers = ArrayList<RoutingApplicationRequestContext.() -> ApplicationRequestStatus>()
+    val handlers = ArrayList<RoutingApplicationCall.() -> ApplicationCallResult>()
 
     public fun select(selector: RoutingSelector): RoutingEntry {
         val existingEntry = children.firstOrNull { it.selector.equals(selector) }
@@ -21,11 +21,11 @@ open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector
         return existingEntry
     }
 
-    override fun intercept(interceptor: RoutingApplicationRequestContext.(RoutingApplicationRequestContext.() -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
+    override fun intercept(interceptor: RoutingApplicationCall.(RoutingApplicationCall.() -> ApplicationCallResult) -> ApplicationCallResult) {
         interceptors.add(RoutingInterceptor(interceptor))
     }
 
-    public fun handle(handler: RoutingApplicationRequestContext.() -> ApplicationRequestStatus) {
+    public fun handle(handler: RoutingApplicationCall.() -> ApplicationCallResult) {
         handlers.add(handler)
     }
 

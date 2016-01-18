@@ -32,7 +32,7 @@ private fun ldapLogin(ldapURL: String, ldapLoginConfigurator: (MutableMap<String
     return InitialDirContext(env)
 }
 
-inline fun <C : ApplicationRequestContext, reified K : Credential, reified P : Principal> AuthBuilder<C>.verifyWithLdap(
+inline fun <C : ApplicationCall, reified K : Credential, reified P : Principal> AuthBuilder<C>.verifyWithLdap(
         ldapUrl: String,
         noinline ldapLoginConfigurator: (K, MutableMap<String, Any?>) -> Unit = { k, env -> },
         noinline verifyBlock: InitialDirContext.(K) -> P?
@@ -49,7 +49,7 @@ inline fun <C : ApplicationRequestContext, reified K : Credential, reified P : P
     }
 }
 
-inline fun <C : ApplicationRequestContext, reified K : Credential, reified P : Principal> AuthBuilder<C>.verifyWithLdapLoginWithUser(
+inline fun <C : ApplicationCall, reified K : Credential, reified P : Principal> AuthBuilder<C>.verifyWithLdapLoginWithUser(
         ldapUrl: String,
         userDNFormat: String,
         noinline userNameExtractor: (K) -> String,
@@ -67,7 +67,7 @@ inline fun <C : ApplicationRequestContext, reified K : Credential, reified P : P
             }, verifyBlock = verifyBlock)
 }
 
-fun <C : ApplicationRequestContext> AuthBuilder<C>.verifyWithLdapLoginWithUser(
+fun <C : ApplicationCall> AuthBuilder<C>.verifyWithLdapLoginWithUser(
         ldapUrl: String,
         userDNFormat: String,
         ldapLoginConfigurator: (UserPasswordCredential, MutableMap<String, Any?>) -> Unit = { cred, env -> },

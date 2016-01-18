@@ -96,7 +96,7 @@ class TestHostMultipartTest {
         withTestApplication {
             application.intercept { next ->
                 request.content.get<MultiPartData>().parts.toList()
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
 
             handleRequest(HttpMethod.Post, "/")
@@ -112,7 +112,7 @@ class TestHostMultipartTest {
                     asserts(null)
                 }
 
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
 
             handleRequest(HttpMethod.Post, "/", setup)

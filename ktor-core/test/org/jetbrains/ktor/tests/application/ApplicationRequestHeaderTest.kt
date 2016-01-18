@@ -23,7 +23,7 @@ class ApplicationRequestHeaderTest {
                         assertEquals("", request.queryString())
                     }
                     response.status(HttpStatusCode.OK)
-                    ApplicationRequestStatus.Handled
+                    ApplicationCallResult.Handled
                 }
             }
 
@@ -68,7 +68,7 @@ class ApplicationRequestHeaderTest {
                     }
 
                     response.status(HttpStatusCode.OK)
-                    ApplicationRequestStatus.Handled
+                    ApplicationCallResult.Handled
                 }
                 get("/default-port") {
                     it("should map port to 80") {
@@ -76,7 +76,7 @@ class ApplicationRequestHeaderTest {
                     }
 
                     response.status(HttpStatusCode.OK)
-                    ApplicationRequestStatus.Handled
+                    ApplicationCallResult.Handled
                 }
             }
 
@@ -124,7 +124,7 @@ class ApplicationRequestHeaderTest {
                         assertEquals("/", request.path())
                     }
                     response.status(HttpStatusCode.OK)
-                    ApplicationRequestStatus.Handled
+                    ApplicationCallResult.Handled
                 }
             }
 

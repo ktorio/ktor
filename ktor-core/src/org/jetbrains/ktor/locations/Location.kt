@@ -26,7 +26,7 @@ inline fun <reified T : Any> RoutingEntry.location(noinline body: RoutingEntry.(
     location(T::class, body)
 }
 
-inline fun <reified T : Any> RoutingEntry.get(noinline body: ApplicationRequestContext.(T) -> ApplicationRequestStatus) {
+inline fun <reified T : Any> RoutingEntry.get(noinline body: ApplicationCall.(T) -> ApplicationCallResult) {
     location(T::class) {
         method(HttpMethod.Get) {
             handle<T> { location -> body(location) }
@@ -34,7 +34,7 @@ inline fun <reified T : Any> RoutingEntry.get(noinline body: ApplicationRequestC
     }
 }
 
-inline fun <reified T : Any> RoutingEntry.post(noinline body: ApplicationRequestContext.(T) -> ApplicationRequestStatus) {
+inline fun <reified T : Any> RoutingEntry.post(noinline body: ApplicationCall.(T) -> ApplicationCallResult) {
     location(T::class) {
         method(HttpMethod.Post) {
             handle<T> { location -> body(location) }
@@ -48,11 +48,11 @@ fun <T : Any> RoutingEntry.location(data: KClass<T>, body: RoutingEntry.() -> Un
     entry.body()
 }
 
-inline fun <reified T : Any> RoutingEntry.handle(noinline body: RoutingApplicationRequestContext.(T) -> ApplicationRequestStatus) {
+inline fun <reified T : Any> RoutingEntry.handle(noinline body: RoutingApplicationCall.(T) -> ApplicationCallResult) {
     return handle(T::class, body)
 }
 
-fun <T : Any> RoutingEntry.handle(dataClass: KClass<T>, body: RoutingApplicationRequestContext.(T) -> ApplicationRequestStatus) {
+fun <T : Any> RoutingEntry.handle(dataClass: KClass<T>, body: RoutingApplicationCall.(T) -> ApplicationCallResult) {
     handle {
         val locationService = getService(locationServiceKey)
         val location = locationService.resolve<T>(dataClass, this)
@@ -60,7 +60,7 @@ fun <T : Any> RoutingEntry.handle(dataClass: KClass<T>, body: RoutingApplication
     }
 }
 
-fun <T : Any> RoutingApplicationRequestContext.sendRedirect(location: T): ApplicationRequestStatus {
+fun <T : Any> RoutingApplicationCall.sendRedirect(location: T): ApplicationCallResult {
     val locationService = resolveResult.entry.getService(locationServiceKey)
     return response.sendRedirect(locationService.href(location))
 }

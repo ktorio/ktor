@@ -26,7 +26,7 @@ fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() ->
     host.test()
 }
 
-data class RequestResult(val requestResult: ApplicationRequestStatus, val response: TestApplicationResponse)
+data class RequestResult(val requestResult: ApplicationCallResult, val response: TestApplicationResponse)
 
 class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     val application: Application = ApplicationLoader(applicationConfig).application
@@ -34,7 +34,7 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): RequestResult {
         val request = TestApplicationRequest()
         request.setup()
-        val context = TestApplicationRequestContext(application, request)
+        val context = TestApplicationCall(application, request)
         val status = application.handle(context)
         context.close()
         return RequestResult(status, context.response)
@@ -49,7 +49,7 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
     }
 }
 
-class TestApplicationRequestContext(override val application: Application, override val request: TestApplicationRequest) : ApplicationRequestContext {
+class TestApplicationCall(override val application: Application, override val request: TestApplicationRequest) : ApplicationCall {
     override val attributes = Attributes()
     override val close = Interceptable0 {}
 
@@ -90,7 +90,7 @@ class TestApplicationRequest() : ApplicationRequest {
         ValuesMap(map, caseInsensitiveKey = true)
     }
 
-    override val content: ApplicationRequestContent = object : ApplicationRequestContent(this) {
+    override val content: RequestContent = object : RequestContent(this) {
         override fun getInputStream(): InputStream = ByteArrayInputStream(body.toByteArray("UTF-8"))
         override fun getMultiPartData(): MultiPartData = object: MultiPartData {
             override val parts: Sequence<PartData>
@@ -113,7 +113,7 @@ class TestApplicationResponse : BaseApplicationResponse() {
         stream.body()
         byteContent = stream.toByteArray()
         content = stream.toString()
-        ApplicationRequestStatus.Handled
+        ApplicationCallResult.Handled
     }
 
     override val headers: ResponseHeaders = object: ResponseHeaders() {

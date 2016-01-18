@@ -27,6 +27,6 @@ internal class ServletApplicationResponse(private val servletResponse: HttpServl
 
     override val stream = Interceptable1<OutputStream.() -> Unit, Unit> { body ->
         servletResponse.outputStream.body()
-        ApplicationRequestStatus.Handled
+        ApplicationCallResult.Handled
     }
 }

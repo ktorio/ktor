@@ -20,7 +20,7 @@ class BasicAuthTest {
                 uri = "/"
             }
 
-            assertEquals(ApplicationRequestStatus.Handled, response.requestResult)
+            assertEquals(ApplicationCallResult.Handled, response.requestResult)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
 
             assertWWWAuthenticateHeaderExist(response)
@@ -36,7 +36,7 @@ class BasicAuthTest {
 
             val response = handleRequestWithBasic("/", user, p)
 
-            assertEquals(ApplicationRequestStatus.Handled, response.requestResult)
+            assertEquals(ApplicationCallResult.Handled, response.requestResult)
             assertEquals(HttpStatusCode.OK, response.response.status())
             assertEquals("Secret info", response.response.content)
         }
@@ -51,7 +51,7 @@ class BasicAuthTest {
 
             val response = handleRequestWithBasic("/", user, p)
 
-            assertEquals(ApplicationRequestStatus.Handled, response.requestResult)
+            assertEquals(ApplicationCallResult.Handled, response.requestResult)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
             assertNotEquals("Secret info", response.response.content)
 
@@ -75,7 +75,7 @@ class BasicAuthTest {
             }
 
             handleRequestWithBasic("/", "bad", "").let { response ->
-                assertEquals(ApplicationRequestStatus.Handled, response.requestResult)
+                assertEquals(ApplicationCallResult.Handled, response.requestResult)
                 assertEquals(HttpStatusCode.Unauthorized, response.response.status())
                 assertNotEquals("Secret info", response.response.content)
 
@@ -83,7 +83,7 @@ class BasicAuthTest {
             }
 
             handleRequestWithBasic("/", "good", "").let { response ->
-                assertEquals(ApplicationRequestStatus.Handled, response.requestResult)
+                assertEquals(ApplicationCallResult.Handled, response.requestResult)
                 assertEquals(HttpStatusCode.OK, response.response.status())
                 assertEquals("Secret info", response.response.content)
             }

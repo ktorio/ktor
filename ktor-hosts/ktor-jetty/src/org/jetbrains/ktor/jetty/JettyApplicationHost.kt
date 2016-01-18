@@ -45,7 +45,7 @@ class JettyApplicationHost : ApplicationHost {
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             response.characterEncoding = "UTF-8"
             try {
-                val appRequest = ServletApplicationRequestContext(application, request, response)
+                val appRequest = ServletApplicationCall(application, request, response)
                 val contentType = request.contentType
                 if (contentType != null && ContentType.parse(contentType).match(ContentType.MultiPart.Any)) {
                     baseRequest.setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, MULTI_PART_CONFIG)
@@ -54,9 +54,9 @@ class JettyApplicationHost : ApplicationHost {
 
                 val requestResult = application.handle(appRequest)
                 when (requestResult) {
-                    ApplicationRequestStatus.Handled -> baseRequest.isHandled = true
-                    ApplicationRequestStatus.Unhandled -> baseRequest.isHandled = false
-                    ApplicationRequestStatus.Asynchronous -> {
+                    ApplicationCallResult.Handled -> baseRequest.isHandled = true
+                    ApplicationCallResult.Unhandled -> baseRequest.isHandled = false
+                    ApplicationCallResult.Asynchronous -> {
                         val asyncContext = baseRequest.startAsync()
                         appRequest.continueAsync(asyncContext)
                     }

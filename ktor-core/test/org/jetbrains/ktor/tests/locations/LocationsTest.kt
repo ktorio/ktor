@@ -19,7 +19,7 @@ class LocationsTest {
         testHost.application.locations {
             get<index> {
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
         }
         urlShouldBeHandled(testHost, href)
@@ -36,7 +36,7 @@ class LocationsTest {
         testHost.application.locations {
             get<about> {
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
         }
         urlShouldBeHandled(testHost, href)
@@ -53,7 +53,7 @@ class LocationsTest {
             get<user> { user ->
                 assertEquals(123, user.id)
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
         }
         urlShouldBeHandled(testHost, href)
@@ -71,7 +71,7 @@ class LocationsTest {
                 assertEquals(123, named.id)
                 assertEquals("abc def", named.name)
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
         }
         urlShouldBeHandled(testHost, href)
@@ -89,7 +89,7 @@ class LocationsTest {
             get<favorite> { favorite ->
                 assertEquals(123, favorite.id)
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
         }
         urlShouldBeHandled(testHost, href)
@@ -111,10 +111,10 @@ class LocationsTest {
             get<pathContainer.items> { items ->
                 assertEquals(123, items.container.id)
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
             assertFailsWith(InconsistentRoutingException::class.java) {
-                get<pathContainer.badItems> { ApplicationRequestStatus.Handled }
+                get<pathContainer.badItems> { ApplicationCallResult.Handled }
             }
         }
         urlShouldBeHandled(testHost, href)
@@ -136,10 +136,10 @@ class LocationsTest {
             get<queryContainer.items> { items ->
                 assertEquals(123, items.container.id)
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
             assertFailsWith(InconsistentRoutingException::class.java) {
-                get<queryContainer.badItems> { ApplicationRequestStatus.Handled }
+                get<queryContainer.badItems> { ApplicationCallResult.Handled }
             }
         }
         urlShouldBeHandled(testHost, href)
@@ -158,7 +158,7 @@ class LocationsTest {
                 assertEquals(123, it.id)
                 assertNull(it.optional)
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
         }
         urlShouldBeHandled(testHost, href)
@@ -178,7 +178,7 @@ class LocationsTest {
                 assertEquals(123, it.id)
                 assertEquals(42, it.optional)
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
         }
         urlShouldBeHandled(testHost, "/container?id=123")
@@ -195,7 +195,7 @@ class LocationsTest {
                 assertEquals(123, it.id)
                 assertEquals("text", it.optional)
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
         }
         urlShouldBeHandled(testHost, href)
@@ -215,12 +215,12 @@ class LocationsTest {
             get<optionalContainer> {
                 assertEquals(null, it.id)
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
             get<optionalContainer.items> {
                 assertEquals("text", it.optional)
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
 
         }
@@ -240,11 +240,11 @@ class LocationsTest {
         testHost.application.locations {
             get<simpleContainer.items> {
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
             get<simpleContainer> {
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
         }
         urlShouldBeHandled(testHost, href)
@@ -291,7 +291,7 @@ class LocationsTest {
                 method = HttpMethod.Get
             }
             it("should be handled") {
-                assertEquals(ApplicationRequestStatus.Handled, result.requestResult)
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
             }
             it("should have a response with OK status") {
                 assertEquals(HttpStatusCode.OK, result.response.status())
@@ -311,7 +311,7 @@ class LocationsTest {
                 method = HttpMethod.Post
             }
             it("should not be handled") {
-                assertEquals(ApplicationRequestStatus.Unhandled, result.requestResult)
+                assertEquals(ApplicationCallResult.Unhandled, result.requestResult)
             }
         }
     }

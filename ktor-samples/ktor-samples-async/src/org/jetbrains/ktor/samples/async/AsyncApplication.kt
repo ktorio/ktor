@@ -16,12 +16,12 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
             get("/{...}") {
                 val start = System.currentTimeMillis()
                 executor.submit { handleLongCalculation(start) }
-                ApplicationRequestStatus.Asynchronous
+                ApplicationCallResult.Asynchronous
             }
         }
     }
 
-    private fun ApplicationRequestContext.handleLongCalculation(start: Long) {
+    private fun ApplicationCall.handleLongCalculation(start: Long) {
         val queue = System.currentTimeMillis() - start
         var number = 0
         val random = Random()

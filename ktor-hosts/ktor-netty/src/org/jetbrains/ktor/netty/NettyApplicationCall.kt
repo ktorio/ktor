@@ -7,9 +7,9 @@ import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.util.*
 
-public class NettyApplicationRequestContext(override val application: Application,
-                                     val context: ChannelHandlerContext,
-                                     val httpRequest: FullHttpRequest) : ApplicationRequestContext {
+public class NettyApplicationCall(override val application: Application,
+                                  val context: ChannelHandlerContext,
+                                  val httpRequest: FullHttpRequest) : ApplicationCall {
 
     override val attributes = Attributes()
     val httpResponse = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)

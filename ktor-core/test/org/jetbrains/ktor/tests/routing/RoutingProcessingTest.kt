@@ -13,7 +13,7 @@ class RoutingProcessingTest {
         testHost.application.routing {
             get("/foo/bar") {
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
         }
 
@@ -23,7 +23,7 @@ class RoutingProcessingTest {
                 method = HttpMethod.Get
             }
             it("should be handled") {
-                assertEquals(ApplicationRequestStatus.Handled, result.requestResult)
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
             }
             it("should have a response with OK status") {
                 assertEquals(HttpStatusCode.OK, result.response.status())
@@ -36,7 +36,7 @@ class RoutingProcessingTest {
                 method = HttpMethod.Post
             }
             it("should not be handled") {
-                assertEquals(ApplicationRequestStatus.Unhandled, result.requestResult)
+                assertEquals(ApplicationCallResult.Unhandled, result.requestResult)
             }
         }
     }
@@ -50,7 +50,7 @@ class RoutingProcessingTest {
                     method(HttpMethod.Get) {
                         handle {
                             username = parameters["name"] ?: ""
-                            ApplicationRequestStatus.Handled
+                            ApplicationCallResult.Handled
                         }
                     }
                 }
@@ -90,7 +90,7 @@ class RoutingProcessingTest {
                 get("{username}") {
                     userName = parameters["username"] ?: ""
                     userNameGotWithinInterceptor = wrappedWithInterceptor
-                    ApplicationRequestStatus.Handled
+                    ApplicationCallResult.Handled
                 }
             }
         }

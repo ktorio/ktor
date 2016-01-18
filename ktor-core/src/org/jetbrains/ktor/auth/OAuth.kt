@@ -116,13 +116,13 @@ fun upgradeRequestTokenHeader(
         )
 )
 
-private fun ApplicationResponse.redirectAuthenticateOAuth1a(settings: OAuthServerSettings.OAuth1aServerSettings, requestToken: OAuthCallback.TokenPair): ApplicationRequestStatus =
+private fun ApplicationResponse.redirectAuthenticateOAuth1a(settings: OAuthServerSettings.OAuth1aServerSettings, requestToken: OAuthCallback.TokenPair): ApplicationCallResult =
     redirectAuthenticateOAuth1a(settings.authorizeUrl, requestToken.token)
 
-private fun ApplicationResponse.redirectAuthenticateOAuth1a(authenticateUrl: String, requestToken: String): ApplicationRequestStatus =
+private fun ApplicationResponse.redirectAuthenticateOAuth1a(authenticateUrl: String, requestToken: String): ApplicationCallResult =
     sendRedirect(authenticateUrl.appendUrlParameters("${HttpAuthHeader.Parameters.OAuthToken}=${requestToken.encodeURL()}"))
 
-private fun ApplicationResponse.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList()): ApplicationRequestStatus {
+private fun ApplicationResponse.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList()): ApplicationCallResult {
     return redirectAuthenticateOAuth2(authenticateUrl = settings.authorizeUrl,
             callbackRedirectUrl = callbackRedirectUrl,
             clientId = settings.clientId,
@@ -131,7 +131,7 @@ private fun ApplicationResponse.redirectAuthenticateOAuth2(settings: OAuthServer
             parameters = extraParameters)
 }
 
-private fun ApplicationResponse.redirectAuthenticateOAuth2(authenticateUrl: String, callbackRedirectUrl: String, clientId: String, state: String, scopes: List<String> = emptyList(), parameters: List<Pair<String, String>> = emptyList()): ApplicationRequestStatus {
+private fun ApplicationResponse.redirectAuthenticateOAuth2(authenticateUrl: String, callbackRedirectUrl: String, clientId: String, state: String, scopes: List<String> = emptyList(), parameters: List<Pair<String, String>> = emptyList()): ApplicationCallResult {
     return sendRedirect(authenticateUrl
             .appendUrlParameters("${OAuth2RequestParameters.ClientId}=${clientId.encodeURL()}&${OAuth2RequestParameters.RedirectUri}=${callbackRedirectUrl.encodeURL()}")
             .appendUrlParameters(optionalParameter(OAuth2RequestParameters.Scope, scopes.joinToString(",")))
@@ -225,7 +225,7 @@ private fun simpleOAuth1aStep2(client: HttpClient, secretKey: String, baseUrl: S
     }
 }
 
-private fun ApplicationRequestContext.oauth1aHandleCallback(): OAuthCallback.TokenPair? {
+private fun ApplicationCall.oauth1aHandleCallback(): OAuthCallback.TokenPair? {
     val token = request.parameter(HttpAuthHeader.Parameters.OAuthToken)
     val verifier = request.parameter(HttpAuthHeader.Parameters.OAuthVerifier)
 
@@ -235,7 +235,7 @@ private fun ApplicationRequestContext.oauth1aHandleCallback(): OAuthCallback.Tok
     }
 }
 
-private fun ApplicationRequestContext.oauth2HandleCallback(): OAuthCallback.TokenSingle? {
+private fun ApplicationCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? {
     val code = request.parameter(OAuth2RequestParameters.Code)
     val state = request.parameter(OAuth2RequestParameters.State)
 
@@ -323,7 +323,7 @@ private fun simpleOAuth2Step2(client: HttpClient, method: HttpMethod, usedRedire
     }
 }
 
-fun ApplicationRequestContext.simpleOAuthAnyStep1(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String): ApplicationRequestStatus =
+fun ApplicationCall.simpleOAuthAnyStep1(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String): ApplicationCallResult =
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
             handleAsync(exec, {
@@ -335,13 +335,13 @@ fun ApplicationRequestContext.simpleOAuthAnyStep1(client: HttpClient, exec: Exec
             response.redirectAuthenticateOAuth2(provider, callbackUrl, nextNonce(), scopes = provider.defaultScopes)
     }
 
-fun ApplicationRequestContext.simpleOAuthAnyStep2(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String, block: (OAuthAccessTokenResponse) -> ApplicationRequestStatus): ApplicationRequestStatus =
+fun ApplicationCall.simpleOAuthAnyStep2(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String, block: (OAuthAccessTokenResponse) -> ApplicationCallResult): ApplicationCallResult =
         when (provider) {
             is OAuthServerSettings.OAuth1aServerSettings -> {
                 val tokens = oauth1aHandleCallback()
                 if (tokens == null) {
                     response.sendRedirect(loginPageUrl)
-                    ApplicationRequestStatus.Handled
+                    ApplicationCallResult.Handled
                 } else {
                     handleAsync(exec, {
                         val accessToken = simpleOAuth1aStep2(client, provider, tokens)
@@ -353,7 +353,7 @@ fun ApplicationRequestContext.simpleOAuthAnyStep2(client: HttpClient, exec: Exec
                 val code = oauth2HandleCallback()
                 if (code == null) {
                     response.sendRedirect(loginPageUrl)
-                    ApplicationRequestStatus.Handled
+                    ApplicationCallResult.Handled
                 } else {
                     handleAsync(exec, {
                         val accessToken = simpleOAuth2Step2(
@@ -369,9 +369,9 @@ fun ApplicationRequestContext.simpleOAuthAnyStep2(client: HttpClient, exec: Exec
             }
         }
 
-private fun <C: ApplicationRequestContext> AuthBuilder<C>.oauth1a(client: HttpClient, exec: ExecutorService,
-                         providerLookup: C.() -> OAuthServerSettings?,
-                         urlProvider: C.(OAuthServerSettings) -> String) {
+private fun <C: ApplicationCall> AuthBuilder<C>.oauth1a(client: HttpClient, exec: ExecutorService,
+                                                        providerLookup: C.() -> OAuthServerSettings?,
+                                                        urlProvider: C.(OAuthServerSettings) -> String) {
     intercept { next ->
         val provider = providerLookup()
         when (provider) {
@@ -395,9 +395,9 @@ private fun <C: ApplicationRequestContext> AuthBuilder<C>.oauth1a(client: HttpCl
     }
 }
 
-private fun <C: ApplicationRequestContext> AuthBuilder<C>.oauth2(client: HttpClient, exec: ExecutorService,
-                        providerLookup: C.() -> OAuthServerSettings?,
-                        urlProvider: C.(OAuthServerSettings) -> String) {
+private fun <C: ApplicationCall> AuthBuilder<C>.oauth2(client: HttpClient, exec: ExecutorService,
+                                                       providerLookup: C.() -> OAuthServerSettings?,
+                                                       urlProvider: C.(OAuthServerSettings) -> String) {
     intercept { next ->
         val provider = providerLookup()
         when (provider) {
@@ -426,7 +426,7 @@ private fun <C: ApplicationRequestContext> AuthBuilder<C>.oauth2(client: HttpCli
  *
  * Takes [UserPasswordCredential] and validates it using OAuth2 sequence, provides [OAuthAccessTokenResponse.OAuth2] if succeeds
  */
-fun <C: ApplicationRequestContext> AuthBuilder<C>.verifyWithOAuth2(client: HttpClient, settings: OAuthServerSettings.OAuth2ServerSettings) {
+fun <C: ApplicationCall> AuthBuilder<C>.verifyWithOAuth2(client: HttpClient, settings: OAuthServerSettings.OAuth2ServerSettings) {
     verifyWith { c: UserPasswordCredential ->
         simpleOAuth2Step2(client, HttpMethod.Post,
                 usedRedirectUrl = null,
@@ -446,38 +446,38 @@ fun <C: ApplicationRequestContext> AuthBuilder<C>.verifyWithOAuth2(client: HttpC
     }
 }
 
-fun <C: ApplicationRequestContext> AuthBuilder<C>.oauth(client: HttpClient, exec: ExecutorService,
-                       providerLookup: C.() -> OAuthServerSettings?,
-                       urlProvider: C.(OAuthServerSettings) -> String) {
+fun <C: ApplicationCall> AuthBuilder<C>.oauth(client: HttpClient, exec: ExecutorService,
+                                              providerLookup: C.() -> OAuthServerSettings?,
+                                              urlProvider: C.(OAuthServerSettings) -> String) {
     oauth1a(client, exec, providerLookup, urlProvider)
     oauth2(client, exec, providerLookup, urlProvider)
 }
 
-inline fun <reified T: Any> AuthBuilder<RoutingApplicationRequestContext>.oauthAtLocation(client: HttpClient, exec: ExecutorService,
-                                                         noinline providerLookup: RoutingApplicationRequestContext.(T) -> OAuthServerSettings?,
-                                                         noinline urlProvider: RoutingApplicationRequestContext.(T, OAuthServerSettings) -> String) {
+inline fun <reified T: Any> AuthBuilder<RoutingApplicationCall>.oauthAtLocation(client: HttpClient, exec: ExecutorService,
+                                                                                noinline providerLookup: RoutingApplicationCall.(T) -> OAuthServerSettings?,
+                                                                                noinline urlProvider: RoutingApplicationCall.(T, OAuthServerSettings) -> String) {
     oauthWithType(T::class, client, exec, providerLookup, urlProvider)
 }
 
-fun <T: Any> AuthBuilder<RoutingApplicationRequestContext>.oauthWithType(type: KClass<T>,
-                                                                         client: HttpClient,
-                                                                         exec: ExecutorService,
-                                        providerLookup: RoutingApplicationRequestContext.(T) -> OAuthServerSettings?,
-                                        urlProvider: RoutingApplicationRequestContext.(T, OAuthServerSettings) -> String) {
+fun <T: Any> AuthBuilder<RoutingApplicationCall>.oauthWithType(type: KClass<T>,
+                                                               client: HttpClient,
+                                                               exec: ExecutorService,
+                                                               providerLookup: RoutingApplicationCall.(T) -> OAuthServerSettings?,
+                                                               urlProvider: RoutingApplicationCall.(T, OAuthServerSettings) -> String) {
 
-    fun RoutingApplicationRequestContext.resolve(): T {
+    fun RoutingApplicationCall.resolve(): T {
         val locationService = resolveResult.entry.getService(locationServiceKey)
         return locationService.resolve<T>(type, this)
     }
-    fun RoutingApplicationRequestContext.providerLookupLocal(): OAuthServerSettings? = providerLookup(resolve())
-    fun RoutingApplicationRequestContext.urlProviderLocal(s: OAuthServerSettings): String = urlProvider(resolve(), s)
+    fun RoutingApplicationCall.providerLookupLocal(): OAuthServerSettings? = providerLookup(resolve())
+    fun RoutingApplicationCall.urlProviderLocal(s: OAuthServerSettings): String = urlProvider(resolve(), s)
 
     oauth(client, exec,
-            RoutingApplicationRequestContext::providerLookupLocal,
-            RoutingApplicationRequestContext::urlProviderLocal)
+            RoutingApplicationCall::providerLookupLocal,
+            RoutingApplicationCall::urlProviderLocal)
 }
 
-private fun ApplicationRequestContext.oauthHandleFail(redirectUrl: String) = { t: Throwable ->
+private fun ApplicationCall.oauthHandleFail(redirectUrl: String) = { t: Throwable ->
     application.config.log.error(t)
     response.sendRedirect(redirectUrl)
     Unit

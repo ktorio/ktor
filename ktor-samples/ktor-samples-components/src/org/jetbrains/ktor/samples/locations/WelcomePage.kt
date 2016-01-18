@@ -30,7 +30,7 @@ public class WelcomePage(routing: Routing) {
                         }
                     }
                 }
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
 
         }

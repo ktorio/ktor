@@ -6,9 +6,9 @@ import org.jetbrains.ktor.util.*
 import javax.servlet.*
 import javax.servlet.http.*
 
-public class ServletApplicationRequestContext(override val application: Application,
-                                              private val servletRequest: HttpServletRequest,
-                                              private val servletResponse: HttpServletResponse) : ApplicationRequestContext {
+public class ServletApplicationCall(override val application: Application,
+                                    private val servletRequest: HttpServletRequest,
+                                    private val servletResponse: HttpServletResponse) : ApplicationCall {
     override val attributes = Attributes()
     override val request : ApplicationRequest = ServletApplicationRequest(servletRequest)
     override val response : ApplicationResponse = ServletApplicationResponse(servletResponse)

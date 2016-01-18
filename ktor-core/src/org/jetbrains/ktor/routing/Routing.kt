@@ -72,7 +72,7 @@ class Routing() : RoutingEntry(parent = null, selector = Routing.RootRoutingSele
         return resolve(this, request, 0)
     }
 
-    private fun ApplicationRequestContext.interceptor(next: ApplicationRequestContext.() -> ApplicationRequestStatus): ApplicationRequestStatus {
+    private fun ApplicationCall.interceptor(next: ApplicationCall.() -> ApplicationCallResult): ApplicationCallResult {
         val resolveContext = RoutingResolveContext(request.requestLine, request.parameters, request.headers)
         val resolveResult = resolve(resolveContext)
         return when {
@@ -85,15 +85,15 @@ class Routing() : RoutingEntry(parent = null, selector = Routing.RootRoutingSele
                 }
 
                 val handlers = resolveResult.entry.handlers
-                val context = RoutingApplicationRequestContext(this, resolveResult)
+                val context = RoutingApplicationCall(this, resolveResult)
                 processChain(chain, context, handlers)
             }
             else -> next()
         }
     }
 
-    private fun processChain(interceptors: List<RoutingInterceptor>, request: RoutingApplicationRequestContext, handlers: ArrayList<RoutingApplicationRequestContext.() -> ApplicationRequestStatus>): ApplicationRequestStatus {
-        fun handle(index: Int, context: RoutingApplicationRequestContext): ApplicationRequestStatus {
+    private fun processChain(interceptors: List<RoutingInterceptor>, request: RoutingApplicationCall, handlers: ArrayList<RoutingApplicationCall.() -> ApplicationCallResult>): ApplicationCallResult {
+        fun handle(index: Int, context: RoutingApplicationCall): ApplicationCallResult {
             when (index) {
                 in interceptors.indices -> {
                     return interceptors[index].function(context) { request -> handle(index + 1, request) }
@@ -101,10 +101,10 @@ class Routing() : RoutingEntry(parent = null, selector = Routing.RootRoutingSele
                 else -> {
                     for (handler in handlers) {
                         val handlerResult = context.handler()
-                        if (handlerResult != ApplicationRequestStatus.Unhandled)
+                        if (handlerResult != ApplicationCallResult.Unhandled)
                             return handlerResult
                     }
-                    return ApplicationRequestStatus.Unhandled
+                    return ApplicationCallResult.Unhandled
                 }
             }
         }

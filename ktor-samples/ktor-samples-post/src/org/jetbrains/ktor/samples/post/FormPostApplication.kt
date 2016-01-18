@@ -39,7 +39,7 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
                         }
                     }
                 }
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
 
             post<post> {
@@ -61,7 +61,7 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
                     }
                 }
 
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
         }
     }

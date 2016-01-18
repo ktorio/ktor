@@ -41,7 +41,7 @@ class OAuthLoginNoLocationApplication(config: ApplicationConfig) : Application(c
                 """.trimIndent())
             }
 
-            ApplicationRequestStatus.Handled
+            ApplicationCallResult.Handled
         }
     }
 }

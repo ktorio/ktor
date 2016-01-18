@@ -34,7 +34,7 @@ public class InformationService(routing: Routing, providers: Iterable<Informatio
                         }
                     }
                 }
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             }
 
         }

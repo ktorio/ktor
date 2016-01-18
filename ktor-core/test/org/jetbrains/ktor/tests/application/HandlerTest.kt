@@ -13,7 +13,7 @@ class HandlerTest {
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should not be handled") {
-                assertEquals(ApplicationRequestStatus.Unhandled, request.requestResult)
+                assertEquals(ApplicationCallResult.Unhandled, request.requestResult)
             }
         }
     }
@@ -24,29 +24,29 @@ class HandlerTest {
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should not be handled") {
-                assertEquals(ApplicationRequestStatus.Unhandled, request.requestResult)
+                assertEquals(ApplicationCallResult.Unhandled, request.requestResult)
             }
         }
     }
 
     @Test fun `application with handler returning true`() {
         val testHost = createTestHost()
-        testHost.application.intercept { next -> ApplicationRequestStatus.Handled }
+        testHost.application.intercept { next -> ApplicationCallResult.Handled }
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should be handled") {
-                assertEquals(ApplicationRequestStatus.Handled, request.requestResult)
+                assertEquals(ApplicationCallResult.Handled, request.requestResult)
             }
         }
     }
 
     @Test fun `application with handler that returns a valid response`() {
         val testHost = createTestHost()
-        testHost.application.intercept { next -> ApplicationRequestStatus.Handled }
+        testHost.application.intercept { next -> ApplicationCallResult.Handled }
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should be handled") {
-                assertEquals(ApplicationRequestStatus.Handled, request.requestResult)
+                assertEquals(ApplicationCallResult.Handled, request.requestResult)
             }
         }
     }
@@ -56,36 +56,36 @@ class HandlerTest {
             if (request.httpMethod == HttpMethod.Post) {
                 assertEquals(request.content.get<String>(), "Body")
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
 
             } else
-                ApplicationRequestStatus.Unhandled
+                ApplicationCallResult.Unhandled
         }
         val result = handleRequest {
             method = HttpMethod.Post
             body = "Body"
         }
-        assertEquals(ApplicationRequestStatus.Handled, result.requestResult)
+        assertEquals(ApplicationCallResult.Handled, result.requestResult)
     }
 
     @Test fun `application with handler that returns true on POST method`() = withTestApplication {
         application.intercept { next ->
             if (request.httpMethod == HttpMethod.Post) {
                 response.status(HttpStatusCode.OK)
-                ApplicationRequestStatus.Handled
+                ApplicationCallResult.Handled
             } else
-                ApplicationRequestStatus.Unhandled
+                ApplicationCallResult.Unhandled
         }
         on("making a GET request") {
             val request = handleRequest { method = HttpMethod.Get }
             it("should not be handled") {
-                assertEquals(ApplicationRequestStatus.Unhandled, request.requestResult)
+                assertEquals(ApplicationCallResult.Unhandled, request.requestResult)
             }
         }
         on("making a POST request") {
             val request = handleRequest { method = HttpMethod.Post }
             it("should be handled") {
-                assertEquals(ApplicationRequestStatus.Handled, request.requestResult)
+                assertEquals(ApplicationCallResult.Handled, request.requestResult)
             }
         }
     }
@@ -104,12 +104,12 @@ class HandlerTest {
         on("asking for a response") {
             application.intercept { next ->
                 response.contentType(ContentType.Text.Plain)
-                ApplicationRequestStatus.Asynchronous
+                ApplicationCallResult.Asynchronous
 
             }
             handleRequest { method = HttpMethod.Get }.let {
                 it("should be handled overwritten by prior interception") {
-                    assertEquals(ApplicationRequestStatus.Asynchronous, it.requestResult)
+                    assertEquals(ApplicationCallResult.Asynchronous, it.requestResult)
                 }
                 it("should have modified content type to text/xml") {
                     assertEquals("text/xml", it.response.headers["Content-Type"])

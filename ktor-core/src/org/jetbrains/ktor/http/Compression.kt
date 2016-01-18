@@ -8,7 +8,7 @@ data class CompressionOptions(var minSize: Long = 0L,
                               var compressStream: Boolean = true,
                               var defaultEncoding: String = "deflate",
                               val compressorRegistry: MutableMap<String, CompressionEncoder> = hashMapOf(),
-                              val conditions: MutableList<ApplicationRequestContext.() -> Boolean> = arrayListOf()
+                              val conditions: MutableList<ApplicationCall.() -> Boolean> = arrayListOf()
 )
 
 fun Application.setupCompression() {
@@ -72,13 +72,13 @@ private object IdentityEncoder : CompressionEncoder {
     override fun open(stream: OutputStream): OutputStream = stream
 }
 
-private fun minSizeCondition(options: CompressionOptions): ApplicationRequestContext.() -> Boolean = {
+private fun minSizeCondition(options: CompressionOptions): ApplicationCall.() -> Boolean = {
     val contentLength = response.headers[HttpHeaders.ContentLength]?.toLong()
 
     contentLength == null || contentLength >= options.minSize
 }
 
-private fun compressStreamCondition(options: CompressionOptions): ApplicationRequestContext.() -> Boolean = {
+private fun compressStreamCondition(options: CompressionOptions): ApplicationCall.() -> Boolean = {
     val contentLength = response.headers[HttpHeaders.ContentLength]?.toLong()
 
     options.compressStream || contentLength != null

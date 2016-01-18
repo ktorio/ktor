@@ -48,7 +48,7 @@ class OAuth1aSignatureTest {
 class OAuth1aFlowTest {
     val testClient = createOAuthServer(object: TestingOAuthServer {
 
-        override fun requestToken(ctx: ApplicationRequestContext, callback: String?, consumerKey: String, nonce: String, signature: String, signatureMethod: String, timestamp: Long): TestOAuthTokenResponse {
+        override fun requestToken(ctx: ApplicationCall, callback: String?, consumerKey: String, nonce: String, signature: String, signatureMethod: String, timestamp: Long): TestOAuthTokenResponse {
             if (consumerKey != "1CV4Ud1ZOOzRMwmRyCEe0PY7J") {
                 throw IllegalArgumentException("Bad consumer key specified: $consumerKey")
             }
@@ -63,7 +63,7 @@ class OAuth1aFlowTest {
             return TestOAuthTokenResponse(callback == "http://localhost/login?redirected=true", "token1", "tokenSecret1")
         }
 
-        override fun authorize(ctx: ApplicationRequestContext, oauthToken: String): ApplicationRequestStatus {
+        override fun authorize(ctx: ApplicationCall, oauthToken: String): ApplicationCallResult {
             if (oauthToken != "token1") {
                 return ctx.response.sendRedirect("http://localhost/login?redirected=true&error=Wrong+token+$oauthToken")
             }
@@ -71,7 +71,7 @@ class OAuth1aFlowTest {
             return ctx.response.sendRedirect("http://localhost/login?redirected=true&oauth_token=$oauthToken&oauth_verifier=verifier1")
         }
 
-        override fun accessToken(ctx: ApplicationRequestContext, consumerKey: String, nonce: String, signature: String, signatureMethod: String, timestamp: Long, token: String, verifier: String): OAuthAccessTokenResponse.OAuth1a {
+        override fun accessToken(ctx: ApplicationCall, consumerKey: String, nonce: String, signature: String, signatureMethod: String, timestamp: Long, token: String, verifier: String): OAuthAccessTokenResponse.OAuth1a {
             if (consumerKey != "1CV4Ud1ZOOzRMwmRyCEe0PY7J") {
                 throw IllegalArgumentException("Bad consumer key specified $consumerKey")
             }
@@ -120,7 +120,7 @@ class OAuth1aFlowTest {
             application.configureServer("http://localhost/login?redirected=true")
 
             val result = handleRequest(HttpMethod.Get, "/login")
-            assertEquals(ApplicationRequestStatus.Asynchronous, result.requestResult, "request should be handled asynchronously")
+            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
 
             waitExecutor()
 
@@ -137,7 +137,7 @@ class OAuth1aFlowTest {
             })
 
             val result = handleRequest(HttpMethod.Get, "/login")
-            assertEquals(ApplicationRequestStatus.Asynchronous, result.requestResult, "request should be handled asynchronously")
+            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
 
             waitExecutor()
 
@@ -152,7 +152,7 @@ class OAuth1aFlowTest {
             application.configureServer("http://localhost/login")
 
             val result = handleRequest(HttpMethod.Get, "/login")
-            assertEquals(ApplicationRequestStatus.Asynchronous, result.requestResult, "request should be handled asynchronously")
+            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
 
             waitExecutor()
 
@@ -167,7 +167,7 @@ class OAuth1aFlowTest {
             application.configureServer()
 
             val result = handleRequest(HttpMethod.Get, "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier1")
-            assertEquals(ApplicationRequestStatus.Asynchronous, result.requestResult, "request should be handled asynchronously")
+            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
 
             waitExecutor()
 
@@ -183,7 +183,7 @@ class OAuth1aFlowTest {
             application.configureServer()
 
             val result = handleRequest(HttpMethod.Get, "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier2")
-            assertEquals(ApplicationRequestStatus.Asynchronous, result.requestResult, "request should be handled asynchronously")
+            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
 
             waitExecutor()
 
@@ -224,9 +224,9 @@ class OAuth1aFlowTest {
 //          for now we have it only for the testing purpose
 
 private interface TestingOAuthServer {
-    fun requestToken(ctx: ApplicationRequestContext, callback: String?, consumerKey: String, nonce: String, signature: String, signatureMethod: String, timestamp: Long): TestOAuthTokenResponse
-    fun authorize(ctx: ApplicationRequestContext, oauthToken: String): ApplicationRequestStatus
-    fun accessToken(ctx: ApplicationRequestContext, consumerKey: String, nonce: String, signature: String, signatureMethod: String,
+    fun requestToken(ctx: ApplicationCall, callback: String?, consumerKey: String, nonce: String, signature: String, signatureMethod: String, timestamp: Long): TestOAuthTokenResponse
+    fun authorize(ctx: ApplicationCall, oauthToken: String): ApplicationCallResult
+    fun accessToken(ctx: ApplicationCall, consumerKey: String, nonce: String, signature: String, signatureMethod: String,
                     timestamp: Long, token: String, verifier: String): OAuthAccessTokenResponse.OAuth1a
 }
 

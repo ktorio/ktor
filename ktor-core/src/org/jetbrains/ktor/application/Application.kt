@@ -6,38 +6,38 @@ import org.jetbrains.ktor.interception.*
 /**
  * Represents configured and running web application, capable of handling requests
  */
-public open class Application(val config: ApplicationConfig) : InterceptableWithContext<ApplicationRequestContext> {
-    private val handler: Interceptable1<ApplicationRequestContext, ApplicationRequestStatus> = Interceptable1 {
-        ApplicationRequestStatus.Unhandled
+public open class Application(val config: ApplicationConfig) : InterceptableWithContext<ApplicationCall> {
+    private val handler: Interceptable1<ApplicationCall, ApplicationCallResult> = Interceptable1 {
+        ApplicationCallResult.Unhandled
     }
 
     /**
      * Installs interceptor into the current Application handling chain
      */
-    override fun intercept(interceptor: ApplicationRequestContext.(ApplicationRequestContext.() -> ApplicationRequestStatus) -> ApplicationRequestStatus) {
+    override fun intercept(interceptor: ApplicationCall.(ApplicationCall.() -> ApplicationCallResult) -> ApplicationCallResult) {
         handler.intercept(interceptor)
     }
 
     /**
      * Handles HTTP request coming from the host using interceptors
      */
-    public fun handle(context: ApplicationRequestContext): ApplicationRequestStatus {
+    public fun handle(context: ApplicationCall): ApplicationCallResult {
         val result = handler.call(context)
         context.logResult(result)
         return result
     }
 
-    private fun ApplicationRequestContext.logResult(result: ApplicationRequestStatus) {
+    private fun ApplicationCall.logResult(result: ApplicationCallResult) {
         when (result) {
-            ApplicationRequestStatus.Handled -> {
+            ApplicationCallResult.Handled -> {
                 val status = response.status()
                 when (status) {
                     HttpStatusCode.Found -> config.log.info("$status: ${request.requestLine} -> ${response.headers[HttpHeaders.Location]}")
                     else -> config.log.info("$status: ${request.requestLine}")
                 }
             }
-            ApplicationRequestStatus.Unhandled -> config.log.info("<Unhandled>: ${request.requestLine}")
-            ApplicationRequestStatus.Asynchronous -> config.log.info("<Async>: ${request.requestLine}")
+            ApplicationCallResult.Unhandled -> config.log.info("<Unhandled>: ${request.requestLine}")
+            ApplicationCallResult.Asynchronous -> config.log.info("<Async>: ${request.requestLine}")
         }
     }
 

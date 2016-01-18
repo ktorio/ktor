@@ -9,41 +9,41 @@ private val SessionConfigKey = AttributeKey<SessionConfig<*>>()
 private val SessionKey = AttributeKey<Any>()
 
 @Suppress("UNCHECKED_CAST")
-private fun <S : Any> ApplicationRequestContext.sessionConfig() = attributes[SessionConfigKey] as SessionConfig<S>
+private fun <S : Any> ApplicationCall.sessionConfig() = attributes[SessionConfigKey] as SessionConfig<S>
 
-inline fun <reified T : Any> ApplicationRequestContext.session() = session(T::class)
+inline fun <reified T : Any> ApplicationCall.session() = session(T::class)
 
-fun <S : Any> ApplicationRequestContext.session(session: S) = session.apply {
+fun <S : Any> ApplicationCall.session(session: S) = session.apply {
     val type = sessionConfig<S>().type
     require(type.java.isInstance(session)) { "Instance should be an instance of $type" }
     attributes.put(SessionKey, session)
 }
 
 @Suppress("UNCHECKED_CAST")
-fun <S : Any> ApplicationRequestContext.session(type: KClass<S>): S = attributes.computeIfAbsent(SessionKey) {
+fun <S : Any> ApplicationCall.session(type: KClass<S>): S = attributes.computeIfAbsent(SessionKey) {
     val config = sessionConfig<S>()
     require(type.java.isAssignableFrom(config.type.java)) { "type $type should be a subtype of ${config.type}" }
     newInstance(config.type)
 }.cast(type)
 
-inline fun <reified S : Any> ApplicationRequestContext.sessionOrNull(): S? = sessionOrNull(S::class)
-fun <S : Any> ApplicationRequestContext.sessionOrNull(type: KClass<S>): S? = if (SessionKey in attributes) attributes[SessionKey].cast(type) else null
+inline fun <reified S : Any> ApplicationCall.sessionOrNull(): S? = sessionOrNull(S::class)
+fun <S : Any> ApplicationCall.sessionOrNull(type: KClass<S>): S? = if (SessionKey in attributes) attributes[SessionKey].cast(type) else null
 
 @JvmName("withSessionsForRoutes")
-inline fun <reified S : Any> InterceptableWithContext<RoutingApplicationRequestContext>.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) {
+inline fun <reified S : Any> InterceptableWithContext<RoutingApplicationCall>.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) {
     withSessions(S::class, block)
 }
 
-inline fun <reified S : Any> InterceptableWithContext<ApplicationRequestContext>.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) =
+inline fun <reified S : Any> InterceptableWithContext<ApplicationCall>.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) =
     withSessions(S::class, block)
 
 @JvmName("withSessionsForRoutes")
-fun <S : Any> InterceptableWithContext<RoutingApplicationRequestContext>.withSessions(type: KClass<S>, block: SessionConfigBuilder<S>.() -> Unit) {
+fun <S : Any> InterceptableWithContext<RoutingApplicationCall>.withSessions(type: KClass<S>, block: SessionConfigBuilder<S>.() -> Unit) {
     @Suppress("UNCHECKED_CAST")
-    (this as InterceptableWithContext<ApplicationRequestContext>).withSessions(type, block)
+    (this as InterceptableWithContext<ApplicationCall>).withSessions(type, block)
 }
 
-fun <S : Any> InterceptableWithContext<ApplicationRequestContext>.withSessions(type: KClass<S>, block: SessionConfigBuilder<S>.() -> Unit) {
+fun <S : Any> InterceptableWithContext<ApplicationCall>.withSessions(type: KClass<S>, block: SessionConfigBuilder<S>.() -> Unit) {
     val sessionConfig = with(SessionConfigBuilder(type)) {
         block()
         build()
