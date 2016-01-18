@@ -14,7 +14,7 @@ interface Cache<K : Any, V : Any> {
     fun invalidate(key: K, value: V): Boolean
     fun invalidateAll()
 
-    fun intercept(block: (key: K, next: (K) -> V) -> V)
+    fun intercept(block: (K, (K) -> V) -> V)
 }
 
 internal interface CacheReference<K> {

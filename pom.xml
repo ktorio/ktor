@@ -15,9 +15,7 @@
     <modules>
         <module>ktor-core</module>
         <module>ktor-features</module>
-        <module>ktor-servlet</module>
-        <module>ktor-jetty</module>
-        <module>ktor-netty</module>
+        <module>ktor-hosts</module>
     </modules>
 
     <profiles>
