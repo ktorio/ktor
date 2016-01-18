@@ -273,9 +273,10 @@ class ParserServerSetCookieTest {
         val header = "SESSION=cart%3D%2523cl%26userId%3D%2523sid1; Expires=Sat, 16 Jan 2016 13:43:28 GMT; HttpOnly; \$x-enc=URI_ENCODING"
         val parsed = parseServerSetCookieHeader(header)
 
-        assertNotNull(parsed.expires)
-        assertEquals(2016, parsed.expires!!.get(ChronoField.YEAR))
-        assertEquals(1, parsed.expires!!.get(ChronoField.MONTH_OF_YEAR))
-        assertEquals(16, parsed.expires!!.get(ChronoField.DAY_OF_MONTH))
+        val expires = parsed.expires
+        assertNotNull(expires)
+        assertEquals(2016, expires!!.get(ChronoField.YEAR))
+        assertEquals(1, expires.get(ChronoField.MONTH_OF_YEAR))
+        assertEquals(16, expires.get(ChronoField.DAY_OF_MONTH))
     }
 }

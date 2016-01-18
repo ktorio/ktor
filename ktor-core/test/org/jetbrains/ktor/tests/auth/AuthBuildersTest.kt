@@ -172,7 +172,6 @@ class AuthBuildersTest {
 
                         fail {
                             fail("login failed")
-                            ApplicationCallResult.Handled
                         }
                     }
 

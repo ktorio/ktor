@@ -176,6 +176,7 @@ private class AutoSessionSerializer<T : Any>(val type: KClass<T>) : SessionSeria
 
     private fun <T: Any> KClass<T>.callNoArgConstructor() = constructors.first { it.parameters.isEmpty() }.call()
 
+    @Suppress("IMPLICIT_CAST_TO_ANY")
     private fun deserializeValue(value: String): Any? =
             if (!value.startsWith("#")) throw IllegalArgumentException("Bad serialized value")
             else when (value.getOrNull(1)) {

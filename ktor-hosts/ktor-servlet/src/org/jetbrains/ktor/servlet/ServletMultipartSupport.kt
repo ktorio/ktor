@@ -6,16 +6,19 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import javax.servlet.http.*
 
-internal class ServletMultiPartData(val kRequest: ApplicationRequest, val request: HttpServletRequest) : MultiPartData {
+internal class ServletMultiPartData(val request: ApplicationRequest, val servletRequest: HttpServletRequest) : MultiPartData {
     override val parts: Sequence<PartData>
         get() = when {
-            kRequest.contentType().match(ContentType.MultiPart.FormData) -> request.parts.asSequence().map {
+            request.contentType().match(ContentType.MultiPart.FormData) -> servletRequest.parts.asSequence().map {
                 when {
-                    it.isFormField -> PartData.FormItem(
-                            value = it.inputStream.reader(it.charset ?: request.characterEncoding ?: Charsets.UTF_8.name()).use { it.readText() },
-                            dispose = { it.delete() },
-                            partHeaders = it.toHeadersMap()
-                    )
+                    it.isFormField -> {
+                        val charset = (it.charset ?: servletRequest.characterEncoding)?.let { charset(it) } ?: Charsets.UTF_8
+                        PartData.FormItem(
+                                value = it.inputStream.reader(charset).use { it.readText() },
+                                dispose = { it.delete() },
+                                partHeaders = it.toHeadersMap()
+                        )
+                    }
                     else -> PartData.FileItem(
                             streamProvider = { it.inputStream!! },
                             dispose = { it.delete() },
@@ -23,7 +26,7 @@ internal class ServletMultiPartData(val kRequest: ApplicationRequest, val reques
                     )
                 }
             }
-            kRequest.contentType().match(ContentType.MultiPart.Any) -> throw UnsupportedOperationException("Multipart encoding ${kRequest.contentType()} is not supported by Servlet's implementation")
+            request.contentType().match(ContentType.MultiPart.Any) -> throw UnsupportedOperationException("Multipart encoding ${request.contentType()} is not supported by Servlet's implementation")
             else -> throw IOException("The request content is not multipart encoded")
         }
 

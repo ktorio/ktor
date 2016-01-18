@@ -85,7 +85,7 @@ class AuthorizeHeaderParserTest {
         (0..length - 1).map { nextFrom(possibleElements) }.joinToString("")
     }
 
-    private fun Random.nextString(length: Int, possible: String) = nextString(length, possible.toCharList())
+    private fun Random.nextString(length: Int, possible: String) = nextString(length, possible.toList())
 
     private fun <T> Random.nextFrom(possibleElements: List<T>): T =
             if (possibleElements.isEmpty()) throw NoSuchElementException()

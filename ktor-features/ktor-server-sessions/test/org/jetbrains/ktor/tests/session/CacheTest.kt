@@ -46,7 +46,7 @@ class CacheTest {
 
     @Test
     fun testPeek() {
-        val cache = BaseCache<Int, String> { fail(""); "" }
+        val cache = BaseCache<Int, String> { fail(""); }
         assertNull(cache.peek(1))
     }
 
