@@ -14,11 +14,10 @@
 
     <modules>
         <module>ktor-core</module>
+        <module>ktor-features</module>
         <module>ktor-servlet</module>
         <module>ktor-jetty</module>
         <module>ktor-netty</module>
-        <module>ktor-freemarker</module>
-        <module>ktor-server-sessions</module>
     </modules>
 
     <profiles>
@@ -28,7 +27,6 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
-                <module>ktor-components</module>
                 <module>ktor-samples</module>
             </modules>
         </profile>
