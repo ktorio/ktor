@@ -6,37 +6,29 @@ import org.eclipse.jetty.server.session.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.servlet.*
 import java.io.*
 import javax.servlet.*
 import javax.servlet.http.*
 
-/** A Runnable responsible for managing a Jetty server instance.
+/**
+ * [ApplicationHost] implementation for running standalone Jetty Host
  */
-class JettyApplicationHost : ApplicationHost {
-    val applicationLifecycle: ApplicationLifecycle
-    val config: ApplicationConfig
+class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
+                           val config: ApplicationConfig,
+                           val applicationLifecycle: ApplicationLifecycle) : ApplicationHost {
+
     val application: Application get() = applicationLifecycle.application
 
-    constructor(config: ApplicationConfig) {
-        this.config = config
-        this.applicationLifecycle = ApplicationLoader(config)
-    }
+    constructor(hostConfig: ApplicationHostConfig, config: ApplicationConfig)
+    : this(hostConfig, config, ApplicationLoader(config))
 
-    constructor(config: ApplicationConfig, applicationFunction: ApplicationLifecycle) {
-        this.config = config
-        this.applicationLifecycle = applicationFunction
-    }
-
-    constructor(config: ApplicationConfig, application: Application) {
-        this.config = config
-        this.applicationLifecycle = object : ApplicationLifecycle {
-            override val application: Application = application
-            override fun dispose() {
-            }
+    constructor(hostConfig: ApplicationHostConfig, config: ApplicationConfig, application: Application)
+    : this(hostConfig, config, object : ApplicationLifecycle {
+        override val application: Application = application
+        override fun dispose() {
         }
-    }
+    })
 
     var server: Server? = null
     val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"));
@@ -71,20 +63,14 @@ class JettyApplicationHost : ApplicationHost {
     public override fun start() {
         config.log.info("Starting server...")
 
-        var port: Int
-        try {
-            port = config.port.toInt()
-        } catch (ex: Exception) {
-            throw RuntimeException("${config.port} is not a valid port number")
-        }
-
         server = Server().apply {
             val httpConfig = HttpConfiguration().apply {
                 sendServerVersion = false
             }
             val connectionFactory = HttpConnectionFactory(httpConfig)
             val connector = ServerConnector(this, connectionFactory).apply {
-                setPort(port)
+                host = hostConfig.host
+                port = hostConfig.port
             }
             connectors = arrayOf(connector)
         }
@@ -102,7 +88,7 @@ class JettyApplicationHost : ApplicationHost {
         config.log.info("Server stopped.")
     }
 
-    public override fun stop() {
+    override fun stop() {
         if (server != null) {
             server?.stop()
             server = null

@@ -10,31 +10,25 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.routing.*
 
-public class NettyApplicationHost : ApplicationHost {
-    private val applicationLifecycle: ApplicationLifecycle
-    private val config: ApplicationConfig
+/**
+ * [ApplicationHost] implementation for running standalone Netty Host
+ */
+class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
+                           val config: ApplicationConfig,
+                           val applicationLifecycle: ApplicationLifecycle) : ApplicationHost {
+
     private val application: Application get() = applicationLifecycle.application
 
-    constructor(config: ApplicationConfig) {
-        this.config = config
-        this.applicationLifecycle = ApplicationLoader(config)
-    }
+    constructor(hostConfig: ApplicationHostConfig, config: ApplicationConfig)
+    : this(hostConfig, config, ApplicationLoader(config))
 
-    constructor(config: ApplicationConfig, applicationFunction: ApplicationLifecycle) {
-        this.config = config
-        this.applicationLifecycle = applicationFunction
-    }
-
-    constructor(config: ApplicationConfig, application: Application) {
-        this.config = config
-        this.applicationLifecycle = object : ApplicationLifecycle {
-            override val application: Application = application
-            override fun dispose() {
-            }
+    constructor(hostConfig: ApplicationHostConfig, config: ApplicationConfig, application: Application)
+    : this(hostConfig, config, object : ApplicationLifecycle {
+        override val application: Application = application
+        override fun dispose() {
         }
-    }
+    })
 
     private val mainEventGroup = NioEventLoopGroup()
     private val workerEventGroup = NioEventLoopGroup()
@@ -54,16 +48,13 @@ public class NettyApplicationHost : ApplicationHost {
 
     }
 
-    public override fun start() {
-        bootstrap.bind(config.port).sync()
-        config.log.info("Server running.")
-    }
+    public override fun start() = start(wait = false)
 
-    public fun start(wait: Boolean = true) {
-        val channel = bootstrap.bind(config.port).sync().channel()
+    public fun start(wait: Boolean = false) {
+        val channelFuture = bootstrap.bind(hostConfig.host, hostConfig.port).sync()
         config.log.info("Server running.")
         if (wait) {
-            channel.closeFuture().sync()
+            channelFuture.channel().closeFuture().sync()
         }
     }
 

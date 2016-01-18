@@ -11,17 +11,8 @@ public open class HoconApplicationConfig(private val config: Config,
 ) : ApplicationConfig {
     override val environment: String = config.getString("ktor.deployment.environment")
 
-    /** The port to run the server on. */
-    override val port: Int = config.getIntOrDefault("ktor.deployment.port", 80)
-    override val async: Boolean = config.getBooleanOrDefault("ktor.deployment.async", false)
-
     override fun getString(configuration: String): String = config.getString(configuration)
     override fun getStringListOrEmpty(configuration: String): List<String> = config.getStringListOrEmpty(configuration)
-
-    fun tryGet(configuration: String): String? = if (config.hasPath(configuration))
-        config.getString(configuration)
-    else
-        null
 
     private fun Config.getStringListOrEmpty(path: String): List<String> =
             if (hasPath(path))
@@ -41,3 +32,8 @@ public open class HoconApplicationConfig(private val config: Config,
             else
                 default
 }
+
+fun Config.tryGetString(configuration: String): String? = if (hasPath(configuration))
+    getString(configuration)
+else
+    null

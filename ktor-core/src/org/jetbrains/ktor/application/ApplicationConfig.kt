@@ -17,19 +17,6 @@ interface ApplicationConfig {
     val environment: String
 
     /**
-     * Port this application should be bound to.
-     * TODO: Move to Host configuration, because Servlet doesn't use this config
-     */
-    val port: Int
-
-    /**
-     * Specifies if Application support async
-     *
-     * TODO: Move to Host configuration
-     */
-    val async: Boolean
-
-    /**
      * Instance of [ApplicationLog] to be used for logging.
      */
     val log: ApplicationLog
@@ -48,7 +35,7 @@ interface ApplicationConfig {
 /**
  * Creates [ApplicationConfig] using [ApplicationConfigBuilder]
  */
-fun applicationConfig(builder: ApplicationConfigBuilder.() -> Unit): ApplicationConfig = ApplicationConfigBuilder().apply(builder)
+inline fun applicationConfig(builder: ApplicationConfigBuilder.() -> Unit): ApplicationConfig = ApplicationConfigBuilder().apply(builder)
 
 /**
  * Mutable implementation of [ApplicationConfig]
@@ -58,9 +45,7 @@ class ApplicationConfigBuilder : ApplicationConfig {
     override fun getString(configuration: String): String = throw UnsupportedOperationException()
     override fun getStringListOrEmpty(configuration: String): List<String> = throw UnsupportedOperationException()
 
-    public override var classLoader: ClassLoader = ApplicationConfigBuilder::class.java.classLoader
+    override var classLoader: ClassLoader = ApplicationConfigBuilder::class.java.classLoader
     override var log: ApplicationLog = SLF4JApplicationLog("embedded")
     override var environment: String = "development"
-    override var port: Int = 80
-    override var async: Boolean = false
 }
