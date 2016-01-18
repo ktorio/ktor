@@ -103,7 +103,7 @@ open public class LocationService(val conversionService: ConversionService) {
         return getOrCreateInfo(dataClass).create(request) as T
     }
 
-
+    // TODO: optimize allocations
     private fun pathAndQuery(location: Any): ResolvedUriInfo {
         val info = getOrCreateInfo(location.javaClass.kotlin)
 

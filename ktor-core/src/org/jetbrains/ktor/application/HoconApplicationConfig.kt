@@ -9,7 +9,7 @@ public open class HoconApplicationConfig(private val config: Config,
                                          public override val classLoader: ClassLoader,
                                          public override val log: ApplicationLog = NullApplicationLog()
 ) : ApplicationConfig {
-    override val environment: String get() = config.getString("ktor.deployment.environment")
+    override val environment: String = config.getString("ktor.deployment.environment")
 
     /** The port to run the server on. */
     override val port: Int = config.getIntOrDefault("ktor.deployment.port", 80)
