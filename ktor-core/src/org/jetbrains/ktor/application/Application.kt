@@ -21,9 +21,9 @@ public open class Application(val config: ApplicationConfig) : InterceptableWith
     /**
      * Handles HTTP request coming from the host using interceptors
      */
-    public fun handle(context: ApplicationCall): ApplicationCallResult {
-        val result = handler.call(context)
-        context.logResult(result)
+    public fun handle(call: ApplicationCall): ApplicationCallResult {
+        val result = handler.execute(call)
+        call.logResult(result)
         return result
     }
 

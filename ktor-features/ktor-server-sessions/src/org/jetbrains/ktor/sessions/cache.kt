@@ -27,7 +27,7 @@ internal class BaseCache<K : Any, V : Any>(val calc: (K) -> V) : Cache<K, V> {
     private val supplier = Interceptable1(calc)
 
     override fun get(key: K): V =
-            container.computeIfAbsent(key) { lazy(LazyThreadSafetyMode.SYNCHRONIZED) { supplier.call(key) } }.value
+            container.computeIfAbsent(key) { lazy(LazyThreadSafetyMode.SYNCHRONIZED) { supplier.execute(key) } }.value
 
     override fun peek(key: K): V? = container[key]?.let { if (it.isInitialized()) it.value else null }
 
@@ -46,7 +46,7 @@ internal class BaseCache<K : Any, V : Any>(val calc: (K) -> V) : Cache<K, V> {
 internal open class ReferenceCache<K : Any, V : Any, R>(val calc: (K) -> V, val wrapFunction: (K, V, ReferenceQueue<V>) -> R) : Cache<K, V> where R : Reference<V>, R : CacheReference<K> {
     private val queue = ReferenceQueue<V>()
     private val supplier = Interceptable1(calc)
-    private val container = BaseCache { key: K -> forkThreadIfNeeded(); wrapFunction(key, supplier.call(key), queue) }
+    private val container = BaseCache { key: K -> forkThreadIfNeeded(); wrapFunction(key, supplier.execute(key), queue) }
     private val workerThread by lazy { Thread(ReferenceWorker(container, queue)).apply { isDaemon = true; start() } }
 
     override fun get(key: K): V {

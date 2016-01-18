@@ -4,8 +4,8 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 
-open class RoutingApplicationCall(context: ApplicationCall, val resolveResult: RoutingResolveResult)
-: ApplicationCall by context {
+open class RoutingApplicationCall(call: ApplicationCall, val resolveResult: RoutingResolveResult)
+: ApplicationCall by call {
     val parameters = ValuesMap.build {
         appendAll(resolveResult.values)
     }

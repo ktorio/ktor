@@ -135,7 +135,7 @@ class AuthContext internal constructor() {
 
     companion object {
         val AttributeKey = org.jetbrains.ktor.util.AttributeKey<AuthContext>()
-        internal fun from(context: ApplicationCall) = context.attributes.computeIfAbsent(AttributeKey) { AuthContext() }
+        internal fun from(call: ApplicationCall) = call.attributes.computeIfAbsent(AttributeKey) { AuthContext() }
     }
 }
 

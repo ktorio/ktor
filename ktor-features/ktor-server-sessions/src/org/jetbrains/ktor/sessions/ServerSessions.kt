@@ -34,30 +34,30 @@ internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val 
 
     private val SessionIdKey = AttributeKey<String>()
 
-    override fun assign(context: ApplicationCall, session: S) {
-        val sessionId = context.attributes.computeIfAbsent(SessionIdKey, sessionIdProvider)
+    override fun assign(call: ApplicationCall, session: S) {
+        val sessionId = call.attributes.computeIfAbsent(SessionIdKey, sessionIdProvider)
         val serialized = serializer.serialize(session)
         storage.save(sessionId) { out ->
             out.bufferedWriter().use { writer ->
                 writer.write(serialized)
             }
         }
-        context.response.cookies.append(settings.newCookie(cookieName, sessionId))
+        call.response.cookies.append(settings.newCookie(cookieName, sessionId))
     }
 
-    override fun lookup(context: ApplicationCall, injectSession: (S) -> Unit, next: ApplicationCall.() -> ApplicationCallResult): ApplicationCallResult {
-        val sessionId = context.request.cookies[cookieName]
+    override fun lookup(call: ApplicationCall, injectSession: (S) -> Unit, next: ApplicationCall.() -> ApplicationCallResult): ApplicationCallResult {
+        val sessionId = call.request.cookies[cookieName]
         return if (sessionId == null) {
-            next(context)
+            next(call)
         } else {
-            context.attributes.put(SessionIdKey, sessionId)
-            context.handleAsync(exec, {
+            call.attributes.put(SessionIdKey, sessionId)
+            call.handleAsync(exec, {
                 storage.read(sessionId) { input ->
                     val text = input.bufferedReader().readText() // TODO what can we do if failed?
-                    context.handleAsync(exec, {
+                    call.handleAsync(exec, {
                         val session = serializer.deserialize(text)
                         injectSession(session)
-                        next(context)
+                        next(call)
                     }, failBlock = {})
                 }
                 ApplicationCallResult.Asynchronous
@@ -67,11 +67,11 @@ internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val 
         }
     }
 
-    override fun unassign(context: ApplicationCall) {
-        context.attributes.remove(SessionIdKey)
+    override fun unassign(call: ApplicationCall) {
+        call.attributes.remove(SessionIdKey)
 
-        context.request.cookies[cookieName]?.let { sessionId ->
-            context.response.cookies.appendExpired(cookieName)
+        call.request.cookies[cookieName]?.let { sessionId ->
+            call.response.cookies.appendExpired(cookieName)
             storage.invalidate(sessionId)
         }
     }

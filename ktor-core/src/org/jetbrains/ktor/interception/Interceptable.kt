@@ -27,7 +27,7 @@ public class Interceptable1<TParam0, TResult>(val function: (TParam0) -> TResult
         else -> function(param)
     }
 
-    public fun call(param: TParam0): TResult = invokeAt(param, 0)
+    public fun execute(param: TParam0): TResult = invokeAt(param, 0)
 }
 
 public class Interceptable2<TParam0, TParam1, TResult>(val function: (TParam0, TParam1) -> TResult) {

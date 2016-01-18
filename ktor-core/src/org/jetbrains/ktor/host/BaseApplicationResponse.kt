@@ -61,14 +61,14 @@ public abstract class BaseApplicationResponse : ApplicationResponse {
         }
     }
 
-    override fun send(message: Any): ApplicationCallResult = send.call(message)
+    override fun send(message: Any): ApplicationCallResult = send.execute(message)
     override fun interceptSend(handler: (Any, (Any) -> ApplicationCallResult) -> ApplicationCallResult) = send.intercept(handler)
 
     override val cookies = ResponseCookies(this)
 
-    override fun status(value: HttpStatusCode) = status.call(value)
+    override fun status(value: HttpStatusCode) = status.execute(value)
     override fun interceptStatus(handler: (HttpStatusCode, (HttpStatusCode) -> Unit) -> Unit) = status.intercept(handler)
 
-    override fun stream(body: OutputStream.() -> Unit): Unit = stream.call(body)
+    override fun stream(body: OutputStream.() -> Unit): Unit = stream.execute(body)
     override fun interceptStream(handler: (OutputStream.() -> Unit, (OutputStream.() -> Unit) -> Unit) -> Unit) = stream.intercept(handler)
 }

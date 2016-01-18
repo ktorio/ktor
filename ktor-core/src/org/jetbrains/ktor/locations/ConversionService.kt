@@ -5,7 +5,7 @@ import org.jetbrains.ktor.routing.*
 import java.lang.reflect.*
 
 public interface ConversionService {
-    fun fromContext(context: RoutingApplicationCall, name: String, type: Type, optional: Boolean): Any?
+    fun fromContext(call: RoutingApplicationCall, name: String, type: Type, optional: Boolean): Any?
     fun toURI(value: Any?, name: String, optional: Boolean): List<String>
 }
 
@@ -70,8 +70,8 @@ public open class DefaultConversionService : ConversionService {
         return convert(values.single(), type)
     }
 
-    override fun fromContext(context: RoutingApplicationCall, name: String, type: Type, optional: Boolean): Any? {
-        val requestParameters = context.parameters.getAll(name)
+    override fun fromContext(call: RoutingApplicationCall, name: String, type: Type, optional: Boolean): Any? {
+        val requestParameters = call.parameters.getAll(name)
         return if (requestParameters == null) {
             if (!optional) {
                 throw InconsistentRoutingException("Parameter '$name' was not found in the request")

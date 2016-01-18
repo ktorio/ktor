@@ -23,7 +23,7 @@ public abstract class RequestContent(private val request: ApplicationRequest) {
     }
 
     @Suppress("UNCHECKED_CAST")
-    public operator fun <T : Any> get(type: KClass<T>): T = contentsChain.call(type) as T
+    public operator fun <T : Any> get(type: KClass<T>): T = contentsChain.execute(type) as T
     public inline fun <reified T : Any> get(): T = get(T::class)
 }
 

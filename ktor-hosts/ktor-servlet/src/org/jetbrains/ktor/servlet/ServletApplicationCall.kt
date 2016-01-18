@@ -16,6 +16,7 @@ public class ServletApplicationCall(override val application: Application,
     private var asyncContext: AsyncContext? = null
 
     fun continueAsync(asyncContext: AsyncContext) {
+        // TODO: assert that continueAsync was not yet called
         this.asyncContext = asyncContext
     }
 

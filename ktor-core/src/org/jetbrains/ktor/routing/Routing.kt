@@ -93,14 +93,14 @@ class Routing() : RoutingEntry(parent = null, selector = Routing.RootRoutingSele
     }
 
     private fun processChain(interceptors: List<RoutingInterceptor>, request: RoutingApplicationCall, handlers: ArrayList<RoutingApplicationCall.() -> ApplicationCallResult>): ApplicationCallResult {
-        fun handle(index: Int, context: RoutingApplicationCall): ApplicationCallResult {
+        fun handle(index: Int, call: RoutingApplicationCall): ApplicationCallResult {
             when (index) {
                 in interceptors.indices -> {
-                    return interceptors[index].function(context) { request -> handle(index + 1, request) }
+                    return interceptors[index].function(call) { request -> handle(index + 1, request) }
                 }
                 else -> {
                     for (handler in handlers) {
-                        val handlerResult = context.handler()
+                        val handlerResult = call.handler()
                         if (handlerResult != ApplicationCallResult.Unhandled)
                             return handlerResult
                     }
