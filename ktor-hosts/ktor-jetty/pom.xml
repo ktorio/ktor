@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>ktor</artifactId>
+        <artifactId>ktor-hosts</artifactId>
         <groupId>org.jetbrains</groupId>
         <version>0.1.6-SNAPSHOT</version>
     </parent>
@@ -10,11 +10,6 @@
     <artifactId>ktor-jetty</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>org.jetbrains</groupId>
-            <artifactId>ktor-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
         <dependency>
             <groupId>org.jetbrains</groupId>
             <artifactId>ktor-servlet</artifactId>
