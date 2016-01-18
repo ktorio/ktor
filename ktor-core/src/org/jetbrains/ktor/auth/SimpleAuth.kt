@@ -10,6 +10,7 @@ data class UserPasswordCredential(val name: String, val password: String) : Cred
 
 public class UserHashedTableAuth(val digester: (String) -> ByteArray = getDigestFunction("SHA-256", "ktor"), val table: Map<String, ByteArray>) {
 
+    // TODO: Use ApplicationConfig instead of HOCON
     constructor(config: Config) : this(getDigestFunction(config.getString("hashAlgorithm"), config.getString("salt")), config.parseUsers())
 
     init {
