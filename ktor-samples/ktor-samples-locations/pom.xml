@@ -20,6 +20,11 @@
     </build>
     <dependencies>
         <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>ktor-locations</artifactId>
+            <version>0.1.6-SNAPSHOT</version>
+        </dependency>
+        <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx.html.jvm</artifactId>
             <version>[0.4,0.5)</version>

@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.launcher
+package org.jetbrains.ktor.host
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
