@@ -11,6 +11,7 @@ public abstract class BaseApplicationResponse : ApplicationResponse {
     protected abstract val status: Interceptable1<HttpStatusCode, Unit>
 
     protected open val send = Interceptable1<Any, ApplicationCallResult> { value ->
+        sendHeaders(value)
         when (value) {
             is String -> {
                 status() ?: status(HttpStatusCode.OK)
@@ -32,7 +33,7 @@ public abstract class BaseApplicationResponse : ApplicationResponse {
                 status(value)
                 ApplicationCallResult.Handled
             }
-            is HasContent -> {
+            is StreamContent -> {
                 stream {
                     value.stream(this)
                 }
@@ -42,22 +43,18 @@ public abstract class BaseApplicationResponse : ApplicationResponse {
         }
     }
 
-    init {
-        interceptSend { value, next ->
-            if (value is HasETag) {
-                header(HttpHeaders.ETag, value.etag())
-            }
-            if (value is HasLastModified) {
-                header(HttpHeaders.LastModified, value.lastModified)
-            }
-            if (value is HasContentType) {
-                contentType(value.contentType)
-            }
-            if (value is HasContentLength) {
-                header(HttpHeaders.ContentLength, value.contentLength) // TODO revisit it for partial request case
-            }
-
-            next(value)
+    private fun sendHeaders(value: Any) {
+        if (value is HasETag) {
+            etag(value.etag())
+        }
+        if (value is HasLastModified) {
+            lastModified(value.lastModified)
+        }
+        if (value is HasContentType) {
+            contentType(value.contentType)
+        }
+        if (value is HasContentLength) {
+            contentLength(value.contentLength) // TODO revisit it for partial request case
         }
     }
 

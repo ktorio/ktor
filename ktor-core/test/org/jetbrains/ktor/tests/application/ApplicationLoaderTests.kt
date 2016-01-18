@@ -2,6 +2,7 @@ package org.jetbrains.ktor.tests.application
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.host.*
 import org.junit.*
 import kotlin.test.*
 

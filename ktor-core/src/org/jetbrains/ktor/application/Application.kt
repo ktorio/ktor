@@ -6,7 +6,7 @@ import org.jetbrains.ktor.interception.*
 /**
  * Represents configured and running web application, capable of handling requests
  */
-public open class Application(val config: ApplicationConfig) : InterceptableWithContext<ApplicationCall> {
+public open class Application(val config: ApplicationConfig) : InterceptApplicationCall<ApplicationCall> {
     private val handler: Interceptable1<ApplicationCall, ApplicationCallResult> = Interceptable1 {
         ApplicationCallResult.Unhandled
     }

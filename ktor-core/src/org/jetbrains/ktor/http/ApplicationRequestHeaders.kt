@@ -1,11 +1,13 @@
-package org.jetbrains.ktor.application
+package org.jetbrains.ktor.http
 
-import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.util.*
+import java.nio.charset.*
 
 fun ApplicationRequest.queryString(): String = requestLine.queryString()
 fun ApplicationRequest.queryParameters(): ValuesMap = parseQueryString(queryString())
 fun ApplicationRequest.contentType(): ContentType = header(HttpHeaders.ContentType)?.let { ContentType.parse(it) } ?: ContentType.Any
+fun ApplicationRequest.contentCharset(): Charset? = contentType().parameter("charset")?.let { Charset.forName(it) }
 fun ApplicationRequest.document(): String = requestLine.document()
 fun ApplicationRequest.path(): String = requestLine.path()
 fun ApplicationRequest.authorization(): String? = header(HttpHeaders.Authorization)
@@ -24,3 +26,4 @@ fun ApplicationRequest.userAgent(): String? = header(HttpHeaders.UserAgent)
 fun ApplicationRequest.cacheControl(): String? = header(HttpHeaders.CacheControl)
 fun ApplicationRequest.host(): String? = header(HttpHeaders.Host)?.substringBefore(':')
 fun ApplicationRequest.port(): Int = header(HttpHeaders.Host)?.substringAfter(':', "80")?.toInt() ?: 80
+

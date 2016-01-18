@@ -6,7 +6,7 @@ import java.net.*
 import java.nio.charset.*
 
 public fun ApplicationRequest.parseUrlEncodedParameters(): ValuesMap =
-    content.get<String>().parseUrlEncodedParameters(contentCharset ?: Charsets.UTF_8)
+    content.get<String>().parseUrlEncodedParameters(contentCharset() ?: Charsets.UTF_8)
 
 public fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.UTF_8): ValuesMap {
     val parameters = split("&").map { it.substringBefore("=") to it.substringAfter("=", "") }

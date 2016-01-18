@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.sessions
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 import kotlin.reflect.*
@@ -30,20 +31,20 @@ inline fun <reified S : Any> ApplicationCall.sessionOrNull(): S? = sessionOrNull
 fun <S : Any> ApplicationCall.sessionOrNull(type: KClass<S>): S? = if (SessionKey in attributes) attributes[SessionKey].cast(type) else null
 
 @JvmName("withSessionsForRoutes")
-inline fun <reified S : Any> InterceptableWithContext<RoutingApplicationCall>.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) {
+inline fun <reified S : Any> InterceptApplicationCall<RoutingApplicationCall>.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) {
     withSessions(S::class, block)
 }
 
-inline fun <reified S : Any> InterceptableWithContext<ApplicationCall>.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) =
+inline fun <reified S : Any> InterceptApplicationCall<ApplicationCall>.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) =
     withSessions(S::class, block)
 
 @JvmName("withSessionsForRoutes")
-fun <S : Any> InterceptableWithContext<RoutingApplicationCall>.withSessions(type: KClass<S>, block: SessionConfigBuilder<S>.() -> Unit) {
+fun <S : Any> InterceptApplicationCall<RoutingApplicationCall>.withSessions(type: KClass<S>, block: SessionConfigBuilder<S>.() -> Unit) {
     @Suppress("UNCHECKED_CAST")
-    (this as InterceptableWithContext<ApplicationCall>).withSessions(type, block)
+    (this as InterceptApplicationCall<ApplicationCall>).withSessions(type, block)
 }
 
-fun <S : Any> InterceptableWithContext<ApplicationCall>.withSessions(type: KClass<S>, block: SessionConfigBuilder<S>.() -> Unit) {
+fun <S : Any> InterceptApplicationCall<ApplicationCall>.withSessions(type: KClass<S>, block: SessionConfigBuilder<S>.() -> Unit) {
     val sessionConfig = with(SessionConfigBuilder(type)) {
         block()
         build()

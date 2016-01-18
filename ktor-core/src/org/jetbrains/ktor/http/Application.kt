@@ -11,16 +11,6 @@ val ApplicationRequest.httpVersion: String get() = requestLine.version
 fun ApplicationRequest.header(name: String): String? = headers[name]
 fun ApplicationRequest.parameter(name: String): String? = parameters[name]
 
-val ApplicationRequest.contentCharset: Charset?
-    get() = contentType().parameter("charset")?.let { Charset.forName(it) }
-
-fun ApplicationResponse.contentType(value: ContentType) = contentType(value.toString())
-fun ApplicationResponse.contentType(value: String) = headers.append(HttpHeaders.ContentType, value)
-fun ApplicationResponse.header(name: String, value: String) = headers.append(name, value)
-fun ApplicationResponse.header(name: String, value: Int) = headers.append(name, value.toString())
-fun ApplicationResponse.header(name: String, value: Long) = headers.append(name, value.toString())
-fun ApplicationResponse.header(name: String, date: Temporal) = headers.append(name, date.toHttpDateString())
-
 fun ApplicationResponse.sendRedirect(url: String, permanent: Boolean = false): ApplicationCallResult {
     headers.append(HttpHeaders.Location, url)
     return send(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)

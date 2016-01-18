@@ -133,11 +133,11 @@ class CompressionTest {
 
             application.routing {
                 get("/small") {
-                    response.header(HttpHeaders.ContentLength, 4)
+                    response.contentLength(4)
                     response.sendText("0123")
                 }
                 get("/big") {
-                    response.header(HttpHeaders.ContentLength, 20)
+                    response.contentLength(20)
                     response.sendText("01234567890123456789")
                 }
                 get("/stream") {

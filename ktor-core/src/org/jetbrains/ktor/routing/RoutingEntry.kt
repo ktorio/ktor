@@ -1,11 +1,12 @@
 package org.jetbrains.ktor.routing
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.interception.*
 import java.util.*
 
 data class RoutingInterceptor(val function: (RoutingApplicationCall, (RoutingApplicationCall) -> ApplicationCallResult) -> ApplicationCallResult)
 
-open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : InterceptableWithContext<RoutingApplicationCall> {
+open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : InterceptApplicationCall<RoutingApplicationCall> {
 
     val children = ArrayList<RoutingEntry> ()
     val interceptors = ArrayList<RoutingInterceptor>()

@@ -1,5 +1,6 @@
-package org.jetbrains.ktor.application
+package org.jetbrains.ktor.content
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import java.io.*
@@ -9,7 +10,7 @@ public abstract class RequestContent(private val request: ApplicationRequest) {
     private val contentsChain = Interceptable1<KClass<*>, Any> { type ->
         when (type) {
             InputStream::class -> getInputStream()
-            String::class -> getInputStream().reader(request.contentCharset ?: Charsets.ISO_8859_1).readText()
+            String::class -> getInputStream().reader(request.contentCharset() ?: Charsets.ISO_8859_1).readText()
             MultiPartData::class -> getMultiPartData()
             else -> throw UnknownContentAccessorRequest("Requested content accessor '$type' cannot be provided")
         }
@@ -28,7 +29,3 @@ public abstract class RequestContent(private val request: ApplicationRequest) {
 }
 
 public class UnknownContentAccessorRequest(message: String) : Exception(message)
-
-interface InterceptableWithContext<C : ApplicationCall> {
-    fun intercept(interceptor: C.(C.() -> ApplicationCallResult) -> ApplicationCallResult)
-}

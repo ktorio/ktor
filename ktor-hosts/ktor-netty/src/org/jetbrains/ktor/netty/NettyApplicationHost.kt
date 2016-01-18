@@ -8,6 +8,7 @@ import io.netty.channel.socket.nio.*
 import io.netty.handler.codec.http.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 
@@ -100,15 +101,4 @@ public class NettyApplicationHost : ApplicationHost {
         }
     }
 }
-
-fun embeddedNettyServer(port: Int, application: Routing.() -> Unit) = embeddedNettyServer(applicationConfig { this.port = port }, application)
-fun embeddedNettyServer(config: ApplicationConfig, application: Routing.() -> Unit): ApplicationHost {
-    val applicationObject = object : Application(config) {
-        init {
-            Routing().apply(application).installInto(this)
-        }
-    }
-    return NettyApplicationHost(config, applicationObject)
-}
-
 

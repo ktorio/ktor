@@ -6,7 +6,7 @@ import org.jetbrains.ktor.http.*
 import java.io.*
 import kotlin.reflect.*
 
-class FreeMarkerTemplateResource internal constructor(val content: freemarker.template.Template, val model: Any, val etag: String, override val contentType: ContentType) : HasContent, HasContentType, HasETag {
+class FreeMarkerTemplateResource internal constructor(val content: freemarker.template.Template, val model: Any, val etag: String, override val contentType: ContentType) : StreamContent, HasContentType, HasETag {
     override fun stream(out: OutputStream) {
         with(out.bufferedWriter(contentType.parameter("charset") ?: "UTF-8")) {
             content.process(model, this)

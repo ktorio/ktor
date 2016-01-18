@@ -4,6 +4,7 @@ import io.netty.buffer.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.cookie.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpMethod
 import org.jetbrains.ktor.util.*

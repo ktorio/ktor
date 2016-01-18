@@ -4,6 +4,7 @@ import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
 import org.eclipse.jetty.server.session.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.servlet.*
@@ -109,12 +110,3 @@ class JettyApplicationHost : ApplicationHost {
     }
 }
 
-fun embeddedJettyServer(port: Int, application: Routing.() -> Unit) = embeddedJettyServer(applicationConfig { this.port = port }, application)
-fun embeddedJettyServer(config: ApplicationConfig, application: Routing.() -> Unit) : ApplicationHost {
-    val applicationObject = object : Application(config) {
-        init {
-            Routing().apply(application).installInto(this)
-        }
-    }
-    return JettyApplicationHost(config, applicationObject)
-}

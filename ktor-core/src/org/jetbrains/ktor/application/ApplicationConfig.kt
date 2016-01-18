@@ -10,6 +10,7 @@ interface ApplicationConfig {
      */
     val classLoader: ClassLoader
 
+    // TODO: convert to enum?
     /**
      * Specifies name of the environment this application is running in.
      */

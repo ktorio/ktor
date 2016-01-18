@@ -4,7 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.routing.*
 import kotlin.reflect.*
 
-interface TemplateEngine<C : Any, R> where R : HasContent, R : HasContentType {
+interface TemplateEngine<C : Any, R> where R : StreamContent, R : HasContentType {
     val contentClass: KClass<C>
     fun process(content: C): R
 }

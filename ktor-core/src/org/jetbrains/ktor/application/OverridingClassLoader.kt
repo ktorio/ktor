@@ -5,7 +5,7 @@ import java.net.*
 /**
  * A parent-last classloader that will try the child classloader first and then the parent.
  */
-class OverridingClassLoader(classpath: List<URL>, parentClassLoader: ClassLoader?) : ClassLoader(parentClassLoader) {
+internal class OverridingClassLoader(classpath: List<URL>, parentClassLoader: ClassLoader?) : ClassLoader(parentClassLoader) {
     private val childClassLoader = ChildURLClassLoader(classpath.toTypedArray(), parent)
 
     @Synchronized

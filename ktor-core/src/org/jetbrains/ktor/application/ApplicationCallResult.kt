@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.application
 
 public enum class ApplicationCallResult {
-    Handled, Unhandled, Asynchronous
+    Handled,
+    Unhandled,
+    Asynchronous
 }
