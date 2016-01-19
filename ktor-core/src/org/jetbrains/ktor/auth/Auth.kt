@@ -31,12 +31,12 @@ abstract class AuthBuilderBase<C: ApplicationCall> : AuthBuilder<C> {
     }
 
     fun fireSuccess(ctx: C, auth: AuthContext, next: C.() -> ApplicationCallResult): ApplicationCallResult {
-        return successHandlers.call(ctx, auth) { ctx, auth ->
+        return successHandlers.execute(ctx, auth) { ctx, auth ->
             ctx.next()
         }
     }
 
-    fun fireFailure(ctx: C, next: C.() -> ApplicationCallResult): ApplicationCallResult = failureHandlers.call(ctx, next)
+    fun fireFailure(ctx: C, next: C.() -> ApplicationCallResult): ApplicationCallResult = failureHandlers.execute(ctx, next)
 }
 
 private class RoutingEntryAuthBuilder(val entry: RoutingEntry) : AuthBuilderBase<RoutingApplicationCall>() {

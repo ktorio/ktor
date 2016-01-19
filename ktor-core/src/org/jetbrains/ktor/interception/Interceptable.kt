@@ -12,7 +12,7 @@ public class Interceptable0<TResult>(val function: () -> TResult) {
         else -> function()
     }
 
-    public fun call(): TResult = invokeAt(0)
+    public fun execute(): TResult = invokeAt(0)
 }
 
 public class Interceptable1<TParam0, TResult>(val function: (TParam0) -> TResult) {
@@ -42,7 +42,7 @@ public class Interceptable2<TParam0, TParam1, TResult>(val function: (TParam0, T
         else -> function(param1, param2)
     }
 
-    public fun call(param1: TParam0, param2: TParam1): TResult = invokeAt(param1, param2, 0)
+    public fun execute(param1: TParam0, param2: TParam1): TResult = invokeAt(param1, param2, 0)
 }
 
 public class InterceptableChain0<TResult> {
@@ -74,7 +74,7 @@ public class InterceptableChain1<TParam0, TResult> {
         else -> last(param)
     }
 
-    public fun call(param: TParam0, last: (TParam0) -> TResult): TResult = invokeAt(param, last, 0)
+    public fun execute(param: TParam0, last: (TParam0) -> TResult): TResult = invokeAt(param, last, 0)
 }
 
 public class InterceptableChain2<TParam0, TParam1, TResult> {
@@ -89,5 +89,5 @@ public class InterceptableChain2<TParam0, TParam1, TResult> {
         else -> last(param1, param2)
     }
 
-    public fun call(param1: TParam0, param2: TParam1, last: (TParam0, TParam1) -> TResult): TResult = invokeAt(param1, param2, last, 0)
+    public fun execute(param1: TParam0, param2: TParam1, last: (TParam0, TParam1) -> TResult): TResult = invokeAt(param1, param2, last, 0)
 }

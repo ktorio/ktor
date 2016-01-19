@@ -38,4 +38,4 @@ public interface ApplicationCall {
 /**
  * Closes this call and sends out any remaining data
  */
-public fun ApplicationCall.close(): Unit = close.call()
+public fun ApplicationCall.close(): Unit = close.execute()

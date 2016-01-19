@@ -17,7 +17,7 @@ public abstract class ResponseHeaders {
     }.build()
 
     public fun append(name: String, value: String) {
-        headersChain.call(name, value)
+        headersChain.execute(name, value)
     }
 
     public final fun intercept(handler: (name: String, value: String, next: (name: String, value: String) -> Unit) -> Unit) {
