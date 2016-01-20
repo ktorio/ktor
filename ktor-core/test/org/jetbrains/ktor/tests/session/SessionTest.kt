@@ -70,8 +70,8 @@ class SessionTest {
         withTestApplication {
             application.withSessions<TestUserSession> {
                 withCookieByValue {
-                    settings = CookiesSettings(transformers = listOf(
-                            DigestCookieTransformer()
+                    settings = SessionCookiesSettings(transformers = listOf(
+                            SessionCookieTransformerDigest()
                     ))
                 }
             }
@@ -120,8 +120,8 @@ class SessionTest {
         withTestApplication {
             application.withSessions<TestUserSession> {
                 withCookieByValue {
-                    settings = CookiesSettings(transformers = listOf(
-                            MessageAuthenticationCookieTransformer(key)
+                    settings = SessionCookiesSettings(transformers = listOf(
+                            SessionCookieTransformerMessageAuthentication(key)
                     ))
                 }
             }

@@ -11,9 +11,9 @@ import kotlin.reflect.jvm.*
 
 
 inline fun <reified T: Any> autoSerializerOf(): SessionSerializer<T> = autoSerializerOf(T::class)
-fun <T: Any> autoSerializerOf(type: KClass<T>): SessionSerializer<T> = AutoSessionSerializer(type)
+fun <T: Any> autoSerializerOf(type: KClass<T>): SessionSerializer<T> = ReflectionSessionSerializer(type)
 
-private class AutoSessionSerializer<T : Any>(val type: KClass<T>) : SessionSerializer<T> {
+private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : SessionSerializer<T> {
     val properties by lazy { type.memberProperties.sortedBy { it.name } }
 
     override fun deserialize(s: String): T {

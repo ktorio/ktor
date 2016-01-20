@@ -67,9 +67,9 @@ data class PrimitiveSession (
 )
 
 data class ListSession (
-    var mutable1: List<String> = listOf("a", "b"),
-    var mutable: LinkedList<String> = linkedListOf("a"),
-    val immutable: ArrayList<String> = arrayListOf("a", "b")
+        var mutable1: List<String> = listOf("a", "b"),
+        var mutable: LinkedList<String> = LinkedList(listOf("a")),
+        val immutable: ArrayList<String> = arrayListOf("a", "b")
 )
 
 data class SetSession (

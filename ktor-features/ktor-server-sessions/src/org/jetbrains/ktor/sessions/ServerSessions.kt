@@ -7,20 +7,20 @@ import java.util.concurrent.*
 import kotlin.reflect.*
 
 
-fun <S : Any> HasTracker<S>.withCookieBySessionId(storage: SessionStorage, block: CookieByIdSessionTrackerBuilder<S>.() -> Unit = {}) {
-    CookieByIdSessionTrackerBuilder(type, storage).apply {
+fun <S : Any> SessionConfigBuilder<S>.withCookieBySessionId(storage: SessionStorage, block: CookieByIdSessionTrackerBuilder<S>.() -> Unit = {}) {
+    CookieByIdSessionTrackerBuilder(sessionType, storage).apply {
         block()
         sessionTracker = build()
     }
 }
 
-class CookieByIdSessionTrackerBuilder<S : Any>(val type: KClass<S>, val storage: SessionStorage) : HasSerializer<S> {
+class CookieByIdSessionTrackerBuilder<S : Any>(val type: KClass<S>, val storage: SessionStorage) {
     private var execBuilder = { Executors.newCachedThreadPool() }
 
     var sessionIdProvider = { nextNonce() }
-    var settings = CookiesSettings()
+    var settings = SessionCookiesSettings()
     var cookieName: String = "SESSION_ID"
-    override var serializer: SessionSerializer<S> = autoSerializerOf(type)
+    var serializer: SessionSerializer<S> = autoSerializerOf(type)
 
     fun withExecutorService(exec: ExecutorService) {
         execBuilder = { exec }
@@ -29,7 +29,7 @@ class CookieByIdSessionTrackerBuilder<S : Any>(val type: KClass<S>, val storage:
     fun build(): SessionTracker<S> = CookieByIdSessionTracker(execBuilder(), sessionIdProvider, settings, cookieName, serializer, storage)
 }
 
-internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val sessionIdProvider: () -> String = { nextNonce() }, val settings: CookiesSettings, val cookieName: String = "SESSION_ID", val serializer: SessionSerializer<S>, val storage: SessionStorage) : SessionTracker<S> {
+internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val sessionIdProvider: () -> String = { nextNonce() }, val settings: SessionCookiesSettings, val cookieName: String = "SESSION_ID", val serializer: SessionSerializer<S>, val storage: SessionStorage) : SessionTracker<S> {
 
     private val SessionIdKey = AttributeKey<String>()
 
@@ -41,7 +41,7 @@ internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val 
                 writer.write(serialized)
             }
         }
-        call.response.cookies.append(settings.newCookie(cookieName, sessionId))
+        call.response.cookies.append(settings.toCookie(cookieName, sessionId))
     }
 
     override fun lookup(call: ApplicationCall, injectSession: (S) -> Unit, next: ApplicationCall.() -> ApplicationCallResult): ApplicationCallResult {

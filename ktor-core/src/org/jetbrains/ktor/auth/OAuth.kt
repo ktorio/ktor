@@ -12,6 +12,7 @@ import java.util.*
 import java.util.concurrent.*
 import javax.crypto.*
 import javax.crypto.spec.*
+import kotlin.comparisons.*
 
 enum class OAuthVersion {
     V10a, V20

@@ -2,6 +2,7 @@ package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.util.*
 import java.util.*
+import kotlin.comparisons.*
 
 public data class HeaderValueParam(val name: String, val value: String)
 public data class HeaderValue(val value: String, val params: List<HeaderValueParam> = listOf()) {
