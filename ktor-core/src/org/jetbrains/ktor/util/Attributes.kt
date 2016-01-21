@@ -2,9 +2,14 @@ package org.jetbrains.ktor.util
 
 import java.util.concurrent.*
 
-public open class AttributeKey<T>
+open class AttributeKey<T>(val name: String) {
+    override fun toString(): String = if (name.isEmpty())
+        super.toString()
+    else
+        "AttributeKey: $name"
+}
 
-public class Attributes {
+class Attributes {
     private val map by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         ConcurrentHashMap<AttributeKey<*>, Any?>()
     }
