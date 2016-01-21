@@ -109,9 +109,9 @@ open public class LocationService(val conversionService: ConversionService) {
 
         fun propertyValue(instance: Any, name: String): List<String> {
             // TODO: Cache properties by name in info
-            val property = info.klass.memberProperties.single { it.name == name }
-            val value = property.call(instance)
-            return conversionService.toURI(value, name, property.returnType.isMarkedNullable)
+            val property = info.pathParameters.single { it.name == name }
+            val value = property.getter.call(instance)
+            return conversionService.toURI(value, name, property.getter.returnType.isMarkedNullable)
         }
 
         val substituteParts = RoutingPath.parse(info.path).parts.flatMap { it ->
