@@ -7,18 +7,17 @@ import org.jetbrains.ktor.util.*
 import org.junit.*
 import kotlin.test.*
 
-fun RoutingResolveContext(path: String, parameters: ValuesMap = ValuesMap.Empty): RoutingResolveContext {
-    return RoutingResolveContext(HttpRequestLine(HttpMethod.Companion.Get, path, "HTTP/1.1"), parameters)
-}
+fun routing() = RoutingEntry(parent = null, selector = Routing.RootRoutingSelector)
+fun context(routing: RoutingEntry, path: String, parameters: ValuesMap = ValuesMap.Empty)
+        = RoutingResolveContext(routing, HttpRequestLine(HttpMethod.Companion.Get, path, "HTTP/1.1"), parameters)
 
-fun RoutingResolveContext(path: String, parameters: ValuesMap = ValuesMap.Empty, headers: ValuesMap = ValuesMap.Empty): RoutingResolveContext {
-    return RoutingResolveContext(HttpRequestLine(HttpMethod.Companion.Get, path, "HTTP/1.1"), parameters, headers)
-}
+fun context(routing: RoutingEntry, path: String, parameters: ValuesMap = ValuesMap.Empty, headers: ValuesMap = ValuesMap.Empty)
+        = RoutingResolveContext(routing, HttpRequestLine(HttpMethod.Companion.Get, path, "HTTP/1.1"), parameters, headers)
 
 class RoutingResolveTest {
     @Test fun `empty routing`() {
-        val root = Routing()
-        val result = root.resolve(RoutingResolveContext("/foo/bar"))
+        val root = routing()
+        val result = context(root, "/foo/bar").resolve()
         on("resolving any request") {
             it("should not succeed") {
                 assertFalse(result.succeeded)
@@ -30,11 +29,11 @@ class RoutingResolveTest {
     }
 
     @Test fun `routing with foo`() {
-        val root = Routing()
+        val root = routing()
         val fooEntry = root.select(UriPartConstantRoutingSelector("foo"))
 
         on("resolving /foo") {
-            val result = root.resolve(RoutingResolveContext("/foo"))
+            val result = context(root, "/foo").resolve()
             it("should succeed") {
                 assertTrue(result.succeeded)
             }
@@ -43,7 +42,7 @@ class RoutingResolveTest {
             }
         }
         on("resolving /foo/bar") {
-            val result = root.resolve(RoutingResolveContext("/foo/bar"))
+            val result = context(root, "/foo/bar").resolve()
             it("should not succeed") {
                 assertFalse(result.succeeded)
             }
@@ -54,12 +53,12 @@ class RoutingResolveTest {
     }
 
     @Test fun `routing with foo-bar`() {
-        val root = Routing()
+        val root = routing()
         val fooEntry = root.select(UriPartConstantRoutingSelector("foo"))
         val barEntry = fooEntry.select(UriPartConstantRoutingSelector("bar"))
 
         on("resolving /foo") {
-            val result = root.resolve(RoutingResolveContext("/foo"))
+            val result = context(root, "/foo").resolve()
             it("should succeed") {
                 assertTrue(result.succeeded)
             }
@@ -69,7 +68,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo/bar") {
-            val result = root.resolve(RoutingResolveContext("/foo/bar"))
+            val result = context(root, "/foo/bar").resolve()
             it("should succeed") {
                 assertTrue(result.succeeded)
             }
@@ -79,7 +78,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /other/bar") {
-            val result = root.resolve(RoutingResolveContext("/other/bar"))
+            val result = context(root, "/other/bar").resolve()
             it("should not succeed") {
                 assertFalse(result.succeeded)
             }
@@ -90,12 +89,12 @@ class RoutingResolveTest {
     }
 
     @Test fun `routing foo with parameter`() {
-        val root = Routing()
+        val root = routing()
         val paramEntry = root.select(UriPartConstantRoutingSelector("foo"))
                 .select(UriPartParameterRoutingSelector("param"))
 
         on("resolving /foo/value") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo/value"))
+            val resolveResult = context(root, "/foo/value").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -110,13 +109,13 @@ class RoutingResolveTest {
     }
 
     @Test fun `routing foo with multiply parameters`() {
-        val root = Routing()
+        val root = routing()
         root.select(UriPartConstantRoutingSelector("foo"))
                 .select(UriPartParameterRoutingSelector("param1"))
                 .select(UriPartParameterRoutingSelector("param2"))
 
         on("resolving /foo/value1/value2") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo/value1/value2"))
+            val resolveResult = context(root, "/foo/value1/value2").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -129,13 +128,13 @@ class RoutingResolveTest {
     }
 
     @Test fun `routing foo with multivalue parameter`() {
-        val root = Routing()
+        val root = routing()
         root.select(UriPartConstantRoutingSelector("foo"))
                 .select(UriPartParameterRoutingSelector("param"))
                 .select(UriPartParameterRoutingSelector("param"))
 
         on("resolving /foo/value1/value2") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo/value1/value2"))
+            val resolveResult = context(root, "/foo/value1/value2").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -147,12 +146,12 @@ class RoutingResolveTest {
     }
 
     @Test fun `routing foo with optional parameter`() {
-        val root = Routing()
+        val root = routing()
         val paramEntry = root.select(UriPartConstantRoutingSelector("foo"))
                 .select(UriPartOptionalParameterRoutingSelector("param"))
 
         on("resolving /foo/value") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo/value"))
+            val resolveResult = context(root, "/foo/value").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -166,7 +165,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo"))
+            val resolveResult = context(root, "/foo").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -181,12 +180,12 @@ class RoutingResolveTest {
     }
 
     @Test fun `routing foo with wildcard`() {
-        val root = Routing()
+        val root = routing()
         val fooEntry = root.select(UriPartConstantRoutingSelector("foo"))
         val paramEntry = fooEntry.select(UriPartWildcardRoutingSelector)
 
         on("resolving /foo/value") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo/value"))
+            val resolveResult = context(root, "/foo/value").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -197,7 +196,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo"))
+            val resolveResult = context(root, "/foo").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -209,12 +208,12 @@ class RoutingResolveTest {
     }
 
     @Test fun `routing foo with anonymous tailcard`() {
-        val root = Routing()
+        val root = routing()
         val paramEntry = root.select(UriPartConstantRoutingSelector("foo"))
                 .select(UriPartTailcardRoutingSelector())
 
         on("resolving /foo/value") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo/value"))
+            val resolveResult = context(root, "/foo/value").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -225,7 +224,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo"))
+            val resolveResult = context(root, "/foo").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -236,7 +235,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo/bar/baz/blah") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo/bar/baz/blah"))
+            val resolveResult = context(root, "/foo/bar/baz/blah").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -248,12 +247,12 @@ class RoutingResolveTest {
     }
 
     @Test fun `routing foo with named tailcard`() {
-        val entry = Routing()
-        val paramEntry = entry.select(UriPartConstantRoutingSelector("foo"))
+        val root = routing()
+        val paramEntry = root.select(UriPartConstantRoutingSelector("foo"))
                 .select(UriPartTailcardRoutingSelector("items"))
 
         on("resolving /foo/value") {
-            val resolveResult = entry.resolve(RoutingResolveContext("/foo/value"))
+            val resolveResult = context(root, "/foo/value").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -267,7 +266,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo") {
-            val resolveResult = entry.resolve(RoutingResolveContext("/foo"))
+            val resolveResult = context(root, "/foo").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -281,7 +280,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo/bar/baz/blah") {
-            val resolveResult = entry.resolve(RoutingResolveContext("/foo/bar/baz/blah"))
+            val resolveResult = context(root, "/foo/bar/baz/blah").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -296,12 +295,12 @@ class RoutingResolveTest {
     }
 
     @Test fun `routing foo with parameter entry`() {
-        val root = Routing()
+        val root = routing()
         val fooEntry = root.select(UriPartConstantRoutingSelector("foo"))
         val paramEntry = fooEntry.select(ParameterRoutingSelector("name"))
 
         on("resolving /foo with query string name=value") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo", valuesOf("name" to listOf("value"))))
+            val resolveResult = context(root, "/foo", valuesOf("name" to listOf("value"))).resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -315,7 +314,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo"))
+            val resolveResult = context(root, "/foo").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -329,7 +328,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo with multiple parameters") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo", valuesOf("name" to listOf("value1", "value2"))))
+            val resolveResult = context(root, "/foo", valuesOf("name" to listOf("value1", "value2"))).resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -344,13 +343,13 @@ class RoutingResolveTest {
     }
 
     @Test fun `routing foo with quality`() {
-        val root = Routing()
+        val root = routing()
         val fooEntry = root.select(UriPartConstantRoutingSelector("foo"))
         val paramEntry = fooEntry.select(UriPartParameterRoutingSelector("name"))
         val constantEntry = fooEntry.select(UriPartConstantRoutingSelector("admin"))
 
         on("resolving /foo/value") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo/value"))
+            val resolveResult = context(root, "/foo/value").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -364,7 +363,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo/admin") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo/admin"))
+            val resolveResult = context(root, "/foo/admin").resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -380,13 +379,13 @@ class RoutingResolveTest {
     }
 
     @Test fun `routing foo with quality and headers`() {
-        val root = Routing()
+        val root = routing()
         val fooEntry = root.select(UriPartConstantRoutingSelector("foo"))
         val plainEntry = fooEntry.select(HttpHeaderRoutingSelector("Accept", "text/plain"))
         val htmlEntry = fooEntry.select(HttpHeaderRoutingSelector("Accept", "text/html"))
 
         on("resolving /foo with more specific") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo", headers = valuesOf("Accept" to listOf("text/*, text/html, */*"))))
+            val resolveResult = context(root, "/foo", headers = valuesOf("Accept" to listOf("text/*, text/html, */*"))).resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -397,7 +396,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo with equal preference") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo", headers = valuesOf("Accept" to listOf("text/plain, text/html"))))
+            val resolveResult = context(root, "/foo", headers = valuesOf("Accept" to listOf("text/plain, text/html"))).resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -408,7 +407,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo with preference of text/plain") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo", headers = valuesOf("Accept" to listOf("text/plain, text/html; q=0.5"))))
+            val resolveResult = context(root, "/foo", headers = valuesOf("Accept" to listOf("text/plain, text/html; q=0.5"))).resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -419,7 +418,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo with preference of text/html") {
-            val resolveResult = root.resolve(RoutingResolveContext("/foo", headers = valuesOf("Accept" to listOf("text/plain; q=0.5, text/html"))))
+            val resolveResult = context(root, "/foo", headers = valuesOf("Accept" to listOf("text/plain; q=0.5, text/html"))).resolve()
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
