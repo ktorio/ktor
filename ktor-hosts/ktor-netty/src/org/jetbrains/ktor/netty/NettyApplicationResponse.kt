@@ -3,7 +3,6 @@ package org.jetbrains.ktor.netty
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.HttpHeaders
-import io.netty.handler.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
@@ -22,26 +21,9 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
         setChunked()
         sendRequestMessage()
 
-        val stream = (object : OutputStream() {
-            override fun write(b: Int) {
-                context.write(DefaultHttpContent(context.alloc().buffer(1, 1).setByte(0, b).writerIndex(1)))
-            }
+        NettyAsyncStream(request, context).use(body)
 
-            override fun write(b: ByteArray, off: Int, len: Int) {
-                context.write(DefaultHttpContent(context.alloc().buffer(len, len).setBytes(0, b, off, len).writerIndex(len)))
-            }
-
-            override fun flush() {
-                context.flush()
-            }
-
-            override fun close() {
-                context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).scheduleClose()
-            }
-        }).buffered()
-        stream.body()
-        stream.close()
-        ApplicationCallResult.Handled
+        ApplicationCallResult.Asynchronous
     }
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
@@ -59,18 +41,27 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
             // TODO pass through interceptors chain instead of direct context usage
             if (obj is LocalFileContent) {
                 sendHeaders(obj)
-                setChunked()
-                sendRequestMessage()
+                stream {
+                    if (this is NettyAsyncStream) {
+                        writeFile(obj.file, 0L, obj.file.length())
+                    } else {
+                        obj.file.inputStream().use { it.copyTo(this) }
+                    }
+                }
 
-                context.write(DefaultFileRegion(obj.file, 0L, obj.file.length()))
-                context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).scheduleClose()
                 ApplicationCallResult.Asynchronous
             } else if (obj is StreamContentProvider) {
                 sendHeaders(obj)
                 setChunked()
-                sendRequestMessage()
 
-                context.writeAndFlush(HttpChunkedInput(ChunkedStream(obj.stream().buffered()))).scheduleClose()
+                stream {
+                    if (this is NettyAsyncStream) {
+                        writeStream(obj.stream())
+                    } else {
+                        obj.stream().use { it.copyTo(this) }
+                    }
+                }
+
                 ApplicationCallResult.Asynchronous
             } else {
                 next(obj)
