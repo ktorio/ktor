@@ -1,13 +1,16 @@
 package org.jetbrains.ktor.locations
 
+import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.util.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
 class InconsistentRoutingException(message: String) : Exception(message)
 
-open public class LocationService(val conversionService: ConversionService) {
+open public class Locations(val conversionService: ConversionService) {
     private val rootUri = ResolvedUriInfo("", emptyList())
     private val info = hashMapOf<KClass<*>, LocationInfo>()
 
@@ -151,7 +154,7 @@ open public class LocationService(val conversionService: ConversionService) {
 
     private fun createEntry(parent: RoutingEntry, info: LocationInfo): RoutingEntry {
         val hierarchyEntry = info.parent?.let { createEntry(parent, it) } ?: parent
-        val pathEntry = createRoutingEntry(hierarchyEntry, info.path)
+        val pathEntry = hierarchyEntry.createRoute(info.path)
 
         val queryEntry = info.queryParameters.fold(pathEntry) { entry, query ->
             val selector = if (query.isOptional)
@@ -165,6 +168,15 @@ open public class LocationService(val conversionService: ConversionService) {
 
     fun createEntry(parent: RoutingEntry, dataClass: KClass<*>): RoutingEntry {
         return createEntry(parent, getOrCreateInfo(dataClass))
+    }
+
+    companion object LocationsFeature : ApplicationFeature<Locations> {
+        override fun install(application: Application, configure: Locations.() -> Unit): Locations {
+            return Locations(DefaultConversionService()).apply(configure)
+        }
+
+        override val key: AttributeKey<Locations> = AttributeKey("Locations")
+        override val name: String = "Locations"
     }
 }
 
