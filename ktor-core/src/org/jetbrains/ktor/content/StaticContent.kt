@@ -61,7 +61,7 @@ private fun Path.safeAppend(relativePath: Path): Path {
     return resolve(relativePath)
 }
 
-private fun ApplicationCall.resolveClasspathWithPath(basePackage: String, path: String, mimeResolve: (String) -> ContentType = { defaultContentType(it) }): StreamContentProvider? {
+fun ApplicationCall.resolveClasspathWithPath(basePackage: String, path: String, mimeResolve: (String) -> ContentType = { defaultContentType(it) }): StreamContentProvider? {
     val packagePath = basePackage.replace('.', '/').appendIfNotEndsWith("/") + path.removePrefix("/")
     val normalizedPath = Paths.get(packagePath).normalize()
 
@@ -69,12 +69,12 @@ private fun ApplicationCall.resolveClasspathWithPath(basePackage: String, path: 
         return null
     }
 
-    for (url in javaClass.classLoader.getResources(normalizedPath.toString())) {
-        if (url.protocol == "file") {
-            val file = File(url.path)
+    for (uri in javaClass.classLoader.getResources(normalizedPath.toString()).asSequence().map { it.toURI() }) {
+        if (uri.scheme == "file") {
+            val file = File(uri.path)
             return LocalFileContent(file, mimeResolve(file.extension))
-        } else if (url.protocol == "jar") {
-            return ResourceFileContent(findContainingZipFile(url.toURI()), normalizedPath.toString(), javaClass.classLoader, mimeResolve(url.path.substringAfterLast("/").substringAfter(".")))
+        } else if (uri.scheme == "jar") {
+            return ResourceFileContent(findContainingZipFile(uri), normalizedPath.toString(), javaClass.classLoader, mimeResolve(uri.schemeSpecificPart.extension()))
         }
     }
 
@@ -92,27 +92,11 @@ fun ApplicationCall.resolveClasspathResource(contextPath: String, basePackage: S
         return null
     }
 
-    val packagePath = basePackage.replace('.', '/').appendIfNotEndsWith("/") + sub.removePrefix("/")
-    val normalizedPath = Paths.get(packagePath).normalize()
-
-    if (normalizedPath.startsWith("..")) {
-        return null
-    }
-
-    for (url in javaClass.classLoader.getResources(normalizedPath.toString())) {
-        if (url.protocol == "file") {
-            val file = File(url.path)
-            return LocalFileContent(file, mimeResolve(file.extension))
-        } else if (url.protocol == "jar") {
-            return ResourceFileContent(findContainingZipFile(url.toURI()), normalizedPath.toString(), javaClass.classLoader, mimeResolve(url.path.substringAfterLast("/").substringAfter(".")))
-        }
-    }
-
-    return null
+    return resolveClasspathWithPath(basePackage, sub, mimeResolve)
 }
 
 tailrec
-private fun findContainingZipFile(uri: URI): File {
+internal fun findContainingZipFile(uri: URI): File {
     if (uri.scheme == "file") {
         return File(uri.rawPath.substringBefore("!"))
     } else {

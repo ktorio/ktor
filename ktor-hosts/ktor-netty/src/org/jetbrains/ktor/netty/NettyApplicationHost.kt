@@ -6,6 +6,7 @@ import io.netty.channel.nio.*
 import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
 import io.netty.handler.codec.http.*
+import io.netty.handler.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
@@ -37,10 +38,11 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         group(mainEventGroup, workerEventGroup)
         channel(NioServerSocketChannel::class.java)
         childHandler(object : ChannelInitializer<SocketChannel>() {
-            protected override fun initChannel(ch: SocketChannel) {
+            override fun initChannel(ch: SocketChannel) {
                 with (ch.pipeline()) {
                     addLast(HttpServerCodec())
                     addLast(HttpObjectAggregator(1048576))
+                    addLast(ChunkedWriteHandler())
                     addLast(HostHttpHandler())
                 }
             }
@@ -59,7 +61,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     }
 
-    public override fun stop() {
+    override fun stop() {
         workerEventGroup.shutdownGracefully()
         mainEventGroup.shutdownGracefully()
         applicationLifecycle.dispose()

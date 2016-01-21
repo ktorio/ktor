@@ -53,7 +53,7 @@ abstract class BaseApplicationResponse : ApplicationResponse {
         }
     }
 
-    private fun sendHeaders(value: Any) {
+    protected fun sendHeaders(value: Any) {
         if (value is HasETag) {
             etag(value.etag())
         }

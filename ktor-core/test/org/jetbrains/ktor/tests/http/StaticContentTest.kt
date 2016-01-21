@@ -7,7 +7,20 @@ import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.junit.*
 import java.io.*
+import java.net.*
 import kotlin.test.*
+
+class FindContainingZipFileTest {
+    @Test
+    fun testSimpleJar() {
+        assertEquals("/dist/app.jar", findContainingZipFile(URI("jar:file:/dist/app.jar/")).path.replace('\\', '/'))
+    }
+
+    @Test
+    fun testNestedJar() {
+        assertEquals("/dist/app.jar", findContainingZipFile(URI("jar:jar:file:/dist/app.jar!/my/jar.jar!/")).path.replace('\\', '/'))
+    }
+}
 
 class StaticContentTest {
     @Test
