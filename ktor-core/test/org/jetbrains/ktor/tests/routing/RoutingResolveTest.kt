@@ -1,10 +1,19 @@
 package org.jetbrains.ktor.tests.routing
 
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.tests.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
 import kotlin.test.*
+
+fun RoutingResolveContext(path: String, parameters: ValuesMap = ValuesMap.Empty): RoutingResolveContext {
+    return RoutingResolveContext(HttpRequestLine(HttpMethod.Companion.Get, path, "HTTP/1.1"), parameters)
+}
+
+fun RoutingResolveContext(path: String, parameters: ValuesMap = ValuesMap.Empty, headers: ValuesMap = ValuesMap.Empty): RoutingResolveContext {
+    return RoutingResolveContext(HttpRequestLine(HttpMethod.Companion.Get, path, "HTTP/1.1"), parameters, headers)
+}
 
 class RoutingResolveTest {
     @Test fun `empty routing`() {

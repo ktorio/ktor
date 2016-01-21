@@ -51,11 +51,8 @@ public class ValuesMap(map: Map<String, List<String>>, val caseInsensitiveKey: B
     }
 }
 
-fun valuesOf(vararg pairs: Pair<String, Iterable<String>>): ValuesMap {
-    return ValuesMap.build(false) {
-        for ((key, values) in pairs)
-            appendAll(key, values)
-    }
+fun valuesOf(vararg pairs: Pair<String, List<String>>): ValuesMap {
+    return ValuesMap(pairs.asList().toMap(), false)
 }
 
 operator fun ValuesMap.plus(other: ValuesMap) = when {

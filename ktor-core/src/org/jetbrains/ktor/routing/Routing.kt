@@ -31,7 +31,8 @@ class Routing() : RoutingEntry(parent = null, selector = Routing.RootRoutingSele
     protected fun resolve(entry: RoutingEntry, request: RoutingResolveContext, segmentIndex: Int): RoutingResolveResult {
         var failEntry: RoutingEntry? = null
         val results = ArrayList<RoutingResolveResult>()
-        for (child in entry.children) {
+        for (childIndex in 0..entry.children.lastIndex) {
+            val child = entry.children[childIndex]
             val result = child.selector.evaluate(request, segmentIndex)
             if (result.succeeded) {
                 val subtreeResult = resolve(child, request, segmentIndex + result.segmentIncrement)
@@ -54,14 +55,30 @@ class Routing() : RoutingEntry(parent = null, selector = Routing.RootRoutingSele
             }
         }
 
-        val bestChild = results.maxBy { it.quality }
+        val bestChild = results.selectBestQuality()
         if (bestChild == null) {
             // no child matched, match is either current entry if path is done, or failure
-            if (segmentIndex == request.path.parts.size)
+            if (segmentIndex == request.path.size)
                 return RoutingResolveResult(true, entry, ValuesMap.Empty, 1.0)
             return RoutingResolveResult(false, failEntry ?: entry, ValuesMap.Empty, 0.0)
         }
         return bestChild
+    }
+
+    private fun ArrayList<RoutingResolveResult>.selectBestQuality(): RoutingResolveResult? {
+        var index = 0
+        if (index > lastIndex) return null
+        var maxElem = get(index++)
+        var maxValue = maxElem.quality
+        while (index <= lastIndex) {
+            val e = get(index++)
+            val v = e.quality
+            if (maxValue < v) {
+                maxElem = e
+                maxValue = v
+            }
+        }
+        return maxElem
     }
 
     private fun combineQuality(quality1: Double, quality2: Double): Double {
