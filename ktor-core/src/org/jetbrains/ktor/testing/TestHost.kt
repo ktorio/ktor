@@ -129,9 +129,9 @@ class TestApplicationResponse : BaseApplicationResponse() {
         override fun getHostHeaderValues(name: String): List<String> = headersMap[name] ?: emptyList()
     }
 
-    public override fun status(): HttpStatusCode? = statusCode
+    override fun status(): HttpStatusCode? = statusCode
 
-    public var content: String? = null
+    var content: String? = null
     var byteContent: ByteArray? = null
 }
 

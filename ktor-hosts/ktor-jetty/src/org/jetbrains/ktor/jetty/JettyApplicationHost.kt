@@ -60,8 +60,10 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     ApplicationCallResult.Handled -> baseRequest.isHandled = true
                     ApplicationCallResult.Unhandled -> baseRequest.isHandled = false
                     ApplicationCallResult.Asynchronous -> {
-                        val asyncContext = baseRequest.startAsync()
-                        appRequest.continueAsync(asyncContext)
+                        if (!appRequest.asyncStarted) {
+                            val asyncContext = baseRequest.startAsync()
+                            appRequest.continueAsync(asyncContext)
+                        }
                     }
                 }
             } catch(ex: Throwable) {
@@ -89,4 +91,3 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         config.log.info("Server stopped.")
     }
 }
-

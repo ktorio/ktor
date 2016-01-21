@@ -12,12 +12,25 @@
     <dependencies>
         <dependency>
             <groupId>org.jetbrains</groupId>
+            <artifactId>ktor-core</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains</groupId>
             <artifactId>ktor-servlet</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
+            <version>9.2.10.v20150310</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-servlets</artifactId>
             <version>9.2.10.v20150310</version>
             <type>jar</type>
         </dependency>

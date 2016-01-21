@@ -6,7 +6,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import java.io.*
 
-public abstract class BaseApplicationResponse : ApplicationResponse {
+abstract class BaseApplicationResponse : ApplicationResponse {
     protected abstract val stream: Interceptable1<OutputStream.() -> Unit, Unit>
     protected abstract val status: Interceptable1<HttpStatusCode, Unit>
 
@@ -36,6 +36,16 @@ public abstract class BaseApplicationResponse : ApplicationResponse {
             is StreamContent -> {
                 stream {
                     value.stream(this)
+                }
+                ApplicationCallResult.Handled
+            }
+            is StreamContentProvider -> {
+                stream {
+                    value.use {
+                        value.stream().use {
+                            it.copyTo(this)
+                        }
+                    }
                 }
                 ApplicationCallResult.Handled
             }
