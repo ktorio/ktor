@@ -39,6 +39,14 @@ abstract class BaseApplicationResponse : ApplicationResponse {
                 }
                 ApplicationCallResult.Handled
             }
+            is URIFileContent -> {
+                if (value.uri.scheme == "file") {
+                    send(LocalFileContent(File(value.uri)))
+                } else {
+                    sendStream(value.stream())
+                    ApplicationCallResult.Handled
+                }
+            }
             is LocalFileContent -> {
                 sendFile(value.file, 0L, value.file.length())
                 ApplicationCallResult.Handled

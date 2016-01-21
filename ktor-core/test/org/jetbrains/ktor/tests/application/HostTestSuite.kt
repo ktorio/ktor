@@ -164,7 +164,7 @@ abstract class HostTestSuite {
     fun testStaticServe() {
         val server = createServer(port) {
             route("/files/") {
-                serveStatic("org/jetbrains/ktor/tests/application")
+                serveClasspathResources("org/jetbrains/ktor/tests/application")
             }
         }
 
@@ -183,6 +183,46 @@ abstract class HostTestSuite {
             }
             assertFailsWith(FileNotFoundException::class) {
                 withUrl("/files/${HostTestSuite::class.simpleName}.class2") {
+                    inputStream.readBytes()
+                }
+            }
+            assertFailsWith(FileNotFoundException::class) {
+                withUrl("/wefwefwefw") {
+                    inputStream.readBytes()
+                }
+            }
+        } finally {
+            server.stop()
+        }
+    }
+
+    @Test
+    fun testStaticServeFromDir() {
+        val targetClasses = File("target/classes")
+        val file = targetClasses.walkBottomUp().filter { it.extension == "class" }.first()
+        println("test file is $file")
+
+        val server = createServer(port) {
+            route("/files/") {
+                serveFileSystem(targetClasses)
+            }
+        }
+
+        startServer(server)
+
+        try {
+            withUrl("/files/${file.toRelativeString(targetClasses)}") {
+                val bytes = inputStream.readBytes(8192)
+                assertNotEquals(0, bytes.size)
+
+                // class file signature
+                assertEquals(0xca, bytes[0].toInt() and 0xff)
+                assertEquals(0xfe, bytes[1].toInt() and 0xff)
+                assertEquals(0xba, bytes[2].toInt() and 0xff)
+                assertEquals(0xbe, bytes[3].toInt() and 0xff)
+            }
+            assertFailsWith(FileNotFoundException::class) {
+                withUrl("/files/${file.toRelativeString(targetClasses)}2") {
                     inputStream.readBytes()
                 }
             }
@@ -218,6 +258,49 @@ abstract class HostTestSuite {
         val server = createServer(port) {
             handle {
                 response.send(resolveClasspathWithPath("java/util", "/ArrayList.class")!!)
+            }
+        }
+        startServer(server)
+
+        URL("http://127.0.0.1:$port/").openStream().buffered().use { it.readBytes() }.let { bytes ->
+            assertNotEquals(0, bytes.size)
+
+            // class file signature
+            assertEquals(0xca, bytes[0].toInt() and 0xff)
+            assertEquals(0xfe, bytes[1].toInt() and 0xff)
+            assertEquals(0xba, bytes[2].toInt() and 0xff)
+            assertEquals(0xbe, bytes[3].toInt() and 0xff)
+        }
+    }
+
+    @Test
+    fun testURIContent() {
+        val server = createServer(port) {
+            handle {
+                response.send(URIFileContent(javaClass.classLoader.getResources("java/util/ArrayList.class").toList().first()))
+            }
+        }
+        startServer(server)
+
+        URL("http://127.0.0.1:$port/").openStream().buffered().use { it.readBytes() }.let { bytes ->
+            assertNotEquals(0, bytes.size)
+
+            // class file signature
+            assertEquals(0xca, bytes[0].toInt() and 0xff)
+            assertEquals(0xfe, bytes[1].toInt() and 0xff)
+            assertEquals(0xba, bytes[2].toInt() and 0xff)
+            assertEquals(0xbe, bytes[3].toInt() and 0xff)
+        }
+    }
+
+    @Test
+    fun testURIContentLocalFile() {
+        val file = File("target/classes").walkBottomUp().filter { it.extension == "class" }.first()
+        println("test file is $file")
+
+        val server = createServer(port) {
+            handle {
+                response.send(URIFileContent(file.toURI()))
             }
         }
         startServer(server)
