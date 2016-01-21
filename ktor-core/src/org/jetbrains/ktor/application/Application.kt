@@ -7,6 +7,9 @@ import org.jetbrains.ktor.util.*
  * Represents configured and running web application, capable of handling requests
  */
 public open class Application(val config: ApplicationConfig) : InterceptApplicationCall<ApplicationCall> {
+    /**
+     * Provides common place to store application-wide attributes
+     */
     val attributes = Attributes()
 
     private val handler: Interceptable1<ApplicationCall, ApplicationCallResult> = Interceptable1 {
