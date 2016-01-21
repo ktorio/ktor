@@ -64,17 +64,18 @@ private fun Path.safeAppend(relativePath: Path): Path {
 fun ApplicationCall.resolveClasspathWithPath(basePackage: String, path: String, mimeResolve: (String) -> ContentType = { defaultContentType(it) }): StreamContentProvider? {
     val packagePath = basePackage.replace('.', '/').appendIfNotEndsWith("/") + path.removePrefix("/")
     val normalizedPath = Paths.get(packagePath).normalize()
+    val normalizedResource = normalizedPath.toString().replace(File.separatorChar, '/')
 
     if (normalizedPath.startsWith("..")) {
         return null
     }
 
-    for (uri in javaClass.classLoader.getResources(normalizedPath.toString()).asSequence().map { it.toURI() }) {
+    for (uri in javaClass.classLoader.getResources(normalizedResource).asSequence().map { it.toURI() }) {
         if (uri.scheme == "file") {
             val file = File(uri.path)
             return if (file.exists()) LocalFileContent(file, mimeResolve(file.extension)) else null
         } else if (uri.scheme == "jar") {
-            return ResourceFileContent(findContainingZipFile(uri), normalizedPath.toString(), javaClass.classLoader, mimeResolve(uri.schemeSpecificPart.extension()))
+            return ResourceFileContent(findContainingZipFile(uri), normalizedResource, javaClass.classLoader, mimeResolve(uri.schemeSpecificPart.extension()))
         }
     }
 
@@ -122,7 +123,7 @@ class LocalFileContent(val file: File, override val contentType: ContentType = d
 }
 
 class ResourceFileContent(val zipFile: File, val path: String, val classLoader: ClassLoader, override val contentType: ContentType = defaultContentType(path.extension())) : HasContentType, StreamContentProvider, HasLastModified {
-    private val normalized = Paths.get(path).normalize()
+    private val normalized = Paths.get(path).normalize().toString().replace(File.separatorChar, '/')
 
     init {
         require(!normalized.startsWith("..")) { "Bad resource relative path $path" }
@@ -131,7 +132,7 @@ class ResourceFileContent(val zipFile: File, val path: String, val classLoader: 
     override val lastModified: Long
         get() = zipFile.lastModified()
 
-    override fun stream() = classLoader.getResourceAsStream(normalized.toString())
+    override fun stream() = classLoader.getResourceAsStream(normalized) ?: throw IOException("Resource $normalized not found")
 }
 
 class URIFileContent(val uri: URI, override val contentType: ContentType = defaultContentType(uri.path.extension())): HasContentType, StreamContentProvider {

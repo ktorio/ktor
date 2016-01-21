@@ -47,16 +47,6 @@ abstract class BaseApplicationResponse : ApplicationResponse {
                 sendStream(value.stream())
                 ApplicationCallResult.Handled
             }
-            is StreamContentProvider -> {
-                stream {
-                    value.use {
-                        value.stream().use {
-                            it.copyTo(this)
-                        }
-                    }
-                }
-                ApplicationCallResult.Handled
-            }
             else -> throw UnsupportedOperationException("No known way to stream value $value")
         }
     }
