@@ -72,7 +72,7 @@ fun ApplicationCall.resolveClasspathWithPath(basePackage: String, path: String, 
     for (uri in javaClass.classLoader.getResources(normalizedPath.toString()).asSequence().map { it.toURI() }) {
         if (uri.scheme == "file") {
             val file = File(uri.path)
-            return LocalFileContent(file, mimeResolve(file.extension))
+            return if (file.exists()) LocalFileContent(file, mimeResolve(file.extension)) else null
         } else if (uri.scheme == "jar") {
             return ResourceFileContent(findContainingZipFile(uri), normalizedPath.toString(), javaClass.classLoader, mimeResolve(uri.schemeSpecificPart.extension()))
         }
@@ -98,7 +98,7 @@ fun ApplicationCall.resolveClasspathResource(contextPath: String, basePackage: S
 tailrec
 internal fun findContainingZipFile(uri: URI): File {
     if (uri.scheme == "file") {
-        return File(uri.rawPath.substringBefore("!"))
+        return File(uri.path.substringBefore("!"))
     } else {
         return findContainingZipFile(URI(uri.rawSchemeSpecificPart))
     }

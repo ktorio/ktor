@@ -20,6 +20,11 @@ class FindContainingZipFileTest {
     fun testNestedJar() {
         assertEquals("/dist/app.jar", findContainingZipFile(URI("jar:jar:file:/dist/app.jar!/my/jar.jar!/")).path.replace('\\', '/'))
     }
+
+    @Test
+    fun testEscapedChars() {
+        assertEquals("/Program Files/app.jar", findContainingZipFile(URI("jar:file:/Program%20Files/app.jar/")).path.replace('\\', '/'))
+    }
 }
 
 class StaticContentTest {
