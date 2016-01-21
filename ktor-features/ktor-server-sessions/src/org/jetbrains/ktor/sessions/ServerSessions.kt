@@ -31,7 +31,7 @@ class CookieByIdSessionTrackerBuilder<S : Any>(val type: KClass<S>, val storage:
 
 internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val sessionIdProvider: () -> String = { nextNonce() }, val settings: SessionCookiesSettings, val cookieName: String = "SESSION_ID", val serializer: SessionSerializer<S>, val storage: SessionStorage) : SessionTracker<S> {
 
-    private val SessionIdKey = AttributeKey<String>()
+    private val SessionIdKey = AttributeKey<String>("SessionId")
 
     override fun assign(call: ApplicationCall, session: S) {
         val sessionId = call.attributes.computeIfAbsent(SessionIdKey, sessionIdProvider)
