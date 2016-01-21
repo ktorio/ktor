@@ -3,6 +3,7 @@ package org.jetbrains.ktor.servlet
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.logging.*
 import javax.servlet.annotation.*
 import javax.servlet.http.*
 

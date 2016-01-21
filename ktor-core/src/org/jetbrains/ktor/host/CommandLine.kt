@@ -2,6 +2,7 @@ package org.jetbrains.ktor.host
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.logging.*
 import java.io.*
 import java.net.*
 

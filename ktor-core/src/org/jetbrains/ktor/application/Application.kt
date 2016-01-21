@@ -21,25 +21,7 @@ public open class Application(val config: ApplicationConfig) : InterceptApplicat
     /**
      * Handles HTTP request coming from the host using interceptors
      */
-    public fun handle(call: ApplicationCall): ApplicationCallResult {
-        val result = handler.execute(call)
-        call.logResult(result)
-        return result
-    }
-
-    private fun ApplicationCall.logResult(result: ApplicationCallResult) {
-        when (result) {
-            ApplicationCallResult.Handled -> {
-                val status = response.status()
-                when (status) {
-                    HttpStatusCode.Found -> config.log.info("$status: ${request.requestLine} -> ${response.headers[HttpHeaders.Location]}")
-                    else -> config.log.info("$status: ${request.requestLine}")
-                }
-            }
-            ApplicationCallResult.Unhandled -> config.log.info("<Unhandled>: ${request.requestLine}")
-            ApplicationCallResult.Asynchronous -> config.log.info("<Async>: ${request.requestLine}")
-        }
-    }
+    public fun handle(call: ApplicationCall): ApplicationCallResult = handler.execute(call)
 
     /**
      * Called by host when Application is terminated

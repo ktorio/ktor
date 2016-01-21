@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.application
 
+import org.jetbrains.ktor.logging.*
+
 /**
  * Represents [Application] configuration
  */

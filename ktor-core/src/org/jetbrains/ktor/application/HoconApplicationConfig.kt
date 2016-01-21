@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.application
 
 import com.typesafe.config.*
+import org.jetbrains.ktor.logging.*
 
 /**
  * Implements [ApplicationConfig] by loading configuration from HOCON data structures

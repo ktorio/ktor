@@ -2,6 +2,7 @@ package org.jetbrains.ktor.tests
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.testing.*
 
 object On
