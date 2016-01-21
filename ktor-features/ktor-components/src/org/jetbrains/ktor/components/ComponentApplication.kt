@@ -1,12 +1,13 @@
 package org.jetbrains.ktor.components
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.routing.*
 import kotlin.system.*
 
 public open class ComponentApplication(config: ApplicationConfig) : Application(config) {
     val container = StorageComponentContainer("Application")
-    val routing = Routing()
+    val routing = install(Routing)
     val log = config.log.fork("Components")
 
     init {
@@ -31,8 +32,6 @@ public open class ComponentApplication(config: ApplicationConfig) : Application(
             container.compose()
         }
         log.info("Composition took $compositionTime ms")
-
-        routing.installInto(this)
     }
 
     override fun dispose() {
