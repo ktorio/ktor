@@ -16,7 +16,7 @@ fun embeddedNettyServer(port: Int = 80, host: String = "0.0.0.0", application: R
 fun embeddedNettyServer(hostConfig: ApplicationHostConfig, config: ApplicationConfig, application: Routing.() -> Unit): ApplicationHost {
     val applicationObject = object : Application(config) {
         init {
-            Routing().apply(application).installInto(this)
+            routing(application)
         }
     }
     return NettyApplicationHost(hostConfig, config, applicationObject)

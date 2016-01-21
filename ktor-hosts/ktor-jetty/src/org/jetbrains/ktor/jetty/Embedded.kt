@@ -16,7 +16,7 @@ fun embeddedJettyServer(port: Int = 80, host: String = "0.0.0.0", application: R
 fun embeddedJettyServer(hostConfig: ApplicationHostConfig, config: ApplicationConfig, application: Routing.() -> Unit): ApplicationHost {
     val applicationObject = object : Application(config) {
         init {
-            Routing().apply(application).installInto(this)
+            routing(application)
         }
     }
     return JettyApplicationHost(hostConfig, config, applicationObject)
