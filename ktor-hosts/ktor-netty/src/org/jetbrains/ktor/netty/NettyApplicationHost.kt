@@ -48,13 +48,14 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     }
 
-    public override fun start() = start(wait = false)
-
-    public fun start(wait: Boolean = false) {
+    public override fun start(wait: Boolean) {
+        config.log.info("Starting server...")
         val channelFuture = bootstrap.bind(hostConfig.host, hostConfig.port).sync()
         config.log.info("Server running.")
         if (wait) {
             channelFuture.channel().closeFuture().sync()
+            applicationLifecycle.dispose()
+            config.log.info("Server stopped.")
         }
     }
 

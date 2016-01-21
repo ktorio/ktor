@@ -2,12 +2,10 @@ package org.jetbrains.ktor.jetty
 
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
-import org.eclipse.jetty.server.session.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.servlet.*
-import java.io.*
 import javax.servlet.*
 import javax.servlet.http.*
 
@@ -18,7 +16,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                            val config: ApplicationConfig,
                            val applicationLifecycle: ApplicationLifecycle) : ApplicationHost {
 
-    val application: Application get() = applicationLifecycle.application
+    private val application: Application get() = applicationLifecycle.application
 
     constructor(hostConfig: ApplicationHostConfig, config: ApplicationConfig)
     : this(hostConfig, config, ApplicationLoader(config))
@@ -30,15 +28,27 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     })
 
-    var server: Server? = null
-    val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"));
+    private val server = Server().apply {
+        val httpConfig = HttpConfiguration().apply {
+            sendServerVersion = false
+        }
+        val connectionFactory = HttpConnectionFactory(httpConfig)
+        val connector = ServerConnector(this, connectionFactory).apply {
+            host = hostConfig.host
+            port = hostConfig.port
+        }
+        connectors = arrayOf(connector)
+        handler = Handler()
+    }
+
+
+    private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"));
 
     inner class Handler() : AbstractHandler() {
-
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             response.characterEncoding = "UTF-8"
+            val appRequest = ServletApplicationCall(application, request, response)
             try {
-                val appRequest = ServletApplicationCall(application, request, response)
                 val contentType = request.contentType
                 if (contentType != null && ContentType.parse(contentType).match(ContentType.MultiPart.Any)) {
                     baseRequest.setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, MULTI_PART_CONFIG)
@@ -56,43 +66,27 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 }
             } catch(ex: Throwable) {
                 config.log.error("Application ${application.javaClass} cannot fulfill the request", ex);
+                appRequest.response.sendError(HttpStatusCode.InternalServerError)
             }
         }
     }
 
-    public override fun start() {
+    public override fun start(wait: Boolean) {
         config.log.info("Starting server...")
 
-        server = Server().apply {
-            val httpConfig = HttpConfiguration().apply {
-                sendServerVersion = false
-            }
-            val connectionFactory = HttpConnectionFactory(httpConfig)
-            val connector = ServerConnector(this, connectionFactory).apply {
-                host = hostConfig.host
-                port = hostConfig.port
-            }
-            connectors = arrayOf(connector)
-        }
-
-        val sessionHandler = SessionHandler()
-        val sessionManager = HashSessionManager()
-        sessionManager.storeDirectory = File("tmp/sessions")
-        sessionHandler.sessionManager = sessionManager
-        sessionHandler.handler = Handler()
-        server?.handler = sessionHandler
-
-        server?.start()
+        server.start()
         config.log.info("Server running.")
-        server?.join()
-        config.log.info("Server stopped.")
+        if (wait) {
+            server.join()
+            applicationLifecycle.dispose()
+            config.log.info("Server stopped.")
+        }
     }
 
     override fun stop() {
-        if (server != null) {
-            server?.stop()
-            server = null
-        }
+        server.stop()
+        applicationLifecycle.dispose()
+        config.log.info("Server stopped.")
     }
 }
 
