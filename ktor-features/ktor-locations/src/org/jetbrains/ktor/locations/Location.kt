@@ -4,7 +4,6 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
-import org.jetbrains.ktor.util.*
 import kotlin.reflect.*
 
 annotation class location(val path: String)
@@ -40,7 +39,7 @@ inline fun <reified T : Any> RoutingEntry.handle(noinline body: RoutingApplicati
     return handle(T::class, body)
 }
 
-fun <T : Any> RoutingEntry.handle(dataClass: KClass<T>, body: RoutingApplicationCall.(T) -> ApplicationCallResult) {
+inline fun <T : Any> RoutingEntry.handle(dataClass: KClass<T>, crossinline body: RoutingApplicationCall.(T) -> ApplicationCallResult) {
     handle {
         val location = locations().resolve<T>(dataClass, this)
         body(location)
