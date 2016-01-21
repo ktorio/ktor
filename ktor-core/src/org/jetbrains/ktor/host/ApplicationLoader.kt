@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.host
 
-import com.sun.nio.file.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.util.*
 import java.io.*
