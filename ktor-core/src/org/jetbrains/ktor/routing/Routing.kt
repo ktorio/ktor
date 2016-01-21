@@ -1,124 +1,80 @@
 package org.jetbrains.ktor.routing
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.util.*
-import java.util.*
 
-class Routing() : RoutingEntry(parent = null, selector = Routing.RootRoutingSelector) {
+
+class Routing(val application: Application) : RoutingEntry(parent = null, selector = Routing.RootRoutingSelector) {
 
     object RootRoutingSelector : RoutingSelector {
         override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation = throw UnsupportedOperationException()
         override fun toString(): String = ""
     }
 
-    data class Key<T : Any>(val name: String)
-
-    val services = hashMapOf<Key<*>, Any>()
-    fun <T : Any> addService(key: Key<T>, service: T) {
-        services.put(key, service)
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    fun <T : Any> getService(key: Key<T>): T {
-        val service = services[key] ?: throw UnsupportedOperationException("Cannot find service for key $key")
-        return service as T
-    }
-
-    fun installInto(application: Application) {
-        application.intercept { next -> interceptor(next) }
-    }
-
-    protected fun resolve(entry: RoutingEntry, request: RoutingResolveContext, segmentIndex: Int): RoutingResolveResult {
-        var failEntry: RoutingEntry? = null
-        var bestResult : RoutingResolveResult? = null
-        for (childIndex in 0..entry.children.lastIndex) {
-            val child = entry.children[childIndex]
-            val result = child.selector.evaluate(request, segmentIndex)
-            if (result.succeeded) {
-                val subtreeResult = resolve(child, request, segmentIndex + result.segmentIncrement)
-                if (subtreeResult.succeeded ) {
-                    val combinedQuality = combineQuality(subtreeResult.quality, result.quality)
-                    if (combinedQuality > bestResult?.quality ?: 0.0) {
-                        val combinedValues = when {
-                            result.values.isEmpty() -> subtreeResult.values
-                            subtreeResult.values.isEmpty() -> result.values
-                            else -> ValuesMap.build {
-                                appendAll(result.values)
-                                appendAll(subtreeResult.values)
-                            }
-                        }
-                        bestResult = RoutingResolveResult(true, subtreeResult.entry, combinedValues, combinedQuality)
-                    }
-                } else if (failEntry == null) {
-                    // save first entry that failed to match for better diagnostic
-                    failEntry = subtreeResult.entry
-                }
-            }
-        }
-
-        if (bestResult == null) {
-            // no child matched, match is either current entry if path is done, or failure
-            if (segmentIndex == request.path.size)
-                return RoutingResolveResult(true, entry, ValuesMap.Empty, 1.0)
-            return RoutingResolveResult(false, failEntry ?: entry, ValuesMap.Empty, 0.0)
-        }
-        return bestResult
-    }
-
-    private fun combineQuality(quality1: Double, quality2: Double): Double {
-        return quality1 * quality2
-    }
-
-    public fun resolve(request: RoutingResolveContext): RoutingResolveResult {
-        return resolve(this, request, 0)
-    }
-
-    private fun ApplicationCall.interceptor(next: ApplicationCall.() -> ApplicationCallResult): ApplicationCallResult {
-        val resolveContext = RoutingResolveContext(request.requestLine, request.parameters, request.headers)
-        val resolveResult = resolve(resolveContext)
+    internal fun interceptor(call: ApplicationCall, next: ApplicationCall.() -> ApplicationCallResult): ApplicationCallResult {
+        val resolveContext = RoutingResolveContext(this, call.request.requestLine, call.request.parameters, call.request.headers)
+        val resolveResult = resolveContext.resolve()
         return when {
             resolveResult.succeeded -> {
-                val call = RoutingApplicationCall(this, resolveResult.entry, resolveResult.values)
-                call.processChain(resolveResult)
+                val routingCall = RoutingApplicationCall(call, resolveResult.entry, resolveResult.values)
+                routingCall.executeEntry(resolveResult.entry)
             }
-            else -> next()
+            else -> call.next()
         }
     }
 
-    private fun RoutingApplicationCall.processChain(resolveResult: RoutingResolveResult): ApplicationCallResult {
-        val interceptors = arrayListOf<RoutingInterceptor>()
-        var current: RoutingEntry? = resolveResult.entry
+    private fun RoutingApplicationCall.executeHandlers(handlers: List<RoutingApplicationCall.() -> ApplicationCallResult>): ApplicationCallResult {
+        // Handlers are executed in the installation order, first one that handles a call wins
+        for (handler in handlers) {
+            val handlerResult = handler()
+            if (handlerResult != ApplicationCallResult.Unhandled)
+                return handlerResult
+        }
+        return ApplicationCallResult.Unhandled
+    }
+
+    private fun RoutingApplicationCall.executeEntry(entry: RoutingEntry): ApplicationCallResult {
+        // Interceptors are rarely installed into routing entries, so don't create list unless there are some
+        var interceptors: MutableList<RoutingInterceptor>? = null
+        var current: RoutingEntry? = entry
         while (current != null) {
-            interceptors.addAll(0, current.interceptors)
+            if (current.interceptors.isNotEmpty()) {
+                if (interceptors == null)
+                    interceptors = arrayListOf()
+                interceptors.addAll(0, current.interceptors)
+            }
             current = current.parent
         }
 
-        fun handle(index: Int, call: RoutingApplicationCall): ApplicationCallResult {
-            when {
-                index < interceptors.size -> {
-                    return interceptors[index].function(call) { request -> handle(index + 1, request) }
-                }
-                else -> {
-                    for (handler in resolveResult.entry.handlers) {
-                        val handlerResult = call.handler()
-                        if (handlerResult != ApplicationCallResult.Unhandled)
-                            return handlerResult
-                    }
-                    return ApplicationCallResult.Unhandled
-                }
-            }
+        // No interceptors, just call handlers without polluting call stacks
+        if (interceptors == null || interceptors.isEmpty()) {
+            return executeHandlers(entry.handlers)
         }
 
-        return handle(0, this)
+        fun handle(index: Int, interceptors: List<RoutingInterceptor>): ApplicationCallResult = when {
+            index < interceptors.size -> interceptors[index].function(this) { request -> handle(index + 1, interceptors) }
+            else -> executeHandlers(entry.handlers)
+        }
+
+        return handle(0, interceptors)
+    }
+
+    companion object RoutingFeature : ApplicationFeature<Routing> {
+        override val key: AttributeKey<Routing> = AttributeKey("Routing")
+        override val name: String = "Routing"
+
+        override fun install(application: Application, configure: Routing.() -> Unit) = Routing(application).apply {
+            configure()
+            application.intercept { next -> this@apply.interceptor(this, next) }
+        }
     }
 }
 
-fun <T : Any> RoutingEntry.getService(key: Routing.Key<T>): T {
-    return if (this is Routing)
-        getService(key)
-    else
-        if (parent == null)
-            throw UnsupportedOperationException("Services cannot be obtained from dangling route entries")
-        else
-            parent.getService(key)
+val RoutingEntry.application: Application get() = when {
+    this is Routing -> application
+    else -> parent?.application ?: throw UnsupportedOperationException("Cannot retrieve application from unattached routing entry")
 }
+
+public fun Application.routing(configure: Routing.() -> Unit) = install(Routing, configure)
+

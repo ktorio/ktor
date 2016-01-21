@@ -1,14 +1,11 @@
 package org.jetbrains.ktor.routing
 
-class RoutingPath {
-    public val parts: List<RoutingPathSegment>
-
+class RoutingPath private constructor(val parts: List<RoutingPathSegment>) {
     companion object {
         val root: RoutingPath = RoutingPath(listOf())
         fun parse(path: String): RoutingPath {
             if (path == "/") return root
-            val splitted = path.split("/").filter { it.length > 0 }
-            val segments = splitted.map {
+            val segments = path.splitToSequence("/").filter { it.length > 0 }.map {
                 when {
                     it == "*" -> RoutingPathSegment("", RoutingPathSegmentKind.Constant, true)
                     it.startsWith("{") && it.endsWith("}") -> {
@@ -23,21 +20,11 @@ class RoutingPath {
                 }
             }
 
-            return RoutingPath(segments)
+            return RoutingPath(segments.toList())
         }
     }
 
-    private constructor(segments: List<RoutingPathSegment>) {
-        this.parts = segments
-    }
-
-    public fun combine(path: RoutingPath): RoutingPath {
-        return RoutingPath(parts + path.parts)
-    }
-
-    override fun toString(): String {
-        return parts.map { it.value }.joinToString("/")
-    }
+    override fun toString(): String = parts.map { it.value }.joinToString("/")
 }
 
 data class RoutingPathSegment(val value: String, val kind: RoutingPathSegmentKind, val optional: Boolean)

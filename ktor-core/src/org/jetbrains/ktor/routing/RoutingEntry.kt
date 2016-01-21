@@ -4,15 +4,15 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.interception.*
 import java.util.*
 
-data class RoutingInterceptor(val function: (RoutingApplicationCall, (RoutingApplicationCall) -> ApplicationCallResult) -> ApplicationCallResult)
+internal data class RoutingInterceptor(val function: (RoutingApplicationCall, (RoutingApplicationCall) -> ApplicationCallResult) -> ApplicationCallResult)
 
 open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : InterceptApplicationCall<RoutingApplicationCall> {
+    val children: MutableList<RoutingEntry> = ArrayList()
 
-    val children = ArrayList<RoutingEntry> ()
-    val interceptors = ArrayList<RoutingInterceptor>()
-    val handlers = ArrayList<RoutingApplicationCall.() -> ApplicationCallResult>()
+    internal val interceptors = ArrayList<RoutingInterceptor>()
+    internal val handlers = ArrayList<RoutingApplicationCall.() -> ApplicationCallResult>()
 
-    public fun select(selector: RoutingSelector): RoutingEntry {
+    fun select(selector: RoutingSelector): RoutingEntry {
         val existingEntry = children.firstOrNull { it.selector.equals(selector) }
         if (existingEntry == null) {
             val entry = RoutingEntry(this, selector)
@@ -26,7 +26,7 @@ open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector
         interceptors.add(RoutingInterceptor(interceptor))
     }
 
-    public fun handle(handler: RoutingApplicationCall.() -> ApplicationCallResult) {
+    fun handle(handler: RoutingApplicationCall.() -> ApplicationCallResult) {
         handlers.add(handler)
     }
 
