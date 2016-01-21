@@ -6,8 +6,8 @@ import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 import kotlin.reflect.*
 
-private val SessionConfigKey = AttributeKey<SessionConfig<*>>()
-private val SessionKey = AttributeKey<Any>()
+private val SessionConfigKey = AttributeKey<SessionConfig<*>>("SessionConfig")
+private val SessionKey = AttributeKey<Any>("Session")
 
 @Suppress("UNCHECKED_CAST")
 private fun <S : Any> ApplicationCall.sessionConfig() = attributes[SessionConfigKey] as SessionConfig<S>
