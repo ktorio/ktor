@@ -5,6 +5,7 @@ import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.auth.httpclient.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.routing.*
@@ -83,7 +84,8 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
     val exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4)
 
     init {
-        locations {
+        install(Locations)
+        routing {
             get<index>() {
                 response.status(HttpStatusCode.OK)
                 response.contentType(ContentType.Text.Html)
@@ -97,7 +99,7 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
                                 +"Try to login"
                             }
                             p {
-                                a(href = Locations.href(login())) {
+                                a(href = application.feature(Locations).href(login())) {
                                     +"Login"
                                 }
                             }
@@ -138,7 +140,7 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
             secure -> "https"
             else -> "http"
         }
-        return "$protocol://$hostPort${Locations.href(t)}"
+        return "$protocol://$hostPort${application.feature(Locations).href(t)}"
     }
 
     private fun ApplicationCall.loginPage(): ApplicationCallResult {
@@ -156,7 +158,7 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
 
                     for (p in loginProviders) {
                         p {
-                            a(href = Locations.href(login(p.key))) {
+                            a(href = application.feature(Locations).href(login(p.key))) {
                                 +p.key
                             }
                         }

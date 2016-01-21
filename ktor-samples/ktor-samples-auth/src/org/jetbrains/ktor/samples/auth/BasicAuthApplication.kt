@@ -2,8 +2,10 @@ package org.jetbrains.ktor.samples.auth
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 
 @location("/manual") class Manual()
@@ -15,7 +17,8 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
     ))
 
     init {
-        locations {
+        install(Locations)
+        routing {
             auth {
                 basicAuth()
 

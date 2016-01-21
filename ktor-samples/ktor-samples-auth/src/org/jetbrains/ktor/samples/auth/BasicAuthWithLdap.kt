@@ -3,14 +3,17 @@ package org.jetbrains.ktor.samples.auth
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.auth.ldap.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.routing.*
 
 @location("/files") class Files()
 
 class BasicAuthWithLdapApplication(config: ApplicationConfig) : Application(config) {
     init {
-        locations {
+        install(Locations)
+        routing {
             location<Files> {
                 auth {
                     basicAuth()

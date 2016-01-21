@@ -3,8 +3,10 @@ package org.jetbrains.ktor.samples.locations
 import kotlinx.html.*
 import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.routing.*
 import java.util.*
 
 @location("/") class index()
@@ -12,7 +14,8 @@ import java.util.*
 
 class LocationsApplication(config: ApplicationConfig) : Application(config) {
     init {
-        locations {
+        install(Locations)
+        routing {
             get<index>() {
                 response.status(HttpStatusCode.OK)
                 response.contentType(ContentType.Text.Html)
@@ -30,7 +33,7 @@ class LocationsApplication(config: ApplicationConfig) : Application(config) {
                                 (0..5).forEach {
                                     li {
                                         val number = number(rnd.nextInt(1000))
-                                        a(href = Locations.href(number)) {
+                                        a(href = application.feature(Locations).href(number)) {
                                             +"Number #${number.value}"
                                         }
                                     }

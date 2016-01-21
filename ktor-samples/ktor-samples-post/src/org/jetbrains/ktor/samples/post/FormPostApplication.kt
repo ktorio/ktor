@@ -3,15 +3,18 @@ package org.jetbrains.ktor.samples.post
 import kotlinx.html.*
 import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.routing.*
 
 @location("/") class index()
 @location("/form") class post()
 
 class FormPostApplication(config: ApplicationConfig) : Application(config) {
     init {
-        locations {
+        install(Locations)
+        routing {
             get<index>() {
                 val contentType = ContentType.Text.Html.withParameter("charset", Charsets.UTF_8.name())
 
@@ -30,7 +33,7 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
                             p {
                                 +"File upload example"
                             }
-                            form(Locations.href(post()), encType = FormEncType.multipartFormData, method = FormMethod.post) {
+                            form(application.feature(Locations).href(post()), encType = FormEncType.multipartFormData, method = FormMethod.post) {
                                 acceptCharset = "utf-8"
                                 textInput { name = "field1" }
                                 fileInput { name = "file1" }
