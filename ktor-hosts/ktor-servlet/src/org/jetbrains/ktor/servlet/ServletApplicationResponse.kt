@@ -31,58 +31,29 @@ class ServletApplicationResponse(val call: ServletApplicationCall, val servletRe
         ApplicationCallResult.Handled
     }
 
-    init {
-        send.intercept { obj, next ->
-            if (obj is StreamContentProvider) {
-                send(obj.stream())
-            } else if (obj is LocalFileContent) {
-                servletResponse.addHeader(HttpHeaders.ContentType, obj.contentType.toString())
-                send(obj.file)
-            } else {
-                next(obj)
-            }
-        }
-    }
-
-    fun send(inputStream: InputStream): ApplicationCallResult {
-        var async = false
-        stream.execute {
-            if (this is ServletOutputStream) {
-                val asyncContext = startAsync()
-
-                val pump = AsyncInputStreamPump(inputStream, asyncContext, this)
-                pump.start()
-                async = true
-            } else {
-                inputStream.use { it.copyTo(this) }
-            }
-        }
-        return if (async) {
-            ApplicationCallResult.Asynchronous
-        } else {
-            ApplicationCallResult.Handled
-        }
-    }
-
-    fun send(file: File): ApplicationCallResult {
-        var async = false
-
+    override fun sendStream(stream: InputStream) {
         stream {
             if (this is ServletOutputStream) {
                 val asyncContext = startAsync()
 
-                val pump = AsyncFilePump(file.toPath(), asyncContext, servletResponse.outputStream)
+                val pump = AsyncInputStreamPump(stream, asyncContext, this)
                 pump.start()
-                async = true
+            } else {
+                stream.use { it.copyTo(this) }
+            }
+        }
+    }
+
+    override fun sendFile(file: File, position: Long, length: Long) {
+        stream {
+            if (this is ServletOutputStream) {
+                val asyncContext = startAsync()
+
+                val pump = AsyncFilePump(file.toPath(), position, length, asyncContext, servletResponse.outputStream)
+                pump.start()
             } else {
                 file.inputStream().use { it.copyTo(this) }
             }
-        }
-
-        return if (async) {
-            ApplicationCallResult.Asynchronous
-        } else {
-            ApplicationCallResult.Handled
         }
     }
 

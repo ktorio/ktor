@@ -41,9 +41,9 @@ internal class NettyAsyncStream(val request: HttpRequest, val context: ChannelHa
         }
     }
 
-    fun writeFile(file: File, offset: Long, length: Long) {
+    fun writeFile(file: File, position: Long, length: Long) {
         flush()
-        context.write(DefaultFileRegion(file, offset, length))
+        context.write(DefaultFileRegion(file, position, length))
     }
 
     fun writeStream(stream: InputStream) {

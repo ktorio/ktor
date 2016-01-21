@@ -39,6 +39,14 @@ abstract class BaseApplicationResponse : ApplicationResponse {
                 }
                 ApplicationCallResult.Handled
             }
+            is LocalFileContent -> {
+                sendFile(value.file, 0L, value.file.length())
+                ApplicationCallResult.Handled
+            }
+            is StreamContentProvider -> {
+                sendStream(value.stream())
+                ApplicationCallResult.Handled
+            }
             is StreamContentProvider -> {
                 stream {
                     value.use {
@@ -65,6 +73,18 @@ abstract class BaseApplicationResponse : ApplicationResponse {
         }
         if (value is HasContentLength) {
             contentLength(value.contentLength) // TODO revisit it for partial request case
+        }
+    }
+
+    protected open fun sendFile(file: File, position: Long, length: Long) {
+        stream {
+            file.inputStream().use { it.copyTo(this) }
+        }
+    }
+
+    protected open fun sendStream(stream: InputStream) {
+        stream {
+            stream.copyTo(this)
         }
     }
 

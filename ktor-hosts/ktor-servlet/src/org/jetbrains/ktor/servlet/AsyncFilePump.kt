@@ -12,12 +12,13 @@ import javax.servlet.*
  *
  * Notice that you should startAsync before use this
  */
-internal class AsyncFilePump(val file: Path, val asyncContext: AsyncContext, val servletOutputStream: ServletOutputStream): Closeable {
+internal class AsyncFilePump(val file: Path, var position: Long, val length: Long, val asyncContext: AsyncContext, val servletOutputStream: ServletOutputStream): Closeable {
     private val fc = AsynchronousFileChannel.open(file, StandardOpenOption.READ)
 
-    val bb = ByteBuffer.allocate(4096)
-    var position = 0L
-    var completed = false
+    private val bb = ByteBuffer.allocate(4096)
+    private var completed = false
+    private val startPosition = position
+
 
     init {
         bb.position(bb.capacity())
@@ -75,24 +76,35 @@ internal class AsyncFilePump(val file: Path, val asyncContext: AsyncContext, val
 
     private fun startRead() {
         bb.compact()
-        fc.read(bb, position, Unit, object : CompletionHandler<Int, Unit> {
-            override fun failed(exc: Throwable, attachment: Unit) {
-                complete()
-                // TODO log error
-            }
+        if (startPosition + length <= position) {
+            completed = true
+            tryComplete()
+        } else {
+            fc.read(bb, position, Unit, object : CompletionHandler<Int, Unit> {
+                override fun failed(exc: Throwable, attachment: Unit) {
+                    complete()
+                    // TODO log error
+                }
 
-            override fun completed(result: Int, attachment: Unit) {
-                if (result == -1) {
-                    completed = true
-                    tryComplete()
-                } else {
-                    position += result
-                    bb.flip()
-                    if (writeLoop()) {
-                        startRead()
+                override fun completed(result: Int, attachment: Unit) {
+                    if (result == -1) {
+                        completed = true
+                        tryComplete()
+                    } else {
+                        position += result
+                        bb.flip()
+
+                        var overRead = position - startPosition - length
+                        if (overRead > 0) {
+                            require(overRead < Int.MAX_VALUE)
+                            bb.limit(bb.limit() - overRead.toInt())
+                        }
+                        if (writeLoop()) {
+                            startRead()
+                        }
                     }
                 }
-            }
-        })
+            })
+        }
     }
 }

@@ -36,35 +36,22 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
 
     override fun status(): HttpStatusCode? = response.status?.let { HttpStatusCode(it.code(), it.reasonPhrase()) }
 
-    init {
-        send.intercept { obj, next ->
-            // TODO pass through interceptors chain instead of direct context usage
-            if (obj is LocalFileContent) {
-                sendHeaders(obj)
-                stream {
-                    if (this is NettyAsyncStream) {
-                        writeFile(obj.file, 0L, obj.file.length())
-                    } else {
-                        obj.file.inputStream().use { it.copyTo(this) }
-                    }
-                }
-
-                ApplicationCallResult.Asynchronous
-            } else if (obj is StreamContentProvider) {
-                sendHeaders(obj)
-                setChunked()
-
-                stream {
-                    if (this is NettyAsyncStream) {
-                        writeStream(obj.stream())
-                    } else {
-                        obj.stream().use { it.copyTo(this) }
-                    }
-                }
-
-                ApplicationCallResult.Asynchronous
+    override fun sendFile(file: File, position: Long, length: Long) {
+        stream {
+            if (this is NettyAsyncStream) {
+                writeFile(file, position, length)
             } else {
-                next(obj)
+                file.inputStream().use { it.copyTo(this) }
+            }
+        }
+    }
+
+    override fun sendStream(stream: InputStream) {
+        stream {
+            if (this is NettyAsyncStream) {
+                writeStream(stream)
+            } else {
+                stream.use { it.copyTo(this) }
             }
         }
     }
