@@ -6,7 +6,7 @@ data class HttpMethod(val value: String) {
         val Post = HttpMethod("POST")
         val Put = HttpMethod("PUT")
         val Delete = HttpMethod("DELETE")
-        val Header = HttpMethod("HEADER")
+        val Head = HttpMethod("HEAD")
         val Options = HttpMethod("OPTIONS")
 
         fun parse(method: String): HttpMethod {
@@ -15,7 +15,7 @@ data class HttpMethod(val value: String) {
                 Post.value -> Post
                 Put.value -> Put
                 Delete.value -> Delete
-                Header.value -> Header
+                Head.value -> Head
                 Options.value -> Options
                 else -> HttpMethod(method)
             }
