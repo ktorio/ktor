@@ -12,6 +12,9 @@ public class Attributes {
     @Suppress("UNCHECKED_CAST")
     operator fun <T : Any> get(key: AttributeKey<T>): T = map[key] as T? ?: throw IllegalStateException("No instance for key $key")
 
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Any> getOrNull(key: AttributeKey<T>): T? = map[key] as T?
+
     operator fun contains(key: AttributeKey<*>) = map.containsKey(key)
 
     fun <T : Any> put(key: AttributeKey<T>, value: T) {
