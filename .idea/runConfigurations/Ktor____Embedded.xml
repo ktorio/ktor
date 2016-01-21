@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Ktor :: Embedded (Netty)" type="Application" factoryName="Application" singleton="true">
+  <configuration default="false" name="Ktor :: Embedded" type="Application" factoryName="Application" singleton="true">
     <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
     <option name="MAIN_CLASS_NAME" value="org.jetbrains.ktor.samples.embedded.EmbeddedApplicationKt" />
     <option name="VM_PARAMETERS" value="-ea" />
