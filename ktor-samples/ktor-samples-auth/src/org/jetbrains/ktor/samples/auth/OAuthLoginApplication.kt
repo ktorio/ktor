@@ -121,7 +121,7 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
 
                 param("error") {
                     handle {
-                        loginFailedPage(resolveResult.values.getAll("error").orEmpty())
+                        loginFailedPage(parameters.getAll("error").orEmpty())
                     }
                 }
 

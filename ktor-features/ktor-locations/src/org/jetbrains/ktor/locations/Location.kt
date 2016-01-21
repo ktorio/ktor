@@ -61,7 +61,7 @@ fun <T : Any> RoutingEntry.handle(dataClass: KClass<T>, body: RoutingApplication
 }
 
 fun <T : Any> RoutingApplicationCall.sendRedirect(location: T): ApplicationCallResult {
-    val locationService = resolveResult.entry.getService(locationServiceKey)
+    val locationService = route.getService(locationServiceKey)
     return response.sendRedirect(locationService.href(location))
 }
 

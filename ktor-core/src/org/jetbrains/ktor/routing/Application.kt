@@ -4,12 +4,9 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 
-open class RoutingApplicationCall(call: ApplicationCall, val resolveResult: RoutingResolveResult)
-: ApplicationCall by call {
-    val parameters = ValuesMap.build {
-        appendAll(resolveResult.values)
-    }
-}
+open class RoutingApplicationCall(call: ApplicationCall,
+                                  val route: RoutingEntry,
+                                  val parameters: ValuesMap) : ApplicationCall by call
 
 public fun Application.routing(body: RoutingEntry.() -> Unit) {
     Routing().apply(body).installInto(this)

@@ -19,7 +19,7 @@ fun <T: Any> AuthBuilder<RoutingApplicationCall>.oauthWithType(type: KClass<T>,
                                                                urlProvider: RoutingApplicationCall.(T, OAuthServerSettings) -> String) {
 
     fun RoutingApplicationCall.resolve(): T {
-        val locationService = resolveResult.entry.getService(locationServiceKey)
+        val locationService = route.getService(locationServiceKey)
         return locationService.resolve<T>(type, this)
     }
     fun RoutingApplicationCall.providerLookupLocal(): OAuthServerSettings? = providerLookup(resolve())

@@ -77,29 +77,28 @@ class Routing() : RoutingEntry(parent = null, selector = Routing.RootRoutingSele
         val resolveResult = resolve(resolveContext)
         return when {
             resolveResult.succeeded -> {
-                val chain = arrayListOf<RoutingInterceptor>()
-                var current: RoutingEntry? = resolveResult.entry
-                while (current != null) {
-                    chain.addAll(0, current.interceptors)
-                    current = current.parent
-                }
-
-                val handlers = resolveResult.entry.handlers
-                val context = RoutingApplicationCall(this, resolveResult)
-                processChain(chain, context, handlers)
+                val call = RoutingApplicationCall(this, resolveResult.entry, resolveResult.values)
+                call.processChain(resolveResult)
             }
             else -> next()
         }
     }
 
-    private fun processChain(interceptors: List<RoutingInterceptor>, request: RoutingApplicationCall, handlers: ArrayList<RoutingApplicationCall.() -> ApplicationCallResult>): ApplicationCallResult {
+    private fun RoutingApplicationCall.processChain(resolveResult: RoutingResolveResult): ApplicationCallResult {
+        val interceptors = arrayListOf<RoutingInterceptor>()
+        var current: RoutingEntry? = resolveResult.entry
+        while (current != null) {
+            interceptors.addAll(0, current.interceptors)
+            current = current.parent
+        }
+
         fun handle(index: Int, call: RoutingApplicationCall): ApplicationCallResult {
-            when (index) {
-                in interceptors.indices -> {
+            when {
+                index < interceptors.size -> {
                     return interceptors[index].function(call) { request -> handle(index + 1, request) }
                 }
                 else -> {
-                    for (handler in handlers) {
+                    for (handler in resolveResult.entry.handlers) {
                         val handlerResult = call.handler()
                         if (handlerResult != ApplicationCallResult.Unhandled)
                             return handlerResult
@@ -109,7 +108,7 @@ class Routing() : RoutingEntry(parent = null, selector = Routing.RootRoutingSele
             }
         }
 
-        return handle(0, request)
+        return handle(0, this)
     }
 }
 
