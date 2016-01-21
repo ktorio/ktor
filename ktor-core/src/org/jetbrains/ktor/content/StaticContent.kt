@@ -10,7 +10,7 @@ import java.nio.file.*
 fun RoutingEntry.serveStatic(resource: String = "") {
     route("{path...}") {
         handle {
-            resolveClasspathWithPath(resource, resolveResult.values["path"]!!)?.let {
+            resolveClasspathWithPath(resource, parameters["path"]!!)?.let {
                 response.send(it)
             } ?: ApplicationCallResult.Unhandled
         }
