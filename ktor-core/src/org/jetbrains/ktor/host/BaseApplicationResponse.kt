@@ -5,8 +5,11 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import java.io.*
+import java.nio.channels.*
+import java.nio.file.*
+import java.time.*
 
-abstract class BaseApplicationResponse : ApplicationResponse {
+abstract class BaseApplicationResponse(open val call: ApplicationCall) : ApplicationResponse {
     protected abstract val stream: Interceptable1<OutputStream.() -> Unit, Unit>
     protected abstract val status: Interceptable1<HttpStatusCode, Unit>
 
@@ -48,8 +51,25 @@ abstract class BaseApplicationResponse : ApplicationResponse {
                 }
             }
             is LocalFileContent -> {
-                sendFile(value.file, 0L, value.file.length())
-                ApplicationCallResult.Handled
+                call.withIfRange(LocalDateTime.ofInstant(Instant.ofEpochMilli(value.lastModified), ZoneId.systemDefault())) { range ->
+                    headers.append(HttpHeaders.AcceptRanges, RangeUnits.Bytes)
+                    when {
+                        range == null -> sendFile(value.file, 0L, value.file.length())
+                        range.unit != RangeUnits.Bytes -> sendError(HttpStatusCode.BadRequest, "Unsupported range unit ${range.unit}")
+                        else -> {
+                            val merged = range.ranges.resolveRanges(value.file.length()).mergeRanges()
+                            if (merged.size != 1) {
+                                sendError(HttpStatusCode.BadRequest, "Multiple ranges request is not yet supported")
+                            } else {
+                                val r = merged.single()
+                                headers.append(HttpHeaders.ContentRange, PartialContentResponse(RangeUnits.Bytes, r.from .. r.to, value.file.length()).toString())
+                                sendFile(value.file, r.from, r.length)
+                            }
+                        }
+                    }
+
+                    ApplicationCallResult.Handled
+                }
             }
             is StreamContentProvider -> {
                 sendStream(value.stream())
@@ -69,14 +89,16 @@ abstract class BaseApplicationResponse : ApplicationResponse {
         if (value is HasContentType) {
             contentType(value.contentType)
         }
-        if (value is HasContentLength) {
+        if (value is HasContentLength && !call.request.headers.contains(HttpHeaders.Range)) {
             contentLength(value.contentLength) // TODO revisit it for partial request case
         }
     }
 
     protected open fun sendFile(file: File, position: Long, length: Long) {
         stream {
-            file.inputStream().use { it.copyTo(this) }
+            FileChannel.open(file.toPath(), StandardOpenOption.READ).use { fc ->
+                fc.transferTo(position, length, Channels.newChannel(this))
+            }
         }
     }
 

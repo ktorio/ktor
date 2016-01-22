@@ -22,5 +22,5 @@ public class NettyApplicationCall(override val application: Application,
     }
 
     override val request: ApplicationRequest = NettyApplicationRequest(httpRequest)
-    override val response: ApplicationResponse = NettyApplicationResponse(httpRequest, httpResponse, context)
+    override val response: ApplicationResponse = NettyApplicationResponse(this, httpRequest, httpResponse, context)
 }

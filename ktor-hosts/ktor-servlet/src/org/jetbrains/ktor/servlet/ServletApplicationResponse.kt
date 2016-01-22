@@ -8,7 +8,7 @@ import java.io.*
 import javax.servlet.*
 import javax.servlet.http.*
 
-class ServletApplicationResponse(val call: ServletApplicationCall, val servletRequest: HttpServletRequest, val servletResponse: HttpServletResponse) : BaseApplicationResponse() {
+class ServletApplicationResponse(override val call: ServletApplicationCall, val servletRequest: HttpServletRequest, val servletResponse: HttpServletResponse) : BaseApplicationResponse(call) {
     var _status: HttpStatusCode? = null
     override val status = Interceptable1<HttpStatusCode, Unit> { code ->
         _status = code

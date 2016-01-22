@@ -52,6 +52,7 @@ class StaticContentTest {
 
             handleRequest(HttpMethod.Get, "/StaticContentTest.class").let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.OK, result.response.status())
             }
             handleRequest(HttpMethod.Get, "/ArrayList.class").let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
@@ -67,6 +68,35 @@ class StaticContentTest {
             }
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt").let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals(RangeUnits.Bytes, result.response.headers[HttpHeaders.AcceptRanges])
+            }
+        }
+    }
+
+    @Test
+    fun testRange() {
+        withTestApplication {
+            application.intercept { next ->
+                resolveLocalFile("", File("test"))?.let { response.send(it) } ?: next()
+            }
+
+            handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
+                addHeader(HttpHeaders.Range, "bytes=0-0")
+            }).let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.PartialContent, result.response.status())
+                assertEquals("p", result.response.content)
+                assertEquals("bytes 0-0/${File("test/org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
+            }
+
+            handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
+                addHeader(HttpHeaders.Range, "bytes=1-2")
+            }).let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.PartialContent, result.response.status())
+                assertEquals("ac", result.response.content)
+                assertEquals("bytes 1-2/${File("test/org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
             }
             handleRequest(HttpMethod.Get, "/f/org/jetbrains/ktor/tests/http/StaticContentTest.kt").let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)

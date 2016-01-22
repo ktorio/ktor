@@ -111,6 +111,8 @@ fun ApplicationCall.withIfRange(lastModified: LocalDateTime, block: (PartialCont
 
     if (rangeToProcess != null) {
         response.status(HttpStatusCode.PartialContent)
+    } else {
+        response.status(HttpStatusCode.OK)
     }
 
     return withLastModified(lastModified) {
@@ -140,6 +142,8 @@ fun ApplicationCall.withIfRange(entity: String, block: (PartialContentRange?) ->
 
     if (rangeToProcess != null) {
         response.status(HttpStatusCode.PartialContent)
+    } else {
+        response.status(HttpStatusCode.OK)
     }
 
     return withETag(entity) {
