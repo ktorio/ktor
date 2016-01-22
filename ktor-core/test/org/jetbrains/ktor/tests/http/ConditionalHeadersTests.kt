@@ -332,6 +332,40 @@ class LastModifiedTest {
     }
 
     @Test
+    fun testIfModifiedSinceTimeZoned() {
+        val date = Date()
+        val expectedDate = date.toLocalDateTime().toHttpDateString()
+
+        withTestApplication {
+            application.routing {
+                handle {
+                    withLastModified(date) {
+                        response.sendText("response")
+                    }
+                }
+            }
+
+            val customFormat = httpDateFormat.withZone(ZoneId.of("Europe/Moscow"))!!
+
+            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.toLocalDateTime()).replace("MT", "MSK")) }).let { result ->
+                assertEquals(HttpStatusCode.NotModified, result.response.status())
+                assertNull(result.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.toLocalDateTime().plusDays(1)).replace("MT", "MSK")) }).let { result ->
+                assertEquals(HttpStatusCode.NotModified, result.response.status())
+                assertNull(result.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.toLocalDateTime().minusDays(1)).replace("MT", "MSK")) }).let { result ->
+                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals("response", result.response.content)
+                assertEquals(expectedDate, result.response.headers[HttpHeaders.LastModified])
+            }
+        }
+    }
+
+    @Test
     fun testIfUnModifiedSinceEq() {
         val date = Date()
         withTestApplication {
