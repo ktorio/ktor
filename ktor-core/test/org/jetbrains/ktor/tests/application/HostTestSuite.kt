@@ -255,7 +255,7 @@ abstract class HostTestSuite {
 
     @Test
     fun testLocalFileContentRange() {
-        val file = File("src").walkBottomUp().filter { it.extension == "kt" }.first()
+        val file = File("src").walkBottomUp().filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }.first()
         println("test file is $file")
 
         val server = createServer(port) {
