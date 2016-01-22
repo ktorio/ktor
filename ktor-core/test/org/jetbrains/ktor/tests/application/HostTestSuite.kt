@@ -254,6 +254,28 @@ abstract class HostTestSuite {
     }
 
     @Test
+    fun testLocalFileContentRange() {
+        val file = File("src").walkBottomUp().filter { it.extension == "kt" }.first()
+        println("test file is $file")
+
+        val server = createServer(port) {
+            handle {
+                response.send(LocalFileContent(file))
+            }
+        }
+        startServer(server)
+
+        withUrl("/") {
+            setRequestProperty(HttpHeaders.Range, PartialContentRange(RangeUnits.Bytes, listOf(ContentRange.ClosedContentRange(0, 0))).toString())
+            assertEquals("p", inputStream.reader().readText())
+        }
+        withUrl("/") {
+            setRequestProperty(HttpHeaders.Range, PartialContentRange(RangeUnits.Bytes, listOf(ContentRange.ClosedContentRange(1, 2))).toString())
+            assertEquals("ac", inputStream.reader().readText())
+        }
+    }
+
+    @Test
     fun testJarFileContent() {
         val server = createServer(port) {
             handle {

@@ -42,6 +42,9 @@ interface ContentRange {
     }
 }
 
+val ContentRange.ClosedContentRange.length: Long
+    get() = to - from + 1
+
 fun ApplicationRequest.ranges() = header(HttpHeaders.Range)?.let { rangesSpec -> parseRangesSpecifier(rangesSpec) }
 
 fun parseRangesSpecifier(rangeSpec: String): PartialContentRange {
