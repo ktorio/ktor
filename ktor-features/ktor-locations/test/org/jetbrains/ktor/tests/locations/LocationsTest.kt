@@ -112,7 +112,7 @@ class LocationsTest {
                 response.status(HttpStatusCode.OK)
                 ApplicationCallResult.Handled
             }
-            assertFailsWith(InconsistentRoutingException::class.java) {
+            assertFailsWith(InconsistentRoutingException::class) {
                 get<pathContainer.badItems> { ApplicationCallResult.Handled }
             }
         }
@@ -136,7 +136,7 @@ class LocationsTest {
                 response.status(HttpStatusCode.OK)
                 ApplicationCallResult.Handled
             }
-            assertFailsWith(InconsistentRoutingException::class.java) {
+            assertFailsWith(InconsistentRoutingException::class) {
                 get<queryContainer.badItems> { ApplicationCallResult.Handled }
             }
         }

@@ -20,7 +20,7 @@ private fun collectInterfacesRecursive(type: Type, result: MutableSet<Type>) {
 
 internal fun calculateClassRegistrations(klass: Class<*>): List<Type> {
     val registrations = ArrayList<Type>()
-    val superClasses = sequence<Type>(klass) {
+    val superClasses = generateSequence<Type>(klass) {
         when (it) {
             is Class<*> -> it.genericSuperclass
             is ParameterizedType -> it.rawType as? Class<*>
