@@ -22,11 +22,13 @@ class LocalFileContent(val file: File, override val contentType: ContentType = d
     override fun stream() = file.inputStream()
 }
 
-class ResourceFileContent(val zipFile: File, val path: String, val classLoader: ClassLoader, override val contentType: ContentType = defaultContentType(path.extension())) : HasContentType, StreamContentProvider, HasLastModified {
-    private val normalized = Paths.get(path).normalize().toString().replace(File.separatorChar, '/')
+class ResourceFileContent(val zipFile: File, val resourcePath: String, val classLoader: ClassLoader, override val contentType: ContentType = defaultContentType(resourcePath.extension())) : HasContentType, StreamContentProvider, HasLastModified {
+    private val normalized = Paths.get(resourcePath).normalize().toString().replace(File.separatorChar, '/')
+
+    constructor(zipFilePath: Path, resourcePath: String, classLoader: ClassLoader, contentType: ContentType = defaultContentType(resourcePath.extension())) : this(zipFilePath.toFile(), resourcePath, classLoader, contentType)
 
     init {
-        require(!normalized.startsWith("..")) { "Bad resource relative path $path" }
+        require(!normalized.startsWith("..")) { "Bad resource relative path $resourcePath" }
     }
 
     override val lastModified: Long
@@ -50,6 +52,8 @@ fun RoutingEntry.serveClasspathResources(basePackage: String = "") {
         }
     }
 }
+
+fun RoutingEntry.serveFileSystem(baseDir: Path) = serveFileSystem(baseDir.toFile())
 
 fun RoutingEntry.serveFileSystem(baseDir: File) {
     route("{path...}") {
