@@ -78,8 +78,9 @@ class StaticContentTest {
     @Test
     fun testRange() {
         withTestApplication {
+            val testDir = listOf(File("test"), File("ktor-core/test")).first { it.exists() }
             application.intercept { next ->
-                resolveLocalFile("", File("test"))?.let { response.send(it) } ?: next()
+                resolveLocalFile("", testDir)?.let { response.send(it) } ?: next()
             }
 
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
@@ -88,7 +89,7 @@ class StaticContentTest {
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
                 assertEquals(HttpStatusCode.PartialContent, result.response.status())
                 assertEquals("p", result.response.content)
-                assertEquals("bytes 0-0/${File("test/org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
+                assertEquals("bytes 0-0/${File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
                 assertNotNull(result.response.headers[HttpHeaders.LastModified])
             }
 
@@ -98,7 +99,7 @@ class StaticContentTest {
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
                 assertEquals(HttpStatusCode.PartialContent, result.response.status())
                 assertEquals("ac", result.response.content)
-                assertEquals("bytes 1-2/${File("test/org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
+                assertEquals("bytes 1-2/${File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
                 assertNotNull(result.response.headers[HttpHeaders.LastModified])
             }
             handleRequest(HttpMethod.Get, "/f/org/jetbrains/ktor/tests/http/StaticContentTest.kt").let { result ->

@@ -255,7 +255,7 @@ abstract class HostTestSuite {
 
     @Test
     fun testLocalFileContentRange() {
-        val file = File("src").walkBottomUp().filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }.first()
+        val file = listOf(File("src"), File("ktor-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }.first()
         println("test file is $file")
 
         val server = createServer(port) {
