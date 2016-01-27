@@ -14,8 +14,11 @@ object ContentTypeByExtension {
         processRecords { ext, contentType -> contentType to ext }
     }
 
-    // TODO handle windows path as well
-    fun lookupByPath(path: String) = lookupByExtension(path.substringAfterLast("/", path).substringAfter("."))
+    fun lookupByPath(path: String): List<ContentType> {
+        val slashIndex = path.lastIndexOfAny("/\\".toCharArray())
+        val index = path.indexOf('.', startIndex = slashIndex + 1)
+        return lookupByExtension(path.substring(index + 1))
+    }
 
     fun lookupByExtension(ext: String): List<ContentType> {
         var current = ext.removePrefix(".").toLowerCase()

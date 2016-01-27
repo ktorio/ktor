@@ -52,6 +52,11 @@ class ContentTypeLookupTest {
     }
 
     @Test
+    fun testByPathWithPathWindows() {
+        assertEquals(listOf(ContentType.Text.Plain), ContentTypeByExtension.lookupByPath("C:\\path\\to\\file\\aa.txt"))
+    }
+
+    @Test
     fun testByPathWithPathStartsWithDot() {
         assertEquals(listOf(ContentType.Text.Plain), ContentTypeByExtension.lookupByPath("/path/to/file/.txt"))
     }
