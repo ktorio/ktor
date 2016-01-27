@@ -35,7 +35,7 @@ class StaticContentTest {
                 val resolved = sequenceOf(
                         { resolveClasspathResource("", "org.jetbrains.ktor.tests.http") },
                         { resolveClasspathResource("", "java.util") },
-                        { resolveLocalFile("", File("test")) }
+                        { resolveLocalFile("", listOf(File("test"), File("ktor-core/test")).first { it.exists() }) }
                 ).map { it() }.firstOrNull { it != null }
 
                 if (resolved == null) {

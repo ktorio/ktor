@@ -198,7 +198,7 @@ abstract class HostTestSuite {
 
     @Test
     fun testStaticServeFromDir() {
-        val targetClasses = File("target/classes")
+        val targetClasses = listOf(File("target/classes"), File("ktor-core/target/classes")).first { it.exists() }
         val file = targetClasses.walkBottomUp().filter { it.extension == "class" }.first()
         println("test file is $file")
 
@@ -238,7 +238,7 @@ abstract class HostTestSuite {
 
     @Test
     fun testLocalFileContent() {
-        val file = File("src").walkBottomUp().filter { it.extension == "kt" }.first()
+        val file = listOf(File("src"), File("ktor-core/src")).first{ it.exists() }.walkBottomUp().filter { it.extension == "kt" }.first()
         println("test file is $file")
 
         val server = createServer(port) {
@@ -295,7 +295,7 @@ abstract class HostTestSuite {
 
     @Test
     fun testURIContentLocalFile() {
-        val file = File("target/classes").walkBottomUp().filter { it.extension == "class" }.first()
+        val file = listOf(File("target/classes"), File("ktor-core/target/classes")).first { it.exists() }.walkBottomUp().filter { it.extension == "class" }.first()
         println("test file is $file")
 
         val server = createServer(port) {
