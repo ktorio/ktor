@@ -1,6 +1,6 @@
 package org.jetbrains.ktor.http
 
-import java.io.*
+import java.util.logging.*
 
 
 object ContentTypeByExtension {
@@ -45,7 +45,18 @@ object ContentTypeByExtension {
 
                     operation(ext.removePrefix(".").toLowerCase(), mime.asContentType())
                 }.groupByPairs()
-            } ?: throw IOException("Resource $contentTypesFileName is missing")
+            } ?: logErrorAndReturnEmpty<A, List<B>>()
+
+
+    private var logged = false
+    private fun <A, B> logErrorAndReturnEmpty(): Map<A, B> {
+        // TODO logging
+        if (!logged) {
+            Logger.getLogger(ContentTypeByExtension::class.qualifiedName).severe { "Resource $contentTypesFileName is missing" }
+            logged = true
+        }
+        return emptyMap()
+    }
 }
 
 /**
