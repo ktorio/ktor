@@ -33,6 +33,11 @@ object ContentTypeByExtension {
         return emptyList()
     }
 
+    fun lookupByContentType(type: ContentType) =
+            extensionsByContentType[type]
+                    ?: extensionsByContentType[type.withoutParameters()]
+                    ?: emptyList<String>()
+
     private inline fun <A, B> processRecords(crossinline operation: (String, ContentType) -> Pair<A, B>) =
             ContentTypeByExtension::class.java.classLoader.getResourceAsStream(contentTypesFileName)?.bufferedReader()?.useLines { lines ->
                 lines.map { it.trim() }.filter { it.isNotEmpty() }.map { line ->
@@ -41,9 +46,6 @@ object ContentTypeByExtension {
                     operation(ext.removePrefix(".").toLowerCase(), mime.asContentType())
                 }.groupByPairs()
             } ?: throw IOException("Resource $contentTypesFileName is missing")
-
-    // TODO think of mime parameters that could prevent us from finding mapping
-    private fun lookupByContentType(type: ContentType) = extensionsByContentType[type] ?: emptyList<String>()
 }
 
 /**

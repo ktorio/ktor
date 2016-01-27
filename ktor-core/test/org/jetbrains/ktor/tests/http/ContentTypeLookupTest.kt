@@ -65,4 +65,9 @@ class ContentTypeLookupTest {
     fun testByPathNoPathStartsWithDot() {
         assertEquals(listOf(ContentType.Text.Plain), ContentTypeByExtension.lookupByPath(".txt"))
     }
+
+    @Test
+    fun testLookupExtensionByContentType() {
+        assertEquals(listOf("djvu"), ContentTypeByExtension.lookupByContentType(ContentType.parse("image/vnd.djvu")))
+    }
 }

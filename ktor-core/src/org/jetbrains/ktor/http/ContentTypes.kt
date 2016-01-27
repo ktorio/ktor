@@ -4,6 +4,7 @@ class ContentType(val contentType: String, val contentSubtype: String, parameter
     fun withParameter(name: String, value: String): ContentType {
         return ContentType(contentType, contentSubtype, parameters + HeaderValueParam(name, value))
     }
+    fun withoutParameters() = ContentType(contentType, contentSubtype)
 
     fun match(other: ContentType): Boolean =
             (other.contentType == "*" || other.contentType == contentType)
