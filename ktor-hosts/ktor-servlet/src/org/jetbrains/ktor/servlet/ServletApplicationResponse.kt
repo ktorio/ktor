@@ -4,7 +4,10 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
+import org.jetbrains.ktor.nio.*
 import java.io.*
+import java.nio.channels.*
+import java.nio.file.*
 import javax.servlet.*
 import javax.servlet.http.*
 
@@ -49,10 +52,24 @@ class ServletApplicationResponse(override val call: ServletApplicationCall, val 
             if (this is ServletOutputStream) {
                 val asyncContext = startAsync()
 
-                val pump = AsyncFilePump(file.toPath(), position, length, asyncContext, servletResponse.outputStream)
-                pump.start()
+                AsyncChannelPump(
+                        file.asyncReadOnlyFileChannel(position, position + length - 1),
+                        asyncContext,
+                        servletResponse.outputStream,
+                        call.application.config.log).start()
             } else {
                 file.inputStream().use { it.copyTo(this) }
+            }
+        }
+    }
+
+    override fun sendAsyncChannel(channel: AsynchronousByteChannel) {
+        stream {
+            if (this is ServletOutputStream) {
+                val asyncContext = startAsync()
+                AsyncChannelPump(channel, asyncContext, this, call.application.config.log).start()
+            } else {
+                Channels.newInputStream(channel).copyTo(this)
             }
         }
     }

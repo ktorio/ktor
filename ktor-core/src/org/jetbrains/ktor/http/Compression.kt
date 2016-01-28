@@ -31,7 +31,7 @@ fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
                     ?.handleStar(options)
 
             val encoder = encoding?.let { encoders[it] }
-            if (encoding != null && encoder != null) {
+            if (encoding != null && encoder != null && request.header(HttpHeaders.Range) == null) {
                 response.interceptStream { content, stream ->
                     if (conditions.all { it(this) }) {
                         response.headers.append(HttpHeaders.ContentEncoding, encoding)

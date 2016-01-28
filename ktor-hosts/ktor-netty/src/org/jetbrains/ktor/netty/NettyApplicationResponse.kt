@@ -8,6 +8,7 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import java.io.*
+import java.nio.channels.*
 
 internal class NettyApplicationResponse(call: ApplicationCall, val request: HttpRequest, val response: HttpResponse, val context: ChannelHandlerContext) : BaseApplicationResponse(call) {
     private var commited = false
@@ -41,6 +42,16 @@ internal class NettyApplicationResponse(call: ApplicationCall, val request: Http
                 writeFile(file, position, length)
             } else {
                 file.inputStream().use { it.copyTo(this) }
+            }
+        }
+    }
+
+    override fun sendAsyncChannel(channel: AsynchronousByteChannel) {
+        stream {
+            if (this is NettyAsyncStream) {
+                writeAsyncChannel(channel)
+            } else {
+                Channels.newInputStream(channel).use { it.copyTo(this) }
             }
         }
     }
