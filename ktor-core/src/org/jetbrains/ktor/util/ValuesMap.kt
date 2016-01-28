@@ -14,7 +14,7 @@ public class ValuesMap(map: Map<String, List<String>>, val caseInsensitiveKey: B
     private val map: Map<String, List<String>> = if (caseInsensitiveKey) lowercase(map) else map
 
     private fun lowercase(map: Map<String, List<String>>): Map<String, List<String>> {
-        return map.asSequence().toMapBy({ it.key.toLowerCase() }, { it.value })
+        return map.asSequence().associateBy({ it.key.toLowerCase() }, { it.value })
     }
 
     private fun makeKey(name: String) = if (caseInsensitiveKey) name.toLowerCase() else name

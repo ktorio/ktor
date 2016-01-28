@@ -47,7 +47,7 @@ interface HttpClient {
 }
 
 object DefaultHttpClient : HttpClient {
-    override fun openConnection(host: String, port: Int, secure: Boolean) = DefaultHttpConnection(host, port, secure)
+    override fun openConnection(host: String, port: Int, secure: Boolean): HttpConnection = DefaultHttpConnection(host, port, secure)
 }
 
 private class DefaultHttpConnection(val host: String, val port: Int, val secure: Boolean): HttpConnection {
