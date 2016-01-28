@@ -78,7 +78,7 @@ val loginProviders = listOf(
                 defaultScopes = listOf("***"),
                 accessTokenRequiresBasicAuth = true
         )
-).toMapBy { it.name }
+).associateBy { it.name }
 
 class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
     val exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4)

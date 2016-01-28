@@ -35,7 +35,7 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
 
     private fun newInstance(bundle: ValuesMap): T {
         val constructor = findConstructor(bundle)
-        val params = constructor.parameters.toMapBy({it}, { coerceType(it.type, deserializeValue(bundle[it.name!!]!!)) })
+        val params = constructor.parameters.associateBy({ it }, { coerceType(it.type, deserializeValue(bundle[it.name!!]!!)) })
         return constructor.callBy(params)
     }
 
@@ -235,7 +235,7 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
     private fun deserializeCollection(value: String): List<*> = value.decodeURL().split("&").filter { it.isNotEmpty() }.map { deserializeValue(it.decodeURL()) }
     private fun serializeCollection(value: Collection<*>): String = value.map { serializeValue(it).encodeURL() }.joinToString("&").encodeURL()
 
-    private fun deserializeMap(value: String): Map<*, *> = value.decodeURL().split("&").filter { it.isNotEmpty() }.toMapBy(
+    private fun deserializeMap(value: String): Map<*, *> = value.decodeURL().split("&").filter { it.isNotEmpty() }.associateBy(
             { deserializeValue(it.substringBefore('=').decodeURL()) },
             { deserializeValue(it.substringAfter('=').decodeURL()) }
     )
