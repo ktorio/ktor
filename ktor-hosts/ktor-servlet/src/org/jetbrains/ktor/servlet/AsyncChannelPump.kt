@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.servlet
 
+import org.jetbrains.ktor.logging.*
 import java.io.*
 import java.nio.*
 import java.nio.channels.*
@@ -12,13 +13,9 @@ import javax.servlet.*
  *
  * Notice that you should startAsync before use this
  */
-internal class AsyncFilePump(val file: Path, var position: Long, val length: Long, val asyncContext: AsyncContext, val servletOutputStream: ServletOutputStream): Closeable {
-    private val fc = AsynchronousFileChannel.open(file, StandardOpenOption.READ)
-
+internal class AsyncChannelPump(val channel: AsynchronousByteChannel, val asyncContext: AsyncContext, val servletOutputStream: ServletOutputStream, val logger: ApplicationLog): Closeable {
     private val bb = ByteBuffer.allocate(4096)
     private var completed = false
-    private val startPosition = position
-
 
     init {
         bb.position(bb.capacity())
@@ -34,15 +31,15 @@ internal class AsyncFilePump(val file: Path, var position: Long, val length: Lon
                 }
             }
 
-            override fun onError(t: Throwable?) {
+            override fun onError(t: Throwable) {
+                logger.error("Failed to write", t)
                 complete()
-                // TODO log error
             }
         })
     }
 
     override fun close() {
-        fc.close()
+        channel.close()
     }
 
     private fun complete() {
@@ -74,37 +71,27 @@ internal class AsyncFilePump(val file: Path, var position: Long, val length: Lon
         }
     }
 
+    private val channelReadCompletionHandler = object : CompletionHandler<Int, Unit> {
+        override fun completed(result: Int, attachment: Unit) {
+            if (result == -1) {
+                completed = true
+                tryComplete()
+            } else {
+                bb.flip()
+
+                if (writeLoop()) {
+                    startRead()
+                }
+            }
+        }
+
+        override fun failed(exc: Throwable, attachment: Unit) {
+            logger.error("Failed to read async channel", exc)
+        }
+    }
+
     private fun startRead() {
         bb.compact()
-        if (startPosition + length <= position) {
-            completed = true
-            tryComplete()
-        } else {
-            fc.read(bb, position, Unit, object : CompletionHandler<Int, Unit> {
-                override fun failed(exc: Throwable, attachment: Unit) {
-                    complete()
-                    // TODO log error
-                }
-
-                override fun completed(result: Int, attachment: Unit) {
-                    if (result == -1) {
-                        completed = true
-                        tryComplete()
-                    } else {
-                        position += result
-                        bb.flip()
-
-                        var overRead = position - startPosition - length
-                        if (overRead > 0) {
-                            require(overRead < Int.MAX_VALUE)
-                            bb.limit(bb.limit() - overRead.toInt())
-                        }
-                        if (writeLoop()) {
-                            startRead()
-                        }
-                    }
-                }
-            })
-        }
+        channel.read(bb, Unit, channelReadCompletionHandler)
     }
 }
