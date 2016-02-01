@@ -20,6 +20,7 @@
         <module>ktor-samples-json</module>
         <module>ktor-samples-post</module>
         <module>ktor-samples-embedded</module>
+        <module>you-kube</module>
     </modules>
 
     <dependencies>
