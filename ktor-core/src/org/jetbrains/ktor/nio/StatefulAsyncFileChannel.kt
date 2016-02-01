@@ -21,30 +21,34 @@ class StatefulAsyncFileChannel (val fc: AsynchronousFileChannel, val start: Long
     }
 
     override fun <A> read(dst: ByteBuffer, attachment: A, handler: CompletionHandler<Int, in A>) {
-        if (start > endInclusive) {
+        if (position > endInclusive) {
             handler.completed(-1, attachment)
             return
         }
 
-        fc.read(dst, position, attachment, object: CompletionHandler<Int, A> {
-            override fun failed(exc: Throwable?, attachment: A) {
-                handler.failed(exc, attachment)
-            }
-
-            override fun completed(rc: Int, attachment: A) {
-                if (rc == -1) {
-                    handler.completed(-1, attachment)
-                } else {
-                    position += rc
-                    val overRead = Math.max(0L, position - endInclusive - 1)
-                    if (overRead > 0) {
-                        require(overRead < Int.MAX_VALUE)
-                        dst.position(dst.position() - overRead.toInt())
-                    }
-                    handler.completed(rc - overRead.toInt(), attachment)
+        try {
+            fc.read(dst, position, attachment, object : CompletionHandler<Int, A> {
+                override fun failed(exc: Throwable?, attachment: A) {
+                    handler.failed(exc, attachment)
                 }
-            }
-        })
+
+                override fun completed(rc: Int, attachment: A) {
+                    if (rc == -1) {
+                        handler.completed(-1, attachment)
+                    } else {
+                        position += rc
+                        val overRead = Math.max(0L, position - endInclusive - 1)
+                        if (overRead > 0) {
+                            require(overRead < Int.MAX_VALUE)
+                            dst.position(dst.position() - overRead.toInt())
+                        }
+                        handler.completed(rc - overRead.toInt(), attachment)
+                    }
+                }
+            })
+        } catch (e: Throwable) {
+            handler.failed(e, attachment)
+        }
     }
 
     override fun read(dst: ByteBuffer): Future<Int> {
