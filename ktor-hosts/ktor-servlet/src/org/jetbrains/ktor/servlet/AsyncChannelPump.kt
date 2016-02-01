@@ -32,8 +32,23 @@ internal class AsyncChannelPump(val channel: AsynchronousByteChannel, val asyncC
             }
 
             override fun onError(t: Throwable) {
-                logger.error("Failed to write", t)
                 complete()
+            }
+        })
+        asyncContext.addListener(object: AsyncListener {
+            override fun onComplete(p0: AsyncEvent?) {
+                channel.close()
+            }
+
+            override fun onTimeout(p0: AsyncEvent?) {
+                channel.close()
+            }
+
+            override fun onStartAsync(p0: AsyncEvent?) {
+            }
+
+            override fun onError(p0: AsyncEvent?) {
+                channel.close()
             }
         })
     }
@@ -43,23 +58,31 @@ internal class AsyncChannelPump(val channel: AsynchronousByteChannel, val asyncC
     }
 
     private fun complete() {
-        asyncContext.complete()
+        try {
+            asyncContext.complete()
+        } catch (ignore: Throwable) {
+        }
         close()
     }
 
     private fun writeLoop(): Boolean {
-        while (bb.hasRemaining()) {
-            if (!servletOutputStream.isReady) {
-                return false
+        try {
+            while (bb.hasRemaining()) {
+                if (!servletOutputStream.isReady) {
+                    return false
+                }
+
+                val toWrite = bb.remaining()
+
+                servletOutputStream.write(bb.array(), bb.arrayOffset() + bb.position(), toWrite)
+                bb.position(bb.position() + toWrite)
             }
 
-            val toWrite = bb.remaining()
-
-            servletOutputStream.write(bb.array(), bb.arrayOffset() + bb.position(), toWrite)
-            bb.position(bb.position() + toWrite)
+            return true
+        } catch (e: Throwable) {
+            complete()
+            return false
         }
-
-        return true
     }
 
     private fun tryComplete() {
@@ -86,7 +109,9 @@ internal class AsyncChannelPump(val channel: AsynchronousByteChannel, val asyncC
         }
 
         override fun failed(exc: Throwable, attachment: Unit) {
-            logger.error("Failed to read async channel", exc)
+            if (channel.isOpen) {
+                logger.error("Failed to read async channel", exc)
+            }
         }
     }
 
