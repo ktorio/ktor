@@ -30,6 +30,7 @@ fun <S : Any> ApplicationCall.session(session: S) = session.apply {
 inline fun <reified S : Any> ApplicationCall.sessionOrNull(): S? = sessionOrNull(S::class)
 fun <S : Any> ApplicationCall.sessionOrNull(type: KClass<S>): S? = if (SessionKey in attributes) attributes[SessionKey].cast(type) else null
 
+
 inline fun <reified S : Any> Pipeline<ApplicationCall>.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) =
         withSessions(S::class, block)
 

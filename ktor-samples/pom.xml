@@ -21,6 +21,7 @@
         <module>ktor-samples-post</module>
         <module>ktor-samples-embedded</module>
         <module>you-kube</module>
+        <module>kweet</module>
     </modules>
 
     <dependencies>
