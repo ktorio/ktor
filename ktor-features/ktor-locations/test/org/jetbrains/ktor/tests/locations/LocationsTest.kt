@@ -275,6 +275,29 @@ class LocationsTest {
         urlShouldBeHandled(href, "[1, 2, 3]")
     }
 
+    @location("/space in") class SpaceInPath()
+    @location("/plus+in") class PlusInPath()
+
+    @Test
+    fun testURLBuilder() {
+        withLocationsApplication {
+            assertEquals("http://localhost/container?id=1&optional=ok", application.url(optionalName(1, "ok")))
+            assertEquals("http://localhost/container?id=1&optional=ok%2B.plus", application.url(optionalName(1, "ok+.plus")))
+            assertEquals("http://localhost/container?id=1&optional=ok+space", application.url(optionalName(1, "ok space")))
+
+            assertEquals("http://localhost/space%20in", application.url(SpaceInPath()))
+            assertEquals("http://localhost/plus+in", application.url(PlusInPath()))
+
+            application.routing {
+                handle {
+                    response.sendText(url(optionalName(1, "ok")))
+                }
+            }
+
+            urlShouldBeHandled("/", "http://localhost/container?id=1&optional=ok")
+        }
+    }
+
     private fun TestApplicationHost.urlShouldBeHandled(url: String, content: String? = null) {
         on("making get request to $url") {
             val result = handleRequest {

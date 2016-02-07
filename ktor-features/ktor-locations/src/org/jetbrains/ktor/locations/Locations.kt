@@ -124,7 +124,7 @@ open public class Locations(val conversionService: ConversionService) {
             }
         }
 
-        val relativePath = substituteParts.filterNotNull().filterNot { it.isEmpty() }.map { it.encodeURL() }.joinToString("/")
+        val relativePath = substituteParts.filterNotNull().filterNot { it.isEmpty() }.map { encodeURLPart(it) }.joinToString("/")
 
         val parentInfo = if (info.parent == null)
             rootUri
@@ -150,6 +150,14 @@ open public class Locations(val conversionService: ConversionService) {
             "?" + info.query.map { "${it.first}=${it.second.encodeURL()}" }.joinToString("&")
         else
             ""
+    }
+
+    internal fun href(location: Any, builder: URLBuilder) {
+        val info = pathAndQuery(location)
+        builder.encodedPath = info.path
+        for ((name, value) in info.query) {
+            builder.parameters.append(name, value)
+        }
     }
 
     private fun createEntry(parent: RoutingEntry, info: LocationInfo): RoutingEntry {
