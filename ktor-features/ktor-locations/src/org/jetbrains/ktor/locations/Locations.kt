@@ -147,7 +147,7 @@ open public class Locations(val conversionService: ConversionService) {
     fun href(location: Any): String {
         val info = pathAndQuery(location)
         return info.path + if (info.query.any())
-            "?" + info.query.map { "${it.first}=${it.second.encodeURL()}" }.joinToString("&")
+            "?" + info.query.formUrlEncode()
         else
             ""
     }

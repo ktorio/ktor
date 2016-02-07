@@ -66,7 +66,7 @@ class LocationsTest {
 
     @Test fun `location with urlencoded path param`() = withLocationsApplication {
         val href = application.feature(Locations).href(named(123, "abc def"))
-        assertEquals("/user/123/abc+def", href)
+        assertEquals("/user/123/abc%20def", href)
         application.routing {
             get<named> { named ->
                 assertEquals(123, named.id)

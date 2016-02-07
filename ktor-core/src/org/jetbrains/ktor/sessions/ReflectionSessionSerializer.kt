@@ -232,14 +232,14 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
                 else -> throw IllegalArgumentException("Unsupported value type ${value.javaClass.name}")
             }
 
-    private fun deserializeCollection(value: String): List<*> = value.decodeURL().split("&").filter { it.isNotEmpty() }.map { deserializeValue(it.decodeURL()) }
-    private fun serializeCollection(value: Collection<*>): String = value.map { serializeValue(it).encodeURL() }.joinToString("&").encodeURL()
+    private fun deserializeCollection(value: String): List<*> = decodeURLQueryComponent(value).split("&").filter { it.isNotEmpty() }.map { deserializeValue(decodeURLQueryComponent(it)) }
+    private fun serializeCollection(value: Collection<*>): String = encodeURLQueryComponent(value.map { encodeURLQueryComponent(serializeValue(it)) }.joinToString("&"))
 
-    private fun deserializeMap(value: String): Map<*, *> = value.decodeURL().split("&").filter { it.isNotEmpty() }.associateBy(
-            { deserializeValue(it.substringBefore('=').decodeURL()) },
-            { deserializeValue(it.substringAfter('=').decodeURL()) }
+    private fun deserializeMap(value: String): Map<*, *> = decodeURLQueryComponent(value).split("&").filter { it.isNotEmpty() }.associateBy(
+            { deserializeValue(decodeURLQueryComponent(it.substringBefore('='))) },
+            { deserializeValue(decodeURLQueryComponent(it.substringAfter('='))) }
     )
-    private fun serializeMap(value: Map<*, *>): String = value.map { serializeValue(it.key).encodeURL() + "=" + serializeValue(it.value).encodeURL() }.joinToString("&").encodeURL()
+    private fun serializeMap(value: Map<*, *>): String = encodeURLQueryComponent(value.map { encodeURLQueryComponent(serializeValue(it.key)) + "=" + encodeURLQueryComponent(serializeValue(it.value)) }.joinToString("&"))
 
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     private fun isListType(type: KType): Boolean {

@@ -58,7 +58,7 @@ class SessionTest {
                 assertEquals(TestUserSession("id1", emptyList()), autoSerializerOf<TestUserSession>().deserialize(sessionParam))
             }
             handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "SESSION=${sessionParam.encodeURL()}")
+                addHeader(HttpHeaders.Cookie, "SESSION=${encodeURLQueryComponent(sessionParam)}")
             }.let { response ->
                 assertEquals("ok, id1", response.response.content)
             }
@@ -94,7 +94,7 @@ class SessionTest {
             }
 
             handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "SESSION=${sessionId.encodeURL()}")
+                addHeader(HttpHeaders.Cookie, "SESSION=${encodeURLQueryComponent(sessionId)}")
             }.let { response ->
                 assertEquals("ok, id2", response.response.content)
             }
@@ -107,7 +107,7 @@ class SessionTest {
 
             handleRequest(HttpMethod.Get, "/2") {
                 val brokenSession = sessionId.mapIndexed { i, c -> if (i == sessionId.lastIndex) 'x' else c }.joinToString("")
-                addHeader(HttpHeaders.Cookie, "SESSION=${brokenSession.encodeURL()}")
+                addHeader(HttpHeaders.Cookie, "SESSION=${encodeURLQueryComponent(brokenSession)}")
             }.let { response ->
                 assertEquals("ok, null", response.response.content)
             }
@@ -144,7 +144,7 @@ class SessionTest {
             }
 
             handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "SESSION=${sessionId.encodeURL()}")
+                addHeader(HttpHeaders.Cookie, "SESSION=${encodeURLQueryComponent(sessionId)}")
             }.let { response ->
                 assertEquals("ok, id2", response.response.content)
             }
@@ -157,7 +157,7 @@ class SessionTest {
 
             handleRequest(HttpMethod.Get, "/2") {
                 val brokenSession = sessionId.mapIndexed { i, c -> if (i == sessionId.lastIndex) 'x' else c }.joinToString("")
-                addHeader(HttpHeaders.Cookie, "SESSION=${brokenSession.encodeURL()}")
+                addHeader(HttpHeaders.Cookie, "SESSION=${encodeURLQueryComponent(brokenSession)}")
             }.let { response ->
                 assertEquals("ok, null", response.response.content)
             }
@@ -214,7 +214,7 @@ class SessionTest {
                 assertEquals(TestUserSession("id1", emptyList()), autoSerializerOf<TestUserSession>().deserialize(sessionParam))
             }
             handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "SESSION=${sessionParam.encodeURL()}")
+                addHeader(HttpHeaders.Cookie, "SESSION=${encodeURLQueryComponent(sessionParam)}")
             }.let { response ->
                 assertEquals("ok, id1", response.response.content)
             }

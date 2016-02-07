@@ -304,7 +304,7 @@ private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
                     throw IllegalStateException("Bad OAuth header supplied: should be parameterized auth header but token68 blob found")
                 }
 
-                val callback = authHeader.parameter(HttpAuthHeader.Parameters.OAuthCallback)?.decodeURL()
+                val callback = authHeader.parameter(HttpAuthHeader.Parameters.OAuthCallback)?.let { decodeURLPart(it) }
                 val consumerKey = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthConsumerKey)
                 val nonce = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthNonce)
                 val signatureMethod = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthSignatureMethod)
@@ -367,6 +367,6 @@ private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
     return testClient!!
 }
 
-private fun HttpAuthHeader.Parameterized.requireParameter(name: String) = parameter(name)?.decodeURL() ?: throw IllegalArgumentException("No $name parameter specified in OAuth header")
+private fun HttpAuthHeader.Parameterized.requireParameter(name: String) = parameter(name)?.let { decodeURLPart(it) } ?: throw IllegalArgumentException("No $name parameter specified in OAuth header")
 
 data class TestOAuthTokenResponse(val callbackConfirmed: Boolean, val token: String, val tokenSecret: String)

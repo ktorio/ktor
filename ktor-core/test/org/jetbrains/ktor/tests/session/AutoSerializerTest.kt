@@ -11,7 +11,7 @@ class AutoSerializerTest {
     @Test
     fun testSimple() {
         val serializer = autoSerializerOf<TestSession>()
-        val result = serializer.deserialize("test=#i1&list=#cl${"#sa&#sb&#sc".encodeURL()}")
+        val result = serializer.deserialize("test=#i1&list=#cl${encodeURLQueryComponent("#sa&#sb&#sc")}")
 
         assertEquals(1, result.test)
         assertEquals(listOf("a", "b", "c"), result.list)

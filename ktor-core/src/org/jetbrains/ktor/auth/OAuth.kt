@@ -117,7 +117,7 @@ private fun ApplicationResponse.redirectAuthenticateOAuth1a(settings: OAuthServe
     redirectAuthenticateOAuth1a(settings.authorizeUrl, requestToken.token)
 
 private fun ApplicationResponse.redirectAuthenticateOAuth1a(authenticateUrl: String, requestToken: String): ApplicationCallResult =
-    sendRedirect(authenticateUrl.appendUrlParameters("${HttpAuthHeader.Parameters.OAuthToken}=${requestToken.encodeURL()}"))
+    sendRedirect(authenticateUrl.appendUrlParameters("${HttpAuthHeader.Parameters.OAuthToken}=${encodeURLQueryComponent(requestToken)}"))
 
 private fun ApplicationResponse.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList()): ApplicationCallResult {
     return redirectAuthenticateOAuth2(authenticateUrl = settings.authorizeUrl,
@@ -130,9 +130,9 @@ private fun ApplicationResponse.redirectAuthenticateOAuth2(settings: OAuthServer
 
 private fun ApplicationResponse.redirectAuthenticateOAuth2(authenticateUrl: String, callbackRedirectUrl: String, clientId: String, state: String, scopes: List<String> = emptyList(), parameters: List<Pair<String, String>> = emptyList()): ApplicationCallResult {
     return sendRedirect(authenticateUrl
-            .appendUrlParameters("${OAuth2RequestParameters.ClientId}=${clientId.encodeURL()}&${OAuth2RequestParameters.RedirectUri}=${callbackRedirectUrl.encodeURL()}")
+            .appendUrlParameters("${OAuth2RequestParameters.ClientId}=${encodeURLQueryComponent(clientId)}&${OAuth2RequestParameters.RedirectUri}=${encodeURLQueryComponent(callbackRedirectUrl)}")
             .appendUrlParameters(optionalParameter(OAuth2RequestParameters.Scope, scopes.joinToString(",")))
-            .appendUrlParameters("${OAuth2RequestParameters.State}=${state.encodeURL()}")
+            .appendUrlParameters("${OAuth2RequestParameters.State}=${encodeURLQueryComponent(state)}")
             .appendUrlParameters("${OAuth2RequestParameters.ResponseType}=code")
             .appendUrlParameters(parameters.formUrlEncode())
     )
@@ -484,7 +484,7 @@ private fun String.appendUrlParameters(parameters: String) =
         }.let { separator -> "$this$separator$parameters" }
 
 private fun optionalParameter(name: String, value: String, condition: (String) -> Boolean = { it.isNotBlank() }): String =
-        if (condition(value)) "${name.encodeURL()}=${value.encodeURL()}"
+        if (condition(value)) "${encodeURLQueryComponent(name)}=${encodeURLQueryComponent(value)}"
         else ""
 
 private fun String.hmacSha1(key: String): String {
@@ -510,4 +510,4 @@ fun HttpAuthHeader.Parameterized.sign(method: HttpMethod, baseUrl: String, key: 
     withParameter(HttpAuthHeader.Parameters.OAuthSignature, signatureBaseString(this, method, baseUrl, parameters.toHeaderParamsList()).hmacSha1(key))
 
 
-private fun String.percentEncode() = encodeURL().replace("+", "%20").replace("*", "%2A").replace("%7E", "~")
+private fun String.percentEncode() = encodeURLPart(this)
