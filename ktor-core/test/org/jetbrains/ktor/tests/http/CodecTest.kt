@@ -43,19 +43,19 @@ class CodecTest {
 
     @Test
     fun testAllReserved() {
-        val s = "~!@#$%^&()+{}\"\\;:`,/[]"
+        val s = "*~!@#$%^&()+{}\"\\;:`,/[]"
         val encoded = encodeURLQueryComponent(s)
 
-        assertEquals("%7E%21%40%23%24%25%5E%26%28%29%2B%7B%7D%22%5C%3B%3A%60%2C%2F%5B%5D", encoded)
+        assertEquals("*%7E%21%40%23%24%25%5E%26%28%29%2B%7B%7D%22%5C%3B%3A%60%2C%2F%5B%5D", encoded)
         encodeAndDecodeTest(s)
     }
 
     @Test
     fun testAllReservedURLPart() {
-        val s = "~!@#$%^&()+{}\"\\;:`,/[]"
+        val s = "*~!@#$%^&()+{}\"\\;:`,/[]"
         val encoded = encodeURLPart(s)
 
-        assertEquals("%7E%21%40%23%24%25%5E%26%28%29+%7B%7D%22%5C%3B%3A%60%2C%2F%5B%5D", encoded)
+        assertEquals("%2A~%21%40%23%24%25%5E%26%28%29+%7B%7D%22%5C%3B%3A%60%2C%2F%5B%5D", encoded)
         encodeAndDecodeTestURLPart(s)
     }
 
