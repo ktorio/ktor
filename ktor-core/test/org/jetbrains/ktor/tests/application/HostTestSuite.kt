@@ -286,11 +286,11 @@ abstract class HostTestSuite {
         startServer(server)
 
         withUrl("/") {
-            setRequestProperty(HttpHeaders.Range, PartialContentRange(RangeUnits.Bytes, listOf(ContentRange.ClosedContentRange(0, 0))).toString())
+            setRequestProperty(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
             assertEquals("p", inputStream.reader().readText())
         }
         withUrl("/") {
-            setRequestProperty(HttpHeaders.Range, PartialContentRange(RangeUnits.Bytes, listOf(ContentRange.ClosedContentRange(1, 2))).toString())
+            setRequestProperty(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(1, 2))).toString())
             assertEquals("ac", inputStream.reader().readText())
         }
     }
@@ -309,7 +309,7 @@ abstract class HostTestSuite {
 
         withUrl("/") {
             addRequestProperty(HttpHeaders.AcceptEncoding, "gzip")
-            setRequestProperty(HttpHeaders.Range, PartialContentRange(RangeUnits.Bytes, listOf(ContentRange.ClosedContentRange(0, 0))).toString())
+            setRequestProperty(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
 
             assertEquals("p", inputStream.reader().readText()) // it should be no compression if range requested
         }

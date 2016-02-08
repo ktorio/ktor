@@ -5,6 +5,7 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.util.*
 import java.io.*
 import java.nio.channels.*
 import java.nio.file.*
@@ -67,14 +68,10 @@ abstract class BaseApplicationResponse(open val call: ApplicationCall) : Applica
                         }
                         range.unit != RangeUnits.Bytes -> sendError(HttpStatusCode.BadRequest, "Unsupported range unit ${range.unit}")
                         else -> {
-                            val merged = range.ranges.resolveRanges(value.file.length()).mergeRanges()
-                            if (merged.size != 1) {
-                                sendError(HttpStatusCode.BadRequest, "Multiple ranges request is not yet supported")
-                            } else {
-                                val r = merged.single()
-                                headers.append(HttpHeaders.ContentRange, PartialContentResponse(RangeUnits.Bytes, r.from .. r.to, value.file.length()).toString())
-                                sendFile(value.file, r.from, r.length)
-                            }
+                            val single = range.merge(value.file.length()).singleOrNull() ?: range.mergeToSingle(value.file.length())
+
+                            contentRange(single, value.file.length(), RangeUnits.Bytes)
+                            sendFile(value.file, single.start, single.length)
                         }
                     }
 

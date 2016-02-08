@@ -26,3 +26,11 @@ fun String.tryParseDouble(): Double {
     }
 }
 
+internal inline fun String.chomp(separator: String, onMissingDelimiter: () -> Pair<String, String>): Pair<String, String> {
+    val idx = indexOf(separator)
+    return when (idx) {
+        -1 -> onMissingDelimiter()
+        else -> substring(0, idx) to substring(idx + 1)
+    }
+}
+

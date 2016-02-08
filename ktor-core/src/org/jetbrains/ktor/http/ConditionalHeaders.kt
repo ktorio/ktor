@@ -80,11 +80,11 @@ fun ApplicationCall.withLastModified(lastModified: LocalDateTime, putHeader: Boo
     return block()
 }
 
-fun ApplicationCall.withIfRange(date: Date, block: (PartialContentRange?) -> ApplicationCallResult): ApplicationCallResult {
+fun ApplicationCall.withIfRange(date: Date, block: (RangesSpecifier?) -> ApplicationCallResult): ApplicationCallResult {
     return withIfRange(date.toDateTime().toLocalDateTime(), block)
 }
 
-fun ApplicationCall.withIfRange(lastModified: ZonedDateTime, block: (PartialContentRange?) -> ApplicationCallResult): ApplicationCallResult {
+fun ApplicationCall.withIfRange(lastModified: ZonedDateTime, block: (RangesSpecifier?) -> ApplicationCallResult): ApplicationCallResult {
     return withIfRange(lastModified.toLocalDateTime(), block)
 }
 
@@ -97,9 +97,9 @@ fun ApplicationCall.withIfRange(lastModified: ZonedDateTime, block: (PartialCont
  *
  *  See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.27
  */
-fun ApplicationCall.withIfRange(lastModified: LocalDateTime, block: (PartialContentRange?) -> ApplicationCallResult): ApplicationCallResult {
+fun ApplicationCall.withIfRange(lastModified: LocalDateTime, block: (RangesSpecifier?) -> ApplicationCallResult): ApplicationCallResult {
     val normalized = lastModified.withNano(0)
-    val range = request.header(HttpHeaders.Range)?.let { parseRangesSpecifier(it) }
+    val range = request.ranges()
     val ifRange = request.header(HttpHeaders.IfRange)?.let { it.fromHttpDateString().toLocalDateTime() }
 
     val rangeToProcess = when {
@@ -129,8 +129,8 @@ fun ApplicationCall.withIfRange(lastModified: LocalDateTime, block: (PartialCont
  *
  *  See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.27
  */
-fun ApplicationCall.withIfRange(entity: String, block: (PartialContentRange?) -> ApplicationCallResult): ApplicationCallResult {
-    val range = request.header(HttpHeaders.Range)?.let { parseRangesSpecifier(it) }
+fun ApplicationCall.withIfRange(entity: String, block: (RangesSpecifier?) -> ApplicationCallResult): ApplicationCallResult {
+    val range = request.ranges()
     val ifRange = request.header(HttpHeaders.IfRange)?.let { it.parseMatchTag() }
 
     val rangeToProcess = when {
