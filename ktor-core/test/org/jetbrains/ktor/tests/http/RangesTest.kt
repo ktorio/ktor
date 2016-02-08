@@ -39,6 +39,43 @@ class RangesTest {
     }
 
     @Test
+    fun testParseEmpty() {
+        assertNull(parseRangesSpecifier(""))
+    }
+
+    @Test
+    fun testParseWrongUnit() {
+        assertNull(parseRangesSpecifier("miles=10-100"))
+    }
+
+    @Test
+    fun testParseWrongNoValues() {
+        assertNull(parseRangesSpecifier("bytes=-"))
+    }
+
+    @Test
+    fun testParseWrongNegativeEnd() {
+        assertNull(parseRangesSpecifier("bytes=--1"))
+        assertNull(parseRangesSpecifier("bytes=1--1"))
+    }
+
+    @Test
+    fun testParseStartGreaterThanEnd() {
+        assertNull(parseRangesSpecifier("bytes=10-1"))
+    }
+
+    @Test
+    fun testParseWrongNoUnit() {
+        assertNull(parseRangesSpecifier("=10-1"))
+        assertNull(parseRangesSpecifier("10-1"))
+    }
+
+    @Test
+    fun testParseWrongNegativeStart() {
+        assertNull(parseRangesSpecifier("bytes=-10-1"))
+    }
+
+    @Test
     fun testResolveRanges() {
         val ranges = listOf(ContentRange.Bounded(0, 10),
                 ContentRange.TailFrom(11),
