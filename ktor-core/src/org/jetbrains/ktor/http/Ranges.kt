@@ -1,93 +1,128 @@
 package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.util.*
 import java.util.*
 
 object RangeUnits {
     val Bytes = "bytes"
 }
 
-data class PartialContentRange(val unit: String = RangeUnits.Bytes, val ranges: List<ContentRange>) {
+// RFC 2616 sec 14.35.1
+data class RangesSpecifier(val unit: String = RangeUnits.Bytes, val ranges: List<ContentRange>) {
     init {
         require(ranges.isNotEmpty()) { "It should be at least one range" }
     }
 
+    fun isValid() = unit == RangeUnits.Bytes && ranges.none {
+        when (it) {
+            is ContentRange.Bounded -> it.from < 0 || it.to < it.from
+            is ContentRange.TailFrom -> it.from < 0
+            is ContentRange.Suffix -> it.lastCount < 0
+            else -> true
+        }
+    }
+
+    fun merge(length: Long): List<LongRange> = ranges.toLongRanges(length).mergeRangesKeepOrder()
+
+    fun mergeToSingle(length: Long): LongRange {
+        val mapped = ranges.toLongRanges(length)
+
+        val start = mapped.minBy { it.start }!!.start
+        val endInclusive = mapped.maxBy { it.endInclusive }!!.endInclusive.coerceAtMost(length - 1)
+
+        return start .. endInclusive
+    }
+
     override fun toString(): String = ranges.joinToString(",", prefix = unit + "=")
 }
-data class PartialContentResponse(val unit: String, val range: LongRange?, val fullLength: Long?) {
-    override fun toString() = buildString {
-        append(unit)
-        append(" ")
-        if (range != null) {
-            append(range.start)
-            append('-')
-            append(range.endInclusive)
-        } else {
-            append('*')
-        }
-        append('/')
-        append(fullLength ?: "*")
+
+fun contentRangeHeaderValue(range: LongRange?, fullLength: Long? = null, unit: String = RangeUnits.Bytes) = buildString {
+    append(unit)
+    append(" ")
+    if (range != null) {
+        append(range.start)
+        append('-')
+        append(range.endInclusive)
+    } else {
+        append('*')
     }
+    append('/')
+    append(fullLength ?: "*")
+}
+
+fun ApplicationResponse.contentRange(range: LongRange?, fullLength: Long? = null, unit: String = RangeUnits.Bytes) {
+    header(HttpHeaders.ContentRange, contentRangeHeaderValue(range, fullLength, unit))
 }
 
 interface ContentRange {
-    data class ClosedContentRange(val from: Long, val to: Long) : ContentRange {
+    data class Bounded(val from: Long, val to: Long) : ContentRange {
         override fun toString() = "$from-$to"
     }
-    data class ClosedStartRange(val from: Long) : ContentRange {
+    data class TailFrom(val from: Long) : ContentRange {
         override fun toString() = "$from-"
     }
-    data class LastUnitsRange(val lastCount: Long) : ContentRange {
+    data class Suffix(val lastCount: Long) : ContentRange {
         override fun toString() = "-$lastCount"
     }
 }
 
-val ContentRange.ClosedContentRange.length: Long
-    get() = to - from + 1
-
 fun ApplicationRequest.ranges() = header(HttpHeaders.Range)?.let { rangesSpec -> parseRangesSpecifier(rangesSpec) }
 
-fun parseRangesSpecifier(rangeSpec: String): PartialContentRange {
-    val (unit, allRangesString) = rangeSpec.chomp("=")
+fun parseRangesSpecifier(rangeSpec: String): RangesSpecifier? {
+    val (unit, allRangesString) = rangeSpec.chomp("=") { "" to "" }
     val allRanges = allRangesString.split(',').map {
-        val (from, to) = it.chomp("-")
-        when {
-            from.isNotEmpty() && to.isNotEmpty() -> ContentRange.ClosedContentRange(from.toLong(), to.toLong())
-            from.isNotEmpty() -> ContentRange.ClosedStartRange(from.toLong())
-            to.isNotEmpty() -> ContentRange.LastUnitsRange(to.toLong())
-            else -> throw IllegalArgumentException("Wrong range specification: $rangeSpec")
+        if (it.startsWith("-")) {
+            ContentRange.Suffix(it.removePrefix("-").toLong())
+        } else {
+            val (from, to) = it.chomp("-") { "" to "-1" } // -1 will fail at `isValid` call
+            when {
+                to.isNotEmpty() -> ContentRange.Bounded(from.toLong(), to.toLong())
+                else  -> ContentRange.TailFrom(from.toLong())
+            }
         }
     }
 
-    return PartialContentRange(unit, allRanges)
+    if (allRanges.isEmpty() || unit.isEmpty()) {
+        return null
+    }
+
+    val spec = RangesSpecifier(unit, allRanges)
+    return if (spec.isValid()) spec else null
 }
 
-fun List<ContentRange>.resolveRanges(contentLength: Long) = map<ContentRange, ContentRange.ClosedContentRange> {
+internal fun List<ContentRange>.toLongRanges(contentLength: Long) = map {
     when (it) {
-        is ContentRange.ClosedContentRange -> it
-        is ContentRange.ClosedStartRange -> ContentRange.ClosedContentRange(it.from, contentLength - 1)
-        is ContentRange.LastUnitsRange -> ContentRange.ClosedContentRange(contentLength - it.lastCount, contentLength - 1)
-        else -> throw UnsupportedOperationException()
+        is ContentRange.Bounded -> it.from .. it.to.coerceAtMost(contentLength - 1)
+        is ContentRange.TailFrom -> it.from .. contentLength - 1
+        is ContentRange.Suffix -> (contentLength - it.lastCount).coerceAtLeast(0L) .. contentLength - 1
+        else -> throw NoWhenBranchMatchedException("Unsupported ContentRange type ${it.javaClass}: $it")
     }
-}.filter { it.from >= 0 && it.to < contentLength && it.from <= it.to }
-
-fun List<ContentRange.ClosedContentRange>.mergeRanges() = sortedBy { it.from }.fold(ArrayList<ContentRange.ClosedContentRange>(size)) { acc, range ->
-    when {
-        acc.isEmpty() -> acc.add(range)
-        acc.last().to < range.from - 1 -> acc.add(range)
-        else -> {
-            val last = acc.last()
-            acc[acc.lastIndex] = ContentRange.ClosedContentRange(last.from, Math.max(last.to, range.to))
-        }
-    }
-    acc
 }
 
-private fun String.chomp(separator: String): Pair<String, String> {
-    val idx = indexOf(separator)
-    if (idx == -1) {
-        throw IllegalArgumentException("No separator found")
+// O (N^2 + N ln (N) + N)
+internal fun List<LongRange>.mergeRangesKeepOrder(): List<LongRange> {
+    val sortedMerged = sortedBy { it.start }.fold(ArrayList<LongRange>(size)) { acc, range ->
+        when {
+            acc.isEmpty() -> acc.add(range)
+            acc.last().endInclusive < range.start - 1 -> acc.add(range)
+            else -> {
+                val last = acc.last()
+                acc[acc.lastIndex] = last.start .. Math.max(last.endInclusive, range.endInclusive)
+            }
+        }
+        acc
+    }
+    val result = arrayOfNulls<LongRange>(size)
+
+    for (range in sortedMerged) {
+        for (i in indices) {
+            if (this[i] in range) {
+                result[i] = range
+                break
+            }
+        }
     }
 
-    return substring(0, idx) to substring(idx + 1)
+    return result.filterNotNull()
 }
