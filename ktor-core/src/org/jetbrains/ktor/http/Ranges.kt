@@ -70,25 +70,29 @@ interface ContentRange {
 fun ApplicationRequest.ranges() = header(HttpHeaders.Range)?.let { rangesSpec -> parseRangesSpecifier(rangesSpec) }
 
 fun parseRangesSpecifier(rangeSpec: String): RangesSpecifier? {
-    val (unit, allRangesString) = rangeSpec.chomp("=") { "" to "" }
-    val allRanges = allRangesString.split(',').map {
-        if (it.startsWith("-")) {
-            ContentRange.Suffix(it.removePrefix("-").toLong())
-        } else {
-            val (from, to) = it.chomp("-") { "" to "-1" } // -1 will fail at `isValid` call
-            when {
-                to.isNotEmpty() -> ContentRange.Bounded(from.toLong(), to.toLong())
-                else  -> ContentRange.TailFrom(from.toLong())
+    try {
+        val (unit, allRangesString) = rangeSpec.chomp("=") { return null }
+        val allRanges = allRangesString.split(',').map {
+            if (it.startsWith("-")) {
+                ContentRange.Suffix(it.removePrefix("-").toLong())
+            } else {
+                val (from, to) = it.chomp("-") { "" to "" }
+                when {
+                    to.isNotEmpty() -> ContentRange.Bounded(from.toLong(), to.toLong())
+                    else -> ContentRange.TailFrom(from.toLong())
+                }
             }
         }
-    }
 
-    if (allRanges.isEmpty() || unit.isEmpty()) {
-        return null
-    }
+        if (allRanges.isEmpty() || unit.isEmpty()) {
+            return null
+        }
 
-    val spec = RangesSpecifier(unit, allRanges)
-    return if (spec.isValid()) spec else null
+        val spec = RangesSpecifier(unit, allRanges)
+        return if (spec.isValid()) spec else null
+    } catch (e: Throwable) {
+        return null // according to the specification we should ignore syntactically incorrect headers
+    }
 }
 
 internal fun List<ContentRange>.toLongRanges(contentLength: Long) = map {
