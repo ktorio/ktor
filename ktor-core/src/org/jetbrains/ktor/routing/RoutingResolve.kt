@@ -16,7 +16,7 @@ class RoutingResolveContext(val routing: RoutingEntry,
 
     private fun parse(path: String): List<String> {
         if (path == "/") return listOf()
-        return path.split("/").filter { it.length > 0 }
+        return path.split("/").filter { it.length > 0 }.map { decodeURLPart(it) }
     }
 
     private fun combineQuality(quality1: Double, quality2: Double): Double {

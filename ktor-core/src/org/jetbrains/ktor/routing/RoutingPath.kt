@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.routing
 
+import org.jetbrains.ktor.http.*
+
 class RoutingPath private constructor(val parts: List<RoutingPathSegment>) {
     companion object {
         val root: RoutingPath = RoutingPath(listOf())
@@ -16,7 +18,7 @@ class RoutingPath private constructor(val parts: List<RoutingPathSegment>) {
                             else -> RoutingPathSegment(signature, RoutingPathSegmentKind.Parameter, false)
                         }
                     }
-                    else -> RoutingPathSegment(it, RoutingPathSegmentKind.Constant, false)
+                    else -> RoutingPathSegment(decodeURLPart(it), RoutingPathSegmentKind.Constant, false)
                 }
             }
 

@@ -316,6 +316,26 @@ abstract class HostTestSuite {
         }
     }
 
+    @Test
+    fun testPathComponentsDecoding() {
+        val server = createServer(port) {
+            get("/a%20b") {
+                response.sendText("space")
+            }
+            get("/a+b") {
+                response.sendText("plus")
+            }
+        }
+        startServer(server)
+
+        withUrl("/a%20b") {
+            assertEquals("space", inputStream.bufferedReader().use { it.readText() })
+        }
+        withUrl("/a+b") {
+            assertEquals("plus", inputStream.bufferedReader().use { it.readText() })
+        }
+    }
+
     fun findFreePort() = ServerSocket(0).use { it.localPort }
     fun withUrl(path: String, block: HttpURLConnection.() -> Unit) {
         val connection = URL("http://127.0.0.1:$port$path").openConnection() as HttpURLConnection

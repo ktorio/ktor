@@ -44,7 +44,7 @@ public open class DefaultConversionService : ConversionService {
             Double::class.java, java.lang.Double::class.java -> value.toDouble()
             Long::class.java, java.lang.Long::class.java -> value.toLong()
             Boolean::class.java, java.lang.Boolean::class.java -> value.toBoolean()
-            String::class.java, java.lang.String::class.java -> value.decodeURL()
+            String::class.java, java.lang.String::class.java -> value
             else ->
                 if (type is Class<*> && type.isEnum) {
                     type.enumConstants.first { (it as Enum<*>).name == value }
