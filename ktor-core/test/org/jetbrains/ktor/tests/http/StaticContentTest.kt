@@ -97,6 +97,7 @@ class StaticContentTest {
             }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
                 assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable, result.response.status())
+                assertEquals("bytes */${File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
             }
 
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
@@ -104,6 +105,7 @@ class StaticContentTest {
             }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
                 assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable, result.response.status())
+                assertEquals("bytes */${File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
             }
 
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
