@@ -2,6 +2,7 @@ package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.testing.*
+import org.jetbrains.ktor.util.*
 import org.junit.*
 import kotlin.test.*
 
@@ -58,5 +59,19 @@ class UrlEncodedTest {
             val parsed = parseUrlEncodedParameters()
             assertEquals("\u0422\u0435\u0441\u0442", parsed["field1"])
         }
+    }
+
+    @Test
+    fun testRenderUrlEncoded() {
+        assertEquals("p1=a+b", listOf("p1" to "a b").formUrlEncode())
+        assertEquals("p%3D1=a%3Db", listOf("p=1" to "a=b").formUrlEncode())
+        assertEquals("p1=a&p1=b&p2=c", listOf("p1" to "a", "p1" to "b", "p2" to "c").formUrlEncode())
+    }
+
+    @Test
+    fun testRenderUrlEncodedValuesMap() {
+        assertEquals("p1=a+b", valuesOf("p1" to listOf("a b")).formUrlEncode())
+        assertEquals("p%3D1=a%3Db", valuesOf("p=1" to listOf("a=b")).formUrlEncode())
+        assertEquals("p1=a&p1=b&p2=c", valuesOf("p1" to listOf("a", "b"), "p2" to listOf("c")).formUrlEncode())
     }
 }
