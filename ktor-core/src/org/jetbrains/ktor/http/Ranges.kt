@@ -66,7 +66,7 @@ fun ApplicationCall.handleRangeRequest(version: HasVersion, length: Long, mergeT
             response.sendError(HttpStatusCode.MethodNotAllowed, "Only GET and HEAD methods allowed for range requests")
         } else if (merged != null && merged.isEmpty()) {
             response.contentRange(range = null, fullLength = length) // https://tools.ietf.org/html/rfc7233#section-4.4
-            response.sendError(HttpStatusCode.RequestedRangeNotSatisfiable, "No satisfiable ranges of $merged")
+            response.sendError(HttpStatusCode.RequestedRangeNotSatisfiable, "No satisfiable ranges of $range")
         } else {
             block(merged)
         }
