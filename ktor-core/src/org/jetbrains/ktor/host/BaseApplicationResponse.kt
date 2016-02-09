@@ -53,12 +53,11 @@ abstract class BaseApplicationResponse(open val call: ApplicationCall) : Applica
                 }
             }
             is LocalFileContent -> {
-                call.withIfRange(LocalDateTime.ofInstant(Instant.ofEpochMilli(value.lastModified), ZoneId.systemDefault())) { range ->
-                    headers.append(HttpHeaders.AcceptRanges, RangeUnits.Bytes)
-
+                call.handleRangeRequest(value, value.file.length(), mergeToSingleRange = true) { ranges ->
                     when {
-                        range == null -> {
+                        ranges == null -> {
                             // TODO compression settings
+                            status(HttpStatusCode.OK)
                             if (call.request.acceptEncodingItems().any { it.value == "gzip" }) {
                                 headers.append(HttpHeaders.ContentEncoding, "gzip")
                                 sendAsyncChannel(value.file.asyncReadOnlyFileChannel().deflated())
@@ -66,9 +65,9 @@ abstract class BaseApplicationResponse(open val call: ApplicationCall) : Applica
                                 sendFile(value.file, 0L, value.file.length())
                             }
                         }
-                        range.unit != RangeUnits.Bytes -> sendError(HttpStatusCode.BadRequest, "Unsupported range unit ${range.unit}")
                         else -> {
-                            val single = range.merge(value.file.length()).singleOrNull() ?: range.mergeToSingle(value.file.length())
+                            status(HttpStatusCode.PartialContent)
+                            val single = ranges.single()
 
                             contentRange(single, value.file.length(), RangeUnits.Bytes)
                             sendFile(value.file, single.start, single.length)

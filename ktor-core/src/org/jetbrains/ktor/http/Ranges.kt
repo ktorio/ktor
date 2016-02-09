@@ -1,58 +1,15 @@
 package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.util.*
 import java.util.*
 
-object RangeUnits {
-    val Bytes = "bytes"
-}
+enum class RangeUnits {
+    Bytes,
+    None;
 
-// RFC 2616 sec 14.35.1
-data class RangesSpecifier(val unit: String = RangeUnits.Bytes, val ranges: List<ContentRange>) {
-    init {
-        require(ranges.isNotEmpty()) { "It should be at least one range" }
-    }
-
-    fun isValid() = unit == RangeUnits.Bytes && ranges.none {
-        when (it) {
-            is ContentRange.Bounded -> it.from < 0 || it.to < it.from
-            is ContentRange.TailFrom -> it.from < 0
-            is ContentRange.Suffix -> it.lastCount < 0
-            else -> true
-        }
-    }
-
-    fun merge(length: Long): List<LongRange> = ranges.toLongRanges(length).mergeRangesKeepOrder()
-
-    fun mergeToSingle(length: Long): LongRange {
-        val mapped = ranges.toLongRanges(length)
-
-        val start = mapped.minBy { it.start }!!.start
-        val endInclusive = mapped.maxBy { it.endInclusive }!!.endInclusive.coerceAtMost(length - 1)
-
-        return start .. endInclusive
-    }
-
-    override fun toString(): String = ranges.joinToString(",", prefix = unit + "=")
-}
-
-fun contentRangeHeaderValue(range: LongRange?, fullLength: Long? = null, unit: String = RangeUnits.Bytes) = buildString {
-    append(unit)
-    append(" ")
-    if (range != null) {
-        append(range.start)
-        append('-')
-        append(range.endInclusive)
-    } else {
-        append('*')
-    }
-    append('/')
-    append(fullLength ?: "*")
-}
-
-fun ApplicationResponse.contentRange(range: LongRange?, fullLength: Long? = null, unit: String = RangeUnits.Bytes) {
-    header(HttpHeaders.ContentRange, contentRangeHeaderValue(range, fullLength, unit))
+    val unitToken = name.toLowerCase()
 }
 
 interface ContentRange {
@@ -95,6 +52,27 @@ fun parseRangesSpecifier(rangeSpec: String): RangesSpecifier? {
     }
 }
 
+fun ApplicationCall.handleRangeRequest(version: HasVersion, length: Long, mergeToSingleRange: Boolean = false, block: (List<LongRange>?) -> ApplicationCallResult): ApplicationCallResult {
+    return withIfRange(version) { range ->
+        response.headers.append(HttpHeaders.AcceptRanges, RangeUnits.Bytes.unitToken)
+        val merged = range?.merge(length, mergeToSingleRange)
+
+        if (request.httpMethod == HttpMethod.Head) {
+            response.contentLength(length)
+            response.status(HttpStatusCode.OK)
+
+            ApplicationCallResult.Handled
+        } else if (request.httpMethod != HttpMethod.Get && merged != null) {
+            response.sendError(HttpStatusCode.MethodNotAllowed, "Only GET and HEAD methods allowed for range requests")
+        } else if (merged != null && merged.isEmpty()) {
+            response.contentRange(range = null, fullLength = length) // https://tools.ietf.org/html/rfc7233#section-4.4
+            response.sendError(HttpStatusCode.RequestedRangeNotSatisfiable, "No satisfiable ranges of $range")
+        } else {
+            block(merged)
+        }
+    }
+}
+
 internal fun List<ContentRange>.toLongRanges(contentLength: Long) = map {
     when (it) {
         is ContentRange.Bounded -> it.from .. it.to.coerceAtMost(contentLength - 1)
@@ -102,7 +80,7 @@ internal fun List<ContentRange>.toLongRanges(contentLength: Long) = map {
         is ContentRange.Suffix -> (contentLength - it.lastCount).coerceAtLeast(0L) .. contentLength - 1
         else -> throw NoWhenBranchMatchedException("Unsupported ContentRange type ${it.javaClass}: $it")
     }
-}
+}.filterNot { it.isEmpty() }
 
 // O (N^2 + N ln (N) + N)
 internal fun List<LongRange>.mergeRangesKeepOrder(): List<LongRange> {

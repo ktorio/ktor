@@ -1,6 +1,8 @@
 package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.util.*
 import java.time.*
 import java.util.*
 
@@ -80,6 +82,14 @@ fun ApplicationCall.withLastModified(lastModified: LocalDateTime, putHeader: Boo
     return block()
 }
 
+fun ApplicationCall.withIfRange(resource: HasVersion, block: (RangesSpecifier?) -> ApplicationCallResult): ApplicationCallResult {
+    return when (resource) {
+        is HasETag -> withIfRange(resource.etag(), block)
+        is HasLastModified -> withIfRange(LocalDateTime.ofInstant(Instant.ofEpochMilli((resource.lastModified)), ZoneId.systemDefault()), block)
+        else -> throw NoWhenBranchMatchedException("Unsupported resource type ${resource.javaClass}")
+    }
+}
+
 fun ApplicationCall.withIfRange(date: Date, block: (RangesSpecifier?) -> ApplicationCallResult): ApplicationCallResult {
     return withIfRange(date.toDateTime().toLocalDateTime(), block)
 }
@@ -152,4 +162,3 @@ fun ApplicationCall.withIfRange(entity: String, block: (RangesSpecifier?) -> App
 }
 
 private fun String.parseMatchTag() = split("\\s*,\\s*".toRegex()).map { it.removePrefix("W/") }.filter { it.isNotEmpty() }.toSet()
-private fun Date.toDateTime() = ZonedDateTime.ofInstant(toInstant(), ZoneId.systemDefault())!!
