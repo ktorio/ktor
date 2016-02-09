@@ -143,6 +143,21 @@ class RangesTest {
     }
 
     @Test
+    fun testMergeRangeSpecifier() {
+        assertEquals(listOf(0L..99L), RangesSpecifier(RangeUnits.Bytes, listOf(
+                ContentRange.Bounded(0, 0),
+                ContentRange.Bounded(1, 90),
+                ContentRange.Suffix(10)
+        )).merge(100))
+
+        assertEquals(listOf(0L..99L), RangesSpecifier(RangeUnits.Bytes, listOf(
+                ContentRange.Bounded(0, 0),
+                ContentRange.Bounded(1, 90),
+                ContentRange.TailFrom(90)
+        )).merge(100, false))
+    }
+
+    @Test
     fun testRenderRanges() {
         assertEquals("bytes=0-0,1-,-1", RangesSpecifier(RangeUnits.Bytes, listOf(
                 ContentRange.Bounded(0, 0),

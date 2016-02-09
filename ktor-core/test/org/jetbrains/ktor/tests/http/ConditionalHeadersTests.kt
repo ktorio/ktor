@@ -1,10 +1,12 @@
 package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
+import org.jetbrains.ktor.util.*
 import org.junit.*
 import java.time.*
 import java.util.*
@@ -277,6 +279,25 @@ class LastModifiedTest {
     @Test
     fun testIfModifiedSinceEq() {
         val date = Date()
+        withTestApplication {
+            application.routing {
+                handle {
+                    withLastModified(date) {
+                        response.sendText("response")
+                    }
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.toLocalDateTime().toHttpDateString()) }).let { result ->
+                assertEquals(HttpStatusCode.NotModified, result.response.status())
+                assertNull(result.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testIfModifiedSinceEqZoned() {
+        val date = ZonedDateTime.now()
         withTestApplication {
             application.routing {
                 handle {
@@ -568,6 +589,27 @@ class IfRangeTest {
     }
 
     @Test
+    fun testRangeOnlyWithIfModifiedSinceZonedDate() {
+        val date = ZonedDateTime.now()
+
+        withTestApplication {
+            application.routing {
+                handle {
+                    withIfRange(date) { rangeOrNull ->
+                        fail("should never reach here")
+                    }
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Range, "bytes=0-1"); addHeader(HttpHeaders.IfModifiedSince, date.toLocalDateTime().toHttpDateString()) }).let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.NotModified, result.response.status())
+                assertNull(result.response.content)
+            }
+        }
+    }
+
+    @Test
     fun testRangeOnlyWithIfModifiedSinceLt() {
         val date = Date()
 
@@ -787,6 +829,51 @@ class IfRangeTest {
             }
         }
     }
-}
 
-private fun Date.toLocalDateTime() = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault())
+    @Test
+    fun testHasVersionEtag() {
+        withTestApplication {
+            application.routing {
+                handle {
+                    withIfRange(object : HasETag {
+                        override fun etag(): String { return "etag1"
+                        }
+                    }) { rangeOrNull ->
+                        assertNull(rangeOrNull)
+                        response.sendText("ok")
+                    }
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/", {  }).let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertEquals("ok", result.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testHasVersionLastModified() {
+        val date = Date()
+
+        withTestApplication {
+            application.routing {
+                handle {
+                    withIfRange(object : HasLastModified {
+                        override val lastModified: Long
+                            get() = date.time
+                    }) { rangeOrNull ->
+                        fail("should never reach here")
+                    }
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Range, "bytes=0-1"); addHeader(HttpHeaders.IfModifiedSince, date.toLocalDateTime().toHttpDateString()) }).let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.NotModified, result.response.status())
+                assertNull(result.response.content)
+            }
+        }
+    }
+}

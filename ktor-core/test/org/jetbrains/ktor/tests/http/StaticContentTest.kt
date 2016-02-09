@@ -58,7 +58,7 @@ class StaticContentTest {
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt").let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
                 assertEquals(HttpStatusCode.OK, result.response.status())
-                assertEquals(RangeUnits.Bytes, result.response.headers[HttpHeaders.AcceptRanges])
+                assertEquals(RangeUnits.Bytes.unitToken, result.response.headers[HttpHeaders.AcceptRanges])
                 assertNotNull(result.response.headers[HttpHeaders.LastModified])
             }
         }
@@ -90,6 +90,73 @@ class StaticContentTest {
                 assertEquals("ac", result.response.content)
                 assertEquals("bytes 1-2/${File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
                 assertNotNull(result.response.headers[HttpHeaders.LastModified])
+            }
+
+            handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
+                addHeader(HttpHeaders.Range, "bytes=-0") // unsatisfiable
+            }).let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable, result.response.status())
+            }
+
+            handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
+                addHeader(HttpHeaders.Range, "bytes=1000000-1000004")  // unsatisfiable
+            }).let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable, result.response.status())
+            }
+
+            handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
+                addHeader(HttpHeaders.Range, "bytes=1000000-7") // syntactically incorrect
+            }).let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.OK, result.response.status())
+            }
+
+            handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
+                addHeader(HttpHeaders.Range, "bytes=0-0,-0") // good + unsatisfiable
+            }).let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.PartialContent, result.response.status())
+                assertEquals("p", result.response.content)
+                assertEquals("bytes 0-0/${File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
+                assertNotNull(result.response.headers[HttpHeaders.LastModified])
+            }
+
+            handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
+                addHeader(HttpHeaders.Range, "bytes=0-0,1000000-1000004") // good + unsatisfiable
+            }).let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.PartialContent, result.response.status())
+                assertEquals("p", result.response.content)
+                assertEquals("bytes 0-0/${File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
+                assertNotNull(result.response.headers[HttpHeaders.LastModified])
+            }
+
+            // head request
+            handleRequest(HttpMethod.Head, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
+                addHeader(HttpHeaders.Range, "bytes=0-0")
+            }).let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.OK, result.response.status())
+                assertNotNull(result.response.headers[HttpHeaders.LastModified])
+                assertEquals(RangeUnits.Bytes.unitToken, result.response.headers[HttpHeaders.AcceptRanges])
+            }
+
+            // post request
+            handleRequest(HttpMethod.Post, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
+                addHeader(HttpHeaders.Range, "bytes=0-0")
+            }).let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.MethodNotAllowed, result.response.status())
+            }
+
+            // post request with no range
+            handleRequest(HttpMethod.Post, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
+
+            }).let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.OK, result.response.status())
             }
         }
     }
