@@ -53,11 +53,13 @@ abstract class BaseApplicationResponse(open val call: ApplicationCall) : Applica
                 }
             }
             is LocalFileContent -> {
-                call.handleRangeRequest(value, value.file.length(), mergeToSingleRange = true) { ranges ->
+                call.handleRangeRequest(value, value.file.length(), mergeToSingleRange = false) { ranges ->
                     when {
                         ranges == null -> {
                             // TODO compression settings
+                            contentType(value.contentType)
                             status(HttpStatusCode.OK)
+
                             if (call.request.acceptEncodingItems().any { it.value == "gzip" }) {
                                 headers.append(HttpHeaders.ContentEncoding, "gzip")
                                 sendAsyncChannel(value.file.asyncReadOnlyFileChannel().deflated())
@@ -65,12 +67,22 @@ abstract class BaseApplicationResponse(open val call: ApplicationCall) : Applica
                                 sendFile(value.file, 0L, value.file.length())
                             }
                         }
-                        else -> {
+                        ranges.size == 1 -> {
+                            contentType(value.contentType)
                             status(HttpStatusCode.PartialContent)
-                            val single = ranges.single()
 
+                            val single = ranges.single()
                             contentRange(single, value.file.length(), RangeUnits.Bytes)
                             sendFile(value.file, single.start, single.length)
+                        }
+                        else -> {
+                            val boundary = "ktor-boundary-" + nextNonce()
+                            status(HttpStatusCode.PartialContent)
+                            contentType(ContentType.MultiPart.ByteRanges.withParameter("boundary", boundary))
+
+                            sendAsyncChannel(ByteRangesChannel(ranges.map {
+                                ByteRangesChannel.FileWithRange(value.file, it)
+                            }, boundary, value.contentType.toString()))
                         }
                     }
 
@@ -92,7 +104,7 @@ abstract class BaseApplicationResponse(open val call: ApplicationCall) : Applica
         if (value is HasLastModified) {
             lastModified(value.lastModified)
         }
-        if (value is HasContentType) {
+        if (value is HasContentType && !call.request.headers.contains(HttpHeaders.Range)) {
             contentType(value.contentType)
         }
         if (value is HasContentLength && !call.request.headers.contains(HttpHeaders.Range)) {

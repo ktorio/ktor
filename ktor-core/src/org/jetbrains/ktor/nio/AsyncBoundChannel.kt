@@ -54,15 +54,7 @@ class AsyncBoundChannel(val source: AsynchronousByteChannel, val start: Long = 0
     override fun read(dst: ByteBuffer): Future<Int> {
         val future = CompletableFuture<Int>()
 
-        read(dst, Unit, object: CompletionHandler<Int, Unit> {
-            override fun completed(result: Int, nothing: Unit) {
-                future.complete(result)
-            }
-
-            override fun failed(exc: Throwable, nothing: Unit) {
-                future.completeExceptionally(exc)
-            }
-        })
+        read(dst, Unit, FutureCompletionHandler(future))
 
         return future
     }

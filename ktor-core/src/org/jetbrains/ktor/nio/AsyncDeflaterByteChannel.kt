@@ -1,5 +1,6 @@
-package org.jetbrains.ktor.http
+package org.jetbrains.ktor.nio
 
+import org.jetbrains.ktor.util.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.*
@@ -42,15 +43,7 @@ class AsyncDeflaterByteChannel(val source: AsynchronousByteChannel) : Asynchrono
     override fun read(dst: ByteBuffer): Future<Int> {
         val future = CompletableFuture<Int>()
 
-        read(dst, Unit, object: CompletionHandler<Int, Unit> {
-            override fun completed(result: Int, p1: Unit?) {
-                future.complete(result)
-            }
-
-            override fun failed(exc: Throwable?, p1: Unit?) {
-                future.completeExceptionally(exc)
-            }
-        })
+        read(dst, Unit, FutureCompletionHandler(future))
 
         return future
     }
@@ -139,14 +132,6 @@ class AsyncDeflaterByteChannel(val source: AsynchronousByteChannel) : Asynchrono
 }
 
 fun AsynchronousByteChannel.deflated() = AsyncDeflaterByteChannel(this)
-
-private fun ByteBuffer.putTo(other: ByteBuffer): Int {
-    val size = Math.min(remaining(), other.remaining())
-    for (i in 1..size) {
-        other.put(get())
-    }
-    return size
-}
 
 private fun Deflater.deflate(outBuffer: ByteBuffer) {
     if (outBuffer.hasRemaining()) {

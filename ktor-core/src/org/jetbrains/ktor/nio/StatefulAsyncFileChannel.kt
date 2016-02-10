@@ -54,15 +54,7 @@ class StatefulAsyncFileChannel (val fc: AsynchronousFileChannel, val start: Long
     override fun read(dst: ByteBuffer): Future<Int> {
         val f = CompletableFuture<Int>()
 
-        read(dst, Unit, object: CompletionHandler<Int, Unit> {
-            override fun failed(exc: Throwable?, attachment: Unit) {
-                f.completeExceptionally(exc)
-            }
-
-            override fun completed(rc: Int, attachment: Unit) {
-                f.complete(rc)
-            }
-        })
+        read(dst, Unit, FutureCompletionHandler(f))
 
         return f
     }

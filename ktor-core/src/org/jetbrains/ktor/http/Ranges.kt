@@ -55,7 +55,11 @@ fun parseRangesSpecifier(rangeSpec: String): RangesSpecifier? {
 fun ApplicationCall.handleRangeRequest(version: HasVersion, length: Long, mergeToSingleRange: Boolean = false, block: (List<LongRange>?) -> ApplicationCallResult): ApplicationCallResult {
     return withIfRange(version) { range ->
         response.headers.append(HttpHeaders.AcceptRanges, RangeUnits.Bytes.unitToken)
-        val merged = range?.merge(length, mergeToSingleRange)
+        val merged = range?.merge(length, mergeToSingleRange)?.let {
+            if (it.size > 10) {
+                range.merge(length, true)
+            } else it
+        }
 
         if (request.httpMethod == HttpMethod.Head) {
             response.contentLength(length)
