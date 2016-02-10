@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.http
 
+import org.jetbrains.ktor.nio.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.*
@@ -42,15 +43,7 @@ class AsyncDeflaterByteChannel(val source: AsynchronousByteChannel) : Asynchrono
     override fun read(dst: ByteBuffer): Future<Int> {
         val future = CompletableFuture<Int>()
 
-        read(dst, Unit, object: CompletionHandler<Int, Unit> {
-            override fun completed(result: Int, p1: Unit?) {
-                future.complete(result)
-            }
-
-            override fun failed(exc: Throwable?, p1: Unit?) {
-                future.completeExceptionally(exc)
-            }
-        })
+        read(dst, Unit, FutureCompletionHandler(future))
 
         return future
     }

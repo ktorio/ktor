@@ -18,7 +18,7 @@ data class RangesSpecifier(val unit: String = RangeUnits.Bytes.unitToken, val ra
         }
     }
 
-    fun merge(length: Long, mergeToSingle: Boolean = false): List<LongRange> {
+    fun merge(length: Long, mergeToSingle: Boolean): List<LongRange> {
         return if (mergeToSingle) {
             mergeToSingle(length)?.let { listOf(it) } ?: emptyList()
         } else {
