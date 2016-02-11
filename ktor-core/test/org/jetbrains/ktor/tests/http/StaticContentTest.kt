@@ -167,7 +167,6 @@ class StaticContentTest {
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=0-0,2-2")
             }).let { result ->
-//                val fileLength = File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()
                 assertNull(result.response.headers[HttpHeaders.ContentLength])
 
                 assertMultipart(result) { parts ->
@@ -177,6 +176,17 @@ class StaticContentTest {
                         elementAtShouldBe(1, "c")
                     }
                 }
+            }
+
+            // multiple ranges should be merged into one
+            handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
+                addHeader(HttpHeaders.Range, "bytes=0-0,1-2")
+            }).let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.PartialContent, result.response.status())
+                assertEquals("bytes 0-2/${File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
+                assertEquals("pac", result.response.content)
+                assertNotNull(result.response.headers[HttpHeaders.LastModified])
             }
         }
     }
