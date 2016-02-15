@@ -3,6 +3,7 @@ package org.jetbrains.ktor.tests.http
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.testing.*
+import org.jetbrains.ktor.tests.*
 import org.junit.*
 import java.text.*
 import java.time.*
@@ -119,47 +120,68 @@ class CookiesTest {
     }
 
     @test fun `intercept cookie test`() {
-        with(TestApplicationRequest()) {
-            with(TestApplicationResponse()) {
-                val found = ArrayList<String>()
+        withTestApplication {
+            with(TestApplicationRequest()) {
+                with(TestApplicationCall(application, this)) {
+                    with(TestApplicationResponse(this)) {
+                        val found = ArrayList<String>()
 
-                cookies.intercept { cookie, next ->
-                    found.add(cookie.name)
-                    next(cookie)
+                        cookies.intercept { cookie, next ->
+                            found.add(cookie.name)
+                            next(cookie)
+                        }
+
+                        cookies.append("first", "1")
+                        headers.append("Set-Cookie", "second=2")
+
+                        assertEquals(listOf("first", "second"), found)
+                    }
                 }
-
-                cookies.append("first", "1")
-                headers.append("Set-Cookie", "second=2")
-
-                assertEquals(listOf("first", "second"), found)
             }
         }
     }
 
     @test fun `add cookie and get it`() {
-        with(TestApplicationRequest()) {
-            with(TestApplicationResponse()) {
-                cookies.append("key", "value")
+        withTestApplication {
+            with(TestApplicationRequest()) {
+                with(TestApplicationCall(application, this)) {
+                    with(TestApplicationResponse(this)) {
+                        cookies.append("key", "value")
 
-                assertEquals("value", cookies["key"]?.value)
-                assertNull(cookies["other"])
+                        assertEquals("value", cookies["key"]?.value)
+                        assertNull(cookies["other"])
+                    }
+                }
             }
         }
     }
 
     @test fun `add multiple cookies`() {
-        with(TestApplicationResponse()) {
-            cookies.append("a", "1")
-            cookies.append("b", "2")
+        withTestApplication {
+            with(TestApplicationRequest()) {
+                with(TestApplicationCall(application, this)) {
+                    with(TestApplicationResponse(this)) {
+                        cookies.append("a", "1")
+                        cookies.append("b", "2")
 
-            assertEquals(listOf("a=1", "b=2"), headers.values("Set-Cookie").map { it.cutSetCookieHeader() })
+                        assertEquals(listOf("a=1", "b=2"), headers.values("Set-Cookie").map { it.cutSetCookieHeader() })
+                    }
+                }
+            }
         }
     }
 
     private fun testSetCookies(expectedHeaderContent: String, block: ApplicationResponse.() -> Unit) {
-        val response = TestApplicationResponse()
-        with(response, block)
-        assertEquals(expectedHeaderContent, response.headers["Set-Cookie"]?.cutSetCookieHeader())
+        withTestApplication {
+            with(TestApplicationRequest()) {
+                with(TestApplicationCall(application, this)) {
+                    with(TestApplicationResponse(this)) {
+                        block()
+                        assertEquals(expectedHeaderContent, headers["Set-Cookie"]?.cutSetCookieHeader())
+                    }
+                }
+            }
+        }
     }
 
     private fun withRawCookies(header: String, block: TestApplicationRequest.() -> Unit) {

@@ -55,7 +55,7 @@ class TestApplicationCall(override val application: Application, override val re
     override val attributes = Attributes()
     override val close = Interceptable0 {}
 
-    override val response = TestApplicationResponse()
+    override val response = TestApplicationResponse(this)
 }
 
 class TestApplicationRequest() : ApplicationRequest {
@@ -106,7 +106,7 @@ class TestApplicationRequest() : ApplicationRequest {
     override val cookies = RequestCookies(this)
 }
 
-class TestApplicationResponse : BaseApplicationResponse() {
+class TestApplicationResponse(call: ApplicationCall) : BaseApplicationResponse(call) {
     private var statusCode: HttpStatusCode? = null
 
     override val status = Interceptable1<HttpStatusCode, Unit> { code -> this.statusCode = code }

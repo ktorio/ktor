@@ -9,6 +9,7 @@ import org.junit.*
 import java.io.*
 import java.net.*
 import java.util.concurrent.*
+import java.util.zip.*
 import kotlin.concurrent.*
 import kotlin.test.*
 
@@ -250,6 +251,67 @@ abstract class HostTestSuite {
 
         withUrl("/") {
             assertEquals(file.readText(), inputStream.reader().readText())
+        }
+    }
+
+    @Test
+    fun testLocalFileContentWithCompression() {
+        val file = listOf(File("src"), File("ktor-core/src")).first{ it.exists() }.walkBottomUp().filter { it.extension == "kt" }.first()
+        println("test file is $file")
+
+        val server = createServer(port) {
+            handle {
+                response.send(LocalFileContent(file))
+            }
+        }
+        startServer(server)
+
+        withUrl("/") {
+            addRequestProperty(HttpHeaders.AcceptEncoding, "gzip")
+            assertEquals(file.readText(), GZIPInputStream(inputStream).reader().readText())
+            assertEquals("gzip", getHeaderField(HttpHeaders.ContentEncoding))
+        }
+    }
+
+    @Test
+    fun testLocalFileContentRange() {
+        val file = listOf(File("src"), File("ktor-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }.first()
+        println("test file is $file")
+
+        val server = createServer(port) {
+            handle {
+                response.send(LocalFileContent(file))
+            }
+        }
+        startServer(server)
+
+        withUrl("/") {
+            setRequestProperty(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
+            assertEquals("p", inputStream.reader().readText())
+        }
+        withUrl("/") {
+            setRequestProperty(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(1, 2))).toString())
+            assertEquals("ac", inputStream.reader().readText())
+        }
+    }
+
+    @Test
+    fun testLocalFileContentRangeWithCompression() {
+        val file = listOf(File("src"), File("ktor-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }.first()
+        println("test file is $file")
+
+        val server = createServer(port) {
+            handle {
+                response.send(LocalFileContent(file))
+            }
+        }
+        startServer(server)
+
+        withUrl("/") {
+            addRequestProperty(HttpHeaders.AcceptEncoding, "gzip")
+            setRequestProperty(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
+
+            assertEquals("p", inputStream.reader().readText()) // it should be no compression if range requested
         }
     }
 
