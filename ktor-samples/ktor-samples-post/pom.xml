@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ktor-samples</artifactId>
         <groupId>org.jetbrains</groupId>
-        <version>0.1.8-SNAPSHOT</version>
+        <version>0.1.8</version>
     </parent>
 
     <artifactId>ktor-samples-post</artifactId>
