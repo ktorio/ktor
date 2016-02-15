@@ -4,7 +4,7 @@
     <parent>
         <artifactId>ktor-hosts</artifactId>
         <groupId>org.jetbrains</groupId>
-        <version>0.1.7</version>
+        <version>0.1.8-SNAPSHOT</version>
     </parent>
 
     <artifactId>ktor-netty</artifactId>
