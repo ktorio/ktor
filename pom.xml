@@ -176,7 +176,7 @@
     <distributionManagement>
         <repository>
             <id>bintray</id>
-            <url>https://api.bintray.com/maven/kotlin/ktor/${project.artifactId}</url>
+            <url>https://api.bintray.com/maven/kotlin/ktor/ktor</url>
         </repository>
     </distributionManagement>
 
