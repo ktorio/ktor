@@ -193,6 +193,65 @@ class OAuth1aFlowTest {
         }
     }
 
+    @Test
+    fun testRequestTokenLowLevel() {
+        withTestApplication {
+            application.routing {
+                get("/login") {
+                    simpleOAuthAnyStep1(testClient, exec, settings, "http://localhost/login?redirected=true", "/")
+                }
+            }
+
+            val result = handleRequest(HttpMethod.Get, "/login")
+            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
+
+            waitExecutor()
+
+            assertEquals(HttpStatusCode.Found, result.response.status())
+            assertEquals("https://login-server-com/oauth/authorize?oauth_token=token1", result.response.headers[HttpHeaders.Location], "Redirect target location is not valid")
+        }
+    }
+
+    @Test
+    fun testAccessTokenLowLevel() {
+        withTestApplication {
+            application.routing {
+                get("/login") {
+                    simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login?redirected=true", "/") { token ->
+                        response.sendText("Ho, $token")
+                    }
+                }
+            }
+
+            val result = handleRequest(HttpMethod.Get, "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier1")
+            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
+
+            waitExecutor()
+
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertTrue { result.response.content!!.startsWith("Ho, ") }
+            assertFalse { result.response.content!!.contains("null") }
+        }
+    }
+
+    @Test
+    fun testAccessTokenLowLevelErrorRedirect() {
+        withTestApplication {
+            application.routing {
+                get("/login") {
+                    simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login?redirected=true", "/") { token ->
+                        response.sendText("Ho, $token")
+                    }
+                }
+            }
+
+            val result = handleRequest(HttpMethod.Get, "/login?redirected=true&oauth_token=token1&error_description=failed")
+            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled asynchronously")
+
+            assertEquals(HttpStatusCode.Found, result.response.status())
+        }
+    }
+
     private fun Application.configureServer(redirectUrl: String = "http://localhost/login?redirected=true", mutateSettings: OAuthServerSettings.OAuth1aServerSettings.() -> OAuthServerSettings.OAuth1aServerSettings = { this }) {
         routing {
             route(HttpMethod.Get, "/login") {

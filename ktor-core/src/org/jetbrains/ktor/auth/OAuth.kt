@@ -332,7 +332,7 @@ fun ApplicationCall.simpleOAuthAnyStep1(client: HttpClient, exec: ExecutorServic
             response.redirectAuthenticateOAuth2(provider, callbackUrl, nextNonce(), scopes = provider.defaultScopes)
     }
 
-fun ApplicationCall.simpleOAuthAnyStep2(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String, block: (OAuthAccessTokenResponse) -> ApplicationCallResult): ApplicationCallResult =
+fun ApplicationCall.simpleOAuthAnyStep2(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String, configure: RequestBuilder.() -> Unit = {}, block: (OAuthAccessTokenResponse) -> ApplicationCallResult): ApplicationCallResult =
         when (provider) {
             is OAuthServerSettings.OAuth1aServerSettings -> {
                 val tokens = oauth1aHandleCallback()
@@ -357,7 +357,9 @@ fun ApplicationCall.simpleOAuthAnyStep2(client: HttpClient, exec: ExecutorServic
                                 client,
                                 provider,
                                 callbackUrl,
-                                code
+                                code,
+                                emptyMap(),
+                                configure
                         )
 
                         block(accessToken)

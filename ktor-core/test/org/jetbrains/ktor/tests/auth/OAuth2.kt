@@ -136,6 +136,140 @@ class OAuth2Test {
     }
 
     @Test
+    fun testRequestTokenBadCode() {
+        val result = host.handleRequest {
+            uri = "/login?" + listOf(
+                    OAuth2RequestParameters.Code to "code2",
+                    OAuth2RequestParameters.State to "state1"
+            ).formUrlEncode()
+        }
+
+        assertEquals(ApplicationCallResult.Asynchronous, result.requestResult)
+
+        waitExecutor()
+
+        assertEquals(HttpStatusCode.OK, result.response.status())
+        assertEquals("Hej, []", result.response.content)
+    }
+
+    @Test
+    fun testRedirectLowLevel() {
+        withTestApplication {
+            application.routing {
+                get("/login") {
+                    simpleOAuthAnyStep1(testClient, exec, settings, "http://localhost/login", "/")
+                }
+            }
+
+            val result = handleRequest(HttpMethod.Get, "/login")
+            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should not be handled asynchronously")
+
+            assertEquals(HttpStatusCode.Found, result.response.status())
+            val redirectUrl = URI.create(result.response.headers[HttpHeaders.Location] ?: fail("Redirect uri is missing"))
+            assertEquals("login-server-com", redirectUrl.host)
+            assertEquals("/authorize", redirectUrl.path)
+            val redirectParameters = redirectUrl.rawQuery?.parseUrlEncodedParameters() ?: fail("no redirect parameters")
+
+            assertEquals("clientId1", redirectParameters[OAuth2RequestParameters.ClientId])
+            assertEquals("code", redirectParameters[OAuth2RequestParameters.ResponseType])
+            assertNotNull(redirectParameters[OAuth2RequestParameters.State])
+            assertEquals("http://localhost/login", redirectParameters[OAuth2RequestParameters.RedirectUri])
+        }
+    }
+
+    @Test
+    fun testRequestTokenLowLevel() {
+        withTestApplication {
+            application.routing {
+                get("/login") {
+                    simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login", "/") { token ->
+                        response.sendText("Ho, $token")
+                    }
+                }
+            }
+
+            val result = handleRequest(HttpMethod.Get, "/login?" + listOf(
+                    OAuth2RequestParameters.Code to "code1",
+                    OAuth2RequestParameters.State to "state1"
+            ).formUrlEncode())
+            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
+
+            waitExecutor()
+
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertTrue { result.response.content!!.startsWith("Ho, ") }
+            assertFalse { result.response.content!!.contains("null") }
+        }
+    }
+
+    @Test
+    fun testRequestTokenLowLevelBadCode() {
+        withTestApplication {
+            application.routing {
+                get("/login") {
+                    simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login", "/") { token ->
+                        response.sendText("Ho, $token")
+                    }
+                }
+            }
+
+            val result = handleRequest(HttpMethod.Get, "/login?" + listOf(
+                    OAuth2RequestParameters.Code to "code2",
+                    OAuth2RequestParameters.State to "state1"
+            ).formUrlEncode())
+            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
+
+            waitExecutor()
+
+            assertEquals(HttpStatusCode.Found, result.response.status())
+        }
+    }
+
+    @Test
+    fun testRequestTokenLowLevelErrorRedirect() {
+        withTestApplication {
+            application.routing {
+                get("/login") {
+                    simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login", "/") { token ->
+                        response.sendText("Ho, $token")
+                    }
+                }
+            }
+
+            val result = handleRequest(HttpMethod.Get, "/login?error=failed")
+            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should not be handled asynchronously")
+
+            assertEquals(HttpStatusCode.Found, result.response.status())
+        }
+    }
+
+    @Test
+    fun testRequestTokenLowLevelBadContentType() {
+        withTestApplication {
+            application.routing {
+                get("/login") {
+                    simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login", "/", { path += "&badContentType=true" }) { token ->
+                        response.sendText("Ho, $token")
+                    }
+                }
+            }
+
+            val result = handleRequest(HttpMethod.Get, "/login?" + listOf(
+                    OAuth2RequestParameters.Code to "code1",
+                    OAuth2RequestParameters.State to "state1"
+            ).formUrlEncode())
+            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should not be handled asynchronously")
+
+            waitExecutor()
+
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertTrue { result.response.content!!.startsWith("Ho, ") }
+            assertFalse { result.response.content!!.contains("null") }
+        }
+    }
+
+
+    @Test
     fun testResourceOwnerPasswordCredentials() {
         host.handleRequestWithBasic("/resource", "user", "pass").let { result ->
             waitExecutor()
@@ -199,12 +333,18 @@ private fun createOAuth2Server(server: OAuth2Server): TestingHttpClient {
                 val redirectUri = request.parameter(OAuth2RequestParameters.RedirectUri)
                 val username = request.parameter(OAuth2RequestParameters.UserName)
                 val password = request.parameter(OAuth2RequestParameters.Password)
+                val badContentType = request.parameter("badContentType") == "true"
 
                 try {
                     val tokens = server.requestToken(clientId, clientSecret, grantType, state, code, redirectUri, username, password)
 
+                    val contentType = when {
+                        badContentType == true -> ContentType.Text.Plain
+                        else -> ContentType.Application.Json
+                    }
+
                     response.status(HttpStatusCode.OK)
-                    response.sendText(ContentType.Application.Json, JSONObject().apply {
+                    response.sendText(contentType, JSONObject().apply {
                         put(OAuth2ResponseParameters.AccessToken, tokens.accessToken)
                         put(OAuth2ResponseParameters.TokenType, tokens.tokenType)
                         put(OAuth2ResponseParameters.ExpiresIn, tokens.expiresIn)
