@@ -7,7 +7,7 @@ import java.io.*
 import java.net.*
 
 fun commandLineConfig(args: Array<String>): Pair<ApplicationHostConfig, ApplicationConfig> {
-    val argsMap = args.map { it.splitPair('=') }.filterNotNull().toMap()
+    val argsMap = args.mapNotNull { it.splitPair('=') }.toMap()
 
     val jar = argsMap["-jar"]?.let { File(it).toURI().toURL() }
     val argConfig = ConfigFactory.parseMap(argsMap.filterKeys { it.startsWith("-P:") }.mapKeys { it.key.removePrefix("-P:") }, "Command-line options")
@@ -25,10 +25,10 @@ fun commandLineConfig(args: Array<String>): Pair<ApplicationHostConfig, Applicat
     log.info(combinedConfig.getObject("ktor").render())
 
     val hostConfig = applicationHostConfig {
-        argsMap["-host"] ?: combinedConfig.tryGetString(hostConfigPath)?.let {
+        (argsMap["-host"] ?: combinedConfig.tryGetString(hostConfigPath))?.let {
             host = it
         }
-        argsMap["-port"] ?: combinedConfig.tryGetString(hostPortPath)?.let {
+        (argsMap["-port"] ?: combinedConfig.tryGetString(hostPortPath))?.let {
             port = it.toInt()
         }
     }
