@@ -39,11 +39,11 @@ inline fun <C : ApplicationCall, reified K : Credential, reified P : Principal> 
 ) {
     intercept { next ->
         val auth = authContext
-        auth.addPrincipals(auth.credentials<K>().map { cred ->
+        auth.addPrincipals(auth.credentials<K>().mapNotNull { cred ->
             ldapVerifyBase(ldapUrl,
                     ldapLoginConfigurator = { config -> ldapLoginConfigurator(cred, config) },
                     doVerify = { ctx -> ctx.verifyBlock(cred) })
-        }.filterNotNull())
+        })
 
         next()
     }
