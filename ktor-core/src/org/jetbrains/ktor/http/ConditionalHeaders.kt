@@ -90,8 +90,8 @@ fun ApplicationCall.withIfRange(resource: HasVersion, block: (RangesSpecifier?) 
     }
 }
 
-fun ApplicationCall.withIfRange(date: Date, block: (RangesSpecifier?) -> ApplicationCallResult): ApplicationCallResult {
-    return withIfRange(date.toDateTime().toLocalDateTime(), block)
+fun ApplicationCall.withIfRange(lastModified: Date, block: (RangesSpecifier?) -> ApplicationCallResult): ApplicationCallResult {
+    return withIfRange(lastModified.toDateTime().toLocalDateTime(), block)
 }
 
 fun ApplicationCall.withIfRange(lastModified: ZonedDateTime, block: (RangesSpecifier?) -> ApplicationCallResult): ApplicationCallResult {
