@@ -8,6 +8,7 @@ import org.jetbrains.ktor.tests.*
 import org.junit.*
 import java.io.*
 import java.net.*
+import java.nio.file.Paths
 import kotlin.test.*
 
 class FindContainingZipFileTest {
@@ -28,6 +29,8 @@ class FindContainingZipFileTest {
 }
 
 class StaticContentTest {
+    val basedir = listOf(File("test"), File("ktor-core/test")).first { it.exists() }
+
     @Test
     fun testStaticContent() {
         withTestApplication {
@@ -35,7 +38,9 @@ class StaticContentTest {
                 val resolved = sequenceOf(
                         { resolveClasspathResource("", "org.jetbrains.ktor.tests.http") },
                         { resolveClasspathResource("", "java.util") },
-                        { resolveLocalFile("", listOf(File("test"), File("ktor-core/test")).first { it.exists() }) }
+                        { resolveClasspathResource("/z", "java.util") },
+                        { resolveLocalFile("", basedir) },
+                        { resolveLocalFile("/f", basedir) }
                 ).map { it() }.firstOrNull { it != null }
 
                 if (resolved == null) {
@@ -51,11 +56,139 @@ class StaticContentTest {
             handleRequest(HttpMethod.Get, "/ArrayList.class").let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
             }
+            handleRequest(HttpMethod.Get, "/z/ArrayList.class").let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            }
+            handleRequest(HttpMethod.Get, "ArrayList.class").let { result ->
+                assertEquals(ApplicationCallResult.Unhandled, result.requestResult)
+            }
             handleRequest(HttpMethod.Get, "/ArrayList.class2").let { result ->
                 assertEquals(ApplicationCallResult.Unhandled, result.requestResult)
             }
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt").let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            }
+            handleRequest(HttpMethod.Get, "/f/org/jetbrains/ktor/tests/http/StaticContentTest.kt").let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            }
+        }
+    }
+
+    @Test
+    fun testStaticContentWrongPath() {
+        withTestApplication {
+            application.intercept { next ->
+                val resolved = sequenceOf(
+                        { resolveLocalFile("", basedir) }
+                ).map { it() }.firstOrNull { it != null }
+
+                if (resolved == null) {
+                    next()
+                } else {
+                    response.send(resolved)
+                }
+            }
+
+            listOf("../pom.xml", "../../pom.xml", "/../pom.xml", "/../../pom.xml", "/./.././../pom.xml").forEach { path ->
+                handleRequest(HttpMethod.Get, path).let { result ->
+                    assertEquals(ApplicationCallResult.Unhandled, result.requestResult, "Should be unhandled for path $path")
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testSendLocalFile() {
+        withTestApplication {
+            application.intercept { next ->
+                response.send(LocalFileContent(basedir, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt"))
+            }
+
+            handleRequest(HttpMethod.Get, "/").let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(File(basedir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").readText(), result.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testSendLocalFilePaths() {
+        withTestApplication {
+            application.intercept { next ->
+                response.send(LocalFileContent(basedir.toPath(), Paths.get("/org/jetbrains/ktor/tests/http/StaticContentTest.kt")))
+            }
+
+            handleRequest(HttpMethod.Get, "/").let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(File(basedir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").readText(), result.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testZipFileContentPaths() {
+        withTestApplication {
+            application.intercept { next ->
+                val zip = resolveClasspathResource("", "java.util") as ResourceFileContent
+                val pathified = ResourceFileContent(zip.zipFile.toPath(), zip.resourcePath, zip.classLoader, zip.contentType)
+
+                response.send(pathified)
+            }
+
+            handleRequest(HttpMethod.Get, "/ArrayList.class").let { result ->
+                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            }
+        }
+    }
+
+    @Test
+    fun testSendLocalFileBadRelative() {
+        withTestApplication {
+            application.intercept { next ->
+                assertFailsWith<IllegalArgumentException> {
+                    response.send(LocalFileContent(basedir, "/../../../../../../../../../../../../../etc/passwd"))
+                }
+                assertFailsWith<IllegalArgumentException> {
+                    response.send(LocalFileContent(basedir, "../pom.xml"))
+                }
+                assertFailsWith<IllegalArgumentException> {
+                    response.send(LocalFileContent(basedir, "../../pom.xml"))
+                }
+                assertFailsWith<IllegalArgumentException> {
+                    response.send(LocalFileContent(basedir, "/../pom.xml"))
+                }
+
+                ApplicationCallResult.Unhandled
+            }
+
+            handleRequest(HttpMethod.Get, "/").let { result ->
+                assertEquals(ApplicationCallResult.Unhandled, result.requestResult)
+            }
+        }
+    }
+
+    @Test
+    fun testSendLocalFileBadRelativePaths() {
+        withTestApplication {
+            application.intercept { next ->
+                assertFailsWith<IllegalArgumentException> {
+                    response.send(LocalFileContent(basedir.toPath(), Paths.get("/../../../../../../../../../../../../../etc/passwd")))
+                }
+                assertFailsWith<IllegalArgumentException> {
+                    response.send(LocalFileContent(basedir.toPath(), Paths.get("../pom.xml")))
+                }
+                assertFailsWith<IllegalArgumentException> {
+                    response.send(LocalFileContent(basedir.toPath(), Paths.get("../../pom.xml")))
+                }
+                assertFailsWith<IllegalArgumentException> {
+                    response.send(LocalFileContent(basedir.toPath(), Paths.get("/../pom.xml")))
+                }
+
+                ApplicationCallResult.Unhandled
+            }
+
+            handleRequest(HttpMethod.Get, "/").let { result ->
+                assertEquals(ApplicationCallResult.Unhandled, result.requestResult)
             }
         }
     }
