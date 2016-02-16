@@ -73,7 +73,7 @@ private fun String.extension() = split("/\\").last().substringAfter(".")
 private fun Path.extension() = fileName.toString().substringAfter(".")
 
 private fun File.safeAppend(relativePath: Path): File {
-    val normalized = relativePath.normalize()
+    val normalized = relativePath.normalizeAndRelativize()
     if (normalized.startsWith("..")) {
         throw IllegalArgumentException("Bad relative path $relativePath")
     }
@@ -82,10 +82,12 @@ private fun File.safeAppend(relativePath: Path): File {
 }
 
 private fun Path.safeAppend(relativePath: Path): Path {
-    val normalized = relativePath.normalize()
+    val normalized = relativePath.normalizeAndRelativize()
     if (normalized.startsWith("..")) {
         throw IllegalArgumentException("Bad relative path $relativePath")
     }
 
-    return resolve(relativePath)
+    return resolve(normalized)
 }
+
+internal fun Path.normalizeAndRelativize() = if (isAbsolute) Paths.get("/").relativize(this).normalize() else this.normalize()

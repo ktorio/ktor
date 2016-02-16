@@ -48,12 +48,10 @@ fun ApplicationCall.resolveLocalFile(contextPath: String, baseDir: File, mimeRes
  */
 fun ApplicationCall.resolveClasspathWithPath(basePackage: String, path: String, mimeResolve: (String) -> ContentType = { defaultContentType(it) }): StreamContentProvider? {
     val packagePath = basePackage.replace('.', '/').appendIfNotEndsWith("/") + path.removePrefix("/")
-    val normalizedPath = Paths.get(packagePath).normalize()
+    val normalizedPath = Paths.get(packagePath).normalizeAndRelativize()
     val normalizedResource = normalizedPath.toString().replace(File.separatorChar, '/')
 
-    if (normalizedPath.startsWith("..")) {
-        return null
-    }
+    // note: we don't need to check for .. in the normalizedPath because all .. get replaced with //
 
     for (uri in javaClass.classLoader.getResources(normalizedResource).asSequence().map { it.toURI() }) {
         if (uri.scheme == "file") {
