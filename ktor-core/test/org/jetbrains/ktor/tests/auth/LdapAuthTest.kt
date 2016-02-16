@@ -14,6 +14,7 @@ import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.junit.*
 import org.junit.runner.*
+import java.net.*
 import java.util.*
 import javax.naming.directory.*
 import javax.naming.ldap.*
@@ -37,7 +38,7 @@ class LdapAuthTest {
             application.routing {
                 auth {
                     basicAuth()
-                    verifyWithLdapLoginWithUser("ldap://127.0.0.1:${ldapServer.port}", "uid=%s,ou=system")
+                    verifyWithLdapLoginWithUser("ldap://$localhost:${ldapServer.port}", "uid=%s,ou=system")
                 }
                 get("/") {
                     response.sendText((authContext.foundPrincipals.singleOrNull() as? UserIdPrincipal)?.name ?: "null")
@@ -65,7 +66,7 @@ class LdapAuthTest {
             application.routing {
                 auth {
                     basicAuth()
-                    verifyWithLdap("ldap://127.0.0.1:${ldapServer.port}", ldapLoginConfigurator = { c, env ->
+                    verifyWithLdap("ldap://$localhost:${ldapServer.port}", ldapLoginConfigurator = { c, env ->
                         env.put("java.naming.security.principal", "uid=admin,ou=system")
                         env.put("java.naming.security.credentials", "secret")
                         env.put("java.naming.security.authentication", "simple")
@@ -109,7 +110,7 @@ class LdapAuthTest {
     fun testEnsureUser() {
         val env = Hashtable<String, String>()
         env.put("java.naming.factory.initial", "com.sun.jndi.ldap.LdapCtxFactory")
-        env.put("java.naming.provider.url", "ldap://127.0.0.1:${ldapServer.port}")
+        env.put("java.naming.provider.url", "ldap://$localhost:${ldapServer.port}")
         env.put("java.naming.security.principal", "uid=admin,ou=system")
         env.put("java.naming.security.credentials", "secret")
         env.put("java.naming.security.authentication", "simple")
@@ -123,6 +124,14 @@ class LdapAuthTest {
 
         assertEquals(listOf("user-test"), res.map { it.attributes.get("uid").get().toString() })
     }
+
+    private val localhost: String
+        get() =
+            try {
+                InetAddress.getLocalHost().hostAddress
+            } catch (any: Throwable) {
+                "127.0.0.1"
+            }
 
     companion object {
         @JvmStatic
