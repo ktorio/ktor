@@ -28,6 +28,32 @@ class BasicAuthTest {
     }
 
     @Test
+    fun testBasicAuthNoInterceptor() {
+        withTestApplication {
+            val user = "user1"
+            val p = "user1"
+
+            application.intercept {
+                val authInfo = request.basicAuth()
+                assertNotNull(authInfo)
+                assertEquals(authInfo, basicAuth())
+
+                assertEquals(user, authInfo!!.name)
+                assertEquals(p, authInfo.password)
+
+                response.status(HttpStatusCode.OK)
+                response.sendText("ok")
+            }
+
+            val response = handleRequestWithBasic("/", user, p)
+
+            assertEquals(ApplicationCallResult.Handled, response.requestResult)
+            assertEquals(HttpStatusCode.OK, response.response.status())
+            assertEquals("ok", response.response.content)
+        }
+    }
+
+    @Test
     fun testBasicAuthSuccess() {
         withTestApplication {
             application.configureServer()
