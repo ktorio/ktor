@@ -1,11 +1,12 @@
 package org.jetbrains.ktor.nio
 
+import org.jetbrains.ktor.util.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.*
 
-class ByteArrayAsynchronousChannel(val bytes: ByteArray) : AsynchronousByteChannel {
-    private val bb = ByteBuffer.wrap(bytes)
+class ByteArrayAsynchronousChannel(val bb: ByteBuffer, val maxReadAmount: Int = Int.MAX_VALUE) : AsynchronousByteChannel {
+    constructor(array: ByteArray, maxReadAmount: Int = Int.MAX_VALUE) : this(ByteBuffer.wrap(array), maxReadAmount)
 
     override fun <A : Any?> write(p0: ByteBuffer?, p1: A, p2: CompletionHandler<Int, in A>?) {
         throw UnsupportedOperationException()
@@ -25,11 +26,7 @@ class ByteArrayAsynchronousChannel(val bytes: ByteArray) : AsynchronousByteChann
             return
         }
 
-        val size = Math.min(dst.remaining(), bb.remaining())
-        repeat(size) {
-            dst.put(bb.get())
-        }
-
+        val size = bb.putTo(dst, maxReadAmount)
         handler.completed(size, attachment)
     }
 

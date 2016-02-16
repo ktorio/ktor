@@ -13,8 +13,8 @@ internal fun get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH(): WatchEve
     }
 }
 
-internal fun ByteBuffer.putTo(other: ByteBuffer): Int {
-    val size = Math.min(remaining(), other.remaining())
+internal fun ByteBuffer.putTo(other: ByteBuffer, limit: Int = Int.MAX_VALUE): Int {
+    val size = arrayOf(limit, remaining(), other.remaining()).min()!!
     for (i in 1..size) {
         other.put(get())
     }

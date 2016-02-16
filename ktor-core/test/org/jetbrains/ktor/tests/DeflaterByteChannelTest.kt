@@ -1,14 +1,11 @@
 package org.jetbrains.ktor.tests
 
-import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.junit.*
-import org.mockito.*
 import java.io.*
 import java.nio.*
 import java.nio.channels.*
 import java.nio.file.*
-import java.util.concurrent.*
 import java.util.zip.*
 import kotlin.test.*
 
@@ -66,44 +63,5 @@ class DeflaterByteChannelTest {
 
     private fun asyncOf(text: String, step: Int) = asyncOf(ByteBuffer.wrap(text.toByteArray(Charsets.ISO_8859_1)), step)
 
-    private fun asyncOf(bb: ByteBuffer, step: Int): AsynchronousByteChannel {
-        val async = Mockito.mock(AsynchronousByteChannel::class.java)
-        @Suppress("UNCHECKED_CAST")
-        Mockito.`when`(async.read<Any?>(Mockito.any(), Mockito.any(), Mockito.any())).then { call ->
-            val (buffer_, attachment_, handler_) = call.arguments
-
-            val buffer = buffer_ as ByteBuffer
-            val handler = handler_ as CompletionHandler<Int, Any?>
-
-            if (!bb.hasRemaining()) {
-                handler.completed(-1, attachment_)
-            } else {
-                val size = listOf(step, buffer.remaining(), bb.remaining()).min()!!
-                repeat(size) {
-                    buffer.put(bb.get())
-                }
-
-                handler.completed(size, attachment_)
-            }
-        }
-        Mockito.`when`(async.read(Mockito.any())).then { call ->
-            val buffer = call.arguments[0] as ByteBuffer
-            val future = CompletableFuture<Int>()
-
-            async.read(buffer, Unit, object: CompletionHandler<Int?, Unit?> {
-                override fun failed(exc: Throwable?, p1: Unit?) {
-                    future.completeExceptionally(exc)
-                }
-
-                override fun completed(result: Int?, p1: Unit?) {
-                    future.complete(result)
-                }
-            })
-
-            future
-        }
-        Mockito.`when`(async.isOpen).thenReturn(true)
-
-        return async
-    }
+    private fun asyncOf(bb: ByteBuffer, step: Int) = ByteArrayAsynchronousChannel(bb, step)
 }
