@@ -90,4 +90,4 @@ private fun Path.safeAppend(relativePath: Path): Path {
     return resolve(normalized)
 }
 
-internal fun Path.normalizeAndRelativize() = if (isAbsolute) Paths.get("/").relativize(this).normalize() else this.normalize()
+internal fun Path.normalizeAndRelativize() = root?.relativize(this)?.normalize() ?: normalize()
