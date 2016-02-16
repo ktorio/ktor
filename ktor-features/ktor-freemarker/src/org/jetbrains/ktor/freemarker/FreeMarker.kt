@@ -19,7 +19,7 @@ class FreeMarkerTemplateResource internal constructor(val content: freemarker.te
 class FreeMarkerContent(val templateName: String, val model: Any, val etag: String, val contentType: ContentType = ContentType.Text.Html)
 
 
-fun freemarker(block: () -> Configuration = { Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS) }): TemplateEngine<FreeMarkerContent, FreeMarkerTemplateResource> =
+fun freemarker(block: () -> Configuration): TemplateEngine<FreeMarkerContent, FreeMarkerTemplateResource> =
         FreeMarkerTemplateEngine(block())
 
 private class FreeMarkerTemplateEngine(val configuration: Configuration) : TemplateEngine<FreeMarkerContent, FreeMarkerTemplateResource> {
