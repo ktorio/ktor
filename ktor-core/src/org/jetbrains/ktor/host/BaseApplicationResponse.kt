@@ -15,7 +15,9 @@ abstract class BaseApplicationResponse(open val call: ApplicationCall) : Applica
     protected abstract val stream: Interceptable1<OutputStream.() -> Unit, Unit>
     protected abstract val status: Interceptable1<HttpStatusCode, Unit>
 
-    protected open val send = Interceptable1<Any, ApplicationCallResult> { value ->
+    protected open fun completeCall() { }
+
+    protected open val send = Interceptable1<Any, Unit> { value ->
         sendHeaders(value)
         when (value) {
             is String -> {
@@ -24,32 +26,32 @@ abstract class BaseApplicationResponse(open val call: ApplicationCall) : Applica
                     ContentType.parse(it).parameter("charset")
                 } ?: "UTF-8"
                 streamText(value, encoding)
-                ApplicationCallResult.Handled
+                completeCall()
             }
             is TextContent -> {
                 contentType(value.contentType)
                 send(value.text)
             }
-            is TextErrorContent -> {
+            is HttpStatusContent -> {
                 status(value.code)
                 send(TextContent(ContentType.Text.Html, "<H1>${value.code}</H1>${value.message}"))
             }
             is HttpStatusCode -> {
                 status(value)
-                ApplicationCallResult.Handled
+                completeCall()
             }
             is StreamContent -> {
                 stream {
                     value.stream(this)
                 }
-                ApplicationCallResult.Handled
+                completeCall()
             }
             is URIFileContent -> {
                 if (value.uri.scheme == "file") {
                     send(LocalFileContent(File(value.uri)))
                 } else {
                     sendStream(value.stream())
-                    ApplicationCallResult.Handled
+                    completeCall()
                 }
             }
             is LocalFileContent -> {
@@ -86,12 +88,12 @@ abstract class BaseApplicationResponse(open val call: ApplicationCall) : Applica
                         }
                     }
 
-                    ApplicationCallResult.Handled
+                    completeCall()
                 }
             }
             is StreamContentProvider -> {
                 sendStream(value.stream())
-                ApplicationCallResult.Handled
+                completeCall()
             }
             else -> throw UnsupportedOperationException("No known way to stream value $value")
         }
@@ -116,6 +118,7 @@ abstract class BaseApplicationResponse(open val call: ApplicationCall) : Applica
         stream {
             Channels.newInputStream(channel).use { it.copyTo(this) }
         }
+        completeCall()
     }
 
     protected open fun sendFile(file: File, position: Long, length: Long) {
@@ -124,16 +127,18 @@ abstract class BaseApplicationResponse(open val call: ApplicationCall) : Applica
                 fc.transferTo(position, length, Channels.newChannel(this))
             }
         }
+        completeCall()
     }
 
     protected open fun sendStream(stream: InputStream) {
         stream {
             stream.use { it.copyTo(this) }
         }
+        completeCall()
     }
 
-    override fun send(message: Any): ApplicationCallResult = send.execute(message)
-    override fun interceptSend(handler: (Any, (Any) -> ApplicationCallResult) -> ApplicationCallResult) = send.intercept(handler)
+    override fun send(message: Any): Unit = send.execute(message)
+    override fun interceptSend(handler: (Any, (Any) -> Unit) -> Unit) = send.intercept(handler)
 
     override val cookies = ResponseCookies(this)
 

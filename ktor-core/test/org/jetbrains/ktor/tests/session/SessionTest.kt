@@ -19,7 +19,7 @@ class SessionTest {
 
             application.routing {
                 get("/0") {
-                    response.sendText("It should be no session started")
+                    respondText("It should be no session started")
                 }
                 get("/1") {
                     var session: TestUserSession? = sessionOrNull()
@@ -36,12 +36,12 @@ class SessionTest {
                     session = session()
                     assertNotNull(session)
 
-                    response.sendText("ok")
+                    respondText("ok")
                 }
                 get("/2") {
                     assertEquals(TestUserSession("id1", emptyList()), session<TestUserSession>())
 
-                    response.sendText("ok, ${session<TestUserSession>().userId}")
+                    respondText("ok, ${session<TestUserSession>().userId}")
                 }
             }
 
@@ -79,10 +79,10 @@ class SessionTest {
             application.routing {
                 get("/1") {
                     session(TestUserSession("id2", emptyList()))
-                    response.sendText("ok")
+                    respondText("ok")
                 }
                 get("/2") {
-                    response.sendText("ok, ${sessionOrNull<TestUserSession>()?.userId}")
+                    respondText("ok, ${sessionOrNull<TestUserSession>()?.userId}")
                 }
             }
 
@@ -129,10 +129,10 @@ class SessionTest {
             application.routing {
                 get("/1") {
                     session(TestUserSession("id2", emptyList()))
-                    response.sendText("ok")
+                    respondText("ok")
                 }
                 get("/2") {
-                    response.sendText("ok, ${sessionOrNull<TestUserSession>()?.userId}")
+                    respondText("ok, ${sessionOrNull<TestUserSession>()?.userId}")
                 }
             }
 
@@ -174,7 +174,7 @@ class SessionTest {
                     }
 
                     get("/0") {
-                        response.sendText("It should be no session started")
+                        respondText("It should be no session started")
                     }
                     get("/1") {
                         var session: TestUserSession? = sessionOrNull()
@@ -191,12 +191,12 @@ class SessionTest {
                         session = session()
                         assertNotNull(session)
 
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                     get("/2") {
                         assertEquals(TestUserSession("id1", emptyList()), session<TestUserSession>())
 
-                        response.sendText("ok, ${session<TestUserSession>().userId}")
+                        respondText("ok, ${session<TestUserSession>().userId}")
                     }
                 }
             }

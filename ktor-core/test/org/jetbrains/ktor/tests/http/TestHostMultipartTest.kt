@@ -94,8 +94,8 @@ class TestHostMultipartTest {
     @Test(expected = IOException::class)
     fun testMultiPartShouldFail() {
         withTestApplication {
-            application.intercept { next ->
-                request.content.get<MultiPartData>().parts.toList()
+            application.intercept { call ->
+                call.request.content.get<MultiPartData>().parts.toList()
                 ApplicationCallResult.Handled
             }
 
@@ -105,9 +105,9 @@ class TestHostMultipartTest {
 
     fun testMultiParts(asserts: (MultiPartData?) -> Unit, setup: TestApplicationRequest.() -> Unit) {
         withTestApplication {
-            application.intercept { next ->
-                if (request.isMultipart()) {
-                    asserts(request.content.get())
+            application.intercept { call ->
+                if (call.request.isMultipart()) {
+                    asserts(call.request.content.get())
                 } else {
                     asserts(null)
                 }

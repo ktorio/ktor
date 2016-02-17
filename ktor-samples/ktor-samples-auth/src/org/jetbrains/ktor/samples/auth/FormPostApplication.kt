@@ -21,11 +21,11 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
                     }
 
                     success { auth, next ->
-                        response.sendText("Hello, ${auth.principal<UserIdPrincipal>()!!.name}")
+                        respondText("Hello, ${auth.principal<UserIdPrincipal>()!!.name}")
                     }
 
                     fail {
-                        response.sendText(ContentType.Text.Html, createHTML().html {
+                        respondText(ContentType.Text.Html, createHTML().html {
                             body {
                                 form(action = "/login", encType = FormEncType.applicationXWwwFormUrlEncoded, method = FormMethod.post) {
                                     p {

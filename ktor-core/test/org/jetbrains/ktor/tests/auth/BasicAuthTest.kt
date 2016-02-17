@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.tests.auth
 
+import javafx.beans.property.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.http.*
@@ -8,6 +9,8 @@ import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
+import java.math.*
+import java.util.*
 import kotlin.test.*
 
 class BasicAuthTest {
@@ -33,16 +36,16 @@ class BasicAuthTest {
             val user = "user1"
             val p = "user1"
 
-            application.intercept {
-                val authInfo = request.basicAuth()
+            application.intercept { call->
+                val authInfo = call.request.basicAuth()
                 assertNotNull(authInfo)
-                assertEquals(authInfo, basicAuth())
+                assertEquals(authInfo, call.basicAuth())
 
                 assertEquals(user, authInfo!!.name)
                 assertEquals(p, authInfo.password)
 
-                response.status(HttpStatusCode.OK)
-                response.sendText("ok")
+                call.response.status(HttpStatusCode.OK)
+                call.respondText("ok")
             }
 
             val response = handleRequestWithBasic("/", user, p)
@@ -95,7 +98,7 @@ class BasicAuthTest {
                     }
 
                     handle {
-                        response.sendText("Secret info")
+                        respondText("Secret info")
                     }
                 }
             }
@@ -125,7 +128,7 @@ class BasicAuthTest {
             addHeader(HttpHeaders.Authorization, "Basic $encoded")
         }
 
-    private fun assertWWWAuthenticateHeaderExist(response: RequestResult) {
+    private fun assertWWWAuthenticateHeaderExist(response: ApplicationCall) {
         assertNotNull(response.response.headers[HttpHeaders.WWWAuthenticate])
         val header = parseAuthorizationHeader(response.response.headers[HttpHeaders.WWWAuthenticate]!!) as HttpAuthHeader.Parameterized
 
@@ -144,12 +147,12 @@ class BasicAuthTest {
                     }
 
                     fail {
-                        response.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor-test"))
+                        sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor-test"))
                     }
                 }
 
                 handle {
-                    response.sendText("Secret info")
+                    respondText("Secret info")
                 }
             }
         }

@@ -14,24 +14,23 @@ class OAuthLoginNoLocationApplication(config: ApplicationConfig) : Application(c
     val exec = Executors.newFixedThreadPool(8)
 
     init {
-        intercept { next ->
+        intercept { call ->
             // generally you shouldn't do like that however there are situation when you could need
             // to do everything on lower level
 
-            when (request.parameter("authStep")) {
-                "1" -> simpleOAuthAnyStep1(DefaultHttpClient, exec, loginProviders.values.first(), "/any?authStep=2", "/")
-                "2" -> simpleOAuthAnyStep2(DefaultHttpClient, exec, loginProviders.values.first(), "/any?authStep=2", "/") {
-                    response.status(HttpStatusCode.OK)
-                    response.sendText("success")
+            when (call.request.parameter("authStep")) {
+                "1" -> call.simpleOAuthAnyStep1(DefaultHttpClient, exec, loginProviders.values.first(), "/any?authStep=2", "/")
+                "2" -> call.simpleOAuthAnyStep2(DefaultHttpClient, exec, loginProviders.values.first(), "/any?authStep=2", "/") {
+                    call.response.status(HttpStatusCode.OK)
+                    call.respondText("success")
                 }
-                else -> next()
             }
         }
 
-        intercept {
-            response.status(HttpStatusCode.OK)
-            response.contentType(ContentType.Text.Html.withParameter("charset", Charsets.UTF_8.name()))
-            response.write {
+        intercept { call ->
+            call.response.status(HttpStatusCode.OK)
+            call.response.contentType(ContentType.Text.Html.withParameter("charset", Charsets.UTF_8.name()))
+            call.response.write {
                 write("""
                 <html>
                     <body>

@@ -12,8 +12,7 @@ class RoutingProcessingTest {
         val testHost = createTestHost()
         testHost.application.routing {
             get("/foo/bar") {
-                response.status(HttpStatusCode.OK)
-                ApplicationCallResult.Handled
+                respondStatus(HttpStatusCode.OK)
             }
         }
 
@@ -78,19 +77,16 @@ class RoutingProcessingTest {
 
         testHost.application.routing {
             route("user") {
-                intercept { next ->
+                intercept { call ->
                     userIntercepted = true
-                    try {
-                        wrappedWithInterceptor = true
-                        next()
-                    } finally {
+                    wrappedWithInterceptor = true
+                    exit {
                         wrappedWithInterceptor = false
                     }
                 }
                 get("{username}") {
                     userName = parameters["username"] ?: ""
                     userNameGotWithinInterceptor = wrappedWithInterceptor
-                    ApplicationCallResult.Handled
                 }
             }
         }
@@ -103,11 +99,11 @@ class RoutingProcessingTest {
             it("should have processed interceptor on /user node") {
                 assertTrue(userIntercepted)
             }
-            it("should have processed get handler on /user/username node") {
-                assertEquals(userName, "john")
-            }
             it("should have processed /user/username in context of interceptor") {
                 assertTrue(userNameGotWithinInterceptor)
+            }
+            it("should have processed get handler on /user/username node") {
+                assertEquals(userName, "john")
             }
         }
     }

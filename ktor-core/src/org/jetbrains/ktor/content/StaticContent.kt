@@ -60,7 +60,7 @@ fun RoutingEntry.serveFileSystem(baseDir: File) {
         handle {
             val message = LocalFileContent(baseDir, parameters.getAll("path")!!.joinToString(File.separator))
             if (!message.file.exists()) {
-                response.sendError(HttpStatusCode.NotFound)
+                respondStatus(HttpStatusCode.NotFound)
             } else {
                 response.send(message)
             }

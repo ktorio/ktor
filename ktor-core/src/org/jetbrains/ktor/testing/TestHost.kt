@@ -22,28 +22,25 @@ fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() ->
             mapOf(
                     "ktor.deployment.environment" to "test",
                     "ktor.application.class" to applicationClass.jvmName
-                 ))
+            ))
     val config = HoconApplicationConfig(testConfig, ApplicationConfig::class.java.classLoader, SLF4JApplicationLog("ktor.test"))
     val host = TestApplicationHost(config)
     host.test()
 }
 
-data class RequestResult(val requestResult: ApplicationCallResult, val response: TestApplicationResponse)
-
 class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     val application: Application = ApplicationLoader(applicationConfig).application
 
-    fun handleRequest(setup: TestApplicationRequest.() -> Unit): RequestResult {
+    fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val request = TestApplicationRequest()
         request.setup()
-        val context = TestApplicationCall(application, request)
-        val status = application.handle(context)
-        context.close()
-        return RequestResult(status, context.response)
+        val call = TestApplicationCall(application, request)
+        application.handle(call)
+        return call
     }
 }
 
-fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: TestApplicationRequest.() -> Unit = {}): RequestResult {
+fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: TestApplicationRequest.() -> Unit = {}): TestApplicationCall {
     return handleRequest {
         this.uri = uri
         this.method = method
@@ -56,6 +53,8 @@ class TestApplicationCall(override val application: Application, override val re
     override val close = Interceptable0 {}
 
     override val response = TestApplicationResponse(this)
+
+    var requestResult = ApplicationCallResult.Unhandled
 }
 
 class TestApplicationRequest() : ApplicationRequest {
@@ -80,7 +79,7 @@ class TestApplicationRequest() : ApplicationRequest {
         return queryParameters() + if (contentType().match(ContentType.Application.FormUrlEncoded)) body.parseUrlEncodedParameters() else ValuesMap.Empty
     }
 
-    private var headersMap : MutableMap<String, MutableList<String>>? = hashMapOf()
+    private var headersMap: MutableMap<String, MutableList<String>>? = hashMapOf()
     fun addHeader(name: String, value: String) {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")
         map.getOrPut(name, { arrayListOf() }).add(value)
@@ -94,7 +93,7 @@ class TestApplicationRequest() : ApplicationRequest {
 
     override val content: RequestContent = object : RequestContent(this) {
         override fun getInputStream(): InputStream = ByteArrayInputStream(body.toByteArray(Charsets.UTF_8))
-        override fun getMultiPartData(): MultiPartData = object: MultiPartData {
+        override fun getMultiPartData(): MultiPartData = object : MultiPartData {
             override val parts: Sequence<PartData>
                 get() = when {
                     isMultipart() -> multiPartEntries.asSequence()
@@ -106,7 +105,7 @@ class TestApplicationRequest() : ApplicationRequest {
     override val cookies = RequestCookies(this)
 }
 
-class TestApplicationResponse(call: ApplicationCall) : BaseApplicationResponse(call) {
+class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationResponse(call) {
     private var statusCode: HttpStatusCode? = null
 
     override val status = Interceptable1<HttpStatusCode, Unit> { code -> this.statusCode = code }
@@ -118,7 +117,7 @@ class TestApplicationResponse(call: ApplicationCall) : BaseApplicationResponse(c
         ApplicationCallResult.Handled
     }
 
-    override val headers: ResponseHeaders = object: ResponseHeaders() {
+    override val headers: ResponseHeaders = object : ResponseHeaders() {
         private val headersMap = HashMap<String, MutableList<String>>()
 
         override fun hostAppendHeader(name: String, value: String) {
@@ -133,6 +132,11 @@ class TestApplicationResponse(call: ApplicationCall) : BaseApplicationResponse(c
 
     var content: String? = null
     var byteContent: ByteArray? = null
+
+    override fun completeCall() {
+        super.completeCall()
+        (call as TestApplicationCall).requestResult = ApplicationCallResult.Handled
+    }
 }
 
 class TestApplication(config: ApplicationConfig) : Application(config)

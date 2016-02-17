@@ -19,14 +19,12 @@ data class DigestCredential(val realm: String,
                             val qop: String?) : Credential
 
 fun <C: ApplicationCall> AuthBuilder<C>.extractDigest() {
-    intercept { next ->
-        request.parseAuthorizationHeader()?.let { authHeader ->
+    intercept { call ->
+        call.request.parseAuthorizationHeader()?.let { authHeader ->
             if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
-                authContext.addCredential(authHeader.toDigestCredential())
+                call.authContext.addCredential(authHeader.toDigestCredential())
             }
         }
-
-        next()
     }
 }
 

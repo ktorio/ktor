@@ -16,9 +16,11 @@ interface ContentRange {
     data class Bounded(val from: Long, val to: Long) : ContentRange {
         override fun toString() = "$from-$to"
     }
+
     data class TailFrom(val from: Long) : ContentRange {
         override fun toString() = "$from-"
     }
+
     data class Suffix(val lastCount: Long) : ContentRange {
         override fun toString() = "-$lastCount"
     }
@@ -52,8 +54,8 @@ fun parseRangesSpecifier(rangeSpec: String): RangesSpecifier? {
     }
 }
 
-fun ApplicationCall.handleRangeRequest(version: HasVersion, length: Long, mergeToSingleRange: Boolean = false, block: (List<LongRange>?) -> ApplicationCallResult): ApplicationCallResult {
-    return withIfRange(version) { range ->
+fun ApplicationCall.handleRangeRequest(version: HasVersion, length: Long, mergeToSingleRange: Boolean = false, block: (List<LongRange>?) -> Unit) {
+    withIfRange(version) { range ->
         response.headers.append(HttpHeaders.AcceptRanges, RangeUnits.Bytes.unitToken)
         val merged = range?.merge(length, mergeToSingleRange)?.let {
             if (it.size > 10) {
@@ -63,14 +65,12 @@ fun ApplicationCall.handleRangeRequest(version: HasVersion, length: Long, mergeT
 
         if (request.httpMethod == HttpMethod.Head) {
             response.contentLength(length)
-            response.status(HttpStatusCode.OK)
-
-            ApplicationCallResult.Handled
+            respondStatus(HttpStatusCode.OK)
         } else if (request.httpMethod != HttpMethod.Get && merged != null) {
-            response.sendError(HttpStatusCode.MethodNotAllowed, "Only GET and HEAD methods allowed for range requests")
+            respondStatus(HttpStatusCode.MethodNotAllowed, "Only GET and HEAD methods allowed for range requests")
         } else if (merged != null && merged.isEmpty()) {
             response.contentRange(range = null, fullLength = length) // https://tools.ietf.org/html/rfc7233#section-4.4
-            response.sendError(HttpStatusCode.RequestedRangeNotSatisfiable, "No satisfiable ranges of $range")
+            respondStatus(HttpStatusCode.RequestedRangeNotSatisfiable, "No satisfiable ranges of $range")
         } else {
             block(merged)
         }
@@ -79,9 +79,9 @@ fun ApplicationCall.handleRangeRequest(version: HasVersion, length: Long, mergeT
 
 internal fun List<ContentRange>.toLongRanges(contentLength: Long) = map {
     when (it) {
-        is ContentRange.Bounded -> it.from .. it.to.coerceAtMost(contentLength - 1)
-        is ContentRange.TailFrom -> it.from .. contentLength - 1
-        is ContentRange.Suffix -> (contentLength - it.lastCount).coerceAtLeast(0L) .. contentLength - 1
+        is ContentRange.Bounded -> it.from..it.to.coerceAtMost(contentLength - 1)
+        is ContentRange.TailFrom -> it.from..contentLength - 1
+        is ContentRange.Suffix -> (contentLength - it.lastCount).coerceAtLeast(0L)..contentLength - 1
         else -> throw NoWhenBranchMatchedException("Unsupported ContentRange type ${it.javaClass}: $it")
     }
 }.filterNot { it.isEmpty() }
@@ -94,7 +94,7 @@ internal fun List<LongRange>.mergeRangesKeepOrder(): List<LongRange> {
             acc.last().endInclusive < range.start - 1 -> acc.add(range)
             else -> {
                 val last = acc.last()
-                acc[acc.lastIndex] = last.start .. Math.max(last.endInclusive, range.endInclusive)
+                acc[acc.lastIndex] = last.start..Math.max(last.endInclusive, range.endInclusive)
             }
         }
         acc

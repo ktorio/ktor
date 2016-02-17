@@ -11,7 +11,7 @@ class TestingHttpClient (val app: TestApplicationHost) : HttpClient {
 }
 
 class TestingHttpConnection(val app: TestApplicationHost, val host: String, val port: Int, val secure: Boolean) : HttpConnection {
-    private var result by Delegates.notNull<RequestResult>()
+    private var result by Delegates.notNull<TestApplicationCall>()
 
     override fun request(init: RequestBuilder.() -> Unit) {
         val builder = RequestBuilder()

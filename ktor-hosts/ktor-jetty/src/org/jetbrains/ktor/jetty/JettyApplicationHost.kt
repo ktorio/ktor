@@ -47,7 +47,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     inner class Handler() : AbstractHandler() {
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             response.characterEncoding = "UTF-8"
-            val appRequest = ServletApplicationCall(application, request, response)
+            val call = ServletApplicationCall(application, request, response)
             try {
                 val contentType = request.contentType
                 if (contentType != null && ContentType.parse(contentType).match(ContentType.MultiPart.Any)) {
@@ -55,20 +55,20 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     // TODO someone reported auto-cleanup issues so we have to check it
                 }
 
-                val requestResult = application.handle(appRequest)
+                val requestResult = application.handle(call)
                 when (requestResult) {
                     ApplicationCallResult.Handled -> baseRequest.isHandled = true
                     ApplicationCallResult.Unhandled -> baseRequest.isHandled = false
                     ApplicationCallResult.Asynchronous -> {
-                        if (!appRequest.asyncStarted) {
+                        if (!call.asyncStarted) {
                             val asyncContext = baseRequest.startAsync()
-                            appRequest.continueAsync(asyncContext)
+                            call.continueAsync(asyncContext)
                         }
                     }
                 }
             } catch(ex: Throwable) {
                 config.log.error("Application ${application.javaClass} cannot fulfill the request", ex);
-                appRequest.response.sendError(HttpStatusCode.InternalServerError)
+                call.respondStatus(HttpStatusCode.InternalServerError)
             }
         }
     }

@@ -106,7 +106,7 @@ abstract class HostTestSuite {
     fun testSendTextWithContentType() {
         val server = createServer(port) {
             handle {
-                response.sendText(ContentType.Text.Plain, "Hello")
+                respondText(ContentType.Text.Plain, "Hello")
             }
         }
         startServer(server)
@@ -121,7 +121,7 @@ abstract class HostTestSuite {
     fun testRedirect() {
         val server = createServer(port) {
             handle {
-                response.sendRedirect("http://localhost:$port/page", true)
+                respondRedirect("http://localhost:$port/page", true)
             }
         }
         startServer(server)
@@ -136,7 +136,7 @@ abstract class HostTestSuite {
         val server = createServer(port) {
             handle {
                 response.headers.append(HttpHeaders.ETag, "test-etag")
-                response.sendText(ContentType.Text.Plain, "Hello")
+                respondText(ContentType.Text.Plain, "Hello")
             }
         }
         startServer(server)
@@ -151,7 +151,7 @@ abstract class HostTestSuite {
         val server = createServer(port) {
             handle {
                 response.cookies.append("k1", "v1")
-                response.sendText(ContentType.Text.Plain, "Hello")
+                respondText(ContentType.Text.Plain, "Hello")
             }
         }
         startServer(server)
@@ -382,10 +382,10 @@ abstract class HostTestSuite {
     fun testPathComponentsDecoding() {
         val server = createServer(port) {
             get("/a%20b") {
-                response.sendText("space")
+                respondText("space")
             }
             get("/a+b") {
-                response.sendText("plus")
+                respondText("plus")
             }
         }
         startServer(server)

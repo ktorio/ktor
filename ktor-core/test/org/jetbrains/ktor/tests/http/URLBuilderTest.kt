@@ -3,7 +3,6 @@ package org.jetbrains.ktor.tests.http
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.junit.*
@@ -119,15 +118,13 @@ class URLBuilderTest {
     @Test
     fun testWithApplication() {
         withTestApplication {
-            application.intercept {
-                assertEquals("http://my-host/path%20/to?p=v", url())
-                assertEquals("http://my-host/path%20/to?p=v", url {
+            application.intercept { call ->
+                assertEquals("http://my-host/path%20/to?p=v", call.url())
+                assertEquals("http://my-host/path%20/to?p=v", call.url {
                     assertEquals("my-host", host)
                     assertEquals("/path%20/to", encodedPath)
                     assertEquals("v", parameters.build()["p"])
                 })
-
-                ApplicationCallResult.Handled
             }
 
             handleRequest(HttpMethod.Get, "/path%20/to?p=v") {

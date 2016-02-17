@@ -63,9 +63,8 @@ class OAuth2Test {
     val host = createTestHost()
     val failures = ArrayList<Throwable>()
     init {
-        host.application.intercept { next ->
+        host.application.intercept { call ->
             failures.clear()
-            next()
         }
         host.application.routing {
             route("/login") {
@@ -75,7 +74,7 @@ class OAuth2Test {
 
                 handle {
                     response.status(HttpStatusCode.OK)
-                    response.sendText(ContentType.Text.Plain, "Hej, ${authContext.foundPrincipals}")
+                    respondText(ContentType.Text.Plain, "Hej, ${authContext.foundPrincipals}")
                 }
             }
             route("/resource") {
@@ -84,11 +83,11 @@ class OAuth2Test {
                     verifyWithOAuth2(testClient, settings)
                     fail {
                         authContext.failures.values.flatMapTo(failures) { it }
-                        response.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("oauth2"))
+                        sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("oauth2"))
                     }
                 }
                 handle {
-                    response.sendText("ok")
+                    respondText("ok")
                 }
             }
         }
@@ -183,7 +182,7 @@ class OAuth2Test {
             application.routing {
                 get("/login") {
                     simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login", "/") { token ->
-                        response.sendText("Ho, $token")
+                        respondText("Ho, $token")
                     }
                 }
             }
@@ -208,7 +207,7 @@ class OAuth2Test {
             application.routing {
                 get("/login") {
                     simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login", "/") { token ->
-                        response.sendText("Ho, $token")
+                        respondText("Ho, $token")
                     }
                 }
             }
@@ -231,7 +230,7 @@ class OAuth2Test {
             application.routing {
                 get("/login") {
                     simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login", "/") { token ->
-                        response.sendText("Ho, $token")
+                        respondText("Ho, $token")
                     }
                 }
             }
@@ -249,7 +248,7 @@ class OAuth2Test {
             application.routing {
                 get("/login") {
                     simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login", "/", { path += "&badContentType=true" }) { token ->
-                        response.sendText("Ho, $token")
+                        respondText("Ho, $token")
                     }
                 }
             }
@@ -308,7 +307,7 @@ private fun TestApplicationHost.handleRequestWithBasic(url: String, user: String
             addHeader(HttpHeaders.Authorization, "Basic $encoded")
         }
 
-private fun assertWWWAuthenticateHeaderExist(response: RequestResult) {
+private fun assertWWWAuthenticateHeaderExist(response: ApplicationCall) {
     assertNotNull(response.response.headers[HttpHeaders.WWWAuthenticate])
     val header = parseAuthorizationHeader(response.response.headers[HttpHeaders.WWWAuthenticate]!!) as HttpAuthHeader.Parameterized
 
@@ -344,7 +343,7 @@ private fun createOAuth2Server(server: OAuth2Server): TestingHttpClient {
                     }
 
                     response.status(HttpStatusCode.OK)
-                    response.sendText(contentType, JSONObject().apply {
+                    respondText(contentType, JSONObject().apply {
                         put(OAuth2ResponseParameters.AccessToken, tokens.accessToken)
                         put(OAuth2ResponseParameters.TokenType, tokens.tokenType)
                         put(OAuth2ResponseParameters.ExpiresIn, tokens.expiresIn)
@@ -355,7 +354,7 @@ private fun createOAuth2Server(server: OAuth2Server): TestingHttpClient {
                     }.toJSONString())
                 } catch (t: Throwable) {
                     response.status(HttpStatusCode.OK) // ??
-                    response.sendText(ContentType.Application.Json, JSONObject().apply {
+                    respondText(ContentType.Application.Json, JSONObject().apply {
                         put(OAuth2ResponseParameters.Error, 1) // in fact we should provide code here, good enough for testing
                         put(OAuth2ResponseParameters.ErrorDescription, t.message)
                     }.toJSONString())

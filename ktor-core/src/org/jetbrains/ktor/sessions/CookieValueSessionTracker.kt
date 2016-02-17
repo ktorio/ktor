@@ -10,12 +10,11 @@ class CookieValueSessionTracker<S : Any>(val cookieSettings: SessionCookiesSetti
         call.response.cookies.append(cookieSettings.toCookie(cookieName, serializer.serialize(session)))
     }
 
-    override fun lookup(call: ApplicationCall, injectSession: (S) -> Unit, next: ApplicationCall.() -> ApplicationCallResult): ApplicationCallResult {
+    override fun lookup(call: ApplicationCall, injectSession: (S) -> Unit) {
         val value = cookieSettings.fromCookie(call.request.cookies[cookieName])
         if (value != null) {
             injectSession(serializer.deserialize(value))
         }
-        return next(call)
     }
 
     override fun unassign(call: ApplicationCall) {

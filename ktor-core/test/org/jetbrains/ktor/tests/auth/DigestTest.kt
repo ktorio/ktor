@@ -13,8 +13,8 @@ class DigestTest {
     @Test
     fun createExampleChallengeFromRFC() {
         withTestApplication {
-            application.intercept {
-                response.sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge(
+            application.intercept { call ->
+                call.sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge(
                         realm = "testrealm@host.com",
                         nonce = "dcd98b7102dd2f0e8b11d0f600bfb0c093",
                         opaque = "5ccc069c403ebaf9f0171e9517f40e41"
@@ -112,12 +112,12 @@ class DigestTest {
 
                     digestAuth { userName, realm -> digest(digester, "$userName:$realm:$p") }
                     fail {
-                        response.sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge("testrealm@host.com"))
+                        sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge("testrealm@host.com"))
                     }
                 }
 
                 handle {
-                    response.sendText("Secret info")
+                    respondText("Secret info")
                 }
             }
         }

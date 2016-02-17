@@ -26,14 +26,11 @@ fun ApplicationRequest.basicAuth(): UserPasswordCredential? {
 }
 
 fun <C: ApplicationCall> AuthBuilder<C>.basicAuth() {
-    intercept { next ->
-        val userPass = request.basicAuth()
-
+    intercept { call ->
+        val userPass = call.request.basicAuth()
         if (userPass != null) {
-            authContext.addCredential(userPass)
+            call.authContext.addCredential(userPass)
         }
-
-        next()
     }
 }
 
@@ -46,6 +43,6 @@ fun <C: ApplicationCall, P: Principal> AuthBuilder<C>.basic(realm: String, verif
     verifyWith(verifier)
 
     fail {
-        response.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge(realm))
+        sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge(realm))
     }
 }

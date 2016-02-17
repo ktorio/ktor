@@ -2,6 +2,7 @@ package org.jetbrains.ktor.routing
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
 
@@ -12,29 +13,23 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
         override fun toString(): String = ""
     }
 
-    internal fun interceptor(call: ApplicationCall, next: ApplicationCall.() -> ApplicationCallResult): ApplicationCallResult {
+    internal fun interceptor(call: ApplicationCall) {
         val resolveContext = RoutingResolveContext(this, call.request.requestLine, call.request.parameters, call.request.headers)
         val resolveResult = resolveContext.resolve()
-        return when {
-            resolveResult.succeeded -> {
-                val routingCall = RoutingApplicationCall(call, resolveResult.entry, resolveResult.values)
-                routingCall.executeEntry(resolveResult.entry)
-            }
-            else -> call.next()
+        if (resolveResult.succeeded) {
+            val routingCall = RoutingApplicationCall(call, resolveResult.entry, resolveResult.values)
+            routingCall.executeEntry(resolveResult.entry)
         }
     }
 
-    private fun RoutingApplicationCall.executeHandlers(handlers: List<RoutingApplicationCall.() -> ApplicationCallResult>): ApplicationCallResult {
+    private fun RoutingApplicationCall.executeHandlers(handlers: List<RoutingApplicationCall.() -> Unit>) {
         // Handlers are executed in the installation order, first one that handles a call wins
         for (handler in handlers) {
-            val handlerResult = handler()
-            if (handlerResult != ApplicationCallResult.Unhandled)
-                return handlerResult
+            handler()
         }
-        return ApplicationCallResult.Unhandled
     }
 
-    private fun RoutingApplicationCall.executeEntry(entry: RoutingEntry): ApplicationCallResult {
+    private fun RoutingApplicationCall.executeEntry(entry: RoutingEntry): Unit {
         // Interceptors are rarely installed into routing entries, so don't create list unless there are some
         var interceptors: MutableList<RoutingInterceptor>? = null
         var current: RoutingEntry? = entry
@@ -48,16 +43,18 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
         }
 
         // No interceptors, just call handlers without polluting call stacks
-        if (interceptors == null || interceptors.isEmpty()) {
-            return executeHandlers(entry.handlers)
-        }
+        if (interceptors != null && interceptors.isNotEmpty()) {
+            Pipeline<RoutingApplicationCall>().apply {
+                for (interceptor in interceptors!!)
+                    intercept(interceptor.function)
 
-        fun handle(index: Int, interceptors: List<RoutingInterceptor>): ApplicationCallResult = when {
-            index < interceptors.size -> interceptors[index].function(this) { request -> handle(index + 1, interceptors) }
-            else -> executeHandlers(entry.handlers)
+                intercept {
+                    executeHandlers(entry.handlers)
+                }
+            }.execute(this)
+        } else {
+            executeHandlers(entry.handlers)
         }
-
-        return handle(0, interceptors)
     }
 
     companion object RoutingFeature : ApplicationFeature<Routing> {
@@ -66,7 +63,7 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
 
         override fun install(application: Application, configure: Routing.() -> Unit) = Routing(application).apply {
             configure()
-            application.intercept { next -> this@apply.interceptor(this, next) }
+            application.intercept { call -> this@apply.interceptor(call) }
         }
     }
 }

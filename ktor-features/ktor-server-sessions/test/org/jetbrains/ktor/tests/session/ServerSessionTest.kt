@@ -21,18 +21,18 @@ class ServerSessionTest {
 
             application.routing {
                 get("/0") {
-                    response.sendText("It should be no session started")
+                    respondText("It should be no session started")
                 }
                 get("/1") {
                     session(TestUserSession("id2", listOf("item1")))
-                    response.sendText("ok")
+                    respondText("ok")
                 }
                 get("/2") {
                     val session = session<TestUserSession>()
                     assertEquals("id2", session.userId)
                     assertEquals(listOf("item1"), session.cart)
 
-                    response.sendText("ok")
+                    respondText("ok")
                 }
             }
 

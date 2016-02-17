@@ -41,7 +41,7 @@ class LdapAuthTest {
                     verifyWithLdapLoginWithUser("ldap://$localhost:${ldapServer.port}", "uid=%s,ou=system")
                 }
                 get("/") {
-                    response.sendText((authContext.foundPrincipals.singleOrNull() as? UserIdPrincipal)?.name ?: "null")
+                    respondText((authContext.foundPrincipals.singleOrNull() as? UserIdPrincipal)?.name ?: "null")
                 }
             }
 
@@ -87,7 +87,7 @@ class LdapAuthTest {
                 }
 
                 get("/") {
-                    response.sendText((authContext.foundPrincipals.singleOrNull() as? UserIdPrincipal)?.name ?: "null")
+                    respondText((authContext.foundPrincipals.singleOrNull() as? UserIdPrincipal)?.name ?: "null")
                 }
             }
 

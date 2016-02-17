@@ -37,15 +37,13 @@ inline fun <C : ApplicationCall, reified K : Credential, reified P : Principal> 
         noinline ldapLoginConfigurator: (K, MutableMap<String, Any?>) -> Unit = { k, env -> },
         noinline verifyBlock: InitialDirContext.(K) -> P?
 ) {
-    intercept { next ->
-        val auth = authContext
+    intercept { call ->
+        val auth = call.authContext
         auth.addPrincipals(auth.credentials<K>().mapNotNull { cred ->
             ldapVerifyBase(ldapUrl,
                     ldapLoginConfigurator = { config -> ldapLoginConfigurator(cred, config) },
                     doVerify = { ctx -> ctx.verifyBlock(cred) })
         })
-
-        next()
     }
 }
 

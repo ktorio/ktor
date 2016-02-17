@@ -58,42 +58,42 @@ fun RoutingEntry.contentType(contentType: ContentType, build: RoutingEntry.() ->
 /**
  * Builds a route to match `GET` requests with specified [path]
  */
-fun RoutingEntry.get(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
+fun RoutingEntry.get(path: String, body: RoutingApplicationCall.() -> Unit) {
     route(HttpMethod.Get, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `POST` requests with specified [path]
  */
-fun RoutingEntry.post(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
+fun RoutingEntry.post(path: String, body: RoutingApplicationCall.() -> Unit) {
     route(HttpMethod.Post, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `HEAD` requests with specified [path]
  */
-fun RoutingEntry.head(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
+fun RoutingEntry.head(path: String, body: RoutingApplicationCall.() -> Unit) {
     route(HttpMethod.Head, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `PUT` requests with specified [path]
  */
-fun RoutingEntry.put(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
+fun RoutingEntry.put(path: String, body: RoutingApplicationCall.() -> Unit) {
     route(HttpMethod.Put, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `DELETE` requests with specified [path]
  */
-fun RoutingEntry.delete(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
+fun RoutingEntry.delete(path: String, body: RoutingApplicationCall.() -> Unit) {
     route(HttpMethod.Delete, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `OPTIONS` requests with specified [path]
  */
-fun RoutingEntry.options(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
+fun RoutingEntry.options(path: String, body: RoutingApplicationCall.() -> Unit) {
     route(HttpMethod.Options, path) { handle(body) }
 }
 

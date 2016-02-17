@@ -11,7 +11,7 @@ interface SessionTracker<S : Any> {
      * Lookup session using the context, call [injectSession] if available and pass execution to the [next] in any case.
      * It is recommended to be async if there is external session store
      */
-    fun lookup(call: ApplicationCall, injectSession: (S) -> Unit, next: ApplicationCall.() -> ApplicationCallResult): ApplicationCallResult
+    fun lookup(call: ApplicationCall, injectSession: (S) -> Unit)
 
     /**
      * Assign session using the context. Override if there is existing session. Could be blocking.

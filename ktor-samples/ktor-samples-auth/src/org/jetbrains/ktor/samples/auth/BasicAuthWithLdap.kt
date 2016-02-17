@@ -28,7 +28,7 @@ class BasicAuthWithLdapApplication(config: ApplicationConfig) : Application(conf
 
                 handle {
                     response.status(HttpStatusCode.OK)
-                    response.sendText("""
+                    respondText("""
                     Directory listing
 
                     .

@@ -113,13 +113,13 @@ fun upgradeRequestTokenHeader(
         )
 )
 
-private fun ApplicationResponse.redirectAuthenticateOAuth1a(settings: OAuthServerSettings.OAuth1aServerSettings, requestToken: OAuthCallback.TokenPair): ApplicationCallResult =
+private fun ApplicationCall.redirectAuthenticateOAuth1a(settings: OAuthServerSettings.OAuth1aServerSettings, requestToken: OAuthCallback.TokenPair) =
     redirectAuthenticateOAuth1a(settings.authorizeUrl, requestToken.token)
 
-private fun ApplicationResponse.redirectAuthenticateOAuth1a(authenticateUrl: String, requestToken: String): ApplicationCallResult =
-    sendRedirect(authenticateUrl.appendUrlParameters("${HttpAuthHeader.Parameters.OAuthToken}=${encodeURLQueryComponent(requestToken)}"))
+private fun ApplicationCall.redirectAuthenticateOAuth1a(authenticateUrl: String, requestToken: String) =
+    respondRedirect(authenticateUrl.appendUrlParameters("${HttpAuthHeader.Parameters.OAuthToken}=${encodeURLQueryComponent(requestToken)}"))
 
-private fun ApplicationResponse.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList()): ApplicationCallResult {
+private fun ApplicationCall.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList()) {
     return redirectAuthenticateOAuth2(authenticateUrl = settings.authorizeUrl,
             callbackRedirectUrl = callbackRedirectUrl,
             clientId = settings.clientId,
@@ -128,8 +128,8 @@ private fun ApplicationResponse.redirectAuthenticateOAuth2(settings: OAuthServer
             parameters = extraParameters)
 }
 
-private fun ApplicationResponse.redirectAuthenticateOAuth2(authenticateUrl: String, callbackRedirectUrl: String, clientId: String, state: String, scopes: List<String> = emptyList(), parameters: List<Pair<String, String>> = emptyList()): ApplicationCallResult {
-    return sendRedirect(authenticateUrl
+private fun ApplicationCall.redirectAuthenticateOAuth2(authenticateUrl: String, callbackRedirectUrl: String, clientId: String, state: String, scopes: List<String> = emptyList(), parameters: List<Pair<String, String>> = emptyList()) {
+    return respondRedirect(authenticateUrl
             .appendUrlParameters("${OAuth2RequestParameters.ClientId}=${encodeURLQueryComponent(clientId)}&${OAuth2RequestParameters.RedirectUri}=${encodeURLQueryComponent(callbackRedirectUrl)}")
             .appendUrlParameters(optionalParameter(OAuth2RequestParameters.Scope, scopes.joinToString(",")))
             .appendUrlParameters("${OAuth2RequestParameters.State}=${encodeURLQueryComponent(state)}")
@@ -320,24 +320,24 @@ private fun simpleOAuth2Step2(client: HttpClient, method: HttpMethod, usedRedire
     }
 }
 
-fun ApplicationCall.simpleOAuthAnyStep1(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String): ApplicationCallResult =
+fun ApplicationCall.simpleOAuthAnyStep1(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String) =
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
             handleAsync(exec, {
                 val requestToken = simpleOAuth1aStep1(client, provider, callbackUrl)
-                response.redirectAuthenticateOAuth1a(provider, requestToken)
+                redirectAuthenticateOAuth1a(provider, requestToken)
             }, failBlock = oauthHandleFail(loginPageUrl))
         }
         is OAuthServerSettings.OAuth2ServerSettings ->
-            response.redirectAuthenticateOAuth2(provider, callbackUrl, nextNonce(), scopes = provider.defaultScopes)
+            redirectAuthenticateOAuth2(provider, callbackUrl, nextNonce(), scopes = provider.defaultScopes)
     }
 
-fun ApplicationCall.simpleOAuthAnyStep2(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String, configure: RequestBuilder.() -> Unit = {}, block: (OAuthAccessTokenResponse) -> ApplicationCallResult): ApplicationCallResult =
+fun ApplicationCall.simpleOAuthAnyStep2(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String, configure: RequestBuilder.() -> Unit = {}, block: (OAuthAccessTokenResponse) -> Unit) =
         when (provider) {
             is OAuthServerSettings.OAuth1aServerSettings -> {
                 val tokens = oauth1aHandleCallback()
                 if (tokens == null) {
-                    response.sendRedirect(loginPageUrl)
+                    respondRedirect(loginPageUrl)
                     ApplicationCallResult.Handled
                 } else {
                     handleAsync(exec, {
@@ -349,7 +349,7 @@ fun ApplicationCall.simpleOAuthAnyStep2(client: HttpClient, exec: ExecutorServic
             is OAuthServerSettings.OAuth2ServerSettings -> {
                 val code = oauth2HandleCallback()
                 if (code == null) {
-                    response.sendRedirect(loginPageUrl)
+                    respondRedirect(loginPageUrl)
                     ApplicationCallResult.Handled
                 } else {
                     handleAsync(exec, {
@@ -371,25 +371,20 @@ fun ApplicationCall.simpleOAuthAnyStep2(client: HttpClient, exec: ExecutorServic
 private fun <C: ApplicationCall> AuthBuilder<C>.oauth1a(client: HttpClient, exec: ExecutorService,
                                                         providerLookup: C.() -> OAuthServerSettings?,
                                                         urlProvider: C.(OAuthServerSettings) -> String) {
-    intercept { next ->
-        val provider = providerLookup()
-        when (provider) {
-            is OAuthServerSettings.OAuth1aServerSettings -> {
-                val token = oauth1aHandleCallback()
-                    handleAsync(exec, {
-                        if (token == null) {
-                            val t = simpleOAuth1aStep1(client, provider, urlProvider(provider))
-                            response.redirectAuthenticateOAuth1a(provider, t)
-                        } else {
-                            val accessToken = simpleOAuth1aStep2(client, provider, token)
-                            authContext.addPrincipal(accessToken)
-                            next()
-                        }
-                    }, failBlock = {
-                        next()
-                    })
-            }
-            else -> next()
+    intercept { call ->
+        val provider = call.providerLookup()
+        if (provider is OAuthServerSettings.OAuth1aServerSettings) {
+            val token = call.oauth1aHandleCallback()
+            call.handleAsync(exec, {
+                if (token == null) {
+                    val t = simpleOAuth1aStep1(client, provider, call.urlProvider(provider))
+                    call.redirectAuthenticateOAuth1a(provider, t)
+                } else {
+                    val accessToken = simpleOAuth1aStep2(client, provider, token)
+                    call.authContext.addPrincipal(accessToken)
+                }
+            }, failBlock = {
+            })
         }
     }
 }
@@ -397,24 +392,21 @@ private fun <C: ApplicationCall> AuthBuilder<C>.oauth1a(client: HttpClient, exec
 private fun <C: ApplicationCall> AuthBuilder<C>.oauth2(client: HttpClient, exec: ExecutorService,
                                                        providerLookup: C.() -> OAuthServerSettings?,
                                                        urlProvider: C.(OAuthServerSettings) -> String) {
-    intercept { next ->
-        val provider = providerLookup()
+    intercept { call ->
+        val provider = call.providerLookup()
         when (provider) {
             is OAuthServerSettings.OAuth2ServerSettings -> {
-                val token = oauth2HandleCallback()
+                val token = call.oauth2HandleCallback()
                 if (token == null) {
-                    response.redirectAuthenticateOAuth2(provider, urlProvider(provider), nextNonce(), scopes = provider.defaultScopes)
+                    call.redirectAuthenticateOAuth2(provider, call.urlProvider(provider), nextNonce(), scopes = provider.defaultScopes)
                 } else {
-                    handleAsync(exec, {
-                        val accessToken = simpleOAuth2Step2(client, provider, urlProvider(provider), token)
-                        authContext.addPrincipal(accessToken)
-                        next()
+                    call.handleAsync(exec, {
+                        val accessToken = simpleOAuth2Step2(client, provider, call.urlProvider(provider), token)
+                        call.authContext.addPrincipal(accessToken)
                     }, failBlock = {
-                        next()
                     })
                 }
             }
-            else -> next()
         }
     }
 }
@@ -454,7 +446,7 @@ fun <C: ApplicationCall> AuthBuilder<C>.oauth(client: HttpClient, exec: Executor
 
 private fun ApplicationCall.oauthHandleFail(redirectUrl: String) = { t: Throwable ->
     application.config.log.error(t)
-    response.sendRedirect(redirectUrl)
+    respondRedirect(redirectUrl)
     Unit
 }
 

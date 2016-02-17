@@ -22,8 +22,8 @@ fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
     val encoders = mapOf("gzip" to GzipEncoder, "deflate" to DeflateEncoder, "identity" to IdentityEncoder) + options.compressorRegistry
     val conditions = listOf(minSizeCondition(options), compressStreamCondition(options)) + options.conditions
 
-    intercept { next ->
-        val acceptEncodingRaw = request.acceptEncoding()
+    intercept { call ->
+        val acceptEncodingRaw = call.request.acceptEncoding()
         if (acceptEncodingRaw != null) {
             val encoding = parseAndSortHeader(acceptEncodingRaw)
                     .firstOrNull { it.value in supportedEncodings }
@@ -31,10 +31,10 @@ fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
                     ?.handleStar(options)
 
             val encoder = encoding?.let { encoders[it] }
-            if (encoding != null && encoder != null && request.header(HttpHeaders.Range) == null) {
-                response.interceptStream { content, stream ->
-                    if (conditions.all { it(this) }) {
-                        response.headers.append(HttpHeaders.ContentEncoding, encoding)
+            if (encoding != null && encoder != null && call.request.header(HttpHeaders.Range) == null) {
+                call.response.interceptStream { content, stream ->
+                    if (conditions.all { it(call) }) {
+                        call.response.headers.append(HttpHeaders.ContentEncoding, encoding)
                         stream {
                             encoder.open(this).apply {
                                 content()
@@ -49,8 +49,6 @@ fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
                 }
             }
         }
-
-        next()
     }
 }
 

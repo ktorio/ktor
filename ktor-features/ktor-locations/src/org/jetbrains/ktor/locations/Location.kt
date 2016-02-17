@@ -46,8 +46,8 @@ inline fun <T : Any> RoutingEntry.handle(dataClass: KClass<T>, crossinline body:
     }
 }
 
-fun <T : Any> RoutingApplicationCall.sendRedirect(location: T): ApplicationCallResult {
-    return response.sendRedirect(route.locations().href(location))
+fun <T : Any> RoutingApplicationCall.respondRedirect(location: T): ApplicationCallResult {
+    return respondRedirect(route.locations().href(location))
 }
 
 // ------- app ---------

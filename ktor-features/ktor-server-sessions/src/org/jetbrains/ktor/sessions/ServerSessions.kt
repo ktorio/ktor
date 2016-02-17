@@ -44,11 +44,9 @@ internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val 
         call.response.cookies.append(settings.toCookie(cookieName, sessionId))
     }
 
-    override fun lookup(call: ApplicationCall, injectSession: (S) -> Unit, next: ApplicationCall.() -> ApplicationCallResult): ApplicationCallResult {
+    override fun lookup(call: ApplicationCall, injectSession: (S) -> Unit) {
         val sessionId = call.request.cookies[cookieName]
-        return if (sessionId == null) {
-            next(call)
-        } else {
+        if (sessionId != null) {
             call.attributes.put(SessionIdKey, sessionId)
             call.handleAsync(exec, {
                 storage.read(sessionId) { input ->
@@ -56,7 +54,6 @@ internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val 
                     call.handleAsync(exec, {
                         val session = serializer.deserialize(text)
                         injectSession(session)
-                        next(call)
                     }, failBlock = {})
                 }
                 ApplicationCallResult.Asynchronous

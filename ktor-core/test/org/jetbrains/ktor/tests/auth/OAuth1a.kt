@@ -63,12 +63,12 @@ class OAuth1aFlowTest {
             return TestOAuthTokenResponse(callback == "http://localhost/login?redirected=true", "token1", "tokenSecret1")
         }
 
-        override fun authorize(ctx: ApplicationCall, oauthToken: String): ApplicationCallResult {
+        override fun authorize(call: ApplicationCall, oauthToken: String): Unit {
             if (oauthToken != "token1") {
-                return ctx.response.sendRedirect("http://localhost/login?redirected=true&error=Wrong+token+$oauthToken")
+                return call.respondRedirect("http://localhost/login?redirected=true&error=Wrong+token+$oauthToken")
             }
 
-            return ctx.response.sendRedirect("http://localhost/login?redirected=true&oauth_token=$oauthToken&oauth_verifier=verifier1")
+            return call.respondRedirect("http://localhost/login?redirected=true&oauth_token=$oauthToken&oauth_verifier=verifier1")
         }
 
         override fun accessToken(ctx: ApplicationCall, consumerKey: String, nonce: String, signature: String, signatureMethod: String, timestamp: Long, token: String, verifier: String): OAuthAccessTokenResponse.OAuth1a {
@@ -218,7 +218,7 @@ class OAuth1aFlowTest {
             application.routing {
                 get("/login") {
                     simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login?redirected=true", "/") { token ->
-                        response.sendText("Ho, $token")
+                        respondText("Ho, $token")
                     }
                 }
             }
@@ -240,7 +240,7 @@ class OAuth1aFlowTest {
             application.routing {
                 get("/login") {
                     simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login?redirected=true", "/") { token ->
-                        response.sendText("Ho, $token")
+                        respondText("Ho, $token")
                     }
                 }
             }
@@ -262,7 +262,7 @@ class OAuth1aFlowTest {
                 }
 
                 handle {
-                    response.sendText("Ho, ${authContext.foundPrincipals}")
+                    respondText("Ho, ${authContext.foundPrincipals}")
                 }
             }
         }
@@ -284,7 +284,7 @@ class OAuth1aFlowTest {
 
 private interface TestingOAuthServer {
     fun requestToken(ctx: ApplicationCall, callback: String?, consumerKey: String, nonce: String, signature: String, signatureMethod: String, timestamp: Long): TestOAuthTokenResponse
-    fun authorize(ctx: ApplicationCall, oauthToken: String): ApplicationCallResult
+    fun authorize(call: ApplicationCall, oauthToken: String): Unit
     fun accessToken(ctx: ApplicationCall, consumerKey: String, nonce: String, signature: String, signatureMethod: String,
                     timestamp: Long, token: String, verifier: String): OAuthAccessTokenResponse.OAuth1a
 }
@@ -317,7 +317,7 @@ private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
                 val rr = server.requestToken(this, callback, consumerKey, nonce, signature, signatureMethod, timestamp)
 
                 response.status(HttpStatusCode.OK)
-                response.sendText(ContentType.Application.FormUrlEncoded,
+                respondText(ContentType.Application.FormUrlEncoded,
                         listOf(
                                 HttpAuthHeader.Parameters.OAuthToken to rr.token,
                                 HttpAuthHeader.Parameters.OAuthTokenSecret to rr.tokenSecret,
@@ -352,7 +352,7 @@ private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
                 val tokenPair = server.accessToken(this, consumerKey, nonce, signature, signatureMethod, timestamp, token, verifier)
 
                 response.status(HttpStatusCode.OK)
-                response.sendText(ContentType.Application.FormUrlEncoded, (listOf(
+                respondText(ContentType.Application.FormUrlEncoded, (listOf(
                         HttpAuthHeader.Parameters.OAuthToken to tokenPair.token,
                         HttpAuthHeader.Parameters.OAuthTokenSecret to tokenPair.tokenSecret
                 ) + tokenPair.extraParameters.flattenEntries()).formUrlEncode())

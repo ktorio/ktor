@@ -45,12 +45,12 @@ class UserHashedTableAuthTest {
                     verifyBatchTypedWith(hashedUserTable)
 
                     fail {
-                        response.sendError(HttpStatusCode.Forbidden)
+                        respondStatus(HttpStatusCode.Forbidden)
                     }
                 }
 
                 get("/") {
-                    response.sendText("ok")
+                    respondText("ok")
                 }
             }
 

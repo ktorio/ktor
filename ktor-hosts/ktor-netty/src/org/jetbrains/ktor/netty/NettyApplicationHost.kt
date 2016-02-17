@@ -74,7 +74,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             val requestResult = application.handle(applicationContext)
             when (requestResult) {
                 ApplicationCallResult.Unhandled -> {
-                    val response = TextErrorContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")
+                    val response = HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")
                     applicationContext.response.send(response)
                     applicationContext.close()
                 }

@@ -19,7 +19,7 @@ class ETagsTest {
             application.routing {
                 handle {
                     withETag("tag1") {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -38,7 +38,7 @@ class ETagsTest {
             application.routing {
                 handle {
                     withETag("tag1") {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -59,7 +59,7 @@ class ETagsTest {
             application.routing {
                 handle {
                     withETag("tag1") {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -78,7 +78,7 @@ class ETagsTest {
             application.routing {
                 handle {
                     withETag("tag1") {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -97,7 +97,7 @@ class ETagsTest {
             application.routing {
                 handle {
                     withETag("tag1") {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -116,7 +116,7 @@ class ETagsTest {
             application.routing {
                 handle {
                     withETag("tag1") {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -137,7 +137,7 @@ class ETagsTest {
             application.routing {
                 handle {
                     withETag("tag1") {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -158,7 +158,7 @@ class ETagsTest {
             application.routing {
                 handle {
                     withETag("tag1") {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -180,7 +180,7 @@ class ETagsTest {
             application.routing {
                 handle {
                     withETag("tag1") {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -199,7 +199,7 @@ class ETagsTest {
             application.routing {
                 handle {
                     withETag("tag1") {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -220,7 +220,7 @@ class ETagsTest {
             application.routing {
                 handle {
                     withETag("tag1") {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -241,7 +241,7 @@ class ETagsTest {
             application.routing {
                 handle {
                     withETag("tag1") {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -264,7 +264,7 @@ class LastModifiedTest {
             application.routing {
                 handle {
                     withLastModified(date) {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -283,7 +283,7 @@ class LastModifiedTest {
             application.routing {
                 handle {
                     withLastModified(date) {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -302,7 +302,7 @@ class LastModifiedTest {
             application.routing {
                 handle {
                     withLastModified(date) {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -321,7 +321,7 @@ class LastModifiedTest {
             application.routing {
                 handle {
                     withLastModified(date) {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -340,7 +340,7 @@ class LastModifiedTest {
             application.routing {
                 handle {
                     withLastModified(date) {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -361,7 +361,7 @@ class LastModifiedTest {
             application.routing {
                 handle {
                     withLastModified(date) {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -393,7 +393,7 @@ class LastModifiedTest {
             application.routing {
                 handle {
                     withLastModified(date) {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -412,7 +412,7 @@ class LastModifiedTest {
             application.routing {
                 handle {
                     withLastModified(date) {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -431,7 +431,7 @@ class LastModifiedTest {
             application.routing {
                 handle {
                     withLastModified(date) {
-                        response.sendText("response")
+                        respondText("response")
                     }
                 }
             }
@@ -454,7 +454,7 @@ class IfRangeTest {
                 handle {
                     withIfRange(date) { rangeOrNull ->
                         assertNull(rangeOrNull)
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                 }
             }
@@ -476,7 +476,7 @@ class IfRangeTest {
                 handle {
                     withIfRange(date) { rangeOrNull ->
                         assertNull(rangeOrNull)
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                 }
             }
@@ -510,7 +510,7 @@ class IfRangeTest {
                 handle {
                     withIfRange(date) { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                 }
             }
@@ -553,7 +553,7 @@ class IfRangeTest {
                 handle {
                     withIfRange(date) { rangeOrNull ->
                         assertNull(rangeOrNull)
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                 }
             }
@@ -618,7 +618,7 @@ class IfRangeTest {
                 handle {
                     withIfRange(date) { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                 }
             }
@@ -641,7 +641,7 @@ class IfRangeTest {
                 handle {
                     withIfRange(date) { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                 }
             }
@@ -663,7 +663,7 @@ class IfRangeTest {
                 handle {
                     withIfRange(date) { rangeOrNull ->
                         assertNull(rangeOrNull)
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                 }
             }
@@ -685,7 +685,7 @@ class IfRangeTest {
                 handle {
                     withIfRange(date) { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                 }
             }
@@ -705,7 +705,7 @@ class IfRangeTest {
                 handle {
                     withIfRange("etag1") { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                 }
             }
@@ -725,7 +725,7 @@ class IfRangeTest {
                 handle {
                     withIfRange("etag1") { rangeOrNull ->
                         assertNull(rangeOrNull)
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                 }
             }
@@ -745,7 +745,7 @@ class IfRangeTest {
                 handle {
                     withIfRange("etag1") { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                 }
             }
@@ -765,7 +765,7 @@ class IfRangeTest {
                 handle {
                     withIfRange("etag1") { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                 }
             }
@@ -791,7 +791,7 @@ class IfRangeTest {
                 handle {
                     withIfRange("etag1") { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                 }
             }
@@ -817,7 +817,7 @@ class IfRangeTest {
                 handle {
                     withIfRange("etag1") { rangeOrNull ->
                         assertNull(rangeOrNull)
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                 }
             }
@@ -840,7 +840,7 @@ class IfRangeTest {
                         }
                     }) { rangeOrNull ->
                         assertNull(rangeOrNull)
-                        response.sendText("ok")
+                        respondText("ok")
                     }
                 }
             }

@@ -2,7 +2,6 @@ package org.jetbrains.ktor.sessions
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.interception.*
-import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 import kotlin.reflect.*
 
@@ -31,25 +30,22 @@ inline fun <reified S : Any> ApplicationCall.sessionOrNull(): S? = sessionOrNull
 fun <S : Any> ApplicationCall.sessionOrNull(type: KClass<S>): S? = if (SessionKey in attributes) attributes[SessionKey].cast(type) else null
 
 inline fun <reified S : Any> InterceptApplicationCall<ApplicationCall>.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) =
-    withSessions(S::class, block)
+        withSessions(S::class, block)
 
 inline fun <S : Any> InterceptApplicationCall<ApplicationCall>.withSessions(type: KClass<S>, block: SessionConfigBuilder<S>.() -> Unit) {
     withSessions(SessionConfigBuilder(type).apply(block).build())
 }
 
 fun <S : Any> InterceptApplicationCall<ApplicationCall>.withSessions(sessionConfig: SessionConfig<S>) {
-    intercept { next ->
-        attributes.put(SessionConfigKey, sessionConfig)
+    intercept { call ->
+        call.attributes.put(SessionConfigKey, sessionConfig)
+        sessionConfig.sessionTracker.lookup(call, { call.attributes.put(SessionKey, it) })
 
-        sessionConfig.sessionTracker.lookup(this, {
-            attributes.put(SessionKey, it)
-        }) {
-            next().apply {
-                if (attributes.contains(SessionKey)) {
-                    val session = sessionOrNull(sessionConfig.sessionType)
-                    if (session != null) {
-                        sessionConfig.sessionTracker.assign(this@intercept, session)
-                    }
+        exit {
+            if (call.attributes.contains(SessionKey)) {
+                val session = call.sessionOrNull(sessionConfig.sessionType)
+                if (session != null) {
+                    sessionConfig.sessionTracker.assign(call, session)
                 }
             }
         }

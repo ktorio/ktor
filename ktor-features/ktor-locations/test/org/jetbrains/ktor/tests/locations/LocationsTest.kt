@@ -252,7 +252,7 @@ class LocationsTest {
         assertEquals("/container", href)
         application.routing {
             get<tailCard> {
-                response.sendText(it.path.toString())
+                respondText(it.path.toString())
             }
 
         }
@@ -268,7 +268,7 @@ class LocationsTest {
         assertEquals("/?value=1&value=2&value=3", href)
         application.routing {
             get<multiquery> {
-                response.sendText(it.value.toString())
+                respondText(it.value.toString())
             }
 
         }
@@ -290,7 +290,7 @@ class LocationsTest {
 
             application.routing {
                 handle {
-                    response.sendText(url(optionalName(1, "ok")))
+                    respondText(url(optionalName(1, "ok")))
                 }
             }
 

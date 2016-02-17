@@ -19,29 +19,26 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
          {"key":"A","value":"Apache"}
      */
     init {
-        intercept { next ->
-            if (request.acceptEncoding()?.contains("deflate") ?: false) {
-                response.headers.append(HttpHeaders.ContentEncoding, "deflate")
-                response.interceptStream { content, stream ->
+        intercept { call ->
+            if (call.request.acceptEncoding()?.contains("deflate") ?: false) {
+                call.response.headers.append(HttpHeaders.ContentEncoding, "deflate")
+                call.response.interceptStream { content, stream ->
                     stream {
                         DeflaterOutputStream(this).use(content)
                     }
                 }
             }
-
-            next()
         }
 
-        intercept { next ->
-            if (request.accept() == "application/json") {
-                response.interceptSend { value, send ->
+        intercept { call ->
+            if (call.request.accept() == "application/json") {
+                call.response.interceptSend { value, send ->
                     if (value is Model)
                         send(TextContent(ContentType.Application.Json, GsonBuilder().create().toJson(value)))
                     else
                         send(value)
                 }
             }
-            next()
         }
 
         val model = Model("root", listOf(Item("A", "Apache"), Item("B", "Bing")))
