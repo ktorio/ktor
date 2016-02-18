@@ -1,27 +1,33 @@
 package org.jetbrains.ktor.pipeline
 
 class Pipeline<T> {
-    val blockBuilders = mutableListOf<PipelineBlock<T>.(T) -> Unit>()
+    val blockBuilders = mutableListOf<PipelineContext<T>.(T) -> Unit>()
 
-    fun intercept(block: PipelineBlock<T>.(T) -> Unit) {
+    fun intercept(block: PipelineContext<T>.(T) -> Unit) {
         blockBuilders.add(block)
     }
 
-    fun execute(call: T) {
-        PipelineState(call, blockBuilders).proceed()
+    fun execute(value: T) {
+        PipelineExecution(value, blockBuilders).proceed()
     }
 }
 
-class PipelineState<T>(val call: T, val blockBuilders: List<PipelineBlock<T>.(T) -> Unit>) {
-    val stack = mutableListOf<PipelineBlock<T>>()
+class PipelineExecution<T>(val value: T, val blockBuilders: List<PipelineContext<T>.(T) -> Unit>) {
+    val stack = mutableListOf<PipelineContext<T>>()
 
     fun proceed() {
-        while (stack.size < blockBuilders.size) {
+        loop@while (stack.size < blockBuilders.size) {
             val index = stack.size
             val builder = blockBuilders[index]
-            val block = PipelineBlock(builder)
+            val block = PipelineContext<T>(this, builder)
             stack.add(block)
-            block.execute(call)
+            block.execute(value)
+
+            when (block.signal) {
+                PipelineSignal.Pause -> return
+                PipelineSignal.Stop -> break@loop
+                PipelineSignal.Continue -> {}
+            }
         }
         finish()
     }
@@ -39,7 +45,12 @@ class PipelineState<T>(val call: T, val blockBuilders: List<PipelineBlock<T>.(T)
     }
 }
 
-class PipelineBlock<T>(val enter: PipelineBlock<T>.(T) -> Unit) {
+enum class PipelineSignal {
+    Continue, Pause, Stop
+}
+
+class PipelineContext<T>(private val execution: PipelineExecution<T>, private val function: PipelineContext<T>.(T) -> Unit) {
+    var signal: PipelineSignal = PipelineSignal.Continue
     val exits = mutableListOf<() -> Unit>()
     val failures = mutableListOf<() -> Unit>()
 
@@ -51,7 +62,19 @@ class PipelineBlock<T>(val enter: PipelineBlock<T>.(T) -> Unit) {
         failures.add(body)
     }
 
-    fun execute(call: T) {
-        enter(call)
+    fun finish() {
+        signal = PipelineSignal.Stop
+    }
+
+    fun pause() {
+        signal = PipelineSignal.Pause
+    }
+
+    fun resume() {
+        execution.proceed()
+    }
+
+    fun execute(value: T) {
+        function(value)
     }
 }

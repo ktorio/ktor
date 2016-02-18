@@ -3,6 +3,7 @@ package org.jetbrains.ktor.application
 import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
+import java.util.concurrent.*
 
 /**
  * Represents configured and running web application, capable of handling requests
@@ -18,7 +19,7 @@ public open class Application(val config: ApplicationConfig) : InterceptApplicat
     /**
      * Installs interceptor into the current Application handling chain
      */
-    override fun intercept(interceptor: PipelineBlock<ApplicationCall>.(ApplicationCall) -> Unit) {
+    override fun intercept(interceptor: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
         pipeline.intercept(interceptor)
     }
 

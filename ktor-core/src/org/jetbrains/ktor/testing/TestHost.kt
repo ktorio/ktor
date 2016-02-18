@@ -48,11 +48,13 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
     }
 }
 
-class TestApplicationCall(override val application: Application, override val request: TestApplicationRequest) : ApplicationCall {
+class TestApplicationCall(application: Application, override val request: TestApplicationRequest) : BaseApplicationCall(application) {
     override val attributes = Attributes()
-    override val close = Interceptable0 {}
+    override val close = Interceptable0 {
+        requestResult = ApplicationCallResult.Handled
+    }
 
-    override val response = TestApplicationResponse(this)
+    override val response = TestApplicationResponse()
 
     var requestResult = ApplicationCallResult.Unhandled
 }
@@ -105,7 +107,7 @@ class TestApplicationRequest() : ApplicationRequest {
     override val cookies = RequestCookies(this)
 }
 
-class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationResponse(call) {
+class TestApplicationResponse() : BaseApplicationResponse() {
     private var statusCode: HttpStatusCode? = null
 
     override val status = Interceptable1<HttpStatusCode, Unit> { code -> this.statusCode = code }
@@ -132,11 +134,6 @@ class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationRespon
 
     var content: String? = null
     var byteContent: ByteArray? = null
-
-    override fun completeCall() {
-        super.completeCall()
-        (call as TestApplicationCall).requestResult = ApplicationCallResult.Handled
-    }
 }
 
 class TestApplication(config: ApplicationConfig) : Application(config)

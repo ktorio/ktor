@@ -13,22 +13,17 @@ fun ApplicationRequest.parameter(name: String): String? = parameters[name]
 
 fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false) {
     response.headers.append(HttpHeaders.Location, url)
-    response.send(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
+    respond(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
 }
 
-fun ApplicationCall.respondStatus(code: HttpStatusCode, message: String = code.description) {
-    response.send(code)
-}
+fun ApplicationCall.respondStatus(code: HttpStatusCode, message: String = code.description) = respond(code)
 
-public fun ApplicationResponse.sendBytes(bytes: ByteArray) {
+fun ApplicationResponse.sendBytes(bytes: ByteArray) {
     status(HttpStatusCode.OK)
     streamBytes(bytes)
 }
 
-public fun ApplicationCall.respondText(contentType: ContentType, text: String) {
-    response.send(TextContent(contentType, text))
-}
-
-public fun ApplicationCall.respondText(text: String) = respondText(ContentType.Text.Plain, text)
+fun ApplicationCall.respondText(contentType: ContentType, text: String) = respond(TextContent(contentType, text))
+fun ApplicationCall.respondText(text: String) = respondText(ContentType.Text.Plain, text)
 
 

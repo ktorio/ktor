@@ -32,7 +32,7 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
 
         intercept { call ->
             if (call.request.accept() == "application/json") {
-                call.response.interceptSend { value, send ->
+                call.interceptRespond { value, send ->
                     if (value is Model)
                         send(TextContent(ContentType.Application.Json, GsonBuilder().create().toJson(value)))
                     else
@@ -44,10 +44,10 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
         val model = Model("root", listOf(Item("A", "Apache"), Item("B", "Bing")))
         routing {
             get("/v1") {
-                response.send(model)
+                respond(model)
             }
             get("/v1/item/{key}") {
-                response.send(model.items.first { it.key == parameters["key"] })
+                respond(model.items.first { it.key == parameters["key"] })
             }
         }
     }

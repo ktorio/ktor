@@ -39,6 +39,9 @@ class LdapAuthTest {
                 auth {
                     basicAuth()
                     verifyWithLdapLoginWithUser("ldap://$localhost:${ldapServer.port}", "uid=%s,ou=system")
+                    fail {
+                        respondStatus(HttpStatusCode.Forbidden)
+                    }
                 }
                 get("/") {
                     respondText((authContext.foundPrincipals.singleOrNull() as? UserIdPrincipal)?.name ?: "null")
@@ -47,15 +50,18 @@ class LdapAuthTest {
 
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("admin:secret".toByteArray())) }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.OK, result.response.status())
                 assertEquals("admin", result.response.content)
             }
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("admin:bad-pass".toByteArray())) }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals("null", result.response.content)
+                assertEquals(HttpStatusCode.Forbidden, result.response.status())
+                assertNull(result.response.content)
             }
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())) }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals("null", result.response.content)
+                assertEquals(HttpStatusCode.Forbidden, result.response.status())
+                assertNull(result.response.content)
             }
         }
     }
@@ -84,6 +90,9 @@ class LdapAuthTest {
                             null
                         }
                     })
+                    fail {
+                        respondStatus(HttpStatusCode.Forbidden)
+                    }
                 }
 
                 get("/") {
@@ -97,11 +106,13 @@ class LdapAuthTest {
             }
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("user-test:bad-pass".toByteArray())) }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals("null", result.response.content)
+                assertEquals(HttpStatusCode.Forbidden, result.response.status())
+                assertNull(result.response.content)
             }
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())) }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals("null", result.response.content)
+                assertEquals(HttpStatusCode.Forbidden, result.response.status())
+                assertNull(result.response.content)
             }
         }
     }

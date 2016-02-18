@@ -12,9 +12,9 @@ interface TemplateEngine<C : Any, R> where R : StreamContent, R : HasContentType
 inline fun <reified C : Any> InterceptApplicationCall<ApplicationCall>.templating(engine: TemplateEngine<C, *>) {
     val javaType = engine.contentClass.java
     intercept { call ->
-        call.response.interceptSend { obj, next ->
+        call.interceptRespond { obj, next ->
             if (javaType.isInstance(obj)) {
-                call.response.send(engine.process(obj as C))
+                call.respond(engine.process(obj as C))
             } else {
                 next(obj)
             }

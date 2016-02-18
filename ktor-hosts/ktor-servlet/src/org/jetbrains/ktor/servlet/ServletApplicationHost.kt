@@ -41,18 +41,13 @@ open class ServletApplicationHost() : HttpServlet() {
         request.characterEncoding = "UTF-8"
 
         try {
-            val applicationRequest = ServletApplicationCall(application, request, response)
-            val requestResult = application.handle(applicationRequest)
-            when (requestResult) {
-                ApplicationCallResult.Handled -> {
-                    applicationRequest.close()
-                }
-                ApplicationCallResult.Unhandled -> {
-                    response.sendError(HttpServletResponse.SC_NOT_FOUND)
-                    applicationRequest.close()
-                }
-                ApplicationCallResult.Asynchronous -> applicationRequest.continueAsync(request.startAsync())
+            val call = ServletApplicationCall(application, request, response)
+            application.handle(call)
+            if (!call.completed) {
+                response.sendError(HttpServletResponse.SC_NOT_FOUND)
+                call.close()
             }
+            // -> call.continueAsync(request.startAsync())
         } catch (ex: Throwable) {
             application.config.log.error("ServletApplicationHost cannot service the request", ex)
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.message)

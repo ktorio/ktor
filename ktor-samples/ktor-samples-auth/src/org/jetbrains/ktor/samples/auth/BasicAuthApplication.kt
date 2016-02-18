@@ -23,7 +23,7 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
                 basicAuth()
 
                 fail {
-                    response.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor"))
+                    sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor"))
                 }
             }
             get<Manual>() {

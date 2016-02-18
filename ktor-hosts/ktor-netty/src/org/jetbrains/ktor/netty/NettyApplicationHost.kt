@@ -70,18 +70,11 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     inner class HostHttpHandler : SimpleChannelInboundHandler<FullHttpRequest>() {
         override fun channelRead0(context: ChannelHandlerContext, request: FullHttpRequest) {
-            val applicationContext = NettyApplicationCall(application, context, request)
-            val requestResult = application.handle(applicationContext)
-            when (requestResult) {
-                ApplicationCallResult.Unhandled -> {
-                    val response = HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")
-                    applicationContext.response.send(response)
-                    applicationContext.close()
-                }
-                ApplicationCallResult.Handled -> applicationContext.close()
-                ApplicationCallResult.Asynchronous -> {
-                    /* do nothing */
-                }
+            val call = NettyApplicationCall(application, context, request)
+            application.handle(call)
+            if (!call.completed) {
+                val response = HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")
+                call.respond(response)
             }
         }
 

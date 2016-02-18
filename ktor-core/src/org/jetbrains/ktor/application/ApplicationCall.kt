@@ -33,6 +33,9 @@ public interface ApplicationCall {
      * Can be intercepted to perform any cleanup tasks that are required by the processing pipeline
      */
     public val close: Interceptable0<Unit>
+
+    public fun respond(message: Any)
+    public fun interceptRespond(handler: (message: Any, next: (message: Any) -> Unit) -> Unit)
 }
 
 /**

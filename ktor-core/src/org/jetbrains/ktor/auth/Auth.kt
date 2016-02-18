@@ -13,7 +13,7 @@ interface Credential
 interface Principal
 
 interface AuthBuilder<C : ApplicationCall> {
-    fun intercept(interceptor: PipelineBlock<C>.(C) -> Unit)
+    fun intercept(interceptor: PipelineContext<C>.(C) -> Unit)
 
     fun success(interceptor: C.(AuthContext, C.(AuthContext) -> Unit) -> Unit)
     fun fail(interceptor: C.(C.() -> Unit) -> Unit)
@@ -40,7 +40,7 @@ abstract class AuthBuilderBase<C : ApplicationCall> : AuthBuilder<C> {
 
 private class RoutingEntryAuthBuilder(val entry: RoutingEntry) : AuthBuilderBase<RoutingApplicationCall>() {
 
-    override fun intercept(interceptor: PipelineBlock<RoutingApplicationCall>.(RoutingApplicationCall) -> Unit) {
+    override fun intercept(interceptor: PipelineContext<RoutingApplicationCall>.(RoutingApplicationCall) -> Unit) {
         entry.intercept(interceptor)
     }
 }
@@ -59,9 +59,11 @@ private fun <C : ApplicationCall> AuthBuilderBase<C>.finishAuth() {
                 fireSuccess(call, auth)
             } else {
                 fireFailure(call)
+                finish()
             }
         } else {
             fireFailure(call)
+            finish()
         }
     }
 }

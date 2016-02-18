@@ -8,9 +8,8 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import java.io.*
-import java.nio.channels.*
 
-internal class NettyApplicationResponse(call: ApplicationCall, val request: HttpRequest, val response: HttpResponse, val context: ChannelHandlerContext) : BaseApplicationResponse(call) {
+internal class NettyApplicationResponse(val request: HttpRequest, val response: HttpResponse, val context: ChannelHandlerContext) : BaseApplicationResponse() {
     private var commited = false
 
     override val status = Interceptable1<HttpStatusCode, Unit> { status ->
@@ -36,35 +35,6 @@ internal class NettyApplicationResponse(call: ApplicationCall, val request: Http
 
     override fun status(): HttpStatusCode? = response.status?.let { HttpStatusCode(it.code(), it.reasonPhrase()) }
 
-    override fun sendFile(file: File, position: Long, length: Long) {
-        stream {
-            if (this is NettyAsyncStream) {
-                writeFile(file, position, length)
-            } else {
-                file.inputStream().use { it.copyTo(this) }
-            }
-        }
-    }
-
-    override fun sendAsyncChannel(channel: AsynchronousByteChannel) {
-        stream {
-            if (this is NettyAsyncStream) {
-                writeAsyncChannel(channel)
-            } else {
-                Channels.newInputStream(channel).use { it.copyTo(this) }
-            }
-        }
-    }
-
-    override fun sendStream(stream: InputStream) {
-        stream {
-            if (this is NettyAsyncStream) {
-                writeStream(stream)
-            } else {
-                stream.use { it.copyTo(this) }
-            }
-        }
-    }
 
     private fun ChannelFuture.scheduleClose() {
         if (!HttpHeaders.isKeepAlive(request)) {

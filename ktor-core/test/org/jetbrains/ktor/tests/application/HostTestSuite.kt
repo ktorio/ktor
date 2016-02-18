@@ -52,7 +52,7 @@ abstract class HostTestSuite {
     fun testTextContent() {
         val server = createServer(port) {
             handle {
-                response.send(TextContent(ContentType.Text.Plain, "test"))
+                respond(TextContent(ContentType.Text.Plain, "test"))
             }
         }
         startServer(server)
@@ -244,7 +244,7 @@ abstract class HostTestSuite {
 
         val server = createServer(port) {
             handle {
-                response.send(LocalFileContent(file))
+                respond(LocalFileContent(file))
             }
         }
         startServer(server)
@@ -261,7 +261,7 @@ abstract class HostTestSuite {
 
         val server = createServer(port) {
             handle {
-                response.send(LocalFileContent(file))
+                respond(LocalFileContent(file))
             }
         }
         startServer(server)
@@ -280,7 +280,7 @@ abstract class HostTestSuite {
 
         val server = createServer(port) {
             handle {
-                response.send(LocalFileContent(file))
+                respond(LocalFileContent(file))
             }
         }
         startServer(server)
@@ -302,7 +302,7 @@ abstract class HostTestSuite {
 
         val server = createServer(port) {
             handle {
-                response.send(LocalFileContent(file))
+                respond(LocalFileContent(file))
             }
         }
         startServer(server)
@@ -319,7 +319,7 @@ abstract class HostTestSuite {
     fun testJarFileContent() {
         val server = createServer(port) {
             handle {
-                response.send(resolveClasspathWithPath("java/util", "/ArrayList.class")!!)
+                respond(resolveClasspathWithPath("java/util", "/ArrayList.class")!!)
             }
         }
         startServer(server)
@@ -339,7 +339,7 @@ abstract class HostTestSuite {
     fun testURIContent() {
         val server = createServer(port) {
             handle {
-                response.send(URIFileContent(javaClass.classLoader.getResources("java/util/ArrayList.class").toList().first()))
+                respond(URIFileContent(javaClass.classLoader.getResources("java/util/ArrayList.class").toList().first()))
             }
         }
         startServer(server)
@@ -362,7 +362,7 @@ abstract class HostTestSuite {
 
         val server = createServer(port) {
             handle {
-                response.send(URIFileContent(file.toURI()))
+                respond(URIFileContent(file.toURI()))
             }
         }
         startServer(server)

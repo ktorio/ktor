@@ -22,7 +22,7 @@ class BasicAuthWithLdapApplication(config: ApplicationConfig) : Application(conf
                     verifyBatchTypedWith { credentials: List<UserPasswordCredential> -> credentials.filter { it.name == it.password }.map { UserIdPrincipal(it.name) } }
 
                     fail {
-                        response.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("files"))
+                        sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("files"))
                     }
                 }
 
