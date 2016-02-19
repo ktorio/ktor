@@ -21,8 +21,6 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
         sendRequestMessage()
 
         NettyAsyncStream(request, context).use(body)
-
-        ApplicationCallResult.Asynchronous
     }
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {

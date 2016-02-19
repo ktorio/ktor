@@ -2,6 +2,7 @@ package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.security.*
 
@@ -18,17 +19,15 @@ data class DigestCredential(val realm: String,
                             val cnonce: String?,
                             val qop: String?) : Credential
 
-fun <C: ApplicationCall> AuthBuilder<C>.extractDigest() {
-    intercept { call ->
-        call.request.parseAuthorizationHeader()?.let { authHeader ->
-            if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
-                call.authContext.addCredential(authHeader.toDigestCredential())
-            }
+fun <C : ApplicationCall> PipelineContext<C>.extractDigest() {
+    call.request.parseAuthorizationHeader()?.let { authHeader ->
+        if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
+            call.authentication.addCredential(authHeader.toDigestCredential())
         }
     }
 }
 
-fun <C: ApplicationCall> AuthBuilder<C>.digestAuth(
+fun <C : ApplicationCall> PipelineContext<C>.digestAuth(
         digestAlgorithm: String = "MD5",
         digesterProvider: (String) -> MessageDigest = { MessageDigest.getInstance(it) },
         userNameRealmPasswordDigestProvider: (String, String) -> ByteArray) {
@@ -39,8 +38,8 @@ fun <C: ApplicationCall> AuthBuilder<C>.digestAuth(
 
     verifyBatchTypedWith { digests: List<DigestCredential> ->
         digests.filter { (it.algorithm ?: "MD5") == digestAlgorithm }
-            .filter { it.verify(request.httpMethod, digester, userNameRealmPasswordDigestProvider) }
-            .map { UserIdPrincipal(it.userName) }
+                .filter { it.verify(request.httpMethod, digester, userNameRealmPasswordDigestProvider) }
+                .map { UserIdPrincipal(it.userName) }
     }
 }
 
@@ -58,7 +57,7 @@ fun HttpAuthHeader.Parameterized.toDigestCredential() = DigestCredential(
 )
 
 fun DigestCredential.verify(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: (String, String) -> ByteArray): Boolean =
-    verify(method, digester, userNameRealmPasswordDigest(userName, realm))
+        verify(method, digester, userNameRealmPasswordDigest(userName, realm))
 
 fun DigestCredential.expectedDigest(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: ByteArray): String {
     fun digest(data: String): String {

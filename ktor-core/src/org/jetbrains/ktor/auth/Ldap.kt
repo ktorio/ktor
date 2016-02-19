@@ -3,6 +3,7 @@ package org.jetbrains.ktor.auth.ldap
 import com.sun.jndi.ldap.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
+import org.jetbrains.ktor.interception.*
 import java.util.*
 import javax.naming.*
 import javax.naming.directory.*
@@ -32,13 +33,13 @@ private fun ldapLogin(ldapURL: String, ldapLoginConfigurator: (MutableMap<String
     return InitialDirContext(env)
 }
 
-inline fun <C : ApplicationCall, reified K : Credential, reified P : Principal> AuthBuilder<C>.verifyWithLdap(
+inline fun <C : ApplicationCall, reified K : Credential, reified P : Principal> InterceptApplicationCall<C>.verifyWithLdap(
         ldapUrl: String,
         noinline ldapLoginConfigurator: (K, MutableMap<String, Any?>) -> Unit = { k, env -> },
         noinline verifyBlock: InitialDirContext.(K) -> P?
 ) {
     intercept { call ->
-        val auth = call.authContext
+        val auth = call.authentication
         auth.addPrincipals(auth.credentials<K>().mapNotNull { cred ->
             ldapVerifyBase(ldapUrl,
                     ldapLoginConfigurator = { config -> ldapLoginConfigurator(cred, config) },
@@ -47,7 +48,7 @@ inline fun <C : ApplicationCall, reified K : Credential, reified P : Principal> 
     }
 }
 
-inline fun <C : ApplicationCall, reified K : Credential, reified P : Principal> AuthBuilder<C>.verifyWithLdapLoginWithUser(
+inline fun <C : ApplicationCall, reified K : Credential, reified P : Principal> InterceptApplicationCall<C>.verifyWithLdapLoginWithUser(
         ldapUrl: String,
         userDNFormat: String,
         noinline userNameExtractor: (K) -> String,
@@ -65,7 +66,7 @@ inline fun <C : ApplicationCall, reified K : Credential, reified P : Principal> 
             }, verifyBlock = verifyBlock)
 }
 
-fun <C : ApplicationCall> AuthBuilder<C>.verifyWithLdapLoginWithUser(
+fun <C : ApplicationCall> InterceptApplicationCall<C>.verifyWithLdapLoginWithUser(
         ldapUrl: String,
         userDNFormat: String,
         ldapLoginConfigurator: (UserPasswordCredential, MutableMap<String, Any?>) -> Unit = { cred, env -> },

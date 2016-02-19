@@ -96,7 +96,9 @@ class TestHostMultipartTest {
         withTestApplication {
             application.intercept { call ->
                 call.request.content.get<MultiPartData>().parts.toList()
-                ApplicationCallResult.Handled
+                onFail {
+                    throw it
+                }
             }
 
             handleRequest(HttpMethod.Post, "/")

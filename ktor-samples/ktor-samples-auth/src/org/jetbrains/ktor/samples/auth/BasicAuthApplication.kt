@@ -19,7 +19,7 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
     init {
         install(Locations)
         routing {
-            auth {
+            authenticate {
                 basicAuth()
 
                 fail {
@@ -27,7 +27,7 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
                 }
             }
             get<Manual>() {
-                auth {
+                authenticate {
                     verifyWith { c: UserPasswordCredential ->
                         if (c.name == c.password) {
                             UserIdPrincipal(c.name)
@@ -41,7 +41,7 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
                 respondText("Success, ${principals<UserIdPrincipal>().map { it.name }}")
             }
             get<SimpleUserTable>() {
-                auth {
+                authenticate {
                     verifyBatchTypedWith(hashedUserTable)
                 }
 

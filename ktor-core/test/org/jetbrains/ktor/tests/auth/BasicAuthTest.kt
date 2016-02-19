@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.tests.auth
 
-import javafx.beans.property.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.http.*
@@ -9,8 +8,6 @@ import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
-import java.math.*
-import java.util.*
 import kotlin.test.*
 
 class BasicAuthTest {
@@ -93,12 +90,12 @@ class BasicAuthTest {
         withTestApplication {
             application.routing {
                 route("/") {
-                    auth {
+                    authenticate {
                         basic("ktor-test") { c -> if (c.name == "good") UserIdPrincipal(c.name) else null }
                     }
 
                     handle {
-                        respondText("Secret info")
+                        call.respondText("Secret info")
                     }
                 }
             }
@@ -139,20 +136,20 @@ class BasicAuthTest {
     private fun Application.configureServer() {
         routing {
             route("/") {
-                auth {
+                authenticate {
                     basicAuth()
 
                     verifyBatchTypedWith { credentials: List<UserPasswordCredential> ->
                         credentials.filter { it.name == it.password }.map { UserIdPrincipal(it.name) }
                     }
 
-                    fail {
-                        sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor-test"))
+                    onFail {
+                        call.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor-test"))
                     }
                 }
 
                 handle {
-                    respondText("Secret info")
+                    call.respondText("Secret info")
                 }
             }
         }

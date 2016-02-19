@@ -41,7 +41,7 @@ class DigestTest {
 
             application.routing {
                 route("/") {
-                    auth {
+                    authenticate {
                         extractDigest()
 
                         verifyBatchTypedWith { digests: List<DigestCredential> -> foundDigests.addAll(digests); emptyList() }
@@ -106,18 +106,18 @@ class DigestTest {
     private fun Application.configureDigestServer() {
         routing {
             route("/") {
-                auth {
+                authenticate {
                     val p = "Circle Of Life"
                     val digester = MessageDigest.getInstance("MD5")
 
                     digestAuth { userName, realm -> digest(digester, "$userName:$realm:$p") }
-                    fail {
-                        sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge("testrealm@host.com"))
+                    onFail {
+                        call.sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge("testrealm@host.com"))
                     }
                 }
 
                 handle {
-                    respondText("Secret info")
+                    call.respondText("Secret info")
                 }
             }
         }

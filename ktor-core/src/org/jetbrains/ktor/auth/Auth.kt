@@ -4,207 +4,74 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
-import java.util.*
 import kotlin.reflect.*
 
 interface Credential
 interface Principal
 
-interface AuthBuilder<C : ApplicationCall> {
-    fun intercept(interceptor: PipelineContext<C>.(C) -> Unit)
-
-    fun success(interceptor: C.(AuthContext, C.(AuthContext) -> Unit) -> Unit)
-    fun fail(interceptor: C.(C.() -> Unit) -> Unit)
-}
-
-abstract class AuthBuilderBase<C : ApplicationCall> : AuthBuilder<C> {
-    val successHandlers = InterceptableChain2<C, AuthContext, Unit>()
-    val failureHandlers = InterceptableChain1<C, Unit>()
-
-    override fun success(interceptor: C.(AuthContext, C.(AuthContext) -> Unit) -> Unit) {
-        successHandlers.intercept(interceptor)
-    }
-
-    override fun fail(interceptor: C.(C.() -> Unit) -> Unit) {
-        failureHandlers.intercept(interceptor)
-    }
-
-    fun fireSuccess(ctx: C, auth: AuthContext): Unit {
-        return successHandlers.execute(ctx, auth) { c, authContext -> }
-    }
-
-    fun fireFailure(ctx: C): Unit = failureHandlers.execute(ctx) {}
-}
-
-private class RoutingEntryAuthBuilder(val entry: RoutingEntry) : AuthBuilderBase<RoutingApplicationCall>() {
-
-    override fun intercept(interceptor: PipelineContext<RoutingApplicationCall>.(RoutingApplicationCall) -> Unit) {
-        entry.intercept(interceptor)
+fun <C : ApplicationCall> InterceptApplicationCall<C>.authenticate(body: PipelineContext<C>.() -> Unit) {
+    intercept {
+        body()
+        val context = call.attributes.getOrNull(AuthenticationContext.AttributeKey)
+        if (context != null && context.hasPrincipals()) {
+            // ok, just roll on
+            return@intercept
+        }
+        throw Exception("Authentication failed")
     }
 }
 
-fun RoutingEntry.auth(block: AuthBuilder<RoutingApplicationCall>.() -> Unit) {
-    val builder = RoutingEntryAuthBuilder(this)
-    builder.block()
-    builder.finishAuth()
+fun <K : Credential, C : ApplicationCall> PipelineContext<C>.extractCredentials(block: C.() -> K?) {
+    val p = call.block()
+    if (p != null) {
+        call.authentication.addCredential(p)
+    }
 }
 
-private fun <C : ApplicationCall> AuthBuilderBase<C>.finishAuth() {
-    intercept { call ->
-        if (AuthContext.AttributeKey in call.attributes) {
-            val auth = call.attributes[AuthContext.AttributeKey]
-            if (auth.hasPrincipals()) {
-                fireSuccess(call, auth)
-            } else {
-                fireFailure(call)
-                finish()
+inline fun <reified K : Credential, C : ApplicationCall> PipelineContext<C>.verifyBatchTypedWith(noinline authenticator: C.(List<K>) -> List<Principal>) {
+    verifyBatchTypedWith(K::class, authenticator)
+}
+
+fun <K : Credential, C : ApplicationCall> PipelineContext<C>.verifyBatchTypedWith(klass: KClass<K>, authenticator: C.(List<K>) -> List<Principal>) {
+    val context = call.authentication
+
+    val credentials = context.credentials(klass)
+    if (credentials.isNotEmpty()) {
+        val principals = call.authenticator(credentials)
+        context.addPrincipals(principals)
+    }
+}
+
+inline fun <reified K : Credential, C : ApplicationCall> PipelineContext<C>.verifyWith(noinline authenticator: C.(K) -> Principal?) {
+    verifyWith(K::class, authenticator)
+}
+
+fun <K : Credential, C : ApplicationCall> PipelineContext<C>.verifyWith(klass: KClass<K>, authenticator: C.(K) -> Principal?) {
+    val auth = call.authentication
+
+    auth.credentials(klass).let { found ->
+        auth.addPrincipals(found.map {
+            try {
+                call.authenticator(it)
+            } catch (t: Throwable) {
+                auth.addFailure(it, t)
+                null
             }
-        } else {
-            fireFailure(call)
-            finish()
-        }
+        }.filterNotNull())
     }
 }
 
-class AuthContext internal constructor() {
-    private val collectedCredentials = ArrayList<Credential>()
-    private val collectedPrincipals = ArrayList<Principal>()
-    private val collectedFailures = HashMap<Credential, MutableList<Throwable>>()
-
-    val foundCredentials: List<Credential>
-        get() = synchronized(this) { collectedCredentials.toList() }
-
-    val foundPrincipals: List<Principal>
-        get() = synchronized(this) { collectedPrincipals.toList() }
-
-    val failures: Map<Credential, List<Throwable>>
-        get() = synchronized(this) { collectedFailures.mapValues { it.value.toList() } }
-
-    inline fun <reified K : Credential> credentials(): List<K> = credentials(K::class)
-
-    @Suppress("UNCHECKED_CAST")
-    fun <K : Credential> credentials(type: KClass<K>): List<K> = synchronized(this) {
-        collectedCredentials.filter { type.java.isInstance(it) } as List<K>
-    }
-
-    inline fun <reified P : Principal> principals(): List<P> = principals(P::class)
-    inline fun <reified P : Principal> principal(): P? = principals<P>().singleOrNull()
-
-    @Suppress("UNCHECKED_CAST")
-    fun <P : Principal> principals(type: KClass<P>): List<P> = synchronized(this) {
-        collectedPrincipals.filter { type.java.isInstance(it) } as List<P>
-    }
-
-    fun addCredential(credential: Credential) {
-        synchronized(this) {
-            collectedCredentials.add(credential)
-        }
-    }
-
-    fun addPrincipals(principals: List<Principal>) {
-        if (principals.isNotEmpty()) {
-            synchronized(this) {
-                collectedPrincipals.addAll(principals)
-            }
-        }
-    }
-
-    fun removePrincipals(principals: List<Principal>) {
-        if (principals.isNotEmpty()) {
-            synchronized(this) {
-                collectedPrincipals.removeAll(principals)
-            }
-        }
-    }
-
-    fun addPrincipal(principal: Principal) {
-        synchronized(this) {
-            collectedPrincipals.add(principal)
-        }
-    }
-
-    fun addFailure(credential: Credential, t: Throwable) {
-        synchronized(this) {
-            collectedFailures.getOrPut(credential) { ArrayList() }.add(t)
-        }
-    }
-
-    fun hasPrincipals(): Boolean = synchronized(this) { collectedPrincipals.isNotEmpty() }
-
-    companion object {
-        val AttributeKey = org.jetbrains.ktor.util.AttributeKey<AuthContext>("AuthContext")
-        internal fun from(call: ApplicationCall) = call.attributes.computeIfAbsent(AttributeKey) { AuthContext() }
-    }
-}
-
-val ApplicationCall.authContext: AuthContext
-    get() = AuthContext.from(this)
-
-val ApplicationCall.principals: List<Principal>
-    get() = authContext.foundPrincipals
-
-inline fun <reified P : Principal> ApplicationCall.principals() = authContext.principals<P>()
-
-fun <K : Credential, C : ApplicationCall> AuthBuilder<C>.extractCredentials(block: C.() -> K?) {
-    intercept { call ->
-        val p = call.block()
-        if (p != null) {
-            call.authContext.addCredential(p)
-        }
-    }
-}
-
-inline fun <reified K : Credential, C : ApplicationCall> AuthBuilder<C>.verifyBatchTypedWith(noinline block: C.(List<K>) -> List<Principal>) {
-    verifyBatchTypedWith(K::class, block)
-}
-
-fun <K : Credential, C : ApplicationCall> AuthBuilder<C>.verifyBatchTypedWith(klass: KClass<K>, block: C.(List<K>) -> List<Principal>) {
-    intercept { call ->
-        val auth = call.authContext
-
-        auth.credentials(klass).let { found ->
-            if (found.isNotEmpty()) {
-                auth.addPrincipals(call.block(found))
-            }
-        }
-    }
-}
-
-inline fun <reified K : Credential, C : ApplicationCall> AuthBuilder<C>.verifyWith(noinline block: C.(K) -> Principal?) {
-    verifyWith(K::class, block)
-}
-
-fun <K : Credential, C : ApplicationCall> AuthBuilder<C>.verifyWith(klass: KClass<K>, block: C.(K) -> Principal?) {
-    intercept { call ->
-        val auth = call.authContext
-
-        auth.credentials(klass).let { found ->
-            auth.addPrincipals(found.map {
-                try {
-                    call.block(it)
-                } catch (t: Throwable) {
-                    auth.addFailure(it, t)
-                    null
-                }
-            }.filterNotNull())
-        }
-    }
-}
-
-fun <C : ApplicationCall> AuthBuilder<C>.verifyBatchAll(block: C.(List<Credential>) -> List<Principal>) {
+fun <C : ApplicationCall> PipelineContext<C>.verifyBatchAll(block: C.(List<Credential>) -> List<Principal>) {
     verifyBatchTypedWith(block)
 }
 
-inline fun <reified P : Principal, C : ApplicationCall> AuthBuilder<C>.postVerify(crossinline predicate: C.(P) -> Boolean) {
-    intercept { call ->
-        val auth = call.authContext
+inline fun <reified P : Principal, C : ApplicationCall> PipelineContext<C>.postVerify(crossinline predicate: C.(P) -> Boolean) {
+    val auth = call.authentication
 
-        auth.principals(P::class).let { found ->
-            val discarded = found.filterNot { call.predicate(it) }
-            auth.removePrincipals(discarded)
-        }
+    auth.principals(P::class).let { found ->
+        val discarded = found.filterNot { call.predicate(it) }
+        auth.removePrincipals(discarded)
     }
 }
 

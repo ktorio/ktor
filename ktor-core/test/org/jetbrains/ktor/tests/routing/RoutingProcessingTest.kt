@@ -12,7 +12,7 @@ class RoutingProcessingTest {
         val testHost = createTestHost()
         testHost.application.routing {
             get("/foo/bar") {
-                respondStatus(HttpStatusCode.OK)
+                call.respondStatus(HttpStatusCode.OK)
             }
         }
 
@@ -48,7 +48,7 @@ class RoutingProcessingTest {
                 param("name") {
                     method(HttpMethod.Get) {
                         handle {
-                            username = parameters["name"] ?: ""
+                            username = call.parameters["name"] ?: ""
                             ApplicationCallResult.Handled
                         }
                     }
@@ -80,12 +80,12 @@ class RoutingProcessingTest {
                 intercept { call ->
                     userIntercepted = true
                     wrappedWithInterceptor = true
-                    exit {
+                    onFinish {
                         wrappedWithInterceptor = false
                     }
                 }
                 get("{username}") {
-                    userName = parameters["username"] ?: ""
+                    userName = call.parameters["username"] ?: ""
                     userNameGotWithinInterceptor = wrappedWithInterceptor
                 }
             }

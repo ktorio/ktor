@@ -106,18 +106,16 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
                         }
                     }
                 }
-                ApplicationCallResult.Handled
             }
 
             location<login>() {
-                auth {
+                authenticate {
                     oauthAtLocation<login>(DefaultHttpClient, exec,
                             providerLookup = { loginProviders[it.type] },
                             urlProvider = { l, p -> redirectUrl(login(p.name), false) })
 
                     success { authContext, next ->
                         loggedInSuccessResponse(authContext.principals<OAuthAccessTokenResponse>().single())
-                        ApplicationCallResult.Handled
                     }
                 }
 
@@ -143,7 +141,7 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
         return "$protocol://$hostPort${application.feature(Locations).href(t)}"
     }
 
-    private fun ApplicationCall.loginPage(): ApplicationCallResult {
+    private fun ApplicationCall.loginPage() {
         response.status(HttpStatusCode.OK)
         response.contentType(ContentType.Text.Html)
         response.write {
@@ -166,11 +164,9 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
                 }
             }
         }
-
-        return ApplicationCallResult.Handled
     }
 
-    private fun ApplicationCall.loginFailedPage(errors: List<String>): ApplicationCallResult {
+    private fun ApplicationCall.loginFailedPage(errors: List<String>) {
         response.status(HttpStatusCode.OK)
         response.contentType(ContentType.Text.Html)
         response.write {
@@ -191,8 +187,6 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
                 }
             }
         }
-
-        return ApplicationCallResult.Handled
     }
 
     private fun ApplicationCall.loggedInSuccessResponse(callback: OAuthAccessTokenResponse) {

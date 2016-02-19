@@ -19,29 +19,29 @@ class SessionTest {
 
             application.routing {
                 get("/0") {
-                    respondText("It should be no session started")
+                    call.respondText("It should be no session started")
                 }
                 get("/1") {
-                    var session: TestUserSession? = sessionOrNull()
+                    var session: TestUserSession? = call.sessionOrNull()
                     assertNull(session)
 
                     assertFailsWith(IllegalArgumentException::class) {
-                        session<TestUserSession>() // no no-arg constructor
+                        call.session<TestUserSession>() // no no-arg constructor
                     }
                     assertFailsWith(IllegalArgumentException::class) {
-                        session<EmptySession>() // bad class
+                        call.session<EmptySession>() // bad class
                     }
 
-                    session(TestUserSession("id1", emptyList()))
-                    session = session()
+                    call.session(TestUserSession("id1", emptyList()))
+                    session = call.session()
                     assertNotNull(session)
 
-                    respondText("ok")
+                    call.respondText("ok")
                 }
                 get("/2") {
-                    assertEquals(TestUserSession("id1", emptyList()), session<TestUserSession>())
+                    assertEquals(TestUserSession("id1", emptyList()), call.session<TestUserSession>())
 
-                    respondText("ok, ${session<TestUserSession>().userId}")
+                    call.respondText("ok, ${call.session<TestUserSession>().userId}")
                 }
             }
 
@@ -78,11 +78,11 @@ class SessionTest {
 
             application.routing {
                 get("/1") {
-                    session(TestUserSession("id2", emptyList()))
-                    respondText("ok")
+                    call.session(TestUserSession("id2", emptyList()))
+                    call.respondText("ok")
                 }
                 get("/2") {
-                    respondText("ok, ${sessionOrNull<TestUserSession>()?.userId}")
+                    call.respondText("ok, ${call.sessionOrNull<TestUserSession>()?.userId}")
                 }
             }
 
@@ -128,11 +128,11 @@ class SessionTest {
 
             application.routing {
                 get("/1") {
-                    session(TestUserSession("id2", emptyList()))
-                    respondText("ok")
+                    call.session(TestUserSession("id2", emptyList()))
+                    call.respondText("ok")
                 }
                 get("/2") {
-                    respondText("ok, ${sessionOrNull<TestUserSession>()?.userId}")
+                    call.respondText("ok, ${call.sessionOrNull<TestUserSession>()?.userId}")
                 }
             }
 
@@ -174,29 +174,29 @@ class SessionTest {
                     }
 
                     get("/0") {
-                        respondText("It should be no session started")
+                        call.respondText("It should be no session started")
                     }
                     get("/1") {
-                        var session: TestUserSession? = sessionOrNull()
+                        var session: TestUserSession? = call.sessionOrNull()
                         assertNull(session)
 
                         assertFailsWith(IllegalArgumentException::class) {
-                            session<TestUserSession>() // no no-arg constructor
+                            call.session<TestUserSession>() // no no-arg constructor
                         }
                         assertFailsWith(IllegalArgumentException::class) {
-                            session<EmptySession>() // bad class
+                            call.session<EmptySession>() // bad class
                         }
 
-                        session(TestUserSession("id1", emptyList()))
-                        session = session()
+                        call.session(TestUserSession("id1", emptyList()))
+                        session = call.session()
                         assertNotNull(session)
 
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                     get("/2") {
-                        assertEquals(TestUserSession("id1", emptyList()), session<TestUserSession>())
+                        assertEquals(TestUserSession("id1", emptyList()), call.session<TestUserSession>())
 
-                        respondText("ok, ${session<TestUserSession>().userId}")
+                        call.respondText("ok, ${call.session<TestUserSession>().userId}")
                     }
                 }
             }

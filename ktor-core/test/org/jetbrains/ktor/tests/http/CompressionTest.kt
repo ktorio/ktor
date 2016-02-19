@@ -17,7 +17,7 @@ class CompressionTest {
             application.setupCompression()
             application.routing {
                 get("/") {
-                    respondText("text to be compressed")
+                    call.respondText("text to be compressed")
                 }
             }
 
@@ -31,7 +31,7 @@ class CompressionTest {
             application.setupCompression()
             application.routing {
                 get("/") {
-                    respondText("text to be compressed")
+                    call.respondText("text to be compressed")
                 }
             }
 
@@ -45,7 +45,7 @@ class CompressionTest {
             application.setupCompression()
             application.routing {
                 get("/") {
-                    respondText("text to be compressed")
+                    call.respondText("text to be compressed")
                 }
             }
 
@@ -59,7 +59,7 @@ class CompressionTest {
             application.setupCompression()
             application.routing {
                 get("/") {
-                    respondText("text to be compressed")
+                    call.respondText("text to be compressed")
                 }
             }
 
@@ -78,7 +78,7 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    respondText("text to be compressed")
+                    call.respondText("text to be compressed")
                 }
             }
 
@@ -92,7 +92,7 @@ class CompressionTest {
             application.setupCompression()
             application.routing {
                 get("/") {
-                    respondText("text to be compressed")
+                    call.respondText("text to be compressed")
                 }
             }
 
@@ -110,7 +110,7 @@ class CompressionTest {
             }
             application.routing {
                 get("/") {
-                    respondText("text to be compressed")
+                    call.respondText("text to be compressed")
                 }
             }
 
@@ -133,15 +133,15 @@ class CompressionTest {
 
             application.routing {
                 get("/small") {
-                    response.contentLength(4)
-                    respondText("0123")
+                    call.response.contentLength(4)
+                    call.respondText("0123")
                 }
                 get("/big") {
-                    response.contentLength(20)
-                    respondText("01234567890123456789")
+                    call.response.contentLength(20)
+                    call.respondText("01234567890123456789")
                 }
                 get("/stream") {
-                    respondText("stream content")
+                    call.respondText("stream content")
                 }
             }
 
@@ -160,7 +160,7 @@ class CompressionTest {
 
             application.routing {
                 get("/stream") {
-                    respondText("stream content")
+                    call.respondText("stream content")
                 }
             }
 
@@ -179,7 +179,7 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    respondText("content")
+                    call.respondText("content")
                 }
             }
 

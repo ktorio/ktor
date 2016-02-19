@@ -15,7 +15,7 @@ class BasicAuthWithLdapApplication(config: ApplicationConfig) : Application(conf
         install(Locations)
         routing {
             location<Files> {
-                auth {
+                authenticate {
                     basicAuth()
 
                     verifyWithLdapLoginWithUser("ldap://localhost:389", "cn=%s ou=users")

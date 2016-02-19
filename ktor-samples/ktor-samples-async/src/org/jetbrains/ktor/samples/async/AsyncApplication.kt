@@ -15,8 +15,7 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
         routing {
             get("/{...}") {
                 val start = System.currentTimeMillis()
-                executor.submit { handleLongCalculation(start) }
-                ApplicationCallResult.Asynchronous
+                executor.submit { call.handleLongCalculation(start) }
             }
         }
     }

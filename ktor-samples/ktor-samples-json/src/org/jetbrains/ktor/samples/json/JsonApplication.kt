@@ -44,10 +44,10 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
         val model = Model("root", listOf(Item("A", "Apache"), Item("B", "Bing")))
         routing {
             get("/v1") {
-                respond(model)
+                call.respond(model)
             }
             get("/v1/item/{key}") {
-                respond(model.items.first { it.key == parameters["key"] })
+                call.respond(model.items.first { it.key == call.parameters["key"] })
             }
         }
     }

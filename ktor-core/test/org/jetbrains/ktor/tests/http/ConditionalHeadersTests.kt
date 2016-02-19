@@ -18,8 +18,8 @@ class ETagsTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withETag("tag1") {
-                        respondText("response")
+                    call.withETag("tag1") {
+                        call.respondText("response")
                     }
                 }
             }
@@ -37,8 +37,8 @@ class ETagsTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withETag("tag1") {
-                        respondText("response")
+                    call.withETag("tag1") {
+                        call.respondText("response")
                     }
                 }
             }
@@ -58,8 +58,8 @@ class ETagsTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withETag("tag1") {
-                        respondText("response")
+                    call.withETag("tag1") {
+                        call.respondText("response")
                     }
                 }
             }
@@ -77,8 +77,8 @@ class ETagsTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withETag("tag1") {
-                        respondText("response")
+                    call.withETag("tag1") {
+                        call.respondText("response")
                     }
                 }
             }
@@ -96,8 +96,8 @@ class ETagsTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withETag("tag1") {
-                        respondText("response")
+                    call.withETag("tag1") {
+                        call.respondText("response")
                     }
                 }
             }
@@ -115,8 +115,8 @@ class ETagsTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withETag("tag1") {
-                        respondText("response")
+                    call.withETag("tag1") {
+                        call.respondText("response")
                     }
                 }
             }
@@ -136,8 +136,8 @@ class ETagsTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withETag("tag1") {
-                        respondText("response")
+                    call.withETag("tag1") {
+                        call.respondText("response")
                     }
                 }
             }
@@ -157,8 +157,8 @@ class ETagsTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withETag("tag1") {
-                        respondText("response")
+                    call.withETag("tag1") {
+                        call.respondText("response")
                     }
                 }
             }
@@ -179,8 +179,8 @@ class ETagsTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withETag("tag1") {
-                        respondText("response")
+                    call.withETag("tag1") {
+                        call.respondText("response")
                     }
                 }
             }
@@ -198,8 +198,8 @@ class ETagsTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withETag("tag1") {
-                        respondText("response")
+                    call.withETag("tag1") {
+                        call.respondText("response")
                     }
                 }
             }
@@ -219,8 +219,8 @@ class ETagsTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withETag("tag1") {
-                        respondText("response")
+                    call.withETag("tag1") {
+                        call.respondText("response")
                     }
                 }
             }
@@ -240,8 +240,8 @@ class ETagsTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withETag("tag1") {
-                        respondText("response")
+                    call.withETag("tag1") {
+                        call.respondText("response")
                     }
                 }
             }
@@ -263,8 +263,8 @@ class LastModifiedTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withLastModified(date) {
-                        respondText("response")
+                    call.withLastModified(date) {
+                        call.respondText("response")
                     }
                 }
             }
@@ -282,8 +282,8 @@ class LastModifiedTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withLastModified(date) {
-                        respondText("response")
+                    call.withLastModified(date) {
+                        call.respondText("response")
                     }
                 }
             }
@@ -301,8 +301,8 @@ class LastModifiedTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withLastModified(date) {
-                        respondText("response")
+                    call.withLastModified(date) {
+                        call.respondText("response")
                     }
                 }
             }
@@ -320,8 +320,8 @@ class LastModifiedTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withLastModified(date) {
-                        respondText("response")
+                    call.withLastModified(date) {
+                        call.respondText("response")
                     }
                 }
             }
@@ -339,8 +339,8 @@ class LastModifiedTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withLastModified(date) {
-                        respondText("response")
+                    call.withLastModified(date) {
+                        call.respondText("response")
                     }
                 }
             }
@@ -360,8 +360,8 @@ class LastModifiedTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withLastModified(date) {
-                        respondText("response")
+                    call.withLastModified(date) {
+                        call.respondText("response")
                     }
                 }
             }
@@ -392,8 +392,8 @@ class LastModifiedTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withLastModified(date) {
-                        respondText("response")
+                    call.withLastModified(date) {
+                        call.respondText("response")
                     }
                 }
             }
@@ -411,8 +411,8 @@ class LastModifiedTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withLastModified(date) {
-                        respondText("response")
+                    call.withLastModified(date) {
+                        call.respondText("response")
                     }
                 }
             }
@@ -430,8 +430,8 @@ class LastModifiedTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withLastModified(date) {
-                        respondText("response")
+                    call.withLastModified(date) {
+                        call.respondText("response")
                     }
                 }
             }
@@ -452,9 +452,9 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange(date) { rangeOrNull ->
+                    call.withIfRange(date) { rangeOrNull ->
                         assertNull(rangeOrNull)
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                 }
             }
@@ -474,9 +474,9 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange(date) { rangeOrNull ->
+                    call.withIfRange(date) { rangeOrNull ->
                         assertNull(rangeOrNull)
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                 }
             }
@@ -508,9 +508,9 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange(date) { rangeOrNull ->
+                    call.withIfRange(date) { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                 }
             }
@@ -530,7 +530,7 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange(date) { rangeOrNull ->
+                    call.withIfRange(date) { rangeOrNull ->
                         fail("should never reach here")
                     }
                 }
@@ -551,9 +551,9 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange(date) { rangeOrNull ->
+                    call.withIfRange(date) { rangeOrNull ->
                         assertNull(rangeOrNull)
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                 }
             }
@@ -574,7 +574,7 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange(date) { rangeOrNull ->
+                    call.withIfRange(date) { rangeOrNull ->
                         fail("should never reach here")
                     }
                 }
@@ -595,7 +595,7 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange(date) { rangeOrNull ->
+                    call.withIfRange(date) { rangeOrNull ->
                         fail("should never reach here")
                     }
                 }
@@ -616,9 +616,9 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange(date) { rangeOrNull ->
+                    call.withIfRange(date) { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                 }
             }
@@ -639,9 +639,9 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange(date) { rangeOrNull ->
+                    call.withIfRange(date) { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                 }
             }
@@ -661,9 +661,9 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange(date) { rangeOrNull ->
+                    call.withIfRange(date) { rangeOrNull ->
                         assertNull(rangeOrNull)
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                 }
             }
@@ -683,9 +683,9 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange(date) { rangeOrNull ->
+                    call.withIfRange(date) { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                 }
             }
@@ -703,9 +703,9 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange("etag1") { rangeOrNull ->
+                    call.withIfRange("etag1") { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                 }
             }
@@ -723,9 +723,9 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange("etag1") { rangeOrNull ->
+                    call.withIfRange("etag1") { rangeOrNull ->
                         assertNull(rangeOrNull)
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                 }
             }
@@ -743,9 +743,9 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange("etag1") { rangeOrNull ->
+                    call.withIfRange("etag1") { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                 }
             }
@@ -763,9 +763,9 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange("etag1") { rangeOrNull ->
+                    call.withIfRange("etag1") { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                 }
             }
@@ -789,9 +789,9 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange("etag1") { rangeOrNull ->
+                    call.withIfRange("etag1") { rangeOrNull ->
                         assertNotNull(rangeOrNull)
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                 }
             }
@@ -815,9 +815,9 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange("etag1") { rangeOrNull ->
+                    call.withIfRange("etag1") { rangeOrNull ->
                         assertNull(rangeOrNull)
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                 }
             }
@@ -835,12 +835,12 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange(object : HasETag {
+                    call.withIfRange(object : HasETag {
                         override fun etag(): String { return "etag1"
                         }
                     }) { rangeOrNull ->
                         assertNull(rangeOrNull)
-                        respondText("ok")
+                        call.respondText("ok")
                     }
                 }
             }
@@ -860,7 +860,7 @@ class IfRangeTest {
         withTestApplication {
             application.routing {
                 handle {
-                    withIfRange(object : HasLastModified {
+                    call.withIfRange(object : HasLastModified {
                         override val lastModified: Long
                             get() = date.time
                     }) { rangeOrNull ->

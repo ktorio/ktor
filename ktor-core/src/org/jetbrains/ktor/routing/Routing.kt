@@ -13,23 +13,27 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
         override fun toString(): String = ""
     }
 
-    internal fun interceptor(call: ApplicationCall) {
+    internal fun interceptor(context: PipelineContext<ApplicationCall>) {
+        val call = context.call
         val resolveContext = RoutingResolveContext(this, call.request.requestLine, call.request.parameters, call.request.headers)
         val resolveResult = resolveContext.resolve()
         if (resolveResult.succeeded) {
             val routingCall = RoutingApplicationCall(call, resolveResult.entry, resolveResult.values)
-            routingCall.executeEntry(resolveResult.entry)
+            val state = executeEntry(routingCall, resolveResult.entry)
+            if (state == PipelineExecution.State.Pause) {
+                context.pause()
+            }
         }
     }
 
-    private fun RoutingApplicationCall.executeHandlers(handlers: List<RoutingApplicationCall.() -> Unit>) {
+    private fun executeHandlers(context: PipelineContext<RoutingApplicationCall>, handlers: List<PipelineContext<RoutingApplicationCall>.() -> Unit>) {
         // Handlers are executed in the installation order, first one that handles a call wins
         for (handler in handlers) {
-            handler()
+            context.handler()
         }
     }
 
-    private fun RoutingApplicationCall.executeEntry(entry: RoutingEntry): Unit {
+    private fun executeEntry(call: RoutingApplicationCall, entry: RoutingEntry): PipelineExecution.State {
         // Interceptors are rarely installed into routing entries, so don't create list unless there are some
         var interceptors: MutableList<RoutingInterceptor>? = null
         var current: RoutingEntry? = entry
@@ -42,19 +46,16 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
             current = current.parent
         }
 
-        // No interceptors, just call handlers without polluting call stacks
+        val pipeline = Pipeline<RoutingApplicationCall>()
         if (interceptors != null && interceptors.isNotEmpty()) {
-            Pipeline<RoutingApplicationCall>().apply {
-                for (interceptor in interceptors!!)
-                    intercept(interceptor.function)
-
-                intercept {
-                    executeHandlers(entry.handlers)
-                }
-            }.execute(this)
-        } else {
-            executeHandlers(entry.handlers)
+            for (interceptor in interceptors)
+                pipeline.intercept(interceptor.function)
         }
+
+        pipeline.intercept {
+            executeHandlers(this, entry.handlers)
+        }
+        return pipeline.execute(call)
     }
 
     companion object RoutingFeature : ApplicationFeature<Routing> {
@@ -63,7 +64,9 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
 
         override fun install(application: Application, configure: Routing.() -> Unit) = Routing(application).apply {
             configure()
-            application.intercept { call -> this@apply.interceptor(call) }
+            application.intercept { call ->
+                this@apply.interceptor(this)
+            }
         }
     }
 }

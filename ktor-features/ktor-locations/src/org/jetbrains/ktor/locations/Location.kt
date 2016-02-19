@@ -41,13 +41,9 @@ inline fun <reified T : Any> RoutingEntry.handle(noinline body: RoutingApplicati
 
 inline fun <T : Any> RoutingEntry.handle(dataClass: KClass<T>, crossinline body: RoutingApplicationCall.(T) -> Unit) {
     handle {
-        val location = locations().resolve<T>(dataClass, this)
-        body(location)
+        val location = locations().resolve<T>(dataClass, call)
+        call.body(location)
     }
-}
-
-fun <T : Any> RoutingApplicationCall.respondRedirect(location: T): ApplicationCallResult {
-    return respondRedirect(route.locations().href(location))
 }
 
 // ------- app ---------

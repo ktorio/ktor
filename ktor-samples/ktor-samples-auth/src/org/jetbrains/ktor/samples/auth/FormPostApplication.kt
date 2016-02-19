@@ -11,7 +11,7 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
     init {
         routing {
             route("/login") {
-                auth {
+                authenticate {
                     formAuth("user", "pass")
                     verifyWith { up: UserPasswordCredential ->
                         when {

@@ -52,7 +52,7 @@ abstract class HostTestSuite {
     fun testTextContent() {
         val server = createServer(port) {
             handle {
-                respond(TextContent(ContentType.Text.Plain, "test"))
+                call.respond(TextContent(ContentType.Text.Plain, "test"))
             }
         }
         startServer(server)
@@ -66,7 +66,7 @@ abstract class HostTestSuite {
     fun testStream() {
         val server = createServer(port) {
             handle {
-                response.stream {
+                call.response.stream {
                     writer().apply {
                         write("ABC")
                         flush()
@@ -88,7 +88,7 @@ abstract class HostTestSuite {
     fun testStreamNoFlush() {
         val server = createServer(port) {
             handle {
-                response.stream {
+                call.response.stream {
                     write("ABC".toByteArray())
                     write("123".toByteArray())
                 }
@@ -106,7 +106,7 @@ abstract class HostTestSuite {
     fun testSendTextWithContentType() {
         val server = createServer(port) {
             handle {
-                respondText(ContentType.Text.Plain, "Hello")
+                call.respondText(ContentType.Text.Plain, "Hello")
             }
         }
         startServer(server)
@@ -121,7 +121,7 @@ abstract class HostTestSuite {
     fun testRedirect() {
         val server = createServer(port) {
             handle {
-                respondRedirect("http://localhost:$port/page", true)
+                call.respondRedirect("http://localhost:$port/page", true)
             }
         }
         startServer(server)
@@ -135,8 +135,8 @@ abstract class HostTestSuite {
     fun testHeader() {
         val server = createServer(port) {
             handle {
-                response.headers.append(HttpHeaders.ETag, "test-etag")
-                respondText(ContentType.Text.Plain, "Hello")
+                call.response.headers.append(HttpHeaders.ETag, "test-etag")
+                call.respondText(ContentType.Text.Plain, "Hello")
             }
         }
         startServer(server)
@@ -150,8 +150,8 @@ abstract class HostTestSuite {
     fun testCookie() {
         val server = createServer(port) {
             handle {
-                response.cookies.append("k1", "v1")
-                respondText(ContentType.Text.Plain, "Hello")
+                call.response.cookies.append("k1", "v1")
+                call.respondText(ContentType.Text.Plain, "Hello")
             }
         }
         startServer(server)
@@ -244,7 +244,7 @@ abstract class HostTestSuite {
 
         val server = createServer(port) {
             handle {
-                respond(LocalFileContent(file))
+                call.respond(LocalFileContent(file))
             }
         }
         startServer(server)
@@ -261,7 +261,7 @@ abstract class HostTestSuite {
 
         val server = createServer(port) {
             handle {
-                respond(LocalFileContent(file))
+                call.respond(LocalFileContent(file))
             }
         }
         startServer(server)
@@ -280,7 +280,7 @@ abstract class HostTestSuite {
 
         val server = createServer(port) {
             handle {
-                respond(LocalFileContent(file))
+                call.respond(LocalFileContent(file))
             }
         }
         startServer(server)
@@ -302,7 +302,7 @@ abstract class HostTestSuite {
 
         val server = createServer(port) {
             handle {
-                respond(LocalFileContent(file))
+                call.respond(LocalFileContent(file))
             }
         }
         startServer(server)
@@ -319,7 +319,7 @@ abstract class HostTestSuite {
     fun testJarFileContent() {
         val server = createServer(port) {
             handle {
-                respond(resolveClasspathWithPath("java/util", "/ArrayList.class")!!)
+                call.respond(call.resolveClasspathWithPath("java/util", "/ArrayList.class")!!)
             }
         }
         startServer(server)
@@ -339,7 +339,7 @@ abstract class HostTestSuite {
     fun testURIContent() {
         val server = createServer(port) {
             handle {
-                respond(URIFileContent(javaClass.classLoader.getResources("java/util/ArrayList.class").toList().first()))
+                call.respond(URIFileContent(javaClass.classLoader.getResources("java/util/ArrayList.class").toList().first()))
             }
         }
         startServer(server)
@@ -362,7 +362,7 @@ abstract class HostTestSuite {
 
         val server = createServer(port) {
             handle {
-                respond(URIFileContent(file.toURI()))
+                call.respond(URIFileContent(file.toURI()))
             }
         }
         startServer(server)
@@ -382,10 +382,10 @@ abstract class HostTestSuite {
     fun testPathComponentsDecoding() {
         val server = createServer(port) {
             get("/a%20b") {
-                respondText("space")
+                call.respondText("space")
             }
             get("/a+b") {
-                respondText("plus")
+                call.respondText("plus")
             }
         }
         startServer(server)

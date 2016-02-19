@@ -55,16 +55,16 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     // TODO someone reported auto-cleanup issues so we have to check it
                 }
 
-                application.handle(call)
-                baseRequest.isHandled = call.completed
-/*
-                     {
-                        if (!call.asyncStarted) {
-                            val asyncContext = baseRequest.startAsync()
-                            call.continueAsync(asyncContext)
-                        }
+                val pipelineState = application.handle(call)
+                if (pipelineState.finished()) {
+                    baseRequest.isHandled = call.completed
+                    // TODO: report 404? Or pass to next handler?
+                } else {
+                    if (!call.asyncStarted) {
+                        val asyncContext = baseRequest.startAsync()
+                        call.continueAsync(asyncContext)
                     }
-*/
+                }
             } catch(ex: Throwable) {
                 config.log.error("Application ${application.javaClass} cannot fulfill the request", ex);
                 call.respondStatus(HttpStatusCode.InternalServerError)

@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.sessions
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.pipeline.*
 import kotlin.reflect.*
 
 class CookieValueSessionTracker<S : Any>(val cookieSettings: SessionCookiesSettings,
@@ -10,7 +11,8 @@ class CookieValueSessionTracker<S : Any>(val cookieSettings: SessionCookiesSetti
         call.response.cookies.append(cookieSettings.toCookie(cookieName, serializer.serialize(session)))
     }
 
-    override fun lookup(call: ApplicationCall, injectSession: (S) -> Unit) {
+    override fun lookup(context: PipelineContext<ApplicationCall>, injectSession: (S) -> Unit) {
+        val call = context.execution.call
         val value = cookieSettings.fromCookie(call.request.cookies[cookieName])
         if (value != null) {
             injectSession(serializer.deserialize(value))

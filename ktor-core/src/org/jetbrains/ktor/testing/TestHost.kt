@@ -35,7 +35,10 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
         val request = TestApplicationRequest()
         request.setup()
         val call = TestApplicationCall(application, request)
-        application.handle(call)
+        val pipelineState = application.handle(call)
+        if (!pipelineState.finished()) {
+            call.requestResult = ApplicationCallResult.Asynchronous
+        }
         return call
     }
 }

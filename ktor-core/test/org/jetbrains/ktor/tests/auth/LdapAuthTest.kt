@@ -36,15 +36,15 @@ class LdapAuthTest {
     fun testLoginToServer() {
         withTestApplication {
             application.routing {
-                auth {
+                authenticate {
                     basicAuth()
                     verifyWithLdapLoginWithUser("ldap://$localhost:${ldapServer.port}", "uid=%s,ou=system")
-                    fail {
-                        respondStatus(HttpStatusCode.Forbidden)
+                    onFail {
+                        call.respondStatus(HttpStatusCode.Forbidden)
                     }
                 }
                 get("/") {
-                    respondText((authContext.foundPrincipals.singleOrNull() as? UserIdPrincipal)?.name ?: "null")
+                    call.respondText((call.authentication.principals.singleOrNull() as? UserIdPrincipal)?.name ?: "null")
                 }
             }
 
@@ -70,7 +70,7 @@ class LdapAuthTest {
     fun testCustomLogin() {
         withTestApplication {
             application.routing {
-                auth {
+                authenticate {
                     basicAuth()
                     verifyWithLdap("ldap://$localhost:${ldapServer.port}", ldapLoginConfigurator = { c, env ->
                         env.put("java.naming.security.principal", "uid=admin,ou=system")
@@ -90,13 +90,13 @@ class LdapAuthTest {
                             null
                         }
                     })
-                    fail {
-                        respondStatus(HttpStatusCode.Forbidden)
+                    onFail {
+                        call.respondStatus(HttpStatusCode.Forbidden)
                     }
                 }
 
                 get("/") {
-                    respondText((authContext.foundPrincipals.singleOrNull() as? UserIdPrincipal)?.name ?: "null")
+                    call.respondText((call.authentication.principals.singleOrNull() as? UserIdPrincipal)?.name ?: "null")
                 }
             }
 

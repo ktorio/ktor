@@ -14,6 +14,6 @@ private fun Application.logCallResult(call: ApplicationCall) {
 
 fun Application.logApplicationCalls() {
     intercept { call ->
-        exit { logCallResult(call) }
+        onFinish { logCallResult(call) }
     }
 }

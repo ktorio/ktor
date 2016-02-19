@@ -10,7 +10,7 @@ open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector
     val children: MutableList<RoutingEntry> = ArrayList()
 
     internal val interceptors = ArrayList<RoutingInterceptor>()
-    internal val handlers = ArrayList<RoutingApplicationCall.() -> Unit>()
+    internal val handlers = ArrayList<PipelineContext<RoutingApplicationCall>.() -> Unit>()
 
     fun select(selector: RoutingSelector): RoutingEntry {
         val existingEntry = children.firstOrNull { it.selector.equals(selector) }
@@ -26,7 +26,7 @@ open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector
         interceptors.add(RoutingInterceptor(interceptor))
     }
 
-    fun handle(handler: RoutingApplicationCall.() -> Unit) {
+    fun handle(handler: PipelineContext<RoutingApplicationCall>.() -> Unit) {
         handlers.add(handler)
     }
 

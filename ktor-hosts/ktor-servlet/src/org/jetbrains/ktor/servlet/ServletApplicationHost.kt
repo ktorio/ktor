@@ -42,12 +42,15 @@ open class ServletApplicationHost() : HttpServlet() {
 
         try {
             val call = ServletApplicationCall(application, request, response)
-            application.handle(call)
-            if (!call.completed) {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND)
-                call.close()
+            val pipelineState = application.handle(call)
+            if (pipelineState.finished()) {
+                if (!call.completed) {
+                    response.sendError(HttpServletResponse.SC_NOT_FOUND)
+                    call.close()
+                }
+            } else {
+                call.continueAsync(request.startAsync())
             }
-            // -> call.continueAsync(request.startAsync())
         } catch (ex: Throwable) {
             application.config.log.error("ServletApplicationHost cannot service the request", ex)
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.message)

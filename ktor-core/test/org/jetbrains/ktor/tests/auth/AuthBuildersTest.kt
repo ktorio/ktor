@@ -17,13 +17,12 @@ class AuthBuildersTest {
         withTestApplication {
             application.routing {
                 route("/") {
-                    auth {
+                    authenticate {
                         extractCredentials { UserPasswordCredential("name1", "ppp") }
                         verifyBatchTypedWith { items: List<UserPasswordCredential> -> items.map { UserIdPrincipal(it.name) } }
 
-                        success { authContext, next ->
-                            got.addAll(authContext.principals())
-                            next(authContext)
+                        onFinish {
+                            got.addAll(call.authentication.principals())
                         }
                     }
                 }
@@ -44,13 +43,12 @@ class AuthBuildersTest {
         withTestApplication {
             application.routing {
                 route("/") {
-                    auth {
+                    authenticate {
                         extractCredentials { UserPasswordCredential("name1", "ppp") }
                         verifyWith { credential: UserPasswordCredential -> UserIdPrincipal(credential.name) }
 
-                        success { authContext, next ->
-                            got.addAll(authContext.principals())
-                            next(authContext)
+                        onFinish {
+                            got.addAll(call.authentication.principals())
                         }
                     }
                 }
@@ -71,13 +69,11 @@ class AuthBuildersTest {
         withTestApplication {
             application.routing {
                 route("/") {
-                    auth {
+                    authenticate {
                         extractCredentials { UserPasswordCredential("name1", "ppp") }
                         verifyWith { credential: UserPasswordCredential -> null }
-
-                        fail { next ->
+                        onFail {
                             failed = true
-                            next()
                         }
                     }
                 }
@@ -99,16 +95,15 @@ class AuthBuildersTest {
         withTestApplication {
             application.routing {
                 route("/") {
-                    auth {
+                    authenticate {
                         extractCredentials { UserPasswordCredential("name1", "ppp") }
                         extractCredentials { TestCredential() }
 
                         verifyBatchTypedWith { items: List<UserPasswordCredential> -> items.map { UserIdPrincipal(it.name) } }
                         verifyBatchAll { all -> if (all.filterIsInstance<TestCredential>().any()) gotTestCredential = true; emptyList() }
 
-                        success { authContext, next ->
-                            got.addAll(authContext.principals())
-                            next(authContext)
+                        onFinish {
+                            got.addAll(call.authentication.principals())
                         }
                     }
                 }
@@ -130,7 +125,7 @@ class AuthBuildersTest {
         withTestApplication {
             application.routing {
                 route("/") {
-                    auth {
+                    authenticate {
                         extractCredentials { UserPasswordCredential("name1", "ppp") }
                         extractCredentials { UserPasswordCredential("name2", "ppp") }
 
@@ -138,9 +133,8 @@ class AuthBuildersTest {
 
                         postVerify { p: UserIdPrincipal -> p.name == "name1" }
 
-                        success { authContext, next ->
-                            got.addAll(authContext.principals())
-                            next(authContext)
+                        onFinish {
+                            got.addAll(call.authentication.principals())
                         }
                     }
                 }
@@ -161,22 +155,22 @@ class AuthBuildersTest {
         withTestApplication {
             application.routing {
                 route("/") {
-                    auth {
+                    authenticate {
                         formAuth()
                         verifyWith { c: UserPasswordCredential -> UserIdPrincipal(c.name) }
 
-                        success { authContext, function ->
-                            assertEquals(username, authContext.principal<UserIdPrincipal>()?.name)
+                        onFinish {
+                            assertEquals(username, call.authentication.principal<UserIdPrincipal>()?.name)
                             ApplicationCallResult.Handled
                         }
 
-                        fail {
+                        onFail {
                             fail("login failed")
                         }
                     }
 
                     handle {
-                        assertEquals(username, authContext.principal<UserIdPrincipal>()?.name)
+                        assertEquals(username, call.authentication.principal<UserIdPrincipal>()?.name)
                         ApplicationCallResult.Handled
                     }
                 }
