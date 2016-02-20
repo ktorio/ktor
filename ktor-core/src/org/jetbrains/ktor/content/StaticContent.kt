@@ -2,27 +2,38 @@ package org.jetbrains.ktor.content
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.util.Attributes
 import java.io.*
 import java.net.*
+import java.nio.channels.*
 import java.nio.file.*
+import java.util.jar.*
 
-class LocalFileContent(val file: File, override val contentType: ContentType = defaultContentType(file.extension)) : HasContentType, HasContentLength, StreamContentProvider, HasLastModified {
+class LocalFileContent(val file: File, override val contentType: ContentType = defaultContentType(file.extension)) : StreamContentProvider, ChannelContentProvider, Resource {
 
     constructor(baseDir: File, relativePath: String, contentType: ContentType = defaultContentType(relativePath.extension())) : this(baseDir.safeAppend(Paths.get(relativePath)), contentType)
     constructor(baseDir: File, vararg relativePath: String, contentType: ContentType = defaultContentType(relativePath.last().extension())) : this(baseDir.safeAppend(Paths.get("", *relativePath)), contentType)
     constructor(baseDir: Path, relativePath: Path, contentType: ContentType = defaultContentType(relativePath.fileName.extension())) : this(baseDir.safeAppend(relativePath).toFile(), contentType)
 
+    override val attributes = Attributes()
+
     override val contentLength: Long
         get() = file.length()
 
-    override val lastModified: Long
-        get() = file.lastModified()
+    override val versions: List<Version>
+        get() = listOf(LastModifiedVersion(Files.getLastModifiedTime(file.toPath())))
 
     override fun stream() = file.inputStream()
+
+    override fun channel(): AsynchronousByteChannel = file.asyncReadOnlyFileChannel()
+    override val seekable: Boolean
+        get() = true
+
 }
 
-class ResourceFileContent(val zipFile: File, val resourcePath: String, val classLoader: ClassLoader, override val contentType: ContentType = defaultContentType(resourcePath.extension())) : HasContentType, StreamContentProvider, HasLastModified {
+class ResourceFileContent(val zipFile: File, val resourcePath: String, val classLoader: ClassLoader, override val contentType: ContentType = defaultContentType(resourcePath.extension())) : Resource, StreamContentProvider {
     private val normalized = Paths.get(resourcePath).normalize().toString().replace(File.separatorChar, '/')
 
     constructor(zipFilePath: Path, resourcePath: String, classLoader: ClassLoader, contentType: ContentType = defaultContentType(resourcePath.extension())) : this(zipFilePath.toFile(), resourcePath, classLoader, contentType)
@@ -31,8 +42,13 @@ class ResourceFileContent(val zipFile: File, val resourcePath: String, val class
         require(!normalized.startsWith("..")) { "Bad resource relative path $resourcePath" }
     }
 
-    override val lastModified: Long
-        get() = zipFile.lastModified()
+    override val attributes = Attributes()
+
+    override val versions: List<Version>
+        get() =  listOf(LastModifiedVersion(Files.getLastModifiedTime(zipFile.toPath())))
+
+    override val contentLength: Long?
+        get() = JarFile(zipFile).use { it.getJarEntry(resourcePath)?.size }
 
     override fun stream() = classLoader.getResourceAsStream(normalized) ?: throw IOException("Resource $normalized not found")
 }

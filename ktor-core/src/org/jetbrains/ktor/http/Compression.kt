@@ -1,8 +1,16 @@
 package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.util.*
 import java.io.*
+import java.nio.channels.*
 import java.util.zip.*
+
+object CompressionAttributes {
+    val preventCompression = AttributeKey<Boolean>("preventCompression")
+}
 
 data class CompressionOptions(var minSize: Long = 0L,
                               var compressStream: Boolean = true,
@@ -33,7 +41,7 @@ fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
             val encoder = encoding?.let { encoders[it] }
             if (encoding != null && encoder != null && call.request.header(HttpHeaders.Range) == null) {
                 call.response.interceptStream { content, stream ->
-                    if (conditions.all { it(call) }) {
+                    if (conditions.all { it(call) } && CompressionAttributes.preventCompression !in attributes) {
                         call.response.headers.append(HttpHeaders.ContentEncoding, encoding)
                         stream {
                             encoder.open(this).apply {
@@ -45,6 +53,23 @@ fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
                         stream {
                             content()
                         }
+                    }
+                }
+                response.interceptSend { obj, next ->
+                    if (conditions.all { it(this) } && CompressionAttributes.preventCompression !in attributes) {
+                        if (obj is ChannelContentProvider) {
+                            response.headers.append(HttpHeaders.ContentEncoding, encoding)
+
+                            next(object : ChannelContentProvider {
+                                override fun channel() = AsyncDeflaterByteChannel(obj.channel())
+                                override val seekable: Boolean
+                                    get() = false
+                            })
+                        } else {
+                            next(obj)
+                        }
+                    } else {
+                        next(obj)
                     }
                 }
             }

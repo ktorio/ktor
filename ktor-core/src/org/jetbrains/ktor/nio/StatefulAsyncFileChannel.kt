@@ -6,10 +6,24 @@ import java.nio.channels.*
 import java.nio.file.*
 import java.util.concurrent.*
 
-class StatefulAsyncFileChannel (val fc: AsynchronousFileChannel, val start: Long = 0, val endInclusive: Long = fc.size() - 1) : AsynchronousByteChannel {
+class StatefulAsyncFileChannel (val fc: AsynchronousFileChannel, val start: Long = 0, val endInclusive: Long = fc.size() - 1, val preventClose: Boolean = false) : AsynchronousByteChannel {
+
+    constructor(fc: AsynchronousFileChannel, range: LongRange = 0L .. fc.size() - 1, preventClose: Boolean = false) : this(fc, range.start, range.endInclusive, preventClose)
+
+    init {
+        require(start >= 0L) { "start position shouldn't be negative but it is $start"}
+        require(endInclusive >= start) { "endInclusive shouldn't be less than start but start = $start, endInclusive = $endInclusive" }
+        require(endInclusive <= fc.size() - 1) { "endInclusive points to the position out of the file: file size = ${fc.size()}, endInclusive = $endInclusive" }
+    }
+
     private var position = start
 
-    override fun close() = fc.close()
+    val range: LongRange
+        get () = start .. endInclusive
+
+    override fun close() {
+        if (!preventClose) fc.close()
+    }
     override fun isOpen() = fc.isOpen
 
     override fun <A> write(p0: ByteBuffer?, p1: A, p2: CompletionHandler<Int, in A>?) {

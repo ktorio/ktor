@@ -5,7 +5,6 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.util.*
 import java.io.*
 import java.nio.channels.*
 import java.nio.file.*
@@ -85,42 +84,17 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                         close()
                     }
                 }
+                is ChannelContentProvider -> {
+                    sendAsyncChannel(value.channel())
+                    ApplicationCallResult.Handled // or async?
+                }
                 is LocalFileContent -> {
-                    handleRangeRequest(value, value.file.length(), mergeToSingleRange = false) { ranges ->
-                        when {
-                            ranges == null -> {
-                                // TODO compression settings
-                                response.contentType(value.contentType)
-                                response.status(HttpStatusCode.OK)
-
-                                if (request.acceptEncodingItems().any { it.value == "gzip" }) {
-                                    response.headers.append(HttpHeaders.ContentEncoding, "gzip")
-                                    sendAsyncChannel(value.file.asyncReadOnlyFileChannel().deflated())
-                                } else {
-                                    sendFile(value.file, 0L, value.file.length())
-                                }
-                            }
-                            ranges.size == 1 -> {
-                                response.contentType(value.contentType)
-                                response.status(HttpStatusCode.PartialContent)
-
-                                val single = ranges.single()
-                                response.contentRange(single, value.file.length(), RangeUnits.Bytes)
-                                sendFile(value.file, single.start, single.length)
-                            }
-                            else -> {
-                                val boundary = "ktor-boundary-" + nextNonce()
-                                response.status(HttpStatusCode.PartialContent)
-                                response.contentType(ContentType.MultiPart.ByteRanges.withParameter("boundary", boundary))
-
-                                sendAsyncChannel(ByteRangesChannel(ranges.map {
-                                    ByteRangesChannel.FileWithRange(value.file, it)
-                                }, boundary, value.contentType.toString()))
-                            }
-                        }
-
-                        close()
-                    }
+                    respond(object : ChannelContentProvider, HasVersions, HasContentLength {
+                        override fun channel() = value.file.asyncReadOnlyFileChannel()
+                        override val versions = listOf(LastModifiedVersion(Files.getLastModifiedTime(value.file.toPath())))
+                        override val contentLength = value.file.length()
+                        override val seekable = true
+                    })
                 }
                 is StreamContentProvider -> {
                     sendStream(value.stream())

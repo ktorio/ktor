@@ -18,7 +18,7 @@ open class ChainAsyncByteChannel(val chain: Sequence<() -> AsynchronousByteChann
     }
 
     override final fun isOpen() = !closed
-    override final fun close() {
+    override fun close() {
         switchCurrent()
         closed = true
     }

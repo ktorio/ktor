@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.util.*
 import java.time.*
 import java.time.temporal.*
@@ -15,5 +16,6 @@ fun ApplicationResponse.header(name: String, date: Temporal) = headers.append(na
 fun ApplicationResponse.etag(value: String) = header(HttpHeaders.ETag, value)
 fun ApplicationResponse.lastModified(value: Long) = header(HttpHeaders.LastModified, LocalDateTime.ofInstant(Instant.ofEpochMilli(value), ZoneId.systemDefault()).toGMT())
 fun ApplicationResponse.contentLength(value: Long) = header(HttpHeaders.ContentLength, value)
-
+fun ApplicationResponse.cacheControl(value: CacheControl) = header(HttpHeaders.CacheControl, value.toString())
+fun ApplicationResponse.expires(value: LocalDateTime) = header(HttpHeaders.Expires, value)
 
