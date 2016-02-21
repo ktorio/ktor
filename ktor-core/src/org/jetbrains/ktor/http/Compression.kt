@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.interception.*
 import java.io.*
 import java.util.zip.*
 
@@ -11,11 +12,11 @@ data class CompressionOptions(var minSize: Long = 0L,
                               val conditions: MutableList<ApplicationCall.() -> Boolean> = arrayListOf()
 )
 
-fun Application.setupCompression() {
+fun <C: ApplicationCall> InterceptApplicationCall<C>.setupCompression() {
     setupCompression { }
 }
 
-fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
+fun <C: ApplicationCall> InterceptApplicationCall<C>.setupCompression(configure: CompressionOptions.() -> Unit) {
     val options = CompressionOptions()
     options.configure()
     val supportedEncodings = setOf("gzip", "deflate", "identity", "*") + options.compressorRegistry.keys
