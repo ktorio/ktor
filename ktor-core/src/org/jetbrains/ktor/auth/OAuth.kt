@@ -326,7 +326,6 @@ private fun simpleOAuth2Step2(client: HttpClient, method: HttpMethod, usedRedire
 }
 
 fun <C : ApplicationCall> PipelineContext<C>.simpleOAuthAnyStep1(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String) {
-    val call = execution.call
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
             onFail {
@@ -344,7 +343,6 @@ fun <C : ApplicationCall> PipelineContext<C>.simpleOAuthAnyStep1(client: HttpCli
 }
 
 fun <C : ApplicationCall> PipelineContext<C>.simpleOAuthAnyStep2(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String, configure: RequestBuilder.() -> Unit = {}, block: (OAuthAccessTokenResponse) -> Unit) {
-    val call = execution.call
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
             val tokens = call.oauth1aHandleCallback()
@@ -392,7 +390,7 @@ private fun <C : ApplicationCall> PipelineContext<C>.oauth1a(client: HttpClient,
             if (token == null) {
                 val t = simpleOAuth1aStep1(client, provider, call.urlProvider(provider))
                 call.redirectAuthenticateOAuth1a(provider, t)
-                finish()
+                pipeline.stop()
             } else {
                 val accessToken = simpleOAuth1aStep2(client, provider, token)
                 call.authentication.addPrincipal(accessToken)
@@ -410,7 +408,7 @@ private fun <C : ApplicationCall> PipelineContext<C>.oauth2(client: HttpClient, 
             val token = call.oauth2HandleCallback()
             if (token == null) {
                 call.redirectAuthenticateOAuth2(provider, call.urlProvider(provider), nextNonce(), scopes = provider.defaultScopes)
-                finish()
+                pipeline.stop()
             } else {
                 proceedAsync(exec) {
                     val accessToken = simpleOAuth2Step2(client, provider, call.urlProvider(provider), token)

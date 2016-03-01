@@ -27,7 +27,7 @@ public open class Application(val config: ApplicationConfig) : InterceptApplicat
      * Handles HTTP request coming from the host using interceptors
      */
     public fun handle(call: ApplicationCall): PipelineExecution.State {
-        return pipeline.execute(call)
+        return pipeline.execute(call).state
     }
 
     /**

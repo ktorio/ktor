@@ -46,7 +46,7 @@ internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val 
     }
 
     override fun lookup(context: PipelineContext<ApplicationCall>, injectSession: (S) -> Unit) {
-        val call = context.execution.call
+        val call = context.call
         val sessionId = call.request.cookies[cookieName]
         if (sessionId != null) {
             call.attributes.put(SessionIdKey, sessionId)

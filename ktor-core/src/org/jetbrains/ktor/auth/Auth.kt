@@ -13,12 +13,11 @@ interface Principal
 fun <C : ApplicationCall> InterceptApplicationCall<C>.authenticate(body: PipelineContext<C>.() -> Unit) {
     intercept {
         body()
-        val context = call.attributes.getOrNull(AuthenticationContext.AttributeKey)
-        if (context != null && context.hasPrincipals()) {
-            // ok, just roll on
-            return@intercept
+        onFinish {
+            val context = call.attributes.getOrNull(AuthenticationContext.AttributeKey)
+            if (context == null || !context.hasPrincipals())
+                throw Exception("Authentication failed")
         }
-        throw Exception("Authentication failed")
     }
 }
 

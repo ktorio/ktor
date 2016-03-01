@@ -9,10 +9,10 @@ class Pipeline<T: ApplicationCall> {
         blockBuilders.add(block)
     }
 
-    fun execute(value: T) : PipelineExecution.State {
-        val execution = PipelineExecution(value, blockBuilders)
+    fun execute(value: T) : PipelineExecution<T> {
+        val execution = PipelineExecution(value, blockBuilders.toMutableList())
         execution.proceed()
-        return execution.state
+        return execution
     }
 }
 

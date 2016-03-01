@@ -6,14 +6,14 @@ import java.util.concurrent.*
 
 fun <C: ApplicationCall> PipelineContext<C>.proceedAsync(exec: ExecutorService,
                                                          block: PipelineContext<C>.() -> Unit): Future<*> {
-    pause()
+    pipeline.pause()
     return exec.submit {
         try {
             block()
         } catch (e: Throwable) {
-            execution.fail(e)
+            pipeline.fail(e)
             return@submit
         }
-        execution.proceed()
+        pipeline.proceed()
     }
 }

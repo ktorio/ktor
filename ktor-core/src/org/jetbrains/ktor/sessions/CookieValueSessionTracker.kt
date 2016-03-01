@@ -12,7 +12,7 @@ class CookieValueSessionTracker<S : Any>(val cookieSettings: SessionCookiesSetti
     }
 
     override fun lookup(context: PipelineContext<ApplicationCall>, injectSession: (S) -> Unit) {
-        val call = context.execution.call
+        val call = context.call
         val value = cookieSettings.fromCookie(call.request.cookies[cookieName])
         if (value != null) {
             injectSession(serializer.deserialize(value))

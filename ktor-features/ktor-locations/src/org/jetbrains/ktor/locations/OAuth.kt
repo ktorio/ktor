@@ -8,13 +8,13 @@ import org.jetbrains.ktor.routing.*
 import java.util.concurrent.*
 import kotlin.reflect.*
 
-inline fun <reified T: Any> InterceptApplicationCall<RoutingApplicationCall>.oauthAtLocation(client: HttpClient, exec: ExecutorService,
+inline fun <reified T: Any> PipelineContext<RoutingApplicationCall>.oauthAtLocation(client: HttpClient, exec: ExecutorService,
                                                                                 noinline providerLookup: RoutingApplicationCall.(T) -> OAuthServerSettings?,
                                                                                 noinline urlProvider: RoutingApplicationCall.(T, OAuthServerSettings) -> String) {
     oauthWithType(T::class, client, exec, providerLookup, urlProvider)
 }
 
-fun <T: Any> InterceptApplicationCall<RoutingApplicationCall>.oauthWithType(type: KClass<T>,
+fun <T: Any> PipelineContext<RoutingApplicationCall>.oauthWithType(type: KClass<T>,
                                                             client: HttpClient,
                                                             exec: ExecutorService,
                                                             providerLookup: RoutingApplicationCall.(T) -> OAuthServerSettings?,

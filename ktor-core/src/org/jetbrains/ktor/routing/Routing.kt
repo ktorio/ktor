@@ -19,9 +19,13 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
         val resolveResult = resolveContext.resolve()
         if (resolveResult.succeeded) {
             val routingCall = RoutingApplicationCall(call, resolveResult.entry, resolveResult.values)
-            val state = executeEntry(routingCall, resolveResult.entry)
-            if (state == PipelineExecution.State.Pause) {
-                context.pause()
+            val pipeline = buildEntryPipeline(resolveResult.entry)
+            val execution = pipeline.execute(routingCall)
+            if (execution.state == PipelineExecution.State.Pause) {
+                context.pipeline.pause()
+                execution.blockBuilders.add {
+                    context.pipeline.proceed()
+                }
             }
         }
     }
@@ -33,7 +37,7 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
         }
     }
 
-    private fun executeEntry(call: RoutingApplicationCall, entry: RoutingEntry): PipelineExecution.State {
+    private fun buildEntryPipeline(entry: RoutingEntry): Pipeline<RoutingApplicationCall> {
         // Interceptors are rarely installed into routing entries, so don't create list unless there are some
         var interceptors: MutableList<RoutingInterceptor>? = null
         var current: RoutingEntry? = entry
@@ -55,7 +59,7 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
         pipeline.intercept {
             executeHandlers(this, entry.handlers)
         }
-        return pipeline.execute(call)
+        return pipeline
     }
 
     companion object RoutingFeature : ApplicationFeature<Routing> {
