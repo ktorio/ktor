@@ -11,7 +11,7 @@ import java.nio.file.*
 import javax.servlet.*
 import javax.servlet.http.*
 
-class ServletApplicationResponse(val servletResponse: HttpServletResponse) : BaseApplicationResponse() {
+class ServletApplicationResponse(call: ServletApplicationCall, servletResponse: HttpServletResponse) : BaseApplicationResponse() {
     var _status: HttpStatusCode? = null
     override val status = Interceptable1<HttpStatusCode, Unit> { code ->
         _status = code
@@ -32,5 +32,9 @@ class ServletApplicationResponse(val servletResponse: HttpServletResponse) : Bas
     override val stream = Interceptable1<OutputStream.() -> Unit, Unit> { body ->
         servletResponse.outputStream.body()
         ApplicationCallResult.Handled
+    }
+
+    override val channel = Interceptable0<AsyncWriteChannel> {
+        ServletAsyncWriteChannel(call.startAsync(), servletResponse.outputStream)
     }
 }

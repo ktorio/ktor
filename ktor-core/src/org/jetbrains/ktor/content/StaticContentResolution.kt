@@ -46,7 +46,7 @@ fun ApplicationCall.resolveLocalFile(contextPath: String, baseDir: File, mimeRes
  *
  * @return [LocalFileContent] or [ResourceFileContent] or `null`
  */
-fun ApplicationCall.resolveClasspathWithPath(basePackage: String, path: String, mimeResolve: (String) -> ContentType = { defaultContentType(it) }): StreamContentProvider? {
+fun ApplicationCall.resolveClasspathWithPath(basePackage: String, path: String, mimeResolve: (String) -> ContentType = { defaultContentType(it) }): Resource? {
     val packagePath = basePackage.replace('.', '/').appendIfNotEndsWith("/") + path.removePrefix("/")
     val normalizedPath = Paths.get(packagePath).normalizeAndRelativize()
     val normalizedResource = normalizedPath.toString().replace(File.separatorChar, '/')
@@ -72,7 +72,7 @@ fun ApplicationCall.resolveClasspathWithPath(basePackage: String, path: String, 
  *
  * @return [LocalFileContent] or [ResourceFileContent] or `null`
  */
-fun ApplicationCall.resolveClasspathResource(contextPath: String, basePackage: String, mimeResolve: (String) -> ContentType = { defaultContentType(it) }): StreamContentProvider? {
+fun ApplicationCall.resolveClasspathResource(contextPath: String, basePackage: String, mimeResolve: (String) -> ContentType = { defaultContentType(it) }): Resource? {
     val path = request.path()
     if (!path.startsWith(contextPath)) {
         return null

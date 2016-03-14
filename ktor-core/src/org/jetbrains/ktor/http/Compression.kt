@@ -5,11 +5,11 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.util.*
 import java.io.*
-import java.nio.channels.*
 import java.util.zip.*
 
 object CompressionAttributes {
     val preventCompression = AttributeKey<Boolean>("preventCompression")
+    val interceptedContentLength = AttributeKey<Long>("contentLength")
 }
 
 data class CompressionOptions(var minSize: Long = 0L,
@@ -39,7 +39,15 @@ fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
                     ?.handleStar(options)
 
             val encoder = encoding?.let { encoders[it] }
-            if (encoding != null && encoder != null && call.request.header(HttpHeaders.Range) == null) {
+            if (encoding != null && encoder != null) {
+                call.response.headers.intercept { name, value, next ->
+                    if (name.equals(HttpHeaders.ContentLength, true)) {
+                        call.attributes.put(CompressionAttributes.interceptedContentLength, value.toLong())
+                    } else {
+                        next(name, value)
+                    }
+                }
+
                 call.response.interceptStream { content, stream ->
                     if (conditions.all { it(call) } && CompressionAttributes.preventCompression !in attributes) {
                         call.response.headers.append(HttpHeaders.ContentEncoding, encoding)
@@ -55,21 +63,16 @@ fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
                         }
                     }
                 }
-                response.interceptSend { obj, next ->
-                    if (conditions.all { it(this) } && CompressionAttributes.preventCompression !in attributes) {
-                        if (obj is ChannelContentProvider) {
-                            response.headers.append(HttpHeaders.ContentEncoding, encoding)
 
-                            next(object : ChannelContentProvider {
-                                override fun channel() = AsyncDeflaterByteChannel(obj.channel())
-                                override val seekable: Boolean
-                                    get() = false
+                call.interceptRespond { obj ->
+                    if (conditions.all { it(call) } && CompressionAttributes.preventCompression !in attributes) {
+                        if (obj is ChannelContentProvider) {
+                            call.response.headers.append(HttpHeaders.ContentEncoding, encoding)
+
+                            respond(object : ChannelContentProvider {
+                                override fun channel() = obj.channel().deflated()
                             })
-                        } else {
-                            next(obj)
                         }
-                    } else {
-                        next(obj)
                     }
                 }
             }
@@ -96,13 +99,13 @@ private object IdentityEncoder : CompressionEncoder {
 }
 
 private fun minSizeCondition(options: CompressionOptions): ApplicationCall.() -> Boolean = {
-    val contentLength = response.headers[HttpHeaders.ContentLength]?.toLong()
+    val contentLength = attributes.getOrNull(CompressionAttributes.interceptedContentLength)
 
     contentLength == null || contentLength >= options.minSize
 }
 
 private fun compressStreamCondition(options: CompressionOptions): ApplicationCall.() -> Boolean = {
-    val contentLength = response.headers[HttpHeaders.ContentLength]?.toLong()
+    val contentLength = attributes.getOrNull(CompressionAttributes.interceptedContentLength)
 
     options.compressStream || contentLength != null
 }

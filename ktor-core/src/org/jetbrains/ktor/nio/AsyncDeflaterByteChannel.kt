@@ -2,11 +2,9 @@ package org.jetbrains.ktor.nio
 
 import org.jetbrains.ktor.util.*
 import java.nio.*
-import java.nio.channels.*
-import java.util.concurrent.*
 import java.util.zip.*
 
-class AsyncDeflaterByteChannel(val source: AsynchronousByteChannel) : AsynchronousByteChannel {
+private class AsyncDeflaterByteChannel(val source: AsyncReadChannel) : AsyncReadChannel {
     private val GZIP_MAGIC = 0x8b1f
     private val crc = CRC32()
     private val deflater = Deflater(Deflater.BEST_COMPRESSION, true)
@@ -26,32 +24,16 @@ class AsyncDeflaterByteChannel(val source: AsynchronousByteChannel) : Asynchrono
         flip()
     }
 
-    override fun isOpen() = source.isOpen
     override fun close() {
-        // TODO flush
         source.close()
+        parentHandler = null
+        parentBuffer = null
     }
 
-    override fun <A : Any?> write(p0: ByteBuffer?, p1: A, p2: CompletionHandler<Int, in A>?) {
-        throw UnsupportedOperationException()
-    }
-
-    override fun write(p0: ByteBuffer?): Future<Int>? {
-        throw UnsupportedOperationException()
-    }
-
-    override fun read(dst: ByteBuffer): Future<Int> {
-        val future = CompletableFuture<Int>()
-
-        read(dst, Unit, FutureCompletionHandler(future))
-
-        return future
-    }
-
-    override fun <A> read(dst: ByteBuffer, attachment: A, handler: CompletionHandler<Int, in A>) {
+    override fun read(dst: ByteBuffer, handler: AsyncHandler) {
         if (header.hasRemaining()) {
             val size = header.putTo(dst)
-            handler.completed(size, attachment)
+            handler.success(size)
             return
         }
         if (eos) {
@@ -61,53 +43,79 @@ class AsyncDeflaterByteChannel(val source: AsynchronousByteChannel) : Asynchrono
 
             val size = compressedBuffer.putTo(dst) + trailing.putTo(dst)
             if (size == 0) {
-                handler.completed(-1, attachment)
+                handler.successEnd()
             } else {
-                handler.completed(size, attachment)
+                handler.success(size)
             }
             return
         }
         if (dst.remaining() <= compressedBuffer.remaining()) {
             val size = compressedBuffer.putTo(dst)
-            handler.completed(size, attachment)
+            handler.success(size)
             return
         }
 
-        source.read<A>(buffer, attachment, object: CompletionHandler<Int, A> {
-            override fun completed(rc: Int, attachment: A) {
-                if (rc == -1) {
-                    eos = true
+        parentBuffer = dst
+        parentHandler = handler
 
-                    deflater.finish()
-                    finish()
+        source.read(buffer, innerHandler)
+    }
 
-                    val size = compressedBuffer.putTo(dst)
-                    handler.completed(size, attachment)
-                } else {
-                    require(deflater.finished() == false)
+    private val innerHandler = object : AsyncHandler {
+        override fun success(count: Int) {
+            require(deflater.finished() == false)
 
-                    buffer.flip()
-                    crc.update(buffer.array(), 0, buffer.remaining())
-                    deflater.setInput(buffer.array(), 0, buffer.remaining())
+            buffer.flip()
+            crc.update(buffer.array(), 0, buffer.remaining())
+            deflater.setInput(buffer.array(), 0, buffer.remaining())
 
-                    var counter = 0
-                    while (!deflater.needsInput() && dst.hasRemaining()) {
-                        compressedBuffer.compact()
+            withParentHandler { dst, handler ->
+                var counter = 0
+                while (!deflater.needsInput() && dst.hasRemaining()) {
+                    compressedBuffer.compact()
 
-                        deflater.deflate(compressedBuffer)
-                        compressedBuffer.flip()
+                    deflater.deflate(compressedBuffer)
+                    compressedBuffer.flip()
 
-                        counter += compressedBuffer.putTo(dst)
-                    }
-
-                    handler.completed(counter, attachment)
+                    counter += compressedBuffer.putTo(dst)
                 }
-            }
 
-            override fun failed(exc: Throwable, attachment: A) {
-                handler.failed(exc, attachment)
+                handler.success(counter)
             }
-        })
+        }
+
+        override fun successEnd() {
+            eos = true
+
+            deflater.finish()
+            finish()
+
+            withParentHandler { dst, handler ->
+                val size = compressedBuffer.putTo(dst)
+                handler.success(size)
+            }
+        }
+
+        override fun failed(cause: Throwable) {
+            withParentHandler { dst, handler ->
+                handler.failed(cause)
+            }
+        }
+    }
+
+    @Volatile
+    private var parentHandler: AsyncHandler? = null
+
+    @Volatile
+    private var parentBuffer: ByteBuffer? = null
+
+    private inline fun withParentHandler(block: (ByteBuffer, AsyncHandler) -> Unit) {
+        val buffer = parentBuffer
+        val handler = parentHandler
+        parentBuffer = null
+        parentHandler = null
+
+        block(buffer!!, handler!!)
     }
 
     private fun finish() {
@@ -131,7 +139,7 @@ class AsyncDeflaterByteChannel(val source: AsynchronousByteChannel) : Asynchrono
 
 }
 
-fun AsynchronousByteChannel.deflated() = AsyncDeflaterByteChannel(this)
+fun AsyncReadChannel.deflated(): AsyncReadChannel = AsyncDeflaterByteChannel(this)
 
 private fun Deflater.deflate(outBuffer: ByteBuffer) {
     if (outBuffer.hasRemaining()) {

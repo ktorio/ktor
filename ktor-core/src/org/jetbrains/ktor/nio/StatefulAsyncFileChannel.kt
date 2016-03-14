@@ -4,11 +4,12 @@ import java.io.*
 import java.nio.*
 import java.nio.channels.*
 import java.nio.file.*
-import java.util.concurrent.*
 
-class StatefulAsyncFileChannel (val fc: AsynchronousFileChannel, val start: Long = 0, val endInclusive: Long = fc.size() - 1, val preventClose: Boolean = false) : AsynchronousByteChannel {
+class StatefulAsyncFileChannel (val fc: AsynchronousFileChannel, val start: Long = 0, val endInclusive: Long = fc.size() - 1, val preventClose: Boolean = false) : SeekableAsyncChannel {
 
     constructor(fc: AsynchronousFileChannel, range: LongRange = 0L .. fc.size() - 1, preventClose: Boolean = false) : this(fc, range.start, range.endInclusive, preventClose)
+
+    private var currentHandler: AsyncHandler? = null
 
     init {
         require(start >= 0L) { "start position shouldn't be negative but it is $start"}
@@ -16,61 +17,67 @@ class StatefulAsyncFileChannel (val fc: AsynchronousFileChannel, val start: Long
         require(endInclusive <= fc.size() - 1) { "endInclusive points to the position out of the file: file size = ${fc.size()}, endInclusive = $endInclusive" }
     }
 
-    private var position = start
+    override var position = start
+        private set
 
     val range: LongRange
         get () = start .. endInclusive
 
+    override fun seek(position: Long, handler: AsyncHandler) {
+        require(position >= 0L) { "position should not be negative: $position" }
+        require(position < fc.size()) { "position should not run out of the file range: $position !in [0, ${fc.size()})" }
+
+        this.position = position
+        handler.successEnd()
+    }
+
     override fun close() {
         if (!preventClose) fc.close()
     }
-    override fun isOpen() = fc.isOpen
 
-    override fun <A> write(p0: ByteBuffer?, p1: A, p2: CompletionHandler<Int, in A>?) {
-        throw UnsupportedOperationException()
+    private val readHandler = object : CompletionHandler<Int, ByteBuffer> {
+        override fun failed(exc: Throwable, attachment: ByteBuffer) {
+            withHandler { it.failed(exc) }
+        }
+
+        override fun completed(rc: Int, attachment: ByteBuffer) {
+            val dst = attachment
+
+            if (rc == -1) {
+                withHandler { it.successEnd() }
+            } else {
+                position += rc
+                val overRead = Math.max(0L, position - endInclusive - 1)
+                if (overRead > 0) {
+                    require(overRead < Int.MAX_VALUE)
+                    dst.position(dst.position() - overRead.toInt())
+                }
+
+                withHandler { it.success(rc - overRead.toInt()) }
+            }
+        }
     }
 
-    override fun write(p0: ByteBuffer?): Future<Int>? {
-        throw UnsupportedOperationException()
-    }
-
-    override fun <A> read(dst: ByteBuffer, attachment: A, handler: CompletionHandler<Int, in A>) {
+    override fun read(dst: ByteBuffer, handler: AsyncHandler) {
         if (position > endInclusive) {
-            handler.completed(-1, attachment)
+            handler.successEnd()
             return
         }
 
         try {
-            fc.read(dst, position, attachment, object : CompletionHandler<Int, A> {
-                override fun failed(exc: Throwable?, attachment: A) {
-                    handler.failed(exc, attachment)
-                }
-
-                override fun completed(rc: Int, attachment: A) {
-                    if (rc == -1) {
-                        handler.completed(-1, attachment)
-                    } else {
-                        position += rc
-                        val overRead = Math.max(0L, position - endInclusive - 1)
-                        if (overRead > 0) {
-                            require(overRead < Int.MAX_VALUE)
-                            dst.position(dst.position() - overRead.toInt())
-                        }
-                        handler.completed(rc - overRead.toInt(), attachment)
-                    }
-                }
-            })
+            currentHandler = handler
+            fc.read(dst, position, dst, readHandler)
         } catch (e: Throwable) {
-            handler.failed(e, attachment)
+            handler.failed(e)
         }
     }
 
-    override fun read(dst: ByteBuffer): Future<Int> {
-        val f = CompletableFuture<Int>()
-
-        read(dst, Unit, FutureCompletionHandler(f))
-
-        return f
+    private inline fun withHandler(block: (AsyncHandler) -> Unit) {
+        val handler = currentHandler
+        currentHandler = null
+        if (handler != null) {
+            block(handler)
+        }
     }
 }
 

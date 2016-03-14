@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.content
 
+import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 import java.nio.file.attribute.*
 import java.time.*
@@ -9,18 +11,29 @@ interface HasVersions {
     val versions: List<Version>
 }
 
-interface Version
+interface Version {
+    fun render(response: ApplicationResponse)
+}
 
 data class LastModifiedVersion(val lastModified: LocalDateTime) : Version {
     constructor(lastModified: FileTime) : this(LocalDateTime.ofInstant(lastModified.toInstant(), ZoneId.systemDefault()))
     constructor(lastModified: Date) : this(lastModified.toLocalDateTime())
+
+    override fun render(response: ApplicationResponse) {
+        response.lastModified(lastModified.toInstant(ZoneOffset.UTC).toEpochMilli())
+    }
 }
-data class EntityTagVersion(val etag: String) : Version
+data class EntityTagVersion(val etag: String) : Version {
+    override fun render(response: ApplicationResponse) {
+        response.etag(etag)
+    }
+}
 
 enum class CacheControlVisibility {
     PUBLIC,
     PRIVATE
 }
+
 sealed class CacheControl(val visibility: CacheControlVisibility?) {
     class NoCache(visibility: CacheControlVisibility?) : CacheControl(visibility) {
         override fun toString() = if (visibility == null) {

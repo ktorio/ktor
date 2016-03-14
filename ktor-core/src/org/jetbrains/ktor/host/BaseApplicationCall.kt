@@ -6,8 +6,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 import java.io.*
-import java.nio.channels.*
-import java.nio.file.*
+import java.util.concurrent.*
 
 abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
     val executionMachine = PipelineMachine()
@@ -30,16 +29,27 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     override fun interceptRespond(handler: PipelineContext<Any>.(Any) -> Unit) = respond.intercept(handler)
 
     protected fun sendHeaders(value: Any) {
-        if (value is HasETag) {
-            response.etag(value.etag())
+        if (value is Resource) {
+            value.cacheControl?.let { cacheControl ->
+                response.cacheControl(cacheControl)
+            }
+            value.expires?.let { expires ->
+                response.expires(expires)
+            }
+            value.contentLength?.let { length ->
+                response.contentLength(length)
+            }
+            value.versions.forEach { version ->
+                version.render(response)
+            }
+            response.contentType(value.contentType)
+            return
         }
-        if (value is HasLastModified) {
-            response.lastModified(value.lastModified)
-        }
-        if (value is HasContentType && !request.headers.contains(HttpHeaders.Range)) {
+
+        if (value is HasContentType) {
             response.contentType(value.contentType)
         }
-        if (value is HasContentLength && !request.headers.contains(HttpHeaders.Range)) {
+        if (value is HasContentLength) {
             response.contentLength(value.contentLength)
         }
     }
@@ -71,6 +81,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                     close()
                 }
                 is StreamContent -> {
+                    response.status() ?: response.status(HttpStatusCode.OK)
                     response.stream {
                         value.stream(this)
                     }
@@ -80,51 +91,55 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                     if (value.uri.scheme == "file") {
                         respond(LocalFileContent(File(value.uri)))
                     } else {
+                        response.status() ?: response.status(HttpStatusCode.OK)
                         sendStream(value.stream())
-                        close()
                     }
                 }
                 is ChannelContentProvider -> {
+                    response.status() ?: response.status(HttpStatusCode.OK)
                     sendAsyncChannel(value.channel())
-                    ApplicationCallResult.Handled // or async?
-                }
-                is LocalFileContent -> {
-                    respond(object : ChannelContentProvider, HasVersions, HasContentLength {
-                        override fun channel() = value.file.asyncReadOnlyFileChannel()
-                        override val versions = listOf(LastModifiedVersion(Files.getLastModifiedTime(value.file.toPath())))
-                        override val contentLength = value.file.length()
-                        override val seekable = true
-                    })
                 }
                 is StreamContentProvider -> {
+                    response.status() ?: response.status(HttpStatusCode.OK)
                     sendStream(value.stream())
-                    close()
                 }
             }
         }
     }
 
+    private fun PipelineContext<*>.sendAsyncChannel(channel: AsyncReadChannel): Nothing {
+        val future = createMachineCompletableFuture()
 
-    protected open fun sendAsyncChannel(channel: AsynchronousByteChannel) {
-        response.stream {
-            Channels.newInputStream(channel).use { it.copyTo(this) }
-        }
-        close()
+        closeAtEnd()
+        channel.copyToAsyncThenComplete(response.channel(), future)
+        pause()
     }
 
-    protected open fun sendFile(file: File, position: Long, length: Long) {
-        response.stream {
-            FileChannel.open(file.toPath(), StandardOpenOption.READ).use { fc ->
-                fc.transferTo(position, length, Channels.newChannel(this))
+    protected fun PipelineContext<*>.sendStream(stream: InputStream): Nothing {
+        val future = createMachineCompletableFuture()
+
+        closeAtEnd()
+        InputStreamReadChannelAdapter(stream).copyToAsyncThenComplete(response.channel(), future)
+        pause()
+    }
+
+    protected fun PipelineContext<*>.closeAtEnd() {
+        onSuccess {
+            close()
+        }
+        onFail {
+            close()
+        }
+    }
+
+    private fun PipelineContext<*>.createMachineCompletableFuture() = CompletableFuture<Long>().apply {
+        whenComplete { total, throwable ->
+            if (throwable == null || throwable is PipelineContinue || throwable.cause is PipelineContinue) {
+                proceed()
+            }
+            else if (throwable !is PipelineControlFlow && throwable.cause !is PipelineControlFlow) {
+                fail(throwable)
             }
         }
-        close()
-    }
-
-    protected open fun sendStream(stream: InputStream) {
-        response.stream {
-            stream.use { it.copyTo(this) }
-        }
-        close()
     }
 }

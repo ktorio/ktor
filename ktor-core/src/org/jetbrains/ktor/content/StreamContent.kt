@@ -1,9 +1,9 @@
 package org.jetbrains.ktor.content
 
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.util.*
 import java.io.*
-import java.nio.channels.*
 import java.time.*
 
 interface StreamContent {
@@ -18,12 +18,11 @@ interface StreamContentProvider {
 }
 
 interface ChannelContentProvider {
-    fun channel(): AsynchronousByteChannel
-    val seekable: Boolean
+    fun channel(): AsyncReadChannel
 }
 
-interface Resource {
-    val contentType: ContentType
+interface Resource : HasContentType {
+    override val contentType: ContentType
     val versions: List<Version>
     val expires: LocalDateTime?
     val cacheControl: CacheControl?

@@ -2,7 +2,6 @@ package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
-import io.netty.handler.stream.*
 import java.io.*
 import java.nio.*
 import java.nio.channels.*
@@ -44,11 +43,6 @@ internal class NettyAsyncStream(val request: HttpRequest, val context: ChannelHa
         }
     }
 
-    fun writeFile(file: File, position: Long, length: Long) {
-        flush()
-        context.write(DefaultFileRegion(file, position, length))
-    }
-
     private val bb = ByteBuffer.allocate(8192)
     private val handler = object : CompletionHandler<Int, AsynchronousByteChannel> {
         override fun failed(p0: Throwable?, p1: AsynchronousByteChannel) {
@@ -74,18 +68,6 @@ internal class NettyAsyncStream(val request: HttpRequest, val context: ChannelHa
     private fun startRead(channel: AsynchronousByteChannel) {
         bb.clear()
         channel.read(bb, channel, handler)
-    }
-
-    fun writeAsyncChannel(channel: AsynchronousByteChannel) {
-        flush()
-        asyncStarted = true
-        startRead(channel)
-    }
-
-    fun writeStream(stream: InputStream) {
-        flush()
-        context.write(HttpChunkedInput(ChunkedStream(stream.buffered())))
-        lastContentWritten = true
     }
 
     override fun close() {

@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.util.*
 import java.util.*
 
@@ -51,30 +50,6 @@ fun parseRangesSpecifier(rangeSpec: String): RangesSpecifier? {
         return if (spec.isValid()) spec else null
     } catch (e: Throwable) {
         return null // according to the specification we should ignore syntactically incorrect headers
-    }
-}
-
-@Deprecated("")
-fun ApplicationCall.handleRangeRequest(version: HasVersion, length: Long, mergeToSingleRange: Boolean = false, block: (List<LongRange>?) -> Unit) {
-    withIfRange(version) { range ->
-        response.headers.append(HttpHeaders.AcceptRanges, RangeUnits.Bytes.unitToken)
-        val merged = range?.merge(length, mergeToSingleRange)?.let {
-            if (it.size > 10) {
-                range.merge(length, true)
-            } else it
-        }
-
-        if (request.httpMethod == HttpMethod.Head) {
-            response.contentLength(length)
-            respondStatus(HttpStatusCode.OK)
-        } else if (request.httpMethod != HttpMethod.Get && merged != null) {
-            respondStatus(HttpStatusCode.MethodNotAllowed, "Only GET and HEAD methods allowed for range requests")
-        } else if (merged != null && merged.isEmpty()) {
-            response.contentRange(range = null, fullLength = length) // https://tools.ietf.org/html/rfc7233#section-4.4
-            respondStatus(HttpStatusCode.RequestedRangeNotSatisfiable, "No satisfiable ranges of $range")
-        } else {
-            block(merged)
-        }
     }
 }
 

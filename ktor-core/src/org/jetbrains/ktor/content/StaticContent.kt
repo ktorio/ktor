@@ -7,11 +7,10 @@ import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.Attributes
 import java.io.*
 import java.net.*
-import java.nio.channels.*
 import java.nio.file.*
 import java.util.jar.*
 
-class LocalFileContent(val file: File, override val contentType: ContentType = defaultContentType(file.extension)) : StreamContentProvider, ChannelContentProvider, Resource {
+class LocalFileContent(val file: File, override val contentType: ContentType = defaultContentType(file.extension)) : ChannelContentProvider, Resource {
 
     constructor(baseDir: File, relativePath: String, contentType: ContentType = defaultContentType(relativePath.extension())) : this(baseDir.safeAppend(Paths.get(relativePath)), contentType)
     constructor(baseDir: File, vararg relativePath: String, contentType: ContentType = defaultContentType(relativePath.last().extension())) : this(baseDir.safeAppend(Paths.get("", *relativePath)), contentType)
@@ -25,12 +24,10 @@ class LocalFileContent(val file: File, override val contentType: ContentType = d
     override val versions: List<Version>
         get() = listOf(LastModifiedVersion(Files.getLastModifiedTime(file.toPath())))
 
-    override fun stream() = file.inputStream()
+    override fun channel() = file.asyncReadOnlyFileChannel()
 
-    override fun channel(): AsynchronousByteChannel = file.asyncReadOnlyFileChannel()
-    override val seekable: Boolean
-        get() = true
-
+    override val expires = null
+    override val cacheControl = null
 }
 
 class ResourceFileContent(val zipFile: File, val resourcePath: String, val classLoader: ClassLoader, override val contentType: ContentType = defaultContentType(resourcePath.extension())) : Resource, StreamContentProvider {
@@ -51,6 +48,9 @@ class ResourceFileContent(val zipFile: File, val resourcePath: String, val class
         get() = JarFile(zipFile).use { it.getJarEntry(resourcePath)?.size }
 
     override fun stream() = classLoader.getResourceAsStream(normalized) ?: throw IOException("Resource $normalized not found")
+
+    override val expires = null
+    override val cacheControl = null
 }
 
 class URIFileContent(val uri: URI, override val contentType: ContentType = defaultContentType(uri.path.extension())): HasContentType, StreamContentProvider {

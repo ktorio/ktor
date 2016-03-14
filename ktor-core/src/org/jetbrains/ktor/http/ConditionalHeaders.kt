@@ -1,8 +1,6 @@
 package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.util.*
 import java.time.*
 import java.util.*
 
@@ -47,7 +45,7 @@ fun ApplicationCall.checkEtag(etag: String): ConditionalHeaderCheckResult {
  * It never handles If-None-Match: *  as it is related to non-etag logic (for example, Last modified checks).
  * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26 for more details
  */
-fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block: () -> ApplicationCallResult): ApplicationCallResult {
+fun <R> ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block: () -> R): R {
     val result = checkEtag(etag)
 
     if (putHeader) {
@@ -63,12 +61,12 @@ fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block: () 
     }
 }
 
-fun ApplicationCall.withLastModified(lastModified: Date, putHeader: Boolean = true, block: () -> Unit) {
-    withLastModified(LocalDateTime.ofInstant(lastModified.toInstant(), ZoneId.systemDefault()), putHeader, block)
+fun <R> ApplicationCall.withLastModified(lastModified: Date, putHeader: Boolean = true, block: () -> R): R {
+    return withLastModified(LocalDateTime.ofInstant(lastModified.toInstant(), ZoneId.systemDefault()), putHeader, block)
 }
 
-fun ApplicationCall.withLastModified(lastModified: ZonedDateTime, putHeader: Boolean = true, block: () -> Unit) {
-    withLastModified(lastModified.toLocalDateTime(), putHeader, block)
+fun <R> ApplicationCall.withLastModified(lastModified: ZonedDateTime, putHeader: Boolean = true, block: () -> R): R {
+    return withLastModified(lastModified.toLocalDateTime(), putHeader, block)
 }
 
 /**
@@ -119,7 +117,7 @@ fun ApplicationCall.checkLastModified(lastModified: LocalDateTime): ConditionalH
  * See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.28 and
  *  https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.25
  */
-fun ApplicationCall.withLastModified(lastModified: LocalDateTime, putHeader: Boolean = true, block: () -> ApplicationCallResult): ApplicationCallResult {
+fun <R> ApplicationCall.withLastModified(lastModified: LocalDateTime, putHeader: Boolean = true, block: () -> R): R {
     val result = checkLastModified(lastModified)
 
     if (putHeader) {
@@ -132,85 +130,6 @@ fun ApplicationCall.withLastModified(lastModified: LocalDateTime, putHeader: Boo
             respondStatus(result.statusCode)
         }
         ConditionalHeaderCheckResult.OK -> block()
-    }
-}
-
-fun ApplicationCall.withIfRange(resource: HasVersion, block: (RangesSpecifier?) -> Unit) {
-    when (resource) {
-        is HasETag -> withIfRange(resource.etag(), block)
-        is HasLastModified -> withIfRange(LocalDateTime.ofInstant(Instant.ofEpochMilli((resource.lastModified)), ZoneId.systemDefault()), block)
-        else -> throw NoWhenBranchMatchedException("Unsupported resource type ${resource.javaClass}")
-    }
-}
-
-fun ApplicationCall.withIfRange(lastModified: Date, block: (RangesSpecifier?) -> Unit) {
-    withIfRange(lastModified.toDateTime().toLocalDateTime(), block)
-}
-
-fun ApplicationCall.withIfRange(lastModified: ZonedDateTime, block: (RangesSpecifier?) -> Unit): Unit {
-    withIfRange(lastModified.toLocalDateTime(), block)
-}
-
-/**
- * Checks for If-Range request header that could contain last modified date and calls [block] with the corresponding
- * range if you should respond with partial content or with `null` if you should respond with full content.
- * It also set response status code to 206 Partial Content or 200 OK when necessary.
- *
- * Notice that is will put Last-Modified response header
- *
- *  See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.27
- */
-fun ApplicationCall.withIfRange(lastModified: LocalDateTime, block: (RangesSpecifier?) -> Unit) {
-    val normalized = lastModified.withNano(0)
-    val range = request.ranges()
-    val ifRange = request.header(HttpHeaders.IfRange)?.let { it.fromHttpDateString().toLocalDateTime() }
-
-    val rangeToProcess = when {
-        range == null -> null
-        ifRange == null -> range
-        normalized > ifRange -> null
-        else -> range
-    }
-
-    if (rangeToProcess != null) {
-        response.status(HttpStatusCode.PartialContent)
-    } else {
-        response.status(HttpStatusCode.OK)
-    }
-
-    withLastModified(lastModified) {
-        block(rangeToProcess)
-    }
-}
-
-/**
- * Checks for If-Range request header that could contain ETag and calls [block] with the corresponding
- * range if you should respond with partial content or with `null` if you should respond with full content.
- * It also set response status code to 206 Partial Content or 200 OK when necessary.
- *
- * Notice that is will put ETag response header
- *
- *  See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.27
- */
-fun ApplicationCall.withIfRange(entity: String, block: (RangesSpecifier?) -> Unit) {
-    val range = request.ranges()
-    val ifRange = request.header(HttpHeaders.IfRange)?.let { it.parseMatchTag() }
-
-    val rangeToProcess = when {
-        range == null -> null
-        ifRange == null -> range
-        entity !in ifRange -> null
-        else -> range
-    }
-
-    if (rangeToProcess != null) {
-        response.status(HttpStatusCode.PartialContent)
-    } else {
-        response.status(HttpStatusCode.OK)
-    }
-
-    withETag(entity) {
-        block(rangeToProcess)
     }
 }
 
