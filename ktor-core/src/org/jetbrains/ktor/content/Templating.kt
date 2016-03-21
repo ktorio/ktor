@@ -9,7 +9,7 @@ interface TemplateEngine<C : Any, R> where R : StreamContent, R : HasContentType
     fun process(content: C): R
 }
 
-inline fun <reified C : Any> InterceptApplicationCall<ApplicationCall>.templating(engine: TemplateEngine<C, *>) {
+inline fun <reified C : Any> InterceptApplicationCall.templating(engine: TemplateEngine<C, *>) {
     val javaType = engine.contentClass.java
     intercept { call ->
         call.interceptRespond { obj, next ->

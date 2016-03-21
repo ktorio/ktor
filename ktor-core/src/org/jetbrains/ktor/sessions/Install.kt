@@ -29,14 +29,14 @@ fun <S : Any> ApplicationCall.session(session: S) = session.apply {
 inline fun <reified S : Any> ApplicationCall.sessionOrNull(): S? = sessionOrNull(S::class)
 fun <S : Any> ApplicationCall.sessionOrNull(type: KClass<S>): S? = if (SessionKey in attributes) attributes[SessionKey].cast(type) else null
 
-inline fun <reified S : Any> InterceptApplicationCall<ApplicationCall>.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) =
+inline fun <reified S : Any> InterceptApplicationCall.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) =
         withSessions(S::class, block)
 
-inline fun <S : Any> InterceptApplicationCall<ApplicationCall>.withSessions(type: KClass<S>, block: SessionConfigBuilder<S>.() -> Unit) {
+inline fun <S : Any> InterceptApplicationCall.withSessions(type: KClass<S>, block: SessionConfigBuilder<S>.() -> Unit) {
     withSessions(SessionConfigBuilder(type).apply(block).build())
 }
 
-fun <S : Any> InterceptApplicationCall<ApplicationCall>.withSessions(sessionConfig: SessionConfig<S>) {
+fun <S : Any> InterceptApplicationCall.withSessions(sessionConfig: SessionConfig<S>) {
     intercept { call ->
         call.attributes.put(SessionConfigKey, sessionConfig)
         sessionConfig.sessionTracker.lookup(this, { call.attributes.put(SessionKey, it) })

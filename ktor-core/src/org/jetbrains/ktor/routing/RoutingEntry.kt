@@ -7,7 +7,7 @@ import java.util.*
 
 internal data class RoutingInterceptor(val function: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit)
 
-open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : InterceptApplicationCall<ApplicationCall> {
+open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : InterceptApplicationCall {
     val children: MutableList<RoutingEntry> = ArrayList()
 
     internal val interceptors = ArrayList<RoutingInterceptor>()

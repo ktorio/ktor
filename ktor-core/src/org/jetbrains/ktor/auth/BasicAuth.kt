@@ -26,7 +26,7 @@ fun ApplicationRequest.basicAuth(): UserPasswordCredential? {
     return null
 }
 
-fun <C : ApplicationCall> PipelineContext<C>.basicAuth() {
+fun PipelineContext<ApplicationCall>.basicAuth() {
     call.request.basicAuth()?.let {
         call.authentication.addCredential(it)
     }
@@ -36,7 +36,7 @@ fun <C : ApplicationCall> PipelineContext<C>.basicAuth() {
  * The function constructs general basic auth flow: parse auth header, verify with [verifier] function
  * and send Unauthorized response with the specified [realm] in case of verification failure
  */
-fun <C : ApplicationCall, P : Principal> PipelineContext<C>.basic(realm: String, verifier: C.(UserPasswordCredential) -> P?) {
+fun <P : Principal> PipelineContext<ApplicationCall>.basic(realm: String, verifier: ApplicationCall.(UserPasswordCredential) -> P?) {
     onFail {
         call.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge(realm))
     }

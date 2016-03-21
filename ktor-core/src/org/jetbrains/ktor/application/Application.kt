@@ -8,7 +8,7 @@ import java.util.concurrent.*
 /**
  * Represents configured and running web application, capable of handling requests
  */
-public open class Application(val config: ApplicationConfig) : InterceptApplicationCall<ApplicationCall> {
+public open class Application(val config: ApplicationConfig) : InterceptApplicationCall {
     /**
      * Provides common place to store application-wide attributes
      */

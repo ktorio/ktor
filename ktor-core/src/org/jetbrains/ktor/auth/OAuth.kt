@@ -324,7 +324,7 @@ private fun simpleOAuth2Step2(client: HttpClient, method: HttpMethod, usedRedire
     }
 }
 
-fun <C : ApplicationCall> PipelineContext<C>.simpleOAuthAnyStep1(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String) {
+fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep1(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String) {
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
             onFail {
@@ -341,7 +341,7 @@ fun <C : ApplicationCall> PipelineContext<C>.simpleOAuthAnyStep1(client: HttpCli
     }
 }
 
-fun <C : ApplicationCall> PipelineContext<C>.simpleOAuthAnyStep2(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String, configure: RequestBuilder.() -> Unit = {}, block: (OAuthAccessTokenResponse) -> Unit) {
+fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep2(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String, configure: RequestBuilder.() -> Unit = {}, block: (OAuthAccessTokenResponse) -> Unit) {
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
             val tokens = call.oauth1aHandleCallback()
@@ -379,9 +379,9 @@ fun <C : ApplicationCall> PipelineContext<C>.simpleOAuthAnyStep2(client: HttpCli
     }
 }
 
-private fun <C : ApplicationCall> PipelineContext<C>.oauth1a(client: HttpClient, exec: ExecutorService,
-                                                             providerLookup: C.() -> OAuthServerSettings?,
-                                                             urlProvider: C.(OAuthServerSettings) -> String) {
+private fun PipelineContext<ApplicationCall>.oauth1a(client: HttpClient, exec: ExecutorService,
+                                                             providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                                             urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     val provider = call.providerLookup()
     if (provider is OAuthServerSettings.OAuth1aServerSettings) {
         val token = call.oauth1aHandleCallback()
@@ -398,9 +398,9 @@ private fun <C : ApplicationCall> PipelineContext<C>.oauth1a(client: HttpClient,
     }
 }
 
-private fun <C : ApplicationCall> PipelineContext<C>.oauth2(client: HttpClient, exec: ExecutorService,
-                                                            providerLookup: C.() -> OAuthServerSettings?,
-                                                            urlProvider: C.(OAuthServerSettings) -> String) {
+private fun PipelineContext<ApplicationCall>.oauth2(client: HttpClient, exec: ExecutorService,
+                                                            providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                                            urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     val provider = call.providerLookup()
     when (provider) {
         is OAuthServerSettings.OAuth2ServerSettings -> {
@@ -424,7 +424,7 @@ private fun <C : ApplicationCall> PipelineContext<C>.oauth2(client: HttpClient, 
  *
  * Takes [UserPasswordCredential] and validates it using OAuth2 sequence, provides [OAuthAccessTokenResponse.OAuth2] if succeeds
  */
-fun <C : ApplicationCall> PipelineContext<C>.verifyWithOAuth2(client: HttpClient, settings: OAuthServerSettings.OAuth2ServerSettings) {
+fun PipelineContext<ApplicationCall>.verifyWithOAuth2(client: HttpClient, settings: OAuthServerSettings.OAuth2ServerSettings) {
     verifyWith { c: UserPasswordCredential ->
         simpleOAuth2Step2(client, HttpMethod.Post,
                 usedRedirectUrl = null,
@@ -444,9 +444,9 @@ fun <C : ApplicationCall> PipelineContext<C>.verifyWithOAuth2(client: HttpClient
     }
 }
 
-fun <C : ApplicationCall> PipelineContext<C>.oauth(client: HttpClient, exec: ExecutorService,
-                                                            providerLookup: C.() -> OAuthServerSettings?,
-                                                            urlProvider: C.(OAuthServerSettings) -> String) {
+fun PipelineContext<ApplicationCall>.oauth(client: HttpClient, exec: ExecutorService,
+                                                            providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                                            urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     oauth1a(client, exec, providerLookup, urlProvider)
     oauth2(client, exec, providerLookup, urlProvider)
 }

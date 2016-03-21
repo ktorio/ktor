@@ -33,7 +33,7 @@ private fun ldapLogin(ldapURL: String, ldapLoginConfigurator: (MutableMap<String
     return InitialDirContext(env)
 }
 
-inline fun <C : ApplicationCall, reified K : Credential, reified P : Principal> InterceptApplicationCall<C>.verifyWithLdap(
+inline fun <reified K : Credential, reified P : Principal> InterceptApplicationCall.verifyWithLdap(
         ldapUrl: String,
         noinline ldapLoginConfigurator: (K, MutableMap<String, Any?>) -> Unit = { k, env -> },
         noinline verifyBlock: InitialDirContext.(K) -> P?
@@ -48,7 +48,7 @@ inline fun <C : ApplicationCall, reified K : Credential, reified P : Principal> 
     }
 }
 
-inline fun <C : ApplicationCall, reified K : Credential, reified P : Principal> InterceptApplicationCall<C>.verifyWithLdapLoginWithUser(
+inline fun <reified K : Credential, reified P : Principal> InterceptApplicationCall.verifyWithLdapLoginWithUser(
         ldapUrl: String,
         userDNFormat: String,
         noinline userNameExtractor: (K) -> String,
@@ -66,7 +66,7 @@ inline fun <C : ApplicationCall, reified K : Credential, reified P : Principal> 
             }, verifyBlock = verifyBlock)
 }
 
-fun <C : ApplicationCall> InterceptApplicationCall<C>.verifyWithLdapLoginWithUser(
+fun InterceptApplicationCall.verifyWithLdapLoginWithUser(
         ldapUrl: String,
         userDNFormat: String,
         ldapLoginConfigurator: (UserPasswordCredential, MutableMap<String, Any?>) -> Unit = { cred, env -> },

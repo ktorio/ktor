@@ -10,7 +10,7 @@ import kotlin.reflect.*
 interface Credential
 interface Principal
 
-fun <C : ApplicationCall> InterceptApplicationCall<C>.authenticate(body: PipelineContext<C>.() -> Unit) {
+fun InterceptApplicationCall.authenticate(body: PipelineContext<ApplicationCall>.() -> Unit) {
     intercept {
         body()
         onFinish {
@@ -21,18 +21,18 @@ fun <C : ApplicationCall> InterceptApplicationCall<C>.authenticate(body: Pipelin
     }
 }
 
-fun <K : Credential, C : ApplicationCall> PipelineContext<C>.extractCredentials(block: C.() -> K?) {
+fun <K : Credential> PipelineContext<ApplicationCall>.extractCredentials(block: ApplicationCall.() -> K?) {
     val p = call.block()
     if (p != null) {
         call.authentication.addCredential(p)
     }
 }
 
-inline fun <reified K : Credential, C : ApplicationCall> PipelineContext<C>.verifyBatchTypedWith(noinline authenticator: C.(List<K>) -> List<Principal>) {
+inline fun <reified K : Credential> PipelineContext<ApplicationCall>.verifyBatchTypedWith(noinline authenticator: ApplicationCall.(List<K>) -> List<Principal>) {
     verifyBatchTypedWith(K::class, authenticator)
 }
 
-fun <K : Credential, C : ApplicationCall> PipelineContext<C>.verifyBatchTypedWith(klass: KClass<K>, authenticator: C.(List<K>) -> List<Principal>) {
+fun <K : Credential> PipelineContext<ApplicationCall>.verifyBatchTypedWith(klass: KClass<K>, authenticator: ApplicationCall.(List<K>) -> List<Principal>) {
     val context = call.authentication
 
     val credentials = context.credentials(klass)
@@ -42,11 +42,11 @@ fun <K : Credential, C : ApplicationCall> PipelineContext<C>.verifyBatchTypedWit
     }
 }
 
-inline fun <reified K : Credential, C : ApplicationCall> PipelineContext<C>.verifyWith(noinline authenticator: C.(K) -> Principal?) {
+inline fun <reified K : Credential> PipelineContext<ApplicationCall>.verifyWith(noinline authenticator: ApplicationCall.(K) -> Principal?) {
     verifyWith(K::class, authenticator)
 }
 
-fun <K : Credential, C : ApplicationCall> PipelineContext<C>.verifyWith(klass: KClass<K>, authenticator: C.(K) -> Principal?) {
+fun <K : Credential> PipelineContext<ApplicationCall>.verifyWith(klass: KClass<K>, authenticator: ApplicationCall.(K) -> Principal?) {
     val auth = call.authentication
 
     auth.credentials(klass).let { found ->
@@ -61,11 +61,11 @@ fun <K : Credential, C : ApplicationCall> PipelineContext<C>.verifyWith(klass: K
     }
 }
 
-fun <C : ApplicationCall> PipelineContext<C>.verifyBatchAll(block: C.(List<Credential>) -> List<Principal>) {
+fun PipelineContext<ApplicationCall>.verifyBatchAll(block: ApplicationCall.(List<Credential>) -> List<Principal>) {
     verifyBatchTypedWith(block)
 }
 
-inline fun <reified P : Principal, C : ApplicationCall> PipelineContext<C>.postVerify(crossinline predicate: C.(P) -> Boolean) {
+inline fun <reified P : Principal> PipelineContext<ApplicationCall>.postVerify(crossinline predicate: ApplicationCall.(P) -> Boolean) {
     val auth = call.authentication
 
     auth.principals(P::class).let { found ->

@@ -22,7 +22,7 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
             authenticate {
                 basicAuth()
 
-                fail {
+                onFail {
                     sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor"))
                 }
             }

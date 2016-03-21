@@ -1,19 +1,18 @@
 package org.jetbrains.ktor.pipeline
 
-import org.jetbrains.ktor.application.*
 import java.util.concurrent.*
 
-interface PipelineControl<T : ApplicationCall> {
+interface PipelineControl<T> {
     fun stop()
     fun pause()
     fun proceed()
     fun fail(exception: Throwable)
 
-    fun fork(call: T, pipeline: Pipeline<T>)
+    fun fork(subject: T, pipeline: Pipeline<T>)
 
 }
 
-fun <T : ApplicationCall> PipelineControl<T>.join(future: CompletionStage<*>) {
+fun <T> PipelineControl<T>.join(future: CompletionStage<*>) {
     pause()
     future.whenComplete { unit, throwable ->
         if (throwable == null)
@@ -24,7 +23,7 @@ fun <T : ApplicationCall> PipelineControl<T>.join(future: CompletionStage<*>) {
 }
 
 
-class PipelineExecution<T : ApplicationCall>(val call: T, val blockBuilders: List<PipelineContext<T>.(T) -> Unit>) : PipelineControl<T> {
+class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineContext<T>.(T) -> Unit>)  {
 
     enum class State {
         Execute, Pause, Finished;
@@ -33,18 +32,18 @@ class PipelineExecution<T : ApplicationCall>(val call: T, val blockBuilders: Lis
     }
 
     var state = State.Pause
-    val stack = mutableListOf<PipelineContext<T>>()
+    private val stack = mutableListOf<PipelineContext<T>>()
 
-    override fun fork(call: T, pipeline: Pipeline<T>) {
+    fun fork(subject: T, pipeline: Pipeline<T>) {
         val context = stack.last()
         context.pause()
-        val resume: PipelineContext<T>.(T) -> Unit = { call -> onFinish { context.proceed() } }
+        val resume: PipelineContext<T>.(T) -> Unit = { subject -> onFinish { context.proceed() } }
         val builders = listOf(resume) + pipeline.blockBuilders
-        val execution = PipelineExecution(call, builders)
+        val execution = PipelineExecution(subject, builders)
         execution.proceed()
     }
 
-    override fun proceed() {
+    internal fun proceed() {
         state = State.Execute
         loop@while (stack.size < blockBuilders.size) {
             val index = stack.size
@@ -52,7 +51,7 @@ class PipelineExecution<T : ApplicationCall>(val call: T, val blockBuilders: Lis
             val context = PipelineContext(this, builder)
             stack.add(context)
             try {
-                context.execute(call)
+                context.execute(subject)
             } catch(exception: Throwable) {
                 fail(exception)
                 return
@@ -74,19 +73,10 @@ class PipelineExecution<T : ApplicationCall>(val call: T, val blockBuilders: Lis
         state = State.Finished
     }
 
-    override fun fail(exception: Throwable) {
+    internal fun fail(exception: Throwable) {
         for (block in stack.asReversed()) {
             block.failures.forEach { it(exception) }
         }
         state = State.Finished
     }
-
-    override fun stop() {
-        state = PipelineExecution.State.Finished
-    }
-
-    override fun pause() {
-        state = PipelineExecution.State.Pause
-    }
-
 }

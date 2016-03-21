@@ -19,7 +19,7 @@ data class DigestCredential(val realm: String,
                             val cnonce: String?,
                             val qop: String?) : Credential
 
-fun <C : ApplicationCall> PipelineContext<C>.extractDigest() {
+fun PipelineContext<ApplicationCall>.extractDigest() {
     call.request.parseAuthorizationHeader()?.let { authHeader ->
         if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
             call.authentication.addCredential(authHeader.toDigestCredential())
@@ -27,7 +27,7 @@ fun <C : ApplicationCall> PipelineContext<C>.extractDigest() {
     }
 }
 
-fun <C : ApplicationCall> PipelineContext<C>.digestAuth(
+fun PipelineContext<ApplicationCall>.digestAuth(
         digestAlgorithm: String = "MD5",
         digesterProvider: (String) -> MessageDigest = { MessageDigest.getInstance(it) },
         userNameRealmPasswordDigestProvider: (String, String) -> ByteArray) {

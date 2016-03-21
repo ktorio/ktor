@@ -1,8 +1,6 @@
 package org.jetbrains.ktor.pipeline
 
-import org.jetbrains.ktor.application.*
-
-class Pipeline<T: ApplicationCall> {
+class Pipeline<T> {
     val blockBuilders = mutableListOf<PipelineContext<T>.(T) -> Unit>()
 
     fun intercept(block: PipelineContext<T>.(T) -> Unit) {
