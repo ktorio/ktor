@@ -95,10 +95,8 @@ class TestHostMultipartTest {
     fun testMultiPartShouldFail() {
         withTestApplication {
             application.intercept { call ->
+                onFail { throw it }
                 call.request.content.get<MultiPartData>().parts.toList()
-                onFail {
-                    throw it
-                }
             }
 
             handleRequest(HttpMethod.Post, "/")

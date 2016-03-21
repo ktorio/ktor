@@ -76,13 +76,13 @@ class OAuth2Test {
             }
             route("/resource") {
                 authenticate {
-                    basicAuth()
-                    verifyWithOAuth2(testClient, settings)
                     onFail {
                         // TODO: ??
                         // call.authContext.failures.values.flatMapTo(failures) { it }
                         call.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("oauth2"))
                     }
+                    basicAuth()
+                    verifyWithOAuth2(testClient, settings)
                 }
                 handle {
                     call.respondText("ok")

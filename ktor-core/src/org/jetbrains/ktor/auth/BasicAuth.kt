@@ -37,10 +37,9 @@ fun <C : ApplicationCall> PipelineContext<C>.basicAuth() {
  * and send Unauthorized response with the specified [realm] in case of verification failure
  */
 fun <C : ApplicationCall, P : Principal> PipelineContext<C>.basic(realm: String, verifier: C.(UserPasswordCredential) -> P?) {
-    basicAuth()
-    verifyWith(verifier)
-
     onFail {
         call.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge(realm))
     }
+    basicAuth()
+    verifyWith(verifier)
 }

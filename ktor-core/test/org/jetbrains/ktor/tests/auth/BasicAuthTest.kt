@@ -143,7 +143,7 @@ class BasicAuthTest {
                         credentials.filter { it.name == it.password }.map { UserIdPrincipal(it.name) }
                     }
 
-                    onFail {
+                    onFinish {
                         call.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor-test"))
                     }
                 }

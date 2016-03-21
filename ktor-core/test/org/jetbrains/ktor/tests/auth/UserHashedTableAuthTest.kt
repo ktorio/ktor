@@ -41,12 +41,11 @@ class UserHashedTableAuthTest {
         withTestApplication {
             application.routing {
                 authenticate {
-                    formAuth()
-                    verifyBatchTypedWith(hashedUserTable)
-
                     onFail {
                         call.respondStatus(HttpStatusCode.Forbidden)
                     }
+                    formAuth()
+                    verifyBatchTypedWith(hashedUserTable)
                 }
 
                 get("/") {

@@ -70,11 +70,11 @@ class AuthBuildersTest {
             application.routing {
                 route("/") {
                     authenticate {
-                        extractCredentials { UserPasswordCredential("name1", "ppp") }
-                        verifyWith { credential: UserPasswordCredential -> null }
                         onFail {
                             failed = true
                         }
+                        extractCredentials { UserPasswordCredential("name1", "ppp") }
+                        verifyWith { credential: UserPasswordCredential -> null }
                     }
                 }
             }
@@ -156,9 +156,6 @@ class AuthBuildersTest {
             application.routing {
                 route("/") {
                     authenticate {
-                        formAuth()
-                        verifyWith { c: UserPasswordCredential -> UserIdPrincipal(c.name) }
-
                         onFinish {
                             assertEquals(username, call.authentication.principal<UserIdPrincipal>()?.name)
                             ApplicationCallResult.Handled
@@ -167,6 +164,9 @@ class AuthBuildersTest {
                         onFail {
                             fail("login failed")
                         }
+
+                        formAuth()
+                        verifyWith { c: UserPasswordCredential -> UserIdPrincipal(c.name) }
                     }
 
                     handle {

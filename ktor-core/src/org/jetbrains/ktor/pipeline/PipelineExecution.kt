@@ -1,13 +1,27 @@
 package org.jetbrains.ktor.pipeline
 
 import org.jetbrains.ktor.application.*
+import java.util.*
+import java.util.concurrent.*
 
 interface PipelineControl<T : ApplicationCall> {
     fun stop()
     fun pause()
     fun proceed()
     fun fail(exception: Throwable)
+
 }
+
+fun <T : ApplicationCall> PipelineControl<T>.join(future: CompletionStage<*>) {
+    pause()
+    future.whenComplete { unit, throwable ->
+        if (throwable == null)
+            proceed()
+        else
+            fail(throwable)
+    }
+}
+
 
 class PipelineExecution<T : ApplicationCall>(val call: T, val blockBuilders: MutableList<PipelineContext<T>.(T) -> Unit>) : PipelineControl<T> {
     enum class State {
@@ -24,16 +38,16 @@ class PipelineExecution<T : ApplicationCall>(val call: T, val blockBuilders: Mut
         loop@while (stack.size < blockBuilders.size) {
             val index = stack.size
             val builder = blockBuilders[index]
-            val block = PipelineContext(this, builder)
-            stack.add(block)
+            val context = PipelineContext(this, builder)
+            stack.add(context)
             try {
-                block.function(block, call)
+                context.execute(call)
             } catch(exception: Throwable) {
                 fail(exception)
                 return
             }
 
-            when (state) {
+            when (context.state) {
                 State.Pause -> return
                 State.Finished -> break@loop
                 State.Execute -> continue@loop
