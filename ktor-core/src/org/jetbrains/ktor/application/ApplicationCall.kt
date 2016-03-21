@@ -34,6 +34,8 @@ public interface ApplicationCall {
      */
     public val close: Interceptable0<Unit>
 
+    public val parameters : ValuesMap
+
     public fun respond(message: Any)
     public fun interceptRespond(handler: (message: Any, next: (message: Any) -> Unit) -> Unit)
 }

@@ -35,11 +35,11 @@ fun <T : Any> RoutingEntry.location(data: KClass<T>, body: RoutingEntry.() -> Un
     entry.body()
 }
 
-inline fun <reified T : Any> RoutingEntry.handle(noinline body: RoutingApplicationCall.(T) -> Unit) {
+inline fun <reified T : Any> RoutingEntry.handle(noinline body: ApplicationCall.(T) -> Unit) {
     return handle(T::class, body)
 }
 
-inline fun <T : Any> RoutingEntry.handle(dataClass: KClass<T>, crossinline body: RoutingApplicationCall.(T) -> Unit) {
+inline fun <T : Any> RoutingEntry.handle(dataClass: KClass<T>, crossinline body: ApplicationCall.(T) -> Unit) {
     handle {
         val location = locations().resolve<T>(dataClass, call)
         call.body(location)

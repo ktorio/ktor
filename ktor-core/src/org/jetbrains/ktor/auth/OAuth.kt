@@ -3,7 +3,6 @@ package org.jetbrains.ktor.auth
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.httpclient.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import org.json.simple.*
@@ -463,7 +462,7 @@ private fun decodeContent(content: String, contentType: ContentType): ValuesMap 
     contentType.match(ContentType.Application.Json) ->
         (JSONValue.parseWithException(content) as JSONObject)
                 .toList()
-                .fold(ValuesMap.Builder()) { builder, e -> builder.append(e.first.toString(), e.second.toString()); builder }.build() // TODO better json handling
+                .fold(ValuesMapImpl.Builder()) { builder, e -> builder.append(e.first.toString(), e.second.toString()); builder }.build() // TODO better json handling
 // TODO text/xml
     else -> {
         // some servers may respond with wrong content type so we have to try to guess

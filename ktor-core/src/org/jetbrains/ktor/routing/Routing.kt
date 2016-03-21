@@ -15,29 +15,23 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
 
     internal fun interceptor(context: PipelineContext<ApplicationCall>) {
         val call = context.call
-        val resolveContext = RoutingResolveContext(this, call.request.requestLine, call.request.parameters, call.request.headers)
+        val resolveContext = RoutingResolveContext(this, call.request.requestLine, call.parameters, call.request.headers)
         val resolveResult = resolveContext.resolve()
         if (resolveResult.succeeded) {
             val routingCall = RoutingApplicationCall(call, resolveResult.entry, resolveResult.values)
             val pipeline = buildEntryPipeline(resolveResult.entry)
-            val execution = pipeline.execute(routingCall)
-            if (execution.state == PipelineExecution.State.Pause) {
-                context.pipeline.pause()
-                execution.blockBuilders.add {
-                    context.pipeline.proceed()
-                }
-            }
+            context.pipeline.fork(routingCall, pipeline)
         }
     }
 
-    private fun executeHandlers(context: PipelineContext<RoutingApplicationCall>, handlers: List<PipelineContext<RoutingApplicationCall>.() -> Unit>) {
+    private fun executeHandlers(context: PipelineContext<ApplicationCall>, handlers: List<PipelineContext<ApplicationCall>.() -> Unit>) {
         // Handlers are executed in the installation order, first one that handles a call wins
         for (handler in handlers) {
             context.handler()
         }
     }
 
-    private fun buildEntryPipeline(entry: RoutingEntry): Pipeline<RoutingApplicationCall> {
+    private fun buildEntryPipeline(entry: RoutingEntry): Pipeline<ApplicationCall> {
         // Interceptors are rarely installed into routing entries, so don't create list unless there are some
         var interceptors: MutableList<RoutingInterceptor>? = null
         var current: RoutingEntry? = entry
@@ -50,7 +44,7 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
             current = current.parent
         }
 
-        val pipeline = Pipeline<RoutingApplicationCall>()
+        val pipeline = Pipeline<ApplicationCall>()
         if (interceptors != null && interceptors.isNotEmpty()) {
             for (interceptor in interceptors)
                 pipeline.intercept(interceptor.function)

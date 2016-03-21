@@ -434,7 +434,7 @@ class StaticContentTest {
     }
 
     private fun BufferedReader.scanHeaders(): ValuesMap {
-        val headers = ValuesMap.Builder()
+        val headers = ValuesMapImpl.Builder()
 
         do {
             val line = readLine()

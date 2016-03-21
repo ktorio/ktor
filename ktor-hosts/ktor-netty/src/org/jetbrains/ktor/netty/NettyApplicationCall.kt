@@ -20,6 +20,7 @@ class NettyApplicationCall(application: Application,
     override val request: ApplicationRequest = NettyApplicationRequest(httpRequest)
     override val response: ApplicationResponse = NettyApplicationResponse(httpRequest, httpResponse, context)
     override val attributes = Attributes()
+    override val parameters: ValuesMap get() = request.parameters
 
     init {
         HttpHeaders.setTransferEncodingChunked(httpResponse)

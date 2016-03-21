@@ -24,7 +24,7 @@ open public class Locations(val conversionService: ConversionService) {
                                     val pathParameters: List<LocationInfoProperty>,
                                     val queryParameters: List<LocationInfoProperty>)
 
-    private fun LocationInfo.create(request: RoutingApplicationCall): Any {
+    private fun LocationInfo.create(request: ApplicationCall): Any {
         val constructor: KFunction<Any> = klass.primaryConstructor ?: klass.constructors.single()
         val parameters = constructor.parameters
         val arguments = parameters.map { parameter ->
@@ -102,7 +102,7 @@ open public class Locations(val conversionService: ConversionService) {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : Any> resolve(dataClass: KClass<*>, request: RoutingApplicationCall): T {
+    fun <T : Any> resolve(dataClass: KClass<*>, request: ApplicationCall): T {
         return getOrCreateInfo(dataClass).create(request) as T
     }
 

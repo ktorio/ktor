@@ -17,6 +17,7 @@ class ServletApplicationCall(application: Application,
     override val attributes = Attributes()
     override val request : ApplicationRequest = ServletApplicationRequest(servletRequest)
     override val response : ApplicationResponse = ServletApplicationResponse(servletResponse)
+    override val parameters: ValuesMap get() = request.parameters
 
     private var asyncContext: AsyncContext? = null
 

@@ -1,32 +1,32 @@
 package org.jetbrains.ktor.locations
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.auth.httpclient.*
-import org.jetbrains.ktor.interception.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.routing.*
 import java.util.concurrent.*
 import kotlin.reflect.*
 
-inline fun <reified T: Any> PipelineContext<RoutingApplicationCall>.oauthAtLocation(client: HttpClient, exec: ExecutorService,
-                                                                                noinline providerLookup: RoutingApplicationCall.(T) -> OAuthServerSettings?,
-                                                                                noinline urlProvider: RoutingApplicationCall.(T, OAuthServerSettings) -> String) {
+inline fun <reified T: Any> PipelineContext<ApplicationCall>.oauthAtLocation(client: HttpClient, exec: ExecutorService,
+                                                                             noinline providerLookup: ApplicationCall.(T) -> OAuthServerSettings?,
+                                                                             noinline urlProvider: ApplicationCall.(T, OAuthServerSettings) -> String) {
     oauthWithType(T::class, client, exec, providerLookup, urlProvider)
 }
 
-fun <T: Any> PipelineContext<RoutingApplicationCall>.oauthWithType(type: KClass<T>,
+fun <T: Any> PipelineContext<ApplicationCall>.oauthWithType(type: KClass<T>,
                                                             client: HttpClient,
                                                             exec: ExecutorService,
-                                                            providerLookup: RoutingApplicationCall.(T) -> OAuthServerSettings?,
-                                                            urlProvider: RoutingApplicationCall.(T, OAuthServerSettings) -> String) {
+                                                            providerLookup: ApplicationCall.(T) -> OAuthServerSettings?,
+                                                            urlProvider: ApplicationCall.(T, OAuthServerSettings) -> String) {
 
-    fun RoutingApplicationCall.resolve(): T {
-        return route.locations().resolve<T>(type, this)
+    fun ApplicationCall.resolve(): T {
+        return application.feature(Locations).resolve<T>(type, this)
     }
-    fun RoutingApplicationCall.providerLookupLocal(): OAuthServerSettings? = providerLookup(resolve())
-    fun RoutingApplicationCall.urlProviderLocal(s: OAuthServerSettings): String = urlProvider(resolve(), s)
+    fun ApplicationCall.providerLookupLocal(): OAuthServerSettings? = providerLookup(resolve())
+    fun ApplicationCall.urlProviderLocal(s: OAuthServerSettings): String = urlProvider(resolve(), s)
 
     oauth(client, exec,
-            RoutingApplicationCall::providerLookupLocal,
-            RoutingApplicationCall::urlProviderLocal)
+            ApplicationCall::providerLookupLocal,
+            ApplicationCall::urlProviderLocal)
 }

@@ -13,7 +13,7 @@ public fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.
     val parameters = split("&").map { it.substringBefore("=") to it.substringAfter("=", "") }
     val encoding = parameters.firstOrNull { it.first == "_charset_" }?.second ?: defaultEncoding.name()
 
-    return parameters.fold(ValuesMap.Builder()) { builder, pair ->
+    return parameters.fold(ValuesMapImpl.Builder()) { builder, pair ->
         builder.append(URLDecoder.decode(pair.first, encoding), URLDecoder.decode(pair.second, encoding))
         builder
     }.build()

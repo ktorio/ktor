@@ -3,6 +3,10 @@ package org.jetbrains.ktor.pipeline
 import org.jetbrains.ktor.application.*
 
 class PipelineContext<T : ApplicationCall>(private val execution: PipelineExecution<T>, val function: PipelineContext<T>.(T) -> Unit) : PipelineControl<T> {
+    override fun fork(call: T, pipeline: Pipeline<T>) {
+        execution.fork(call, pipeline)
+    }
+
     override fun fail(exception: Throwable) {
         execution.fail(exception)
     }

@@ -52,6 +52,7 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
 }
 
 class TestApplicationCall(application: Application, override val request: TestApplicationRequest) : BaseApplicationCall(application) {
+    override val parameters: ValuesMap get() = request.parameters
     override val attributes = Attributes()
     override val close = Interceptable0 {
         requestResult = ApplicationCallResult.Handled
@@ -93,7 +94,7 @@ class TestApplicationRequest() : ApplicationRequest {
     override val headers by lazy {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")
         headersMap = null
-        ValuesMap(map, caseInsensitiveKey = true)
+        ValuesMapImpl(map, caseInsensitiveKey = true)
     }
 
     override val content: RequestContent = object : RequestContent(this) {
