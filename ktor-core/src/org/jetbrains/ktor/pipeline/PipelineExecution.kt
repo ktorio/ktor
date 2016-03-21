@@ -23,7 +23,7 @@ fun <T> PipelineControl<T>.join(future: CompletionStage<*>) {
 }
 
 
-class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineContext<T>.(T) -> Unit>)  {
+class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineContext<T>.(T) -> Unit>) {
 
     enum class State {
         Execute, Pause, Finished;
@@ -37,7 +37,10 @@ class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineConte
     fun fork(subject: T, pipeline: Pipeline<T>) {
         val context = stack.last()
         context.pause()
-        val resume: PipelineContext<T>.(T) -> Unit = { subject -> onFinish { context.proceed() } }
+        val resume: PipelineContext<T>.(T) -> Unit = { subject ->
+            onFinish { context.proceed() }
+            onFail { context.fail(it) }
+        }
         val builders = listOf(resume) + pipeline.blockBuilders
         val execution = PipelineExecution(subject, builders)
         execution.proceed()
@@ -52,6 +55,8 @@ class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineConte
             stack.add(context)
             try {
                 context.execute(subject)
+            } catch(assertion: AssertionError) {
+                throw assertion // do not prevent tests from failing
             } catch(exception: Throwable) {
                 fail(exception)
                 return
