@@ -33,18 +33,6 @@ fun PipelineContext<ApplicationCall>.basicAuthentication() {
     }
 }
 
-/**
- * The function constructs general basic auth flow: parse auth header, verify with [verifier] function
- * and send Unauthorized response with the specified [realm] in case of verification failure
- */
-fun <P : Principal> PipelineContext<ApplicationCall>.basic(realm: String, verifier: ApplicationCall.(UserPasswordCredential) -> P?) {
-    onFail {
-        call.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge(realm))
-    }
-    basicAuthentication()
-    verifyWith(verifier)
-}
-
 fun AuthenticationProcedure.basicAuthentication(realm: String, validate: (UserPasswordCredential) -> Principal?) {
     authenticate { context ->
         val credentials = context.call.request.basicAuthenticationCredentials()

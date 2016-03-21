@@ -155,18 +155,8 @@ class AuthBuildersTest {
         withTestApplication {
             application.routing {
                 route("/") {
-                    authenticate {
-                        onFinish {
-                            assertEquals(username, call.authentication.principal<UserIdPrincipal>()?.name)
-                            ApplicationCallResult.Handled
-                        }
-
-                        onFail {
-                            fail("login failed")
-                        }
-
-                        formAuth()
-                        verifyWith { c: UserPasswordCredential -> UserIdPrincipal(c.name) }
+                    authentication {
+                        formAuthentication { c -> UserIdPrincipal(c.name) }
                     }
 
                     handle {

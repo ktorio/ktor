@@ -27,22 +27,6 @@ fun PipelineContext<ApplicationCall>.extractDigest() {
     }
 }
 
-fun PipelineContext<ApplicationCall>.digestAuth(
-        digestAlgorithm: String = "MD5",
-        digesterProvider: (String) -> MessageDigest = { MessageDigest.getInstance(it) },
-        userNameRealmPasswordDigestProvider: (String, String) -> ByteArray) {
-
-    val digester = digesterProvider(digestAlgorithm)
-
-    extractDigest()
-
-    verifyBatchTypedWith { digests: List<DigestCredential> ->
-        digests.filter { (it.algorithm ?: "MD5") == digestAlgorithm }
-                .filter { it.verify(request.httpMethod, digester, userNameRealmPasswordDigestProvider) }
-                .map { UserIdPrincipal(it.userName) }
-    }
-}
-
 fun AuthenticationProcedure.digestAuthentication(
         digestAlgorithm: String = "MD5",
         digesterProvider: (String) -> MessageDigest = { MessageDigest.getInstance(it) },
@@ -90,8 +74,11 @@ fun HttpAuthHeader.Parameterized.toDigestCredential() = DigestCredential(
         parameter("qop")
 )
 
-fun DigestCredential.verify(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: (String, String) -> ByteArray): Boolean =
-        verify(method, digester, userNameRealmPasswordDigest(userName, realm))
+fun DigestCredential.verify(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: (String, String) -> ByteArray): Boolean {
+    val validDigest = expectedDigest(method, digester, userNameRealmPasswordDigest(userName, realm))
+
+    return response == validDigest
+}
 
 fun DigestCredential.expectedDigest(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: ByteArray): String {
     fun digest(data: String): String {
@@ -105,10 +92,4 @@ fun DigestCredential.expectedDigest(method: HttpMethod, digester: MessageDigest,
 
     val a = listOf(start, nonce, nonceCount, cnonce, qop, end).map { it ?: "" }.joinToString(":")
     return digest(a)
-}
-
-fun DigestCredential.verify(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: ByteArray): Boolean {
-    val validDigest = expectedDigest(method, digester, userNameRealmPasswordDigest)
-
-    return response == validDigest
 }

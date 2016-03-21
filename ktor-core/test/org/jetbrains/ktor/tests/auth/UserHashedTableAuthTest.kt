@@ -51,15 +51,15 @@ class UserHashedTableAuthTest {
 
             handleRequest(HttpMethod.Get, "/").let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals(HttpStatusCode.Forbidden, result.response.status())
+                assertEquals(HttpStatusCode.Unauthorized, result.response.status())
             }
             handleRequest(HttpMethod.Get, "/?user=test&password=bad-pass").let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals(HttpStatusCode.Forbidden, result.response.status())
+                assertEquals(HttpStatusCode.Unauthorized, result.response.status())
             }
             handleRequest(HttpMethod.Get, "/?user=test&bad-user=bad-pass").let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals(HttpStatusCode.Forbidden, result.response.status())
+                assertEquals(HttpStatusCode.Unauthorized, result.response.status())
             }
             handleRequest(HttpMethod.Get, "/?user=test&password=test").let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)

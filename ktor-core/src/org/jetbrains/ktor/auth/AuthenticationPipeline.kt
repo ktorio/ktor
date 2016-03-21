@@ -33,7 +33,7 @@ fun InterceptApplicationCall.authentication(procedure: AuthenticationProcedure.(
     val authenticationProcedure = AuthenticationProcedure().apply(procedure)
     intercept {
         fork(AuthenticationProcedureContext(call), authenticationProcedure.pipeline) { master ->
-            if (subject.rejected)
+            if (subject.finished)
                 master.finish()
             else
                 master.proceed()
@@ -54,6 +54,6 @@ class AuthenticationProcedureContext(val call: ApplicationCall) {
         challenges.add(function)
     }
 
-    val rejected: Boolean
+    val finished: Boolean
         get() = principal == null && challenges.any()
 }

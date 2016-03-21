@@ -15,20 +15,20 @@ class BasicAuthWithLdapApplication(config: ApplicationConfig) : Application(conf
         install(Locations)
         routing {
             location<Files> {
-                authenticate {
-                    basicAuthentication()
+                authentication {
+                    basicAuthentication("files") { credentials ->
+                        ldapAuthenticate(credentials, "ldap://localhost:389", "cn=%s ou=users") {
+                            if (it.name == it.password) {
+                                UserIdPrincipal(it.name)
+                            } else null
+                        }
 
-                    verifyWithLdapLoginWithUser("ldap://localhost:389", "cn=%s ou=users")
-                    verifyBatchTypedWith { credentials: List<UserPasswordCredential> -> credentials.filter { it.name == it.password }.map { UserIdPrincipal(it.name) } }
-
-                    onFail {
-                        sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("files"))
                     }
                 }
 
                 handle {
-                    response.status(HttpStatusCode.OK)
-                    respondText("""
+                    call.response.status(HttpStatusCode.OK)
+                    call.respondText("""
                     Directory listing
 
                     .

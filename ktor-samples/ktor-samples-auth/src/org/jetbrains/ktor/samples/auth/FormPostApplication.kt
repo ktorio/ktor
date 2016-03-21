@@ -11,27 +11,27 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
     init {
         routing {
             route("/login") {
-                authenticate {
-                    formAuth("user", "pass")
-                    verifyWith { up: UserPasswordCredential ->
+                authentication {
+                    formAuthentication { up: UserPasswordCredential ->
                         when {
                             up.password == "ppp" -> UserIdPrincipal(up.name)
                             else -> null
                         }
                     }
+                }
 
-                    onFinish { auth, next ->
-                        respondText("Hello, ${auth.principal<UserIdPrincipal>()!!.name}")
-                    }
-
-                    onFail {
-                        respondText(ContentType.Text.Html, createHTML().html {
+                handle {
+                    val principal = call.authentication.principal<UserIdPrincipal>()
+                    if (principal != null) {
+                        call.respondText("Hello, ${principal.name}")
+                    } else {
+                        val html = createHTML().html {
                             body {
                                 form(action = "/login", encType = FormEncType.applicationXWwwFormUrlEncoded, method = FormMethod.post) {
                                     p {
                                         +"user:"
                                         textInput(name = "user") {
-                                            value = authContext.credentials<UserPasswordCredential>().firstOrNull()?.name ?: ""
+                                            value = principal?.name ?: ""
                                         }
                                     }
 
@@ -45,7 +45,8 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
                                     }
                                 }
                             }
-                        })
+                        }
+                        call.respondText(ContentType.Text.Html, html)
                     }
                 }
             }
