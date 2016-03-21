@@ -34,14 +34,6 @@ class CookiesTest {
         }
     }
 
-    @Ignore // it won't work with dates anyway so this feature was removed
-    @test fun `comma separator instead of semicolon`() {
-        withRawCookies("SESSION=000, HOST=zzz") {
-            assertEquals("000", cookies["SESSION"])
-            assertEquals("zzz", cookies["HOST"])
-        }
-    }
-
     @test fun `decode encoded cookies`() {
         withRawCookies("SESSION=1+2") {
             assertEquals("1 2", cookies["SESSION"])

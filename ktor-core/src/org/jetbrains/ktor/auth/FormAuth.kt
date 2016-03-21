@@ -13,7 +13,7 @@ fun PipelineContext<ApplicationCall>.formAuth(userParamName: String = "user", pa
     }
 }
 
-fun AuthenticationProcedure.formAuth(userParamName: String = "user", passwordParamName: String = "password", validate: (UserPasswordCredential) -> Principal?) {
+fun AuthenticationProcedure.formAuthentication(userParamName: String = "user", passwordParamName: String = "password", validate: (UserPasswordCredential) -> Principal?) {
     authenticate { context ->
         val username = context.call.parameters[userParamName]
         val password = context.call.parameters[passwordParamName]

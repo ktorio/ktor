@@ -10,14 +10,19 @@ class AuthenticationProcedure() {
     init {
         pipeline.intercept {
             onFinish {
-                if (subject.principal == null) {
+                val principal = subject.principal
+                if (principal == null) {
                     for (challenge in subject.challenges) {
                         challenge()
                     }
+                } else {
+                    subject.call.authentication.addPrincipal(principal)
                 }
             }
         }
     }
+
+
 
     fun authenticate(authenticator: PipelineContext<AuthenticationProcedureContext>.(AuthenticationProcedureContext) -> Unit) {
         pipeline.intercept(authenticator)

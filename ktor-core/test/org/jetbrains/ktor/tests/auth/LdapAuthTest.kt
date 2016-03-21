@@ -3,7 +3,8 @@ package org.jetbrains.ktor.tests.auth
 import org.apache.directory.api.ldap.util.*
 import org.apache.directory.server.annotations.*
 import org.apache.directory.server.core.integ.*
-import org.apache.directory.server.core.integ.IntegrationUtils.*
+import org.apache.directory.server.core.integ.IntegrationUtils.apply
+import org.apache.directory.server.core.integ.IntegrationUtils.getUserAddLdif
 import org.apache.directory.server.ldap.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
@@ -36,12 +37,10 @@ class LdapAuthTest {
     fun testLoginToServer() {
         withTestApplication {
             application.routing {
-                authenticate {
-                    onFail {
-                        call.respondStatus(HttpStatusCode.Forbidden)
+                authentication {
+                    basicAuthentication("realm") { credential ->
+                        ldapAuthenticate(credential, "ldap://$localhost:${ldapServer.port}", "uid=%s,ou=system")
                     }
-                    basicAuthentication()
-                    verifyWithLdapLoginWithUser("ldap://$localhost:${ldapServer.port}", "uid=%s,ou=system")
                 }
                 get("/") {
                     call.respondText((call.authentication.principals.singleOrNull() as? UserIdPrincipal)?.name ?: "null")
@@ -55,12 +54,12 @@ class LdapAuthTest {
             }
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("admin:bad-pass".toByteArray())) }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals(HttpStatusCode.Forbidden, result.response.status())
+                assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertNull(result.response.content)
             }
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())) }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals(HttpStatusCode.Forbidden, result.response.status())
+                assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertNull(result.response.content)
             }
         }
@@ -70,29 +69,28 @@ class LdapAuthTest {
     fun testCustomLogin() {
         withTestApplication {
             application.routing {
-                authenticate {
-                    onFail {
-                        call.respondStatus(HttpStatusCode.Forbidden)
-                    }
-                    basicAuthentication()
-                    verifyWithLdap("ldap://$localhost:${ldapServer.port}", ldapLoginConfigurator = { c, env ->
+                authentication {
+                    val ldapUrl = "ldap://$localhost:${ldapServer.port}"
+                    val configure: (MutableMap<String, Any?>) -> Unit = { env ->
                         env.put("java.naming.security.principal", "uid=admin,ou=system")
                         env.put("java.naming.security.credentials", "secret")
                         env.put("java.naming.security.authentication", "simple")
-                    }, verifyBlock = { up: UserPasswordCredential ->
-                        val users = (lookup("ou=system") as LdapContext).lookup("ou=users") as LdapContext
-                        val controls = SearchControls().apply {
-                            searchScope = SearchControls.ONELEVEL_SCOPE
-                            returningAttributes = arrayOf("+", "*")
-                        }
-                        val results = users.search("", "(uid=user-test)", controls).toList()
+                    }
 
-                        if (results.any { (it.attributes.get("userPassword")?.get() as ByteArray?)?.toString(Charsets.ISO_8859_1) == up.password }) {
-                            UserIdPrincipal(up.name)
-                        } else {
-                            null
+                    basicAuthentication("realm") { credential ->
+                        ldapAuthenticate(credential, ldapUrl, configure) {
+                            val users = (lookup("ou=system") as LdapContext).lookup("ou=users") as LdapContext
+                            val controls = SearchControls().apply {
+                                searchScope = SearchControls.ONELEVEL_SCOPE
+                                returningAttributes = arrayOf("+", "*")
+                            }
+
+                            users.search("", "(uid=user-test)", controls).asSequence().firstOrNull {
+                                val ldapPassword = (it.attributes.get("userPassword")?.get() as ByteArray?)?.toString(Charsets.ISO_8859_1)
+                                ldapPassword == credential.password
+                            }?.let { UserIdPrincipal(credential.name) }
                         }
-                    })
+                    }
                 }
 
                 get("/") {
@@ -102,17 +100,16 @@ class LdapAuthTest {
 
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("user-test:test".toByteArray())) }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertEquals(HttpStatusCode.OK, result.response.status())
                 assertEquals("user-test", result.response.content)
             }
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("user-test:bad-pass".toByteArray())) }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals(HttpStatusCode.Forbidden, result.response.status())
-                assertNull(result.response.content)
+                assertEquals(HttpStatusCode.Unauthorized, result.response.status())
             }
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())) }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals(HttpStatusCode.Forbidden, result.response.status())
-                assertNull(result.response.content)
+                assertEquals(HttpStatusCode.Unauthorized, result.response.status())
             }
         }
     }
@@ -138,11 +135,11 @@ class LdapAuthTest {
 
     private val localhost: String
         get() =
-            try {
-                InetAddress.getLocalHost().hostAddress
-            } catch (any: Throwable) {
-                "127.0.0.1"
-            }
+        try {
+            InetAddress.getLocalHost().hostAddress
+        } catch (any: Throwable) {
+            "127.0.0.1"
+        }
 
     companion object {
         @JvmStatic

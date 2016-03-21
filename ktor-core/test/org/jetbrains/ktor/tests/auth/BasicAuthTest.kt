@@ -22,6 +22,7 @@ class BasicAuthTest {
 
             assertEquals(ApplicationCallResult.Handled, response.requestResult)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
+            assertNull(response.response.content)
 
             assertWWWAuthenticateHeaderExist(response)
         }

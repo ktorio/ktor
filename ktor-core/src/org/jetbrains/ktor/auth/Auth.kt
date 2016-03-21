@@ -102,7 +102,6 @@ public fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
 public fun ApplicationCall.sendAuthenticationRequest(vararg challenges: HttpAuthHeader = arrayOf(HttpAuthHeader.basicAuthChallenge("ktor"))): Unit {
     require(challenges.isNotEmpty()) { "it should be at least one challenge requested, for example Basic" }
 
-    response.status(HttpStatusCode.Unauthorized)
     response.headers.append(HttpHeaders.WWWAuthenticate, challenges.joinToString(", ") { it.render() })
-    respondText(ContentType.Text.Plain, "Not authorized")
+    respondStatus(HttpStatusCode.Unauthorized)
 }

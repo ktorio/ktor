@@ -41,7 +41,7 @@ class UserHashedTableAuthTest {
         withTestApplication {
             application.routing {
                 authentication {
-                    formAuth { hashedUserTable.authenticate(it) }
+                    formAuthentication { hashedUserTable.authenticate(it) }
                 }
 
                 get("/") {
