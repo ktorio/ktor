@@ -16,7 +16,7 @@ class BasicAuthWithLdapApplication(config: ApplicationConfig) : Application(conf
         routing {
             location<Files> {
                 authenticate {
-                    basicAuth()
+                    basicAuthentication()
 
                     verifyWithLdapLoginWithUser("ldap://localhost:389", "cn=%s ou=users")
                     verifyBatchTypedWith { credentials: List<UserPasswordCredential> -> credentials.filter { it.name == it.password }.map { UserIdPrincipal(it.name) } }

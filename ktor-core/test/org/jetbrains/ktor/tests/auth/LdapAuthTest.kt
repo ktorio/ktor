@@ -40,7 +40,7 @@ class LdapAuthTest {
                     onFail {
                         call.respondStatus(HttpStatusCode.Forbidden)
                     }
-                    basicAuth()
+                    basicAuthentication()
                     verifyWithLdapLoginWithUser("ldap://$localhost:${ldapServer.port}", "uid=%s,ou=system")
                 }
                 get("/") {
@@ -74,7 +74,7 @@ class LdapAuthTest {
                     onFail {
                         call.respondStatus(HttpStatusCode.Forbidden)
                     }
-                    basicAuth()
+                    basicAuthentication()
                     verifyWithLdap("ldap://$localhost:${ldapServer.port}", ldapLoginConfigurator = { c, env ->
                         env.put("java.naming.security.principal", "uid=admin,ou=system")
                         env.put("java.naming.security.credentials", "secret")

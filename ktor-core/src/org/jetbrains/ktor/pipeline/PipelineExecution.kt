@@ -8,8 +8,7 @@ interface PipelineControl<T> {
     fun proceed()
     fun fail(exception: Throwable)
 
-    fun fork(subject: T, pipeline: Pipeline<T>)
-
+    fun <TSecondary> fork(subject: TSecondary, pipeline: Pipeline<TSecondary>, finish: PipelineContext<TSecondary>.(PipelineExecution<T>) -> Unit)
 }
 
 fun <T> PipelineControl<T>.join(future: CompletionStage<*>) {
@@ -34,11 +33,11 @@ class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineConte
     var state = State.Pause
     private val stack = mutableListOf<PipelineContext<T>>()
 
-    fun fork(subject: T, pipeline: Pipeline<T>) {
-        val master = this@PipelineExecution
-        val chain: PipelineContext<T>.(T) -> Unit = { subject ->
+    fun <TSecondary> fork(subject: TSecondary, pipeline: Pipeline<TSecondary>, finish: PipelineContext<TSecondary>.(PipelineExecution<T>) -> Unit) {
+    val master = this@PipelineExecution
+        val chain: PipelineContext<TSecondary>.(TSecondary) -> Unit = { subject ->
             onFinish {
-                master.proceed()
+                finish(this, master)
             }
             onFail {
                 master.fail(it)
@@ -56,7 +55,7 @@ class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineConte
         }
     }
 
-    internal fun proceed() {
+    fun proceed() {
         state = State.Execute
         loop@while (stack.size < blockBuilders.size) {
             val index = stack.size
@@ -75,7 +74,8 @@ class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineConte
 
             when (context.state) {
                 State.Pause -> {
-                    state = State.Pause
+                    if (state == State.Execute)
+                        state = State.Pause
                     return
                 }
                 State.Finished -> break@loop
@@ -86,14 +86,14 @@ class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineConte
             finish()
     }
 
-    private fun finish() {
+    fun finish() {
         for (block in stack.asReversed()) {
             block.exits.forEach { it() }
         }
         state = State.Finished
     }
 
-    internal fun fail(exception: Throwable) {
+    fun fail(exception: Throwable) {
         for (block in stack.asReversed()) {
             block.failures.forEach { it(exception) }
         }

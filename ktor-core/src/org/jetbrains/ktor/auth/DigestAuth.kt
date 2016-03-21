@@ -43,6 +43,40 @@ fun PipelineContext<ApplicationCall>.digestAuth(
     }
 }
 
+fun AuthenticationProcedure.digestAuthentication(
+        digestAlgorithm: String = "MD5",
+        digesterProvider: (String) -> MessageDigest = { MessageDigest.getInstance(it) },
+        userNameRealmPasswordDigestProvider: (String, String) -> ByteArray) {
+
+    val digester = digesterProvider(digestAlgorithm)
+    authenticate { context ->
+
+        val authorizationHeader = context.call.request.parseAuthorizationHeader()
+        val credentials = authorizationHeader?.let { authHeader ->
+            if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
+                authHeader.toDigestCredential()
+            } else
+                null
+        }
+
+        val principal = credentials?.let {
+            if ((it.algorithm ?: "MD5") == digestAlgorithm && it.verify(context.call.request.httpMethod, digester, userNameRealmPasswordDigestProvider))
+                UserIdPrincipal(it.userName)
+            else
+                null
+        }
+
+        if (principal != null) {
+            context.principal(principal)
+        } else {
+            context.challenge {
+                context.call.sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge("testrealm@host.com"))
+            }
+        }
+    }
+}
+
+
 fun HttpAuthHeader.Parameterized.toDigestCredential() = DigestCredential(
         parameter("realm")!!,
         parameter("username")!!,

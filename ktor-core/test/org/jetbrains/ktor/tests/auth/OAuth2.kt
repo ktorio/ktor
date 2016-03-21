@@ -81,7 +81,7 @@ class OAuth2Test {
                         // call.authContext.failures.values.flatMapTo(failures) { it }
                         call.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("oauth2"))
                     }
-                    basicAuth()
+                    basicAuthentication()
                     verifyWithOAuth2(testClient, settings)
                 }
                 handle {

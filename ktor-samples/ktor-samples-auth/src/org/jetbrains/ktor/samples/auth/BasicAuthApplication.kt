@@ -20,7 +20,7 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
         install(Locations)
         routing {
             authenticate {
-                basicAuth()
+                basicAuthentication()
 
                 onFail {
                     sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor"))

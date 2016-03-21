@@ -7,8 +7,8 @@ class Pipeline<T> {
         interceptors.add(block)
     }
 
-    fun execute(call: T) : PipelineExecution<T> {
-        val execution = PipelineExecution(call, interceptors)
+    fun execute(subject: T) : PipelineExecution<T> {
+        val execution = PipelineExecution(subject, interceptors)
         execution.proceed()
         return execution
     }

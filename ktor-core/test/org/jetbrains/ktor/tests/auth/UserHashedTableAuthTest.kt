@@ -40,12 +40,8 @@ class UserHashedTableAuthTest {
     fun testSingle(hashedUserTable: UserHashedTableAuth) {
         withTestApplication {
             application.routing {
-                authenticate {
-                    onFail {
-                        call.respondStatus(HttpStatusCode.Forbidden)
-                    }
-                    formAuth()
-                    verifyBatchTypedWith(hashedUserTable)
+                authentication {
+                    formAuth { hashedUserTable.authenticate(it) }
                 }
 
                 get("/") {

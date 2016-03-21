@@ -33,10 +33,10 @@ class BasicAuthTest {
             val user = "user1"
             val p = "user1"
 
-            application.intercept { call->
-                val authInfo = call.request.basicAuth()
+            application.intercept { call ->
+                val authInfo = call.request.basicAuthenticationCredentials()
                 assertNotNull(authInfo)
-                assertEquals(authInfo, call.basicAuth())
+                assertEquals(authInfo, call.basicAuthenticationCredentials())
 
                 assertEquals(user, authInfo!!.name)
                 assertEquals(p, authInfo.password)
@@ -90,8 +90,8 @@ class BasicAuthTest {
         withTestApplication {
             application.routing {
                 route("/") {
-                    authenticate {
-                        basic("ktor-test") { c -> if (c.name == "good") UserIdPrincipal(c.name) else null }
+                    authentication {
+                        basicAuthentication("ktor-test") { c -> if (c.name == "good") UserIdPrincipal(c.name) else null }
                     }
 
                     handle {
@@ -117,13 +117,13 @@ class BasicAuthTest {
     }
 
     private fun TestApplicationHost.handleRequestWithBasic(url: String, user: String, pass: String) =
-        handleRequest {
-            uri = url
+            handleRequest {
+                uri = url
 
-            val up = "$user:$pass"
-            val encoded = encodeBase64(up.toByteArray(Charsets.ISO_8859_1))
-            addHeader(HttpHeaders.Authorization, "Basic $encoded")
-        }
+                val up = "$user:$pass"
+                val encoded = encodeBase64(up.toByteArray(Charsets.ISO_8859_1))
+                addHeader(HttpHeaders.Authorization, "Basic $encoded")
+            }
 
     private fun assertWWWAuthenticateHeaderExist(response: ApplicationCall) {
         assertNotNull(response.response.headers[HttpHeaders.WWWAuthenticate])
@@ -136,15 +136,12 @@ class BasicAuthTest {
     private fun Application.configureServer() {
         routing {
             route("/") {
-                authenticate {
-                    basicAuth()
-
-                    verifyBatchTypedWith { credentials: List<UserPasswordCredential> ->
-                        credentials.filter { it.name == it.password }.map { UserIdPrincipal(it.name) }
-                    }
-
-                    onFinish {
-                        call.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor-test"))
+                authentication {
+                    basicAuthentication("ktor-test") {
+                        if (it.name == it.password)
+                            UserIdPrincipal(it.name)
+                        else
+                            null // fail!
                     }
                 }
 

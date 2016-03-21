@@ -1,8 +1,8 @@
 package org.jetbrains.ktor.pipeline
 
 class PipelineContext<T>(private val execution: PipelineExecution<T>, val function: PipelineContext<T>.(T) -> Unit) : PipelineControl<T> {
-    override fun fork(subject: T, pipeline: Pipeline<T>) {
-        execution.fork(subject, pipeline)
+    override fun <TSecondary> fork(subject: TSecondary, pipeline: Pipeline<TSecondary>, finish: PipelineContext<TSecondary>.(PipelineExecution<T>) -> Unit) {
+        execution.fork(subject, pipeline, finish)
     }
 
     override fun fail(exception: Throwable) {

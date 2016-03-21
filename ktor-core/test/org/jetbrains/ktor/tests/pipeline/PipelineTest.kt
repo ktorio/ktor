@@ -2,6 +2,7 @@ package org.jetbrains.ktor.tests.pipeline
 
 import org.jetbrains.ktor.pipeline.*
 import org.junit.*
+import java.util.concurrent.*
 import kotlin.test.*
 
 class PipelineTest {
@@ -165,7 +166,7 @@ class PipelineTest {
                 assertEquals("another", subject)
                 secondaryOk = true
             }
-            fork("another", secondary)
+            fork("another", secondary) { it.proceed() }
         }
 
         pipeline.intercept {
@@ -214,7 +215,7 @@ class PipelineTest {
                 secondaryOk = true
                 throw UnsupportedOperationException()
             }
-            fork("another", secondary)
+            fork("another", secondary) { it.proceed() }
         }
 
         pipeline.intercept {
@@ -226,5 +227,70 @@ class PipelineTest {
         assertEquals(0, count)
         assertEquals(1, max)
         assertEquals(PipelineExecution.State.Finished, execution.state)
+    }
+
+    @Test
+    fun asyncPipeline() {
+        var count = 0
+        val pipeline = Pipeline<String>()
+        val latch = CountDownLatch(1)
+        pipeline.intercept {
+            pause()
+            CompletableFuture.runAsync {
+                assertEquals(0, count)
+                count++
+                proceed()
+            }
+        }
+
+        pipeline.intercept {
+            assertEquals(1, count)
+            count++
+            latch.countDown()
+        }
+
+        pipeline.execute("some")
+        latch.await()
+        assertEquals(2, count)
+    }
+
+    @Test
+    fun asyncFork() {
+        var count = 0
+        val pipeline = Pipeline<String>()
+        var secondaryOk = false
+        val latch = CountDownLatch(1)
+        pipeline.intercept {
+            onFail {
+                latch.countDown()
+                fail("This pipeline shouldn't fail")
+            }
+            join(CompletableFuture.runAsync {
+                assertEquals(0, count)
+                count++
+            })
+        }
+
+        pipeline.intercept {
+            val secondary = Pipeline<String>()
+            secondary.intercept {
+                assertEquals("another", subject)
+                join(CompletableFuture.runAsync {
+                    secondaryOk = true
+                })
+            }
+            fork("another", secondary) { it.proceed() }
+        }
+
+        pipeline.intercept {
+            assertEquals(1, count)
+            count++
+            latch.countDown()
+        }
+
+        pipeline.execute("some")
+        latch.await()
+        assertTrue(secondaryOk, "Secondary should be run")
+        assertEquals(2, count)
     }
 }

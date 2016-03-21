@@ -106,15 +106,10 @@ class DigestTest {
     private fun Application.configureDigestServer() {
         routing {
             route("/") {
-                authenticate {
-                    onFail {
-                        call.sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge("testrealm@host.com"))
-                    }
-
+                authentication {
                     val p = "Circle Of Life"
                     val digester = MessageDigest.getInstance("MD5")
-
-                    digestAuth { userName, realm -> digest(digester, "$userName:$realm:$p") }
+                    digestAuthentication { userName, realm -> digest(digester, "$userName:$realm:$p") }
                 }
 
                 handle {
