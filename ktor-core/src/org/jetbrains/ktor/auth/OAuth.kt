@@ -389,7 +389,7 @@ private fun PipelineContext<ApplicationCall>.oauth1a(client: HttpClient, exec: E
             if (token == null) {
                 val t = simpleOAuth1aStep1(client, provider, call.urlProvider(provider))
                 call.redirectAuthenticateOAuth1a(provider, t)
-                pipeline.stop()
+                pipeline.finish()
             } else {
                 val accessToken = simpleOAuth1aStep2(client, provider, token)
                 call.authentication.addPrincipal(accessToken)
@@ -407,7 +407,7 @@ private fun PipelineContext<ApplicationCall>.oauth2(client: HttpClient, exec: Ex
             val token = call.oauth2HandleCallback()
             if (token == null) {
                 call.redirectAuthenticateOAuth2(provider, call.urlProvider(provider), nextNonce(), scopes = provider.defaultScopes)
-                pipeline.stop()
+                pipeline.finish()
             } else {
                 proceedAsync(exec) {
                     val accessToken = simpleOAuth2Step2(client, provider, call.urlProvider(provider), token)

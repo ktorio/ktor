@@ -17,7 +17,7 @@ class PipelineContext<T>(private val execution: PipelineExecution<T>, val functi
         execution.proceed()
     }
 
-    override fun stop() {
+    override fun finish() {
         state = PipelineExecution.State.Finished
     }
 
@@ -35,10 +35,5 @@ class PipelineContext<T>(private val execution: PipelineExecution<T>, val functi
 
     fun onFail(body: (Throwable) -> Unit) {
         failures.add(body)
-    }
-
-    fun execute(subject: T) {
-        state = PipelineExecution.State.Execute
-        function(subject)
     }
 }

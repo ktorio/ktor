@@ -3,7 +3,7 @@ package org.jetbrains.ktor.pipeline
 import java.util.concurrent.*
 
 interface PipelineControl<T> {
-    fun stop()
+    fun finish()
     fun pause()
     fun proceed()
     fun fail(exception: Throwable)
@@ -35,15 +35,25 @@ class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineConte
     private val stack = mutableListOf<PipelineContext<T>>()
 
     fun fork(subject: T, pipeline: Pipeline<T>) {
-        val context = stack.last()
-        context.pause()
-        val resume: PipelineContext<T>.(T) -> Unit = { subject ->
-            onFinish { context.proceed() }
-            onFail { context.fail(it) }
+        val master = this@PipelineExecution
+        val chain: PipelineContext<T>.(T) -> Unit = { subject ->
+            onFinish {
+                master.proceed()
+            }
+            onFail {
+                master.fail(it)
+            }
         }
-        val builders = listOf(resume) + pipeline.blockBuilders
-        val execution = PipelineExecution(subject, builders)
-        execution.proceed()
+        val interceptors = listOf(chain) + pipeline.interceptors
+        val secondary = PipelineExecution(subject, interceptors)
+
+        val currentMaster = stack.last()
+        currentMaster.state = State.Pause
+        secondary.proceed()
+        if (secondary.state.finished()) {
+            // if secondary completed, master it already finished in `chain`
+            currentMaster.state = State.Finished
+        }
     }
 
     internal fun proceed() {
@@ -54,7 +64,8 @@ class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineConte
             val context = PipelineContext(this, builder)
             stack.add(context)
             try {
-                context.execute(subject)
+                context.state = State.Execute
+                context.function(context, subject)
             } catch(assertion: AssertionError) {
                 throw assertion // do not prevent tests from failing
             } catch(exception: Throwable) {
@@ -63,12 +74,16 @@ class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineConte
             }
 
             when (context.state) {
-                State.Pause -> return
+                State.Pause -> {
+                    state = State.Pause
+                    return
+                }
                 State.Finished -> break@loop
                 State.Execute -> continue@loop
             }
         }
-        finish()
+        if (state == State.Execute)
+            finish()
     }
 
     private fun finish() {

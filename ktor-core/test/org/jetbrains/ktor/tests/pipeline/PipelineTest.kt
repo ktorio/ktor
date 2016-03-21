@@ -9,7 +9,7 @@ class PipelineTest {
     @Test
     fun emptyPipeline() {
         val execution = Pipeline<String>().execute("some")
-        assert(execution.state.finished())
+        assertTrue(execution.state.finished())
     }
 
     @Test
@@ -22,7 +22,7 @@ class PipelineTest {
         }
         val execution = pipeline.execute("some")
         assertTrue(value)
-        assert(execution.state.finished())
+        assertTrue(execution.state.finished())
     }
 
     @Test
@@ -42,7 +42,7 @@ class PipelineTest {
         }
         val execution = pipeline.execute("some")
         assertTrue(value)
-        assert(execution.state.finished())
+        assertTrue(execution.state.finished())
     }
 
     @Test
@@ -62,7 +62,7 @@ class PipelineTest {
         }
         val execution = pipeline.execute("some")
         assertTrue(failed)
-        assert(execution.state.finished())
+        assertTrue(execution.state.finished())
     }
 
     @Test
@@ -88,7 +88,7 @@ class PipelineTest {
         }
         val execution = pipeline.execute("some")
         assertEquals(0, count)
-        assert(execution.state.finished())
+        assertTrue(execution.state.finished())
     }
 
     @Test
@@ -115,13 +115,36 @@ class PipelineTest {
         }
         val execution = pipeline.execute("some")
         assertEquals(0, count)
-        assert(execution.state.finished())
+        assertTrue(execution.state.finished())
+    }
+
+    @Test
+    fun pauseResume() {
+        var count = 0
+        val pipeline = Pipeline<String>()
+        pipeline.intercept {
+            assertEquals(0, count)
+            count++
+            pause()
+        }
+
+        pipeline.intercept {
+            assertEquals(1, count)
+            count++
+        }
+
+        val execution = pipeline.execute("some")
+        assertEquals(PipelineExecution.State.Pause, execution.state)
+        execution.proceed()
+        assertEquals(2, count)
+        assertTrue(execution.state.finished())
     }
 
     @Test
     fun fork() {
         var count = 0
         var max = 0
+        var secondaryOk = false
         val pipeline = Pipeline<String>()
         pipeline.intercept {
             onFail {
@@ -140,6 +163,7 @@ class PipelineTest {
                     fail("This pipeline shouldn't fail")
                 }
                 assertEquals("another", subject)
+                secondaryOk = true
             }
             fork("another", secondary)
         }
@@ -155,8 +179,52 @@ class PipelineTest {
             throw UnsupportedOperationException()
         }
         val execution = pipeline.execute("some")
+        assertTrue(secondaryOk, "Secondary should be run")
         assertEquals(0, count)
         assertEquals(2, max)
-        assert(execution.state.finished())
+        assertEquals(PipelineExecution.State.Finished, execution.state)
+    }
+
+    @Test
+    fun forkAndFail() {
+        var count = 0
+        var max = 0
+        var secondaryOk = false
+        val pipeline = Pipeline<String>()
+        pipeline.intercept {
+            onFail {
+                assertEquals(1, count)
+                count--
+            }
+            onFinish {
+                fail("This pipeline shouldn't finish")
+            }
+            assertEquals(0, count)
+            count++
+            max = Math.max(max, count)
+        }
+
+        pipeline.intercept {
+            val secondary = Pipeline<String>()
+            secondary.intercept {
+                onFinish {
+                    fail("This pipeline shouldn't finish")
+                }
+                assertEquals("another", subject)
+                secondaryOk = true
+                throw UnsupportedOperationException()
+            }
+            fork("another", secondary)
+        }
+
+        pipeline.intercept {
+            fail("This pipeline shouldn't run")
+        }
+
+        val execution = pipeline.execute("some")
+        assertTrue(secondaryOk, "Secondary should be run")
+        assertEquals(0, count)
+        assertEquals(1, max)
+        assertEquals(PipelineExecution.State.Finished, execution.state)
     }
 }
