@@ -65,24 +65,19 @@ class OAuth2Test {
     init {
         host.application.routing {
             route("/login") {
-                authenticate {
+                authentication {
                     oauth(testClient, exec, { settings }, { "http://localhost/login" })
                 }
 
                 handle {
-                    call.response.status(HttpStatusCode.OK)
                     call.respondText(ContentType.Text.Plain, "Hej, ${call.authentication.principals}")
                 }
             }
             route("/resource") {
-                authenticate {
-                    onFail {
-                        // TODO: ??
-                        // call.authContext.failures.values.flatMapTo(failures) { it }
-                        call.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("oauth2"))
+                authentication {
+                    basicAuthentication("oauth2") {
+                        verifyWithOAuth2(it, testClient, settings)
                     }
-                    basicAuthentication()
-                    verifyWithOAuth2(testClient, settings)
                 }
                 handle {
                     call.respondText("ok")
