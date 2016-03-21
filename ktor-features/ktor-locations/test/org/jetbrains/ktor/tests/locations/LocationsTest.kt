@@ -290,7 +290,7 @@ class LocationsTest {
 
             application.routing {
                 handle {
-                    respondText(url(optionalName(1, "ok")))
+                    call.respondText(call.url(optionalName(1, "ok")))
                 }
             }
 

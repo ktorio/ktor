@@ -12,9 +12,9 @@ public class WelcomePage(routing: Routing) {
     init {
         with(routing) {
             get("/") {
-                response.status(HttpStatusCode.OK)
-                response.contentType(ContentType.Text.Html)
-                response.write {
+                call.response.status(HttpStatusCode.OK)
+                call.response.contentType(ContentType.Text.Html)
+                call.response.write {
                     appendHTML().html {
                         head {
                             title { +"Welcome" }

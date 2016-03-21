@@ -115,18 +115,18 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
                             urlProvider = { l, p -> redirectUrl(login(p.name), false) })
 
                     success { authContext, next ->
-                        loggedInSuccessResponse(authContext.principals<OAuthAccessTokenResponse>().single())
+                        call.loggedInSuccessResponse(authContext.principals<OAuthAccessTokenResponse>().single())
                     }
                 }
 
                 param("error") {
                     handle {
-                        loginFailedPage(parameters.getAll("error").orEmpty())
+                        call.loginFailedPage(call.parameters.getAll("error").orEmpty())
                     }
                 }
 
                 handle {
-                    loginPage()
+                    call.loginPage()
                 }
             }
         }

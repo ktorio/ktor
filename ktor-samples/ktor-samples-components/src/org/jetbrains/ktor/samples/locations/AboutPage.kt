@@ -12,9 +12,9 @@ public class AboutPage(routing: Routing) {
     init {
         with(routing) {
             get("/about.html") {
-                response.status(HttpStatusCode.OK)
-                response.contentType(ContentType.Text.Html)
-                response.write {
+                call.response.status(HttpStatusCode.OK)
+                call.response.contentType(ContentType.Text.Html)
+                call.response.write {
                     appendHTML().html {
                         head {
                             title { +"About" }

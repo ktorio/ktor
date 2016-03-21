@@ -19,18 +19,11 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
     init {
         install(Locations)
         routing {
-            authenticate {
-                basicAuthentication()
-
-                onFail {
-                    sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor"))
-                }
-            }
             get<Manual>() {
-                authenticate {
-                    verifyWith { c: UserPasswordCredential ->
-                        if (c.name == c.password) {
-                            UserIdPrincipal(c.name)
+                authentication {
+                    basicAuthentication("ktor") { credentials ->
+                        if (credentials.name == credentials.password) {
+                            UserIdPrincipal(credentials.name)
                         } else {
                             null
                         }
@@ -40,9 +33,10 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
                 response.status(HttpStatusCode.OK)
                 respondText("Success, ${principals<UserIdPrincipal>().map { it.name }}")
             }
+
             get<SimpleUserTable>() {
-                authenticate {
-                    verifyBatchTypedWith(hashedUserTable)
+                authentication {
+                    basicAuthentication("ktor") { hashedUserTable.authenticate(it) }
                 }
 
                 response.status(HttpStatusCode.OK)

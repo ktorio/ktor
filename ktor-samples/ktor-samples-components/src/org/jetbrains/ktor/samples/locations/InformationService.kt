@@ -12,9 +12,9 @@ public class InformationService(routing: Routing, providers: Iterable<Informatio
     init {
         with(routing) {
             get("/information.html") {
-                response.status(HttpStatusCode.OK)
-                response.contentType(org.jetbrains.ktor.http.ContentType.Text.Html)
-                response.write {
+                call.response.status(HttpStatusCode.OK)
+                call.response.contentType(org.jetbrains.ktor.http.ContentType.Text.Html)
+                call.response.write {
                     appendHTML().html {
                         head {
                             title { +"Information" }

@@ -22,7 +22,7 @@ class FreeMarkerTest {
                 val model = mapOf("id" to 1, "title" to "Hello, World!")
 
                 get("/") {
-                    respond(FreeMarkerContent("test.ftl", model, "e"))
+                    call.respond(FreeMarkerContent("test.ftl", model, "e"))
                 }
             }
 
