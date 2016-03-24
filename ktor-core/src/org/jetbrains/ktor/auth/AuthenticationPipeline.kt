@@ -13,7 +13,13 @@ class AuthenticationProcedure() {
                 val principal = subject.principal
                 if (principal == null) {
                     for (challenge in subject.challenges) {
-                        challenge()
+                        try {
+                            challenge()
+                            subject.challenged()
+                            return@onFinish // first challenge wins
+                        } catch(t: Throwable) {
+                            // continue to next challenge if any
+                        }
                     }
                 } else {
                     subject.call.authentication.addPrincipal(principal)
@@ -21,7 +27,6 @@ class AuthenticationProcedure() {
             }
         }
     }
-
 
 
     fun authenticate(authenticator: PipelineContext<AuthenticationProcedureContext>.(AuthenticationProcedureContext) -> Unit) {
@@ -33,7 +38,7 @@ fun InterceptApplicationCall.authentication(procedure: AuthenticationProcedure.(
     val authenticationProcedure = AuthenticationProcedure().apply(procedure)
     intercept {
         fork(AuthenticationProcedureContext(call), authenticationProcedure.pipeline) { master ->
-            if (subject.finished)
+            if (subject.challenged)
                 master.finish()
             else
                 master.proceed()
@@ -54,6 +59,12 @@ class AuthenticationProcedureContext(val call: ApplicationCall) {
         challenges.add(function)
     }
 
-    val finished: Boolean
-        get() = principal == null && challenges.any()
+    var challenged: Boolean = false
+        private set(value) {
+            field = value
+        }
+
+    fun challenged() {
+        challenged = true
+    }
 }

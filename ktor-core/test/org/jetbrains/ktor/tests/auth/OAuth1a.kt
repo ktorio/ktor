@@ -120,10 +120,10 @@ class OAuth1aFlowTest {
             application.configureServer("http://localhost/login?redirected=true")
 
             val result = handleRequest(HttpMethod.Get, "/login")
-            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
 
             waitExecutor()
 
+            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.Found, result.response.status())
             assertEquals("https://login-server-com/oauth/authorize?oauth_token=token1", result.response.headers[HttpHeaders.Location], "Redirect target location is not valid")
         }
@@ -137,10 +137,10 @@ class OAuth1aFlowTest {
             })
 
             val result = handleRequest(HttpMethod.Get, "/login")
-            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
 
             waitExecutor()
 
+            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("Ho, []", result.response.content)
         }
@@ -152,10 +152,10 @@ class OAuth1aFlowTest {
             application.configureServer("http://localhost/login")
 
             val result = handleRequest(HttpMethod.Get, "/login")
-            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
 
             waitExecutor()
 
+            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("Ho, []", result.response.content)
         }
@@ -167,10 +167,10 @@ class OAuth1aFlowTest {
             application.configureServer()
 
             val result = handleRequest(HttpMethod.Get, "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier1")
-            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
 
             waitExecutor()
 
+            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertTrue { result.response.content!!.startsWith("Ho, ") }
             assertFalse { result.response.content!!.contains("[]") }
@@ -183,10 +183,10 @@ class OAuth1aFlowTest {
             application.configureServer()
 
             val result = handleRequest(HttpMethod.Get, "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier2")
-            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
 
             waitExecutor()
 
+            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertTrue { result.response.content!!.startsWith("Ho, ") }
             assertTrue { result.response.content!!.contains("[]") }
@@ -203,10 +203,10 @@ class OAuth1aFlowTest {
             }
 
             val result = handleRequest(HttpMethod.Get, "/login")
-            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
 
             waitExecutor()
 
+            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.Found, result.response.status())
             assertEquals("https://login-server-com/oauth/authorize?oauth_token=token1", result.response.headers[HttpHeaders.Location], "Redirect target location is not valid")
         }
@@ -224,10 +224,10 @@ class OAuth1aFlowTest {
             }
 
             val result = handleRequest(HttpMethod.Get, "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier1")
-            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
 
             waitExecutor()
 
+            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertTrue { result.response.content!!.startsWith("Ho, ") }
             assertFalse { result.response.content!!.contains("null") }

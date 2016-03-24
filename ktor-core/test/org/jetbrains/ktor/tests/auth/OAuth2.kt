@@ -120,10 +120,10 @@ class OAuth2Test {
             ).formUrlEncode()
         }
 
-        assertEquals(ApplicationCallResult.Asynchronous, result.requestResult)
 
         waitExecutor()
 
+        assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
         assertEquals(HttpStatusCode.OK, result.response.status())
     }
 
@@ -136,10 +136,9 @@ class OAuth2Test {
             ).formUrlEncode()
         }
 
-        assertEquals(ApplicationCallResult.Asynchronous, call.requestResult)
-
         waitExecutor()
 
+        assertEquals(ApplicationCallResult.Handled, call.requestResult, "request should be handled")
         assertEquals(HttpStatusCode.OK, call.response.status())
         assertEquals("Hej, []", call.response.content)
     }
@@ -184,10 +183,10 @@ class OAuth2Test {
                     OAuth2RequestParameters.Code to "code1",
                     OAuth2RequestParameters.State to "state1"
             ).formUrlEncode())
-            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
 
             waitExecutor()
 
+            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertTrue { result.response.content!!.startsWith("Ho, ") }
             assertFalse { result.response.content!!.contains("null") }
@@ -209,10 +208,10 @@ class OAuth2Test {
                     OAuth2RequestParameters.Code to "code2",
                     OAuth2RequestParameters.State to "state1"
             ).formUrlEncode())
-            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should be handled asynchronously")
 
             waitExecutor()
 
+            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.Found, result.response.status())
         }
     }
@@ -250,10 +249,10 @@ class OAuth2Test {
                     OAuth2RequestParameters.Code to "code1",
                     OAuth2RequestParameters.State to "state1"
             ).formUrlEncode())
-            assertEquals(ApplicationCallResult.Asynchronous, result.requestResult, "request should not be handled asynchronously")
 
             waitExecutor()
 
+            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertTrue { result.response.content!!.startsWith("Ho, ") }
             assertFalse { result.response.content!!.contains("null") }
