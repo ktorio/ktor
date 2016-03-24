@@ -70,11 +70,12 @@ class AuthBuildersTest {
             application.routing {
                 route("/") {
                     authenticate {
-                        onFail {
-                            failed = true
-                        }
                         extractCredentials { UserPasswordCredential("name1", "ppp") }
                         verifyWith { credential: UserPasswordCredential -> null }
+                    }
+
+                    handle {
+                        failed = call.principals.isEmpty()
                     }
                 }
             }
