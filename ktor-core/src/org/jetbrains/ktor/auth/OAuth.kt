@@ -110,16 +110,16 @@ fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep2(client: HttpClient,
 
                     if (accessToken != null)
                         block(accessToken)
+                    else
+                        call.oauthHandleFail(loginPageUrl)
                 }
             }
         }
     }
 }
 
-internal fun ApplicationCall.oauthHandleFail(redirectUrl: String) = { t: Throwable ->
-    application.config.log.error(t)
+internal fun ApplicationCall.oauthHandleFail(redirectUrl: String) {
     respondRedirect(redirectUrl)
-    Unit
 }
 
 internal fun String.appendUrlParameters(parameters: String) =
