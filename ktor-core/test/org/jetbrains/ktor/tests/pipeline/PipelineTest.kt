@@ -120,6 +120,72 @@ class PipelineTest {
     }
 
     @Test
+    fun actionFinishFailOrder() {
+        var count = 0
+        val pipeline = Pipeline<String>()
+        pipeline.intercept {
+            onFail {
+                assertEquals(1, count)
+                count--
+            }
+            onFinish {
+                fail("This pipeline shouldn't finish")
+            }
+            assertEquals(0, count)
+            count++
+        }
+
+        pipeline.intercept {
+            onFinish {
+                assertEquals(2, count)
+                count--
+                throw UnsupportedOperationException()
+            }
+            assertEquals(1, count)
+            count++
+        }
+        val execution = pipeline.execute("some")
+        assertEquals(0, count)
+        assertTrue(execution.state.finished())
+    }
+
+    @Test
+    fun actionFailFailOrder() {
+        var count = 0
+        val pipeline = Pipeline<String>()
+        pipeline.intercept {
+            onFail {
+                assertEquals(1, count)
+                count--
+                assertEquals("1", it.message)
+                assertEquals(1, (it as java.lang.Throwable).suppressed.size)
+                assertEquals("2", (it as java.lang.Throwable).suppressed[0].message)
+            }
+            onFinish {
+                fail("This pipeline shouldn't finish")
+            }
+            assertEquals(0, count)
+            count++
+        }
+
+        pipeline.intercept {
+            onFail {
+                assertEquals(2, count)
+                count--
+                assertEquals("1", it.message)
+                assertEquals(0, (it as java.lang.Throwable).suppressed.size)
+                throw UnsupportedOperationException("2")
+            }
+            assertEquals(1, count)
+            count++
+            throw UnsupportedOperationException("1")
+        }
+        val execution = pipeline.execute("some")
+        assertEquals(0, count)
+        assertTrue(execution.state.finished())
+    }
+
+    @Test
     fun pauseResume() {
         var count = 0
         val pipeline = Pipeline<String>()

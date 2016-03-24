@@ -34,7 +34,7 @@ class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineConte
     private val stack = mutableListOf<PipelineContext<T>>()
 
     fun <TSecondary> fork(subject: TSecondary, pipeline: Pipeline<TSecondary>, finish: PipelineContext<TSecondary>.(PipelineExecution<T>) -> Unit) {
-    val master = this@PipelineExecution
+        val master = this@PipelineExecution
         val chain: PipelineContext<TSecondary>.(TSecondary) -> Unit = { subject ->
             onFinish {
                 finish(this, master)
@@ -87,15 +87,35 @@ class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineConte
     }
 
     fun finish() {
-        for (block in stack.asReversed()) {
-            block.exits.forEach { it() }
+        try {
+            while (stack.size > 0) {
+                val item = stack.removeAt(stack.lastIndex)
+                val handlers = item.exits
+                while (handlers.size > 0) {
+                    val handler = handlers.removeAt(handlers.lastIndex)
+                    handler()
+                }
+            }
+        } catch (t: Throwable) {
+            fail(t)
+            return
         }
         state = State.Finished
     }
 
     fun fail(exception: Throwable) {
-        for (block in stack.asReversed()) {
-            block.failures.forEach { it(exception) }
+        while (stack.size > 0) {
+            val item = stack.removeAt(stack.lastIndex)
+            val handlers = item.failures
+            while (handlers.size > 0) {
+                val handler = handlers.removeAt(handlers.lastIndex)
+                try {
+                    handler(exception)
+                } catch(t: Throwable) {
+                    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+                    (exception as java.lang.Throwable).addSuppressed(t)
+                }
+            }
         }
         state = State.Finished
     }
