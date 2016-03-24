@@ -4,7 +4,9 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.jetty.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.tests.application.*
+import org.junit.*
 
+@Ignore
 class JettyStaticTest : HostTestSuite() {
 
     override fun createServer(port: Int, block: Routing.() -> Unit): ApplicationHost {

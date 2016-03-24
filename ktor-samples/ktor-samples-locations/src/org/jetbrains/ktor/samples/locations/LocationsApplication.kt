@@ -42,7 +42,6 @@ class LocationsApplication(config: ApplicationConfig) : Application(config) {
                         }
                     }
                 }
-                ApplicationCallResult.Handled
             }
 
             get<number>() { number ->
@@ -60,7 +59,6 @@ class LocationsApplication(config: ApplicationConfig) : Application(config) {
                         }
                     }
                 }
-                ApplicationCallResult.Handled
             }
         }
     }

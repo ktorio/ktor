@@ -14,7 +14,6 @@ class ApplicationRequestContentTest {
         withTestApplication {
             application.intercept { call ->
                 assertEquals("bodyContent", call.request.content.get<String>())
-                ApplicationCallResult.Handled
             }
 
             handleRequest(HttpMethod.Get, "") {
@@ -28,8 +27,6 @@ class ApplicationRequestContentTest {
         withTestApplication {
             application.intercept { call ->
                 assertEquals("bodyContent", call.request.content.get<InputStream>().reader(Charsets.UTF_8).readText())
-
-                ApplicationCallResult.Handled
             }
 
             handleRequest(HttpMethod.Get, "") {

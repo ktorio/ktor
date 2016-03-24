@@ -74,7 +74,6 @@ abstract class HostTestSuite {
                         flush()
                     }
                 }
-                ApplicationCallResult.Handled
             }
         }
         startServer(server)
@@ -92,7 +91,6 @@ abstract class HostTestSuite {
                     write("ABC".toByteArray())
                     write("123".toByteArray())
                 }
-                ApplicationCallResult.Handled
             }
         }
         startServer(server)

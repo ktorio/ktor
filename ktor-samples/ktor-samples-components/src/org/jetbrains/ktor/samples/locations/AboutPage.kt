@@ -29,7 +29,6 @@ public class AboutPage(routing: Routing) {
                         }
                     }
                 }
-                ApplicationCallResult.Handled
             }
 
         }

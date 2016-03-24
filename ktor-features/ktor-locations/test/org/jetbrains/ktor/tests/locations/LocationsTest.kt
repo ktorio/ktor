@@ -23,8 +23,7 @@ class LocationsTest {
         assertEquals("/", href)
         application.routing {
             get<index> {
-                response.status(HttpStatusCode.OK)
-                ApplicationCallResult.Handled
+                respondStatus(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)
@@ -38,8 +37,7 @@ class LocationsTest {
         assertEquals("/about", href)
         application.routing {
             get<about> {
-                response.status(HttpStatusCode.OK)
-                ApplicationCallResult.Handled
+                respondStatus(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)
@@ -54,8 +52,7 @@ class LocationsTest {
         application.routing {
             get<user> { user ->
                 assertEquals(123, user.id)
-                response.status(HttpStatusCode.OK)
-                ApplicationCallResult.Handled
+                respondStatus(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)
@@ -71,8 +68,7 @@ class LocationsTest {
             get<named> { named ->
                 assertEquals(123, named.id)
                 assertEquals("abc def", named.name)
-                response.status(HttpStatusCode.OK)
-                ApplicationCallResult.Handled
+                respondStatus(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)
@@ -88,8 +84,7 @@ class LocationsTest {
         application.routing {
             get<favorite> { favorite ->
                 assertEquals(123, favorite.id)
-                response.status(HttpStatusCode.OK)
-                ApplicationCallResult.Handled
+                respondStatus(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)
@@ -109,11 +104,10 @@ class LocationsTest {
         application.routing {
             get<pathContainer.items> { items ->
                 assertEquals(123, items.container.id)
-                response.status(HttpStatusCode.OK)
-                ApplicationCallResult.Handled
+                respondStatus(HttpStatusCode.OK)
             }
             assertFailsWith(InconsistentRoutingException::class) {
-                get<pathContainer.badItems> { ApplicationCallResult.Handled }
+                get<pathContainer.badItems> {  }
             }
         }
         urlShouldBeHandled(href)
@@ -133,11 +127,10 @@ class LocationsTest {
         application.routing {
             get<queryContainer.items> { items ->
                 assertEquals(123, items.container.id)
-                response.status(HttpStatusCode.OK)
-                ApplicationCallResult.Handled
+                respondStatus(HttpStatusCode.OK)
             }
             assertFailsWith(InconsistentRoutingException::class) {
-                get<queryContainer.badItems> { ApplicationCallResult.Handled }
+                get<queryContainer.badItems> {  }
             }
         }
         urlShouldBeHandled(href)
@@ -154,8 +147,7 @@ class LocationsTest {
             get<optionalName> {
                 assertEquals(123, it.id)
                 assertNull(it.optional)
-                response.status(HttpStatusCode.OK)
-                ApplicationCallResult.Handled
+                respondStatus(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)
@@ -173,8 +165,7 @@ class LocationsTest {
             get<optionalIndex> {
                 assertEquals(123, it.id)
                 assertEquals(42, it.optional)
-                response.status(HttpStatusCode.OK)
-                ApplicationCallResult.Handled
+                respondStatus(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled("/container?id=123")
@@ -189,8 +180,7 @@ class LocationsTest {
             get<optionalName> {
                 assertEquals(123, it.id)
                 assertEquals("text", it.optional)
-                response.status(HttpStatusCode.OK)
-                ApplicationCallResult.Handled
+                respondStatus(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)
@@ -208,13 +198,11 @@ class LocationsTest {
         application.routing {
             get<optionalContainer> {
                 assertEquals(null, it.id)
-                response.status(HttpStatusCode.OK)
-                ApplicationCallResult.Handled
+                respondStatus(HttpStatusCode.OK)
             }
             get<optionalContainer.items> {
                 assertEquals("text", it.optional)
-                response.status(HttpStatusCode.OK)
-                ApplicationCallResult.Handled
+                respondStatus(HttpStatusCode.OK)
             }
 
         }
@@ -232,12 +220,10 @@ class LocationsTest {
         assertEquals("/container/items", href)
         application.routing {
             get<simpleContainer.items> {
-                response.status(HttpStatusCode.OK)
-                ApplicationCallResult.Handled
+                respondStatus(HttpStatusCode.OK)
             }
             get<simpleContainer> {
-                response.status(HttpStatusCode.OK)
-                ApplicationCallResult.Handled
+                respondStatus(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)

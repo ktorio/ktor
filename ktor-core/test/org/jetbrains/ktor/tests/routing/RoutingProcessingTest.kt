@@ -49,7 +49,6 @@ class RoutingProcessingTest {
                     method(HttpMethod.Get) {
                         handle {
                             username = call.parameters["name"] ?: ""
-                            ApplicationCallResult.Handled
                         }
                     }
                 }

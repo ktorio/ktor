@@ -114,8 +114,6 @@ class TestHostMultipartTest {
                 } else {
                     asserts(null)
                 }
-
-                ApplicationCallResult.Handled
             }
 
             handleRequest(HttpMethod.Post, "/", setup)

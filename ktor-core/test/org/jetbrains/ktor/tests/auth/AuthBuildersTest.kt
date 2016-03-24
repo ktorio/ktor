@@ -161,7 +161,6 @@ class AuthBuildersTest {
 
                     handle {
                         assertEquals(username, call.authentication.principal<UserIdPrincipal>()?.name)
-                        ApplicationCallResult.Handled
                     }
                 }
             }

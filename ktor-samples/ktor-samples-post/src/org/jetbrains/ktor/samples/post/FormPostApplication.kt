@@ -42,7 +42,6 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
                         }
                     }
                 }
-                ApplicationCallResult.Handled
             }
 
             post<post> {
@@ -64,7 +63,6 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
                     }
                 }
 
-                ApplicationCallResult.Handled
             }
         }
     }

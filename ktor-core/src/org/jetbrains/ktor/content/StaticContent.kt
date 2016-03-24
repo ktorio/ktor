@@ -48,7 +48,7 @@ fun RoutingEntry.serveClasspathResources(basePackage: String = "") {
         handle {
             call.resolveClasspathWithPath(basePackage, call.parameters.getAll("path")!!.joinToString(File.separator))?.let {
                 call.respond(it)
-            } ?: ApplicationCallResult.Unhandled
+            }
         }
     }
 }

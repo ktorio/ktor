@@ -344,8 +344,6 @@ class StaticContentTest {
                 assertFailsWith<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir, "/../pom.xml"))
                 }
-
-                ApplicationCallResult.Unhandled
             }
 
             handleRequest(HttpMethod.Get, "/").let { result ->
@@ -370,8 +368,6 @@ class StaticContentTest {
                 assertFailsWith<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../pom.xml")))
                 }
-
-                ApplicationCallResult.Unhandled
             }
 
             handleRequest(HttpMethod.Get, "/").let { result ->

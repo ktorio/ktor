@@ -47,9 +47,7 @@ class DigestTest {
                         verifyBatchTypedWith { digests: List<DigestCredential> -> foundDigests.addAll(digests); emptyList() }
                     }
 
-                    handle {
-                        ApplicationCallResult.Handled
-                    }
+                    handle {}
                 }
             }
 
