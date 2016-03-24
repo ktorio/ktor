@@ -50,8 +50,20 @@ public class ValuesMapImpl(map: Map<String, List<String>>, override val caseInse
                 appendAll(key, values)
         }
 
+        fun appendMissing(valuesMap: ValuesMap) {
+            for ((key, values) in valuesMap.entries())
+                appendMissing(key, values)
+        }
+
         fun appendAll(key: String, values: Iterable<String>) {
             map.getOrPut(key, { arrayListOf() }).addAll(values)
+        }
+
+        fun appendMissing(key: String, values: Iterable<String>) {
+            map.getOrPut(key, { arrayListOf() }).apply {
+                val existing = toHashSet()
+                addAll(values.filter { it !in existing })
+            }
         }
 
         fun append(key: String, value: String) {
