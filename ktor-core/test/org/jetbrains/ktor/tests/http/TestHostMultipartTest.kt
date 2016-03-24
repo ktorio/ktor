@@ -91,11 +91,14 @@ class TestHostMultipartTest {
         })
     }
 
-    @Test(expected = IOException::class)
+    @Test
     fun testMultiPartShouldFail() {
         withTestApplication {
             application.intercept { call ->
-                onFail { throw it }
+                onFail {
+                    assertTrue(it is IOException)
+                }
+                onFinish { fail("This pipeline shouldn't finish successfully") }
                 call.request.content.get<MultiPartData>().parts.toList()
             }
 
