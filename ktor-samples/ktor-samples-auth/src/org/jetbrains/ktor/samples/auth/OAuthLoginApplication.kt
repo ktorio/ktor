@@ -113,10 +113,6 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
                     oauthAtLocation<login>(DefaultHttpClient, exec,
                             providerLookup = { loginProviders[it.type] },
                             urlProvider = { l, p -> redirectUrl(login(p.name), false) })
-
-                    success { authContext, next ->
-                        call.loggedInSuccessResponse(authContext.principals<OAuthAccessTokenResponse>().single())
-                    }
                 }
 
                 param("error") {
@@ -126,7 +122,11 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
                 }
 
                 handle {
-                    call.loginPage()
+                    if (call.authentication.hasPrincipals()) {
+                        call.loggedInSuccessResponse(call.authentication.principals<OAuthAccessTokenResponse>().single())
+                    } else {
+                        call.loginPage()
+                    }
                 }
             }
         }
