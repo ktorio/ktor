@@ -4,6 +4,7 @@ import com.google.gson.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 import java.util.zip.*
 
@@ -19,6 +20,7 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
          {"key":"A","value":"Apache"}
      */
     init {
+        logApplicationCalls()
         intercept { call ->
             if (call.request.acceptEncoding()?.contains("deflate") ?: false) {
                 call.response.headers.append(HttpHeaders.ContentEncoding, "deflate")
@@ -33,10 +35,10 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
         intercept { call ->
             if (call.request.accept() == "application/json") {
                 call.interceptRespond { value, send ->
-                    if (value is Model)
-                        send(TextContent(ContentType.Application.Json, GsonBuilder().create().toJson(value)))
-                    else
-                        send(value)
+                    when (value) {
+                        is Item, is Model -> send(TextContent(ContentType.Application.Json, GsonBuilder().create().toJson(value)))
+                        else -> send(value)
+                    }
                 }
             }
         }

@@ -6,12 +6,14 @@ import org.jetbrains.ktor.auth.ldap.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 
 @location("/files") class Files()
 
 class BasicAuthWithLdapApplication(config: ApplicationConfig) : Application(config) {
     init {
+        logApplicationCalls()
         install(Locations)
         routing {
             location<Files> {

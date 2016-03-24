@@ -4,6 +4,8 @@ import kotlinx.html.*
 import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.logging.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
 import java.util.*
 import java.util.concurrent.*
@@ -12,10 +14,13 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
     val executor: ScheduledExecutorService by lazy { Executors.newScheduledThreadPool(4) }
 
     init {
+        logApplicationCalls()
         routing {
             get("/{...}") {
                 val start = System.currentTimeMillis()
-                executor.submit { call.handleLongCalculation(start) }
+                proceedAsync(executor) {
+                    call.handleLongCalculation(start)
+                }
             }
         }
     }

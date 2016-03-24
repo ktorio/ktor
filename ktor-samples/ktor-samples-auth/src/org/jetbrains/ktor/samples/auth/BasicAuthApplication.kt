@@ -5,6 +5,7 @@ import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 
@@ -17,6 +18,7 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
     ))
 
     init {
+        logApplicationCalls()
         install(Locations)
         routing {
             get<Manual>() {

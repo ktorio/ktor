@@ -6,6 +6,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 
 @location("/") class index()
@@ -13,6 +14,7 @@ import org.jetbrains.ktor.routing.*
 
 class FormPostApplication(config: ApplicationConfig) : Application(config) {
     init {
+        logApplicationCalls()
         install(Locations)
         routing {
             get<index>() {

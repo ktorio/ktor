@@ -8,6 +8,7 @@ import org.jetbrains.ktor.auth.httpclient.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 import java.util.concurrent.*
 
@@ -84,6 +85,7 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
     val exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4)
 
     init {
+        logApplicationCalls()
         install(Locations)
         routing {
             get<index>() {

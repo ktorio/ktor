@@ -4,10 +4,12 @@ import kotlinx.html.*
 import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 
 class HelloApplication(config: ApplicationConfig) : Application(config) {
     init {
+        logApplicationCalls()
         routing {
             get("/") {
                 call.response.status(HttpStatusCode.OK)
