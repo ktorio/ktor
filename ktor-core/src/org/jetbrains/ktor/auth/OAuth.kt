@@ -86,7 +86,10 @@ fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep2(client: HttpClient,
             } else {
                 proceedAsync(exec) {
                     val accessToken = simpleOAuth1aStep2(client, provider, tokens)
-                    block(accessToken)
+                    if (accessToken != null)
+                        block(accessToken)
+                    else
+                        call.oauthHandleFail(loginPageUrl)
                 }
             }
         }
@@ -113,7 +116,7 @@ fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep2(client: HttpClient,
     }
 }
 
-private fun ApplicationCall.oauthHandleFail(redirectUrl: String) = { t: Throwable ->
+internal fun ApplicationCall.oauthHandleFail(redirectUrl: String) = { t: Throwable ->
     application.config.log.error(t)
     respondRedirect(redirectUrl)
     Unit

@@ -21,13 +21,17 @@ internal fun PipelineContext<ApplicationCall>.oauth1a(client: HttpClient, exec: 
     if (provider is OAuthServerSettings.OAuth1aServerSettings) {
         val token = call.oauth1aHandleCallback()
         proceedAsync(exec) {
+            val callbackRedirectUrl = call.urlProvider(provider)
             if (token == null) {
-                val t = simpleOAuth1aStep1(client, provider, call.urlProvider(provider))
+                val t = simpleOAuth1aStep1(client, provider, callbackRedirectUrl)
                 call.redirectAuthenticateOAuth1a(provider, t)
                 pipeline.finish()
             } else {
                 val accessToken = simpleOAuth1aStep2(client, provider, token)
-                call.authentication.addPrincipal(accessToken)
+                if (accessToken != null)
+                    call.authentication.addPrincipal(accessToken)
+                else
+                    call.oauthHandleFail(callbackRedirectUrl)
             }
         }
     }
@@ -93,7 +97,7 @@ internal fun ApplicationCall.redirectAuthenticateOAuth1a(authenticateUrl: String
     respondRedirect(url)
 }
 
-internal fun simpleOAuth1aStep2(client: HttpClient, settings: OAuthServerSettings.OAuth1aServerSettings, callbackResponse: OAuthCallback.TokenPair, nonce: String = nextNonce(), extraParameters: Map<String, String> = emptyMap()): OAuthAccessTokenResponse.OAuth1a {
+internal fun simpleOAuth1aStep2(client: HttpClient, settings: OAuthServerSettings.OAuth1aServerSettings, callbackResponse: OAuthCallback.TokenPair, nonce: String = nextNonce(), extraParameters: Map<String, String> = emptyMap()): OAuthAccessTokenResponse.OAuth1a? {
     return simpleOAuth1aStep2(
             client,
             settings.consumerSecret + "&", // TODO??
@@ -106,7 +110,7 @@ internal fun simpleOAuth1aStep2(client: HttpClient, settings: OAuthServerSetting
     )
 }
 
-private fun simpleOAuth1aStep2(client: HttpClient, secretKey: String, baseUrl: String, consumerKey: String, token: String, verifier: String, nonce: String = nextNonce(), extraParameters: Map<String, String> = emptyMap()): OAuthAccessTokenResponse.OAuth1a {
+private fun simpleOAuth1aStep2(client: HttpClient, secretKey: String, baseUrl: String, consumerKey: String, token: String, verifier: String, nonce: String = nextNonce(), extraParameters: Map<String, String> = emptyMap()): OAuthAccessTokenResponse.OAuth1a? {
     val params = listOf(
             HttpAuthHeader.Parameters.OAuthVerifier to verifier
     ) + extraParameters.toList()
@@ -130,6 +134,7 @@ private fun simpleOAuth1aStep2(client: HttpClient, secretKey: String, baseUrl: S
         val response = connection.responseStream.reader().readText().parseUrlEncodedParameters()
         return OAuthAccessTokenResponse.OAuth1a(response[HttpAuthHeader.Parameters.OAuthToken]!!, response[HttpAuthHeader.Parameters.OAuthTokenSecret]!!, response)
     } catch (e: Throwable) {
+        return null
         throw IOException("Failed to acquire request token due to ${connection.responseStream.reader().readText()}", e)
     } finally {
         connection.close()

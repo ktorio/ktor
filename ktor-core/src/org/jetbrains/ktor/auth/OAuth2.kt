@@ -17,14 +17,17 @@ internal fun PipelineContext<ApplicationCall>.oauth2(client: HttpClient, exec: E
     when (provider) {
         is OAuthServerSettings.OAuth2ServerSettings -> {
             val token = call.oauth2HandleCallback()
+            val callbackRedirectUrl = call.urlProvider(provider)
             if (token == null) {
-                call.redirectAuthenticateOAuth2(provider, call.urlProvider(provider), nextNonce(), scopes = provider.defaultScopes)
+                call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, nextNonce(), scopes = provider.defaultScopes)
                 pipeline.finish()
             } else {
                 proceedAsync(exec) {
-                    val accessToken = simpleOAuth2Step2(client, provider, call.urlProvider(provider), token)
+                    val accessToken = simpleOAuth2Step2(client, provider, callbackRedirectUrl, token)
                     if (accessToken != null)
                         call.authentication.addPrincipal(accessToken)
+                    else
+                        call.oauthHandleFail(callbackRedirectUrl)
                 }
             }
         }
