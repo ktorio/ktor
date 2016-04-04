@@ -3,7 +3,6 @@ package org.jetbrains.ktor.application
 import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
-import java.util.concurrent.*
 
 /**
  * Represents configured and running web application, capable of handling requests
@@ -27,7 +26,7 @@ public open class Application(val config: ApplicationConfig) : InterceptApplicat
      * Handles HTTP request coming from the host using interceptors
      */
     public fun handle(call: ApplicationCall): PipelineExecution.State {
-        return pipeline.execute(call).state
+        return call.execute(pipeline, call, { p, s -> }, { p, s -> p.proceed() })
     }
 
     /**

@@ -64,9 +64,9 @@ class ServletApplicationCall(application: Application,
         response.stream {
             if (this is ServletOutputStream) {
                 val asyncContext = startAsync()
-
+                val fileChannel = file.asyncReadOnlyFileChannel(position, position + length - 1)
                 AsyncChannelPump(
-                        file.asyncReadOnlyFileChannel(position, position + length - 1),
+                        fileChannel,
                         asyncContext,
                         servletResponse.outputStream,
                         application.config.log).start()

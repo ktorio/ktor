@@ -15,4 +15,6 @@ open class RoutingApplicationCall(call: ApplicationCall,
             appendMissing(resolvedValues)
         }
     }
+
+    override fun toString() = "RoutingApplicationCall(route=$route)"
 }

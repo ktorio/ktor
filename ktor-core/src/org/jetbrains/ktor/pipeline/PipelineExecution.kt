@@ -2,16 +2,19 @@ package org.jetbrains.ktor.pipeline
 
 import java.util.concurrent.*
 
-interface PipelineControl<T> {
+interface PipelineControl<TSubject : Any> {
     fun finish()
     fun pause()
     fun proceed()
     fun fail(exception: Throwable)
 
-    fun <TSecondary> fork(subject: TSecondary, pipeline: Pipeline<TSecondary>, finish: PipelineContext<TSecondary>.(PipelineExecution<T>) -> Unit)
+    fun <TSecondary : Any> fork(subject: TSecondary,
+                                pipeline: Pipeline<TSecondary>,
+                                attach: (PipelineExecution<TSubject>, PipelineExecution<TSecondary>) -> Unit,
+                                detach: (PipelineExecution<TSubject>, PipelineExecution<TSecondary>) -> Unit)
 }
 
-fun <T> PipelineControl<T>.join(future: CompletionStage<*>) {
+fun <T : Any> PipelineControl<T>.join(future: CompletionStage<*>) {
     pause()
     future.whenComplete { unit, throwable ->
         if (throwable == null)
@@ -22,7 +25,7 @@ fun <T> PipelineControl<T>.join(future: CompletionStage<*>) {
 }
 
 
-class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineContext<T>.(T) -> Unit>) {
+class PipelineExecution<TSubject : Any>(val subject: TSubject, val blockBuilders: List<PipelineContext<TSubject>.(TSubject) -> Unit>) {
 
     enum class State {
         Execute, Pause, Finished;
@@ -31,20 +34,27 @@ class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineConte
     }
 
     var state = State.Pause
-    private val stack = mutableListOf<PipelineContext<T>>()
+    private val stack = mutableListOf<PipelineContext<TSubject>>()
 
-    fun <TSecondary> fork(subject: TSecondary, pipeline: Pipeline<TSecondary>, finish: PipelineContext<TSecondary>.(PipelineExecution<T>) -> Unit) {
-        val master = this@PipelineExecution
+    fun <TSecondary : Any> fork(subject: TSecondary,
+                                pipeline: Pipeline<TSecondary>,
+                                attach: (PipelineExecution<TSubject>, PipelineExecution<TSecondary>) -> Unit,
+                                detach: (PipelineExecution<TSubject>, PipelineExecution<TSecondary>) -> Unit
+    ): PipelineExecution<TSecondary> {
+        val primary = this@PipelineExecution
+        var secondary: PipelineExecution<TSecondary>? = null
         val chain: PipelineContext<TSecondary>.(TSecondary) -> Unit = { subject ->
             onFinish {
-                finish(this, master)
+                detach(primary, secondary!!)
             }
             onFail {
-                master.fail(it)
+                // TODO: ? detach(primary, secondary!!)
+                primary.fail(it)
             }
+            attach(primary, secondary!!)
         }
         val interceptors = listOf(chain) + pipeline.interceptors
-        val secondary = PipelineExecution(subject, interceptors)
+        secondary = PipelineExecution(subject, interceptors)
 
         val currentMaster = stack.last()
         currentMaster.state = State.Pause
@@ -53,6 +63,7 @@ class PipelineExecution<T>(val subject: T, val blockBuilders: List<PipelineConte
             // if secondary completed, master it already finished in `chain`
             currentMaster.state = State.Finished
         }
+        return secondary
     }
 
     fun proceed() {

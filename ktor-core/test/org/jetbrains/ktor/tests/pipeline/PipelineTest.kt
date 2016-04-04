@@ -232,7 +232,7 @@ class PipelineTest {
                 assertEquals("another", subject)
                 secondaryOk = true
             }
-            fork("another", secondary) { it.proceed() }
+            fork("another", secondary, attach = { p, s -> }, detach = { p, s -> p.proceed() })
         }
 
         pipeline.intercept {
@@ -281,7 +281,7 @@ class PipelineTest {
                 secondaryOk = true
                 throw UnsupportedOperationException()
             }
-            fork("another", secondary) { it.proceed() }
+            fork("another", secondary, attach = { p, s -> }, detach = { p, s -> p.proceed() })
         }
 
         pipeline.intercept {
@@ -345,7 +345,7 @@ class PipelineTest {
                     secondaryOk = true
                 })
             }
-            fork("another", secondary) { it.proceed() }
+            fork("another", secondary, attach = { p, s -> }, detach = { p, s -> p.proceed() })
         }
 
         pipeline.intercept {

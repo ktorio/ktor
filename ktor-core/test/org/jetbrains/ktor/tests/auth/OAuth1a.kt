@@ -125,6 +125,7 @@ class OAuth1aFlowTest {
 
             assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.Found, result.response.status())
+            assertNull(result.response.content)
             assertEquals("https://login-server-com/oauth/authorize?oauth_token=token1", result.response.headers[HttpHeaders.Location], "Redirect target location is not valid")
         }
     }

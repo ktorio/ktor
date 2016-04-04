@@ -24,8 +24,10 @@ internal fun PipelineContext<ApplicationCall>.oauth1a(client: HttpClient, exec: 
             val callbackRedirectUrl = call.urlProvider(provider)
             if (token == null) {
                 val t = simpleOAuth1aStep1(client, provider, callbackRedirectUrl)
-                call.redirectAuthenticateOAuth1a(provider, t)
-                pipeline.finish()
+                if (t != null) {
+                    pipeline.finish()
+                    call.redirectAuthenticateOAuth1a(provider, t)
+                }
             } else {
                 val accessToken = simpleOAuth1aStep2(client, provider, token)
                 if (accessToken != null)
@@ -47,7 +49,7 @@ internal fun ApplicationCall.oauth1aHandleCallback(): OAuthCallback.TokenPair? {
     }
 }
 
-internal fun simpleOAuth1aStep1(client: HttpClient, settings: OAuthServerSettings.OAuth1aServerSettings, callbackUrl: String, nonce: String = nextNonce(), extraParameters: List<Pair<String, String>> = emptyList()): OAuthCallback.TokenPair {
+internal fun simpleOAuth1aStep1(client: HttpClient, settings: OAuthServerSettings.OAuth1aServerSettings, callbackUrl: String, nonce: String = nextNonce(), extraParameters: List<Pair<String, String>> = emptyList()): OAuthCallback.TokenPair? {
     return simpleOAuth1aStep1(
             client,
             settings.consumerSecret + "&",
@@ -59,7 +61,7 @@ internal fun simpleOAuth1aStep1(client: HttpClient, settings: OAuthServerSetting
     )
 }
 
-private fun simpleOAuth1aStep1(client: HttpClient, secretKey: String, baseUrl: String, callback: String, consumerKey: String, nonce: String = nextNonce(), extraParameters: List<Pair<String, String>> = emptyList()): OAuthCallback.TokenPair {
+private fun simpleOAuth1aStep1(client: HttpClient, secretKey: String, baseUrl: String, callback: String, consumerKey: String, nonce: String = nextNonce(), extraParameters: List<Pair<String, String>> = emptyList()): OAuthCallback.TokenPair? {
     val authHeader = obtainRequestTokenHeader(
             callback = callback,
             consumerKey = consumerKey,
@@ -82,6 +84,7 @@ private fun simpleOAuth1aStep1(client: HttpClient, secretKey: String, baseUrl: S
 
         return OAuthCallback.TokenPair(response[HttpAuthHeader.Parameters.OAuthToken]!!, response[HttpAuthHeader.Parameters.OAuthTokenSecret]!!)
     } catch (e: Throwable) {
+        return null
         throw IOException("Failed to acquire request token due to ${connection.responseStream.reader().readText()}", e)
     } finally {
         connection.close()

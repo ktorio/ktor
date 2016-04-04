@@ -19,7 +19,7 @@ fun <T : Any> Application.install(feature: ApplicationFeature<T>, configure: T.(
             try {
                 val installed = feature.install(this, configure)
                 attributes.put(feature.key, installed)
-                config.log.info("`${feature.name}` feature was installed successfully.")
+                config.log.trace("`${feature.name}` feature was installed successfully.")
                 return installed
             } catch(t: Throwable) {
                 config.log.error("`${feature.name}` feature failed to install.", t)

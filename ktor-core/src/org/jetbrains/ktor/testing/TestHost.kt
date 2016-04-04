@@ -58,6 +58,8 @@ class TestApplicationCall(application: Application, override val request: TestAp
     override val response = TestApplicationResponse()
 
     var requestResult = ApplicationCallResult.Unhandled
+
+    override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : $requestResult"
 }
 
 class TestApplicationRequest() : ApplicationRequest {

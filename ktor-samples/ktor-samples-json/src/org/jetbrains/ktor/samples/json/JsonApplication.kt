@@ -34,10 +34,12 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
 
         intercept { call ->
             if (call.request.accept() == "application/json") {
-                call.interceptRespond { value, send ->
+                call.interceptRespond { value ->
                     when (value) {
-                        is Item, is Model -> send(TextContent(ContentType.Application.Json, GsonBuilder().create().toJson(value)))
-                        else -> send(value)
+                        is Item, is Model -> {
+                            call.respond(TextContent(ContentType.Application.Json, GsonBuilder().create().toJson(value)))
+                            finish()
+                        }
                     }
                 }
             }

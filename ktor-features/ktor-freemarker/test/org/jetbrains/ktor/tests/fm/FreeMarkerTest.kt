@@ -27,6 +27,7 @@ class FreeMarkerTest {
             }
 
             handleRequest(HttpMethod.Get, "/").response.let { response ->
+                assertNotNull(response.content)
                 assert(response.content!!.lines()) {
                     shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
                 }

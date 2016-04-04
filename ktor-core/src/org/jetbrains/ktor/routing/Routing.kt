@@ -20,7 +20,9 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
         if (resolveResult.succeeded) {
             val routingCall = RoutingApplicationCall(call, resolveResult.entry, resolveResult.values)
             val pipeline = buildEntryPipeline(resolveResult.entry)
-            context.pipeline.fork(routingCall, pipeline) { it.proceed() }
+            context.call.execute(pipeline, routingCall,
+                                attach = { p,s -> },
+                                detach = { p,s -> p.proceed() })
         }
     }
 

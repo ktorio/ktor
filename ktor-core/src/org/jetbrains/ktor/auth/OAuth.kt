@@ -62,7 +62,8 @@ fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep1(client: HttpClient, exe
         is OAuthServerSettings.OAuth1aServerSettings -> {
             proceedAsync(exec) {
                 val requestToken = simpleOAuth1aStep1(client, provider, callbackUrl)
-                call.redirectAuthenticateOAuth1a(provider, requestToken)
+                if (requestToken != null)
+                    call.redirectAuthenticateOAuth1a(provider, requestToken)
             }
         }
         is OAuthServerSettings.OAuth2ServerSettings -> {

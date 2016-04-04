@@ -3,7 +3,6 @@ package org.jetbrains.ktor.auth
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.httpclient.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.util.concurrent.*
 
@@ -40,8 +39,8 @@ internal fun AuthenticationProcedure.oauth2(client: HttpClient, exec: ExecutorSe
 }
 
 internal fun AuthenticationProcedure.oauth1a(client: HttpClient, exec: ExecutorService,
-                                                      providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                                      urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+                                             providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                             urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     authenticate { context ->
         val provider = context.call.providerLookup()
         if (provider is OAuthServerSettings.OAuth1aServerSettings) {
@@ -50,7 +49,8 @@ internal fun AuthenticationProcedure.oauth1a(client: HttpClient, exec: ExecutorS
                 if (token == null) {
                     context.challenge {
                         val t = simpleOAuth1aStep1(client, provider, context.call.urlProvider(provider))
-                        context.call.redirectAuthenticateOAuth1a(provider, t)
+                        if (t != null)
+                            context.call.redirectAuthenticateOAuth1a(provider, t)
                     }
                 } else {
                     val accessToken = simpleOAuth1aStep2(client, provider, token)
