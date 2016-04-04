@@ -1,13 +1,6 @@
 package org.jetbrains.ktor.pipeline
 
-class PipelineContext<TSubject : Any>(private val execution: PipelineExecution<TSubject>, val function: PipelineContext<TSubject>.(TSubject) -> Unit) : PipelineControl<TSubject> {
-
-    override fun <TSecondary : Any> fork(subject: TSecondary,
-                                         pipeline: Pipeline<TSecondary>,
-                                         attach: (PipelineExecution<TSubject>, PipelineExecution<TSecondary>) -> Unit,
-                                         detach: (PipelineExecution<TSubject>, PipelineExecution<TSecondary>) -> Unit) {
-        execution.fork(subject, pipeline, attach, detach)
-    }
+class PipelineContext<TSubject : Any>(private val execution: PipelineExecution<TSubject>, val function: PipelineContext<TSubject>.(TSubject) -> Unit) : PipelineControl {
 
     override fun fail(exception: Throwable) {
         execution.fail(exception)
@@ -22,19 +15,19 @@ class PipelineContext<TSubject : Any>(private val execution: PipelineExecution<T
     }
 
     override fun finish() {
-        state = PipelineExecution.State.Finished
+        state = PipelineExecution.State.Succeeded
     }
 
-    val exits = mutableListOf<() -> Unit>()
+    val successes = mutableListOf<() -> Unit>()
     val failures = mutableListOf<(Throwable) -> Unit>()
 
     val subject: TSubject get() = execution.subject
-    val pipeline: PipelineControl<TSubject> get() = this
+    val pipeline: PipelineControl get() = this
 
     var state = PipelineExecution.State.Pause
 
-    fun onFinish(body: () -> Unit) {
-        exits.add(body)
+    fun onSuccess(body: () -> Unit) {
+        successes.add(body)
     }
 
     fun onFail(body: (Throwable) -> Unit) {

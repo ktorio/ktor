@@ -22,7 +22,7 @@ internal fun PipelineContext<ApplicationCall>.oauth2(client: HttpClient, exec: E
                 pipeline.finish()
                 call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, nextNonce(), scopes = provider.defaultScopes)
             } else {
-                proceedAsync(exec) {
+                runAsync(exec) {
                     val accessToken = simpleOAuth2Step2(client, provider, callbackRedirectUrl, token)
                     if (accessToken != null)
                         call.authentication.addPrincipal(accessToken)

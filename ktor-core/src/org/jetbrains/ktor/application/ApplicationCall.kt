@@ -37,14 +37,15 @@ interface ApplicationCall {
 
     val parameters: ValuesMap
 
-    fun respond(message: Any)
+    fun respond(message: Any): Nothing
 
     fun interceptRespond(handler: PipelineContext<Any>.(Any) -> Unit)
 
-    fun <T : Any> execute(pipeline: Pipeline<T>, value: T,
-                          attach: (PipelineExecution<*>, PipelineExecution<T>) -> Unit,
-                          detach: (PipelineExecution<*>, PipelineExecution<T>) -> Unit
-    ): PipelineExecution.State
+    fun <T : Any> fork(pipeline: Pipeline<T>, value: T,
+                       attach: (PipelineExecution<*>, PipelineExecution<T>) -> Unit,
+                       detach: (PipelineExecution<*>, PipelineExecution<T>) -> Unit): Nothing
+
+    fun <T : Any> execute(pipeline: Pipeline<T>, value: T): PipelineExecution.State
 }
 
 /**

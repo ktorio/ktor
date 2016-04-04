@@ -60,7 +60,7 @@ fun PipelineContext<ApplicationCall>.oauth(client: HttpClient, exec: ExecutorSer
 fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep1(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String) {
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
-            proceedAsync(exec) {
+            runAsync(exec) {
                 val requestToken = simpleOAuth1aStep1(client, provider, callbackUrl)
                 if (requestToken != null)
                     call.redirectAuthenticateOAuth1a(provider, requestToken)
@@ -85,7 +85,7 @@ fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep2(client: HttpClient,
             if (tokens == null) {
                 call.respondRedirect(loginPageUrl)
             } else {
-                proceedAsync(exec) {
+                runAsync(exec) {
                     val accessToken = simpleOAuth1aStep2(client, provider, tokens)
                     if (accessToken != null)
                         block(accessToken)
@@ -99,7 +99,7 @@ fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep2(client: HttpClient,
             if (code == null) {
                 call.respondRedirect(loginPageUrl)
             } else {
-                proceedAsync(exec) {
+                runAsync(exec) {
                     val accessToken = simpleOAuth2Step2(
                             client,
                             provider,

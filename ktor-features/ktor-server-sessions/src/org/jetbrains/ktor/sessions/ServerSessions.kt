@@ -50,10 +50,10 @@ internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val 
         val sessionId = call.request.cookies[cookieName]
         if (sessionId != null) {
             call.attributes.put(SessionIdKey, sessionId)
-            context.proceedAsync(exec, {
+            context.runAsync(exec, {
                 storage.read(sessionId) { input ->
                     val text = input.bufferedReader().readText() // TODO what can we do if failed?
-                    context.proceedAsync(exec, {
+                    context.runAsync(exec, {
                         val session = serializer.deserialize(text)
                         injectSession(session)
                     })

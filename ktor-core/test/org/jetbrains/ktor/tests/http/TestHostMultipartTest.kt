@@ -98,7 +98,7 @@ class TestHostMultipartTest {
                 onFail {
                     assertTrue(it is IOException)
                 }
-                onFinish { fail("This pipeline shouldn't finish successfully") }
+                onSuccess { fail("This pipeline shouldn't finish successfully") }
                 call.request.content.get<MultiPartData>().parts.toList()
             }
 

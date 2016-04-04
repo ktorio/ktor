@@ -26,6 +26,7 @@ import kotlin.test.*
         transports = arrayOf(
                 CreateTransport(protocol = "LDAP")
         ))
+@Ignore
 class LdapAuthTest {
     @Before
     fun setUp() {

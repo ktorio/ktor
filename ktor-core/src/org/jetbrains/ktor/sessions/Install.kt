@@ -41,7 +41,7 @@ fun <S : Any> InterceptApplicationCall.withSessions(sessionConfig: SessionConfig
         call.attributes.put(SessionConfigKey, sessionConfig)
         sessionConfig.sessionTracker.lookup(this, { call.attributes.put(SessionKey, it) })
 
-        onFinish {
+        onSuccess {
             if (call.attributes.contains(SessionKey)) {
                 val session = call.sessionOrNull(sessionConfig.sessionType)
                 if (session != null) {

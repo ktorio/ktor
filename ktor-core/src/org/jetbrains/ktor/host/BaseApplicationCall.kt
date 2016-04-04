@@ -13,33 +13,37 @@ import java.nio.file.*
 abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
     val executionStack = mutableListOf<PipelineExecution<*>>()
 
-    override fun <T : Any> execute(pipeline: Pipeline<T>, value: T,
-                                   attach: (PipelineExecution<*>, PipelineExecution<T>) -> Unit,
-                                   detach: (PipelineExecution<*>, PipelineExecution<T>) -> Unit): PipelineExecution.State {
-        if (executionStack.isEmpty()) {
-            application.config.log.info("# $value")
-            val execution = PipelineExecution(value, pipeline.interceptors)
-            executionStack.add(execution)
+    override fun <T : Any> execute(pipeline: Pipeline<T>, value: T): PipelineExecution.State {
+        require(executionStack.isEmpty())
+        application.config.log.info("# $value")
+        val execution = PipelineExecution(value, pipeline.interceptors)
+        executionStack.add(execution)
+        try {
             execution.proceed()
+        } catch(p: PipelineBranchCompleted) {
             return execution.state
-        } else {
-            val currentExecution = executionStack.last()
-            application.config.log.info("# ${"  ".repeat(executionStack.size)} ${currentExecution.subject} -> $value")
-            val forkedExecution = currentExecution.fork(value, pipeline,
-                    attach = { p, s ->
-                        attach(p, s)
-                        executionStack.add(s)
-                    },
-                    detach = { p, s ->
-                        executionStack.remove(s)
-                        detach(p, s)
-                    })
-            return forkedExecution.state
         }
     }
 
-    override fun respond(message: Any): Unit {
-        execute(respond, message, { p, s -> }, { p, s -> p.proceed() })
+    override fun <T : Any> fork(pipeline: Pipeline<T>, value: T,
+                                attach: (PipelineExecution<*>, PipelineExecution<T>) -> Unit,
+                                detach: (PipelineExecution<*>, PipelineExecution<T>) -> Unit): Nothing {
+        require(executionStack.isNotEmpty())
+        val currentExecution = executionStack.last()
+        application.config.log.info("# ${"  ".repeat(executionStack.size)} ${currentExecution.subject} -> $value")
+        currentExecution.fork(value, pipeline,
+                attach = { p, s ->
+                    attach(p, s)
+                    executionStack.add(s)
+                },
+                detach = { p, s ->
+                    executionStack.remove(s)
+                    detach(p, s)
+                })
+    }
+
+    override fun respond(message: Any): Nothing {
+        fork(respond, message, { p, s -> }, { p, s -> p.proceed() })
     }
 
     override fun interceptRespond(handler: PipelineContext<Any>.(Any) -> Unit) = respond.intercept(handler)

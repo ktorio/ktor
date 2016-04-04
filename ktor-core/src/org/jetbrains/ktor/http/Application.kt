@@ -2,8 +2,6 @@ package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
-import java.nio.charset.*
-import java.time.temporal.*
 
 val ApplicationRequest.uri: String get() = requestLine.uri
 val ApplicationRequest.httpMethod: HttpMethod get() = requestLine.method
@@ -16,14 +14,14 @@ fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false) {
     respond(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
 }
 
-fun ApplicationCall.respondStatus(code: HttpStatusCode, message: String = code.description) = respond(code)
+fun ApplicationCall.respondStatus(code: HttpStatusCode, message: String = code.description): Nothing = respond(code)
 
 fun ApplicationResponse.sendBytes(bytes: ByteArray) {
     status(HttpStatusCode.OK)
     streamBytes(bytes)
 }
 
-fun ApplicationCall.respondText(contentType: ContentType, text: String) = respond(TextContent(contentType, text))
-fun ApplicationCall.respondText(text: String) = respondText(ContentType.Text.Plain, text)
+fun ApplicationCall.respondText(contentType: ContentType, text: String): Nothing = respond(TextContent(contentType, text))
+fun ApplicationCall.respondText(text: String): Nothing = respondText(ContentType.Text.Plain, text)
 
 

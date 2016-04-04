@@ -38,7 +38,6 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
                     when (value) {
                         is Item, is Model -> {
                             call.respond(TextContent(ContentType.Application.Json, GsonBuilder().create().toJson(value)))
-                            finish()
                         }
                     }
                 }

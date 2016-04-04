@@ -13,7 +13,7 @@ interface Principal
 fun InterceptApplicationCall.authenticate(body: PipelineContext<ApplicationCall>.() -> Unit) {
     intercept {
         body()
-        onFinish {
+        onSuccess {
             val context = call.attributes.getOrNull(AuthenticationContext.AttributeKey)
             if (context == null || !context.hasPrincipals())
                 throw Exception("Authentication failed")

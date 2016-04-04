@@ -79,7 +79,7 @@ class RoutingProcessingTest {
                 intercept { call ->
                     userIntercepted = true
                     wrappedWithInterceptor = true
-                    onFinish {
+                    onSuccess {
                         wrappedWithInterceptor = false
                     }
                 }

@@ -20,11 +20,11 @@ fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block: () 
     val givenMatchEtags = request.header(HttpHeaders.IfMatch)?.parseMatchTag()
 
     if (givenNoneMatchEtags != null && etag in givenNoneMatchEtags && "*" !in givenNoneMatchEtags) {
-        return respondStatus(HttpStatusCode.NotModified)
+        respondStatus(HttpStatusCode.NotModified)
     }
 
     if (givenMatchEtags != null && givenMatchEtags.isNotEmpty() && etag !in givenMatchEtags && "*" !in givenMatchEtags) {
-        return respondStatus(HttpStatusCode.PreconditionFailed)
+        respondStatus(HttpStatusCode.PreconditionFailed)
     }
 
     if (putHeader) {
@@ -62,12 +62,12 @@ fun ApplicationCall.withLastModified(lastModified: LocalDateTime, putHeader: Boo
 
     if (ifModifiedSince != null) {
         if (normalized <= ifModifiedSince) {
-            return respondStatus(HttpStatusCode.NotModified)
+            respondStatus(HttpStatusCode.NotModified)
         }
     }
     if (ifUnmodifiedSince != null) {
         if (normalized > ifUnmodifiedSince) {
-            return respondStatus(HttpStatusCode.PreconditionFailed)
+            respondStatus(HttpStatusCode.PreconditionFailed)
         }
     }
 

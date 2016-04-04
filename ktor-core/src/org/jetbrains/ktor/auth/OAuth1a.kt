@@ -20,7 +20,7 @@ internal fun PipelineContext<ApplicationCall>.oauth1a(client: HttpClient, exec: 
     val provider = call.providerLookup()
     if (provider is OAuthServerSettings.OAuth1aServerSettings) {
         val token = call.oauth1aHandleCallback()
-        proceedAsync(exec) {
+        runAsync(exec) {
             val callbackRedirectUrl = call.urlProvider(provider)
             if (token == null) {
                 val t = simpleOAuth1aStep1(client, provider, callbackRedirectUrl)

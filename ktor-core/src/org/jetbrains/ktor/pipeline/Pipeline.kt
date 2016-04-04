@@ -11,10 +11,14 @@ class Pipeline<T : Any>() {
         interceptors.add(block)
     }
 
-    fun execute(subject: T): PipelineExecution<T> {
-        val execution = PipelineExecution(subject, interceptors)
-        execution.proceed()
-        return execution
+    fun intercept(index: Int, block: PipelineContext<T>.(T) -> Unit) {
+        interceptors.add(index, block)
     }
 }
 
+class PipelineBranchCompleted : Throwable() {
+    @Suppress("unused") // implicit override
+    fun fillInStackTrace(): Throwable? {
+        return null
+    }
+}

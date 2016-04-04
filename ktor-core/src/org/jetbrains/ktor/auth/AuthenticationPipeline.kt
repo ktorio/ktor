@@ -16,7 +16,7 @@ fun InterceptApplicationCall.authentication(procedure: AuthenticationProcedure.(
     val authenticationProcedure = AuthenticationProcedure().apply(procedure)
     intercept {
         val context = AuthenticationProcedureContext(call)
-        call.execute(authenticationProcedure.pipeline, context,
+        call.fork(authenticationProcedure.pipeline, context,
                 attach = { p, s -> },
                 detach = { p, s ->
                     val principal = s.subject.principal
@@ -24,10 +24,9 @@ fun InterceptApplicationCall.authentication(procedure: AuthenticationProcedure.(
                         val challenges = s.subject.challenges
                         if (challenges.isNotEmpty()) {
                             val pipeline = Pipeline<AuthenticationProcedureChallenge>(challenges)
-                            call.execute(pipeline, AuthenticationProcedureChallenge(), { p, s -> }, { p, s ->
+                            call.fork(pipeline, AuthenticationProcedureChallenge(), { p, s -> }, { p, s ->
                                 p.finish()
                             })
-                            return@execute
                         }
                     } else {
                         s.subject.call.authentication.addPrincipal(principal)

@@ -20,41 +20,22 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
         if (resolveResult.succeeded) {
             val routingCall = RoutingApplicationCall(call, resolveResult.entry, resolveResult.values)
             val pipeline = buildEntryPipeline(resolveResult.entry)
-            context.call.execute(pipeline, routingCall,
-                                attach = { p,s -> },
-                                detach = { p,s -> p.proceed() })
-        }
-    }
-
-    private fun executeHandlers(context: PipelineContext<ApplicationCall>, handlers: List<PipelineContext<ApplicationCall>.() -> Unit>) {
-        // Handlers are executed in the installation order, first one that handles a call wins
-        for (handler in handlers) {
-            context.handler()
+            context.call.fork(pipeline, routingCall,
+                    attach = { p, s -> },
+                    detach = { p, s -> p.proceed() })
         }
     }
 
     private fun buildEntryPipeline(entry: RoutingEntry): Pipeline<ApplicationCall> {
         // Interceptors are rarely installed into routing entries, so don't create list unless there are some
-        var interceptors: MutableList<RoutingInterceptor>? = null
         var current: RoutingEntry? = entry
+        val pipeline = Pipeline<ApplicationCall>()
         while (current != null) {
-            if (current.interceptors.isNotEmpty()) {
-                if (interceptors == null)
-                    interceptors = arrayListOf()
-                interceptors.addAll(0, current.interceptors)
-            }
+            current.interceptors.forEach { pipeline.intercept(0, it.function) }
             current = current.parent
         }
 
-        val pipeline = Pipeline<ApplicationCall>()
-        if (interceptors != null && interceptors.isNotEmpty()) {
-            for (interceptor in interceptors)
-                pipeline.intercept(interceptor.function)
-        }
-
-        pipeline.intercept {
-            executeHandlers(this, entry.handlers)
-        }
+        entry.handlers.forEach { handler -> pipeline.intercept { handler() } }
         return pipeline
     }
 

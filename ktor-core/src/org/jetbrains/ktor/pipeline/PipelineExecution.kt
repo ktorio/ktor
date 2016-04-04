@@ -2,35 +2,19 @@ package org.jetbrains.ktor.pipeline
 
 import java.util.concurrent.*
 
-interface PipelineControl<TSubject : Any> {
+interface PipelineControl {
     fun finish()
     fun pause()
     fun proceed()
     fun fail(exception: Throwable)
-
-    fun <TSecondary : Any> fork(subject: TSecondary,
-                                pipeline: Pipeline<TSecondary>,
-                                attach: (PipelineExecution<TSubject>, PipelineExecution<TSecondary>) -> Unit,
-                                detach: (PipelineExecution<TSubject>, PipelineExecution<TSecondary>) -> Unit)
 }
-
-fun <T : Any> PipelineControl<T>.join(future: CompletionStage<*>) {
-    pause()
-    future.whenComplete { unit, throwable ->
-        if (throwable == null)
-            proceed()
-        else
-            fail(throwable)
-    }
-}
-
 
 class PipelineExecution<TSubject : Any>(val subject: TSubject, val blockBuilders: List<PipelineContext<TSubject>.(TSubject) -> Unit>) {
 
     enum class State {
-        Execute, Pause, Finished;
+        Execute, Pause, Succeeded, Failed;
 
-        fun finished(): Boolean = this == Finished
+        fun finished(): Boolean = this == Succeeded || this == Failed
     }
 
     var state = State.Pause
@@ -40,33 +24,23 @@ class PipelineExecution<TSubject : Any>(val subject: TSubject, val blockBuilders
                                 pipeline: Pipeline<TSecondary>,
                                 attach: (PipelineExecution<TSubject>, PipelineExecution<TSecondary>) -> Unit,
                                 detach: (PipelineExecution<TSubject>, PipelineExecution<TSecondary>) -> Unit
-    ): PipelineExecution<TSecondary> {
+    ): Nothing {
         val primary = this@PipelineExecution
         var secondary: PipelineExecution<TSecondary>? = null
-        val chain: PipelineContext<TSecondary>.(TSecondary) -> Unit = { subject ->
-            onFinish {
-                detach(primary, secondary!!)
-            }
-            onFail {
-                // TODO: ? detach(primary, secondary!!)
-                primary.fail(it)
-            }
+        val linkBack: PipelineContext<TSecondary>.(TSecondary) -> Unit = { subject ->
+            onSuccess { detach(primary, secondary!!) }
+            onFail { primary.fail(it) }
             attach(primary, secondary!!)
         }
-        val interceptors = listOf(chain) + pipeline.interceptors
-        secondary = PipelineExecution(subject, interceptors)
 
         val currentMaster = stack.last()
+        val interceptors = listOf(linkBack) + pipeline.interceptors
+        secondary = PipelineExecution(subject, interceptors)
         currentMaster.state = State.Pause
         secondary.proceed()
-        if (secondary.state.finished()) {
-            // if secondary completed, master it already finished in `chain`
-            currentMaster.state = State.Finished
-        }
-        return secondary
     }
 
-    fun proceed() {
+    fun proceed(): Nothing {
         state = State.Execute
         loop@while (stack.size < blockBuilders.size) {
             val index = stack.size
@@ -76,42 +50,46 @@ class PipelineExecution<TSubject : Any>(val subject: TSubject, val blockBuilders
             try {
                 context.state = State.Execute
                 context.function(context, subject)
+            } catch(f: PipelineBranchCompleted) {
+                throw f
             } catch(assertion: AssertionError) {
                 throw assertion // do not prevent tests from failing
             } catch(exception: Throwable) {
                 fail(exception)
-                return
+                throw PipelineBranchCompleted()
             }
 
             when (context.state) {
                 State.Pause -> {
                     if (state == State.Execute)
                         state = State.Pause
-                    return
                 }
-                State.Finished -> break@loop
+                State.Succeeded -> break@loop
+                State.Failed -> break@loop
                 State.Execute -> continue@loop
             }
         }
         if (state == State.Execute)
             finish()
+
+        throw PipelineBranchCompleted()
     }
 
     fun finish() {
         try {
             while (stack.size > 0) {
                 val item = stack.removeAt(stack.lastIndex)
-                val handlers = item.exits
+                val handlers = item.successes
                 while (handlers.size > 0) {
                     val handler = handlers.removeAt(handlers.lastIndex)
                     handler()
                 }
             }
+        } catch(f: PipelineBranchCompleted) {
         } catch (t: Throwable) {
             fail(t)
             return
         }
-        state = State.Finished
     }
 
     fun fail(exception: Throwable) {
@@ -128,6 +106,6 @@ class PipelineExecution<TSubject : Any>(val subject: TSubject, val blockBuilders
                 }
             }
         }
-        state = State.Finished
+        state = State.Failed
     }
 }

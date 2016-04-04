@@ -15,7 +15,6 @@ inline fun <reified C : Any> InterceptApplicationCall.templating(engine: Templat
         call.interceptRespond { obj ->
             if (javaType.isInstance(obj)) {
                 respond(engine.process(obj as C))
-                finish()
             }
         }
     }

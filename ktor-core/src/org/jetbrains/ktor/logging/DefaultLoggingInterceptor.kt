@@ -18,7 +18,7 @@ private fun Application.logCallFailed(call: ApplicationCall, e: Throwable) {
 
 fun Application.logApplicationCalls() {
     intercept { call ->
-        onFinish { logCallFinished(call) }
+        onSuccess { logCallFinished(call) }
         onFail { logCallFailed(call, it) }
     }
 }

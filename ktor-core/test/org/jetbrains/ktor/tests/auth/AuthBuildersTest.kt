@@ -21,7 +21,7 @@ class AuthBuildersTest {
                         extractCredentials { UserPasswordCredential("name1", "ppp") }
                         verifyBatchTypedWith { items: List<UserPasswordCredential> -> items.map { UserIdPrincipal(it.name) } }
 
-                        onFinish {
+                        onSuccess {
                             got.addAll(call.authentication.principals())
                         }
                     }
@@ -47,7 +47,7 @@ class AuthBuildersTest {
                         extractCredentials { UserPasswordCredential("name1", "ppp") }
                         verifyWith { credential: UserPasswordCredential -> UserIdPrincipal(credential.name) }
 
-                        onFinish {
+                        onSuccess {
                             got.addAll(call.authentication.principals())
                         }
                     }
@@ -103,7 +103,7 @@ class AuthBuildersTest {
                         verifyBatchTypedWith { items: List<UserPasswordCredential> -> items.map { UserIdPrincipal(it.name) } }
                         verifyBatchAll { all -> if (all.filterIsInstance<TestCredential>().any()) gotTestCredential = true; emptyList() }
 
-                        onFinish {
+                        onSuccess {
                             got.addAll(call.authentication.principals())
                         }
                     }
@@ -134,7 +134,7 @@ class AuthBuildersTest {
 
                         postVerify { p: UserIdPrincipal -> p.name == "name1" }
 
-                        onFinish {
+                        onSuccess {
                             got.addAll(call.authentication.principals())
                         }
                     }
