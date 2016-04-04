@@ -25,7 +25,6 @@ internal fun PipelineContext<ApplicationCall>.oauth1a(client: HttpClient, exec: 
             if (token == null) {
                 val t = simpleOAuth1aStep1(client, provider, callbackRedirectUrl)
                 if (t != null) {
-                    pipeline.finish()
                     call.redirectAuthenticateOAuth1a(provider, t)
                 }
             } else {

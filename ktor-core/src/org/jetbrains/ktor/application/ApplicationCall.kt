@@ -41,11 +41,12 @@ interface ApplicationCall {
 
     fun interceptRespond(handler: PipelineContext<Any>.(Any) -> Unit)
 
-    fun <T : Any> fork(pipeline: Pipeline<T>, value: T,
-                       attach: (PipelineExecution<*>, PipelineExecution<T>) -> Unit,
-                       detach: (PipelineExecution<*>, PipelineExecution<T>) -> Unit): Nothing
+    fun <T : Any> fork(pipeline: Pipeline<T>,
+                       value: T,
+                       start: (PipelineExecution<*>, PipelineExecution<T>) -> Unit,
+                       finish: (PipelineExecution<*>, PipelineExecution<T>) -> Unit): Nothing
 
-    fun <T : Any> execute(pipeline: Pipeline<T>, value: T): PipelineExecution.State
+    fun execute(pipeline: Pipeline<ApplicationCall>): PipelineExecution.State
 }
 
 /**

@@ -17,16 +17,15 @@ fun InterceptApplicationCall.authentication(procedure: AuthenticationProcedure.(
     intercept {
         val context = AuthenticationProcedureContext(call)
         call.fork(authenticationProcedure.pipeline, context,
-                attach = { p, s -> },
-                detach = { p, s ->
+                start = { p, s -> },
+                finish = { p, s ->
                     val principal = s.subject.principal
                     if (principal == null) {
                         val challenges = s.subject.challenges
                         if (challenges.isNotEmpty()) {
-                            val pipeline = Pipeline<AuthenticationProcedureChallenge>(challenges)
-                            call.fork(pipeline, AuthenticationProcedureChallenge(), { p, s -> }, { p, s ->
-                                p.finish()
-                            })
+                            call.fork(Pipeline(challenges), AuthenticationProcedureChallenge(),
+                                    start = { p, s -> },
+                                    finish = { p, s -> p.finish() })
                         }
                     } else {
                         s.subject.call.authentication.addPrincipal(principal)

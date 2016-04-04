@@ -1,16 +1,6 @@
 package org.jetbrains.ktor.pipeline
 
-import java.util.concurrent.*
-
-interface PipelineControl {
-    fun finish()
-    fun pause()
-    fun proceed()
-    fun fail(exception: Throwable)
-}
-
 class PipelineExecution<TSubject : Any>(val subject: TSubject, val blockBuilders: List<PipelineContext<TSubject>.(TSubject) -> Unit>) {
-
     enum class State {
         Execute, Pause, Succeeded, Failed;
 
@@ -18,25 +8,26 @@ class PipelineExecution<TSubject : Any>(val subject: TSubject, val blockBuilders
     }
 
     var state = State.Pause
-    private val stack = mutableListOf<PipelineContext<TSubject>>()
+    private val stack = mutableListOf<PipelineContextImpl<TSubject>>()
 
     fun <TSecondary : Any> fork(subject: TSecondary,
                                 pipeline: Pipeline<TSecondary>,
-                                attach: (PipelineExecution<TSubject>, PipelineExecution<TSecondary>) -> Unit,
-                                detach: (PipelineExecution<TSubject>, PipelineExecution<TSecondary>) -> Unit
+                                start: (PipelineExecution<TSubject>, PipelineExecution<TSecondary>) -> Unit,
+                                finish: (PipelineExecution<TSubject>, PipelineExecution<TSecondary>) -> Unit
     ): Nothing {
+
+        stack.last().pause()
+
         val primary = this@PipelineExecution
         var secondary: PipelineExecution<TSecondary>? = null
+
         val linkBack: PipelineContext<TSecondary>.(TSecondary) -> Unit = { subject ->
-            onSuccess { detach(primary, secondary!!) }
+            onSuccess { finish(primary, secondary!!) }
             onFail { primary.fail(it) }
-            attach(primary, secondary!!)
+            start(primary, secondary!!)
         }
 
-        val currentMaster = stack.last()
-        val interceptors = listOf(linkBack) + pipeline.interceptors
-        secondary = PipelineExecution(subject, interceptors)
-        currentMaster.state = State.Pause
+        secondary = PipelineExecution(subject, listOf(linkBack) + pipeline.interceptors)
         secondary.proceed()
     }
 
@@ -45,7 +36,7 @@ class PipelineExecution<TSubject : Any>(val subject: TSubject, val blockBuilders
         loop@while (stack.size < blockBuilders.size) {
             val index = stack.size
             val builder = blockBuilders[index]
-            val context = PipelineContext(this, builder)
+            val context = PipelineContextImpl(this, builder)
             stack.add(context)
             try {
                 context.state = State.Execute
@@ -86,6 +77,7 @@ class PipelineExecution<TSubject : Any>(val subject: TSubject, val blockBuilders
                 }
             }
         } catch(f: PipelineBranchCompleted) {
+            throw f
         } catch (t: Throwable) {
             fail(t)
             return

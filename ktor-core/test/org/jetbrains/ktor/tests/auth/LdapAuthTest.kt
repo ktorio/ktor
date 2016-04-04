@@ -6,6 +6,7 @@ import org.apache.directory.server.core.integ.*
 import org.apache.directory.server.core.integ.IntegrationUtils.apply
 import org.apache.directory.server.core.integ.IntegrationUtils.getUserAddLdif
 import org.apache.directory.server.ldap.*
+import org.hamcrest.core.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.auth.ldap.*
@@ -26,7 +27,7 @@ import kotlin.test.*
         transports = arrayOf(
                 CreateTransport(protocol = "LDAP")
         ))
-@Ignore
+@Ignore("Very slow")
 class LdapAuthTest {
     @Before
     fun setUp() {

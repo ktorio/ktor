@@ -13,10 +13,11 @@ import java.nio.file.*
 abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
     val executionStack = mutableListOf<PipelineExecution<*>>()
 
-    override fun <T : Any> execute(pipeline: Pipeline<T>, value: T): PipelineExecution.State {
+    override fun execute(pipeline: Pipeline<ApplicationCall>): PipelineExecution.State {
         require(executionStack.isEmpty())
-        application.config.log.info("# $value")
-        val execution = PipelineExecution(value, pipeline.interceptors)
+
+        application.config.log.trace("# $this")
+        val execution = PipelineExecution(this, pipeline.interceptors)
         executionStack.add(execution)
         try {
             execution.proceed()
@@ -26,19 +27,20 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     }
 
     override fun <T : Any> fork(pipeline: Pipeline<T>, value: T,
-                                attach: (PipelineExecution<*>, PipelineExecution<T>) -> Unit,
-                                detach: (PipelineExecution<*>, PipelineExecution<T>) -> Unit): Nothing {
+                                start: (PipelineExecution<*>, PipelineExecution<T>) -> Unit,
+                                finish: (PipelineExecution<*>, PipelineExecution<T>) -> Unit): Nothing {
         require(executionStack.isNotEmpty())
+
         val currentExecution = executionStack.last()
-        application.config.log.info("# ${"  ".repeat(executionStack.size)} ${currentExecution.subject} -> $value")
+        application.config.log.trace("# ${"  ".repeat(executionStack.size)} ${currentExecution.subject} -> $value")
         currentExecution.fork(value, pipeline,
-                attach = { p, s ->
-                    attach(p, s)
+                start = { p, s ->
+                    start(p, s)
                     executionStack.add(s)
                 },
-                detach = { p, s ->
+                finish = { p, s ->
                     executionStack.remove(s)
-                    detach(p, s)
+                    finish(p, s)
                 })
     }
 

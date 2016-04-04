@@ -19,7 +19,6 @@ internal fun PipelineContext<ApplicationCall>.oauth2(client: HttpClient, exec: E
             val token = call.oauth2HandleCallback()
             val callbackRedirectUrl = call.urlProvider(provider)
             if (token == null) {
-                pipeline.finish()
                 call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, nextNonce(), scopes = provider.defaultScopes)
             } else {
                 runAsync(exec) {

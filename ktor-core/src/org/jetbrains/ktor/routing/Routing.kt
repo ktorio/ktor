@@ -21,8 +21,8 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
             val routingCall = RoutingApplicationCall(call, resolveResult.entry, resolveResult.values)
             val pipeline = buildEntryPipeline(resolveResult.entry)
             context.call.fork(pipeline, routingCall,
-                    attach = { p, s -> },
-                    detach = { p, s -> p.proceed() })
+                    start = { p, s -> },
+                    finish = { p, s -> p.proceed() })
         }
     }
 

@@ -7,13 +7,13 @@ import org.jetbrains.ktor.util.*
 /**
  * Represents configured and running web application, capable of handling requests
  */
-public open class Application(val config: ApplicationConfig) : InterceptApplicationCall {
+open class Application(val config: ApplicationConfig) : InterceptApplicationCall {
     /**
      * Provides common place to store application-wide attributes
      */
     val attributes = Attributes()
 
-    val pipeline = Pipeline<ApplicationCall>()
+    private val pipeline = Pipeline<ApplicationCall>()
 
     /**
      * Installs interceptor into the current Application handling chain
@@ -25,11 +25,11 @@ public open class Application(val config: ApplicationConfig) : InterceptApplicat
     /**
      * Handles HTTP request coming from the host using interceptors
      */
-    fun handle(call: ApplicationCall) = call.execute(pipeline, call)
+    fun handle(call: ApplicationCall) = call.execute(pipeline)
 
     /**
      * Called by host when Application is terminated
      */
-    public open fun dispose() {
+    open fun dispose() {
     }
 }
