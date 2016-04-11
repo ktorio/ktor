@@ -5,34 +5,44 @@ import org.junit.*
 import java.util.concurrent.*
 import kotlin.test.*
 
-/*
 class PipelineTest {
+    fun <T : Any> Pipeline<T>.execute(subject: T): PipelineState {
+        try {
+            PipelineMachine().execute(subject, this)
+        } catch (e: PipelineControlFlow) {
+            when (e) {
+                is PipelineCompleted -> return PipelineState.Succeeded
+                is PipelinePaused -> return PipelineState.Executing
+                else -> throw e
+            }
+        }
+    }
 
     @Test
     fun emptyPipeline() {
-        val execution = Pipeline<String>().execute("some")
-        assertTrue(execution.state.finished())
+        val state = Pipeline<String>().execute("some")
+        assertEquals(PipelineState.Succeeded, state)
     }
 
     @Test
     fun singleActionPipeline() {
         var value = false
         val pipeline = Pipeline<String>()
-        pipeline.intercept {
+        pipeline.intercept { subject ->
             value = true
             assertEquals("some", subject)
         }
-        val execution = pipeline.execute("some")
+        val state = pipeline.execute("some")
         assertTrue(value)
-        assertTrue(execution.state.finished())
+        assertEquals(PipelineState.Succeeded, state)
     }
 
     @Test
     fun singleActionPipelineWithFinish() {
         var value = false
         val pipeline = Pipeline<String>()
-        pipeline.intercept {
-            onFinish {
+        pipeline.intercept { subject ->
+            onSuccess {
                 assertTrue(value)
             }
             onFail {
@@ -42,17 +52,17 @@ class PipelineTest {
             value = true
             assertEquals("some", subject)
         }
-        val execution = pipeline.execute("some")
+        val state = pipeline.execute("some")
         assertTrue(value)
-        assertTrue(execution.state.finished())
+        assertEquals(PipelineState.Succeeded, state)
     }
 
     @Test
     fun singleActionPipelineWithFail() {
         var failed = false
         val pipeline = Pipeline<String>()
-        pipeline.intercept {
-            onFinish {
+        pipeline.intercept { subject ->
+            onSuccess {
                 fail("This pipeline shouldn't finish")
             }
             onFail {
@@ -62,17 +72,17 @@ class PipelineTest {
             assertEquals("some", subject)
             throw UnsupportedOperationException()
         }
-        val execution = pipeline.execute("some")
+        val state = pipeline.execute("some")
         assertTrue(failed)
-        assertTrue(execution.state.finished())
+        assertEquals(PipelineState.Succeeded, state)
     }
 
     @Test
     fun actionFinishOrder() {
         var count = 0
         val pipeline = Pipeline<String>()
-        pipeline.intercept {
-            onFinish {
+        pipeline.intercept { subject ->
+            onSuccess {
                 assertEquals(1, count)
                 count--
             }
@@ -81,23 +91,23 @@ class PipelineTest {
         }
 
         pipeline.intercept {
-            onFinish {
+            onSuccess {
                 assertEquals(2, count)
                 count--
             }
             assertEquals(1, count)
             count++
         }
-        val execution = pipeline.execute("some")
+        val state = pipeline.execute("some")
         assertEquals(0, count)
-        assertTrue(execution.state.finished())
+        assertEquals(PipelineState.Succeeded, state)
     }
 
     @Test
     fun actionFailOrder() {
         var count = 0
         val pipeline = Pipeline<String>()
-        pipeline.intercept {
+        pipeline.intercept { subject ->
             onFail {
                 assertEquals(1, count)
                 count--
@@ -115,21 +125,21 @@ class PipelineTest {
             count++
             throw UnsupportedOperationException()
         }
-        val execution = pipeline.execute("some")
+        val state = pipeline.execute("some")
         assertEquals(0, count)
-        assertTrue(execution.state.finished())
+        assertEquals(PipelineState.Succeeded, state)
     }
 
     @Test
     fun actionFinishFailOrder() {
         var count = 0
         val pipeline = Pipeline<String>()
-        pipeline.intercept {
+        pipeline.intercept { subject ->
             onFail {
                 assertEquals(1, count)
                 count--
             }
-            onFinish {
+            onSuccess {
                 fail("This pipeline shouldn't finish")
             }
             assertEquals(0, count)
@@ -137,7 +147,7 @@ class PipelineTest {
         }
 
         pipeline.intercept {
-            onFinish {
+            onSuccess {
                 assertEquals(2, count)
                 count--
                 throw UnsupportedOperationException()
@@ -145,16 +155,16 @@ class PipelineTest {
             assertEquals(1, count)
             count++
         }
-        val execution = pipeline.execute("some")
+        val state = pipeline.execute("some")
         assertEquals(0, count)
-        assertTrue(execution.state.finished())
+        assertEquals(PipelineState.Succeeded, state)
     }
 
     @Test
     fun actionFailFailOrder() {
         var count = 0
         val pipeline = Pipeline<String>()
-        pipeline.intercept {
+        pipeline.intercept { subject ->
             onFail {
                 assertEquals(1, count)
                 count--
@@ -162,7 +172,7 @@ class PipelineTest {
                 assertEquals(1, (it as java.lang.Throwable).suppressed.size)
                 assertEquals("2", (it as java.lang.Throwable).suppressed[0].message)
             }
-            onFinish {
+            onSuccess {
                 fail("This pipeline shouldn't finish")
             }
             assertEquals(0, count)
@@ -181,16 +191,16 @@ class PipelineTest {
             count++
             throw UnsupportedOperationException("1")
         }
-        val execution = pipeline.execute("some")
+        val state = pipeline.execute("some")
         assertEquals(0, count)
-        assertTrue(execution.state.finished())
+        assertEquals(PipelineState.Succeeded, state)
     }
 
     @Test
     fun pauseResume() {
         var count = 0
         val pipeline = Pipeline<String>()
-        pipeline.intercept {
+        pipeline.intercept { subject ->
             assertEquals(0, count)
             count++
             pause()
@@ -201,11 +211,14 @@ class PipelineTest {
             count++
         }
 
-        val execution = pipeline.execute("some")
-        assertEquals(PipelineExecution.State.Pause, execution.state)
-        execution.proceed()
+        val machine = PipelineMachine()
+        assertFailsWith<PipelinePaused> {
+            machine.execute("some", pipeline)
+        }
+        assertFailsWith<PipelineCompleted> {
+            machine.proceed()
+        }
         assertEquals(2, count)
-        assertTrue(execution.state.finished())
     }
 
     @Test
@@ -226,14 +239,14 @@ class PipelineTest {
 
         pipeline.intercept {
             val secondary = Pipeline<String>()
-            secondary.intercept {
+            secondary.intercept { subject ->
                 onFail {
                     fail("This pipeline shouldn't fail")
                 }
                 assertEquals("another", subject)
                 secondaryOk = true
             }
-            fork("another", secondary, attach = { p, s -> }, detach = { p, s -> p.proceed() })
+            fork("another", secondary)
         }
 
         pipeline.intercept {
@@ -246,11 +259,11 @@ class PipelineTest {
             max = Math.max(max, count)
             throw UnsupportedOperationException()
         }
-        val execution = pipeline.execute("some")
+        val state = pipeline.execute("some")
         assertTrue(secondaryOk, "Secondary should be run")
         assertEquals(0, count)
         assertEquals(2, max)
-        assertEquals(PipelineExecution.State.Succeeded, execution.state)
+        assertEquals(PipelineState.Succeeded, state)
     }
 
     @Test
@@ -264,7 +277,7 @@ class PipelineTest {
                 assertEquals(1, count)
                 count--
             }
-            onFinish {
+            onSuccess {
                 fail("This pipeline shouldn't finish")
             }
             assertEquals(0, count)
@@ -274,26 +287,26 @@ class PipelineTest {
 
         pipeline.intercept {
             val secondary = Pipeline<String>()
-            secondary.intercept {
-                onFinish {
+            secondary.intercept { subject ->
+                onSuccess {
                     fail("This pipeline shouldn't finish")
                 }
                 assertEquals("another", subject)
                 secondaryOk = true
                 throw UnsupportedOperationException()
             }
-            fork("another", secondary, attach = { p, s -> }, detach = { p, s -> p.proceed() })
+            fork("another", secondary)
         }
 
         pipeline.intercept {
             fail("This pipeline shouldn't run")
         }
 
-        val execution = pipeline.execute("some")
+        val state = pipeline.execute("some")
         assertTrue(secondaryOk, "Secondary should be run")
         assertEquals(0, count)
         assertEquals(1, max)
-        assertEquals(PipelineExecution.State.Succeeded, execution.state)
+        assertEquals(PipelineState.Succeeded, state)
     }
 
     @Test
@@ -302,12 +315,12 @@ class PipelineTest {
         val pipeline = Pipeline<String>()
         val latch = CountDownLatch(1)
         pipeline.intercept {
-            pause()
             CompletableFuture.runAsync {
                 assertEquals(0, count)
                 count++
                 proceed()
             }
+            pause()
         }
 
         pipeline.intercept {
@@ -332,24 +345,27 @@ class PipelineTest {
                 latch.countDown()
                 fail("This pipeline shouldn't fail")
             }
-            join(CompletableFuture.runAsync {
+            CompletableFuture.runAsync {
                 assertEquals(0, count)
                 count++
-            })
+            }.whenComplete { v, t -> proceed() }
+            pause()
         }
 
         pipeline.intercept {
             val secondary = Pipeline<String>()
-            secondary.intercept {
+            secondary.intercept { subject ->
                 assertEquals("another", subject)
-                join(CompletableFuture.runAsync {
+                CompletableFuture.runAsync {
                     secondaryOk = true
-                })
+                }.whenComplete { v, t -> proceed() }
+                pause()
             }
-            fork("another", secondary, attach = { p, s -> }, detach = { p, s -> p.proceed() })
+            fork("another", secondary)
         }
 
         pipeline.intercept {
+            assertTrue(secondaryOk)
             assertEquals(1, count)
             count++
             latch.countDown()
@@ -361,4 +377,3 @@ class PipelineTest {
         assertEquals(2, count)
     }
 }
-*/

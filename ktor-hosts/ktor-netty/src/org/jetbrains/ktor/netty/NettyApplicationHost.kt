@@ -11,6 +11,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
 
 /**
  * [ApplicationHost] implementation for running standalone Netty Host
@@ -72,7 +73,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         override fun channelRead0(context: ChannelHandlerContext, request: FullHttpRequest) {
             val call = NettyApplicationCall(application, context, request)
             val pipelineState = application.handle(call)
-            if (pipelineState.finished() && !call.completed) {
+            if (pipelineState != PipelineState.Executing && !call.completed) {
                 val response = HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")
                 call.respond(response)
             }

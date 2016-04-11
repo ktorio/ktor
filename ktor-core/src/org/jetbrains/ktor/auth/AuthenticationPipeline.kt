@@ -13,25 +13,24 @@ class AuthenticationProcedure() {
 }
 
 fun InterceptApplicationCall.authentication(procedure: AuthenticationProcedure.() -> Unit) {
-    val authenticationProcedure = AuthenticationProcedure().apply(procedure)
+    val authenticationProcedure = AuthenticationProcedure().apply(procedure).apply {
+        pipeline.intercept { procedure ->
+            val principal = procedure.principal
+            if (principal == null) {
+                val challenges = procedure.challenges
+                if (challenges.isNotEmpty()) {
+                    val challengePipeline = Pipeline(challenges)
+                    challengePipeline.intercept { finishAll() }
+                    procedure.call.fork(AuthenticationProcedureChallenge(), challengePipeline)
+                }
+            } else {
+                procedure.call.authentication.addPrincipal(principal)
+            }
+        }
+    }
     intercept {
         val context = AuthenticationProcedureContext(call)
-        call.fork(authenticationProcedure.pipeline, context,
-                start = { p, s -> },
-                finish = { p, s ->
-                    val principal = s.subject.principal
-                    if (principal == null) {
-                        val challenges = s.subject.challenges
-                        if (challenges.isNotEmpty()) {
-                            call.fork(Pipeline(challenges), AuthenticationProcedureChallenge(),
-                                    start = { p, s -> },
-                                    finish = { p, s -> p.finish() })
-                        }
-                    } else {
-                        s.subject.call.authentication.addPrincipal(principal)
-                    }
-                    p.proceed()
-                })
+        call.fork(context, authenticationProcedure.pipeline)
     }
 }
 

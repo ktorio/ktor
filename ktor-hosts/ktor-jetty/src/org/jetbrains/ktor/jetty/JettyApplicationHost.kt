@@ -5,6 +5,7 @@ import org.eclipse.jetty.server.handler.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.servlet.*
 import javax.servlet.*
 import javax.servlet.http.*
@@ -56,7 +57,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 }
 
                 val pipelineState = application.handle(call)
-                if (pipelineState.finished()) {
+                if (pipelineState != PipelineState.Executing) {
                     baseRequest.isHandled = call.completed
                     // TODO: report 404? Or pass to next handler?
                 } else {

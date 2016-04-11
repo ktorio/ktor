@@ -11,42 +11,22 @@ import java.nio.channels.*
 import java.nio.file.*
 
 abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
-    val executionStack = mutableListOf<PipelineExecution<*>>()
+    val executionMachine = PipelineMachine()
 
-    override fun execute(pipeline: Pipeline<ApplicationCall>): PipelineExecution.State {
-        require(executionStack.isEmpty())
-
-        application.config.log.trace("# $this")
-        val execution = PipelineExecution(this, pipeline.interceptors)
-        executionStack.add(execution)
+    override fun execute(pipeline: Pipeline<ApplicationCall>): PipelineState {
         try {
-            execution.proceed()
-        } catch(p: PipelineBranchCompleted) {
-            return execution.state
+            executionMachine.execute(this, pipeline)
+        } catch (e: PipelineControlFlow) {
+            when (e) {
+                is PipelineCompleted -> return PipelineState.Succeeded
+                is PipelinePaused -> return PipelineState.Executing
+                else -> throw e
+            }
         }
     }
 
-    override fun <T : Any> fork(pipeline: Pipeline<T>, value: T,
-                                start: (PipelineExecution<*>, PipelineExecution<T>) -> Unit,
-                                finish: (PipelineExecution<*>, PipelineExecution<T>) -> Unit): Nothing {
-        require(executionStack.isNotEmpty())
-
-        val currentExecution = executionStack.last()
-        application.config.log.trace("# ${"  ".repeat(executionStack.size)} ${currentExecution.subject} -> $value")
-        currentExecution.fork(value, pipeline,
-                start = { p, s ->
-                    start(p, s)
-                    executionStack.add(s)
-                },
-                finish = { p, s ->
-                    executionStack.remove(s)
-                    finish(p, s)
-                })
-    }
-
-    override fun respond(message: Any): Nothing {
-        fork(respond, message, { p, s -> }, { p, s -> p.proceed() })
-    }
+    override fun <T : Any> fork(value: T, pipeline: Pipeline<T>): Nothing = executionMachine.execute(value, pipeline)
+    override fun respond(message: Any): Nothing = fork(message, respond)
 
     override fun interceptRespond(handler: PipelineContext<Any>.(Any) -> Unit) = respond.intercept(handler)
 

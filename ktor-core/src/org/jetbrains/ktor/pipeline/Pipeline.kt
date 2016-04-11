@@ -1,24 +1,28 @@
 package org.jetbrains.ktor.pipeline
 
-class Pipeline<T : Any>() {
-    val interceptors = mutableListOf<PipelineContext<T>.(T) -> Unit>()
+class Pipeline<TSubject : Any>() {
+    val interceptors = mutableListOf<PipelineContext<TSubject>.(TSubject) -> Unit>()
 
-    constructor(interceptors: List<PipelineContext<T>.(T) -> Unit>) : this() {
+    constructor(interceptors: List<PipelineContext<TSubject>.(TSubject) -> Unit>) : this() {
         this.interceptors.addAll(interceptors)
     }
 
-    fun intercept(block: PipelineContext<T>.(T) -> Unit) {
+    fun intercept(block: PipelineContext<TSubject>.(TSubject) -> Unit) {
         interceptors.add(block)
     }
 
-    fun intercept(index: Int, block: PipelineContext<T>.(T) -> Unit) {
+    fun intercept(index: Int, block: PipelineContext<TSubject>.(TSubject) -> Unit) {
         interceptors.add(index, block)
     }
 }
 
-class PipelineBranchCompleted : Throwable() {
+open class PipelineControlFlow : Throwable() {
     @Suppress("unused") // implicit override
     fun fillInStackTrace(): Throwable? {
         return null
     }
 }
+
+class PipelineCompleted : PipelineControlFlow()
+class PipelinePaused : PipelineControlFlow()
+class PipelineContinue : PipelineControlFlow()

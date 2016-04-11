@@ -4,6 +4,7 @@ import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.logging.*
+import org.jetbrains.ktor.pipeline.*
 import javax.servlet.annotation.*
 import javax.servlet.http.*
 
@@ -43,7 +44,7 @@ open class ServletApplicationHost() : HttpServlet() {
         try {
             val call = ServletApplicationCall(application, request, response)
             val pipelineState = application.handle(call)
-            if (pipelineState.finished()) {
+            if (pipelineState != PipelineState.Executing) {
                 if (!call.completed) {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND)
                     call.close()
