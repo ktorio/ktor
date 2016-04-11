@@ -65,10 +65,10 @@ class OAuth1aFlowTest {
 
         override fun authorize(call: ApplicationCall, oauthToken: String): Unit {
             if (oauthToken != "token1") {
-                return call.respondRedirect("http://localhost/login?redirected=true&error=Wrong+token+$oauthToken")
+                call.respondRedirect("http://localhost/login?redirected=true&error=Wrong+token+$oauthToken")
             }
 
-            return call.respondRedirect("http://localhost/login?redirected=true&oauth_token=$oauthToken&oauth_verifier=verifier1")
+            call.respondRedirect("http://localhost/login?redirected=true&oauth_token=$oauthToken&oauth_verifier=verifier1")
         }
 
         override fun accessToken(ctx: ApplicationCall, consumerKey: String, nonce: String, signature: String, signatureMethod: String, timestamp: Long, token: String, verifier: String): OAuthAccessTokenResponse.OAuth1a {
@@ -122,6 +122,7 @@ class OAuth1aFlowTest {
             val result = handleRequest(HttpMethod.Get, "/login")
 
             waitExecutor()
+            result.await()
 
             assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.Found, result.response.status())
@@ -140,10 +141,11 @@ class OAuth1aFlowTest {
             val result = handleRequest(HttpMethod.Get, "/login")
 
             waitExecutor()
+            result.await()
 
             assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("Ho, []", result.response.content)
+            assertEquals("Ho, null", result.response.content)
         }
     }
 
@@ -155,10 +157,11 @@ class OAuth1aFlowTest {
             val result = handleRequest(HttpMethod.Get, "/login")
 
             waitExecutor()
+            result.await()
 
             assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("Ho, []", result.response.content)
+            assertEquals("Ho, null", result.response.content)
         }
     }
 
@@ -170,6 +173,7 @@ class OAuth1aFlowTest {
             val result = handleRequest(HttpMethod.Get, "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier1")
 
             waitExecutor()
+            result.await()
 
             assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
@@ -186,11 +190,12 @@ class OAuth1aFlowTest {
             val result = handleRequest(HttpMethod.Get, "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier2")
 
             waitExecutor()
+            result.await()
 
             assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertTrue { result.response.content!!.startsWith("Ho, ") }
-            assertTrue { result.response.content!!.contains("[]") }
+            assertTrue { result.response.content!!.contains("null") }
         }
     }
 
@@ -206,6 +211,7 @@ class OAuth1aFlowTest {
             val result = handleRequest(HttpMethod.Get, "/login")
 
             waitExecutor()
+            result.await()
 
             assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.Found, result.response.status())
@@ -227,6 +233,7 @@ class OAuth1aFlowTest {
             val result = handleRequest(HttpMethod.Get, "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier1")
 
             waitExecutor()
+            result.await()
 
             assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
@@ -261,7 +268,7 @@ class OAuth1aFlowTest {
                 }
 
                 handle {
-                    call.respondText("Ho, ${call.authentication.principals}")
+                    call.respondText("Ho, ${call.authentication.principal}")
                 }
             }
         }
@@ -293,6 +300,12 @@ private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
 
     withTestApplication {
         testClient = TestingHttpClient(this)
+
+        application.intercept {
+            onFail { t ->
+                call.response.status(HttpStatusCode.InternalServerError)
+            }
+        }
 
         application.routing {
             post("/oauth/request_token") {
@@ -359,6 +372,7 @@ private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
             post("/oauth/authorize") {
                 val oauthToken = call.request.parameter(HttpAuthHeader.Parameters.OAuthToken) ?: throw IllegalArgumentException("No oauth_token parameter specified")
                 server.authorize(call, oauthToken)
+                call.response.status(HttpStatusCode.OK)
             }
         }
     }

@@ -33,7 +33,7 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
                 }
 
                 response.status(HttpStatusCode.OK)
-                respondText("Success, ${principals<UserIdPrincipal>().map { it.name }}")
+                respondText("Success, ${principal<UserIdPrincipal>()?.name}")
             }
 
             get<SimpleUserTable>() {

@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.http
 
+@Suppress("unused")
 data class HttpStatusCode(val value: Int, val description: String) {
     override fun toString(): String = "$value $description"
 

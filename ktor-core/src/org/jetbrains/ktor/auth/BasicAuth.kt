@@ -27,22 +27,26 @@ fun ApplicationRequest.basicAuthenticationCredentials(): UserPasswordCredential?
     }
 }
 
-fun PipelineContext<ApplicationCall>.basicAuthentication() {
-    call.request.basicAuthenticationCredentials()?.let {
-        call.authentication.addCredential(it)
-    }
-}
-
+val BasicAuthKey: Any = "BasicAuth"
 fun AuthenticationProcedure.basicAuthentication(realm: String, validate: (UserPasswordCredential) -> Principal?) {
     authenticate { context ->
         val credentials = context.call.request.basicAuthenticationCredentials()
         val principal = credentials?.let(validate)
-        if (principal != null) {
-            context.principal(principal)
-        } else {
-            context.challenge {
+
+        val cause = when {
+            credentials == null -> NotAuthenticatedCause.NoCredentials
+            principal == null -> NotAuthenticatedCause.InvalidCredentials
+            else -> null
+        }
+
+        if (cause != null) {
+            context.challenge(BasicAuthKey, cause) {
+                it.success()
                 context.call.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge(realm))
             }
+        }
+        if (principal != null) {
+            context.principal(principal)
         }
     }
 }

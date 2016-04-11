@@ -41,10 +41,12 @@ class DigestTest {
 
             application.routing {
                 route("/") {
-                    authenticate {
-                        extractDigest()
-
-                        verifyBatchTypedWith { digests: List<DigestCredential> -> foundDigests.addAll(digests); emptyList() }
+                    authentication {
+                        authenticate {
+                            subject.call.extractDigest()?.let { digest ->
+                                foundDigests.add(digest)
+                            }
+                        }
                     }
 
                     handle {}

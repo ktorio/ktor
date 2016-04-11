@@ -19,13 +19,17 @@ data class DigestCredential(val realm: String,
                             val cnonce: String?,
                             val qop: String?) : Credential
 
-fun PipelineContext<ApplicationCall>.extractDigest() {
-    call.request.parseAuthorizationHeader()?.let { authHeader ->
+fun ApplicationCall.extractDigest(): DigestCredential? {
+    return request.parseAuthorizationHeader()?.let { authHeader ->
         if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
-            call.authentication.addCredential(authHeader.toDigestCredential())
+            return authHeader.toDigestCredential()
+        } else {
+            null
         }
     }
 }
+
+val DigestAuthKey: Any = "DigestAuth"
 
 fun AuthenticationProcedure.digestAuthentication(
         digestAlgorithm: String = "MD5",
@@ -53,7 +57,13 @@ fun AuthenticationProcedure.digestAuthentication(
         if (principal != null) {
             context.principal(principal)
         } else {
-            context.challenge {
+            val cause = when {
+                credentials == null -> NotAuthenticatedCause.NoCredentials
+                else -> NotAuthenticatedCause.InvalidCredentials
+            }
+
+            context.challenge(DigestAuthKey, cause) {
+                it.success()
                 context.call.sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge("testrealm@host.com"))
             }
         }

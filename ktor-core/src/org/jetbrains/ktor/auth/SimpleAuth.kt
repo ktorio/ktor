@@ -30,10 +30,6 @@ class UserHashedTableAuth(val digester: (String) -> ByteArray = getDigestFunctio
     }
 }
 
-fun PipelineContext<ApplicationCall>.verifyBatchTypedWith(authTableAuth: UserHashedTableAuth) {
-    verifyBatchTypedWith { c: List<UserPasswordCredential> -> c.map { authTableAuth.authenticate(it) }.filterNotNull() }
-}
-
 private fun Config.parseUsers(name: String = "users") =
         getConfigList(name)
                 .map { it.getString("name")!! to decodeBase64(it.getString("hash")) }

@@ -9,6 +9,7 @@ import org.jetbrains.ktor.tests.*
 import org.jetbrains.ktor.util.*
 import org.json.simple.*
 import org.junit.*
+import java.io.*
 import java.net.*
 import java.util.*
 import java.util.concurrent.*
@@ -70,13 +71,17 @@ class OAuth2Test {
                 }
 
                 handle {
-                    call.respondText(ContentType.Text.Plain, "Hej, ${call.authentication.principals}")
+                    call.respondText(ContentType.Text.Plain, "Hej, ${call.authentication.principal}")
                 }
             }
             route("/resource") {
                 authentication {
                     basicAuthentication("oauth2") {
-                        verifyWithOAuth2(it, testClient, settings)
+                        try {
+                            verifyWithOAuth2(it, testClient, settings)
+                        } catch (ioe: IOException) {
+                            null
+                        }
                     }
                 }
                 handle {
@@ -140,7 +145,7 @@ class OAuth2Test {
 
         assertEquals(ApplicationCallResult.Handled, call.requestResult, "request should be handled")
         assertEquals(HttpStatusCode.OK, call.response.status())
-        assertEquals("Hej, []", call.response.content)
+        assertEquals("Hej, null", call.response.content)
     }
 
     @Test
@@ -326,16 +331,10 @@ private fun createOAuth2Server(server: OAuth2Server): TestingHttpClient {
                 val password = call.request.parameter(OAuth2RequestParameters.Password)
                 val badContentType = call.request.parameter("badContentType") == "true"
 
-                try {
+                val obj = try {
                     val tokens = server.requestToken(clientId, clientSecret, grantType, state, code, redirectUri, username, password)
 
-                    val contentType = when {
-                        badContentType == true -> ContentType.Text.Plain
-                        else -> ContentType.Application.Json
-                    }
-
-                    call.response.status(HttpStatusCode.OK)
-                    call.respondText(contentType, JSONObject().apply {
+                    JSONObject().apply {
                         put(OAuth2ResponseParameters.AccessToken, tokens.accessToken)
                         put(OAuth2ResponseParameters.TokenType, tokens.tokenType)
                         put(OAuth2ResponseParameters.ExpiresIn, tokens.expiresIn)
@@ -343,14 +342,21 @@ private fun createOAuth2Server(server: OAuth2Server): TestingHttpClient {
                         for (extraParam in tokens.extraParameters.flattenEntries()) {
                             put(extraParam.first, extraParam.second)
                         }
-                    }.toJSONString())
+                    }
                 } catch (t: Throwable) {
-                    call.response.status(HttpStatusCode.OK) // ??
-                    call.respondText(ContentType.Application.Json, JSONObject().apply {
+                    JSONObject().apply {
                         put(OAuth2ResponseParameters.Error, 1) // in fact we should provide code here, good enough for testing
                         put(OAuth2ResponseParameters.ErrorDescription, t.message)
-                    }.toJSONString())
+                    }
                 }
+
+                val contentType = when {
+                    badContentType == true -> ContentType.Text.Plain
+                    else -> ContentType.Application.Json
+                }
+
+                call.response.status(HttpStatusCode.OK)
+                call.respondText(contentType, obj.toJSONString())
             }
         }
     }

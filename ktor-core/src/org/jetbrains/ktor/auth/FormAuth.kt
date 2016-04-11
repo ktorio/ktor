@@ -2,6 +2,7 @@ package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.http.*
 
+val FormAuthKey: Any = "FormAuth"
 fun AuthenticationProcedure.formAuthentication(userParamName: String = "user", passwordParamName: String = "password", validate: (UserPasswordCredential) -> Principal?) {
     authenticate { context ->
         val username = context.call.parameters[userParamName]
@@ -13,7 +14,8 @@ fun AuthenticationProcedure.formAuthentication(userParamName: String = "user", p
         if (principal != null) {
             context.principal(principal)
         } else {
-            context.challenge {
+            context.challenge(FormAuthKey, if (credentials == null) NotAuthenticatedCause.NoCredentials else NotAuthenticatedCause.InvalidCredentials) {
+                it.success()
                 context.call.respondStatus(HttpStatusCode.Unauthorized)
             }
         }

@@ -5,6 +5,7 @@ import org.jetbrains.ktor.auth.httpclient.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
+import java.io.*
 import java.util.concurrent.*
 
 enum class OAuthVersion {
@@ -57,13 +58,14 @@ fun PipelineContext<ApplicationCall>.oauth(client: HttpClient, exec: ExecutorSer
     oauth2(client, exec, providerLookup, urlProvider)
 }
 
+// TODO rethink custom oauth approach
+@Deprecated("")
 fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep1(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String) {
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
             runAsync(exec) {
                 val requestToken = simpleOAuth1aStep1(client, provider, callbackUrl)
-                if (requestToken != null)
-                    call.redirectAuthenticateOAuth1a(provider, requestToken)
+                call.redirectAuthenticateOAuth1a(provider, requestToken)
             }
         }
         is OAuthServerSettings.OAuth2ServerSettings -> {
@@ -72,6 +74,8 @@ fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep1(client: HttpClient, exe
     }
 }
 
+// TODO rethink custom oauth approach
+@Deprecated("")
 fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep2(client: HttpClient,
                                                          exec: ExecutorService,
                                                          provider: OAuthServerSettings,
@@ -86,11 +90,12 @@ fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep2(client: HttpClient,
                 call.respondRedirect(loginPageUrl)
             } else {
                 runAsync(exec) {
-                    val accessToken = simpleOAuth1aStep2(client, provider, tokens)
-                    if (accessToken != null)
+                    try {
+                        val accessToken = simpleOAuth1aStep2(client, provider, tokens)
                         block(accessToken)
-                    else
+                    } catch (ioe: IOException) {
                         call.oauthHandleFail(loginPageUrl)
+                    }
                 }
             }
         }
@@ -100,26 +105,27 @@ fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep2(client: HttpClient,
                 call.respondRedirect(loginPageUrl)
             } else {
                 runAsync(exec) {
-                    val accessToken = simpleOAuth2Step2(
-                            client,
-                            provider,
-                            callbackUrl,
-                            code,
-                            emptyMap(),
-                            configure
-                    )
+                    try {
+                        val accessToken = simpleOAuth2Step2(
+                                client,
+                                provider,
+                                callbackUrl,
+                                code,
+                                emptyMap(),
+                                configure
+                        )
 
-                    if (accessToken != null)
                         block(accessToken)
-                    else
+                    } catch (ioe: IOException) {
                         call.oauthHandleFail(loginPageUrl)
+                    }
                 }
             }
         }
     }
 }
 
-internal fun ApplicationCall.oauthHandleFail(redirectUrl: String) {
+internal fun ApplicationCall.oauthHandleFail(redirectUrl: String): Nothing {
     respondRedirect(redirectUrl)
 }
 

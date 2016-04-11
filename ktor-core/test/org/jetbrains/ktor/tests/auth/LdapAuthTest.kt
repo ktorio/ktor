@@ -3,10 +3,8 @@ package org.jetbrains.ktor.tests.auth
 import org.apache.directory.api.ldap.util.*
 import org.apache.directory.server.annotations.*
 import org.apache.directory.server.core.integ.*
-import org.apache.directory.server.core.integ.IntegrationUtils.apply
-import org.apache.directory.server.core.integ.IntegrationUtils.getUserAddLdif
+import org.apache.directory.server.core.integ.IntegrationUtils.*
 import org.apache.directory.server.ldap.*
-import org.hamcrest.core.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.auth.ldap.*
@@ -45,7 +43,7 @@ class LdapAuthTest {
                     }
                 }
                 get("/") {
-                    call.respondText((call.authentication.principals.singleOrNull() as? UserIdPrincipal)?.name ?: "null")
+                    call.respondText(call.authentication.principal<UserIdPrincipal>()?.name ?: "null")
                 }
             }
 
@@ -96,7 +94,7 @@ class LdapAuthTest {
                 }
 
                 get("/") {
-                    call.respondText((call.authentication.principals.singleOrNull() as? UserIdPrincipal)?.name ?: "null")
+                    call.respondText(call.authentication.principal<UserIdPrincipal>()?.name ?: "null")
                 }
             }
 

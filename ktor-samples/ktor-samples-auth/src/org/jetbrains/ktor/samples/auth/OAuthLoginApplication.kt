@@ -124,8 +124,9 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
                 }
 
                 handle {
-                    if (call.authentication.hasPrincipals()) {
-                        call.loggedInSuccessResponse(call.authentication.principals<OAuthAccessTokenResponse>().single())
+                    val principal = call.authentication.principal<OAuthAccessTokenResponse>()
+                    if (principal != null) {
+                        call.loggedInSuccessResponse(principal)
                     } else {
                         call.loginPage()
                     }

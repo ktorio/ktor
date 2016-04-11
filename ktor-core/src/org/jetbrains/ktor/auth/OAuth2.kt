@@ -23,10 +23,7 @@ internal fun PipelineContext<ApplicationCall>.oauth2(client: HttpClient, exec: E
             } else {
                 runAsync(exec) {
                     val accessToken = simpleOAuth2Step2(client, provider, callbackRedirectUrl, token)
-                    if (accessToken != null)
-                        call.authentication.addPrincipal(accessToken)
-                    else
-                        call.oauthHandleFail(callbackRedirectUrl)
+                    call.authentication.principal(accessToken)
                 }
             }
         }
@@ -43,8 +40,8 @@ internal fun ApplicationCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? 
     }
 }
 
-internal fun ApplicationCall.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList()) {
-    return redirectAuthenticateOAuth2(authenticateUrl = settings.authorizeUrl,
+internal fun ApplicationCall.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList()): Nothing {
+    redirectAuthenticateOAuth2(authenticateUrl = settings.authorizeUrl,
             callbackRedirectUrl = callbackRedirectUrl,
             clientId = settings.clientId,
             state = state,
@@ -57,7 +54,7 @@ internal fun simpleOAuth2Step2(client: HttpClient,
                                usedRedirectUrl: String,
                                callbackResponse: OAuthCallback.TokenSingle,
                                extraParameters: Map<String, String> = emptyMap(),
-                               configure: RequestBuilder.() -> Unit = {}): OAuthAccessTokenResponse.OAuth2? {
+                               configure: RequestBuilder.() -> Unit = {}): OAuthAccessTokenResponse.OAuth2 {
     return simpleOAuth2Step2(
             client,
             settings.requestMethod,
@@ -73,8 +70,8 @@ internal fun simpleOAuth2Step2(client: HttpClient,
     )
 }
 
-private fun ApplicationCall.redirectAuthenticateOAuth2(authenticateUrl: String, callbackRedirectUrl: String, clientId: String, state: String, scopes: List<String> = emptyList(), parameters: List<Pair<String, String>> = emptyList()) {
-    return respondRedirect(authenticateUrl
+private fun ApplicationCall.redirectAuthenticateOAuth2(authenticateUrl: String, callbackRedirectUrl: String, clientId: String, state: String, scopes: List<String> = emptyList(), parameters: List<Pair<String, String>> = emptyList()): Nothing {
+    respondRedirect(authenticateUrl
             .appendUrlParameters("${OAuth2RequestParameters.ClientId}=${encodeURLQueryComponent(clientId)}&${OAuth2RequestParameters.RedirectUri}=${encodeURLQueryComponent(callbackRedirectUrl)}")
             .appendUrlParameters(optionalParameter(OAuth2RequestParameters.Scope, scopes.joinToString(",")))
             .appendUrlParameters("${OAuth2RequestParameters.State}=${encodeURLQueryComponent(state)}")
@@ -98,7 +95,7 @@ private fun simpleOAuth2Step2(client: HttpClient,
                               extraParameters: Map<String, String> = emptyMap(),
                               configure: RequestBuilder.() -> Unit = {},
                               useBasicAuth: Boolean = false,
-                              grantType: String = OAuthGrandTypes.AuthorizationCode): OAuthAccessTokenResponse.OAuth2? {
+                              grantType: String = OAuthGrandTypes.AuthorizationCode): OAuthAccessTokenResponse.OAuth2 {
     val urlParameters =
             (listOf(
                     OAuth2RequestParameters.ClientId to clientId,
@@ -133,32 +130,35 @@ private fun simpleOAuth2Step2(client: HttpClient,
         }
     }
 
-    try {
+    val (contentType, content) = try {
         if (connection.responseStatus == HttpStatusCode.NotFound) {
             throw IOException("Not found 404 for the page $baseUrl")
         }
         val contentType = connection.responseHeaders[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ContentType.Any
         val content = connection.responseStream.bufferedReader().readText()
 
-        val contentDecoded = decodeContent(content, contentType)
-
-        if (contentDecoded.contains(OAuth2ResponseParameters.Error)) {
-            throw IOException("OAuth server responded with error: $contentDecoded")
-        }
-
-        return OAuthAccessTokenResponse.OAuth2(
-                accessToken = contentDecoded[OAuth2ResponseParameters.AccessToken]!!,
-                tokenType = contentDecoded[OAuth2ResponseParameters.TokenType] ?: "",
-                expiresIn = contentDecoded[OAuth2ResponseParameters.ExpiresIn]?.toLong() ?: 0L,
-                refreshToken = contentDecoded[OAuth2ResponseParameters.RefreshToken],
-                extraParameters = contentDecoded
-        )
+        Pair(contentType, content)
+    } catch (ioe: IOException) {
+        throw ioe
     } catch (t: Throwable) {
-        return null
         throw IOException("Failed to acquire request token due to ${connection.responseStream.reader().readText()}", t)
     } finally {
         connection.close()
     }
+
+    val contentDecoded = decodeContent(content, contentType)
+
+    if (contentDecoded.contains(OAuth2ResponseParameters.Error)) {
+        throw IOException("OAuth server responded with error: $contentDecoded")
+    }
+
+    return OAuthAccessTokenResponse.OAuth2(
+            accessToken = contentDecoded[OAuth2ResponseParameters.AccessToken]!!,
+            tokenType = contentDecoded[OAuth2ResponseParameters.TokenType] ?: "",
+            expiresIn = contentDecoded[OAuth2ResponseParameters.ExpiresIn]?.toLong() ?: 0L,
+            refreshToken = contentDecoded[OAuth2ResponseParameters.RefreshToken],
+            extraParameters = contentDecoded
+    )
 }
 
 private fun decodeContent(content: String, contentType: ContentType): ValuesMap = when {
@@ -178,34 +178,13 @@ private fun decodeContent(content: String, contentType: ContentType): ValuesMap 
     }
 }
 
-
 /**
  * Implements Resource Owner Password Credentials Grant
  * see http://tools.ietf.org/html/rfc6749#section-4.3
  *
  * Takes [UserPasswordCredential] and validates it using OAuth2 sequence, provides [OAuthAccessTokenResponse.OAuth2] if succeeds
  */
-fun PipelineContext<ApplicationCall>.verifyWithOAuth2(client: HttpClient, settings: OAuthServerSettings.OAuth2ServerSettings) {
-    verifyWith { c: UserPasswordCredential ->
-        simpleOAuth2Step2(client, HttpMethod.Post,
-                usedRedirectUrl = null,
-                baseUrl = settings.accessTokenUrl,
-                clientId = settings.clientId,
-                clientSecret = settings.clientSecret,
-                code = null,
-                state = null,
-                configure = {},
-                extraParameters = mapOf(
-                        OAuth2RequestParameters.UserName to c.name,
-                        OAuth2RequestParameters.Password to c.password
-                ),
-                useBasicAuth = true,
-                grantType = OAuthGrandTypes.Password
-        )
-    }
-}
-
-fun verifyWithOAuth2(c: UserPasswordCredential, client: HttpClient, settings: OAuthServerSettings.OAuth2ServerSettings): OAuthAccessTokenResponse.OAuth2? {
+fun verifyWithOAuth2(c: UserPasswordCredential, client: HttpClient, settings: OAuthServerSettings.OAuth2ServerSettings): OAuthAccessTokenResponse.OAuth2 {
     return simpleOAuth2Step2(client, HttpMethod.Post,
             usedRedirectUrl = null,
             baseUrl = settings.accessTokenUrl,
