@@ -10,6 +10,7 @@ import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.*
+import java.util.concurrent.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
@@ -31,6 +32,20 @@ fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() ->
 class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     val application: Application = ApplicationLoader(applicationConfig).application
 
+    init {
+        application.intercept {
+            onFail {
+                val testApplicationCall = call as? TestApplicationCall
+                testApplicationCall?.latch?.countDown()
+            }
+
+            onSuccess {
+                val testApplicationCall = call as? TestApplicationCall
+                testApplicationCall?.latch?.countDown()
+            }
+        }
+    }
+
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val request = TestApplicationRequest()
         request.setup()
@@ -49,6 +64,7 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
 }
 
 class TestApplicationCall(application: Application, override val request: TestApplicationRequest) : BaseApplicationCall(application) {
+    internal val latch = CountDownLatch(1)
     override val parameters: ValuesMap get() = request.parameters
     override val attributes = Attributes()
     override val close = Interceptable0 {
@@ -60,6 +76,10 @@ class TestApplicationCall(application: Application, override val request: TestAp
     var requestResult = ApplicationCallResult.Unhandled
 
     override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : $requestResult"
+
+    fun await() {
+        latch.await()
+    }
 }
 
 class TestApplicationRequest() : ApplicationRequest {
