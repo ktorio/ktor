@@ -88,11 +88,11 @@ private fun simpleOAuth1aStep1(client: HttpClient, secretKey: String, baseUrl: S
     }
 }
 
-internal fun ApplicationCall.redirectAuthenticateOAuth1a(settings: OAuthServerSettings.OAuth1aServerSettings, requestToken: OAuthCallback.TokenPair) {
+internal fun ApplicationCall.redirectAuthenticateOAuth1a(settings: OAuthServerSettings.OAuth1aServerSettings, requestToken: OAuthCallback.TokenPair): Nothing {
     redirectAuthenticateOAuth1a(settings.authorizeUrl, requestToken.token)
 }
 
-internal fun ApplicationCall.redirectAuthenticateOAuth1a(authenticateUrl: String, requestToken: String) {
+internal fun ApplicationCall.redirectAuthenticateOAuth1a(authenticateUrl: String, requestToken: String): Nothing {
     val url = authenticateUrl.appendUrlParameters("${HttpAuthHeader.Parameters.OAuthToken}=${encodeURLQueryComponent(requestToken)}")
     respondRedirect(url)
 }

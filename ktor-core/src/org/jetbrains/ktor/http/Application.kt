@@ -9,7 +9,7 @@ val ApplicationRequest.httpVersion: String get() = requestLine.version
 fun ApplicationRequest.header(name: String): String? = headers[name]
 fun ApplicationRequest.parameter(name: String): String? = parameters[name]
 
-fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false) {
+fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false): Nothing {
     response.headers.append(HttpHeaders.Location, url)
     respond(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
 }
