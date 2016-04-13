@@ -46,9 +46,6 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
             return
         }
 
-        if (value is HasContentType) {
-            response.contentType(value.contentType)
-        }
         if (value is HasContentLength) {
             response.contentLength(value.contentLength)
         }

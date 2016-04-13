@@ -8,6 +8,7 @@ import org.jetbrains.ktor.util.Attributes
 import java.io.*
 import java.net.*
 import java.nio.file.*
+import java.time.*
 import java.util.jar.*
 
 class LocalFileContent(val file: File, override val contentType: ContentType = defaultContentType(file.extension)) : ChannelContentProvider, Resource {
@@ -53,10 +54,18 @@ class ResourceFileContent(val zipFile: File, val resourcePath: String, val class
     override val cacheControl = null
 }
 
-class URIFileContent(val uri: URI, override val contentType: ContentType = defaultContentType(uri.path.extension())): HasContentType, StreamContentProvider {
+class URIFileContent(val uri: URI, override val contentType: ContentType = defaultContentType(uri.path.extension())): StreamContentProvider, Resource {
     constructor(url: URL, contentType: ContentType = defaultContentType(url.path.extension())) : this(url.toURI(), contentType)
 
     override fun stream() = uri.toURL().openStream()
+
+    override val versions: List<Version>
+        get() = emptyList()
+
+    override val expires = null
+    override val cacheControl = null
+    override val attributes = Attributes()
+    override val contentLength = null
 }
 
 fun RoutingEntry.serveClasspathResources(basePackage: String = "") {

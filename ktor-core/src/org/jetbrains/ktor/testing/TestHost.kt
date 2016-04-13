@@ -52,6 +52,7 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
         request.setup()
         val call = TestApplicationCall(application, request)
         application.handle(call)
+        call.await()
         return call
     }
 }
@@ -61,8 +62,6 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
         this.uri = uri
         this.method = method
         setup()
-    }.apply {
-        await()
     }
 }
 

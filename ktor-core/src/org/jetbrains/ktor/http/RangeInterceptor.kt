@@ -121,7 +121,7 @@ object RangeInterceptor : ApplicationFeature<RangeInterceptor.RangesConfig> {
         call.attributes.put(CompressionAttributes.preventCompression, true) // multirange with compression is not supported yet
         call.response.contentType(ContentType.MultiPart.ByteRanges.withParameter("boundary", boundary))
 
-        val contentType = (subject as? HasContentType)?.contentType ?: ContentType.Application.OctetStream
+        val contentType = (subject as? Resource)?.contentType ?: ContentType.Application.OctetStream
         call.respond(RangeChannelProvider.Multiple(channel, ranges, length, boundary, contentType))
     }
 

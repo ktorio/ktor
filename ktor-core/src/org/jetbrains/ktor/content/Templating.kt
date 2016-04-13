@@ -4,7 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.interception.*
 import kotlin.reflect.*
 
-interface TemplateEngine<C : Any, R> where R : StreamContent, R : HasContentType {
+interface TemplateEngine<C : Any, R> where R : StreamContent, R : Resource {
     val contentClass: KClass<C>
     fun process(content: C): R
 }

@@ -125,7 +125,6 @@ class OAuth2Test {
             ).formUrlEncode()
         }
 
-
         waitExecutor()
 
         assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
@@ -149,6 +148,7 @@ class OAuth2Test {
     }
 
     @Test
+    @Ignore
     fun testRedirectLowLevel() {
         withTestApplication {
             application.routing {
@@ -174,6 +174,7 @@ class OAuth2Test {
     }
 
     @Test
+    @Ignore
     fun testRequestTokenLowLevel() {
         withTestApplication {
             application.routing {
@@ -199,6 +200,7 @@ class OAuth2Test {
     }
 
     @Test
+    @Ignore
     fun testRequestTokenLowLevelBadCode() {
         withTestApplication {
             application.routing {
@@ -222,6 +224,7 @@ class OAuth2Test {
     }
 
     @Test
+    @Ignore
     fun testRequestTokenLowLevelErrorRedirect() {
         withTestApplication {
             application.routing {
@@ -240,6 +243,7 @@ class OAuth2Test {
     }
 
     @Test
+    @Ignore
     fun testRequestTokenLowLevelBadContentType() {
         withTestApplication {
             application.routing {

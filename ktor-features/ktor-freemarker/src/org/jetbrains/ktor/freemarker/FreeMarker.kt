@@ -4,10 +4,12 @@ import freemarker.template.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.content.Version
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.util.*
 import java.io.*
+import java.time.*
 import kotlin.reflect.*
 
-class FreeMarkerTemplateResource internal constructor(val content: freemarker.template.Template, val model: Any, val etag: String, override val contentType: ContentType) : StreamContent, HasContentType, HasVersions {
+class FreeMarkerTemplateResource internal constructor(val content: freemarker.template.Template, val model: Any, val etag: String, override val contentType: ContentType) : StreamContent, Resource {
     override fun stream(out: OutputStream) {
         with(out.bufferedWriter(charset(contentType.parameter("charset") ?: "UTF-8"))) {
             content.process(model, this)
@@ -16,6 +18,11 @@ class FreeMarkerTemplateResource internal constructor(val content: freemarker.te
 
     override val versions: List<Version>
         get() = listOf(EntityTagVersion(etag))
+
+    override val expires = null
+    override val cacheControl = null
+    override val attributes = Attributes()
+    override val contentLength = null
 }
 
 class FreeMarkerContent(val templateName: String, val model: Any, val etag: String, val contentType: ContentType = ContentType.Text.Html)
