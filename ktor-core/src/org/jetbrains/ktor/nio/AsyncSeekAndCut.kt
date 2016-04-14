@@ -22,7 +22,11 @@ class AsyncSeekAndCut(val source: SeekableAsyncChannel, val seek: Long, val maxS
 
         override fun successEnd() {
             stateReference.compareAndSet(State.SEEK, State.READ)
-            scheduleNextOperation()
+            if (currentBuffer == null) {
+                fireHandlerAndReset { it.successEnd() }
+            } else {
+                scheduleNextOperation()
+            }
         }
 
         override fun failed(cause: Throwable) {

@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.tests
+package org.jetbrains.ktor.tests.nio
 
 import org.jetbrains.ktor.nio.*
 import org.junit.*
@@ -11,8 +11,8 @@ class DeflaterByteChannelTest {
 
     @Test
     fun testWithRealFile() {
-        val file = listOf(File("test/org/jetbrains/ktor/tests/DeflaterByteChannelTest.kt"),
-                File("ktor-core/test/org/jetbrains/ktor/tests/DeflaterByteChannelTest.kt")).first { it.exists() }
+        val file = listOf(File("test/org/jetbrains/ktor/tests/nio/DeflaterByteChannelTest.kt"),
+                File("ktor-core/test/org/jetbrains/ktor/tests/nio/DeflaterByteChannelTest.kt")).first { it.exists() }
 
         val actual = file.asyncReadOnlyFileChannel().deflated().asInputStream().ungzip().reader().readText()
         assertEquals(file.readText(), actual)
@@ -20,8 +20,8 @@ class DeflaterByteChannelTest {
 
     @Test
     fun testFileChannel() {
-        val file = listOf(File("test/org/jetbrains/ktor/tests/DeflaterByteChannelTest.kt"),
-                File("ktor-core/test/org/jetbrains/ktor/tests/DeflaterByteChannelTest.kt")).first { it.exists() }
+        val file = listOf(File("test/org/jetbrains/ktor/tests/nio/DeflaterByteChannelTest.kt"),
+                File("ktor-core/test/org/jetbrains/ktor/tests/nio/DeflaterByteChannelTest.kt")).first { it.exists() }
 
         val content = file.readText()
 
