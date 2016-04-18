@@ -1,18 +1,20 @@
 package org.jetbrains.ktor.pipeline
 
 class Pipeline<TSubject : Any>() {
-    val interceptors = mutableListOf<PipelineContext<TSubject>.(TSubject) -> Unit>()
+    private val _interceptors = mutableListOf<PipelineContext<TSubject>.(TSubject) -> Unit>()
+
+    val interceptors : List<PipelineContext<TSubject>.(TSubject) -> Unit> get() = _interceptors
 
     constructor(interceptors: List<PipelineContext<TSubject>.(TSubject) -> Unit>) : this() {
-        this.interceptors.addAll(interceptors)
+        _interceptors.addAll(interceptors)
     }
 
     fun intercept(block: PipelineContext<TSubject>.(TSubject) -> Unit) {
-        interceptors.add(block)
+        _interceptors.add(block)
     }
 
     fun intercept(index: Int, block: PipelineContext<TSubject>.(TSubject) -> Unit) {
-        interceptors.add(index, block)
+        _interceptors.add(index, block)
     }
 }
 

@@ -29,7 +29,7 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
         var current: RoutingEntry? = entry
         val pipeline = Pipeline<ApplicationCall>()
         while (current != null) {
-            current.interceptors.forEach { pipeline.intercept(0, it.function) }
+            current.interceptors.forEach { pipeline.intercept(0, it) }
             current = current.parent
         }
 

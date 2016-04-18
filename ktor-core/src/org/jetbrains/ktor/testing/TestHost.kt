@@ -8,6 +8,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.*
@@ -32,9 +33,10 @@ fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() ->
 
 class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     val application: Application = ApplicationLoader(applicationConfig).application
+    val pipeline = Pipeline<ApplicationCall>()
 
     init {
-        application.intercept {
+        pipeline.intercept {
             onFail {
                 val testApplicationCall = call as? TestApplicationCall
                 testApplicationCall?.latch?.countDown()
@@ -44,6 +46,7 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
                 val testApplicationCall = call as? TestApplicationCall
                 testApplicationCall?.latch?.countDown()
             }
+            fork(call, application.pipeline)
         }
     }
 
@@ -51,7 +54,7 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
         val request = TestApplicationRequest()
         request.setup()
         val call = TestApplicationCall(application, request)
-        application.handle(call)
+        call.execute(pipeline)
         call.await()
         return call
     }

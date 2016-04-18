@@ -5,12 +5,11 @@ import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.pipeline.*
 import java.util.*
 
-internal data class RoutingInterceptor(val function: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit)
-
 open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : InterceptApplicationCall {
     val children: MutableList<RoutingEntry> = ArrayList()
 
-    internal val interceptors = ArrayList<RoutingInterceptor>()
+    internal val interceptors = mutableListOf<PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit>()
+
     internal val handlers = ArrayList<PipelineContext<ApplicationCall>.() -> Unit>()
 
     fun select(selector: RoutingSelector): RoutingEntry {
@@ -24,7 +23,7 @@ open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector
     }
 
     override fun intercept(interceptor: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
-        interceptors.add(RoutingInterceptor(interceptor))
+        interceptors.add(interceptor)
     }
 
     fun handle(handler: PipelineContext<ApplicationCall>.() -> Unit) {

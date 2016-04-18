@@ -13,7 +13,7 @@ open class Application(val config: ApplicationConfig) : InterceptApplicationCall
      */
     val attributes = Attributes()
 
-    private val pipeline = Pipeline<ApplicationCall>()
+    val pipeline = Pipeline<ApplicationCall>()
 
     /**
      * Installs interceptor into the current Application handling chain
@@ -21,11 +21,6 @@ open class Application(val config: ApplicationConfig) : InterceptApplicationCall
     override fun intercept(interceptor: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
         pipeline.intercept(interceptor)
     }
-
-    /**
-     * Handles HTTP request coming from the host using interceptors
-     */
-    fun handle(call: ApplicationCall) = call.execute(pipeline)
 
     /**
      * Called by host when Application is terminated

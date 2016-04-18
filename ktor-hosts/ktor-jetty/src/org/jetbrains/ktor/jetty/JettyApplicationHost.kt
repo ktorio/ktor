@@ -56,7 +56,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     // TODO someone reported auto-cleanup issues so we have to check it
                 }
 
-                val pipelineState = application.handle(call)
+                val pipelineState = call.execute(application.pipeline)
                 if (pipelineState != PipelineState.Executing) {
                     baseRequest.isHandled = call.completed
                     // TODO: report 404? Or pass to next handler?
