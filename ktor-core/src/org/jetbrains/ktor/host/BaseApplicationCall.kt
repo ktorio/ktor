@@ -64,6 +64,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                     } ?: "UTF-8"
                     response.streamText(value, encoding)
                     close()
+                    finishAll()
                 }
                 is TextContent -> {
                     response.contentType(value.contentType)
@@ -76,6 +77,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                 is HttpStatusCode -> {
                     response.status(value)
                     close()
+                    finishAll()
                 }
                 is StreamContent -> {
                     response.status() ?: response.status(HttpStatusCode.OK)
@@ -83,6 +85,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                         value.stream(this)
                     }
                     close()
+                    finishAll()
                 }
                 is URIFileContent -> {
                     if (value.uri.scheme == "file") {
@@ -131,12 +134,24 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
 
     private fun PipelineContext<*>.createMachineCompletableFuture() = CompletableFuture<Long>().apply {
         whenComplete { total, throwable ->
-            if (throwable == null || throwable is PipelineContinue || throwable.cause is PipelineContinue) {
-                proceed()
-            }
-            else if (throwable !is PipelineControlFlow && throwable.cause !is PipelineControlFlow) {
-                fail(throwable)
+            try {
+                if (throwable == null || throwable is PipelineContinue || throwable.cause is PipelineContinue) {
+                    finishAll()
+                } else if (throwable !is PipelineControlFlow && throwable.cause !is PipelineControlFlow) {
+                    fail(throwable)
+                }
+            } catch (cont: PipelineContinue) {
+                stateLoopMachine()
             }
         }
+    }
+
+    private fun PipelineContext<*>.stateLoopMachine() {
+        do {
+            try {
+                proceed()
+            } catch (e: PipelineContinue) {
+            }
+        } while (true);
     }
 }
