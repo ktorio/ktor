@@ -22,32 +22,31 @@ object RangeInterceptor : ApplicationFeature<RangeInterceptor.RangesConfig> {
         val config = RangesConfig()
         configure(config)
 
-        application.intercept { requestNext ->
-            call.response.headers.intercept { name, value, next ->
-                if (!name.equals(HttpHeaders.ContentType, true) && !name.equals(HttpHeaders.ContentLength, true)) {
-                    next(name, value)
-                }
-            }
-
+        application.intercept(0) { requestNext ->
             val rangeSpecifier = call.request.ranges()
-            if (rangeSpecifier != null && call.isGetOrHead()) {
-                call.interceptRespond { obj ->
-                    if (obj is ChannelContentProvider && obj !is RangeChannelProvider) {
-                        @Suppress("UNCHECKED_CAST")
-                        val newContext = this as PipelineContext<ChannelContentProvider>
+            if (rangeSpecifier != null) {
+                if (call.isGetOrHead()) {
+                    call.attributes.put(CompressionAttributes.preventCompression, true)
+                    call.interceptRespond(0) { obj ->
+                        if (obj is ChannelContentProvider && obj !is RangeChannelProvider) {
+                            @Suppress("UNCHECKED_CAST")
+                            val newContext = this as PipelineContext<ChannelContentProvider>
 
-                        when (obj) {
-                            is HasContentLength -> newContext.tryProcessRange(call, rangeSpecifier, obj.contentLength, config)
-                            is Resource -> obj.contentLength?.let { length -> newContext.tryProcessRange(call, rangeSpecifier, length, config) }
+                            when (obj) {
+                                is HasContentLength -> newContext.tryProcessRange(call, rangeSpecifier, obj.contentLength, config)
+                                is Resource -> obj.contentLength?.let { length -> newContext.tryProcessRange(call, rangeSpecifier, length, config) }
+                            }
                         }
                     }
+                } else {
+                    call.respondStatus(HttpStatusCode.MethodNotAllowed, "Method ${call.request.httpMethod} is not allowed with range request")
                 }
             } else {
-                call.interceptRespond { obj ->
+                call.interceptRespond(0) { obj ->
                     if (obj is ChannelContentProvider && obj !is RangeChannelProvider) {
                         when (obj) {
                             is HasContentLength,
-                            is Resource -> call.response.headers.append(HttpHeaders.AcceptRanges, RangeUnits.Bytes.unitToken)
+                            is Resource -> sendAcceptRanges(call)
                         }
                     }
                 }
@@ -57,14 +56,20 @@ object RangeInterceptor : ApplicationFeature<RangeInterceptor.RangesConfig> {
         return config
     }
 
+    private fun sendAcceptRanges(call: ApplicationCall) {
+        call.response.headers.append(HttpHeaders.AcceptRanges, RangeUnits.Bytes.unitToken)
+    }
+
     private fun PipelineContext<ChannelContentProvider>.tryProcessRange(call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long, config: RangesConfig): Unit {
         if (checkIfRangeHeader(call)) {
             processRange(call, rangesSpecifier, length, config)
+        } else {
+            sendAcceptRanges(call)
         }
     }
 
     private fun PipelineContext<ChannelContentProvider>.checkIfRangeHeader(call: ApplicationCall): Boolean {
-        val versions = (subject as? HasVersions)?.versions ?: emptyList()
+        val versions = versions()
         val ifRange = call.request.header(HttpHeaders.IfRange)
 
         val unchanged = ifRange == null || versions.all { version ->
@@ -78,6 +83,8 @@ object RangeInterceptor : ApplicationFeature<RangeInterceptor.RangesConfig> {
         return unchanged
     }
 
+    private fun PipelineContext<ChannelContentProvider>.versions() = (subject as? HasVersions)?.versions.orEmpty()
+
     private fun PipelineContext<ChannelContentProvider>.processRange(call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long, config: RangesConfig): Nothing {
         require(length >= 0L)
 
@@ -85,6 +92,11 @@ object RangeInterceptor : ApplicationFeature<RangeInterceptor.RangesConfig> {
         if (merged.isEmpty()) {
             call.response.contentRange(range = null, fullLength = length) // https://tools.ietf.org/html/rfc7233#section-4.4
             call.respondStatus(HttpStatusCode.RequestedRangeNotSatisfiable, "Couldn't satisfy range request $rangesSpecifier: it should comply restriction [0; $length)")
+        }
+
+        sendAcceptRanges(call)
+        if (call.request.httpMethod == HttpMethod.Head) {
+            proceed()
         }
 
         val channel = subject.channel()
@@ -112,7 +124,7 @@ object RangeInterceptor : ApplicationFeature<RangeInterceptor.RangesConfig> {
             proceed()
         }
 
-        call.respond(RangeChannelProvider.Single(channel, range))
+        call.respond(RangeChannelProvider.Single(channel, range, versions()))
     }
 
     private fun PipelineContext<ChannelContentProvider>.processMultiRange(call: ApplicationCall, channel: AsyncReadChannel, ranges: List<LongRange>, length: Long): Nothing {
@@ -122,18 +134,18 @@ object RangeInterceptor : ApplicationFeature<RangeInterceptor.RangesConfig> {
         call.response.contentType(ContentType.MultiPart.ByteRanges.withParameter("boundary", boundary))
 
         val contentType = (subject as? Resource)?.contentType ?: ContentType.Application.OctetStream
-        call.respond(RangeChannelProvider.Multiple(channel, ranges, length, boundary, contentType))
+        call.respond(RangeChannelProvider.Multiple(channel, ranges, length, boundary, contentType, versions()))
     }
 
     private sealed class RangeChannelProvider : ChannelContentProvider {
-        class Single(val delegate: AsyncReadChannel, val range: LongRange) : RangeChannelProvider() {
+        class Single(val delegate: AsyncReadChannel, val range: LongRange, override val versions: List<Version>) : RangeChannelProvider(), HasVersions {
             override fun channel() = when (delegate) {
                 is SeekableAsyncChannel -> AsyncSeekAndCut(delegate, range.start, range.length, preventClose = true)
                 else -> AsyncSkipAndCut(delegate, range.start, range.length, preventClose = true)
             }
         }
 
-        class Multiple(val delegate: AsyncReadChannel, val ranges: List<LongRange>, val length: Long, val boundary: String, val contentType: ContentType) : RangeChannelProvider() {
+        class Multiple(val delegate: AsyncReadChannel, val ranges: List<LongRange>, val length: Long, val boundary: String, val contentType: ContentType, override val versions: List<Version>) : RangeChannelProvider(), HasVersions {
             override fun channel() = ByteRangesChannel.forRegular(ranges, delegate, length, boundary, contentType.toString())
         }
     }

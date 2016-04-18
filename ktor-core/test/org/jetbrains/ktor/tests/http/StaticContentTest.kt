@@ -176,7 +176,6 @@ class StaticContentTest {
     }
 
     @Test
-    @Ignore
     fun testGoodAndBadRange() {
         withRangeApplication { file ->
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
@@ -253,7 +252,6 @@ class StaticContentTest {
     }
 
     @Test
-    @Ignore
     fun testMultipleMergedRanges() {
         withRangeApplication { file ->
             // multiple ranges should be merged into one

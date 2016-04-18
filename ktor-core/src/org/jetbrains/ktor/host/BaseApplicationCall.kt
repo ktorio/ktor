@@ -27,8 +27,15 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     override fun respond(message: Any): Nothing = fork(message, respond)
 
     override fun interceptRespond(handler: PipelineContext<Any>.(Any) -> Unit) = respond.intercept(handler)
+    override fun interceptRespond(index: Int, handler: PipelineContext<Any>.(Any) -> Unit) = respond.intercept(index, handler)
 
     protected fun sendHeaders(value: Any) {
+        if (value is HasVersions) {
+            value.versions.forEach { version ->
+                version.render(response)
+            }
+        }
+
         if (value is Resource) {
             value.cacheControl?.let { cacheControl ->
                 response.cacheControl(cacheControl)
@@ -38,9 +45,6 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
             }
             value.contentLength?.let { length ->
                 response.contentLength(length)
-            }
-            value.versions.forEach { version ->
-                version.render(response)
             }
             response.contentType(value.contentType)
             return
@@ -62,7 +66,9 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                     val encoding = response.headers[HttpHeaders.ContentType]?.let {
                         ContentType.parse(it).parameter("charset")
                     } ?: "UTF-8"
-                    response.streamText(value, encoding)
+                    ifNotHead {
+                        response.streamText(value, encoding)
+                    }
                     close()
                     finishAll()
                 }
@@ -81,8 +87,10 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                 }
                 is StreamContent -> {
                     response.status() ?: response.status(HttpStatusCode.OK)
-                    response.stream {
-                        value.stream(this)
+                    ifNotHead {
+                        response.stream {
+                            value.stream(this)
+                        }
                     }
                     close()
                     finishAll()
@@ -107,27 +115,47 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         }
     }
 
-    private fun PipelineContext<*>.sendAsyncChannel(channel: AsyncReadChannel): Nothing {
-        val future = createMachineCompletableFuture()
+    private fun isNotHead() = request.httpMethod != HttpMethod.Head
 
-        closeAtEnd()
-        channel.copyToAsyncThenComplete(response.channel(), future)
-        pause()
+    private inline fun ifNotHead(block: () -> Unit) {
+        if (isNotHead()) {
+            block()
+        }
+    }
+
+    private fun PipelineContext<*>.sendAsyncChannel(channel: AsyncReadChannel): Nothing {
+        if (isNotHead()) {
+            val future = createMachineCompletableFuture()
+
+            closeAtEnd(channel)
+            channel.copyToAsyncThenComplete(response.channel(), future)
+            pause()
+        } else {
+            close()
+            finishAll()
+        }
     }
 
     protected fun PipelineContext<*>.sendStream(stream: InputStream): Nothing {
-        val future = createMachineCompletableFuture()
+        if (isNotHead()) {
+            val future = createMachineCompletableFuture()
 
-        closeAtEnd()
-        InputStreamReadChannelAdapter(stream).copyToAsyncThenComplete(response.channel(), future)
-        pause()
+            closeAtEnd(stream)
+            InputStreamReadChannelAdapter(stream).copyToAsyncThenComplete(response.channel(), future)
+            pause()
+        } else {
+            close()
+            finishAll()
+        }
     }
 
-    protected fun PipelineContext<*>.closeAtEnd() {
+    protected fun PipelineContext<*>.closeAtEnd(closeable: Closeable) {
         onSuccess {
+            closeable.closeQuietly()
             close()
         }
         onFail {
+            closeable.closeQuietly()
             close()
         }
     }
@@ -153,5 +181,12 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
             } catch (e: PipelineContinue) {
             }
         } while (true);
+    }
+
+    private fun Closeable.closeQuietly() {
+        try {
+            close()
+        } catch (ignore: Throwable) {
+        }
     }
 }

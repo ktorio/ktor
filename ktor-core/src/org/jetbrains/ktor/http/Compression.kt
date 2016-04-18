@@ -39,7 +39,7 @@ fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
                     ?.handleStar(options)
 
             val encoder = encoding?.let { encoders[it] }
-            if (encoding != null && encoder != null) {
+            if (encoding != null && encoder != null && !call.isCompressedProhibited()) {
                 call.response.headers.intercept { name, value, next ->
                     if (name.equals(HttpHeaders.ContentLength, true)) {
                         call.attributes.put(CompressionAttributes.interceptedContentLength, value.toLong())
@@ -49,7 +49,7 @@ fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
                 }
 
                 call.response.interceptStream { content, stream ->
-                    if (conditions.all { it(call) } && CompressionAttributes.preventCompression !in attributes) {
+                    if (conditions.all { it(call) } && !call.isCompressedProhibited()) {
                         call.response.headers.append(HttpHeaders.ContentEncoding, encoding)
                         stream {
                             encoder.open(this).apply {
@@ -64,20 +64,26 @@ fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
                     }
                 }
 
-                call.interceptRespond { obj ->
-                    if (conditions.all { it(call) } && CompressionAttributes.preventCompression !in attributes) {
+                call.interceptRespond(0) { obj ->
+                    if (conditions.all { it(call) } && !call.isCompressedProhibited()) {
+                        if (obj is CompressedChannelProvider) {
+                            proceed()
+                        }
                         if (obj is ChannelContentProvider) {
                             call.response.headers.append(HttpHeaders.ContentEncoding, encoding)
-
-                            respond(object : ChannelContentProvider {
-                                override fun channel() = obj.channel().deflated()
-                            })
+                            respond(CompressedChannelProvider(obj.channel()))
                         }
                     }
                 }
             }
         }
     }
+}
+
+private fun ApplicationCall.isCompressedProhibited() = CompressionAttributes.preventCompression in attributes
+
+private class CompressedChannelProvider(val delegate: AsyncReadChannel) : ChannelContentProvider {
+    override fun channel() = delegate.deflated()
 }
 
 private fun String.handleStar(options: CompressionOptions) = if (this == "*") options.defaultEncoding else this

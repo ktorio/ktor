@@ -21,9 +21,9 @@ interface ChannelContentProvider {
     fun channel(): AsyncReadChannel
 }
 
-interface Resource {
+interface Resource : HasVersions {
     val contentType: ContentType
-    val versions: List<Version>
+    override val versions: List<Version>
     val expires: LocalDateTime?
     val cacheControl: CacheControl?
     val attributes: Attributes
