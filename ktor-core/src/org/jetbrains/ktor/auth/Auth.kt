@@ -9,7 +9,7 @@ import org.jetbrains.ktor.util.*
 interface Credential
 interface Principal
 
-fun InterceptApplicationCall.authenticate(body: PipelineContext<ApplicationCall>.() -> Unit) {
+fun Pipeline<ApplicationCall>.authenticate(body: PipelineContext<ApplicationCall>.() -> Unit) {
     intercept {
         body()
         onSuccess {

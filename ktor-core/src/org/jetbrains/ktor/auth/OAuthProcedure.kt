@@ -19,7 +19,7 @@ fun AuthenticationProcedure.oauth(client: HttpClient, exec: ExecutorService,
 internal fun AuthenticationProcedure.oauth2(client: HttpClient, exec: ExecutorService,
                                             providerLookup: ApplicationCall.() -> OAuthServerSettings?,
                                             urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
-    authenticate { context ->
+    intercept { context ->
         val provider = context.call.providerLookup()
         when (provider) {
             is OAuthServerSettings.OAuth2ServerSettings -> {
@@ -44,7 +44,7 @@ internal fun AuthenticationProcedure.oauth2(client: HttpClient, exec: ExecutorSe
 internal fun AuthenticationProcedure.oauth1a(client: HttpClient, exec: ExecutorService,
                                              providerLookup: ApplicationCall.() -> OAuthServerSettings?,
                                              urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
-    authenticate { context ->
+    intercept { context ->
         val provider = context.call.providerLookup()
         if (provider is OAuthServerSettings.OAuth1aServerSettings) {
             val token = context.call.oauth1aHandleCallback()

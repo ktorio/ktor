@@ -59,42 +59,42 @@ fun RoutingEntry.contentType(contentType: ContentType, build: RoutingEntry.() ->
 /**
  * Builds a route to match `GET` requests with specified [path]
  */
-fun RoutingEntry.get(path: String, body: PipelineContext<ApplicationCall>.() -> Unit) {
+fun RoutingEntry.get(path: String, body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
     route(HttpMethod.Get, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `POST` requests with specified [path]
  */
-fun RoutingEntry.post(path: String, body: PipelineContext<ApplicationCall>.() -> Unit) {
+fun RoutingEntry.post(path: String, body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
     route(HttpMethod.Post, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `HEAD` requests with specified [path]
  */
-fun RoutingEntry.head(path: String, body: PipelineContext<ApplicationCall>.() -> Unit) {
+fun RoutingEntry.head(path: String, body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
     route(HttpMethod.Head, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `PUT` requests with specified [path]
  */
-fun RoutingEntry.put(path: String, body: PipelineContext<ApplicationCall>.() -> Unit) {
+fun RoutingEntry.put(path: String, body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
     route(HttpMethod.Put, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `DELETE` requests with specified [path]
  */
-fun RoutingEntry.delete(path: String, body: PipelineContext<ApplicationCall>.() -> Unit) {
+fun RoutingEntry.delete(path: String, body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
     route(HttpMethod.Delete, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `OPTIONS` requests with specified [path]
  */
-fun RoutingEntry.options(path: String, body: PipelineContext<ApplicationCall>.() -> Unit) {
+fun RoutingEntry.options(path: String, body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
     route(HttpMethod.Options, path) { handle(body) }
 }
 

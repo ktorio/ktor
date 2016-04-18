@@ -7,17 +7,11 @@ import org.jetbrains.ktor.util.*
 import java.util.*
 import kotlin.properties.*
 
-class AuthenticationProcedure() {
-    val pipeline = Pipeline<AuthenticationProcedureContext>()
+class AuthenticationProcedure() : Pipeline<AuthenticationProcedureContext>()
 
-    fun authenticate(authenticator: PipelineContext<AuthenticationProcedureContext>.(AuthenticationProcedureContext) -> Unit) {
-        pipeline.intercept(authenticator)
-    }
-}
-
-fun InterceptApplicationCall.authentication(procedure: AuthenticationProcedure.() -> Unit) {
+fun Pipeline<ApplicationCall>.authentication(procedure: AuthenticationProcedure.() -> Unit) {
     val authenticationProcedure = AuthenticationProcedure().apply(procedure).apply {
-        pipeline.intercept { procedure ->
+        intercept { procedure ->
             val principal = procedure.principal
             if (principal == null) {
                 val challenges = procedure.challenges
@@ -36,7 +30,7 @@ fun InterceptApplicationCall.authentication(procedure: AuthenticationProcedure.(
     intercept {
         val context = AuthenticationProcedureContext(call)
         call.attributes.put(AuthenticationProcedureContext.AttributeKey, context)
-        call.fork(context, authenticationProcedure.pipeline)
+        call.fork(context, authenticationProcedure)
     }
 }
 

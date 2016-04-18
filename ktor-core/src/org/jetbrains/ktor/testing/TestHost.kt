@@ -46,7 +46,7 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
                 val testApplicationCall = call as? TestApplicationCall
                 testApplicationCall?.latch?.countDown()
             }
-            fork(call, application.pipeline)
+            fork(call, application)
         }
     }
 

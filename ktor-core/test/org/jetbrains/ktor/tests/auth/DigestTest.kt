@@ -42,7 +42,7 @@ class DigestTest {
             application.routing {
                 route("/") {
                     authentication {
-                        authenticate {
+                        intercept {
                             subject.call.extractDigest()?.let { digest ->
                                 foundDigests.add(digest)
                             }

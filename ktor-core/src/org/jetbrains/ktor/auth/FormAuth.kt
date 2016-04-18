@@ -4,7 +4,7 @@ import org.jetbrains.ktor.http.*
 
 val FormAuthKey: Any = "FormAuth"
 fun AuthenticationProcedure.formAuthentication(userParamName: String = "user", passwordParamName: String = "password", validate: (UserPasswordCredential) -> Principal?) {
-    authenticate { context ->
+    intercept { context ->
         val username = context.call.parameters[userParamName]
         val password = context.call.parameters[passwordParamName]
 

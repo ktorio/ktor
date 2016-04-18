@@ -33,7 +33,7 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
             current = current.parent
         }
 
-        entry.handlers.forEach { handler -> pipeline.intercept { handler() } }
+        entry.handlers.forEach { pipeline.intercept(it) }
         return pipeline
     }
 

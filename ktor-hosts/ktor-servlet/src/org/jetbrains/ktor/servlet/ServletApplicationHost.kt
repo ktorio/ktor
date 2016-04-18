@@ -43,7 +43,7 @@ open class ServletApplicationHost() : HttpServlet() {
 
         try {
             val call = ServletApplicationCall(application, request, response)
-            val pipelineState = call.execute(application.pipeline)
+            val pipelineState = call.execute(application)
             if (pipelineState != PipelineState.Executing) {
                 if (!call.completed) {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND)

@@ -2,6 +2,7 @@ package org.jetbrains.ktor.content
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.interception.*
+import org.jetbrains.ktor.pipeline.*
 import kotlin.reflect.*
 
 interface TemplateEngine<C : Any, R> where R : StreamContent, R : Resource {
@@ -9,7 +10,7 @@ interface TemplateEngine<C : Any, R> where R : StreamContent, R : Resource {
     fun process(content: C): R
 }
 
-inline fun <reified C : Any> InterceptApplicationCall.templating(engine: TemplateEngine<C, *>) {
+inline fun <reified C : Any> Pipeline<ApplicationCall>.templating(engine: TemplateEngine<C, *>) {
     val javaType = engine.contentClass.java
     intercept { call ->
         call.interceptRespond { obj ->

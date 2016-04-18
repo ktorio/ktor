@@ -5,12 +5,10 @@ import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.pipeline.*
 import java.util.*
 
-open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : InterceptApplicationCall {
+open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : Pipeline<ApplicationCall>() {
     val children: MutableList<RoutingEntry> = ArrayList()
 
-    internal val interceptors = mutableListOf<PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit>()
-
-    internal val handlers = ArrayList<PipelineContext<ApplicationCall>.() -> Unit>()
+    internal val handlers = ArrayList<PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit>()
 
     fun select(selector: RoutingSelector): RoutingEntry {
         val existingEntry = children.firstOrNull { it.selector.equals(selector) }
@@ -22,11 +20,7 @@ open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector
         return existingEntry
     }
 
-    override fun intercept(interceptor: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
-        interceptors.add(interceptor)
-    }
-
-    fun handle(handler: PipelineContext<ApplicationCall>.() -> Unit) {
+    fun handle(handler: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
         handlers.add(handler)
     }
 

@@ -1,6 +1,6 @@
 package org.jetbrains.ktor.pipeline
 
-class Pipeline<TSubject : Any>() {
+open class Pipeline<TSubject : Any>() {
     private val _interceptors = mutableListOf<PipelineContext<TSubject>.(TSubject) -> Unit>()
 
     val interceptors : List<PipelineContext<TSubject>.(TSubject) -> Unit> get() = _interceptors
