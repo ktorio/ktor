@@ -51,7 +51,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     }
 
-    public override fun start(wait: Boolean) {
+    override fun start(wait: Boolean) {
         config.log.info("Starting server...")
         val channelFuture = bootstrap.bind(hostConfig.host, hostConfig.port).sync()
         config.log.info("Server running.")
@@ -75,7 +75,9 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             val pipelineState = call.execute(application)
             if (pipelineState != PipelineState.Executing && !call.completed) {
                 val response = HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")
-                call.respond(response)
+                call.executionMachine.executeInLoop {
+                    call.respond(response)
+                }
             }
         }
 
@@ -87,6 +89,25 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         override fun channelReadComplete(ctx: ChannelHandlerContext) {
             ctx.flush()
         }
+
+        private inline fun PipelineMachine.executeInLoop(block: () -> Unit): Unit {
+            try {
+                block()
+            } catch (e: PipelineContinue) {
+                stateLoopMachine()
+            } catch (e: PipelineControlFlow) {
+            }
+        }
+
+        private fun PipelineMachine.stateLoopMachine() {
+            do {
+                try {
+                    proceed()
+                } catch (e: PipelineContinue) {
+                }
+            } while (true);
+        }
+
     }
 }
 
