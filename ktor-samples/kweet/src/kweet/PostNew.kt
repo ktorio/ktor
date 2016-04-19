@@ -16,7 +16,7 @@ fun RoutingEntry.postNew(dao: DAOFacade, hashFunction: (String) -> String) {
             val date = System.currentTimeMillis()
             val code = securityCode(date, user, hashFunction)
 
-            response.send(FreeMarkerContent("new-kweet.ftl", mapOf("user" to user, "date" to date, "code" to code), user.userId))
+            respond(FreeMarkerContent("new-kweet.ftl", mapOf("user" to user, "date" to date, "code" to code), user.userId))
         }
     }
     post<PostNew> {

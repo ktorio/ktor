@@ -14,6 +14,6 @@ fun RoutingEntry.index(dao: DAOFacade) {
         val etagString = user?.userId.toString() + "," + top.joinToString { it.id.toString() } + latest.joinToString { it.id.toString() }
         val etag = etagString.hashCode()
 
-        response.send(FreeMarkerContent("index.ftl", mapOf("top" to top, "latest" to latest, "user" to user), etag.toString()))
+        respond(FreeMarkerContent("index.ftl", mapOf("top" to top, "latest" to latest, "user" to user), etag.toString()))
     }
 }

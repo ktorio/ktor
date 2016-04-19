@@ -13,11 +13,11 @@ fun RoutingEntry.userPage(dao: DAOFacade) {
         val pageUser = dao.user(it.user)
 
         if (pageUser == null) {
-            response.sendError(HttpStatusCode.NotFound, "User ${it.user} doesn't exist")
+            respondStatus(HttpStatusCode.NotFound, "User ${it.user} doesn't exist")
         } else {
             val kweets = dao.userKweets(it.user).map { dao.getKweet(it) }
 
-            response.send(FreeMarkerContent("user.ftl", mapOf("user" to user, "pageUser" to pageUser, "kweets" to kweets), user?.userId ?: ""))
+            respond(FreeMarkerContent("user.ftl", mapOf("user" to user, "pageUser" to pageUser, "kweets" to kweets), user?.userId ?: ""))
         }
     }
 }

@@ -12,6 +12,6 @@ fun RoutingEntry.viewKweet(dao: DAOFacade, hashFunction: (String) -> String) {
         val date = System.currentTimeMillis()
         val code = if (user != null) securityCode(date, user, hashFunction) else null
 
-        response.send(FreeMarkerContent("view-kweet.ftl", mapOf("user" to user, "kweet" to dao.getKweet(it.id), "date" to date, "code" to code), user?.userId ?: ""))
+        respond(FreeMarkerContent("view-kweet.ftl", mapOf("user" to user, "kweet" to dao.getKweet(it.id), "date" to date, "code" to code), user?.userId ?: ""))
     }
 }

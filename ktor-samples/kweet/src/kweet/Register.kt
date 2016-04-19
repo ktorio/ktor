@@ -28,17 +28,19 @@ fun RoutingEntry.register(dao: DAOFacade, hashFunction: (String) -> String) {
 
                 try {
                     dao.createUser(newUser)
-
-                    session(Session(newUser.userId))
-                    redirect(UserPage(newUser.userId))
                 } catch (e: Throwable) {
                     if (dao.user(it.userId) != null) {
                         redirect(it.copy(error = "User with the following login is already registered", password = ""))
+                    } else if (dao.userByEmail(it.email) != null) {
+                        redirect(it.copy(error = "User with the following email ${it.email} is already registered", password = ""))
                     } else {
                         application.config.log.error("Failed to register user", e)
                         redirect(it.copy(error = "Failed to register", password = ""))
                     }
                 }
+
+                session(Session(newUser.userId))
+                redirect(UserPage(newUser.userId))
             }
         }
     }
@@ -47,7 +49,7 @@ fun RoutingEntry.register(dao: DAOFacade, hashFunction: (String) -> String) {
         if (user != null) {
             redirect(UserPage(user.userId))
         } else {
-            response.send(FreeMarkerContent("register.ftl", mapOf("pageUser" to User(it.userId, it.email, it.displayName, ""), "error" to it.error), ""))
+            respond(FreeMarkerContent("register.ftl", mapOf("pageUser" to User(it.userId, it.email, it.displayName, ""), "error" to it.error), ""))
         }
     }
 }

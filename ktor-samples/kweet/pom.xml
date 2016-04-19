@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ktor-samples</artifactId>
         <groupId>org.jetbrains</groupId>
-        <version>0.1.6-SNAPSHOT</version>
+        <version>0.1.9-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -25,7 +25,7 @@
         <dependency>
             <groupId>org.jetbrains.exposed</groupId>
             <artifactId>exposed</artifactId>
-            <version>0.3.1-SNAPSHOT</version>
+            <version>0.3.2</version>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>

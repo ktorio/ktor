@@ -13,6 +13,7 @@ interface DAOFacade : Closeable {
     fun getKweet(id: Int): Kweet
     fun userKweets(userId: String): List<Int>
     fun user(userId: String, hash: String? = null): User?
+    fun userByEmail(email: String): User?
     fun createUser(user: User)
     fun top(count: Int = 10): List<Int>
     fun latest(count: Int = 10): List<Int>
@@ -64,7 +65,7 @@ class DAOFacadeDatabase(val db: Database = Database.connect("jdbc:h2:mem:test", 
 
     override fun user(userId: String, hash: String?) = db.transaction {
         Users.select { Users.id.eq(userId) }
-                .map {
+                .mapNotNull {
                     if (hash == null || it[Users.passwordHash] == hash) {
                         User(userId, it[Users.email], it[Users.displayName], it[Users.passwordHash])
                     } else {
@@ -72,6 +73,11 @@ class DAOFacadeDatabase(val db: Database = Database.connect("jdbc:h2:mem:test", 
                     }
                 }
                 .singleOrNull()
+    }
+
+    override fun userByEmail(email: String) = db.transaction {
+        Users.select { Users.email.eq(email) }
+                .map { User(it[Users.id], email, it[Users.displayName], it[Users.passwordHash]) }.singleOrNull()
     }
 
     override fun createUser(user: User) = db.transaction {

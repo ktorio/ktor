@@ -89,6 +89,10 @@ class DAOFacadeCache(val delegate: DAOFacade, val storagePath: File) : DAOFacade
         }
     }
 
+    override fun userByEmail(email: String): User? {
+        return delegate.userByEmail(email)
+    }
+
     override fun createUser(user: User) {
         if (usersCache.get(user.userId) != null) {
             throw IllegalStateException("User already exist")

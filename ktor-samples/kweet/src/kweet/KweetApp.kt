@@ -104,12 +104,12 @@ class KweetApp(config: ApplicationConfig) : Application(config) {
 
 }
 
-fun ApplicationCall.redirect(location: Any): ApplicationCallResult {
+fun ApplicationCall.redirect(location: Any): Nothing {
     val host = request.host() ?: "localhost"
     val portSpec = request.port().let { if (it == 80) "" else ":$it" }
     val address = host + portSpec
 
-    return response.sendRedirect("http://$address${application.feature(Locations).href(location)}")
+    respondRedirect("http://$address${application.feature(Locations).href(location)}")
 }
 
 fun ApplicationCall.securityCode(date: Long, user: User, hashFunction: (String) -> String) =

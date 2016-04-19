@@ -1,8 +1,10 @@
 package kweet
 
 import kweet.dao.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.freemarker.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
 
@@ -13,7 +15,7 @@ fun RoutingEntry.login(dao: DAOFacade, hash: (String) -> String) {
         if (user != null) {
             redirect(UserPage(user.userId))
         } else {
-            response.send(FreeMarkerContent("login.ftl", mapOf("userId" to it.userId, "error" to it.error), ""))
+            respond(FreeMarkerContent("login.ftl", mapOf("userId" to it.userId, "error" to it.error), ""))
         }
     }
     post<Login> {
