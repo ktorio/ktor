@@ -2,6 +2,7 @@ package org.jetbrains.ktor.tests.application
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
@@ -91,6 +92,7 @@ abstract class HostTestSuite {
                     write("ABC".toByteArray())
                     write("123".toByteArray())
                 }
+                call.close() // TODO: shouldn't stream {} return Nothing ?
             }
         }
         startServer(server)
@@ -258,6 +260,7 @@ abstract class HostTestSuite {
         println("test file is $file")
 
         val server = createServer(port) {
+            application.setupCompression()
             handle {
                 call.respond(LocalFileContent(file))
             }
@@ -277,6 +280,7 @@ abstract class HostTestSuite {
         println("test file is $file")
 
         val server = createServer(port) {
+            application.install(RangeInterceptor)
             handle {
                 call.respond(LocalFileContent(file))
             }
@@ -299,6 +303,9 @@ abstract class HostTestSuite {
         println("test file is $file")
 
         val server = createServer(port) {
+            application.setupCompression()
+            application.install(RangeInterceptor)
+
             handle {
                 call.respond(LocalFileContent(file))
             }
@@ -400,7 +407,7 @@ abstract class HostTestSuite {
     fun withUrl(path: String, block: HttpURLConnection.() -> Unit) {
         val connection = URL("http://127.0.0.1:$port$path").openConnection() as HttpURLConnection
         connection.connectTimeout = 10000
-        connection.readTimeout = 30000
+//        connection.readTimeout = 30000
         connection.instanceFollowRedirects = false
 
         connection.block()
