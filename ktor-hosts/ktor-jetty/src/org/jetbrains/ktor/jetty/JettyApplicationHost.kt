@@ -57,14 +57,18 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 }
 
                 val pipelineState = call.execute(application)
-                if (pipelineState != PipelineState.Executing) {
-                    baseRequest.isHandled = call.completed
-                    // TODO: report 404? Or pass to next handler?
-                } else {
-                    if (!call.asyncStarted) {
-                        val asyncContext = baseRequest.startAsync()
-                        call.continueAsync(asyncContext)
+                when (pipelineState) {
+                    PipelineState.Succeeded -> baseRequest.isHandled = call.completed
+                    PipelineState.Executing -> {
+                        baseRequest.isHandled = true
+                        // TODO how do we report 404 if async or pass to the next handler?
+
+                        if (!call.asyncStarted) {
+                            val asyncContext = baseRequest.startAsync()
+                            call.continueAsync(asyncContext)
+                        }
                     }
+                    PipelineState.Failed -> baseRequest.isHandled = true
                 }
             } catch(ex: Throwable) {
                 config.log.error("Application ${application.javaClass} cannot fulfill the request", ex);
@@ -73,7 +77,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     }
 
-    public override fun start(wait: Boolean) {
+    override fun start(wait: Boolean) {
         config.log.info("Starting server...")
 
         server.start()

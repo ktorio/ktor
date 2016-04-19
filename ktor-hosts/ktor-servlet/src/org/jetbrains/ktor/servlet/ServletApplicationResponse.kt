@@ -1,14 +1,10 @@
 package org.jetbrains.ktor.servlet
 
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.nio.*
 import java.io.*
-import java.nio.channels.*
-import java.nio.file.*
-import javax.servlet.*
 import javax.servlet.http.*
 
 class ServletApplicationResponse(call: ServletApplicationCall, servletResponse: HttpServletResponse) : BaseApplicationResponse() {
@@ -31,10 +27,12 @@ class ServletApplicationResponse(call: ServletApplicationCall, servletResponse: 
 
     override val stream = Interceptable1<OutputStream.() -> Unit, Unit> { body ->
         servletResponse.outputStream.body()
-        ApplicationCallResult.Handled
     }
 
     override val channel = Interceptable0<AsyncWriteChannel> {
-        ServletAsyncWriteChannel(call.startAsync(), servletResponse.outputStream)
+        if (!call.asyncStarted) {
+            call.startAsync()
+        }
+        ServletAsyncWriteChannel(servletResponse.outputStream)
     }
 }

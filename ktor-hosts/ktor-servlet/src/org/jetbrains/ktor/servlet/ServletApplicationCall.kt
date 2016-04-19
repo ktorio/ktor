@@ -29,10 +29,10 @@ class ServletApplicationCall(application: Application,
     val asyncStarted: Boolean
         get() = asyncContext != null
 
+    @Volatile
     var completed: Boolean = false
     override val close = Interceptable0 {
         completed = true
-        servletResponse.flushBuffer()
         if (asyncContext != null) {
             asyncContext?.complete()
         }

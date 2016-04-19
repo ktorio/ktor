@@ -33,11 +33,11 @@ open class ServletApplicationHost() : HttpServlet() {
     val application: Application get() = loader.application
 
 
-    public override fun destroy() {
+    override fun destroy() {
         loader.dispose()
     }
 
-    protected override fun service(request: HttpServletRequest, response: HttpServletResponse) {
+    override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         response.characterEncoding = "UTF-8"
         request.characterEncoding = "UTF-8"
 
