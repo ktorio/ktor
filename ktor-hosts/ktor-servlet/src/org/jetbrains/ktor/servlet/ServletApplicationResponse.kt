@@ -7,12 +7,14 @@ import org.jetbrains.ktor.nio.*
 import java.io.*
 import javax.servlet.http.*
 
-class ServletApplicationResponse(call: ServletApplicationCall, servletResponse: HttpServletResponse) : BaseApplicationResponse() {
+class ServletApplicationResponse(val call: ServletApplicationCall, val servletResponse: HttpServletResponse) : BaseApplicationResponse() {
     var _status: HttpStatusCode? = null
-    override val status = Interceptable1<HttpStatusCode, Unit> { code ->
-        _status = code
-        servletResponse.status = code.value
+
+    override fun status(value: HttpStatusCode) {
+        _status = value
+        servletResponse.status = value.value
     }
+    override fun status(): HttpStatusCode? = _status
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         override fun hostAppendHeader(name: String, value: String) {
@@ -23,7 +25,6 @@ class ServletApplicationResponse(call: ServletApplicationCall, servletResponse: 
         override fun getHostHeaderValues(name: String): List<String> = servletResponse.getHeaders(name).toList()
     }
 
-    override fun status(): HttpStatusCode? = _status
 
     override val stream = Interceptable1<OutputStream.() -> Unit, Unit> { body ->
         servletResponse.outputStream.body()

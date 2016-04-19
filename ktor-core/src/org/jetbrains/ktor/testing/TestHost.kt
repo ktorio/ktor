@@ -140,7 +140,11 @@ class TestApplicationResponse() : BaseApplicationResponse() {
     private var statusCode: HttpStatusCode? = null
     private val realContent = lazy { ByteArrayAsyncWriteChannel() }
 
-    override val status = Interceptable1<HttpStatusCode, Unit> { code -> this.statusCode = code }
+    override fun status(value:HttpStatusCode) {
+        statusCode = value
+    }
+    override fun status(): HttpStatusCode? = statusCode
+
     override val stream = Interceptable1<OutputStream.() -> Unit, Unit> { body ->
         realContent.value.asOutputStream().body()
     }
@@ -158,7 +162,6 @@ class TestApplicationResponse() : BaseApplicationResponse() {
         override fun getHostHeaderValues(name: String): List<String> = headersMap[name] ?: emptyList()
     }
 
-    override fun status(): HttpStatusCode? = statusCode
 
     val content: String?
         get() = if (realContent.isInitialized()) {

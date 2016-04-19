@@ -14,7 +14,6 @@ interface ApplicationResponse {
 
     fun status(): HttpStatusCode?
     fun status(value: HttpStatusCode)
-    fun interceptStatus(handler: (value: HttpStatusCode, next: (value: HttpStatusCode) -> Unit) -> Unit)
 
     fun stream(body: OutputStream.() -> Unit): Unit
     fun interceptStream(handler: (body: OutputStream.() -> Unit, next: (body: OutputStream.() -> Unit) -> Unit) -> Unit)

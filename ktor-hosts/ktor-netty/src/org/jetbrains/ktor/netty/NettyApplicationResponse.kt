@@ -3,7 +3,6 @@ package org.jetbrains.ktor.netty
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.HttpHeaders
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
@@ -16,9 +15,11 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
     private var commited = false
     private val closed = AtomicBoolean(false)
 
-    override val status = Interceptable1<HttpStatusCode, Unit> { status ->
-        response.status = HttpResponseStatus(status.value, status.description)
+    override fun status(value: HttpStatusCode) {
+        response.status = HttpResponseStatus(value.value, value.description)
     }
+
+    override fun status(): HttpStatusCode? = response.status?.let { HttpStatusCode(it.code(), it.reasonPhrase()) }
 
     override val channel = Interceptable0<AsyncWriteChannel> {
         setChunked()
@@ -42,7 +43,6 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
         override fun getHostHeaderValues(name: String): List<String> = response.headers().getAll(name) ?: emptyList()
     }
 
-    override fun status(): HttpStatusCode? = response.status?.let { HttpStatusCode(it.code(), it.reasonPhrase()) }
 
     fun sendRequestMessage(): ChannelFuture? {
         if (!commited) {
