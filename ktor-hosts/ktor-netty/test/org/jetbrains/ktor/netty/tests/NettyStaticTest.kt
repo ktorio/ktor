@@ -4,9 +4,7 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.tests.application.*
-import org.junit.*
 
-@Ignore
 class NettyStaticTest : HostTestSuite() {
     override fun createServer(port: Int, block: Routing.() -> Unit): ApplicationHost {
         return embeddedNettyServer(port, application = block)
