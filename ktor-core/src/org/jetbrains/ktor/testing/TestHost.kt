@@ -72,7 +72,7 @@ class TestApplicationCall(application: Application, override val request: TestAp
     internal val latch = CountDownLatch(1)
     override val parameters: ValuesMap get() = request.parameters
     override val attributes = Attributes()
-    override val close = Interceptable0 {
+    override fun close() {
         requestResult = ApplicationCallResult.Handled
     }
 

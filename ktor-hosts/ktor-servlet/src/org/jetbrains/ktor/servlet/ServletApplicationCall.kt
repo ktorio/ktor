@@ -31,7 +31,7 @@ class ServletApplicationCall(application: Application,
 
     @Volatile
     var completed: Boolean = false
-    override val close = Interceptable0 {
+    override fun close() {
         completed = true
         if (asyncContext != null) {
             asyncContext?.complete()

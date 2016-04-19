@@ -30,10 +30,8 @@ interface ApplicationCall {
 
     /**
      * Closes this call and sends out any remaining data
-     *
-     * Can be intercepted to perform any cleanup tasks that are required by the processing pipeline
      */
-    val close: Interceptable0<Unit>
+    fun close(): Unit
 
     val parameters: ValuesMap
 
@@ -46,8 +44,3 @@ interface ApplicationCall {
 
     fun execute(pipeline: Pipeline<ApplicationCall>): PipelineState
 }
-
-/**
- * Closes this call and sends out any remaining data
- */
-fun ApplicationCall.close(): Unit = close.execute()

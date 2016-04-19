@@ -27,7 +27,7 @@ class NettyApplicationCall(application: Application,
         HttpHeaders.setTransferEncodingChunked(httpResponse)
     }
 
-    override val close = Interceptable0 {
+    override fun close() {
         completed = true
         (response as NettyApplicationResponse).finalize()
     }
