@@ -6,14 +6,11 @@ import java.io.*
 import java.nio.*
 import java.nio.channels.*
 
-internal class NettyAsyncStream(val request: HttpRequest, val context: ChannelHandlerContext) : OutputStream() {
+internal class NettyAsyncStream(val request: HttpRequest, val appResponse: NettyApplicationResponse, val context: ChannelHandlerContext) : OutputStream() {
     private val buffer = context.alloc().buffer(8192)
-    private var lastContentWritten = false
     private var asyncStarted = false
 
     override fun write(b: Int) {
-        require(lastContentWritten == false) { "You can't write after the last chunk was written" }
-
         buffer.writeByte(b)
         if (buffer.writableBytes() == 0) {
             flush()
@@ -22,8 +19,6 @@ internal class NettyAsyncStream(val request: HttpRequest, val context: ChannelHa
 
     tailrec
     override fun write(b: ByteArray, off: Int, len: Int) {
-        require(lastContentWritten == false) { "You can't write after the last chunk was written" }
-
         val toWrite = Math.min(len, buffer.writableBytes())
         if (toWrite > 0) {
             buffer.writeBytes(b, off, toWrite)
@@ -37,7 +32,7 @@ internal class NettyAsyncStream(val request: HttpRequest, val context: ChannelHa
     }
 
     override fun flush() {
-        if (!lastContentWritten && buffer.readableBytes() > 0) {
+        if (buffer.readableBytes() > 0) {
             context.writeAndFlush(DefaultHttpContent(buffer.copy()))
             buffer.writerIndex(0)
         }
@@ -78,19 +73,6 @@ internal class NettyAsyncStream(val request: HttpRequest, val context: ChannelHa
     }
 
     private fun finish() {
-        if (!lastContentWritten) {
-            context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).scheduleClose()
-            lastContentWritten = true
-        } else if (noKeepAlive()) {
-            context.close()
-        }
+        appResponse.finalize()
     }
-
-    private fun ChannelFuture.scheduleClose() {
-        if (noKeepAlive()) {
-            addListener(ChannelFutureListener.CLOSE)
-        }
-    }
-
-    private fun noKeepAlive() = !HttpHeaders.isKeepAlive(request)
 }
