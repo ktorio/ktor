@@ -52,3 +52,13 @@ fun <S : Any> Pipeline<ApplicationCall>.withSessions(sessionConfig: SessionConfi
         }
     }
 }
+
+fun ApplicationCall.clearSession() {
+    val sessionConfig = attributes.getOrNull(SessionConfigKey)
+
+    if (sessionConfig != null) {
+        sessionConfig.sessionTracker.unassign(this)
+    }
+
+    attributes.remove(SessionKey)
+}
