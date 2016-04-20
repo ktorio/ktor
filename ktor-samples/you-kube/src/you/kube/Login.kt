@@ -20,17 +20,17 @@ fun RoutingEntry.login(users: UserHashedTableAuth) {
 
             handle {
                 call.session(Session(call.principal<UserIdPrincipal>()!!.name))
-                call.redirect(Index())
+                call.respondRedirect(Index())
             }
         }
 
         method(HttpMethod.Get) {
             handle<Login> {
-                respondDefaultHtml(emptyList(), CacheControlVisibility.PUBLIC) {
+                call.respondDefaultHtml(emptyList(), CacheControlVisibility.PUBLIC) {
                     p { +"Welcome to You Kube" }
                     h2 { +"Login" }
 //                    form(url(Login()), encType = FormEncType.applicationXWwwFormUrlEncoded, method = FormMethod.post) {
-                    form(url(Login()) { parameters.clear() }, encType = FormEncType.applicationXWwwFormUrlEncoded, method = FormMethod.post) {
+                    form(call.url(Login()) { parameters.clear() }, encType = FormEncType.applicationXWwwFormUrlEncoded, method = FormMethod.post) {
                         acceptCharset = "utf-8"
 
                         ul {

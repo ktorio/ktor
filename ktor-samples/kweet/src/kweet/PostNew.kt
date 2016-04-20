@@ -1,6 +1,7 @@
 package kweet
 
 import kweet.dao.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.freemarker.*
 import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.routing.*
@@ -8,24 +9,24 @@ import org.jetbrains.ktor.sessions.*
 
 fun RoutingEntry.postNew(dao: DAOFacade, hashFunction: (String) -> String) {
     get<PostNew> {
-        val user = sessionOrNull<Session>()?.let { dao.user(it.userId) }
+        val user = call.sessionOrNull<Session>()?.let { dao.user(it.userId) }
 
         if (user == null) {
-            redirect(Login())
+            call.redirect(Login())
         } else {
             val date = System.currentTimeMillis()
-            val code = securityCode(date, user, hashFunction)
+            val code = call.securityCode(date, user, hashFunction)
 
-            respond(FreeMarkerContent("new-kweet.ftl", mapOf("user" to user, "date" to date, "code" to code), user.userId))
+            call.respond(FreeMarkerContent("new-kweet.ftl", mapOf("user" to user, "date" to date, "code" to code), user.userId))
         }
     }
     post<PostNew> {
-        val user = sessionOrNull<Session>()?.let { dao.user(it.userId) }
-        if (user == null || !verifyCode(it.date, user, it.code, hashFunction)) {
-            redirect(Login())
+        val user = call.sessionOrNull<Session>()?.let { dao.user(it.userId) }
+        if (user == null || !call.verifyCode(it.date, user, it.code, hashFunction)) {
+            call.redirect(Login())
         } else {
             val id = dao.createKweet(user.userId, it.text, null)
-            redirect(ViewKweet(id))
+            call.redirect(ViewKweet(id))
         }
     }
 }

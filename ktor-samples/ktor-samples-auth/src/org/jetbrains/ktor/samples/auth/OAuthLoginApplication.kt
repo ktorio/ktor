@@ -89,9 +89,9 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
         install(Locations)
         routing {
             get<index>() {
-                response.status(HttpStatusCode.OK)
-                response.contentType(ContentType.Text.Html)
-                response.write {
+                call.response.status(HttpStatusCode.OK)
+                call.response.contentType(ContentType.Text.Html)
+                call.response.write {
                     appendHTML().html {
                         head {
                             title { +"index page" }

@@ -1,6 +1,7 @@
 package you.kube
 
 import kotlinx.html.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
@@ -11,12 +12,12 @@ import java.io.*
 
 fun RoutingEntry.videos(database: Database) {
     get<Index> {
-        val session = sessionOrNull<Session>()
+        val session = call.sessionOrNull<Session>()
         val topVideos = database.top()
         val etag = topVideos.joinToString { "${it.id},${it.title}" }.hashCode().toString() + "," + session?.userId?.hashCode()
         val visibility = if (session == null) CacheControlVisibility.PUBLIC else CacheControlVisibility.PRIVATE
 
-        respondDefaultHtml(listOf(EntityTagVersion(etag)), visibility) {
+        call.respondDefaultHtml(listOf(EntityTagVersion(etag)), visibility) {
             p {
                 +"Welcome to You Kube"
                 if (session != null) {
@@ -43,16 +44,16 @@ fun RoutingEntry.videos(database: Database) {
         val video = database.videoById(it.id)
 
         if (video == null) {
-            respondStatus(HttpStatusCode.NotFound, "Video ${it.id} doesn't exist")
+            call.respondStatus(HttpStatusCode.NotFound, "Video ${it.id} doesn't exist")
         } else {
-            respondDefaultHtml(listOf(EntityTagVersion(video.hashCode().toString())), CacheControlVisibility.PUBLIC, video.title) {
+            call.respondDefaultHtml(listOf(EntityTagVersion(video.hashCode().toString())), CacheControlVisibility.PUBLIC, video.title) {
                 video {
                     controls = true
                     width = "640"
                     height = "320"
 
                     source {
-                        src = url(VideoStream(it.id))
+                        src = call.url(VideoStream(it.id))
                         type = "video/ogg"
                     }
                 }
@@ -66,10 +67,10 @@ fun RoutingEntry.videos(database: Database) {
         val video = database.videoById(it.id)
 
         if (video == null) {
-            respondStatus(HttpStatusCode.NotFound)
+            call.respondStatus(HttpStatusCode.NotFound)
         } else {
             val type = ContentTypeByExtension.lookupByPath(video.videoFileName).first { it.contentType == "video" }
-            respond(LocalFileContent(File(video.videoFileName), contentType = type))
+            call.respond(LocalFileContent(File(video.videoFileName), contentType = type))
         }
     }
 }

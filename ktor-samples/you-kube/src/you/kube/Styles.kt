@@ -1,6 +1,7 @@
 package you.kube
 
 import kotlinx.css.port.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
@@ -11,7 +12,7 @@ class MainCss()
 
 fun RoutingEntry.styles() {
     get<MainCss> {
-        respond(TextContent(ContentType.Text.CSS, mainCss()))
+        call.respond(TextContent(ContentType.Text.CSS, mainCss()))
     }
 }
 

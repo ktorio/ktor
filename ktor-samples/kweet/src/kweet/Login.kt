@@ -10,19 +10,19 @@ import org.jetbrains.ktor.sessions.*
 
 fun RoutingEntry.login(dao: DAOFacade, hash: (String) -> String) {
     get<Login> {
-        val user = sessionOrNull<Session>()?.let { dao.user(it.userId) }
+        val user = call.sessionOrNull<Session>()?.let { dao.user(it.userId) }
 
         if (user != null) {
-            redirect(UserPage(user.userId))
+            call.redirect(UserPage(user.userId))
         } else {
-            respond(FreeMarkerContent("login.ftl", mapOf("userId" to it.userId, "error" to it.error), ""))
+            call.respond(FreeMarkerContent("login.ftl", mapOf("userId" to it.userId, "error" to it.error), ""))
         }
     }
     post<Login> {
-        val user = sessionOrNull<Session>()?.let { dao.user(it.userId) }
+        val user = call.sessionOrNull<Session>()?.let { dao.user(it.userId) }
 
         if (user != null) {
-            redirect(UserPage(user.userId))
+            call.redirect(UserPage(user.userId))
         } else {
             val login = when {
                 it.userId.length < 4 -> null
@@ -32,15 +32,15 @@ fun RoutingEntry.login(dao: DAOFacade, hash: (String) -> String) {
             }
 
             if (login == null) {
-                redirect(it.copy(password = "", error = "Invalid username or password"))
+                call.redirect(it.copy(password = "", error = "Invalid username or password"))
             } else {
-                session(Session(login.userId))
-                redirect(UserPage(login.userId))
+                call.session(Session(login.userId))
+                call.redirect(UserPage(login.userId))
             }
         }
     }
     get<Logout> {
-        clearSession()
-        redirect(Index())
+        call.clearSession()
+        call.redirect(Index())
     }
 }

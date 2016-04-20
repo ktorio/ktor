@@ -71,7 +71,7 @@ fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
                         }
                         if (obj is ChannelContentProvider) {
                             call.response.headers.append(HttpHeaders.ContentEncoding, encoding)
-                            respond(CompressedChannelProvider(obj.channel()))
+                            call.respond(CompressedChannelProvider(obj.channel()))
                         }
                     }
                 }

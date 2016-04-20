@@ -72,7 +72,7 @@ fun RoutingEntry.serveClasspathResources(basePackage: String = "") {
     route("{path...}") {
         handle {
             call.resolveClasspathWithPath(basePackage, call.parameters.getAll("path")!!.joinToString(File.separator))?.let {
-                respond(it)
+                call.respond(it)
             }
         }
     }
@@ -87,7 +87,7 @@ fun RoutingEntry.serveFileSystem(baseDir: File) {
             if (!message.file.exists()) {
                 call.respondStatus(HttpStatusCode.NotFound)
             } else {
-                respond(message)
+                call.respond(message)
             }
         }
     }

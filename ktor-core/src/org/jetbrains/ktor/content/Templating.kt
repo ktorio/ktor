@@ -15,7 +15,7 @@ inline fun <reified C : Any> Pipeline<ApplicationCall>.templating(engine: Templa
     intercept { call ->
         call.interceptRespond { obj ->
             if (javaType.isInstance(obj)) {
-                respond(engine.process(obj as C))
+                call.respond(engine.process(obj as C))
             }
         }
     }

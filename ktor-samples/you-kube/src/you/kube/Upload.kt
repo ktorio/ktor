@@ -1,6 +1,7 @@
 package you.kube
 
 import kotlinx.html.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
@@ -10,14 +11,14 @@ import java.io.*
 
 fun RoutingEntry.upload(database: Database, uploadDir: File) {
     get<Upload> {
-        val session = sessionOrNull<Session>()
+        val session = call.sessionOrNull<Session>()
         if (session == null) {
-            redirect(Login())
+            call.respondRedirect(Login())
         } else {
-            respondDefaultHtml(emptyList(), CacheControlVisibility.PRIVATE) {
+            call.respondDefaultHtml(emptyList(), CacheControlVisibility.PRIVATE) {
                 h2 { +"Upload video" }
 
-                form(url(Upload()), encType = FormEncType.multipartFormData, method = FormMethod.post) {
+                form(call.url(Upload()), encType = FormEncType.multipartFormData, method = FormMethod.post) {
                     acceptCharset = "utf-8"
 
                     label { for_ = "title"; +"Title:" }
@@ -36,11 +37,11 @@ fun RoutingEntry.upload(database: Database, uploadDir: File) {
     }
 
     post<Upload> {
-        val session = sessionOrNull<Session>()
+        val session = call.sessionOrNull<Session>()
         if (session == null) {
-            respondStatus(HttpStatusCode.Forbidden, "Not logged in")
+            call.respondStatus(HttpStatusCode.Forbidden, "Not logged in")
         } else {
-            val multipart = request.content.get<MultiPartData>()
+            val multipart = call.request.content.get<MultiPartData>()
             var title = ""
             var videoFile: File? = null
 
@@ -61,7 +62,7 @@ fun RoutingEntry.upload(database: Database, uploadDir: File) {
 
             val id = database.addVideo(title, session.userId, videoFile!!)
 
-            redirect(VideoPage(id))
+            call.respondRedirect(VideoPage(id))
         }
     }
 }

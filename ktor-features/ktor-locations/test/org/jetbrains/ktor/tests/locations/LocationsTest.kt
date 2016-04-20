@@ -23,7 +23,7 @@ class LocationsTest {
         assertEquals("/", href)
         application.routing {
             get<index> {
-                respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)
@@ -37,7 +37,7 @@ class LocationsTest {
         assertEquals("/about", href)
         application.routing {
             get<about> {
-                respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)
@@ -52,7 +52,7 @@ class LocationsTest {
         application.routing {
             get<user> { user ->
                 assertEquals(123, user.id)
-                respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)
@@ -68,7 +68,7 @@ class LocationsTest {
             get<named> { named ->
                 assertEquals(123, named.id)
                 assertEquals("abc def", named.name)
-                respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)
@@ -84,7 +84,7 @@ class LocationsTest {
         application.routing {
             get<favorite> { favorite ->
                 assertEquals(123, favorite.id)
-                respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)
@@ -104,7 +104,7 @@ class LocationsTest {
         application.routing {
             get<pathContainer.items> { items ->
                 assertEquals(123, items.container.id)
-                respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
             assertFailsWith(InconsistentRoutingException::class) {
                 get<pathContainer.badItems> {  }
@@ -127,7 +127,7 @@ class LocationsTest {
         application.routing {
             get<queryContainer.items> { items ->
                 assertEquals(123, items.container.id)
-                respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
             assertFailsWith(InconsistentRoutingException::class) {
                 get<queryContainer.badItems> {  }
@@ -147,7 +147,7 @@ class LocationsTest {
             get<optionalName> {
                 assertEquals(123, it.id)
                 assertNull(it.optional)
-                respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)
@@ -165,7 +165,7 @@ class LocationsTest {
             get<optionalIndex> {
                 assertEquals(123, it.id)
                 assertEquals(42, it.optional)
-                respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled("/container?id=123")
@@ -180,7 +180,7 @@ class LocationsTest {
             get<optionalName> {
                 assertEquals(123, it.id)
                 assertEquals("text", it.optional)
-                respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)
@@ -198,11 +198,11 @@ class LocationsTest {
         application.routing {
             get<optionalContainer> {
                 assertEquals(null, it.id)
-                respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
             get<optionalContainer.items> {
                 assertEquals("text", it.optional)
-                respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
 
         }
@@ -220,10 +220,10 @@ class LocationsTest {
         assertEquals("/container/items", href)
         application.routing {
             get<simpleContainer.items> {
-                respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
             get<simpleContainer> {
-                respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
         }
         urlShouldBeHandled(href)
@@ -238,7 +238,7 @@ class LocationsTest {
         assertEquals("/container", href)
         application.routing {
             get<tailCard> {
-                respondText(it.path.toString())
+                call.respond(it.path.toString())
             }
 
         }
@@ -254,7 +254,7 @@ class LocationsTest {
         assertEquals("/?value=1&value=2&value=3", href)
         application.routing {
             get<multiquery> {
-                respondText(it.value.toString())
+                call.respond(it.value.toString())
             }
 
         }

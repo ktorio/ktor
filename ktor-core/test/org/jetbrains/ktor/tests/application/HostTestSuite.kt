@@ -367,7 +367,7 @@ abstract class HostTestSuite {
 
         val server = createServer(port) {
             handle {
-                respond(URIFileContent(file.toURI()))
+                call.respond(URIFileContent(file.toURI()))
             }
         }
         startServer(server)

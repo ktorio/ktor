@@ -32,8 +32,7 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
                     }
                 }
 
-                response.status(HttpStatusCode.OK)
-                respondText("Success, ${principal<UserIdPrincipal>()?.name}")
+                call.respondText("Success, ${call.principal<UserIdPrincipal>()?.name}")
             }
 
             get<SimpleUserTable>() {
@@ -41,8 +40,7 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
                     basicAuthentication("ktor") { hashedUserTable.authenticate(it) }
                 }
 
-                response.status(HttpStatusCode.OK)
-                respondText("Success")
+                call.respondText("Success")
             }
         }
     }
