@@ -16,7 +16,7 @@
         <#if user??>
             <a href="/user/${user.userId}">my timeline</a> |
             <a href="/post-new">New kweet</a> |
-            <a href="/logout">sign out [${user.displayName}]</a>
+            <a href="/logout">sign out [${user.displayName?has_content?then(user.displayName, user.userId)}]</a>
         <#else>
             <a href="/register">sign up</a> |
             <a href="/login">sign in</a>
