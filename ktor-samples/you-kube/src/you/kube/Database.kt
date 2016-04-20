@@ -7,8 +7,7 @@ import java.io.*
 import java.util.*
 import java.util.concurrent.atomic.*
 
-object Database {
-    val uploadDir = File(System.getProperty("user.home"), "Videos")
+class Database(val uploadDir: File) {
     val gson = GsonBuilder().disableHtmlEscaping().serializeNulls().setLongSerializationPolicy(LongSerializationPolicy.STRING).create()
 
     val cacheManager = CacheManagerBuilder.newCacheManagerBuilder().build(true)

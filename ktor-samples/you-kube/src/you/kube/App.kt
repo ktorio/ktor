@@ -37,7 +37,12 @@ class App(config: ApplicationConfig) : Application(config) {
         setupCompression()
 
         val key = hex("03e156f6058a13813816065")
-        val uploadDir = File(System.getProperty("user.home"), "Videos")
+        val uploadDir = File("ktor-samples/you-kube/.video")
+        if (!uploadDir.mkdirs() && !uploadDir.exists()) {
+            throw IOException("Failed to create directory ${uploadDir.absolutePath}")
+        }
+        val database = Database(uploadDir)
+
         val users = UserHashedTableAuth(table = mapOf(
                 "root" to UserHashedTableAuth(table = emptyMap()).digester("root")
         ))
@@ -52,8 +57,8 @@ class App(config: ApplicationConfig) : Application(config) {
 
         routing {
             login(users)
-            upload(uploadDir)
-            videos()
+            upload(database, uploadDir)
+            videos(database)
             styles()
         }
     }

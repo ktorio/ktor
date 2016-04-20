@@ -9,10 +9,10 @@ import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
 import java.io.*
 
-fun RoutingEntry.videos() {
+fun RoutingEntry.videos(database: Database) {
     get<Index> {
         val session = sessionOrNull<Session>()
-        val topVideos = Database.top()
+        val topVideos = database.top()
         val etag = topVideos.joinToString { "${it.id},${it.title}" }.hashCode().toString() + "," + session?.userId?.hashCode()
         val visibility = if (session == null) CacheControlVisibility.PUBLIC else CacheControlVisibility.PRIVATE
 
@@ -40,7 +40,7 @@ fun RoutingEntry.videos() {
     }
 
     get<VideoPage> {
-        val video = Database.videoById(it.id)
+        val video = database.videoById(it.id)
 
         if (video == null) {
             respondStatus(HttpStatusCode.NotFound, "Video ${it.id} doesn't exist")
@@ -63,7 +63,7 @@ fun RoutingEntry.videos() {
     }
 
     get<VideoStream> {
-        val video = Database.videoById(it.id)
+        val video = database.videoById(it.id)
 
         if (video == null) {
             respondStatus(HttpStatusCode.NotFound)

@@ -8,7 +8,7 @@ import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
 import java.io.*
 
-fun RoutingEntry.upload(uploadDir: File) {
+fun RoutingEntry.upload(database: Database, uploadDir: File) {
     get<Upload> {
         val session = sessionOrNull<Session>()
         if (session == null) {
@@ -59,7 +59,7 @@ fun RoutingEntry.upload(uploadDir: File) {
                 it.dispose()
             }
 
-            val id = Database.addVideo(title, session.userId, videoFile!!)
+            val id = database.addVideo(title, session.userId, videoFile!!)
 
             redirect(VideoPage(id))
         }
