@@ -12,7 +12,7 @@ class RoutingProcessingTest {
         val testHost = createTestHost()
         testHost.application.routing {
             get("/foo/bar") {
-                call.respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
         }
 

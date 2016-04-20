@@ -49,5 +49,5 @@ fun ApplicationCall.sendAuthenticationRequest(vararg challenges: HttpAuthHeader 
     require(challenges.isNotEmpty()) { "it should be at least one challenge requested, for example Basic" }
 
     response.headers.append(HttpHeaders.WWWAuthenticate, challenges.joinToString(", ") { it.render() })
-    respondStatus(HttpStatusCode.Unauthorized)
+    respond(HttpStatusCode.Unauthorized)
 }

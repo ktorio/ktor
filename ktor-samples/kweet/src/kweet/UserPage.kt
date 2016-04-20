@@ -14,7 +14,7 @@ fun RoutingEntry.userPage(dao: DAOFacade) {
         val pageUser = dao.user(it.user)
 
         if (pageUser == null) {
-            call.respondStatus(HttpStatusCode.NotFound, "User ${it.user} doesn't exist")
+            call.respond(HttpStatusCode.NotFound.description("User ${it.user} doesn't exist"))
         } else {
             val kweets = dao.userKweets(it.user).map { dao.getKweet(it) }
 

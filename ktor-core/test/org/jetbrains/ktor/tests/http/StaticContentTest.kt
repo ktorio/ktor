@@ -129,7 +129,7 @@ class StaticContentTest {
                 addHeader(HttpHeaders.Range, "bytes=-0") // unsatisfiable
             }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable, result.response.status())
+                assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable.value, result.response.status()?.value)
                 assertEquals("bytes */${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             }
         }
@@ -142,7 +142,7 @@ class StaticContentTest {
                 addHeader(HttpHeaders.Range, "bytes=1000000-1000004")  // unsatisfiable
             }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable, result.response.status())
+                assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable.value, result.response.status()?.value)
                 assertEquals("bytes */${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             }
         }
@@ -213,7 +213,7 @@ class StaticContentTest {
                 addHeader(HttpHeaders.Range, "bytes=0-0")
             }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals(HttpStatusCode.MethodNotAllowed, result.response.status())
+                assertEquals(HttpStatusCode.MethodNotAllowed.description("Method POST is not allowed with range request"), result.response.status())
             }
         }
     }

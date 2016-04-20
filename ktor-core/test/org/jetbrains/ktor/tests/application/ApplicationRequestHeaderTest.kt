@@ -22,7 +22,7 @@ class ApplicationRequestHeaderTest {
                     it("should return empty string as queryString") {
                         assertEquals("", call.request.queryString())
                     }
-                    call.respondStatus(HttpStatusCode.OK)
+                    call.respond(HttpStatusCode.OK)
                 }
             }
 
@@ -66,14 +66,14 @@ class ApplicationRequestHeaderTest {
                         assertEquals(8888, call.request.port())
                     }
 
-                    call.respondStatus(HttpStatusCode.OK)
+                    call.respond(HttpStatusCode.OK)
                 }
                 get("/default-port") {
                     it("should map port to 80") {
                         assertEquals(80, call.request.port())
                     }
 
-                    call.respondStatus(HttpStatusCode.OK)
+                    call.respond(HttpStatusCode.OK)
                 }
             }
 
@@ -120,7 +120,7 @@ class ApplicationRequestHeaderTest {
                     it("should map path to empty") {
                         assertEquals("/", call.request.path())
                     }
-                    call.respondStatus(HttpStatusCode.OK)
+                    call.respond(HttpStatusCode.OK)
                 }
             }
 

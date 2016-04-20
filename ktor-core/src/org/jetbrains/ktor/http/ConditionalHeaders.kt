@@ -55,7 +55,7 @@ fun <R> ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block:
     return when (result) {
         ConditionalHeaderCheckResult.NOT_MODIFIED,
         ConditionalHeaderCheckResult.PRECONDITION_FAILED -> {
-            respondStatus(result.statusCode)
+            respond(result.statusCode)
         }
         ConditionalHeaderCheckResult.OK -> block()
     }
@@ -127,7 +127,7 @@ fun <R> ApplicationCall.withLastModified(lastModified: LocalDateTime, putHeader:
     return when (result) {
         ConditionalHeaderCheckResult.NOT_MODIFIED,
         ConditionalHeaderCheckResult.PRECONDITION_FAILED -> {
-            respondStatus(result.statusCode)
+            respond(result.statusCode)
         }
         ConditionalHeaderCheckResult.OK -> block()
     }

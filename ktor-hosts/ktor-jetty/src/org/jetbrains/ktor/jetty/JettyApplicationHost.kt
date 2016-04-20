@@ -72,7 +72,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 }
             } catch(ex: Throwable) {
                 config.log.error("Application ${application.javaClass} cannot fulfill the request", ex);
-                call.respondStatus(HttpStatusCode.InternalServerError)
+                call.respond(HttpStatusCode.InternalServerError)
             }
         }
     }

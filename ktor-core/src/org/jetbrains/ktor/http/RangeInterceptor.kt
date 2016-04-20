@@ -39,7 +39,7 @@ object RangeInterceptor : ApplicationFeature<RangeInterceptor.RangesConfig> {
                         }
                     }
                 } else {
-                    call.respondStatus(HttpStatusCode.MethodNotAllowed, "Method ${call.request.httpMethod} is not allowed with range request")
+                    call.respond(HttpStatusCode.MethodNotAllowed.description("Method ${call.request.httpMethod.value} is not allowed with range request"))
                 }
             } else {
                 call.interceptRespond(0) { obj ->
@@ -91,7 +91,7 @@ object RangeInterceptor : ApplicationFeature<RangeInterceptor.RangesConfig> {
         val merged = rangesSpecifier.merge(length, config.maxRangeCount)
         if (merged.isEmpty()) {
             call.response.contentRange(range = null, fullLength = length) // https://tools.ietf.org/html/rfc7233#section-4.4
-            call.respondStatus(HttpStatusCode.RequestedRangeNotSatisfiable, "Couldn't satisfy range request $rangesSpecifier: it should comply restriction [0; $length)")
+            call.respond(HttpStatusCode.RequestedRangeNotSatisfiable.description("Couldn't satisfy range request $rangesSpecifier: it should comply with the restriction [0; $length)"))
         }
 
         sendAcceptRanges(call)

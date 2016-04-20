@@ -39,7 +39,7 @@ fun RoutingEntry.upload(database: Database, uploadDir: File) {
     post<Upload> {
         val session = call.sessionOrNull<Session>()
         if (session == null) {
-            call.respondStatus(HttpStatusCode.Forbidden, "Not logged in")
+            call.respond(HttpStatusCode.Forbidden.description("Not logged in"))
         } else {
             val multipart = call.request.content.get<MultiPartData>()
             var title = ""

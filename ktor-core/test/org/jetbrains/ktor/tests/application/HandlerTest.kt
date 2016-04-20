@@ -32,7 +32,7 @@ class HandlerTest {
 
     @Test fun `application with handler returning true`() {
         val testHost = createTestHost()
-        testHost.application.intercept { call -> call.respondStatus(HttpStatusCode.OK) }
+        testHost.application.intercept { call -> call.respond(HttpStatusCode.OK) }
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should be handled") {
@@ -45,7 +45,7 @@ class HandlerTest {
         application.intercept { call ->
             if (call.request.httpMethod == HttpMethod.Post) {
                 assertEquals(call.request.content.get<String>(), "Body")
-                call.respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
         }
         val result = handleRequest {
@@ -58,7 +58,7 @@ class HandlerTest {
     @Test fun `application with handler that returns true on POST method`() = withTestApplication {
         application.intercept { call ->
             if (call.request.httpMethod == HttpMethod.Post) {
-                call.respondStatus(HttpStatusCode.OK)
+                call.respond(HttpStatusCode.OK)
             }
         }
         on("making a GET request") {

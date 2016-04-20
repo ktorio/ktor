@@ -19,7 +19,7 @@ fun AuthenticationProcedure.formAuthentication(userParamName: String = "user", p
                 it.success()
 
                 when (challenge) {
-                    FormAuthChallenge.Unauthorized -> context.call.respondStatus(HttpStatusCode.Unauthorized)
+                    FormAuthChallenge.Unauthorized -> context.call.respond(HttpStatusCode.Unauthorized)
                     is FormAuthChallenge.Redirect -> context.call.respondRedirect(challenge.url(context.call, credentials))
                 }
             }

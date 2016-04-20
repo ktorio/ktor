@@ -28,7 +28,7 @@ object ConditionalHeadersInterceptor : ApplicationFeature<Unit> {
                             }
 
                             if (result != ConditionalHeaderCheckResult.OK) {
-                                call.respondStatus(result.statusCode)
+                                call.respond(result.statusCode)
                             }
                         }
                     }

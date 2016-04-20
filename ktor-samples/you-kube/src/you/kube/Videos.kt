@@ -44,7 +44,7 @@ fun RoutingEntry.videos(database: Database) {
         val video = database.videoById(it.id)
 
         if (video == null) {
-            call.respondStatus(HttpStatusCode.NotFound, "Video ${it.id} doesn't exist")
+            call.respond(HttpStatusCode.NotFound.description("Video ${it.id} doesn't exist"))
         } else {
             call.respondDefaultHtml(listOf(EntityTagVersion(video.hashCode().toString())), CacheControlVisibility.PUBLIC, video.title) {
                 video {
@@ -67,7 +67,7 @@ fun RoutingEntry.videos(database: Database) {
         val video = database.videoById(it.id)
 
         if (video == null) {
-            call.respondStatus(HttpStatusCode.NotFound)
+            call.respond(HttpStatusCode.NotFound)
         } else {
             val type = ContentTypeByExtension.lookupByPath(video.videoFileName).first { it.contentType == "video" }
             call.respond(LocalFileContent(File(video.videoFileName), contentType = type))
