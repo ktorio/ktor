@@ -132,4 +132,23 @@ class URLBuilderTest {
             }
         }
     }
+
+    @Test
+    fun testWithApplicationAndPort() {
+        withTestApplication {
+            application.intercept { call ->
+                assertEquals("http://my-host:8080/path%20/to?p=v", call.url())
+                assertEquals("http://my-host:8080/path%20/to?p=v", call.url {
+                    assertEquals(8080, port)
+                    assertEquals("my-host", host)
+                    assertEquals("/path%20/to", encodedPath)
+                    assertEquals("v", parameters.build()["p"])
+                })
+            }
+
+            handleRequest(HttpMethod.Get, "/path%20/to?p=v") {
+                addHeader(HttpHeaders.Host, "my-host:8080")
+            }
+        }
+    }
 }
