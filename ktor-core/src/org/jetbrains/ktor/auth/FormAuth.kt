@@ -1,9 +1,10 @@
 package org.jetbrains.ktor.auth
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 
 val FormAuthKey: Any = "FormAuth"
-fun AuthenticationProcedure.formAuthentication(userParamName: String = "user", passwordParamName: String = "password", validate: (UserPasswordCredential) -> Principal?) {
+fun AuthenticationProcedure.formAuthentication(userParamName: String = "user", passwordParamName: String = "password", challenge: FormAuthChallenge = FormAuthChallenge.Unauthorized, validate: (UserPasswordCredential) -> Principal?) {
     intercept { context ->
         val username = context.call.parameters[userParamName]
         val password = context.call.parameters[passwordParamName]
@@ -16,8 +17,17 @@ fun AuthenticationProcedure.formAuthentication(userParamName: String = "user", p
         } else {
             context.challenge(FormAuthKey, if (credentials == null) NotAuthenticatedCause.NoCredentials else NotAuthenticatedCause.InvalidCredentials) {
                 it.success()
-                context.call.respondStatus(HttpStatusCode.Unauthorized)
+
+                when (challenge) {
+                    FormAuthChallenge.Unauthorized -> context.call.respondStatus(HttpStatusCode.Unauthorized)
+                    is FormAuthChallenge.Redirect -> context.call.respondRedirect(challenge.url(context.call, credentials))
+                }
             }
         }
     }
+}
+
+sealed class FormAuthChallenge {
+    class Redirect(val url: (ApplicationCall, UserPasswordCredential?) -> String) : FormAuthChallenge()
+    object Unauthorized : FormAuthChallenge()
 }
