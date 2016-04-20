@@ -2,6 +2,7 @@ package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
@@ -39,7 +40,7 @@ class CompressionTest {
         }
     }
 
-    @Test @Ignore
+    @Test
     fun testCompressionDefaultDeflate() {
         withTestApplication {
             application.setupCompression()
@@ -67,7 +68,7 @@ class CompressionTest {
         }
     }
 
-    @Test @Ignore
+    @Test
     fun testAcceptStartContentEncoding() {
         withTestApplication {
             var defaultEncoding = ""
@@ -100,12 +101,12 @@ class CompressionTest {
         }
     }
 
-    @Test @Ignore
+    @Test
     fun testCustomEncoding() {
         withTestApplication {
             application.setupCompression {
                 compressorRegistry["special"] = object: CompressionEncoder {
-                    override fun open(stream: OutputStream): OutputStream = stream
+                    override fun open(delegate: AsyncReadChannel) = delegate
                 }
             }
             application.routing {

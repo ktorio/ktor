@@ -4,7 +4,7 @@ import org.jetbrains.ktor.util.*
 import java.nio.*
 import java.util.zip.*
 
-private class AsyncDeflaterByteChannel(val source: AsyncReadChannel) : AsyncReadChannel {
+private class AsyncDeflaterByteChannel(val source: AsyncReadChannel, val gzip: Boolean = true) : AsyncReadChannel {
     private val GZIP_MAGIC = 0x8b1f
     private val crc = CRC32()
     private val deflater = Deflater(Deflater.BEST_COMPRESSION, true)
@@ -15,10 +15,14 @@ private class AsyncDeflaterByteChannel(val source: AsyncReadChannel) : AsyncRead
     }
 
     private val header = ByteBuffer.allocate(10).apply {
-        order(ByteOrder.LITTLE_ENDIAN)
-        putShort(GZIP_MAGIC.toShort())
-        put(Deflater.DEFLATED.toByte())
-        clear()
+        if (gzip) {
+            order(ByteOrder.LITTLE_ENDIAN)
+            putShort(GZIP_MAGIC.toShort())
+            put(Deflater.DEFLATED.toByte())
+            clear()
+        } else {
+            flip()
+        }
     }
     private val trailing = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).apply {
         flip()
@@ -131,15 +135,17 @@ private class AsyncDeflaterByteChannel(val source: AsyncReadChannel) : AsyncRead
     }
 
     private fun prepareTrailer() {
-        trailing.clear()
-        trailing.putInt(crc.value.toInt())
-        trailing.putInt(deflater.totalIn)
-        trailing.flip()
+        if (gzip) {
+            trailing.clear()
+            trailing.putInt(crc.value.toInt())
+            trailing.putInt(deflater.totalIn)
+            trailing.flip()
+        }
     }
 
 }
 
-fun AsyncReadChannel.deflated(): AsyncReadChannel = AsyncDeflaterByteChannel(this)
+fun AsyncReadChannel.deflated(gzip: Boolean = true): AsyncReadChannel = AsyncDeflaterByteChannel(this, gzip)
 
 private fun Deflater.deflate(outBuffer: ByteBuffer) {
     if (outBuffer.hasRemaining()) {

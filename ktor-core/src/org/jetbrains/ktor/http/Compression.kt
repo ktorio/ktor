@@ -14,7 +14,7 @@ object CompressionAttributes {
 
 data class CompressionOptions(var minSize: Long = 0L,
                               var compressStream: Boolean = true,
-                              var defaultEncoding: String = "deflate",
+                              var defaultEncoding: String = "gzip",
                               val compressorRegistry: MutableMap<String, CompressionEncoder> = hashMapOf(),
                               val conditions: MutableList<ApplicationCall.() -> Boolean> = arrayListOf()
 )
@@ -55,7 +55,7 @@ fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
                         }
                         if (obj is ChannelContentProvider) {
                             call.response.headers.append(HttpHeaders.ContentEncoding, encoding)
-                            call.respond(CompressedChannelProvider(obj.channel()))
+                            call.respond(CompressedChannelProvider(obj.channel(), encoder))
                         }
                     }
                 }
@@ -66,26 +66,26 @@ fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
 
 private fun ApplicationCall.isCompressedProhibited() = CompressionAttributes.preventCompression in attributes
 
-private class CompressedChannelProvider(val delegate: AsyncReadChannel) : ChannelContentProvider {
-    override fun channel() = delegate.deflated()
+private class CompressedChannelProvider(val delegate: AsyncReadChannel, val encoder: CompressionEncoder) : ChannelContentProvider {
+    override fun channel() = encoder.open(delegate)
 }
 
 private fun String.handleStar(options: CompressionOptions) = if (this == "*") options.defaultEncoding else this
 
 interface CompressionEncoder {
-    fun open(stream: OutputStream): OutputStream
+    fun open(delegate: AsyncReadChannel): AsyncReadChannel
 }
 
 private object GzipEncoder : CompressionEncoder {
-    override fun open(stream: OutputStream): OutputStream = GZIPOutputStream(stream)
+    override fun open(delegate: AsyncReadChannel) = delegate.deflated(true)
 }
 
 private object DeflateEncoder : CompressionEncoder {
-    override fun open(stream: OutputStream): OutputStream = DeflaterOutputStream(stream, Deflater(Deflater.BEST_COMPRESSION, true))
+    override fun open(delegate: AsyncReadChannel) = delegate.deflated(false)
 }
 
 private object IdentityEncoder : CompressionEncoder {
-    override fun open(stream: OutputStream): OutputStream = stream
+    override fun open(delegate: AsyncReadChannel) = delegate
 }
 
 private fun minSizeCondition(options: CompressionOptions): ApplicationCall.() -> Boolean = {
