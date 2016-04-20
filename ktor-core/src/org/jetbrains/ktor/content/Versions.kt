@@ -20,7 +20,7 @@ data class LastModifiedVersion(val lastModified: LocalDateTime) : Version {
     constructor(lastModified: Date) : this(lastModified.toLocalDateTime())
 
     override fun render(response: ApplicationResponse) {
-        response.lastModified(lastModified.toInstant(ZoneOffset.UTC).toEpochMilli())
+        response.lastModified(lastModified.atZone(ZoneOffset.UTC))
     }
 }
 data class EntityTagVersion(val etag: String) : Version {

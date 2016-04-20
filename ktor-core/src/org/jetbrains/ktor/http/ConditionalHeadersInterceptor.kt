@@ -9,16 +9,15 @@ object ConditionalHeadersInterceptor : ApplicationFeature<Unit> {
     override val name = "ConditionalHeaders"
     override val key = AttributeKey<Unit>(name)
 
+    private val conditionalHeaders = listOf(HttpHeaders.IfModifiedSince, HttpHeaders.IfUnmodifiedSince, HttpHeaders.IfMatch, HttpHeaders.IfNoneMatch)
+
     override fun install(application: Application, configure: Unit.() -> Unit) {
         configure(Unit)
 
-        application.intercept { requestNext ->
-            if (listOf(HttpHeaders.IfModifiedSince,
-                    HttpHeaders.IfUnmodifiedSince,
-                    HttpHeaders.IfMatch,
-                    HttpHeaders.IfNoneMatch).any { it in call.request.headers }) {
+        application.intercept { call ->
+            if (conditionalHeaders.any { it in call.request.headers }) {
 
-                call.interceptRespond { obj ->
+                call.interceptRespond(0) { obj ->
                     if (obj is HasVersions) {
                         for (version in obj.versions) {
                             val result = when (version) {

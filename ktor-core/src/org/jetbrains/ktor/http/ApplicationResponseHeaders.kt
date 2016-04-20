@@ -14,8 +14,8 @@ fun ApplicationResponse.header(name: String, value: Long) = headers.append(name,
 fun ApplicationResponse.header(name: String, date: Temporal) = headers.append(name, date.toHttpDateString())
 
 fun ApplicationResponse.etag(value: String) = header(HttpHeaders.ETag, value)
-fun ApplicationResponse.lastModified(value: Long) = header(HttpHeaders.LastModified, LocalDateTime.ofInstant(Instant.ofEpochMilli(value), ZoneId.systemDefault()).toGMT())
-fun ApplicationResponse.contentLength(value: Long) = header(HttpHeaders.ContentLength, value)
+fun ApplicationResponse.lastModified(dateTime: ZonedDateTime) = header(HttpHeaders.LastModified, dateTime)
+fun ApplicationResponse.contentLength(length: Long) = header(HttpHeaders.ContentLength, length)
 fun ApplicationResponse.cacheControl(value: CacheControl) = header(HttpHeaders.CacheControl, value.toString())
 fun ApplicationResponse.expires(value: LocalDateTime) = header(HttpHeaders.Expires, value)
 
