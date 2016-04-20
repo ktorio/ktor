@@ -5,6 +5,7 @@ import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
 import org.jetbrains.ktor.util.*
@@ -32,6 +33,7 @@ class App(config: ApplicationConfig) : Application(config) {
         install(Locations.LocationsFeature)
         install(ConditionalHeadersInterceptor)
         install(RangeInterceptor)
+        logApplicationCalls()
         setupCompression()
 
         val key = hex("03e156f6058a13813816065")
