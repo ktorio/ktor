@@ -70,6 +70,14 @@ public class ValuesMapImpl(map: Map<String, List<String>>, override val caseInse
             map.getOrPut(key, { arrayListOf() }).add(value)
         }
 
+        fun remove(key: String) {
+            map.remove(key)
+        }
+
+        fun clear() {
+            map.clear()
+        }
+
         fun build(caseInsensitiveKey: Boolean = false): ValuesMap = ValuesMapImpl(map, caseInsensitiveKey)
     }
 }
