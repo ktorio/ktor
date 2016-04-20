@@ -21,16 +21,6 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
      */
     init {
         logApplicationCalls()
-        intercept { call ->
-            if (call.request.acceptEncoding()?.contains("deflate") ?: false) {
-                call.response.headers.append(HttpHeaders.ContentEncoding, "deflate")
-                call.response.interceptStream { content, stream ->
-                    stream {
-                        DeflaterOutputStream(this).use(content)
-                    }
-                }
-            }
-        }
 
         intercept { call ->
             if (call.request.accept() == "application/json") {

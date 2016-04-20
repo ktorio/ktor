@@ -14,11 +14,6 @@ fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false): No
     respond(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
 }
 
-fun ApplicationResponse.sendBytes(bytes: ByteArray) {
-    status(HttpStatusCode.OK)
-    streamBytes(bytes)
-}
-
 fun ApplicationCall.respondText(contentType: ContentType, text: String): Nothing = respond(TextContent(contentType, text))
 fun ApplicationCall.respondText(text: String): Nothing = respondText(ContentType.Text.Plain, text)
 

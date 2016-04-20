@@ -20,9 +20,8 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
             get<index>() {
                 val contentType = ContentType.Text.Html.withParameter("charset", Charsets.UTF_8.name())
 
-                call.response.status(HttpStatusCode.OK)
                 call.response.contentType(contentType)
-                call.response.write {
+                call.respondWrite {
                     appendHTML().html {
                         head {
                             title { +"POST" }
@@ -49,9 +48,8 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
             post<post> {
                 val multipart = call.request.content.get<MultiPartData>()
 
-                call.response.status(HttpStatusCode.OK)
                 call.response.contentType(ContentType.Text.Plain.withParameter("charset", Charsets.UTF_8.name()))
-                call.response.write {
+                call.respondWrite {
                     if (!call.request.isMultipart()) {
                         appendln("Not a multipart request")
                     } else {

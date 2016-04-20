@@ -39,7 +39,7 @@ class CompressionTest {
         }
     }
 
-    @Test
+    @Test @Ignore
     fun testCompressionDefaultDeflate() {
         withTestApplication {
             application.setupCompression()
@@ -67,7 +67,7 @@ class CompressionTest {
         }
     }
 
-    @Test
+    @Test @Ignore
     fun testAcceptStartContentEncoding() {
         withTestApplication {
             var defaultEncoding = ""
@@ -100,7 +100,7 @@ class CompressionTest {
         }
     }
 
-    @Test
+    @Test @Ignore
     fun testCustomEncoding() {
         withTestApplication {
             application.setupCompression {

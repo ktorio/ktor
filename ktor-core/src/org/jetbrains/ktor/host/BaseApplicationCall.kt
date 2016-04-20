@@ -6,6 +6,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 import java.io.*
+import java.nio.charset.*
 import java.util.concurrent.*
 
 abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
@@ -66,11 +67,13 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                     val encoding = response.headers[HttpHeaders.ContentType]?.let {
                         ContentType.parse(it).parameter("charset")
                     } ?: "UTF-8"
+
                     ifNotHead {
-                        response.streamText(value, encoding)
+                        val bytes = value.toByteArray(Charset.forName(encoding))
+                        respond(object : ChannelContentProvider {
+                            override fun channel(): AsyncReadChannel = ByteArrayAsyncReadChannel(bytes)
+                        })
                     }
-                    close()
-                    finishAll()
                 }
                 is TextContent -> {
                     response.contentType(value.contentType)
@@ -88,9 +91,8 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                 is StreamContent -> {
                     response.status() ?: response.status(HttpStatusCode.OK)
                     ifNotHead {
-                        response.stream {
-                            value.stream(this)
-                        }
+                        val channel = response.channel()
+                        value.stream(channel.asOutputStream())
                     }
                     close()
                     finishAll()

@@ -145,10 +145,6 @@ class TestApplicationResponse() : BaseApplicationResponse() {
     }
     override fun status(): HttpStatusCode? = statusCode
 
-    override val stream = Interceptable1<OutputStream.() -> Unit, Unit> { body ->
-        realContent.value.asOutputStream().body()
-    }
-
     override val channel = Interceptable0<AsyncWriteChannel> { realContent.value }
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {

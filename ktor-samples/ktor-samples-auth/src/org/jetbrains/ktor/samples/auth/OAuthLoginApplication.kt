@@ -89,9 +89,8 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
         install(Locations)
         routing {
             get<index>() {
-                call.response.status(HttpStatusCode.OK)
                 call.response.contentType(ContentType.Text.Html)
-                call.response.write {
+                call.respondWrite {
                     appendHTML().html {
                         head {
                             title { +"index page" }
@@ -145,9 +144,8 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
     }
 
     private fun ApplicationCall.loginPage() {
-        response.status(HttpStatusCode.OK)
         response.contentType(ContentType.Text.Html)
-        response.write {
+        respondWrite {
             appendHTML().html {
                 head {
                     title { +"Login with" }
@@ -170,9 +168,8 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
     }
 
     private fun ApplicationCall.loginFailedPage(errors: List<String>) {
-        response.status(HttpStatusCode.OK)
         response.contentType(ContentType.Text.Html)
-        response.write {
+        respondWrite {
             appendHTML().html {
                 head {
                     title { +"Login with" }
@@ -193,9 +190,8 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
     }
 
     private fun ApplicationCall.loggedInSuccessResponse(callback: OAuthAccessTokenResponse) {
-        response.status(HttpStatusCode.OK)
         response.contentType(ContentType.Text.Html)
-        response.write {
+        respondWrite {
             appendHTML().html {
                 head {
                     title { +"Logged in" }

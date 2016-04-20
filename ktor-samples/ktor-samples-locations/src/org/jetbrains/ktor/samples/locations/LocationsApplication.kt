@@ -19,9 +19,8 @@ class LocationsApplication(config: ApplicationConfig) : Application(config) {
         install(Locations)
         routing {
             get<index>() {
-                call.response.status(HttpStatusCode.OK)
                 call.response.contentType(ContentType.Text.Html)
-                call.response.write {
+                call.respondWrite {
                     appendHTML().html {
                         head {
                             title { +"Numbers" }
@@ -47,9 +46,8 @@ class LocationsApplication(config: ApplicationConfig) : Application(config) {
             }
 
             get<number>() { number ->
-                call.response.status(HttpStatusCode.OK)
                 call.response.contentType(ContentType.Text.Html)
-                call.response.write {
+                call.respondWrite {
                     appendHTML().html {
                         head {
                             title { +"Numbers" }

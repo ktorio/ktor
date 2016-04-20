@@ -48,22 +48,6 @@ fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
                     }
                 }
 
-                call.response.interceptStream { content, stream ->
-                    if (conditions.all { it(call) } && !call.isCompressedProhibited()) {
-                        call.response.headers.append(HttpHeaders.ContentEncoding, encoding)
-                        stream {
-                            encoder.open(this).apply {
-                                content()
-                                close()
-                            }
-                        }
-                    } else {
-                        stream {
-                            content()
-                        }
-                    }
-                }
-
                 call.interceptRespond(0) { obj ->
                     if (conditions.all { it(call) } && !call.isCompressedProhibited()) {
                         if (obj is CompressedChannelProvider) {

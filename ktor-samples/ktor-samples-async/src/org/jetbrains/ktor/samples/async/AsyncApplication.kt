@@ -37,7 +37,7 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
         val time = System.currentTimeMillis() - start
 
         response.contentType(ContentType.Text.Html)
-        response.write {
+        respondWrite {
             appendHTML().html {
                 head {
                     title { +"Async World" }
@@ -49,6 +49,5 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
                 }
             }
         }
-        close()
     }
 }
