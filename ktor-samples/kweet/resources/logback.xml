@@ -11,5 +11,7 @@
 
     <logger name="org.eclipse.jetty" level="INFO"/>
     <logger name="io.netty" level="INFO"/>
+    <logger name="org.terracotta" level="INFO"/>
+    <logger name="com.mchange" level="INFO"/>
 
 </configuration>
