@@ -85,6 +85,7 @@ class KweetApp(config: ApplicationConfig) : Application(config) {
         val hashFunction = { s: String -> hash(s) }
 
         routing {
+            styles()
             index(dao)
             postNew(dao, hashFunction)
             delete(dao, hashFunction)

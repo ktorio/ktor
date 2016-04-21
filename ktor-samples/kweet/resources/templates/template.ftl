@@ -7,22 +7,32 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
     <title>${title} | Kweet</title>
-    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
+    <link rel="stylesheet" type="text/css" href="http://yui.yahooapis.com/pure/0.6.0/grids-responsive-min.css">
+    <link rel="stylesheet" type="text/css" href="/styles/main.css">
 </head>
 <body>
-<div class="page">
-    <h1>Kweet</h1>
-    <div class="navigation">
-        <#if user??>
-            <a href="/user/${user.userId}">my timeline</a> |
-            <a href="/post-new">New kweet</a> |
-            <a href="/logout">sign out [${user.displayName?has_content?then(user.displayName, user.userId)}]</a>
-        <#else>
-            <a href="/register">sign up</a> |
-            <a href="/login">sign in</a>
-        </#if>
+<div class="pure-g">
+    <div class="sidebar pure-u-1 pure-u-md-1-4">
+        <div class="header">
+            <div class="brand-title">Kweet</div>
+            <nav class="nav">
+                <ul class="nav-list">
+                    <#if user??>
+                        <li class="nav-item"><a class="pure-button" href="/user/${user.userId}">my timeline</a></li>
+                        <li class="nav-item"><a class="pure-button" href="/post-new">New kweet</a></li>
+                        <li class="nav-item"><a class="pure-button" href="/logout">sign out
+                            [${user.displayName?has_content?then(user.displayName, user.userId)}]</a></li>
+                    <#else>
+                        <li class="nav-item"><a class="pure-button" href="/register">sign up</a></li>
+                        <li class="nav-item"><a class="pure-button" href="/login">sign in</a></li>
+                    </#if>
+                </ul>
+            </nav>
+        </div>
     </div>
-    <div class="body">
+
+    <div class="content pure-u-1 pure-u-md-3-4">
         <h2>${title}</h2>
         <#nested />
     </div>
@@ -36,7 +46,14 @@
 
 <#-- @ftlvariable name="kweet" type="java.util.List<kweet.model.Kweet>" -->
 <#macro kweet_li kweet>
-<li><a href="/kweet/${kweet.id}">${kweet.text}</a> (by ${kweet.userId})</li>
+<section class="post">
+    <header class="post-header">
+        <p class="post-meta">
+            <a href="/kweet/${kweet.id}">${kweet.date.toDate()?string("yyyy.MM.dd HH:mm:ss")}</a>
+            by ${kweet.userId}</p>
+    </header>
+    <div class="post-description">${kweet.text}</div>
+</section>
 </#macro>
 
 <#macro kweets_list kweets>

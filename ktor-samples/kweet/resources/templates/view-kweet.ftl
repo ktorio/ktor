@@ -4,13 +4,14 @@
 <#import "template.ftl" as layout />
 
 <@layout.mainLayout title="New kweet">
-<h3>Kweet <small>(${kweet.id})</small></h3>
-<p>Date: ${kweet.date.toDate()?string("yyyy.MM.dd HH:mm:ss")}</p>
-<p>Text: </p>
-<pre>
-    ${kweet.text}
-</pre>
-
+<section class="post">
+    <header class="post-header">
+        <p class="post-meta">
+            <a href="/kweet/${kweet.id}">${kweet.date.toDate()?string("yyyy.MM.dd HH:mm:ss")}</a>
+            by ${kweet.userId}</p>
+    </header>
+    <div class="post-description">${kweet.text}</div>
+</section>
 <#if user??>
 <p>
     <a href="javascript:void(0)" onclick="document.getElementById('deleteForm').submit()">Delete kweet</a>

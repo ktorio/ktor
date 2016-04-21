@@ -4,25 +4,31 @@
 <#import "template.ftl" as layout />
 
 <@layout.mainLayout title="Welcome">
-<form action="/register" method="post" enctype="application/x-www-form-urlencoded">
+<form class="pure-form-stacked" action="/register" method="post" enctype="application/x-www-form-urlencoded">
     <#if error??>
         <p class="error">${error}</p>
     </#if>
 
-    <ul>
-        <li><label for="userId">Login</label></li>
-        <li><input type="text" name="userId" id="userId" value="${pageUser.userId}"></li>
+    <label for="userId">Login
+        <input type="text" name="userId" id="userId" value="${pageUser.userId}">
+    </label>
 
-        <li><label for="email">Mail</label></li>
-        <li><input type="email" name="email" id="email" value="${pageUser.email}"></li>
 
-        <li><label for="displayName">Display name</label></li>
-        <li><input type="text" name="displayName" id="displayName" value="${pageUser.displayName}"></li>
+    <label for="email">Mail
+        <input type="email" name="email" id="email" value="${pageUser.email}">
+    </label>
 
-        <li><label for="password">Password</label></li>
-        <li><input type="password" name="password" id="password"></li>
 
-        <li><input type="submit" value="Register"></li>
-    </ul>
+    <label for="displayName">Display name
+        <input type="text" name="displayName" id="displayName" value="${pageUser.displayName}">
+    </label>
+
+
+    <label for="password">Password
+        <input type="password" name="password" id="password">
+    </label>
+
+
+    <input class="pure-button pure-button-primary" type="submit" value="Register">
 </form>
 </@layout.mainLayout>
