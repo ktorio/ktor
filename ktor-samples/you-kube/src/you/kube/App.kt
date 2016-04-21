@@ -65,5 +65,5 @@ class App(config: ApplicationConfig) : Application(config) {
 
 }
 
-fun ApplicationCall.respondRedirect(location: Any): Nothing = respondRedirect(url(location))
+fun ApplicationCall.respondRedirect(location: Any): Nothing = respondRedirect(url(location), permanent = false)
 

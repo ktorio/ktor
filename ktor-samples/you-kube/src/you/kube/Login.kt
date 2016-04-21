@@ -27,28 +27,24 @@ fun RoutingEntry.login(users: UserHashedTableAuth) {
         method(HttpMethod.Get) {
             handle<Login> {
                 call.respondDefaultHtml(emptyList(), CacheControlVisibility.PUBLIC) {
-                    p { +"Welcome to You Kube" }
                     h2 { +"Login" }
 //                    form(url(Login()), encType = FormEncType.applicationXWwwFormUrlEncoded, method = FormMethod.post) {
-                    form(call.url(Login()) { parameters.clear() }, encType = FormEncType.applicationXWwwFormUrlEncoded, method = FormMethod.post) {
+                    form(call.url(Login()) { parameters.clear() }, classes = "pure-form-stacked", encType = FormEncType.applicationXWwwFormUrlEncoded, method = FormMethod.post) {
                         acceptCharset = "utf-8"
 
-                        ul {
-                            li {
-                                +"Username: "
-                                textInput { name = "userName"; value = it.userName }
-                            }
-                            li {
-                                +"Password: "
-                                passwordInput { name = "password" }
-                            }
-                            li {
-                                submitInput { +"Login" }
-                            }
+                        label {
+                            +"Username: "
+                            textInput { name = "userName"; value = it.userName }
                         }
+                        label {
+                            +"Password: "
+                            passwordInput { name = "password" }
+                        }
+                        submitInput(classes = "pure-button pure-button-primary") { value = "Login" }
                     }
                 }
             }
         }
     }
 }
+

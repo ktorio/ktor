@@ -18,19 +18,19 @@ fun RoutingEntry.upload(database: Database, uploadDir: File) {
             call.respondDefaultHtml(emptyList(), CacheControlVisibility.PRIVATE) {
                 h2 { +"Upload video" }
 
-                form(call.url(Upload()), encType = FormEncType.multipartFormData, method = FormMethod.post) {
+                form(call.url(Upload()), classes = "pure-form-stacked", encType = FormEncType.multipartFormData, method = FormMethod.post) {
                     acceptCharset = "utf-8"
 
-                    label { for_ = "title"; +"Title:" }
-                    textInput { name = "title"; id = "title" }
-                    br {}
+                    label {
+                        for_ = "title"; +"Title:"
+                        textInput { name = "title"; id = "title" }
+                    }
 
-
+                    br()
                     fileInput { name = "file" }
+                    br()
 
-                    br {}
-
-                    submitInput { value = "Upload" }
+                    submitInput(classes = "pure-button pure-button-primary") { value = "Upload" }
                 }
             }
         }

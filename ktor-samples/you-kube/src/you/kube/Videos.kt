@@ -18,23 +18,32 @@ fun RoutingEntry.videos(database: Database) {
         val visibility = if (session == null) CacheControlVisibility.PUBLIC else CacheControlVisibility.PRIVATE
 
         call.respondDefaultHtml(listOf(EntityTagVersion(etag)), visibility) {
-            p {
-                +"Welcome to You Kube"
-                if (session != null) {
-                    +", ${session.userId}"
+            div("posts") {
+            when {
+                topVideos.size == 0 -> {
+                    h1("content-subhead") { +"No Videos" }
+                    div {
+                        +"You need to upload some videos to watch them"
+                    }
+                }
+                topVideos.size < 11 -> {
+                    h1("content-subhead") { +"Videos" }
+                }
+                else -> {
+                    h1("content-subhead") { +"Top 10 Videos" }
                 }
             }
-            p("menu") {
-                if (session == null) {
-                    a(href = application.feature(Locations).href(Login())) { +"Login" }
-                } else {
-                    a(href = application.feature(Locations).href(Upload())) { +"Upload video" }
-                }
-            }
-            h2 { +"Top 10" }
-            ul {
                 topVideos.forEach {
-                    li { a(href = application.feature(Locations).href(VideoPage(it.id))) { +it.title } }
+                    section("post") {
+                        header("post-header") {
+                            h3("post-title") {
+                                a(href = application.feature(Locations).href(VideoPage(it.id))) { +it.title }
+                            }
+                            p("post-meta") {
+                                +"by ${it.authorId}"
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -46,19 +55,26 @@ fun RoutingEntry.videos(database: Database) {
         if (video == null) {
             call.respond(HttpStatusCode.NotFound.description("Video ${it.id} doesn't exist"))
         } else {
-            call.respondDefaultHtml(listOf(EntityTagVersion(video.hashCode().toString())), CacheControlVisibility.PUBLIC, video.title) {
-                video {
-                    controls = true
-                    width = "640"
-                    height = "320"
+            call.respondDefaultHtml(listOf(EntityTagVersion(video.hashCode().toString())), CacheControlVisibility.PUBLIC) {
 
+                section("post") {
+                    header("post-header") {
+                        h3("post-title") {
+                            a(href = application.feature(Locations).href(VideoPage(it.id))) { +video.title }
+                        }
+                        p("post-meta") {
+                            +"by ${video.authorId}"
+                        }
+                    }
+                }
+
+                video("pure-u-5-5") {
+                    controls = true
                     source {
                         src = call.url(VideoStream(it.id))
                         type = "video/ogg"
                     }
                 }
-
-                p { +"Uploaded by ${video.authorId}" }
             }
         }
     }

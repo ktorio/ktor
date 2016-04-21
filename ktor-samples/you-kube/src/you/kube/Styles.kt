@@ -12,7 +12,7 @@ class MainCss()
 
 fun RoutingEntry.styles() {
     get<MainCss> {
-        call.respond(TextContent(ContentType.Text.CSS, mainCss()))
+        call.respond(call.resolveClasspathWithPath("", "blog.css")!!)
     }
 }
 
