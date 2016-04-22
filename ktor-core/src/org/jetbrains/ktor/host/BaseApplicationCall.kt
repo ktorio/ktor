@@ -143,7 +143,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
             val future = createMachineCompletableFuture()
 
             closeAtEnd(stream)
-            InputStreamReadChannelAdapter(stream).copyToAsyncThenComplete(response.channel(), future)
+            stream.asAsyncChannel().copyToAsyncThenComplete(response.channel(), future)
             pause()
         } else {
             close()

@@ -1,13 +1,16 @@
 package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
+import org.jetbrains.ktor.util.*
 import org.junit.*
-import java.io.*
+import java.time.*
 import java.util.zip.*
 import kotlin.test.*
 
@@ -15,7 +18,7 @@ class CompressionTest {
     @Test
     fun testCompressionNotSpecified() {
         withTestApplication {
-            application.setupCompression()
+            application.install(CompressionFeature)
             application.routing {
                 get("/") {
                     call.respondText("text to be compressed")
@@ -29,7 +32,7 @@ class CompressionTest {
     @Test
     fun testCompressionUnknownAcceptedEncodings() {
         withTestApplication {
-            application.setupCompression()
+            application.install(CompressionFeature)
             application.routing {
                 get("/") {
                     call.respondText("text to be compressed")
@@ -43,7 +46,7 @@ class CompressionTest {
     @Test
     fun testCompressionDefaultDeflate() {
         withTestApplication {
-            application.setupCompression()
+            application.install(CompressionFeature)
             application.routing {
                 get("/") {
                     call.respondText("text to be compressed")
@@ -57,7 +60,7 @@ class CompressionTest {
     @Test
     fun testCompressionDefaultGzip() {
         withTestApplication {
-            application.setupCompression()
+            application.install(CompressionFeature)
             application.routing {
                 get("/") {
                     call.respondText("text to be compressed")
@@ -73,7 +76,7 @@ class CompressionTest {
         withTestApplication {
             var defaultEncoding = ""
 
-            application.setupCompression {
+            application.install(CompressionFeature) {
                 defaultEncoding = this.defaultEncoding
             }
 
@@ -90,7 +93,7 @@ class CompressionTest {
     @Test
     fun testUnknownEncodingListedEncoding() {
         withTestApplication {
-            application.setupCompression()
+            application.install(CompressionFeature)
             application.routing {
                 get("/") {
                     call.respondText("text to be compressed")
@@ -104,8 +107,8 @@ class CompressionTest {
     @Test
     fun testCustomEncoding() {
         withTestApplication {
-            application.setupCompression {
-                compressorRegistry["special"] = object: CompressionEncoder {
+            application.install(CompressionFeature) {
+                compressorRegistry["special"] = object : CompressionEncoder {
                     override fun open(delegate: AsyncReadChannel) = delegate
                 }
             }
@@ -128,7 +131,7 @@ class CompressionTest {
     @Test
     fun testMinSize() {
         withTestApplication {
-            application.setupCompression {
+            application.install(CompressionFeature) {
                 minSize = 10L
             }
 
@@ -155,7 +158,7 @@ class CompressionTest {
     @Test
     fun testCompressStreamFalse() {
         withTestApplication {
-            application.setupCompression {
+            application.install(CompressionFeature) {
                 compressStream = false
             }
 
@@ -172,7 +175,7 @@ class CompressionTest {
     @Test
     fun testCustomCondition() {
         withTestApplication {
-            application.setupCompression {
+            application.install(CompressionFeature) {
                 conditions.add {
                     request.parameters["compress"] == "true"
                 }
@@ -189,7 +192,75 @@ class CompressionTest {
         }
     }
 
-    private fun TestApplicationHost.handleAndAssert(url: String, acceptHeader: String?, expectedEncoding: String?, expectedContent: String) {
+    @Test
+    fun testWithConditionalHeaders() {
+        val ldt = LocalDateTime.now()
+
+        withTestApplication {
+            application.install(ConditionalHeadersInterceptor)
+            application.install(CompressionFeature)
+
+            application.routing {
+                get("/") {
+                    call.respond(object: Resource, ChannelContentProvider {
+                        override val contentType: ContentType
+                            get() = ContentType.Text.Plain
+
+                        override val versions: List<Version>
+                            get() = listOf(LastModifiedVersion(ldt))
+
+                        override val expires = ldt
+
+                        override val cacheControl = CacheControl.NoCache(CacheControlVisibility.PUBLIC)
+
+                        override val attributes = Attributes()
+
+                        override val contentLength = 4L
+
+                        override fun channel() = "test".byteInputStream().asAsyncChannel()
+                    })
+                }
+            }
+
+            handleAndAssert("/", "gzip", "gzip", "test").let { call ->
+                assertEquals("text/plain", call.response.headers[HttpHeaders.ContentType])
+                assertEquals(ldt.toHttpDateString(), call.response.headers[HttpHeaders.Expires])
+                assertEquals("no-cache, public", call.response.headers[HttpHeaders.CacheControl])
+                assertFalse { HttpHeaders.ContentLength in call.response.headers }
+                assertEquals(ldt.toHttpDateString(), call.response.headers[HttpHeaders.LastModified])
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.IfModifiedSince, ldt.toHttpDateString())
+            }.let { call ->
+                assertEquals(HttpStatusCode.NotModified, call.response.status())
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.AcceptEncoding, "gzip")
+                addHeader(HttpHeaders.IfModifiedSince, ldt.toHttpDateString())
+            }.let { call ->
+                assertEquals(HttpStatusCode.NotModified, call.response.status())
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.AcceptEncoding, "gzip")
+                addHeader(HttpHeaders.IfModifiedSince, ldt.minusHours(1).toHttpDateString())
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("gzip", call.response.headers[HttpHeaders.ContentEncoding])
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.IfModifiedSince, ldt.minusHours(1).toHttpDateString())
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertNull(call.response.headers[HttpHeaders.ContentEncoding])
+            }
+        }
+    }
+
+    private fun TestApplicationHost.handleAndAssert(url: String, acceptHeader: String?, expectedEncoding: String?, expectedContent: String): TestApplicationCall {
         val result = handleRequest(HttpMethod.Get, url) {
             if (acceptHeader != null) {
                 addHeader(HttpHeaders.AcceptEncoding, acceptHeader)
@@ -208,6 +279,8 @@ class CompressionTest {
         } else {
             assertEquals(expectedContent, result.response.content)
         }
+
+        return result
     }
 
     private fun TestApplicationResponse.readDeflate() = InflaterInputStream(byteContent!!.inputStream(), Inflater(true)).reader().readText()

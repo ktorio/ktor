@@ -34,7 +34,7 @@ class App(config: ApplicationConfig) : Application(config) {
         install(ConditionalHeadersInterceptor)
         install(RangeInterceptor)
         logApplicationCalls()
-        setupCompression()
+        install(CompressionFeature)
 
         val key = hex("03e156f6058a13813816065")
         val uploadDir = File("ktor-samples/you-kube/.video")

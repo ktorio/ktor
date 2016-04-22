@@ -153,7 +153,7 @@ private class AsyncWriteChannelAdapterStream(val ch: AsyncWriteChannel) : Output
 
 fun AsyncWriteChannel.asOutputStream(): OutputStream = AsyncWriteChannelAdapterStream(this)
 
-class InputStreamReadChannelAdapter(val input: InputStream) : AsyncReadChannel {
+private class InputStreamReadChannelAdapter(val input: InputStream) : AsyncReadChannel {
     override fun read(dst: ByteBuffer, handler: AsyncHandler) {
         try {
             val rc = input.read(dst)
@@ -170,6 +170,8 @@ class InputStreamReadChannelAdapter(val input: InputStream) : AsyncReadChannel {
         input.close()
     }
 }
+
+fun InputStream.asAsyncChannel(): AsyncReadChannel = InputStreamReadChannelAdapter(this)
 
 private fun InputStream.read(bb: ByteBuffer): Int {
     val rc = read(bb.array(), bb.arrayOffset() + bb.position(), bb.remaining())

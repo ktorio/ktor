@@ -2,10 +2,9 @@ package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.util.*
-import java.io.*
-import java.util.zip.*
 
 object CompressionAttributes {
     val preventCompression = AttributeKey<Boolean>("preventCompression")
@@ -19,56 +18,75 @@ data class CompressionOptions(var minSize: Long = 0L,
                               val conditions: MutableList<ApplicationCall.() -> Boolean> = arrayListOf()
 )
 
-fun Application.setupCompression() {
-    setupCompression { }
-}
 
-fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
-    val options = CompressionOptions()
-    options.configure()
-    val supportedEncodings = setOf("gzip", "deflate", "identity", "*") + options.compressorRegistry.keys
-    val encoders = mapOf("gzip" to GzipEncoder, "deflate" to DeflateEncoder, "identity" to IdentityEncoder) + options.compressorRegistry
-    val conditions = listOf(minSizeCondition(options), compressStreamCondition(options)) + options.conditions
+object CompressionFeature : ApplicationFeature<CompressionOptions> {
+    override val name: String
+        get() = "Compression"
 
-    intercept { call ->
-        val acceptEncodingRaw = call.request.acceptEncoding()
-        if (acceptEncodingRaw != null) {
-            val encoding = parseAndSortHeader(acceptEncodingRaw)
-                    .firstOrNull { it.value in supportedEncodings }
-                    ?.value
-                    ?.handleStar(options)
+    override val key = AttributeKey<CompressionOptions>("compression-key")
 
-            val encoder = encoding?.let { encoders[it] }
-            if (encoding != null && encoder != null && !call.isCompressedProhibited()) {
-                call.response.headers.intercept { name, value, next ->
-                    if (name.equals(HttpHeaders.ContentLength, true)) {
-                        call.attributes.put(CompressionAttributes.interceptedContentLength, value.toLong())
-                    } else {
-                        next(name, value)
-                    }
-                }
+    override fun install(application: Application, configure: CompressionOptions.() -> Unit): CompressionOptions {
+        val options = CompressionOptions()
+        options.configure()
 
-                call.interceptRespond(0) { obj ->
-                    if (conditions.all { it(call) } && !call.isCompressedProhibited()) {
-                        if (obj is CompressedChannelProvider) {
-                            proceed()
+        val supportedEncodings = setOf("gzip", "deflate", "identity", "*") + options.compressorRegistry.keys
+        val encoders = mapOf("gzip" to GzipEncoder, "deflate" to DeflateEncoder, "identity" to IdentityEncoder) + options.compressorRegistry
+        val conditions = listOf(minSizeCondition(options), compressStreamCondition(options)) + options.conditions
+
+        application.intercept { call ->
+            val acceptEncodingRaw = call.request.acceptEncoding()
+            if (acceptEncodingRaw != null) {
+                val encoding = parseAndSortHeader(acceptEncodingRaw)
+                        .firstOrNull { it.value in supportedEncodings }
+                        ?.value
+                        ?.handleStar(options)
+
+                val encoder = encoding?.let { encoders[it] }
+                if (encoding != null && encoder != null && !call.isCompressionProhibited()) {
+                    call.response.headers.intercept { name, value, next ->
+                        if (name.equals(HttpHeaders.ContentLength, true)) {
+                            call.attributes.put(CompressionAttributes.interceptedContentLength, value.toLong())
+                        } else {
+                            next(name, value)
                         }
-                        if (obj is ChannelContentProvider) {
+                    }
+
+                    call.interceptRespond(0) { obj ->
+                        if (conditions.all { it(call) } && !call.isCompressionProhibited()) {
+                            val channel = when (obj) {
+                                is CompressedResponse -> proceed()
+                                is ChannelContentProvider -> obj.channel()
+                                is StreamContentProvider -> obj.stream().asAsyncChannel()
+                                else -> proceed()
+                            }
+
                             call.response.headers.append(HttpHeaders.ContentEncoding, encoding)
-                            call.respond(CompressedChannelProvider(obj.channel(), encoder))
+                            if (obj is Resource) {
+                                call.respond(CompressedResponse.CompressedResource(channel, obj, encoder))
+                            } else {
+                                call.respond(CompressedResponse.CompressedChannelProvider(channel, encoder))
+                            }
                         }
                     }
                 }
             }
         }
+
+        return options
     }
 }
 
-private fun ApplicationCall.isCompressedProhibited() = CompressionAttributes.preventCompression in attributes
+private sealed class CompressedResponse {
+    class CompressedResource(val delegateChannel: AsyncReadChannel, delegate: Resource, val encoder: CompressionEncoder) : Resource by delegate, ChannelContentProvider, CompressedResponse() {
+        override fun channel() = encoder.open(delegateChannel)
+    }
 
-private class CompressedChannelProvider(val delegate: AsyncReadChannel, val encoder: CompressionEncoder) : ChannelContentProvider {
-    override fun channel() = encoder.open(delegate)
+    class CompressedChannelProvider(val delegate: AsyncReadChannel, val encoder: CompressionEncoder) : ChannelContentProvider, CompressedResponse() {
+        override fun channel() = encoder.open(delegate)
+    }
 }
+
+private fun ApplicationCall.isCompressionProhibited() = CompressionAttributes.preventCompression in attributes
 
 private fun String.handleStar(options: CompressionOptions) = if (this == "*") options.defaultEncoding else this
 
