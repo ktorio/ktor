@@ -7,8 +7,9 @@ class SessionCookieTransformerDigest(val salt: String = "ktor", val algorithm: S
     override fun transformRead(sessionCookieValue: String): String? {
         val expectedSignature = sessionCookieValue.substringAfterLast('/', "")
         val value = sessionCookieValue.substringBeforeLast('/')
-
-        return if (digest(value) == expectedSignature) value else null
+        if (expectedSignature == digest(value))
+            return value
+        return null
     }
 
     override fun transformWrite(sessionCookieValue: String): String = "$sessionCookieValue/${digest(sessionCookieValue)}"

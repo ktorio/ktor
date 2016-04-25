@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.sessions
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import kotlin.reflect.*
@@ -28,7 +27,14 @@ fun <S : Any> ApplicationCall.session(session: S) = session.apply {
 }
 
 inline fun <reified S : Any> ApplicationCall.sessionOrNull(): S? = sessionOrNull(S::class)
-fun <S : Any> ApplicationCall.sessionOrNull(type: KClass<S>): S? = if (SessionKey in attributes) attributes[SessionKey].cast(type) else null
+fun <S : Any> ApplicationCall.sessionOrNull(sessionType: KClass<S>): S? {
+    if (SessionKey in attributes) {
+        val attribute = attributes[SessionKey]
+        val session = attribute.cast(sessionType)
+        return session
+    }
+    return null
+}
 
 
 inline fun <reified S : Any> Pipeline<ApplicationCall>.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) =
@@ -40,9 +46,6 @@ inline fun <S : Any> Pipeline<ApplicationCall>.withSessions(type: KClass<S>, blo
 
 fun <S : Any> Pipeline<ApplicationCall>.withSessions(sessionConfig: SessionConfig<S>) {
     intercept { call ->
-        call.attributes.put(SessionConfigKey, sessionConfig)
-        sessionConfig.sessionTracker.lookup(this, { call.attributes.put(SessionKey, it) })
-
         onSuccess {
             if (call.attributes.contains(SessionKey)) {
                 val session = call.sessionOrNull(sessionConfig.sessionType)
@@ -51,6 +54,9 @@ fun <S : Any> Pipeline<ApplicationCall>.withSessions(sessionConfig: SessionConfi
                 }
             }
         }
+
+        call.attributes.put(SessionConfigKey, sessionConfig)
+        sessionConfig.sessionTracker.lookup(this) { call.attributes.put(SessionKey, it) }
     }
 }
 

@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.sessions
 
 import org.jetbrains.ktor.util.*
-import java.security.*
 import javax.crypto.*
 import javax.crypto.spec.*
 
@@ -11,8 +10,9 @@ class SessionCookieTransformerMessageAuthentication(val keySpec: SecretKeySpec, 
     override fun transformRead(sessionCookieValue: String): String? {
         val expectedSignature = sessionCookieValue.substringAfterLast('/', "")
         val value = sessionCookieValue.substringBeforeLast('/')
-
-        return if (mac(value) == expectedSignature) value else null
+        if (mac(value) == expectedSignature)
+            return value
+        return null
     }
 
     override fun transformWrite(sessionCookieValue: String): String = "$sessionCookieValue/${mac(sessionCookieValue)}"

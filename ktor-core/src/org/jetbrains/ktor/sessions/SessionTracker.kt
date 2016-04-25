@@ -9,10 +9,10 @@ import org.jetbrains.ktor.pipeline.*
  */
 interface SessionTracker<S : Any> {
     /**
-     * Lookup session using the context, call [injectSession] if available and pass execution to the [next] in any case.
+     * Lookup session using the context, call [processSession] if available
      * It is recommended to be async if there is external session store
      */
-    fun lookup(context: PipelineContext<ApplicationCall>, injectSession: (S) -> Unit)
+    fun lookup(context: PipelineContext<ApplicationCall>, processSession: (S) -> Unit) : Nothing
 
     /**
      * Assign session using the context. Override if there is existing session. Could be blocking.

@@ -8,15 +8,18 @@ class CookieValueSessionTracker<S : Any>(val cookieSettings: SessionCookiesSetti
                                          val cookieName: String,
                                          val serializer: SessionSerializer<S>) : SessionTracker<S> {
     override fun assign(call: ApplicationCall, session: S) {
-        call.response.cookies.append(cookieSettings.toCookie(cookieName, serializer.serialize(session)))
+        val serialized = serializer.serialize(session)
+        val cookie = cookieSettings.toCookie(cookieName, serialized)
+        call.response.cookies.append(cookie)
     }
 
-    override fun lookup(context: PipelineContext<ApplicationCall>, injectSession: (S) -> Unit) {
-        val call = context.call
-        val value = cookieSettings.fromCookie(call.request.cookies[cookieName])
-        if (value != null) {
-            injectSession(serializer.deserialize(value))
-        }
+    override fun lookup(context: PipelineContext<ApplicationCall>, processSession: (S) -> Unit): Nothing {
+        val cookie = context.call.request.cookies[cookieName]
+        val value = cookieSettings.fromCookie(cookie) ?: context.proceed()
+
+        val deserialize = serializer.deserialize(value)
+        processSession(deserialize)
+        context.proceed()
     }
 
     override fun unassign(call: ApplicationCall) {
