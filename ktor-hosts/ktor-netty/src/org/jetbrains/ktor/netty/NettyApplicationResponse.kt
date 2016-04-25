@@ -29,6 +29,8 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         override fun hostAppendHeader(name: String, value: String) {
+            if (commited)
+                throw UnsupportedOperationException("Headers can no longer be set because response was already completed")
             response.headers().add(name, value)
         }
         override fun getHostHeaderNames(): List<String> = response.headers().map { it.key }
