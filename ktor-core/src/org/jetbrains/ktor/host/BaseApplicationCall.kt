@@ -50,10 +50,6 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
             response.contentType(value.contentType)
             return
         }
-
-        if (value is HasContentLength) {
-            response.contentLength(value.contentLength)
-        }
     }
 
     private val respond = Pipeline<Any>()

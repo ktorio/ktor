@@ -28,14 +28,11 @@ object RangeInterceptor : ApplicationFeature<RangeInterceptor.RangesConfig> {
                 if (call.isGetOrHead()) {
                     call.attributes.put(CompressionAttributes.preventCompression, true)
                     call.interceptRespond(0) { obj ->
-                        if (obj is ChannelContentProvider && obj !is RangeChannelProvider) {
+                        if (obj is ChannelContentProvider && obj !is RangeChannelProvider && obj is Resource) {
                             @Suppress("UNCHECKED_CAST")
                             val newContext = this as PipelineContext<ChannelContentProvider>
 
-                            when (obj) {
-                                is HasContentLength -> newContext.tryProcessRange(call, rangeSpecifier, obj.contentLength, config)
-                                is Resource -> obj.contentLength?.let { length -> newContext.tryProcessRange(call, rangeSpecifier, length, config) }
-                            }
+                            obj.contentLength?.let { length -> newContext.tryProcessRange(call, rangeSpecifier, length, config) }
                         }
                     }
                 } else {
@@ -43,11 +40,8 @@ object RangeInterceptor : ApplicationFeature<RangeInterceptor.RangesConfig> {
                 }
             } else {
                 call.interceptRespond(0) { obj ->
-                    if (obj is ChannelContentProvider && obj !is RangeChannelProvider) {
-                        when (obj) {
-                            is HasContentLength,
-                            is Resource -> sendAcceptRanges(call)
-                        }
+                    if (obj is ChannelContentProvider && obj !is RangeChannelProvider && obj is Resource) {
+                        sendAcceptRanges(call)
                     }
                 }
             }
