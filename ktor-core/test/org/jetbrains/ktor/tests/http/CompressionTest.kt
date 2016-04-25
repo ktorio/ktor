@@ -260,6 +260,27 @@ class CompressionTest {
         }
     }
 
+    @Test
+    fun testLargeContent() {
+        val content = buildString {
+            for (i in 1..16384) {
+                append("test$i\n".padStart(10, ' '))
+            }
+        }
+
+        withTestApplication {
+            application.install(CompressionSupport)
+            application.routing {
+                get("/") {
+                    call.respondText(ContentType.Text.Plain, content)
+                }
+            }
+
+            handleAndAssert("/", "deflate", "deflate", content)
+            handleAndAssert("/", "gzip", "gzip", content)
+        }
+    }
+
     private fun TestApplicationHost.handleAndAssert(url: String, acceptHeader: String?, expectedEncoding: String?, expectedContent: String): TestApplicationCall {
         val result = handleRequest(HttpMethod.Get, url) {
             if (acceptHeader != null) {

@@ -35,25 +35,23 @@ private class AsyncDeflaterByteChannel(val source: AsyncReadChannel, val gzip: B
     }
 
     override fun read(dst: ByteBuffer, handler: AsyncHandler) {
+        if (!dst.hasRemaining()) {
+            handler.success(0)
+            return
+        }
         if (header.hasRemaining()) {
             val size = header.putTo(dst)
             handler.success(size)
             return
         }
         if (eos) {
-            if (!deflater.finished()) {
-                finish()
-            }
-
-            val size = compressedBuffer.putTo(dst) + trailing.putTo(dst)
-            if (size == 0) {
-                handler.successEnd()
-            } else {
-                handler.success(size)
-            }
+            readFinish(dst, handler)
             return
         }
-        if (dst.remaining() <= compressedBuffer.remaining()) {
+
+        fillCompressedBufferIfPossible()
+
+        if (compressedBuffer.hasRemaining()) {
             val size = compressedBuffer.putTo(dst)
             handler.success(size)
             return
@@ -62,7 +60,33 @@ private class AsyncDeflaterByteChannel(val source: AsyncReadChannel, val gzip: B
         parentBuffer = dst
         parentHandler = handler
 
+        buffer.clear()
         source.read(buffer, innerHandler)
+    }
+
+    private fun readFinish(dst: ByteBuffer, handler: AsyncHandler) {
+        if (!deflater.finished()) {
+            finish()
+        }
+
+        val size = compressedBuffer.putTo(dst) + if (compressedBuffer.hasRemaining()) 0 else trailing.putTo(dst)
+        if (size == 0) {
+            handler.successEnd()
+        } else {
+            handler.success(size)
+        }
+    }
+
+    private fun fillCompressedBufferIfPossible() {
+        if (!deflater.needsInput()) {
+            compressedBuffer.compact()
+
+            if (!deflater.needsInput() && compressedBuffer.hasRemaining()) {
+                deflater.deflate(compressedBuffer)
+            }
+
+            compressedBuffer.flip()
+        }
     }
 
     private val innerHandler = object : AsyncHandler {
@@ -91,7 +115,6 @@ private class AsyncDeflaterByteChannel(val source: AsyncReadChannel, val gzip: B
         override fun successEnd() {
             eos = true
 
-            deflater.finish()
             finish()
 
             withParentHandler { dst, handler ->
@@ -123,14 +146,18 @@ private class AsyncDeflaterByteChannel(val source: AsyncReadChannel, val gzip: B
     }
 
     private fun finish() {
+        deflater.finish()
         compressedBuffer.compact()
 
         while (!deflater.finished() && compressedBuffer.hasRemaining()) {
             deflater.deflate(compressedBuffer)
         }
 
-        prepareTrailer()
-        trailing.putTo(compressedBuffer)
+        if (deflater.finished()) {
+            prepareTrailer()
+            trailing.putTo(compressedBuffer)
+        }
+
         compressedBuffer.flip()
     }
 
