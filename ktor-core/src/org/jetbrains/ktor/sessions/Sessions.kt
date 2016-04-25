@@ -46,7 +46,7 @@ inline fun <S : Any> Pipeline<ApplicationCall>.withSessions(type: KClass<S>, blo
 
 fun <S : Any> Pipeline<ApplicationCall>.withSessions(sessionConfig: SessionConfig<S>) {
     intercept { call ->
-        onSuccess {
+        call.interceptRespond(0) {
             if (call.attributes.contains(SessionKey)) {
                 val session = call.sessionOrNull(sessionConfig.sessionType)
                 if (session != null) {
@@ -56,7 +56,9 @@ fun <S : Any> Pipeline<ApplicationCall>.withSessions(sessionConfig: SessionConfi
         }
 
         call.attributes.put(SessionConfigKey, sessionConfig)
-        sessionConfig.sessionTracker.lookup(this) { call.attributes.put(SessionKey, it) }
+        sessionConfig.sessionTracker.lookup(this) {
+            call.attributes.put(SessionKey, it)
+        }
     }
 }
 
