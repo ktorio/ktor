@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.tests.pipeline
 
+import kotlinx.support.jdk7.*
 import org.jetbrains.ktor.pipeline.*
 import org.junit.*
 import java.util.concurrent.*
@@ -169,8 +170,8 @@ class PipelineTest {
                 assertEquals(1, count)
                 count--
                 assertEquals("1", it.message)
-                assertEquals(1, (it as java.lang.Throwable).suppressed.size)
-                assertEquals("2", (it as java.lang.Throwable).suppressed[0].message)
+                assertEquals(1, it.getSuppressed().size)
+                assertEquals("2", it.getSuppressed()[0].message)
             }
             onSuccess {
                 fail("This pipeline shouldn't finish")
@@ -184,7 +185,7 @@ class PipelineTest {
                 assertEquals(2, count)
                 count--
                 assertEquals("1", it.message)
-                assertEquals(0, (it as java.lang.Throwable).suppressed.size)
+                assertEquals(0, it.getSuppressed().size)
                 throw UnsupportedOperationException("2")
             }
             assertEquals(1, count)
