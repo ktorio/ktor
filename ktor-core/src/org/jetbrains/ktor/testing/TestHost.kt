@@ -20,6 +20,15 @@ inline fun <reified T : Application> withApplication(noinline test: TestApplicat
     withApplication(T::class, test)
 }
 
+fun withApplication(config: ApplicationConfig, test: TestApplicationHost.() -> Unit) {
+    val host = TestApplicationHost(config)
+    try {
+        host.test()
+    } finally {
+        host.dispose()
+    }
+}
+
 fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() -> Unit) {
     val testConfig = ConfigFactory.parseMap(
             mapOf(
@@ -27,8 +36,7 @@ fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() ->
                     "ktor.application.class" to applicationClass.jvmName
             ))
     val config = HoconApplicationConfig(testConfig, ApplicationConfig::class.java.classLoader, SLF4JApplicationLog("ktor.test"))
-    val host = TestApplicationHost(config)
-    host.test()
+    withApplication(config, test)
 }
 
 class TestApplicationHost(val applicationConfig: ApplicationConfig) {
@@ -61,6 +69,10 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
         if (exception != null)
             throw exception!!
         return call
+    }
+
+    fun dispose() {
+        application.dispose()
     }
 }
 
