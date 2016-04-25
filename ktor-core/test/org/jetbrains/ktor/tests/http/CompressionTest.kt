@@ -281,6 +281,23 @@ class CompressionTest {
         }
     }
 
+    @Test
+    fun testRespondWrite() {
+        withTestApplication {
+            application.install(CompressionSupport)
+            application.routing {
+                get("/") {
+                    call.respondWrite {
+                        write("test ")
+                        write("me")
+                    }
+                }
+            }
+
+            handleAndAssert("/", "gzip", "gzip", "test me")
+        }
+    }
+
     private fun TestApplicationHost.handleAndAssert(url: String, acceptHeader: String?, expectedEncoding: String?, expectedContent: String): TestApplicationCall {
         val result = handleRequest(HttpMethod.Get, url) {
             if (acceptHeader != null) {
