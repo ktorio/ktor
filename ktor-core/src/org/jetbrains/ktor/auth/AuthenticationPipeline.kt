@@ -11,23 +11,23 @@ class AuthenticationProcedure() : Pipeline<AuthenticationProcedureContext>()
 
 fun Pipeline<ApplicationCall>.authentication(procedure: AuthenticationProcedure.() -> Unit) {
     val authenticationProcedure = AuthenticationProcedure().apply(procedure).apply {
-        intercept { procedure ->
-            val principal = procedure.principal
+        intercept { context ->
+            val principal = context.principal
             if (principal == null) {
-                val challenges = procedure.challenges
+                val challenges = context.challenges
                 if (challenges.isNotEmpty()) {
                     val challengePipeline = Pipeline(challenges)
-                    challengePipeline.intercept {
-                        if (subject.success) {
+                    challengePipeline.intercept { challenge ->
+                        if (challenge.success) {
                             finishAll()
                         }
                     }
-                    procedure.call.fork(AuthenticationProcedureChallenge(), challengePipeline)
+                    context.call.fork(AuthenticationProcedureChallenge(), challengePipeline)
                 }
             }
         }
     }
-    intercept {
+    intercept { call ->
         val context = AuthenticationProcedureContext(call)
         call.attributes.put(AuthenticationProcedureContext.AttributeKey, context)
         call.fork(context, authenticationProcedure)

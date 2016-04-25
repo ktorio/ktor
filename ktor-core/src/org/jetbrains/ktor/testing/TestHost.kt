@@ -36,7 +36,7 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     val pipeline = Pipeline<ApplicationCall>()
 
     init {
-        pipeline.intercept {
+        pipeline.intercept { call ->
             onFail {
                 val testApplicationCall = call as? TestApplicationCall
                 testApplicationCall?.latch?.countDown()

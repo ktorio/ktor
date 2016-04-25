@@ -38,7 +38,6 @@ fun AuthenticationProcedure.digestAuthentication(
 
     val digester = digesterProvider(digestAlgorithm)
     intercept { context ->
-
         val authorizationHeader = context.call.request.parseAuthorizationHeader()
         val credentials = authorizationHeader?.let { authHeader ->
             if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {

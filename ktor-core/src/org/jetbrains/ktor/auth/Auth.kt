@@ -2,7 +2,6 @@ package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
@@ -10,7 +9,7 @@ interface Credential
 interface Principal
 
 fun Pipeline<ApplicationCall>.authenticate(body: PipelineContext<ApplicationCall>.() -> Unit) {
-    intercept {
+    intercept { call ->
         body()
         onSuccess {
             val context = call.attributes.getOrNull(AuthenticationProcedureContext.AttributeKey)
