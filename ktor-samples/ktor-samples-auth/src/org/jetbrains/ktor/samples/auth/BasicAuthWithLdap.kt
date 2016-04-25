@@ -13,7 +13,7 @@ import org.jetbrains.ktor.routing.*
 
 class BasicAuthWithLdapApplication(config: ApplicationConfig) : Application(config) {
     init {
-        logApplicationCalls()
+        install(CallLogging)
         install(Locations)
         routing {
             location<Files> {

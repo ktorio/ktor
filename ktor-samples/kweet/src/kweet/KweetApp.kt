@@ -67,6 +67,7 @@ class KweetApp(config: ApplicationConfig) : Application(config) {
     init {
         dao.init()
 
+        install(CallLogging)
         install(Locations)
         templating(freemarker {
             Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS).apply {
@@ -78,7 +79,6 @@ class KweetApp(config: ApplicationConfig) : Application(config) {
                 settings = SessionCookiesSettings(transformers = listOf(SessionCookieTransformerMessageAuthentication(key)))
             }
         }
-        logApplicationCalls()
 
         val hashFunction = { s: String -> hash(s) }
 

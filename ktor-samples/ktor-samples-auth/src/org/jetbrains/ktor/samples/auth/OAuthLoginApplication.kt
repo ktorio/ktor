@@ -85,7 +85,7 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
     val exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4)
 
     init {
-        logApplicationCalls()
+        install(CallLogging)
         install(Locations)
         routing {
             get<index>() {

@@ -14,7 +14,7 @@ import org.jetbrains.ktor.routing.*
 
 class FormPostApplication(config: ApplicationConfig) : Application(config) {
     init {
-        logApplicationCalls()
+        install(CallLogging)
         install(Locations)
         routing {
             get<index>() {

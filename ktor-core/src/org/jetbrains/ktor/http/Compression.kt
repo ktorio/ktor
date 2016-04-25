@@ -19,7 +19,7 @@ data class CompressionOptions(var minSize: Long = 0L,
 )
 
 
-object CompressionFeature : ApplicationFeature<CompressionOptions> {
+object CompressionSupport : ApplicationFeature<CompressionOptions> {
     override val name: String
         get() = "Compression"
 

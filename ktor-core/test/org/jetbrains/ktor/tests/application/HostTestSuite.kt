@@ -257,7 +257,7 @@ abstract class HostTestSuite {
         println("test file is $file")
 
         val server = createServer(port) {
-            application.install(CompressionFeature)
+            application.install(CompressionSupport)
             handle {
                 call.respond(LocalFileContent(file))
             }
@@ -277,7 +277,7 @@ abstract class HostTestSuite {
         println("test file is $file")
 
         val server = createServer(port) {
-            application.install(RangeInterceptor)
+            application.install(PartialContentSupport)
             handle {
                 call.respond(LocalFileContent(file))
             }
@@ -300,8 +300,8 @@ abstract class HostTestSuite {
         println("test file is $file")
 
         val server = createServer(port) {
-            application.install(CompressionFeature)
-            application.install(RangeInterceptor)
+            application.install(CompressionSupport)
+            application.install(PartialContentSupport)
 
             handle {
                 call.respond(LocalFileContent(file))

@@ -3,6 +3,7 @@ package org.jetbrains.ktor.samples.json
 import com.google.gson.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
@@ -20,7 +21,7 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
          {"key":"A","value":"Apache"}
      */
     init {
-        logApplicationCalls()
+        install(CallLogging)
 
         intercept { call ->
             if (call.request.accept() == "application/json") {

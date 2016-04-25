@@ -8,18 +8,18 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import kotlin.properties.*
 
-object RangeInterceptor : ApplicationFeature<RangeInterceptor.RangesConfig> {
+object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configuration> {
     override val name = "Ranges support"
-    override val key: AttributeKey<RangesConfig> = AttributeKey(name)
+    override val key: AttributeKey<Configuration> = AttributeKey(name)
 
-    class RangesConfig {
+    class Configuration {
         var maxRangeCount: Int by Delegates.vetoable(10) { p, old, new ->
             new <= 0 || throw IllegalArgumentException("Bad maxRangeCount value $new")
         }
     }
 
-    override fun install(application: Application, configure: RangesConfig.() -> Unit): RangesConfig {
-        val config = RangesConfig()
+    override fun install(application: Application, configure: Configuration.() -> Unit): Configuration {
+        val config = Configuration()
         configure(config)
 
         application.intercept(0) { requestNext ->
@@ -54,7 +54,7 @@ object RangeInterceptor : ApplicationFeature<RangeInterceptor.RangesConfig> {
         call.response.headers.append(HttpHeaders.AcceptRanges, RangeUnits.Bytes.unitToken)
     }
 
-    private fun PipelineContext<ChannelContentProvider>.tryProcessRange(call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long, config: RangesConfig): Unit {
+    private fun PipelineContext<ChannelContentProvider>.tryProcessRange(call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long, config: Configuration): Unit {
         if (checkIfRangeHeader(call)) {
             processRange(call, rangesSpecifier, length, config)
         } else {
@@ -79,7 +79,7 @@ object RangeInterceptor : ApplicationFeature<RangeInterceptor.RangesConfig> {
 
     private fun PipelineContext<ChannelContentProvider>.versions() = (subject as? HasVersions)?.versions.orEmpty()
 
-    private fun PipelineContext<ChannelContentProvider>.processRange(call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long, config: RangesConfig): Nothing {
+    private fun PipelineContext<ChannelContentProvider>.processRange(call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long, config: Configuration): Nothing {
         require(length >= 0L)
 
         val merged = rangesSpecifier.merge(length, config.maxRangeCount)

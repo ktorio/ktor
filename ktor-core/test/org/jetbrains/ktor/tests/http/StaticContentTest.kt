@@ -37,7 +37,7 @@ class StaticContentTest {
     @Test
     fun testStaticContent() {
         withTestApplication {
-            application.install(RangeInterceptor)
+            application.install(PartialContentSupport)
             application.intercept { call ->
                 val resolved = sequenceOf(
                         { call.resolveClasspathResource("", "org.jetbrains.ktor.tests.http") },
@@ -84,7 +84,7 @@ class StaticContentTest {
         withApplication<TestApplication> {
             val testDir = listOf(File("test"), File("ktor-core/test")).first { it.exists() }
 
-            application.install(RangeInterceptor)
+            application.install(PartialContentSupport)
             application.intercept { call ->
                 call.resolveLocalFile("", testDir)?.let { call.respond(it) }
             }

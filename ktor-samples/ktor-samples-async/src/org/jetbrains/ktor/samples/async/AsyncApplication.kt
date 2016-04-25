@@ -3,6 +3,7 @@ package org.jetbrains.ktor.samples.async
 import kotlinx.html.*
 import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.pipeline.*
@@ -14,7 +15,8 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
     val executor: ScheduledExecutorService by lazy { Executors.newScheduledThreadPool(4) }
 
     init {
-        logApplicationCalls()
+        install(CallLogging)
+
         routing {
             get("/{...}") {
                 val start = System.currentTimeMillis()

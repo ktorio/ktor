@@ -18,7 +18,7 @@ class CompressionTest {
     @Test
     fun testCompressionNotSpecified() {
         withTestApplication {
-            application.install(CompressionFeature)
+            application.install(CompressionSupport)
             application.routing {
                 get("/") {
                     call.respondText("text to be compressed")
@@ -32,7 +32,7 @@ class CompressionTest {
     @Test
     fun testCompressionUnknownAcceptedEncodings() {
         withTestApplication {
-            application.install(CompressionFeature)
+            application.install(CompressionSupport)
             application.routing {
                 get("/") {
                     call.respondText("text to be compressed")
@@ -46,7 +46,7 @@ class CompressionTest {
     @Test
     fun testCompressionDefaultDeflate() {
         withTestApplication {
-            application.install(CompressionFeature)
+            application.install(CompressionSupport)
             application.routing {
                 get("/") {
                     call.respondText("text to be compressed")
@@ -60,7 +60,7 @@ class CompressionTest {
     @Test
     fun testCompressionDefaultGzip() {
         withTestApplication {
-            application.install(CompressionFeature)
+            application.install(CompressionSupport)
             application.routing {
                 get("/") {
                     call.respondText("text to be compressed")
@@ -76,7 +76,7 @@ class CompressionTest {
         withTestApplication {
             var defaultEncoding = ""
 
-            application.install(CompressionFeature) {
+            application.install(CompressionSupport) {
                 defaultEncoding = this.defaultEncoding
             }
 
@@ -93,7 +93,7 @@ class CompressionTest {
     @Test
     fun testUnknownEncodingListedEncoding() {
         withTestApplication {
-            application.install(CompressionFeature)
+            application.install(CompressionSupport)
             application.routing {
                 get("/") {
                     call.respondText("text to be compressed")
@@ -107,7 +107,7 @@ class CompressionTest {
     @Test
     fun testCustomEncoding() {
         withTestApplication {
-            application.install(CompressionFeature) {
+            application.install(CompressionSupport) {
                 compressorRegistry["special"] = object : CompressionEncoder {
                     override fun open(delegate: AsyncReadChannel) = delegate
                 }
@@ -131,7 +131,7 @@ class CompressionTest {
     @Test
     fun testMinSize() {
         withTestApplication {
-            application.install(CompressionFeature) {
+            application.install(CompressionSupport) {
                 minSize = 10L
             }
 
@@ -158,7 +158,7 @@ class CompressionTest {
     @Test
     fun testCompressStreamFalse() {
         withTestApplication {
-            application.install(CompressionFeature) {
+            application.install(CompressionSupport) {
                 compressStream = false
             }
 
@@ -175,7 +175,7 @@ class CompressionTest {
     @Test
     fun testCustomCondition() {
         withTestApplication {
-            application.install(CompressionFeature) {
+            application.install(CompressionSupport) {
                 conditions.add {
                     request.parameters["compress"] == "true"
                 }
@@ -197,8 +197,8 @@ class CompressionTest {
         val ldt = LocalDateTime.now()
 
         withTestApplication {
-            application.install(ConditionalHeadersInterceptor)
-            application.install(CompressionFeature)
+            application.install(ConditionalHeadersSupport)
+            application.install(CompressionSupport)
 
             application.routing {
                 get("/") {

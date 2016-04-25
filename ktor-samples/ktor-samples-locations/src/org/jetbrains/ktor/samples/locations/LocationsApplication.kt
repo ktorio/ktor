@@ -15,7 +15,7 @@ import java.util.*
 
 class LocationsApplication(config: ApplicationConfig) : Application(config) {
     init {
-        logApplicationCalls()
+        install(CallLogging)
         install(Locations)
         routing {
             get<index>() {

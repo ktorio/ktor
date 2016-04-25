@@ -5,7 +5,7 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.util.*
 
-object ConditionalHeadersInterceptor : ApplicationFeature<Unit> {
+object ConditionalHeadersSupport : ApplicationFeature<Unit> {
     override val name = "ConditionalHeaders"
     override val key = AttributeKey<Unit>(name)
 
