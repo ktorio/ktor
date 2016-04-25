@@ -95,14 +95,13 @@ class TestHostMultipartTest {
     fun testMultiPartShouldFail() {
         withTestApplication {
             application.intercept { call ->
-                onFail {
-                    assertTrue(it is IOException)
-                }
                 onSuccess { fail("This pipeline shouldn't finish successfully") }
                 call.request.content.get<MultiPartData>().parts.toList()
             }
 
-            handleRequest(HttpMethod.Post, "/")
+            assertFailsWith<IOException> {
+                handleRequest(HttpMethod.Post, "/")
+            }
         }
     }
 
