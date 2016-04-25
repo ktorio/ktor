@@ -52,28 +52,30 @@ data class Session(val userId: String)
 class KweetApp(config: ApplicationConfig) : Application(config) {
     val key = hex("6819b57a326945c1968f45236589")
     val dir = File("target/db")
-    val pool = ComboPooledDataSource()
-    val hmacKey = SecretKeySpec(key, "HmacSHA1")
-
-    init {
-        pool.driverClass = Driver::class.java.name
-        pool.jdbcUrl = "jdbc:h2:file:${dir.canonicalFile.absolutePath}"
-        pool.user = ""
-        pool.password = ""
+    val pool = ComboPooledDataSource().apply {
+        driverClass = Driver::class.java.name
+        jdbcUrl = "jdbc:h2:file:${dir.canonicalFile.absolutePath}"
+        user = ""
+        password = ""
     }
 
+    val hmacKey = SecretKeySpec(key, "HmacSHA1")
     val dao: DAOFacade = DAOFacadeCache(DAOFacadeDatabase(Database.connect(pool)), File(dir.parentFile, "ehcache"))
 
     init {
         dao.init()
 
         install(CallLogging)
+        install(ConditionalHeadersSupport)
+        install(PartialContentSupport)
         install(Locations)
+
         templating(freemarker {
             Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS).apply {
                 templateLoader = ClassTemplateLoader(KweetApp::class.java.classLoader, "templates")
             }
         })
+
         withSessions<Session> {
             withCookieByValue {
                 settings = SessionCookiesSettings(transformers = listOf(SessionCookieTransformerMessageAuthentication(key)))
