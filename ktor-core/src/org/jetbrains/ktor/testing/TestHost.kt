@@ -34,12 +34,14 @@ fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() ->
 class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     val application: Application = ApplicationLoader(applicationConfig).application
     val pipeline = Pipeline<ApplicationCall>()
+    var exception : Throwable? = null
 
     init {
         pipeline.intercept { call ->
-            onFail {
+            onFail { exception ->
                 val testApplicationCall = call as? TestApplicationCall
                 testApplicationCall?.latch?.countDown()
+                this@TestApplicationHost.exception = exception
             }
 
             onSuccess {
@@ -56,6 +58,8 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
         val call = TestApplicationCall(application, request)
         call.execute(pipeline)
         call.await()
+        if (exception != null)
+            throw exception!!
         return call
     }
 }
@@ -74,6 +78,7 @@ class TestApplicationCall(application: Application, override val request: TestAp
     override val attributes = Attributes()
     override fun close() {
         requestResult = ApplicationCallResult.Handled
+        response.close()
     }
 
     override val response = TestApplicationResponse()
@@ -139,10 +144,13 @@ class TestApplicationRequest() : ApplicationRequest {
 class TestApplicationResponse() : BaseApplicationResponse() {
     private var statusCode: HttpStatusCode? = null
     private val realContent = lazy { ByteArrayAsyncWriteChannel() }
+    @Volatile
+    private var closed = false
 
-    override fun status(value:HttpStatusCode) {
+    override fun status(value: HttpStatusCode) {
         statusCode = value
     }
+
     override fun status(): HttpStatusCode? = statusCode
 
     override val channel = Interceptable0<AsyncWriteChannel> { realContent.value }
@@ -151,6 +159,8 @@ class TestApplicationResponse() : BaseApplicationResponse() {
         private val headersMap = HashMap<String, MutableList<String>>()
 
         override fun hostAppendHeader(name: String, value: String) {
+            if (closed)
+                throw UnsupportedOperationException("Headers can no longer be set because response was already completed")
             headersMap.getOrPut(name) { ArrayList() }.add(value)
         }
 
@@ -172,6 +182,10 @@ class TestApplicationResponse() : BaseApplicationResponse() {
         } else {
             null
         }
+
+    fun close() {
+        closed = true
+    }
 }
 
 class TestApplication(config: ApplicationConfig) : Application(config)
