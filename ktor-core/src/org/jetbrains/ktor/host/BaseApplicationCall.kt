@@ -121,7 +121,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         }
     }
 
-    private fun PipelineContext<*>.sendAsyncChannel(channel: AsyncReadChannel): Nothing {
+    private fun PipelineContext<Any>.sendAsyncChannel(channel: AsyncReadChannel): Nothing {
         if (isNotHead()) {
             val future = createMachineCompletableFuture()
 
@@ -134,7 +134,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         }
     }
 
-    protected fun PipelineContext<*>.sendStream(stream: InputStream): Nothing {
+    protected fun PipelineContext<Any>.sendStream(stream: InputStream): Nothing {
         if (isNotHead()) {
             val future = createMachineCompletableFuture()
 
@@ -147,7 +147,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         }
     }
 
-    protected fun PipelineContext<*>.closeAtEnd(closeable: Closeable) {
+    protected fun PipelineContext<Any>.closeAtEnd(closeable: Closeable) {
         onSuccess {
             closeable.closeQuietly()
             close()
@@ -158,27 +158,16 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         }
     }
 
-    private fun PipelineContext<*>.createMachineCompletableFuture() = CompletableFuture<Long>().apply {
+    private fun PipelineContext<Any>.createMachineCompletableFuture() = CompletableFuture<Long>().apply {
         whenComplete { total, throwable ->
-            try {
+            runBlockWithResult {
                 if (throwable == null || throwable is PipelineContinue || throwable.cause is PipelineContinue) {
                     finishAll()
                 } else if (throwable !is PipelineControlFlow && throwable.cause !is PipelineControlFlow) {
                     fail(throwable)
                 }
-            } catch (cont: PipelineContinue) {
-                stateLoopMachine()
             }
         }
-    }
-
-    private fun PipelineContext<*>.stateLoopMachine() {
-        do {
-            try {
-                proceed()
-            } catch (e: PipelineContinue) {
-            }
-        } while (true);
     }
 
     private fun Closeable.closeQuietly() {

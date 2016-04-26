@@ -2,20 +2,21 @@ package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import io.netty.util.*
 import org.jetbrains.ktor.nio.*
 import java.nio.*
+import java.util.*
 import java.util.concurrent.atomic.*
 
-internal class BodyHandlerChannelAdapter(val context: ChannelHandlerContext) : AsyncReadChannel, SimpleChannelInboundHandler<DefaultHttpContent>() {
+internal class BodyHandlerChannelAdapter(val context: ChannelHandlerContext) : AsyncReadChannel, SimpleChannelInboundHandler<DefaultHttpContent>(false) {
     private val currentHandler = AtomicReference<AsyncHandler>()
     private var currentBuffer: ByteBuffer? = null
-    @Volatile
-    private var lastContent: DefaultHttpContent? = null
+
+    private var lastContent = Collections.synchronizedList(ArrayList<DefaultHttpContent>())
     private val requested = AtomicBoolean()
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: DefaultHttpContent) {
-        require(lastContent == null) { throw IllegalStateException("lastContent should be consumed before we receive the next event") }
-        lastContent = msg
+        lastContent.add(msg)
         requested.set(false)
 
         tryToMeet()
@@ -28,6 +29,10 @@ internal class BodyHandlerChannelAdapter(val context: ChannelHandlerContext) : A
     }
 
     override fun read(dst: ByteBuffer, handler: AsyncHandler) {
+        if (!dst.hasRemaining()) {
+            handler.success(0)
+            return
+        }
         if (!currentHandler.compareAndSet(null, handler)) { // this is not guaranteed check but most likely works almost all the time
             throw IllegalStateException("Read operation is already in progress")
         }
@@ -40,44 +45,62 @@ internal class BodyHandlerChannelAdapter(val context: ChannelHandlerContext) : A
     private fun tryToMeet() {
         currentHandler.get()?.let { handler ->
             currentBuffer?.let { buffer ->
-                lastContent?.let { content ->
+                if (lastContent.isNotEmpty()) {
                     if (currentHandler.compareAndSet(handler, null)) {
                         currentBuffer = null
 
-                        meet(handler, buffer, content)
+                        meet(handler, buffer)
                     }
                 }
             }
         }
     }
 
-    private fun meet(handler: AsyncHandler, buffer: ByteBuffer, content: DefaultHttpContent) {
-        val copied = if (content.content().isReadable) {
-            content.putTo(buffer)
-        } else 0
+    tailrec
+    private fun meet(handler: AsyncHandler, buffer: ByteBuffer, copiedBefore: Int = 0) {
+        val content = lastContent[lastContent.lastIndex]
+        val copied = content.putTo(buffer)
 
-        val hasRemaining = content.content().isReadable && content.content().readableBytes() > 0
-        val isLast = content is LastHttpContent
+        if (!content.content().isReadable && content !is LastHttpContent) {
+            lastContent.removeAt(lastContent.lastIndex)
+            ReferenceCountUtil.release(content)
+        }
 
-        if (!isLast && !hasRemaining) {
-            lastContent = null
+        if (lastContent.isEmpty()) {
             requestNext()
         }
 
-        if (isLast && !hasRemaining && copied == 0) {
+        val totalCopied = copiedBefore + copied
+        if (!buffer.hasRemaining()) {
+            handler.success(totalCopied)
+        } else if (content is LastHttpContent && totalCopied == 0) {
+            close()
             handler.successEnd()
+        } else if (content is LastHttpContent) {
+            handler.success(totalCopied)
+        } else if (lastContent.isEmpty()) {
+            handler.success(totalCopied)
         } else {
-            handler.success(copied)
+            meet(handler, buffer, totalCopied)
         }
     }
 
-    private fun requestNext() {
+    fun requestNext() {
         if (requested.compareAndSet(false, true)) {
-            context.read()
+            if (lastContent.isEmpty()) {
+                context.read()
+            } else {
+                requested.set(false)
+            }
         }
     }
 
     override fun close() {
+        for (content in lastContent) {
+            ReferenceCountUtil.release(content)
+        }
+        lastContent.clear()
+
         currentHandler.getAndSet(null)?.let { handler ->
             currentBuffer = null
             handler.successEnd()

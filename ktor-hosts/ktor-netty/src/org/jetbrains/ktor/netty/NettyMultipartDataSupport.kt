@@ -1,55 +1,110 @@
 package org.jetbrains.ktor.netty
 
+import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.multipart.*
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.util.*
 import java.io.*
+import java.util.*
+import java.util.concurrent.locks.*
+import kotlin.concurrent.*
 
-
-private class MultipartIterator(val decoder: HttpPostMultipartRequestDecoder) : AbstractIterator<InterfaceHttpData>() {
-    constructor(request: HttpRequest) : this(HttpPostMultipartRequestDecoder(request))
-
-    override fun computeNext() {
-        if (decoder.hasNext()) {
-            setNext(decoder.next())
-        } else {
-            done()
-        }
-    }
-}
-
-private class MultipartSequenceFull(val fullRequest: FullHttpRequest) : Sequence<InterfaceHttpData> {
-    override fun iterator(): Iterator<InterfaceHttpData> = MultipartIterator(fullRequest)
-}
-
-internal class NettyMultiPartData(val kRequest: ApplicationRequest, val request: FullHttpRequest) : MultiPartData {
+internal class NettyMultiPartData(val decoder: HttpPostMultipartRequestDecoder, val kRequest: NettyApplicationRequest) : MultiPartData, SimpleChannelInboundHandler<DefaultHttpContent>(true) {
     // netty's decoder doesn't provide us headers so we have to parse it or try to reconstruct
-    // as far as we use FullHttpRequest we probably shouldn't use netty with multipart uploads at all
     // TODO original headers
+
+    private val lock = ReentrantLock()
+    private val elementPresent = lock.newCondition()
+    private val all = ArrayList<PartData>()
+    private var completed = false
 
     override val parts: Sequence<PartData>
         get() = when {
-            kRequest.isMultipart() -> MultipartSequenceFull(request).map {
-                when (it) {
-                    is FileUpload -> PartData.FileItem(
-                            streamProvider = {
-                                when {
-                                    it.isInMemory -> it.get().inputStream()
-                                    else -> it.file.inputStream()
-                                }
-                            },
-                            dispose = { it.delete() },
-                            partHeaders = it.headers()
-                    )
-                    is Attribute -> PartData.FormItem(it.value, { it.delete() }, it.headers())
-                    else -> null
-                }
-            }.filterNotNull()
+            kRequest.isMultipart() -> object : Sequence<PartData> {
+                override fun iterator() = PartIterator()
+            }
             else -> throw IOException("The request content is not multipart encoded")
         }
+
+    override fun acceptInboundMessage(msg: Any?): Boolean {
+        return super.acceptInboundMessage(msg)
+    }
+
+    override fun channelRead0(context: ChannelHandlerContext, msg: DefaultHttpContent) {
+        var added = 0
+
+        lock.withLock {
+            decoder.offer(msg)
+
+            try {
+                while (true) {
+                    val hostPart = decoder.next() ?: break
+                    val part = convert(hostPart)
+                    if (part != null) {
+                        all.add(part)
+                        added++
+                    }
+                }
+
+                if (added > 0) {
+                    elementPresent.signalAll()
+                }
+            } catch (e: HttpPostRequestDecoder.EndOfDataDecoderException) {
+                completed = true
+                elementPresent.signalAll()
+            }
+
+            if (msg is LastHttpContent) {
+                completed = true
+                elementPresent.signalAll()
+            }
+        }
+    }
+
+    override fun channelReadComplete(ctx: ChannelHandlerContext) {
+        lock.withLock {
+            completed = true
+            elementPresent.signalAll()
+        }
+    }
+
+    private inner class PartIterator : AbstractIterator<PartData>() {
+        private var index = 0
+
+        override fun computeNext() {
+            lock.withLock {
+                while (true) {
+                    if (index < all.size) {
+                        setNext(all[index])
+                        index++
+                        break
+                    } else if (completed) {
+                        done()
+                        break
+                    } else {
+                        elementPresent.await()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun convert(part: InterfaceHttpData) = when (part) {
+        is FileUpload -> PartData.FileItem(
+                streamProvider = {
+                    when {
+                        part.isInMemory -> part.get().inputStream()
+                        else -> part.file.inputStream()
+                    }
+                },
+                dispose = { part.delete() },
+                partHeaders = part.headers()
+        )
+        is Attribute -> PartData.FormItem(part.value, { part.delete() }, part.headers())
+        else -> null
+    }
 
     private fun FileUpload.headers() = ValuesMap.build(true) {
         if (contentType != null) {

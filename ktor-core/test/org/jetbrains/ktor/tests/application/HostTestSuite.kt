@@ -485,6 +485,55 @@ abstract class HostTestSuite {
         }
     }
 
+    @Test
+    fun testMultipartFileUpload() {
+        startServer(createServer(port) {
+            post("/") {
+                thread {
+                    runBlockWithResult {
+                        val response = StringBuilder()
+
+                        call.request.content.get<MultiPartData>().parts.sortedBy { it.partName }.forEach { part ->
+                            when (part) {
+                                is PartData.FormItem -> response.append("${part.partName}=${part.value}\n")
+                                is PartData.FileItem -> response.append("file:${part.partName},${part.originalFileName},${part.streamProvider().bufferedReader().readText()}\n")
+                            }
+                        }
+
+                        call.respondText(response.toString())
+                    }
+                }
+                pause()
+            }
+        })
+
+        withUrl("/") {
+            requestMethod = "POST"
+            doInput = true
+            doOutput = true
+            setRequestProperty(HttpHeaders.ContentType, ContentType.MultiPart.FormData.withParameter("boundary", "***bbb***").toString())
+
+            outputStream.bufferedWriter().use { out ->
+                out.apply {
+                    append("\n")
+                    append("--***bbb***\n")
+                    append("Content-Disposition: form-data; name=\"a story\"\n")
+                    append("\n")
+                    append("Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\n")
+                    append("--***bbb***\n")
+                    append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\n")
+                    append("Content-Type: text/plain\n")
+                    append("\n")
+                    append("File content goes here\n")
+                    append("--***bbb***--\n")
+                    flush()
+                }
+            }
+
+            assertEquals("a story=Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\nfile:attachment,original.txt,File content goes here\n", inputStream.bufferedReader().use { it.readText() })
+        }
+    }
+
     fun findFreePort() = ServerSocket(0).use { it.localPort }
     fun withUrl(path: String, block: HttpURLConnection.() -> Unit) {
         val connection = URL("http://127.0.0.1:$port$path").openConnection() as HttpURLConnection
@@ -496,30 +545,10 @@ abstract class HostTestSuite {
     }
 
     private fun PipelineContext<*>.failAndProceed(e: Throwable): Nothing {
-        try {
-            fail(e)
-        } catch (ignore: PipelineControlFlow) {
-        }
-
-        doProceed()
+        runBlock { fail(e) }
     }
 
     private fun PipelineContext<*>.finishAllAndProceed(): Nothing {
-        try {
-            finishAll()
-        } catch (ignore: PipelineControlFlow) {
-        }
-
-        doProceed()
-    }
-
-    private fun PipelineContext<*>.doProceed(): Nothing {
-        while (true) {
-            try {
-                proceed()
-            } catch (cont: PipelineContinue) {
-                continue
-            }
-        }
+        runBlock { finishAll() }
     }
 }

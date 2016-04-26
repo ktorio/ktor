@@ -1,7 +1,9 @@
 package org.jetbrains.ktor.netty
 
+import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.cookie.*
+import io.netty.handler.codec.http.multipart.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
@@ -10,8 +12,13 @@ import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.*
+import java.util.concurrent.atomic.*
 
-internal class NettyApplicationRequest(private val request: HttpRequest, private val requestBodyChannel: AsyncReadChannel, val urlEncodedParameters: () -> ValuesMap) : ApplicationRequest {
+internal class NettyApplicationRequest(private val request: HttpRequest,
+                                       private val bodyConsumed: Boolean,
+                                       val urlEncodedParameters: () -> ValuesMap,
+                                       val context: ChannelHandlerContext,
+                                       val drops: LastDropsCollectorHandler?) : ApplicationRequest, Closeable {
     override val headers by lazy {
         ValuesMap.build(caseInsensitiveKey = true) { request.headers().forEach { append(it.key, it.value) } }
     }
@@ -29,13 +36,73 @@ internal class NettyApplicationRequest(private val request: HttpRequest, private
         }
     }
 
-    override val content: RequestContent = object : RequestContent(this) {
-        override fun getMultiPartData(): MultiPartData = TODO("Not yet implemented") //NettyMultiPartData(this@NettyApplicationRequest, request)
-        override fun getInputStream(): InputStream = TODO("Not yet implemented") //ByteBufInputStream(request.content())
-        override fun getReadChannel(): AsyncReadChannel = requestBodyChannel
+    private val contentChannelState = AtomicReference<ReadChannelState>(ReadChannelState.NEUTRAL)
+    private val multipart = lazy {
+        val decoder = HttpPostMultipartRequestDecoder(request)
+        val multipartHandler = NettyMultiPartData(decoder, this@NettyApplicationRequest)
+
+        context.executor().execute {
+            drops?.transferTo(context, multipartHandler)
+
+            context.pipeline().addLast(multipartHandler)
+            context.channel().config().isAutoRead = true
+            context.read()
+        }
+
+        multipartHandler
     }
 
-    override val cookies : RequestCookies = NettyRequestCookies(this)
+    private val contentChannel = lazy {
+        val channel = BodyHandlerChannelAdapter(context)
+
+        context.executor().execute {
+            drops?.transferTo(context, channel)
+
+            context.pipeline().addLast(channel)
+            channel.requestNext()
+        }
+
+        channel
+    }
+
+    override val content: RequestContent = object : RequestContent(this) {
+        override fun getMultiPartData(): MultiPartData {
+            if (contentChannelState.switchTo(ReadChannelState.MULTIPART_HANDLER)) {
+                return multipart.value
+            }
+
+            throw IllegalStateException("Couldn't get multipart, most likely a raw channel already acquired, state is ${contentChannelState.get()}")
+        }
+
+        override fun getInputStream(): InputStream = TODO("Not yet implemented") //ByteBufInputStream(request.content())
+        override fun getReadChannel(): AsyncReadChannel {
+            if (contentChannelState.switchTo(ReadChannelState.RAW_CHANNEL)) {
+                return if (bodyConsumed) AsyncEmptyChannel else contentChannel.value
+            }
+
+            throw IllegalStateException("Couldn't get channel, most likely multipart processing was already started, state is ${contentChannelState.get()}")
+        }
+    }
+
+    override val cookies: RequestCookies = NettyRequestCookies(this)
+
+    override fun close() {
+        if (multipart.isInitialized()) {
+            multipart.value.decoder.destroy()
+        }
+        if (contentChannel.isInitialized()) {
+            contentChannel.value.close()
+        }
+    }
+
+    private fun AtomicReference<ReadChannelState>.switchTo(newState: ReadChannelState) =
+            get() == newState || compareAndSet(ReadChannelState.NEUTRAL, newState)
+
+    private enum class ReadChannelState {
+        NEUTRAL,
+        RAW_CHANNEL,
+        MULTIPART_HANDLER
+    }
 }
 
 private class NettyRequestCookies(val owner: ApplicationRequest) : RequestCookies(owner) {

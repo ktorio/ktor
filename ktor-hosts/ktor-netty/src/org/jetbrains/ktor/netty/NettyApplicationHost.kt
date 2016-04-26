@@ -13,7 +13,6 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpHeaders
-import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
@@ -72,10 +71,9 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         config.log.info("Server stopped.")
     }
 
+    private class DelayedHandleState(val request: HttpRequest, val bodyConsumed: Boolean, val urlEncodedParameters: () -> ValuesMap)
 
-    private class DelayedHandleState(val request: HttpRequest, val channel: AsyncReadChannel, val urlEncodedParameters: () -> ValuesMap)
-
-    inner class HostHttpHandler : SimpleChannelInboundHandler<HttpRequest>() {
+    inner class HostHttpHandler : SimpleChannelInboundHandler<HttpRequest>(false) {
         override fun channelRead0(context: ChannelHandlerContext, request: HttpRequest) {
             val requestContentType = request.headers().get(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
 
@@ -83,13 +81,13 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 val urlEncodedHandler = FormUrlEncodedHandler(Charsets.UTF_8)
                 context.pipeline().addLast(urlEncodedHandler)
 
-                context.attr(DelayedStateAttribute).set(DelayedHandleState(request, AsyncEmptyChannel, { urlEncodedHandler.values }))
+                context.attr(DelayedStateAttribute).set(DelayedHandleState(request, true, { urlEncodedHandler.values }))
             } else {
                 context.channel().config().isAutoRead = false
-                val readHandler = BodyHandlerChannelAdapter(context)
-                context.pipeline().addLast(readHandler)
+                val dropsHandler = LastDropsCollectorHandler() // in spite of that we have cleared auto-read mode we still need to collect remaining events
+                context.pipeline().addLast(dropsHandler)
 
-                startHandleRequest(context, request, readHandler, { ValuesMap.Empty })
+                startHandleRequest(context, request, false, { ValuesMap.Empty }, dropsHandler)
             }
         }
 
@@ -101,41 +99,22 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         override fun channelReadComplete(context: ChannelHandlerContext) {
             context.flush()
 
-            val state = context.attr(DelayedStateAttribute)?.andRemove
+            val state = context.attr(DelayedStateAttribute)?.getAndRemove()
             if (state != null) {
-                startHandleRequest(context, state.request, state.channel, state.urlEncodedParameters)
+                startHandleRequest(context, state.request, state.bodyConsumed, state.urlEncodedParameters, null)
             }
         }
 
-        private fun startHandleRequest(context: ChannelHandlerContext, request: HttpRequest, channel: AsyncReadChannel, urlEncodedParameters: () -> ValuesMap) {
-            val call = NettyApplicationCall(application, context, request, channel, urlEncodedParameters)
+        private fun startHandleRequest(context: ChannelHandlerContext, request: HttpRequest, bodyConsumed: Boolean, urlEncodedParameters: () -> ValuesMap, drops: LastDropsCollectorHandler?) {
+            val call = NettyApplicationCall(application, context, request, bodyConsumed, urlEncodedParameters, drops)
             val pipelineState = call.execute(application)
             if (pipelineState != PipelineState.Executing && !call.completed) {
                 val response = HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")
-                call.executionMachine.executeInLoop {
+                call.executionMachine.runBlockWithResult {
                     call.respond(response)
                 }
             }
         }
-
-        private inline fun PipelineMachine.executeInLoop(block: () -> Unit): Unit {
-            try {
-                block()
-            } catch (e: PipelineContinue) {
-                stateLoopMachine()
-            } catch (e: PipelineControlFlow) {
-            }
-        }
-
-        private fun PipelineMachine.stateLoopMachine() {
-            do {
-                try {
-                    proceed()
-                } catch (e: PipelineContinue) {
-                }
-            } while (true);
-        }
-
     }
 
     companion object {

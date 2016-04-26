@@ -7,7 +7,7 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import java.nio.charset.*
 
-internal class FormUrlEncodedHandler(val encoding: Charset) : SimpleChannelInboundHandler<DefaultHttpContent>() {
+internal class FormUrlEncodedHandler(val encoding: Charset) : SimpleChannelInboundHandler<DefaultHttpContent>(true) {
     private val buffer = ByteArrayOutputStream(4096)
 
     val values: ValuesMap
