@@ -3,6 +3,7 @@ package org.jetbrains.ktor.servlet
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import javax.servlet.http.*
@@ -40,6 +41,7 @@ class ServletApplicationRequest(val servletRequest: HttpServletRequest) : Applic
     override val content: RequestContent = object : RequestContent(this) {
         override fun getMultiPartData(): MultiPartData = ServletMultiPartData(this@ServletApplicationRequest, servletRequest)
         override fun getInputStream(): InputStream = servletRequest.inputStream
+        override fun getReadChannel(): AsyncReadChannel = getInputStream().asAsyncChannel() // TODO("Not yet implemented")
     }
 
     override val cookies : RequestCookies = ServletRequestCookies(servletRequest, this)
