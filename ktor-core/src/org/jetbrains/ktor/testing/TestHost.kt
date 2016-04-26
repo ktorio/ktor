@@ -141,6 +141,8 @@ class TestApplicationRequest() : ApplicationRequest {
 
     override val content: RequestContent = object : RequestContent(this) {
         override fun getInputStream(): InputStream = ByteArrayInputStream(body.toByteArray(Charsets.UTF_8))
+        override fun getReadChannel() = ByteArrayAsyncReadChannel(body.toByteArray(Charsets.UTF_8))
+
         override fun getMultiPartData(): MultiPartData = object : MultiPartData {
             override val parts: Sequence<PartData>
                 get() = when {
