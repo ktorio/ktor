@@ -403,6 +403,33 @@ abstract class HostTestSuite {
     }
 
     @Test
+    fun testFormUrlEncoded() {
+        val server = createServer(port) {
+            post("/") {
+                call.respondText("${call.request.parameter("urlp")},${call.request.parameter("formp")}")
+            }
+        }
+        startServer(server)
+
+        withUrl("/?urlp=1") {
+            requestMethod = "POST"
+            doInput = true
+            doOutput = true
+            setRequestProperty(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+
+            outputStream.use { out ->
+                out.writer().apply {
+                    append("formp=2")
+                    flush()
+                }
+            }
+
+            assertEquals(HttpStatusCode.OK.value, responseCode)
+            assertEquals("1,2", inputStream.bufferedReader().readText())
+        }
+    }
+
+    @Test
     fun testRequestBodyAsyncEcho() {
         val server = createServer(port) {
             route("/echo") {

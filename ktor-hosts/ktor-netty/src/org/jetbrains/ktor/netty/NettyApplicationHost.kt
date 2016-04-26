@@ -7,11 +7,15 @@ import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.stream.*
+import io.netty.util.AttributeKey
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.http.HttpHeaders
+import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.util.*
 
 /**
  * [ApplicationHost] implementation for running standalone Netty Host
@@ -68,20 +72,25 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         config.log.info("Server stopped.")
     }
 
+
+    private class DelayedHandleState(val request: HttpRequest, val channel: AsyncReadChannel, val urlEncodedParameters: () -> ValuesMap)
+    private val DelayedStateAttribute = AttributeKey.newInstance<DelayedHandleState>("delayed-handle-state")
+
     inner class HostHttpHandler : SimpleChannelInboundHandler<HttpRequest>() {
         override fun channelRead0(context: ChannelHandlerContext, request: HttpRequest) {
-            context.channel().config().isAutoRead = false
+            val requestContentType = request.headers().get(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
 
-            val readHandler = BodyHandlerChannelAdapter(context)
-            context.pipeline().addLast(readHandler)
+            if (requestContentType != null && requestContentType.match(ContentType.Application.FormUrlEncoded)) {
+                val urlEncodedHandler = FormUrlEncodedHandler(Charsets.UTF_8)
+                context.pipeline().addLast(urlEncodedHandler)
 
-            val call = NettyApplicationCall(application, context, request, readHandler)
-            val pipelineState = call.execute(application)
-            if (pipelineState != PipelineState.Executing && !call.completed) {
-                val response = HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")
-                call.executionMachine.executeInLoop {
-                    call.respond(response)
-                }
+                context.attr(DelayedStateAttribute).set(DelayedHandleState(request, AsyncEmptyChannel, { urlEncodedHandler.values }))
+            } else {
+                context.channel().config().isAutoRead = false
+                val readHandler = BodyHandlerChannelAdapter(context)
+                context.pipeline().addLast(readHandler)
+
+                startHandleRequest(context, request, readHandler, { ValuesMap.Empty })
             }
         }
 
@@ -90,8 +99,24 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             ctx.close()
         }
 
-        override fun channelReadComplete(ctx: ChannelHandlerContext) {
-            ctx.flush()
+        override fun channelReadComplete(context: ChannelHandlerContext) {
+            context.flush()
+
+            val state = context.attr(DelayedStateAttribute)?.andRemove
+            if (state != null) {
+                startHandleRequest(context, state.request, state.channel, state.urlEncodedParameters)
+            }
+        }
+
+        private fun startHandleRequest(context: ChannelHandlerContext, request: HttpRequest, channel: AsyncReadChannel, urlEncodedParameters: () -> ValuesMap) {
+            val call = NettyApplicationCall(application, context, request, channel, urlEncodedParameters)
+            val pipelineState = call.execute(application)
+            if (pipelineState != PipelineState.Executing && !call.completed) {
+                val response = HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")
+                call.executionMachine.executeInLoop {
+                    call.respond(response)
+                }
+            }
         }
 
         private inline fun PipelineMachine.executeInLoop(block: () -> Unit): Unit {
