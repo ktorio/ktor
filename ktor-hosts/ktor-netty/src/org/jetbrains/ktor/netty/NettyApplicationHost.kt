@@ -42,7 +42,6 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             override fun initChannel(ch: SocketChannel) {
                 with (ch.pipeline()) {
                     addLast(HttpServerCodec())
-                    addLast(HttpObjectAggregator(1048576))
                     addLast(ChunkedWriteHandler())
                     addLast(HostHttpHandler())
                 }
@@ -69,9 +68,14 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         config.log.info("Server stopped.")
     }
 
-    inner class HostHttpHandler : SimpleChannelInboundHandler<FullHttpRequest>() {
-        override fun channelRead0(context: ChannelHandlerContext, request: FullHttpRequest) {
-            val call = NettyApplicationCall(application, context, request)
+    inner class HostHttpHandler : SimpleChannelInboundHandler<HttpRequest>() {
+        override fun channelRead0(context: ChannelHandlerContext, request: HttpRequest) {
+            context.channel().config().isAutoRead = false
+
+            val readHandler = BodyHandlerChannelAdapter(context)
+            context.pipeline().addLast(readHandler)
+
+            val call = NettyApplicationCall(application, context, request, readHandler)
             val pipelineState = call.execute(application)
             if (pipelineState != PipelineState.Executing && !call.completed) {
                 val response = HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")

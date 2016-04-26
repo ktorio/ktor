@@ -1,17 +1,17 @@
 package org.jetbrains.ktor.netty
 
-import io.netty.buffer.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.cookie.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpMethod
+import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.*
 
-internal class NettyApplicationRequest(private val request: FullHttpRequest) : ApplicationRequest {
+internal class NettyApplicationRequest(private val request: HttpRequest, private val readHandler: BodyHandlerChannelAdapter) : ApplicationRequest {
     override val headers by lazy {
         ValuesMap.build(caseInsensitiveKey = true) { request.headers().forEach { append(it.key, it.value) } }
     }
@@ -27,14 +27,16 @@ internal class NettyApplicationRequest(private val request: FullHttpRequest) : A
             }
             // as far as we have full request we can access request body many times
             if (contentType().match(ContentType.Application.FormUrlEncoded)) {
-                appendAll(parseUrlEncodedParameters())
+//                appendAll(parseUrlEncodedParameters())
+                // TODO!!!
             }
         }
     }
 
     override val content: RequestContent = object : RequestContent(this) {
-        override fun getMultiPartData(): MultiPartData = NettyMultiPartData(this@NettyApplicationRequest, request)
-        override fun getInputStream(): InputStream = ByteBufInputStream(request.content())
+        override fun getMultiPartData(): MultiPartData = TODO("Not yet implemented") //NettyMultiPartData(this@NettyApplicationRequest, request)
+        override fun getInputStream(): InputStream = TODO("Not yet implemented") //ByteBufInputStream(request.content())
+        override fun getReadChannel(): AsyncReadChannel = readHandler
     }
 
     override val cookies : RequestCookies = NettyRequestCookies(this)

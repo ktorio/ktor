@@ -5,6 +5,8 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
 import org.junit.*
 import java.io.*
@@ -400,6 +402,62 @@ abstract class HostTestSuite {
         }
     }
 
+    @Test
+    fun testRequestBodyAsyncEcho() {
+        val server = createServer(port) {
+            route("/echo") {
+                handle {
+                    val inChannel = call.request.content.get<AsyncReadChannel>()
+                    val buffer = ByteArrayAsyncWriteChannel()
+                    val readFuture = CompletableFuture<Long>()
+
+                    readFuture.whenComplete { size, throwable ->
+                        if (throwable != null) {
+                            failAndProceed(throwable)
+                        }
+
+                        call.response.status(HttpStatusCode.OK)
+                        call.response.contentType(ContentType.Application.OctetStream)
+                        val outChannel = call.response.channel()
+
+                        val writeFuture = CompletableFuture<Long>()
+                        writeFuture.whenComplete { size, throwable ->
+                            if (throwable != null) {
+                                failAndProceed(throwable)
+                            }
+
+                            call.close()
+                            finishAllAndProceed()
+                        }
+
+                        ByteArrayAsyncReadChannel(buffer.toByteArray()).copyToAsyncThenComplete(outChannel, writeFuture)
+                    }
+
+                    inChannel.copyToAsyncThenComplete(buffer, readFuture)
+                    pause()
+                }
+            }
+        }
+        startServer(server)
+
+        withUrl("/echo") {
+            requestMethod = "POST"
+            doInput = true
+            doOutput = true
+            setRequestProperty(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
+
+            outputStream.use { out ->
+                out.writer().apply {
+                    append("POST test\n")
+                    append("Another line")
+                    flush()
+                }
+            }
+
+            assertEquals("POST test\nAnother line", inputStream.bufferedReader().use { it.readText() })
+        }
+    }
+
     fun findFreePort() = ServerSocket(0).use { it.localPort }
     fun withUrl(path: String, block: HttpURLConnection.() -> Unit) {
         val connection = URL("http://127.0.0.1:$port$path").openConnection() as HttpURLConnection
@@ -408,5 +466,33 @@ abstract class HostTestSuite {
         connection.instanceFollowRedirects = false
 
         connection.block()
+    }
+
+    private fun PipelineContext<*>.failAndProceed(e: Throwable): Nothing {
+        try {
+            fail(e)
+        } catch (ignore: PipelineControlFlow) {
+        }
+
+        doProceed()
+    }
+
+    private fun PipelineContext<*>.finishAllAndProceed(): Nothing {
+        try {
+            finishAll()
+        } catch (ignore: PipelineControlFlow) {
+        }
+
+        doProceed()
+    }
+
+    private fun PipelineContext<*>.doProceed(): Nothing {
+        while (true) {
+            try {
+                proceed()
+            } catch (cont: PipelineContinue) {
+                continue
+            }
+        }
     }
 }

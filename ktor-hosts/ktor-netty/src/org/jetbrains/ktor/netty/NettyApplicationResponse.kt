@@ -53,6 +53,7 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
         if (closed.compareAndSet(false, true)) {
             context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).scheduleClose()
         }
+        context.channel().config().isAutoRead = true
     }
 
     private fun ChannelFuture.scheduleClose() {
