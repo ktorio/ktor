@@ -74,7 +74,6 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
 
     private class DelayedHandleState(val request: HttpRequest, val channel: AsyncReadChannel, val urlEncodedParameters: () -> ValuesMap)
-    private val DelayedStateAttribute = AttributeKey.newInstance<DelayedHandleState>("delayed-handle-state")
 
     inner class HostHttpHandler : SimpleChannelInboundHandler<HttpRequest>() {
         override fun channelRead0(context: ChannelHandlerContext, request: HttpRequest) {
@@ -137,6 +136,10 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             } while (true);
         }
 
+    }
+
+    companion object {
+        private val DelayedStateAttribute = AttributeKey.newInstance<DelayedHandleState>("ktor-delayed-handle-state")
     }
 }
 
