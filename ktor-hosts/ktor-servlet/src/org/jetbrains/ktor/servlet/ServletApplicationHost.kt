@@ -34,9 +34,9 @@ open class ServletApplicationHost() : HttpServlet() {
 
     val application: Application get() = loader.application
     private val threadCounter = AtomicInteger()
-    val executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2) { r ->
+    val executorService = ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 100, 30L, TimeUnit.SECONDS, LinkedBlockingQueue(), { r ->
         Thread(r, "apphost-pool-thread-${threadCounter.incrementAndGet()}")
-    }
+    })
 
     override fun destroy() {
         executorService.shutdown()
@@ -49,14 +49,16 @@ open class ServletApplicationHost() : HttpServlet() {
 
         try {
             val call = ServletApplicationCall(application, request, response, executorService)
-            val pipelineState = call.execute(application)
+            val future = call.executeOn(executorService, application)
+
+            val pipelineState = future.get()
             if (pipelineState != PipelineState.Executing) {
                 if (!call.completed) {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND)
                     call.close()
                 }
             } else {
-                call.continueAsync(request.startAsync())
+                call.ensureAsync()
             }
         } catch (ex: Throwable) {
             application.config.log.error("ServletApplicationHost cannot service the request", ex)

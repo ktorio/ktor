@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.pipeline
 
+import org.jetbrains.ktor.application.*
 import java.util.concurrent.*
 
 fun <C : Any> PipelineContext<C>.runAsync(exec: Executor, block: PipelineContext<C>.() -> Unit): Nothing {
@@ -8,6 +9,36 @@ fun <C : Any> PipelineContext<C>.runAsync(exec: Executor, block: PipelineContext
     }
 
     pause()
+}
+
+fun ApplicationCall.executeOn(exec: Executor, pipeline: Pipeline<ApplicationCall>): CompletableFuture<PipelineState> {
+    val future = CompletableFuture<PipelineState>()
+
+    exec.execute {
+        try {
+            future.complete(execute(pipeline))
+        } catch (t: Throwable) {
+            future.completeExceptionally(t)
+        }
+    }
+
+    return future
+}
+
+fun <S: Any> PipelineMachine.executeOn(exec: Executor, subject: S, pipeline: Pipeline<S>): CompletableFuture<PipelineState> {
+    val future = CompletableFuture<PipelineState>()
+
+    exec.execute {
+        try {
+            future.complete(runBlockWithResult {
+                execute(subject, pipeline)
+            })
+        } catch (t: Throwable) {
+            future.completeExceptionally(t)
+        }
+    }
+
+    return future
 }
 
 inline fun <C : Any> PipelineContext<C>.runBlock(block: PipelineContext<C>.() -> Unit): Nothing {

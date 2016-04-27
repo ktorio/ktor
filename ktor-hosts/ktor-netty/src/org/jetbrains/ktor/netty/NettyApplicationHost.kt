@@ -111,11 +111,21 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
         private fun startHandleRequest(context: ChannelHandlerContext, request: HttpRequest, bodyConsumed: Boolean, urlEncodedParameters: () -> ValuesMap, drops: LastDropsCollectorHandler?) {
             val call = NettyApplicationCall(application, context, request, bodyConsumed, urlEncodedParameters, drops, executor)
-            val pipelineState = call.execute(application)
-            if (pipelineState != PipelineState.Executing && !call.completed) {
-                val response = HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")
-                call.executionMachine.runBlockWithResult {
-                    call.respond(response)
+
+            call.executeOn(executor, application).whenComplete { pipelineState, throwable ->
+                val response: Any? = if (throwable != null && !call.completed) {
+                    application.config.log.error("Failed to process request", throwable)
+                    HttpStatusCode.InternalServerError
+                } else if (pipelineState != PipelineState.Executing && !call.completed) {
+                    HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")
+                } else {
+                    null
+                }
+
+                if (response != null) {
+                    call.executionMachine.runBlockWithResult {
+                        call.respond(response)
+                    }
                 }
             }
         }

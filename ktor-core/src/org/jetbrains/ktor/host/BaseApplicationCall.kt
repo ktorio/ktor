@@ -87,8 +87,15 @@ abstract class BaseApplicationCall(override val application: Application, overri
                 is StreamContent -> {
                     response.status() ?: response.status(HttpStatusCode.OK)
                     ifNotHead {
-                        val channel = response.channel()
-                        value.stream(channel.asOutputStream())
+                        runAsync(executor) {
+                            try {
+                                val channel = response.channel()
+                                value.stream(channel.asOutputStream())
+                            } finally {
+                                close()
+                                finishAll()
+                            }
+                        }
                     }
                     close()
                     finishAll()

@@ -65,7 +65,7 @@ abstract class HostTestSuite {
         }
     }
 
-    @Test @Ignore
+    @Test
     fun testStream() {
         val server = createServer(port) {
             handle {
@@ -84,7 +84,7 @@ abstract class HostTestSuite {
         }
     }
 
-    @Test @Ignore
+    @Test
     fun testStreamNoFlush() {
         val server = createServer(port) {
             handle {

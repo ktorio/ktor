@@ -20,29 +20,29 @@ class ServletApplicationCall(application: Application,
     @Volatile
     private var asyncContext: AsyncContext? = null
 
-    fun continueAsync(asyncContext: AsyncContext) {
-        require(this.asyncContext == null || this.asyncContext == asyncContext) { "You can't reassign asyncContext" }
-        this.asyncContext = asyncContext
-    }
-
     val asyncStarted: Boolean
         get() = asyncContext != null
 
     @Volatile
     var completed: Boolean = false
+
     override fun close() {
         completed = true
-        if (asyncContext != null) {
-            asyncContext?.complete()
+        asyncContext?.complete()
+    }
+
+    @Synchronized
+    fun ensureAsync() {
+        if (!asyncStarted) {
+            startAsync()
         }
     }
 
-    internal fun startAsync(): AsyncContext {
-        val asyncContext = servletRequest.startAsync(servletRequest, servletResponse)
-        // asyncContext.timeout = ?
-        continueAsync(asyncContext)
+    private fun startAsync() {
+        require(this.asyncContext == null) { "You can't reassign asyncContext" }
 
-        return asyncContext
+        asyncContext = servletRequest.startAsync(servletRequest, servletResponse)
+        // asyncContext.timeout = ?
     }
 
 }

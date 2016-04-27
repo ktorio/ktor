@@ -58,23 +58,23 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     // TODO someone reported auto-cleanup issues so we have to check it
                 }
 
-                val pipelineState = call.execute(application)
+                val future = call.executeOn(executor, application)
+                val pipelineState = future.get()!!
                 when (pipelineState) {
                     PipelineState.Succeeded -> baseRequest.isHandled = call.completed
                     PipelineState.Executing -> {
                         baseRequest.isHandled = true
                         // TODO how do we report 404 if async or pass to the next handler?
 
-                        if (!call.asyncStarted) {
-                            val asyncContext = baseRequest.startAsync()
-                            call.continueAsync(asyncContext)
-                        }
+                        call.ensureAsync()
                     }
                     PipelineState.Failed -> baseRequest.isHandled = true
                 }
             } catch(ex: Throwable) {
                 config.log.error("Application ${application.javaClass} cannot fulfill the request", ex);
-                call.respond(HttpStatusCode.InternalServerError)
+                call.executionMachine.runBlockWithResult {
+                    call.respond(HttpStatusCode.InternalServerError)
+                }
             }
         }
     }
