@@ -20,12 +20,16 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
 
     override fun status(): HttpStatusCode? = response.status?.let { HttpStatusCode(it.code(), it.reasonPhrase()) }
 
-    override val channel = Interceptable0<AsyncWriteChannel> {
-        setChunked()
-        sendRequestMessage()
+    private val channelInstance by lazy {
+        context.executeInLoop {
+            setChunked()
+            sendRequestMessage()
+        }
 
         NettyAsyncWriteChannel(request, this, context)
     }
+
+    override val channel = Interceptable0<AsyncWriteChannel> { channelInstance }
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         override fun hostAppendHeader(name: String, value: String) {
@@ -48,13 +52,15 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
     }
 
     fun finalize() {
-        sendRequestMessage()
-        context.flush()
-        if (closed.compareAndSet(false, true)) {
-            context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).scheduleClose()
+        context.executeInLoop {
+            sendRequestMessage()
+            context.flush()
+            if (closed.compareAndSet(false, true)) {
+                context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).scheduleClose()
+            }
+            context.channel().config().isAutoRead = true
+            context.read()
         }
-        context.channel().config().isAutoRead = true
-        context.read()
     }
 
     private fun ChannelFuture.scheduleClose() {

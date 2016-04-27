@@ -34,19 +34,15 @@ internal class NettyAsyncWriteChannel(val request: HttpRequest, val appResponse:
 
         buffer.clear()
         buffer.writeBytes(src)
-        context.writeAndFlush(DefaultHttpContent(buffer.copy())).addListener(listener)
+        val content = DefaultHttpContent(buffer.copy())
+
+        context.executeInLoop {
+            context.writeAndFlush(content).addListener(listener)
+        }
     }
 
     override fun close() {
         appResponse.finalize()
     }
-
-    private fun ChannelFuture.scheduleClose() {
-        if (noKeepAlive()) {
-            addListener(ChannelFutureListener.CLOSE)
-        }
-    }
-
-    private fun noKeepAlive() = !HttpHeaders.isKeepAlive(request)
 
 }

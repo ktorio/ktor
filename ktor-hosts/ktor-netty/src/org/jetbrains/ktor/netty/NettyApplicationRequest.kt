@@ -41,7 +41,7 @@ internal class NettyApplicationRequest(private val request: HttpRequest,
         val decoder = HttpPostMultipartRequestDecoder(request)
         val multipartHandler = NettyMultiPartData(decoder, this@NettyApplicationRequest)
 
-        context.executor().execute {
+        context.executeInLoop {
             drops?.transferTo(context, multipartHandler)
 
             context.pipeline().addLast(multipartHandler)
@@ -55,7 +55,7 @@ internal class NettyApplicationRequest(private val request: HttpRequest,
     private val contentChannel = lazy {
         val channel = BodyHandlerChannelAdapter(context)
 
-        context.executor().execute {
+        context.executeInLoop {
             drops?.transferTo(context, channel)
 
             context.pipeline().addLast(channel)
@@ -87,11 +87,24 @@ internal class NettyApplicationRequest(private val request: HttpRequest,
     override val cookies: RequestCookies = NettyRequestCookies(this)
 
     override fun close() {
+        val handlersToRemove = ArrayList<ChannelHandlerAdapter>()
+
         if (multipart.isInitialized()) {
             multipart.value.decoder.destroy()
+            handlersToRemove.add(multipart.value)
         }
         if (contentChannel.isInitialized()) {
             contentChannel.value.close()
+            handlersToRemove.add(contentChannel.value)
+        }
+
+        context.executeInLoop {
+            for (handler in handlersToRemove) {
+                try {
+                    context.pipeline().remove(handler)
+                } catch (ignore: NoSuchElementException) {
+                }
+            }
         }
     }
 
@@ -112,5 +125,14 @@ private class NettyRequestCookies(val owner: ApplicationRequest) : RequestCookie
             acc.putAll(ServerCookieDecoder.LAX.decode(cookieHeader).associateBy({ it.name() }, { it.value() }))
             acc
         } ?: emptyMap<String, String>()
+    }
+}
+
+internal inline fun ChannelHandlerContext.executeInLoop(crossinline block: () -> Unit) {
+    val executor = executor()
+    if (channel().isRegistered && !executor.inEventLoop()) {
+        executor.execute { block() }
+    } else {
+        block()
     }
 }

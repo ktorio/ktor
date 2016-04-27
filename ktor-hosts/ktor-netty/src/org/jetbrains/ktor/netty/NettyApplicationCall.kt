@@ -32,9 +32,10 @@ internal class NettyApplicationCall(application: Application,
 
     override fun close() {
         completed = true
+        ReferenceCountUtil.release(httpRequest)
+        drops?.close(context)
+
         response.finalize()
         request.close()
-        ReferenceCountUtil.release(httpRequest)
-        drops?.close()
     }
 }

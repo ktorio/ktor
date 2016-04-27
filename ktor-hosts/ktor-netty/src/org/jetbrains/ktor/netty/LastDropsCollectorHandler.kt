@@ -6,9 +6,9 @@ import io.netty.util.*
 import java.util.*
 
 internal class LastDropsCollectorHandler : SimpleChannelInboundHandler<DefaultHttpContent>(false) {
-    val collected = ArrayList<DefaultHttpContent>()
-    var completed = false
-    var transferred = false
+    private val collected = ArrayList<DefaultHttpContent>()
+    private var completed = false
+    private var transferred = false
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: DefaultHttpContent) {
         collected.add(msg)
@@ -31,8 +31,13 @@ internal class LastDropsCollectorHandler : SimpleChannelInboundHandler<DefaultHt
         }
     }
 
-    fun close() {
+    fun close(context: ChannelHandlerContext) {
         if (!transferred) {
+            try {
+                context.pipeline().remove(this)
+            } catch (ignore: NoSuchElementException) {
+            }
+
             for (content in collected) {
                 ReferenceCountUtil.release(content)
             }
