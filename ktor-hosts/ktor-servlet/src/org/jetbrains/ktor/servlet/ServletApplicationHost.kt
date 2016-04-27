@@ -5,6 +5,8 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.pipeline.*
+import java.util.concurrent.*
+import java.util.concurrent.atomic.*
 import javax.servlet.annotation.*
 import javax.servlet.http.*
 
@@ -31,9 +33,13 @@ open class ServletApplicationHost() : HttpServlet() {
     }
 
     val application: Application get() = loader.application
-
+    private val threadCounter = AtomicInteger()
+    val executorService = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 2) { r ->
+        Thread(r, "apphost-pool-thread-${threadCounter.incrementAndGet()}")
+    }
 
     override fun destroy() {
+        executorService.shutdown()
         loader.dispose()
     }
 
@@ -42,7 +48,7 @@ open class ServletApplicationHost() : HttpServlet() {
         request.characterEncoding = "UTF-8"
 
         try {
-            val call = ServletApplicationCall(application, request, response)
+            val call = ServletApplicationCall(application, request, response, executorService)
             val pipelineState = call.execute(application)
             if (pipelineState != PipelineState.Executing) {
                 if (!call.completed) {

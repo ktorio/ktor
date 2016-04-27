@@ -15,6 +15,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
+import java.util.concurrent.*
 
 /**
  * [ApplicationHost] implementation for running standalone Netty Host
@@ -52,6 +53,9 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         })
 
     }
+
+    override val executor: Executor
+        get() = workerEventGroup
 
     override fun start(wait: Boolean) {
         config.log.info("Starting server...")
@@ -106,7 +110,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
 
         private fun startHandleRequest(context: ChannelHandlerContext, request: HttpRequest, bodyConsumed: Boolean, urlEncodedParameters: () -> ValuesMap, drops: LastDropsCollectorHandler?) {
-            val call = NettyApplicationCall(application, context, request, bodyConsumed, urlEncodedParameters, drops)
+            val call = NettyApplicationCall(application, context, request, bodyConsumed, urlEncodedParameters, drops, executor)
             val pipelineState = call.execute(application)
             if (pipelineState != PipelineState.Executing && !call.completed) {
                 val response = HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")

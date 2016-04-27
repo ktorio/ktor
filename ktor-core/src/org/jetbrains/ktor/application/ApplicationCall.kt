@@ -1,8 +1,8 @@
 package org.jetbrains.ktor.application
 
-import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
+import java.util.concurrent.*
 
 /**
  * Represents a single act of communication between client and server.
@@ -12,6 +12,11 @@ interface ApplicationCall {
      * Application being called
      */
     val application: Application
+
+    /**
+     * Application executor you can execute tasks on via [runAsync]
+     */
+    val executor: Executor
 
     /**
      * Client request

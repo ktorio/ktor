@@ -7,6 +7,7 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.servlet.*
+import java.util.concurrent.*
 import javax.servlet.*
 import javax.servlet.http.*
 
@@ -42,13 +43,14 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         handler = Handler()
     }
 
+    override val executor = Executor { command -> server.threadPool.execute(command) }
 
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"));
 
     inner class Handler() : AbstractHandler() {
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             response.characterEncoding = "UTF-8"
-            val call = ServletApplicationCall(application, request, response)
+            val call = ServletApplicationCall(application, request, response, executor)
             try {
                 val contentType = request.contentType
                 if (contentType != null && ContentType.parse(contentType).match(ContentType.MultiPart.Any)) {

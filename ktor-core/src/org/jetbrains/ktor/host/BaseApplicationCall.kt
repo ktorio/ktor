@@ -9,7 +9,7 @@ import java.io.*
 import java.nio.charset.*
 import java.util.concurrent.*
 
-abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
+abstract class BaseApplicationCall(override val application: Application, override val executor: Executor) : ApplicationCall {
     val executionMachine = PipelineMachine()
 
     override fun execute(pipeline: Pipeline<ApplicationCall>): PipelineState {

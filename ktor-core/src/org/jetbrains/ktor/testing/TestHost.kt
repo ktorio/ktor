@@ -43,6 +43,7 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     val application: Application = ApplicationLoader(applicationConfig).application
     val pipeline = Pipeline<ApplicationCall>()
     var exception : Throwable? = null
+    val executor = Executors.newCachedThreadPool()
 
     init {
         pipeline.intercept { call ->
@@ -63,7 +64,7 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val request = TestApplicationRequest()
         request.setup()
-        val call = TestApplicationCall(application, request)
+        val call = TestApplicationCall(application, request, executor)
         call.execute(pipeline)
         call.await()
         if (exception != null)
@@ -72,7 +73,9 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     }
 
     fun dispose() {
+        executor.shutdown()
         application.dispose()
+        executor.shutdownNow()
     }
 }
 
@@ -84,7 +87,7 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
     }
 }
 
-class TestApplicationCall(application: Application, override val request: TestApplicationRequest) : BaseApplicationCall(application) {
+class TestApplicationCall(application: Application, override val request: TestApplicationRequest, executor: Executor) : BaseApplicationCall(application, executor) {
     internal val latch = CountDownLatch(1)
     override val parameters: ValuesMap get() = request.parameters
     override val attributes = Attributes()

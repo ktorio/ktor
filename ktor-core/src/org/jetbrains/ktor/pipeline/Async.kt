@@ -2,8 +2,8 @@ package org.jetbrains.ktor.pipeline
 
 import java.util.concurrent.*
 
-fun <C : Any> PipelineContext<C>.runAsync(exec: ExecutorService, block: PipelineContext<C>.() -> Unit): Nothing {
-    exec.submit {
+fun <C : Any> PipelineContext<C>.runAsync(exec: Executor, block: PipelineContext<C>.() -> Unit): Nothing {
+    exec.execute {
         runBlock(block)
     }
 
