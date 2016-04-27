@@ -14,7 +14,7 @@ fun RoutingEntry.videos(database: Database) {
     get<Index> {
         val session = call.sessionOrNull<Session>()
         val topVideos = database.top()
-        val etag = topVideos.joinToString { "${it.id},${it.title}" }.hashCode().toString() + "," + session?.userId?.hashCode()
+        val etag = topVideos.joinToString { "${it.id},${it.title}" }.hashCode().toString() + "-" + session?.userId?.hashCode()
         val visibility = if (session == null) CacheControlVisibility.PUBLIC else CacheControlVisibility.PRIVATE
 
         call.respondDefaultHtml(listOf(EntityTagVersion(etag)), visibility) {
