@@ -26,9 +26,12 @@ class ServletApplicationCall(application: Application,
     @Volatile
     var completed: Boolean = false
 
+    @Synchronized
     override fun close() {
-        completed = true
-        asyncContext?.complete()
+        if (!completed) {
+            completed = true
+            asyncContext?.complete()
+        }
     }
 
     @Synchronized
