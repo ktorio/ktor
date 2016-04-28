@@ -8,7 +8,7 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import javax.servlet.http.*
 
-class ServletApplicationRequest(val servletRequest: HttpServletRequest) : ApplicationRequest {
+class ServletApplicationRequest(val call: ServletApplicationCall, val servletRequest: HttpServletRequest) : ApplicationRequest {
     override val requestLine: HttpRequestLine by lazy {
         val uri = servletRequest.requestURI
         val query = servletRequest.queryString
@@ -38,10 +38,15 @@ class ServletApplicationRequest(val servletRequest: HttpServletRequest) : Applic
         }
     }
 
+    private val servletReadChannel by lazy {
+        call.ensureAsync()
+        ServletAsyncReadChannel(servletRequest.inputStream)
+    }
+
     override val content: RequestContent = object : RequestContent(this) {
         override fun getMultiPartData(): MultiPartData = ServletMultiPartData(this@ServletApplicationRequest, servletRequest)
         override fun getInputStream(): InputStream = servletRequest.inputStream
-        override fun getReadChannel(): AsyncReadChannel = getInputStream().asAsyncChannel() // TODO("Not yet implemented")
+        override fun getReadChannel(): AsyncReadChannel = servletReadChannel
     }
 
     override val cookies : RequestCookies = ServletRequestCookies(servletRequest, this)
