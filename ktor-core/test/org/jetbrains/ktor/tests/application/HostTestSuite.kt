@@ -569,6 +569,45 @@ abstract class HostTestSuite {
         }
     }
 
+    @Test
+    fun testRequestTwiceNoKeepAlive() {
+        startServer(createServer(port) {
+            get("/") {
+                call.respond(TextContent(ContentType.Text.Plain, "Text"))
+            }
+        })
+
+        withUrl("/") {
+            setRequestProperty(HttpHeaders.Connection, "close")
+            assertEquals("Text", inputStream.bufferedReader().readText())
+        }
+
+        withUrl("/") {
+            setRequestProperty(HttpHeaders.Connection, "close")
+            assertEquals("Text", inputStream.bufferedReader().readText())
+        }
+    }
+
+    @Test
+    fun testRequestTwiceWithKeepAlive() {
+        startServer(createServer(port) {
+            get("/") {
+                call.respond(TextContent(ContentType.Text.Plain, "Text"))
+            }
+        })
+
+
+        withUrl("/") {
+            setRequestProperty(HttpHeaders.Connection, "keep-alive")
+            assertEquals("Text", inputStream.bufferedReader().readText())
+        }
+
+        withUrl("/") {
+            setRequestProperty(HttpHeaders.Connection, "keep-alive")
+            assertEquals("Text", inputStream.bufferedReader().readText())
+        }
+    }
+
     fun findFreePort() = ServerSocket(0).use { it.localPort }
     fun withUrl(path: String, block: HttpURLConnection.() -> Unit) {
         val connection = URL("http://127.0.0.1:$port$path").openConnection() as HttpURLConnection
