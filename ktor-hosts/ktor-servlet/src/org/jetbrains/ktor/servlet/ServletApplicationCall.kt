@@ -8,13 +8,14 @@ import javax.servlet.*
 import javax.servlet.http.*
 
 class ServletApplicationCall(application: Application,
-                                    private val servletRequest: HttpServletRequest,
-                                    private val servletResponse: HttpServletResponse,
-                             executor: Executor) : BaseApplicationCall(application, executor) {
+                             private val servletRequest: HttpServletRequest,
+                             private val servletResponse: HttpServletResponse,
+                             executor: Executor,
+                             val onAsyncStartedUnderLock: () -> Unit) : BaseApplicationCall(application, executor) {
 
     override val attributes = Attributes()
-    override val request : ApplicationRequest = ServletApplicationRequest(this, servletRequest)
-    override val response : ApplicationResponse = ServletApplicationResponse(this, servletResponse)
+    override val request: ApplicationRequest = ServletApplicationRequest(this, servletRequest)
+    override val response: ApplicationResponse = ServletApplicationResponse(this, servletResponse)
     override val parameters: ValuesMap get() = request.parameters
 
     @Volatile
@@ -46,6 +47,8 @@ class ServletApplicationCall(application: Application,
 
         asyncContext = servletRequest.startAsync(servletRequest, servletResponse)
         // asyncContext.timeout = ?
+
+        onAsyncStartedUnderLock()
     }
 
 }

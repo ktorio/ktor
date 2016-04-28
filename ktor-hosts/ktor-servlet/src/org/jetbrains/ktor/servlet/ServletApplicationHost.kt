@@ -48,17 +48,27 @@ open class ServletApplicationHost() : HttpServlet() {
         request.characterEncoding = "UTF-8"
 
         try {
-            val call = ServletApplicationCall(application, request, response, executorService)
-            val future = call.executeOn(executorService, application)
+            val latch = CountDownLatch(1)
+            val call = ServletApplicationCall(application, request, response, executorService) { latch.countDown() }
+            var throwable: Throwable? = null
+            var pipelineState: PipelineState? = null
 
-            val pipelineState = future.get()
-            if (pipelineState != PipelineState.Executing) {
-                if (!call.completed) {
+            call.executeOn(executorService, application).whenComplete { state, t ->
+                pipelineState = state
+                throwable = t
+                latch.countDown()
+            }
+
+            latch.await()
+            when {
+                throwable != null -> throw throwable!!
+                pipelineState == null -> {}
+                pipelineState == PipelineState.Executing -> call.ensureAsync()
+                !call.completed -> {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND)
                     call.close()
                 }
-            } else {
-                call.ensureAsync()
+                else -> {}
             }
         } catch (ex: Throwable) {
             application.config.log.error("ServletApplicationHost cannot service the request", ex)

@@ -50,7 +50,15 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     inner class Handler() : AbstractHandler() {
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             response.characterEncoding = "UTF-8"
-            val call = ServletApplicationCall(application, request, response, executor)
+
+            val latch = CountDownLatch(1)
+            var pipelineState: PipelineState? = null
+            var throwable: Throwable? = null
+
+            val call = ServletApplicationCall(application, request, response, executor) {
+                latch.countDown()
+            }
+
             try {
                 val contentType = request.contentType
                 if (contentType != null && ContentType.parse(contentType).match(ContentType.MultiPart.Any)) {
@@ -58,17 +66,24 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     // TODO someone reported auto-cleanup issues so we have to check it
                 }
 
-                val future = call.executeOn(executor, application)
-                val pipelineState = future.get()!!
-                when (pipelineState) {
-                    PipelineState.Succeeded -> baseRequest.isHandled = call.completed
-                    PipelineState.Executing -> {
-                        baseRequest.isHandled = true
-                        // TODO how do we report 404 if async or pass to the next handler?
+                call.executeOn(executor, application).whenComplete { state, t ->
+                    pipelineState = state
+                    throwable = t
 
+                    latch.countDown()
+                }
+
+                latch.await()
+                when {
+                    throwable != null -> throw throwable!!
+                    pipelineState == null -> baseRequest.isHandled = true
+                    pipelineState == PipelineState.Executing -> {
+                        baseRequest.isHandled = true
                         call.ensureAsync()
                     }
-                    PipelineState.Failed -> baseRequest.isHandled = true
+                    pipelineState == PipelineState.Succeeded -> baseRequest.isHandled = call.completed
+                    pipelineState == PipelineState.Failed -> baseRequest.isHandled = true
+                    else -> {}
                 }
             } catch(ex: Throwable) {
                 config.log.error("Application ${application.javaClass} cannot fulfill the request", ex);

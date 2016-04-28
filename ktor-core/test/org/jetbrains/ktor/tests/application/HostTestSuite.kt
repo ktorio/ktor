@@ -486,6 +486,39 @@ abstract class HostTestSuite {
     }
 
     @Test
+    fun testEchoBlocking() {
+        startServer(createServer(port) {
+            post("/") {
+                val text = call.request.content.get<AsyncReadChannel>().asInputStream().bufferedReader().readText()
+                call.response.status(HttpStatusCode.OK)
+                call.response.channel().asOutputStream().bufferedWriter().use {
+                    it.write(text)
+                    it.flush()
+                }
+
+                call.close()
+                finishAll()
+            }
+        })
+
+        withUrl("/") {
+            requestMethod = "POST"
+            doInput = true
+            doOutput = true
+            setRequestProperty(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
+
+            outputStream.use { out ->
+                out.writer().apply {
+                    append("POST content")
+                    flush()
+                }
+            }
+
+            assertEquals("POST content", inputStream.bufferedReader().use { it.readText() })
+        }
+    }
+
+    @Test
     fun testMultipartFileUpload() {
         startServer(createServer(port) {
             post("/") {

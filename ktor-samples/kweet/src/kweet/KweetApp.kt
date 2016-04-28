@@ -65,7 +65,7 @@ class KweetApp(config: ApplicationConfig) : Application(config) {
     init {
         dao.init()
 
-        install(CallLogging)
+//        install(CallLogging)
         install(ConditionalHeadersSupport)
         install(PartialContentSupport)
         install(Locations)
