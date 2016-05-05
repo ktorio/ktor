@@ -3,30 +3,38 @@ package org.jetbrains.ktor.nio
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.nio.*
+import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
 class AsyncPipe : AsyncReadChannel, AsyncWriteChannel {
     private val closed = AtomicBoolean()
 
+    @Volatile
     private var producerBuffer: ByteBuffer? = null
     private val producerHandler = AtomicReference<AsyncHandler?>()
+    @Volatile
     private var producerSize: Int = 0
 
+    @Volatile
     private var consumerBuffer: ByteBuffer? = null
     private val consumerHandler = AtomicReference<AsyncHandler>()
 
-    private val communicateFlag = AtomicBoolean()
+    private val bufferCounter = Semaphore(0)
 
     override fun close() {
         if (closed.compareAndSet(false, true)) {
             consumerBuffer = null
             consumerHandler.getAndSet(null)?.let { handler ->
-                handler.successEnd()
+                nofail {
+                    handler.successEnd()
+                }
             }
 
             producerBuffer = null
             producerHandler.getAndSet(null)?.let { handler ->
-                handler.failed(EOFException("Pipe closed"))
+                nofail {
+                    handler.failed(EOFException("Pipe closed"))
+                }
             }
         }
     }
@@ -48,7 +56,9 @@ class AsyncPipe : AsyncReadChannel, AsyncWriteChannel {
 
         consumerBuffer = dst
 
-        communicate()
+        bufferCounter.release()
+
+        tryCommunicate()
     }
 
     override fun write(src: ByteBuffer, handler: AsyncHandler) {
@@ -66,10 +76,18 @@ class AsyncPipe : AsyncReadChannel, AsyncWriteChannel {
             return
         }
 
-        producerBuffer = src
         producerSize = src.remaining()
+        producerBuffer = src
 
-        communicate()
+        bufferCounter.release()
+
+        tryCommunicate()
+    }
+
+    private fun tryCommunicate() {
+        if (bufferCounter.tryAcquire(2)) {
+            communicate()
+        }
     }
 
     private fun communicate() {
@@ -78,26 +96,31 @@ class AsyncPipe : AsyncReadChannel, AsyncWriteChannel {
                 val producerBuffer = producerBuffer!!
                 val consumerBuffer = consumerBuffer!!
 
-                val size = if (communicateFlag.compareAndSet(false, true)) {
-                    val size = producerBuffer.putTo(consumerBuffer)
-                    communicateFlag.set(false)
-                    size
-                } else 0
+                val size = producerBuffer.putTo(consumerBuffer)
 
-                if (size > 0) {
-                    this.consumerBuffer = null
-                    this.consumerHandler.set(null)
+                this.consumerBuffer = null
+                this.consumerHandler.set(null)
 
-                    if (!producerBuffer.hasRemaining()) {
-                        this.producerHandler.set(null)
-                        this.producerBuffer = null
+                if (!producerBuffer.hasRemaining()) {
+                    this.producerHandler.set(null)
+                    this.producerBuffer = null
 
+                    nofail {
                         producerHandler.success(producerSize)
                     }
-
-                    consumerHandler.success(size)
+                } else {
+                    bufferCounter.release()
                 }
+
+                consumerHandler.success(size)
             }
+        }
+    }
+
+    private inline fun nofail(block: () -> Unit) {
+        try {
+            block()
+        } catch (ignore: Throwable) {
         }
     }
 }
