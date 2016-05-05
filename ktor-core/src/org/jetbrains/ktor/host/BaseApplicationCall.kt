@@ -88,20 +88,17 @@ abstract class BaseApplicationCall(override val application: Application, overri
                     response.status() ?: response.status(HttpStatusCode.OK)
                     ifNotHead {
                         val pipe = AsyncPipe()
-
-                        executor.execute {
-                            try {
-                                value.stream(pipe.asOutputStream())
-                            } finally {
-                                pipe.close()
-                            }
-                        }
-
                         closeAtEnd(pipe)
 
-                        respond(object : ChannelContentProvider {
-                            override fun channel() = pipe
-                        })
+                        respond(PipeResponse(pipe, {
+                            executor.execute {
+                                try {
+                                    value.stream(pipe.asOutputStream())
+                                } finally {
+                                    pipe.close()
+                                }
+                            }
+                        }))
                     }
                     close()
                     finishAll()
@@ -187,6 +184,13 @@ abstract class BaseApplicationCall(override val application: Application, overri
         try {
             close()
         } catch (ignore: Throwable) {
+        }
+    }
+
+    private class PipeResponse(val pipe: AsyncPipe, val start: () -> Unit) : ChannelContentProvider {
+        override fun channel(): AsyncReadChannel {
+            start()
+            return pipe
         }
     }
 }
