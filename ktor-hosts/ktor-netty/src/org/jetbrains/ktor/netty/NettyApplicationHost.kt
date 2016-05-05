@@ -7,6 +7,7 @@ import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.stream.*
+import io.netty.handler.timeout.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
@@ -46,6 +47,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 with (ch.pipeline()) {
                     addLast(HttpServerCodec())
                     addLast(ChunkedWriteHandler())
+                    addLast(WriteTimeoutHandler(10))
                     addLast(HostHttpHandler())
                 }
             }
