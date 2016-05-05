@@ -2,8 +2,10 @@ package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import io.netty.util.*
 import io.netty.util.concurrent.*
 import org.jetbrains.ktor.nio.*
+import java.io.*
 import java.nio.*
 import java.util.concurrent.atomic.*
 
@@ -12,7 +14,7 @@ internal class NettyAsyncWriteChannel(val request: HttpRequest, val appResponse:
     private val currentHandler = AtomicReference<AsyncHandler?>()
 
     private val listener = GenericFutureListener<Future<Void>> { f ->
-        val handler = currentHandler.get()
+        val handler = currentHandler.get() ?: throw IllegalStateException("No write operation is in progress")
 
         try {
             f.get()
@@ -20,10 +22,10 @@ internal class NettyAsyncWriteChannel(val request: HttpRequest, val appResponse:
 
             currentHandler.compareAndSet(handler, null)
 
-            handler?.success(written)
+            handler.success(written)
         } catch (e: Throwable) {
             currentHandler.compareAndSet(handler, null)
-            handler?.failed(e)
+            handler.failed(e)
         }
     }
 
@@ -42,7 +44,12 @@ internal class NettyAsyncWriteChannel(val request: HttpRequest, val appResponse:
     }
 
     override fun close() {
-        appResponse.finalize()
+        try {
+            currentHandler.getAndSet(null)?.failed(EOFException("Channel closed"))
+        } finally {
+            ReferenceCountUtil.release(buffer)
+            appResponse.finalize()
+        }
     }
 
 }
