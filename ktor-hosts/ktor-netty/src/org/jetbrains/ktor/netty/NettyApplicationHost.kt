@@ -38,6 +38,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     private val mainEventGroup = NioEventLoopGroup()
     private val workerEventGroup = NioEventLoopGroup()
+    private val executorGroup = NioEventLoopGroup()
 
     private val bootstrap = ServerBootstrap().apply {
         group(mainEventGroup, workerEventGroup)
@@ -56,7 +57,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     override val executor: Executor
-        get() = workerEventGroup
+        get() = executorGroup
 
     override fun start(wait: Boolean) {
         config.log.info("Starting server...")
