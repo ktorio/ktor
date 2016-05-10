@@ -20,7 +20,7 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
 
     override fun status(): HttpStatusCode? = response.status?.let { HttpStatusCode(it.code(), it.reasonPhrase()) }
 
-    private val channelInstance by lazy {
+    private val channelInstance = lazy {
         context.executeInLoop {
             setChunked()
             sendRequestMessage()
@@ -29,7 +29,7 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
         NettyAsyncWriteChannel(request, this, context)
     }
 
-    override val channel = Interceptable0<AsyncWriteChannel> { channelInstance }
+    override val channel = Interceptable0<AsyncWriteChannel> { channelInstance.value }
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         override fun hostAppendHeader(name: String, value: String) {
@@ -60,6 +60,9 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
             }
             context.channel().config().isAutoRead = true
             context.read()
+            if (channelInstance.isInitialized()) {
+                channelInstance.value.close()
+            }
         }
     }
 
