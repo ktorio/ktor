@@ -35,6 +35,10 @@ private class AsyncDeflaterByteChannel(val source: AsyncReadChannel, val gzip: B
     }
 
     override fun read(dst: ByteBuffer, handler: AsyncHandler) {
+        if (parentHandler != null) {
+            throw IllegalStateException("Read operation is already in progress!")
+        }
+
         if (!dst.hasRemaining()) {
             handler.success(0)
             return
