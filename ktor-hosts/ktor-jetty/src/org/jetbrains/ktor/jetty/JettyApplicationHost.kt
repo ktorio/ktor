@@ -8,6 +8,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.servlet.*
 import java.util.concurrent.*
+import java.util.concurrent.atomic.*
 import javax.servlet.*
 import javax.servlet.http.*
 
@@ -43,7 +44,12 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         handler = Handler()
     }
 
-    override val executor = Executor { command -> server.threadPool.execute(command) }
+    private val threadCounter = AtomicLong(0)
+    override val executor = ThreadPoolExecutor(
+            Runtime.getRuntime().availableProcessors() * 2,
+            Math.max(100, Runtime.getRuntime().availableProcessors() * 2),
+            30L, TimeUnit.SECONDS, LinkedBlockingQueue(), ThreadFactory { Thread(it, "worker-thread-${threadCounter.incrementAndGet()}") }
+            )
 
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"));
 
@@ -107,8 +113,10 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     override fun stop() {
+        executor.shutdown()
         server.stop()
         applicationLifecycle.dispose()
+        executor.shutdownNow()
         config.log.info("Server stopped.")
     }
 }
