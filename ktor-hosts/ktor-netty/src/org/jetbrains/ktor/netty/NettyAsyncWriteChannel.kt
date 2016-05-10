@@ -12,6 +12,7 @@ import java.util.concurrent.atomic.*
 internal class NettyAsyncWriteChannel(val request: HttpRequest, val appResponse: NettyApplicationResponse, val context: ChannelHandlerContext) : AsyncWriteChannel {
     private val buffer = context.alloc().buffer(8192)
     private val currentHandler = AtomicReference<AsyncHandler?>()
+    private val released = AtomicBoolean()
 
     private val listener = GenericFutureListener<Future<Void>> { f ->
         val handler = currentHandler.get() ?: throw IllegalStateException("No write operation is in progress")
@@ -47,8 +48,10 @@ internal class NettyAsyncWriteChannel(val request: HttpRequest, val appResponse:
         try {
             currentHandler.getAndSet(null)?.failed(EOFException("Channel closed"))
         } finally {
-            ReferenceCountUtil.release(buffer)
-            appResponse.finalize()
+            if (released.compareAndSet(false, true)) {
+                ReferenceCountUtil.release(buffer)
+                appResponse.finalize()
+            }
         }
     }
 
