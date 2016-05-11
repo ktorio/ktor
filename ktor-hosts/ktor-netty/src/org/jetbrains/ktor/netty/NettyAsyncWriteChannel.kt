@@ -37,9 +37,10 @@ internal class NettyAsyncWriteChannel(val request: HttpRequest, val appResponse:
 
         buffer.clear()
         buffer.writeBytes(src)
-        val content = DefaultHttpContent(buffer.copy())
+        val content = DefaultHttpContent(buffer)
 
         context.executeInLoop {
+            ReferenceCountUtil.retain(buffer)
             context.writeAndFlush(content).addListener(listener)
         }
     }
