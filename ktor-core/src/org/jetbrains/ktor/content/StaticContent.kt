@@ -4,14 +4,14 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.util.*
 import org.jetbrains.ktor.util.Attributes
 import java.io.*
 import java.net.*
 import java.nio.file.*
-import java.time.*
 import java.util.jar.*
 
-class LocalFileContent(val file: File, override val contentType: ContentType = defaultContentType(file.extension)) : ChannelContentProvider, Resource {
+class LocalFileContent(val file: File, override val contentType: ContentType = defaultContentType(file.extension)) : FinalContent.ChannelContent(), Resource {
 
     constructor(baseDir: File, relativePath: String, contentType: ContentType = defaultContentType(relativePath.extension())) : this(baseDir.safeAppend(Paths.get(relativePath)), contentType)
     constructor(baseDir: File, vararg relativePath: String, contentType: ContentType = defaultContentType(relativePath.last().extension())) : this(baseDir.safeAppend(Paths.get("", *relativePath)), contentType)
@@ -25,13 +25,16 @@ class LocalFileContent(val file: File, override val contentType: ContentType = d
     override val versions: List<Version>
         get() = listOf(LastModifiedVersion(Files.getLastModifiedTime(file.toPath())))
 
+    override val headers: ValuesMap
+        get() = super.headers
+
     override fun channel() = file.asyncReadOnlyFileChannel()
 
     override val expires = null
     override val cacheControl = null
 }
 
-class ResourceFileContent(val zipFile: File, val resourcePath: String, val classLoader: ClassLoader, override val contentType: ContentType = defaultContentType(resourcePath.extension())) : Resource, StreamContentProvider {
+class ResourceFileContent(val zipFile: File, val resourcePath: String, val classLoader: ClassLoader, override val contentType: ContentType = defaultContentType(resourcePath.extension())) : Resource, FinalContent.StreamContentProvider() {
     private val normalized = Paths.get(resourcePath).normalize().toString().replace(File.separatorChar, '/')
 
     constructor(zipFilePath: Path, resourcePath: String, classLoader: ClassLoader, contentType: ContentType = defaultContentType(resourcePath.extension())) : this(zipFilePath.toFile(), resourcePath, classLoader, contentType)
@@ -48,14 +51,21 @@ class ResourceFileContent(val zipFile: File, val resourcePath: String, val class
     override val contentLength: Long?
         get() = JarFile(zipFile).use { it.getJarEntry(resourcePath)?.size }
 
+
+    override val headers: ValuesMap
+        get() = super.headers
+
     override fun stream() = classLoader.getResourceAsStream(normalized) ?: throw IOException("Resource $normalized not found")
 
     override val expires = null
     override val cacheControl = null
 }
 
-class URIFileContent(val uri: URI, override val contentType: ContentType = defaultContentType(uri.path.extension())): StreamContentProvider, Resource {
+class URIFileContent(val uri: URI, override val contentType: ContentType = defaultContentType(uri.path.extension())): FinalContent.StreamContentProvider(), Resource {
     constructor(url: URL, contentType: ContentType = defaultContentType(url.path.extension())) : this(url.toURI(), contentType)
+
+    override val headers: ValuesMap
+        get() = super.headers
 
     override fun stream() = uri.toURL().openStream()
 

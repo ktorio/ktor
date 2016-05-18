@@ -5,6 +5,7 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.util.*
 import java.io.*
 import java.nio.charset.*
 import java.util.concurrent.*
@@ -30,25 +31,9 @@ abstract class BaseApplicationCall(override val application: Application, overri
     override fun interceptRespond(handler: PipelineContext<Any>.(Any) -> Unit) = respond.intercept(handler)
     override fun interceptRespond(index: Int, handler: PipelineContext<Any>.(Any) -> Unit) = respond.intercept(index, handler)
 
-    protected fun sendHeaders(value: Any) {
-        if (value is HasVersions) {
-            value.versions.forEach { version ->
-                version.render(response)
-            }
-        }
-
-        if (value is Resource) {
-            value.cacheControl?.let { cacheControl ->
-                response.cacheControl(cacheControl)
-            }
-            value.expires?.let { expires ->
-                response.expires(expires)
-            }
-            value.contentLength?.let { length ->
-                response.contentLength(length)
-            }
-            response.contentType(value.contentType)
-            return
+    protected fun sendHeaders(o: FinalContent) {
+        for ((name, value) in o.headers.flattenEntries()) {
+            response.header(name, value)
         }
     }
 
@@ -56,24 +41,16 @@ abstract class BaseApplicationCall(override val application: Application, overri
 
     init {
         respond.intercept { value ->
-            sendHeaders(value)
             when (value) {
                 is String -> {
-                    response.status() ?: response.status(HttpStatusCode.OK)
                     val encoding = response.headers[HttpHeaders.ContentType]?.let {
                         ContentType.parse(it).parameter("charset")
                     } ?: "UTF-8"
 
-                    ifNotHead {
-                        val bytes = value.toByteArray(Charset.forName(encoding))
-                        respond(object : ChannelContentProvider {
-                            override fun channel(): AsyncReadChannel = ByteArrayAsyncReadChannel(bytes)
-                        })
-                    }
+                    respond(TextContentResponse(null, encoding, value))
                 }
                 is TextContent -> {
-                    response.contentType(value.contentType)
-                    respond(value.text)
+                    respond(TextContentResponse(value.contentType, value.contentType.parameter("charset") ?: "UTF-8", value.text))
                 }
                 is HttpStatusContent -> {
                     response.status(value.code)
@@ -84,113 +61,60 @@ abstract class BaseApplicationCall(override val application: Application, overri
                     close()
                     finishAll()
                 }
-                is StreamContent -> {
-                    response.status() ?: response.status(HttpStatusCode.OK)
-                    ifNotHead {
-                        val pipe = AsyncPipe()
-                        closeAtEnd(pipe)
+                is FinalContent.StreamConsumer -> {
+                    val pipe = AsyncPipe()
+                    closeAtEnd(pipe)
 
-                        respond(PipeResponse(pipe, {
-                            executor.execute {
-                                try {
-                                    value.stream(pipe.asOutputStream())
-                                } finally {
-                                    pipe.close()
-                                }
+                    // note: it is very important to resend it here rather than just use value.startContent
+                    respond(PipeResponse(pipe, { value.headers }) {
+                        executor.execute {
+                            try {
+                                value.stream(pipe.asOutputStream())
+                            } finally {
+                                pipe.close()
                             }
-                        }))
-                    }
-                    close()
-                    finishAll()
+                        }
+                    })
                 }
-                is URIFileContent -> {
+                is URIFileContent -> { // TODO it should be better place for that purpose
                     if (value.uri.scheme == "file") {
                         respond(LocalFileContent(File(value.uri)))
                     } else {
                         response.status() ?: response.status(HttpStatusCode.OK)
-                        sendStream(value.stream())
+                        sendHeaders(value)
+                        value.startContent(this@BaseApplicationCall, this)
                     }
                 }
-                is ChannelContentProvider -> {
+                is FinalContent -> {
                     response.status() ?: response.status(HttpStatusCode.OK)
-                    sendAsyncChannel(value.channel())
-                }
-                is StreamContentProvider -> {
-                    response.status() ?: response.status(HttpStatusCode.OK)
-                    sendStream(value.stream())
+                    sendHeaders(value)
+                    value.startContent(this@BaseApplicationCall, this)
                 }
             }
         }
     }
 
-    private fun isNotHead() = request.httpMethod != HttpMethod.Head
+    private class PipeResponse(val pipe: AsyncPipe, val headersDelegate: () -> ValuesMap, val start: () -> Unit) : FinalContent.ChannelContent() {
+        override val headers: ValuesMap
+            get() = headersDelegate()
 
-    private inline fun ifNotHead(block: () -> Unit) {
-        if (isNotHead()) {
-            block()
-        }
-    }
-
-    private fun PipelineContext<Any>.sendAsyncChannel(channel: AsyncReadChannel): Nothing {
-        if (isNotHead()) {
-            val future = createMachineCompletableFuture()
-
-            closeAtEnd(channel)
-            channel.copyToAsyncThenComplete(response.channel(), future)
-            pause()
-        } else {
-            close()
-            finishAll()
-        }
-    }
-
-    protected fun PipelineContext<Any>.sendStream(stream: InputStream): Nothing {
-        if (isNotHead()) {
-            val future = createMachineCompletableFuture()
-
-            closeAtEnd(stream)
-            stream.asAsyncChannel().copyToAsyncThenComplete(response.channel(), future)
-            pause()
-        } else {
-            close()
-            finishAll()
-        }
-    }
-
-    protected fun PipelineContext<Any>.closeAtEnd(closeable: Closeable) {
-        onSuccess {
-            closeable.closeQuietly()
-            close()
-        }
-        onFail {
-            closeable.closeQuietly()
-            close()
-        }
-    }
-
-    private fun PipelineContext<Any>.createMachineCompletableFuture() = CompletableFuture<Long>().apply {
-        whenComplete { total, throwable ->
-            runBlockWithResult {
-                if (throwable == null || throwable is PipelineContinue || throwable.cause is PipelineContinue) {
-                    finishAll()
-                } else if (throwable !is PipelineControlFlow && throwable.cause !is PipelineControlFlow) {
-                    fail(throwable)
-                }
-            }
-        }
-    }
-
-    private fun Closeable.closeQuietly() {
-        try {
-            close()
-        } catch (ignore: Throwable) {
-        }
-    }
-
-    private class PipeResponse(val pipe: AsyncPipe, val start: () -> Unit) : ChannelContentProvider {
         override fun channel(): AsyncReadChannel {
             start()
             return pipe
         }
+    }
+
+    private class TextContentResponse(val contentType: ContentType?, val encoding: String, val text: String) : FinalContent.ChannelContent() {
+        private val bytes by lazy { text.toByteArray(Charset.forName(encoding)) }
+
+        override val headers: ValuesMap
+            get() = ValuesMap.build(true) {
+                if (contentType != null) {
+                    append(HttpHeaders.ContentType, contentType.toString())
+                }
+                append(HttpHeaders.ContentLength, bytes.size.toString())
+            }
+
+        override fun channel() = ByteArrayAsyncReadChannel(bytes)
     }
 }

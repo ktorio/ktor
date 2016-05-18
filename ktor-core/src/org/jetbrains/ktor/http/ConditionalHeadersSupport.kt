@@ -4,6 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.util.*
+import java.time.*
 
 object ConditionalHeadersSupport : ApplicationFeature<Unit> {
     override val name = "ConditionalHeaders"
@@ -19,19 +20,29 @@ object ConditionalHeadersSupport : ApplicationFeature<Unit> {
 
                 call.interceptRespond(0) { obj ->
                     if (obj is HasVersions) {
-                        for (version in obj.versions) {
-                            val result = when (version) {
-                                is EntityTagVersion -> call.checkEtag(version.etag)
-                                is LastModifiedVersion -> call.checkLastModified(version.lastModified)
-                                else -> ConditionalHeaderCheckResult.OK
-                            }
+                        checkVersions(call, obj.versions)
+                    } else if (obj is FinalContent) {
+                        val headers = obj.headers
+                        val etag = headers[HttpHeaders.ETag]?.let { EntityTagVersion(it) }
+                        val lastModified = headers[HttpHeaders.LastModified]?.let { LastModifiedVersion(LocalDateTime.parse(it, httpDateFormat)) }
 
-                            if (result != ConditionalHeaderCheckResult.OK) {
-                                call.respond(result.statusCode)
-                            }
-                        }
+                        checkVersions(call, listOf(etag, lastModified).filterNotNull())
                     }
                 }
+            }
+        }
+    }
+
+    private fun checkVersions(call: ApplicationCall, versions: List<Version>) {
+        for (version in versions) {
+            val result = when (version) {
+                is EntityTagVersion -> call.checkEtag(version.etag)
+                is LastModifiedVersion -> call.checkLastModified(version.lastModified)
+                else -> ConditionalHeaderCheckResult.OK
+            }
+
+            if (result != ConditionalHeaderCheckResult.OK) {
+                call.respond(result.statusCode)
             }
         }
     }

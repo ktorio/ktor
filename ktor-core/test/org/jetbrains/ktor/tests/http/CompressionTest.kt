@@ -164,7 +164,9 @@ class CompressionTest {
 
             application.routing {
                 get("/stream") {
-                    call.respondText("stream content")
+                    call.respondWrite {
+                        append("stream content")
+                    }
                 }
             }
 
@@ -202,7 +204,10 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respond(object: Resource, ChannelContentProvider {
+                    call.respond(object: Resource, FinalContent.ChannelContent() {
+                        override val headers: ValuesMap
+                            get() = super.headers
+
                         override val contentType: ContentType
                             get() = ContentType.Text.Plain
 
@@ -315,6 +320,7 @@ class CompressionTest {
                 else -> fail("unknown encoding $expectedContent")
             }
         } else {
+            assertNull(result.response.headers[HttpHeaders.ContentEncoding], "content shoudln't be compressed")
             assertEquals(expectedContent, result.response.content)
         }
 

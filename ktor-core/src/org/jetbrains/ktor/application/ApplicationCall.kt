@@ -2,12 +2,13 @@ package org.jetbrains.ktor.application
 
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
+import java.io.*
 import java.util.concurrent.*
 
 /**
  * Represents a single act of communication between client and server.
  */
-interface ApplicationCall {
+interface ApplicationCall : Closeable {
     /**
      * Application being called
      */
@@ -36,7 +37,7 @@ interface ApplicationCall {
     /**
      * Closes this call and sends out any remaining data
      */
-    fun close(): Unit
+    override fun close(): Unit
 
     val parameters: ValuesMap
 

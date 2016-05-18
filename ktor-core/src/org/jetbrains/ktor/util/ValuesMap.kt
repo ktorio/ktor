@@ -72,6 +72,7 @@ public class ValuesMapImpl(map: Map<String, List<String>>, override val caseInse
 
         fun remove(key: String) {
             map.remove(key)
+            map.remove(key.toLowerCase()) // TODO don't do this at all!
         }
 
         fun clear() {

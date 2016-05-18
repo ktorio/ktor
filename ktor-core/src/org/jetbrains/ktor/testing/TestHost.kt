@@ -173,16 +173,18 @@ class TestApplicationResponse() : BaseApplicationResponse() {
     override val channel = Interceptable0<AsyncWriteChannel> { realContent.value }
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
-        private val headersMap = HashMap<String, MutableList<String>>()
+        private val headersMap = ValuesMapImpl.Builder()
+        private val headers: ValuesMap
+            get() = headersMap.build(true)
 
         override fun hostAppendHeader(name: String, value: String) {
             if (closed)
                 throw UnsupportedOperationException("Headers can no longer be set because response was already completed")
-            headersMap.getOrPut(name) { ArrayList() }.add(value)
+            headersMap.append(name, value)
         }
 
-        override fun getHostHeaderNames(): List<String> = headersMap.keys.toList()
-        override fun getHostHeaderValues(name: String): List<String> = headersMap[name] ?: emptyList()
+        override fun getHostHeaderNames(): List<String> = headers.names().toList()
+        override fun getHostHeaderValues(name: String): List<String> = headers.getAll(name).orEmpty()
     }
 
 

@@ -9,10 +9,16 @@ import java.util.*
 
 interface HasVersions {
     val versions: List<Version>
+
+    val headers: ValuesMap
+        get() = ValuesMap.build(true) {
+            versions.forEach { it.render(this) }
+        }
 }
 
 interface Version {
     fun render(response: ApplicationResponse)
+    fun render(builder: ValuesMapImpl.Builder)
 }
 
 data class LastModifiedVersion(val lastModified: LocalDateTime) : Version {
@@ -22,10 +28,18 @@ data class LastModifiedVersion(val lastModified: LocalDateTime) : Version {
     override fun render(response: ApplicationResponse) {
         response.lastModified(lastModified.atZone(ZoneOffset.UTC))
     }
+
+    override fun render(builder: ValuesMapImpl.Builder) {
+        builder.append(HttpHeaders.LastModified, lastModified.atZone(ZoneOffset.UTC).toHttpDateString())
+    }
 }
 data class EntityTagVersion(val etag: String) : Version {
     override fun render(response: ApplicationResponse) {
         response.etag(etag)
+    }
+
+    override fun render(builder: ValuesMapImpl.Builder) {
+        builder.append(HttpHeaders.ETag, etag)
     }
 }
 

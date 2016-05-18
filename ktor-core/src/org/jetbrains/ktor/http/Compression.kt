@@ -8,14 +8,13 @@ import org.jetbrains.ktor.util.*
 
 object CompressionAttributes {
     val preventCompression = AttributeKey<Boolean>("preventCompression")
-    val interceptedContentLength = AttributeKey<Long>("contentLength")
 }
 
 data class CompressionOptions(var minSize: Long = 0L,
                               var compressStream: Boolean = true,
                               var defaultEncoding: String = "gzip",
                               val compressorRegistry: MutableMap<String, CompressionEncoder> = hashMapOf(),
-                              val conditions: MutableList<ApplicationCall.() -> Boolean> = arrayListOf()
+                              val conditions: MutableList<ApplicationCall.(FinalContent) -> Boolean> = arrayListOf()
 )
 
 
@@ -43,29 +42,15 @@ object CompressionSupport : ApplicationFeature<CompressionOptions> {
 
                 val encoder = encoding?.let { encoders[it] }
                 if (encoding != null && encoder != null && !call.isCompressionProhibited()) {
-                    call.response.headers.intercept { name, value, next ->
-                        if (name.equals(HttpHeaders.ContentLength, true)) {
-                            call.attributes.put(CompressionAttributes.interceptedContentLength, value.toLong())
-                        } else {
-                            next(name, value)
-                        }
-                    }
-
                     call.interceptRespond(0) { obj ->
-                        if (conditions.all { it(call) } && !call.isCompressionProhibited()) {
+                        if (obj is FinalContent && obj !is CompressedResponse && conditions.all { it(call, obj) } && !call.isCompressionProhibited()) {
                             val channel = when (obj) {
-                                is CompressedResponse -> proceed()
-                                is ChannelContentProvider -> obj.channel()
-                                is StreamContentProvider -> obj.stream().asAsyncChannel()
+                                is FinalContent.ChannelContent -> obj.channel()
+                                is FinalContent.StreamContentProvider -> obj.stream().asAsyncChannel()
                                 else -> proceed()
                             }
 
-                            call.response.headers.append(HttpHeaders.ContentEncoding, encoding)
-                            if (obj is Resource) {
-                                call.respond(CompressedResponse.CompressedResource(channel, obj, encoder))
-                            } else {
-                                call.respond(CompressedResponse.CompressedChannelProvider(channel, encoder))
-                            }
+                            call.respond(CompressedResponse(channel, obj.headers, encoding, encoder))
                         }
                     }
                 }
@@ -76,14 +61,14 @@ object CompressionSupport : ApplicationFeature<CompressionOptions> {
     }
 }
 
-private sealed class CompressedResponse {
-    class CompressedResource(val delegateChannel: AsyncReadChannel, delegate: Resource, val encoder: CompressionEncoder) : Resource by delegate, ChannelContentProvider, CompressedResponse() {
-        override fun channel() = encoder.open(delegateChannel)
-    }
-
-    class CompressedChannelProvider(val delegate: AsyncReadChannel, val encoder: CompressionEncoder) : ChannelContentProvider, CompressedResponse() {
-        override fun channel() = encoder.open(delegate)
-    }
+private class CompressedResponse(val delegateChannel: AsyncReadChannel, val delegateHeaders: ValuesMap, val encoding: String, val encoder: CompressionEncoder) : FinalContent.ChannelContent() {
+    override fun channel() = encoder.open(delegateChannel)
+    override val headers: ValuesMap
+        get() = ValuesMap.build(true) {
+            appendAll(delegateHeaders)
+            remove(HttpHeaders.ContentLength)
+            append(HttpHeaders.ContentEncoding, encoding)
+        }
 }
 
 private fun ApplicationCall.isCompressionProhibited() = CompressionAttributes.preventCompression in attributes
@@ -106,14 +91,12 @@ private object IdentityEncoder : CompressionEncoder {
     override fun open(delegate: AsyncReadChannel) = delegate
 }
 
-private fun minSizeCondition(options: CompressionOptions): ApplicationCall.() -> Boolean = {
-    val contentLength = attributes.getOrNull(CompressionAttributes.interceptedContentLength)
-
-    contentLength == null || contentLength >= options.minSize
+private fun minSizeCondition(options: CompressionOptions): ApplicationCall.(FinalContent) -> Boolean = { obj ->
+    obj.contentLength()?.let { it >= options.minSize } ?: true
 }
 
-private fun compressStreamCondition(options: CompressionOptions): ApplicationCall.() -> Boolean = {
-    val contentLength = attributes.getOrNull(CompressionAttributes.interceptedContentLength)
-
-    options.compressStream || contentLength != null
+private fun compressStreamCondition(options: CompressionOptions): ApplicationCall.(FinalContent) -> Boolean = { obj ->
+    options.compressStream || obj.contentLength() != null
 }
+
+private fun FinalContent.contentLength() = headers[HttpHeaders.ContentLength]?.let { it.toLong() }

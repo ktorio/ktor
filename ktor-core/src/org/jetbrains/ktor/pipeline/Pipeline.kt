@@ -19,7 +19,7 @@ open class Pipeline<TSubject : Any>() {
 }
 
 open class PipelineControlFlow : Throwable() {
-    @Suppress("unused") // implicit override
+    @Suppress("unused", "VIRTUAL_MEMBER_HIDDEN") // implicit override
     fun fillInStackTrace(): Throwable? {
         return null
     }
