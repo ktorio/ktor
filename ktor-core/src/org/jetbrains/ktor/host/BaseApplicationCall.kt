@@ -31,7 +31,8 @@ abstract class BaseApplicationCall(override val application: Application, overri
     override fun interceptRespond(handler: PipelineContext<Any>.(Any) -> Unit) = respond.intercept(handler)
     override fun interceptRespond(index: Int, handler: PipelineContext<Any>.(Any) -> Unit) = respond.intercept(index, handler)
 
-    protected fun sendHeaders(o: FinalContent) {
+    protected fun commit(o: FinalContent) {
+        o.status?.let { response.status(it) } ?: response.status() ?: response.status(HttpStatusCode.OK)
         for ((name, value) in o.headers.flattenEntries()) {
             response.header(name, value)
         }
@@ -47,14 +48,17 @@ abstract class BaseApplicationCall(override val application: Application, overri
                         ContentType.parse(it).parameter("charset")
                     } ?: "UTF-8"
 
-                    respond(TextContentResponse(null, encoding, value))
+                    respond(TextContentResponse(null, null, encoding, value))
                 }
                 is TextContent -> {
-                    respond(TextContentResponse(value.contentType, value.contentType.parameter("charset") ?: "UTF-8", value.text))
+                    respond(TextContentResponse(null, value.contentType,
+                            value.contentType.parameter("charset") ?: "UTF-8",
+                            value.text))
                 }
                 is HttpStatusContent -> {
-                    response.status(value.code)
-                    respond(TextContent(ContentType.Text.Html, "<H1>${value.code}</H1>${value.message}"))
+                    respond(TextContentResponse(value.code,
+                            ContentType.Text.Html.withParameter("charset", "UTF-8"), "UTF-8",
+                            "<H1>${value.code}</H1>${value.message}"))
                 }
                 is HttpStatusCode -> {
                     response.status(value)
@@ -80,14 +84,12 @@ abstract class BaseApplicationCall(override val application: Application, overri
                     if (value.uri.scheme == "file") {
                         respond(LocalFileContent(File(value.uri)))
                     } else {
-                        response.status() ?: response.status(HttpStatusCode.OK)
-                        sendHeaders(value)
+                        commit(value)
                         value.startContent(this@BaseApplicationCall, this)
                     }
                 }
                 is FinalContent -> {
-                    response.status() ?: response.status(HttpStatusCode.OK)
-                    sendHeaders(value)
+                    commit(value)
                     value.startContent(this@BaseApplicationCall, this)
                 }
             }
@@ -104,7 +106,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
         }
     }
 
-    private class TextContentResponse(val contentType: ContentType?, val encoding: String, val text: String) : FinalContent.ChannelContent() {
+    private class TextContentResponse(override val status: HttpStatusCode?, val contentType: ContentType?, val encoding: String, val text: String) : FinalContent.ChannelContent() {
         private val bytes by lazy { text.toByteArray(Charset.forName(encoding)) }
 
         override val headers: ValuesMap

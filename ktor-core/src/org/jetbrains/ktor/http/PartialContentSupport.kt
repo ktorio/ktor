@@ -127,22 +127,16 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
     }
 
     private fun PipelineContext<FinalContent.ChannelContent>.processSingleRange(call: ApplicationCall, channel: AsyncReadChannel, range: LongRange, length: Long): Nothing {
-        if (call.isGet()) {
-            call.response.status(HttpStatusCode.PartialContent) // TODO status should be in a response object
-        }
-
-        call.respond(RangeChannelProvider.Single(subject.headers, channel, range, length))
+        call.respond(RangeChannelProvider.Single(call.isGet(), subject.headers, channel, range, length))
     }
 
     private fun PipelineContext<FinalContent.ChannelContent>.processMultiRange(call: ApplicationCall, channel: AsyncReadChannel, ranges: List<LongRange>, length: Long): Nothing {
         val boundary = "ktor-boundary-" + nextNonce()
-        if (call.isGet()) {
-            call.response.status(HttpStatusCode.PartialContent)
-        }
+
         call.attributes.put(CompressionAttributes.preventCompression, true) // multirange with compression is not supported yet
 
         val contentType = subject.contentType() ?: ContentType.Application.OctetStream
-        call.respond(RangeChannelProvider.Multiple(subject.headers, channel, ranges, length, boundary, contentType))
+        call.respond(RangeChannelProvider.Multiple(call.isGet(), subject.headers, channel, ranges, length, boundary, contentType))
     }
 
     private sealed class RangeChannelProvider : FinalContent.ChannelContent() {
@@ -156,7 +150,9 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
                 }
         }
 
-        class Single(val delegateHeaders: ValuesMap, val delegate: AsyncReadChannel, val range: LongRange, val fullLength: Long) : RangeChannelProvider() {
+        class Single(val get: Boolean, val delegateHeaders: ValuesMap, val delegate: AsyncReadChannel, val range: LongRange, val fullLength: Long) : RangeChannelProvider() {
+            override val status: HttpStatusCode? get() = if (get) HttpStatusCode.PartialContent else null
+
             override fun channel() = when (delegate) {
                 is SeekableAsyncChannel -> AsyncSeekAndCut(delegate, range.start, range.length, preventClose = true)
                 else -> AsyncSkipAndCut(delegate, range.start, range.length, preventClose = true)
@@ -164,23 +160,28 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
 
             override val headers: ValuesMap
                 get() = ValuesMap.build(true) {
-                    appendAll(delegateHeaders)
+                    appendAll(delegateHeaders.filter { name, value ->
+                        !name.equals(HttpHeaders.ContentLength, true)
+                    })
+
                     acceptRanges()
                     contentRange(range, fullLength)
-                    noContentLength()
                 }
         }
 
-        class Multiple(val delegateHeaders: ValuesMap, val delegate: AsyncReadChannel, val ranges: List<LongRange>, val length: Long, val boundary: String, val contentType: ContentType) : RangeChannelProvider() {
+        class Multiple(val get: Boolean, val delegateHeaders: ValuesMap, val delegate: AsyncReadChannel, val ranges: List<LongRange>, val length: Long, val boundary: String, val contentType: ContentType) : RangeChannelProvider() {
+            override val status: HttpStatusCode? get() = if (get) HttpStatusCode.PartialContent else null
+
             override fun channel() = ByteRangesChannel.forRegular(ranges, delegate, length, boundary, contentType.toString())
 
             override val headers: ValuesMap
                 get() = ValuesMap.build(true) {
-                    appendAll(delegateHeaders)
+                    appendAll(delegateHeaders.filter { name, value ->
+                        !name.equals(HttpHeaders.ContentType, true) &&
+                                !name.equals(HttpHeaders.ContentLength, true)
+                    })
                     acceptRanges()
-                    noContentLength()
 
-                    remove(HttpHeaders.ContentType)
                     append(HttpHeaders.ContentType, ContentType.MultiPart.ByteRanges.withParameter("boundary", boundary).toString())
                 }
         }
@@ -192,11 +193,6 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
         protected fun ValuesMapImpl.Builder.contentRange(range: LongRange?, fullLength: Long? = null, unit: String = RangeUnits.Bytes.unitToken) {
             append(HttpHeaders.ContentRange, contentRangeHeaderValue(range, fullLength, unit))
         }
-
-        protected fun ValuesMapImpl.Builder.noContentLength() {
-            remove(HttpHeaders.ContentLength)
-        }
-
     }
 
     private fun ApplicationCall.isGet() = request.httpMethod == HttpMethod.Get

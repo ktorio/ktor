@@ -2,7 +2,7 @@ package org.jetbrains.ktor.util
 
 import java.util.*
 
-public interface ValuesMap {
+interface ValuesMap {
     companion object {
         val Empty = ValuesMapImpl(mapOf())
 
@@ -20,7 +20,7 @@ public interface ValuesMap {
     fun contains(name: String, value: String): Boolean
 }
 
-public class ValuesMapImpl(map: Map<String, List<String>>, override val caseInsensitiveKey: Boolean = false) : ValuesMap {
+class ValuesMapImpl(map: Map<String, List<String>>, override val caseInsensitiveKey: Boolean = false) : ValuesMap {
     private val map: Map<String, List<String>> = if (caseInsensitiveKey) lowercase(map) else map
 
     private fun lowercase(map: Map<String, List<String>>): Map<String, List<String>> {
@@ -72,7 +72,6 @@ public class ValuesMapImpl(map: Map<String, List<String>>, override val caseInse
 
         fun remove(key: String) {
             map.remove(key)
-            map.remove(key.toLowerCase()) // TODO don't do this at all!
         }
 
         fun clear() {
@@ -93,3 +92,9 @@ operator fun ValuesMap.plus(other: ValuesMap) = when {
 }
 
 fun ValuesMap.flattenEntries(): List<Pair<String, String>> = entries().flatMap { e -> e.value.map { e.key to it } }
+fun ValuesMap.filter(predicate: (String, String) -> Boolean) = ValuesMapImpl(
+        entries().map { e -> e.key to e.value.filter { predicate(e.key, it) } }
+                .filter { it.second.isNotEmpty() }
+                .toMap(),
+        this.caseInsensitiveKey
+)

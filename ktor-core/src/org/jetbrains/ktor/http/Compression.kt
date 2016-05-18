@@ -65,8 +65,10 @@ private class CompressedResponse(val delegateChannel: AsyncReadChannel, val dele
     override fun channel() = encoder.open(delegateChannel)
     override val headers: ValuesMap
         get() = ValuesMap.build(true) {
-            appendAll(delegateHeaders)
-            remove(HttpHeaders.ContentLength)
+            appendAll(delegateHeaders.filter { name, value ->
+                !name.equals(HttpHeaders.ContentLength, true)
+            })
+
             append(HttpHeaders.ContentEncoding, encoding)
         }
 }
