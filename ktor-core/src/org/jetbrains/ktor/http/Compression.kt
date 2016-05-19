@@ -30,7 +30,9 @@ object CompressionSupport : ApplicationFeature<CompressionOptions> {
 
         val supportedEncodings = setOf("gzip", "deflate", "identity", "*") + options.compressorRegistry.keys
         val encoders = mapOf("gzip" to GzipEncoder, "deflate" to DeflateEncoder, "identity" to IdentityEncoder) + options.compressorRegistry
-        val conditions = listOf(minSizeCondition(options), compressStreamCondition(options)) + options.conditions
+        val conditions = listOf(minSizeCondition(options), compressStreamCondition(options), { obj ->
+            obj.contentEncoding().let { it == null || it == "identity" }
+        }) + options.conditions
 
         application.intercept { call ->
             val acceptEncodingRaw = call.request.acceptEncoding()
@@ -73,6 +75,14 @@ private class CompressedResponse(val delegateChannel: AsyncReadChannel, val dele
         }
 }
 
+private fun FinalContent.contentEncoding(): String? {
+    if (this is CompressedResponse) {
+        return encoding
+    }
+
+    return headers[HttpHeaders.ContentEncoding]
+}
+
 private fun ApplicationCall.isCompressionProhibited() = CompressionAttributes.preventCompression in attributes
 
 private fun String.handleStar(options: CompressionOptions) = if (this == "*") options.defaultEncoding else this
@@ -100,5 +110,3 @@ private fun minSizeCondition(options: CompressionOptions): ApplicationCall.(Fina
 private fun compressStreamCondition(options: CompressionOptions): ApplicationCall.(FinalContent) -> Boolean = { obj ->
     options.compressStream || obj.contentLength() != null
 }
-
-private fun FinalContent.contentLength() = headers[HttpHeaders.ContentLength]?.let { it.toLong() }
