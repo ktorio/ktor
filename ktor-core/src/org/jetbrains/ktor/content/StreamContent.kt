@@ -35,12 +35,15 @@ interface Resource : HasVersions {
 }
 
 sealed class FinalContent {
-    open val status: HttpStatusCode? = null
+    open val status: HttpStatusCode?
+        get() = null
+
     abstract val headers: ValuesMap
     abstract fun startContent(call: ApplicationCall, context: PipelineContext<Any>)
 
     abstract class NoContent : FinalContent() {
         override fun startContent(call: ApplicationCall, context: PipelineContext<Any>) {
+            call.close()
             context.finishAll()
         }
     }

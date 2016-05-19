@@ -38,6 +38,8 @@ class StaticContentTest {
     fun testStaticContent() {
         withTestApplication {
             application.install(PartialContentSupport)
+            application.install(HeadRequestSupport)
+
             application.intercept { call ->
                 val resolved = sequenceOf(
                         { call.resolveClasspathResource("", "org.jetbrains.ktor.tests.http") },
@@ -85,6 +87,8 @@ class StaticContentTest {
             val testDir = listOf(File("test"), File("ktor-core/test")).first { it.exists() }
 
             application.install(PartialContentSupport)
+            application.install(HeadRequestSupport)
+
             application.intercept { call ->
                 call.resolveLocalFile("", testDir)?.let { call.respond(it) }
             }
@@ -201,6 +205,7 @@ class StaticContentTest {
                 assertEquals(HttpStatusCode.OK, result.response.status())
                 assertNotNull(result.response.headers[HttpHeaders.LastModified])
                 assertEquals(RangeUnits.Bytes.unitToken, result.response.headers[HttpHeaders.AcceptRanges])
+                assertTrue { result.response.byteContent.let { it == null || it.isEmpty() } }
             }
         }
     }
