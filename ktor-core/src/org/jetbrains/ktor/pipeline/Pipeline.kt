@@ -14,7 +14,11 @@ open class Pipeline<TSubject : Any>() {
     }
 
     fun intercept(index: Int, block: PipelineContext<TSubject>.(TSubject) -> Unit) {
-        _interceptors.add(index, block)
+        if (index >= 0) {
+            _interceptors.add(index, block)
+        } else {
+            _interceptors.add(_interceptors.size + index, block)
+        }
     }
 }
 
