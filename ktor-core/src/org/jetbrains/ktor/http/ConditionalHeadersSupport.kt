@@ -4,7 +4,6 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.util.*
-import java.time.*
 
 object ConditionalHeadersSupport : ApplicationFeature<Unit> {
     override val name = "ConditionalHeaders"
@@ -22,11 +21,7 @@ object ConditionalHeadersSupport : ApplicationFeature<Unit> {
                     if (obj is HasVersions) {
                         checkVersions(call, obj.versions)
                     } else if (obj is FinalContent) {
-                        val headers = obj.headers
-                        val etag = headers[HttpHeaders.ETag]?.let { EntityTagVersion(it) }
-                        val lastModified = headers[HttpHeaders.LastModified]?.let { LastModifiedVersion(LocalDateTime.parse(it, httpDateFormat)) }
-
-                        checkVersions(call, listOf(etag, lastModified).filterNotNull())
+                        checkVersions(call, obj.lastModifiedAndEtagVersions())
                     }
                 }
             }

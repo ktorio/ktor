@@ -71,6 +71,32 @@ sealed class FinalContent {
 
 }
 
+fun FinalContent.contentLength(): Long? {
+    if (this is Resource) {
+        return contentLength
+    }
+
+    return headers[HttpHeaders.ContentLength]?.let { it.toLong() }
+}
+
+fun FinalContent.contentType(): ContentType? {
+    if (this is Resource) {
+        return contentType
+    }
+
+    return headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+}
+
+fun FinalContent.lastModifiedAndEtagVersions(): List<Version> {
+    if (this is HasVersions) {
+        return versions
+    }
+
+    val headers = headers
+    return headers.getAll(HttpHeaders.LastModified).orEmpty().map { LastModifiedVersion(LocalDateTime.parse(it, httpDateFormat)) } +
+            headers.getAll(HttpHeaders.ETag).orEmpty().map { EntityTagVersion(it) }
+}
+
 private fun PipelineContext<*>.createMachineCompletableFuture() = CompletableFuture<Long>().apply {
     whenComplete { total, throwable ->
         runBlockWithResult {

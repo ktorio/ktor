@@ -51,32 +51,6 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
         return config
     }
 
-    private fun FinalContent.contentLength(): Long? {
-        if (this is Resource) {
-            return contentLength
-        }
-
-        return headers[HttpHeaders.ContentLength]?.let { it.toLong() }
-    }
-
-    private fun FinalContent.contentType(): ContentType? {
-        if (this is Resource) {
-            return contentType
-        }
-
-        return headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
-    }
-
-    private fun FinalContent.versions(): List<Version> {
-        if (this is HasVersions) {
-            return versions
-        }
-
-        val headers = headers
-        return headers.getAll(HttpHeaders.LastModified).orEmpty().map { LastModifiedVersion(LocalDateTime.parse(it, httpDateFormat)) } +
-                headers.getAll(HttpHeaders.ETag).orEmpty().map { EntityTagVersion(it) }
-    }
-
     private fun PipelineContext<FinalContent.ChannelContent>.tryProcessRange(call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long, config: Configuration): Unit {
         if (checkIfRangeHeader(call)) {
             processRange(call, rangesSpecifier, length, config)
@@ -86,7 +60,7 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
     }
 
     private fun PipelineContext<FinalContent.ChannelContent>.checkIfRangeHeader(call: ApplicationCall): Boolean {
-        val versions = subject.versions()
+        val versions = subject.lastModifiedAndEtagVersions()
         val ifRange = call.request.header(HttpHeaders.IfRange)
 
         val unchanged = ifRange == null || versions.all { version ->
