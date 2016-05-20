@@ -104,7 +104,9 @@ class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, source: Map<Stri
     }
 
     fun removeKeysWithNoEntries() {
-        values.filter { it.value.isEmpty() }.forEach { k, v -> remove(k) }
+        for ((k, v) in values.filter { it.value.isEmpty() }) {
+            remove(k)
+        }
     }
 
     fun remove(name: String, value: String) = listForKey(name)?.remove(value) ?: false
