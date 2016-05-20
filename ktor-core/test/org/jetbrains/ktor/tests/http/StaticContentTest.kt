@@ -439,7 +439,7 @@ class StaticContentTest {
     }
 
     private fun BufferedReader.scanHeaders(): ValuesMap {
-        val headers = ValuesMapImpl.Builder()
+        val headers = ValuesMapBuilder(true)
 
         do {
             val line = readLine()
@@ -451,7 +451,7 @@ class StaticContentTest {
             headers.append(header.trimEnd(), value.trimStart())
         } while (true)
 
-        return headers.build(true)
+        return headers.build()
     }
 
     private fun String.contentRange(): Pair<LongRange, Long> {

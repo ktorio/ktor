@@ -166,7 +166,7 @@ private fun decodeContent(content: String, contentType: ContentType): ValuesMap 
     contentType.match(ContentType.Application.Json) ->
         (JSONValue.parseWithException(content) as JSONObject)
                 .toList()
-                .fold(ValuesMapImpl.Builder()) { builder, e -> builder.append(e.first.toString(), e.second.toString()); builder }.build() // TODO better json handling
+                .fold(ValuesMapBuilder()) { builder, e -> builder.append(e.first.toString(), e.second.toString()); builder }.build() // TODO better json handling
 // TODO text/xml
     else -> {
         // some servers may respond with wrong content type so we have to try to guess

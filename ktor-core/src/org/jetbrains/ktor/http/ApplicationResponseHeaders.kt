@@ -19,3 +19,9 @@ fun ApplicationResponse.contentLength(length: Long) = header(HttpHeaders.Content
 fun ApplicationResponse.cacheControl(value: CacheControl) = header(HttpHeaders.CacheControl, value.toString())
 fun ApplicationResponse.expires(value: LocalDateTime) = header(HttpHeaders.Expires, value)
 
+fun ValuesMapBuilder.contentType(contentType: ContentType) = set(HttpHeaders.ContentLength, contentType.toString())
+fun ValuesMapBuilder.contentLength(length: Long) = set(HttpHeaders.ContentLength, length.toString())
+fun ValuesMapBuilder.etag(entityTag: String) = set(HttpHeaders.LastModified, entityTag)
+fun ValuesMapBuilder.lastModified(dateTime: ZonedDateTime) = set(HttpHeaders.LastModified, dateTime.toHttpDateString())
+fun ValuesMapBuilder.cacheControl(value: CacheControl) = set(HttpHeaders.CacheControl, value.toString())
+fun ValuesMapBuilder.expires(expires: LocalDateTime) = set(HttpHeaders.Expires, expires.toHttpDateString())

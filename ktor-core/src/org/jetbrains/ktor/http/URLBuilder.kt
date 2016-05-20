@@ -17,7 +17,7 @@ class URLBuilder(
         var port: Int = protocol.defaultPort,
         var user: UserPasswordCredential? = null,
         var encodedPath: String = "/",
-        val parameters: ValuesMapImpl.Builder = ValuesMapImpl.Builder(),
+        val parameters: ValuesMapBuilder = ValuesMapBuilder(),
         var fragment: String = ""
 ) {
     fun path(vararg components: String) {

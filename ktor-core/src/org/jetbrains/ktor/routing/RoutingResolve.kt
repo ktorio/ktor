@@ -55,14 +55,7 @@ class RoutingResolveContext(val routing: RoutingEntry,
                 continue
 
             // only calculate values if match is better then previous one
-            val combinedValues = when {
-                result.values.isEmpty() -> subtreeResult.values
-                subtreeResult.values.isEmpty() -> result.values
-                else -> ValuesMap.build {
-                    appendAll(result.values)
-                    appendAll(subtreeResult.values)
-                }
-            }
+            val combinedValues = result.values + subtreeResult.values
             bestResult = RoutingResolveResult(true, subtreeResult.entry, combinedValues, combinedQuality)
         }
 

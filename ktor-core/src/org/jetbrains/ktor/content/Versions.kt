@@ -18,7 +18,7 @@ interface HasVersions {
 
 interface Version {
     fun render(response: ApplicationResponse)
-    fun render(builder: ValuesMapImpl.Builder)
+    fun render(builder: ValuesMapBuilder)
 }
 
 data class LastModifiedVersion(val lastModified: LocalDateTime) : Version {
@@ -29,7 +29,7 @@ data class LastModifiedVersion(val lastModified: LocalDateTime) : Version {
         response.lastModified(lastModified.atZone(ZoneOffset.UTC))
     }
 
-    override fun render(builder: ValuesMapImpl.Builder) {
+    override fun render(builder: ValuesMapBuilder) {
         builder.append(HttpHeaders.LastModified, lastModified.atZone(ZoneOffset.UTC).toHttpDateString())
     }
 }
@@ -38,7 +38,7 @@ data class EntityTagVersion(val etag: String) : Version {
         response.etag(etag)
     }
 
-    override fun render(builder: ValuesMapImpl.Builder) {
+    override fun render(builder: ValuesMapBuilder) {
         builder.append(HttpHeaders.ETag, etag)
     }
 }

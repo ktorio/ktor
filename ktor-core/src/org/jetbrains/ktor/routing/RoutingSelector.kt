@@ -130,10 +130,7 @@ data class AndRoutingSelector(val first: RoutingSelector, val second: RoutingSel
         val result2 = second.evaluate(context, index + result1.segmentIncrement)
         if (!result2.succeeded)
             return result2
-        val resultValues = ValuesMap.build {
-            appendAll(result1.values)
-            appendAll(result2.values)
-        }
+        val resultValues = result1.values + result2.values
         return RouteSelectorEvaluation(true, result1.quality * result2.quality, resultValues, result1.segmentIncrement + result2.segmentIncrement)
     }
 

@@ -139,7 +139,7 @@ class TestApplicationRequest() : ApplicationRequest {
     override val headers by lazy {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")
         headersMap = null
-        ValuesMapImpl(map, caseInsensitiveKey = true)
+        valuesOf(map, caseInsensitiveKey = true)
     }
 
     override val content: RequestContent = object : RequestContent(this) {
@@ -173,9 +173,9 @@ class TestApplicationResponse() : BaseApplicationResponse() {
     override val channel = Interceptable0<AsyncWriteChannel> { realContent.value }
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
-        private val headersMap = ValuesMapImpl.Builder()
+        private val headersMap = ValuesMapBuilder(true)
         private val headers: ValuesMap
-            get() = headersMap.build(true)
+            get() = headersMap.build()
 
         override fun hostAppendHeader(name: String, value: String) {
             if (closed)

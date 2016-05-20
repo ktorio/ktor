@@ -160,11 +160,11 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
                 }
         }
 
-        protected fun ValuesMapImpl.Builder.acceptRanges() {
+        protected fun ValuesMapBuilder.acceptRanges() {
             append(HttpHeaders.AcceptRanges, RangeUnits.Bytes.unitToken)
         }
 
-        protected fun ValuesMapImpl.Builder.contentRange(range: LongRange?, fullLength: Long? = null, unit: String = RangeUnits.Bytes.unitToken) {
+        protected fun ValuesMapBuilder.contentRange(range: LongRange?, fullLength: Long? = null, unit: String = RangeUnits.Bytes.unitToken) {
             append(HttpHeaders.ContentRange, contentRangeHeaderValue(range, fullLength, unit))
         }
     }
