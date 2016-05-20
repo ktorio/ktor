@@ -25,8 +25,7 @@ class LocalFileContent(val file: File, override val contentType: ContentType = d
     override val versions: List<Version>
         get() = listOf(LastModifiedVersion(Files.getLastModifiedTime(file.toPath())))
 
-    override val headers: ValuesMap
-        get() = super.headers
+    override val headers by lazy { super.headers }
 
     override fun channel() = file.asyncReadOnlyFileChannel()
 

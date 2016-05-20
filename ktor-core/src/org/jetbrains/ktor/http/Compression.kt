@@ -65,14 +65,15 @@ object CompressionSupport : ApplicationFeature<CompressionOptions> {
 
 private class CompressedResponse(val delegateChannel: AsyncReadChannel, val delegateHeaders: ValuesMap, val encoding: String, val encoder: CompressionEncoder) : FinalContent.ChannelContent() {
     override fun channel() = encoder.open(delegateChannel)
-    override val headers: ValuesMap
-        get() = ValuesMap.build(true) {
+    override val headers by lazy {
+        ValuesMap.build(true) {
             appendAll(delegateHeaders.filter { name, value ->
                 !name.equals(HttpHeaders.ContentLength, true)
             })
 
             append(HttpHeaders.ContentEncoding, encoding)
         }
+    }
 }
 
 private fun FinalContent.contentEncoding(): String? {

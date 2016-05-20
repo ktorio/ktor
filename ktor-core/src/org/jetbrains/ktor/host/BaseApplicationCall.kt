@@ -97,8 +97,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
     }
 
     private class PipeResponse(val pipe: AsyncPipe, val headersDelegate: () -> ValuesMap, val start: () -> Unit) : FinalContent.ChannelContent() {
-        override val headers: ValuesMap
-            get() = headersDelegate()
+        override val headers by lazy(headersDelegate)
 
         override fun channel(): AsyncReadChannel {
             start()
@@ -109,13 +108,14 @@ abstract class BaseApplicationCall(override val application: Application, overri
     private class TextContentResponse(override val status: HttpStatusCode?, val contentType: ContentType?, val encoding: String, val text: String) : FinalContent.ChannelContent() {
         private val bytes by lazy { text.toByteArray(Charset.forName(encoding)) }
 
-        override val headers: ValuesMap
-            get() = ValuesMap.build(true) {
+        override val headers by lazy {
+            ValuesMap.build(true) {
                 if (contentType != null) {
                     contentType(contentType)
                 }
                 contentLength(bytes.size.toLong())
             }
+        }
 
         override fun channel() = ByteArrayAsyncReadChannel(bytes)
     }

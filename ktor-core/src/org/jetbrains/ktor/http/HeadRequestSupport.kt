@@ -24,7 +24,7 @@ object HeadRequestSupport : ApplicationFeature<Unit> {
     }
 
     private class HeadResponse(val delegate: FinalContent) : FinalContent.NoContent() {
-        override val headers = delegate.headers
+        override val headers by lazy { delegate.headers }
         override val status: HttpStatusCode?
             get() = delegate.status
     }

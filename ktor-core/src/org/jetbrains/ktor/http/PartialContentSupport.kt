@@ -116,11 +116,12 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
         class ByPass(val delegate: FinalContent.ChannelContent) : RangeChannelProvider() {
             override fun channel() = delegate.channel()
 
-            override val headers: ValuesMap
-                get() = ValuesMap.build(true) {
+            override val headers by lazy {
+                ValuesMap.build(true) {
                     appendAll(delegate.headers)
                     acceptRanges()
                 }
+            }
         }
 
         class Single(val get: Boolean, val delegateHeaders: ValuesMap, val delegate: AsyncReadChannel, val range: LongRange, val fullLength: Long) : RangeChannelProvider() {
@@ -131,8 +132,8 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
                 else -> AsyncSkipAndCut(delegate, range.start, range.length, preventClose = true)
             }
 
-            override val headers: ValuesMap
-                get() = ValuesMap.build(true) {
+            override val headers by lazy {
+                ValuesMap.build(true) {
                     appendAll(delegateHeaders.filter { name, value ->
                         !name.equals(HttpHeaders.ContentLength, true)
                     })
@@ -140,6 +141,7 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
                     acceptRanges()
                     contentRange(range, fullLength)
                 }
+            }
         }
 
         class Multiple(val get: Boolean, val delegateHeaders: ValuesMap, val delegate: AsyncReadChannel, val ranges: List<LongRange>, val length: Long, val boundary: String, val contentType: ContentType) : RangeChannelProvider() {
