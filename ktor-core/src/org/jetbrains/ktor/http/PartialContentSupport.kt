@@ -6,7 +6,6 @@ import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
-import java.time.*
 import kotlin.properties.*
 
 object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configuration> {
@@ -156,16 +155,12 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
                     })
                     acceptRanges()
 
-                    append(HttpHeaders.ContentType, ContentType.MultiPart.ByteRanges.withParameter("boundary", boundary).toString())
+                    contentType(ContentType.MultiPart.ByteRanges.withParameter("boundary", boundary))
                 }
         }
 
         protected fun ValuesMapBuilder.acceptRanges() {
             append(HttpHeaders.AcceptRanges, RangeUnits.Bytes.unitToken)
-        }
-
-        protected fun ValuesMapBuilder.contentRange(range: LongRange?, fullLength: Long? = null, unit: String = RangeUnits.Bytes.unitToken) {
-            append(HttpHeaders.ContentRange, contentRangeHeaderValue(range, fullLength, unit))
         }
     }
 

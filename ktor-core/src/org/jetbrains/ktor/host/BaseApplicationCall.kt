@@ -112,9 +112,9 @@ abstract class BaseApplicationCall(override val application: Application, overri
         override val headers: ValuesMap
             get() = ValuesMap.build(true) {
                 if (contentType != null) {
-                    append(HttpHeaders.ContentType, contentType.toString())
+                    contentType(contentType)
                 }
-                append(HttpHeaders.ContentLength, bytes.size.toString())
+                contentLength(bytes.size.toLong())
             }
 
         override fun channel() = ByteArrayAsyncReadChannel(bytes)

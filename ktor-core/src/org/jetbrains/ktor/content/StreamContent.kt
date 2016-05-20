@@ -20,17 +20,17 @@ interface Resource : HasVersions {
 
     override val headers: ValuesMap
         get() = ValuesMap.build(true) {
-            append(HttpHeaders.ContentType, contentType.toString())
+            appendAll(super.headers)
+            contentType(contentType)
             expires?.let { expires ->
-                append(HttpHeaders.Expires, expires.toHttpDateString())
+                expires(expires)
             }
             cacheControl?.let { cacheControl ->
-                append(HttpHeaders.CacheControl, cacheControl.toString())
+                cacheControl(cacheControl)
             }
             contentLength?.let { contentLength ->
-                append(HttpHeaders.ContentLength, contentLength.toString())
+                contentLength(contentLength)
             }
-            appendAll(super.headers)
         }
 }
 

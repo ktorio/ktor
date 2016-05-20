@@ -119,11 +119,11 @@ internal class NettyMultiPartData(val decoder: HttpPostMultipartRequestDecoder, 
                     HeaderValueParam(ContentDisposition.Parameters.FileName, filename)
             )).toString())
         }
-        append(HttpHeaders.ContentLength, length().toString())
+        contentLength(length())
     }
 
     private fun Attribute.headers() = ValuesMap.build(true) {
-        append(HttpHeaders.ContentType, ContentType.MultiPart.Mixed.toString())
+        contentType(ContentType.MultiPart.Mixed)
         append(HttpHeaders.ContentDisposition, ContentDisposition.Mixed.withParameter(ContentDisposition.Parameters.Name, name).toString())
     }
 }

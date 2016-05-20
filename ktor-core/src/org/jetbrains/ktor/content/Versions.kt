@@ -30,7 +30,7 @@ data class LastModifiedVersion(val lastModified: LocalDateTime) : Version {
     }
 
     override fun render(builder: ValuesMapBuilder) {
-        builder.append(HttpHeaders.LastModified, lastModified.atZone(ZoneOffset.UTC).toHttpDateString())
+        builder.lastModified(lastModified.atZone(ZoneOffset.UTC))
     }
 }
 data class EntityTagVersion(val etag: String) : Version {
@@ -39,7 +39,7 @@ data class EntityTagVersion(val etag: String) : Version {
     }
 
     override fun render(builder: ValuesMapBuilder) {
-        builder.append(HttpHeaders.ETag, etag)
+        builder.etag(etag)
     }
 }
 
