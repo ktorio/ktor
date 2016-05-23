@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>ktor</artifactId>
-        <groupId>org.jetbrains</groupId>
+        <groupId>org.jetbrains.ktor</groupId>
         <version>0.2.0-SNAPSHOT</version>
     </parent>
 
@@ -26,7 +26,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.jetbrains</groupId>
+            <groupId>org.jetbrains.ktor</groupId>
             <artifactId>ktor-core</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -38,13 +38,13 @@
 
         <!-- runtime dependencies -->
         <dependency>
-            <groupId>org.jetbrains</groupId>
+            <groupId>org.jetbrains.ktor</groupId>
             <artifactId>ktor-jetty</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.jetbrains</groupId>
+            <groupId>org.jetbrains.ktor</groupId>
             <artifactId>ktor-netty</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
