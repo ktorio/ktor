@@ -80,6 +80,11 @@ abstract class BaseApplicationCall(override val application: Application, overri
                         }
                     })
                 }
+                is FinalContent.ProtocolUpgrade -> {
+                    commit(value)
+                    value.upgrade(this@BaseApplicationCall, this, request.content.get(), response.channel())
+                    pause()
+                }
                 is URIFileContent -> { // TODO it should be better place for that purpose
                     if (value.uri.scheme == "file") {
                         respond(LocalFileContent(File(value.uri)))

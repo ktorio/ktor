@@ -72,6 +72,14 @@ sealed class FinalContent {
         }
     }
 
+    abstract class ProtocolUpgrade() : FinalContent() {
+        abstract fun upgrade(call: ApplicationCall, context: PipelineContext<Any>, input: AsyncReadChannel, output: AsyncWriteChannel): Closeable
+
+        override fun startContent(call: ApplicationCall, context: PipelineContext<Any>) {
+            throw UnsupportedOperationException("It should never pass here: should be container-specific and handled in contained-specific ApplicationCall implementation")
+        }
+    }
+
 }
 
 fun FinalContent.contentLength(): Long? {
