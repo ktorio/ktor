@@ -14,7 +14,6 @@
         <module>ktor-samples-hello</module>
         <module>ktor-samples-locations</module>
         <module>ktor-samples-auth</module>
-        <module>ktor-samples-components</module>
         <module>ktor-samples-async</module>
         <module>ktor-samples-testable</module>
         <module>ktor-samples-json</module>

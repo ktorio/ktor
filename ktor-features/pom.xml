@@ -16,21 +16,6 @@
         <module>ktor-locations</module>
     </modules>
 
-    <profiles>
-        <profile>
-            <id>development</id>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-            <modules>
-                <module>ktor-components</module>
-            </modules>
-        </profile>
-        <profile>
-            <id>bintray</id>
-        </profile>
-    </profiles>
-
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.ktor</groupId>

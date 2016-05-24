@@ -1,3 +1,0 @@
-<Context allowCasualMultipartParsing="true">
-    <Parameter name="org.jetbrains.ktor.config" value="application.conf"/>
-</Context>
