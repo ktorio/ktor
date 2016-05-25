@@ -62,13 +62,31 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     }
 
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
-        val request = TestApplicationRequest()
-        request.setup()
-        val call = TestApplicationCall(application, request, executor)
+        val call = createCall(setup)
+
         call.execute(pipeline)
         call.await()
-        if (exception != null)
-            throw exception!!
+
+        exception?.let { throw it }
+
+        return call
+    }
+
+    fun handleWebSocket(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
+        val call = createCall {
+            this.uri = uri
+            addHeader(HttpHeaders.Connection, "Upgrade")
+            addHeader(HttpHeaders.Upgrade, "websocket")
+            addHeader(HttpHeaders.SecWebSocketKey, encodeBase64("test".toByteArray()))
+
+            setup()
+        }
+
+        call.execute(pipeline)
+        call.await()
+
+        exception?.let { throw it }
+
         return call
     }
 
@@ -76,6 +94,13 @@ class TestApplicationHost(val applicationConfig: ApplicationConfig) {
         executor.shutdown()
         application.dispose()
         executor.shutdownNow()
+    }
+
+    private fun createCall(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
+        val request = TestApplicationRequest()
+        setup(request)
+
+        return TestApplicationCall(application, request, executor)
     }
 }
 
@@ -123,7 +148,13 @@ class TestApplicationRequest() : ApplicationRequest {
             requestLine = requestLine.copy(method = value)
         }
 
-    var body: String = ""
+    var bodyBytes: ByteArray = ByteArray(0)
+    var body: String
+        get() = bodyBytes.toString(Charsets.UTF_8)
+        set(newValue) {
+            bodyBytes = newValue.toByteArray(Charsets.UTF_8)
+        }
+
     var multiPartEntries: List<PartData> = emptyList()
 
     override val parameters: ValuesMap get() {
@@ -143,8 +174,8 @@ class TestApplicationRequest() : ApplicationRequest {
     }
 
     override val content: RequestContent = object : RequestContent(this) {
-        override fun getInputStream(): InputStream = ByteArrayInputStream(body.toByteArray(Charsets.UTF_8))
-        override fun getReadChannel() = ByteArrayAsyncReadChannel(body.toByteArray(Charsets.UTF_8))
+        override fun getInputStream(): InputStream = ByteArrayInputStream(bodyBytes)
+        override fun getReadChannel() = ByteArrayAsyncReadChannel(bodyBytes)
 
         override fun getMultiPartData(): MultiPartData = object : MultiPartData {
             override val parts: Sequence<PartData>
