@@ -18,7 +18,7 @@ abstract class RequestContent(private val request: ApplicationRequest) {
         return when (type) {
             AsyncReadChannel::class -> getReadChannel()
             InputStream::class -> getInputStream()
-            String::class -> getInputStream().reader(request.contentCharset() ?: Charsets.ISO_8859_1).readText()
+            String::class -> getReadChannel().asInputStream().reader(request.contentCharset() ?: Charsets.ISO_8859_1).readText()
             MultiPartData::class -> getMultiPartData()
             else -> throw UnknownContentAccessorRequest("Requested content accessor '$type' cannot be provided")
         } as T
