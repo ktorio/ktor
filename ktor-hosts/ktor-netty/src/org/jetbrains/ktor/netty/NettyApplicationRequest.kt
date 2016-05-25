@@ -74,7 +74,7 @@ internal class NettyApplicationRequest(private val request: HttpRequest,
             throw IllegalStateException("Couldn't get multipart, most likely a raw channel already acquired, state is ${contentChannelState.get()}")
         }
 
-        override fun getInputStream(): InputStream = TODO("Not yet implemented") //ByteBufInputStream(request.content())
+        override fun getInputStream(): InputStream = getReadChannel().asInputStream()
         override fun getReadChannel(): AsyncReadChannel {
             if (contentChannelState.switchTo(ReadChannelState.RAW_CHANNEL)) {
                 return if (bodyConsumed) AsyncEmptyChannel else contentChannel.value
