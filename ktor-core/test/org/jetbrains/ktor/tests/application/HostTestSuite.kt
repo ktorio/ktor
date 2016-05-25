@@ -608,11 +608,53 @@ abstract class HostTestSuite {
         }
     }
 
+    @Test
+    fun testRequestContentString() {
+        startServer(createServer(port) {
+            post("/") {
+                call.respond(call.request.content.get<String>())
+            }
+        })
+
+        withUrl("/") {
+            requestMethod = "POST"
+            doOutput = true
+            setRequestProperty(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
+
+            outputStream.use {
+                it.write("Hello".toByteArray())
+            }
+
+            assertEquals("Hello", inputStream.reader().readText())
+        }
+    }
+
+    @Test
+    fun testRequestContentInputStream() {
+        startServer(createServer(port) {
+            post("/") {
+                call.respond(call.request.content.get<InputStream>().reader().readText())
+            }
+        })
+
+        withUrl("/") {
+            requestMethod = "POST"
+            doOutput = true
+            setRequestProperty(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
+
+            outputStream.use {
+                it.write("Hello".toByteArray())
+            }
+
+            assertEquals("Hello", inputStream.reader().readText())
+        }
+    }
+
     fun findFreePort() = ServerSocket(0).use { it.localPort }
     fun withUrl(path: String, block: HttpURLConnection.() -> Unit) {
         val connection = URL("http://127.0.0.1:$port$path").openConnection() as HttpURLConnection
         connection.connectTimeout = 10000
-//        connection.readTimeout = 30000
+        connection.readTimeout = 30000
         connection.instanceFollowRedirects = false
 
         connection.block()
