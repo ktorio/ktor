@@ -63,7 +63,7 @@ sealed class CacheControl(val visibility: CacheControlVisibility?) {
             "no-store, ${visibility.name.toLowerCase()}"
         }
     }
-    class MaxAge(val maxAgeSeconds: Int, val proxyMaxAgeSeconds: Int?, val mustRevalidate: Boolean, val proxyRevalidate: Boolean, visibility: CacheControlVisibility?) : CacheControl(visibility) {
+    class MaxAge(val maxAgeSeconds: Int, val proxyMaxAgeSeconds: Int? = null, val mustRevalidate: Boolean = false, val proxyRevalidate: Boolean = false, visibility: CacheControlVisibility? = null) : CacheControl(visibility) {
         override fun toString(): String {
             val parts = ArrayList<String>(5)
             parts.add("max-age=$maxAgeSeconds")
