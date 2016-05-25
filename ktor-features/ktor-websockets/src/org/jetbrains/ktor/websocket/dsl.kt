@@ -57,11 +57,34 @@ fun RoutingEntry.webSocket(path: String, protocol: String? = null, configure: We
     route(HttpMethod.Get, path) {
         header(HttpHeaders.Connection, "Upgrade") {
             header(HttpHeaders.Upgrade, "websocket") {
-                // TODO route for protocol
-                handle {
-                    call.respond(WebSocketUpgrade(call, protocol, configure))
+                webSocketProtocol(protocol) {
+                    handle {
+                        val extensions = call.request.header(HttpHeaders.SecWebSocketExtensions)
+                        if (extensions != null) throw IllegalStateException("Extensions are not yet supported")
+
+                        call.respond(WebSocketUpgrade(call, protocol, configure))
+                    }
                 }
             }
         }
+    }
+}
+
+private fun RoutingEntry.webSocketProtocol(protocol: String?, block: RoutingEntry.() -> Unit) {
+    if (protocol == null) {
+        block()
+    } else {
+        select(WebSocketProtocolsSelector(protocol)).block()
+    }
+}
+
+private class WebSocketProtocolsSelector(val requiredProtocol: String) : RoutingSelector {
+    override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
+        val protocols = context.headers[HttpHeaders.SecWebSocketProtocol] ?: return RouteSelectorEvaluation(true, 1.0)
+        if (requiredProtocol in parseHeaderValue(protocols).map { it.value }) {
+            return RouteSelectorEvaluation(true, 1.0)
+        }
+
+        return RouteSelectorEvaluation.Failed
     }
 }
