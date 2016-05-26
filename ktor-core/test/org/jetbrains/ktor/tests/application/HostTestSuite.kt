@@ -650,6 +650,61 @@ abstract class HostTestSuite {
         }
     }
 
+    @Test
+    fun testStatusCodeDirect() {
+        startServer(createServer(port) {
+            get("/") {
+                call.response.status(HttpStatusCode.Found)
+                call.respond("Hello")
+            }
+        })
+
+        withUrl("/") {
+            assertEquals("Hello", inputStream.reader().readText())
+            assertEquals(HttpStatusCode.Found.value, responseCode)
+        }
+    }
+
+    @Test
+    fun testStatusCodeViaResponseObject() {
+        startServer(createServer(port) {
+            get("/") {
+                call.respond(HttpStatusCode.Found)
+            }
+        })
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.Found.value, responseCode)
+        }
+    }
+
+    @Test
+    fun testStatusCodeViaResponseObject2() {
+        startServer(createServer(port) {
+            get("/") {
+                call.respond(HttpStatusContent(HttpStatusCode.Found, "Hello"))
+            }
+        })
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.Found.value, responseCode)
+        }
+    }
+
+    @Test
+    fun test404() {
+        startServer(createServer(port) {
+        })
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.NotFound.value, responseCode)
+        }
+
+        withUrl("/aaaa") {
+            assertEquals(HttpStatusCode.NotFound.value, responseCode)
+        }
+    }
+
     fun findFreePort() = ServerSocket(0).use { it.localPort }
     fun withUrl(path: String, block: HttpURLConnection.() -> Unit) {
         val connection = URL("http://127.0.0.1:$port$path").openConnection() as HttpURLConnection
