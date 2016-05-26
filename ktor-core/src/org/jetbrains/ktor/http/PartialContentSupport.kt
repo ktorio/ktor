@@ -114,6 +114,9 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
 
     private sealed class RangeChannelProvider : FinalContent.ChannelContent() {
         class ByPass(val delegate: FinalContent.ChannelContent) : RangeChannelProvider() {
+            override val status: HttpStatusCode?
+                get() = delegate.status
+
             override fun channel() = delegate.channel()
 
             override val headers by lazy {
