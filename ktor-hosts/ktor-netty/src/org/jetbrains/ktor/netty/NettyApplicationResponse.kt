@@ -14,11 +14,9 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
     private var commited = false
     private val closed = AtomicBoolean(false)
 
-    override fun status(value: HttpStatusCode) {
-        response.status = HttpResponseStatus(value.value, value.description)
+    override fun setStatus(statusCode: HttpStatusCode) {
+        response.status = HttpResponseStatus(statusCode.value, statusCode.description)
     }
-
-    override fun status(): HttpStatusCode? = response.status?.let { HttpStatusCode(it.code(), it.reasonPhrase()) }
 
     private val channelInstance = lazy {
         context.executeInLoop {

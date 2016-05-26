@@ -159,16 +159,12 @@ class TestApplicationRequest() : ApplicationRequest {
 }
 
 class TestApplicationResponse() : BaseApplicationResponse() {
-    private var statusCode: HttpStatusCode? = null
     private val realContent = lazy { ByteArrayAsyncWriteChannel() }
     @Volatile
     private var closed = false
 
-    override fun status(value: HttpStatusCode) {
-        statusCode = value
+    override fun setStatus(statusCode: HttpStatusCode) {
     }
-
-    override fun status(): HttpStatusCode? = statusCode
 
     override val channel = Interceptable0<AsyncWriteChannel> { realContent.value }
 

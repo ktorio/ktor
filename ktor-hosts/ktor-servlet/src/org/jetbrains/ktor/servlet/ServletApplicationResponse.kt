@@ -7,13 +7,9 @@ import org.jetbrains.ktor.nio.*
 import javax.servlet.http.*
 
 class ServletApplicationResponse(val call: ServletApplicationCall, val servletResponse: HttpServletResponse) : BaseApplicationResponse() {
-    var _status: HttpStatusCode? = null
-
-    override fun status(value: HttpStatusCode) {
-        _status = value
-        servletResponse.status = value.value
+    override fun setStatus(statusCode: HttpStatusCode) {
+        servletResponse.status = statusCode.value
     }
-    override fun status(): HttpStatusCode? = _status
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         override fun hostAppendHeader(name: String, value: String) {
