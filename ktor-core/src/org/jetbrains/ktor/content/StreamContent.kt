@@ -67,7 +67,7 @@ sealed class FinalContent {
     abstract class StreamConsumer : FinalContent() {
         abstract fun stream(out : OutputStream): Unit
 
-        override fun startContent(call: ApplicationCall, context: PipelineContext<Any>) {
+        override fun startContent(call: ApplicationCall, context: PipelineContext<Any>): Nothing {
             throw UnsupportedOperationException("It should never pass here: should be resend in BaseApplicationCall instead")
         }
     }
@@ -75,7 +75,7 @@ sealed class FinalContent {
     abstract class ProtocolUpgrade() : FinalContent() {
         abstract fun upgrade(call: ApplicationCall, context: PipelineContext<Any>, input: AsyncReadChannel, output: AsyncWriteChannel): Closeable
 
-        override fun startContent(call: ApplicationCall, context: PipelineContext<Any>) {
+        override fun startContent(call: ApplicationCall, context: PipelineContext<Any>): Nothing {
             throw UnsupportedOperationException("It should never pass here: should be container-specific and handled in contained-specific ApplicationCall implementation")
         }
     }
