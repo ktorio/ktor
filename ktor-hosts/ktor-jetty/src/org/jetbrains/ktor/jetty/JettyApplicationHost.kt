@@ -65,6 +65,8 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 latch.countDown()
             }
 
+            setupUpgradeHelper(request, response, server, latch, call)
+
             try {
                 val contentType = request.contentType
                 if (contentType != null && ContentType.parse(contentType).match(ContentType.MultiPart.Any)) {
