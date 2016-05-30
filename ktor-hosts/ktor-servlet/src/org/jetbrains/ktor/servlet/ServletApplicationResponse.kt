@@ -21,6 +21,10 @@ class ServletApplicationResponse(val call: ServletApplicationCall, val servletRe
     }
 
     override val channel = Interceptable0<AsyncWriteChannel> {
+        if (BaseApplicationCall.ResponseChannelOverride in call.attributes) {
+            return@Interceptable0 call.attributes[BaseApplicationCall.ResponseChannelOverride]
+        }
+
         call.ensureAsync()
         ServletAsyncWriteChannel(servletResponse.outputStream)
     }

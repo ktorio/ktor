@@ -2,6 +2,7 @@ package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.util.*
@@ -39,8 +40,12 @@ class ServletApplicationRequest(val call: ServletApplicationCall, val servletReq
     }
 
     private val servletReadChannel by lazy {
-        call.ensureAsync()
-        ServletAsyncReadChannel(servletRequest.inputStream)
+        val providedChannel = call.attributes.getOrNull(BaseApplicationCall.RequestChannelOverride)
+
+        if (providedChannel == null) {
+            call.ensureAsync()
+            ServletAsyncReadChannel(servletRequest.inputStream)
+        } else providedChannel
     }
 
     override val content: RequestContent = object : RequestContent(this) {

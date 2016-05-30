@@ -124,4 +124,9 @@ abstract class BaseApplicationCall(override val application: Application, overri
 
         override fun channel() = ByteArrayAsyncReadChannel(bytes)
     }
+
+    companion object {
+        val ResponseChannelOverride = AttributeKey<AsyncWriteChannel>("ktor.response.channel")
+        val RequestChannelOverride = AttributeKey<AsyncReadChannel>("ktor.request.channel")
+    }
 }
