@@ -8,6 +8,9 @@
     </parent>
 
     <artifactId>ktor-jetty</artifactId>
+    <properties>
+        <jetty.version>9.3.9.v20160517</jetty.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -25,13 +28,13 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>9.2.10.v20150310</version>
+            <version>${jetty.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
-            <version>9.2.10.v20150310</version>
+            <version>${jetty.version}</version>
             <type>jar</type>
         </dependency>
     </dependencies>
