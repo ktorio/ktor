@@ -24,8 +24,6 @@ internal class BodyHandlerChannelAdapter(val context: ChannelHandlerContext) : A
 
     override fun channelReadComplete(ctx: ChannelHandlerContext) {
         requested.set(false)
-        close()
-        ctx.flush()
     }
 
     override fun read(dst: ByteBuffer, handler: AsyncHandler) {

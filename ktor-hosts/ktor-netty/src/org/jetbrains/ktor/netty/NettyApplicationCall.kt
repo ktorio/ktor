@@ -26,10 +26,6 @@ internal class NettyApplicationCall(application: Application,
     override val attributes = Attributes()
     override val parameters: ValuesMap get() = request.parameters
 
-    init {
-        HttpHeaders.setTransferEncodingChunked(httpResponse)
-    }
-
     override fun close() {
         completed = true
         ReferenceCountUtil.release(httpRequest)

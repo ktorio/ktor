@@ -31,6 +31,11 @@ internal class LastDropsCollectorHandler : SimpleChannelInboundHandler<DefaultHt
         }
     }
 
+    fun forgetCompleted() {
+        collected.removeAll { it is LastHttpContent }
+        completed = false
+    }
+
     fun close(context: ChannelHandlerContext) {
         if (!transferred) {
             try {

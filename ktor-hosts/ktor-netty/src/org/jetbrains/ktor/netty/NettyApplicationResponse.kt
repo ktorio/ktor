@@ -76,6 +76,8 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
                 throw IllegalStateException("Already commited")
             }
         }
-        HttpHeaders.setTransferEncodingChunked(request)
+        if (response.status.code() != HttpStatusCode.SwitchingProtocols.value) {
+            HttpHeaders.setTransferEncodingChunked(response)
+        }
     }
 }

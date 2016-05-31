@@ -108,6 +108,8 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         private fun startHandleRequest(context: ChannelHandlerContext, request: HttpRequest, bodyConsumed: Boolean, urlEncodedParameters: () -> ValuesMap, drops: LastDropsCollectorHandler?) {
             val call = NettyApplicationCall(application, context, request, bodyConsumed, urlEncodedParameters, drops, executor)
 
+            setupUpgradeHelper(call, context, drops)
+
             call.executeOn(executor, application).whenComplete { pipelineState, throwable ->
                 val response: Any? = if (throwable != null && !call.completed) {
                     application.config.log.error("Failed to process request", throwable)
