@@ -23,7 +23,6 @@ abstract class WebSocket internal constructor(val call: ApplicationCall, protect
     /**
      * Specifies frame size limit. Connection will be closed if violated
      */
-    @Deprecated("Not yet implemented")
     var maxFrameSize = Long.MAX_VALUE
 
     var timeout: Duration = Duration.ofSeconds(15)
