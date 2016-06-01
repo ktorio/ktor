@@ -48,6 +48,7 @@ internal class FrameParser {
     }
 
     tailrec fun frame(bb: ByteBuffer) {
+        require(bb.order() == ByteOrder.BIG_ENDIAN) { "Buffer order should be BIG_ENDIAN but it is ${bb.order()}" }
         if (handleStep(bb)) frame(bb)
     }
 
