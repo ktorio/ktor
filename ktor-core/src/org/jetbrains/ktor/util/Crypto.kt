@@ -28,7 +28,7 @@ fun hex(bytes: ByteArray) = bytes.map { Integer.toHexString(it.toInt() and 0xff)
 
 fun raw(s: String) = s.toByteArray(Charsets.UTF_8)
 
-private val nonceRandom by lazy { Random(SecureRandom().nextLong()).apply {
+val nonceRandom by lazy { Random(SecureRandom().nextLong()).apply {
     repeat((System.currentTimeMillis() % 17).toInt()) {
         nextGaussian()
     }

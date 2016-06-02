@@ -18,9 +18,9 @@ abstract class WebSocket internal constructor(val call: ApplicationCall, val con
     abstract val outbound: WebSocketOutbound
 
     /**
-     * Enable or disable masking output messages by a random xor mask
+     * Enable or disable masking output messages by a random xor mask.
+     * Please note that changing this flag on the fly could be applied to the messages already sent as the sending pipeline works asynchronously
      */
-    @Deprecated("Not yet implemented")
     var masking = false
 
     /**
