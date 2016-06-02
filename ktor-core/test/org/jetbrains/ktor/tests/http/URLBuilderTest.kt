@@ -118,7 +118,7 @@ class URLBuilderTest {
     @Test
     fun testWithApplication() {
         withTestApplication {
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 assertEquals("http://my-host/path%20/to?p=v", call.url())
                 assertEquals("http://my-host/path%20/to?p=v", call.url {
                     assertEquals("my-host", host)
@@ -136,7 +136,7 @@ class URLBuilderTest {
     @Test
     fun testWithApplicationAndPort() {
         withTestApplication {
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 assertEquals("http://my-host:8080/path%20/to?p=v", call.url())
                 assertEquals("http://my-host:8080/path%20/to?p=v", call.url {
                     assertEquals(8080, port)

@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.tests.http
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
@@ -93,7 +94,7 @@ class TestHostMultipartTest {
     @Test
     fun testMultiPartShouldFail() {
         withTestApplication {
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 onSuccess { fail("This pipeline shouldn't finish successfully") }
                 call.request.content.get<MultiPartData>().parts.toList()
             }
@@ -106,7 +107,7 @@ class TestHostMultipartTest {
 
     fun testMultiParts(asserts: (MultiPartData?) -> Unit, setup: TestApplicationRequest.() -> Unit) {
         withTestApplication {
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 if (call.request.isMultipart()) {
                     asserts(call.request.content.get())
                 } else {

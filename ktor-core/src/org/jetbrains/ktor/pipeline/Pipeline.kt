@@ -1,24 +1,16 @@
 package org.jetbrains.ktor.pipeline
 
-open class Pipeline<TSubject : Any>() {
-    private val _interceptors = mutableListOf<PipelineContext<TSubject>.(TSubject) -> Unit>()
+open class Pipeline<TSubject : Any>(vararg phase: PipelinePhase) {
+    val interceptors: List<PipelineContext<TSubject>.(TSubject) -> Unit> get() = phases.interceptors()
 
-    val interceptors : List<PipelineContext<TSubject>.(TSubject) -> Unit> get() = _interceptors
+    val phases = PipelinePhases<TSubject>(*phase)
 
-    constructor(interceptors: List<PipelineContext<TSubject>.(TSubject) -> Unit>) : this() {
-        _interceptors.addAll(interceptors)
+    constructor(phase: PipelinePhase, interceptors: List<PipelineContext<TSubject>.(TSubject) -> Unit>) : this(phase) {
+        interceptors.forEach { phases.intercept(phase, it) }
     }
 
-    fun intercept(block: PipelineContext<TSubject>.(TSubject) -> Unit) {
-        _interceptors.add(block)
-    }
-
-    fun intercept(index: Int, block: PipelineContext<TSubject>.(TSubject) -> Unit) {
-        if (index >= 0) {
-            _interceptors.add(index, block)
-        } else {
-            _interceptors.add(_interceptors.size + index, block)
-        }
+    fun intercept(phase: PipelinePhase, block: PipelineContext<TSubject>.(TSubject) -> Unit) {
+        phases.intercept(phase, block)
     }
 }
 

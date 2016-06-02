@@ -7,7 +7,7 @@ import org.jetbrains.ktor.util.*
 /**
  * Represents configured and running web application, capable of handling requests
  */
-open class Application(val config: ApplicationConfig) : Pipeline<ApplicationCall>() {
+open class Application(val config: ApplicationConfig) : ApplicationCallPipeline() {
     /**
      * Provides common place to store application-wide attributes
      */

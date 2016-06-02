@@ -41,12 +41,12 @@ fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() ->
 
 class TestApplicationHost(val applicationConfig: ApplicationConfig) {
     val application: Application = ApplicationLoader(applicationConfig).application
-    val pipeline = Pipeline<ApplicationCall>()
+    val pipeline = ApplicationCallPipeline()
     var exception : Throwable? = null
     val executor = Executors.newCachedThreadPool()
 
     init {
-        pipeline.intercept { call ->
+        pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             onFail { exception ->
                 val testApplicationCall = call as? TestApplicationCall
                 testApplicationCall?.latch?.countDown()

@@ -13,7 +13,7 @@ class DigestTest {
     @Test
     fun createExampleChallengeFromRFC() {
         withTestApplication {
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
                 call.sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge(
                         realm = "testrealm@host.com",
                         nonce = "dcd98b7102dd2f0e8b11d0f600bfb0c093",
@@ -42,7 +42,7 @@ class DigestTest {
             application.routing {
                 route("/") {
                     authentication {
-                        intercept {
+                        intercept(AuthenticationProcedure.RequestAuthentication) {
                             subject.call.extractDigest()?.let { digest ->
                                 foundDigests.add(digest)
                             }

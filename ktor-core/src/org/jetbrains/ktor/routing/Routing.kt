@@ -27,13 +27,13 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
     private fun buildEntryPipeline(entry: RoutingEntry): Pipeline<ApplicationCall> {
         // Interceptors are rarely installed into routing entries, so don't create list unless there are some
         var current: RoutingEntry? = entry
-        val pipeline = Pipeline<ApplicationCall>()
+        val pipeline = ApplicationCallPipeline()
         while (current != null) {
-            current.interceptors.forEach { pipeline.intercept(0, it) }
+            current.interceptors.forEach { pipeline.intercept(ApplicationCallPipeline.Infrastructure, it) }
             current = current.parent
         }
 
-        entry.handlers.forEach { pipeline.intercept(it) }
+        entry.handlers.forEach { pipeline.intercept(ApplicationCallPipeline.Call, it) }
         return pipeline
     }
 
@@ -43,7 +43,7 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
 
         override fun install(application: Application, configure: Routing.() -> Unit) = Routing(application).apply {
             configure()
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 this@apply.interceptor(this)
             }
         }

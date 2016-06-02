@@ -5,7 +5,7 @@ import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.pipeline.*
 import java.util.*
 
-open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : Pipeline<ApplicationCall>() {
+open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : ApplicationCallPipeline() {
     val children: MutableList<RoutingEntry> = ArrayList()
 
     internal val handlers = ArrayList<PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit>()

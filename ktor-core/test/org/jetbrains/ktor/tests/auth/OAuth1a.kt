@@ -301,7 +301,7 @@ private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
     withTestApplication {
         testClient = TestingHttpClient(this)
 
-        application.intercept { call ->
+        application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             onFail { t ->
                 call.response.status(HttpStatusCode.InternalServerError)
             }

@@ -40,7 +40,7 @@ class StaticContentTest {
             application.install(PartialContentSupport)
             application.install(HeadRequestSupport)
 
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 val resolved = sequenceOf(
                         { call.resolveClasspathResource("", "org.jetbrains.ktor.tests.http") },
                         { call.resolveClasspathResource("", "java.util") },
@@ -89,7 +89,7 @@ class StaticContentTest {
             application.install(PartialContentSupport)
             application.install(HeadRequestSupport)
 
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 call.resolveLocalFile("", testDir)?.let { call.respond(it) }
             }
             test(File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt"))
@@ -275,7 +275,7 @@ class StaticContentTest {
     @Test
     fun testStaticContentWrongPath() {
         withTestApplication {
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 val resolved = sequenceOf(
                         { call.resolveLocalFile("", basedir) }
                 ).map { it() }.firstOrNull { it != null }
@@ -296,7 +296,7 @@ class StaticContentTest {
     @Test
     fun testSendLocalFile() {
         withTestApplication {
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 call.respond(LocalFileContent(basedir, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt"))
             }
 
@@ -310,7 +310,7 @@ class StaticContentTest {
     @Test
     fun testSendLocalFilePaths() {
         withTestApplication {
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 call.respond(LocalFileContent(basedir.toPath(), Paths.get("/org/jetbrains/ktor/tests/http/StaticContentTest.kt")))
             }
 
@@ -324,7 +324,7 @@ class StaticContentTest {
     @Test
     fun testZipFileContentPaths() {
         withTestApplication {
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 val zip = call.resolveClasspathResource("", "java.util") as ResourceFileContent
                 val pathified = ResourceFileContent(zip.zipFile.toPath(), zip.resourcePath, zip.classLoader, zip.contentType)
 
@@ -340,7 +340,7 @@ class StaticContentTest {
     @Test
     fun testSendLocalFileBadRelative() {
         withTestApplication {
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 assertFailsWith<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir, "/../../../../../../../../../../../../../etc/passwd"))
                 }
@@ -364,7 +364,7 @@ class StaticContentTest {
     @Test
     fun testSendLocalFileBadRelativePaths() {
         withTestApplication {
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 assertFailsWith<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../../../../../../../../../../../../../etc/passwd")))
                 }

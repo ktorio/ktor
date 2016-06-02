@@ -7,6 +7,8 @@ import java.util.concurrent.*
 import kotlin.test.*
 
 class PipelineTest {
+    val callPhase = PipelinePhase("Call")
+
     fun <T : Any> Pipeline<T>.execute(subject: T): PipelineState {
         try {
             PipelineMachine().execute(subject, this)
@@ -19,16 +21,25 @@ class PipelineTest {
         }
     }
 
+    fun Pipeline<String>.intercept(block: PipelineContext<String>.(String) -> Unit) {
+        phases.intercept(callPhase, block)
+    }
+
+
+    fun createPipeline() : Pipeline<String> {
+        return Pipeline<String>(callPhase)
+    }
+
     @Test
     fun emptyPipeline() {
-        val state = Pipeline<String>().execute("some")
+        val state = createPipeline().execute("some")
         assertEquals(PipelineState.Succeeded, state)
     }
 
     @Test
     fun singleActionPipeline() {
         var value = false
-        val pipeline = Pipeline<String>()
+        val pipeline = createPipeline()
         pipeline.intercept { subject ->
             value = true
             assertEquals("some", subject)
@@ -41,7 +52,7 @@ class PipelineTest {
     @Test
     fun singleActionPipelineWithFinish() {
         var value = false
-        val pipeline = Pipeline<String>()
+        val pipeline = createPipeline()
         pipeline.intercept { subject ->
             onSuccess {
                 assertTrue(value)
@@ -61,7 +72,7 @@ class PipelineTest {
     @Test
     fun singleActionPipelineWithFail() {
         var failed = false
-        val pipeline = Pipeline<String>()
+        val pipeline = createPipeline()
         pipeline.intercept { subject ->
             onSuccess {
                 fail("This pipeline shouldn't finish")
@@ -81,7 +92,7 @@ class PipelineTest {
     @Test
     fun actionFinishOrder() {
         var count = 0
-        val pipeline = Pipeline<String>()
+        val pipeline = createPipeline()
         pipeline.intercept { subject ->
             onSuccess {
                 assertEquals(1, count)
@@ -107,7 +118,7 @@ class PipelineTest {
     @Test
     fun actionFailOrder() {
         var count = 0
-        val pipeline = Pipeline<String>()
+        val pipeline = createPipeline()
         pipeline.intercept { subject ->
             onFail {
                 assertEquals(1, count)
@@ -134,7 +145,7 @@ class PipelineTest {
     @Test
     fun actionFinishFailOrder() {
         var count = 0
-        val pipeline = Pipeline<String>()
+        val pipeline = createPipeline()
         pipeline.intercept { subject ->
             onFail {
                 assertEquals(1, count)
@@ -164,7 +175,7 @@ class PipelineTest {
     @Test
     fun actionFailFailOrder() {
         var count = 0
-        val pipeline = Pipeline<String>()
+        val pipeline = createPipeline()
         pipeline.intercept { subject ->
             onFail {
                 assertEquals(1, count)
@@ -200,7 +211,7 @@ class PipelineTest {
     @Test
     fun pauseResume() {
         var count = 0
-        val pipeline = Pipeline<String>()
+        val pipeline = createPipeline()
         pipeline.intercept { subject ->
             assertEquals(0, count)
             count++
@@ -227,7 +238,7 @@ class PipelineTest {
         var count = 0
         var max = 0
         var secondaryOk = false
-        val pipeline = Pipeline<String>()
+        val pipeline = createPipeline()
         pipeline.intercept {
             onFail {
                 assertEquals(1, count)
@@ -239,7 +250,7 @@ class PipelineTest {
         }
 
         pipeline.intercept {
-            val secondary = Pipeline<String>()
+            val secondary = createPipeline()
             secondary.intercept { subject ->
                 onFail {
                     fail("This pipeline shouldn't fail")
@@ -272,7 +283,7 @@ class PipelineTest {
         var count = 0
         var max = 0
         var secondaryOk = false
-        val pipeline = Pipeline<String>()
+        val pipeline = createPipeline()
         pipeline.intercept {
             onFail {
                 assertEquals(1, count)
@@ -287,7 +298,7 @@ class PipelineTest {
         }
 
         pipeline.intercept {
-            val secondary = Pipeline<String>()
+            val secondary = createPipeline()
             secondary.intercept { subject ->
                 onSuccess {
                     fail("This pipeline shouldn't finish")
@@ -313,7 +324,7 @@ class PipelineTest {
     @Test
     fun asyncPipeline() {
         var count = 0
-        val pipeline = Pipeline<String>()
+        val pipeline = createPipeline()
         val latch = CountDownLatch(1)
         pipeline.intercept {
             CompletableFuture.runAsync {
@@ -338,7 +349,7 @@ class PipelineTest {
     @Test
     fun asyncFork() {
         var count = 0
-        val pipeline = Pipeline<String>()
+        val pipeline = createPipeline()
         var secondaryOk = false
         val latch = CountDownLatch(1)
         pipeline.intercept {
@@ -354,7 +365,7 @@ class PipelineTest {
         }
 
         pipeline.intercept {
-            val secondary = Pipeline<String>()
+            val secondary = createPipeline()
             secondary.intercept { subject ->
                 assertEquals("another", subject)
                 CompletableFuture.runAsync {
@@ -376,5 +387,58 @@ class PipelineTest {
         latch.await()
         assertTrue(secondaryOk, "Secondary should be run")
         assertEquals(2, count)
+    }
+
+    private fun checkBeforeAfterPipeline(after: PipelinePhase, before: PipelinePhase, pipeline: Pipeline<String>) {
+        var value = false
+        pipeline.intercept(after) {
+            value = true
+        }
+        pipeline.intercept(before) {
+            assertFalse(value)
+        }
+        val state = pipeline.execute("some")
+        assertTrue(value)
+        assertEquals(PipelineState.Succeeded, state)
+    }
+
+    @Test
+    fun phased() {
+        val before = PipelinePhase("before")
+        val after = PipelinePhase("after")
+        val pipeline = Pipeline<String>(before, after)
+        checkBeforeAfterPipeline(after, before, pipeline)
+    }
+
+
+    @Test
+    fun phasedNotRegistered() {
+        val before = PipelinePhase("before")
+        val after = PipelinePhase("after")
+        val pipeline = Pipeline<String>(before)
+        assertFailsWith<InvalidPhaseException> {
+            pipeline.intercept(after) {
+            }
+        }
+    }
+
+    @Test
+    fun phasedBefore() {
+        val pipeline = Pipeline<String>()
+        val before = PipelinePhase("before")
+        val after = PipelinePhase("after")
+        pipeline.phases.add(after)
+        pipeline.phases.insertBefore(after, before)
+        checkBeforeAfterPipeline(after, before, pipeline)
+    }
+
+    @Test
+    fun phasedAfter() {
+        val pipeline = Pipeline<String>()
+        val before = PipelinePhase("before")
+        val after = PipelinePhase("after")
+        pipeline.phases.add(before)
+        pipeline.phases.insertAfter(before, after)
+        checkBeforeAfterPipeline(after, before, pipeline)
     }
 }

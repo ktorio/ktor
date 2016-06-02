@@ -8,8 +8,10 @@ import org.jetbrains.ktor.util.*
 interface Credential
 interface Principal
 
+val authenticationPhase = PipelinePhase("Authenticate")
 fun Pipeline<ApplicationCall>.authenticate(body: PipelineContext<ApplicationCall>.() -> Unit) {
-    intercept { call ->
+    phases.insertAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
+    intercept(authenticationPhase) { call ->
         body()
         onSuccess {
             val context = call.attributes.getOrNull(AuthenticationProcedureContext.AttributeKey)

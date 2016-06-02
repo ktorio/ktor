@@ -37,7 +37,7 @@ fun AuthenticationProcedure.digestAuthentication(
         userNameRealmPasswordDigestProvider: (String, String) -> ByteArray) {
 
     val digester = digesterProvider(digestAlgorithm)
-    intercept { context ->
+    intercept(AuthenticationProcedure.RequestAuthentication) { context ->
         val authorizationHeader = context.call.request.parseAuthorizationHeader()
         val credentials = authorizationHeader?.let { authHeader ->
             if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {

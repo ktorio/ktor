@@ -1,23 +1,28 @@
 package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.util.*
 import kotlin.properties.*
 
-class AuthenticationProcedure() : Pipeline<AuthenticationProcedureContext>()
+class AuthenticationProcedure() : Pipeline<AuthenticationProcedureContext>(CheckAuthentication, RequestAuthentication) {
+    companion object {
+        val CheckAuthentication = PipelinePhase("CheckAuthentication")
+        val RequestAuthentication = PipelinePhase("RequestAuthentication")
+    }
+}
 
 fun Pipeline<ApplicationCall>.authentication(procedure: AuthenticationProcedure.() -> Unit) {
     val authenticationProcedure = AuthenticationProcedure().apply(procedure).apply {
-        intercept { context ->
+        intercept(AuthenticationProcedure.RequestAuthentication) { context ->
             val principal = context.principal
             if (principal == null) {
                 val challenges = context.challenges
                 if (challenges.isNotEmpty()) {
-                    val challengePipeline = Pipeline(challenges)
-                    challengePipeline.intercept { challenge ->
+                    val challengePhase = PipelinePhase("Challenge")
+                    val challengePipeline = Pipeline(challengePhase, challenges)
+                    challengePipeline.intercept(challengePhase) { challenge ->
                         if (challenge.success) {
                             finishAll()
                         }
@@ -27,7 +32,8 @@ fun Pipeline<ApplicationCall>.authentication(procedure: AuthenticationProcedure.
             }
         }
     }
-    intercept { call ->
+    phases.insertAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
+    intercept(authenticationPhase) { call ->
         val context = AuthenticationProcedureContext(call)
         call.attributes.put(AuthenticationProcedureContext.AttributeKey, context)
         call.fork(context, authenticationProcedure)
@@ -59,11 +65,13 @@ class AuthenticationProcedureContext(val call: ApplicationCall) {
     private val challengesCollector = mutableListOf<Pair<NotAuthenticatedCause, PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>>()
 
     val challenges: List<PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>
-        get() = challengesCollector.filter { it.first !is NotAuthenticatedCause.Error }.sortedBy { when (it.first) {
-            NotAuthenticatedCause.InvalidCredentials -> 1
-            NotAuthenticatedCause.NoCredentials -> 2
-            else -> throw NoWhenBranchMatchedException("${it.first}")
-        } }.map { it.second }
+        get() = challengesCollector.filter { it.first !is NotAuthenticatedCause.Error }.sortedBy {
+            when (it.first) {
+                NotAuthenticatedCause.InvalidCredentials -> 1
+                NotAuthenticatedCause.NoCredentials -> 2
+                else -> throw NoWhenBranchMatchedException("${it.first}")
+            }
+        }.map { it.second }
 
     val allChallenges: List<Pair<NotAuthenticatedCause, PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>>
         get() = challengesCollector.toList()

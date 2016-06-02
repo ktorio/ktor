@@ -20,7 +20,7 @@ class HandlerTest {
 
     @Test fun `application with transparent handler`() {
         val testHost = createTestHost()
-        testHost.application.intercept { call ->
+        testHost.application.intercept(ApplicationCallPipeline.Call) { call ->
         }
         on("making a request") {
             val request = testHost.handleRequest { }
@@ -32,7 +32,7 @@ class HandlerTest {
 
     @Test fun `application with handler returning true`() {
         val testHost = createTestHost()
-        testHost.application.intercept { call -> call.respond(HttpStatusCode.OK) }
+        testHost.application.intercept(ApplicationCallPipeline.Call) { call -> call.respond(HttpStatusCode.OK) }
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should be handled") {
@@ -42,7 +42,7 @@ class HandlerTest {
     }
 
     @Test fun `application with handler that checks body on POST method`() = withTestApplication {
-        application.intercept { call ->
+        application.intercept(ApplicationCallPipeline.Call) { call ->
             if (call.request.httpMethod == HttpMethod.Post) {
                 assertEquals(call.request.content.get<String>(), "Body")
                 call.respond(HttpStatusCode.OK)
@@ -56,7 +56,7 @@ class HandlerTest {
     }
 
     @Test fun `application with handler that returns true on POST method`() = withTestApplication {
-        application.intercept { call ->
+        application.intercept(ApplicationCallPipeline.Call) { call ->
             if (call.request.httpMethod == HttpMethod.Post) {
                 call.respond(HttpStatusCode.OK)
             }
@@ -76,7 +76,7 @@ class HandlerTest {
     }
 
     @Test fun `application with handler that intercepts creation of headers`() = withTestApplication {
-        application.intercept { call ->
+        application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             call.response.headers.intercept { name, value, header ->
                 if (name == "Content-Type" && value == "text/plain")
                     header(name, "text/xml")
@@ -86,7 +86,7 @@ class HandlerTest {
         }
 
         on("asking for a response") {
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 call.response.contentType(ContentType.Text.Plain)
 
             }

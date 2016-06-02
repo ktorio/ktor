@@ -3,12 +3,13 @@ package org.jetbrains.ktor.netty
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.stream.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 
 internal fun setupUpgradeHelper(call: NettyApplicationCall, context: ChannelHandlerContext, drops: LastDropsCollectorHandler?) {
-    call.interceptRespond(0) { obj ->
+    call.interceptRespond(RespondPipeline.Before) { obj ->
         if (obj is FinalContent.ProtocolUpgrade) {
             context.executeInLoop {
                 context.channel().pipeline().remove(ChunkedWriteHandler::class.java)

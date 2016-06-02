@@ -14,10 +14,10 @@ object ConditionalHeadersSupport : ApplicationFeature<Unit> {
     override fun install(application: Application, configure: Unit.() -> Unit) {
         configure(Unit)
 
-        application.intercept { call ->
+        application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             if (conditionalHeaders.any { it in call.request.headers }) {
 
-                call.interceptRespond(0) { obj ->
+                call.interceptRespond(RespondPipeline.Before) { obj ->
                     if (obj is HasVersions) {
                         checkVersions(call, obj.versions)
                     } else if (obj is FinalContent) {

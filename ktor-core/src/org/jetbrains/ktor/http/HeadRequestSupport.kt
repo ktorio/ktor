@@ -12,9 +12,9 @@ object HeadRequestSupport : ApplicationFeature<Unit> {
     override fun install(application: Application, configure: Unit.() -> Unit) {
         configure(Unit)
 
-        application.intercept {
+        application.intercept(ApplicationCallPipeline.Infrastructure) {
             if (call.request.httpMethod == HttpMethod.Head) {
-                it.interceptRespond(-1) { obj ->
+                it.interceptRespond(RespondPipeline.Before) { obj ->
                     if (obj is FinalContent && obj !is FinalContent.NoContent) {
                         call.respond(HeadResponse(obj))
                     }

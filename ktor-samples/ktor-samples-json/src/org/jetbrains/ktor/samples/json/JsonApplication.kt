@@ -23,9 +23,9 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
     init {
         install(CallLogging)
 
-        intercept { call ->
+        intercept(ApplicationCallPipeline.Infrastructure) { call ->
             if (call.request.accept() == "application/json") {
-                call.interceptRespond { value ->
+                call.interceptRespond(RespondPipeline.Before) { value ->
                     when (value) {
                         is Item, is Model -> {
                             call.respond(TextContent(ContentType.Application.Json, GsonBuilder().create().toJson(value)))

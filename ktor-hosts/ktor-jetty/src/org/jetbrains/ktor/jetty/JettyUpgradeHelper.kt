@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.jetty
 
 import org.eclipse.jetty.server.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
@@ -10,7 +11,7 @@ import java.util.concurrent.*
 import javax.servlet.http.*
 
 internal fun setupUpgradeHelper(request: HttpServletRequest, response: HttpServletResponse, server: Server, latch: CountDownLatch, call: ServletApplicationCall) {
-    call.interceptRespond(0) { obj ->
+    call.interceptRespond(RespondPipeline.Before) { obj ->
         if (obj is FinalContent.ProtocolUpgrade) {
             val connection = request.getAttribute("org.eclipse.jetty.server.HttpConnection") as HttpConnection
             val inputChannel = AbstractConnectionReadChannel(connection.endPoint, server.threadPool)

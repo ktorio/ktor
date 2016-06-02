@@ -17,7 +17,7 @@ class ChatApplication(config: ApplicationConfig) : Application(config) {
         install(CallLogging)
 
         routing {
-            intercept {
+            intercept(ApplicationCallPipeline.Infrastructure) {
                 if (call.sessionOrNull<Session>() == null) {
                     call.session(Session(nextNonce()))
                 }

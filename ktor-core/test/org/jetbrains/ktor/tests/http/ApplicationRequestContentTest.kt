@@ -12,7 +12,7 @@ class ApplicationRequestContentTest {
     @Test
     fun testSimpleStringContent() {
         withTestApplication {
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 assertEquals("bodyContent", call.request.content.get<String>())
             }
 
@@ -25,7 +25,7 @@ class ApplicationRequestContentTest {
     @Test
     fun testInputStreamContent() {
         withTestApplication {
-            application.intercept { call ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 assertEquals("bodyContent", call.request.content.get<InputStream>().reader(Charsets.UTF_8).readText())
             }
 

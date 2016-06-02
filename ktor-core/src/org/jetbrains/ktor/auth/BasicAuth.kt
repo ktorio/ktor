@@ -29,7 +29,7 @@ fun ApplicationRequest.basicAuthenticationCredentials(): UserPasswordCredential?
 
 val BasicAuthKey: Any = "BasicAuth"
 fun AuthenticationProcedure.basicAuthentication(realm: String, validate: (UserPasswordCredential) -> Principal?) {
-    intercept { context ->
+    intercept(AuthenticationProcedure.RequestAuthentication) { context ->
         val credentials = context.call.request.basicAuthenticationCredentials()
         val principal = credentials?.let(validate)
 

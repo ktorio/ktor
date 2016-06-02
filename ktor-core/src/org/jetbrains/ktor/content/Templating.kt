@@ -12,8 +12,8 @@ interface TemplateEngine<C : Any, R> where R : FinalContent, R : Resource {
 
 inline fun <reified C : Any> Pipeline<ApplicationCall>.templating(engine: TemplateEngine<C, *>) {
     val javaType = engine.contentClass.java
-    intercept { call ->
-        call.interceptRespond { obj ->
+    intercept(ApplicationCallPipeline.Call) { call ->
+        call.interceptRespond(RespondPipeline.Respond) { obj ->
             if (javaType.isInstance(obj)) {
                 call.respond(engine.process(obj as C))
             }

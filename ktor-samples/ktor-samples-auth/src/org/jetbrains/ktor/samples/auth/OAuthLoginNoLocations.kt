@@ -14,7 +14,7 @@ class OAuthLoginNoLocationApplication(config: ApplicationConfig) : Application(c
     val exec = Executors.newFixedThreadPool(8)
 
     init {
-        intercept { call ->
+        intercept(ApplicationCallPipeline.Infrastructure) { call ->
             // generally you shouldn't do like that however there are situation when you could need
             // to do everything on lower level
 
@@ -27,7 +27,7 @@ class OAuthLoginNoLocationApplication(config: ApplicationConfig) : Application(c
             }
         }
 
-        intercept { call ->
+        intercept(ApplicationCallPipeline.Infrastructure) { call ->
             call.response.status(HttpStatusCode.OK)
             call.response.contentType(ContentType.Text.Html.withParameter("charset", Charsets.UTF_8.name()))
             call.respondText("""

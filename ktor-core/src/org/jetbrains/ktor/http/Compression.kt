@@ -34,7 +34,7 @@ object CompressionSupport : ApplicationFeature<CompressionOptions> {
             obj.contentEncoding().let { it == null || it == "identity" }
         }) + options.conditions
 
-        application.intercept { call ->
+        application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             val acceptEncodingRaw = call.request.acceptEncoding()
             if (acceptEncodingRaw != null) {
                 val encoding = parseAndSortHeader(acceptEncodingRaw)
@@ -44,7 +44,7 @@ object CompressionSupport : ApplicationFeature<CompressionOptions> {
 
                 val encoder = encoding?.let { encoders[it] }
                 if (encoding != null && encoder != null && !call.isCompressionProhibited()) {
-                    call.interceptRespond(0) { obj ->
+                    call.interceptRespond(RespondPipeline.Before) { obj ->
                         if (obj is FinalContent && obj !is CompressedResponse && conditions.all { it(call, obj) } && !call.isCompressionProhibited()) {
                             val channel = when (obj) {
                                 is FinalContent.ChannelContent -> obj.channel()

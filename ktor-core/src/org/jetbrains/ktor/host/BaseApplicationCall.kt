@@ -28,8 +28,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
     override fun <T : Any> fork(value: T, pipeline: Pipeline<T>): Nothing = executionMachine.execute(value, pipeline)
     override fun respond(message: Any): Nothing = fork(message, respond)
 
-    override fun interceptRespond(handler: PipelineContext<Any>.(Any) -> Unit) = respond.intercept(handler)
-    override fun interceptRespond(index: Int, handler: PipelineContext<Any>.(Any) -> Unit) = respond.intercept(index, handler)
+    override fun interceptRespond(phase: PipelinePhase, handler: PipelineContext<Any>.(Any) -> Unit) = respond.intercept(phase, handler)
 
     protected fun commit(o: FinalContent) {
         o.status?.let { response.status(it) } ?: response.status() ?: response.status(HttpStatusCode.OK)
@@ -38,10 +37,10 @@ abstract class BaseApplicationCall(override val application: Application, overri
         }
     }
 
-    private val respond = Pipeline<Any>()
+    private val respond = RespondPipeline()
 
     init {
-        respond.intercept { value ->
+        respond.intercept(RespondPipeline.Respond) { value ->
             when (value) {
                 is String -> {
                     val encoding = response.headers[HttpHeaders.ContentType]?.let {

@@ -45,8 +45,8 @@ inline fun <S : Any> Pipeline<ApplicationCall>.withSessions(type: KClass<S>, blo
 }
 
 fun <S : Any> Pipeline<ApplicationCall>.withSessions(sessionConfig: SessionConfig<S>) {
-    intercept { call ->
-        call.interceptRespond(0) {
+    intercept(ApplicationCallPipeline.Infrastructure) { call ->
+        call.interceptRespond(RespondPipeline.Before) {
             if (call.attributes.contains(SessionKey)) {
                 val session = call.sessionOrNull(sessionConfig.sessionType)
                 if (session != null) {

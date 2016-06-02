@@ -43,8 +43,7 @@ interface ApplicationCall : Closeable {
 
     fun respond(message: Any): Nothing
 
-    fun interceptRespond(handler: PipelineContext<Any>.(Any) -> Unit)
-    fun interceptRespond(index: Int, handler: PipelineContext<Any>.(Any) -> Unit)
+    fun interceptRespond(phase: PipelinePhase, handler: PipelineContext<Any>.(Any) -> Unit)
 
     fun <T : Any> fork(value: T, pipeline: Pipeline<T>): Nothing
 

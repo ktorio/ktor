@@ -22,12 +22,12 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
         val config = Configuration()
         configure(config)
 
-        application.intercept(0) { requestNext ->
+        application.intercept(ApplicationCallPipeline.Infrastructure) { requestNext ->
             val rangeSpecifier = call.request.ranges()
             if (rangeSpecifier != null) {
                 if (call.isGetOrHead()) {
                     call.attributes.put(CompressionAttributes.preventCompression, true)
-                    call.interceptRespond(0) { obj ->
+                    call.interceptRespond(RespondPipeline.Before) { obj ->
                         if (obj is FinalContent.ChannelContent && obj !is RangeChannelProvider) {
                             @Suppress("UNCHECKED_CAST")
                             val newContext = this as PipelineContext<FinalContent.ChannelContent>
@@ -39,7 +39,7 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
                     call.respond(HttpStatusCode.MethodNotAllowed.description("Method ${call.request.httpMethod.value} is not allowed with range request"))
                 }
             } else {
-                call.interceptRespond(0) { obj ->
+                call.interceptRespond(RespondPipeline.Before) { obj ->
                     if (obj is FinalContent.ChannelContent && obj !is RangeChannelProvider) {
                         call.respond(RangeChannelProvider.ByPass(obj))
                     }
