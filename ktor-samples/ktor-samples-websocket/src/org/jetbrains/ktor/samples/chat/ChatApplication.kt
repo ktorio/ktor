@@ -3,18 +3,15 @@ package org.jetbrains.ktor.samples.chat
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
-import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
 import org.jetbrains.ktor.util.*
 import org.jetbrains.ktor.websocket.*
 import java.time.*
-import java.util.concurrent.atomic.*
 
 class ChatApplication(config: ApplicationConfig) : Application(config) {
     val server = ChatServer()
-    val usersCounter = AtomicInteger()
 
     init {
         install(CallLogging)
@@ -37,11 +34,9 @@ class ChatApplication(config: ApplicationConfig) : Application(config) {
                     return@webSocket
                 }
 
-//                masking = true
                 pingInterval = Duration.ofMinutes(1)
 
-                val userName = call.request.parameter("name").orEmpty().ifEmpty { "user${usersCounter.incrementAndGet()}" }
-                server.memberJoin(session.id, this, userName)
+                server.memberJoin(session.id, this)
 
                 handle { frame ->
                     if (frame is Frame.Text) {
@@ -50,7 +45,7 @@ class ChatApplication(config: ApplicationConfig) : Application(config) {
                 }
 
                 close { reason ->
-                    server.memberLeaved(session.id)
+                    server.memberLeaved(session.id, this)
                 }
             }
 

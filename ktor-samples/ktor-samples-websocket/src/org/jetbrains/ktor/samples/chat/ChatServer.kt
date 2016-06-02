@@ -5,37 +5,46 @@ import org.jetbrains.ktor.websocket.*
 import java.nio.*
 import java.util.*
 import java.util.concurrent.*
+import java.util.concurrent.atomic.*
 
 class ChatServer {
-    private val memberName = AttributeKey<String>("char.member-name")
-    val members = ConcurrentHashMap<String, WebSocket>()
+    val usersCounter = AtomicInteger()
+    val memberNames = ConcurrentHashMap<String, String>()
+    val members = ConcurrentHashMap<String, MutableList<WebSocket>>()
     val lastMessages = LinkedList<String>()
 
-    fun memberJoin(member: String, socket: WebSocket, initialName: String) {
-        socket.call.attributes.put(memberName, initialName)
-        members[member] = socket
-        broadcast("server", "Member joined: $initialName.")
-        val messages = synchronized(lastMessages) { lastMessages.toList() }
+    fun memberJoin(member: String, socket: WebSocket) {
+        val name = memberNames.computeIfAbsent(member) { "user${usersCounter.incrementAndGet()}" }
+        val list = members.computeIfAbsent(member) { CopyOnWriteArrayList<WebSocket>() }
+        list.add(socket)
 
+        if (list.size == 1) {
+            broadcast("server", "Member joined: $name.")
+        }
+
+        val messages = synchronized(lastMessages) { lastMessages.toList() }
         for (message in messages) {
             socket.send(Frame.Text(message))
         }
     }
 
     fun memberRenamed(member: String, to: String) {
-        val socket = members[member] !!
-        val oldName = socket.memberName() ?: member
-        socket.call.attributes.put(memberName, to)
+        val oldName = memberNames.put(member, to) ?: member
         broadcast("server", "Member renamed from $oldName to $to")
     }
 
-    fun memberLeaved(member: String) {
-        val name = members.remove(member)?.memberName() ?: member
-        broadcast("server", "Member leaved: $name.")
+    fun memberLeaved(member: String, socket: WebSocket) {
+        val connections = members[member]
+        connections?.remove(socket)
+
+        if (connections != null && connections.isEmpty()) {
+            val name = memberNames[member] ?: member
+            broadcast("server", "Member leaved: $name.")
+        }
     }
 
     fun who(sender: String) {
-        members[sender]?.send(Frame.Text(members.entries.joinToString(prefix = "[server::who] ") { it.value.memberName() ?: it.key }))
+        members[sender]?.send(Frame.Text(memberNames.keys.joinToString(prefix = "[server::who] ")))
     }
 
     fun help(sender: String) {
@@ -47,7 +56,7 @@ class ChatServer {
     }
 
     fun message(sender: String, message: String) {
-        val name = members[sender]?.memberName() ?: sender
+        val name = memberNames[sender] ?: sender
         val formatted = "[$name] $message"
 
         broadcast(formatted)
@@ -66,7 +75,7 @@ class ChatServer {
     }
 
     fun broadcast(sender: String, message: String) {
-        val name = members[sender]?.memberName() ?: sender
+        val name = memberNames[sender] ?: sender
         broadcast("[$name] $message")
     }
 
@@ -76,5 +85,7 @@ class ChatServer {
         }
     }
 
-    private fun WebSocket.memberName() = call.attributes.getOrNull(memberName)
+    fun List<WebSocket>.send(frame: Frame) {
+        forEach { it.send(frame.copy()) }
+    }
 }
