@@ -61,7 +61,7 @@ abstract class WebSocketHostSuite : HostTestBase() {
                 flush()
             }
 
-            assertEquals("880203e8", hex(socket.inputStream.readBytes(4)), "Server should reply us close frame")
+            assertEquals("880203e8", hex(socket.inputStream.readBytes(4)).takeLast(8), "Server should reply us close frame")
         }
 
         assertEquals(listOf("Hello"), collected)
@@ -109,7 +109,7 @@ abstract class WebSocketHostSuite : HostTestBase() {
                 flush()
             }
 
-            assertEquals("880203e8", hex(socket.inputStream.readBytes(4)), "Server should reply us close frame")
+            assertEquals("880203e8", hex(socket.inputStream.readBytes(4)).takeLast(8), "Server should reply us close frame")
         }
     }
 

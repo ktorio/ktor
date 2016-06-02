@@ -455,7 +455,7 @@ abstract class HostTestSuite : HostTestBase() {
     }
 
     @Test
-    fun testMultipartFileUpload() {
+    open fun testMultipartFileUpload() {
         createAndStartServer(port) {
             post("/") {
                 thread {
@@ -484,19 +484,19 @@ abstract class HostTestSuite : HostTestBase() {
             doOutput = true
             setRequestProperty(HttpHeaders.ContentType, ContentType.MultiPart.FormData.withParameter("boundary", "***bbb***").toString())
 
-            outputStream.bufferedWriter().use { out ->
+            outputStream.bufferedWriter(Charsets.ISO_8859_1).let { out ->
                 out.apply {
-                    append("\n")
-                    append("--***bbb***\n")
-                    append("Content-Disposition: form-data; name=\"a story\"\n")
-                    append("\n")
-                    append("Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\n")
-                    append("--***bbb***\n")
-                    append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\n")
-                    append("Content-Type: text/plain\n")
-                    append("\n")
-                    append("File content goes here\n")
-                    append("--***bbb***--\n")
+                    append("\r\n")
+                    append("--***bbb***\r\n")
+                    append("Content-Disposition: form-data; name=\"a story\"\r\n")
+                    append("\r\n")
+                    append("Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\r\n")
+                    append("--***bbb***\r\n")
+                    append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\r\n")
+                    append("Content-Type: text/plain\r\n")
+                    append("\r\n")
+                    append("File content goes here\r\n")
+                    append("--***bbb***--\r\n")
                     flush()
                 }
             }

@@ -14,6 +14,7 @@
         <module>ktor-servlet</module>
         <module>ktor-jetty</module>
         <module>ktor-netty</module>
+        <module>ktor-tomcat</module>
     </modules>
 
     <dependencies>
