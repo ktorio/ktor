@@ -10,4 +10,19 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>ktor-websockets</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.jetbrains.ktor</groupId>
+            <artifactId>ktor-jetty</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.ktor</groupId>
+            <artifactId>ktor-netty</artifactId>
+            <version>${project.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 </project>
