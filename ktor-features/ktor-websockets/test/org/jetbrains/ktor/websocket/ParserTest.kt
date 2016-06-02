@@ -15,7 +15,7 @@ class ParserTest {
                 webSocket("/echo") {
                     handle { frame ->
                         if (!frame.frameType.controlFrame) {
-                            outbound.send(frame.copy())
+                            send(frame.copy())
                             close()
                         }
                     }
@@ -25,7 +25,7 @@ class ParserTest {
             handleWebSocket("/echo") {
                 bodyBytes = hex("""
                     0x81 0x05 0x48 0x65 0x6c 0x6c 0x6f
-                """.replace("\\s+".toRegex(), "").replace("0x", ""))
+                """.trimHex())
             }.let { call ->
                 assertEquals("810548656c6c6f", hex(call.response.byteContent!!))
             }
@@ -42,7 +42,7 @@ class ParserTest {
                     handle { frame ->
                         if (!frame.frameType.controlFrame) {
                             assertEquals("Hello", frame.buffer.copy().array().toString(Charsets.UTF_8))
-                            outbound.send(frame.copy())
+                            send(frame.copy())
                             close()
                         }
                     }
@@ -52,7 +52,7 @@ class ParserTest {
             handleWebSocket("/echo") {
                 bodyBytes = hex("""
                     0x81 0x85 0x37 0xfa 0x21 0x3d 0x7f 0x9f 0x4d 0x51 0x58
-                """.replace("\\s+".toRegex(), "").replace("0x", ""))
+                """.trimHex())
             }.let { call ->
                 val bb = ByteBuffer.wrap(call.response.byteContent!!)
                 val parser = FrameParser()
@@ -71,4 +71,44 @@ class ParserTest {
             }
         }
     }
+
+    @Test
+    @Ignore
+    fun testPingResponse() {
+        withTestApplication {
+            application.routing {
+                webSocket("/echo") {
+                    masking = true
+                }
+            }
+
+            handleWebSocket("/echo") {
+                bodyBytes = hex("""
+                    0x89 0x05 0x48 0x65 0x6c 0x6c 0x6f
+                """.trimHex())
+            }.let { call ->
+                assertEquals("0x8a 0x85 0x37 0xfa 0x21 0x3d 0x7f 0x9f 0x4d 0x51 0x58".trimHex(), hex(call.response.byteContent!!))
+            }
+        }
+    }
+
+    @Test
+    fun testSendClose() {
+        withTestApplication {
+            application.routing {
+                webSocket("/echo") {
+                }
+            }
+
+            handleWebSocket("/echo") {
+                bodyBytes = hex("""
+                    0x88 0x02 0xe8 0x03
+                """.trimHex())
+            }.let { call ->
+                assertEquals("0x88 0x02 0xe8 0x03".trimHex(), hex(call.response.byteContent!!))
+            }
+        }
+    }
+
+    private fun String.trimHex() = replace("\\s+".toRegex(), "").replace("0x", "")
 }

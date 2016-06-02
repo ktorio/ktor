@@ -4,18 +4,15 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.util.*
 import java.io.*
+import java.time.*
 import java.util.*
 
-interface WebSocketOutbound {
-    fun send(frame: Frame)
-}
-
-abstract class WebSocket internal constructor(val call: ApplicationCall, val context: PipelineContext<*>) : Closeable {
+abstract class WebSocket internal constructor(val call: ApplicationCall, protected val context: PipelineContext<*>) : Closeable {
     private val handlers = ArrayList<(Frame) -> Unit>()
     private val errorHandlers = ArrayList<(Throwable) -> Unit>()
-
-    abstract val outbound: WebSocketOutbound
+    private val closeHandlers = ArrayList<(CloseReason?) -> Unit>()
 
     /**
      * Enable or disable masking output messages by a random xor mask.
@@ -29,11 +26,8 @@ abstract class WebSocket internal constructor(val call: ApplicationCall, val con
     @Deprecated("Not yet implemented")
     var maxFrameSize = Long.MAX_VALUE
 
-    /**
-     * Specifies minimal frame size limit. Connection will be closed if violated
-     */
-    @Deprecated("Not yet implemented")
-    var minFrameSize = 0
+    var timeout: Duration = Duration.ofSeconds(15)
+    abstract var pingInterval: Duration?
 
     fun handle(handler: (Frame) -> Unit) {
         handlers.add(handler)
@@ -43,13 +37,30 @@ abstract class WebSocket internal constructor(val call: ApplicationCall, val con
         errorHandlers.add(handler)
     }
 
+    fun close(handler: (reason: CloseReason?) -> Unit) {
+        closeHandlers.add(handler)
+    }
+
+    abstract fun send(frame: Frame)
+
     override fun close(): Nothing {
         call.close() // TODO move call.close() to some generic point
         context.finishAll()
     }
 
-    protected fun frameHandler(frame: Frame) {
+    fun close(reason: CloseReason) {
+        send(Frame.Close(buildByteBuffer {
+            putShort(reason.code)
+            putString(reason.message, Charsets.UTF_8)
+        }))
+    }
+
+    protected open fun frameHandler(frame: Frame) {
         handlers.forEach { it(frame) }
+    }
+
+    protected open fun closeHandler(reason: CloseReason?) {
+        closeHandlers.forEach { it(reason) }
     }
 }
 
@@ -60,7 +71,6 @@ fun RoutingEntry.webSocket(path: String, protocol: String? = null, configure: We
                 webSocketProtocol(protocol) {
                     handle {
                         val extensions = call.request.header(HttpHeaders.SecWebSocketExtensions)
-                        if (extensions != null) throw IllegalStateException("Extensions are not yet supported")
 
                         call.respond(WebSocketUpgrade(call, protocol, configure))
                     }

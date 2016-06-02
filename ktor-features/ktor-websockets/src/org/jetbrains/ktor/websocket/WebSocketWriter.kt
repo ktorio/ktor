@@ -6,15 +6,19 @@ import java.nio.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
-internal class WebSocketWriter(val parent: WebSocketImpl, val writeChannel: AsyncWriteChannel) : WebSocketOutbound {
+internal class WebSocketWriter(val parent: WebSocketImpl, val writeChannel: AsyncWriteChannel, val controlFrameHandler: ControlFrameHandler) {
     private val buffer = ByteBuffer.allocate(8192)
     private val q = ArrayBlockingQueue<Frame>(1024)
     private var current: ByteBuffer? = null
     private val writeInProgress = AtomicBoolean()
     private var maskBuffer: ByteBuffer? = null
+    private var closeSent = false
 
     private val listener = object : AsyncHandler {
         override fun success(count: Int) {
+            if (closeSent) {
+                controlFrameHandler.closeSent()
+            }
             buffer.compact()
             writeInProgress.set(false)
             serializeAndScheduleWrite()
@@ -24,11 +28,18 @@ internal class WebSocketWriter(val parent: WebSocketImpl, val writeChannel: Asyn
         }
 
         override fun failed(cause: Throwable) {
-            parent.close() // TODO
+            parent.closeAsync(null)
         }
     }
 
-    override fun send(frame: Frame) {
+    fun send(frame: Frame) {
+        if (closeSent) {
+            throw IllegalStateException("Outbound is already closed (close frame has been sent)")
+        }
+        if (frame.frameType == FrameType.CLOSE) {
+            closeSent = true
+        }
+
         q.put(frame)
         serializeAndScheduleWrite()
     }
@@ -45,7 +56,7 @@ internal class WebSocketWriter(val parent: WebSocketImpl, val writeChannel: Asyn
         if (buffer.hasRemaining()) {
             writeChannel.write(buffer, listener)
         } else {
-            buffer.flip()
+            buffer.compact()
             writeInProgress.set(false)
         }
     }

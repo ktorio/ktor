@@ -19,9 +19,17 @@ sealed class Frame(val fin: Boolean, val frameType: FrameType, val buffer: ByteB
     private val initialSize = buffer.remaining()
 
     class Binary(fin: Boolean, buffer: ByteBuffer) : Frame(fin, FrameType.BINARY, buffer)
-    class Text(fin: Boolean, buffer: ByteBuffer) : Frame(fin, FrameType.TEXT, buffer)
+    class Text(fin: Boolean, buffer: ByteBuffer) : Frame(fin, FrameType.TEXT, buffer) {
+        constructor(text: String) : this(true, ByteBuffer.wrap(text.toByteArray(Charsets.UTF_8)))
+    }
 
-    class Close(buffer: ByteBuffer) : Frame(true, FrameType.CLOSE, buffer)
+    class Close(buffer: ByteBuffer) : Frame(true, FrameType.CLOSE, buffer) {
+        constructor(reason: CloseReason) : this(buildByteBuffer() {
+            putShort(reason.code)
+            putString(reason.message, Charsets.UTF_8)
+        })
+        constructor() : this(ByteBuffer.allocate(0))
+    }
     class Ping(buffer: ByteBuffer) : Frame(true, FrameType.PING, buffer)
     class Pong(buffer: ByteBuffer) : Frame(true, FrameType.PONG, buffer)
 
@@ -41,5 +49,18 @@ sealed class Frame(val fin: Boolean, val frameType: FrameType, val buffer: ByteB
 
 fun Frame.Text.readText(): String {
     require(fin) { "Text could be only extracted from non-fragmented frame" }
-    return Charsets.UTF_8.decode(buffer).toString()
+    return Charsets.UTF_8.decode(buffer.duplicate()).toString()
+}
+
+fun Frame.Close.readReason(): CloseReason? {
+    buffer.mark()
+    if (buffer.remaining() < 2) {
+        return null
+    }
+    val code = buffer.getShort()
+    val message = buffer.getString(Charsets.UTF_8)
+
+    buffer.reset()
+
+    return CloseReason(code, message)
 }
