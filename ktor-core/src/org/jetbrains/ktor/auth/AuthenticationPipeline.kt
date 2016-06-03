@@ -40,6 +40,8 @@ fun Pipeline<ApplicationCall>.authentication(procedure: AuthenticationProcedure.
     }
 }
 
+val authenticationPhase = PipelinePhase("Authenticate")
+
 class AuthenticationProcedureChallenge {
     @Volatile
     var success = false

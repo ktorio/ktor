@@ -58,9 +58,7 @@ fun PipelineContext<ApplicationCall>.oauth(client: HttpClient, exec: ExecutorSer
     oauth2(client, exec, providerLookup, urlProvider)
 }
 
-// TODO rethink custom oauth approach
-@Deprecated("")
-fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep1(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String) {
+fun PipelineContext<ApplicationCall>.oauthRespondRedirect(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String, loginPageUrl: String) {
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
             runAsync(exec) {
@@ -74,9 +72,7 @@ fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep1(client: HttpClient, exe
     }
 }
 
-// TODO rethink custom oauth approach
-@Deprecated("")
-fun PipelineContext<ApplicationCall>.simpleOAuthAnyStep2(client: HttpClient,
+fun PipelineContext<ApplicationCall>.oauthHandleCallback(client: HttpClient,
                                                          exec: ExecutorService,
                                                          provider: OAuthServerSettings,
                                                          callbackUrl: String,

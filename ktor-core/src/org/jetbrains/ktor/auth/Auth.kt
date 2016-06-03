@@ -1,33 +1,20 @@
 package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
 interface Credential
 interface Principal
 
-val authenticationPhase = PipelinePhase("Authenticate")
-fun Pipeline<ApplicationCall>.authenticate(body: PipelineContext<ApplicationCall>.() -> Unit) {
-    phases.insertAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
-    intercept(authenticationPhase) { call ->
-        body()
-        onSuccess {
-            val context = call.attributes.getOrNull(AuthenticationProcedureContext.AttributeKey)
-            if (context == null || !context.hasPrincipal())
-                throw Exception("Authentication failed")
-        }
-    }
-}
-
 fun ApplicationRequest.parseAuthorizationHeader(): HttpAuthHeader? = authorization()?.let {
     parseAuthorizationHeader(it)
 }
 
-private val token68Pattern = "[a-zA-Z0-9\\-\\._~+/]+=*".toRegex()
+private val token68Pattern = "[a-zA-Z0-9\\-._~+/]+=*".toRegex()
 private val authSchemePattern = "\\S+".toRegex()
-private val valuePatternPart = """("((\\.)|[^\\\"])*")|[^\s,]*"""
+private val valuePatternPart = """("((\\.)|[^\\"])*")|[^\s,]*"""
 private val parameterPattern = "\\s*,?\\s*($token68Pattern)\\s*=\\s*($valuePatternPart)\\s*,?\\s*".toRegex()
 
 fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
@@ -49,6 +36,17 @@ fun parseAuthorizationHeader(headerValue: String): HttpAuthHeader? {
 fun ApplicationCall.sendAuthenticationRequest(vararg challenges: HttpAuthHeader = arrayOf(HttpAuthHeader.basicAuthChallenge("ktor"))): Unit {
     require(challenges.isNotEmpty()) { "it should be at least one challenge requested, for example Basic" }
 
-    response.headers.append(HttpHeaders.WWWAuthenticate, challenges.joinToString(", ") { it.render() })
-    respond(HttpStatusCode.Unauthorized)
+    respond(UnauthorizedResponse(*challenges))
+}
+
+class UnauthorizedResponse(vararg val challenges: HttpAuthHeader = arrayOf(HttpAuthHeader.basicAuthChallenge("ktor"))) : FinalContent.NoContent() {
+    override val status: HttpStatusCode?
+        get() = HttpStatusCode.Unauthorized
+
+    override val headers: ValuesMap
+        get() = ValuesMap.build(true) {
+            if (challenges.isNotEmpty()) {
+                append(HttpHeaders.WWWAuthenticate, challenges.joinToString(", ") { it.render() })
+            }
+        }
 }

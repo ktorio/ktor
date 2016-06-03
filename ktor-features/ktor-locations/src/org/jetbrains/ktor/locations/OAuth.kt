@@ -4,17 +4,16 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.auth.httpclient.*
 import org.jetbrains.ktor.features.*
-import org.jetbrains.ktor.pipeline.*
 import java.util.concurrent.*
 import kotlin.reflect.*
 
-inline fun <reified T: Any> PipelineContext<ApplicationCall>.oauthAtLocation(client: HttpClient, exec: ExecutorService,
+inline fun <reified T: Any> AuthenticationProcedure.oauthAtLocation(client: HttpClient, exec: ExecutorService,
                                                                              noinline providerLookup: ApplicationCall.(T) -> OAuthServerSettings?,
                                                                              noinline urlProvider: ApplicationCall.(T, OAuthServerSettings) -> String) {
     oauthWithType(T::class, client, exec, providerLookup, urlProvider)
 }
 
-fun <T: Any> PipelineContext<ApplicationCall>.oauthWithType(type: KClass<T>,
+fun <T: Any> AuthenticationProcedure.oauthWithType(type: KClass<T>,
                                                             client: HttpClient,
                                                             exec: ExecutorService,
                                                             providerLookup: ApplicationCall.(T) -> OAuthServerSettings?,

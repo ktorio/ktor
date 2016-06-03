@@ -19,8 +19,8 @@ class OAuthLoginNoLocationApplication(config: ApplicationConfig) : Application(c
             // to do everything on lower level
 
             when (call.request.parameter("authStep")) {
-                "1" -> simpleOAuthAnyStep1(DefaultHttpClient, exec, loginProviders.values.first(), "/any?authStep=2", "/")
-                "2" -> simpleOAuthAnyStep2(DefaultHttpClient, exec, loginProviders.values.first(), "/any?authStep=2", "/") {
+                "1" -> oauthRespondRedirect(DefaultHttpClient, exec, loginProviders.values.first(), "/any?authStep=2", "/")
+                "2" -> oauthHandleCallback(DefaultHttpClient, exec, loginProviders.values.first(), "/any?authStep=2", "/") {
                     call.response.status(HttpStatusCode.OK)
                     call.respondText("success")
                 }

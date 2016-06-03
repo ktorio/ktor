@@ -204,7 +204,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    simpleOAuthAnyStep1(testClient, exec, settings, "http://localhost/login?redirected=true", "/")
+                    oauthRespondRedirect(testClient, exec, settings, "http://localhost/login?redirected=true", "/")
                 }
             }
 
@@ -224,7 +224,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login?redirected=true", "/") { token ->
+                    oauthHandleCallback(testClient, exec, settings, "http://localhost/login?redirected=true", "/") { token ->
                         call.respondText("Ho, $token")
                     }
                 }
@@ -247,7 +247,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login?redirected=true", "/") { token ->
+                    oauthHandleCallback(testClient, exec, settings, "http://localhost/login?redirected=true", "/") { token ->
                         call.respondText("Ho, $token")
                     }
                 }

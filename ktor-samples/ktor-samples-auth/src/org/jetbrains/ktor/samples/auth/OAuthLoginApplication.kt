@@ -110,7 +110,7 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
             }
 
             location<login>() {
-                authenticate {
+                authentication {
                     oauthAtLocation<login>(DefaultHttpClient, exec,
                             providerLookup = { loginProviders[it.type] },
                             urlProvider = { l, p -> redirectUrl(login(p.name), false) })

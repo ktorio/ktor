@@ -152,7 +152,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    simpleOAuthAnyStep1(testClient, exec, settings, "http://localhost/login", "/")
+                    oauthRespondRedirect(testClient, exec, settings, "http://localhost/login", "/")
                 }
             }
 
@@ -177,7 +177,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login", "/") { token ->
+                    oauthHandleCallback(testClient, exec, settings, "http://localhost/login", "/") { token ->
                         call.respondText("Ho, $token")
                     }
                 }
@@ -202,7 +202,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login", "/") { token ->
+                    oauthHandleCallback(testClient, exec, settings, "http://localhost/login", "/") { token ->
                         call.respondText("Ho, $token")
                     }
                 }
@@ -225,7 +225,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login", "/") { token ->
+                    oauthHandleCallback(testClient, exec, settings, "http://localhost/login", "/") { token ->
                         call.respondText("Ho, $token")
                     }
                 }
@@ -243,7 +243,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    simpleOAuthAnyStep2(testClient, exec, settings, "http://localhost/login", "/", { path += "&badContentType=true" }) { token ->
+                    oauthHandleCallback(testClient, exec, settings, "http://localhost/login", "/", { path += "&badContentType=true" }) { token ->
                         call.respondText("Ho, $token")
                     }
                 }
