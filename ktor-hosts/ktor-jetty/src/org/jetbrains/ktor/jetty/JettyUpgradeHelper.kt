@@ -26,10 +26,10 @@ internal fun setupUpgradeHelper(request: HttpServletRequest, response: HttpServl
                 response.addHeader(e.first, e.second)
             }
 
-            latch.countDown()
             response.flushBuffer()
+            latch.countDown()
 
-            obj.upgrade(call, this, call.request.content.get(), call.response.channel())
+            obj.upgrade(call, this, inputChannel, outputChannel)
 
             pause()
         }

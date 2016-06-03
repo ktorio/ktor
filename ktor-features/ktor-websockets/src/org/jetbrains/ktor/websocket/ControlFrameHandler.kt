@@ -11,9 +11,12 @@ import java.util.concurrent.atomic.*
 internal class ControlFrameHandler (val parent: WebSocketImpl, val exec: ScheduledExecutorService) {
     private var closeSent = false
     private var closeReceived = false
-    private val closeHandlers = ArrayList<WeakReference<Future<*>>>()
+    private val closeHandlers = ArrayList<Future<*>>()
     private val pingPongFuture = AtomicReference<Future<*>?>()
     private var expectedPong: String? = null
+
+    private val timeoutTask = TimeoutTask(this)
+
     var currentReason: CloseReason? = null
         private set
 
@@ -106,21 +109,31 @@ internal class ControlFrameHandler (val parent: WebSocketImpl, val exec: Schedul
     }
 
     private fun closeAfterTimeout(): ScheduledFuture<*> {
-        val f = exec.schedule(TimeoutTask(this), parent.timeout.toMillis(), TimeUnit.MILLISECONDS)
+        val f = exec.schedule(timeoutTask, parent.timeout.toMillis(), TimeUnit.MILLISECONDS)
 
-        closeHandlers.add(WeakReference(f))
+        synchronized(closeHandlers) {
+            closeHandlers.add(f)
+        }
 
         return f
     }
 
-    fun cancelAllTimeouts() {
-        for (ref in closeHandlers) {
-            ref.get()?.cancel(false)
+    tailrec fun cancelAllTimeouts() {
+        val copy = synchronized(closeHandlers) {
+            val refs = closeHandlers.toList()
+            closeHandlers.clear()
+            refs
         }
-        closeHandlers.clear()
+
+        if (copy.isNotEmpty()) {
+            for (ref in copy) {
+                ref.cancel(false)
+            }
+            cancelAllTimeouts()
+        }
     }
 
-    class TimeoutTask(self: ControlFrameHandler) : Runnable {
+    private class TimeoutTask(self: ControlFrameHandler) : Runnable {
         val ref = WeakReference(self)
 
         override fun run() {

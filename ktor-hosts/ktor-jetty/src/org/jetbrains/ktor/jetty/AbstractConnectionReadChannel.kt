@@ -3,6 +3,7 @@ package org.jetbrains.ktor.jetty
 import org.eclipse.jetty.io.*
 import org.jetbrains.ktor.nio.*
 import java.nio.*
+import java.nio.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
@@ -63,7 +64,11 @@ internal class AbstractConnectionReadChannel(endp: EndPoint, exec: Executor) : A
         if (handler != null) {
             currentBuffer = null
 
-            handler.failed(cause ?: Exception())
+            if (cause is ClosedChannelException) {
+                handler.successEnd()
+            } else {
+                handler.failed(cause ?: Exception())
+            }
         }
     }
 

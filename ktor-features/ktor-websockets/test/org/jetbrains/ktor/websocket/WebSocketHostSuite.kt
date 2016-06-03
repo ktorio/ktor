@@ -118,8 +118,8 @@ abstract class WebSocketHostSuite : HostTestBase() {
     private fun fromHexDump(hex: String) = hex(hex.replace("0x", "").replace("\\s+".toRegex(), ""))
 
     private fun InputStream.readFrame(): Frame {
-        val opcodeAndFin = read()
-        val lenAndMask = read()
+        val opcodeAndFin = readOrFail()
+        val lenAndMask = readOrFail()
 
         val frameType = FrameType.byOpcode[opcodeAndFin and 0x0f] ?: throw IllegalStateException("Wrong opcode ${opcodeAndFin and 0x0f}")
         val fin = (opcodeAndFin and 0x80) != 0
@@ -182,8 +182,15 @@ abstract class WebSocketHostSuite : HostTestBase() {
         }
     }
 
-    private fun InputStream.readShortBE() = (read() shl 8) or read()
-    private fun InputStream.readLongBE() = (read().toLong() shl 24) or (read().toLong() shl 16) or (read().toLong() shl 8) or read().toLong()
+    private fun InputStream.readOrFail(): Int {
+        val rc = read()
+        if (rc == -1) {
+            throw IOException("EOF")
+        }
+        return rc
+    }
+    private fun InputStream.readShortBE() = (readOrFail() shl 8) or readOrFail()
+    private fun InputStream.readLongBE() = (readOrFail().toLong() shl 24) or (readOrFail().toLong() shl 16) or (readOrFail().toLong() shl 8) or readOrFail().toLong()
     private fun InputStream.readFully(size: Int): ByteArray {
         val array = ByteArray(size)
         var wasRead = 0
