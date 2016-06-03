@@ -10,7 +10,7 @@
     <option name="ENABLE_SWING_INSPECTOR" value="false" />
     <option name="ENV_VARIABLES" />
     <option name="PASS_PARENT_ENVS" value="true" />
-    <module name="ktor-samples-chat" />
+    <module name="ktor-samples-websocket" />
     <envs />
     <method />
   </configuration>
