@@ -17,14 +17,14 @@ class ChatApplication(config: ApplicationConfig) : Application(config) {
         install(CallLogging)
 
         routing {
+            withSessions<Session> {
+                withCookieByValue()
+            }
+
             intercept(ApplicationCallPipeline.Infrastructure) {
                 if (call.sessionOrNull<Session>() == null) {
                     call.session(Session(nextNonce()))
                 }
-            }
-
-            withSessions<Session> {
-                withCookieByValue()
             }
 
             webSocket("/ws") {
