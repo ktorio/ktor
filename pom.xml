@@ -2,14 +2,14 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.jetbrains</groupId>
-    <version>0.1.9-SNAPSHOT</version>
+    <groupId>org.jetbrains.ktor</groupId>
+    <version>0.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <artifactId>ktor</artifactId>
 
     <properties>
-        <kotlin.version>1.0.0</kotlin.version>
-        <dokka.version>0.9.4</dokka.version>
+        <kotlin.version>1.0.2</kotlin.version>
+        <dokka.version>0.9.8</dokka.version>
     </properties>
 
     <modules>
@@ -17,6 +17,14 @@
         <module>ktor-features</module>
         <module>ktor-hosts</module>
     </modules>
+
+    <repositories>
+        <repository>
+            <id>bintray-kotlin-kotlinx.support</id>
+            <name>bintray</name>
+            <url>http://dl.bintray.com/kotlin/kotlinx.support</url>
+        </repository>
+    </repositories>
 
     <profiles>
         <profile>
@@ -55,6 +63,13 @@
             <version>${kotlin.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-support-jdk8</artifactId>
+            <version>0.1-alpha-2</version>
+            <type>pom</type>
+        </dependency>
+
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -100,6 +115,18 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.19.1</version>
+                <configuration>
+                    <includes>
+                        <include>**/Test*.*</include>
+                        <include>**/*Test.*</include>
+                        <include>**/*Tests.*</include>
+                    </includes>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.jetbrains.kotlin</groupId>

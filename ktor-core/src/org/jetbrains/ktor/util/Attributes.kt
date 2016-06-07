@@ -10,29 +10,35 @@ open class AttributeKey<T>(val name: String) {
 }
 
 class Attributes {
+    private var touched = false
     private val map by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
         ConcurrentHashMap<AttributeKey<*>, Any?>()
     }
 
-    @Suppress("UNCHECKED_CAST")
-    operator fun <T : Any> get(key: AttributeKey<T>): T = map[key] as T? ?: throw IllegalStateException("No instance for key $key")
+    operator fun <T : Any> get(key: AttributeKey<T>): T = getOrNull(key) ?: throw IllegalStateException("No instance for key $key")
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : Any> getOrNull(key: AttributeKey<T>): T? = map[key] as T?
+    fun <T : Any> getOrNull(key: AttributeKey<T>): T? = if (touched) map[key] as T? else null
 
-    operator fun contains(key: AttributeKey<*>) = map.containsKey(key)
+    operator fun contains(key: AttributeKey<*>) = if (touched) map.containsKey(key) else false
 
     fun <T : Any> put(key: AttributeKey<T>, value: T) {
+        touched = true
         map[key] = value
     }
 
     fun <T : Any> remove(key: AttributeKey<T>) {
-        map.remove(key)
+        if (touched) {
+            map.remove(key)
+        }
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T = map.computeIfAbsent(key) { block() } as T
+    fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T {
+        touched = true
+        return map.computeIfAbsent(key) { block() } as T
+    }
 
     val allKeys: List<AttributeKey<*>>
-        get() = map.keys.toList()
+        get() = if (touched) map.keys.toList() else emptyList()
 }

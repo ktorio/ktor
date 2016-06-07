@@ -3,7 +3,9 @@ package org.jetbrains.ktor.samples.json
 import com.google.gson.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 import java.util.zip.*
 
@@ -19,38 +21,27 @@ class JsonApplication(config: ApplicationConfig) : Application(config) {
          {"key":"A","value":"Apache"}
      */
     init {
-        intercept { next ->
-            if (request.acceptEncoding()?.contains("deflate") ?: false) {
-                response.headers.append(HttpHeaders.ContentEncoding, "deflate")
-                response.interceptStream { content, stream ->
-                    stream {
-                        DeflaterOutputStream(this).use(content)
+        install(CallLogging)
+
+        intercept(ApplicationCallPipeline.Infrastructure) { call ->
+            if (call.request.accept() == "application/json") {
+                call.interceptRespond(RespondPipeline.Before) { value ->
+                    when (value) {
+                        is Item, is Model -> {
+                            call.respond(TextContent(ContentType.Application.Json, GsonBuilder().create().toJson(value)))
+                        }
                     }
                 }
             }
-
-            next()
-        }
-
-        intercept { next ->
-            if (request.accept() == "application/json") {
-                response.interceptSend { value, send ->
-                    if (value is Model)
-                        send(TextContent(ContentType.Application.Json, GsonBuilder().create().toJson(value)))
-                    else
-                        send(value)
-                }
-            }
-            next()
         }
 
         val model = Model("root", listOf(Item("A", "Apache"), Item("B", "Bing")))
         routing {
             get("/v1") {
-                response.send(model)
+                call.respond(model)
             }
             get("/v1/item/{key}") {
-                response.send(model.items.first { it.key == parameters["key"] })
+                call.respond(model.items.first { it.key == call.parameters["key"] })
             }
         }
     }

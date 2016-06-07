@@ -2,25 +2,36 @@ package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import io.netty.util.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.interception.*
+import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.util.*
+import java.util.concurrent.*
 
-public class NettyApplicationCall(override val application: Application,
-                                  val context: ChannelHandlerContext,
-                                  val httpRequest: FullHttpRequest) : ApplicationCall {
+internal class NettyApplicationCall(application: Application,
+                                    val context: ChannelHandlerContext,
+                                    val httpRequest: HttpRequest,
+                                    val bodyConsumed: Boolean,
+                                    val urlEncodedParameters: () -> ValuesMap,
+                                    val drops: LastDropsCollectorHandler?,
+                                    executor: Executor
+) : BaseApplicationCall(application, executor) {
 
-    override val attributes = Attributes()
+    var completed: Boolean = false
+
     val httpResponse = DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
 
-    init {
-        HttpHeaders.setTransferEncodingChunked(httpResponse)
-    }
+    override val request = NettyApplicationRequest(httpRequest, bodyConsumed, urlEncodedParameters, context, drops)
+    override val response = NettyApplicationResponse(httpRequest, httpResponse, context)
+    override val attributes = Attributes()
+    override val parameters: ValuesMap get() = request.parameters
 
-    override val close = Interceptable0 {
-        (response as NettyApplicationResponse).finalize()
-    }
+    override fun close() {
+        completed = true
+        ReferenceCountUtil.release(httpRequest)
+        drops?.close(context)
 
-    override val request: ApplicationRequest = NettyApplicationRequest(httpRequest)
-    override val response: ApplicationResponse = NettyApplicationResponse(this, httpRequest, httpResponse, context)
+        response.finalize()
+        request.close()
+    }
 }

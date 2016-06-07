@@ -6,6 +6,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 
 @location("/") class index()
@@ -13,14 +14,14 @@ import org.jetbrains.ktor.routing.*
 
 class FormPostApplication(config: ApplicationConfig) : Application(config) {
     init {
+        install(CallLogging)
         install(Locations)
         routing {
             get<index>() {
                 val contentType = ContentType.Text.Html.withParameter("charset", Charsets.UTF_8.name())
 
-                response.status(HttpStatusCode.OK)
-                response.contentType(contentType)
-                response.write {
+                call.response.contentType(contentType)
+                call.respondWrite {
                     appendHTML().html {
                         head {
                             title { +"POST" }
@@ -42,16 +43,14 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
                         }
                     }
                 }
-                ApplicationCallResult.Handled
             }
 
             post<post> {
-                val multipart = request.content.get<MultiPartData>()
+                val multipart = call.request.content.get<MultiPartData>()
 
-                response.status(HttpStatusCode.OK)
-                response.contentType(ContentType.Text.Plain.withParameter("charset", Charsets.UTF_8.name()))
-                response.write {
-                    if (!request.isMultipart()) {
+                call.response.contentType(ContentType.Text.Plain.withParameter("charset", Charsets.UTF_8.name()))
+                call.respondWrite {
+                    if (!call.request.isMultipart()) {
                         appendln("Not a multipart request")
                     } else {
                         multipart.parts.forEach { part ->
@@ -64,7 +63,6 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
                     }
                 }
 
-                ApplicationCallResult.Handled
             }
         }
     }

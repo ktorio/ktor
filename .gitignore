@@ -9,3 +9,5 @@ out
 *.versionsBackup
 *.releaseBackup
 release.properties
+
+.video

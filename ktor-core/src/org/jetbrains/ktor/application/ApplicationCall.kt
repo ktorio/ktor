@@ -1,41 +1,51 @@
 package org.jetbrains.ktor.application
 
-import org.jetbrains.ktor.interception.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
+import java.io.*
+import java.util.concurrent.*
 
 /**
  * Represents a single act of communication between client and server.
  */
-public interface ApplicationCall {
+interface ApplicationCall : Closeable {
     /**
      * Application being called
      */
-    public val application: Application
+    val application: Application
+
+    /**
+     * Application executor you can execute tasks on via [runAsync]
+     */
+    val executor: Executor
 
     /**
      * Client request
      */
-    public val request: ApplicationRequest
+    val request: ApplicationRequest
 
     /**
      * Server response
      */
-    public val response: ApplicationResponse
+    val response: ApplicationResponse
 
     /**
      * Attributes attached to this instance
      */
-    public val attributes: Attributes
+    val attributes: Attributes
 
     /**
      * Closes this call and sends out any remaining data
-     *
-     * Can be intercepted to perform any cleanup tasks that are required by the processing pipeline
      */
-    public val close: Interceptable0<Unit>
-}
+    override fun close(): Unit
 
-/**
- * Closes this call and sends out any remaining data
- */
-public fun ApplicationCall.close(): Unit = close.execute()
+    val parameters: ValuesMap
+
+    fun respond(message: Any): Nothing
+
+    fun interceptRespond(phase: PipelinePhase, handler: PipelineContext<Any>.(Any) -> Unit)
+
+    fun <T : Any> fork(value: T, pipeline: Pipeline<T>): Nothing
+
+    fun execute(pipeline: Pipeline<ApplicationCall>): PipelineState
+}

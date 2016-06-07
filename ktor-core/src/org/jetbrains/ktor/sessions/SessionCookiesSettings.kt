@@ -21,11 +21,15 @@ class SessionCookiesSettings(
         return value
     }
 
-    fun toCookie(name: String, value: String) = Cookie(name,
-            value = transformers.fold(value) { value, t -> t.transformWrite(value) },
-            httpOnly = true,
-            secure = requireHttps,
-            expires = LocalDateTime.now().plus(duration))
+    fun toCookie(name: String, value: String): Cookie {
+        val cookie = Cookie(name,
+                value = transformers.fold(value) { value, t -> t.transformWrite(value) },
+                httpOnly = true,
+                secure = requireHttps,
+                path = "/",
+                expires = LocalDateTime.now().plus(duration))
+        return cookie
+    }
 }
 
 

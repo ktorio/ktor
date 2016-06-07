@@ -1,7 +1,10 @@
 package org.jetbrains.ktor.http
 
+@Suppress("unused")
 data class HttpStatusCode(val value: Int, val description: String) {
     override fun toString(): String = "$value $description"
+
+    fun description(value: String) = copy(description = value)
 
     companion object {
         val Continue = HttpStatusCode(100, "Continue")

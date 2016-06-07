@@ -2,6 +2,7 @@ package org.jetbrains.ktor.routing
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
 
 /**
  * Builds a route to match specified [path]
@@ -58,43 +59,85 @@ fun RoutingEntry.contentType(contentType: ContentType, build: RoutingEntry.() ->
 /**
  * Builds a route to match `GET` requests with specified [path]
  */
-fun RoutingEntry.get(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
+fun RoutingEntry.get(path: String, body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
     route(HttpMethod.Get, path) { handle(body) }
+}
+
+/**
+ * Builds a route to match `GET` requests
+ */
+fun RoutingEntry.get(body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
+    method(HttpMethod.Get) { handle(body) }
 }
 
 /**
  * Builds a route to match `POST` requests with specified [path]
  */
-fun RoutingEntry.post(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
+fun RoutingEntry.post(path: String, body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
     route(HttpMethod.Post, path) { handle(body) }
+}
+
+/**
+ * Builds a route to match `POST` requests
+ */
+fun RoutingEntry.post(body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
+    method(HttpMethod.Post) { handle(body) }
 }
 
 /**
  * Builds a route to match `HEAD` requests with specified [path]
  */
-fun RoutingEntry.head(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
+fun RoutingEntry.head(path: String, body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
     route(HttpMethod.Head, path) { handle(body) }
+}
+
+/**
+ * Builds a route to match `HEAD` requests
+ */
+fun RoutingEntry.head(body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
+    method(HttpMethod.Head) { handle(body) }
 }
 
 /**
  * Builds a route to match `PUT` requests with specified [path]
  */
-fun RoutingEntry.put(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
+fun RoutingEntry.put(path: String, body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
     route(HttpMethod.Put, path) { handle(body) }
+}
+
+/**
+ * Builds a route to match `PUT` requests
+ */
+fun RoutingEntry.put(body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
+    method(HttpMethod.Put) { handle(body) }
 }
 
 /**
  * Builds a route to match `DELETE` requests with specified [path]
  */
-fun RoutingEntry.delete(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
+fun RoutingEntry.delete(path: String, body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
     route(HttpMethod.Delete, path) { handle(body) }
+}
+
+/**
+ * Builds a route to match `DELETE` requests
+ */
+fun RoutingEntry.delete(body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
+    method(HttpMethod.Delete) { handle(body) }
 }
 
 /**
  * Builds a route to match `OPTIONS` requests with specified [path]
  */
-fun RoutingEntry.options(path: String, body: RoutingApplicationCall.() -> ApplicationCallResult) {
+fun RoutingEntry.options(path: String, body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
     route(HttpMethod.Options, path) { handle(body) }
+}
+
+/**
+ * Builds a route to match `OPTIONS` requests
+ */
+fun RoutingEntry.options(body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
+    method(HttpMethod.Options) { handle(body) }
 }
 
 /**

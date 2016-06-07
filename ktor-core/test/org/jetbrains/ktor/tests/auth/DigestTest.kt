@@ -13,8 +13,8 @@ class DigestTest {
     @Test
     fun createExampleChallengeFromRFC() {
         withTestApplication {
-            application.intercept {
-                response.sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge(
+            application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
+                call.sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge(
                         realm = "testrealm@host.com",
                         nonce = "dcd98b7102dd2f0e8b11d0f600bfb0c093",
                         opaque = "5ccc069c403ebaf9f0171e9517f40e41"
@@ -41,15 +41,15 @@ class DigestTest {
 
             application.routing {
                 route("/") {
-                    auth {
-                        extractDigest()
-
-                        verifyBatchTypedWith { digests: List<DigestCredential> -> foundDigests.addAll(digests); emptyList() }
+                    authentication {
+                        intercept(AuthenticationProcedure.RequestAuthentication) {
+                            subject.call.extractDigest()?.let { digest ->
+                                foundDigests.add(digest)
+                            }
+                        }
                     }
 
-                    handle {
-                        ApplicationCallResult.Handled
-                    }
+                    handle {}
                 }
             }
 
@@ -106,18 +106,14 @@ class DigestTest {
     private fun Application.configureDigestServer() {
         routing {
             route("/") {
-                auth {
+                authentication {
                     val p = "Circle Of Life"
                     val digester = MessageDigest.getInstance("MD5")
-
-                    digestAuth { userName, realm -> digest(digester, "$userName:$realm:$p") }
-                    fail {
-                        response.sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge("testrealm@host.com"))
-                    }
+                    digestAuthentication { userName, realm -> digest(digester, "$userName:$realm:$p") }
                 }
 
                 handle {
-                    response.sendText("Secret info")
+                    call.respondText("Secret info")
                 }
             }
         }

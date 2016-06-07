@@ -5,6 +5,7 @@ import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 
@@ -17,36 +18,29 @@ class BasicAuthApplication(config: ApplicationConfig) : Application(config) {
     ))
 
     init {
+        install(CallLogging)
         install(Locations)
         routing {
-            auth {
-                basicAuth()
-
-                fail {
-                    response.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor"))
-                }
-            }
             get<Manual>() {
-                auth {
-                    verifyWith { c: UserPasswordCredential ->
-                        if (c.name == c.password) {
-                            UserIdPrincipal(c.name)
+                authentication {
+                    basicAuthentication("ktor") { credentials ->
+                        if (credentials.name == credentials.password) {
+                            UserIdPrincipal(credentials.name)
                         } else {
                             null
                         }
                     }
                 }
 
-                response.status(HttpStatusCode.OK)
-                response.sendText("Success, ${principals<UserIdPrincipal>().map { it.name }}")
+                call.respondText("Success, ${call.principal<UserIdPrincipal>()?.name}")
             }
+
             get<SimpleUserTable>() {
-                auth {
-                    verifyBatchTypedWith(hashedUserTable)
+                authentication {
+                    basicAuthentication("ktor") { hashedUserTable.authenticate(it) }
                 }
 
-                response.status(HttpStatusCode.OK)
-                response.sendText("Success")
+                call.respondText("Success")
             }
         }
     }

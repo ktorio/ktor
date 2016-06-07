@@ -3,35 +3,38 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>ktor-hosts</artifactId>
-        <groupId>org.jetbrains</groupId>
-        <version>0.1.9-SNAPSHOT</version>
+        <groupId>org.jetbrains.ktor</groupId>
+        <version>0.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>ktor-jetty</artifactId>
+    <properties>
+        <jetty.version>9.3.9.v20160517</jetty.version>
+    </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.jetbrains</groupId>
+            <groupId>org.jetbrains.ktor</groupId>
             <artifactId>ktor-core</artifactId>
             <version>${project.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.jetbrains</groupId>
+            <groupId>org.jetbrains.ktor</groupId>
             <artifactId>ktor-servlet</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>9.2.10.v20150310</version>
+            <version>${jetty.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
-            <version>9.2.10.v20150310</version>
+            <version>${jetty.version}</version>
             <type>jar</type>
         </dependency>
     </dependencies>

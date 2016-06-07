@@ -3,8 +3,8 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>ktor</artifactId>
-        <groupId>org.jetbrains</groupId>
-        <version>0.1.9-SNAPSHOT</version>
+        <groupId>org.jetbrains.ktor</groupId>
+        <version>0.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>ktor-samples</artifactId>
@@ -14,17 +14,19 @@
         <module>ktor-samples-hello</module>
         <module>ktor-samples-locations</module>
         <module>ktor-samples-auth</module>
-        <module>ktor-samples-components</module>
         <module>ktor-samples-async</module>
         <module>ktor-samples-testable</module>
         <module>ktor-samples-json</module>
         <module>ktor-samples-post</module>
         <module>ktor-samples-embedded</module>
+        <module>you-kube</module>
+        <module>kweet</module>
+        <module>ktor-samples-websocket</module>
     </modules>
 
     <dependencies>
         <dependency>
-            <groupId>org.jetbrains</groupId>
+            <groupId>org.jetbrains.ktor</groupId>
             <artifactId>ktor-core</artifactId>
             <version>${project.version}</version>
         </dependency>
@@ -36,13 +38,13 @@
 
         <!-- runtime dependencies -->
         <dependency>
-            <groupId>org.jetbrains</groupId>
+            <groupId>org.jetbrains.ktor</groupId>
             <artifactId>ktor-jetty</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>org.jetbrains</groupId>
+            <groupId>org.jetbrains.ktor</groupId>
             <artifactId>ktor-netty</artifactId>
             <version>${project.version}</version>
             <scope>runtime</scope>

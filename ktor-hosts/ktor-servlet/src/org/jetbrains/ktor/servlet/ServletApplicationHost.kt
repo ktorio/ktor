@@ -4,6 +4,9 @@ import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.logging.*
+import org.jetbrains.ktor.pipeline.*
+import java.util.concurrent.*
+import java.util.concurrent.atomic.*
 import javax.servlet.annotation.*
 import javax.servlet.http.*
 
@@ -30,28 +33,42 @@ open class ServletApplicationHost() : HttpServlet() {
     }
 
     val application: Application get() = loader.application
+    private val threadCounter = AtomicInteger()
+    val executorService = ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 100, 30L, TimeUnit.SECONDS, LinkedBlockingQueue(), { r ->
+        Thread(r, "apphost-pool-thread-${threadCounter.incrementAndGet()}")
+    })
 
-
-    public override fun destroy() {
+    override fun destroy() {
+        executorService.shutdown()
         loader.dispose()
     }
 
-    protected override fun service(request: HttpServletRequest, response: HttpServletResponse) {
+    override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         response.characterEncoding = "UTF-8"
         request.characterEncoding = "UTF-8"
 
         try {
-            val applicationRequest = ServletApplicationCall(application, request, response)
-            val requestResult = application.handle(applicationRequest)
-            when (requestResult) {
-                ApplicationCallResult.Handled -> {
-                    applicationRequest.close()
-                }
-                ApplicationCallResult.Unhandled -> {
+            val latch = CountDownLatch(1)
+            val call = ServletApplicationCall(application, request, response, executorService) { latch.countDown() }
+            var throwable: Throwable? = null
+            var pipelineState: PipelineState? = null
+
+            call.executeOn(executorService, application).whenComplete { state, t ->
+                pipelineState = state
+                throwable = t
+                latch.countDown()
+            }
+
+            latch.await()
+            when {
+                throwable != null -> throw throwable!!
+                pipelineState == null -> {}
+                pipelineState == PipelineState.Executing -> call.ensureAsync()
+                !call.completed -> {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND)
-                    applicationRequest.close()
+                    call.close()
                 }
-                ApplicationCallResult.Asynchronous -> applicationRequest.continueAsync(request.startAsync())
+                else -> {}
             }
         } catch (ex: Throwable) {
             application.config.log.error("ServletApplicationHost cannot service the request", ex)

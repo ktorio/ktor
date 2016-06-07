@@ -2,6 +2,7 @@ package org.jetbrains.ktor.auth
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.util.*
 
@@ -27,10 +28,6 @@ class UserHashedTableAuth(val digester: (String) -> ByteArray = getDigestFunctio
 
         return null
     }
-}
-
-fun <C: ApplicationCall> AuthBuilder<C>.verifyBatchTypedWith(authTableAuth: UserHashedTableAuth) {
-    verifyBatchTypedWith { c: List<UserPasswordCredential> -> c.map { authTableAuth.authenticate(it) }.filterNotNull() }
 }
 
 private fun Config.parseUsers(name: String = "users") =

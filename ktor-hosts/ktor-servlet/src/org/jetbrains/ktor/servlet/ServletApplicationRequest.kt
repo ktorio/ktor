@@ -2,12 +2,14 @@ package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import javax.servlet.http.*
 
-class ServletApplicationRequest(val servletRequest: HttpServletRequest) : ApplicationRequest {
+class ServletApplicationRequest(val call: ServletApplicationCall, val servletRequest: HttpServletRequest) : ApplicationRequest {
     override val requestLine: HttpRequestLine by lazy {
         val uri = servletRequest.requestURI
         val query = servletRequest.queryString
@@ -37,9 +39,19 @@ class ServletApplicationRequest(val servletRequest: HttpServletRequest) : Applic
         }
     }
 
+    private val servletReadChannel by lazy {
+        val providedChannel = call.attributes.getOrNull(BaseApplicationCall.RequestChannelOverride)
+
+        if (providedChannel == null) {
+            call.ensureAsync()
+            ServletAsyncReadChannel(servletRequest.inputStream)
+        } else providedChannel
+    }
+
     override val content: RequestContent = object : RequestContent(this) {
         override fun getMultiPartData(): MultiPartData = ServletMultiPartData(this@ServletApplicationRequest, servletRequest)
         override fun getInputStream(): InputStream = servletRequest.inputStream
+        override fun getReadChannel(): AsyncReadChannel = servletReadChannel
     }
 
     override val cookies : RequestCookies = ServletRequestCookies(servletRequest, this)

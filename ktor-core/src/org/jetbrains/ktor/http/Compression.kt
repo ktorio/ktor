@@ -1,85 +1,113 @@
 package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
-import java.io.*
-import java.util.zip.*
+import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.features.*
+import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.util.*
+
+object CompressionAttributes {
+    val preventCompression = AttributeKey<Boolean>("preventCompression")
+}
 
 data class CompressionOptions(var minSize: Long = 0L,
                               var compressStream: Boolean = true,
-                              var defaultEncoding: String = "deflate",
+                              var defaultEncoding: String = "gzip",
                               val compressorRegistry: MutableMap<String, CompressionEncoder> = hashMapOf(),
-                              val conditions: MutableList<ApplicationCall.() -> Boolean> = arrayListOf()
+                              val conditions: MutableList<ApplicationCall.(FinalContent) -> Boolean> = arrayListOf()
 )
 
-fun Application.setupCompression() {
-    setupCompression { }
-}
 
-fun Application.setupCompression(configure: CompressionOptions.() -> Unit) {
-    val options = CompressionOptions()
-    options.configure()
-    val supportedEncodings = setOf("gzip", "deflate", "identity", "*") + options.compressorRegistry.keys
-    val encoders = mapOf("gzip" to GzipEncoder, "deflate" to DeflateEncoder, "identity" to IdentityEncoder) + options.compressorRegistry
-    val conditions = listOf(minSizeCondition(options), compressStreamCondition(options)) + options.conditions
+object CompressionSupport : ApplicationFeature<CompressionOptions> {
+    override val name: String
+        get() = "Compression"
 
-    intercept { next ->
-        val acceptEncodingRaw = request.acceptEncoding()
-        if (acceptEncodingRaw != null) {
-            val encoding = parseAndSortHeader(acceptEncodingRaw)
-                    .firstOrNull { it.value in supportedEncodings }
-                    ?.value
-                    ?.handleStar(options)
+    override val key = AttributeKey<CompressionOptions>("compression-key")
 
-            val encoder = encoding?.let { encoders[it] }
-            if (encoding != null && encoder != null && request.header(HttpHeaders.Range) == null) {
-                response.interceptStream { content, stream ->
-                    if (conditions.all { it(this) }) {
-                        response.headers.append(HttpHeaders.ContentEncoding, encoding)
-                        stream {
-                            encoder.open(this).apply {
-                                content()
-                                close()
+    override fun install(application: Application, configure: CompressionOptions.() -> Unit): CompressionOptions {
+        val options = CompressionOptions()
+        options.configure()
+
+        val supportedEncodings = setOf("gzip", "deflate", "identity", "*") + options.compressorRegistry.keys
+        val encoders = mapOf("gzip" to GzipEncoder, "deflate" to DeflateEncoder, "identity" to IdentityEncoder) + options.compressorRegistry
+        val conditions = listOf(minSizeCondition(options), compressStreamCondition(options), { obj ->
+            obj.contentEncoding().let { it == null || it == "identity" }
+        }) + options.conditions
+
+        application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
+            val acceptEncodingRaw = call.request.acceptEncoding()
+            if (acceptEncodingRaw != null) {
+                val encoding = parseAndSortHeader(acceptEncodingRaw)
+                        .firstOrNull { it.value in supportedEncodings }
+                        ?.value
+                        ?.handleStar(options)
+
+                val encoder = encoding?.let { encoders[it] }
+                if (encoding != null && encoder != null && !call.isCompressionProhibited()) {
+                    call.interceptRespond(RespondPipeline.Before) { obj ->
+                        if (obj is FinalContent && obj !is CompressedResponse && conditions.all { it(call, obj) } && !call.isCompressionProhibited()) {
+                            val channel = when (obj) {
+                                is FinalContent.ChannelContent -> obj.channel()
+                                is FinalContent.StreamContentProvider -> obj.stream().asAsyncChannel()
+                                else -> proceed()
                             }
-                        }
-                    } else {
-                        stream {
-                            content()
+
+                            call.respond(CompressedResponse(channel, obj.headers, encoding, encoder))
                         }
                     }
                 }
             }
         }
 
-        next()
+        return options
     }
 }
+
+private class CompressedResponse(val delegateChannel: AsyncReadChannel, val delegateHeaders: ValuesMap, val encoding: String, val encoder: CompressionEncoder) : FinalContent.ChannelContent() {
+    override fun channel() = encoder.open(delegateChannel)
+    override val headers by lazy {
+        ValuesMap.build(true) {
+            appendAll(delegateHeaders.filter { name, value ->
+                !name.equals(HttpHeaders.ContentLength, true)
+            })
+
+            append(HttpHeaders.ContentEncoding, encoding)
+        }
+    }
+}
+
+private fun FinalContent.contentEncoding(): String? {
+    if (this is CompressedResponse) {
+        return encoding
+    }
+
+    return headers[HttpHeaders.ContentEncoding]
+}
+
+private fun ApplicationCall.isCompressionProhibited() = CompressionAttributes.preventCompression in attributes
 
 private fun String.handleStar(options: CompressionOptions) = if (this == "*") options.defaultEncoding else this
 
 interface CompressionEncoder {
-    fun open(stream: OutputStream): OutputStream
+    fun open(delegate: AsyncReadChannel): AsyncReadChannel
 }
 
 private object GzipEncoder : CompressionEncoder {
-    override fun open(stream: OutputStream): OutputStream = GZIPOutputStream(stream)
+    override fun open(delegate: AsyncReadChannel) = delegate.deflated(true)
 }
 
 private object DeflateEncoder : CompressionEncoder {
-    override fun open(stream: OutputStream): OutputStream = DeflaterOutputStream(stream, Deflater(Deflater.BEST_COMPRESSION, true))
+    override fun open(delegate: AsyncReadChannel) = delegate.deflated(false)
 }
 
 private object IdentityEncoder : CompressionEncoder {
-    override fun open(stream: OutputStream): OutputStream = stream
+    override fun open(delegate: AsyncReadChannel) = delegate
 }
 
-private fun minSizeCondition(options: CompressionOptions): ApplicationCall.() -> Boolean = {
-    val contentLength = response.headers[HttpHeaders.ContentLength]?.toLong()
-
-    contentLength == null || contentLength >= options.minSize
+private fun minSizeCondition(options: CompressionOptions): ApplicationCall.(FinalContent) -> Boolean = { obj ->
+    obj.contentLength()?.let { it >= options.minSize } ?: true
 }
 
-private fun compressStreamCondition(options: CompressionOptions): ApplicationCall.() -> Boolean = {
-    val contentLength = response.headers[HttpHeaders.ContentLength]?.toLong()
-
-    options.compressStream || contentLength != null
+private fun compressStreamCondition(options: CompressionOptions): ApplicationCall.(FinalContent) -> Boolean = { obj ->
+    options.compressStream || obj.contentLength() != null
 }

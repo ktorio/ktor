@@ -4,34 +4,37 @@ import kotlinx.html.*
 import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 
 class FormPostApplication(config: ApplicationConfig) : Application(config) {
     init {
+        install(CallLogging)
         routing {
             route("/login") {
-                auth {
-                    formAuth("user", "pass")
-                    verifyWith { up: UserPasswordCredential ->
+                authentication {
+                    formAuthentication { up: UserPasswordCredential ->
                         when {
                             up.password == "ppp" -> UserIdPrincipal(up.name)
                             else -> null
                         }
                     }
+                }
 
-                    success { auth, next ->
-                        response.sendText("Hello, ${auth.principal<UserIdPrincipal>()!!.name}")
-                    }
-
-                    fail {
-                        response.sendText(ContentType.Text.Html, createHTML().html {
+                handle {
+                    val principal = call.authentication.principal<UserIdPrincipal>()
+                    if (principal != null) {
+                        call.respondText("Hello, ${principal.name}")
+                    } else {
+                        val html = createHTML().html {
                             body {
                                 form(action = "/login", encType = FormEncType.applicationXWwwFormUrlEncoded, method = FormMethod.post) {
                                     p {
                                         +"user:"
                                         textInput(name = "user") {
-                                            value = authContext.credentials<UserPasswordCredential>().firstOrNull()?.name ?: ""
+                                            value = principal?.name ?: ""
                                         }
                                     }
 
@@ -45,7 +48,8 @@ class FormPostApplication(config: ApplicationConfig) : Application(config) {
                                     }
                                 }
                             }
-                        })
+                        }
+                        call.respondText(ContentType.Text.Html, html)
                     }
                 }
             }

@@ -3,7 +3,6 @@ package org.jetbrains.ktor.tests.http
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.testing.*
-import org.jetbrains.ktor.tests.*
 import org.junit.*
 import java.text.*
 import java.time.*
@@ -32,14 +31,6 @@ class CookiesTest {
         withRawCookies("SESSION=456;\$Path=/; HOST=def") {
             assertEquals("456", cookies["SESSION"])
             assertEquals("def", cookies["HOST"])
-        }
-    }
-
-    @Ignore // it won't work with dates anyway so this feature was removed
-    @test fun `comma separator instead of semicolon`() {
-        withRawCookies("SESSION=000, HOST=zzz") {
-            assertEquals("000", cookies["SESSION"])
-            assertEquals("zzz", cookies["HOST"])
         }
     }
 
@@ -120,67 +111,43 @@ class CookiesTest {
     }
 
     @test fun `intercept cookie test`() {
-        withTestApplication {
-            with(TestApplicationRequest()) {
-                with(TestApplicationCall(application, this)) {
-                    with(TestApplicationResponse(this)) {
-                        val found = ArrayList<String>()
+        with(TestApplicationResponse()) {
+            val found = ArrayList<String>()
 
-                        cookies.intercept { cookie, next ->
-                            found.add(cookie.name)
-                            next(cookie)
-                        }
-
-                        cookies.append("first", "1")
-                        headers.append("Set-Cookie", "second=2")
-
-                        assertEquals(listOf("first", "second"), found)
-                    }
-                }
+            cookies.intercept { cookie, next ->
+                found.add(cookie.name)
+                next(cookie)
             }
+
+            cookies.append("first", "1")
+            headers.append("Set-Cookie", "second=2")
+
+            assertEquals(listOf("first", "second"), found)
         }
     }
 
     @test fun `add cookie and get it`() {
-        withTestApplication {
-            with(TestApplicationRequest()) {
-                with(TestApplicationCall(application, this)) {
-                    with(TestApplicationResponse(this)) {
-                        cookies.append("key", "value")
+        with(TestApplicationResponse()) {
+            cookies.append("key", "value")
 
-                        assertEquals("value", cookies["key"]?.value)
-                        assertNull(cookies["other"])
-                    }
-                }
-            }
+            assertEquals("value", cookies["key"]?.value)
+            assertNull(cookies["other"])
         }
     }
 
     @test fun `add multiple cookies`() {
-        withTestApplication {
-            with(TestApplicationRequest()) {
-                with(TestApplicationCall(application, this)) {
-                    with(TestApplicationResponse(this)) {
-                        cookies.append("a", "1")
-                        cookies.append("b", "2")
+        with(TestApplicationResponse()) {
+            cookies.append("a", "1")
+            cookies.append("b", "2")
 
-                        assertEquals(listOf("a=1", "b=2"), headers.values("Set-Cookie").map { it.cutSetCookieHeader() })
-                    }
-                }
-            }
+            assertEquals(listOf("a=1", "b=2"), headers.values("Set-Cookie").map { it.cutSetCookieHeader() })
         }
     }
 
     private fun testSetCookies(expectedHeaderContent: String, block: ApplicationResponse.() -> Unit) {
-        withTestApplication {
-            with(TestApplicationRequest()) {
-                with(TestApplicationCall(application, this)) {
-                    with(TestApplicationResponse(this)) {
-                        block()
-                        assertEquals(expectedHeaderContent, headers["Set-Cookie"]?.cutSetCookieHeader())
-                    }
-                }
-            }
+        with(TestApplicationResponse()) {
+            block()
+            assertEquals(expectedHeaderContent, headers["Set-Cookie"]?.cutSetCookieHeader())
         }
     }
 

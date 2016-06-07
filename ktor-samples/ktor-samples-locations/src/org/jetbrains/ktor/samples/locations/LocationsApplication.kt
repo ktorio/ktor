@@ -6,6 +6,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 import java.util.*
 
@@ -14,12 +15,12 @@ import java.util.*
 
 class LocationsApplication(config: ApplicationConfig) : Application(config) {
     init {
+        install(CallLogging)
         install(Locations)
         routing {
             get<index>() {
-                response.status(HttpStatusCode.OK)
-                response.contentType(ContentType.Text.Html)
-                response.write {
+                call.response.contentType(ContentType.Text.Html)
+                call.respondWrite {
                     appendHTML().html {
                         head {
                             title { +"Numbers" }
@@ -42,13 +43,11 @@ class LocationsApplication(config: ApplicationConfig) : Application(config) {
                         }
                     }
                 }
-                ApplicationCallResult.Handled
             }
 
             get<number>() { number ->
-                response.status(HttpStatusCode.OK)
-                response.contentType(ContentType.Text.Html)
-                response.write {
+                call.response.contentType(ContentType.Text.Html)
+                call.respondWrite {
                     appendHTML().html {
                         head {
                             title { +"Numbers" }
@@ -60,7 +59,6 @@ class LocationsApplication(config: ApplicationConfig) : Application(config) {
                         }
                     }
                 }
-                ApplicationCallResult.Handled
             }
         }
     }

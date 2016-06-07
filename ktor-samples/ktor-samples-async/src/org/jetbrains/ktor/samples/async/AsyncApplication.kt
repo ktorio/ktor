@@ -3,7 +3,10 @@ package org.jetbrains.ktor.samples.async
 import kotlinx.html.*
 import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.logging.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
 import java.util.*
 import java.util.concurrent.*
@@ -12,11 +15,14 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
     val executor: ScheduledExecutorService by lazy { Executors.newScheduledThreadPool(4) }
 
     init {
+        install(CallLogging)
+
         routing {
             get("/{...}") {
                 val start = System.currentTimeMillis()
-                executor.submit { handleLongCalculation(start) }
-                ApplicationCallResult.Asynchronous
+                runAsync(executor) {
+                    call.handleLongCalculation(start)
+                }
             }
         }
     }
@@ -33,7 +39,7 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
         val time = System.currentTimeMillis() - start
 
         response.contentType(ContentType.Text.Html)
-        response.write {
+        respondWrite {
             appendHTML().html {
                 head {
                     title { +"Async World" }
@@ -45,6 +51,5 @@ class AsyncApplication(config: ApplicationConfig) : Application(config) {
                 }
             }
         }
-        close()
     }
 }

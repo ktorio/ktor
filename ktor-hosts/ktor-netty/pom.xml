@@ -3,15 +3,15 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>ktor-hosts</artifactId>
-        <groupId>org.jetbrains</groupId>
-        <version>0.1.9-SNAPSHOT</version>
+        <groupId>org.jetbrains.ktor</groupId>
+        <version>0.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>ktor-netty</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>org.jetbrains</groupId>
+            <groupId>org.jetbrains.ktor</groupId>
             <artifactId>ktor-core</artifactId>
             <version>${project.version}</version>
             <type>test-jar</type>

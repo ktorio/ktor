@@ -3,16 +3,18 @@ package org.jetbrains.ktor.samples.hello
 import kotlinx.html.*
 import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 
 class HelloApplication(config: ApplicationConfig) : Application(config) {
     init {
+        install(CallLogging)
         routing {
             get("/") {
-                response.status(HttpStatusCode.OK)
-                response.contentType(ContentType.Text.Html)
-                response.write {
+                call.response.contentType(ContentType.Text.Html)
+                call.respondWrite {
                     appendHTML().html {
                         head {
                             title { +"Hello World." }
@@ -31,10 +33,9 @@ class HelloApplication(config: ApplicationConfig) : Application(config) {
                         }
                     }
                 }
-                ApplicationCallResult.Handled
             }
             get("/bye") {
-                response.sendText("Goodbye World!")
+                call.respondText("Goodbye World!")
             }
         }
     }

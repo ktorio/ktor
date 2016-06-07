@@ -22,11 +22,12 @@ class FreeMarkerTest {
                 val model = mapOf("id" to 1, "title" to "Hello, World!")
 
                 get("/") {
-                    response.send(FreeMarkerContent("test.ftl", model, "e"))
+                    call.respond(FreeMarkerContent("test.ftl", model, "e"))
                 }
             }
 
             handleRequest(HttpMethod.Get, "/").response.let { response ->
+                assertNotNull(response.content)
                 assert(response.content!!.lines()) {
                     shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
                 }

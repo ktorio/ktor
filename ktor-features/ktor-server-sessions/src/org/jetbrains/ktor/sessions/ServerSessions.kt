@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.sessions
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.util.concurrent.*
 import kotlin.reflect.*
@@ -44,26 +44,20 @@ internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val 
         call.response.cookies.append(settings.toCookie(cookieName, sessionId))
     }
 
-    override fun lookup(call: ApplicationCall, injectSession: (S) -> Unit, next: ApplicationCall.() -> ApplicationCallResult): ApplicationCallResult {
-        val sessionId = call.request.cookies[cookieName]
-        return if (sessionId == null) {
-            next(call)
-        } else {
-            call.attributes.put(SessionIdKey, sessionId)
-            call.handleAsync(exec, {
-                storage.read(sessionId) { input ->
-                    val text = input.bufferedReader().readText() // TODO what can we do if failed?
-                    call.handleAsync(exec, {
-                        val session = serializer.deserialize(text)
-                        injectSession(session)
-                        next(call)
-                    }, failBlock = {})
-                }
-                ApplicationCallResult.Asynchronous
-            }, failBlock = {})
+    override fun lookup(context: PipelineContext<ApplicationCall>, processSession: (S) -> Unit): Nothing {
+        val call = context.call
+        val sessionId = call.request.cookies[cookieName] ?: context.proceed()
 
-            ApplicationCallResult.Asynchronous
-        }
+        call.attributes.put(SessionIdKey, sessionId)
+        context.runAsync(exec, {
+            storage.read(sessionId) { input ->
+                val text = input.bufferedReader().readText() // TODO what can we do if failed?
+                context.runAsync(exec, {
+                    val session = serializer.deserialize(text)
+                    processSession(session)
+                })
+            }
+        })
     }
 
     override fun unassign(call: ApplicationCall) {

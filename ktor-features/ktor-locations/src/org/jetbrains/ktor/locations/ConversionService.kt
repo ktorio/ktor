@@ -1,11 +1,10 @@
 package org.jetbrains.ktor.locations
 
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.application.*
 import java.lang.reflect.*
 
 public interface ConversionService {
-    fun fromContext(call: RoutingApplicationCall, name: String, type: Type, optional: Boolean): Any?
+    fun fromContext(call: ApplicationCall, name: String, type: Type, optional: Boolean): Any?
     fun toURI(value: Any?, name: String, optional: Boolean): List<String>
 }
 
@@ -70,7 +69,7 @@ public open class DefaultConversionService : ConversionService {
         return convert(values.single(), type)
     }
 
-    override fun fromContext(call: RoutingApplicationCall, name: String, type: Type, optional: Boolean): Any? {
+    override fun fromContext(call: ApplicationCall, name: String, type: Type, optional: Boolean): Any? {
         val requestParameters = call.parameters.getAll(name)
         return if (requestParameters == null) {
             if (!optional) {

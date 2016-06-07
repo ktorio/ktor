@@ -22,6 +22,7 @@ class BasicAuthTest {
 
             assertEquals(ApplicationCallResult.Handled, response.requestResult)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
+            assertNull(response.response.content)
 
             assertWWWAuthenticateHeaderExist(response)
         }
@@ -33,16 +34,16 @@ class BasicAuthTest {
             val user = "user1"
             val p = "user1"
 
-            application.intercept {
-                val authInfo = request.basicAuth()
+            application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
+                val authInfo = call.request.basicAuthenticationCredentials()
                 assertNotNull(authInfo)
-                assertEquals(authInfo, basicAuth())
+                assertEquals(authInfo, call.basicAuthenticationCredentials())
 
                 assertEquals(user, authInfo!!.name)
                 assertEquals(p, authInfo.password)
 
-                response.status(HttpStatusCode.OK)
-                response.sendText("ok")
+                call.response.status(HttpStatusCode.OK)
+                call.respondText("ok")
             }
 
             val response = handleRequestWithBasic("/", user, p)
@@ -90,12 +91,12 @@ class BasicAuthTest {
         withTestApplication {
             application.routing {
                 route("/") {
-                    auth {
-                        basic("ktor-test") { c -> if (c.name == "good") UserIdPrincipal(c.name) else null }
+                    authentication {
+                        basicAuthentication("ktor-test") { c -> if (c.name == "good") UserIdPrincipal(c.name) else null }
                     }
 
                     handle {
-                        response.sendText("Secret info")
+                        call.respondText("Secret info")
                     }
                 }
             }
@@ -117,15 +118,15 @@ class BasicAuthTest {
     }
 
     private fun TestApplicationHost.handleRequestWithBasic(url: String, user: String, pass: String) =
-        handleRequest {
-            uri = url
+            handleRequest {
+                uri = url
 
-            val up = "$user:$pass"
-            val encoded = encodeBase64(up.toByteArray(Charsets.ISO_8859_1))
-            addHeader(HttpHeaders.Authorization, "Basic $encoded")
-        }
+                val up = "$user:$pass"
+                val encoded = encodeBase64(up.toByteArray(Charsets.ISO_8859_1))
+                addHeader(HttpHeaders.Authorization, "Basic $encoded")
+            }
 
-    private fun assertWWWAuthenticateHeaderExist(response: RequestResult) {
+    private fun assertWWWAuthenticateHeaderExist(response: ApplicationCall) {
         assertNotNull(response.response.headers[HttpHeaders.WWWAuthenticate])
         val header = parseAuthorizationHeader(response.response.headers[HttpHeaders.WWWAuthenticate]!!) as HttpAuthHeader.Parameterized
 
@@ -136,20 +137,17 @@ class BasicAuthTest {
     private fun Application.configureServer() {
         routing {
             route("/") {
-                auth {
-                    basicAuth()
-
-                    verifyBatchTypedWith { credentials: List<UserPasswordCredential> ->
-                        credentials.filter { it.name == it.password }.map { UserIdPrincipal(it.name) }
-                    }
-
-                    fail {
-                        response.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge("ktor-test"))
+                authentication {
+                    basicAuthentication("ktor-test") {
+                        if (it.name == it.password)
+                            UserIdPrincipal(it.name)
+                        else
+                            null // fail!
                     }
                 }
 
                 handle {
-                    response.sendText("Secret info")
+                    call.respondText("Secret info")
                 }
             }
         }

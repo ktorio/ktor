@@ -7,7 +7,7 @@ import java.net.*
 import kotlin.properties.*
 
 class RequestBuilder internal constructor() {
-    private val headersBuilder = ValuesMap.Builder()
+    private val headersBuilder = ValuesMapBuilder()
     var body: ((OutputStream) -> Unit)? = null
     var method = HttpMethod.Get
     var path = "/"
@@ -77,7 +77,7 @@ private class DefaultHttpConnection(val host: String, val port: Int, val secure:
     }
 
     override val responseHeaders: ValuesMap
-        get() = ValuesMap(connection.headerFields)
+        get() = valuesOf(connection.headerFields.mapKeys { it.key ?: "" }, true)
 
     override val responseStatus: HttpStatusCode
         get() = HttpStatusCode(connection.responseCode, connection.responseMessage)

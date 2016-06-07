@@ -12,10 +12,8 @@ class ApplicationRequestContentTest {
     @Test
     fun testSimpleStringContent() {
         withTestApplication {
-            application.intercept { next ->
-                assertEquals("bodyContent", request.content.get<String>())
-
-                ApplicationCallResult.Handled
+            application.intercept(ApplicationCallPipeline.Call) { call ->
+                assertEquals("bodyContent", call.request.content.get<String>())
             }
 
             handleRequest(HttpMethod.Get, "") {
@@ -27,10 +25,8 @@ class ApplicationRequestContentTest {
     @Test
     fun testInputStreamContent() {
         withTestApplication {
-            application.intercept { next ->
-                assertEquals("bodyContent", request.content.get<InputStream>().reader(Charsets.UTF_8).readText())
-
-                ApplicationCallResult.Handled
+            application.intercept(ApplicationCallPipeline.Call) { call ->
+                assertEquals("bodyContent", call.request.content.get<InputStream>().reader(Charsets.UTF_8).readText())
             }
 
             handleRequest(HttpMethod.Get, "") {

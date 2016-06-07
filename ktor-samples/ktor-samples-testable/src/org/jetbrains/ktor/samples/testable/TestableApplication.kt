@@ -6,11 +6,9 @@ import org.jetbrains.ktor.routing.*
 
 class TestableApplication(config: ApplicationConfig) : Application(config) {
     init {
-        intercept { next ->
-            if (request.uri == "/")
-                response.sendText("Test String")
-            else
-                next()
+        intercept(ApplicationCallPipeline.Call) { call ->
+            if (call.request.uri == "/")
+                call.respondText("Test String")
         }
     }
 }

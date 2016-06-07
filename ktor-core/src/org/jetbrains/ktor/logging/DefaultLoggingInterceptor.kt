@@ -1,25 +1,34 @@
 package org.jetbrains.ktor.logging
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.util.*
 
-private fun Application.logCallResult(call: ApplicationCall, result: ApplicationCallResult) {
-    val request = call.request
-    val response = call.response
+object CallLogging : ApplicationFeature<Unit> {
+    override val name: String = "Call logging"
+    override val key: AttributeKey<Unit> = AttributeKey("request-logging")
 
-    when (result) {
-        ApplicationCallResult.Handled -> {
-            val status = response.status()
-            when (status) {
-                HttpStatusCode.Found -> config.log.trace("$status: ${request.requestLine} -> ${response.headers[HttpHeaders.Location]}")
-                else -> config.log.trace("$status: ${request.requestLine}")
-            }
+    private val loggingPhase = PipelinePhase("Logging")
+    override fun install(application: Application, configure: Unit.() -> Unit) {
+        application.phases.insertBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
+        application.intercept(loggingPhase) { call ->
+            onSuccess { application.logCallFinished(call) }
+            onFail { application.logCallFailed(call, it) }
         }
-        ApplicationCallResult.Unhandled -> config.log.trace("<Unhandled>: ${request.requestLine}")
-        ApplicationCallResult.Asynchronous -> config.log.trace("<Async>: ${request.requestLine}")
     }
-}
 
-fun Application.logApplicationCalls() {
-    intercept { next -> next().apply { logCallResult(this@intercept, this) } }
+    private fun Application.logCallFinished(call: ApplicationCall) {
+        val status = call.response.status()
+        when (status) {
+            HttpStatusCode.Found -> config.log.trace("$status: ${call.request.requestLine} -> ${call.response.headers[HttpHeaders.Location]}")
+            else -> config.log.trace("$status: ${call.request.requestLine}")
+        }
+    }
+
+    private fun Application.logCallFailed(call: ApplicationCall, e: Throwable) {
+        val status = call.response.status()
+        config.log.error("$status: ${call.request.requestLine}", e)
+    }
 }

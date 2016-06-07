@@ -4,20 +4,20 @@
 
     <parent>
         <artifactId>ktor-samples</artifactId>
-        <groupId>org.jetbrains</groupId>
-        <version>0.1.9-SNAPSHOT</version>
+        <groupId>org.jetbrains.ktor</groupId>
+        <version>0.2.0-SNAPSHOT</version>
     </parent>
 
     <artifactId>ktor-samples-embedded</artifactId>
 
     <dependencies>
         <dependency>
-            <groupId>org.jetbrains</groupId>
+            <groupId>org.jetbrains.ktor</groupId>
             <artifactId>ktor-netty</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jetbrains</groupId>
+            <groupId>org.jetbrains.ktor</groupId>
             <artifactId>ktor-jetty</artifactId>
             <version>${project.version}</version>
         </dependency>

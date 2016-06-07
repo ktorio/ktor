@@ -38,7 +38,7 @@ object ContentTypeByExtension {
                     ?: extensionsByContentType[type.withoutParameters()]
                     ?: emptyList<String>()
 
-    private inline fun <A, B> processRecords(crossinline operation: (String, ContentType) -> Pair<A, B>) =
+    private fun <A, B> processRecords(operation: (String, ContentType) -> Pair<A, B>) =
             ContentTypeByExtension::class.java.classLoader.getResourceAsStream(contentTypesFileName)?.bufferedReader()?.useLines { lines ->
                 lines.map { it.trim() }.filter { it.isNotEmpty() }.map { line ->
                     val (ext, mime) = line.splitCSVPair()

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="main.js"></script>
+    <style type="text/css">
+        body {
+            background-color: #f0ffff;
+        }
+
+        .form {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+
+            padding: 5px;
+        }
+        .header {
+            height: 71px;
+            padding: 5px;
+        }
+        .messages {
+            position: absolute;
+            top: 81px;
+            left: 5px;
+            right: 5px;
+            padding: 5px;
+            bottom: 70px;
+            overflow-y: scroll;
+            border: 1px solid black;
+
+            background-color: lightyellow;
+        }
+
+        .form label {
+            display: block;
+            color: #f7861f;
+        }
+
+        .form input {
+            height: 30px;
+        }
+        .form input[type=text] {
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .form input[type=button] {
+            float: right;
+            margin: 0 5px;
+            width: 50px;
+
+            /*border: 1px solid #d3d3d3;*/
+            border: 0;
+            border-radius: 4px;
+            background-color: #5e79cb;
+            color: white;
+            transition: background-color 500ms;
+        }
+        .form input[type=button]:hover {
+            background-color: #679af5;
+        }
+        .form .input-container {
+            margin-right: 60px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Night chat</h1>
+    </div>
+
+    <div class="messages" id="messages">
+    </div>
+    <div class="form">
+        <label for="commandInput">Enter message or command (starting from slash /):</label>
+        <input type="button" id="sendButton" value="send">
+        <div class="input-container">
+            <input type="text" id="commandInput">
+        </div>
+    </div>
+</body>
+</html>

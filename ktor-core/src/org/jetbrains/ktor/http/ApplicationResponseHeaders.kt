@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.util.*
 import java.time.*
 import java.time.temporal.*
@@ -13,7 +14,17 @@ fun ApplicationResponse.header(name: String, value: Long) = headers.append(name,
 fun ApplicationResponse.header(name: String, date: Temporal) = headers.append(name, date.toHttpDateString())
 
 fun ApplicationResponse.etag(value: String) = header(HttpHeaders.ETag, value)
-fun ApplicationResponse.lastModified(value: Long) = header(HttpHeaders.LastModified, LocalDateTime.ofInstant(Instant.ofEpochMilli(value), ZoneId.systemDefault()).toGMT())
-fun ApplicationResponse.contentLength(value: Long) = header(HttpHeaders.ContentLength, value)
+fun ApplicationResponse.lastModified(dateTime: ZonedDateTime) = header(HttpHeaders.LastModified, dateTime)
+fun ApplicationResponse.contentLength(length: Long) = header(HttpHeaders.ContentLength, length)
+fun ApplicationResponse.cacheControl(value: CacheControl) = header(HttpHeaders.CacheControl, value.toString())
+fun ApplicationResponse.expires(value: LocalDateTime) = header(HttpHeaders.Expires, value)
 
-
+fun ValuesMapBuilder.contentType(contentType: ContentType) = set(HttpHeaders.ContentType, contentType.toString())
+fun ValuesMapBuilder.contentLength(length: Long) = set(HttpHeaders.ContentLength, length.toString())
+fun ValuesMapBuilder.etag(entityTag: String) = set(HttpHeaders.ETag, entityTag)
+fun ValuesMapBuilder.lastModified(dateTime: ZonedDateTime) = set(HttpHeaders.LastModified, dateTime.toHttpDateString())
+fun ValuesMapBuilder.cacheControl(value: CacheControl) = set(HttpHeaders.CacheControl, value.toString())
+fun ValuesMapBuilder.expires(expires: LocalDateTime) = set(HttpHeaders.Expires, expires.toHttpDateString())
+fun ValuesMapBuilder.contentRange(range: LongRange?, fullLength: Long? = null, unit: String = RangeUnits.Bytes.unitToken) {
+    append(HttpHeaders.ContentRange, contentRangeHeaderValue(range, fullLength, unit))
+}

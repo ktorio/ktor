@@ -13,7 +13,7 @@ fun main(args: Array<String>) {
     // NOTE: Change to embeddedJettyServer to use Jetty
     server = embeddedJettyServer(8080) {
         get("/") {
-            response.sendText(ContentType.Text.Html, """Hello, world<br><a href="/bye">Say bye?</a>""")
+            call.respondText(ContentType.Text.Html, """Hello, world<br><a href="/bye">Say bye?</a>""")
         }
 
         get("/bye") {
@@ -24,7 +24,7 @@ fun main(args: Array<String>) {
                 executor.shutdown()
             }, 100, TimeUnit.MILLISECONDS)
 
-            response.sendText("Goodbye World!")
+            call.respondText("Goodbye World!")
         }
     }
 

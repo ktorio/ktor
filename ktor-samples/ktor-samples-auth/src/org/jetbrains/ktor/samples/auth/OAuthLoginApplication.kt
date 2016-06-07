@@ -8,6 +8,7 @@ import org.jetbrains.ktor.auth.httpclient.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 import java.util.concurrent.*
 
@@ -84,12 +85,12 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
     val exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4)
 
     init {
+        install(CallLogging)
         install(Locations)
         routing {
             get<index>() {
-                response.status(HttpStatusCode.OK)
-                response.contentType(ContentType.Text.Html)
-                response.write {
+                call.response.contentType(ContentType.Text.Html)
+                call.respondWrite {
                     appendHTML().html {
                         head {
                             title { +"index page" }
@@ -106,29 +107,28 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
                         }
                     }
                 }
-                ApplicationCallResult.Handled
             }
 
             location<login>() {
-                auth {
+                authentication {
                     oauthAtLocation<login>(DefaultHttpClient, exec,
                             providerLookup = { loginProviders[it.type] },
                             urlProvider = { l, p -> redirectUrl(login(p.name), false) })
-
-                    success { authContext, next ->
-                        loggedInSuccessResponse(authContext.principals<OAuthAccessTokenResponse>().single())
-                        ApplicationCallResult.Handled
-                    }
                 }
 
                 param("error") {
                     handle {
-                        loginFailedPage(parameters.getAll("error").orEmpty())
+                        call.loginFailedPage(call.parameters.getAll("error").orEmpty())
                     }
                 }
 
                 handle {
-                    loginPage()
+                    val principal = call.authentication.principal<OAuthAccessTokenResponse>()
+                    if (principal != null) {
+                        call.loggedInSuccessResponse(principal)
+                    } else {
+                        call.loginPage()
+                    }
                 }
             }
         }
@@ -143,10 +143,9 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
         return "$protocol://$hostPort${application.feature(Locations).href(t)}"
     }
 
-    private fun ApplicationCall.loginPage(): ApplicationCallResult {
-        response.status(HttpStatusCode.OK)
+    private fun ApplicationCall.loginPage() {
         response.contentType(ContentType.Text.Html)
-        response.write {
+        respondWrite {
             appendHTML().html {
                 head {
                     title { +"Login with" }
@@ -166,14 +165,11 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
                 }
             }
         }
-
-        return ApplicationCallResult.Handled
     }
 
-    private fun ApplicationCall.loginFailedPage(errors: List<String>): ApplicationCallResult {
-        response.status(HttpStatusCode.OK)
+    private fun ApplicationCall.loginFailedPage(errors: List<String>) {
         response.contentType(ContentType.Text.Html)
-        response.write {
+        respondWrite {
             appendHTML().html {
                 head {
                     title { +"Login with" }
@@ -191,14 +187,11 @@ class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
                 }
             }
         }
-
-        return ApplicationCallResult.Handled
     }
 
     private fun ApplicationCall.loggedInSuccessResponse(callback: OAuthAccessTokenResponse) {
-        response.status(HttpStatusCode.OK)
         response.contentType(ContentType.Text.Html)
-        response.write {
+        respondWrite {
             appendHTML().html {
                 head {
                     title { +"Logged in" }

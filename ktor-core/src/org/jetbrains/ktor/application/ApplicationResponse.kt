@@ -1,39 +1,33 @@
 package org.jetbrains.ktor.application
 
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.util.*
 import java.io.*
-import java.nio.charset.*
 
 /**
- * Represents server's request
+ * Represents server's response
  */
-public interface ApplicationResponse {
-    public val headers: ResponseHeaders
-    public val cookies: ResponseCookies
+interface ApplicationResponse {
+    val headers: ResponseHeaders
+    val cookies: ResponseCookies
 
-    public fun status(): HttpStatusCode?
-    public fun status(value: HttpStatusCode)
-    public fun interceptStatus(handler: (value: HttpStatusCode, next: (value: HttpStatusCode) -> Unit) -> Unit)
+    fun status(): HttpStatusCode?
+    fun status(value: HttpStatusCode)
 
-    public fun stream(body: OutputStream.() -> Unit): Unit
-    public fun interceptStream(handler: (body: OutputStream.() -> Unit, next: (body: OutputStream.() -> Unit) -> Unit) -> Unit)
-
-    public fun send(message: Any): ApplicationCallResult
-    public fun interceptSend(handler: (message: Any, next: (message: Any) -> ApplicationCallResult) -> ApplicationCallResult)
+    fun channel(): AsyncWriteChannel
+    fun interceptChannel(handler: (() -> AsyncWriteChannel) -> AsyncWriteChannel)
 }
 
-public fun ApplicationResponse.streamBytes(bytes: ByteArray) {
-    stream { write(bytes) }
-}
+fun ApplicationCall.respondWrite(body: Writer.() -> Unit) : Nothing = respond(object : FinalContent.StreamConsumer() {
+    override val headers: ValuesMap
+        get() = ValuesMap.Empty
 
-public fun ApplicationResponse.streamText(text: String, encoding: String = "UTF-8") {
-    streamBytes(text.toByteArray(Charset.forName(encoding)))
-}
-
-public fun ApplicationResponse.write(body: Writer.() -> Unit) {
-    stream {
-        writer().use { writer ->
+    override fun stream(out: OutputStream) {
+        out.writer().use { writer ->
             writer.body()
+            writer.flush()
         }
     }
-}
+})

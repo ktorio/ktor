@@ -40,14 +40,35 @@ class ValuesMapTest {
         }
         assertEquals("value1", map["key1"])
         assertEquals("value1", map["keY1"])
-        assertEquals(setOf("key1"), map.names())
-        assertEquals(listOf("key1" to listOf("value1", "value2", "Value3")), map.entries().map { it.key to it.value })
+        assertEquals(setOf("Key1"), map.names())
+        assertEquals(listOf("Key1" to listOf("value1", "value2", "Value3")), map.entries().map { it.key to it.value })
         assertEquals(listOf("value1", "value2", "Value3"), map.getAll("key1"))
         assertEquals(listOf("value1", "value2", "Value3"), map.getAll("kEy1"))
         assertTrue { map.contains("Key1") }
         assertTrue { map.contains("Key1", "value1") }
         assertTrue { map.contains("kEy1", "value2") }
         assertFalse { map.contains("kEy1", "value3") }
+    }
+
+    @Test
+    fun `add empty values list adds a key`() {
+        val map = ValuesMap.build {
+            appendAll("key", emptyList())
+        }
+
+        assertNotNull(map.getAll("key"))
+        assertFalse { map.isEmpty() }
+    }
+
+    @Test
+    fun `remove last should keep the key`() {
+        val map = ValuesMap.build {
+            append("key", "value")
+            remove("key", "value")
+        }
+
+        assertNotNull(map.getAll("key"))
+        assertFalse { map.isEmpty() }
     }
 }
 

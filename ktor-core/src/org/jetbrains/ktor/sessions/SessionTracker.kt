@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.sessions
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.pipeline.*
 
 /**
  * SessionTracker provides ability to track and extract session by the context.
@@ -8,10 +9,10 @@ import org.jetbrains.ktor.application.*
  */
 interface SessionTracker<S : Any> {
     /**
-     * Lookup session using the context, call [injectSession] if available and pass execution to the [next] in any case.
+     * Lookup session using the context, call [processSession] if available
      * It is recommended to be async if there is external session store
      */
-    fun lookup(call: ApplicationCall, injectSession: (S) -> Unit, next: ApplicationCall.() -> ApplicationCallResult): ApplicationCallResult
+    fun lookup(context: PipelineContext<ApplicationCall>, processSession: (S) -> Unit) : Nothing
 
     /**
      * Assign session using the context. Override if there is existing session. Could be blocking.

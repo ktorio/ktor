@@ -2,15 +2,13 @@ package org.jetbrains.ktor.routing
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.interception.*
+import org.jetbrains.ktor.pipeline.*
 import java.util.*
 
-internal data class RoutingInterceptor(val function: (RoutingApplicationCall, (RoutingApplicationCall) -> ApplicationCallResult) -> ApplicationCallResult)
-
-open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : InterceptApplicationCall<RoutingApplicationCall> {
+open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : ApplicationCallPipeline() {
     val children: MutableList<RoutingEntry> = ArrayList()
 
-    internal val interceptors = ArrayList<RoutingInterceptor>()
-    internal val handlers = ArrayList<RoutingApplicationCall.() -> ApplicationCallResult>()
+    internal val handlers = ArrayList<PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit>()
 
     fun select(selector: RoutingSelector): RoutingEntry {
         val existingEntry = children.firstOrNull { it.selector.equals(selector) }
@@ -22,11 +20,7 @@ open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector
         return existingEntry
     }
 
-    override fun intercept(interceptor: RoutingApplicationCall.(RoutingApplicationCall.() -> ApplicationCallResult) -> ApplicationCallResult) {
-        interceptors.add(RoutingInterceptor(interceptor))
-    }
-
-    fun handle(handler: RoutingApplicationCall.() -> ApplicationCallResult) {
+    fun handle(handler: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
         handlers.add(handler)
     }
 

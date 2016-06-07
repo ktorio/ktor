@@ -2,6 +2,7 @@ package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
@@ -9,7 +10,7 @@ import org.jetbrains.ktor.util.*
 import org.junit.*
 import java.io.*
 import java.net.*
-import java.nio.file.Paths
+import java.nio.file.*
 import java.util.*
 import kotlin.test.*
 
@@ -36,19 +37,20 @@ class StaticContentTest {
     @Test
     fun testStaticContent() {
         withTestApplication {
-            application.intercept { next ->
+            application.install(PartialContentSupport)
+            application.install(HeadRequestSupport)
+
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 val resolved = sequenceOf(
-                        { resolveClasspathResource("", "org.jetbrains.ktor.tests.http") },
-                        { resolveClasspathResource("", "java.util") },
-                        { resolveClasspathResource("/z", "java.util") },
-                        { resolveLocalFile("", basedir) },
-                        { resolveLocalFile("/f", basedir) }
+                        { call.resolveClasspathResource("", "org.jetbrains.ktor.tests.http") },
+                        { call.resolveClasspathResource("", "java.util") },
+                        { call.resolveClasspathResource("/z", "java.util") },
+                        { call.resolveLocalFile("", basedir) },
+                        { call.resolveLocalFile("/f", basedir) }
                 ).map { it() }.firstOrNull { it != null }
 
-                if (resolved == null) {
-                    next()
-                } else {
-                    response.send(resolved)
+                if (resolved != null) {
+                    call.respond(resolved)
                 }
             }
 
@@ -80,77 +82,121 @@ class StaticContentTest {
         }
     }
 
-    @Test
-    fun testRange() {
-        withTestApplication {
+    fun withRangeApplication(test: TestApplicationHost.(File) -> Unit) {
+        withApplication<TestApplication> {
             val testDir = listOf(File("test"), File("ktor-core/test")).first { it.exists() }
-            application.intercept { next ->
-                resolveLocalFile("", testDir)?.let { response.send(it) } ?: next()
-            }
 
+            application.install(PartialContentSupport)
+            application.install(HeadRequestSupport)
+
+            application.intercept(ApplicationCallPipeline.Call) { call ->
+                call.resolveLocalFile("", testDir)?.let { call.respond(it) }
+            }
+            test(File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt"))
+        }
+    }
+
+    @Test
+    fun testSingleByteRange() {
+        withRangeApplication { file ->
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=0-0")
             }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
                 assertEquals(HttpStatusCode.PartialContent, result.response.status())
+                assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
                 assertEquals("p", result.response.content)
-                assertEquals("bytes 0-0/${File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
                 assertNotNull(result.response.headers[HttpHeaders.LastModified])
             }
+        }
+    }
 
+    @Test
+    fun testTwoBytesRange() {
+        withRangeApplication { file ->
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=1-2")
             }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
                 assertEquals(HttpStatusCode.PartialContent, result.response.status())
                 assertEquals("ac", result.response.content)
-                assertEquals("bytes 1-2/${File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
+                assertEquals("bytes 1-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
                 assertNotNull(result.response.headers[HttpHeaders.LastModified])
             }
+        }
+    }
 
+    @Test
+    fun testUnsatisfiableTailRange() {
+        withRangeApplication { file ->
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=-0") // unsatisfiable
             }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable, result.response.status())
-                assertEquals("bytes */${File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
+                assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable.value, result.response.status()?.value)
+                assertEquals("bytes */${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             }
+        }
+    }
 
+    @Test
+    fun testUnsatisfiableRange() {
+        withRangeApplication { file ->
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=1000000-1000004")  // unsatisfiable
             }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable, result.response.status())
-                assertEquals("bytes */${File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
+                assertEquals(HttpStatusCode.RequestedRangeNotSatisfiable.value, result.response.status()?.value)
+                assertEquals("bytes */${file.length()}", result.response.headers[HttpHeaders.ContentRange])
             }
+        }
+    }
 
+    @Test
+    fun testSyntacticallyIncorrectRange() {
+        withRangeApplication { file ->
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=1000000-7") // syntactically incorrect
             }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
                 assertEquals(HttpStatusCode.OK, result.response.status())
             }
+        }
+    }
 
+    @Test
+    fun testGoodAndBadTailRange() {
+        withRangeApplication { file ->
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=0-0,-0") // good + unsatisfiable
             }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
                 assertEquals(HttpStatusCode.PartialContent, result.response.status())
                 assertEquals("p", result.response.content)
-                assertEquals("bytes 0-0/${File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
+                assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
                 assertNotNull(result.response.headers[HttpHeaders.LastModified])
             }
+        }
+    }
 
+    @Test
+    fun testGoodAndBadRange() {
+        withRangeApplication { file ->
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=0-0,1000000-1000004") // good + unsatisfiable
             }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
                 assertEquals(HttpStatusCode.PartialContent, result.response.status())
                 assertEquals("p", result.response.content)
-                assertEquals("bytes 0-0/${File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
+                assertEquals("bytes 0-0/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
                 assertNotNull(result.response.headers[HttpHeaders.LastModified])
             }
+        }
+    }
 
+    @Test
+    fun testHeadRequestRange() {
+        withRangeApplication { file ->
             // head request
             handleRequest(HttpMethod.Head, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=0-0")
@@ -159,16 +205,27 @@ class StaticContentTest {
                 assertEquals(HttpStatusCode.OK, result.response.status())
                 assertNotNull(result.response.headers[HttpHeaders.LastModified])
                 assertEquals(RangeUnits.Bytes.unitToken, result.response.headers[HttpHeaders.AcceptRanges])
+                assertTrue { result.response.byteContent.let { it == null || it.isEmpty() } }
             }
+        }
+    }
 
+    @Test
+    fun testPostRequestRange() {
+        withRangeApplication { file ->
             // post request
             handleRequest(HttpMethod.Post, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=0-0")
             }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
-                assertEquals(HttpStatusCode.MethodNotAllowed, result.response.status())
+                assertEquals(HttpStatusCode.MethodNotAllowed.description("Method POST is not allowed with range request"), result.response.status())
             }
+        }
+    }
 
+    @Test
+    fun testPostNoRange() {
+        withRangeApplication { file ->
             // post request with no range
             handleRequest(HttpMethod.Post, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
 
@@ -176,7 +233,12 @@ class StaticContentTest {
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
                 assertEquals(HttpStatusCode.OK, result.response.status())
             }
+        }
+    }
 
+    @Test
+    fun testMultipleRanges() {
+        withRangeApplication { file ->
             // multiple ranges
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=0-0,2-2")
@@ -191,14 +253,19 @@ class StaticContentTest {
                     }
                 }
             }
+        }
+    }
 
+    @Test
+    fun testMultipleMergedRanges() {
+        withRangeApplication { file ->
             // multiple ranges should be merged into one
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=0-0,1-2")
             }).let { result ->
                 assertEquals(ApplicationCallResult.Handled, result.requestResult)
                 assertEquals(HttpStatusCode.PartialContent, result.response.status())
-                assertEquals("bytes 0-2/${File(testDir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt").length()}", result.response.headers[HttpHeaders.ContentRange])
+                assertEquals("bytes 0-2/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
                 assertEquals("pac", result.response.content)
                 assertNotNull(result.response.headers[HttpHeaders.LastModified])
             }
@@ -208,15 +275,13 @@ class StaticContentTest {
     @Test
     fun testStaticContentWrongPath() {
         withTestApplication {
-            application.intercept { next ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 val resolved = sequenceOf(
-                        { resolveLocalFile("", basedir) }
+                        { call.resolveLocalFile("", basedir) }
                 ).map { it() }.firstOrNull { it != null }
 
-                if (resolved == null) {
-                    next()
-                } else {
-                    response.send(resolved)
+                if (resolved != null) {
+                    call.respond(resolved)
                 }
             }
 
@@ -231,8 +296,8 @@ class StaticContentTest {
     @Test
     fun testSendLocalFile() {
         withTestApplication {
-            application.intercept { next ->
-                response.send(LocalFileContent(basedir, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt"))
+            application.intercept(ApplicationCallPipeline.Call) { call ->
+                call.respond(LocalFileContent(basedir, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt"))
             }
 
             handleRequest(HttpMethod.Get, "/").let { result ->
@@ -245,8 +310,8 @@ class StaticContentTest {
     @Test
     fun testSendLocalFilePaths() {
         withTestApplication {
-            application.intercept { next ->
-                response.send(LocalFileContent(basedir.toPath(), Paths.get("/org/jetbrains/ktor/tests/http/StaticContentTest.kt")))
+            application.intercept(ApplicationCallPipeline.Call) { call ->
+                call.respond(LocalFileContent(basedir.toPath(), Paths.get("/org/jetbrains/ktor/tests/http/StaticContentTest.kt")))
             }
 
             handleRequest(HttpMethod.Get, "/").let { result ->
@@ -259,11 +324,11 @@ class StaticContentTest {
     @Test
     fun testZipFileContentPaths() {
         withTestApplication {
-            application.intercept { next ->
-                val zip = resolveClasspathResource("", "java.util") as ResourceFileContent
+            application.intercept(ApplicationCallPipeline.Call) { call ->
+                val zip = call.resolveClasspathResource("", "java.util") as ResourceFileContent
                 val pathified = ResourceFileContent(zip.zipFile.toPath(), zip.resourcePath, zip.classLoader, zip.contentType)
 
-                response.send(pathified)
+                call.respond(pathified)
             }
 
             handleRequest(HttpMethod.Get, "/ArrayList.class").let { result ->
@@ -275,21 +340,19 @@ class StaticContentTest {
     @Test
     fun testSendLocalFileBadRelative() {
         withTestApplication {
-            application.intercept { next ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 assertFailsWith<IllegalArgumentException> {
-                    response.send(LocalFileContent(basedir, "/../../../../../../../../../../../../../etc/passwd"))
+                    call.respond(LocalFileContent(basedir, "/../../../../../../../../../../../../../etc/passwd"))
                 }
                 assertFailsWith<IllegalArgumentException> {
-                    response.send(LocalFileContent(basedir, "../pom.xml"))
+                    call.respond(LocalFileContent(basedir, "../pom.xml"))
                 }
                 assertFailsWith<IllegalArgumentException> {
-                    response.send(LocalFileContent(basedir, "../../pom.xml"))
+                    call.respond(LocalFileContent(basedir, "../../pom.xml"))
                 }
                 assertFailsWith<IllegalArgumentException> {
-                    response.send(LocalFileContent(basedir, "/../pom.xml"))
+                    call.respond(LocalFileContent(basedir, "/../pom.xml"))
                 }
-
-                ApplicationCallResult.Unhandled
             }
 
             handleRequest(HttpMethod.Get, "/").let { result ->
@@ -301,21 +364,19 @@ class StaticContentTest {
     @Test
     fun testSendLocalFileBadRelativePaths() {
         withTestApplication {
-            application.intercept { next ->
+            application.intercept(ApplicationCallPipeline.Call) { call ->
                 assertFailsWith<IllegalArgumentException> {
-                    response.send(LocalFileContent(basedir.toPath(), Paths.get("/../../../../../../../../../../../../../etc/passwd")))
+                    call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../../../../../../../../../../../../../etc/passwd")))
                 }
                 assertFailsWith<IllegalArgumentException> {
-                    response.send(LocalFileContent(basedir.toPath(), Paths.get("../pom.xml")))
+                    call.respond(LocalFileContent(basedir.toPath(), Paths.get("../pom.xml")))
                 }
                 assertFailsWith<IllegalArgumentException> {
-                    response.send(LocalFileContent(basedir.toPath(), Paths.get("../../pom.xml")))
+                    call.respond(LocalFileContent(basedir.toPath(), Paths.get("../../pom.xml")))
                 }
                 assertFailsWith<IllegalArgumentException> {
-                    response.send(LocalFileContent(basedir.toPath(), Paths.get("/../pom.xml")))
+                    call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../pom.xml")))
                 }
-
-                ApplicationCallResult.Unhandled
             }
 
             handleRequest(HttpMethod.Get, "/").let { result ->
@@ -324,7 +385,7 @@ class StaticContentTest {
         }
     }
 
-    private fun assertMultipart(result: RequestResult, block: (List<String>) -> Unit) {
+    private fun assertMultipart(result: TestApplicationCall, block: (List<String>) -> Unit) {
         assertEquals(ApplicationCallResult.Handled, result.requestResult)
         assertEquals(HttpStatusCode.PartialContent, result.response.status())
         assertNotNull(result.response.headers[HttpHeaders.LastModified])
@@ -378,7 +439,7 @@ class StaticContentTest {
     }
 
     private fun BufferedReader.scanHeaders(): ValuesMap {
-        val headers = ValuesMap.Builder()
+        val headers = ValuesMapBuilder(true)
 
         do {
             val line = readLine()
@@ -390,7 +451,7 @@ class StaticContentTest {
             headers.append(header.trimEnd(), value.trimStart())
         } while (true)
 
-        return headers.build(true)
+        return headers.build()
     }
 
     private fun String.contentRange(): Pair<LongRange, Long> {
@@ -398,7 +459,7 @@ class StaticContentTest {
         val (range, size) = removePrefix("bytes ").trimStart().chomp("/") { throw IOException("Missing slash / in Content-Range header value $this") }
         val (from, to) = range.chomp("-") { throw IOException("Missing range delimiter in Content-Range value $this") }
 
-        return (from.toLong() .. to.toLong()) to size.toLong()
+        return (from.toLong()..to.toLong()) to size.toLong()
     }
 
 }
