@@ -53,7 +53,7 @@ inline fun <C : Any> PipelineContext<C>.runBlock(block: PipelineContext<C>.() ->
 
         proceed()
     } catch (e: PipelineContinue) {
-        continueMachine()
+        continuePipeline()
     }
 }
 
@@ -69,7 +69,7 @@ inline fun PipelineMachine.runBlock(block: () -> Unit): Nothing {
 
         proceed()
     } catch (e: PipelineContinue) {
-        continueMachine()
+        continuePipeline()
     }
 }
 
@@ -81,7 +81,6 @@ inline fun <C : Any> PipelineContext<C>.runBlockWithResult(block: PipelineContex
     } catch (e: PipelinePaused) {
         return PipelineState.Executing
     }
-    // shouldn't kotlin report error here?
 }
 
 inline fun PipelineMachine.runBlockWithResult(block: () -> Unit): PipelineState {
@@ -92,10 +91,9 @@ inline fun PipelineMachine.runBlockWithResult(block: () -> Unit): PipelineState 
     } catch (e: PipelinePaused) {
         return PipelineState.Executing
     }
-    // shouldn't kotlin report error here?
 }
 
-fun PipelineContext<*>.continueMachine(): Nothing {
+fun PipelineContext<*>.continuePipeline(): Nothing {
     while (true) {
         try {
             proceed()
@@ -105,7 +103,7 @@ fun PipelineContext<*>.continueMachine(): Nothing {
     }
 }
 
-fun PipelineMachine.continueMachine(): Nothing {
+fun PipelineMachine.continuePipeline(): Nothing {
     while (true) {
         try {
             proceed()

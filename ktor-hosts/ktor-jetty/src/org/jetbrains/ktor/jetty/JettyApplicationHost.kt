@@ -49,11 +49,15 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             Runtime.getRuntime().availableProcessors() * 2,
             Math.max(100, Runtime.getRuntime().availableProcessors() * 2),
             30L, TimeUnit.SECONDS, LinkedBlockingQueue(), ThreadFactory { Thread(it, "worker-thread-${threadCounter.incrementAndGet()}") }
-            )
+    )
 
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"));
 
-    inner class Handler() : AbstractHandler() {
+    init {
+        application.setupDefaultHostPages()
+    }
+
+    private inner class Handler : AbstractHandler() {
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             response.characterEncoding = "UTF-8"
 

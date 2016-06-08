@@ -28,8 +28,6 @@ abstract class BaseApplicationCall(override val application: Application, overri
     override fun <T : Any> fork(value: T, pipeline: Pipeline<T>): Nothing = executionMachine.execute(value, pipeline)
     override fun respond(message: Any): Nothing = fork(message, respond)
 
-    override fun interceptRespond(phase: PipelinePhase, handler: PipelineContext<Any>.(Any) -> Unit) = respond.intercept(phase, handler)
-
     protected fun commit(o: FinalContent) {
         o.status?.let { response.status(it) } ?: response.status() ?: response.status(HttpStatusCode.OK)
         for ((name, value) in o.headers.flattenEntries()) {
@@ -37,7 +35,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
         }
     }
 
-    private val respond = RespondPipeline()
+    final override val respond = RespondPipeline()
 
     init {
         respond.intercept(RespondPipeline.Respond) { value ->
@@ -57,7 +55,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
                 is HttpStatusContent -> {
                     respond(TextContentResponse(value.code,
                             ContentType.Text.Html.withParameter("charset", "UTF-8"), "UTF-8",
-                            "<H1>${value.code}</H1>${value.message}"))
+                            "<H1>${value.code}</H1>${value.message.escapeHTML()}"))
                 }
                 is HttpStatusCode -> {
                     response.status(value)
@@ -101,7 +99,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
         }
     }
 
-    private class PipeResponse(val pipe: AsyncPipe, val headersDelegate: () -> ValuesMap, val start: () -> Unit) : FinalContent.ChannelContent() {
+    private class PipeResponse(val pipe: AsyncPipe, headersDelegate: () -> ValuesMap, val start: () -> Unit) : FinalContent.ChannelContent() {
         override val headers by lazy(headersDelegate)
 
         override fun channel(): AsyncReadChannel {
@@ -110,7 +108,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
         }
     }
 
-    private class TextContentResponse(override val status: HttpStatusCode?, val contentType: ContentType?, val encoding: String, val text: String) : FinalContent.ChannelContent() {
+    private class TextContentResponse(override val status: HttpStatusCode?, contentType: ContentType?, encoding: String, text: String) : FinalContent.ChannelContent() {
         private val bytes by lazy { text.toByteArray(Charset.forName(encoding)) }
 
         override val headers by lazy {

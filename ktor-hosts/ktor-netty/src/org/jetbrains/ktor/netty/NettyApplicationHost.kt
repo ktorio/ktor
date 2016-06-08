@@ -59,6 +59,10 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     override val executor: Executor
         get() = executorGroup
 
+    init {
+        application.setupDefaultHostPages()
+    }
+
     override fun start(wait: Boolean) {
         environment.log.info("Starting server...")
         val channelFuture = bootstrap.bind(hostConfig.host, hostConfig.port).sync()

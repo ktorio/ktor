@@ -26,6 +26,29 @@ fun String.tryParseDouble(): Double {
     }
 }
 
+fun String.escapeHTML(): String {
+    if (isEmpty()) {
+        return this
+    }
+
+    val sb = StringBuilder(length)
+
+    for (idx in 0 .. length - 1) {
+        val ch = this[idx]
+
+        when (ch) {
+            '\'' -> sb.append("&apos;")
+            '\"' -> sb.append("quot")
+            '&' -> sb.append("&amp;")
+            '<' -> sb.append("&lt;")
+            '>' -> sb.append("&gt;")
+            else -> sb.append(ch)
+        }
+    }
+
+    return sb.toString()
+}
+
 internal inline fun String.chomp(separator: String, onMissingDelimiter: () -> Pair<String, String>): Pair<String, String> {
     val idx = indexOf(separator)
     return when (idx) {

@@ -173,6 +173,42 @@ private class InputStreamReadChannelAdapter(val input: InputStream) : AsyncReadC
 
 fun InputStream.asAsyncChannel(): AsyncReadChannel = InputStreamReadChannelAdapter(this)
 
+fun AsyncWriteChannel.writeFully(bb: ByteBuffer, handler: AsyncHandler) {
+    val initialSize = bb.remaining()
+    val innerHandler = object : AsyncHandler {
+        override fun success(count: Int) {
+            if (bb.hasRemaining()) {
+                write(bb, this)
+            } else {
+                handler.success(initialSize)
+            }
+        }
+
+        override fun successEnd() {
+        }
+
+        override fun failed(cause: Throwable) {
+            handler.failed(cause)
+        }
+    }
+
+    write(bb, innerHandler)
+}
+
+fun onCompletedHandler(handler: (Throwable?) -> Unit) = object : AsyncHandler {
+    override fun success(count: Int) {
+        handler(null)
+    }
+
+    override fun successEnd() {
+        handler(null)
+    }
+
+    override fun failed(cause: Throwable) {
+        handler(cause)
+    }
+}
+
 private fun InputStream.read(bb: ByteBuffer): Int {
     val rc = read(bb.array(), bb.arrayOffset() + bb.position(), bb.remaining())
 
