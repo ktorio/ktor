@@ -9,7 +9,7 @@ import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
 import java.io.*
 
-fun RoutingEntry.upload(database: Database, uploadDir: File) {
+fun Route.upload(database: Database, uploadDir: File) {
     get<Upload> {
         val session = call.sessionOrNull<Session>()
         if (session == null) {

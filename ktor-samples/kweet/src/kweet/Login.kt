@@ -7,7 +7,7 @@ import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
 
-fun RoutingEntry.login(dao: DAOFacade, hash: (String) -> String) {
+fun Route.login(dao: DAOFacade, hash: (String) -> String) {
     get<Login> {
         val user = call.sessionOrNull<Session>()?.let { dao.user(it.userId) }
 

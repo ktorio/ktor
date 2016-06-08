@@ -160,21 +160,21 @@ open public class Locations(val conversionService: ConversionService) {
         }
     }
 
-    private fun createEntry(parent: RoutingEntry, info: LocationInfo): RoutingEntry {
+    private fun createEntry(parent: Route, info: LocationInfo): Route {
         val hierarchyEntry = info.parent?.let { createEntry(parent, it) } ?: parent
         val pathEntry = hierarchyEntry.createRoute(info.path)
 
         val queryEntry = info.queryParameters.fold(pathEntry) { entry, query ->
             val selector = if (query.isOptional)
-                OptionalParameterRoutingSelector(query.name)
+                OptionalParameterRouteSelector(query.name)
             else
-                ParameterRoutingSelector(query.name)
+                ParameterRouteSelector(query.name)
             entry.select(selector)
         }
         return queryEntry
     }
 
-    fun createEntry(parent: RoutingEntry, dataClass: KClass<*>): RoutingEntry {
+    fun createEntry(parent: Route, dataClass: KClass<*>): Route {
         return createEntry(parent, getOrCreateInfo(dataClass))
     }
 

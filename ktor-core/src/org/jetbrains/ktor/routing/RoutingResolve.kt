@@ -4,11 +4,11 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 
 data class RoutingResolveResult(val succeeded: Boolean,
-                                val entry: RoutingEntry,
+                                val entry: Route,
                                 val values: ValuesMap,
                                 val quality: Double)
 
-class RoutingResolveContext(val routing: RoutingEntry,
+class RoutingResolveContext(val routing: Route,
                             val verb: HttpRequestLine,
                             val parameters: ValuesMap = ValuesMap.Empty,
                             val headers: ValuesMap = ValuesMap.Empty) {
@@ -27,9 +27,9 @@ class RoutingResolveContext(val routing: RoutingEntry,
         return resolve(routing, this, 0)
     }
 
-    internal fun resolve(entry: RoutingEntry, request: RoutingResolveContext, segmentIndex: Int): RoutingResolveResult {
+    internal fun resolve(entry: Route, request: RoutingResolveContext, segmentIndex: Int): RoutingResolveResult {
         // last failed entry for diagnostics
-        var failEntry: RoutingEntry? = null
+        var failEntry: Route? = null
         // best matched entry (with highest quality)
         var bestResult: RoutingResolveResult? = null
 

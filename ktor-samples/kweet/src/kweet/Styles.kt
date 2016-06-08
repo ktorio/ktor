@@ -8,7 +8,7 @@ import org.jetbrains.ktor.routing.*
 @location("/styles/main.css")
 class MainCss()
 
-fun RoutingEntry.styles() {
+fun Route.styles() {
     get<MainCss> {
         call.respond(call.resolveClasspathWithPath("", "blog.css")!!)
     }

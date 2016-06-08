@@ -7,11 +7,11 @@ import org.jetbrains.ktor.util.*
 import org.junit.*
 import kotlin.test.*
 
-fun routing() = RoutingEntry(parent = null, selector = Routing.RootRoutingSelector)
-fun context(routing: RoutingEntry, path: String, parameters: ValuesMap = ValuesMap.Empty)
+fun routing() = Route(parent = null, selector = Routing.RootRouteSelector)
+fun context(routing: Route, path: String, parameters: ValuesMap = ValuesMap.Empty)
         = RoutingResolveContext(routing, HttpRequestLine(HttpMethod.Companion.Get, path, "HTTP/1.1"), parameters)
 
-fun context(routing: RoutingEntry, path: String, parameters: ValuesMap = ValuesMap.Empty, headers: ValuesMap = ValuesMap.Empty)
+fun context(routing: Route, path: String, parameters: ValuesMap = ValuesMap.Empty, headers: ValuesMap = ValuesMap.Empty)
         = RoutingResolveContext(routing, HttpRequestLine(HttpMethod.Companion.Get, path, "HTTP/1.1"), parameters, headers)
 
 class RoutingResolveTest {
@@ -30,7 +30,7 @@ class RoutingResolveTest {
 
     @Test fun `routing with foo`() {
         val root = routing()
-        val fooEntry = root.select(UriPartConstantRoutingSelector("foo"))
+        val fooEntry = root.select(UriPartConstantRouteSelector("foo"))
 
         on("resolving /foo") {
             val result = context(root, "/foo").resolve()
@@ -54,8 +54,8 @@ class RoutingResolveTest {
 
     @Test fun `routing with foo-bar`() {
         val root = routing()
-        val fooEntry = root.select(UriPartConstantRoutingSelector("foo"))
-        val barEntry = fooEntry.select(UriPartConstantRoutingSelector("bar"))
+        val fooEntry = root.select(UriPartConstantRouteSelector("foo"))
+        val barEntry = fooEntry.select(UriPartConstantRouteSelector("bar"))
 
         on("resolving /foo") {
             val result = context(root, "/foo").resolve()
@@ -90,8 +90,8 @@ class RoutingResolveTest {
 
     @Test fun `routing foo with parameter`() {
         val root = routing()
-        val paramEntry = root.select(UriPartConstantRoutingSelector("foo"))
-                .select(UriPartParameterRoutingSelector("param"))
+        val paramEntry = root.select(UriPartConstantRouteSelector("foo"))
+                .select(UriPartParameterRouteSelector("param"))
 
         on("resolving /foo/value") {
             val resolveResult = context(root, "/foo/value").resolve()
@@ -110,9 +110,9 @@ class RoutingResolveTest {
 
     @Test fun `routing foo with multiply parameters`() {
         val root = routing()
-        root.select(UriPartConstantRoutingSelector("foo"))
-                .select(UriPartParameterRoutingSelector("param1"))
-                .select(UriPartParameterRoutingSelector("param2"))
+        root.select(UriPartConstantRouteSelector("foo"))
+                .select(UriPartParameterRouteSelector("param1"))
+                .select(UriPartParameterRouteSelector("param2"))
 
         on("resolving /foo/value1/value2") {
             val resolveResult = context(root, "/foo/value1/value2").resolve()
@@ -129,9 +129,9 @@ class RoutingResolveTest {
 
     @Test fun `routing foo with multivalue parameter`() {
         val root = routing()
-        root.select(UriPartConstantRoutingSelector("foo"))
-                .select(UriPartParameterRoutingSelector("param"))
-                .select(UriPartParameterRoutingSelector("param"))
+        root.select(UriPartConstantRouteSelector("foo"))
+                .select(UriPartParameterRouteSelector("param"))
+                .select(UriPartParameterRouteSelector("param"))
 
         on("resolving /foo/value1/value2") {
             val resolveResult = context(root, "/foo/value1/value2").resolve()
@@ -147,8 +147,8 @@ class RoutingResolveTest {
 
     @Test fun `routing foo with optional parameter`() {
         val root = routing()
-        val paramEntry = root.select(UriPartConstantRoutingSelector("foo"))
-                .select(UriPartOptionalParameterRoutingSelector("param"))
+        val paramEntry = root.select(UriPartConstantRouteSelector("foo"))
+                .select(UriPartOptionalParameterRouteSelector("param"))
 
         on("resolving /foo/value") {
             val resolveResult = context(root, "/foo/value").resolve()
@@ -181,8 +181,8 @@ class RoutingResolveTest {
 
     @Test fun `routing foo with wildcard`() {
         val root = routing()
-        val fooEntry = root.select(UriPartConstantRoutingSelector("foo"))
-        val paramEntry = fooEntry.select(UriPartWildcardRoutingSelector)
+        val fooEntry = root.select(UriPartConstantRouteSelector("foo"))
+        val paramEntry = fooEntry.select(UriPartWildcardRouteSelector)
 
         on("resolving /foo/value") {
             val resolveResult = context(root, "/foo/value").resolve()
@@ -209,8 +209,8 @@ class RoutingResolveTest {
 
     @Test fun `routing foo with anonymous tailcard`() {
         val root = routing()
-        val paramEntry = root.select(UriPartConstantRoutingSelector("foo"))
-                .select(UriPartTailcardRoutingSelector())
+        val paramEntry = root.select(UriPartConstantRouteSelector("foo"))
+                .select(UriPartTailcardRouteSelector())
 
         on("resolving /foo/value") {
             val resolveResult = context(root, "/foo/value").resolve()
@@ -248,8 +248,8 @@ class RoutingResolveTest {
 
     @Test fun `routing foo with named tailcard`() {
         val root = routing()
-        val paramEntry = root.select(UriPartConstantRoutingSelector("foo"))
-                .select(UriPartTailcardRoutingSelector("items"))
+        val paramEntry = root.select(UriPartConstantRouteSelector("foo"))
+                .select(UriPartTailcardRouteSelector("items"))
 
         on("resolving /foo/value") {
             val resolveResult = context(root, "/foo/value").resolve()
@@ -296,8 +296,8 @@ class RoutingResolveTest {
 
     @Test fun `routing foo with parameter entry`() {
         val root = routing()
-        val fooEntry = root.select(UriPartConstantRoutingSelector("foo"))
-        val paramEntry = fooEntry.select(ParameterRoutingSelector("name"))
+        val fooEntry = root.select(UriPartConstantRouteSelector("foo"))
+        val paramEntry = fooEntry.select(ParameterRouteSelector("name"))
 
         on("resolving /foo with query string name=value") {
             val resolveResult = context(root, "/foo", valuesOf("name" to listOf("value"))).resolve()
@@ -344,9 +344,9 @@ class RoutingResolveTest {
 
     @Test fun `routing foo with quality`() {
         val root = routing()
-        val fooEntry = root.select(UriPartConstantRoutingSelector("foo"))
-        val paramEntry = fooEntry.select(UriPartParameterRoutingSelector("name"))
-        val constantEntry = fooEntry.select(UriPartConstantRoutingSelector("admin"))
+        val fooEntry = root.select(UriPartConstantRouteSelector("foo"))
+        val paramEntry = fooEntry.select(UriPartParameterRouteSelector("name"))
+        val constantEntry = fooEntry.select(UriPartConstantRouteSelector("admin"))
 
         on("resolving /foo/value") {
             val resolveResult = context(root, "/foo/value").resolve()
@@ -380,9 +380,9 @@ class RoutingResolveTest {
 
     @Test fun `routing foo with quality and headers`() {
         val root = routing()
-        val fooEntry = root.select(UriPartConstantRoutingSelector("foo"))
-        val plainEntry = fooEntry.select(HttpHeaderRoutingSelector("Accept", "text/plain"))
-        val htmlEntry = fooEntry.select(HttpHeaderRoutingSelector("Accept", "text/html"))
+        val fooEntry = root.select(UriPartConstantRouteSelector("foo"))
+        val plainEntry = fooEntry.select(HttpHeaderRouteSelector("Accept", "text/plain"))
+        val htmlEntry = fooEntry.select(HttpHeaderRouteSelector("Accept", "text/html"))
 
         on("resolving /foo with more specific") {
             val resolveResult = context(root, "/foo", headers = valuesOf("Accept" to listOf("text/*, text/html, */*"))).resolve()

@@ -1,24 +1,25 @@
 package org.jetbrains.ktor.routing
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.pipeline.*
 import java.util.*
 
-open class RoutingEntry(val parent: RoutingEntry?, val selector: RoutingSelector) : ApplicationCallPipeline() {
-    val children: MutableList<RoutingEntry> = ArrayList()
+open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationCallPipeline() {
+    val children: MutableList<Route> = ArrayList()
 
     internal val handlers = ArrayList<PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit>()
 
-    fun select(selector: RoutingSelector): RoutingEntry {
+    fun select(selector: RouteSelector): Route {
         val existingEntry = children.firstOrNull { it.selector.equals(selector) }
         if (existingEntry == null) {
-            val entry = RoutingEntry(this, selector)
+            val entry = Route(this, selector)
             children.add(entry)
             return entry
         }
         return existingEntry
     }
+
+    fun invoke(body: Route.() -> Unit) = apply(body)
 
     fun handle(handler: PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit) {
         handlers.add(handler)

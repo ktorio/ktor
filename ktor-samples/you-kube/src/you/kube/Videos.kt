@@ -10,7 +10,7 @@ import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
 import java.io.*
 
-fun RoutingEntry.videos(database: Database) {
+fun Route.videos(database: Database) {
     get<Index> {
         val session = call.sessionOrNull<Session>()
         val topVideos = database.top()

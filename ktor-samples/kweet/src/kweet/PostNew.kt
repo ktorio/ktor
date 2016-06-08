@@ -7,7 +7,7 @@ import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
 
-fun RoutingEntry.postNew(dao: DAOFacade, hashFunction: (String) -> String) {
+fun Route.postNew(dao: DAOFacade, hashFunction: (String) -> String) {
     get<PostNew> {
         val user = call.sessionOrNull<Session>()?.let { dao.user(it.userId) }
 

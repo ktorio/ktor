@@ -63,7 +63,7 @@ abstract class WebSocket internal constructor(val call: ApplicationCall, protect
     }
 }
 
-fun RoutingEntry.webSocket(path: String, protocol: String? = null, configure: WebSocket.() -> Unit) {
+fun Route.webSocket(path: String, protocol: String? = null, configure: WebSocket.() -> Unit) {
     route(HttpMethod.Get, path) {
         header(HttpHeaders.Connection, "Upgrade") {
             header(HttpHeaders.Upgrade, "websocket") {
@@ -79,7 +79,7 @@ fun RoutingEntry.webSocket(path: String, protocol: String? = null, configure: We
     }
 }
 
-private fun RoutingEntry.webSocketProtocol(protocol: String?, block: RoutingEntry.() -> Unit) {
+private fun Route.webSocketProtocol(protocol: String?, block: Route.() -> Unit) {
     if (protocol == null) {
         block()
     } else {
@@ -87,7 +87,7 @@ private fun RoutingEntry.webSocketProtocol(protocol: String?, block: RoutingEntr
     }
 }
 
-private class WebSocketProtocolsSelector(val requiredProtocol: String) : RoutingSelector {
+private class WebSocketProtocolsSelector(val requiredProtocol: String) : RouteSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         val protocols = context.headers[HttpHeaders.SecWebSocketProtocol] ?: return RouteSelectorEvaluation(true, 1.0)
         if (requiredProtocol in parseHeaderValue(protocols).map { it.value }) {

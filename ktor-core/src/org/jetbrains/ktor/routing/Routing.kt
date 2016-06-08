@@ -6,9 +6,9 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
 
-class Routing(val application: Application) : RoutingEntry(parent = null, selector = Routing.RootRoutingSelector) {
+class Routing(val application: Application) : Route(parent = null, selector = Routing.RootRouteSelector) {
 
-    object RootRoutingSelector : RoutingSelector {
+    object RootRouteSelector : RouteSelector {
         override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation = throw UnsupportedOperationException()
         override fun toString(): String = ""
     }
@@ -24,9 +24,9 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
         }
     }
 
-    private fun buildEntryPipeline(entry: RoutingEntry): Pipeline<ApplicationCall> {
+    private fun buildEntryPipeline(entry: Route): Pipeline<ApplicationCall> {
         // Interceptors are rarely installed into routing entries, so don't create list unless there are some
-        var current: RoutingEntry? = entry
+        var current: Route? = entry
         val pipeline = ApplicationCallPipeline()
         while (current != null) {
             current.interceptors.forEach { pipeline.intercept(ApplicationCallPipeline.Infrastructure, it) }
@@ -50,7 +50,7 @@ class Routing(val application: Application) : RoutingEntry(parent = null, select
     }
 }
 
-val RoutingEntry.application: Application get() = when {
+val Route.application: Application get() = when {
     this is Routing -> application
     else -> parent?.application ?: throw UnsupportedOperationException("Cannot retrieve application from unattached routing entry")
 }

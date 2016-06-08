@@ -9,7 +9,7 @@ import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
 
-fun RoutingEntry.login(users: UserHashedTableAuth) {
+fun Route.login(users: UserHashedTableAuth) {
     location<Login> {
         method(HttpMethod.Post) {
             authentication {

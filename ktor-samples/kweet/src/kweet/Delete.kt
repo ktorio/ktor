@@ -6,7 +6,7 @@ import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
 
-fun RoutingEntry.delete(dao: DAOFacade, hashFunction: (String) -> String) {
+fun Route.delete(dao: DAOFacade, hashFunction: (String) -> String) {
     post<KweetDelete> {
         val user = call.sessionOrNull<Session>()?.let { dao.user(it.userId) }
         val kweet = dao.getKweet(it.id)

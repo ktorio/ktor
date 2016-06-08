@@ -77,7 +77,7 @@ class URIFileContent(val uri: URI, override val contentType: ContentType = defau
     override val contentLength = null
 }
 
-fun RoutingEntry.serveClasspathResources(basePackage: String = "") {
+fun Route.serveClasspathResources(basePackage: String = "") {
     route("{path...}") {
         handle {
             call.resolveClasspathWithPath(basePackage, call.parameters.getAll("path")!!.joinToString(File.separator))?.let {
@@ -87,9 +87,9 @@ fun RoutingEntry.serveClasspathResources(basePackage: String = "") {
     }
 }
 
-fun RoutingEntry.serveFileSystem(baseDir: Path) = serveFileSystem(baseDir.toFile())
+fun Route.serveFileSystem(baseDir: Path) = serveFileSystem(baseDir.toFile())
 
-fun RoutingEntry.serveFileSystem(baseDir: File) {
+fun Route.serveFileSystem(baseDir: File) {
     route("{path...}") {
         handle {
             val message = LocalFileContent(baseDir, call.parameters.getAll("path")!!.joinToString(File.separator))
