@@ -21,16 +21,16 @@ import java.util.concurrent.*
  * [ApplicationHost] implementation for running standalone Netty Host
  */
 class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
-                           val config: ApplicationConfig,
+                           val environment: ApplicationEnvironment,
                            val applicationLifecycle: ApplicationLifecycle) : ApplicationHost {
 
     private val application: Application get() = applicationLifecycle.application
 
-    constructor(hostConfig: ApplicationHostConfig, config: ApplicationConfig)
-    : this(hostConfig, config, ApplicationLoader(config))
+    constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
+    : this(hostConfig, environment, ApplicationLoader(environment))
 
-    constructor(hostConfig: ApplicationHostConfig, config: ApplicationConfig, application: Application)
-    : this(hostConfig, config, object : ApplicationLifecycle {
+    constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, application: Application)
+    : this(hostConfig, environment, object : ApplicationLifecycle {
         override val application: Application = application
         override fun dispose() {
         }
@@ -60,13 +60,13 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         get() = executorGroup
 
     override fun start(wait: Boolean) {
-        config.log.info("Starting server...")
+        environment.log.info("Starting server...")
         val channelFuture = bootstrap.bind(hostConfig.host, hostConfig.port).sync()
-        config.log.info("Server running.")
+        environment.log.info("Server running.")
         if (wait) {
             channelFuture.channel().closeFuture().sync()
             applicationLifecycle.dispose()
-            config.log.info("Server stopped.")
+            environment.log.info("Server stopped.")
         }
     }
 
@@ -74,7 +74,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         workerEventGroup.shutdownGracefully()
         mainEventGroup.shutdownGracefully()
         applicationLifecycle.dispose()
-        config.log.info("Server stopped.")
+        environment.log.info("Server stopped.")
     }
 
     inner class HostHttpHandler : SimpleChannelInboundHandler<HttpRequest>(false) {
@@ -97,7 +97,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
 
         override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-            config.log.error("Application ${application.javaClass} cannot fulfill the request", cause);
+            environment.log.error("Application ${application.javaClass} cannot fulfill the request", cause);
             ctx.close()
         }
 
@@ -112,7 +112,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
             call.executeOn(executor, application).whenComplete { pipelineState, throwable ->
                 val response: Any? = if (throwable != null && !call.completed) {
-                    application.config.log.error("Failed to process request", throwable)
+                    application.environment.log.error("Failed to process request", throwable)
                     HttpStatusCode.InternalServerError
                 } else if (pipelineState != PipelineState.Executing && !call.completed) {
                     HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")

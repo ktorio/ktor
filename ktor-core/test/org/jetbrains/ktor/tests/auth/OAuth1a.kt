@@ -390,7 +390,7 @@ private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
 
 private fun ApplicationCall.fail(text: String?): Nothing {
     val message = text ?: "Auth failed"
-    application.config.log.error(message)
+    application.environment.log.error(message)
     response.status(HttpStatusCode.InternalServerError)
     respondText(message)
 }

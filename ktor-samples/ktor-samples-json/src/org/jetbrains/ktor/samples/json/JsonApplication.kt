@@ -12,7 +12,7 @@ import java.util.zip.*
 data class Model(val name: String, val items: List<Item>)
 data class Item(val key: String, val value: String)
 
-class JsonApplication(config: ApplicationConfig) : Application(config) {
+class JsonApplication(environment: ApplicationEnvironment) : Application(environment) {
     /*
          > curl -v --compress --header "Accept: application/json" http://localhost:8080/v1
          {"name":"root","items":[{"key":"A","value":"Apache"},{"key":"B","value":"Bing"}]}

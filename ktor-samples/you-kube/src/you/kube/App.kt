@@ -28,7 +28,7 @@ class Index()
 
 data class Session(val userId: String)
 
-class App(config: ApplicationConfig) : Application(config) {
+class App(environment: ApplicationEnvironment) : Application(environment) {
     init {
         install(CallLogging)
         install(Locations)

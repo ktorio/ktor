@@ -2,6 +2,7 @@ package org.jetbrains.ktor.tests
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.testing.*
 
@@ -20,11 +21,10 @@ fun withTestApplication(test: TestApplicationHost.() -> Unit) {
 }
 
 fun createTestHost(): TestApplicationHost {
-    val testConfig = ConfigFactory.parseMap(
-            mapOf(
-                    "ktor.deployment.environment" to "test",
-                    "ktor.application.class" to TestApplication::class.qualifiedName
-                 ))
-    val config = HoconApplicationConfig(testConfig, ApplicationConfig::class.java.classLoader, SLF4JApplicationLog("ktor.test"))
-    return TestApplicationHost(config)
+    val config = MapApplicationConfig(
+            "ktor.deployment.environment" to "test",
+            "ktor.application.class" to TestApplication::class.qualifiedName!!
+    )
+    val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, SLF4JApplicationLog("ktor.test"), config)
+    return TestApplicationHost(environment)
 }

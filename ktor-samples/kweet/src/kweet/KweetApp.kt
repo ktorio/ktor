@@ -49,7 +49,7 @@ class Logout()
 
 data class Session(val userId: String)
 
-class KweetApp(config: ApplicationConfig) : Application(config) {
+class KweetApp(environment: ApplicationEnvironment) : Application(environment) {
     val key = hex("6819b57a326945c1968f45236589")
     val dir = File("target/db")
     val pool = ComboPooledDataSource().apply {

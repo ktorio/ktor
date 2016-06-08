@@ -13,7 +13,7 @@ import java.util.*
 @location("/") class index()
 @location("/number") class number(val value: Int)
 
-class LocationsApplication(config: ApplicationConfig) : Application(config) {
+class LocationsApplication(environment: ApplicationEnvironment) : Application(environment) {
     init {
         install(CallLogging)
         install(Locations)

@@ -4,7 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 
-class TestableApplication(config: ApplicationConfig) : Application(config) {
+class TestableApplication(environment: ApplicationEnvironment) : Application(environment) {
     init {
         intercept(ApplicationCallPipeline.Call) { call ->
             if (call.request.uri == "/")

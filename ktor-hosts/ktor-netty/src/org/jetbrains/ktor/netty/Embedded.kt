@@ -9,15 +9,17 @@ fun embeddedNettyServer(port: Int = 80, host: String = "0.0.0.0", application: R
         this.port = port
         this.host = host
     }
-    val applicationConfig = applicationConfig {}
+    val applicationConfig = applicationEnvironment {
+        stage = ApplicationEnvironmentStage.Embedded
+    }
     return embeddedNettyServer(hostConfig, applicationConfig, application)
 }
 
-fun embeddedNettyServer(hostConfig: ApplicationHostConfig, config: ApplicationConfig, application: Routing.() -> Unit): ApplicationHost {
-    val applicationObject = object : Application(config) {
+fun embeddedNettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, application: Routing.() -> Unit): ApplicationHost {
+    val applicationObject = object : Application(environment) {
         init {
             routing(application)
         }
     }
-    return NettyApplicationHost(hostConfig, config, applicationObject)
+    return NettyApplicationHost(hostConfig, environment, applicationObject)
 }

@@ -19,15 +19,15 @@ fun <T : Any> Application.install(feature: ApplicationFeature<T>, configure: T.(
             try {
                 val installed = feature.install(this, configure)
                 attributes.put(feature.key, installed)
-                config.log.trace("`${feature.name}` feature was installed successfully.")
+                environment.log.trace("`${feature.name}` feature was installed successfully.")
                 return installed
             } catch(t: Throwable) {
-                config.log.error("`${feature.name}` feature failed to install.", t)
+                environment.log.error("`${feature.name}` feature failed to install.", t)
                 throw t
             }
         }
         feature -> {
-            config.log.warning("`${feature.name}` feature is already installed")
+            environment.log.warning("`${feature.name}` feature is already installed")
             return installedFeature
         }
         else -> {

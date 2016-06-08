@@ -9,16 +9,19 @@ fun embeddedJettyServer(port: Int = 80, host: String = "0.0.0.0", application: R
         this.port = port
         this.host = host
     }
-    val applicationConfig = applicationConfig {}
+
+    val applicationConfig = applicationEnvironment {
+        stage = ApplicationEnvironmentStage.Embedded
+    }
     return embeddedJettyServer(hostConfig, applicationConfig, application)
 }
 
-fun embeddedJettyServer(hostConfig: ApplicationHostConfig, config: ApplicationConfig, application: Routing.() -> Unit): ApplicationHost {
-    val applicationObject = object : Application(config) {
+fun embeddedJettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, application: Routing.() -> Unit): ApplicationHost {
+    val applicationObject = object : Application(environment) {
         init {
             routing(application)
         }
     }
-    return JettyApplicationHost(hostConfig, config, applicationObject)
+    return JettyApplicationHost(hostConfig, environment, applicationObject)
 }
 

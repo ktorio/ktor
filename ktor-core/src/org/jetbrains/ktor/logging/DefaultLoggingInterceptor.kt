@@ -22,13 +22,13 @@ object CallLogging : ApplicationFeature<Unit> {
     private fun Application.logCallFinished(call: ApplicationCall) {
         val status = call.response.status()
         when (status) {
-            HttpStatusCode.Found -> config.log.trace("$status: ${call.request.requestLine} -> ${call.response.headers[HttpHeaders.Location]}")
-            else -> config.log.trace("$status: ${call.request.requestLine}")
+            HttpStatusCode.Found -> environment.log.trace("$status: ${call.request.requestLine} -> ${call.response.headers[HttpHeaders.Location]}")
+            else -> environment.log.trace("$status: ${call.request.requestLine}")
         }
     }
 
     private fun Application.logCallFailed(call: ApplicationCall, e: Throwable) {
         val status = call.response.status()
-        config.log.error("$status: ${call.request.requestLine}", e)
+        environment.log.error("$status: ${call.request.requestLine}", e)
     }
 }

@@ -8,7 +8,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 
-class HelloApplication(config: ApplicationConfig) : Application(config) {
+class HelloApplication(environment: ApplicationEnvironment) : Application(environment) {
     init {
         install(CallLogging)
         routing {

@@ -2,11 +2,12 @@ package org.jetbrains.ktor.host
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.logging.*
 import java.io.*
 import java.net.*
 
-fun commandLineConfig(args: Array<String>): Pair<ApplicationHostConfig, ApplicationConfig> {
+fun commandLineConfig(args: Array<String>): Pair<ApplicationHostConfig, ApplicationEnvironment> {
     val argsMap = args.mapNotNull { it.splitPair('=') }.toMap()
 
     val jar = argsMap["-jar"]?.let { File(it).toURI().toURL() }
@@ -19,9 +20,9 @@ fun commandLineConfig(args: Array<String>): Pair<ApplicationHostConfig, Applicat
 
     val applicationId = combinedConfig.tryGetString(applicationIdPath) ?: "Application"
     val log = SLF4JApplicationLog(applicationId)
-    val classLoader = jar?.let { URLClassLoader(arrayOf(jar), ApplicationConfig::class.java.classLoader) }
-            ?: ApplicationConfig::class.java.classLoader
-    val appConfig = HoconApplicationConfig(combinedConfig, classLoader, log)
+    val classLoader = jar?.let { URLClassLoader(arrayOf(jar), ApplicationEnvironment::class.java.classLoader) }
+            ?: ApplicationEnvironment::class.java.classLoader
+    val appConfig = HoconApplicationConfig(combinedConfig)
     log.info(combinedConfig.getObject("ktor").render())
 
     val hostConfig = applicationHostConfig {
@@ -33,8 +34,10 @@ fun commandLineConfig(args: Array<String>): Pair<ApplicationHostConfig, Applicat
         }
     }
 
-    return hostConfig to appConfig
+    return hostConfig to BasicApplicationEnvironment(classLoader, log, appConfig)
 }
+
+private fun Config.tryGetString(path: String): String? = if (hasPath(path)) getString(path) else null
 
 private fun String.splitPair(ch: Char): Pair<String, String>? = indexOf(ch).let { idx ->
     when (idx) {

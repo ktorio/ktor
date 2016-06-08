@@ -12,17 +12,17 @@ import java.util.*
 /**
  * Implements [ApplicationLifecycle] by loading an [Application] from a folder or jar.
  *
- * When [ApplicationConfig.environment] is "development", it watches changes in folder/jar and implements hot reloading
+ * When [ApplicationEnvironment.stage] is "development", it watches changes in folder/jar and implements hot reloading
  */
-public class ApplicationLoader(val config: ApplicationConfig) : ApplicationLifecycle {
+public class ApplicationLoader(val environment: ApplicationEnvironment) : ApplicationLifecycle {
     private var _applicationInstance: Application? = null
     private val applicationInstanceLock = Object()
     private val packageWatchKeys = ArrayList<WatchKey>()
-    private val log = config.log.fork("Loader")
-    private val applicationClassName: String = config.getString("ktor.application.class")
-    private val watchPatterns: List<String> = config.getStringListOrEmpty("ktor.application.watch")
+    private val log = environment.log.fork("Loader")
+    private val applicationClassName: String = environment.config.property("ktor.application.class").getString()
+    private val watchPatterns: List<String> = environment.config.propertyOrNull("ktor.application.watch")?.getList() ?: listOf()
 
-    private fun ApplicationConfig.isDevelopment(): Boolean = environment == "development"
+    private fun ApplicationEnvironment.isDevelopment(): Boolean = stage == ApplicationEnvironmentStage.Development
 
     init {
         application // eagerly create application
@@ -31,7 +31,7 @@ public class ApplicationLoader(val config: ApplicationConfig) : ApplicationLifec
     @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
     public override val application: Application
         get() = synchronized(applicationInstanceLock) {
-            if (config.isDevelopment()) {
+            if (environment.isDevelopment()) {
                 val changes = packageWatchKeys.flatMap { it.pollEvents() }
                 if (changes.size > 0) {
                     log.info("Changes in application detected.")
@@ -71,14 +71,14 @@ public class ApplicationLoader(val config: ApplicationConfig) : ApplicationLifec
     }
 
     fun createApplication(): Application {
-        val classLoader = if (config.isDevelopment()) {
-            val allUrls = config.classLoader.allURLs()
+        val classLoader = if (environment.isDevelopment()) {
+            val allUrls = environment.classLoader.allURLs()
             val watchPatterns = watchPatterns
             val watchUrls = allUrls.filter { url -> watchPatterns.any { pattern -> url.toString().contains(pattern) } }
             watchUrls(watchUrls)
-            OverridingClassLoader(watchUrls, config.classLoader)
+            OverridingClassLoader(watchUrls, environment.classLoader)
         } else
-            config.classLoader
+            environment.classLoader
 
         val currentThread = Thread.currentThread()
         val oldThreadClassLoader = currentThread.contextClassLoader
@@ -87,8 +87,8 @@ public class ApplicationLoader(val config: ApplicationConfig) : ApplicationLifec
             val applicationClass = classLoader.loadClass(applicationClassName)
                     ?: throw RuntimeException("Application class $applicationClassName cannot be loaded")
             log.debug("Application class: $applicationClass in ${applicationClass.classLoader}")
-            val cons = applicationClass.getConstructor(ApplicationConfig::class.java)
-            val application = cons.newInstance(config)
+            val cons = applicationClass.getConstructor(ApplicationEnvironment::class.java)
+            val application = cons.newInstance(environment)
             if (application !is Application)
                 throw RuntimeException("Application class ${applicationClassName} should inherit from ${Application::class}")
             return application

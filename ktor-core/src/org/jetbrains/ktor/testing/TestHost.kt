@@ -2,16 +2,15 @@ package org.jetbrains.ktor.testing
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.nio.*
-import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.io.*
-import java.util.*
 import java.util.concurrent.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
@@ -20,8 +19,8 @@ inline fun <reified T : Application> withApplication(noinline test: TestApplicat
     withApplication(T::class, test)
 }
 
-fun withApplication(config: ApplicationConfig, test: TestApplicationHost.() -> Unit) {
-    val host = TestApplicationHost(config)
+fun withApplication(environment: ApplicationEnvironment, test: TestApplicationHost.() -> Unit) {
+    val host = TestApplicationHost(environment)
     try {
         host.test()
     } finally {
@@ -30,17 +29,16 @@ fun withApplication(config: ApplicationConfig, test: TestApplicationHost.() -> U
 }
 
 fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() -> Unit) {
-    val testConfig = ConfigFactory.parseMap(
-            mapOf(
-                    "ktor.deployment.environment" to "test",
-                    "ktor.application.class" to applicationClass.jvmName
-            ))
-    val config = HoconApplicationConfig(testConfig, ApplicationConfig::class.java.classLoader, SLF4JApplicationLog("ktor.test"))
-    withApplication(config, test)
+    val config = MapApplicationConfig(
+            "ktor.deployment.environment" to "test",
+            "ktor.application.class" to applicationClass.jvmName
+    )
+    val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, SLF4JApplicationLog("ktor.test"), config)
+    withApplication(environment, test)
 }
 
-class TestApplicationHost(val applicationConfig: ApplicationConfig) {
-    val application: Application = ApplicationLoader(applicationConfig).application
+class TestApplicationHost(val environment: ApplicationEnvironment) {
+    val application: Application = ApplicationLoader(environment).application
     val pipeline = ApplicationCallPipeline()
     var exception : Throwable? = null
     val executor = Executors.newCachedThreadPool()
@@ -234,4 +232,4 @@ class TestApplicationResponse() : BaseApplicationResponse() {
     }
 }
 
-class TestApplication(config: ApplicationConfig) : Application(config)
+class TestApplication(environment: ApplicationEnvironment) : Application(environment)

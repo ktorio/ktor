@@ -9,7 +9,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 
-class FormPostApplication(config: ApplicationConfig) : Application(config) {
+class FormPostApplication(environment: ApplicationEnvironment) : Application(environment) {
     init {
         install(CallLogging)
         routing {

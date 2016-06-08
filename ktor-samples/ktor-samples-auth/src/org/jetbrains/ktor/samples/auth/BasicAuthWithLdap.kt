@@ -11,7 +11,7 @@ import org.jetbrains.ktor.routing.*
 
 @location("/files") class Files()
 
-class BasicAuthWithLdapApplication(config: ApplicationConfig) : Application(config) {
+class BasicAuthWithLdapApplication(environment: ApplicationEnvironment) : Application(environment) {
     init {
         install(CallLogging)
         install(Locations)

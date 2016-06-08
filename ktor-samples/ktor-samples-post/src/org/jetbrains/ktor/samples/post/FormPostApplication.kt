@@ -12,7 +12,7 @@ import org.jetbrains.ktor.routing.*
 @location("/") class index()
 @location("/form") class post()
 
-class FormPostApplication(config: ApplicationConfig) : Application(config) {
+class FormPostApplication(environment: ApplicationEnvironment) : Application(environment) {
     init {
         install(CallLogging)
         install(Locations)

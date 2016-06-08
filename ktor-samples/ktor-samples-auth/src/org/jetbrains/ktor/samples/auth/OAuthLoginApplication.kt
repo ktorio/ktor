@@ -81,7 +81,7 @@ val loginProviders = listOf(
         )
 ).associateBy { it.name }
 
-class OAuthLoginApplication(config: ApplicationConfig) : Application(config) {
+class OAuthLoginApplication(environment: ApplicationEnvironment) : Application(environment) {
     val exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4)
 
     init {

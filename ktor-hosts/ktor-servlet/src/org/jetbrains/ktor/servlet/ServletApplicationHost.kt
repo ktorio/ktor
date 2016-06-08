@@ -2,6 +2,7 @@ package org.jetbrains.ktor.servlet
 
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.pipeline.*
@@ -28,8 +29,9 @@ open class ServletApplicationHost() : HttpServlet() {
             config
 
         val applicationLog = SLF4JApplicationLog("ktor.application")
-        val applicationConfig = HoconApplicationConfig(combinedConfig, servletContext.classLoader, applicationLog)
-        ApplicationLoader(applicationConfig)
+        val applicationConfig = HoconApplicationConfig(combinedConfig)
+        val applicationEnvironment = BasicApplicationEnvironment(servletContext.classLoader, applicationLog, applicationConfig)
+        ApplicationLoader(applicationEnvironment)
     }
 
     val application: Application get() = loader.application
@@ -71,7 +73,7 @@ open class ServletApplicationHost() : HttpServlet() {
                 else -> {}
             }
         } catch (ex: Throwable) {
-            application.config.log.error("ServletApplicationHost cannot service the request", ex)
+            application.environment.log.error("ServletApplicationHost cannot service the request", ex)
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.message)
         }
     }

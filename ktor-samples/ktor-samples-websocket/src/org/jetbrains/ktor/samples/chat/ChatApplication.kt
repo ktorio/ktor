@@ -10,7 +10,7 @@ import org.jetbrains.ktor.util.*
 import org.jetbrains.ktor.websocket.*
 import java.time.*
 
-class ChatApplication(config: ApplicationConfig) : Application(config) {
+class ChatApplication(environment: ApplicationEnvironment) : Application(environment) {
     val server = ChatServer()
 
     init {

@@ -1,8 +1,8 @@
 package org.jetbrains.ktor.tests.auth
 
-import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
+import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
@@ -22,19 +22,13 @@ class UserHashedTableAuthTest {
 
     @Test
     fun testConfigParse() {
-        testSingle(UserHashedTableAuth(ConfigFactory.parseString(
-                """
-                auth {
-                    hashAlgorithm = "SHA-256",
-                    salt = "ktor",
-                    users = [{
-                        name = "test",
-                        hash = "VltM4nfheqcJSyH887H+4NEOm2tDuKCl83p5axYXlF0="
-                    }
-                    ]
-                }
-                """
-        ).getConfig("auth")))
+        val mapConfig = MapApplicationConfig()
+        mapConfig.put("auth.hashAlgorithm", "SHA-256")
+        mapConfig.put("auth.salt", "ktor")
+        mapConfig.put("auth.users.size", "1")
+        mapConfig.put("auth.users0.name", "test")
+        mapConfig.put("auth.users0.hash", "VltM4nfheqcJSyH887H+4NEOm2tDuKCl83p5axYXlF0=")
+        testSingle(UserHashedTableAuth(mapConfig.config("auth")))
     }
 
     fun testSingle(hashedUserTable: UserHashedTableAuth) {

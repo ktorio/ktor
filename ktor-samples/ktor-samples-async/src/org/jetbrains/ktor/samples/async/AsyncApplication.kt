@@ -11,7 +11,7 @@ import org.jetbrains.ktor.routing.*
 import java.util.*
 import java.util.concurrent.*
 
-class AsyncApplication(config: ApplicationConfig) : Application(config) {
+class AsyncApplication(environment: ApplicationEnvironment) : Application(environment) {
     val executor: ScheduledExecutorService by lazy { Executors.newScheduledThreadPool(4) }
 
     init {

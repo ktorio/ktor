@@ -1,8 +1,6 @@
 package org.jetbrains.ktor.auth
 
-import com.typesafe.config.*
-import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.util.*
 import java.util.*
 
@@ -12,7 +10,9 @@ data class UserPasswordCredential(val name: String, val password: String) : Cred
 class UserHashedTableAuth(val digester: (String) -> ByteArray = getDigestFunction("SHA-256", "ktor"), val table: Map<String, ByteArray>) {
 
     // TODO: Use ApplicationConfig instead of HOCON
-    constructor(config: Config) : this(getDigestFunction(config.getString("hashAlgorithm"), config.getString("salt")), config.parseUsers())
+    constructor(config: ApplicationConfig) : this(getDigestFunction(
+            config.property("hashAlgorithm").getString(),
+            config.property("salt").getString()), config.parseUsers())
 
     init {
         if (table.isEmpty()) {
@@ -30,7 +30,7 @@ class UserHashedTableAuth(val digester: (String) -> ByteArray = getDigestFunctio
     }
 }
 
-private fun Config.parseUsers(name: String = "users") =
-        getConfigList(name)
-                .map { it.getString("name")!! to decodeBase64(it.getString("hash")) }
+private fun ApplicationConfig.parseUsers(name: String = "users") =
+        configList(name)
+                .map { it.property("name").getString() to decodeBase64(it.property("hash").getString()) }
                 .toMap()

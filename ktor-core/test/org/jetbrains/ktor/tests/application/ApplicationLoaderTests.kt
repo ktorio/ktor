@@ -1,32 +1,30 @@
 package org.jetbrains.ktor.tests.application
 
-import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.logging.*
 import org.junit.*
 import kotlin.test.*
 
 class ApplicationLoaderTests {
 
     @Test fun `invalid class name should throw`() {
-        val testConfig = ConfigFactory.parseMap(
-                mapOf(
-                        "ktor.deployment.environment" to "test",
-                        "ktor.application.class" to "NonExistingApplicationName"
-                     ))
-        val config = HoconApplicationConfig(testConfig, ApplicationConfig::class.java.classLoader)
-        assertFailsWith(ClassNotFoundException::class) { ApplicationLoader(config).application }
+        val config = MapApplicationConfig(
+                "ktor.deployment.environment" to "test",
+                "ktor.application.class" to "NonExistingApplicationName"
+        )
+        val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
+        assertFailsWith(ClassNotFoundException::class) { ApplicationLoader(environment).application }
     }
 
     @Test fun `valid class name should create application`() {
-        val testConfig = ConfigFactory.parseMap(
-                mapOf(
-                        "ktor.deployment.environment" to "test",
-                        "ktor.application.class" to "org.jetbrains.ktor.testing.TestApplication"
-                     ))
-
-        val config = HoconApplicationConfig(testConfig, ApplicationConfig::class.java.classLoader)
-        val application = ApplicationLoader(config).application
+        val config = MapApplicationConfig(
+                "ktor.deployment.environment" to "test",
+                "ktor.application.class" to "org.jetbrains.ktor.testing.TestApplication"
+        )
+        val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
+        val application = ApplicationLoader(environment).application
         assertNotNull(application)
     }
 }

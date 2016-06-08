@@ -7,14 +7,14 @@ import org.jetbrains.ktor.util.*
 /**
  * Represents configured and running web application, capable of handling requests
  */
-open class Application(val config: ApplicationConfig) : ApplicationCallPipeline() {
+open class Application(val environment: ApplicationEnvironment) : ApplicationCallPipeline() {
     /**
      * Provides common place to store application-wide attributes
      */
     val attributes = Attributes()
 
     /**
-     * Called by host when Application is terminated
+     * Called by host when [Application] is terminated
      */
     open fun dispose() {
     }

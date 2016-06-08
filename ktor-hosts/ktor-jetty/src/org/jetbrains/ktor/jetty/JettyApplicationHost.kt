@@ -16,16 +16,16 @@ import javax.servlet.http.*
  * [ApplicationHost] implementation for running standalone Jetty Host
  */
 class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
-                           val config: ApplicationConfig,
+                           val environment: ApplicationEnvironment,
                            val applicationLifecycle: ApplicationLifecycle) : ApplicationHost {
 
     private val application: Application get() = applicationLifecycle.application
 
-    constructor(hostConfig: ApplicationHostConfig, config: ApplicationConfig)
-    : this(hostConfig, config, ApplicationLoader(config))
+    constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
+    : this(hostConfig, environment, ApplicationLoader(environment))
 
-    constructor(hostConfig: ApplicationHostConfig, config: ApplicationConfig, application: Application)
-    : this(hostConfig, config, object : ApplicationLifecycle {
+    constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, application: Application)
+    : this(hostConfig, environment, object : ApplicationLifecycle {
         override val application: Application = application
         override fun dispose() {
         }
@@ -94,7 +94,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     else -> {}
                 }
             } catch(ex: Throwable) {
-                config.log.error("Application ${application.javaClass} cannot fulfill the request", ex);
+                environment.log.error("Application ${application.javaClass} cannot fulfill the request", ex);
                 call.executionMachine.runBlockWithResult {
                     call.respond(HttpStatusCode.InternalServerError)
                 }
@@ -103,14 +103,14 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     override fun start(wait: Boolean) {
-        config.log.info("Starting server...")
+        environment.log.info("Starting server...")
 
         server.start()
-        config.log.info("Server running.")
+        environment.log.info("Server running.")
         if (wait) {
             server.join()
             applicationLifecycle.dispose()
-            config.log.info("Server stopped.")
+            environment.log.info("Server stopped.")
         }
     }
 
@@ -119,6 +119,6 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         server.stop()
         applicationLifecycle.dispose()
         executor.shutdownNow()
-        config.log.info("Server stopped.")
+        environment.log.info("Server stopped.")
     }
 }
