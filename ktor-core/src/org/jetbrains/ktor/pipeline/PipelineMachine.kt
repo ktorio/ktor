@@ -41,12 +41,26 @@ class PipelineMachine() {
                 }
                 PipelineState.Failed -> {
                     if (blockIndex > 0) {
-                        val item = execution.blockStack.removeAt(blockIndex - 1)
+                        val failureHandlerIndex = blockIndex - 1
+                        val item = execution.blockStack.removeAt(failureHandlerIndex)
                         val handlers = item.failures
                         while (handlers.size > 0) {
                             val handler = handlers.removeAt(handlers.lastIndex)
                             try {
                                 handler(execution.exception!!)
+                            } catch (f: PipelineControlFlow) {
+                                if (handlers.isNotEmpty()) {
+                                    if (failureHandlerIndex < execution.blockStack.size) {
+                                        execution.blockStack.add(failureHandlerIndex, item)
+                                    } else {
+                                        execution.blockStack.add(item)
+                                    }
+                                }
+
+                                when (f) {
+                                    is PipelineContinue -> continue@loop
+                                    else -> throw f
+                                }
                             } catch(t: Throwable) {
                                 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
                                 (execution.exception as java.lang.Throwable).addSuppressed(t)
@@ -58,12 +72,26 @@ class PipelineMachine() {
                 }
                 PipelineState.Succeeded -> {
                     if (blockIndex > 0) {
-                        val item = execution.blockStack.removeAt(blockIndex - 1)
+                        val successIndex = blockIndex - 1
+                        val item = execution.blockStack.removeAt(successIndex)
                         val handlers = item.successes
                         while (handlers.size > 0) {
                             val handler = handlers.removeAt(handlers.lastIndex)
                             try {
                                 handler()
+                            } catch (f: PipelineControlFlow) {
+                                if (handlers.isNotEmpty()) {
+                                    if (successIndex < execution.blockStack.size) {
+                                        execution.blockStack.add(successIndex, item)
+                                    } else {
+                                        execution.blockStack.add(item)
+                                    }
+                                }
+
+                                when (f) {
+                                    is PipelineContinue -> continue@loop
+                                    else -> throw f
+                                }
                             } catch(exception: Throwable) {
                                 registerFail(exception)
                                 continue@loop

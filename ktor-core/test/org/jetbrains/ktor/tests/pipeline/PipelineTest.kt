@@ -26,8 +26,8 @@ class PipelineTest {
     }
 
 
-    fun createPipeline() : Pipeline<String> {
-        return Pipeline<String>(callPhase)
+    fun createPipeline(): Pipeline<String> {
+        return Pipeline(callPhase)
     }
 
     @Test
@@ -440,5 +440,125 @@ class PipelineTest {
         pipeline.phases.add(before)
         pipeline.phases.insertAfter(before, after)
         checkBeforeAfterPipeline(after, before, pipeline)
+    }
+
+    @Test
+    fun executeDuringFailRollup() {
+        val pipeline = createPipeline()
+        val events = mutableListOf<String>()
+        val machine = PipelineMachine()
+
+        pipeline.intercept { value ->
+            onFail { cause ->
+                events.add("pre-failed $value")
+            }
+            onSuccess {
+                events.add("pre-success $value")
+            }
+        }
+
+        pipeline.intercept { value ->
+            events.add("handle $value")
+
+            onFail {
+                events.add("failed2 $value")
+            }
+            onFail { cause ->
+                events.add("failed $value")
+                machine.execute("B", pipeline)
+            }
+            onSuccess {
+                events.add("success $value")
+            }
+        }
+
+        pipeline.intercept { value ->
+            if (value == "A") {
+                throw IllegalStateException("expected")
+            }
+        }
+
+        machine.runBlockWithResult {
+            machine.execute("A", pipeline)
+        }
+
+        assertEquals(listOf("handle A", "failed A", "handle B", "success B", "pre-success B", "failed2 A", "pre-failed A"), events)
+    }
+
+    @Test
+    fun executeDuringSuccessRollup() {
+        val pipeline = createPipeline()
+        val events = mutableListOf<String>()
+        val machine = PipelineMachine()
+
+        pipeline.intercept { value ->
+            onFail { cause ->
+                events.add("pre-failed $value")
+            }
+            onSuccess {
+                events.add("pre-success $value")
+            }
+        }
+
+        pipeline.intercept { value ->
+            events.add("handle $value")
+
+            onFail { cause ->
+                events.add("failed $value")
+            }
+            onSuccess {
+                events.add("success $value")
+                if (value == "A") {
+                    machine.execute("B", pipeline)
+                }
+            }
+            onSuccess {
+                events.add("success2 $value")
+            }
+        }
+
+        machine.runBlockWithResult {
+            machine.execute("A", pipeline)
+        }
+
+        assertEquals(listOf("handle A", "success2 A", "success A", "handle B", "success2 B", "success B", "pre-success B", "pre-success A"), events)
+    }
+
+    @Test
+    fun executeFailingDuringSuccessRollup() {
+        val pipeline = createPipeline()
+        val events = mutableListOf<String>()
+        val machine = PipelineMachine()
+
+        pipeline.intercept { value ->
+            onFail { cause ->
+                events.add("pre-failed $value")
+            }
+            onSuccess {
+                events.add("pre-success $value")
+            }
+        }
+
+        pipeline.intercept { value ->
+            events.add("handle $value")
+
+            onFail { cause ->
+                events.add("failed $value")
+            }
+            onSuccess {
+                events.add("success $value")
+                machine.execute("B", pipeline)
+            }
+
+            if (value == "B") {
+                throw IllegalStateException("expected")
+            }
+        }
+
+        machine.runBlockWithResult {
+            machine.execute("A", pipeline)
+        }
+
+        assertEquals(listOf("handle A", "success A", "handle B", "failed B", "pre-failed B", "pre-failed A"), events)
     }
 }
