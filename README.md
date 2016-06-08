@@ -24,7 +24,7 @@ Add a dependency:
 
 ```
 <dependency>
-    <groupId>org.jetbrains</groupId>
+    <groupId>org.jetbrains.ktor</groupId>
     <artifactId>ktor-core</artifactId>
     <version>LATEST</version>
 </dependency>
