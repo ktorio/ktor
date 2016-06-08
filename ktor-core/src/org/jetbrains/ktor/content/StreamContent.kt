@@ -39,10 +39,10 @@ sealed class FinalContent {
         get() = null
 
     abstract val headers: ValuesMap
-    abstract fun startContent(call: ApplicationCall, context: PipelineContext<Any>)
+    abstract fun startContent(call: ApplicationCall, context: PipelineContext<*>)
 
     abstract class NoContent : FinalContent() {
-        override fun startContent(call: ApplicationCall, context: PipelineContext<Any>) {
+        override fun startContent(call: ApplicationCall, context: PipelineContext<*>) {
             call.close()
             context.finishAll()
         }
@@ -51,7 +51,7 @@ sealed class FinalContent {
     abstract class ChannelContent : FinalContent() {
         abstract fun channel(): AsyncReadChannel
 
-        override fun startContent(call: ApplicationCall, context: PipelineContext<Any>) {
+        override fun startContent(call: ApplicationCall, context: PipelineContext<*>) {
             context.sendAsyncChannel(call, channel())
         }
     }
@@ -59,7 +59,7 @@ sealed class FinalContent {
     abstract class StreamContentProvider : FinalContent() {
         abstract fun stream(): InputStream
 
-        override fun startContent(call: ApplicationCall, context: PipelineContext<Any>) {
+        override fun startContent(call: ApplicationCall, context: PipelineContext<*>) {
             context.sendStream(call, stream())
         }
     }
@@ -67,15 +67,15 @@ sealed class FinalContent {
     abstract class StreamConsumer : FinalContent() {
         abstract fun stream(out : OutputStream): Unit
 
-        override fun startContent(call: ApplicationCall, context: PipelineContext<Any>): Nothing {
+        override fun startContent(call: ApplicationCall, context: PipelineContext<*>): Nothing {
             throw UnsupportedOperationException("It should never pass here: should be resend in BaseApplicationCall instead")
         }
     }
 
     abstract class ProtocolUpgrade() : FinalContent() {
-        abstract fun upgrade(call: ApplicationCall, context: PipelineContext<Any>, input: AsyncReadChannel, output: AsyncWriteChannel): Closeable
+        abstract fun upgrade(call: ApplicationCall, context: PipelineContext<*>, input: AsyncReadChannel, output: AsyncWriteChannel): Closeable
 
-        override fun startContent(call: ApplicationCall, context: PipelineContext<Any>): Nothing {
+        override fun startContent(call: ApplicationCall, context: PipelineContext<*>): Nothing {
             throw UnsupportedOperationException("It should never pass here: should be container-specific and handled in contained-specific ApplicationCall implementation")
         }
     }
@@ -124,7 +124,7 @@ private fun PipelineContext<*>.handleThrowable(throwable: Throwable?) {
     }
 }
 
-private fun PipelineContext<Any>.sendAsyncChannel(call: ApplicationCall, channel: AsyncReadChannel): Nothing {
+private fun PipelineContext<*>.sendAsyncChannel(call: ApplicationCall, channel: AsyncReadChannel): Nothing {
     val future = createMachineCompletableFuture()
 
     closeAtEnd(channel, call) // TODO closeAtEnd(call) should be done globally at call start
@@ -132,7 +132,7 @@ private fun PipelineContext<Any>.sendAsyncChannel(call: ApplicationCall, channel
     pause()
 }
 
-private fun PipelineContext<Any>.sendStream(call: ApplicationCall, stream: InputStream): Nothing {
+private fun PipelineContext<*>.sendStream(call: ApplicationCall, stream: InputStream): Nothing {
     val future = createMachineCompletableFuture()
 
     closeAtEnd(stream, call) // TODO closeAtEnd(call) should be done globally at call start

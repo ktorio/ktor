@@ -29,10 +29,7 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
                     call.attributes.put(CompressionAttributes.preventCompression, true)
                     call.interceptRespond(RespondPipeline.Before) { obj ->
                         if (obj is FinalContent.ChannelContent && obj !is RangeChannelProvider) {
-                            @Suppress("UNCHECKED_CAST")
-                            val newContext = this as PipelineContext<FinalContent.ChannelContent>
-
-                            obj.contentLength()?.let { length -> newContext.tryProcessRange(call, rangeSpecifier, length, config) }
+                            obj.contentLength()?.let { length -> tryProcessRange(obj, call, rangeSpecifier, length, config) }
                         }
                     }
                 } else {
@@ -50,16 +47,16 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
         return config
     }
 
-    private fun PipelineContext<FinalContent.ChannelContent>.tryProcessRange(call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long, config: Configuration): Unit {
-        if (checkIfRangeHeader(call)) {
-            processRange(call, rangesSpecifier, length, config)
+    private fun PipelineContext<*>.tryProcessRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long, config: Configuration): Unit {
+        if (checkIfRangeHeader(obj, call)) {
+            processRange(obj, call, rangesSpecifier, length, config)
         } else {
-            call.respond(RangeChannelProvider.ByPass(subject))
+            call.respond(RangeChannelProvider.ByPass(obj))
         }
     }
 
-    private fun PipelineContext<FinalContent.ChannelContent>.checkIfRangeHeader(call: ApplicationCall): Boolean {
-        val versions = subject.lastModifiedAndEtagVersions()
+    private fun checkIfRangeHeader(obj: FinalContent.ChannelContent, call: ApplicationCall): Boolean {
+        val versions = obj.lastModifiedAndEtagVersions()
         val ifRange = call.request.header(HttpHeaders.IfRange)
 
         val unchanged = ifRange == null || versions.all { version ->
@@ -74,7 +71,7 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
     }
 
 
-    private fun PipelineContext<FinalContent.ChannelContent>.processRange(call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long, config: Configuration): Nothing {
+    private fun PipelineContext<*>.processRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long, config: Configuration): Nothing {
         require(length >= 0L)
 
         val merged = rangesSpecifier.merge(length, config.maxRangeCount)
@@ -83,33 +80,33 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
             call.respond(HttpStatusCode.RequestedRangeNotSatisfiable.description("Couldn't satisfy range request $rangesSpecifier: it should comply with the restriction [0; $length)"))
         }
 
-        val channel = subject.channel()
+        val channel = obj.channel()
         onFail { channel.close() }
         onSuccess { channel.close() }
 
         if (merged.size != 1 && !merged.isAscending() && channel !is SeekableAsyncChannel) {
             // merge into single range for non-seekable channel
-            processSingleRange(call, channel, rangesSpecifier.mergeToSingle(length)!!, length)
+            processSingleRange(obj, call, channel, rangesSpecifier.mergeToSingle(length)!!, length)
         }
 
         if (merged.size == 1) {
-            processSingleRange(call, channel, merged.single(), length)
+            processSingleRange(obj, call, channel, merged.single(), length)
         }
 
-        processMultiRange(call, channel, merged, length)
+        processMultiRange(obj, call, channel, merged, length)
     }
 
-    private fun PipelineContext<FinalContent.ChannelContent>.processSingleRange(call: ApplicationCall, channel: AsyncReadChannel, range: LongRange, length: Long): Nothing {
-        call.respond(RangeChannelProvider.Single(call.isGet(), subject.headers, channel, range, length))
+    private fun processSingleRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: AsyncReadChannel, range: LongRange, length: Long): Nothing {
+        call.respond(RangeChannelProvider.Single(call.isGet(), obj.headers, channel, range, length))
     }
 
-    private fun PipelineContext<FinalContent.ChannelContent>.processMultiRange(call: ApplicationCall, channel: AsyncReadChannel, ranges: List<LongRange>, length: Long): Nothing {
+    private fun processMultiRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: AsyncReadChannel, ranges: List<LongRange>, length: Long): Nothing {
         val boundary = "ktor-boundary-" + nextNonce()
 
         call.attributes.put(CompressionAttributes.preventCompression, true) // multirange with compression is not supported yet
 
-        val contentType = subject.contentType() ?: ContentType.Application.OctetStream
-        call.respond(RangeChannelProvider.Multiple(call.isGet(), subject.headers, channel, ranges, length, boundary, contentType))
+        val contentType = obj.contentType() ?: ContentType.Application.OctetStream
+        call.respond(RangeChannelProvider.Multiple(call.isGet(), obj.headers, channel, ranges, length, boundary, contentType))
     }
 
     private sealed class RangeChannelProvider : FinalContent.ChannelContent() {

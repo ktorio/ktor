@@ -12,10 +12,14 @@ open class ApplicationCallPipeline : Pipeline<ApplicationCall>(Infrastructure, C
     }
 }
 
-open class RespondPipeline : Pipeline<Any>(Before, Respond, After) {
+class ResponsePipelineState(var obj: Any)
+
+open class RespondPipeline : Pipeline<ResponsePipelineState>(Before, Transform, After) {
     companion object RespondPhase {
         val Before = PipelinePhase("Before")
-        val Respond = PipelinePhase("Respond")
+
+        val Transform = PipelinePhase("Transform")
+
         val After = PipelinePhase("After")
     }
 }
