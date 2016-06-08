@@ -63,28 +63,36 @@ data class UriPartConstantRouteSelector(val name: String) : RouteSelector {
     override fun toString(): String = "$name"
 }
 
-data class UriPartParameterRouteSelector(val name: String) : RouteSelector {
+data class UriPartParameterRouteSelector(val name: String, val prefix: String = "", val suffix: String = "") : RouteSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         if (index < context.path.size) {
             val part = context.path[index]
-            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, valuesOf(name to listOf(part)), segmentIncrement = 1)
+            if (part.startsWith(prefix) && part.endsWith(suffix)) {
+                val value = part.drop(prefix.length).dropLast(suffix.length)
+                val values = valuesOf(name to listOf(value))
+                return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, values, segmentIncrement = 1)
+            }
         }
         return RouteSelectorEvaluation.Failed
     }
 
-    override fun toString(): String = "{$name}"
+    override fun toString(): String = "$prefix{$name}$suffix"
 }
 
-data class UriPartOptionalParameterRouteSelector(val name: String) : RouteSelector {
+data class UriPartOptionalParameterRouteSelector(val name: String, val prefix: String = "", val suffix: String = "") : RouteSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         if (index < context.path.size) {
             val part = context.path[index]
-            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, valuesOf(name to listOf(part)), segmentIncrement = 1)
+            if (part.startsWith(prefix) && part.endsWith(suffix)) {
+                val value = part.drop(prefix.length).dropLast(suffix.length)
+                val values = valuesOf(name to listOf(value))
+                return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, values, segmentIncrement = 1)
+            }
         }
         return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityMissing)
     }
 
-    override fun toString(): String = "{$name?}"
+    override fun toString(): String = "$prefix{$name?}$suffix"
 }
 
 object UriPartWildcardRouteSelector : RouteSelector {

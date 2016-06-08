@@ -49,6 +49,7 @@ class RoutingBuildTest {
             }
             itShouldHaveSpecificStructure(entry)
         }
+
         on("adding routing from string in separate blocks") {
             val entry = routing()
             entry.route("/foo") { }
@@ -64,6 +65,18 @@ class RoutingBuildTest {
             }
             it("should have second level child with name 'new'") {
                 assertEquals("new", (entry.children[0].children[0].selector as UriPartParameterRouteSelector).name)
+            }
+        }
+
+        on("creating route with surrounded parameter") {
+            val entry = routing()
+            entry.route("/foo/a{new}b") { }
+            it("should have second level child of type UriPartParameterRoutingSelector") {
+                val selector = entry.children[0].children[0].selector as? UriPartParameterRouteSelector
+                assertNotNull(selector)
+                assertEquals("new", selector?.name)
+                assertEquals("a", selector?.prefix)
+                assertEquals("b", selector?.suffix)
             }
         }
 

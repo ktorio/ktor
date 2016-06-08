@@ -108,6 +108,26 @@ class RoutingResolveTest {
         }
     }
 
+    @Test fun `routing foo with surrounded parameter`() {
+        val root = routing()
+        val paramEntry = root.select(UriPartConstantRouteSelector("foo"))
+                .select(UriPartParameterRouteSelector("param", "a", "b"))
+
+        on("resolving /foo/value") {
+            val resolveResult = context(root, "/foo/avalueb").resolve()
+
+            it("should successfully resolve") {
+                assertTrue(resolveResult.succeeded)
+            }
+            it("should resolve to paramEntry") {
+                assertEquals(paramEntry, resolveResult.entry)
+            }
+            it("should have parameter value equal to 'value'") {
+                assertEquals("value", resolveResult.values["param"])
+            }
+        }
+    }
+
     @Test fun `routing foo with multiply parameters`() {
         val root = routing()
         root.select(UriPartConstantRouteSelector("foo"))

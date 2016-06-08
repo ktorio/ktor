@@ -7,18 +7,10 @@ class RoutingPath private constructor(val parts: List<RoutingPathSegment>) {
         val root: RoutingPath = RoutingPath(listOf())
         fun parse(path: String): RoutingPath {
             if (path == "/") return root
-            val segments = path.splitToSequence("/").filter { it.length > 0 }.map {
+            val segments = path.splitToSequence("/").filter { it.length > 0 }.map { segment ->
                 when {
-                    it == "*" -> RoutingPathSegment("", RoutingPathSegmentKind.Constant, true)
-                    it.startsWith("{") && it.endsWith("}") -> {
-                        val signature = it.removeSurrounding("{", "}")
-                        when {
-                            signature.endsWith("?") -> RoutingPathSegment(signature.dropLast(1), RoutingPathSegmentKind.Parameter, true)
-                            signature.endsWith("...") -> RoutingPathSegment(signature.dropLast(3), RoutingPathSegmentKind.TailCard, true)
-                            else -> RoutingPathSegment(signature, RoutingPathSegmentKind.Parameter, false)
-                        }
-                    }
-                    else -> RoutingPathSegment(decodeURLPart(it), RoutingPathSegmentKind.Constant, false)
+                    segment.contains('{') && segment.contains('}') -> RoutingPathSegment(segment, RoutingPathSegmentKind.Parameter)
+                    else -> RoutingPathSegment(decodeURLPart(segment), RoutingPathSegmentKind.Constant)
                 }
             }
 
@@ -29,9 +21,9 @@ class RoutingPath private constructor(val parts: List<RoutingPathSegment>) {
     override fun toString(): String = parts.map { it.value }.joinToString("/")
 }
 
-data class RoutingPathSegment(val value: String, val kind: RoutingPathSegmentKind, val optional: Boolean)
+data class RoutingPathSegment(val value: String, val kind: RoutingPathSegmentKind)
 
 enum class RoutingPathSegmentKind {
-    Constant, Parameter, TailCard
+    Constant, Parameter
 }
 

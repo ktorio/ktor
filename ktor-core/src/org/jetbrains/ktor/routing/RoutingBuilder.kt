@@ -146,21 +146,44 @@ fun Route.options(body: PipelineContext<ApplicationCall>.(ApplicationCall) -> Un
 fun Route.createRoute(path: String): Route {
     val parts = RoutingPath.parse(path).parts
     var current: Route = this
-    for (part in parts) {
-        val selector = when (part.kind) {
-            RoutingPathSegmentKind.TailCard -> UriPartTailcardRouteSelector(part.value)
-            RoutingPathSegmentKind.Parameter -> when {
-                part.optional -> UriPartOptionalParameterRouteSelector(part.value)
-                else -> UriPartParameterRouteSelector(part.value)
-            }
-            RoutingPathSegmentKind.Constant ->
-                when {
-                    part.optional -> UriPartWildcardRouteSelector
-                    else -> UriPartConstantRouteSelector(part.value)
-                }
+    for ((value, kind) in parts) {
+        val selector = when (kind) {
+            RoutingPathSegmentKind.Parameter -> UriPartParameterBuilder.parse(value)
+            RoutingPathSegmentKind.Constant -> UriPartConstantBuilder.parse(value)
         }
         // there may already be entry with same selector, so join them
         current = current.select(selector)
     }
     return current
+}
+
+object UriPartParameterBuilder {
+    fun parse(value: String): RouteSelector {
+        val prefix = value.substringBefore('{', "")
+        val suffix = value.substringAfterLast('}', "")
+        val signature = value.substring(prefix.length + 1, value.length - suffix.length - 1)
+        return when {
+            signature.endsWith("?") -> UriPartOptionalParameterRouteSelector(signature.dropLast(1), prefix, suffix)
+            signature.endsWith("...") -> UriPartTailcardRouteSelector(signature.dropLast(3))
+            else -> UriPartParameterRouteSelector(signature, prefix, suffix)
+        }
+    }
+
+    fun parseName(value: String): String {
+        val prefix = value.substringBefore('{', "")
+        val suffix = value.substringAfterLast('}', "")
+        val signature = value.substring(prefix.length + 1, value.length - suffix.length - 1)
+        return when {
+            signature.endsWith("?") -> signature.dropLast(1)
+            signature.endsWith("...") -> signature.dropLast(3)
+            else -> signature
+        }
+    }
+}
+
+object UriPartConstantBuilder {
+    fun parse(value: String): RouteSelector = when (value) {
+        "*" -> UriPartWildcardRouteSelector
+        else -> UriPartConstantRouteSelector(value)
+    }
 }

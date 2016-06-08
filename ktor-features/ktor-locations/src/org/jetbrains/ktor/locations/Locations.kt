@@ -86,9 +86,10 @@ open public class Locations(val conversionService: ConversionService) {
                     throw InconsistentRoutingException("Nested location '$dataClass' should have parameter for parent location because of non-optional query parameters ${parent.queryParameters.filter { !it.isOptional }}")
             }
 
-            val pathParameterNames = RoutingPath.parse(path).parts.filter {
-                it.kind == RoutingPathSegmentKind.Parameter || it.kind == RoutingPathSegmentKind.TailCard
-            }.map { it.value }
+            val pathParameterNames = RoutingPath.parse(path).parts
+                    .filter { it.kind == RoutingPathSegmentKind.Parameter }
+                    .map { UriPartParameterBuilder.parseName(it.value) }
+
             val declaredParameterNames = declaredProperties.map { it.name }.toSet()
             val invalidParameters = pathParameterNames.filter { it !in declaredParameterNames }
             if (invalidParameters.any()) {
@@ -120,7 +121,7 @@ open public class Locations(val conversionService: ConversionService) {
         val substituteParts = RoutingPath.parse(info.path).parts.flatMap { it ->
             when (it.kind) {
                 RoutingPathSegmentKind.Constant -> listOf(it.value)
-                else -> propertyValue(location, it.value)
+                RoutingPathSegmentKind.Parameter -> propertyValue(location, UriPartParameterBuilder.parseName(it.value))
             }
         }
 

@@ -66,6 +66,26 @@ class RoutingProcessingTest {
 
     }
 
+    @Test fun `host with routing on GET user with surrounded parameter`() {
+        val testHost = createTestHost()
+        var username = ""
+        testHost.application.routing {
+            get("/user-{name}-get") {
+                username = call.parameters["name"] ?: ""
+            }
+        }
+        on("making get request to /user with query parameters") {
+            testHost.handleRequest {
+                uri = "/user-john-get"
+                method = HttpMethod.Get
+            }
+            it("should have extracted username") {
+                assertEquals("john", username)
+            }
+        }
+
+    }
+
     @Test fun `host with routing on GET -user-username with interceptors`() {
         val testHost = createTestHost()
 
