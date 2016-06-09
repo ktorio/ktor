@@ -22,6 +22,20 @@ class TransformTable {
 
     fun transform(obj: Any): Any = transformImpl(obj)
 
+    fun copy(): TransformTable {
+        val newInstance = TransformTable()
+        newInstance.root.leafs.addAll(root.leafs.map { it.copy() })
+        newInstance.root.leafs.forEach { newInstance.cacheChildren(it) }
+
+        return newInstance
+    }
+
+    private fun cacheChildren(node: Entry<*>) {
+        dfs(node) { it.leafs }.filter { !it.type.isInterface }.forEach {
+            cache.getOrPut(it.type) { ArrayList() }.add(it)
+        }
+    }
+
     private fun <T : Any> registerImpl(type: Class<T>, node: Entry<T>, handler: Handler<T>): Int {
         if (node.type === type) {
             node.handlers.add(handler)
@@ -30,7 +44,9 @@ class TransformTable {
             val installed = node.leafs.map { registerImpl(type, it, handler) }.sum()
             if (installed == 0) {
                 val entry = insertEntry(type, node)
-                cache.getOrPut(type) { ArrayList() }.add(entry)
+                if (!type.isInterface) {
+                    cache.getOrPut(type) { ArrayList() }.add(entry)
+                }
                 return registerImpl(type, entry, handler)
             }
 
@@ -40,20 +56,68 @@ class TransformTable {
         return 0
     }
 
-    private fun <T : Any> insertEntry(type: Class<T>, node: Entry<T>): Entry<T> {
-        val entry = Entry(type, node)
+    private fun <T : Any> insertEntry(type: Class<T>, parent: Entry<T>): Entry<T> {
+        val newTypeEntry = Entry(type, parent)
+        val parentType = parent.type
+        val superTypes = type.superTypes().takeLastWhile { it !== parentType }
 
-        for (leaf in node.leafs) {
-            if (type in leaf.type.superTypes()) {
-                node.leafs.remove(leaf)
-                leaf.parent = entry
-                entry.leafs.add(leaf)
-                break
+        for (leaf in parent.leafs) {
+            val leafSuperTypes = leaf.type.superTypes().takeLastWhile { it !== parentType }.dropWhile { it !== type }
+            var common: Class<*>? = null
+            for (idx in 0 .. Math.min(superTypes.size, leafSuperTypes.size) - 1) {
+                if (superTypes[idx] === leafSuperTypes[idx]) {
+                    common = superTypes[idx]
+                } else {
+                    break
+                }
+            }
+
+            if (common == type) {
+                parent.leafs.remove(leaf)
+                parent.leafs.add(newTypeEntry)
+                newTypeEntry.leafs.add(leaf)
+                leaf.parent = newTypeEntry
+
+                return newTypeEntry
+            } else if (common != null) {
+                @Suppress("UNCHECKED_CAST")
+                val nodeForCommon = Entry(common as Class<T>, parent)
+                parent.leafs.remove(leaf)
+                nodeForCommon.leafs.add(leaf)
+                leaf.parent = nodeForCommon
+
+                if (!common.isInterface) {
+                    cache.getOrPut(common) { ArrayList() }.add(nodeForCommon)
+                }
+
+                newTypeEntry.parent = nodeForCommon
+                newTypeEntry.leafs.add(leaf)
+                return newTypeEntry
             }
         }
 
-        node.leafs.add(entry)
-        return entry
+        newTypeEntry.leafs.addAll(findSubTypes(parent, type).mapNotNull { it.castOrNull(type)?.copy() })
+        newTypeEntry.leafs.forEach { cacheChildren(it) }
+        parent.leafs.add(newTypeEntry)
+
+        return newTypeEntry
+    }
+
+    private fun findSubTypes(node: Entry<*>, type: Class<*>): List<Entry<*>> = ArrayList<Entry<*>>().apply {
+        findSubTypes(mutableListOf(node), type, this)
+    }.distinctBy { it.type }
+
+    private fun findSubTypes(nodes: MutableList<Entry<*>>, type: Class<*>, good: MutableList<Entry<*>>) {
+        if (nodes.isEmpty()) return
+        val node = nodes.removeLast()
+
+        if (type.isAssignableFrom(node.type)) {
+            good.add(node)
+        } else {
+            nodes.addAll(node.leafs)
+        }
+
+        findSubTypes(nodes, type, good)
     }
 
     tailrec
@@ -132,26 +196,19 @@ class TransformTable {
         override fun toString() = "Entry(${type.name})"
     }
 
+    private fun <T : Any> Entry<T>.copy(): Entry<T> {
+        val newInstance = Entry(type, parent)
+        newInstance.handlers.addAll(handlers)
+        val newLeafs = leafs.map { it.copy() }
+        newLeafs.forEach { it.parent = newInstance }
+        newInstance.leafs.addAll(newLeafs)
+
+        return newInstance
+    }
+
     private class Handler<in T>(val predicate: (T) -> Boolean, val handler: (T) -> Any) {
         override fun toString() = handler.toString()
     }
 
-    private fun <T> Class<T>.superTypes(): Sequence<Class<*>> {
-        var current = listOf<Class<*>>(this)
-        val visited = HashSet<Class<*>>()
-
-        return generateSequence {
-            val next = current.filter { it !in visited }.map {
-                val a = it.interfaces.orEmpty().toList()
-                val b = it.superclass
-
-                if (b == null) a else a + b
-            }.flatMap { it }
-
-            visited.addAll(current)
-            current = next
-
-            if (next.isEmpty()) null else next
-        }.flatMap { it.asSequence() }
-    }
+    private fun <T> Class<T>.superTypes() = dfs(this)
 }

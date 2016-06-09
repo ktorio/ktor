@@ -3,6 +3,7 @@ package org.jetbrains.ktor.tests.transform
 import org.jetbrains.ktor.transform.*
 import org.junit.*
 import java.nio.*
+import java.util.*
 import kotlin.test.*
 
 class TransformTableTest {
@@ -121,4 +122,28 @@ class TransformTableTest {
         assertEquals(2, table.transform(0))
         assertEquals(0, table.transform(-1))
     }
+
+    @Test
+    fun testRhombus() {
+        val events = ArrayList<String>()
+
+        table.register<B> { events.add("B"); it }
+        table.register<I> { events.add("I"); it }
+        table.register<L> { events.add("L"); it }
+        table.register<R> { events.add("R"); it }
+
+        table.transform(BO)
+        assertEquals("BLRI", events.joinToString("").replace("RL", "LR"))
+
+        events.clear()
+        table.register<BO> { events.add("BO"); it }
+        table.transform(BO)
+        assertEquals("BOBLIBORI", events.joinToString("").replace("RL", "LR"))
+    }
+
+    interface I
+    interface L : I
+    interface R : I
+    interface B : L, R
+    object BO : B
 }
