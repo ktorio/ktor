@@ -3,10 +3,12 @@ package org.jetbrains.ktor.jetty
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.servlet.*
+import org.jetbrains.ktor.transform.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import javax.servlet.*
@@ -55,6 +57,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     init {
         application.setupDefaultHostPages()
+        application.install(TransformationSupport)
     }
 
     private inner class Handler : AbstractHandler() {

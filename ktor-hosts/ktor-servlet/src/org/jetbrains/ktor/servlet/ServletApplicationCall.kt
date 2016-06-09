@@ -13,7 +13,6 @@ class ServletApplicationCall(application: Application,
                              executor: Executor,
                              val onAsyncStartedUnderLock: () -> Unit) : BaseApplicationCall(application, executor) {
 
-    override val attributes = Attributes()
     override val request: ApplicationRequest = ServletApplicationRequest(this, servletRequest)
     override val response: ApplicationResponse = ServletApplicationResponse(this, servletResponse)
     override val parameters: ValuesMap get() = request.parameters

@@ -14,11 +14,13 @@ open class ApplicationCallPipeline : Pipeline<ApplicationCall>(Infrastructure, C
 
 class ResponsePipelineState(var obj: Any)
 
-open class RespondPipeline : Pipeline<ResponsePipelineState>(Before, Transform, After) {
+open class RespondPipeline : Pipeline<ResponsePipelineState>(Before, Transform, Render, After) {
     companion object RespondPhase {
         val Before = PipelinePhase("Before")
 
         val Transform = PipelinePhase("Transform")
+
+        val Render = PipelinePhase("Render")
 
         val After = PipelinePhase("After")
     }

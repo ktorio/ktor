@@ -5,6 +5,7 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.nio.charset.*
@@ -13,6 +14,7 @@ import java.util.concurrent.*
 abstract class BaseApplicationCall(override val application: Application, override val executor: Executor) : ApplicationCall {
     val executionMachine = PipelineMachine()
     private val state = ResponsePipelineState(HttpStatusCode.NotFound)
+    final override val attributes = Attributes()
 
     override fun execute(pipeline: Pipeline<ApplicationCall>): PipelineState {
         try {
@@ -39,37 +41,47 @@ abstract class BaseApplicationCall(override val application: Application, overri
         }
     }
 
+    final override val transform by lazy { application.attributes[TransformationSupport.key].copy() }
+
     final override val respond = RespondPipeline()
     private val HostRespondPhase = PipelinePhase("HostRespondPhase")
 
     init {
         respond.phases.insertAfter(RespondPipeline.After, HostRespondPhase)
+        transform.register<String> { value ->
+            val encoding = response.headers[HttpHeaders.ContentType]?.let {
+                ContentType.parse(it).parameter("charset")
+            } ?: "UTF-8"
+
+            TextContentResponse(null, null, encoding, value)
+        }
+
+        transform.register<TextContent> { value ->
+            TextContentResponse(null, value.contentType,
+                    value.contentType.parameter("charset") ?: "UTF-8",
+                    value.text)
+        }
+
+        transform.register<HttpStatusContent> { value ->
+            TextContentResponse(value.code,
+                    ContentType.Text.Html.withParameter("charset", "UTF-8"), "UTF-8",
+                    "<H1>${value.code}</H1>${value.message.escapeHTML()}")
+        }
+
+        transform.register<HttpStatusCode> { value ->
+            object : FinalContent.NoContent() {
+                override val status: HttpStatusCode
+                    get() = value
+
+                override val headers: ValuesMap
+                    get() = ValuesMap.Empty
+            }
+        }
+
         respond.intercept(HostRespondPhase) { state ->
             val value = state.obj
 
             when (value) {
-                is String -> {
-                    val encoding = response.headers[HttpHeaders.ContentType]?.let {
-                        ContentType.parse(it).parameter("charset")
-                    } ?: "UTF-8"
-
-                    respond(TextContentResponse(null, null, encoding, value))
-                }
-                is TextContent -> {
-                    respond(TextContentResponse(null, value.contentType,
-                            value.contentType.parameter("charset") ?: "UTF-8",
-                            value.text))
-                }
-                is HttpStatusContent -> {
-                    respond(TextContentResponse(value.code,
-                            ContentType.Text.Html.withParameter("charset", "UTF-8"), "UTF-8",
-                            "<H1>${value.code}</H1>${value.message.escapeHTML()}"))
-                }
-                is HttpStatusCode -> {
-                    response.status(value)
-                    close()
-                    finishAll()
-                }
                 is FinalContent.StreamConsumer -> {
                     val pipe = AsyncPipe()
                     closeAtEnd(pipe)

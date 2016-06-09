@@ -1,6 +1,6 @@
 package org.jetbrains.ktor.pipeline
 
-interface PipelineContext<TSubject : Any> {
+interface PipelineContext<out TSubject : Any> {
 
     val subject: TSubject
 

@@ -4,11 +4,13 @@ import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.concurrent.*
@@ -44,6 +46,8 @@ class TestApplicationHost(val environment: ApplicationEnvironment) {
     val executor = Executors.newCachedThreadPool()
 
     init {
+        application.install(TransformationSupport)
+
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             onFail { exception ->
                 val testApplicationCall = call as? TestApplicationCall
@@ -113,7 +117,6 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
 class TestApplicationCall(application: Application, override val request: TestApplicationRequest, executor: Executor) : BaseApplicationCall(application, executor) {
     internal val latch = CountDownLatch(1)
     override val parameters: ValuesMap get() = request.parameters
-    override val attributes = Attributes()
     override fun close() {
         requestResult = ApplicationCallResult.Handled
         response.close()

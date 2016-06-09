@@ -17,7 +17,7 @@ object ConditionalHeadersSupport : ApplicationFeature<Unit> {
         application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             if (conditionalHeaders.any { it in call.request.headers }) {
 
-                call.interceptRespond(RespondPipeline.Before) { obj ->
+                call.interceptRespond(RespondPipeline.After) { obj ->
                     if (obj is HasVersions) {
                         checkVersions(call, obj.versions)
                     } else if (obj is FinalContent) {

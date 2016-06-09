@@ -44,7 +44,7 @@ object CompressionSupport : ApplicationFeature<CompressionOptions> {
 
                 val encoder = encoding?.let { encoders[it] }
                 if (encoding != null && encoder != null && !call.isCompressionProhibited()) {
-                    call.interceptRespond(RespondPipeline.Before) { obj ->
+                    call.interceptRespond(RespondPipeline.After) { obj ->
                         if (obj is FinalContent && obj !is CompressedResponse && conditions.all { it(call, obj) } && !call.isCompressionProhibited()) {
                             val channel = when (obj) {
                                 is FinalContent.ChannelContent -> obj.channel()

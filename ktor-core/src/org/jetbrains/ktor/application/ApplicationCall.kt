@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.application
 
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.concurrent.*
@@ -44,6 +45,8 @@ interface ApplicationCall : Closeable {
     fun respond(message: Any): Nothing
 
     val respond: RespondPipeline
+
+    val transform: TransformTable
 
     fun interceptRespond(phase: PipelinePhase, handler: PipelineContext<ResponsePipelineState>.(Any) -> Unit) {
         respond.intercept(phase) {
