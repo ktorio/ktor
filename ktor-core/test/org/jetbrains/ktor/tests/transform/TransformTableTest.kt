@@ -7,14 +7,14 @@ import java.util.*
 import kotlin.test.*
 
 class TransformTableTest {
-    val table = TransformTable()
+    val table = TransformTable<Unit>()
 
     @Test
     fun testStringToIntSingle() {
         table.register<String>(handler = { it.length })
 
-        assertEquals(2, table.transform("ok"))
-        assertEquals(1, table.transform("a"))
+        assertEquals(2, table.transform(Unit, "ok"))
+        assertEquals(1, table.transform(Unit, "a"))
     }
 
     @Test
@@ -22,8 +22,8 @@ class TransformTableTest {
         table.register<String>(handler = { it.length })
         table.register<String>(handler = { it.length })
 
-        assertEquals(2, table.transform("ok"))
-        assertEquals(1, table.transform("a"))
+        assertEquals(2, table.transform(Unit, "ok"))
+        assertEquals(1, table.transform(Unit, "a"))
     }
 
     @Test
@@ -31,8 +31,8 @@ class TransformTableTest {
         table.register<String>(handler = { it.length })
         table.register<CharSequence>(handler = { -1 })
 
-        assertEquals(2, table.transform("ok"))
-        assertEquals(-1, table.transform(StringBuilder()))
+        assertEquals(2, table.transform(Unit, "ok"))
+        assertEquals(-1, table.transform(Unit, StringBuilder()))
     }
 
     @Test
@@ -40,9 +40,9 @@ class TransformTableTest {
         table.register<String>(handler = { if (it == "x3") it else it.length })
         table.register<CharSequence>(handler = { -1 })
 
-        assertEquals(2, table.transform("ok"))
-        assertEquals(-1, table.transform(StringBuilder()))
-        assertEquals(-1, table.transform("x3"))
+        assertEquals(2, table.transform(Unit, "ok"))
+        assertEquals(-1, table.transform(Unit, StringBuilder()))
+        assertEquals(-1, table.transform(Unit, "x3"))
     }
 
     @Test
@@ -51,22 +51,22 @@ class TransformTableTest {
         table.register<String>(handler = { order.add("first"); it })
         table.register<CharSequence>(handler = { order.add("second"); it })
 
-        assertEquals("ok", table.transform("ok"))
+        assertEquals("ok", table.transform(Unit, "ok"))
 
         assertEquals(listOf("first", "second"), order)
     }
 
     @Test
     fun testNothingRegistered() {
-        assertEquals("ok", table.transform("ok"))
-        assertEquals(1, table.transform(1))
+        assertEquals("ok", table.transform(Unit, "ok"))
+        assertEquals(1, table.transform(Unit, 1))
     }
 
     @Test
     fun testUnknownType() {
         table.register<CharSequence>(handler = { -1 })
 
-        assertEquals(1, table.transform(1))
+        assertEquals(1, table.transform(Unit, 1))
     }
 
     @Test
@@ -75,7 +75,7 @@ class TransformTableTest {
         table.register<String>(handler = { it })
         table.register<CharSequence>(handler = { it })
 
-        assertEquals("ok", table.transform("ok"))
+        assertEquals("ok", table.transform(Unit, "ok"))
     }
 
     @Test
@@ -83,7 +83,7 @@ class TransformTableTest {
         table.register<CharSequence>(handler = { CharBuffer.wrap(it) })
 
         val obj = "ok"
-        val result = table.transform(obj)
+        val result = table.transform(Unit, obj)
 
         assertFalse { obj === result }
         assertEquals(obj, result.toString())
@@ -93,7 +93,7 @@ class TransformTableTest {
     fun testCycle2() {
         table.register<Int>(handler = { it + 1 })
 
-        assertEquals(2, table.transform(1))
+        assertEquals(2, table.transform(Unit, 1))
     }
 
     @Test
@@ -102,16 +102,16 @@ class TransformTableTest {
         table.register<Int>(handler = { it + 1 })
         table.register<Int>(handler = { it + 1 })
 
-        assertEquals(3, table.transform(0))
+        assertEquals(3, table.transform(Unit, 0))
     }
 
     @Test
     fun testPredicate() {
         table.register<Int>(predicate = { it >= 0 }, handler = { it + 1 })
 
-        assertEquals(1, table.transform(0))
-        assertEquals(2, table.transform(1))
-        assertEquals(-1, table.transform(-1))
+        assertEquals(1, table.transform(Unit, 0))
+        assertEquals(2, table.transform(Unit, 1))
+        assertEquals(-1, table.transform(Unit, -1))
     }
 
     @Test
@@ -119,8 +119,8 @@ class TransformTableTest {
         table.register<Int>(predicate = { it > 0 }, handler = { it + 1 })
         table.register<Int>(handler = { it + 1 })
 
-        assertEquals(2, table.transform(0))
-        assertEquals(0, table.transform(-1))
+        assertEquals(2, table.transform(Unit, 0))
+        assertEquals(0, table.transform(Unit, -1))
     }
 
     @Test
@@ -132,12 +132,12 @@ class TransformTableTest {
         table.register<L> { events.add("L"); it }
         table.register<R> { events.add("R"); it }
 
-        table.transform(BO)
+        table.transform(Unit, BO)
         assertEquals("BLRI", events.joinToString("").replace("RL", "LR"))
 
         events.clear()
         table.register<BO> { events.add("BO"); it }
-        table.transform(BO)
+        table.transform(Unit, BO)
         assertEquals("BOBLIBORI", events.joinToString("").replace("RL", "LR"))
     }
 

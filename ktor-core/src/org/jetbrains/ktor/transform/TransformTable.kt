@@ -3,40 +3,40 @@ package org.jetbrains.ktor.transform
 import java.util.*
 import kotlin.reflect.*
 
-class TransformTable {
-    private val root = Entry(Any::class.java, null)
-    private val cache = HashMap<Class<*>, MutableList<Entry<*>>>(1)
+class TransformTable<C : Any> {
+    private val root = Entry<C, Any>(Any::class.java, null)
+    private val cache = HashMap<Class<*>, MutableList<Entry<C, *>>>(1)
 
     init {
-        cache[Any::class.java] = mutableListOf<Entry<*>>(root)
+        cache[Any::class.java] = mutableListOf<Entry<C, *>>(root)
     }
 
-    inline fun <reified T : Any> register(noinline predicate: (T) -> Boolean = { true }, noinline handler: (T) -> Any) {
+    inline fun <reified T : Any> register(noinline predicate: C.(T) -> Boolean = { true }, noinline handler: C.(T) -> Any) {
         register(T::class, predicate, handler)
     }
 
-    fun <T : Any> register(type: KClass<T>, predicate: (T) -> Boolean, handler: (T) -> Any) {
+    fun <T : Any> register(type: KClass<T>, predicate: C.(T) -> Boolean, handler: C.(T) -> Any) {
         @Suppress("UNCHECKED_CAST")
-        registerImpl(type.java, root as Entry<T>, Handler(predicate, handler))
+        registerImpl(type.java, root as Entry<C, T>, Handler(predicate, handler))
     }
 
-    fun transform(obj: Any): Any = transformImpl(obj)
+    fun transform(ctx: C, obj: Any): Any = transformImpl(ctx, obj)
 
-    fun copy(): TransformTable {
-        val newInstance = TransformTable()
+    fun copy(): TransformTable<C> {
+        val newInstance = TransformTable<C>()
         newInstance.root.leafs.addAll(root.leafs.map { it.copy() })
         newInstance.root.leafs.forEach { newInstance.cacheChildren(it) }
 
         return newInstance
     }
 
-    private fun cacheChildren(node: Entry<*>) {
+    private fun cacheChildren(node: Entry<C, *>) {
         dfs(node) { it.leafs }.filter { !it.type.isInterface }.forEach {
             cache.getOrPut(it.type) { ArrayList() }.add(it)
         }
     }
 
-    private fun <T : Any> registerImpl(type: Class<T>, node: Entry<T>, handler: Handler<T>): Int {
+    private fun <T : Any> registerImpl(type: Class<T>, node: Entry<C, T>, handler: Handler<C, T>): Int {
         if (node.type === type) {
             node.handlers.add(handler)
             return 1
@@ -56,7 +56,7 @@ class TransformTable {
         return 0
     }
 
-    private fun <T : Any> insertEntry(type: Class<T>, parent: Entry<T>): Entry<T> {
+    private fun <T : Any> insertEntry(type: Class<T>, parent: Entry<C, T>): Entry<C, T> {
         val newTypeEntry = Entry(type, parent)
         val parentType = parent.type
         val superTypes = type.superTypes().takeLastWhile { it !== parentType }
@@ -103,11 +103,11 @@ class TransformTable {
         return newTypeEntry
     }
 
-    private fun findSubTypes(node: Entry<*>, type: Class<*>): List<Entry<*>> = ArrayList<Entry<*>>().apply {
+    private fun findSubTypes(node: Entry<C, *>, type: Class<*>): List<Entry<C, *>> = ArrayList<Entry<C, *>>().apply {
         findSubTypes(mutableListOf(node), type, this)
     }.distinctBy { it.type }
 
-    private fun findSubTypes(nodes: MutableList<Entry<*>>, type: Class<*>, good: MutableList<Entry<*>>) {
+    private fun findSubTypes(nodes: MutableList<Entry<C, *>>, type: Class<*>, good: MutableList<Entry<C, *>>) {
         if (nodes.isEmpty()) return
         val node = nodes.removeLast()
 
@@ -121,10 +121,10 @@ class TransformTable {
     }
 
     tailrec
-    private fun <T : Any> transformImpl(obj: T, handlers: List<Handler<T>> = collect(obj.javaClass), visited: MutableSet<Handler<*>> = HashSet()): Any {
+    private fun <T : Any> transformImpl(ctx: C, obj: T, handlers: List<Handler<C, T>> = collect(obj.javaClass), visited: MutableSet<Handler<C, *>> = HashSet()): Any {
         for (handler in handlers) {
-            if (handler !in visited && handler.predicate(obj)) {
-                val result = handler.handler(obj)
+            if (handler !in visited && handler.predicate(ctx, obj)) {
+                val result = handler.handler(ctx, obj)
 
                 if (result === obj) {
                     continue
@@ -133,9 +133,9 @@ class TransformTable {
                 visited.add(handler)
                 if (result.javaClass === obj.javaClass) {
                     @Suppress("UNCHECKED_CAST")
-                    return transformImpl(result as T, handlers, visited)
+                    return transformImpl(ctx, result as T, handlers, visited)
                 } else {
-                    return transformImpl(result, collect(result.javaClass), visited)
+                    return transformImpl(ctx, result, collect(result.javaClass), visited)
                 }
             }
         }
@@ -145,12 +145,12 @@ class TransformTable {
 
     private fun <T : Any> collect(type: Class<T>) =
             collectCached(type) ?:
-                    ArrayList<Handler<T>>().apply {
-                        collectImpl(type, mutableListOf<Entry<*>>(root), this)
+                    ArrayList<Handler<C, T>>().apply {
+                        collectImpl(type, mutableListOf<Entry<C, *>>(root), this)
                     }.asReversed()
 
     tailrec
-    private fun <T : Any> collectImpl(type: Class<T>, nodes: MutableList<Entry<*>>, result: ArrayList<Handler<T>>) {
+    private fun <T : Any> collectImpl(type: Class<T>, nodes: MutableList<Entry<C, *>>, result: ArrayList<Handler<C, T>>) {
         val current = nodes.lookup(type) ?: return
 
         result.addAll(current.handlers)
@@ -159,13 +159,13 @@ class TransformTable {
         collectImpl(type, nodes, result)
     }
 
-    private fun <T : Any> collectCached(type: Class<T>): List<Handler<T>>? {
+    private fun <T : Any> collectCached(type: Class<T>): List<Handler<C, T>>? {
         val exactNodes = cache[type]?.mapNotNull { it.castOrNull(type) }
         if (exactNodes == null || exactNodes.isEmpty()) {
             return null
         }
 
-        val collected = ArrayList<Handler<T>>()
+        val collected = ArrayList<Handler<C, T>>()
 
         for (root in exactNodes) {
             collected.addAll(root.handlers)
@@ -180,23 +180,23 @@ class TransformTable {
     }
 
     tailrec
-    private fun <T : Any> MutableList<Entry<*>>.lookup(type: Class<T>): Entry<T>? {
+    private fun <T : Any> MutableList<Entry<C, *>>.lookup(type: Class<T>): Entry<C, T>? {
         if (isEmpty()) return null
 
         return removeAt(lastIndex).castOrNull(type) ?: lookup(type)
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T : Any> Entry<*>.castOrNull(type: Class<T>) = if (this.type.isAssignableFrom(type)) this as Entry<T> else null
+    private fun <T : Any> Entry<C, *>.castOrNull(type: Class<T>) = if (this.type.isAssignableFrom(type)) this as Entry<C, T> else null
 
-    private class Entry<T : Any>(val type: Class<T>, var parent: Entry<in T>?) {
-        val handlers = ArrayList<Handler<T>>()
-        val leafs = ArrayList<Entry<T>>()
+    private class Entry<C : Any, T : Any>(val type: Class<T>, var parent: Entry<C, in T>?) {
+        val handlers = ArrayList<Handler<C, T>>()
+        val leafs = ArrayList<Entry<C, T>>()
 
         override fun toString() = "Entry(${type.name})"
     }
 
-    private fun <T : Any> Entry<T>.copy(): Entry<T> {
+    private fun <T : Any> Entry<C, T>.copy(): Entry<C, T> {
         val newInstance = Entry(type, parent)
         newInstance.handlers.addAll(handlers)
         val newLeafs = leafs.map { it.copy() }
@@ -206,7 +206,7 @@ class TransformTable {
         return newInstance
     }
 
-    private class Handler<in T>(val predicate: (T) -> Boolean, val handler: (T) -> Any) {
+    private class Handler<in C : Any, in T>(val predicate: C.(T) -> Boolean, val handler: C.(T) -> Any) {
         override fun toString() = handler.toString()
     }
 

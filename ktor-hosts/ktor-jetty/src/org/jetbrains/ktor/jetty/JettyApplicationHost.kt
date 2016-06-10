@@ -57,7 +57,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     init {
         application.setupDefaultHostPages()
-        application.install(TransformationSupport)
+        TransformationSupport.registerDefaultHandlers(application.install(TransformationSupport))
     }
 
     private inner class Handler : AbstractHandler() {

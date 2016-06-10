@@ -8,12 +8,11 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 import java.io.*
-import java.nio.charset.*
 import java.util.concurrent.*
 
 abstract class BaseApplicationCall(override val application: Application, override val executor: Executor) : ApplicationCall {
     val executionMachine = PipelineMachine()
-    private val state = ResponsePipelineState(HttpStatusCode.NotFound)
+    private val state = ResponsePipelineState(this, HttpStatusCode.NotFound)
     final override val attributes = Attributes()
 
     override fun execute(pipeline: Pipeline<ApplicationCall>): PipelineState {
@@ -48,35 +47,6 @@ abstract class BaseApplicationCall(override val application: Application, overri
 
     init {
         respond.phases.insertAfter(RespondPipeline.After, HostRespondPhase)
-        transform.register<String> { value ->
-            val encoding = response.headers[HttpHeaders.ContentType]?.let {
-                ContentType.parse(it).parameter("charset")
-            } ?: "UTF-8"
-
-            TextContentResponse(null, null, encoding, value)
-        }
-
-        transform.register<TextContent> { value ->
-            TextContentResponse(null, value.contentType,
-                    value.contentType.parameter("charset") ?: "UTF-8",
-                    value.text)
-        }
-
-        transform.register<HttpStatusContent> { value ->
-            TextContentResponse(value.code,
-                    ContentType.Text.Html.withParameter("charset", "UTF-8"), "UTF-8",
-                    "<H1>${value.code}</H1>${value.message.escapeHTML()}")
-        }
-
-        transform.register<HttpStatusCode> { value ->
-            object : FinalContent.NoContent() {
-                override val status: HttpStatusCode
-                    get() = value
-
-                override val headers: ValuesMap
-                    get() = ValuesMap.Empty
-            }
-        }
 
         respond.intercept(HostRespondPhase) { state ->
             val value = state.obj
@@ -128,20 +98,6 @@ abstract class BaseApplicationCall(override val application: Application, overri
         }
     }
 
-    private class TextContentResponse(override val status: HttpStatusCode?, contentType: ContentType?, encoding: String, text: String) : FinalContent.ChannelContent() {
-        private val bytes by lazy { text.toByteArray(Charset.forName(encoding)) }
-
-        override val headers by lazy {
-            ValuesMap.build(true) {
-                if (contentType != null) {
-                    contentType(contentType)
-                }
-                contentLength(bytes.size.toLong())
-            }
-        }
-
-        override fun channel() = ByteArrayAsyncReadChannel(bytes)
-    }
 
     companion object {
         val ResponseChannelOverride = AttributeKey<AsyncWriteChannel>("ktor.response.channel")

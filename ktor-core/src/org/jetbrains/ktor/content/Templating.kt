@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.content
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.pipeline.*
 import kotlin.reflect.*
 
@@ -10,12 +11,7 @@ interface TemplateEngine<C : Any, out R> where R : FinalContent, R : Resource {
 }
 
 inline fun <reified C : Any> Pipeline<ApplicationCall>.templating(engine: TemplateEngine<C, *>) {
-    val javaType = engine.contentClass.java
     intercept(ApplicationCallPipeline.Call) { call ->
-        call.interceptRespond(RespondPipeline.Render) { obj ->
-            if (javaType.isInstance(obj)) {
-                call.respond(engine.process(obj as C))
-            }
-        }
+        call.transform.register<C>({ true }, { obj -> engine.process(obj) })
     }
 }

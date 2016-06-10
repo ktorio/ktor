@@ -12,7 +12,7 @@ open class ApplicationCallPipeline : Pipeline<ApplicationCall>(Infrastructure, C
     }
 }
 
-class ResponsePipelineState(var obj: Any)
+class ResponsePipelineState(val call: ApplicationCall, var obj: Any)
 
 open class RespondPipeline : Pipeline<ResponsePipelineState>(Before, Transform, Render, After) {
     companion object RespondPhase {
@@ -25,3 +25,7 @@ open class RespondPipeline : Pipeline<ResponsePipelineState>(Before, Transform, 
         val After = PipelinePhase("After")
     }
 }
+
+val PipelineContext<ResponsePipelineState>.call: ApplicationCall
+    @JvmName("getCallFromRespondPipeline")
+    get() = subject.call
