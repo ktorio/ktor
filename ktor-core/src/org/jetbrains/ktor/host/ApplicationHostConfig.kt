@@ -12,9 +12,9 @@ interface ApplicationHostConfig {
     val port: Int
 
     /**
-     * Specifies if host should enable its async support, if any
+     * Specifies if the host should try to reload application automatically on change
      */
-    val async: Boolean
+    val autoreload: Boolean
 
 }
 
@@ -23,5 +23,5 @@ inline fun applicationHostConfig(builder: ApplicationHostConfigBuilder.() -> Uni
 class ApplicationHostConfigBuilder : ApplicationHostConfig {
     override var host: String = "0.0.0.0"
     override var port: Int = 80
-    override var async: Boolean = false
+    override var autoreload: Boolean = false
 }

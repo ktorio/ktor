@@ -15,8 +15,10 @@ fun commandLineConfig(args: Array<String>): Pair<ApplicationHostConfig, Applicat
     val combinedConfig = argConfig.withFallback(ConfigFactory.load())
 
     val applicationIdPath = "ktor.application.id"
+
     val hostConfigPath = "ktor.deployment.host"
     val hostPortPath = "ktor.deployment.port"
+    val hostReload = "ktor.deployment.autoreload"
 
     val applicationId = combinedConfig.tryGetString(applicationIdPath) ?: "Application"
     val log = SLF4JApplicationLog(applicationId)
@@ -31,6 +33,9 @@ fun commandLineConfig(args: Array<String>): Pair<ApplicationHostConfig, Applicat
         }
         (argsMap["-port"] ?: combinedConfig.tryGetString(hostPortPath))?.let {
             port = it.toInt()
+        }
+        (argsMap["-autoreload"] ?: combinedConfig.tryGetString(hostReload))?.let {
+            autoreload = it.toBoolean()
         }
     }
 

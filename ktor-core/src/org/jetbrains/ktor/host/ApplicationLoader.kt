@@ -12,17 +12,15 @@ import java.util.*
 /**
  * Implements [ApplicationLifecycle] by loading an [Application] from a folder or jar.
  *
- * When [ApplicationEnvironment.stage] is "development", it watches changes in folder/jar and implements hot reloading
+ * When [autoreload] is `true`, it watches changes in folder/jar and implements hot reloading
  */
-public class ApplicationLoader(val environment: ApplicationEnvironment) : ApplicationLifecycle {
+public class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload: Boolean) : ApplicationLifecycle {
     private var _applicationInstance: Application? = null
     private val applicationInstanceLock = Object()
     private val packageWatchKeys = ArrayList<WatchKey>()
     private val log = environment.log.fork("Loader")
     private val applicationClassName: String = environment.config.property("ktor.application.class").getString()
-    private val watchPatterns: List<String> = environment.config.propertyOrNull("ktor.application.watch")?.getList() ?: listOf()
-
-    private fun ApplicationEnvironment.isDevelopment(): Boolean = stage == ApplicationEnvironmentStage.Development
+    private val watchPatterns: List<String> = environment.config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()
 
     init {
         application // eagerly create application
@@ -31,7 +29,7 @@ public class ApplicationLoader(val environment: ApplicationEnvironment) : Applic
     @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
     public override val application: Application
         get() = synchronized(applicationInstanceLock) {
-            if (environment.isDevelopment()) {
+            if (autoreload) {
                 val changes = packageWatchKeys.flatMap { it.pollEvents() }
                 if (changes.size > 0) {
                     log.info("Changes in application detected.")
@@ -71,7 +69,7 @@ public class ApplicationLoader(val environment: ApplicationEnvironment) : Applic
     }
 
     fun createApplication(): Application {
-        val classLoader = if (environment.isDevelopment()) {
+        val classLoader = if (autoreload) {
             val allUrls = environment.classLoader.allURLs()
             val watchPatterns = watchPatterns
             val watchUrls = allUrls.filter { url -> watchPatterns.any { pattern -> url.toString().contains(pattern) } }
@@ -131,7 +129,7 @@ public class ApplicationLoader(val environment: ApplicationEnvironment) : Applic
             }
         }
 
-        val watcher = FileSystems.getDefault().newWatchService();
+        val watcher = FileSystems.getDefault().newWatchService()
         paths.forEach { path ->
             log.debug("Watching $path for changes.")
         }
@@ -141,7 +139,7 @@ public class ApplicationLoader(val environment: ApplicationEnvironment) : Applic
         })
     }
 
-    public override fun dispose() {
+    override fun dispose() {
         destroyApplication()
     }
 }

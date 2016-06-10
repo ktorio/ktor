@@ -10,9 +10,7 @@ fun embeddedJettyServer(port: Int = 80, host: String = "0.0.0.0", application: R
         this.host = host
     }
 
-    val applicationConfig = applicationEnvironment {
-        stage = ApplicationEnvironmentStage.Embedded
-    }
+    val applicationConfig = applicationEnvironment {}
     return embeddedJettyServer(hostConfig, applicationConfig, application)
 }
 

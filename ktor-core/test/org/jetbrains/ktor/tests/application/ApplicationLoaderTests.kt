@@ -15,7 +15,7 @@ class ApplicationLoaderTests {
                 "ktor.application.class" to "NonExistingApplicationName"
         )
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        assertFailsWith(ClassNotFoundException::class) { ApplicationLoader(environment).application }
+        assertFailsWith(ClassNotFoundException::class) { ApplicationLoader(environment, false).application }
     }
 
     @Test fun `valid class name should create application`() {
@@ -24,7 +24,7 @@ class ApplicationLoaderTests {
                 "ktor.application.class" to "org.jetbrains.ktor.testing.TestApplication"
         )
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment).application
+        val application = ApplicationLoader(environment, false).application
         assertNotNull(application)
     }
 }

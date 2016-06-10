@@ -22,7 +22,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     private val application: Application get() = applicationLifecycle.application
 
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
-    : this(hostConfig, environment, ApplicationLoader(environment))
+    : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
 
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, application: Application)
     : this(hostConfig, environment, object : ApplicationLifecycle {

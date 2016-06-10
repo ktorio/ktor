@@ -31,7 +31,7 @@ open class ServletApplicationHost() : HttpServlet() {
         val applicationLog = SLF4JApplicationLog("ktor.application")
         val applicationConfig = HoconApplicationConfig(combinedConfig)
         val applicationEnvironment = BasicApplicationEnvironment(servletContext.classLoader, applicationLog, applicationConfig)
-        ApplicationLoader(applicationEnvironment)
+        ApplicationLoader(applicationEnvironment, false)
     }
 
     val application: Application get() = loader.application

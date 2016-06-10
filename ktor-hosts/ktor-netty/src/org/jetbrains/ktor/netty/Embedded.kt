@@ -9,9 +9,7 @@ fun embeddedNettyServer(port: Int = 80, host: String = "0.0.0.0", application: R
         this.port = port
         this.host = host
     }
-    val applicationConfig = applicationEnvironment {
-        stage = ApplicationEnvironmentStage.Embedded
-    }
+    val applicationConfig = applicationEnvironment {}
     return embeddedNettyServer(hostConfig, applicationConfig, application)
 }
 

@@ -14,11 +14,6 @@ interface ApplicationEnvironment {
     val classLoader: ClassLoader
 
     /**
-     * Specifies name of the environment this application is running in.
-     */
-    val stage: String
-
-    /**
      * Instance of [ApplicationLog] to be used for logging.
      */
     val log: ApplicationLog
@@ -31,9 +26,7 @@ interface ApplicationEnvironment {
 
 class BasicApplicationEnvironment(override val classLoader: ClassLoader,
                                   override val log: ApplicationLog,
-                                  override val config: ApplicationConfig) : ApplicationEnvironment {
-    override var stage: String = config.propertyOrNull("ktor.deployment.environment")?.getString() ?: ApplicationEnvironmentStage.Development
-}
+                                  override val config: ApplicationConfig) : ApplicationEnvironment
 
 /**
  * Creates [ApplicationEnvironment] using [ApplicationEnvironmentBuilder]
@@ -55,10 +48,5 @@ class ApplicationEnvironmentBuilder : ApplicationEnvironment {
     override var classLoader: ClassLoader = ApplicationEnvironmentBuilder::class.java.classLoader
     override var log: ApplicationLog = SLF4JApplicationLog("embedded")
     override val config = MapApplicationConfig()
-    override var stage: String
-        get() = config.propertyOrNull("ktor.deployment.environment")?.getString() ?: ApplicationEnvironmentStage.Development
-        set(value) {
-            config.put("ktor.deployment.environment", value)
-        }
 }
 
