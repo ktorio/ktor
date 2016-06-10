@@ -22,9 +22,7 @@ open class HoconApplicationConfig(private val config: Config) : ApplicationConfi
         return config.getConfigList(path).map { HoconApplicationConfig(it) }
     }
 
-    override fun config(path: String): ApplicationConfig {
-        throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
-    }
+    override fun config(path: String): ApplicationConfig = HoconApplicationConfig(config.getConfig(path))
 
     private class HoconApplicationConfigValue(val config: Config, val path: String) : ApplicationConfigValue {
         override fun getString(): String = config.getString(path)
