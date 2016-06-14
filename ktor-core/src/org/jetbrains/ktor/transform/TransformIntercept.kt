@@ -21,7 +21,7 @@ object TransformationSupport : ApplicationFeature<TransformTable<PipelineContext
 
         application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             call.respond.intercept(RespondPipeline.Transform) { state ->
-                state.obj = call.transform.transform(this, state.obj)
+                transform()
             }
         }
 

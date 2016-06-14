@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.application
 
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.util.*
 
 val PipelineContext<ApplicationCall>.call: ApplicationCall get() = subject
 
@@ -12,7 +13,10 @@ open class ApplicationCallPipeline : Pipeline<ApplicationCall>(Infrastructure, C
     }
 }
 
-class ResponsePipelineState(val call: ApplicationCall, var obj: Any)
+class ResponsePipelineState(val call: ApplicationCall, var obj: Any) {
+    val attributes: Attributes
+        get() = call.attributes
+}
 
 open class RespondPipeline : Pipeline<ResponsePipelineState>(Before, Transform, Render, After) {
     companion object RespondPhase {

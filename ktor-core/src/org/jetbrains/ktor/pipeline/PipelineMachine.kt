@@ -3,9 +3,14 @@ package org.jetbrains.ktor.pipeline
 class PipelineMachine() {
     private val executionStack = mutableListOf<PipelineExecution<*>>()
 
-    fun <T : Any> execute(subject: T, pipeline: Pipeline<T>): Nothing {
-        val execution = PipelineExecution(this, subject, pipeline.interceptors)
+    fun <T : Any> appendDelayed(subject: T, blocks: List<PipelineContext<T>.(T) -> Unit>) {
+        val execution = PipelineExecution(this, subject, blocks)
         executionStack.add(execution)
+    }
+
+    fun <T : Any> execute(subject: T, pipeline: Pipeline<T>): Nothing {
+        appendDelayed(subject, pipeline.interceptors)
+
         if (executionStack.size == 1)
             proceed()
         else

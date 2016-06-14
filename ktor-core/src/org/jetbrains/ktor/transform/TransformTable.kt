@@ -1,5 +1,8 @@
 package org.jetbrains.ktor.transform
 
+import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.util.*
 import java.util.*
 import kotlin.reflect.*
 
@@ -20,7 +23,13 @@ class TransformTable<C : Any> {
         registerImpl(type.java, root as Entry<C, T>, Handler(predicate, handler))
     }
 
-    fun transform(ctx: C, obj: Any): Any = transformImpl(ctx, obj)
+    inline fun <reified T : Any> handlers() = handlers(T::class.java)
+
+    fun <T : Any> handlers(type: Class<T>) =
+            collectCached(type) ?:
+                    ArrayList<Handler<C, T>>().apply {
+                        collectImpl(type, mutableListOf<Entry<C, *>>(root), this)
+                    }.asReversed()
 
     fun copy(): TransformTable<C> {
         val newInstance = TransformTable<C>()
@@ -121,35 +130,6 @@ class TransformTable<C : Any> {
     }
 
     tailrec
-    private fun <T : Any> transformImpl(ctx: C, obj: T, handlers: List<Handler<C, T>> = collect(obj.javaClass), visited: MutableSet<Handler<C, *>> = HashSet()): Any {
-        for (handler in handlers) {
-            if (handler !in visited && handler.predicate(ctx, obj)) {
-                val result = handler.handler(ctx, obj)
-
-                if (result === obj) {
-                    continue
-                }
-
-                visited.add(handler)
-                if (result.javaClass === obj.javaClass) {
-                    @Suppress("UNCHECKED_CAST")
-                    return transformImpl(ctx, result as T, handlers, visited)
-                } else {
-                    return transformImpl(ctx, result, collect(result.javaClass), visited)
-                }
-            }
-        }
-
-        return obj
-    }
-
-    private fun <T : Any> collect(type: Class<T>) =
-            collectCached(type) ?:
-                    ArrayList<Handler<C, T>>().apply {
-                        collectImpl(type, mutableListOf<Entry<C, *>>(root), this)
-                    }.asReversed()
-
-    tailrec
     private fun <T : Any> collectImpl(type: Class<T>, nodes: MutableList<Entry<C, *>>, result: ArrayList<Handler<C, T>>) {
         val current = nodes.lookup(type) ?: return
 
@@ -206,9 +186,114 @@ class TransformTable<C : Any> {
         return newInstance
     }
 
-    private class Handler<in C : Any, in T>(val predicate: C.(T) -> Boolean, val handler: C.(T) -> Any) {
+    class Handler<in C : Any, in T> internal constructor(val predicate: C.(T) -> Boolean, val handler: C.(T) -> Any) {
         override fun toString() = handler.toString()
     }
 
     private fun <T> Class<T>.superTypes() = dfs(this)
+}
+
+fun <C : Any> TransformTable<C>.transform(ctx: C, obj: Any) = transformImpl(ctx, obj)
+
+tailrec
+private fun <C : Any, T : Any> TransformTable<C>.transformImpl(ctx: C, obj: T, handlers: List<TransformTable.Handler<C, T>> = handlers(obj.javaClass), visited: MutableSet<TransformTable.Handler<C, *>> = HashSet()): Any {
+    for (handler in handlers) {
+        if (handler !in visited && handler.predicate(ctx, obj)) {
+            val result = handler.handler(ctx, obj)
+
+            if (result === obj) {
+                continue
+            }
+
+            visited.add(handler)
+            if (result.javaClass === obj.javaClass) {
+                @Suppress("UNCHECKED_CAST")
+                return transformImpl(ctx, result as T, handlers, visited)
+            } else {
+                return transformImpl(ctx, result, handlers(result.javaClass), visited)
+            }
+        }
+    }
+
+    return obj
+}
+
+internal fun PipelineContext<ResponsePipelineState>.transform() {
+    val machine = PipelineMachine()
+    val phase = PipelinePhase("phase")
+    val pipeline = Pipeline<ResponsePipelineState>(phase)
+    val state = TransformationState()
+
+    call.attributes.put(TransformationState.Key, state)
+    pipeline.intercept(phase) {
+        onSuccess {
+            this@transform.continuePipeline()
+        }
+
+        transformStage(machine, state)
+    }
+
+    machine.execute(subject, pipeline)
+}
+
+fun PipelineContext<ResponsePipelineState>.proceed(value: Any): Nothing {
+    if (subject.obj !== value) {
+        subject.obj = value
+        call.attributes[TransformationState.Key].markLastHandlerVisited()
+    }
+
+    proceed()
+}
+
+tailrec
+private fun PipelineContext<ResponsePipelineState>.transformStage(machine: PipelineMachine, state: TransformationState) {
+    if (state.completed) {
+        return
+    }
+
+    machine.appendDelayed(subject, listOf({ p ->
+        @Suppress("NON_TAIL_RECURSIVE_CALL")
+        transformStage(machine, state)
+    }))
+
+    val obj = subject.obj
+    val visited = state.visited
+    val handlers = subject.call.transform.handlers(obj.javaClass).filter { it !in visited }
+
+    if (handlers.isNotEmpty()) {
+        for (handler in handlers) {
+            if (handler.predicate(this, obj)) {
+                state.lastHandler = handler
+                val nextResult = handler.handler(this, obj)
+                state.lastHandler = null
+
+                if (nextResult !== obj) {
+                    subject.obj = nextResult
+                    visited.add(handler)
+                    return transformStage(machine, state)
+                }
+            }
+        }
+    }
+
+    state.completed = true
+}
+
+private class TransformationState {
+    val visited: MutableSet<TransformTable.Handler<PipelineContext<ResponsePipelineState>, *>> = hashSetOf()
+    var completed: Boolean = false
+    var lastHandler: TransformTable.Handler<PipelineContext<ResponsePipelineState>, *>? = null
+
+    fun markLastHandlerVisited() {
+        val handler = lastHandler
+        lastHandler = null
+
+        if (handler != null) {
+            visited.add(handler)
+        }
+    }
+
+    companion object {
+        val Key = AttributeKey<TransformationState>("TransformationState.key")
+    }
 }
