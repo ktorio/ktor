@@ -14,20 +14,21 @@ import java.util.*
  *
  * When [autoreload] is `true`, it watches changes in folder/jar and implements hot reloading
  */
-public class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload: Boolean) : ApplicationLifecycle {
+class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload: Boolean) : ApplicationLifecycle {
     private var _applicationInstance: Application? = null
     private val applicationInstanceLock = Object()
     private val packageWatchKeys = ArrayList<WatchKey>()
     private val log = environment.log.fork("Loader")
     private val applicationClassName: String = environment.config.property("ktor.application.class").getString()
     private val watchPatterns: List<String> = environment.config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()
+    private val watcher by lazy { FileSystems.getDefault().newWatchService() }
 
     init {
         application // eagerly create application
     }
 
     @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
-    public override val application: Application
+    override val application: Application
         get() = synchronized(applicationInstanceLock) {
             if (autoreload) {
                 val changes = packageWatchKeys.flatMap { it.pollEvents() }
@@ -73,8 +74,14 @@ public class ApplicationLoader(val environment: ApplicationEnvironment, val auto
             val allUrls = environment.classLoader.allURLs()
             val watchPatterns = watchPatterns
             val watchUrls = allUrls.filter { url -> watchPatterns.any { pattern -> url.toString().contains(pattern) } }
-            watchUrls(watchUrls)
-            OverridingClassLoader(watchUrls, environment.classLoader)
+
+            if (watchUrls.isNotEmpty()) {
+                watchUrls(watchUrls)
+                OverridingClassLoader(watchUrls, environment.classLoader)
+            } else {
+                log.warning("No ktor.deployment.watch patterns specified: hot reload is disabled")
+                environment.classLoader
+            }
         } else
             environment.classLoader
 
@@ -88,7 +95,7 @@ public class ApplicationLoader(val environment: ApplicationEnvironment, val auto
             val cons = applicationClass.getConstructor(ApplicationEnvironment::class.java)
             val application = cons.newInstance(environment)
             if (application !is Application)
-                throw RuntimeException("Application class ${applicationClassName} should inherit from ${Application::class}")
+                throw RuntimeException("Application class $applicationClassName should inherit from ${Application::class}")
             return application
         } finally {
             currentThread.contextClassLoader = oldThreadClassLoader
@@ -129,7 +136,6 @@ public class ApplicationLoader(val environment: ApplicationEnvironment, val auto
             }
         }
 
-        val watcher = FileSystems.getDefault().newWatchService()
         paths.forEach { path ->
             log.debug("Watching $path for changes.")
         }
@@ -141,6 +147,9 @@ public class ApplicationLoader(val environment: ApplicationEnvironment, val auto
 
     override fun dispose() {
         destroyApplication()
+        if (autoreload) {
+            watcher.close()
+        }
     }
 }
 
