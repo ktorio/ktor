@@ -73,6 +73,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
                         executor.execute {
                             try {
                                 value.stream(pipe.asOutputStream())
+                            } catch (ignore: AsyncPipe.PipeClosedException) {
                             } finally {
                                 pipe.close()
                             }

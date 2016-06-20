@@ -33,7 +33,7 @@ class AsyncPipe : AsyncReadChannel, AsyncWriteChannel {
             producerBuffer = null
             producerHandler.getAndSet(null)?.let { handler ->
                 nofail {
-                    handler.failed(EOFException("Pipe closed"))
+                    handler.failed(PipeClosedException())
                 }
             }
         }
@@ -72,7 +72,7 @@ class AsyncPipe : AsyncReadChannel, AsyncWriteChannel {
         }
         if (closed.get()) {
             producerHandler.set(null)
-            handler.failed(EOFException("Pipe closed"))
+            handler.failed(PipeClosedException())
             return
         }
 
@@ -123,4 +123,6 @@ class AsyncPipe : AsyncReadChannel, AsyncWriteChannel {
         } catch (ignore: Throwable) {
         }
     }
+
+    class PipeClosedException : EOFException("Pipe closed")
 }

@@ -128,7 +128,7 @@ private fun PipelineContext<Any>.sendAsyncChannel(call: ApplicationCall, channel
     val future = createMachineCompletableFuture()
 
     closeAtEnd(channel, call) // TODO closeAtEnd(call) should be done globally at call start
-    channel.copyToAsyncThenComplete(call.response.channel(), future)
+    channel.copyToAsyncThenComplete(call.response.channel(), future, ignoreWriteError = true)
     pause()
 }
 
@@ -136,7 +136,7 @@ private fun PipelineContext<Any>.sendStream(call: ApplicationCall, stream: Input
     val future = createMachineCompletableFuture()
 
     closeAtEnd(stream, call) // TODO closeAtEnd(call) should be done globally at call start
-    stream.asAsyncChannel().copyToAsyncThenComplete(call.response.channel(), future)
+    stream.asAsyncChannel().copyToAsyncThenComplete(call.response.channel(), future, ignoreWriteError = true)
     pause()
 }
 

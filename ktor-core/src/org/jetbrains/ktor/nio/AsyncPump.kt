@@ -4,10 +4,10 @@ import java.nio.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
-private class AsyncPump(val bufferSize: Int = 8192, val from: AsyncReadChannel, val to: AsyncWriteChannel, val completionHandler: CompletableFuture<Long> = CompletableFuture(), val progressListener: ProgressListener<AsyncPump> = object: ProgressListener<AsyncPump> {
+private class AsyncPump(bufferSize: Int = 8192, val from: AsyncReadChannel, val to: AsyncWriteChannel, val completionHandler: CompletableFuture<Long> = CompletableFuture(), val progressListener: ProgressListener<AsyncPump> = object: ProgressListener<AsyncPump> {
     override fun progress(source: AsyncPump) {
     }
-}) {
+}, ignoreWriteError: Boolean = false) {
     private val buffer = ByteBuffer.allocate(bufferSize)
     @Volatile
     private var bufferToWrite = false
@@ -63,7 +63,11 @@ private class AsyncPump(val bufferSize: Int = 8192, val from: AsyncReadChannel, 
 
         override fun failed(cause: Throwable) {
             state.set(State.DONE)
-            completionHandler.completeExceptionally(cause)
+
+            when (ignoreWriteError) {
+                true -> completionHandler.complete(totalCount)
+                false -> completionHandler.completeExceptionally(cause)
+            }
         }
     }
 
@@ -104,10 +108,10 @@ private class AsyncPump(val bufferSize: Int = 8192, val from: AsyncReadChannel, 
     }
 }
 
-fun AsyncReadChannel.copyToAsync(out: AsyncWriteChannel) {
-    AsyncPump(from = this, to = out).start()
+fun AsyncReadChannel.copyToAsync(out: AsyncWriteChannel, ignoreWriteError: Boolean = false) {
+    AsyncPump(from = this, to = out, ignoreWriteError = ignoreWriteError).start()
 }
 
-fun AsyncReadChannel.copyToAsyncThenComplete(out: AsyncWriteChannel, completableFuture: CompletableFuture<Long>) {
-    AsyncPump(from = this, to = out, completionHandler = completableFuture).start()
+fun AsyncReadChannel.copyToAsyncThenComplete(out: AsyncWriteChannel, completableFuture: CompletableFuture<Long>, ignoreWriteError: Boolean = false) {
+    AsyncPump(from = this, to = out, completionHandler = completableFuture, ignoreWriteError = ignoreWriteError).start()
 }
