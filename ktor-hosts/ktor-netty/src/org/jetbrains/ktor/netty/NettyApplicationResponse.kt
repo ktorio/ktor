@@ -39,9 +39,11 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
         override fun getHostHeaderValues(name: String): List<String> = response.headers().getAll(name) ?: emptyList()
     }
 
-
     fun sendRequestMessage(): ChannelFuture? {
         if (!commited) {
+            if (!HttpHeaders.isTransferEncodingChunked(response)) {
+                HttpHeaders.setContentLength(response, 0L)
+            }
             val f = context.writeAndFlush(response)
             commited = true
             return f
@@ -73,7 +75,7 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
     private fun setChunked() {
         if (commited) {
             if (!response.headers().contains(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED, true)) {
-                throw IllegalStateException("Already commited")
+                throw IllegalStateException("Already committed")
             }
         }
         if (response.status.code() != HttpStatusCode.SwitchingProtocols.value) {

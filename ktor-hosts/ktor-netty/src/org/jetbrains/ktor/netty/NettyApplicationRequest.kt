@@ -87,18 +87,18 @@ internal class NettyApplicationRequest(private val request: HttpRequest,
     override val cookies: RequestCookies = NettyRequestCookies(this)
 
     override fun close() {
-        val handlersToRemove = ArrayList<ChannelHandlerAdapter>()
-
-        if (multipart.isInitialized()) {
-            multipart.value.decoder.destroy()
-            handlersToRemove.add(multipart.value)
-        }
-        if (contentChannel.isInitialized()) {
-            contentChannel.value.close()
-            handlersToRemove.add(contentChannel.value)
-        }
-
         context.executeInLoop {
+            val handlersToRemove = ArrayList<ChannelHandlerAdapter>()
+
+            if (multipart.isInitialized()) {
+                multipart.value.decoder.destroy()
+                handlersToRemove.add(multipart.value)
+            }
+            if (contentChannel.isInitialized()) {
+                contentChannel.value.close()
+                handlersToRemove.add(contentChannel.value)
+            }
+
             for (handler in handlersToRemove) {
                 try {
                     context.pipeline().remove(handler)

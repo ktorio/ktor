@@ -93,7 +93,7 @@ fun Route.serveFileSystem(baseDir: File) {
     route("{path...}") {
         handle {
             val message = LocalFileContent(baseDir, call.parameters.getAll("path")!!.joinToString(File.separator))
-            if (!message.file.exists()) {
+            if (!message.file.isFile) {
                 call.respond(HttpStatusCode.NotFound)
             } else {
                 call.respond(message)
