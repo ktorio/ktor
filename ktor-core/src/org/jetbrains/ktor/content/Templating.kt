@@ -1,7 +1,8 @@
 package org.jetbrains.ktor.content
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.features.*
+import org.jetbrains.ktor.transform.*
 import kotlin.reflect.*
 
 interface TemplateEngine<C : Any, out R> where R : FinalContent, R : Resource {
@@ -9,8 +10,6 @@ interface TemplateEngine<C : Any, out R> where R : FinalContent, R : Resource {
     fun process(content: C): R
 }
 
-inline fun <reified C : Any> Pipeline<ApplicationCall>.templating(engine: TemplateEngine<C, *>) {
-    intercept(ApplicationCallPipeline.Call) { call ->
-        call.transform.register<C> { obj -> engine.process(obj) }
-    }
+inline fun <reified C : Any> Application.templating(engine: TemplateEngine<C, *>) {
+    feature(TransformationSupport).register<C> { model -> engine.process(model) }
 }
