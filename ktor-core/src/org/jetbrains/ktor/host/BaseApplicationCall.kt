@@ -7,7 +7,6 @@ import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
-import java.io.*
 import java.util.concurrent.*
 
 abstract class BaseApplicationCall(override val application: Application, override val executor: Executor) : ApplicationCall {
@@ -71,14 +70,6 @@ abstract class BaseApplicationCall(override val application: Application, overri
                     commit(value)
                     value.upgrade(this@BaseApplicationCall, this, request.content.get(), response.channel())
                     pause()
-                }
-                is URIFileContent -> { // TODO it should be better place for that purpose
-                    if (value.uri.scheme == "file") {
-                        respond(LocalFileContent(File(value.uri)))
-                    } else {
-                        commit(value)
-                        value.startContent(this@BaseApplicationCall, this)
-                    }
                 }
                 is FinalContent -> {
                     commit(value)

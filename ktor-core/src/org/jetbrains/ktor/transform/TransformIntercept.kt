@@ -6,6 +6,8 @@ import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
+import java.io.*
+import java.nio.charset.*
 
 object TransformationSupport : ApplicationFeature<ApplicationTransform<PipelineContext<ResponsePipelineState>>> {
     override val name = "TransformationSupport"
@@ -50,5 +52,11 @@ fun ApplicationTransform<PipelineContext<ResponsePipelineState>>.registerDefault
             override val headers: ValuesMap
                 get() = ValuesMap.Empty
         }
+    }
+
+    register<URIFileContent> { value ->
+        if (value.uri.scheme == "file") {
+            LocalFileContent(File(value.uri))
+        } else value
     }
 }
