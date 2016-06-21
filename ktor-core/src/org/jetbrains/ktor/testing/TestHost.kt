@@ -41,8 +41,8 @@ fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() ->
 
 class TestApplicationHost(val environment: ApplicationEnvironment) {
     val application: Application = ApplicationLoader(environment, false).application
-    val pipeline = ApplicationCallPipeline()
-    var exception : Throwable? = null
+    private val pipeline = ApplicationCallPipeline()
+    private var exception : Throwable? = null
     val executor = Executors.newCachedThreadPool()
 
     init {
