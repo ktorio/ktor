@@ -63,7 +63,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     init {
         application.setupDefaultHostPages()
-        TransformationSupport.registerDefaultHandlers(application.install(TransformationSupport))
+        application.install(TransformationSupport).registerDefaultHandlers()
     }
 
     override fun start(wait: Boolean) {

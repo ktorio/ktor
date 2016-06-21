@@ -46,7 +46,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment) {
     val executor = Executors.newCachedThreadPool()
 
     init {
-        TransformationSupport.registerDefaultHandlers(application.install(TransformationSupport))
+        application.install(TransformationSupport).registerDefaultHandlers()
 
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             onFail { exception ->

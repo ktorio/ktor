@@ -44,7 +44,7 @@ open class ServletApplicationHost() : HttpServlet() {
 
     override fun init() {
         application.setupDefaultHostPages()
-        TransformationSupport.registerDefaultHandlers(application.install(TransformationSupport))
+        application.install(TransformationSupport).registerDefaultHandlers()
     }
 
     override fun destroy() {
