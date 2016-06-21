@@ -2,7 +2,6 @@ package org.jetbrains.ktor.host
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
@@ -40,7 +39,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
         }
     }
 
-    final override val transform = ApplicationTransform(this)
+    final override val transform = ApplicationTransform(application.transform.table)
 
     final override val respond = RespondPipeline()
     private val HostRespondPhase = PipelinePhase("HostRespondPhase")

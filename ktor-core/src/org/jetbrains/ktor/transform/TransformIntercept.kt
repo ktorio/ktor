@@ -7,12 +7,12 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
-object TransformationSupport : ApplicationFeature<TransformTable<PipelineContext<ResponsePipelineState>>> {
+object TransformationSupport : ApplicationFeature<ApplicationTransform<PipelineContext<ResponsePipelineState>>> {
     override val name = "TransformationSupport"
-    override val key = AttributeKey<TransformTable<PipelineContext<ResponsePipelineState>>>(name)
+    override val key = AttributeKey<ApplicationTransform<PipelineContext<ResponsePipelineState>>>(name)
 
-    override fun install(application: Application, configure: TransformTable<PipelineContext<ResponsePipelineState>>.() -> Unit): TransformTable<PipelineContext<ResponsePipelineState>> {
-        val table = TransformTable<PipelineContext<ResponsePipelineState>>()
+    override fun install(application: Application, configure: ApplicationTransform<PipelineContext<ResponsePipelineState>>.() -> Unit): ApplicationTransform<PipelineContext<ResponsePipelineState>> {
+        val table = ApplicationTransform<PipelineContext<ResponsePipelineState>>()
 
         configure(table)
 
@@ -27,7 +27,7 @@ object TransformationSupport : ApplicationFeature<TransformTable<PipelineContext
 
 }
 
-fun TransformTable<PipelineContext<ResponsePipelineState>>.registerDefaultHandlers() {
+fun ApplicationTransform<PipelineContext<ResponsePipelineState>>.registerDefaultHandlers() {
     register<String> { value ->
         val responseContentType = call.response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
         val contentType = responseContentType ?: ContentType.Text.Plain.withParameter("charset", "UTF-8")

@@ -7,30 +7,38 @@ import org.jetbrains.ktor.util.*
 import java.util.*
 import kotlin.reflect.*
 
-class ApplicationTransform(val call: ApplicationCall) {
-    private var copied = lazy { call.application.feature(TransformationSupport).copy() }
+class ApplicationTransform<C : Any>(private val parent: TransformTable<C>? = null) {
+    var table: TransformTable<C> = parent ?: TransformTable()
+        private set
 
-    inline fun <reified T : Any> register(noinline handler: PipelineContext<ResponsePipelineState>.(T) -> Any) {
+    inline fun <reified T : Any> register(noinline handler: C.(T) -> Any) {
         register({ true }, handler)
     }
 
-    inline fun <reified T : Any> register(noinline predicate: PipelineContext<ResponsePipelineState>.(T) -> Boolean, noinline handler: PipelineContext<ResponsePipelineState>.(T) -> Any) {
+    inline fun <reified T : Any> register(noinline predicate: C.(T) -> Boolean, noinline handler: C.(T) -> Any) {
         register(T::class, predicate, handler)
     }
 
-    fun <T : Any> register(type: KClass<T>, predicate: PipelineContext<ResponsePipelineState>.(T) -> Boolean, handler: PipelineContext<ResponsePipelineState>.(T) -> Any) {
-        copied.value.register(type, predicate, handler)
+    fun <T : Any> register(type: KClass<T>, predicate: C.(T) -> Boolean, handler: C.(T) -> Any) {
+        if (table === parent) {
+            table = TransformTable(parent)
+        }
+
+        table.register(type, predicate, handler)
     }
 
-    val table: TransformTable<PipelineContext<ResponsePipelineState>>
-        get() = if (copied.isInitialized()) copied.value else call.application.feature(TransformationSupport)
-
     fun <T : Any> handlers(type: Class<T>) = table.handlers(type)
+    inline fun <reified T : Any> handlers() = handlers(T::class.java)
 }
 
-class TransformTable<C : Any> {
+class TransformTable<C : Any>() {
     private val root = Entry<C, Any>(Any::class.java, null)
     private val cache = HashMap<Class<*>, MutableList<Entry<C, *>>>(1)
+
+    constructor(other: TransformTable<C>) : this() {
+        root.leafs.addAll(other.root.leafs.map { it.copy() })
+        root.leafs.forEach { cacheChildren(it) }
+    }
 
     init {
         cache[Any::class.java] = mutableListOf<Entry<C, *>>(root)
@@ -49,21 +57,11 @@ class TransformTable<C : Any> {
         registerImpl(type.java, root as Entry<C, T>, Handler(predicate, handler))
     }
 
-    inline fun <reified T : Any> handlers() = handlers(T::class.java)
-
     fun <T : Any> handlers(type: Class<T>) =
             collectCached(type) ?:
                     ArrayList<Handler<C, T>>().apply {
                         collectImpl(type, mutableListOf<Entry<C, *>>(root), this)
                     }.asReversed()
-
-    fun copy(): TransformTable<C> {
-        val newInstance = TransformTable<C>()
-        newInstance.root.leafs.addAll(root.leafs.map { it.copy() })
-        newInstance.root.leafs.forEach { newInstance.cacheChildren(it) }
-
-        return newInstance
-    }
 
     private fun cacheChildren(node: Entry<C, *>) {
         dfs(node) { it.leafs }.filter { !it.type.isInterface }.forEach {
@@ -218,6 +216,9 @@ class TransformTable<C : Any> {
 
     private fun <T> Class<T>.superTypes() = dfs(this)
 }
+
+val Application.transform: ApplicationTransform<PipelineContext<ResponsePipelineState>>
+    get() = feature(TransformationSupport)
 
 fun <C : Any> TransformTable<C>.transform(ctx: C, obj: Any) = transformImpl(ctx, obj)
 
