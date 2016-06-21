@@ -40,7 +40,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
         }
     }
 
-    final override val transform by lazy { application.feature(TransformationSupport).copy() }
+    final override val transform = ApplicationTransform(this)
 
     final override val respond = RespondPipeline()
     private val HostRespondPhase = PipelinePhase("HostRespondPhase")

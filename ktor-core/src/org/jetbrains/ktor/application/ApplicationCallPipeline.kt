@@ -13,7 +13,10 @@ open class ApplicationCallPipeline : Pipeline<ApplicationCall>(Infrastructure, C
     }
 }
 
-class ResponsePipelineState(val call: ApplicationCall, var message: Any) {
+class ResponsePipelineState(val call: ApplicationCall, message: Any) {
+    var message: Any = message
+        internal set
+
     val attributes = Attributes()
 }
 

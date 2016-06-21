@@ -1,10 +1,32 @@
 package org.jetbrains.ktor.transform
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.util.*
 import kotlin.reflect.*
+
+class ApplicationTransform(val call: ApplicationCall) {
+    private var copied = lazy { call.application.feature(TransformationSupport).copy() }
+
+    inline fun <reified T : Any> register(noinline handler: PipelineContext<ResponsePipelineState>.(T) -> Any) {
+        register({ true }, handler)
+    }
+
+    inline fun <reified T : Any> register(noinline predicate: PipelineContext<ResponsePipelineState>.(T) -> Boolean, noinline handler: PipelineContext<ResponsePipelineState>.(T) -> Any) {
+        register(T::class, predicate, handler)
+    }
+
+    fun <T : Any> register(type: KClass<T>, predicate: PipelineContext<ResponsePipelineState>.(T) -> Boolean, handler: PipelineContext<ResponsePipelineState>.(T) -> Any) {
+        copied.value.register(type, predicate, handler)
+    }
+
+    val table: TransformTable<PipelineContext<ResponsePipelineState>>
+        get() = if (copied.isInitialized()) copied.value else call.application.feature(TransformationSupport)
+
+    fun <T : Any> handlers(type: Class<T>) = table.handlers(type)
+}
 
 class TransformTable<C : Any> {
     private val root = Entry<C, Any>(Any::class.java, null)
@@ -14,7 +36,11 @@ class TransformTable<C : Any> {
         cache[Any::class.java] = mutableListOf<Entry<C, *>>(root)
     }
 
-    inline fun <reified T : Any> register(noinline predicate: C.(T) -> Boolean = { true }, noinline handler: C.(T) -> Any) {
+    inline fun <reified T : Any> register(noinline handler: C.(T) -> Any) {
+        register({ true }, handler)
+    }
+
+    inline fun <reified T : Any> register(noinline predicate: C.(T) -> Boolean, noinline handler: C.(T) -> Any) {
         register(T::class, predicate, handler)
     }
 
@@ -256,18 +282,18 @@ private fun PipelineContext<ResponsePipelineState>.transformStage(machine: Pipel
         transformStage(machine, state)
     }))
 
-    val obj = subject.message
+    val message = subject.message
     val visited = state.visited
-    val handlers = subject.call.transform.handlers(obj.javaClass).filter { it !in visited }
+    val handlers = subject.call.transform.handlers(message.javaClass).filter { it !in visited }
 
     if (handlers.isNotEmpty()) {
         for (handler in handlers) {
-            if (handler.predicate(this, obj)) {
+            if (handler.predicate(this, message)) {
                 state.lastHandler = handler
-                val nextResult = handler.handler(this, obj)
+                val nextResult = handler.handler(this, message)
                 state.lastHandler = null
 
-                if (nextResult !== obj) {
+                if (nextResult !== message) {
                     subject.message = nextResult
                     visited.add(handler)
                     return transformStage(machine, state)

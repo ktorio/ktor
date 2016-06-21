@@ -46,7 +46,7 @@ interface ApplicationCall : Closeable {
 
     val respond: RespondPipeline
 
-    val transform: TransformTable<PipelineContext<ResponsePipelineState>>
+    val transform: ApplicationTransform
 
     fun interceptRespond(phase: PipelinePhase, handler: PipelineContext<ResponsePipelineState>.(Any) -> Unit) {
         respond.intercept(phase) {
