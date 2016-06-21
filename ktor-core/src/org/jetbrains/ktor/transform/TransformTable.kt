@@ -224,7 +224,7 @@ internal fun PipelineContext<ResponsePipelineState>.transform() {
     val pipeline = Pipeline<ResponsePipelineState>(phase)
     val state = TransformationState()
 
-    call.attributes.put(TransformationState.Key, state)
+    subject.attributes.put(TransformationState.Key, state)
     pipeline.intercept(phase) {
         onSuccess {
             this@transform.continuePipeline()
@@ -236,10 +236,10 @@ internal fun PipelineContext<ResponsePipelineState>.transform() {
     machine.execute(subject, pipeline)
 }
 
-fun PipelineContext<ResponsePipelineState>.proceed(value: Any): Nothing {
-    if (subject.obj !== value) {
-        subject.obj = value
-        call.attributes[TransformationState.Key].markLastHandlerVisited()
+fun PipelineContext<ResponsePipelineState>.proceed(message: Any): Nothing {
+    if (subject.message !== message) {
+        subject.message = message
+        subject.attributes[TransformationState.Key].markLastHandlerVisited()
     }
 
     proceed()
@@ -256,7 +256,7 @@ private fun PipelineContext<ResponsePipelineState>.transformStage(machine: Pipel
         transformStage(machine, state)
     }))
 
-    val obj = subject.obj
+    val obj = subject.message
     val visited = state.visited
     val handlers = subject.call.transform.handlers(obj.javaClass).filter { it !in visited }
 
@@ -268,7 +268,7 @@ private fun PipelineContext<ResponsePipelineState>.transformStage(machine: Pipel
                 state.lastHandler = null
 
                 if (nextResult !== obj) {
-                    subject.obj = nextResult
+                    subject.message = nextResult
                     visited.add(handler)
                     return transformStage(machine, state)
                 }

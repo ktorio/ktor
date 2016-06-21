@@ -50,7 +50,7 @@ interface ApplicationCall : Closeable {
 
     fun interceptRespond(phase: PipelinePhase, handler: PipelineContext<ResponsePipelineState>.(Any) -> Unit) {
         respond.intercept(phase) {
-            handler(it.obj)
+            handler(it.message)
         }
     }
 

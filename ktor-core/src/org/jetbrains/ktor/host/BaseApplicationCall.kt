@@ -29,7 +29,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
 
     override fun <T : Any> fork(value: T, pipeline: Pipeline<T>): Nothing = executionMachine.execute(value, pipeline)
     override fun respond(message: Any): Nothing {
-        state.obj = message
+        state.message = message
         executionMachine.execute(state, respond)
     }
 
@@ -49,7 +49,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
         respond.phases.insertAfter(RespondPipeline.After, HostRespondPhase)
 
         respond.intercept(HostRespondPhase) { state ->
-            val value = state.obj
+            val value = state.message
 
             when (value) {
                 is FinalContent.StreamConsumer -> {

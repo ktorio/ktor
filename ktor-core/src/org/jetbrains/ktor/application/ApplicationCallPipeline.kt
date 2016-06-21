@@ -13,9 +13,8 @@ open class ApplicationCallPipeline : Pipeline<ApplicationCall>(Infrastructure, C
     }
 }
 
-class ResponsePipelineState(val call: ApplicationCall, var obj: Any) {
-    val attributes: Attributes
-        get() = call.attributes
+class ResponsePipelineState(val call: ApplicationCall, var message: Any) {
+    val attributes = Attributes()
 }
 
 open class RespondPipeline : Pipeline<ResponsePipelineState>(Before, Transform, Render, After) {
