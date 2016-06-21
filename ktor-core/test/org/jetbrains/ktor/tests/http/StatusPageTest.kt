@@ -162,4 +162,21 @@ class StatusPageTest {
             }
         }
     }
+
+    @Test
+    fun testErrorShouldNotRecurse() {
+        withTestApplication {
+            application.errorPage {
+                throw IllegalStateException()
+            }
+
+            application.intercept(ApplicationCallPipeline.Fallback) { call ->
+                throw NullPointerException()
+            }
+
+            assertFails {
+                handleRequest(HttpMethod.Get, "/")
+            }
+        }
+    }
 }
