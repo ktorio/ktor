@@ -2,6 +2,7 @@ package org.jetbrains.ktor.host
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
@@ -12,7 +13,6 @@ import java.util.concurrent.*
 
 abstract class BaseApplicationCall(override val application: Application, override val executor: Executor) : ApplicationCall {
     val executionMachine = PipelineMachine()
-    private val state = ResponsePipelineState(this, HttpStatusCode.NotFound)
     final override val attributes = Attributes()
 
     override fun execute(pipeline: Pipeline<ApplicationCall>): PipelineState {
@@ -29,7 +29,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
 
     override fun <T : Any> fork(value: T, pipeline: Pipeline<T>): Nothing = executionMachine.execute(value, pipeline)
     override fun respond(message: Any): Nothing {
-        state.message = message
+        val state = ResponsePipelineState(this, message)
         executionMachine.execute(state, respond)
     }
 
@@ -40,7 +40,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
         }
     }
 
-    final override val transform by lazy { application.attributes[TransformationSupport.key].copy() }
+    final override val transform by lazy { application.feature(TransformationSupport).copy() }
 
     final override val respond = RespondPipeline()
     private val HostRespondPhase = PipelinePhase("HostRespondPhase")
