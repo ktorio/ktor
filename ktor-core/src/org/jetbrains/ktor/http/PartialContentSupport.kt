@@ -81,8 +81,7 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
         }
 
         val channel = obj.channel()
-        onFail { channel.close() }
-        onSuccess { channel.close() }
+        onFinish { channel.close() }
 
         if (merged.size != 1 && !merged.isAscending() && channel !is SeekableAsyncChannel) {
             // merge into single range for non-seekable channel

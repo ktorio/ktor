@@ -32,10 +32,7 @@ internal fun setupUpgradeHelper(call: NettyApplicationCall, context: ChannelHand
                 }
             }
 
-            onSuccess {
-                context.close()
-            }
-            onFail {
+            onFinish {
                 context.close()
             }
 

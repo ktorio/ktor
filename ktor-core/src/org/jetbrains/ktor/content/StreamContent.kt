@@ -142,17 +142,10 @@ private fun PipelineContext<*>.sendStream(call: ApplicationCall, stream: InputSt
 
 
 internal fun PipelineContext<*>.closeAtEnd(vararg closeables: Closeable) {
-    fun end() {
+    onFinish {
         for (closeable in closeables) {
             closeable.closeQuietly()
         }
-    }
-
-    onSuccess {
-        end()
-    }
-    onFail {
-        end()
     }
 }
 

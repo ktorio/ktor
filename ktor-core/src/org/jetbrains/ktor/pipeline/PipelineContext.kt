@@ -7,6 +7,11 @@ interface PipelineContext<out TSubject : Any> {
     fun onSuccess(body: () -> Unit)
     fun onFail(body: (Throwable) -> Unit)
 
+    fun onFinish(body: () -> Unit) {
+        onSuccess(body)
+        onFail { body() }
+    }
+
     fun pause(): Nothing
     fun proceed(): Nothing
     fun fail(exception: Throwable): Nothing
