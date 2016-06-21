@@ -256,6 +256,9 @@ internal fun PipelineContext<ResponsePipelineState>.transform() {
         onSuccess {
             this@transform.continuePipeline()
         }
+        onFail { cause ->
+            this@transform.runBlock { fail(cause) }
+        }
 
         transformStage(machine, state)
     }
