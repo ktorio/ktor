@@ -25,6 +25,8 @@ open class ChainAsyncByteChannel(chain: Sequence<() -> AsyncReadChannel>) : Asyn
         source.read(dst, childHandler)
     }
 
+    override fun releaseFlush() = ensureCurrent()?.releaseFlush() ?: 0
+
     @Volatile
     private var buffer: ByteBuffer? = null
     @Volatile

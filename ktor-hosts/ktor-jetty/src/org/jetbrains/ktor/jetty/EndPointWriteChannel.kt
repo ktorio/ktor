@@ -36,6 +36,10 @@ internal class EndPointWriteChannel(val endPoint: EndPoint) : AsyncWriteChannel 
         endPoint.write(callback, src)
     }
 
+    override fun requestFlush() {
+        // looks like there is nothing to do here
+    }
+
     override fun close() {
         endPoint.close()
     }

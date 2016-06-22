@@ -66,6 +66,8 @@ class AsyncSkipAndCut(val source: AsyncReadChannel, val skip: Long, val maxSize:
         }
     }
 
+    override fun releaseFlush() = source.releaseFlush()
+
     override fun close() {
         if (!preventClose) {
             source.close()

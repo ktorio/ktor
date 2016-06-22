@@ -28,6 +28,8 @@ private class AsyncDeflaterByteChannel(val source: AsyncReadChannel, val gzip: B
         flip()
     }
 
+    override fun releaseFlush() = source.releaseFlush()
+
     override fun close() {
         source.close()
         parentHandler = null

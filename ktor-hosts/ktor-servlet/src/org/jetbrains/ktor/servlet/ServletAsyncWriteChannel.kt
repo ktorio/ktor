@@ -2,12 +2,15 @@ package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.nio.*
 import java.nio.*
+import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import javax.servlet.*
 
 internal class ServletAsyncWriteChannel(val servletOutputStream: ServletOutputStream) : AsyncWriteChannel {
     private val listenerInstalled = AtomicBoolean()
     private val currentHandler = AtomicReference<AsyncHandler?>()
+    private val pendingFlush = AtomicInteger(0)
+    private val writeSemaphore = Semaphore(1)
 
     @Volatile
     private var currentBuffer: ByteBuffer? = null
@@ -17,17 +20,7 @@ internal class ServletAsyncWriteChannel(val servletOutputStream: ServletOutputSt
 
     private val writeReadyListener = object : WriteListener {
         override fun onWritePossible() {
-            val handler = currentHandler.get()
-            if (handler != null) {
-                val buffer = currentBuffer
-
-                if (buffer == null) {
-                    currentHandler.set(null)
-                    handler.success(lastWriteSize)
-                } else {
-                    doWrite(buffer, handler)
-                }
-            }
+            writeAndNotify()
         }
 
         override fun onError(t: Throwable) {
@@ -48,29 +41,72 @@ internal class ServletAsyncWriteChannel(val servletOutputStream: ServletOutputSt
         if (listenerInstalled.compareAndSet(false, true)) {
             servletOutputStream.setWriteListener(writeReadyListener)
         } else {
-            doWrite(src, handler)
+            writeAndNotify()
         }
     }
 
-    private fun doWrite(buffer: ByteBuffer, handler: AsyncHandler) {
-        if (servletOutputStream.isReady) {
-            try {
-                doWrite(buffer)
+    override fun requestFlush() {
+        pendingFlush.incrementAndGet()
+        writeAndNotify()
+    }
 
-                currentBuffer = null
-                currentHandler.compareAndSet(handler, null)
+    private fun writeAndNotify() {
+        val done = try {
+            doPendingWriteFlush()
+        } catch (e: Exception) {
+            currentBuffer = null
+            currentHandler.getAndSet(null)?.failed(e)
 
-                handler.success(lastWriteSize)
-            } catch (t: Throwable) {
-                currentBuffer = null
-                currentHandler.compareAndSet(handler, null)
+            false
+        }
 
-                handler.failed(t)
+        if (done) {
+            currentBuffer = null
+            currentHandler.getAndSet(null)?.success(lastWriteSize)
+        }
+    }
+
+    private fun doPendingWriteFlush(): Boolean {
+        var writeRequested = false
+        var written = false
+
+        var flushRequested = false
+        var flushed = false
+
+        writeSemaphore.tryUse {
+            val handler = currentHandler.get()
+            val buffer = this.currentBuffer
+
+            if (handler != null && buffer != null) {
+                writeRequested = true
+                written = doWrite(buffer)
+                if (!written) {
+                    return false
+                }
+            }
+
+            if (pendingFlush.getAndSet(0) > 0) {
+                flushRequested = true
+                flushed = doFlush()
+                if (!flushed) {
+                    pendingFlush.incrementAndGet()
+                }
             }
         }
+
+        return (!writeRequested || written) && (!flushRequested || flushed)
     }
 
-    private fun doWrite(buffer: ByteBuffer) {
+    private fun doWrite(buffer: ByteBuffer): Boolean {
+        if (servletOutputStream.isReady) {
+            writeBuffer(buffer)
+            return true
+        }
+
+        return false
+    }
+
+    private fun writeBuffer(buffer: ByteBuffer) {
         lastWriteSize = buffer.remaining()
         if (buffer.hasArray()) {
             servletOutputStream.write(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining())
@@ -78,11 +114,31 @@ internal class ServletAsyncWriteChannel(val servletOutputStream: ServletOutputSt
         } else {
             val heapBuffer = ByteBuffer.allocate(buffer.remaining())
             heapBuffer.put(buffer)
-            doWrite(heapBuffer)
+            writeBuffer(heapBuffer)
         }
+    }
+
+    private fun doFlush(): Boolean {
+        if (servletOutputStream.isReady) {
+            servletOutputStream.flush()
+            return true
+        }
+        return false
     }
 
     override fun close() {
 
+    }
+
+    private inline fun Semaphore.tryUse(permits: Int = 1, block: () -> Unit): Boolean {
+        if (tryAcquire(permits)) {
+            try {
+                block()
+            } finally {
+                release(permits)
+            }
+            return true
+        }
+        return false
     }
 }

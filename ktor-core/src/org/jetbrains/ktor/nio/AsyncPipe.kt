@@ -20,6 +20,7 @@ class AsyncPipe : AsyncReadChannel, AsyncWriteChannel {
     private val consumerHandler = AtomicReference<AsyncHandler>()
 
     private val bufferCounter = Semaphore(0)
+    private val flushCounter = AtomicInteger()
 
     override fun close() {
         if (closed.compareAndSet(false, true)) {
@@ -82,6 +83,11 @@ class AsyncPipe : AsyncReadChannel, AsyncWriteChannel {
         bufferCounter.release()
 
         tryCommunicate()
+    }
+
+    override fun releaseFlush() = flushCounter.getAndSet(0)
+    override fun requestFlush() {
+        flushCounter.incrementAndGet()
     }
 
     private fun tryCommunicate() {

@@ -61,6 +61,8 @@ class AsyncSeekAndCut(val source: SeekableAsyncChannel, val seek: Long, val maxS
         }
     }
 
+    override fun releaseFlush() = source.releaseFlush()
+
     override fun close() {
         if (!preventClose) {
             source.close()

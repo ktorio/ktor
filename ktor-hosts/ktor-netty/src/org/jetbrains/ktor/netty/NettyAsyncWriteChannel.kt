@@ -45,6 +45,14 @@ internal class NettyAsyncWriteChannel(val request: HttpRequest, val appResponse:
         }
     }
 
+    override fun requestFlush() {
+        context.executeInLoop {
+            if (!released.get() && !context.isRemoved) {
+                context.flush()
+            }
+        }
+    }
+
     override fun close() {
         try {
             currentHandler.getAndSet(null)?.failed(EOFException("Channel closed"))

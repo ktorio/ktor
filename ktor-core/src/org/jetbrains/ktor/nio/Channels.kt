@@ -14,10 +14,12 @@ interface Channel: Closeable {
 }
 interface AsyncReadChannel: Channel {
     fun read(dst: ByteBuffer, handler: AsyncHandler)
+    fun releaseFlush(): Int = 0
 }
 
 interface AsyncWriteChannel: Channel {
     fun write(src: ByteBuffer, handler: AsyncHandler)
+    fun requestFlush() {} // TODO implement everywhere
 }
 
 interface SeekableAsyncChannel : AsyncReadChannel {
@@ -147,7 +149,7 @@ private class AsyncWriteChannelAdapterStream(val ch: AsyncWriteChannel) : Output
 
     @Synchronized
     override fun flush() {
-        // note: it is important to keep it here synchronized even empty to ensure all write operations complete
+        ch.requestFlush()
     }
 }
 

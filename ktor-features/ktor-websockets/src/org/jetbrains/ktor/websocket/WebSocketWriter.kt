@@ -55,6 +55,7 @@ internal class WebSocketWriter(val parent: WebSocketImpl, val writeChannel: Asyn
         buffer.flip()
         if (buffer.hasRemaining()) {
             writeChannel.write(buffer, listener)
+            writeChannel.requestFlush()
         } else {
             buffer.compact()
             writeInProgress.set(false)

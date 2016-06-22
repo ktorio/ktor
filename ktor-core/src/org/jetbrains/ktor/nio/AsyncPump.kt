@@ -98,6 +98,9 @@ private class AsyncPump(bufferSize: Int = 8192, val from: AsyncReadChannel, val 
     private fun write() {
         if (state.get() == State.RUNNING) {
             to.write(buffer, writeHandler)
+            if (from.releaseFlush() > 0) {
+                to.requestFlush()
+            }
         }
     }
 
