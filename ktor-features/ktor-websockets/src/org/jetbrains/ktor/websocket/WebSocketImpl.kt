@@ -8,7 +8,11 @@ import java.time.*
 import java.util.concurrent.*
 
 internal class WebSocketImpl(call: ApplicationCall, context: PipelineContext<*>, val readChannel: AsyncReadChannel, val writeChannel: AsyncWriteChannel) : WebSocket(call, context) {
-    private val exec = call.application.attributes.computeIfAbsent(ScheduledExecutorAttribute) { Executors.newScheduledThreadPool(1) }
+    private val exec = call.application.attributes.computeIfAbsent(ScheduledExecutorAttribute) {
+        call.application.closeHooks.add { stopExec() }
+
+        Executors.newScheduledThreadPool(1) { Thread(it, "websocket-pool") }
+    }
     private val controlFrameHandler = ControlFrameHandler(this, exec)
     private val outbound = WebSocketWriter(this, writeChannel, controlFrameHandler)
     private val reader = WebSocketReader(
@@ -70,6 +74,10 @@ internal class WebSocketImpl(call: ApplicationCall, context: PipelineContext<*>,
                 close()
             }
         }
+    }
+
+    fun stopExec() {
+        exec.shutdown()
     }
 
     private object ScheduledExecutorAttribute : AttributeKey<ScheduledExecutorService>("websocket-exec")

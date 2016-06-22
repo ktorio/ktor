@@ -127,7 +127,7 @@ internal class ServletAsyncWriteChannel(val servletOutputStream: ServletOutputSt
     }
 
     override fun close() {
-
+        servletOutputStream.close()
     }
 
     private inline fun Semaphore.tryUse(permits: Int = 1, block: () -> Unit): Boolean {

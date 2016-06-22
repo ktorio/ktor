@@ -11,7 +11,7 @@ import java.util.concurrent.*
 import javax.servlet.http.*
 
 internal fun setupUpgradeHelper(request: HttpServletRequest, response: HttpServletResponse, server: Server, latch: CountDownLatch, call: ServletApplicationCall) {
-    call.respond.intercept(RespondPipeline.Before) {
+    call.respond.intercept(RespondPipeline.After) {
         val obj = subject.message
         if (obj is FinalContent.ProtocolUpgrade) {
             val connection = request.getAttribute("org.eclipse.jetty.server.HttpConnection") as HttpConnection

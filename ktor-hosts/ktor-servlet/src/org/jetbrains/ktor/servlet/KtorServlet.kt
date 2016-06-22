@@ -24,9 +24,12 @@ abstract class KtorServlet : HttpServlet() {
 
         try {
             val latch = CountDownLatch(1)
+            val upgraded = AtomicBoolean(false)
             val call = ServletApplicationCall(application, request, response, executorService) { latch.countDown() }
             var throwable: Throwable? = null
             var pipelineState: PipelineState? = null
+
+            setupUpgradeHelper(request, response, latch, call, upgraded)
 
             call.executeOn(executorService, application).whenComplete { state, t ->
                 pipelineState = state
@@ -38,7 +41,11 @@ abstract class KtorServlet : HttpServlet() {
             when {
                 throwable != null -> throw throwable!!
                 pipelineState == null -> {}
-                pipelineState == PipelineState.Executing -> call.ensureAsync()
+                pipelineState == PipelineState.Executing -> {
+                    if (!upgraded.get()) {
+                        call.ensureAsync()
+                    }
+                }
                 !call.completed -> {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND)
                     call.close()
@@ -54,5 +61,10 @@ abstract class KtorServlet : HttpServlet() {
     override fun init() {
         application.setupDefaultHostPages()
         application.install(TransformationSupport).registerDefaultHandlers()
+    }
+
+    override fun destroy() {
+        super.destroy()
+        application.dispose()
     }
 }

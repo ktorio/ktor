@@ -67,8 +67,8 @@ abstract class WebSocketHostSuite : HostTestBase() {
         assertEquals(listOf("Hello"), collected)
     }
 
-    //    @Test
-    @Test(timeout = 5000L)
+        @Test
+//    @Test(timeout = 5000L)
     fun testWebSocketPingPong() {
         createAndStartServer(port) {
             webSocket("/") {
