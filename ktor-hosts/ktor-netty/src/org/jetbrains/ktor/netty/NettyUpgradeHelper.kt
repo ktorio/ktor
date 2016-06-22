@@ -9,14 +9,15 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 
 internal fun setupUpgradeHelper(call: NettyApplicationCall, context: ChannelHandlerContext, drops: LastDropsCollectorHandler?) {
-    call.interceptRespond(RespondPipeline.Before) { obj ->
-        if (obj is FinalContent.ProtocolUpgrade) {
+    call.respond.intercept(RespondPipeline.Before) {
+        val message = subject.message
+        if (message is FinalContent.ProtocolUpgrade) {
             context.executeInLoop {
                 context.channel().pipeline().remove(ChunkedWriteHandler::class.java)
                 context.channel().pipeline().remove(NettyApplicationHost.HostHttpHandler::class.java)
 
-                call.response.status(obj.status ?: HttpStatusCode.SwitchingProtocols)
-                obj.headers.flattenEntries().forEach { e ->
+                call.response.status(message.status ?: HttpStatusCode.SwitchingProtocols)
+                message.headers.flattenEntries().forEach { e ->
                     call.response.headers.append(e.first, e.second)
                 }
 
@@ -28,7 +29,7 @@ internal fun setupUpgradeHelper(call: NettyApplicationCall, context: ChannelHand
                     drops?.forgetCompleted()
                     context.channel().pipeline().addFirst(NettyDirectEncoder())
 
-                    obj.upgrade(call, this, call.request.content.get(), call.response.channel())
+                    message.upgrade(call, this, call.request.content.get(), call.response.channel())
                 }
             }
 

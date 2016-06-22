@@ -14,7 +14,8 @@ object HeadRequestSupport : ApplicationFeature<Unit> {
 
         application.intercept(ApplicationCallPipeline.Infrastructure) {
             if (call.request.httpMethod == HttpMethod.Head) {
-                it.interceptRespond(RespondPipeline.After) { message ->
+                it.respond.intercept(RespondPipeline.After) {
+                    val message = subject.message
                     if (message is FinalContent && message !is FinalContent.NoContent) {
                         call.respond(HeadResponse(message))
                     }

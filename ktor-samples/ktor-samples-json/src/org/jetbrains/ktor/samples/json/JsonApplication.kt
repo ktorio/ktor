@@ -25,10 +25,11 @@ class JsonApplication(environment: ApplicationEnvironment) : Application(environ
 
         intercept(ApplicationCallPipeline.Infrastructure) { call ->
             if (call.request.accept() == "application/json") {
-                call.interceptRespond(RespondPipeline.Before) { value ->
-                    when (value) {
+                call.respond.intercept(RespondPipeline.Before) {
+                    val message = subject.message
+                    when (message) {
                         is Item, is Model -> {
-                            call.respond(TextContent(ContentType.Application.Json, GsonBuilder().create().toJson(value)))
+                            call.respond(TextContent(ContentType.Application.Json, GsonBuilder().create().toJson(message)))
                         }
                     }
                 }

@@ -27,18 +27,20 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
             if (rangeSpecifier != null) {
                 if (call.isGetOrHead()) {
                     call.attributes.put(CompressionAttributes.preventCompression, true)
-                    call.interceptRespond(RespondPipeline.After) { obj ->
-                        if (obj is FinalContent.ChannelContent && obj !is RangeChannelProvider) {
-                            obj.contentLength()?.let { length -> tryProcessRange(obj, call, rangeSpecifier, length, config) }
+                    call.respond.intercept(RespondPipeline.After) {
+                        val message = subject.message
+                        if (message is FinalContent.ChannelContent && message !is RangeChannelProvider) {
+                            message.contentLength()?.let { length -> tryProcessRange(message, call, rangeSpecifier, length, config) }
                         }
                     }
                 } else {
                     call.respond(HttpStatusCode.MethodNotAllowed.description("Method ${call.request.httpMethod.value} is not allowed with range request"))
                 }
             } else {
-                call.interceptRespond(RespondPipeline.After) { obj ->
-                    if (obj is FinalContent.ChannelContent && obj !is RangeChannelProvider) {
-                        call.respond(RangeChannelProvider.ByPass(obj))
+                call.respond.intercept(RespondPipeline.After) {
+                    val message = subject.message
+                    if (message is FinalContent.ChannelContent && message !is RangeChannelProvider) {
+                        call.respond(RangeChannelProvider.ByPass(message))
                     }
                 }
             }

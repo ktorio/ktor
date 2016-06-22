@@ -48,6 +48,7 @@ interface ApplicationCall : Closeable {
 
     val transform: ApplicationTransform<PipelineContext<ResponsePipelineState>>
 
+    @Deprecated("Use respond.intercept instead but notice lambda parameter difference: use subject.message to access response object")
     fun interceptRespond(phase: PipelinePhase, handler: PipelineContext<ResponsePipelineState>.(Any) -> Unit) {
         respond.intercept(phase) {
             handler(it.message)
