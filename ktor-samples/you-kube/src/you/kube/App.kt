@@ -34,7 +34,11 @@ class App(environment: ApplicationEnvironment) : Application(environment) {
         install(Locations)
         install(ConditionalHeadersSupport)
         install(PartialContentSupport)
-        install(CompressionSupport)
+        install(CompressionSupport) {
+            configureDefault {
+                excludeMimeTypeMatch(ContentType.Video.Any)
+            }
+        }
 
         val key = hex("03e156f6058a13813816065")
         val uploadDir = File("ktor-samples/you-kube/.video")

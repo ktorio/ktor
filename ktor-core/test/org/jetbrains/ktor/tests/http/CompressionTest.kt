@@ -72,12 +72,12 @@ class CompressionTest {
     }
 
     @Test
-    fun testAcceptStartContentEncoding() {
+    fun testAcceptStarContentEncodingGzip() {
         withTestApplication {
-            var defaultEncoding = ""
-
             application.install(CompressionSupport) {
-                defaultEncoding = this.defaultEncoding
+                configure {
+                    gzip()
+                }
             }
 
             application.routing {
@@ -86,7 +86,26 @@ class CompressionTest {
                 }
             }
 
-            handleAndAssert("/", "*", defaultEncoding, "text to be compressed")
+            handleAndAssert("/", "*", "gzip", "text to be compressed")
+        }
+    }
+
+    @Test
+    fun testAcceptStarContentEncodingDeflate() {
+        withTestApplication {
+            application.install(CompressionSupport) {
+                configure {
+                    deflate()
+                }
+            }
+
+            application.routing {
+                get("/") {
+                    call.respondText("text to be compressed")
+                }
+            }
+
+            handleAndAssert("/", "*", "deflate", "text to be compressed")
         }
     }
 
@@ -108,8 +127,10 @@ class CompressionTest {
     fun testCustomEncoding() {
         withTestApplication {
             application.install(CompressionSupport) {
-                compressorRegistry["special"] = object : CompressionEncoder {
-                    override fun open(delegate: AsyncReadChannel) = delegate
+                configureDefault {
+                    encoder("special", object : CompressionEncoder {
+                        override fun open(delegate: AsyncReadChannel) = delegate
+                    })
                 }
             }
             application.routing {
@@ -119,7 +140,7 @@ class CompressionTest {
             }
 
             val result = handleRequest(HttpMethod.Get, "/") {
-                addHeader(HttpHeaders.AcceptEncoding, "special,gzip,deflate")
+                addHeader(HttpHeaders.AcceptEncoding, "special")
             }
             assertEquals(ApplicationCallResult.Handled, result.requestResult)
             assertEquals(HttpStatusCode.OK, result.response.status())
@@ -132,7 +153,9 @@ class CompressionTest {
     fun testMinSize() {
         withTestApplication {
             application.install(CompressionSupport) {
-                minSize = 10L
+                configureDefault {
+                    minSize(10)
+                }
             }
 
             application.routing {
@@ -156,21 +179,125 @@ class CompressionTest {
     }
 
     @Test
-    fun testCompressStreamFalse() {
+    fun testMimeTypes() {
         withTestApplication {
             application.install(CompressionSupport) {
-                compressStream = false
+                configureDefault {
+                    mimeTypeShouldMatch(ContentType.Text.Any)
+                    excludeMimeTypeMatch(ContentType.Text.VCard)
+                }
             }
 
             application.routing {
-                get("/stream") {
-                    call.respondWrite {
-                        append("stream content")
+                get("/") {
+                    call.respondText(ContentType.parse(call.parameters["t"]!!), "OK")
+                }
+            }
+
+            handleAndAssert("/?t=text/plain", "gzip,deflate", "gzip", "OK")
+            handleAndAssert("/?t=text/vcard", "gzip,deflate", null, "OK")
+            handleAndAssert("/?t=some/other", "gzip,deflate", null, "OK")
+        }
+    }
+
+    @Test
+    fun testEncoderLevelCondition() {
+        withTestApplication {
+            application.install(CompressionSupport) {
+                configure {
+                    gzip {
+                        condition {
+                            parameters["e"] == "1"
+                        }
+                    }
+                    deflate()
+                }
+            }
+
+            application.routing {
+                get("/") {
+                    call.respondText("OK")
+                }
+            }
+
+            handleAndAssert("/?e=1", "gzip", "gzip", "OK")
+            handleAndAssert("/?e", "gzip", null, "OK")
+            handleAndAssert("/?e", "gzip,deflate", "deflate", "OK")
+        }
+    }
+
+    @Test
+    fun testEncoderPriority1() {
+        withTestApplication {
+            application.install(CompressionSupport) {
+                configure {
+                    gzip {
+                        priority = 10.0
+                    }
+                    deflate {
+                        priority = 1.0
                     }
                 }
             }
 
-            handleAndAssert("/stream", "gzip,deflate", null, "stream content")
+            application.routing {
+                get("/") {
+                    call.respondText("OK")
+                }
+            }
+
+            handleAndAssert("/", "gzip", "gzip", "OK")
+            handleAndAssert("/", "deflate", "deflate", "OK")
+            handleAndAssert("/", "gzip,deflate", "gzip", "OK")
+        }
+    }
+
+    @Test
+    fun testEncoderPriority2() {
+        withTestApplication {
+            application.install(CompressionSupport) {
+                configure {
+                    gzip {
+                        priority = 1.0
+                    }
+                    deflate {
+                        priority = 10.0
+                    }
+                }
+            }
+
+            application.routing {
+                get("/") {
+                    call.respondText("OK")
+                }
+            }
+
+            handleAndAssert("/", "gzip", "gzip", "OK")
+            handleAndAssert("/", "deflate", "deflate", "OK")
+            handleAndAssert("/", "gzip,deflate", "deflate", "OK")
+        }
+    }
+
+    @Test
+    fun testEncoderQuality() {
+        withTestApplication {
+            application.install(CompressionSupport) {
+                configure {
+                    gzip()
+                    deflate()
+                }
+            }
+
+            application.routing {
+                get("/") {
+                    call.respondText("OK")
+                }
+            }
+
+            handleAndAssert("/", "gzip", "gzip", "OK")
+            handleAndAssert("/", "deflate", "deflate", "OK")
+            handleAndAssert("/", "gzip;q=1,deflate;q=0.1", "gzip", "OK")
+            handleAndAssert("/", "gzip;q=0.1,deflate;q=1", "deflate", "OK")
         }
     }
 
@@ -178,8 +305,10 @@ class CompressionTest {
     fun testCustomCondition() {
         withTestApplication {
             application.install(CompressionSupport) {
-                conditions.add {
-                    request.parameters["compress"] == "true"
+                configureDefault {
+                    condition {
+                        request.parameters["compress"] == "true"
+                    }
                 }
             }
 
