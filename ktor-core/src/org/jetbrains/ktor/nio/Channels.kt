@@ -19,7 +19,7 @@ interface AsyncReadChannel: Channel {
 
 interface AsyncWriteChannel: Channel {
     fun write(src: ByteBuffer, handler: AsyncHandler)
-    fun requestFlush() {} // TODO implement everywhere
+    fun requestFlush() {}
 }
 
 interface SeekableAsyncChannel : AsyncReadChannel {
