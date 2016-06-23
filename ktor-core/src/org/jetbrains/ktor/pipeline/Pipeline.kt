@@ -12,6 +12,10 @@ open class Pipeline<TSubject : Any>(vararg phase: PipelinePhase) {
     fun intercept(phase: PipelinePhase, block: PipelineContext<TSubject>.(TSubject) -> Unit) {
         phases.intercept(phase, block)
     }
+
+    fun merge(from: Pipeline<TSubject>) {
+        phases.merge(from.phases)
+    }
 }
 
 open class PipelineControlFlow : Throwable() {

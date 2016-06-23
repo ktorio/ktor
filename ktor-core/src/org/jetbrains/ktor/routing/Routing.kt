@@ -25,14 +25,14 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
     }
 
     private fun buildEntryPipeline(entry: Route): Pipeline<ApplicationCall> {
-        // Interceptors are rarely installed into routing entries, so don't create list unless there are some
         var current: Route? = entry
         val pipeline = ApplicationCallPipeline()
+        val pipelines = mutableListOf<ApplicationCallPipeline>()
         while (current != null) {
-            current.interceptors.forEach { pipeline.intercept(ApplicationCallPipeline.Infrastructure, it) }
+            pipelines.add(0, current)
             current = current.parent
         }
-
+        pipelines.forEach { pipeline.merge(it) }
         entry.handlers.forEach { pipeline.intercept(ApplicationCallPipeline.Call, it) }
         return pipeline
     }

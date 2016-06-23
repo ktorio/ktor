@@ -115,15 +115,132 @@ class RoutingProcessingTest {
                 uri = "/user/john"
                 method = HttpMethod.Get
             }
-            it("should have processed interceptor on /user node") {
-                assertTrue(userIntercepted)
+            assertTrue(userIntercepted, "should have processed interceptor on /user node")
+            assertTrue(userNameGotWithinInterceptor, "should have processed /user/username in context of interceptor")
+            assertEquals(userName, "john", "should have processed get handler on /user/username node")
+        }
+    }
+
+    @Test fun `verify interception order when outer should be after`() {
+        val testHost = createTestHost()
+
+        var userIntercepted = false
+        var wrappedWithInterceptor = false
+        var rootIntercepted = false
+        var userName = ""
+        var routingInterceptorWrapped = false
+
+        testHost.application.routing {
+            intercept(ApplicationCallPipeline.Call) {
+                wrappedWithInterceptor = true
+                rootIntercepted = true
+                onFinish {
+                    wrappedWithInterceptor = false
+                }
             }
-            it("should have processed /user/username in context of interceptor") {
-                assertTrue(userNameGotWithinInterceptor)
+
+            route("user") {
+                intercept(ApplicationCallPipeline.Infrastructure) {
+                    userIntercepted = true
+                    routingInterceptorWrapped = wrappedWithInterceptor
+                }
+                get("{username}") {
+                    userName = call.parameters["username"] ?: ""
+                }
             }
-            it("should have processed get handler on /user/username node") {
-                assertEquals(userName, "john")
+        }
+
+        on("handling GET /user/john") {
+            testHost.handleRequest {
+                uri = "/user/john"
+                method = HttpMethod.Get
             }
+            assertTrue(userIntercepted, "should have processed interceptor on /user node")
+            assertFalse(routingInterceptorWrapped, "should have processed nested routing interceptor in a prior phase")
+            assertTrue(rootIntercepted, "should have processed root interceptor")
+            assertEquals(userName, "john", "should have processed get handler on /user/username node")
+        }
+    }
+
+    @Test fun `verify interception order when outer should be before because of phase`() {
+        val testHost = createTestHost()
+
+        var userIntercepted = false
+        var wrappedWithInterceptor = false
+        var rootIntercepted = false
+        var userName = ""
+        var routingInterceptorWrapped = false
+
+        testHost.application.routing {
+            intercept(ApplicationCallPipeline.Infrastructure) {
+                wrappedWithInterceptor = true
+                rootIntercepted = true
+                onFinish {
+                    wrappedWithInterceptor = false
+                }
+            }
+
+            route("user") {
+                intercept(ApplicationCallPipeline.Call) {
+                    userIntercepted = true
+                    routingInterceptorWrapped = wrappedWithInterceptor
+                }
+                get("{username}") {
+                    userName = call.parameters["username"] ?: ""
+                }
+            }
+        }
+
+        on("handling GET /user/john") {
+            testHost.handleRequest {
+                uri = "/user/john"
+                method = HttpMethod.Get
+            }
+            assertTrue(userIntercepted, "should have processed interceptor on /user node")
+            assertTrue(routingInterceptorWrapped, "should have processed nested routing interceptor in an after phase")
+            assertTrue(rootIntercepted, "should have processed root interceptor")
+            assertEquals(userName, "john", "should have processed get handler on /user/username node")
+        }
+    }
+
+    @Test fun `verify interception order when outer should be before because of order`() {
+        val testHost = createTestHost()
+
+        var userIntercepted = false
+        var wrappedWithInterceptor = false
+        var rootIntercepted = false
+        var userName = ""
+        var routingInterceptorWrapped = false
+
+        testHost.application.routing {
+            intercept(ApplicationCallPipeline.Infrastructure) {
+                wrappedWithInterceptor = true
+                rootIntercepted = true
+                onFinish {
+                    wrappedWithInterceptor = false
+                }
+            }
+
+            route("user") {
+                intercept(ApplicationCallPipeline.Infrastructure) {
+                    userIntercepted = true
+                    routingInterceptorWrapped = wrappedWithInterceptor
+                }
+                get("{username}") {
+                    userName = call.parameters["username"] ?: ""
+                }
+            }
+        }
+
+        on("handling GET /user/john") {
+            testHost.handleRequest {
+                uri = "/user/john"
+                method = HttpMethod.Get
+            }
+            assertTrue(userIntercepted, "should have processed interceptor on /user node")
+            assertTrue(routingInterceptorWrapped, "should have processed nested routing interceptor in an after phase")
+            assertTrue(rootIntercepted, "should have processed root interceptor")
+            assertEquals(userName, "john", "should have processed get handler on /user/username node")
         }
     }
 }
