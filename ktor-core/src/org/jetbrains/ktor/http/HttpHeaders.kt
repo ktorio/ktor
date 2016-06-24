@@ -83,5 +83,16 @@ public object HttpHeaders {
     val Via = "Via"
     val Warning = "Warning"
     val WWWAuthenticate = "WWW-Authenticate"
+
+    // CORS
+    val AccessControlAllowOrigin = "Access-Control-Allow-Origin"
+    val AccessControlAllowMethods = "Access-Control-Allow-Methods"
+    val AccessControlAllowCredentials = "Access-Control-Allow-Credentials"
+    val AccessControlAllowHeaders = "Access-Control-Allow-Headers"
+
+    val AccessControlRequestMethod = "Access-Control-Request-Method"
+    val AccessControlRequestHeaders = "Access-Control-Request-Headers"
+    val AccessControlExposeHeaders = "Access-Control-Expose-Headers"
+    val AccessControlMaxAge = "Access-Control-Max-Age"
 }
 
