@@ -113,6 +113,67 @@ class CORSTest {
     }
 
     @Test
+    fun testSimpleRequestPort1() {
+        withTestApplication {
+            application.CORS {
+                host("my-host")
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://my-host:80")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("http://my-host:80", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://my-host:90")
+            }.let { call ->
+                assertEquals(HttpStatusCode.Forbidden, call.response.status())
+                assertNull(call.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testSimpleRequestPort2() {
+        withTestApplication {
+            application.CORS {
+                host("my-host:80")
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://my-host")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("http://my-host", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://my-host:80")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("http://my-host:80", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+        }
+    }
+
+    @Test
     fun testSimpleRequestExposed() {
         withTestApplication {
             application.CORS {

@@ -7,7 +7,7 @@ import java.time.*
 import java.util.*
 
 class CORSBuilder {
-    val hosts = TreeSet<String>(String.CASE_INSENSITIVE_ORDER)
+    val hosts = HashSet<String>()
     val headers = TreeSet<String>(String.CASE_INSENSITIVE_ORDER)
     val methods = HashSet<HttpMethod>()
     val exposedHeaders = TreeSet<String>(String.CASE_INSENSITIVE_ORDER)
@@ -15,6 +15,22 @@ class CORSBuilder {
     var allowCredentials = false
 
     var maxAge: Duration = Duration.ofDays(1)
+}
+
+private class CORS(builder: CORSBuilder) {
+    val allowAnyHost = "*" in builder.hosts
+    val hostsNormalized = HashSet<String>(builder.hosts.map { normalizeOrigin(it) })
+
+    val allHeaders = builder.headers + CorsDefaultHeaders
+    val headers = allHeaders.map { it.toLowerCase() }.toSet()
+    val headersListHeaderValue = allHeaders.sorted().joinToString(", ")
+
+    val methods = HashSet<HttpMethod>(builder.methods + CorsDefaultMethods)
+    val methodsListHeaderValue = methods.map { it.value }.sorted().joinToString(", ")
+
+    val allowCredentials = builder.allowCredentials
+    val maxAgeHeaderValue = (builder.maxAge.toMillis() / 1000).let { if (it > 0) it.toString() else null }
+    val exposedHeaders = if (builder.exposedHeaders.isNotEmpty()) builder.exposedHeaders.sorted().joinToString(", ") else null
 }
 
 fun CORSBuilder.anyHost() {
@@ -73,45 +89,43 @@ private val CorsDefaultHeaders: Set<String> = TreeSet(String.CASE_INSENSITIVE_OR
 }
 
 fun Pipeline<ApplicationCall>.CORS(block: CORSBuilder.() -> Unit) {
-    val builder = CORSBuilder()
-
-    block(builder)
+    val config = CORS(CORSBuilder().apply(block))
 
     intercept(ApplicationCallPipeline.Infrastructure) { call ->
         val origin = call.request.header(HttpHeaders.Origin)
         if (origin != null && isValidOrigin(origin) && call.request.headers.getAll(HttpHeaders.Origin)?.size == 1) {
-            corsCheckOrigins(origin, builder)
+            corsCheckOrigins(origin, config)
 
             if (call.request.httpMethod == HttpMethod.Options) {
-                preFlight(call, builder, origin)
+                preFlight(call, config, origin)
             }
 
-            corsCheckCurrentMethod(builder)
-            call.accessControlAllowOrigin(builder, origin)
-            call.accessControlAllowCredentials(builder)
+            corsCheckCurrentMethod(config)
+            call.accessControlAllowOrigin(config, origin)
+            call.accessControlAllowCredentials(config)
 
-            if (builder.exposedHeaders.isNotEmpty()) {
-                call.response.header(HttpHeaders.AccessControlExposeHeaders, builder.exposedHeaders.joinToString(", "))
+            if (config.exposedHeaders != null) {
+                call.response.header(HttpHeaders.AccessControlExposeHeaders, config.exposedHeaders)
             }
         }
     }
 }
 
-private fun PipelineContext<ApplicationCall>.preFlight(call: ApplicationCall, builder: CORSBuilder, origin: String): Nothing {
-    corsCheckRequestMethod(builder)
-    corsCheckRequestHeaders(builder)
+private fun PipelineContext<ApplicationCall>.preFlight(call: ApplicationCall, config: CORS, origin: String): Nothing {
+    corsCheckRequestMethod(config)
+    corsCheckRequestHeaders(config)
 
-    call.accessControlAllowOrigin(builder, origin)
-    call.response.header(HttpHeaders.AccessControlAllowMethods, (builder.methods + CorsDefaultMethods).joinToString(", ") { it.value })
-    call.response.header(HttpHeaders.AccessControlAllowHeaders, (builder.headers + CorsDefaultHeaders).joinToString(", "))
-    call.accessControlAllowCredentials(builder)
-    call.accessControlMaxAge(builder)
+    call.accessControlAllowOrigin(config, origin)
+    call.response.header(HttpHeaders.AccessControlAllowMethods, config.methodsListHeaderValue)
+    call.response.header(HttpHeaders.AccessControlAllowHeaders, config.headersListHeaderValue)
+    call.accessControlAllowCredentials(config)
+    call.accessControlMaxAge(config)
 
     call.respond(HttpStatusCode.OK)
 }
 
-private fun ApplicationCall.accessControlAllowOrigin(builder: CORSBuilder, origin: String) {
-    if ("*" in builder.hosts && !builder.allowCredentials) {
+private fun ApplicationCall.accessControlAllowOrigin(config: CORS, origin: String) {
+    if (config.allowAnyHost && !config.allowCredentials) {
         response.header(HttpHeaders.AccessControlAllowOrigin, "*")
     } else {
         response.header(HttpHeaders.AccessControlAllowOrigin, origin)
@@ -128,45 +142,44 @@ private fun ApplicationCall.corsVary() {
     }
 }
 
-private fun ApplicationCall.accessControlAllowCredentials(builder: CORSBuilder) {
-    if (builder.allowCredentials) {
+private fun ApplicationCall.accessControlAllowCredentials(config: CORS) {
+    if (config.allowCredentials) {
         response.header(HttpHeaders.AccessControlAllowCredentials, "true")
     }
 }
 
-private fun ApplicationCall.accessControlMaxAge(builder: CORSBuilder) {
-    val maxAge = builder.maxAge.toMillis() / 1000
-    if (maxAge > 0) {
-        response.header(HttpHeaders.AccessControlMaxAge, maxAge)
+private fun ApplicationCall.accessControlMaxAge(config: CORS) {
+    if (config.maxAgeHeaderValue != null) {
+        response.header(HttpHeaders.AccessControlMaxAge, config.maxAgeHeaderValue)
     }
 }
 
-private fun PipelineContext<ApplicationCall>.corsCheckOrigins(origin: String, builder: CORSBuilder) {
-    if ("*" !in builder.hosts && origin !in builder.hosts) {
+private fun PipelineContext<ApplicationCall>.corsCheckOrigins(origin: String, config: CORS) {
+    if (!config.allowAnyHost && normalizeOrigin(origin) !in config.hostsNormalized) {
         corsFail()
     }
 }
 
-private fun PipelineContext<ApplicationCall>.corsCheckRequestHeaders(builder: CORSBuilder) {
-    val requestHeaders = call.request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map { it.trim() } ?: emptyList()
+private fun PipelineContext<ApplicationCall>.corsCheckRequestHeaders(config: CORS) {
+    val requestHeaders = call.request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map { it.trim().toLowerCase() } ?: emptyList()
 
-    if (requestHeaders.any { it !in CorsDefaultHeaders && it !in builder.headers }) {
+    if (requestHeaders.any { it !in config.headers }) {
         corsFail()
     }
 }
 
-private fun PipelineContext<ApplicationCall>.corsCheckCurrentMethod(builder: CORSBuilder) {
+private fun PipelineContext<ApplicationCall>.corsCheckCurrentMethod(config: CORS) {
     val requestMethod = call.request.httpMethod
 
-    if (requestMethod !in CorsDefaultMethods && requestMethod !in builder.methods ) {
+    if (requestMethod !in config.methods) {
         corsFail()
     }
 }
 
-private fun PipelineContext<ApplicationCall>.corsCheckRequestMethod(builder: CORSBuilder) {
+private fun PipelineContext<ApplicationCall>.corsCheckRequestMethod(config: CORS) {
     val requestMethod = call.request.header(HttpHeaders.AccessControlRequestMethod)?.let { HttpMethod(it) }
 
-    if (requestMethod == null || (requestMethod !in CorsDefaultMethods && requestMethod !in builder.methods)) {
+    if (requestMethod == null || (requestMethod !in config.methods)) {
         corsFail()
     }
 }
@@ -194,3 +207,22 @@ private fun isValidOrigin(origin: String): Boolean {
         false
     }
 }
+
+private val numberRegex = "[0-9]+".toRegex()
+private fun normalizeOrigin(origin: String) = if (origin == "null" || origin == "*") origin else StringBuilder(origin.length).apply {
+    append(origin)
+
+    if (!origin.substringAfterLast(":", "").matches(numberRegex)) {
+        val schema = origin.substringBefore(':')
+        val port = when (schema) {
+            "http" -> "80"
+            "https" -> "443"
+            else -> null
+        }
+
+        if (port != null) {
+            append(':')
+            append(port)
+        }
+    }
+}.toString()
