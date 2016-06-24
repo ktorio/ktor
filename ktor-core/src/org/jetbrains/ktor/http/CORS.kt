@@ -79,7 +79,7 @@ fun Pipeline<ApplicationCall>.CORS(block: CORSBuilder.() -> Unit) {
 
     intercept(ApplicationCallPipeline.Infrastructure) { call ->
         val origin = call.request.header(HttpHeaders.Origin)
-        if (origin != null && isValidOrigin(origin)) {
+        if (origin != null && isValidOrigin(origin) && call.request.headers.getAll(HttpHeaders.Origin)?.size == 1) {
             corsCheckOrigins(origin, builder)
 
             if (call.request.httpMethod == HttpMethod.Options) {
@@ -114,7 +114,17 @@ private fun ApplicationCall.accessControlAllowOrigin(builder: CORSBuilder, origi
     if ("*" in builder.hosts && !builder.allowCredentials) {
         response.header(HttpHeaders.AccessControlAllowOrigin, "*")
     } else {
-        response.header(HttpHeaders.AccessControlAllowOrigin, (builder.hosts + origin).filter { it != "*" }.joinToString(" "))
+        response.header(HttpHeaders.AccessControlAllowOrigin, origin)
+        corsVary()
+    }
+}
+
+private fun ApplicationCall.corsVary() {
+    val vary = response.headers[HttpHeaders.Vary]
+    if (vary == null) {
+        response.header(HttpHeaders.Vary, HttpHeaders.Origin)
+    } else {
+        response.header(HttpHeaders.Vary, vary + ", " + HttpHeaders.Origin)
     }
 }
 
@@ -180,7 +190,7 @@ private fun isValidOrigin(origin: String): Boolean {
         val url = URI(origin)
 
         !url.scheme.isNullOrEmpty()
-    } catch (e: MalformedURLException) {
+    } catch (e: URISyntaxException) {
         false
     }
 }

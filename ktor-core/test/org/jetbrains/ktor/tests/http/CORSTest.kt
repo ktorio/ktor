@@ -9,6 +9,79 @@ import org.junit.*
 import kotlin.test.*
 
 class CORSTest {
+
+    @Test
+    fun testNoOriginHeader() {
+        withTestApplication {
+            application.CORS {
+                anyHost()
+                allowCredentials = true
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertNull(call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testWrongOriginHeader() {
+        withTestApplication {
+            application.CORS {
+                anyHost()
+                allowCredentials = true
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "invalid-host")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertNull(call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testWrongOriginHeaderIsEmpty() {
+        withTestApplication {
+            application.CORS {
+                anyHost()
+                allowCredentials = true
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertNull(call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+        }
+    }
+
     @Test
     fun testSimpleRequest() {
         withTestApplication {
@@ -40,6 +113,32 @@ class CORSTest {
     }
 
     @Test
+    fun testSimpleRequestExposed() {
+        withTestApplication {
+            application.CORS {
+                host("my-host")
+                exposeHeader(HttpHeaders.ETag)
+                exposeHeader(HttpHeaders.Vary)
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://my-host")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("http://my-host", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals(setOf(HttpHeaders.ETag, HttpHeaders.Vary), call.response.headers[HttpHeaders.AccessControlExposeHeaders]?.split(", ")?.toSet())
+                assertEquals("OK", call.response.content)
+            }
+        }
+    }
+
+    @Test
     fun testSimpleRequestHttps() {
         withTestApplication {
             application.CORS {
@@ -56,7 +155,7 @@ class CORSTest {
                 addHeader(HttpHeaders.Origin, "http://my-host")
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals(setOf("http://my-host", "https://my-host"), call.response.headers[HttpHeaders.AccessControlAllowOrigin]?.let { it.split(" ") }?.toSet())
+                assertEquals("http://my-host", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
                 assertEquals("OK", call.response.content)
             }
 
@@ -64,7 +163,7 @@ class CORSTest {
                 addHeader(HttpHeaders.Origin, "https://my-host")
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertEquals(setOf("http://my-host", "https://my-host"), call.response.headers[HttpHeaders.AccessControlAllowOrigin]?.let { it.split(" ") }?.toSet())
+                assertEquals("https://my-host", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
                 assertEquals("OK", call.response.content)
             }
 
@@ -95,6 +194,7 @@ class CORSTest {
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("*", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertNull(call.response.headers[HttpHeaders.Vary])
                 assertEquals("OK", call.response.content)
             }
         }
@@ -120,6 +220,79 @@ class CORSTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("http://my-host", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
                 assertEquals("true", call.response.headers[HttpHeaders.AccessControlAllowCredentials])
+                assertEquals(HttpHeaders.Origin, call.response.headers[HttpHeaders.Vary])
+                assertEquals("OK", call.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testSimpleNull() {
+        withTestApplication {
+            application.CORS {
+                anyHost()
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "null")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("*", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testSimpleNullAllowCredentials() {
+        withTestApplication {
+            application.CORS {
+                anyHost()
+                allowCredentials = true
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "null")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("null", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testMultipleDomainsOriginNotSupported() {
+        // the specification is not clear whether we should support multiple domains Origin header and how do we validate them
+        withTestApplication {
+            application.CORS {
+                anyHost()
+                allowCredentials = true
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://host1 http://host2")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertNull(call.response.headers[HttpHeaders.AccessControlAllowOrigin])
                 assertEquals("OK", call.response.content)
             }
         }
