@@ -7,7 +7,7 @@ import java.nio.charset.*
 fun ApplicationRequest.queryString(): String = requestLine.queryString()
 fun ApplicationRequest.queryParameters(): ValuesMap = parseQueryString(queryString())
 fun ApplicationRequest.contentType(): ContentType = header(HttpHeaders.ContentType)?.let { ContentType.parse(it) } ?: ContentType.Any
-fun ApplicationRequest.contentCharset(): Charset? = contentType().parameter("charset")?.let { Charset.forName(it) }
+fun ApplicationRequest.contentCharset(): Charset? = contentType().charset()
 fun ApplicationRequest.document(): String = requestLine.document()
 fun ApplicationRequest.path(): String = requestLine.path()
 fun ApplicationRequest.authorization(): String? = header(HttpHeaders.Authorization)

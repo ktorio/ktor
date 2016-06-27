@@ -18,7 +18,7 @@ class FormPostApplication(environment: ApplicationEnvironment) : Application(env
         install(Locations)
         routing {
             get<index>() {
-                val contentType = ContentType.Text.Html.withParameter("charset", Charsets.UTF_8.name())
+                val contentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 
                 call.response.contentType(contentType)
                 call.respondWrite {
@@ -48,7 +48,7 @@ class FormPostApplication(environment: ApplicationEnvironment) : Application(env
             post<post> {
                 val multipart = call.request.content.get<MultiPartData>()
 
-                call.response.contentType(ContentType.Text.Plain.withParameter("charset", Charsets.UTF_8.name()))
+                call.response.contentType(ContentType.Text.Plain.withCharset(Charsets.UTF_8))
                 call.respondWrite {
                     if (!call.request.isMultipart()) {
                         appendln("Not a multipart request")

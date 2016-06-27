@@ -10,7 +10,7 @@ import kotlin.reflect.*
 
 class FreeMarkerTemplateResource internal constructor(val content: freemarker.template.Template, val model: Any, val etag: String, override val contentType: ContentType) : FinalContent.StreamConsumer(), Resource {
     override fun stream(out: OutputStream) {
-        with(out.bufferedWriter(charset(contentType.parameter("charset") ?: "UTF-8"))) {
+        with(out.bufferedWriter(contentType.charset() ?: Charsets.UTF_8)) {
             content.process(model, this)
         }
     }

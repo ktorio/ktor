@@ -62,7 +62,7 @@ fun ApplicationCall.respondDefaultHtml(versions: List<Version>, visibility: Cach
 
 class HtmlContent(override val versions: List<Version>, visibility: CacheControlVisibility, val builder: HTML.() -> Unit) : Resource, FinalContent.StreamConsumer() {
     override val contentType: ContentType
-        get() = ContentType.Text.Html.withParameter("charset", "utf-8")
+        get() = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 
     override val expires = null
     override val cacheControl = CacheControl.MaxAge(3600 * 24 * 7, mustRevalidate = true, visibility = visibility, proxyMaxAgeSeconds = null, proxyRevalidate = false)

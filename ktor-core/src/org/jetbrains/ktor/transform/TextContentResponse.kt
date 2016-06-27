@@ -4,12 +4,10 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.util.*
-import java.nio.charset.*
 
 class TextContentResponse(override val status: HttpStatusCode?, contentType: ContentType?, text: String) : FinalContent.ChannelContent() {
     private val bytes by lazy {
-        val encoding = contentType?.parameter("charset") ?: "UTF-8"
-        text.toByteArray(Charset.forName(encoding))
+        text.toByteArray(contentType?.charset() ?: Charsets.UTF_8)
     }
 
     override val headers by lazy {

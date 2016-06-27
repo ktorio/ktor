@@ -7,7 +7,6 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.io.*
-import java.nio.charset.*
 
 object TransformationSupport : ApplicationFeature<ApplicationTransform<PipelineContext<ResponsePipelineState>>> {
     override val name = "TransformationSupport"
@@ -87,7 +86,7 @@ object TransformationSupport : ApplicationFeature<ApplicationTransform<PipelineC
 fun ApplicationTransform<PipelineContext<ResponsePipelineState>>.registerDefaultHandlers() {
     register<String> { value ->
         val responseContentType = call.response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
-        val contentType = responseContentType ?: ContentType.Text.Plain.withParameter("charset", "UTF-8")
+        val contentType = responseContentType ?: ContentType.Text.Plain.withCharset(Charsets.UTF_8)
         TextContentResponse(null, contentType, value)
     }
 
@@ -95,7 +94,7 @@ fun ApplicationTransform<PipelineContext<ResponsePipelineState>>.registerDefault
 
     register<HttpStatusContent> { value ->
         TextContentResponse(value.code,
-                ContentType.Text.Html.withParameter("charset", "UTF-8"),
+                ContentType.Text.Html.withCharset(Charsets.UTF_8),
                 "<H1>${value.code}</H1>${value.message.escapeHTML()}")
     }
 

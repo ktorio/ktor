@@ -29,7 +29,7 @@ class OAuthLoginNoLocationApplication(environment: ApplicationEnvironment) : App
 
         intercept(ApplicationCallPipeline.Infrastructure) { call ->
             call.response.status(HttpStatusCode.OK)
-            call.response.contentType(ContentType.Text.Html.withParameter("charset", Charsets.UTF_8.name()))
+            call.response.contentType(ContentType.Text.Html.withCharset(Charsets.UTF_8))
             call.respondText("""
                 <html>
                     <body>

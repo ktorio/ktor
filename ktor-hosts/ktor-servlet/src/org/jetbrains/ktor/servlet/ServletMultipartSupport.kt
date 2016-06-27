@@ -4,6 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 import java.io.*
+import java.nio.charset.*
 import javax.servlet.http.*
 
 internal class ServletMultiPartData(val request: ApplicationRequest, val servletRequest: HttpServletRequest) : MultiPartData {
@@ -12,7 +13,7 @@ internal class ServletMultiPartData(val request: ApplicationRequest, val servlet
             request.contentType().match(ContentType.MultiPart.FormData) -> servletRequest.parts.asSequence().map {
                 when {
                     it.isFormField -> {
-                        val charset = (it.charset ?: servletRequest.characterEncoding)?.let { charset(it) } ?: Charsets.UTF_8
+                        val charset = it.charset ?: servletRequest.charset()?: Charsets.UTF_8
                         PartData.FormItem(
                                 value = it.inputStream.reader(charset).use { it.readText() },
                                 dispose = { it.delete() },
@@ -39,8 +40,10 @@ internal class ServletMultiPartData(val request: ApplicationRequest, val servlet
         }
     }
 
-    private val Part.charset: String?
-        get() = contentType?.let { ContentType.parse(it).parameter("charset") }
-                ?: getHeader(HttpHeaders.ContentDisposition)?.let { ContentDisposition.parse(it).parameter("charset") }
+    private val Part.charset: Charset?
+        get() = contentType?.let { ContentType.parse(it).charset() }
+                ?: getHeader(HttpHeaders.ContentDisposition)?.let { ContentDisposition.parse(it).charset() }
+
+    private fun HttpServletRequest.charset(): Charset? = characterEncoding?.let { charset(it) }
 }
 

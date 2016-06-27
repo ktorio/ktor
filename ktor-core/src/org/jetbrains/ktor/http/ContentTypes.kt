@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.http
 
+import java.nio.charset.*
+
 class ContentType(val contentType: String, val contentSubtype: String, parameters: List<HeaderValueParam> = emptyList()) : HeaderValueWithParameters("$contentType/$contentSubtype", parameters) {
     fun withParameter(name: String, value: String): ContentType {
         return ContentType(contentType, contentSubtype, parameters + HeaderValueParam(name, value))
@@ -114,3 +116,6 @@ class ContentType(val contentType: String, val contentSubtype: String, parameter
 }
 
 class BadContentTypeFormatException(value: String) : Exception("Bad Content-Type format: $value")
+
+fun ContentType.withCharset(charset: Charset) = withParameter("charset", charset.name())
+fun HeaderValueWithParameters.charset() = parameter("charset")?.let { Charset.forName(it) }
