@@ -203,7 +203,7 @@ class CORSTest {
     fun testSimpleRequestHttps() {
         withTestApplication {
             application.CORS {
-                host("my-host", https = true)
+                host("my-host", schemes = listOf("http", "https"))
             }
 
             application.routing {
@@ -230,6 +230,44 @@ class CORSTest {
 
             handleRequest(HttpMethod.Get, "/") {
                 addHeader(HttpHeaders.Origin, "http://other-host")
+            }.let { call ->
+                assertEquals(HttpStatusCode.Forbidden, call.response.status())
+                assertNull(call.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testSimpleRequestSubDomains() {
+        withTestApplication {
+            application.CORS {
+                host("my-host", subDomains = listOf("www"))
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://my-host")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("http://my-host", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://www.my-host")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("http://www.my-host", call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://other.my-host")
             }.let { call ->
                 assertEquals(HttpStatusCode.Forbidden, call.response.status())
                 assertNull(call.response.content)

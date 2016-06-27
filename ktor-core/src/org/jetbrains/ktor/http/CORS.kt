@@ -37,25 +37,19 @@ fun CORSBuilder.anyHost() {
     hosts.add("*")
 }
 
-fun CORSBuilder.host(host: String, https: Boolean = false, www: Boolean = false) {
+fun CORSBuilder.host(host: String, schemes: List<String> = listOf("http"), subDomains: List<String> = emptyList()) {
     if (host == "*") {
         return anyHost()
     }
-    val schemeIndex = host.indexOf("://")
-    if (schemeIndex != -1) {
-        return host(host.drop(schemeIndex + 3), https, www)
+    if ("://" in host) {
+        throw IllegalArgumentException("scheme should be specified as a separate parameter schemes")
     }
 
-    hosts.add("http://$host")
-    if (https) {
-        hosts.add("https://$host")
-    }
+    for (schema in schemes) {
+        hosts.add("$schema://$host")
 
-    if (www) {
-        if (host.startsWith("www.")) {
-            host(host.removePrefix("www."), https, false)
-        } else {
-            host("www.$host", https, false)
+        for (subDomain in subDomains) {
+            hosts.add("$schema://$subDomain.$host")
         }
     }
 }
@@ -92,8 +86,8 @@ fun Pipeline<ApplicationCall>.CORS(block: CORSBuilder.() -> Unit) {
     val config = CORS(CORSBuilder().apply(block))
 
     intercept(ApplicationCallPipeline.Infrastructure) { call ->
-        val origin = call.request.header(HttpHeaders.Origin)
-        if (origin != null && isValidOrigin(origin) && call.request.headers.getAll(HttpHeaders.Origin)?.size == 1) {
+        val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
+        if (origin != null && isValidOrigin(origin)) {
             corsCheckOrigins(origin, config)
 
             if (call.request.httpMethod == HttpMethod.Options) {
