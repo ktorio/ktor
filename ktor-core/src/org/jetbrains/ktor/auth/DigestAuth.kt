@@ -32,6 +32,7 @@ fun ApplicationCall.extractDigest(): DigestCredential? {
 val DigestAuthKey: Any = "DigestAuth"
 
 fun AuthenticationProcedure.digestAuthentication(
+        realm: String = "ktor",
         digestAlgorithm: String = "MD5",
         digesterProvider: (String) -> MessageDigest = { MessageDigest.getInstance(it) },
         userNameRealmPasswordDigestProvider: (String, String) -> ByteArray) {
@@ -63,7 +64,7 @@ fun AuthenticationProcedure.digestAuthentication(
 
             context.challenge(DigestAuthKey, cause) {
                 it.success()
-                context.call.sendAuthenticationRequest(HttpAuthHeader.digestAuthChallenge("testrealm@host.com"))
+                context.call.respond(UnauthorizedResponse(HttpAuthHeader.digestAuthChallenge(realm)))
             }
         }
     }

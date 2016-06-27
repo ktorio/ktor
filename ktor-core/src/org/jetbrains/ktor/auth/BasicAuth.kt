@@ -42,7 +42,7 @@ fun AuthenticationProcedure.basicAuthentication(realm: String, validate: (UserPa
         if (cause != null) {
             context.challenge(BasicAuthKey, cause) {
                 it.success()
-                context.call.sendAuthenticationRequest(HttpAuthHeader.basicAuthChallenge(realm))
+                context.call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge(realm)))
             }
         }
         if (principal != null) {
