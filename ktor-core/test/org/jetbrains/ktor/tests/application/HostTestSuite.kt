@@ -160,7 +160,7 @@ abstract class HostTestSuite : HostTestBase() {
             }
         }
 
-        withUrl("/files/${file.toRelativeString(targetClasses)}") {
+        withUrl("/files/${file.toRelativeString(targetClasses).urlPath()}") {
             val bytes = inputStream.readBytes(8192)
             assertNotEquals(0, bytes.size)
 
@@ -171,7 +171,7 @@ abstract class HostTestSuite : HostTestBase() {
             assertEquals(0xbe, bytes[3].toInt() and 0xff)
         }
         assertFailsWith(FileNotFoundException::class) {
-            withUrl("/files/${file.toRelativeString(targetClasses)}2") {
+            withUrl("/files/${file.toRelativeString(targetClasses).urlPath()}2") {
                 inputStream.readBytes()
             }
         }
@@ -641,4 +641,5 @@ abstract class HostTestSuite : HostTestBase() {
         }
     }
 
+    private fun String.urlPath() = replace("\\", "/")
 }
