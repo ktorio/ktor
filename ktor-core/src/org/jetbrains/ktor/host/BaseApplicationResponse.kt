@@ -2,6 +2,7 @@ package org.jetbrains.ktor.host
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.response.*
 
 abstract class BaseApplicationResponse() : ApplicationResponse {
     private var _status: HttpStatusCode? = null

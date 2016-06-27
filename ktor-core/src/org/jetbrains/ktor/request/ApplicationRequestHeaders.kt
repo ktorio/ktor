@@ -1,9 +1,12 @@
-package org.jetbrains.ktor.http
+package org.jetbrains.ktor.request
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.nio.charset.*
 
+fun ApplicationRequest.header(name: String): String? = headers[name]
 fun ApplicationRequest.queryString(): String = requestLine.queryString()
 fun ApplicationRequest.queryParameters(): ValuesMap = parseQueryString(queryString())
 fun ApplicationRequest.contentType(): ContentType = header(HttpHeaders.ContentType)?.let { ContentType.parse(it) } ?: ContentType.Any

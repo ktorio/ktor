@@ -1,10 +1,11 @@
-package org.jetbrains.ktor.http
+package org.jetbrains.ktor.features.http
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 
-fun Pipeline<ApplicationCall>.statusPage(phase: PipelinePhase = ApplicationCallPipeline.ApplicationPhase.Infrastructure, handler: PipelineContext<ApplicationCall>.(HttpStatusCode) -> Unit) {
+fun Pipeline<ApplicationCall>.statusPage(phase: PipelinePhase = ApplicationCallPipeline.Infrastructure, handler: PipelineContext<ApplicationCall>.(HttpStatusCode) -> Unit) {
     intercept(phase) { call ->
         var handled = false
         call.respond.intercept(RespondPipeline.After) {
@@ -23,7 +24,7 @@ fun Pipeline<ApplicationCall>.statusPage(phase: PipelinePhase = ApplicationCallP
     }
 }
 
-fun Pipeline<ApplicationCall>.errorPage(phase: PipelinePhase = ApplicationCallPipeline.ApplicationPhase.Infrastructure, handler: PipelineContext<ApplicationCall>.(Throwable) -> Unit) {
+fun Pipeline<ApplicationCall>.errorPage(phase: PipelinePhase = ApplicationCallPipeline.Infrastructure, handler: PipelineContext<ApplicationCall>.(Throwable) -> Unit) {
     intercept(phase) { call ->
         onFail { cause ->
             if (call.response.status() == null) {

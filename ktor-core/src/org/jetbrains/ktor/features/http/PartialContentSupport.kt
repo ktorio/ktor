@@ -1,10 +1,14 @@
-package org.jetbrains.ktor.http
+package org.jetbrains.ktor.features.http
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
+import org.jetbrains.ktor.features.http.*
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.request.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import kotlin.properties.*
 
@@ -111,7 +115,7 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
     }
 
     private sealed class RangeChannelProvider : FinalContent.ChannelContent() {
-        class ByPass(val delegate: FinalContent.ChannelContent) : RangeChannelProvider() {
+        class ByPass(val delegate: ChannelContent) : RangeChannelProvider() {
             override val status: HttpStatusCode?
                 get() = delegate.status
 

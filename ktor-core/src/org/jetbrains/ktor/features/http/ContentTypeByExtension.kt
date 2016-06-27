@@ -1,5 +1,6 @@
-package org.jetbrains.ktor.http
+package org.jetbrains.ktor.features.http
 
+import org.jetbrains.ktor.http.*
 import java.util.logging.*
 
 
@@ -52,7 +53,7 @@ object ContentTypeByExtension {
     private fun <A, B> logErrorAndReturnEmpty(): Map<A, B> {
         // TODO logging
         if (!logged) {
-            Logger.getLogger(ContentTypeByExtension::class.qualifiedName).severe { "Resource $contentTypesFileName is missing" }
+            Logger.getLogger(ContentTypeByExtension::class.qualifiedName).severe { "Resource ${contentTypesFileName} is missing" }
             logged = true
         }
         return emptyMap()

@@ -4,6 +4,8 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.auth.httpclient.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
+import org.jetbrains.ktor.response.*
 import java.util.concurrent.*
 
 /**

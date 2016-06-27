@@ -2,6 +2,7 @@ package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.response.*
 
 val FormAuthKey: Any = "FormAuth"
 fun AuthenticationProcedure.formAuthentication(userParamName: String = "user", passwordParamName: String = "password", challenge: FormAuthChallenge = FormAuthChallenge.Unauthorized, validate: (UserPasswordCredential) -> Principal?) {

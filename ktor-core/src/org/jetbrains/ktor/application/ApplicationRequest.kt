@@ -1,13 +1,13 @@
 package org.jetbrains.ktor.application
 
-import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 
 /**
  * Represents client's request
  */
-public interface ApplicationRequest {
+interface ApplicationRequest {
     /**
      * HTTP request line
      */

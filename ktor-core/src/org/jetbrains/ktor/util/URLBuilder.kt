@@ -1,7 +1,9 @@
-package org.jetbrains.ktor.http
+package org.jetbrains.ktor.util
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
+import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 
 enum class URLProtocol(val defaultPort: Int) {

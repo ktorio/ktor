@@ -1,13 +1,8 @@
-package org.jetbrains.ktor.http
+package org.jetbrains.ktor.response
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
-
-val ApplicationRequest.uri: String get() = requestLine.uri
-val ApplicationRequest.httpMethod: HttpMethod get() = requestLine.method
-val ApplicationRequest.httpVersion: String get() = requestLine.version
-fun ApplicationRequest.header(name: String): String? = headers[name]
-fun ApplicationRequest.parameter(name: String): String? = parameters[name]
+import org.jetbrains.ktor.http.*
 
 fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false): Nothing {
     response.headers.append(HttpHeaders.Location, url)

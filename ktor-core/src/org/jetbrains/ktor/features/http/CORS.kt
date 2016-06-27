@@ -1,7 +1,10 @@
-package org.jetbrains.ktor.http
+package org.jetbrains.ktor.features.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.request.*
+import org.jetbrains.ktor.response.*
 import java.net.*
 import java.time.*
 import java.util.*

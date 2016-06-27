@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.content
+package org.jetbrains.ktor.request
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
@@ -7,14 +7,12 @@ import java.io.*
 import kotlin.reflect.*
 
 abstract class RequestContent(private val request: ApplicationRequest) {
-    @Deprecated("Use getReadChannel instead")
     protected abstract fun getInputStream(): InputStream
     protected abstract fun getReadChannel(): AsyncReadChannel
     protected abstract fun getMultiPartData(): MultiPartData
 
-    @Suppress("UNCHECKED_CAST")
     open operator fun <T : Any> get(type: KClass<T>): T {
-        @Suppress("IMPLICIT_CAST_TO_ANY")
+        @Suppress("IMPLICIT_CAST_TO_ANY", "UNCHECKED_CAST")
         return when (type) {
             AsyncReadChannel::class -> getReadChannel()
             InputStream::class -> getInputStream()

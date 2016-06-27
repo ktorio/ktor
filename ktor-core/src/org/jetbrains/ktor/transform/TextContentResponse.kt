@@ -3,6 +3,7 @@ package org.jetbrains.ktor.transform
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 
 class TextContentResponse(override val status: HttpStatusCode?, contentType: ContentType?, text: String) : FinalContent.ChannelContent() {

@@ -1,6 +1,7 @@
-package org.jetbrains.ktor.http
+package org.jetbrains.ktor.response
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.http.*
 import java.time.*
 import java.time.temporal.*
 
@@ -9,15 +10,15 @@ class ResponseCookies(private val response: ApplicationResponse) {
     fun append(item: Cookie): Unit = response.headers.append("Set-Cookie", renderSetCookieHeader(item))
 
     fun append(name: String,
-                      value: String,
-                      encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-                      maxAge: Int = 0,
-                      expires: Temporal? = null,
-                      domain: String = "",
-                      path: String = "",
-                      secure: Boolean = false,
-                      httpOnly: Boolean = false,
-                      extensions: Map<String, String?> = emptyMap()) {
+               value: String,
+               encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
+               maxAge: Int = 0,
+               expires: Temporal? = null,
+               domain: String = "",
+               path: String = "",
+               secure: Boolean = false,
+               httpOnly: Boolean = false,
+               extensions: Map<String, String?> = emptyMap()) {
         append(Cookie(
                 name,
                 value,

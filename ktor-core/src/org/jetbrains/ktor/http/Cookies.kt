@@ -4,7 +4,7 @@ import java.net.*
 import java.time.temporal.*
 import java.util.*
 
-public data class Cookie(
+data class Cookie(
         val name: String,
         val value: String,
         val encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
@@ -17,12 +17,12 @@ public data class Cookie(
         val extensions: Map<String, String?> = emptyMap()
 )
 
-public enum class CookieEncoding {
+enum class CookieEncoding {
     RAW, DQUOTES, URI_ENCODING, BASE64_ENCODING
 }
 
 private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "secure", "httponly", "\$x-enc")
-public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
+fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     val asMap = parseClientCookiesHeader(cookiesHeader, false)
     val first = asMap.entries.first { !it.key.startsWith("$") }
     val encoding = asMap["\$x-enc"]?.let { CookieEncoding.valueOf(it) } ?: CookieEncoding.URI_ENCODING
@@ -44,7 +44,7 @@ public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     )
 }
 
-public fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true): Map<String, String> {
+fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true): Map<String, String> {
     val pattern = """(^|;)\s*([^()<>@;:/\\"\[\]\?=\{\}\s]+)\s*(=\s*("[^"]*"|[^;]*))?""".toRegex()
 
     return pattern.findAll(cookiesHeader)
@@ -57,7 +57,7 @@ public fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean 
         .toMap()
 }
 
-public fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
+fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
     renderSetCookieHeader(
             name,
             value,
@@ -72,7 +72,7 @@ public fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
     )
 }
 
-public fun renderSetCookieHeader(name: String,
+fun renderSetCookieHeader(name: String,
                                  value: String,
                                  encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
                                  maxAge: Int = 0,
@@ -97,7 +97,7 @@ public fun renderSetCookieHeader(name: String,
                 ).filter { it.isNotEmpty() }
                 .joinToString("; ")
 
-public fun encodeCookieValue(value: String, encoding: CookieEncoding): String =
+fun encodeCookieValue(value: String, encoding: CookieEncoding): String =
         when (encoding) {
             CookieEncoding.RAW -> when {
                 value.any { it.shouldEscapeInCookies() } -> throw IllegalArgumentException("The cookie value contains characters that couldn't be encoded in RAW format. Consider URL_ENCODING mode")
@@ -112,7 +112,7 @@ public fun encodeCookieValue(value: String, encoding: CookieEncoding): String =
             CookieEncoding.URI_ENCODING -> URLEncoder.encode(value, "UTF-8")
         }
 
-public fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String =
+fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String =
         when (encoding) {
             CookieEncoding.RAW, CookieEncoding.DQUOTES -> when {
                 encodedValue.trimStart().startsWith("\"") && encodedValue.trimEnd().endsWith("\"") -> encodedValue.trim().removeSurrounding("\"")

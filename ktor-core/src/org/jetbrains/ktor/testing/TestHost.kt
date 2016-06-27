@@ -2,7 +2,7 @@ package org.jetbrains.ktor.testing
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
-import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
@@ -217,7 +217,7 @@ class TestApplicationResponse() : BaseApplicationResponse() {
 
     val content: String?
         get() = if (realContent.isInitialized()) {
-            realContent.value.toByteArray().toString(charset(headers[HttpHeaders.ContentType]?.let { ContentType.parse(it).parameter("charset") } ?: "UTF-8"))
+            realContent.value.toByteArray().toString(headers[HttpHeaders.ContentType]?.let { ContentType.parse(it).charset() } ?: Charsets.UTF_8)
         } else {
             null
         }
