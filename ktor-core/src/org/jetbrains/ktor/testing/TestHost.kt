@@ -1,13 +1,11 @@
 package org.jetbrains.ktor.testing
 
-import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.transform.*
@@ -198,7 +196,7 @@ class TestApplicationResponse() : BaseApplicationResponse() {
     override fun setStatus(statusCode: HttpStatusCode) {
     }
 
-    override val channel = Interceptable0<AsyncWriteChannel> { realContent.value }
+    override fun channel() = realContent.value
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         private val headersMap = ValuesMapBuilder(true)

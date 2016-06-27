@@ -17,7 +17,6 @@ interface ApplicationResponse {
     fun status(value: HttpStatusCode)
 
     fun channel(): AsyncWriteChannel
-    fun interceptChannel(handler: (() -> AsyncWriteChannel) -> AsyncWriteChannel)
 }
 
 fun ApplicationCall.respondWrite(body: Writer.() -> Unit) : Nothing = respond(object : FinalContent.StreamConsumer() {

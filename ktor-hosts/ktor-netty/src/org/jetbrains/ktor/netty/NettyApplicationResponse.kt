@@ -5,8 +5,6 @@ import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.HttpHeaders
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.interception.*
-import org.jetbrains.ktor.nio.*
 import java.util.concurrent.atomic.*
 
 internal class NettyApplicationResponse(val request: HttpRequest, val response: HttpResponse, val context: ChannelHandlerContext) : BaseApplicationResponse() {
@@ -27,7 +25,7 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
         NettyAsyncWriteChannel(request, this, context)
     }
 
-    override val channel = Interceptable0<AsyncWriteChannel> { channelInstance.value }
+    override fun channel() = channelInstance.value
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         override fun hostAppendHeader(name: String, value: String) {

@@ -2,7 +2,6 @@ package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.interception.*
 import org.jetbrains.ktor.nio.*
 import javax.servlet.http.*
 
@@ -20,12 +19,12 @@ class ServletApplicationResponse(val call: ServletApplicationCall, val servletRe
         override fun getHostHeaderValues(name: String): List<String> = servletResponse.getHeaders(name).toList()
     }
 
-    override val channel = Interceptable0<AsyncWriteChannel> {
+    override fun channel(): AsyncWriteChannel {
         if (BaseApplicationCall.ResponseChannelOverride in call.attributes) {
-            return@Interceptable0 call.attributes[BaseApplicationCall.ResponseChannelOverride]
+            return call.attributes[BaseApplicationCall.ResponseChannelOverride]
         }
 
         call.ensureAsync()
-        ServletAsyncWriteChannel(servletResponse.outputStream)
+        return ServletAsyncWriteChannel(servletResponse.outputStream)
     }
 }
