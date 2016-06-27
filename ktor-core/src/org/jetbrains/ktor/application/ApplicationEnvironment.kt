@@ -4,7 +4,7 @@ import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.logging.*
 
 /**
- * Represents [Application] configuration
+ * Represents an environment in which [Application] runs
  */
 interface ApplicationEnvironment {
     /**
