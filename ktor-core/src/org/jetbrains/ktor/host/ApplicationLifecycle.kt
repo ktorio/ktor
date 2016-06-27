@@ -1,4 +1,6 @@
-package org.jetbrains.ktor.application
+package org.jetbrains.ktor.host
+
+import org.jetbrains.ktor.application.*
 
 /**
  * Represents application lifecycle and provides access to [Application]
