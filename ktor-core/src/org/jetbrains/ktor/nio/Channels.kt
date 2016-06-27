@@ -13,17 +13,46 @@ interface AsyncHandler {
 interface Channel: Closeable {
 }
 interface AsyncReadChannel: Channel {
+    /**
+     * Initiates read operation. If there is already read operation pending then it fails with exception.
+     * Fires [AsyncHandler.success] with read count, [AsyncHandler.successEnd] if EOF or [AsyncHandler.failed].
+     * Notice that the [handler] could be notified before the [read] function returns.
+     */
     fun read(dst: ByteBuffer, handler: AsyncHandler)
+
+    /**
+     * Checks for pending flush requests. Resets counter and returns value. Can be called at any moment.
+     */
     fun releaseFlush(): Int = 0
 }
 
 interface AsyncWriteChannel: Channel {
+    /**
+     * Initiates write operation. If there is already write operation pending then it fails with exception.
+     * Fires [AsyncHandler.success] with write count or [AsyncHandler.failed].
+     * Notice that the [handler] could be notified before the [write] function returns.
+     */
     fun write(src: ByteBuffer, handler: AsyncHandler)
-    fun requestFlush() {}
+
+    /**
+     * Request write flush. In fact there are no any guarantees that the data will be received by a remote peer.
+     * Use it when you want to ensure that there is no pending data remains. Notice that the function is asynchronous,
+     * it returns immediately and there are no guarantees when the flush will be actually performed.
+     */
+    fun requestFlush() {
+    }
 }
 
 interface SeekableAsyncChannel : AsyncReadChannel {
+    /**
+     * Current channel read position. If there is seek operation in progress then the behaviour is not defined.
+     */
     val position: Long
+
+    /**
+     * Initiates seek operation that fires [AsyncHandler.successEnd] or [AsyncHandler.failed].
+     * Could be sync or async so handler could block [seek] function.
+     */
     fun seek(position: Long, handler: AsyncHandler)
 }
 
