@@ -9,8 +9,7 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 
 object TransformationSupport : ApplicationFeature<ApplicationCallPipeline, ApplicationTransform<PipelineContext<ResponsePipelineState>>> {
-    override val name = "TransformationSupport"
-    override val key = AttributeKey<ApplicationTransform<PipelineContext<ResponsePipelineState>>>(name)
+    override val key = AttributeKey<ApplicationTransform<PipelineContext<ResponsePipelineState>>>("Transformation Support")
 
     override fun install(pipeline: ApplicationCallPipeline, configure: ApplicationTransform<PipelineContext<ResponsePipelineState>>.() -> Unit): ApplicationTransform<PipelineContext<ResponsePipelineState>> {
         val table = ApplicationTransform<PipelineContext<ResponsePipelineState>>()

@@ -4,7 +4,6 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
 interface ApplicationFeature<in A : Pipeline<*>, T : Any> {
-    val name: String
     val key: AttributeKey<T>
 
     fun install(pipeline: A, configure: T.() -> Unit): T
@@ -31,7 +30,7 @@ fun <A : Pipeline<*>, T : Any> A.install(feature: ApplicationFeature<A, T>, conf
             return installedFeature
         }
         else -> {
-            throw DuplicateApplicationFeatureException("Conflicting application feature is already installed with the same key as `${feature.name}`")
+            throw DuplicateApplicationFeatureException("Conflicting application feature is already installed with the same key as `${feature.key.name}`")
         }
     }
 }

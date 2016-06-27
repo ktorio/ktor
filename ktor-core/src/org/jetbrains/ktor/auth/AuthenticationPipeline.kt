@@ -15,8 +15,7 @@ class AuthenticationProcedure() : Pipeline<AuthenticationProcedureContext>(Check
 }
 
 object Authentication : ApplicationFeature<ApplicationCallPipeline, AuthenticationProcedure> {
-    override val name = "Authentication"
-    override val key = AttributeKey<AuthenticationProcedure>(name)
+    override val key = AttributeKey<AuthenticationProcedure>("Authentication")
 
     override fun install(pipeline: ApplicationCallPipeline, configure: AuthenticationProcedure.() -> Unit): AuthenticationProcedure {
         return pipeline.authentication(configure)

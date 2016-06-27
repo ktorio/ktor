@@ -13,8 +13,7 @@ import org.jetbrains.ktor.util.*
 import kotlin.properties.*
 
 object PartialContentSupport : ApplicationFeature<ApplicationCallPipeline, PartialContentSupport.Configuration> {
-    override val name = "Ranges support"
-    override val key: AttributeKey<Configuration> = AttributeKey(name)
+    override val key: AttributeKey<Configuration> = AttributeKey("Partial Content")
 
     class Configuration {
         var maxRangeCount: Int by Delegates.vetoable(10) { p, old, new ->

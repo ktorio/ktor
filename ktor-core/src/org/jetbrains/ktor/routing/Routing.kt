@@ -39,7 +39,6 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
 
     companion object RoutingFeature : ApplicationFeature<Application, Routing> {
         override val key: AttributeKey<Routing> = AttributeKey("Routing")
-        override val name: String = "Routing"
 
         override fun install(pipeline: Application, configure: Routing.() -> Unit) = Routing(pipeline).apply {
             configure()

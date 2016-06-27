@@ -7,8 +7,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 
 object ConditionalHeadersSupport : ApplicationFeature<ApplicationCallPipeline, Unit> {
-    override val name = "ConditionalHeaders"
-    override val key = AttributeKey<Unit>(name)
+    override val key = AttributeKey<Unit>("Conditional Headers")
 
     private val conditionalHeaders = listOf(HttpHeaders.IfModifiedSince, HttpHeaders.IfUnmodifiedSince, HttpHeaders.IfMatch, HttpHeaders.IfNoneMatch)
 

@@ -185,7 +185,6 @@ open class Locations(val conversionService: ConversionService) {
         }
 
         override val key: AttributeKey<Locations> = AttributeKey("Locations")
-        override val name: String = "Locations"
     }
 }
 

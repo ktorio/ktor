@@ -7,8 +7,7 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
 object CallLogging : ApplicationFeature<Application, Unit> {
-    override val name: String = "Call logging"
-    override val key: AttributeKey<Unit> = AttributeKey("request-logging")
+    override val key: AttributeKey<Unit> = AttributeKey("Call Logging")
 
     private val loggingPhase = PipelinePhase("Logging")
     override fun install(pipeline: Application, configure: Unit.() -> Unit) {

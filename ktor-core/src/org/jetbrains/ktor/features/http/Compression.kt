@@ -43,10 +43,7 @@ data class CompressionEncoderConfig(val name: String,
                                     val priority: Double)
 
 object CompressionSupport : ApplicationFeature<ApplicationCallPipeline, Compression> {
-    override val name: String
-        get() = "Compression"
-
-    override val key = AttributeKey<Compression>("compression-key")
+    override val key = AttributeKey<Compression>("Compression")
     private val Comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>({ it.second.quality }, { it.first.priority }).reversed()
 
     override fun install(pipeline: ApplicationCallPipeline, configure: Compression.() -> Unit): Compression {
