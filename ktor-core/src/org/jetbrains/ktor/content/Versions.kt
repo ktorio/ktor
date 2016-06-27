@@ -84,3 +84,13 @@ sealed class CacheControl(val visibility: CacheControlVisibility?) {
         }
     }
 }
+
+fun FinalContent.lastModifiedAndEtagVersions(): List<Version> {
+    if (this is HasVersions) {
+        return versions
+    }
+
+    val headers = headers
+    return headers.getAll(HttpHeaders.LastModified).orEmpty().map { LastModifiedVersion(LocalDateTime.parse(it, httpDateFormat)) } +
+            headers.getAll(HttpHeaders.ETag).orEmpty().map { EntityTagVersion(it) }
+}
