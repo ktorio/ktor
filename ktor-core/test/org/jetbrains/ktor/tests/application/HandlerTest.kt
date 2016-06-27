@@ -75,32 +75,6 @@ class HandlerTest {
         }
     }
 
-    @Test fun `application with handler that intercepts creation of headers`() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
-            call.response.headers.intercept { name, value, header ->
-                if (name == "Content-Type" && value == "text/plain")
-                    header(name, "text/xml")
-                else
-                    header(name, value)
-            }
-        }
-
-        on("asking for a response") {
-            application.intercept(ApplicationCallPipeline.Call) { call ->
-                call.response.contentType(ContentType.Text.Plain)
-
-            }
-            handleRequest { method = HttpMethod.Get }.let {
-                it("should be unhandled") {
-                    assertEquals(ApplicationCallResult.Unhandled, it.requestResult)
-                }
-                it("should have modified content type to text/xml") {
-                    assertEquals("text/xml", it.response.headers["Content-Type"])
-                }
-            }
-        }
-    }
-
     /*
     TODO: This is fundamentally wrong since you shouldn't be setting ApplicationRequest "contentType" or "accept" since these are values passed in.
         Test fun `application with handler that returns true on text/plain content type`() {

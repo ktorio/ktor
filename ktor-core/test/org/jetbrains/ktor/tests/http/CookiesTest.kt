@@ -110,22 +110,6 @@ class CookiesTest {
         }
     }
 
-    @test fun `intercept cookie test`() {
-        with(TestApplicationResponse()) {
-            val found = ArrayList<String>()
-
-            cookies.intercept { cookie, next ->
-                found.add(cookie.name)
-                next(cookie)
-            }
-
-            cookies.append("first", "1")
-            headers.append("Set-Cookie", "second=2")
-
-            assertEquals(listOf("first", "second"), found)
-        }
-    }
-
     @test fun `add cookie and get it`() {
         with(TestApplicationResponse()) {
             cookies.append("key", "value")
