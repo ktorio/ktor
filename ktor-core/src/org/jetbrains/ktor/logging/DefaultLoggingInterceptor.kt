@@ -6,16 +6,16 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
-object CallLogging : ApplicationFeature<Unit> {
+object CallLogging : ApplicationFeature<Application, Unit> {
     override val name: String = "Call logging"
     override val key: AttributeKey<Unit> = AttributeKey("request-logging")
 
     private val loggingPhase = PipelinePhase("Logging")
-    override fun install(application: Application, configure: Unit.() -> Unit) {
-        application.phases.insertBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
-        application.intercept(loggingPhase) { call ->
-            onSuccess { application.logCallFinished(call) }
-            onFail { application.logCallFailed(call, it) }
+    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
+        pipeline.phases.insertBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
+        pipeline.intercept(loggingPhase) { call ->
+            onSuccess { pipeline.logCallFinished(call) }
+            onFail { pipeline.logCallFailed(call, it) }
         }
     }
 

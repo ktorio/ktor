@@ -10,7 +10,7 @@ import kotlin.reflect.jvm.*
 
 class InconsistentRoutingException(message: String) : Exception(message)
 
-open public class Locations(val conversionService: ConversionService) {
+open class Locations(val conversionService: ConversionService) {
     private val rootUri = ResolvedUriInfo("", emptyList())
     private val info = hashMapOf<KClass<*>, LocationInfo>()
 
@@ -179,8 +179,8 @@ open public class Locations(val conversionService: ConversionService) {
         return createEntry(parent, getOrCreateInfo(dataClass))
     }
 
-    companion object LocationsFeature : ApplicationFeature<Locations> {
-        override fun install(application: Application, configure: Locations.() -> Unit): Locations {
+    companion object LocationsFeature : ApplicationFeature<Application, Locations> {
+        override fun install(pipeline: Application, configure: Locations.() -> Unit): Locations {
             return Locations(DefaultConversionService()).apply(configure)
         }
 

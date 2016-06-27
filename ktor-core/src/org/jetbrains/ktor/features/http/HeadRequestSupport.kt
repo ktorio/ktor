@@ -7,14 +7,14 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 
-object HeadRequestSupport : ApplicationFeature<Unit> {
+object HeadRequestSupport : ApplicationFeature<ApplicationCallPipeline, Unit> {
     override val name = "head-request-handler"
     override val key = AttributeKey<Unit>(name)
 
-    override fun install(application: Application, configure: Unit.() -> Unit) {
+    override fun install(pipeline: ApplicationCallPipeline, configure: Unit.() -> Unit) {
         configure(Unit)
 
-        application.intercept(ApplicationCallPipeline.Infrastructure) {
+        pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
             if (call.request.httpMethod == HttpMethod.Head) {
                 it.respond.intercept(RespondPipeline.After) {
                     val message = subject.message

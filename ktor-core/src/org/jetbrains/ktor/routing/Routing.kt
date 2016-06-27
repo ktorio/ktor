@@ -37,13 +37,13 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
         return pipeline
     }
 
-    companion object RoutingFeature : ApplicationFeature<Routing> {
+    companion object RoutingFeature : ApplicationFeature<Application, Routing> {
         override val key: AttributeKey<Routing> = AttributeKey("Routing")
         override val name: String = "Routing"
 
-        override fun install(application: Application, configure: Routing.() -> Unit) = Routing(application).apply {
+        override fun install(pipeline: Application, configure: Routing.() -> Unit) = Routing(pipeline).apply {
             configure()
-            application.intercept(ApplicationCallPipeline.Call) { call ->
+            pipeline.intercept(ApplicationCallPipeline.Call) { call ->
                 this@apply.interceptor(this)
             }
         }

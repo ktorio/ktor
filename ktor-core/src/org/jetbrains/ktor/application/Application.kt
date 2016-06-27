@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.application
 
-import org.jetbrains.ktor.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
@@ -13,11 +12,6 @@ open class Application(val environment: ApplicationEnvironment) : ApplicationCal
     val executor: ScheduledExecutorService = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), { r ->
         Thread(r, "ktor-pool-thread-${threadCounter.incrementAndGet()}")
     })
-
-    /**
-     * Provides common place to store application-wide attributes
-     */
-    val attributes = Attributes()
 
     /**
      * Called by host when [Application] is terminated

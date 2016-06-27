@@ -42,20 +42,20 @@ data class CompressionEncoderConfig(val name: String,
                                     val conditions: List<ApplicationCall.(FinalContent) -> Boolean>,
                                     val priority: Double)
 
-object CompressionSupport : ApplicationFeature<Compression> {
+object CompressionSupport : ApplicationFeature<ApplicationCallPipeline, Compression> {
     override val name: String
         get() = "Compression"
 
     override val key = AttributeKey<Compression>("compression-key")
     private val Comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>({ it.second.quality }, { it.first.priority }).reversed()
 
-    override fun install(application: Application, configure: Compression.() -> Unit): Compression {
+    override fun install(pipeline: ApplicationCallPipeline, configure: Compression.() -> Unit): Compression {
         val compressionObj = Compression()
         compressionObj.configureDefault()
 
         compressionObj.configure()
 
-        application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
+        pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             val acceptEncodingRaw = call.request.acceptEncoding()
             val options = compressionObj.options
 

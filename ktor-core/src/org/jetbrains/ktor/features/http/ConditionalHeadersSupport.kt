@@ -6,16 +6,16 @@ import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 
-object ConditionalHeadersSupport : ApplicationFeature<Unit> {
+object ConditionalHeadersSupport : ApplicationFeature<ApplicationCallPipeline, Unit> {
     override val name = "ConditionalHeaders"
     override val key = AttributeKey<Unit>(name)
 
     private val conditionalHeaders = listOf(HttpHeaders.IfModifiedSince, HttpHeaders.IfUnmodifiedSince, HttpHeaders.IfMatch, HttpHeaders.IfNoneMatch)
 
-    override fun install(application: Application, configure: Unit.() -> Unit) {
+    override fun install(pipeline: ApplicationCallPipeline, configure: Unit.() -> Unit) {
         configure(Unit)
 
-        application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
+        pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             if (conditionalHeaders.any { it in call.request.headers }) {
                 call.respond.intercept(RespondPipeline.After) {
                     val message = subject.message

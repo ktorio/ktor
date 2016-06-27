@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.util.*
@@ -13,7 +14,16 @@ class AuthenticationProcedure() : Pipeline<AuthenticationProcedureContext>(Check
     }
 }
 
-fun Pipeline<ApplicationCall>.authentication(procedure: AuthenticationProcedure.() -> Unit) {
+object Authentication : ApplicationFeature<ApplicationCallPipeline, AuthenticationProcedure> {
+    override val name = "Authentication"
+    override val key = AttributeKey<AuthenticationProcedure>(name)
+
+    override fun install(pipeline: ApplicationCallPipeline, configure: AuthenticationProcedure.() -> Unit): AuthenticationProcedure {
+        return pipeline.authentication(configure)
+    }
+}
+
+fun ApplicationCallPipeline.authentication(procedure: AuthenticationProcedure.() -> Unit) : AuthenticationProcedure {
     val authenticationProcedure = AuthenticationProcedure().apply(procedure).apply {
         intercept(AuthenticationProcedure.RequestAuthentication) { context ->
             val principal = context.principal
@@ -38,6 +48,7 @@ fun Pipeline<ApplicationCall>.authentication(procedure: AuthenticationProcedure.
         call.attributes.put(AuthenticationProcedureContext.AttributeKey, context)
         call.execution.execute(context, authenticationProcedure)
     }
+    return authenticationProcedure
 }
 
 val authenticationPhase = PipelinePhase("Authenticate")

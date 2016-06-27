@@ -1,33 +1,33 @@
 package org.jetbrains.ktor.features
 
-import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
-interface ApplicationFeature<T : Any> {
+interface ApplicationFeature<in A : Pipeline<*>, T : Any> {
     val name: String
     val key: AttributeKey<T>
 
-    fun install(application: Application, configure: T.() -> Unit): T
+    fun install(pipeline: A, configure: T.() -> Unit): T
 }
 
-fun <T : Any> Application.feature(feature: ApplicationFeature<T>) = attributes[feature.key]
+fun <A : Pipeline<*>, T : Any> A.feature(feature: ApplicationFeature<A, T>) = attributes[feature.key]
 
-fun <T : Any> Application.install(feature: ApplicationFeature<T>, configure: T.() -> Unit = {}): T {
+fun <A : Pipeline<*>, T : Any> A.install(feature: ApplicationFeature<A, T>, configure: T.() -> Unit = {}): T {
     val installedFeature = attributes.getOrNull(feature.key)
     when (installedFeature) {
         null -> {
             try {
                 val installed = feature.install(this, configure)
                 attributes.put(feature.key, installed)
-                environment.log.trace("`${feature.name}` feature was installed successfully.")
+                //environment.log.trace("`${feature.name}` feature was installed successfully.")
                 return installed
             } catch(t: Throwable) {
-                environment.log.error("`${feature.name}` feature failed to install.", t)
+                //environment.log.error("`${feature.name}` feature failed to install.", t)
                 throw t
             }
         }
         feature -> {
-            environment.log.warning("`${feature.name}` feature is already installed")
+            //environment.log.warning("`${feature.name}` feature is already installed")
             return installedFeature
         }
         else -> {
