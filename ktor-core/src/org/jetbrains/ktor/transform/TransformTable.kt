@@ -1,35 +1,10 @@
 package org.jetbrains.ktor.transform
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.util.*
 import kotlin.reflect.*
-
-class ApplicationTransform<C : Any>(private val parent: TransformTable<C>? = null) {
-    var table: TransformTable<C> = parent ?: TransformTable()
-        private set
-
-    inline fun <reified T : Any> register(noinline handler: C.(T) -> Any) {
-        register({ true }, handler)
-    }
-
-    inline fun <reified T : Any> register(noinline predicate: C.(T) -> Boolean, noinline handler: C.(T) -> Any) {
-        register(T::class, predicate, handler)
-    }
-
-    fun <T : Any> register(type: KClass<T>, predicate: C.(T) -> Boolean, handler: C.(T) -> Any) {
-        if (table === parent) {
-            table = TransformTable(parent)
-        }
-
-        table.register(type, predicate, handler)
-    }
-
-    fun <T : Any> handlers(type: Class<T>) = table.handlers(type)
-    inline fun <reified T : Any> handlers() = handlers(T::class.java)
-}
 
 class TransformTable<C : Any>() {
     private val root = Entry<C, Any>(Any::class.java, null)
@@ -215,115 +190,4 @@ class TransformTable<C : Any>() {
     }
 
     private fun <T> Class<T>.superTypes() = dfs(this)
-}
-
-val Application.transform: ApplicationTransform<PipelineContext<ResponsePipelineState>>
-    get() = feature(TransformationSupport)
-
-fun <C : Any> TransformTable<C>.transform(ctx: C, obj: Any) = transformImpl(ctx, obj)
-
-tailrec
-private fun <C : Any, T : Any> TransformTable<C>.transformImpl(ctx: C, obj: T, handlers: List<TransformTable.Handler<C, T>> = handlers(obj.javaClass), visited: MutableSet<TransformTable.Handler<C, *>> = HashSet()): Any {
-    for (handler in handlers) {
-        if (handler !in visited && handler.predicate(ctx, obj)) {
-            val result = handler.handler(ctx, obj)
-
-            if (result === obj) {
-                continue
-            }
-
-            visited.add(handler)
-            if (result.javaClass === obj.javaClass) {
-                @Suppress("UNCHECKED_CAST")
-                return transformImpl(ctx, result as T, handlers, visited)
-            } else {
-                return transformImpl(ctx, result, handlers(result.javaClass), visited)
-            }
-        }
-    }
-
-    return obj
-}
-
-internal fun PipelineContext<ResponsePipelineState>.transform() {
-    val machine = PipelineMachine()
-    val phase = PipelinePhase("phase")
-    val pipeline = Pipeline<ResponsePipelineState>(phase)
-    val state = TransformationState()
-
-    subject.attributes.put(TransformationState.Key, state)
-    pipeline.intercept(phase) {
-        onSuccess {
-            this@transform.continuePipeline()
-        }
-        onFail { cause ->
-            this@transform.runBlock { fail(cause) }
-        }
-
-        transformStage(machine, state)
-    }
-
-    machine.execute(subject, pipeline)
-}
-
-fun PipelineContext<ResponsePipelineState>.proceed(message: Any): Nothing {
-    if (subject.message !== message) {
-        subject.message = message
-        subject.attributes[TransformationState.Key].markLastHandlerVisited()
-    }
-
-    proceed()
-}
-
-tailrec
-private fun PipelineContext<ResponsePipelineState>.transformStage(machine: PipelineMachine, state: TransformationState) {
-    if (state.completed) {
-        return
-    }
-
-    machine.appendDelayed(subject, listOf({ p ->
-        @Suppress("NON_TAIL_RECURSIVE_CALL")
-        transformStage(machine, state)
-    }))
-
-    val message = subject.message
-    val visited = state.visited
-    val handlers = subject.call.transform.handlers(message.javaClass).filter { it !in visited }
-
-    if (handlers.isNotEmpty()) {
-        for (handler in handlers) {
-            if (handler.predicate(this, message)) {
-                state.lastHandler = handler
-                val nextResult = handler.handler(this, message)
-                state.lastHandler = null
-
-                if (nextResult !== message) {
-                    subject.message = nextResult
-                    visited.add(handler)
-                    return transformStage(machine, state)
-                }
-            }
-        }
-    }
-
-    state.completed = true
-}
-
-private class TransformationState {
-    val visited: MutableSet<TransformTable.Handler<PipelineContext<ResponsePipelineState>, *>> = hashSetOf()
-    var completed: Boolean = false
-    var lastHandler: TransformTable.Handler<PipelineContext<ResponsePipelineState>, *>? = null
-
-    fun markLastHandlerVisited() {
-        val handler = lastHandler
-        lastHandler = null
-
-        if (handler != null) {
-            visited.add(handler)
-        }
-    }
-
-    companion object {
-        val Key = AttributeKey<TransformationState>("TransformationState.key")
-    }
 }

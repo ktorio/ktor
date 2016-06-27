@@ -38,8 +38,6 @@ abstract class BaseApplicationCall(override val application: Application, overri
         }
     }
 
-    final override val transform = ApplicationTransform(application.transform.table)
-
     final override val respond = RespondPipeline()
     private val HostRespondPhase = PipelinePhase("HostRespondPhase")
 
