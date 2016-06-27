@@ -124,7 +124,7 @@ class OAuth1aFlowTest {
             waitExecutor()
             result.await()
 
-            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
+            assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.Found, result.response.status())
             assertNull(result.response.content)
             assertEquals("https://login-server-com/oauth/authorize?oauth_token=token1", result.response.headers[HttpHeaders.Location], "Redirect target location is not valid")
@@ -143,7 +143,7 @@ class OAuth1aFlowTest {
             waitExecutor()
             result.await()
 
-            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
+            assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("Ho, null", result.response.content)
         }
@@ -159,7 +159,7 @@ class OAuth1aFlowTest {
             waitExecutor()
             result.await()
 
-            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
+            assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("Ho, null", result.response.content)
         }
@@ -175,7 +175,7 @@ class OAuth1aFlowTest {
             waitExecutor()
             result.await()
 
-            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
+            assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertTrue { result.response.content!!.startsWith("Ho, ") }
             assertFalse { result.response.content!!.contains("[]") }
@@ -192,7 +192,7 @@ class OAuth1aFlowTest {
             waitExecutor()
             result.await()
 
-            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
+            assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertTrue { result.response.content!!.startsWith("Ho, ") }
             assertTrue { result.response.content!!.contains("null") }
@@ -213,7 +213,7 @@ class OAuth1aFlowTest {
             waitExecutor()
             result.await()
 
-            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
+            assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.Found, result.response.status())
             assertEquals("https://login-server-com/oauth/authorize?oauth_token=token1", result.response.headers[HttpHeaders.Location], "Redirect target location is not valid")
         }
@@ -235,7 +235,7 @@ class OAuth1aFlowTest {
             waitExecutor()
             result.await()
 
-            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled")
+            assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertTrue { result.response.content!!.startsWith("Ho, ") }
             assertFalse { result.response.content!!.contains("null") }
@@ -254,7 +254,7 @@ class OAuth1aFlowTest {
             }
 
             val result = handleRequest(HttpMethod.Get, "/login?redirected=true&oauth_token=token1&error_description=failed")
-            assertEquals(ApplicationCallResult.Handled, result.requestResult, "request should be handled asynchronously")
+            assertTrue(result.requestHandled, "request should be handled asynchronously")
 
             assertEquals(HttpStatusCode.Found, result.response.status())
         }

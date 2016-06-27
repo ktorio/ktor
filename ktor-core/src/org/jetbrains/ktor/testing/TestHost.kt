@@ -115,17 +115,18 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
 class TestApplicationCall(application: Application, override val request: TestApplicationRequest, executor: Executor) : BaseApplicationCall(application, executor) {
     internal val latch = CountDownLatch(1)
     override val parameters: ValuesMap get() = request.parameters
+
     override fun close() {
-        requestResult = ApplicationCallResult.Handled
+        requestHandled = true
         response.close()
     }
 
     override val response = TestApplicationResponse()
 
     @Volatile
-    var requestResult = ApplicationCallResult.Unhandled
+    var requestHandled = false
 
-    override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : $requestResult"
+    override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : handled = $requestHandled"
 
     fun await() {
         latch.await()

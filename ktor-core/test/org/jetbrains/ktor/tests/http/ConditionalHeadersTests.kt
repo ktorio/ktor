@@ -25,7 +25,7 @@ class ETagsTest {
             }
 
             val result = handleRequest {}
-            assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("response", result.response.content)
             assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
@@ -46,7 +46,7 @@ class ETagsTest {
             val result = handleRequest {
                 addHeader(HttpHeaders.IfMatch, "tag1")
             }
-            assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("response", result.response.content)
             assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
@@ -67,7 +67,7 @@ class ETagsTest {
             val result = handleRequest {
                 addHeader(HttpHeaders.IfMatch, "tag2")
             }
-            assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
         }
     }
@@ -86,7 +86,7 @@ class ETagsTest {
             val result = handleRequest {
                 addHeader(HttpHeaders.IfNoneMatch, "tag1")
             }
-            assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.NotModified, result.response.status())
         }
     }
@@ -105,7 +105,7 @@ class ETagsTest {
             val result = handleRequest {
                 addHeader(HttpHeaders.IfNoneMatch, "W/tag1")
             }
-            assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.NotModified, result.response.status())
         }
     }
@@ -124,7 +124,7 @@ class ETagsTest {
             val result = handleRequest {
                 addHeader(HttpHeaders.IfNoneMatch, "tag2")
             }
-            assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("response", result.response.content)
             assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
@@ -145,7 +145,7 @@ class ETagsTest {
             val result = handleRequest {
                 addHeader(HttpHeaders.IfMatch, "*")
             }
-            assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("response", result.response.content)
             assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
@@ -166,7 +166,7 @@ class ETagsTest {
             val result = handleRequest {
                 addHeader(HttpHeaders.IfNoneMatch, "*")
             }
-            assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
             // note: star for if-none-match is a special case
             // that should be handled separately
@@ -188,7 +188,7 @@ class ETagsTest {
             val result = handleRequest {
                 addHeader(HttpHeaders.IfNoneMatch, "tag0,tag1,tag3")
             }
-            assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.NotModified, result.response.status())
         }
     }
@@ -207,7 +207,7 @@ class ETagsTest {
             val result = handleRequest {
                 addHeader(HttpHeaders.IfNoneMatch, "tag2")
             }
-            assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("response", result.response.content)
             assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
@@ -228,7 +228,7 @@ class ETagsTest {
             val result = handleRequest {
                 addHeader(HttpHeaders.IfMatch, "tag0,tag1,tag3")
             }
-            assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("response", result.response.content)
             assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
@@ -249,7 +249,7 @@ class ETagsTest {
             val result = handleRequest {
                 addHeader(HttpHeaders.IfMatch, "tag0,tag2,tag3")
             }
-            assertEquals(ApplicationCallResult.Handled, result.requestResult)
+            assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
         }
     }

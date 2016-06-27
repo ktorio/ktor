@@ -291,7 +291,7 @@ class LocationsTest {
                 method = HttpMethod.Get
             }
             it("should be handled") {
-                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertTrue(result.requestHandled)
             }
             it("should have a response with OK status") {
                 assertEquals(HttpStatusCode.OK, result.response.status())
@@ -311,7 +311,7 @@ class LocationsTest {
                 method = HttpMethod.Post
             }
             it("should not be handled") {
-                assertEquals(ApplicationCallResult.Unhandled, result.requestResult)
+                assertFalse(result.requestHandled)
             }
         }
     }

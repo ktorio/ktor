@@ -48,17 +48,17 @@ class LdapAuthTest {
             }
 
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("admin:secret".toByteArray())) }).let { result ->
-                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.OK, result.response.status())
                 assertEquals("admin", result.response.content)
             }
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("admin:bad-pass".toByteArray())) }).let { result ->
-                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertNull(result.response.content)
             }
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())) }).let { result ->
-                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
                 assertNull(result.response.content)
             }
@@ -99,16 +99,16 @@ class LdapAuthTest {
             }
 
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("user-test:test".toByteArray())) }).let { result ->
-                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.OK, result.response.status())
                 assertEquals("user-test", result.response.content)
             }
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("user-test:bad-pass".toByteArray())) }).let { result ->
-                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
             }
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())) }).let { result ->
-                assertEquals(ApplicationCallResult.Handled, result.requestResult)
+                assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
             }
         }

@@ -13,7 +13,7 @@ class HandlerTest {
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should not be handled") {
-                assertEquals(ApplicationCallResult.Unhandled, request.requestResult)
+                assertFalse(request.requestHandled)
             }
         }
     }
@@ -25,7 +25,7 @@ class HandlerTest {
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should not be handled") {
-                assertEquals(ApplicationCallResult.Unhandled, request.requestResult)
+                assertFalse(request.requestHandled)
             }
         }
     }
@@ -36,7 +36,7 @@ class HandlerTest {
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should be handled") {
-                assertEquals(ApplicationCallResult.Handled, request.requestResult)
+                assertTrue(request.requestHandled)
             }
         }
     }
@@ -52,7 +52,7 @@ class HandlerTest {
             method = HttpMethod.Post
             body = "Body"
         }
-        assertEquals(ApplicationCallResult.Handled, result.requestResult)
+        assertTrue(result.requestHandled)
     }
 
     @Test fun `application with handler that returns true on POST method`() = withTestApplication {
@@ -64,13 +64,13 @@ class HandlerTest {
         on("making a GET request") {
             val request = handleRequest { method = HttpMethod.Get }
             it("should not be handled") {
-                assertEquals(ApplicationCallResult.Unhandled, request.requestResult)
+                assertFalse(request.requestHandled)
             }
         }
         on("making a POST request") {
             val request = handleRequest { method = HttpMethod.Post }
             it("should be handled") {
-                assertEquals(ApplicationCallResult.Handled, request.requestResult)
+                assertTrue(request.requestHandled)
             }
         }
     }

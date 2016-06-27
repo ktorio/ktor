@@ -20,7 +20,7 @@ class BasicAuthTest {
                 uri = "/"
             }
 
-            assertEquals(ApplicationCallResult.Handled, response.requestResult)
+            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
             assertNull(response.response.content)
 
@@ -48,7 +48,7 @@ class BasicAuthTest {
 
             val response = handleRequestWithBasic("/", user, p)
 
-            assertEquals(ApplicationCallResult.Handled, response.requestResult)
+            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.OK, response.response.status())
             assertEquals("ok", response.response.content)
         }
@@ -63,7 +63,7 @@ class BasicAuthTest {
 
             val response = handleRequestWithBasic("/", user, p)
 
-            assertEquals(ApplicationCallResult.Handled, response.requestResult)
+            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.OK, response.response.status())
             assertEquals("Secret info", response.response.content)
         }
@@ -78,7 +78,7 @@ class BasicAuthTest {
 
             val response = handleRequestWithBasic("/", user, p)
 
-            assertEquals(ApplicationCallResult.Handled, response.requestResult)
+            assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.Unauthorized, response.response.status())
             assertNotEquals("Secret info", response.response.content)
 
@@ -102,7 +102,7 @@ class BasicAuthTest {
             }
 
             handleRequestWithBasic("/", "bad", "").let { response ->
-                assertEquals(ApplicationCallResult.Handled, response.requestResult)
+                assertTrue(response.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, response.response.status())
                 assertNotEquals("Secret info", response.response.content)
 
@@ -110,7 +110,7 @@ class BasicAuthTest {
             }
 
             handleRequestWithBasic("/", "good", "").let { response ->
-                assertEquals(ApplicationCallResult.Handled, response.requestResult)
+                assertTrue(response.requestHandled)
                 assertEquals(HttpStatusCode.OK, response.response.status())
                 assertEquals("Secret info", response.response.content)
             }
