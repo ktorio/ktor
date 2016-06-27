@@ -19,6 +19,8 @@ class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
 
     private val _phases = phases.mapTo(mutableListOf<PhaseContent<TSubject>>()) { PhaseContent(it, PipelinePhaseRelation.Last(), mutableListOf()) }
 
+    val items : List<PipelinePhase> get() = _phases.map { it.phase }
+
     fun add(phase: PipelinePhase) {
         if (_phases.any { it.phase == phase }) return
         _phases.add(PhaseContent(phase, PipelinePhaseRelation.Last(), mutableListOf()))
