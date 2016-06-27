@@ -1,33 +1,28 @@
 package org.jetbrains.ktor.sessions
 
-import org.jetbrains.ktor.interception.*
 import java.lang.ref.*
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 
-interface Cache<K : Any, V : Any> {
+interface Cache<in K : Any, V : Any> {
     operator fun get(key: K): V
     fun peek(key: K): V?
     fun invalidate(key: K): V?
     fun invalidate(key: K, value: V): Boolean
     fun invalidateAll()
-
-    fun intercept(block: (K, (K) -> V) -> V)
 }
 
-internal interface CacheReference<K> {
+internal interface CacheReference<out K> {
     val key: K
 }
 
-internal class BaseCache<K : Any, V : Any>(val calc: (K) -> V) : Cache<K, V> {
-
+internal class BaseCache<in K : Any, V : Any>(val calc: (K) -> V) : Cache<K, V> {
     private val container = ConcurrentHashMap<K, Lazy<V>>()
-    private val supplier = Interceptable1(calc)
 
     override fun get(key: K): V =
-            container.computeIfAbsent(key) { lazy(LazyThreadSafetyMode.SYNCHRONIZED) { supplier.execute(key) } }.value
+            container.computeIfAbsent(key) { lazy(LazyThreadSafetyMode.SYNCHRONIZED) { calc(key) } }.value
 
     override fun peek(key: K): V? = container[key]?.let { if (it.isInitialized()) it.value else null }
 
@@ -36,17 +31,11 @@ internal class BaseCache<K : Any, V : Any>(val calc: (K) -> V) : Cache<K, V> {
     override fun invalidateAll() {
         container.clear()
     }
-
-    override fun intercept(block: (K, (K) -> V) -> V) {
-        invalidateAll()
-        supplier.intercept(block)
-    }
 }
 
-internal open class ReferenceCache<K : Any, V : Any, R>(val calc: (K) -> V, val wrapFunction: (K, V, ReferenceQueue<V>) -> R) : Cache<K, V> where R : Reference<V>, R : CacheReference<K> {
+internal open class ReferenceCache<K : Any, V : Any, out R>(val calc: (K) -> V, val wrapFunction: (K, V, ReferenceQueue<V>) -> R) : Cache<K, V> where R : Reference<V>, R : CacheReference<K> {
     private val queue = ReferenceQueue<V>()
-    private val supplier = Interceptable1(calc)
-    private val container = BaseCache { key: K -> forkThreadIfNeeded(); wrapFunction(key, supplier.execute(key), queue) }
+    private val container = BaseCache { key: K -> forkThreadIfNeeded(); wrapFunction(key, calc(key), queue) }
     private val workerThread by lazy { Thread(ReferenceWorker(container, queue)).apply { isDaemon = true; start() } }
 
     override fun get(key: K): V {
@@ -81,11 +70,6 @@ internal open class ReferenceCache<K : Any, V : Any, R>(val calc: (K) -> V, val 
         container.invalidateAll()
     }
 
-    override fun intercept(block: (K, (K) -> V) -> V) {
-        invalidateAll()
-        supplier.intercept(block)
-    }
-
     private fun forkThreadIfNeeded() {
         if (!workerThread.isAlive) {
             throw IllegalStateException("Daemon thread is already dead")
@@ -93,7 +77,7 @@ internal open class ReferenceCache<K : Any, V : Any, R>(val calc: (K) -> V, val 
     }
 }
 
-private class ReferenceWorker<K : Any, R : CacheReference<K>>(owner: Cache<K, R>, val queue: ReferenceQueue<*>) : Runnable {
+private class ReferenceWorker<out K : Any, R : CacheReference<K>>(owner: Cache<K, R>, val queue: ReferenceQueue<*>) : Runnable {
     private val owner = WeakReference(owner)
 
     override fun run() {
@@ -110,13 +94,13 @@ private class ReferenceWorker<K : Any, R : CacheReference<K>>(owner: Cache<K, R>
     }
 }
 
-internal class CacheSoftReference<K, V>(override val key: K, value: V, queue: ReferenceQueue<V>) : SoftReference<V>(value, queue), CacheReference<K>
-internal class CacheWeakReference<K, V>(override val key: K, value: V, queue: ReferenceQueue<V>) : WeakReference<V>(value, queue), CacheReference<K>
+internal class CacheSoftReference<out K, V>(override val key: K, value: V, queue: ReferenceQueue<V>) : SoftReference<V>(value, queue), CacheReference<K>
+internal class CacheWeakReference<out K, V>(override val key: K, value: V, queue: ReferenceQueue<V>) : WeakReference<V>(value, queue), CacheReference<K>
 
 internal class SoftReferenceCache<K : Any, V : Any>(calc: (K) -> V) : ReferenceCache<K, V, CacheSoftReference<K, V>>(calc, { k, v, q -> CacheSoftReference(k, v, q) })
 internal class WeakReferenceCache<K : Any, V : Any>(calc: (K) -> V) : ReferenceCache<K, V, CacheWeakReference<K, V>>(calc, { k, v, q -> CacheWeakReference(k, v, q) })
 
-internal class BaseTimeoutCache<K : Any, V : Any>(val timeoutValue: Long, val touchOnGet: Boolean, val touchOnCreate: Boolean, val delegate: Cache<K, V>) : Cache<K, V> {
+internal class BaseTimeoutCache<in K : Any, V : Any>(val timeoutValue: Long, val touchOnGet: Boolean, val delegate: Cache<K, V>) : Cache<K, V> {
 
     private val lock = ReentrantLock()
     private val cond = lock.newCondition()
@@ -125,15 +109,6 @@ internal class BaseTimeoutCache<K : Any, V : Any>(val timeoutValue: Long, val to
     private val map = WeakHashMap<K, KeyState<K>>()
 
     private val workerThread by lazy { Thread(TimeoutWorker(this, lock, cond, items)).apply { isDaemon = true; start() } }
-
-    init {
-        if (touchOnCreate) {
-            delegate.intercept { key, next ->
-                pull(key)
-                next(key)
-            }
-        }
-    }
 
     override fun get(key: K): V {
         if (touchOnGet) {
@@ -170,10 +145,6 @@ internal class BaseTimeoutCache<K : Any, V : Any>(val timeoutValue: Long, val to
         }
     }
 
-    override fun intercept(block: (K, (K) -> V) -> V) {
-        delegate.intercept(block)
-    }
-
     private fun forkIfNeeded() {
         if (!items.isEmpty() && !workerThread.isAlive) {
             throw IllegalStateException("Daemon thread is already dead")
@@ -203,7 +174,7 @@ internal class BaseTimeoutCache<K : Any, V : Any>(val timeoutValue: Long, val to
 }
 
 private class KeyState<K>(key: K, val timeout: Long) : ListElement<KeyState<K>>() {
-    val key = WeakReference(key)
+    val key: WeakReference<K> = WeakReference(key)
     var lastAccess = System.currentTimeMillis()
 
     fun touch() {
@@ -213,7 +184,7 @@ private class KeyState<K>(key: K, val timeout: Long) : ListElement<KeyState<K>>(
     fun timeToWait() = Math.max(0L, lastAccess + timeout - System.currentTimeMillis())
 }
 
-private class TimeoutWorker<K : Any>(owner: BaseTimeoutCache<K, *>, val lock: ReentrantLock, val cond: Condition, val items : PullableLinkedList<KeyState<K>>) : Runnable {
+private class TimeoutWorker<K : Any>(owner: BaseTimeoutCache<K, *>, val lock: ReentrantLock, val cond: Condition, val items: PullableLinkedList<KeyState<K>>) : Runnable {
     private val owner = WeakReference(owner)
 
     override fun run() {
@@ -247,12 +218,12 @@ private class TimeoutWorker<K : Any>(owner: BaseTimeoutCache<K, *>, val lock: Re
             }
 }
 
-private abstract class ListElement<E: ListElement<E>> {
+private abstract class ListElement<E : ListElement<E>> {
     var next: E? = null
     var prev: E? = null
 }
 
-private class PullableLinkedList<E: ListElement<E>> {
+private class PullableLinkedList<E : ListElement<E>> {
     private var head: E? = null
     private var tail: E? = null
 

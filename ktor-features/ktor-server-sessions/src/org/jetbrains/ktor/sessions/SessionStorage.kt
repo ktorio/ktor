@@ -15,7 +15,7 @@ interface SessionStorage {
 }
 
 class CacheStorage(val delegate: SessionStorage, val idleTimeout: Long) : SessionStorage {
-    private val cache = BaseTimeoutCache(idleTimeout, true, false, SoftReferenceCache<String, ByteArray> { id -> delegate.read(id) { input -> input.readBytes() }.get() })
+    private val cache = BaseTimeoutCache(idleTimeout, true, SoftReferenceCache<String, ByteArray> { id -> delegate.read(id) { input -> input.readBytes() }.get() })
     private val exec = Executors.newCachedThreadPool()
 
     override fun <R> read(id: String, consumer: (InputStream) -> R): Future<R> =

@@ -75,7 +75,7 @@ class CacheTest {
     @Test
     fun testTimeout() {
         val counter = AtomicInteger()
-        val timeout = BaseTimeoutCache(100L, true, true, BaseCache<Int, String> { counter.incrementAndGet(); it.toString() })
+        val timeout = BaseTimeoutCache(100L, true, BaseCache<Int, String> { counter.incrementAndGet(); it.toString() })
 
         assertEquals("1", timeout[1])
         assertEquals(1, counter.get())
