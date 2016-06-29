@@ -70,7 +70,7 @@ fun Route.webSocket(path: String, protocol: String? = null, configure: WebSocket
             header(HttpHeaders.Upgrade, "websocket") {
                 webSocketProtocol(protocol) {
                     handle {
-                        val extensions = call.request.header(HttpHeaders.SecWebSocketExtensions)
+                        //val extensions = call.request.header(HttpHeaders.SecWebSocketExtensions)
 
                         call.respond(WebSocketUpgrade(call, protocol, configure))
                     }

@@ -206,7 +206,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthRespondRedirect(testClient, exec, settings, "http://localhost/login?redirected=true", "/")
+                    oauthRespondRedirect(testClient, exec, settings, "http://localhost/login?redirected=true")
                 }
             }
 

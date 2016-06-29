@@ -154,7 +154,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthRespondRedirect(testClient, exec, settings, "http://localhost/login", "/")
+                    oauthRespondRedirect(testClient, exec, settings, "http://localhost/login")
                 }
             }
 

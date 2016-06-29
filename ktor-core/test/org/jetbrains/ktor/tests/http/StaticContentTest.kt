@@ -247,6 +247,7 @@ class StaticContentTest {
                 assertNull(result.response.headers[HttpHeaders.ContentLength])
 
                 assertMultipart(result) { parts ->
+                    @Suppress("DEPRECATION")
                     assert(parts) {
                         sizeShouldBe(2)
                         elementAtShouldBe(0, "p")
