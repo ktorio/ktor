@@ -3,7 +3,7 @@ package org.jetbrains.ktor.nio
 import java.nio.*
 import java.util.concurrent.atomic.*
 
-class AsyncSkipAndCut(val source: AsyncReadChannel, val skip: Long, val maxSize: Long, val preventClose: Boolean = false) : AsyncReadChannel {
+class SkipAndCutReadChannel(val source: ReadChannel, val skip: Long, val maxSize: Long, val preventClose: Boolean = false) : ReadChannel {
     private val stateReference = AtomicReference(State.WAIT)
 
     private var skipBuffer: ByteBuffer? = ByteBuffer.allocate(8192)

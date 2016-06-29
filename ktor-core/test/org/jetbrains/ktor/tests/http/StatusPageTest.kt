@@ -62,7 +62,7 @@ class StatusPageTest {
                     override val headers: ValuesMap
                         get() = ValuesMap.Empty
 
-                    override fun channel(): AsyncReadChannel = fail("Should never reach here")
+                    override fun channel(): ReadChannel = fail("Should never reach here")
                 })
             }
 

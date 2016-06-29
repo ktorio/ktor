@@ -2,7 +2,7 @@ package org.jetbrains.ktor.nio
 
 import java.nio.*
 
-object AsyncEmptyChannel : AsyncReadChannel {
+object EmptyReadChannel : ReadChannel {
     override fun read(dst: ByteBuffer, handler: AsyncHandler) {
         handler.successEnd()
     }

@@ -50,7 +50,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
 
             when (value) {
                 is FinalContent.StreamConsumer -> {
-                    val pipe = AsyncPipe()
+                    val pipe = ChannelPipe()
                     closeAtEnd(pipe)
 
                     // note: it is very important to resend it here rather than just use value.startContent
@@ -58,7 +58,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
                         executor.execute {
                             try {
                                 value.stream(pipe.asOutputStream())
-                            } catch (ignore: AsyncPipe.PipeClosedException) {
+                            } catch (ignore: ChannelPipe.PipeClosedException) {
                             } finally {
                                 pipe.closeAndWait()
                             }
@@ -78,10 +78,10 @@ abstract class BaseApplicationCall(override val application: Application, overri
         }
     }
 
-    private class PipeResponse(val pipe: AsyncPipe, headersDelegate: () -> ValuesMap, val start: () -> Unit) : FinalContent.ChannelContent() {
+    private class PipeResponse(val pipe: ChannelPipe, headersDelegate: () -> ValuesMap, val start: () -> Unit) : FinalContent.ChannelContent() {
         override val headers by lazy(headersDelegate)
 
-        override fun channel(): AsyncReadChannel {
+        override fun channel(): ReadChannel {
             start()
             return pipe
         }
@@ -89,7 +89,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
 
 
     companion object {
-        val ResponseChannelOverride = AttributeKey<AsyncWriteChannel>("ktor.response.channel")
-        val RequestChannelOverride = AttributeKey<AsyncReadChannel>("ktor.request.channel")
+        val ResponseChannelOverride = AttributeKey<WriteChannel>("ktor.response.channel")
+        val RequestChannelOverride = AttributeKey<ReadChannel>("ktor.request.channel")
     }
 }

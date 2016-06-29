@@ -5,7 +5,7 @@ import java.nio.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
-private class AsyncPump(bufferSize: Int = 8192, val from: AsyncReadChannel, val to: AsyncWriteChannel, val completionHandler: CompletableFuture<Long> = CompletableFuture(), val progressListener: ProgressListener<AsyncPump> = object: ProgressListener<AsyncPump> {
+private class AsyncPump(bufferSize: Int = 8192, val from: ReadChannel, val to: WriteChannel, val completionHandler: CompletableFuture<Long> = CompletableFuture(), val progressListener: ProgressListener<AsyncPump> = object: ProgressListener<AsyncPump> {
     override fun progress(source: AsyncPump) {
     }
 }, ignoreWriteError: Boolean = false) {
@@ -138,10 +138,10 @@ private class AsyncPump(bufferSize: Int = 8192, val from: AsyncReadChannel, val 
     }
 }
 
-fun AsyncReadChannel.copyToAsync(out: AsyncWriteChannel, ignoreWriteError: Boolean = false) {
+fun ReadChannel.copyToAsync(out: WriteChannel, ignoreWriteError: Boolean = false) {
     AsyncPump(from = this, to = out, ignoreWriteError = ignoreWriteError).start()
 }
 
-fun AsyncReadChannel.copyToAsyncThenComplete(out: AsyncWriteChannel, completableFuture: CompletableFuture<Long>, ignoreWriteError: Boolean = false) {
+fun ReadChannel.copyToAsyncThenComplete(out: WriteChannel, completableFuture: CompletableFuture<Long>, ignoreWriteError: Boolean = false) {
     AsyncPump(from = this, to = out, completionHandler = completableFuture, ignoreWriteError = ignoreWriteError).start()
 }

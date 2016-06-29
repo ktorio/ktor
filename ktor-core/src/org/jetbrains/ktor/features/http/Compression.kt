@@ -101,7 +101,7 @@ object CompressionSupport : ApplicationFeature<Compression> {
     }
 }
 
-private class CompressedResponse(val delegateChannel: AsyncReadChannel, val delegateHeaders: ValuesMap, val encoding: String, val encoder: CompressionEncoder) : FinalContent.ChannelContent() {
+private class CompressedResponse(val delegateChannel: ReadChannel, val delegateHeaders: ValuesMap, val encoding: String, val encoder: CompressionEncoder) : FinalContent.ChannelContent() {
     override fun channel() = encoder.open(delegateChannel)
     override val headers by lazy {
         ValuesMap.build(true) {
@@ -125,19 +125,19 @@ private fun FinalContent.contentEncoding(): String? {
 private fun ApplicationCall.isCompressionProhibited() = CompressionAttributes.preventCompression in attributes
 
 interface CompressionEncoder {
-    fun open(delegate: AsyncReadChannel): AsyncReadChannel
+    fun open(delegate: ReadChannel): ReadChannel
 }
 
 object GzipEncoder : CompressionEncoder {
-    override fun open(delegate: AsyncReadChannel) = delegate.deflated(true)
+    override fun open(delegate: ReadChannel) = delegate.deflated(true)
 }
 
 object DeflateEncoder : CompressionEncoder {
-    override fun open(delegate: AsyncReadChannel) = delegate.deflated(false)
+    override fun open(delegate: ReadChannel) = delegate.deflated(false)
 }
 
 object IdentityEncoder : CompressionEncoder {
-    override fun open(delegate: AsyncReadChannel) = delegate
+    override fun open(delegate: ReadChannel) = delegate
 }
 
 interface ConditionsHolderBuilder {

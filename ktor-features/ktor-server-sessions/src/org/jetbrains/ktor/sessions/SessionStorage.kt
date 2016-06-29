@@ -127,6 +127,7 @@ private class DirectoryStorage(val dir: File) : SessionStorage, Closeable {
     }
 
     private fun takeTask() = lock.withLock {
+        @Suppress("VARIABLE_WITH_REDUNDANT_INITIALIZER")
         var task: IOTasksGroup? = null
 
         do {

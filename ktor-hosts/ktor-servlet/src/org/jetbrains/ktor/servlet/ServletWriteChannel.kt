@@ -7,7 +7,7 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import javax.servlet.*
 
-internal class ServletAsyncWriteChannel(val servletOutputStream: ServletOutputStream) : AsyncWriteChannel {
+internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream) : WriteChannel {
     private val listenerInstalled = AtomicBoolean()
     private val currentHandler = AtomicReference<AsyncHandler?>()
     private val pendingFlush = AtomicInteger(0)

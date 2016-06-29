@@ -27,7 +27,7 @@ class WebSocketUpgrade(call: ApplicationCall, val protocol: String? = null, val 
             // TODO extensions
         }
 
-    override fun upgrade(call: ApplicationCall, context: PipelineContext<*>, input: AsyncReadChannel, output: AsyncWriteChannel): Closeable {
+    override fun upgrade(call: ApplicationCall, context: PipelineContext<*>, input: ReadChannel, output: WriteChannel): Closeable {
         val webSocket = WebSocketImpl(call, context, input, output)
         configure(webSocket)
 

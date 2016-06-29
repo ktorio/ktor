@@ -7,7 +7,7 @@ import java.nio.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
-internal class AbstractConnectionReadChannel(endp: EndPoint, exec: Executor) : AbstractConnection(endp, exec), AsyncReadChannel, Connection.UpgradeTo {
+internal class AbstractConnectionReadChannel(endp: EndPoint, exec: Executor) : AbstractConnection(endp, exec), ReadChannel, Connection.UpgradeTo {
     private val currentHandler = AtomicReference<AsyncHandler>()
     private var currentBuffer: ByteBuffer? = null
     private val sync = Semaphore(0)

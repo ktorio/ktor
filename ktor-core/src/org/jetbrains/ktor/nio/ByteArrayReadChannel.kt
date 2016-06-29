@@ -3,7 +3,7 @@ package org.jetbrains.ktor.nio
 import org.jetbrains.ktor.util.*
 import java.nio.*
 
-class ByteArrayAsyncReadChannel(val source: ByteBuffer, val maxReadSize: Int = Int.MAX_VALUE) : SeekableAsyncChannel {
+class ByteArrayReadChannel(val source: ByteBuffer, val maxReadSize: Int = Int.MAX_VALUE) : SeekableChannel {
     private val initialPosition = source.position()
 
     constructor(source: ByteArray, maxReadSize: Int = Int.MAX_VALUE) : this(ByteBuffer.wrap(source), maxReadSize)

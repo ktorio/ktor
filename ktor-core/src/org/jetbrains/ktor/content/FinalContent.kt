@@ -22,7 +22,7 @@ sealed class FinalContent {
     }
 
     abstract class ChannelContent : FinalContent() {
-        abstract fun channel(): AsyncReadChannel
+        abstract fun channel(): ReadChannel
 
         override fun startContent(call: ApplicationCall, context: PipelineContext<*>) {
             context.sendAsyncChannel(call, channel())
@@ -46,7 +46,7 @@ sealed class FinalContent {
     }
 
     abstract class ProtocolUpgrade() : FinalContent() {
-        abstract fun upgrade(call: ApplicationCall, context: PipelineContext<*>, input: AsyncReadChannel, output: AsyncWriteChannel): Closeable
+        abstract fun upgrade(call: ApplicationCall, context: PipelineContext<*>, input: ReadChannel, output: WriteChannel): Closeable
 
         override fun startContent(call: ApplicationCall, context: PipelineContext<*>): Nothing {
             throw UnsupportedOperationException("It should never pass here: should be container-specific and handled in contained-specific ApplicationCall implementation")

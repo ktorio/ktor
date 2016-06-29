@@ -175,7 +175,7 @@ class TestApplicationRequest() : ApplicationRequest {
 
     override val content: RequestContent = object : RequestContent(this) {
         override fun getInputStream(): InputStream = ByteArrayInputStream(bodyBytes)
-        override fun getReadChannel() = ByteArrayAsyncReadChannel(bodyBytes)
+        override fun getReadChannel() = ByteArrayReadChannel(bodyBytes)
 
         override fun getMultiPartData(): MultiPartData = object : MultiPartData {
             override val parts: Sequence<PartData>
@@ -190,7 +190,7 @@ class TestApplicationRequest() : ApplicationRequest {
 }
 
 class TestApplicationResponse() : BaseApplicationResponse() {
-    private val realContent = lazy { ByteArrayAsyncWriteChannel() }
+    private val realContent = lazy { ByteArrayWriteChannel() }
     @Volatile
     private var closed = false
 

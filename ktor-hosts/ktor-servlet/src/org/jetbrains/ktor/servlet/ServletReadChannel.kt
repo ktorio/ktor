@@ -5,7 +5,7 @@ import java.nio.*
 import java.util.concurrent.atomic.*
 import javax.servlet.*
 
-class ServletAsyncReadChannel(val servletInputStream: ServletInputStream) : AsyncReadChannel {
+class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChannel {
     private val listenerInstalled = AtomicBoolean()
     private val currentHandler = AtomicReference<AsyncHandler?>()
     private var currentBuffer: ByteBuffer? = null

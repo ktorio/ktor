@@ -3,7 +3,7 @@ package org.jetbrains.ktor.nio
 import java.nio.*
 import java.util.concurrent.atomic.*
 
-class AsyncSeekAndCut(val source: SeekableAsyncChannel, val seek: Long, val maxSize: Long, val preventClose: Boolean = false) : SeekableAsyncChannel {
+class SeekAndCutReadChannel(val source: SeekableChannel, val seek: Long, val maxSize: Long, val preventClose: Boolean = false) : SeekableChannel {
     private val stateReference = AtomicReference(State.WAIT)
 
     private var currentBuffer: ByteBuffer? = null

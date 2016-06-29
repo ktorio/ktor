@@ -9,7 +9,7 @@ import java.io.*
 import java.time.*
 import java.util.concurrent.*
 
-internal fun PipelineContext<*>.sendAsyncChannel(call: ApplicationCall, channel: AsyncReadChannel): Nothing {
+internal fun PipelineContext<*>.sendAsyncChannel(call: ApplicationCall, channel: ReadChannel): Nothing {
     val future = createMachineCompletableFuture()
 
     closeAtEnd(channel, call) // TODO closeAtEnd(call) should be done globally at call start

@@ -19,12 +19,12 @@ class ServletApplicationResponse(val call: ServletApplicationCall, val servletRe
         override fun getHostHeaderValues(name: String): List<String> = servletResponse.getHeaders(name).toList()
     }
 
-    override fun channel(): AsyncWriteChannel {
+    override fun channel(): WriteChannel {
         if (BaseApplicationCall.ResponseChannelOverride in call.attributes) {
             return call.attributes[BaseApplicationCall.ResponseChannelOverride]
         }
 
         call.ensureAsync()
-        return ServletAsyncWriteChannel(servletResponse.outputStream)
+        return ServletWriteChannel(servletResponse.outputStream)
     }
 }

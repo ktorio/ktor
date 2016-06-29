@@ -8,13 +8,13 @@ import kotlin.reflect.*
 
 abstract class RequestContent(private val request: ApplicationRequest) {
     protected abstract fun getInputStream(): InputStream
-    protected abstract fun getReadChannel(): AsyncReadChannel
+    protected abstract fun getReadChannel(): ReadChannel
     protected abstract fun getMultiPartData(): MultiPartData
 
     open operator fun <T : Any> get(type: KClass<T>): T {
         @Suppress("IMPLICIT_CAST_TO_ANY", "UNCHECKED_CAST")
         return when (type) {
-            AsyncReadChannel::class -> getReadChannel()
+            ReadChannel::class -> getReadChannel()
             InputStream::class -> getInputStream()
             String::class -> getReadChannel().asInputStream().reader(request.contentCharset() ?: Charsets.ISO_8859_1).readText()
             MultiPartData::class -> getMultiPartData()

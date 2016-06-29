@@ -374,8 +374,8 @@ abstract class HostTestSuite : HostTestBase() {
         createAndStartServer(port) {
             route("/echo") {
                 handle {
-                    val inChannel = call.request.content.get<AsyncReadChannel>()
-                    val buffer = ByteArrayAsyncWriteChannel()
+                    val inChannel = call.request.content.get<ReadChannel>()
+                    val buffer = ByteArrayWriteChannel()
                     val readFuture = CompletableFuture<Long>()
 
                     readFuture.whenComplete { size, throwable ->
@@ -397,7 +397,7 @@ abstract class HostTestSuite : HostTestBase() {
                             finishAllAndProceed()
                         }
 
-                        ByteArrayAsyncReadChannel(buffer.toByteArray()).copyToAsyncThenComplete(outChannel, writeFuture)
+                        ByteArrayReadChannel(buffer.toByteArray()).copyToAsyncThenComplete(outChannel, writeFuture)
                     }
 
                     inChannel.copyToAsyncThenComplete(buffer, readFuture)
@@ -428,7 +428,7 @@ abstract class HostTestSuite : HostTestBase() {
     fun testEchoBlocking() {
         createAndStartServer(port) {
             post("/") {
-                val text = call.request.content.get<AsyncReadChannel>().asInputStream().bufferedReader().readText()
+                val text = call.request.content.get<ReadChannel>().asInputStream().bufferedReader().readText()
                 call.response.status(HttpStatusCode.OK)
                 call.response.channel().asOutputStream().bufferedWriter().use {
                     it.write(text)

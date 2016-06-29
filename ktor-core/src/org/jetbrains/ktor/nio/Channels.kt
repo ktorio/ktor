@@ -12,7 +12,7 @@ interface AsyncHandler {
 
 interface Channel: Closeable {
 }
-interface AsyncReadChannel: Channel {
+interface ReadChannel : Channel {
     /**
      * Initiates read operation. If there is already read operation pending then it fails with exception.
      * Fires [AsyncHandler.success] with read count, [AsyncHandler.successEnd] if EOF or [AsyncHandler.failed].
@@ -26,7 +26,7 @@ interface AsyncReadChannel: Channel {
     fun releaseFlush(): Int = 0
 }
 
-interface AsyncWriteChannel: Channel {
+interface WriteChannel : Channel {
     /**
      * Initiates write operation. If there is already write operation pending then it fails with exception.
      * Fires [AsyncHandler.success] with write count or [AsyncHandler.failed].
@@ -53,7 +53,7 @@ interface AsyncWriteChannel: Channel {
     }
 }
 
-interface SeekableAsyncChannel : AsyncReadChannel {
+interface SeekableChannel : ReadChannel {
     /**
      * Current channel read position. If there is seek operation in progress then the behaviour is not defined.
      */
@@ -118,7 +118,7 @@ class BlockingAdapter {
     }
 }
 
-private class AsyncReadChannelAdapterStream(val ch: AsyncReadChannel) : InputStream() {
+private class AsyncReadChannelAdapterStream(val ch: ReadChannel) : InputStream() {
     private val singleByte = ByteBuffer.allocate(1)
     private val adapter = BlockingAdapter()
 
@@ -155,9 +155,9 @@ private class AsyncReadChannelAdapterStream(val ch: AsyncReadChannel) : InputStr
     }
 }
 
-fun AsyncReadChannel.asInputStream(): InputStream = AsyncReadChannelAdapterStream(this)
+fun ReadChannel.asInputStream(): InputStream = AsyncReadChannelAdapterStream(this)
 
-private class AsyncWriteChannelAdapterStream(val ch: AsyncWriteChannel) : OutputStream() {
+private class AsyncWriteChannelAdapterStream(val ch: WriteChannel) : OutputStream() {
     private val singleByte = ByteBuffer.allocate(1)
     private val adapter = BlockingAdapter()
 
@@ -197,9 +197,9 @@ private class AsyncWriteChannelAdapterStream(val ch: AsyncWriteChannel) : Output
     }
 }
 
-fun AsyncWriteChannel.asOutputStream(): OutputStream = AsyncWriteChannelAdapterStream(this)
+fun WriteChannel.asOutputStream(): OutputStream = AsyncWriteChannelAdapterStream(this)
 
-private class InputStreamReadChannelAdapter(val input: InputStream) : AsyncReadChannel {
+private class InputStreamReadChannelAdapter(val input: InputStream) : ReadChannel {
     override fun read(dst: ByteBuffer, handler: AsyncHandler) {
         try {
             val rc = input.read(dst)
@@ -217,9 +217,9 @@ private class InputStreamReadChannelAdapter(val input: InputStream) : AsyncReadC
     }
 }
 
-fun InputStream.asAsyncChannel(): AsyncReadChannel = InputStreamReadChannelAdapter(this)
+fun InputStream.asAsyncChannel(): ReadChannel = InputStreamReadChannelAdapter(this)
 
-fun AsyncWriteChannel.writeFully(bb: ByteBuffer, handler: AsyncHandler) {
+fun WriteChannel.writeFully(bb: ByteBuffer, handler: AsyncHandler) {
     val initialSize = bb.remaining()
     val innerHandler = object : AsyncHandler {
         override fun success(count: Int) {

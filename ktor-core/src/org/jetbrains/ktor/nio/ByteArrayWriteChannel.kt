@@ -4,7 +4,7 @@ import java.io.*
 import java.nio.*
 import java.nio.channels.*
 
-class ByteArrayAsyncWriteChannel : AsyncWriteChannel {
+class ByteArrayWriteChannel : WriteChannel {
     private val baos = ByteArrayOutputStream()
     private val baosAsChannel = Channels.newChannel(baos)
 

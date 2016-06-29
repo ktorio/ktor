@@ -6,7 +6,7 @@ import java.nio.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
-class AsyncPipe : AsyncReadChannel, AsyncWriteChannel {
+class ChannelPipe : ReadChannel, WriteChannel {
     private val closed = AtomicBoolean()
 
     @Volatile

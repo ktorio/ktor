@@ -45,14 +45,14 @@ class ServletApplicationRequest(val call: ServletApplicationCall, val servletReq
 
         if (providedChannel == null) {
             call.ensureAsync()
-            ServletAsyncReadChannel(servletRequest.inputStream)
+            ServletReadChannel(servletRequest.inputStream)
         } else providedChannel
     }
 
     override val content: RequestContent = object : RequestContent(this) {
         override fun getMultiPartData(): MultiPartData = ServletMultiPartData(this@ServletApplicationRequest, servletRequest)
         override fun getInputStream(): InputStream = servletRequest.inputStream
-        override fun getReadChannel(): AsyncReadChannel = servletReadChannel
+        override fun getReadChannel(): ReadChannel = servletReadChannel
     }
 
     override val cookies : RequestCookies = ServletRequestCookies(servletRequest, this)

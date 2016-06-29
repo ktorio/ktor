@@ -131,7 +131,7 @@ class CompressionTest {
             application.install(CompressionSupport) {
                 configureDefault {
                     encoder("special", object : CompressionEncoder {
-                        override fun open(delegate: AsyncReadChannel) = delegate
+                        override fun open(delegate: ReadChannel) = delegate
                     })
                 }
             }

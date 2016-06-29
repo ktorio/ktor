@@ -5,7 +5,7 @@ import java.nio.*
 import java.nio.channels.*
 import java.nio.file.*
 
-class StatefulAsyncFileChannel (val fc: AsynchronousFileChannel, val start: Long = 0, val endInclusive: Long = fc.size() - 1, val preventClose: Boolean = false) : SeekableAsyncChannel {
+class FileReadChannel(val fc: AsynchronousFileChannel, val start: Long = 0, val endInclusive: Long = fc.size() - 1, val preventClose: Boolean = false) : SeekableChannel {
 
     constructor(fc: AsynchronousFileChannel, range: LongRange = 0L .. fc.size() - 1, preventClose: Boolean = false) : this(fc, range.start, range.endInclusive, preventClose)
 
@@ -81,5 +81,5 @@ class StatefulAsyncFileChannel (val fc: AsynchronousFileChannel, val start: Long
     }
 }
 
-fun Path.asyncReadOnlyFileChannel(start: Long = 0, endInclusive: Long = Files.size(this) - 1) = StatefulAsyncFileChannel(AsynchronousFileChannel.open(this, StandardOpenOption.READ), start, endInclusive)
+fun Path.asyncReadOnlyFileChannel(start: Long = 0, endInclusive: Long = Files.size(this) - 1) = FileReadChannel(AsynchronousFileChannel.open(this, StandardOpenOption.READ), start, endInclusive)
 fun File.asyncReadOnlyFileChannel(start: Long = 0, endInclusive: Long = length() - 1) = toPath().asyncReadOnlyFileChannel(start, endInclusive)

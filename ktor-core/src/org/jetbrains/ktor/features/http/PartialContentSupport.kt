@@ -89,7 +89,7 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
         val channel = obj.channel()
         onFinish { channel.close() }
 
-        if (merged.size != 1 && !merged.isAscending() && channel !is SeekableAsyncChannel) {
+        if (merged.size != 1 && !merged.isAscending() && channel !is SeekableChannel) {
             // merge into single range for non-seekable channel
             processSingleRange(obj, call, channel, rangesSpecifier.mergeToSingle(length)!!, length)
         }
@@ -101,11 +101,11 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
         processMultiRange(obj, call, channel, merged, length)
     }
 
-    private fun processSingleRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: AsyncReadChannel, range: LongRange, length: Long): Nothing {
+    private fun processSingleRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, range: LongRange, length: Long): Nothing {
         call.respond(RangeChannelProvider.Single(call.isGet(), obj.headers, channel, range, length))
     }
 
-    private fun processMultiRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: AsyncReadChannel, ranges: List<LongRange>, length: Long): Nothing {
+    private fun processMultiRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, ranges: List<LongRange>, length: Long): Nothing {
         val boundary = "ktor-boundary-" + nextNonce()
 
         call.attributes.put(CompressionAttributes.preventCompression, true) // multirange with compression is not supported yet
@@ -129,12 +129,12 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
             }
         }
 
-        class Single(val get: Boolean, val delegateHeaders: ValuesMap, val delegate: AsyncReadChannel, val range: LongRange, val fullLength: Long) : RangeChannelProvider() {
+        class Single(val get: Boolean, val delegateHeaders: ValuesMap, val delegate: ReadChannel, val range: LongRange, val fullLength: Long) : RangeChannelProvider() {
             override val status: HttpStatusCode? get() = if (get) HttpStatusCode.PartialContent else null
 
             override fun channel() = when (delegate) {
-                is SeekableAsyncChannel -> AsyncSeekAndCut(delegate, range.start, range.length, preventClose = true)
-                else -> AsyncSkipAndCut(delegate, range.start, range.length, preventClose = true)
+                is SeekableChannel -> SeekAndCutReadChannel(delegate, range.start, range.length, preventClose = true)
+                else -> SkipAndCutReadChannel(delegate, range.start, range.length, preventClose = true)
             }
 
             override val headers by lazy {
@@ -149,7 +149,7 @@ object PartialContentSupport : ApplicationFeature<PartialContentSupport.Configur
             }
         }
 
-        class Multiple(val get: Boolean, val delegateHeaders: ValuesMap, val delegate: AsyncReadChannel, val ranges: List<LongRange>, val length: Long, val boundary: String, val contentType: ContentType) : RangeChannelProvider() {
+        class Multiple(val get: Boolean, val delegateHeaders: ValuesMap, val delegate: ReadChannel, val ranges: List<LongRange>, val length: Long, val boundary: String, val contentType: ContentType) : RangeChannelProvider() {
             override val status: HttpStatusCode? get() = if (get) HttpStatusCode.PartialContent else null
 
             override fun channel() = ByteRangesChannel.forRegular(ranges, delegate, length, boundary, contentType.toString())

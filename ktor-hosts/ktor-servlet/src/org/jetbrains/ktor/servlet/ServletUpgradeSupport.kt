@@ -39,8 +39,8 @@ class ServletUpgradeHandler : HttpUpgradeHandler {
     override fun init(wc: WebConnection) {
         val call = up.call
 
-        val inputChannel = ServletAsyncReadChannel(wc.inputStream)
-        val outputChannel = ServletAsyncWriteChannel(wc.outputStream)
+        val inputChannel = ServletReadChannel(wc.inputStream)
+        val outputChannel = ServletWriteChannel(wc.outputStream)
 
         call.attributes.put(BaseApplicationCall.RequestChannelOverride, inputChannel)
         call.attributes.put(BaseApplicationCall.ResponseChannelOverride, outputChannel)

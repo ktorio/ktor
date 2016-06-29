@@ -9,7 +9,7 @@ import java.io.*
 import java.nio.*
 import java.util.concurrent.atomic.*
 
-internal class NettyAsyncWriteChannel(val request: HttpRequest, val appResponse: NettyApplicationResponse, val context: ChannelHandlerContext) : AsyncWriteChannel {
+internal class NettyWriteChannel(val request: HttpRequest, val appResponse: NettyApplicationResponse, val context: ChannelHandlerContext) : WriteChannel {
     private val buffer = context.alloc().buffer(8192)
     private val currentHandler = AtomicReference<AsyncHandler?>()
     private val released = AtomicBoolean()

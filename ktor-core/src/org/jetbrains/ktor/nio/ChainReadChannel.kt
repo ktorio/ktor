@@ -2,9 +2,9 @@ package org.jetbrains.ktor.nio
 
 import java.nio.*
 
-open class ChainAsyncByteChannel(chain: Sequence<() -> AsyncReadChannel>) : AsyncReadChannel {
+open class ChainReadChannel(chain: Sequence<() -> ReadChannel>) : ReadChannel {
     private val iterator = chain.iterator()
-    private var current: AsyncReadChannel? = null
+    private var current: ReadChannel? = null
     private var closed = false
 
     override fun close() {
@@ -64,7 +64,7 @@ open class ChainAsyncByteChannel(chain: Sequence<() -> AsyncReadChannel>) : Asyn
         }
     }
 
-    private fun ensureCurrent(): AsyncReadChannel? {
+    private fun ensureCurrent(): ReadChannel? {
         return when {
             closed -> null
             current != null -> current

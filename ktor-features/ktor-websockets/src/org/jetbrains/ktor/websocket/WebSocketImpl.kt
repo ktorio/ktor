@@ -7,7 +7,7 @@ import org.jetbrains.ktor.util.*
 import java.time.*
 import java.util.concurrent.*
 
-internal class WebSocketImpl(call: ApplicationCall, context: PipelineContext<*>, val readChannel: AsyncReadChannel, val writeChannel: AsyncWriteChannel) : WebSocket(call, context) {
+internal class WebSocketImpl(call: ApplicationCall, context: PipelineContext<*>, val readChannel: ReadChannel, val writeChannel: WriteChannel) : WebSocket(call, context) {
     private val exec = call.application.attributes.computeIfAbsent(ScheduledExecutorAttribute) {
         call.application.closeHooks.add { stopExec() }
 

@@ -20,5 +20,5 @@ class TextContentResponse(override val status: HttpStatusCode?, contentType: Con
         }
     }
 
-    override fun channel() = ByteArrayAsyncReadChannel(bytes)
+    override fun channel() = ByteArrayReadChannel(bytes)
 }

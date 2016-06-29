@@ -73,7 +73,7 @@ class ByteRangesChannelTest {
 
     @Test
     fun testNonSeekable() {
-        val source = AsyncSkipAndCut(asyncOf("0123456789abcdef"), 0L, 1000)
+        val source = SkipAndCutReadChannel(asyncOf("0123456789abcdef"), 0L, 1000)
         val ranges = ByteRangesChannel.forRegular(listOf(1L .. 3L, 5L..6L, 10L..12L), source, 99L, "boundary-1", "text/plain")
 
         assertEquals("""
@@ -97,7 +97,7 @@ class ByteRangesChannelTest {
     }
 
     private fun String.replaceEndlines() = replace("\r\n", "\n")
-    private fun AsyncReadChannel.readText() = asInputStream().reader().readText()
+    private fun ReadChannel.readText() = asInputStream().reader().readText()
     private fun asyncOf(text: String, step: Int = Int.MAX_VALUE) = asyncOf(ByteBuffer.wrap(text.toByteArray(Charsets.ISO_8859_1)), step)
-    private fun asyncOf(bb: ByteBuffer, step: Int = Int.MAX_VALUE) = ByteArrayAsyncReadChannel(bb, step)
+    private fun asyncOf(bb: ByteBuffer, step: Int = Int.MAX_VALUE) = ByteArrayReadChannel(bb, step)
 }

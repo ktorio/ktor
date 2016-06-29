@@ -6,7 +6,7 @@ import java.nio.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
-internal class WebSocketWriter(val parent: WebSocketImpl, val writeChannel: AsyncWriteChannel, val controlFrameHandler: ControlFrameHandler) {
+internal class WebSocketWriter(val parent: WebSocketImpl, val writeChannel: WriteChannel, val controlFrameHandler: ControlFrameHandler) {
     private val buffer = ByteBuffer.allocate(8192)
     private val q = ArrayBlockingQueue<Frame>(1024)
     private var current: ByteBuffer? = null

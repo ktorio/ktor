@@ -6,33 +6,33 @@ import org.jetbrains.ktor.util.*
 class ByteRangesChannel  {
 
     companion object {
-        fun forSeekable(ranges: List<LongRange>, ch: SeekableAsyncChannel, fullLength: Long?, boundary: String, contentType: String) =
-            ChainAsyncByteChannel(ranges.build(fullLength, boundary, contentType) { range ->
-                AsyncSeekAndCut(ch, range.start, range.length, preventClose = true)
+        fun forSeekable(ranges: List<LongRange>, ch: SeekableChannel, fullLength: Long?, boundary: String, contentType: String) =
+            ChainReadChannel(ranges.build(fullLength, boundary, contentType) { range ->
+                SeekAndCutReadChannel(ch, range.start, range.length, preventClose = true)
             })
 
-        fun forRegular(ranges: List<LongRange>, ch: AsyncReadChannel, fullLength: Long?, boundary: String, contentType: String): ChainAsyncByteChannel {
-            if (ch is SeekableAsyncChannel) {
+        fun forRegular(ranges: List<LongRange>, ch: ReadChannel, fullLength: Long?, boundary: String, contentType: String): ChainReadChannel {
+            if (ch is SeekableChannel) {
                 return forSeekable(ranges, ch, fullLength, boundary, contentType)
             }
 
             var position = 0L
 
-            return ChainAsyncByteChannel(ranges.build(fullLength, boundary, contentType) { range ->
+            return ChainReadChannel(ranges.build(fullLength, boundary, contentType) { range ->
                 val start = position
                 val skip = range.start - start
                 position = range.endInclusive + 1
 
-                AsyncSkipAndCut(ch, skip, range.length, preventClose = true)
+                SkipAndCutReadChannel(ch, skip, range.length, preventClose = true)
             })
         }
 
-        private fun List<LongRange>.build(fullLength: Long?, boundary: String, contentType: String, builder: (LongRange) -> AsyncReadChannel): Sequence<() -> AsyncReadChannel> {
+        private fun List<LongRange>.build(fullLength: Long?, boundary: String, contentType: String, builder: (LongRange) -> ReadChannel): Sequence<() -> ReadChannel> {
             require(size > 1) { "There should be at least 2 file ranges" }
 
             return asSequence().flatMap { range ->
                 sequenceOf({
-                    ByteArrayAsyncReadChannel(buildString {
+                    ByteArrayReadChannel(buildString {
                         append(boundary)
                         append("\r\n")
 
@@ -51,12 +51,12 @@ class ByteRangesChannel  {
                 }, {
                     builder(range)
                 }, {
-                    ByteArrayAsyncReadChannel(buildString {
+                    ByteArrayReadChannel(buildString {
                         append("\r\n")
                     }.toByteArray(Charsets.ISO_8859_1))
                 })
             } + sequenceOf({
-                ByteArrayAsyncReadChannel(boundary.toByteArray(Charsets.ISO_8859_1))
+                ByteArrayReadChannel(boundary.toByteArray(Charsets.ISO_8859_1))
             })
         }
     }

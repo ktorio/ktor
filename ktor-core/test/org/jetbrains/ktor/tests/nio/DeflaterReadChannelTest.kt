@@ -7,12 +7,12 @@ import java.nio.*
 import java.util.zip.*
 import kotlin.test.*
 
-class DeflaterByteChannelTest {
+class DeflaterReadChannelTest {
 
     @Test
     fun testWithRealFile() {
-        val file = listOf(File("test/org/jetbrains/ktor/tests/nio/DeflaterByteChannelTest.kt"),
-                File("ktor-core/test/org/jetbrains/ktor/tests/nio/DeflaterByteChannelTest.kt")).first { it.exists() }
+        val file = listOf(File("test/org/jetbrains/ktor/tests/nio/DeflaterReadChannelTest.kt"),
+                File("ktor-core/test/org/jetbrains/ktor/tests/nio/DeflaterReadChannelTest.kt")).first { it.exists() }
 
         val actual = file.asyncReadOnlyFileChannel().deflated().asInputStream().ungzip().reader().readText()
         assertEquals(file.readText(), actual)
@@ -20,8 +20,8 @@ class DeflaterByteChannelTest {
 
     @Test
     fun testFileChannel() {
-        val file = listOf(File("test/org/jetbrains/ktor/tests/nio/DeflaterByteChannelTest.kt"),
-                File("ktor-core/test/org/jetbrains/ktor/tests/nio/DeflaterByteChannelTest.kt")).first { it.exists() }
+        val file = listOf(File("test/org/jetbrains/ktor/tests/nio/DeflaterReadChannelTest.kt"),
+                File("ktor-core/test/org/jetbrains/ktor/tests/nio/DeflaterReadChannelTest.kt")).first { it.exists() }
 
         val content = file.readText()
 
@@ -59,7 +59,7 @@ class DeflaterByteChannelTest {
     }
 
     private fun asyncOf(text: String, step: Int) = asyncOf(ByteBuffer.wrap(text.toByteArray(Charsets.ISO_8859_1)), step)
-    private fun asyncOf(bb: ByteBuffer, step: Int) = ByteArrayAsyncReadChannel(bb, step)
+    private fun asyncOf(bb: ByteBuffer, step: Int) = ByteArrayReadChannel(bb, step)
 
     private fun InputStream.ungzip() = GZIPInputStream(this)
 }

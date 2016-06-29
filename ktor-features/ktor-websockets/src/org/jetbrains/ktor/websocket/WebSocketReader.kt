@@ -4,7 +4,7 @@ import org.jetbrains.ktor.nio.*
 import java.nio.*
 import java.util.concurrent.atomic.*
 
-internal class WebSocketReader(val maxFrameSize: () -> Long, val close: (CloseReason?) -> Unit, val sendClose: (CloseReason) -> Unit, val channel: AsyncReadChannel, val frameHandler: (Frame) -> Unit, val lastReason: () -> CloseReason?) {
+internal class WebSocketReader(val maxFrameSize: () -> Long, val close: (CloseReason?) -> Unit, val sendClose: (CloseReason) -> Unit, val channel: ReadChannel, val frameHandler: (Frame) -> Unit, val lastReason: () -> CloseReason?) {
     private val state = AtomicReference(State.CREATED)
     private val buffer = ByteBuffer.allocate(8192).apply { flip() }
     private val frameParser = FrameParser()

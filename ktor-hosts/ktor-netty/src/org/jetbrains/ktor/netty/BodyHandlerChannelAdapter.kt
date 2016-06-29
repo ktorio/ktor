@@ -8,7 +8,7 @@ import java.nio.*
 import java.util.*
 import java.util.concurrent.atomic.*
 
-internal class BodyHandlerChannelAdapter(val context: ChannelHandlerContext) : AsyncReadChannel, SimpleChannelInboundHandler<DefaultHttpContent>(false) {
+internal class BodyHandlerChannelAdapter(val context: ChannelHandlerContext) : ReadChannel, SimpleChannelInboundHandler<DefaultHttpContent>(false) {
     private val currentHandler = AtomicReference<AsyncHandler>()
     private var currentBuffer: ByteBuffer? = null
 

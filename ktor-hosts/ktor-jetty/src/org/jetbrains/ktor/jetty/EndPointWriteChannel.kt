@@ -5,7 +5,7 @@ import org.eclipse.jetty.util.*
 import org.jetbrains.ktor.nio.*
 import java.nio.*
 
-internal class EndPointWriteChannel(val endPoint: EndPoint) : AsyncWriteChannel {
+internal class EndPointWriteChannel(val endPoint: EndPoint) : WriteChannel {
     @Volatile
     private var handler: AsyncHandler? = null
     private var positionBefore: Int = 0

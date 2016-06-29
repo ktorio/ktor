@@ -22,7 +22,7 @@ internal class NettyApplicationResponse(val request: HttpRequest, val response: 
             sendRequestMessage()
         }
 
-        NettyAsyncWriteChannel(request, this, context)
+        NettyWriteChannel(request, this, context)
     }
 
     override fun channel() = channelInstance.value

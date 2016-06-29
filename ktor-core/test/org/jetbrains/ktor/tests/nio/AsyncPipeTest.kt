@@ -7,7 +7,7 @@ import kotlin.concurrent.*
 import kotlin.test.*
 
 class AsyncPipeTest {
-    val pipe = AsyncPipe()
+    val pipe = ChannelPipe()
 
     @Test
     fun testWriteEmpty() {

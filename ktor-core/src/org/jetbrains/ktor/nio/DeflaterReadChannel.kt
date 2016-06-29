@@ -4,7 +4,7 @@ import org.jetbrains.ktor.util.*
 import java.nio.*
 import java.util.zip.*
 
-private class AsyncDeflaterByteChannel(val source: AsyncReadChannel, val gzip: Boolean = true) : AsyncReadChannel {
+private class DeflaterReadChannel(val source: ReadChannel, val gzip: Boolean = true) : ReadChannel {
     private val GZIP_MAGIC = 0x8b1f
     private val crc = CRC32()
     private val deflater = Deflater(Deflater.BEST_COMPRESSION, true)
@@ -178,7 +178,7 @@ private class AsyncDeflaterByteChannel(val source: AsyncReadChannel, val gzip: B
 
 }
 
-fun AsyncReadChannel.deflated(gzip: Boolean = true): AsyncReadChannel = AsyncDeflaterByteChannel(this, gzip)
+fun ReadChannel.deflated(gzip: Boolean = true): ReadChannel = DeflaterReadChannel(this, gzip)
 
 private fun Deflater.deflate(outBuffer: ByteBuffer) {
     if (outBuffer.hasRemaining()) {
