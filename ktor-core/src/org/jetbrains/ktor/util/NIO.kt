@@ -100,3 +100,9 @@ class ByteBufferBuilder(order: ByteOrder = ByteOrder.BIG_ENDIAN) {
         }
     }
 }
+
+fun ByteBuffer.getAll(): ByteArray {
+    val array = ByteArray(remaining())
+    get(array)
+    return array
+}

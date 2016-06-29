@@ -45,6 +45,19 @@ internal class NettyAsyncWriteChannel(val request: HttpRequest, val appResponse:
         }
     }
 
+    override fun flush(handler: AsyncHandler) {
+        if (!currentHandler.compareAndSet(null, handler)) {
+            throw IllegalStateException("Write operation is already in progress: wait for completion before ask new operation")
+        }
+
+        context.executeInLoop {
+            if (!released.get() && !context.isRemoved) {
+                context.flush()
+                handler.successEnd()
+            }
+        }
+    }
+
     override fun requestFlush() {
         context.executeInLoop {
             if (!released.get() && !context.isRemoved) {

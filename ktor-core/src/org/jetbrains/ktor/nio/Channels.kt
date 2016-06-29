@@ -41,6 +41,16 @@ interface AsyncWriteChannel: Channel {
      */
     fun requestFlush() {
     }
+
+    /**
+     * Request write flush. In fact there are no any guarantees that the data will be received by a remote peer.
+     * Use it when you want to ensure that there is no pending data remains. Notice that the function is asynchronous,
+     * it returns immediately and there are no guarantees when the flush will be actually performed.
+     */
+    fun flush(handler: AsyncHandler) {
+        requestFlush()
+        handler.successEnd()
+    }
 }
 
 interface SeekableAsyncChannel : AsyncReadChannel {
@@ -102,7 +112,6 @@ class BlockingAdapter {
     }
 
     fun await(): Int {
-        count
         semaphore.acquire()
         error?.let { throw it }
         return count
@@ -173,6 +182,12 @@ private class AsyncWriteChannelAdapterStream(val ch: AsyncWriteChannel) : Output
 
     @Synchronized
     override fun close() {
+        ch.requestFlush()
+        singleByte.limit(0)
+        ch.write(singleByte, adapter.handler)
+        ch.requestFlush()
+        adapter.await()
+
         ch.close()
     }
 

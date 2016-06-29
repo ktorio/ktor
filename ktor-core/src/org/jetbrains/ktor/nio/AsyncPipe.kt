@@ -17,25 +17,53 @@ class AsyncPipe : AsyncReadChannel, AsyncWriteChannel {
 
     @Volatile
     private var consumerBuffer: ByteBuffer? = null
-    private val consumerHandler = AtomicReference<AsyncHandler>()
+    private val consumerHandler = AtomicReference<AsyncHandler?>()
 
     private val bufferCounter = Semaphore(0)
     private val flushCounter = AtomicInteger()
 
+    private val flushHandler = AtomicReference<AsyncHandler?>()
+
     override fun close() {
         if (closed.compareAndSet(false, true)) {
-            consumerBuffer = null
-            consumerHandler.getAndSet(null)?.let { handler ->
-                nofail {
-                    handler.successEnd()
-                }
-            }
+            closeConsumer()
+            closeProducer()
+        }
+    }
 
-            producerBuffer = null
-            producerHandler.getAndSet(null)?.let { handler ->
-                nofail {
-                    handler.failed(PipeClosedException())
-                }
+    override fun flush(handler: AsyncHandler) {
+        if (closed.get()) {
+            handler.successEnd()
+            return
+        }
+        if (!flushHandler.compareAndSet(null, handler)) {
+            throw IllegalStateException("flush operation is already in progress")
+        }
+
+        requestFlush()
+    }
+
+    fun closeAndWait() {
+        val latch = BlockingAdapter()
+        flush(latch.handler)
+        close()
+        latch.await()
+    }
+
+    private fun closeConsumer() {
+        consumerBuffer = null
+        consumerHandler.getAndSet(null)?.let { handler ->
+            nofail {
+                handler.successEnd()
+            }
+        }
+    }
+
+    private fun closeProducer() {
+        producerBuffer = null
+        producerHandler.getAndSet(null)?.let { handler ->
+            nofail {
+                handler.failed(PipeClosedException())
             }
         }
     }
@@ -85,7 +113,15 @@ class AsyncPipe : AsyncReadChannel, AsyncWriteChannel {
         tryCommunicate()
     }
 
-    override fun releaseFlush() = flushCounter.getAndSet(0)
+    override fun releaseFlush(): Int {
+        val counter = flushCounter.getAndSet(0)
+
+        if (counter > 0) {
+            flushHandler.getAndSet(null)?.successEnd()
+        }
+
+        return counter
+    }
     override fun requestFlush() {
         flushCounter.incrementAndGet()
     }

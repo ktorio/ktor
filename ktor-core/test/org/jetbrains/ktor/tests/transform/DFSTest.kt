@@ -2,25 +2,26 @@ package org.jetbrains.ktor.tests.transform
 
 import org.jetbrains.ktor.transform.*
 import org.junit.*
+import kotlin.test.*
 
 class DFSTest {
 
     @Test
     fun testSymmetricRhombus() {
         val result = dfs<B>()
-        println(result.map { it.simpleName })
+        assertEquals(listOf("I", "R", "L", "B"), result.map { it.simpleName })
     }
 
     @Test
     fun testAsymmetric() {
         val result = dfs<B2>()
-        println(result.map { it.simpleName })
+        assertEquals(listOf("I", "M", "M2", "B2"), result.map { it.simpleName })
     }
 
     @Test
     fun testAsymmetric2() {
         val result = dfs<B3>()
-        println(result.map { it.simpleName })
+        assertEquals(listOf("I", "M", "M2", "B3"), result.map { it.simpleName })
     }
 
     interface I

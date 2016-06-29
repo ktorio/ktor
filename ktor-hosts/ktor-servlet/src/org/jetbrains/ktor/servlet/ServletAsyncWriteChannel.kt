@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.util.*
 import java.nio.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
@@ -12,8 +13,7 @@ internal class ServletAsyncWriteChannel(val servletOutputStream: ServletOutputSt
     private val pendingFlush = AtomicInteger(0)
     private val writeSemaphore = Semaphore(1)
 
-    @Volatile
-    private var currentBuffer: ByteBuffer? = null
+    private val currentBuffer = AtomicReference<ByteBuffer?>()
 
     @Volatile
     private var lastWriteSize: Int = 0
@@ -24,8 +24,7 @@ internal class ServletAsyncWriteChannel(val servletOutputStream: ServletOutputSt
         }
 
         override fun onError(t: Throwable) {
-            currentBuffer = null
-            currentHandler.getAndSet(null)?.let { handler ->
+            fireHandler { handler, buffer ->
                 handler.failed(t)
             }
         }
@@ -36,8 +35,29 @@ internal class ServletAsyncWriteChannel(val servletOutputStream: ServletOutputSt
             handler.failed(IllegalStateException("Write operation is already in progress"))
             return
         }
-        currentBuffer = src
+        currentBuffer.set(src)
+        lastWriteSize = 0
 
+        setupOrWrite()
+    }
+
+    override fun flush(handler: AsyncHandler) {
+        if (!currentHandler.compareAndSet(null, handler)) {
+            handler.failed(IllegalStateException("Write operation is already in progress"))
+            return
+        }
+        currentBuffer.set(null)
+        lastWriteSize = 0
+
+        requestFlush()
+    }
+
+    override fun requestFlush() {
+        pendingFlush.incrementAndGet()
+        setupOrWrite()
+    }
+
+    private fun setupOrWrite() {
         if (listenerInstalled.compareAndSet(false, true)) {
             servletOutputStream.setWriteListener(writeReadyListener)
         } else {
@@ -45,24 +65,25 @@ internal class ServletAsyncWriteChannel(val servletOutputStream: ServletOutputSt
         }
     }
 
-    override fun requestFlush() {
-        pendingFlush.incrementAndGet()
-        writeAndNotify()
-    }
-
     private fun writeAndNotify() {
         val done = try {
             doPendingWriteFlush()
         } catch (e: Exception) {
-            currentBuffer = null
-            currentHandler.getAndSet(null)?.failed(e)
+            fireHandler { handler, buffer ->
+                handler.failed(e)
+            }
 
             false
         }
 
         if (done) {
-            currentBuffer = null
-            currentHandler.getAndSet(null)?.success(lastWriteSize)
+            fireHandler { handler, buffer ->
+                if (buffer != null) {
+                    handler.success(lastWriteSize)
+                } else {
+                    handler.successEnd()
+                }
+            }
         }
     }
 
@@ -75,7 +96,7 @@ internal class ServletAsyncWriteChannel(val servletOutputStream: ServletOutputSt
 
         writeSemaphore.tryUse {
             val handler = currentHandler.get()
-            val buffer = this.currentBuffer
+            val buffer = this.currentBuffer.get()
 
             if (handler != null && buffer != null) {
                 writeRequested = true
@@ -94,7 +115,7 @@ internal class ServletAsyncWriteChannel(val servletOutputStream: ServletOutputSt
             }
         }
 
-        return (!writeRequested || written) && (!flushRequested || flushed)
+        return (!writeRequested || written) && (!flushRequested || flushed) && (writeRequested || flushRequested)
     }
 
     private fun doWrite(buffer: ByteBuffer): Boolean {
@@ -140,5 +161,15 @@ internal class ServletAsyncWriteChannel(val servletOutputStream: ServletOutputSt
             return true
         }
         return false
+    }
+
+    private inline fun fireHandler(block: (AsyncHandler, ByteBuffer?) -> Unit) {
+        val buffer = currentBuffer.get()
+
+        currentHandler.getAndSet(null)?.let { handler ->
+            currentBuffer.compareAndSet(buffer, null)
+
+            block(handler, buffer)
+        }
     }
 }

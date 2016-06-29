@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.nio
 
+import org.jetbrains.ktor.util.*
 import java.nio.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
@@ -17,17 +18,8 @@ private class AsyncPump(bufferSize: Int = 8192, val from: AsyncReadChannel, val 
     var totalCount = 0L
         private set
 
-    private val readHandler = object : AsyncHandler {
+    private val flushHandler = object : AsyncHandler {
         override fun success(count: Int) {
-            require(count >= 0)
-
-            if (count > 0) {
-                buffer.flip()
-                bufferToWrite = true
-                write()
-            } else {
-                read()
-            }
         }
 
         override fun successEnd() {
@@ -41,11 +33,34 @@ private class AsyncPump(bufferSize: Int = 8192, val from: AsyncReadChannel, val 
         }
     }
 
+    private val readHandler = object : AsyncHandler {
+        override fun success(count: Int) {
+            require(count >= 0)
+
+            if (count > 0 || !buffer.hasRemaining()) {
+                buffer.flip()
+                bufferToWrite = true
+                write()
+            } else {
+                read()
+            }
+        }
+
+        override fun successEnd() {
+            tailFlush()
+        }
+
+        override fun failed(cause: Throwable) {
+            state.set(State.DONE)
+            completionHandler.completeExceptionally(cause)
+        }
+    }
+
     private val writeHandler = object : AsyncHandler {
         override fun success(count: Int) {
             require(count >= 0)
 
-            if (count > 0) {
+            if (count > 0 || !buffer.hasRemaining()) {
                 totalCount += count
                 progressListener.progress(this@AsyncPump)
 
@@ -98,9 +113,21 @@ private class AsyncPump(bufferSize: Int = 8192, val from: AsyncReadChannel, val 
     private fun write() {
         if (state.get() == State.RUNNING) {
             to.write(buffer, writeHandler)
-            if (from.releaseFlush() > 0) {
-                to.requestFlush()
-            }
+
+            flush()
+        }
+    }
+
+    private fun flush() {
+        if (state.get() == State.RUNNING && from.releaseFlush() > 0) {
+            to.requestFlush()
+        }
+    }
+
+    private fun tailFlush() {
+        if (state.get() == State.RUNNING) {
+            from.releaseFlush()
+            to.flush(flushHandler)
         }
     }
 

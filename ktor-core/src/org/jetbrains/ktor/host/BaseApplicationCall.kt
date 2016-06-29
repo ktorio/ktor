@@ -60,7 +60,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
                                 value.stream(pipe.asOutputStream())
                             } catch (ignore: AsyncPipe.PipeClosedException) {
                             } finally {
-                                pipe.close()
+                                pipe.closeAndWait()
                             }
                         }
                     })
