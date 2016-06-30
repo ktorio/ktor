@@ -84,40 +84,6 @@ fun <T> CompletableFuture<T>.asHandler(block: (Int?) -> T) = object : AsyncHandl
     }
 }
 
-/**
- * Very similar to CompletableFuture.asHandler but can be used multiple times
- */
-class BlockingAdapter {
-    private val semaphore = Semaphore(0)
-    private var error: Throwable? = null
-    private var count: Int = -1
-
-    val handler = object : AsyncHandler {
-        override fun success(count: Int) {
-            error = null
-            this@BlockingAdapter.count = count
-            semaphore.release()
-        }
-
-        override fun successEnd() {
-            count = -1
-            error = null
-            semaphore.release()
-        }
-
-        override fun failed(cause: Throwable) {
-            error = cause
-            semaphore.release()
-        }
-    }
-
-    fun await(): Int {
-        semaphore.acquire()
-        error?.let { throw it }
-        return count
-    }
-}
-
 private class AsyncReadChannelAdapterStream(val ch: ReadChannel) : InputStream() {
     private val singleByte = ByteBuffer.allocate(1)
     private val adapter = BlockingAdapter()
@@ -241,7 +207,7 @@ fun WriteChannel.writeFully(bb: ByteBuffer, handler: AsyncHandler) {
     write(bb, innerHandler)
 }
 
-fun onCompletedHandler(handler: (Throwable?) -> Unit) = object : AsyncHandler {
+fun asyncHandler(handler: (Throwable?) -> Unit) = object : AsyncHandler {
     override fun success(count: Int) {
         handler(null)
     }

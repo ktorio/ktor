@@ -3,22 +3,22 @@ package org.jetbrains.ktor.nio
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 
-class ByteRangesChannel  {
+internal class ByteRangesChannel  {
 
     companion object {
-        fun forSeekable(ranges: List<LongRange>, ch: SeekableChannel, fullLength: Long?, boundary: String, contentType: String) =
-            ChainReadChannel(ranges.build(fullLength, boundary, contentType) { range ->
+        fun forSeekable(ranges: List<LongRange>, ch: SeekableChannel, fullLength: Long?, boundary: String, contentType: String): ReadChannel =
+            ChannelJoinReadChannel(ranges.build(fullLength, boundary, contentType) { range ->
                 SeekAndCutReadChannel(ch, range.start, range.length, preventClose = true)
             })
 
-        fun forRegular(ranges: List<LongRange>, ch: ReadChannel, fullLength: Long?, boundary: String, contentType: String): ChainReadChannel {
+        fun forRegular(ranges: List<LongRange>, ch: ReadChannel, fullLength: Long?, boundary: String, contentType: String): ReadChannel {
             if (ch is SeekableChannel) {
                 return forSeekable(ranges, ch, fullLength, boundary, contentType)
             }
 
             var position = 0L
 
-            return ChainReadChannel(ranges.build(fullLength, boundary, contentType) { range ->
+            return ChannelJoinReadChannel(ranges.build(fullLength, boundary, contentType) { range ->
                 val start = position
                 val skip = range.start - start
                 position = range.endInclusive + 1

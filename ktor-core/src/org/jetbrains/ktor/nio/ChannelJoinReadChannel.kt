@@ -2,7 +2,7 @@ package org.jetbrains.ktor.nio
 
 import java.nio.*
 
-open class ChainReadChannel(chain: Sequence<() -> ReadChannel>) : ReadChannel {
+class ChannelJoinReadChannel(chain: Sequence<() -> ReadChannel>) : ReadChannel {
     private val iterator = chain.iterator()
     private var current: ReadChannel? = null
     private var closed = false
