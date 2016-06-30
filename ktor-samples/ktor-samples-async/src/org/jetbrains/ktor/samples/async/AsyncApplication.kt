@@ -13,8 +13,6 @@ import java.util.*
 import java.util.concurrent.*
 
 class AsyncApplication(environment: ApplicationEnvironment) : Application(environment) {
-    val executor: ScheduledExecutorService by lazy { Executors.newScheduledThreadPool(4) }
-
     init {
         install(CallLogging)
 

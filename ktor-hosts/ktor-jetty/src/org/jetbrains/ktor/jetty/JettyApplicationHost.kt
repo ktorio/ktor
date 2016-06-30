@@ -10,7 +10,6 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.servlet.*
 import org.jetbrains.ktor.transform.*
 import java.util.concurrent.*
-import java.util.concurrent.atomic.*
 import javax.servlet.*
 import javax.servlet.http.*
 
@@ -46,13 +45,6 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         handler = Handler()
     }
 
-    private val threadCounter = AtomicLong(0)
-    override val executor = ThreadPoolExecutor(
-            Runtime.getRuntime().availableProcessors() * 2,
-            Math.max(100, Runtime.getRuntime().availableProcessors() * 2),
-            30L, TimeUnit.SECONDS, LinkedBlockingQueue(), ThreadFactory { Thread(it, "worker-thread-${threadCounter.incrementAndGet()}") }
-    )
-
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"));
 
     init {
@@ -68,7 +60,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             var pipelineState: PipelineState? = null
             var throwable: Throwable? = null
 
-            val call = ServletApplicationCall(application, request, response, executor) {
+            val call = ServletApplicationCall(application, request, response) {
                 latch.countDown()
             }
 
@@ -81,7 +73,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     // TODO someone reported auto-cleanup issues so we have to check it
                 }
 
-                call.executeOn(executor, application).whenComplete { state, t ->
+                call.execute().whenComplete { state, t ->
                     pipelineState = state
                     throwable = t
 
@@ -122,10 +114,8 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     override fun stop() {
-        executor.shutdown()
         server.stop()
         applicationLifecycle.dispose()
-        executor.shutdownNow()
         environment.log.info("Server stopped.")
     }
 }

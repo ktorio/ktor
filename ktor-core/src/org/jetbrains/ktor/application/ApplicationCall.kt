@@ -18,7 +18,9 @@ interface ApplicationCall : Closeable {
     /**
      * Application executor you can execute tasks on via [runAsync]
      */
+    @Deprecated("Use application's executor instead", ReplaceWith("application.executor"))
     val executor: Executor
+        get() = application.executor
 
     /**
      * Client request

@@ -10,8 +10,7 @@ import javax.servlet.http.*
 class ServletApplicationCall(application: Application,
                              private val servletRequest: HttpServletRequest,
                              private val servletResponse: HttpServletResponse,
-                             executor: Executor,
-                             val onAsyncStartedUnderLock: () -> Unit) : BaseApplicationCall(application, executor) {
+                             val onAsyncStartedUnderLock: () -> Unit) : BaseApplicationCall(application) {
 
     override val request: ApplicationRequest = ServletApplicationRequest(this, servletRequest)
     override val response: ApplicationResponse = ServletApplicationResponse(this, servletResponse)

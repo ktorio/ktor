@@ -29,7 +29,6 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
         override val application: Application
             get() = this@TomcatApplicationHost.application
     }
-    override val executor = ktorServlet.executorService
 
     val server = Tomcat().apply {
         setPort(hostConfig.port)
@@ -57,12 +56,8 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     override fun stop() {
-        executor.shutdown()
         server.stop()
-
-        executor.shutdownNow()
         config.log.info("Server stopped.")
-
         tempDirectory.toFile().deleteRecursively()
     }
 }

@@ -13,11 +13,6 @@ abstract class KtorServlet : HttpServlet() {
 
     abstract val application: Application
 
-    private val threadCounter = AtomicInteger()
-    val executorService = ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), 100, 30L, TimeUnit.SECONDS, LinkedBlockingQueue(), { r ->
-        Thread(r, "apphost-pool-thread-${threadCounter.incrementAndGet()}")
-    })
-
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         response.characterEncoding = "UTF-8"
         request.characterEncoding = "UTF-8"
@@ -25,13 +20,13 @@ abstract class KtorServlet : HttpServlet() {
         try {
             val latch = CountDownLatch(1)
             val upgraded = AtomicBoolean(false)
-            val call = ServletApplicationCall(application, request, response, executorService) { latch.countDown() }
+            val call = ServletApplicationCall(application, request, response) { latch.countDown() }
             var throwable: Throwable? = null
             var pipelineState: PipelineState? = null
 
             setupUpgradeHelper(request, response, latch, call, upgraded)
 
-            call.executeOn(executorService, application).whenComplete { state, t ->
+            call.executeOn(application.executor, application).whenComplete { state, t ->
                 pipelineState = state
                 throwable = t
                 latch.countDown()

@@ -33,7 +33,6 @@ open class ServletApplicationHost() : KtorServlet() {
     override val application: Application get() = loader.application
 
     override fun destroy() {
-        executorService.shutdown()
         loader.dispose()
     }
 

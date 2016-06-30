@@ -11,6 +11,8 @@ fun <C : Any> PipelineContext<C>.runAsync(exec: Executor, block: PipelineContext
     pause()
 }
 
+fun ApplicationCall.execute(): CompletableFuture<PipelineState> = executeOn(application.executor, application)
+
 fun ApplicationCall.executeOn(exec: Executor, pipeline: Pipeline<ApplicationCall>): CompletableFuture<PipelineState> {
     val future = CompletableFuture<PipelineState>()
 

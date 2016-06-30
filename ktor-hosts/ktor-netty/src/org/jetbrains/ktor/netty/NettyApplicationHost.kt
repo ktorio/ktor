@@ -17,7 +17,6 @@ import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
-import java.util.concurrent.*
 
 /**
  * [ApplicationHost] implementation for running standalone Netty Host
@@ -33,6 +32,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, application: Application)
     : this(hostConfig, environment, object : ApplicationLifecycle {
+        @Suppress("CanBePrimaryConstructorProperty")
         override val application: Application = application
         override fun dispose() {
         }
@@ -40,7 +40,6 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     private val mainEventGroup = NioEventLoopGroup()
     private val workerEventGroup = NioEventLoopGroup()
-    private val executorGroup = NioEventLoopGroup()
 
     private val bootstrap = ServerBootstrap().apply {
         group(mainEventGroup, workerEventGroup)
@@ -57,9 +56,6 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         })
 
     }
-
-    override val executor: Executor
-        get() = executorGroup
 
     init {
         application.setupDefaultHostPages()
@@ -113,11 +109,11 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
 
         private fun startHandleRequest(context: ChannelHandlerContext, request: HttpRequest, bodyConsumed: Boolean, urlEncodedParameters: () -> ValuesMap, drops: LastDropsCollectorHandler?) {
-            val call = NettyApplicationCall(application, context, request, bodyConsumed, urlEncodedParameters, drops, executor)
+            val call = NettyApplicationCall(application, context, request, bodyConsumed, urlEncodedParameters, drops)
 
             setupUpgradeHelper(call, context, drops)
 
-            call.executeOn(executor, application).whenComplete { pipelineState, throwable ->
+            call.execute().whenComplete { pipelineState, throwable ->
                 val response: Any? = if (throwable != null && !call.completed) {
                     application.environment.log.error("Failed to process request", throwable)
                     HttpStatusCode.InternalServerError

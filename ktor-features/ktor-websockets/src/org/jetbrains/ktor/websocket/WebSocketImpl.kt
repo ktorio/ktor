@@ -3,17 +3,10 @@ package org.jetbrains.ktor.websocket
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.util.*
 import java.time.*
-import java.util.concurrent.*
 
 internal class WebSocketImpl(call: ApplicationCall, context: PipelineContext<*>, val readChannel: ReadChannel, val writeChannel: WriteChannel) : WebSocket(call, context) {
-    private val exec = call.application.attributes.computeIfAbsent(ScheduledExecutorAttribute) {
-        call.application.closeHooks.add { stopExec() }
-
-        Executors.newScheduledThreadPool(1) { Thread(it, "websocket-pool") }
-    }
-    private val controlFrameHandler = ControlFrameHandler(this, exec)
+    private val controlFrameHandler = ControlFrameHandler(this, call.application.executor)
     private val outbound = WebSocketWriter(this, writeChannel, controlFrameHandler)
     private val reader = WebSocketReader(
             { maxFrameSize },
@@ -75,10 +68,4 @@ internal class WebSocketImpl(call: ApplicationCall, context: PipelineContext<*>,
             }
         }
     }
-
-    fun stopExec() {
-        exec.shutdown()
-    }
-
-    private object ScheduledExecutorAttribute : AttributeKey<ScheduledExecutorService>("websocket-exec")
 }

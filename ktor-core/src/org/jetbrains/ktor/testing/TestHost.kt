@@ -100,7 +100,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment) {
         val request = TestApplicationRequest()
         setup(request)
 
-        return TestApplicationCall(application, request, executor)
+        return TestApplicationCall(application, request)
     }
 }
 
@@ -112,7 +112,7 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
     }
 }
 
-class TestApplicationCall(application: Application, override val request: TestApplicationRequest, executor: Executor) : BaseApplicationCall(application, executor) {
+class TestApplicationCall(application: Application, override val request: TestApplicationRequest) : BaseApplicationCall(application) {
     internal val latch = CountDownLatch(1)
     override val parameters: ValuesMap get() = request.parameters
 

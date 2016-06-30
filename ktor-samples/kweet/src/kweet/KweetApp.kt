@@ -101,6 +101,7 @@ class KweetApp(environment: ApplicationEnvironment) : Application(environment) {
     }
 
     override fun dispose() {
+        super.dispose()
         pool.close()
     }
 

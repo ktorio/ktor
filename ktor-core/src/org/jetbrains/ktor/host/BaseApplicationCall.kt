@@ -6,11 +6,9 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.response.*
-import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
-import java.util.concurrent.*
 
-abstract class BaseApplicationCall(override val application: Application, override val executor: Executor) : ApplicationCall {
+abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
     val executionMachine = PipelineMachine()
     final override val attributes = Attributes()
 
@@ -55,7 +53,7 @@ abstract class BaseApplicationCall(override val application: Application, overri
 
                     // note: it is very important to resend it here rather than just use value.startContent
                     respond(PipeResponse(pipe, { value.headers }) {
-                        executor.execute {
+                        application.executor.execute {
                             try {
                                 value.stream(pipe.asOutputStream())
                             } catch (ignore: ChannelPipe.PipeClosedException) {
