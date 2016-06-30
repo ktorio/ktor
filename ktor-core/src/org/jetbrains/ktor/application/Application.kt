@@ -14,8 +14,6 @@ open class Application(val environment: ApplicationEnvironment) : ApplicationCal
         Thread(r, "ktor-pool-thread-${threadCounter.incrementAndGet()}")
     })
 
-    var closeHooks = CopyOnWriteArrayList<() -> Unit>()
-
     /**
      * Provides common place to store application-wide attributes
      */
@@ -25,13 +23,6 @@ open class Application(val environment: ApplicationEnvironment) : ApplicationCal
      * Called by host when [Application] is terminated
      */
     open fun dispose() {
-        closeHooks.forEach {
-            try {
-                it()
-            } catch (ignore: Throwable) {
-            }
-        }
-
         executor.shutdown()
         if (!executor.awaitTermination(10L, TimeUnit.SECONDS)) {
             environment.log.warning("Failed to stop application executor service")
