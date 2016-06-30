@@ -9,25 +9,13 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 
 abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
-    val executionMachine = PipelineMachine()
+    override val execution = PipelineMachine()
+
     final override val attributes = Attributes()
 
-    override fun execute(pipeline: Pipeline<ApplicationCall>): PipelineState {
-        try {
-            executionMachine.execute(this, pipeline)
-        } catch (e: PipelineControlFlow) {
-            when (e) {
-                is PipelineCompleted -> return PipelineState.Succeeded
-                is PipelinePaused -> return PipelineState.Executing
-                else -> throw e
-            }
-        }
-    }
-
-    override fun <T : Any> fork(value: T, pipeline: Pipeline<T>): Nothing = executionMachine.execute(value, pipeline)
     override fun respond(message: Any): Nothing {
         val state = ResponsePipelineState(this, message)
-        executionMachine.execute(state, respond)
+        execution.execute(state, respond)
     }
 
     protected fun commit(o: FinalContent) {

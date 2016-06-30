@@ -18,7 +18,9 @@ fun ApplicationCall.executeOn(exec: Executor, pipeline: Pipeline<ApplicationCall
 
     exec.execute {
         try {
-            future.complete(execute(pipeline))
+            future.complete(execution.runBlockWithResult {
+                execution.execute(this@executeOn, pipeline)
+            })
         } catch (t: Throwable) {
             future.completeExceptionally(t)
         }

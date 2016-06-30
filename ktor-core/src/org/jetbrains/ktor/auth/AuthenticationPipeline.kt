@@ -27,7 +27,7 @@ fun Pipeline<ApplicationCall>.authentication(procedure: AuthenticationProcedure.
                             finishAll()
                         }
                     }
-                    context.call.fork(AuthenticationProcedureChallenge(), challengePipeline)
+                    context.call.execution.execute(AuthenticationProcedureChallenge(), challengePipeline)
                 }
             }
         }
@@ -36,7 +36,7 @@ fun Pipeline<ApplicationCall>.authentication(procedure: AuthenticationProcedure.
     intercept(authenticationPhase) { call ->
         val context = AuthenticationProcedureContext(call)
         call.attributes.put(AuthenticationProcedureContext.AttributeKey, context)
-        call.fork(context, authenticationProcedure)
+        call.execution.execute(context, authenticationProcedure)
     }
 }
 

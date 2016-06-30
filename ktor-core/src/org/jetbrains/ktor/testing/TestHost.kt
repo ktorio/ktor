@@ -8,6 +8,7 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 import java.io.*
@@ -64,7 +65,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment) {
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createCall(setup)
 
-        call.execute(pipeline)
+        call.execution.runBlockWithResult { call.execution.execute(call, pipeline) }
         call.await()
 
         exception?.let { throw it }
@@ -82,7 +83,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment) {
             setup()
         }
 
-        call.execute(pipeline)
+        call.execution.runBlockWithResult { call.execution.execute(call, pipeline) }
         call.await()
 
         exception?.let { throw it }

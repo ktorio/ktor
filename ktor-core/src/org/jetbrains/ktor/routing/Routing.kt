@@ -20,7 +20,7 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
         if (resolveResult.succeeded) {
             val routingCall = RoutingApplicationCall(call, resolveResult.entry, resolveResult.values)
             val pipeline = buildEntryPipeline(resolveResult.entry)
-            context.call.fork(routingCall, pipeline)
+            context.call.execution.execute(routingCall, pipeline)
         }
     }
 

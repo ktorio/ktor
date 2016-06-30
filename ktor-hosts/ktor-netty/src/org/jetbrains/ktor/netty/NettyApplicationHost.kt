@@ -124,7 +124,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 }
 
                 if (response != null) {
-                    call.executionMachine.runBlockWithResult {
+                    call.execution.runBlockWithResult {
                         call.respond(response)
                     }
                 }
