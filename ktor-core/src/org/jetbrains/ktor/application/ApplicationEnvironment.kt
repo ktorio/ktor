@@ -2,6 +2,8 @@ package org.jetbrains.ktor.application
 
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.logging.*
+import java.util.concurrent.*
+import java.util.concurrent.atomic.*
 
 /**
  * Represents an environment in which [Application] runs
@@ -22,11 +24,17 @@ interface ApplicationEnvironment {
      * Configuration for [Application]
      */
     val config: ApplicationConfig
+
+    /**
+     * Host executor service constructor
+     */
+    val executorServiceBuilder: () -> ScheduledExecutorService
 }
 
 class BasicApplicationEnvironment(override val classLoader: ClassLoader,
                                   override val log: ApplicationLog,
-                                  override val config: ApplicationConfig) : ApplicationEnvironment
+                                  override val config: ApplicationConfig,
+                                  override val executorServiceBuilder: () -> ScheduledExecutorService = DefaultExecutorServiceBuilder) : ApplicationEnvironment
 
 /**
  * Creates [ApplicationEnvironment] using [ApplicationEnvironmentBuilder]
@@ -48,5 +56,16 @@ class ApplicationEnvironmentBuilder : ApplicationEnvironment {
     override var classLoader: ClassLoader = ApplicationEnvironmentBuilder::class.java.classLoader
     override var log: ApplicationLog = SLF4JApplicationLog("embedded")
     override val config = MapApplicationConfig()
+
+
+    override var executorServiceBuilder: () -> ScheduledExecutorService = DefaultExecutorServiceBuilder
 }
 
+
+private val poolCounter = AtomicInteger()
+private val threadCounter = AtomicInteger()
+internal val DefaultExecutorServiceBuilder = {
+    Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), { r ->
+        Thread(r, "ktor-pool-${poolCounter.incrementAndGet()}-thread-${threadCounter.incrementAndGet()}")
+    })!!
+}
