@@ -7,8 +7,10 @@ import org.jetbrains.ktor.routing.*
 
 fun embeddedTomcatServer(port: Int = 80, host: String = "0.0.0.0", application: Routing.() -> Unit): ApplicationHost {
     val hostConfig = applicationHostConfig {
-        this.port = port
-        this.host = host
+        connector {
+            this.port = port
+            this.host = host
+        }
     }
     val applicationConfig = applicationEnvironment {}
     return embeddedTomcatServer(hostConfig, applicationConfig, application)

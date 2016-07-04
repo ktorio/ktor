@@ -52,7 +52,12 @@ abstract class HostTestBase {
 
     protected fun findFreePort() = ServerSocket(0).use {  it.localPort }
     protected fun withUrl(path: String, block: HttpURLConnection.() -> Unit) {
-        val connection = URL("http://127.0.0.1:$port$path").openConnection() as HttpURLConnection
+        withUrl(URL("http://127.0.0.1:$port$path"), block)
+//        withUrl(URL("https://127.0.0.1:$port$path"), block) // TODO ssl not yet implemented for embededed functions
+    }
+
+    private fun withUrl(url: URL, block: HttpURLConnection.() -> Unit) {
+        val connection = url.openConnection() as HttpURLConnection
         connection.connectTimeout = 10000
         connection.readTimeout = 30000
         connection.instanceFollowRedirects = false

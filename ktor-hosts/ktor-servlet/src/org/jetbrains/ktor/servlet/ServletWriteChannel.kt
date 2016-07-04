@@ -23,9 +23,9 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
             writeAndNotify()
         }
 
-        override fun onError(t: Throwable) {
+        override fun onError(t: Throwable?) {
             fireHandler { handler, buffer ->
-                handler.failed(t)
+                handler.failed(t ?: RuntimeException("ServletWriteChannel.onError(null)"))
             }
         }
     }

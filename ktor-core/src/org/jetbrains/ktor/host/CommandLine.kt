@@ -6,6 +6,7 @@ import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.logging.*
 import java.io.*
 import java.net.*
+import java.security.*
 
 fun commandLineConfig(args: Array<String>): Pair<ApplicationHostConfig, ApplicationEnvironment> {
     val argsMap = args.mapNotNull { it.splitPair('=') }.toMap()
@@ -20,20 +21,65 @@ fun commandLineConfig(args: Array<String>): Pair<ApplicationHostConfig, Applicat
     val hostPortPath = "ktor.deployment.port"
     val hostReload = "ktor.deployment.autoreload"
 
+    val hostSslPortPath = "ktor.deployment.sslPort"
+    val hostSslKeyStore = "ktor.security.ssl.keyStore"
+    val hostSslKeyAlias = "ktor.security.ssl.keyAlias"
+    val hostSslKeyStorePassword = "ktor.security.ssl.keyStorePassword"
+    val hostSslPrivateKeyPassword = "ktor.security.ssl.privateKeyPassword"
+
     val applicationId = combinedConfig.tryGetString(applicationIdPath) ?: "Application"
     val log = SLF4JApplicationLog(applicationId)
     val classLoader = jar?.let { URLClassLoader(arrayOf(jar), ApplicationEnvironment::class.java.classLoader) }
             ?: ApplicationEnvironment::class.java.classLoader
     val appConfig = HoconApplicationConfig(combinedConfig)
-    log.info(combinedConfig.getObject("ktor").render())
+
+    val contentHiddenValue = ConfigValueFactory.fromAnyRef("***", "Content hidden")
+    log.info(combinedConfig.getObject("ktor")
+            .withoutKey("security")
+            .withValue("security", contentHiddenValue)
+            .render())
 
     val hostConfig = applicationHostConfig {
-        (argsMap["-host"] ?: combinedConfig.tryGetString(hostConfigPath))?.let {
-            host = it
+        val host = argsMap["-host"] ?: combinedConfig.tryGetString(hostConfigPath) ?: "0.0.0.0"
+        val port = argsMap["-port"] ?: combinedConfig.tryGetString(hostPortPath) ?: "80"
+        val sslPort = argsMap["-sslPort"] ?: combinedConfig.tryGetString(hostSslPortPath)
+        val sslKeyStorePath = argsMap["-sslKeyStore"] ?: combinedConfig.tryGetString(hostSslKeyStore)
+        val sslKeyStorePassword = combinedConfig.tryGetString(hostSslKeyStorePassword)?.trim()
+        val sslPrivateKeyPassword = combinedConfig.tryGetString(hostSslPrivateKeyPassword)?.trim()
+        val sslKeyAlias = combinedConfig.tryGetString(hostSslKeyAlias) ?: "mykey"
+
+        connector {
+            this.host = host
+            this.port = port.toInt()
         }
-        (argsMap["-port"] ?: combinedConfig.tryGetString(hostPortPath))?.let {
-            port = it.toInt()
+
+        if (sslPort != null) {
+            if (sslKeyStorePath == null) {
+                throw IllegalArgumentException("SSL requires keystore: use -sslKeyStore=path or $hostSslKeyStore config")
+            }
+            if (sslKeyStorePassword == null) {
+                throw IllegalArgumentException("SSL requires keystore password: use $hostSslKeyStorePassword config")
+            }
+            if (sslPrivateKeyPassword == null) {
+                throw IllegalArgumentException("SSL requires certificate password: use $hostSslPrivateKeyPassword config")
+            }
+
+            val keyStoreFile = File(sslKeyStorePath).let { file -> if (file.exists() || file.isAbsolute) file else File(".", sslKeyStorePath).absoluteFile }
+            val keyStore = KeyStore.getInstance("JKS").apply {
+                FileInputStream(keyStoreFile).use {
+                    load(it, sslKeyStorePassword.toCharArray())
+                }
+
+                requireNotNull(getKey(sslKeyAlias, sslPrivateKeyPassword.toCharArray()) == null) { "The specified key $sslKeyAlias doesn't exist in the key store $sslKeyStorePath" }
+            }
+
+            sslConnector(keyStore, sslKeyAlias, { sslKeyStorePassword.toCharArray() }, { sslPrivateKeyPassword.toCharArray() }) {
+                this.host = host
+                this.port = sslPort.toInt()
+                this.keyStorePath = keyStoreFile
+            }
         }
+
         (argsMap["-autoreload"] ?: combinedConfig.tryGetString(hostReload))?.let {
             autoreload = it.toBoolean()
         }

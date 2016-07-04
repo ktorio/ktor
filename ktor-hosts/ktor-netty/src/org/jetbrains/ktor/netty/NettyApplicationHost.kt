@@ -6,6 +6,7 @@ import io.netty.channel.nio.*
 import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
 import io.netty.handler.codec.http.*
+import io.netty.handler.ssl.*
 import io.netty.handler.stream.*
 import io.netty.handler.timeout.*
 import org.jetbrains.ktor.application.*
@@ -17,6 +18,7 @@ import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
+import javax.net.ssl.*
 
 /**
  * [ApplicationHost] implementation for running standalone Netty Host
@@ -33,28 +35,38 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     private val mainEventGroup = NioEventLoopGroup()
     private val workerEventGroup = NioEventLoopGroup()
 
-    private val bootstrap = ServerBootstrap().apply {
-        group(mainEventGroup, workerEventGroup)
-        channel(NioServerSocketChannel::class.java)
-        childHandler(object : ChannelInitializer<SocketChannel>() {
-            override fun initChannel(ch: SocketChannel) {
-                with (ch.pipeline()) {
-                    addLast(HttpServerCodec())
-                    addLast(ChunkedWriteHandler())
-                    addLast(WriteTimeoutHandler(10))
-                    addLast(HostHttpHandler())
-                }
-            }
-        })
+    private val bootstraps = hostConfig.connectors.map { ktorConnector ->
+        ServerBootstrap().apply {
+            group(mainEventGroup, workerEventGroup)
+            channel(NioServerSocketChannel::class.java)
+            childHandler(object : ChannelInitializer<SocketChannel>() {
+                override fun initChannel(ch: SocketChannel) {
+                    with(ch.pipeline()) {
+                        if (ktorConnector is HostSSLConnectorConfig) {
+                            val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+                            val password = ktorConnector.privateKeyPassword()
+                            kmf.init(ktorConnector.keyStore, password)
+                            password.fill('\u0000')
 
+                            addLast("ssl", SslContextBuilder.forServer(kmf).build().newHandler(ch.alloc()))
+                        }
+                        addLast(HttpServerCodec())
+                        addLast(ChunkedWriteHandler())
+                        addLast(WriteTimeoutHandler(10))
+                        addLast(HostHttpHandler())
+                    }
+                }
+            })
+        }
     }
 
     override fun start(wait: Boolean) {
         environment.log.info("Starting server...")
-        val channelFuture = bootstrap.bind(hostConfig.host, hostConfig.port).sync()
+        val channelFutures = bootstraps.zip(hostConfig.connectors).map { it.first.bind(it.second.host, it.second.port) }
         environment.log.info("Server running.")
+
         if (wait) {
-            channelFuture.channel().closeFuture().sync()
+            channelFutures.map { it.channel().closeFuture() }.forEach { it.sync() }
             applicationLifecycle.dispose()
             environment.log.info("Server stopped.")
         }
@@ -87,7 +99,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
 
         override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-            environment.log.error("Application ${application.javaClass} cannot fulfill the request", cause);
+            environment.log.error("Application ${application.javaClass} cannot fulfill the request", cause)
             ctx.close()
         }
 

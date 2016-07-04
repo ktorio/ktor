@@ -14,17 +14,17 @@ class CommandLineTest {
 
     @Test
     fun testChangePort() {
-        assertEquals(13698, commandLineConfig(arrayOf("-port=13698")).first.port)
+        assertEquals(13698, commandLineConfig(arrayOf("-port=13698")).first.connectors.single().port)
     }
 
     @Test
     fun testAmendConfig() {
-        assertEquals(13698, commandLineConfig(arrayOf("-P:ktor.deployment.port=13698")).first.port)
+        assertEquals(13698, commandLineConfig(arrayOf("-P:ktor.deployment.port=13698")).first.connectors.single().port)
     }
 
     @Test
     fun testChangeHost() {
-        assertEquals("test-server", commandLineConfig(arrayOf("-host=test-server")).first.host)
+        assertEquals("test-server", commandLineConfig(arrayOf("-host=test-server")).first.connectors.single().host)
     }
 
     @Test

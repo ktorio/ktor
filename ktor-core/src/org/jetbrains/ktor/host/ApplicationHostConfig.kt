@@ -1,15 +1,13 @@
 package org.jetbrains.ktor.host
 
+import java.util.*
+
 interface ApplicationHostConfig {
-    /**
-     * The network interface this host binds to as an IP address or a hostname.  If null or 0.0.0.0, then bind to all interfaces.
-     */
-    val host: String
 
     /**
-     * The port this application should be bound to.
+     * Connectors that describers where and how server should listen
      */
-    val port: Int
+    val connectors: List<HostConnectorConfig>
 
     /**
      * Specifies if the host should try to reload application automatically on change
@@ -21,7 +19,7 @@ interface ApplicationHostConfig {
 inline fun applicationHostConfig(builder: ApplicationHostConfigBuilder.() -> Unit) = ApplicationHostConfigBuilder().apply(builder)
 
 class ApplicationHostConfigBuilder : ApplicationHostConfig {
-    override var host: String = "0.0.0.0"
-    override var port: Int = 80
+    override val connectors = ArrayList<HostConnectorConfig>()
+
     override var autoreload: Boolean = false
 }

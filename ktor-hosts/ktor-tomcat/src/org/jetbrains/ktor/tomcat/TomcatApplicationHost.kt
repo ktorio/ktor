@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.tomcat
 
+import org.apache.catalina.connector.*
 import org.apache.catalina.startup.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
@@ -24,8 +25,40 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     val server = Tomcat().apply {
-        setPort(hostConfig.port)
-        setHostname(hostConfig.host)
+        connector = null
+
+        service.apply {
+            findConnectors().forEach { existing ->
+                removeConnector(existing)
+            }
+
+            hostConfig.connectors.forEach { ktorConnector ->
+                addConnector(Connector().apply {
+                    port = ktorConnector.port
+
+                    if (ktorConnector is HostSSLConnectorConfig) {
+                        secure = true
+                        scheme = "https"
+
+                        if (ktorConnector.keyStorePath == null) {
+                            throw IllegalArgumentException("Tomcat requires keyStorePath")
+                        }
+
+                        setAttribute("keyAlias", ktorConnector.keyAlias)
+                        setAttribute("keystorePass", String(ktorConnector.keyStorePassword()))
+                        setAttribute("keyPass", String(ktorConnector.privateKeyPassword()))
+                        setAttribute("keystoreFile", ktorConnector.keyStorePath!!.absolutePath)
+                        setAttribute("clientAuth", false)
+                        setAttribute("sslProtocol", "TLS")
+                        setAttribute("SSLEnabled", true)
+                    } else {
+                        scheme = "http"
+                    }
+                })
+            }
+        }
+
+        connector = Connector()
         setBaseDir(tempDirectory.toString())
 
         val ctx = addContext("", tempDirectory.toString())

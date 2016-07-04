@@ -1,7 +1,9 @@
 package org.jetbrains.ktor.jetty
 
+import org.eclipse.jetty.http.*
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
+import org.eclipse.jetty.util.ssl.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
@@ -9,6 +11,8 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.servlet.*
 import org.jetbrains.ktor.transform.*
+import java.io.*
+import java.security.*
 import java.util.concurrent.*
 import javax.servlet.*
 import javax.servlet.http.*
@@ -26,20 +30,44 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
 
     private val server = Server().apply {
-        val httpConfig = HttpConfiguration().apply {
-            sendServerVersion = false
-            sendDateHeader = false
-        }
-        val connectionFactory = HttpConnectionFactory(httpConfig)
-        val connector = ServerConnector(this, connectionFactory).apply {
-            host = hostConfig.host
-            port = hostConfig.port
-        }
-        connectors = arrayOf(connector)
+        connectors = hostConfig.connectors.map { ktorConnector ->
+            val httpConfig = HttpConfiguration().apply {
+                sendServerVersion = false
+                sendDateHeader = false
+
+                if (ktorConnector.type == ConnectorType.HTTPS) {
+                    addCustomizer(SecureRequestCustomizer())
+                }
+            }
+
+            val connectionFactory = when (ktorConnector.type) {
+                ConnectorType.HTTP -> arrayOf(HttpConnectionFactory(httpConfig))
+                ConnectorType.HTTPS -> arrayOf(SslConnectionFactory(SslContextFactory().apply {
+                    isTrustAll = true // TODO SSLContextFactory
+                    keyStore = (ktorConnector as HostSSLConnectorConfig).keyStore
+                    setKeyManagerPassword(String(ktorConnector.privateKeyPassword()))
+                    setKeyStorePassword(String(ktorConnector.keyStorePassword()))
+
+                    setExcludeCipherSuites("SSL_RSA_WITH_DES_CBC_SHA",
+                            "SSL_DHE_RSA_WITH_DES_CBC_SHA", "SSL_DHE_DSS_WITH_DES_CBC_SHA",
+                            "SSL_RSA_EXPORT_WITH_RC4_40_MD5",
+                            "SSL_RSA_EXPORT_WITH_DES40_CBC_SHA",
+                            "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA",
+                            "SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA")
+                }, HttpVersion.HTTP_1_1.asString()), HttpConnectionFactory(httpConfig))
+                else -> throw IllegalArgumentException("Connector type ${ktorConnector.type} is not supported by Jetty host implementation")
+            }
+
+            ServerConnector(this, *connectionFactory).apply {
+                host = ktorConnector.host
+                port = ktorConnector.port
+            }
+        }.toTypedArray()
+
         handler = Handler()
     }
 
-    private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"));
+    private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
 
     private inner class Handler : AbstractHandler() {
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
