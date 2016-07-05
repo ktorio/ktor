@@ -48,7 +48,7 @@ inline fun applicationEnvironment(builder: ApplicationEnvironmentBuilder.() -> U
 class ApplicationEnvironmentBuilder : ApplicationEnvironment {
     override var classLoader: ClassLoader = ApplicationEnvironmentBuilder::class.java.classLoader
     override var log: ApplicationLog = SLF4JApplicationLog("embedded")
-    override val config = MapApplicationConfig()
+    override val config: ApplicationConfig = MapApplicationConfig()
 
 
     override var executorServiceBuilder: () -> ScheduledExecutorService = DefaultExecutorServiceBuilder
