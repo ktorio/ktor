@@ -166,7 +166,9 @@ object PartialContentSupport : ApplicationFeature<ApplicationCallPipeline, Parti
         }
 
         protected fun ValuesMapBuilder.acceptRanges() {
-            append(HttpHeaders.AcceptRanges, RangeUnits.Bytes.unitToken)
+            if (!contains(HttpHeaders.AcceptRanges, RangeUnits.Bytes.unitToken)) {
+                append(HttpHeaders.AcceptRanges, RangeUnits.Bytes.unitToken)
+            }
         }
     }
 
