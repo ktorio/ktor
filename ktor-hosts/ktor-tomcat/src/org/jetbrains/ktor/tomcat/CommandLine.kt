@@ -5,6 +5,6 @@ package org.jetbrains.ktor.tomcat
 import org.jetbrains.ktor.host.*
 
 fun main(args: Array<String>) {
-    val (applicationHostConfig, applicationConfig) = commandLineConfig(args)
-    TomcatApplicationHost(applicationHostConfig, applicationConfig).start(true)
+    val (applicationHostConfig, applicationEnvironment) = commandLineConfig(args)
+    TomcatApplicationHost(applicationHostConfig, applicationEnvironment).start(true)
 }

@@ -19,5 +19,9 @@ fun embeddedNettyServer(hostConfig: ApplicationHostConfig, environment: Applicat
             routing(application)
         }
     }
-    return NettyApplicationHost(hostConfig, environment, applicationObject)
+
+    return NettyApplicationHost(hostConfig, environment, object : ApplicationLifecycle {
+        override val application: Application = applicationObject
+        override fun dispose() {}
+    })
 }

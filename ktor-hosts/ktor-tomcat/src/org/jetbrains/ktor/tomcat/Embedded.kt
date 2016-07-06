@@ -20,7 +20,10 @@ fun embeddedTomcatServer(hostConfig: ApplicationHostConfig, environment: Applica
             routing(application)
         }
     }
-    return TomcatApplicationHost(hostConfig, environment, applicationObject)
+    return TomcatApplicationHost(hostConfig, environment, object : ApplicationLifecycle {
+        override val application: Application = applicationObject
+        override fun dispose() {}
+    })
 }
 
 

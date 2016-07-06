@@ -18,13 +18,6 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
     constructor(hostConfig: ApplicationHostConfig, config: ApplicationEnvironment)
     : this(hostConfig, config, ApplicationLoader(config, hostConfig.autoreload))
 
-    constructor(hostConfig: ApplicationHostConfig, config: ApplicationEnvironment, application: Application)
-    : this(hostConfig, config, object : ApplicationLifecycle {
-        override val application: Application = application
-        override fun dispose() {
-        }
-    })
-
     private val ktorServlet = object : KtorServlet() {
         override val application: Application
             get() = this@TomcatApplicationHost.application

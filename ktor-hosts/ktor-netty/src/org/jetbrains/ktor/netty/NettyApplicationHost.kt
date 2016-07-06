@@ -30,14 +30,6 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
     : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
 
-    constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, application: Application)
-    : this(hostConfig, environment, object : ApplicationLifecycle {
-        @Suppress("CanBePrimaryConstructorProperty")
-        override val application: Application = application
-        override fun dispose() {
-        }
-    })
-
     private val mainEventGroup = NioEventLoopGroup()
     private val workerEventGroup = NioEventLoopGroup()
 

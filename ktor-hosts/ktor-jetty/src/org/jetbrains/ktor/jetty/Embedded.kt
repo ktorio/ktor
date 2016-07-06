@@ -20,6 +20,10 @@ fun embeddedJettyServer(hostConfig: ApplicationHostConfig, environment: Applicat
             routing(application)
         }
     }
-    return JettyApplicationHost(hostConfig, environment, applicationObject)
+
+    return JettyApplicationHost(hostConfig, environment, object : ApplicationLifecycle {
+        override val application: Application = applicationObject
+        override fun dispose() {}
+    })
 }
 

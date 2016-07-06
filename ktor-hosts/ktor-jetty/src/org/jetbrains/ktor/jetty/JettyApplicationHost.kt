@@ -25,13 +25,6 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
     : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
 
-    constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, application: Application)
-    : this(hostConfig, environment, object : ApplicationLifecycle {
-        override val application: Application = application
-        override fun dispose() {
-        }
-    })
-
     private val server = Server().apply {
         val httpConfig = HttpConfiguration().apply {
             sendServerVersion = false
