@@ -110,7 +110,7 @@ class OriginRouteTest {
                 get("/") {
                     with(call.request.originRoute) {
                         assertEquals("localhost", host)
-                        assertEquals(80, port)
+                        assertEquals(443, port)
                         assertEquals("localhost", remoteHost)
                         assertEquals("https", scheme)
                     }

@@ -12,14 +12,17 @@ val ApplicationRequest.originRoute: RequestSocketRoute
 
         override val scheme: String by lazy {
             forwarded?.firstOrNull()?.proto
-            ?: xForwardedProto()
-            ?: actualRoute.scheme
+                    ?: xForwardedProto()
+                    ?: actualRoute.scheme
         }
 
-        override val port: Int
-            get() = forwarded?.firstOrNull()?.host?.port()
+        override val port: Int by lazy {
+            forwarded?.firstOrNull()?.host?.port()
                     ?: xForwardedHost?.port()
+                    ?: forwarded?.firstOrNull()?.proto?.let { it.port() }
+                    ?: xForwardedProto()?.let { it.port() }
                     ?: actualRoute.port
+        }
 
         override val host: String
             get() = forwarded?.firstOrNull()?.host?.substringBefore(":")
