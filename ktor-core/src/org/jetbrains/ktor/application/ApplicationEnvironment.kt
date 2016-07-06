@@ -41,13 +41,6 @@ class BasicApplicationEnvironment(override val classLoader: ClassLoader,
  */
 inline fun applicationEnvironment(builder: ApplicationEnvironmentBuilder.() -> Unit): ApplicationEnvironment = ApplicationEnvironmentBuilder().apply(builder)
 
-object ApplicationEnvironmentStage {
-    val Development = "development"
-    val Staging = "staging"
-    val Production = "production"
-    val Embedded = "embedded"
-}
-
 /**
  * Mutable implementation of [ApplicationEnvironment]
  * TODO: Replace with real builder to avoid mutation of config after the fact
