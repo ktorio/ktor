@@ -57,12 +57,62 @@ class HSTSTest {
         }
     }
 
-    private fun Application.testApp() {
+    @Test
+    fun testHttpsCustomDirectiveNoValue() {
+        withTestApplication {
+            application.testApp {
+                customDirectives.clear()
+                customDirectives["some"] = null
+            }
+
+            handleRequest(HttpMethod.Get, "/", {
+                addHeader("X-Forwarded-Proto", "https")
+            }).let { call ->
+                assertEquals("max-age=10; includeSubDomains; preload; some", call.response.headers[HttpHeaders.StrictTransportSecurity])
+            }
+        }
+    }
+
+    @Test
+    fun testHttpsNoCustomDirectives() {
+        withTestApplication {
+            application.testApp {
+                customDirectives.clear()
+            }
+
+            handleRequest(HttpMethod.Get, "/", {
+                addHeader("X-Forwarded-Proto", "https")
+            }).let { call ->
+                assertEquals("max-age=10; includeSubDomains; preload", call.response.headers[HttpHeaders.StrictTransportSecurity])
+            }
+        }
+    }
+
+    @Test
+    fun testHttpsMaxAgeOnly() {
+        withTestApplication {
+            application.testApp {
+                customDirectives.clear()
+                includeSubDomains = false
+                preload = false
+            }
+
+            handleRequest(HttpMethod.Get, "/", {
+                addHeader("X-Forwarded-Proto", "https")
+            }).let { call ->
+                assertEquals("max-age=10", call.response.headers[HttpHeaders.StrictTransportSecurity])
+            }
+        }
+    }
+
+    private fun Application.testApp(block: HSTS.HSTSConfig.() -> Unit = {}) {
         install(HSTS) {
             maxAge = Duration.ofSeconds(10L)
             includeSubDomains = true
             preload = true
             customDirectives["some"] = "va=lue"
+
+            block()
         }
 
         routing {

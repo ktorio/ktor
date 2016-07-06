@@ -28,7 +28,13 @@ object HSTS : ApplicationFeature<ApplicationCallPipeline, HSTS.HSTSConfig> {
             }
 
             if (config.customDirectives.isNotEmpty()) {
-                config.customDirectives.entries.joinTo(this, separator = "; ", prefix = "; ") { "${it.key.escapeIfNeeded()}=${it.value.escapeIfNeeded()}" }
+                config.customDirectives.entries.joinTo(this, separator = "; ", prefix = "; ") {
+                    if (it.value != null) {
+                        "${it.key.escapeIfNeeded()}=${it.value?.escapeIfNeeded()}"
+                    } else {
+                        it.key.escapeIfNeeded()
+                    }
+                }
             }
         }
 
@@ -46,6 +52,6 @@ object HSTS : ApplicationFeature<ApplicationCallPipeline, HSTS.HSTSConfig> {
         var includeSubDomains = true
         var maxAge = Duration.ofDays(365)
 
-        val customDirectives: MutableMap<String, String> = HashMap()
+        val customDirectives: MutableMap<String, String?> = HashMap()
     }
 }
