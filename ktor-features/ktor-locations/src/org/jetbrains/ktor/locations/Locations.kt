@@ -10,7 +10,7 @@ import kotlin.reflect.jvm.*
 
 class InconsistentRoutingException(message: String) : Exception(message)
 
-open class Locations(val conversionService: ConversionService) {
+open class Locations(val conversionService: ConversionService, val routeService: LocationRouteService) {
     private val rootUri = ResolvedUriInfo("", emptyList())
     private val info = hashMapOf<KClass<*>, LocationInfo>()
 
@@ -50,18 +50,17 @@ open class Locations(val conversionService: ConversionService) {
         return ResolvedUriInfo(combinedPath, query + queryValues)
     }
 
-    inline fun <reified T : Annotation> KAnnotatedElement.annotation(): T? {
-        return annotations.singleOrNull { it.annotationClass == T::class } as T?
-    }
-
     private fun getOrCreateInfo(dataClass: KClass<*>): LocationInfo {
         return info.getOrPut(dataClass) {
             val parentClass = dataClass.java.enclosingClass?.kotlin
-            val parent = parentClass?.annotation<location>()?.let {
-                getOrCreateInfo(parentClass)
+            val parent = parentClass?.let {
+                if (routeService.findRoute(parentClass) != null)
+                    getOrCreateInfo(parentClass)
+                else
+                    null
             }
 
-            val path = dataClass.annotation<location>()?.let { it.path } ?: ""
+            val path = routeService.findRoute(dataClass) ?: ""
 
             val constructor: KFunction<Any> = dataClass.primaryConstructor ?: dataClass.constructors.single()
 
@@ -180,11 +179,24 @@ open class Locations(val conversionService: ConversionService) {
     }
 
     companion object LocationsFeature : ApplicationFeature<Application, Locations> {
-        override fun install(pipeline: Application, configure: Locations.() -> Unit): Locations {
-            return Locations(DefaultConversionService()).apply(configure)
-        }
-
         override val key: AttributeKey<Locations> = AttributeKey("Locations")
+
+        override fun install(pipeline: Application, configure: Locations.() -> Unit): Locations {
+            return Locations(DefaultConversionService(), LocationAttributeRouteService()).apply(configure)
+        }
     }
 }
 
+interface LocationRouteService {
+    fun findRoute(klass: KClass<*>): String?
+}
+
+class LocationAttributeRouteService : LocationRouteService {
+    inline fun <reified T : Annotation> KAnnotatedElement.annotation(): T? {
+        return annotations.singleOrNull { it.annotationClass == T::class } as T?
+    }
+
+    override fun findRoute(klass: KClass<*>): String? {
+        return klass.annotation<location>()?.let { it.path }
+    }
+}

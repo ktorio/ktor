@@ -11,7 +11,7 @@ import org.jetbrains.ktor.tests.*
 import org.junit.*
 import kotlin.test.*
 
-fun withLocationsApplication(test: TestApplicationHost.() -> Unit) = withApplication<TestApplication> {
+private fun withLocationsApplication(test: TestApplicationHost.() -> Unit) = withApplication<TestApplication> {
     application.install(Locations)
     test()
 }
@@ -266,54 +266,21 @@ class LocationsTest {
     @location("/plus+in") class PlusInPath()
 
     @Test
-    fun testURLBuilder() {
-        withLocationsApplication {
-            application.routing {
-                handle {
-                    assertEquals("http://localhost/container?id=1&optional=ok", call.url(optionalName(1, "ok")))
-                    assertEquals("http://localhost/container?id=1&optional=ok%2B.plus", call.url(optionalName(1, "ok+.plus")))
-                    assertEquals("http://localhost/container?id=1&optional=ok+space", call.url(optionalName(1, "ok space")))
+    fun testURLBuilder() = withLocationsApplication {
+        application.routing {
+            handle {
+                assertEquals("http://localhost/container?id=1&optional=ok", call.url(optionalName(1, "ok")))
+                assertEquals("http://localhost/container?id=1&optional=ok%2B.plus", call.url(optionalName(1, "ok+.plus")))
+                assertEquals("http://localhost/container?id=1&optional=ok+space", call.url(optionalName(1, "ok space")))
 
-                    assertEquals("http://localhost/space%20in", call.url(SpaceInPath()))
-                    assertEquals("http://localhost/plus+in", call.url(PlusInPath()))
+                assertEquals("http://localhost/space%20in", call.url(SpaceInPath()))
+                assertEquals("http://localhost/plus+in", call.url(PlusInPath()))
 
-                    call.respondText(call.url(optionalName(1, "ok")))
-                }
-            }
-
-            urlShouldBeHandled("/", "http://localhost/container?id=1&optional=ok")
-        }
-    }
-
-    private fun TestApplicationHost.urlShouldBeHandled(url: String, content: String? = null) {
-        on("making get request to $url") {
-            val result = handleRequest {
-                uri = url
-                method = HttpMethod.Get
-            }
-            it("should be handled") {
-                assertTrue(result.requestHandled)
-            }
-            it("should have a response with OK status") {
-                assertEquals(HttpStatusCode.OK, result.response.status())
-            }
-            if (content != null) {
-                it("should have a response with content '$content'") {
-                    assertEquals(content, result.response.content)
-                }
+                call.respondText(call.url(optionalName(1, "ok")))
             }
         }
-    }
 
-    private fun TestApplicationHost.urlShouldBeUnhandled(url: String) {
-        on("making post request to $url") {
-            val result = handleRequest {
-                uri = url
-                method = HttpMethod.Post
-            }
-            it("should not be handled") {
-                assertFalse(result.requestHandled)
-            }
-        }
+        urlShouldBeHandled("/", "http://localhost/container?id=1&optional=ok")
     }
 }
+
