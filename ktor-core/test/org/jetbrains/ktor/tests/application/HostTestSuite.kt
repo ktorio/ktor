@@ -10,6 +10,7 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.util.*
 import org.junit.*
 import java.io.*
 import java.net.*
@@ -641,6 +642,41 @@ abstract class HostTestSuite : HostTestBase() {
 
         withUrl("/aaaa") {
             assertEquals(HttpStatusCode.NotFound.value, responseCode)
+        }
+    }
+
+    @Test
+    fun testProxyHeaders() {
+        createAndStartServer(port) {
+            get("/") {
+                call.respond(call.url {  })
+            }
+        }
+
+        withUrl("/") {
+            setRequestProperty("X-Forwarded-Host", "my-host:90")
+
+            assertEquals("http://my-host:90/", inputStream.reader().readText())
+        }
+
+        withUrl("/") {
+            setRequestProperty("X-Forwarded-Host", "my-host")
+
+            assertEquals("http://my-host/", inputStream.reader().readText())
+        }
+
+        withUrl("/") {
+            setRequestProperty("X-Forwarded-Host", "my-host:90")
+            setRequestProperty("X-Forwarded-Proto", "https")
+
+            assertEquals("https://my-host:90/", inputStream.reader().readText())
+        }
+
+        withUrl("/") {
+            setRequestProperty("X-Forwarded-Host", "my-host")
+            setRequestProperty("X-Forwarded-Proto", "https")
+
+            assertEquals("https://my-host/", inputStream.reader().readText())
         }
     }
 
