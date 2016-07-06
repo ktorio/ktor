@@ -5,7 +5,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import javax.servlet.http.*
 
-class ServletApplicationResponse(val call: ServletApplicationCall, val servletResponse: HttpServletResponse) : BaseApplicationResponse() {
+class ServletApplicationResponse(val call: ServletApplicationCall, val servletResponse: HttpServletResponse) : BaseApplicationResponse(call) {
     override fun setStatus(statusCode: HttpStatusCode) {
         servletResponse.status = statusCode.value
     }

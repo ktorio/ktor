@@ -1,13 +1,23 @@
 package org.jetbrains.ktor.response
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.http.*
 import java.time.*
 import java.time.temporal.*
 
-class ResponseCookies(private val response: ApplicationResponse) {
+class ResponseCookies(private val response: ApplicationResponse, private val request: ApplicationRequest) {
+    private val originRoute by lazy {
+        request.originRoute
+    }
+
     operator fun get(name: String): Cookie? = response.headers.values("Set-Cookie").map { parseServerSetCookieHeader(it) }.firstOrNull { it.name == name }
-    fun append(item: Cookie): Unit = response.headers.append("Set-Cookie", renderSetCookieHeader(item))
+    fun append(item: Cookie) {
+        if (item.secure && originRoute.scheme != "https") {
+            throw IllegalArgumentException("You should set secure cookie only via secure transport (HTTPS)")
+        }
+        response.headers.append("Set-Cookie", renderSetCookieHeader(item))
+    }
 
     fun append(name: String,
                value: String,

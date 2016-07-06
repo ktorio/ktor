@@ -2,13 +2,13 @@ package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
-import org.junit.*
+import org.jetbrains.ktor.tests.*
 import java.text.*
 import java.time.*
 import java.time.format.*
 import java.time.temporal.*
-import java.util.*
 import kotlin.test.*
 import org.junit.Test as test
 
@@ -111,7 +111,7 @@ class CookiesTest {
     }
 
     @test fun `add cookie and get it`() {
-        with(TestApplicationResponse()) {
+        withTestApplicationResponse {
             cookies.append("key", "value")
 
             assertEquals("value", cookies["key"]?.value)
@@ -120,7 +120,7 @@ class CookiesTest {
     }
 
     @test fun `add multiple cookies`() {
-        with(TestApplicationResponse()) {
+        withTestApplicationResponse {
             cookies.append("a", "1")
             cookies.append("b", "2")
 
@@ -128,10 +128,51 @@ class CookiesTest {
         }
     }
 
+    @test
+    fun testSecureCookieHttp() {
+        withTestApplication {
+            application.routing {
+                get("/*") {
+                    call.response.cookies.append("S", "secret", secure = true)
+                    call.respond("ok")
+                }
+            }
+
+            assertFails {
+                handleRequest(HttpMethod.Get, "/1")
+            }
+        }
+    }
+
+    @test
+    fun testSecureCookieHttps() {
+        withTestApplication {
+            application.routing {
+                get("/*") {
+                    println(call.request.actualRoute.scheme)
+                    call.response.cookies.append("S", "secret", secure = true)
+                    call.respond("ok")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/2") {
+                protocol = "https"
+            }
+        }
+    }
+
     private fun testSetCookies(expectedHeaderContent: String, block: ApplicationResponse.() -> Unit) {
-        with(TestApplicationResponse()) {
+        withTestApplicationResponse {
             block()
             assertEquals(expectedHeaderContent, headers["Set-Cookie"]?.cutSetCookieHeader())
+        }
+    }
+
+    private fun withTestApplicationResponse(block: TestApplicationResponse.() -> Unit) {
+        withTestApplication {
+            with(TestApplicationResponse(TestApplicationCall(application, TestApplicationRequest().apply { protocol = "https" }))) {
+                block()
+            }
         }
     }
 

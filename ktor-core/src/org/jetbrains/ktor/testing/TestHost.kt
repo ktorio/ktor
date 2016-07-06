@@ -118,7 +118,7 @@ class TestApplicationCall(application: Application, override val request: TestAp
         response.close()
     }
 
-    override val response = TestApplicationResponse()
+    override val response = TestApplicationResponse(this)
 
     @Volatile
     var requestHandled = false
@@ -132,6 +132,8 @@ class TestApplicationCall(application: Application, override val request: TestAp
 
 class TestApplicationRequest() : ApplicationRequest {
     override var requestLine: HttpRequestLine = HttpRequestLine(HttpMethod.Get, "/", "HTTP/1.1")
+
+    var protocol: String = "http"
 
     var uri: String
         get() = requestLine.uri
@@ -147,7 +149,7 @@ class TestApplicationRequest() : ApplicationRequest {
 
     override val actualRoute = object : RequestSocketRoute {
         override val scheme: String
-            get() = "http"
+            get() = protocol
 
         override val port: Int
             get() = header(HttpHeaders.Host)?.substringAfter(":", "80")?.toInt() ?: 80
@@ -200,7 +202,7 @@ class TestApplicationRequest() : ApplicationRequest {
     override val cookies = RequestCookies(this)
 }
 
-class TestApplicationResponse() : BaseApplicationResponse() {
+class TestApplicationResponse(call: ApplicationCall) : BaseApplicationResponse(call) {
     private val realContent = lazy { ByteArrayWriteChannel() }
     @Volatile
     private var closed = false

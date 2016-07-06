@@ -20,7 +20,7 @@ internal class NettyApplicationCall(application: Application,
     val httpResponse = DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
 
     override val request = NettyApplicationRequest(httpRequest, bodyConsumed, urlEncodedParameters, context, drops)
-    override val response = NettyApplicationResponse(httpRequest, httpResponse, context)
+    override val response = NettyApplicationResponse(this, httpRequest, httpResponse, context)
     override val parameters: ValuesMap get() = request.parameters
 
     override fun close() {
