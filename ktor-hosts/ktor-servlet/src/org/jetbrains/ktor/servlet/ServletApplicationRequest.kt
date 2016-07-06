@@ -18,6 +18,20 @@ class ServletApplicationRequest(val call: ServletApplicationCall, val servletReq
                 servletRequest.protocol)
     }
 
+    override val actualRoute: RequestSocketRoute = object : RequestSocketRoute {
+        override val scheme: String
+            get() = servletRequest.scheme ?: "http"
+
+        override val port: Int
+            get() = servletRequest.serverPort
+
+        override val host: String
+            get() = servletRequest.serverName ?: "localhost"
+
+        override val remoteHost: String
+            get() = servletRequest.remoteHost
+    }
+
     override val parameters: ValuesMap by lazy {
         object : ValuesMap {
             override fun getAll(name: String): List<String> = servletRequest.getParameterValues(name)?.asList() ?: emptyList()

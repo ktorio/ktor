@@ -33,6 +33,7 @@ public object HttpHeaders {
     val Expect = "Expect"
     val Expires = "Expires"
     val From = "From"
+    val Forwarded = "Forwarded"
     val Host = "Host"
     val HTTP2Settings = "HTTP2-Settings"
     val If = "If"

@@ -4,13 +4,13 @@ import org.jetbrains.ktor.util.*
 import java.util.*
 import kotlin.comparisons.*
 
-public data class HeaderValueParam(val name: String, val value: String)
-public data class HeaderValue(val value: String, val params: List<HeaderValueParam> = listOf()) {
+data class HeaderValueParam(val name: String, val value: String)
+data class HeaderValue(val value: String, val params: List<HeaderValueParam> = listOf()) {
     val quality: Double = params.firstOrNull { it.name == "q" }?.value?.tryParseDouble() ?: 1.0
 }
 
-public fun parseAndSortHeader(header: String?): List<HeaderValue> = parseHeaderValue(header).sortedByDescending { it.quality }
-public fun parseAndSortContentTypeHeader(header: String?): List<HeaderValue> = parseHeaderValue(header).sortedWith(
+fun parseAndSortHeader(header: String?): List<HeaderValue> = parseHeaderValue(header).sortedByDescending { it.quality }
+fun parseAndSortContentTypeHeader(header: String?): List<HeaderValue> = parseHeaderValue(header).sortedWith(
         compareByDescending<HeaderValue> { it.quality }.thenBy {
             val contentType = ContentType.parse(it.value)
             var asterisks = 0
@@ -23,14 +23,14 @@ public fun parseAndSortContentTypeHeader(header: String?): List<HeaderValue> = p
             it.params.size
         })
 
-public fun parseHeaderValue(text: String?): List<HeaderValue> {
+fun parseHeaderValue(text: String?, parametersOnly: Boolean = false): List<HeaderValue> {
     if (text == null)
         return emptyList()
 
     var pos = 0
     val items = lazy { arrayListOf<HeaderValue>() }
     while (pos <= text.lastIndex) {
-        pos = parseHeaderValueItem(text, pos, items)
+        pos = parseHeaderValueItem(text, pos, items, parametersOnly)
     }
     return items.valueOrEmpty()
 }
@@ -42,10 +42,10 @@ private fun String.subtrim(start: Int, end: Int): String {
     return substring(start, end).trim()
 }
 
-private fun parseHeaderValueItem(text: String, start: Int, items: Lazy<ArrayList<HeaderValue>>): Int {
+private fun parseHeaderValueItem(text: String, start: Int, items: Lazy<ArrayList<HeaderValue>>, parametersOnly: Boolean): Int {
     var pos = start
     val parameters = lazy { arrayListOf<HeaderValueParam>() }
-    var valueEnd: Int? = null
+    var valueEnd: Int? = if (parametersOnly) pos else null
     while (pos <= text.lastIndex) {
         when (text[pos]) {
             ',' -> {
@@ -56,7 +56,13 @@ private fun parseHeaderValueItem(text: String, start: Int, items: Lazy<ArrayList
                 if (valueEnd == null) valueEnd = pos
                 pos = parseHeaderValueParameter(text, pos + 1, parameters)
             }
-            else -> pos++
+            else -> {
+                pos = if (parametersOnly) {
+                    parseHeaderValueParameter(text, pos, parameters)
+                } else {
+                    pos + 1
+                }
+            }
         }
     }
     items.value.add(HeaderValue(text.subtrim(start, valueEnd ?: pos), parameters.valueOrEmpty()))

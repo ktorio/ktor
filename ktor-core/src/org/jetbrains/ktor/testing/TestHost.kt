@@ -145,6 +145,20 @@ class TestApplicationRequest() : ApplicationRequest {
             requestLine = requestLine.copy(method = value)
         }
 
+    override val actualRoute = object : RequestSocketRoute {
+        override val scheme: String
+            get() = "http"
+
+        override val port: Int
+            get() = header(HttpHeaders.Host)?.substringAfter(":", "80")?.toInt() ?: 80
+
+        override val host: String
+            get() = header(HttpHeaders.Host)?.substringBefore(":") ?: "localhost"
+
+        override val remoteHost: String
+            get() = "localhost"
+    }
+
     var bodyBytes: ByteArray = ByteArray(0)
     var body: String
         get() = bodyBytes.toString(Charsets.UTF_8)

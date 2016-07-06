@@ -4,7 +4,7 @@ import org.jetbrains.ktor.http.*
 import org.junit.*
 import kotlin.test.*
 
-public class HeadersTest {
+class HeadersTest {
     @Test
     fun `parse simple accept header`() {
         val items = parseAndSortContentTypeHeader("audio/basic")
@@ -146,6 +146,14 @@ public class HeadersTest {
         examples.forEach {
             parseHeaderValue(it)
         }
+    }
+
+    @Test
+    fun `parse parameters only`() {
+        assertEquals(listOf(HeaderValue("", listOf(HeaderValueParam("k", "v")))), parseHeaderValue("k=v", parametersOnly = true))
+        assertEquals(listOf(HeaderValue("", listOf(HeaderValueParam("k", "v"), HeaderValueParam("k2", "v2")))), parseHeaderValue("k=v;k2=v2", parametersOnly = true))
+        assertEquals(listOf(HeaderValue("", listOf(HeaderValueParam("k", "v"))),
+                HeaderValue("", listOf(HeaderValueParam("k2", "v2")))), parseHeaderValue("k=v,k2=v2", parametersOnly = true))
     }
 
     @Test

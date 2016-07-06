@@ -23,6 +23,8 @@ interface ApplicationRequest {
      */
     val headers: ValuesMap
 
+    val actualRoute: RequestSocketRoute
+
     /**
      * Cookies for this request
      */

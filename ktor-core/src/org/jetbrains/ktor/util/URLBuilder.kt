@@ -4,13 +4,24 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
-import org.jetbrains.ktor.util.*
 
-enum class URLProtocol(val defaultPort: Int) {
-    HTTP(80),
-    HTTPS(443);
+data class URLProtocol(val name: String, val defaultPort: Int) {
+    init {
+        require(name.all { it.isLowerCase() }) { "All characters should be lower case" }
+    }
 
-    val nameLowerCase = this.name.toLowerCase()
+    @Deprecated("Use name instead as it is always lower case", ReplaceWith("name"))
+    val nameLowerCase: String
+        get() = name
+
+    companion object {
+        val HTTP = URLProtocol("http", 80)
+        val HTTPS = URLProtocol("https", 443)
+        val WS = URLProtocol("ws", 80)
+        val WSS = URLProtocol("wss", 443)
+
+        val byName = listOf(HTTP, HTTPS, WS, WSS).associateBy { it.name }
+    }
 }
 
 class URLBuilder(
@@ -31,7 +42,7 @@ class URLBuilder(
     }
 
     fun <A : Appendable> appendTo(out: A): A {
-        out.append(protocol.nameLowerCase)
+        out.append(protocol.name)
         out.append("://")
         user?.let {
             out.append(encodeURLPart(it.name))

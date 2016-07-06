@@ -1,6 +1,6 @@
 package org.jetbrains.ktor.http
 
-public data class HttpRequestLine(val method: HttpMethod,
+data class HttpRequestLine(val method: HttpMethod,
                                   val uri: String,
                                   val version: String
                                  ) {
