@@ -62,8 +62,8 @@ class RoutingResolveContext(val routing: Route,
         if (bestResult != null)
             return bestResult
 
-        // no child matched, match is either current entry if path is done, or failure
-        if (segmentIndex == request.path.size)
+        // no child matched, match is either current entry if path is done & there is a handler, or failure
+        if (segmentIndex == request.path.size && entry.handlers.isNotEmpty())
             return RoutingResolveResult(true, entry, ValuesMap.Empty, 1.0)
         else
             return RoutingResolveResult(false, failEntry ?: entry, ValuesMap.Empty, 0.0)
