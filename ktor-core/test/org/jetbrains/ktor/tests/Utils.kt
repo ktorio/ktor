@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.tests
 
-import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.logging.*
@@ -23,6 +22,7 @@ fun withTestApplication(test: TestApplicationHost.() -> Unit) {
 fun createTestHost(): TestApplicationHost {
     val config = MapApplicationConfig(
             "ktor.deployment.environment" to "test",
+            "ktor.test.doNotSetupDefaultPages" to "true",
             "ktor.application.class" to TestApplication::class.qualifiedName!!
     )
     val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, SLF4JApplicationLog("ktor.test"), config)

@@ -49,11 +49,6 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     }
 
-    init {
-        application.setupDefaultHostPages()
-        application.install(TransformationSupport).registerDefaultHandlers()
-    }
-
     override fun start(wait: Boolean) {
         environment.log.info("Starting server...")
         val channelFuture = bootstrap.bind(hostConfig.host, hostConfig.port).sync()

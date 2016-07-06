@@ -1,5 +1,8 @@
 package org.jetbrains.ktor.application
 
+import org.jetbrains.ktor.features.*
+import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.transform.*
 import java.util.concurrent.*
 
 /**
@@ -7,6 +10,13 @@ import java.util.concurrent.*
  */
 open class Application(val environment: ApplicationEnvironment) : ApplicationCallPipeline() {
     val executor: ScheduledExecutorService = environment.executorServiceBuilder()
+
+    init {
+        if (environment.config.propertyOrNull("ktor.test.doNotSetupDefaultPages")?.getString() != "true") {
+            setupDefaultHostPages()
+        }
+        install(TransformationSupport).registerDefaultHandlers()
+    }
 
     /**
      * Called by host when [Application] is terminated

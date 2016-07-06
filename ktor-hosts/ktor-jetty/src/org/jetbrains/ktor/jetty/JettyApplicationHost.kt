@@ -40,11 +40,6 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"));
 
-    init {
-        application.setupDefaultHostPages()
-        application.install(TransformationSupport).registerDefaultHandlers()
-    }
-
     private inner class Handler : AbstractHandler() {
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             response.characterEncoding = "UTF-8"

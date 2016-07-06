@@ -69,7 +69,7 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
         return parentUrls
     }
 
-    fun createApplication(): Application {
+    private fun createApplication(): Application {
         val classLoader = if (autoreload) {
             val allUrls = environment.classLoader.allURLs()
             val watchPatterns = watchPatterns
@@ -102,15 +102,16 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
         }
     }
 
-
     fun destroyApplication() {
-        try {
-            _applicationInstance?.dispose()
-        } catch(e: Throwable) {
-            log.error("Failed to destroy application instance.", e)
+        synchronized(applicationInstanceLock) {
+            try {
+                _applicationInstance?.dispose()
+            } catch(e: Throwable) {
+                log.error("Failed to destroy application instance.", e)
+            }
+            packageWatchKeys.forEach { it.cancel() }
+            packageWatchKeys.clear()
         }
-        packageWatchKeys.forEach { it.cancel() }
-        packageWatchKeys.clear()
     }
 
     fun watchUrls(urls: List<URL>) {

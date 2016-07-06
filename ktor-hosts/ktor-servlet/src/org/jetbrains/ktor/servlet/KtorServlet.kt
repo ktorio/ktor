@@ -54,8 +54,6 @@ abstract class KtorServlet : HttpServlet() {
     }
 
     override fun init() {
-        application.setupDefaultHostPages()
-        application.install(TransformationSupport).registerDefaultHandlers()
     }
 
     override fun destroy() {
