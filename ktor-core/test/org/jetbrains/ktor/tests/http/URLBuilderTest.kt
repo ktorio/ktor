@@ -152,4 +152,59 @@ class URLBuilderTest {
             }
         }
     }
+
+    @Test
+    fun testWithProxy() {
+        withTestApplication {
+            application.intercept(ApplicationCallPipeline.Call) { call ->
+                assertEquals("http://special-host:90/", call.url())
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader("X-Forwarded-Host", "special-host:90")
+            }
+        }
+    }
+
+    @Test
+    fun testWithProxyHttps() {
+        withTestApplication {
+            application.intercept(ApplicationCallPipeline.Call) { call ->
+                assertEquals("https://special-host:90/", call.url())
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader("X-Forwarded-Host", "special-host:90")
+                addHeader("X-Forwarded-Proto", "https")
+            }
+        }
+    }
+
+    @Test
+    fun testWithProxyHttpsDefaultPort() {
+        withTestApplication {
+            application.intercept(ApplicationCallPipeline.Call) { call ->
+                assertEquals("https://special-host/", call.url())
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader("X-Forwarded-Host", "special-host")
+                addHeader("X-Forwarded-Proto", "https")
+            }
+        }
+    }
+
+    @Test
+    fun testWithProxyHttpsWithPortEqualToDefault() {
+        withTestApplication {
+            application.intercept(ApplicationCallPipeline.Call) { call ->
+                assertEquals("https://special-host/", call.url())
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader("X-Forwarded-Host", "special-host:443")
+                addHeader("X-Forwarded-Proto", "https")
+            }
+        }
+    }
 }

@@ -2,6 +2,7 @@ package org.jetbrains.ktor.util
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
+import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
 
@@ -83,10 +84,12 @@ class URLBuilder(
 
 fun url(block: URLBuilder.() -> Unit) = URLBuilder().apply(block).build()
 fun ApplicationCall.url(block: URLBuilder.() -> Unit = {}): String {
+    val origin = request.originRoute
+
     val builder = URLBuilder()
-    // TODO protocol
-    builder.host = request.host() ?: "localhost"
-    builder.port = request.port()
+    builder.protocol = URLProtocol.byName[origin.scheme] ?: URLProtocol(origin.scheme, 0)
+    builder.host = origin.host
+    builder.port = origin.port
     builder.encodedPath = request.path()
     builder.parameters.appendAll(request.queryParameters())
 
