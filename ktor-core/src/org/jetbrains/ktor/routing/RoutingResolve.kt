@@ -1,6 +1,8 @@
 package org.jetbrains.ktor.routing
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 
 data class RoutingResolveResult(val succeeded: Boolean,
@@ -9,10 +11,10 @@ data class RoutingResolveResult(val succeeded: Boolean,
                                 val quality: Double)
 
 class RoutingResolveContext(val routing: Route,
-                            val verb: HttpRequestLine,
+                            val call: ApplicationCall,
                             val parameters: ValuesMap = ValuesMap.Empty,
                             val headers: ValuesMap = ValuesMap.Empty) {
-    val path = parse(verb.path())
+    val path = parse(call.request.path())
 
     private fun parse(path: String): List<String> {
         if (path == "/") return listOf()

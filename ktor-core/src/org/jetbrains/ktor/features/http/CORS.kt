@@ -60,11 +60,22 @@ fun CORSBuilder.host(host: String, schemes: List<String> = listOf("http"), subDo
 fun CORSBuilder.exposeHeader(header: String) {
     exposedHeaders.add(header)
 }
+fun CORSBuilder.exposeXHttpMethodOverride() {
+    exposedHeaders.add(HttpHeaders.XHttpMethodOverride)
+}
+
 fun CORSBuilder.header(header: String) {
     if (header !in CorsDefaultHeaders) {
         headers.add(header)
     }
 }
+
+/**
+ * Please note that CORS operates ONLY with REAL HTTP methods
+ * and will never consider overridden methods via `X-Http-Method-Override`.
+ * However you can add them here if you are implementing CORS at client side from the scratch
+ * that you generally don't need to do.
+ */
 fun CORSBuilder.method(method: HttpMethod) {
     if (method !in CorsDefaultMethods) {
         methods.add(method)

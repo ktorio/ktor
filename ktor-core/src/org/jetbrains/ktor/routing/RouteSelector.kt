@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.routing
 
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 
 data class RouteSelectorEvaluation(val succeeded: Boolean,
@@ -147,7 +148,7 @@ data class AndRouteSelector(val first: RouteSelector, val second: RouteSelector)
 
 data class HttpMethodRouteSelector(val method: HttpMethod) : RouteSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
-        if (context.verb.method == method)
+        if (context.call.request.httpMethod == method)
             return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant)
         return RouteSelectorEvaluation.Failed
     }

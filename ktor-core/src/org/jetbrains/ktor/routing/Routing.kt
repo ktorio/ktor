@@ -3,6 +3,7 @@ package org.jetbrains.ktor.routing
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 
 
@@ -15,7 +16,7 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
 
     internal fun interceptor(context: PipelineContext<ApplicationCall>) {
         val call = context.call
-        val resolveContext = RoutingResolveContext(this, call.request.requestLine, call.parameters, call.request.headers)
+        val resolveContext = RoutingResolveContext(this, call, call.parameters, call.request.headers)
         val resolveResult = resolveContext.resolve()
         if (resolveResult.succeeded) {
             val routingCall = RoutingApplicationCall(call, resolveResult.entry, resolveResult.values)
@@ -54,5 +55,5 @@ val Route.application: Application get() = when {
     else -> parent?.application ?: throw UnsupportedOperationException("Cannot retrieve application from unattached routing entry")
 }
 
-public fun Application.routing(configure: Routing.() -> Unit) = install(Routing, configure)
+fun Application.routing(configure: Routing.() -> Unit) = install(Routing, configure)
 

@@ -2,6 +2,7 @@ package org.jetbrains.ktor.tests.routing
 
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
@@ -9,10 +10,12 @@ import kotlin.test.*
 
 fun routing() = Route(parent = null, selector = Routing.RootRouteSelector)
 fun context(routing: Route, path: String, parameters: ValuesMap = ValuesMap.Empty)
-        = RoutingResolveContext(routing, HttpRequestLine(HttpMethod.Companion.Get, path, "HTTP/1.1"), parameters)
+        = RoutingResolveContext(routing, TestApplicationCall(createTestHost().application, TestApplicationRequest(HttpRequestLine(HttpMethod.Companion.Get, path, "HTTP/1.1"))), parameters)
 
 fun context(routing: Route, path: String, parameters: ValuesMap = ValuesMap.Empty, headers: ValuesMap = ValuesMap.Empty)
-        = RoutingResolveContext(routing, HttpRequestLine(HttpMethod.Companion.Get, path, "HTTP/1.1"), parameters, headers)
+        = RoutingResolveContext(routing, TestApplicationCall(createTestHost().application, TestApplicationRequest(HttpRequestLine(HttpMethod.Companion.Get, path, "HTTP/1.1")).apply {
+    headers.flattenEntries().forEach { addHeader(it.first, it.second) }
+}), parameters, headers)
 
 fun Route.selectHandle(selector: RouteSelector) = select(selector).apply { handle {} }
 

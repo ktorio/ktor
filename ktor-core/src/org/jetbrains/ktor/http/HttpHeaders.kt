@@ -95,5 +95,8 @@ public object HttpHeaders {
     val AccessControlRequestHeaders = "Access-Control-Request-Headers"
     val AccessControlExposeHeaders = "Access-Control-Expose-Headers"
     val AccessControlMaxAge = "Access-Control-Max-Age"
+
+    // Unofficial de-facto headers
+    val XHttpMethodOverride = "X-Http-Method-Override"
 }
 

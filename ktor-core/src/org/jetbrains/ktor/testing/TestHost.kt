@@ -130,9 +130,7 @@ class TestApplicationCall(application: Application, override val request: TestAp
     }
 }
 
-class TestApplicationRequest() : ApplicationRequest {
-    override var requestLine: HttpRequestLine = HttpRequestLine(HttpMethod.Get, "/", "HTTP/1.1")
-
+class TestApplicationRequest(override var requestLine: HttpRequestLine = HttpRequestLine(HttpMethod.Get, "/", "HTTP/1.1")) : ApplicationRequest {
     var protocol: String = "http"
 
     var uri: String

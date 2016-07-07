@@ -49,7 +49,7 @@ fun AuthenticationProcedure.digestAuthentication(
         }
 
         val principal = credentials?.let {
-            if ((it.algorithm ?: "MD5") == digestAlgorithm && it.verify(context.call.request.httpMethod, digester, userNameRealmPasswordDigestProvider))
+            if ((it.algorithm ?: "MD5") == digestAlgorithm && it.verify(context.call.request.requestLine.method, digester, userNameRealmPasswordDigestProvider))
                 UserIdPrincipal(it.userName)
             else
                 null

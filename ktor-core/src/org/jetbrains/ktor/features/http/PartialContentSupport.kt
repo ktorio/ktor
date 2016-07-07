@@ -37,7 +37,7 @@ object PartialContentSupport : ApplicationFeature<ApplicationCallPipeline, Parti
                         }
                     }
                 } else {
-                    call.respond(HttpStatusCode.MethodNotAllowed.description("Method ${call.request.httpMethod.value} is not allowed with range request"))
+                    call.respond(HttpStatusCode.MethodNotAllowed.description("Method ${call.request.requestLine.method.value} is not allowed with range request"))
                 }
             } else {
                 call.respond.intercept(RespondPipeline.After) {
@@ -172,7 +172,7 @@ object PartialContentSupport : ApplicationFeature<ApplicationCallPipeline, Parti
         }
     }
 
-    private fun ApplicationCall.isGet() = request.httpMethod == HttpMethod.Get
-    private fun ApplicationCall.isGetOrHead() = isGet() || request.httpMethod == HttpMethod.Head
+    private fun ApplicationCall.isGet() = request.requestLine.method == HttpMethod.Get
+    private fun ApplicationCall.isGetOrHead() = isGet() || request.requestLine.method == HttpMethod.Head
     private fun String.parseMatchTag() = split("\\s*,\\s*".toRegex()).map { it.removePrefix("W/") }.filter { it.isNotEmpty() }.toSet()
 }
