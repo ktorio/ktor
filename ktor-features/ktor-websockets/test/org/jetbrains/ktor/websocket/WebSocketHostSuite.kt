@@ -17,7 +17,7 @@ abstract class WebSocketHostSuite : HostTestBase() {
     fun testWebSocketGenericSequence() {
         val collected = ArrayList<String>()
 
-        createAndStartServer(port) {
+        createAndStartServer() {
             webSocket("/") {
                 handle { frame ->
                     if (frame is Frame.Text) {
@@ -67,10 +67,10 @@ abstract class WebSocketHostSuite : HostTestBase() {
         assertEquals(listOf("Hello"), collected)
     }
 
-        @Test
-//    @Test(timeout = 5000L)
+//        @Test
+    @Test(timeout = 5000L)
     fun testWebSocketPingPong() {
-        createAndStartServer(port) {
+        createAndStartServer() {
             webSocket("/") {
                 pingInterval = Duration.ofMillis(50)
             }

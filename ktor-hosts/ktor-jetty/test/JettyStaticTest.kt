@@ -1,14 +1,17 @@
 package org.jetbrains.ktor.tests.jetty
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.jetty.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.tests.application.*
-import org.junit.*
 
 class JettyStaticTest : HostTestSuite() {
 
-    override fun createServer(port: Int, block: Routing.() -> Unit): ApplicationHost {
-        return embeddedJettyServer(port, application = block)
+    override fun createServer(block: Routing.() -> Unit): ApplicationHost {
+        val config = hostConfig(port, sslPort)
+        val env = applicationEnvironment {}
+
+        return embeddedJettyServer(config, env, application = block)
     }
 }

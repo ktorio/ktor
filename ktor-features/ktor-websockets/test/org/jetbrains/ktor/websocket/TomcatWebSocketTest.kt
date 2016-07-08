@@ -5,7 +5,7 @@ import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.tomcat.*
 
 class TomcatWebSocketTest : WebSocketHostSuite() {
-    override fun createServer(port: Int, block: Routing.() -> Unit): ApplicationHost {
+    override fun createServer(block: Routing.() -> Unit): ApplicationHost {
         return embeddedTomcatServer(port, application = block)
     }
 }
