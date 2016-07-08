@@ -54,6 +54,7 @@ abstract class KtorServlet : HttpServlet() {
     }
 
     override fun init() {
+        application.environment.log.info("Application initialized") // access application to ensure initialized
     }
 
     override fun destroy() {

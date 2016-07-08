@@ -11,6 +11,8 @@ interface ApplicationLifecycle {
      */
     val application : Application
 
+    fun interceptInitializeApplication(initializer: Application.() -> Unit)
+
     /**
      * Stops an application and frees any resources associated with it
      */

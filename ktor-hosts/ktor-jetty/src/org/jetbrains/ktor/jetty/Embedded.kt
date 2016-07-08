@@ -25,6 +25,10 @@ fun embeddedJettyServer(hostConfig: ApplicationHostConfig, environment: Applicat
 
     return JettyApplicationHost(hostConfig, environment, object : ApplicationLifecycle {
         override val application: Application = applicationObject
+        override fun interceptInitializeApplication(initializer: Application.() -> Unit) {
+            applicationObject.initializer()
+        }
+
         override fun dispose() {}
     })
 }

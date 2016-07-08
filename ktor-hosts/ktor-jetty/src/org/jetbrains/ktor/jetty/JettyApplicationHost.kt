@@ -67,6 +67,13 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         handler = Handler()
     }
 
+    init {
+        applicationLifecycle.interceptInitializeApplication {
+            setupDefaultHostPages()
+            install(TransformationSupport).registerDefaultHandlers()
+        }
+    }
+
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
 
     private inner class Handler : AbstractHandler() {
@@ -119,7 +126,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     override fun start(wait: Boolean) {
-        environment.log.info("Starting server...")
+        application.environment.log.info("Starting server...") // touch application to ensure initialized
 
         server.start()
         environment.log.info("Server running.")

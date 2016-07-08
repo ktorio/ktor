@@ -22,10 +22,7 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
     private val applicationClassName: String = environment.config.property("ktor.application.class").getString()
     private val watchPatterns: List<String> = environment.config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()
     private val watcher by lazy { FileSystems.getDefault().newWatchService() }
-
-    init {
-        application // eagerly create application
-    }
+    private val appInitInterceptors = ArrayList<Application.() -> Unit>()
 
     @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
     override val application: Application
@@ -58,6 +55,10 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
             }
             instance!!
         }
+
+    override fun interceptInitializeApplication(initializer: Application.() -> Unit) {
+        appInitInterceptors.add(initializer)
+    }
 
     fun ClassLoader.allURLs(): List<URL> {
         val parentUrls = parent?.allURLs() ?: emptyList()
@@ -96,6 +97,11 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
             val application = cons.newInstance(environment)
             if (application !is Application)
                 throw RuntimeException("Application class $applicationClassName should inherit from ${Application::class}")
+
+            appInitInterceptors.forEach {
+                it(application)
+            }
+
             return application
         } finally {
             currentThread.contextClassLoader = oldThreadClassLoader

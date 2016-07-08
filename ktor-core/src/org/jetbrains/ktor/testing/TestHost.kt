@@ -32,7 +32,6 @@ fun withApplication(environment: ApplicationEnvironment, test: TestApplicationHo
 fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() -> Unit) {
     val config = MapApplicationConfig(
             "ktor.deployment.environment" to "test",
-            "ktor.test.doNotSetupDefaultPages" to "true",
             "ktor.application.class" to applicationClass.jvmName
     )
     val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, SLF4JApplicationLog("ktor.test"), config)
@@ -40,7 +39,15 @@ fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() ->
 }
 
 class TestApplicationHost(val environment: ApplicationEnvironment) {
-    val application: Application = ApplicationLoader(environment, false).application
+    private val applicationLoader = ApplicationLoader(environment, false)
+
+    init {
+        applicationLoader.interceptInitializeApplication {
+            install(TransformationSupport).registerDefaultHandlers()
+        }
+    }
+
+    val application: Application = applicationLoader.application
     private val pipeline = ApplicationCallPipeline()
     private var exception : Throwable? = null
 

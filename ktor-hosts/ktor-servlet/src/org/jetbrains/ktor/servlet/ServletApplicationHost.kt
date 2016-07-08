@@ -3,8 +3,10 @@ package org.jetbrains.ktor.servlet
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.logging.*
+import org.jetbrains.ktor.transform.*
 import javax.servlet.annotation.*
 
 @MultipartConfig
@@ -28,6 +30,13 @@ open class ServletApplicationHost() : KtorServlet() {
         val applicationConfig = HoconApplicationConfig(combinedConfig)
         val applicationEnvironment = BasicApplicationEnvironment(servletContext.classLoader, applicationLog, applicationConfig)
         ApplicationLoader(applicationEnvironment, false)
+    }
+
+    init {
+        loader.interceptInitializeApplication {
+            setupDefaultHostPages()
+            install(TransformationSupport).registerDefaultHandlers()
+        }
     }
 
     override val application: Application get() = loader.application

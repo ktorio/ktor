@@ -3,8 +3,10 @@ package org.jetbrains.ktor.tomcat
 import org.apache.catalina.connector.*
 import org.apache.catalina.startup.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.servlet.*
+import org.jetbrains.ktor.transform.*
 import java.nio.file.*
 import javax.servlet.*
 
@@ -70,8 +72,15 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     }
 
+    init {
+        applicationLifecycle.interceptInitializeApplication {
+            setupDefaultHostPages()
+            install(TransformationSupport).registerDefaultHandlers()
+        }
+    }
+
     override fun start(wait: Boolean) {
-        config.log.info("Starting server...")
+        application.environment.log.info("Starting server...") // touch application to ensure initialized
         server.start()
         config.log.info("Server started")
 

@@ -24,6 +24,9 @@ fun embeddedTomcatServer(hostConfig: ApplicationHostConfig, environment: Applica
     }
     return TomcatApplicationHost(hostConfig, environment, object : ApplicationLifecycle {
         override val application: Application = applicationObject
+        override fun interceptInitializeApplication(initializer: Application.() -> Unit) {
+            applicationObject.initializer()
+        }
         override fun dispose() {}
     })
 }
