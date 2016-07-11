@@ -43,9 +43,9 @@ val ApplicationRequest.originRoute: RequestSocketRoute
         }
     }
 
-private fun ApplicationRequest.xForwardedHost() = headers["X-Forwarded-Host"]
-private fun ApplicationRequest.xForwardedProto() = headers["X-Forwarded-Proto"]
-private fun ApplicationRequest.xForwardedFor() = headers["X-Forwarded-For"]
+private fun ApplicationRequest.xForwardedHost() = headers[HttpHeaders.XForwardedHost]
+private fun ApplicationRequest.xForwardedProto() = headers[HttpHeaders.XForwardedProto]
+private fun ApplicationRequest.xForwardedFor() = headers[HttpHeaders.XForwardedFor]
 
 // See RFC 7239 https://tools.ietf.org/html/rfc7239
 data class ForwardedHeaderValue(val host: String?, val by: String?, val forParam: String?, val proto: String?, val others: Map<String, String>)

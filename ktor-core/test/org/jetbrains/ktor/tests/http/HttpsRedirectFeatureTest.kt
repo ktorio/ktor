@@ -41,7 +41,7 @@ class HttpsRedirectFeatureTest {
 
 
             handleRequest(HttpMethod.Get, "/", {
-                addHeader("X-Forwarded-Proto", "https")
+                addHeader(HttpHeaders.XForwardedProto, "https")
             }).let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
             }

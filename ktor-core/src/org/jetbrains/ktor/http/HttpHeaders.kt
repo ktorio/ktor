@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.http
 
-public object HttpHeaders {
+@Suppress("unused")
+object HttpHeaders {
     // Permanently registered standard HTTP headers
     // The list is taken from http://www.iana.org/assignments/message-headers/message-headers.xml#perm-headers
 
@@ -98,5 +99,8 @@ public object HttpHeaders {
 
     // Unofficial de-facto headers
     val XHttpMethodOverride = "X-Http-Method-Override"
+    val XForwardedHost = "X-Forwarded-Host"
+    val XForwardedProto = "X-Forwarded-Proto"
+    val XForwardedFor = "X-Forwarded-For"
 }
 

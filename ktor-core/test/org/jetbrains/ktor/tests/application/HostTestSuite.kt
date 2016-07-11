@@ -659,29 +659,29 @@ abstract class HostTestSuite : HostTestBase() {
         }
 
         withUrl("/") { port ->
-            setRequestProperty("X-Forwarded-Host", "my-host:90")
+            setRequestProperty(HttpHeaders.XForwardedHost, "my-host:90")
 
             val expectedProto = if (port == sslPort) "https" else "http"
             assertEquals("$expectedProto://my-host:90/", inputStream.reader().readText())
         }
 
         withUrl("/") { port ->
-            setRequestProperty("X-Forwarded-Host", "my-host")
+            setRequestProperty(HttpHeaders.XForwardedHost, "my-host")
 
             val expectedProto = if (port == sslPort) "https" else "http"
             assertEquals("$expectedProto://my-host/", inputStream.reader().readText())
         }
 
         withUrl("/") {
-            setRequestProperty("X-Forwarded-Host", "my-host:90")
-            setRequestProperty("X-Forwarded-Proto", "https")
+            setRequestProperty(HttpHeaders.XForwardedHost, "my-host:90")
+            setRequestProperty(HttpHeaders.XForwardedProto, "https")
 
             assertEquals("https://my-host:90/", inputStream.reader().readText())
         }
 
         withUrl("/") {
-            setRequestProperty("X-Forwarded-Host", "my-host")
-            setRequestProperty("X-Forwarded-Proto", "https")
+            setRequestProperty(HttpHeaders.XForwardedHost, "my-host")
+            setRequestProperty(HttpHeaders.XForwardedProto, "https")
 
             assertEquals("https://my-host/", inputStream.reader().readText())
         }

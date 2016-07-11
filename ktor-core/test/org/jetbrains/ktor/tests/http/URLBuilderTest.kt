@@ -161,7 +161,7 @@ class URLBuilderTest {
             }
 
             handleRequest(HttpMethod.Get, "/") {
-                addHeader("X-Forwarded-Host", "special-host:90")
+                addHeader(HttpHeaders.XForwardedHost, "special-host:90")
             }
         }
     }
@@ -174,8 +174,8 @@ class URLBuilderTest {
             }
 
             handleRequest(HttpMethod.Get, "/") {
-                addHeader("X-Forwarded-Host", "special-host:90")
-                addHeader("X-Forwarded-Proto", "https")
+                addHeader(HttpHeaders.XForwardedHost, "special-host:90")
+                addHeader(HttpHeaders.XForwardedProto, "https")
             }
         }
     }
@@ -188,8 +188,8 @@ class URLBuilderTest {
             }
 
             handleRequest(HttpMethod.Get, "/") {
-                addHeader("X-Forwarded-Host", "special-host")
-                addHeader("X-Forwarded-Proto", "https")
+                addHeader(HttpHeaders.XForwardedHost, "special-host")
+                addHeader(HttpHeaders.XForwardedProto, "https")
             }
         }
     }
@@ -202,8 +202,8 @@ class URLBuilderTest {
             }
 
             handleRequest(HttpMethod.Get, "/") {
-                addHeader("X-Forwarded-Host", "special-host:443")
-                addHeader("X-Forwarded-Proto", "https")
+                addHeader(HttpHeaders.XForwardedHost, "special-host:443")
+                addHeader(HttpHeaders.XForwardedProto, "https")
             }
         }
     }

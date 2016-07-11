@@ -54,7 +54,7 @@ class OriginRouteTest {
             }
 
             handleRequest(HttpMethod.Get, "/") {
-                addHeader("X-Forwarded-For", "client, proxy")
+                addHeader(HttpHeaders.XForwardedFor, "client, proxy")
             }
         }
     }
@@ -76,7 +76,7 @@ class OriginRouteTest {
             }
 
             handleRequest(HttpMethod.Get, "/") {
-                addHeader("X-Forwarded-Host", "host")
+                addHeader(HttpHeaders.XForwardedHost, "host")
             }
         }
     }
@@ -98,7 +98,7 @@ class OriginRouteTest {
             }
 
             handleRequest(HttpMethod.Get, "/") {
-                addHeader("X-Forwarded-Host", "host:90")
+                addHeader(HttpHeaders.XForwardedHost, "host:90")
             }
         }
     }
@@ -120,7 +120,7 @@ class OriginRouteTest {
             }
 
             handleRequest(HttpMethod.Get, "/") {
-                addHeader("X-Forwarded-Proto", "https")
+                addHeader(HttpHeaders.XForwardedProto, "https")
             }
         }
     }
@@ -142,8 +142,8 @@ class OriginRouteTest {
             }
 
             handleRequest(HttpMethod.Get, "/") {
-                addHeader("X-Forwarded-Proto", "https")
-                addHeader("X-Forwarded-Host", "host:90")
+                addHeader(HttpHeaders.XForwardedProto, "https")
+                addHeader(HttpHeaders.XForwardedHost, "host:90")
             }
         }
     }
@@ -165,8 +165,8 @@ class OriginRouteTest {
             }
 
             handleRequest(HttpMethod.Get, "/") {
-                addHeader("X-Forwarded-Proto", "https")
-                addHeader("X-Forwarded-Host", "host")
+                addHeader(HttpHeaders.XForwardedProto, "https")
+                addHeader(HttpHeaders.XForwardedHost, "host")
             }
         }
     }

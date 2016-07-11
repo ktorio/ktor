@@ -29,14 +29,14 @@ class HSTSTest {
             application.testApp()
 
             handleRequest(HttpMethod.Get, "/", {
-                addHeader("X-Forwarded-Proto", "https")
-                addHeader("X-Forwarded-Host", "some")
+                addHeader(HttpHeaders.XForwardedProto, "https")
+                addHeader(HttpHeaders.XForwardedHost, "some")
             }).let { call ->
                 assertEquals("max-age=10; includeSubDomains; preload; some=\"va=lue\"", call.response.headers[HttpHeaders.StrictTransportSecurity])
             }
 
             handleRequest(HttpMethod.Get, "/", {
-                addHeader("X-Forwarded-Proto", "https")
+                addHeader(HttpHeaders.XForwardedProto, "https")
             }).let { call ->
                 assertEquals("max-age=10; includeSubDomains; preload; some=\"va=lue\"", call.response.headers[HttpHeaders.StrictTransportSecurity])
             }
@@ -49,8 +49,8 @@ class HSTSTest {
             application.testApp()
 
             handleRequest(HttpMethod.Get, "/", {
-                addHeader("X-Forwarded-Proto", "https")
-                addHeader("X-Forwarded-Host", "some:8443")
+                addHeader(HttpHeaders.XForwardedProto, "https")
+                addHeader(HttpHeaders.XForwardedHost, "some:8443")
             }).let { call ->
                 assertNull(call.response.headers[HttpHeaders.StrictTransportSecurity])
             }
@@ -66,7 +66,7 @@ class HSTSTest {
             }
 
             handleRequest(HttpMethod.Get, "/", {
-                addHeader("X-Forwarded-Proto", "https")
+                addHeader(HttpHeaders.XForwardedProto, "https")
             }).let { call ->
                 assertEquals("max-age=10; includeSubDomains; preload; some", call.response.headers[HttpHeaders.StrictTransportSecurity])
             }
@@ -81,7 +81,7 @@ class HSTSTest {
             }
 
             handleRequest(HttpMethod.Get, "/", {
-                addHeader("X-Forwarded-Proto", "https")
+                addHeader(HttpHeaders.XForwardedProto, "https")
             }).let { call ->
                 assertEquals("max-age=10; includeSubDomains; preload", call.response.headers[HttpHeaders.StrictTransportSecurity])
             }
@@ -98,7 +98,7 @@ class HSTSTest {
             }
 
             handleRequest(HttpMethod.Get, "/", {
-                addHeader("X-Forwarded-Proto", "https")
+                addHeader(HttpHeaders.XForwardedProto, "https")
             }).let { call ->
                 assertEquals("max-age=10", call.response.headers[HttpHeaders.StrictTransportSecurity])
             }
