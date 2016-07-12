@@ -5,6 +5,7 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.request.*
 
 fun ApplicationCallPipeline.setupDefaultHostPages(
         HostInfrastructurePhase: PipelinePhase = PipelinePhase("host-infrastructure"),
@@ -18,6 +19,6 @@ fun ApplicationCallPipeline.setupDefaultHostPages(
     }
 
     intercept(HostFallbackPhase) { call ->
-        call.respond(HttpStatusContent(HttpStatusCode.NotFound, "Not found: ${call.request.requestLine.uri}\n"))
+        call.respond(HttpStatusContent(HttpStatusCode.NotFound, "Not found: ${call.request.path()}\n"))
     }
 }

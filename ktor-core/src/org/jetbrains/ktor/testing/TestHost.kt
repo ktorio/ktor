@@ -137,22 +137,24 @@ class TestApplicationCall(application: Application, override val request: TestAp
     }
 }
 
-class TestApplicationRequest(override var requestLine: HttpRequestLine = HttpRequestLine(HttpMethod.Get, "/", "HTTP/1.1")) : ApplicationRequest {
+class TestApplicationRequest(
+        var method: HttpMethod = HttpMethod.Get,
+        var uri: String = "/",
+        var version: String = "HTTP/1.1"
+        ) : ApplicationRequest {
+
+    @Deprecated("Use primary constructor instead as HttpRequestLine is deprecated")
+    constructor(requestLine: HttpRequestLine) : this(requestLine.method, requestLine.uri, requestLine.version)
+
     var protocol: String = "http"
 
-    var uri: String
-        get() = requestLine.uri
-        set(value) {
-            requestLine = requestLine.copy(uri = value)
-        }
+    override val localRoute = object : RequestSocketRoute {
+        override val uri: String
+            get() = this@TestApplicationRequest.uri
 
-    var method: HttpMethod
-        get() = requestLine.method
-        set(value) {
-            requestLine = requestLine.copy(method = value)
-        }
+        override val method: HttpMethod
+            get() = this@TestApplicationRequest.method
 
-    override val actualRoute = object : RequestSocketRoute {
         override val scheme: String
             get() = protocol
 
@@ -164,6 +166,9 @@ class TestApplicationRequest(override var requestLine: HttpRequestLine = HttpReq
 
         override val remoteHost: String
             get() = "localhost"
+
+        override val version: String
+            get() = this@TestApplicationRequest.version
     }
 
     var bodyBytes: ByteArray = ByteArray(0)

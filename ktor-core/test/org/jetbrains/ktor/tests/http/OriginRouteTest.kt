@@ -15,7 +15,7 @@ class OriginRouteTest {
         withTestApplication {
             application.routing {
                 get("/") {
-                    with(call.request.actualRoute) {
+                    with(call.request.localRoute) {
                         assertEquals("localhost", host)
                         assertEquals(80, port)
                         assertEquals("localhost", remoteHost)

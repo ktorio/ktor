@@ -2,6 +2,7 @@ package org.jetbrains.ktor.features.http
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.util.*
 
@@ -10,10 +11,20 @@ val ApplicationRequest.originRoute: RequestSocketRoute
         private val forwarded by lazy { forwarded() }
         private val xForwardedHost by lazy { xForwardedHost() }
 
+        override val version: String
+            get() = localRoute.version
+
+        override val uri: String
+            get() = localRoute.uri
+
+        override val method: HttpMethod
+            get() = header(HttpHeaders.XHttpMethodOverride)?.let { HttpMethod.parse(it) }
+                    ?: localRoute.method
+
         override val scheme: String by lazy {
             forwarded?.firstOrNull()?.proto
                     ?: xForwardedProto()
-                    ?: actualRoute.scheme
+                    ?: localRoute.scheme
         }
 
         override val port: Int by lazy {
@@ -21,18 +32,18 @@ val ApplicationRequest.originRoute: RequestSocketRoute
                     ?: xForwardedHost?.port()
                     ?: forwarded?.firstOrNull()?.proto?.let { it.port() }
                     ?: xForwardedProto()?.let { it.port() }
-                    ?: actualRoute.port
+                    ?: localRoute.port
         }
 
         override val host: String
             get() = forwarded?.firstOrNull()?.host?.substringBefore(":")
                     ?: xForwardedHost?.substringBefore(":")
-                    ?: actualRoute.host
+                    ?: localRoute.host
 
         override val remoteHost: String
             get() = forwarded?.firstOrNull()?.forParam
                     ?: xForwardedFor()?.split(",")?.first()?.trim()
-                    ?: actualRoute.remoteHost
+                    ?: localRoute.remoteHost
 
         private fun String.port() = substringAfterLast(":", "").let {
             if (it.isNotEmpty()) {

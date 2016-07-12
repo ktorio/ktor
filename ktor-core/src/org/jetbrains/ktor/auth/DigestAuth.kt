@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
@@ -49,7 +50,7 @@ fun AuthenticationProcedure.digestAuthentication(
         }
 
         val principal = credentials?.let {
-            if ((it.algorithm ?: "MD5") == digestAlgorithm && it.verify(context.call.request.requestLine.method, digester, userNameRealmPasswordDigestProvider))
+            if ((it.algorithm ?: "MD5") == digestAlgorithm && it.verify(context.call.request.localRoute.method, digester, userNameRealmPasswordDigestProvider))
                 UserIdPrincipal(it.userName)
             else
                 null

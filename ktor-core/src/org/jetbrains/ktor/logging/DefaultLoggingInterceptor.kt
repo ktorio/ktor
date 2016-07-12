@@ -4,6 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 
 object CallLogging : ApplicationFeature<Application, Unit> {
@@ -21,13 +22,15 @@ object CallLogging : ApplicationFeature<Application, Unit> {
     private fun Application.logCallFinished(call: ApplicationCall) {
         val status = call.response.status()
         when (status) {
-            HttpStatusCode.Found -> environment.log.trace("$status: ${call.request.requestLine} -> ${call.response.headers[HttpHeaders.Location]}")
-            else -> environment.log.trace("$status: ${call.request.requestLine}")
+            HttpStatusCode.Found -> environment.log.trace("$status: ${call.request.logInfo()} -> ${call.response.headers[HttpHeaders.Location]}")
+            else -> environment.log.trace("$status: ${call.request.logInfo()}")
         }
     }
 
     private fun Application.logCallFailed(call: ApplicationCall, e: Throwable) {
         val status = call.response.status()
-        environment.log.error("$status: ${call.request.requestLine}", e)
+        environment.log.error("$status: ${call.request.logInfo()}", e)
     }
+
+    private fun ApplicationRequest.logInfo() = "$httpMethod - ${path()}"
 }

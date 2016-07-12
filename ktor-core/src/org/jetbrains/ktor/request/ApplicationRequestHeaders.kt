@@ -1,18 +1,18 @@
 package org.jetbrains.ktor.request
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.nio.charset.*
 
 fun ApplicationRequest.header(name: String): String? = headers[name]
-fun ApplicationRequest.queryString(): String = requestLine.queryString()
+fun ApplicationRequest.queryString(): String = originRoute.uri.substringAfter('?', "")
 fun ApplicationRequest.queryParameters(): ValuesMap = parseQueryString(queryString())
 fun ApplicationRequest.contentType(): ContentType = header(HttpHeaders.ContentType)?.let { ContentType.parse(it) } ?: ContentType.Any
 fun ApplicationRequest.contentCharset(): Charset? = contentType().charset()
-fun ApplicationRequest.document(): String = requestLine.document()
-fun ApplicationRequest.path(): String = requestLine.path()
+fun ApplicationRequest.document(): String = path().substringAfterLast('/')
+fun ApplicationRequest.path(): String = originRoute.uri.substringBefore('?')
 fun ApplicationRequest.authorization(): String? = header(HttpHeaders.Authorization)
 fun ApplicationRequest.location(): String? = header(HttpHeaders.Location)
 fun ApplicationRequest.accept(): String? = header(HttpHeaders.Accept)

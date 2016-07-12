@@ -10,10 +10,10 @@ import kotlin.test.*
 
 fun routing() = Route(parent = null, selector = Routing.RootRouteSelector)
 fun context(routing: Route, path: String, parameters: ValuesMap = ValuesMap.Empty)
-        = RoutingResolveContext(routing, TestApplicationCall(createTestHost().application, TestApplicationRequest(HttpRequestLine(HttpMethod.Companion.Get, path, "HTTP/1.1"))), parameters)
+        = RoutingResolveContext(routing, TestApplicationCall(createTestHost().application, TestApplicationRequest(HttpMethod.Companion.Get, path)), parameters)
 
 fun context(routing: Route, path: String, parameters: ValuesMap = ValuesMap.Empty, headers: ValuesMap = ValuesMap.Empty)
-        = RoutingResolveContext(routing, TestApplicationCall(createTestHost().application, TestApplicationRequest(HttpRequestLine(HttpMethod.Companion.Get, path, "HTTP/1.1")).apply {
+        = RoutingResolveContext(routing, TestApplicationCall(createTestHost().application, TestApplicationRequest(HttpMethod.Companion.Get, path).apply {
     headers.flattenEntries().forEach { addHeader(it.first, it.second) }
 }), parameters, headers)
 

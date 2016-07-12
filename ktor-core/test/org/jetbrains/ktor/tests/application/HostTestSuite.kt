@@ -687,5 +687,64 @@ abstract class HostTestSuite : HostTestBase() {
         }
     }
 
+
+    @Test
+    fun testHostRequestParts() {
+        createAndStartServer {
+            get("/path/1") {
+                call.respond(call.request.path())
+            }
+            get("/document/1") {
+                call.respond(call.request.document())
+            }
+            get("/queryString/1") {
+                call.respond(call.request.queryString())
+            }
+            get("/uri/1") {
+                call.respond(call.request.uri)
+            }
+        }
+
+        withUrl("/path/1?p=v") {
+            assertEquals("/path/1", inputStream.reader().readText())
+        }
+        withUrl("/path/1?") {
+            assertEquals("/path/1", inputStream.reader().readText())
+        }
+        withUrl("/path/1") {
+            assertEquals("/path/1", inputStream.reader().readText())
+        }
+
+        withUrl("/document/1?p=v") {
+            assertEquals("1", inputStream.reader().readText())
+        }
+        withUrl("/document/1?") {
+            assertEquals("1", inputStream.reader().readText())
+        }
+        withUrl("/document/1") {
+            assertEquals("1", inputStream.reader().readText())
+        }
+
+        withUrl("/queryString/1?p=v") {
+            assertEquals("p=v", inputStream.reader().readText())
+        }
+        withUrl("/queryString/1?") {
+            assertEquals("", inputStream.reader().readText())
+        }
+        withUrl("/queryString/1") {
+            assertEquals("", inputStream.reader().readText())
+        }
+
+        withUrl("/uri/1?p=v") {
+            assertEquals("/uri/1?p=v", inputStream.reader().readText())
+        }
+        withUrl("/uri/1?") {
+            assertEquals("/uri/1?", inputStream.reader().readText())
+        }
+        withUrl("/uri/1") {
+            assertEquals("/uri/1", inputStream.reader().readText())
+        }
+    }
+
     private fun String.urlPath() = replace("\\", "/")
 }

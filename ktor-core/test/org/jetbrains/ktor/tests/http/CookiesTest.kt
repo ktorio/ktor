@@ -149,7 +149,6 @@ class CookiesTest {
         withTestApplication {
             application.routing {
                 get("/*") {
-                    println(call.request.actualRoute.scheme)
                     call.response.cookies.append("S", "secret", secure = true)
                     call.respond("ok")
                 }

@@ -1,20 +1,14 @@
 package org.jetbrains.ktor.netty
 
-import com.sun.net.httpserver.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.cookie.*
 import io.netty.handler.codec.http.multipart.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.request.*
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.http.HttpHeaders
-import org.jetbrains.ktor.http.HttpMethod
 import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.io.*
-import java.net.*
 import java.util.*
 import java.util.concurrent.atomic.*
 
@@ -27,33 +21,16 @@ internal class NettyApplicationRequest(private val request: HttpRequest,
         ValuesMap.build(caseInsensitiveKey = true) { request.headers().forEach { append(it.key, it.value) } }
     }
 
-    override val requestLine: HttpRequestLine by lazy {
-        HttpRequestLine(HttpMethod.parse(request.method.name()), request.uri, request.protocolVersion.text())
-    }
-
     override val parameters: ValuesMap by lazy {
         ValuesMap.build {
-            QueryStringDecoder(request.uri).parameters().forEach {
+            QueryStringDecoder(request.uri()).parameters().forEach {
                 appendAll(it.key, it.value)
             }
             appendAll(urlEncodedParameters())
         }
     }
 
-    override val actualRoute: RequestSocketRoute by lazy { object : RequestSocketRoute {
-        override val scheme by lazy { if (context.pipeline().context("ssl") == null) "http" else "https" }
-
-        override val host: String
-            get() = header(HttpHeaders.Host)?.substringBefore(":")
-                    ?: (context.channel().localAddress() as? InetSocketAddress)?.hostString
-                    ?: "localhost"
-
-        override val port: Int
-            get() = (context.channel().localAddress() as? InetSocketAddress)?.port ?: 80
-
-        override val remoteHost: String
-            get() = (context.channel().remoteAddress() as? InetSocketAddress)?.hostString ?: "unknown"
-    } }
+    override val localRoute = NettyRoute(request, context)
 
     private val contentChannelState = AtomicReference<ReadChannelState>(ReadChannelState.NEUTRAL)
     private val multipart = lazy {

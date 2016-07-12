@@ -10,27 +10,7 @@ import java.io.*
 import javax.servlet.http.*
 
 class ServletApplicationRequest(val call: ServletApplicationCall, val servletRequest: HttpServletRequest) : ApplicationRequest {
-    override val requestLine: HttpRequestLine by lazy {
-        val uri = servletRequest.requestURI
-        val query = servletRequest.queryString
-        HttpRequestLine(HttpMethod.parse(servletRequest.method),
-                if (query == null) uri else "$uri?$query",
-                servletRequest.protocol)
-    }
-
-    override val actualRoute: RequestSocketRoute = object : RequestSocketRoute {
-        override val scheme: String
-            get() = servletRequest.scheme ?: "http"
-
-        override val port: Int
-            get() = servletRequest.serverPort
-
-        override val host: String
-            get() = servletRequest.serverName ?: "localhost"
-
-        override val remoteHost: String
-            get() = servletRequest.remoteHost
-    }
+    override val localRoute: RequestSocketRoute = ServletRoute(servletRequest)
 
     override val parameters: ValuesMap by lazy {
         object : ValuesMap {

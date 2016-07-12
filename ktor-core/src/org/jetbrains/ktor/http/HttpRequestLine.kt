@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.http
 
+@Deprecated("Use localRoute or originRoute instead")
 data class HttpRequestLine(val method: HttpMethod,
                                   val uri: String,
                                   val version: String
@@ -8,8 +9,3 @@ data class HttpRequestLine(val method: HttpMethod,
         return "$version - ${method.value} $uri"
     }
 }
-
-fun HttpRequestLine.path(): String = uri.substringBefore("?")
-fun HttpRequestLine.queryString(): String = uri.substringAfter('?', "")
-fun HttpRequestLine.document(): String = uri.substringAfterLast('/', "").substringBefore('?')
-

@@ -11,7 +11,9 @@ interface ApplicationRequest {
     /**
      * HTTP request line
      */
+    @Deprecated("Use localRoute or originRoute instead")
     val requestLine: HttpRequestLine
+        get() = HttpRequestLine(localRoute.method, localRoute.uri, localRoute.version)
 
     /**
      * Parameters for this request
@@ -23,7 +25,7 @@ interface ApplicationRequest {
      */
     val headers: ValuesMap
 
-    val actualRoute: RequestSocketRoute
+    val localRoute: RequestSocketRoute
 
     /**
      * Cookies for this request
