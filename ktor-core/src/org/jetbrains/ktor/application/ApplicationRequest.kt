@@ -8,6 +8,9 @@ import org.jetbrains.ktor.util.*
  * Represents client's request
  */
 interface ApplicationRequest {
+
+    val call: ApplicationCall
+
     /**
      * HTTP request line
      */

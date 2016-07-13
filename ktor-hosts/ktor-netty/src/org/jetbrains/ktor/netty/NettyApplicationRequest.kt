@@ -12,11 +12,13 @@ import java.io.*
 import java.util.*
 import java.util.concurrent.atomic.*
 
-internal class NettyApplicationRequest(private val request: HttpRequest,
-                                       private val bodyConsumed: Boolean,
-                                       val urlEncodedParameters: () -> ValuesMap,
-                                       val context: ChannelHandlerContext,
-                                       val drops: LastDropsCollectorHandler?) : ApplicationRequest, Closeable {
+internal class NettyApplicationRequest(
+        override val call: ApplicationCall,
+        private val request: HttpRequest,
+        private val bodyConsumed: Boolean,
+        val urlEncodedParameters: () -> ValuesMap,
+        val context: ChannelHandlerContext,
+        val drops: LastDropsCollectorHandler?) : ApplicationRequest, Closeable {
     override val headers by lazy {
         ValuesMap.build(caseInsensitiveKey = true) { request.headers().forEach { append(it.key, it.value) } }
     }

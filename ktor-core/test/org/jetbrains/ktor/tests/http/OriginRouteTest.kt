@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
@@ -13,6 +14,7 @@ class OriginRouteTest {
     @Test
     fun testDirectRequest() {
         withTestApplication {
+            application.install(XForwardedHeadersSupport)
             application.routing {
                 get("/") {
                     with(call.request.localRoute) {
@@ -40,6 +42,7 @@ class OriginRouteTest {
     @Test
     fun testProxyXForwardedFor() {
         withTestApplication {
+            application.install(XForwardedHeadersSupport)
             application.routing {
                 get("/") {
                     with(call.request.originRoute) {
@@ -62,6 +65,7 @@ class OriginRouteTest {
     @Test
     fun testProxyXForwardedHostNoPort() {
         withTestApplication {
+            application.install(XForwardedHeadersSupport)
             application.routing {
                 get("/") {
                     with(call.request.originRoute) {
@@ -84,6 +88,7 @@ class OriginRouteTest {
     @Test
     fun testProxyXForwardedHostWithPort() {
         withTestApplication {
+            application.install(XForwardedHeadersSupport)
             application.routing {
                 get("/") {
                     with(call.request.originRoute) {
@@ -106,6 +111,7 @@ class OriginRouteTest {
     @Test
     fun testProxyXForwardedScheme() {
         withTestApplication {
+            application.install(XForwardedHeadersSupport)
             application.routing {
                 get("/") {
                     with(call.request.originRoute) {
@@ -128,6 +134,7 @@ class OriginRouteTest {
     @Test
     fun testProxyXForwardedSchemeWithPort() {
         withTestApplication {
+            application.install(XForwardedHeadersSupport)
             application.routing {
                 get("/") {
                     with(call.request.originRoute) {
@@ -151,6 +158,7 @@ class OriginRouteTest {
     @Test
     fun testProxyXForwardedSchemeNoPort() {
         withTestApplication {
+            application.install(XForwardedHeadersSupport)
             application.routing {
                 get("/") {
                     with(call.request.originRoute) {
@@ -174,6 +182,7 @@ class OriginRouteTest {
     @Test
     fun testProxyForwardedPerRFCWithHost() {
         withTestApplication {
+            application.install(ForwardedHeaderSupport)
             application.routing {
                 get("/") {
                     with(call.request.originRoute) {
@@ -196,6 +205,7 @@ class OriginRouteTest {
     @Test
     fun testProxyForwardedPerRFCWithHostAndPort() {
         withTestApplication {
+            application.install(ForwardedHeaderSupport)
             application.routing {
                 get("/") {
                     with(call.request.originRoute) {
@@ -218,6 +228,7 @@ class OriginRouteTest {
     @Test
     fun testProxyForwardedPerRFCWithHostAndProto() {
         withTestApplication {
+            application.install(ForwardedHeaderSupport)
             application.routing {
                 get("/") {
                     with(call.request.originRoute) {
@@ -240,6 +251,7 @@ class OriginRouteTest {
     @Test
     fun testProxyForwardedPerRFCNoHost() {
         withTestApplication {
+            application.install(ForwardedHeaderSupport)
             application.routing {
                 get("/") {
                     with(call.request.originRoute) {
@@ -262,6 +274,7 @@ class OriginRouteTest {
     @Test
     fun testProxyForwardedPerRFCWithHostMultiple() {
         withTestApplication {
+            application.install(ForwardedHeaderSupport)
             application.routing {
                 get("/") {
                     with(call.request.originRoute) {

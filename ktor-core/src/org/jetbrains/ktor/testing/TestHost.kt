@@ -13,6 +13,7 @@ import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.concurrent.*
+import kotlin.properties.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
@@ -117,6 +118,10 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
 }
 
 class TestApplicationCall(application: Application, override val request: TestApplicationRequest) : BaseApplicationCall(application) {
+    init {
+        request.call = this
+    }
+
     internal val latch = CountDownLatch(1)
     override val parameters: ValuesMap get() = request.parameters
 
@@ -147,6 +152,7 @@ class TestApplicationRequest(
     constructor(requestLine: HttpRequestLine) : this(requestLine.method, requestLine.uri, requestLine.version)
 
     var protocol: String = "http"
+    override var call: ApplicationCall by Delegates.notNull()
 
     override val localRoute = object : RequestSocketRoute {
         override val uri: String

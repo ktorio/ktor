@@ -653,6 +653,7 @@ abstract class HostTestSuite : HostTestBase() {
     @Test
     fun testProxyHeaders() {
         createAndStartServer() {
+            install(XForwardedHeadersSupport)
             get("/") {
                 call.respond(call.url {  })
             }

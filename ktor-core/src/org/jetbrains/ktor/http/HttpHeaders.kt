@@ -100,6 +100,7 @@ object HttpHeaders {
     // Unofficial de-facto headers
     val XHttpMethodOverride = "X-Http-Method-Override"
     val XForwardedHost = "X-Forwarded-Host"
+    val XForwardedServer = "X-Forwarded-Server"
     val XForwardedProto = "X-Forwarded-Proto"
     val XForwardedFor = "X-Forwarded-For"
 }

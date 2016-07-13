@@ -32,6 +32,7 @@ class HttpsRedirectFeatureTest {
     @Test
     fun testRedirectHttps() {
         withTestApplication {
+            application.install(XForwardedHeadersSupport)
             application.install(HttpsRedirectFeature)
             application.routing {
                 get("/") {

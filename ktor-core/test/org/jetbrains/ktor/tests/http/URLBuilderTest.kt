@@ -2,6 +2,8 @@ package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
+import org.jetbrains.ktor.features.*
+import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
@@ -156,6 +158,7 @@ class URLBuilderTest {
     @Test
     fun testWithProxy() {
         withTestApplication {
+            application.install(XForwardedHeadersSupport)
             application.intercept(ApplicationCallPipeline.Call) { call ->
                 assertEquals("http://special-host:90/", call.url())
             }
@@ -169,6 +172,7 @@ class URLBuilderTest {
     @Test
     fun testWithProxyHttps() {
         withTestApplication {
+            application.install(XForwardedHeadersSupport)
             application.intercept(ApplicationCallPipeline.Call) { call ->
                 assertEquals("https://special-host:90/", call.url())
             }
@@ -183,6 +187,7 @@ class URLBuilderTest {
     @Test
     fun testWithProxyHttpsDefaultPort() {
         withTestApplication {
+            application.install(XForwardedHeadersSupport)
             application.intercept(ApplicationCallPipeline.Call) { call ->
                 assertEquals("https://special-host/", call.url())
             }
@@ -197,6 +202,7 @@ class URLBuilderTest {
     @Test
     fun testWithProxyHttpsWithPortEqualToDefault() {
         withTestApplication {
+            application.install(XForwardedHeadersSupport)
             application.intercept(ApplicationCallPipeline.Call) { call ->
                 assertEquals("https://special-host/", call.url())
             }

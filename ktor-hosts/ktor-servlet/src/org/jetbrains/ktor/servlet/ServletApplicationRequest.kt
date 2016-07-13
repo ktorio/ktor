@@ -9,7 +9,7 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import javax.servlet.http.*
 
-class ServletApplicationRequest(val call: ServletApplicationCall, val servletRequest: HttpServletRequest) : ApplicationRequest {
+class ServletApplicationRequest(override val call: ServletApplicationCall, val servletRequest: HttpServletRequest) : ApplicationRequest {
     override val localRoute: RequestSocketRoute = ServletRoute(servletRequest)
 
     override val parameters: ValuesMap by lazy {

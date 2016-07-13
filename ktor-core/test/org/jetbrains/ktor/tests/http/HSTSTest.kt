@@ -106,6 +106,7 @@ class HSTSTest {
     }
 
     private fun Application.testApp(block: HSTS.HSTSConfig.() -> Unit = {}) {
+        install(XForwardedHeadersSupport)
         install(HSTS) {
             maxAge = Duration.ofSeconds(10L)
             includeSubDomains = true
