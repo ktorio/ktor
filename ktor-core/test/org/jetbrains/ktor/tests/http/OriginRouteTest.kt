@@ -180,6 +180,27 @@ class OriginRouteTest {
     }
 
     @Test
+    fun testProxyXForwardedHttpsFlagOn() {
+        withTestApplication {
+            application.install(XForwardedHeadersSupport)
+            application.routing {
+                get("/") {
+                    with(call.request.originRoute) {
+                        assertEquals(443, port)
+                        assertEquals("https", scheme)
+                    }
+
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader("X-Forwarded-SSL", "on")
+            }
+        }
+    }
+
+    @Test
     fun testProxyForwardedPerRFCWithHost() {
         withTestApplication {
             application.install(ForwardedHeaderSupport)

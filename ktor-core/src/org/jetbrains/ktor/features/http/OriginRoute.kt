@@ -33,8 +33,19 @@ object XForwardedHeadersSupport : ApplicationFeature<ApplicationCallPipeline, XF
             call.forEachHeader(config.protoHeaders) { value ->
                 call.mutableOriginRoute.let { route ->
                     route.scheme = value
-                    URLProtocol.byName[route.scheme]?.let {
+                    URLProtocol.byName[value]?.let {
                         route.port = it.defaultPort
+                    }
+                }
+            }
+
+            call.forEachHeader(config.httpsFlagHeaders) { value ->
+                if (value.toBoolean()) {
+                    call.mutableOriginRoute.let { route ->
+                        route.scheme = "https"
+                        URLProtocol.byName[route.scheme]?.let {
+                            route.port = it.defaultPort
+                        }
                     }
                 }
             }
@@ -64,10 +75,13 @@ object XForwardedHeadersSupport : ApplicationFeature<ApplicationCallPipeline, XF
         return config
     }
 
+    private fun String.toBoolean() = this == "yes" || this == "true" || this == "on"
+
     class Config {
         val hostHeaders = arrayListOf(HttpHeaders.XForwardedHost, HttpHeaders.XForwardedServer)
         val protoHeaders = arrayListOf(HttpHeaders.XForwardedProto, "X-Forwarded-Protocol")
         val forHeaders = arrayListOf(HttpHeaders.XForwardedFor)
+        val httpsFlagHeaders = arrayListOf("X-Forwarded-SSL", "Front-End-Https")
     }
 }
 
