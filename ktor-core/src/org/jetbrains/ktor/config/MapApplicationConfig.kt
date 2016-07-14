@@ -18,7 +18,7 @@ class MapApplicationConfig : ApplicationConfig {
 
     override fun property(path: String): ApplicationConfigValue {
         val key = combine(this.path, path)
-        if (!map.containsKey(key))
+        if (!map.containsKey(key) && !map.containsKey(combine(key, "size")))
             throw ApplicationConfigurationException("Property $key not found.")
         return MapApplicationConfigValue(map, key)
     }
@@ -27,11 +27,9 @@ class MapApplicationConfig : ApplicationConfig {
         val key = combine(this.path, path)
         val size = map[combine(key, "size")] ?: throw ApplicationConfigurationException("Property $key.size not found.")
         return (0..size.toInt() - 1).map {
-            MapApplicationConfig(map, key + it)
+            MapApplicationConfig(map, combine(key, it.toString()))
         }
     }
-
-    private fun combine(root: String, relative: String): String = if (root.isEmpty()) relative else "$root.$relative"
 
     override fun propertyOrNull(path: String): ApplicationConfigValue? {
         val key = combine(this.path, path)
@@ -43,8 +41,10 @@ class MapApplicationConfig : ApplicationConfig {
     private class MapApplicationConfigValue(val map: Map<String, String>, val path: String) : ApplicationConfigValue {
         override fun getString(): String = map[path]!!
         override fun getList(): List<String> {
-            throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
+            val size = map[combine(path, "size")] ?: throw ApplicationConfigurationException("Property $path.size not found.")
+            return (0..size.toInt() - 1).map { map[combine(path, it.toString())]!! }
         }
-
     }
 }
+
+private fun combine(root: String, relative: String): String = if (root.isEmpty()) relative else "$root.$relative"
