@@ -6,15 +6,14 @@ import io.netty.channel.nio.*
 import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
 import io.netty.handler.codec.http.*
+import io.netty.handler.codec.http2.*
 import io.netty.handler.ssl.*
 import io.netty.handler.stream.*
 import io.netty.handler.timeout.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.netty.http2.*
 import org.jetbrains.ktor.transform.*
 import javax.net.ssl.*
 
@@ -25,7 +24,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                            val environment: ApplicationEnvironment,
                            val applicationLifecycle: ApplicationLifecycle) : ApplicationHost {
 
-    private val application: Application get() = applicationLifecycle.application
+    val application: Application get() = applicationLifecycle.application
 
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
     : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
@@ -46,12 +45,20 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                             kmf.init(ktorConnector.keyStore, password)
                             password.fill('\u0000')
 
-                            addLast("ssl", SslContextBuilder.forServer(kmf).build().newHandler(ch.alloc()))
+                            addLast("ssl", SslContextBuilder.forServer(kmf)
+                                    .sslProvider(SslProvider.JDK)
+                                    .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
+                                    .applicationProtocolConfig(ApplicationProtocolConfig(
+                                            ApplicationProtocolConfig.Protocol.ALPN,
+                                            ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
+                                            ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
+                                            ApplicationProtocolNames.HTTP_2,
+                                            ApplicationProtocolNames.HTTP_1_1
+                                    ))
+                                    .build()
+                                    .newHandler(ch.alloc()))
                         }
-                        addLast(HttpServerCodec())
-                        addLast(ChunkedWriteHandler())
-                        addLast(WriteTimeoutHandler(10))
-                        addLast(HostHttpHandler())
+                        addLast(Initializer())
                     }
                 }
             })
@@ -85,46 +92,35 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         environment.log.info("Server stopped.")
     }
 
-    inner class HostHttpHandler : SimpleChannelInboundHandler<HttpRequest>(false) {
-        override fun channelRead0(context: ChannelHandlerContext, request: HttpRequest) {
-            context.channel().config().isAutoRead = false
-            val dropsHandler = LastDropsCollectorHandler() // in spite of that we have cleared auto-read mode we still need to collect remaining events
-            context.pipeline().addLast(dropsHandler)
+    inner class Initializer : ApplicationProtocolNegotiationHandler(ApplicationProtocolNames.HTTP_1_1) {
+        override fun configurePipeline(ctx: ChannelHandlerContext, protocol: String) {
+            when (protocol) {
+                ApplicationProtocolNames.HTTP_2 -> {
+                    val connection = DefaultHttp2Connection(true)
+                    val writer = DefaultHttp2FrameWriter()
+                    val reader = DefaultHttp2FrameReader(false)
 
-            startHandleRequest(context, request, false, dropsHandler)
-        }
+                    val encoder = DefaultHttp2ConnectionEncoder(connection, writer)
+                    val decoder = DefaultHttp2ConnectionDecoder(connection, encoder, reader)
 
-        override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-            environment.log.error("Application ${application.javaClass} cannot fulfill the request", cause)
-            ctx.close()
-        }
-
-        override fun channelReadComplete(context: ChannelHandlerContext) {
-            context.flush()
-        }
-
-        private fun startHandleRequest(context: ChannelHandlerContext, request: HttpRequest, bodyConsumed: Boolean, drops: LastDropsCollectorHandler?) {
-            val call = NettyApplicationCall(application, context, request, bodyConsumed, drops)
-
-            setupUpgradeHelper(call, context, drops)
-
-            call.execute().whenComplete { pipelineState, throwable ->
-                val response: Any? = if (throwable != null && !call.completed) {
-                    application.environment.log.error("Failed to process request", throwable)
-                    HttpStatusCode.InternalServerError
-                } else if (pipelineState != PipelineState.Executing && !call.completed) {
-                    HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${request.uri}")
-                } else {
-                    null
+                    ctx.pipeline().addLast(HostHttp2Handler(encoder, decoder, Http2Settings()))
+                    ctx.pipeline().addLast(Multiplexer(ctx.channel(), HostHttpHandler(this@NettyApplicationHost)))
                 }
-
-                if (response != null) {
-                    call.execution.runBlockWithResult {
-                        call.respond(response)
+                ApplicationProtocolNames.HTTP_1_1 -> {
+                    with(ctx.pipeline()) {
+                        addLast(HttpServerCodec())
+                        addLast(ChunkedWriteHandler())
+                        addLast(WriteTimeoutHandler(10))
+                        addLast(HostHttpHandler(this@NettyApplicationHost))
                     }
+                }
+                else -> {
+                    application.environment.log.error("Unsupported protocol $protocol")
+                    ctx.close()
                 }
             }
         }
     }
+
 }
 

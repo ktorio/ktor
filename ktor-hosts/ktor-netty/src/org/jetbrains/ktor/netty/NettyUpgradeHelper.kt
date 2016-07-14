@@ -14,7 +14,7 @@ internal fun setupUpgradeHelper(call: NettyApplicationCall, context: ChannelHand
         if (message is FinalContent.ProtocolUpgrade) {
             context.executeInLoop {
                 context.channel().pipeline().remove(ChunkedWriteHandler::class.java)
-                context.channel().pipeline().remove(NettyApplicationHost.HostHttpHandler::class.java)
+                context.channel().pipeline().remove(HostHttpHandler::class.java)
 
                 call.response.status(message.status ?: HttpStatusCode.SwitchingProtocols)
                 message.headers.flattenEntries().forEach { e ->

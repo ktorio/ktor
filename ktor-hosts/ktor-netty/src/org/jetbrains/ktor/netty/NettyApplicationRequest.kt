@@ -120,11 +120,20 @@ private class NettyRequestCookies(val owner: ApplicationRequest) : RequestCookie
     }
 }
 
-internal fun ChannelHandlerContext.executeInLoop(block: () -> Unit) {
+internal inline fun ChannelHandlerContext.executeInLoop(crossinline block: () -> Unit) {
     val executor = executor()
     if (channel().isRegistered && !executor.inEventLoop()) {
         executor.execute { block() }
     } else {
         block()
+    }
+}
+
+internal fun ChannelHandlerContext.executeInLoop(block: Runnable) {
+    val executor = executor()
+    if (channel().isRegistered && !executor.inEventLoop()) {
+        executor.execute(block)
+    } else {
+        block.run()
     }
 }
