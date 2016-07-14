@@ -1,6 +1,9 @@
 package org.jetbrains.ktor.jetty
 
+import org.eclipse.jetty.alpn.server.*
 import org.eclipse.jetty.http.*
+import org.eclipse.jetty.http2.*
+import org.eclipse.jetty.http2.server.*
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
 import org.eclipse.jetty.util.ssl.*
@@ -11,8 +14,6 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.servlet.*
 import org.jetbrains.ktor.transform.*
-import java.io.*
-import java.security.*
 import java.util.concurrent.*
 import javax.servlet.*
 import javax.servlet.http.*
@@ -40,10 +41,21 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 }
             }
 
-            val connectionFactory = when (ktorConnector.type) {
-                ConnectorType.HTTP -> arrayOf(HttpConnectionFactory(httpConfig))
+            val alpnAvailable = try {
+                NegotiatingServerConnectionFactory.checkProtocolNegotiationAvailable()
+                true
+            } catch (e: Throwable) {
+                false
+            }
+
+            val connectionFactories = when (ktorConnector.type) {
+                ConnectorType.HTTP -> arrayOf(HttpConnectionFactory(httpConfig), HTTP2CServerConnectionFactory(httpConfig))
                 ConnectorType.HTTPS -> arrayOf(SslConnectionFactory(SslContextFactory().apply {
-                    isTrustAll = true // TODO SSLContextFactory
+                    if (alpnAvailable) {
+                        cipherComparator = HTTP2Cipher.COMPARATOR
+                        isUseCipherSuitesOrder = true
+                    }
+
                     keyStore = (ktorConnector as HostSSLConnectorConfig).keyStore
                     setKeyManagerPassword(String(ktorConnector.privateKeyPassword()))
                     setKeyStorePassword(String(ktorConnector.keyStorePassword()))
@@ -54,11 +66,18 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                             "SSL_RSA_EXPORT_WITH_DES40_CBC_SHA",
                             "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA",
                             "SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA")
-                }, HttpVersion.HTTP_1_1.asString()), HttpConnectionFactory(httpConfig))
+                }, if (alpnAvailable) "alpn" else HttpVersion.HTTP_1_1.asString()),
+                        if (alpnAvailable) {
+                            ALPNServerConnectionFactory().apply {
+                                defaultProtocol = HttpVersion.HTTP_1_1.asString()
+                            }
+                        } else null,
+                        if (alpnAvailable) HTTP2ServerConnectionFactory(httpConfig) else HTTP2CServerConnectionFactory(httpConfig),
+                        HttpConnectionFactory(httpConfig)).filterNotNull().toTypedArray()
                 else -> throw IllegalArgumentException("Connector type ${ktorConnector.type} is not supported by Jetty host implementation")
             }
 
-            ServerConnector(this, *connectionFactory).apply {
+            ServerConnector(this, *connectionFactories).apply {
                 host = ktorConnector.host
                 port = ktorConnector.port
             }
@@ -114,7 +133,8 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     }
                     pipelineState == PipelineState.Succeeded -> baseRequest.isHandled = call.completed
                     pipelineState == PipelineState.Failed -> baseRequest.isHandled = true
-                    else -> {}
+                    else -> {
+                    }
                 }
             } catch(ex: Throwable) {
                 environment.log.error("Application ${application.javaClass} cannot fulfill the request", ex);
