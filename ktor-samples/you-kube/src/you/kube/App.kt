@@ -32,6 +32,7 @@ data class Session(val userId: String)
 
 class App(environment: ApplicationEnvironment) : Application(environment) {
     init {
+        install(DefaultHeaders)
         install(CallLogging)
         install(Locations)
         install(ConditionalHeadersSupport)

@@ -12,6 +12,7 @@ import org.jetbrains.ktor.routing.*
 
 class HelloApplication(environment: ApplicationEnvironment) : Application(environment) {
     init {
+        install(DefaultHeaders)
         install(CallLogging)
         install(DefaultHeaders)
         routing {

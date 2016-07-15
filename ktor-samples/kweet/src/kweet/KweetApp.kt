@@ -68,6 +68,7 @@ class KweetApp(environment: ApplicationEnvironment) : Application(environment) {
     init {
         dao.init()
 
+        install(DefaultHeaders)
         install(CallLogging)
         install(ConditionalHeadersSupport)
         install(PartialContentSupport)
