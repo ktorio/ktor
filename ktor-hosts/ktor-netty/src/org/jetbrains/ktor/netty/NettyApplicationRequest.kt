@@ -25,7 +25,7 @@ internal class NettyApplicationRequest(
 
     override val parameters: ValuesMap by lazy {
         ValuesMap.build {
-            QueryStringDecoder(request.uri()).parameters().forEach {
+            QueryStringDecoder(request.uri).parameters().forEach {
                 appendAll(it.key, it.value)
             }
             appendAll(urlEncodedParameters())

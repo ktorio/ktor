@@ -9,13 +9,13 @@ import java.net.*
 
 internal class NettyRoute(val request: HttpRequest, val context: ChannelHandlerContext) : RequestSocketRoute {
     override val version: String
-        get() = request.protocolVersion().text()
+        get() = request.protocolVersion.text()
 
     override val uri: String
-        get() = request.uri()
+        get() = request.uri
 
     override val method: HttpMethod
-        get() = HttpMethod.parse(request.method().name())
+        get() = HttpMethod.parse(request.method.name())
 
     override val scheme by lazy { if (context.pipeline().context("ssl") == null) "http" else "https" }
 
