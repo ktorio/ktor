@@ -28,6 +28,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     private val server = Server().apply {
         val httpConfig = HttpConfiguration().apply {
             sendServerVersion = false
+            sendDateHeader = false
         }
         val connectionFactory = HttpConnectionFactory(httpConfig)
         val connector = ServerConnector(this, connectionFactory).apply {

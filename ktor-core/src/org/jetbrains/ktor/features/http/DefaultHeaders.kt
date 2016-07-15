@@ -29,7 +29,7 @@ object DefaultHeaders : ApplicationFeature<Application, DefaultHeaders> {
         }
 
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
-            call.response.header("Date", LocalDateTime.now().toHttpDateString())
+            call.response.header("Date", ZonedDateTime.now(ZoneOffset.UTC).toHttpDateString())
             headers.entries().forEach { entry -> entry.value.forEach { call.response.header(entry.key, it) } }
         }
         return this
