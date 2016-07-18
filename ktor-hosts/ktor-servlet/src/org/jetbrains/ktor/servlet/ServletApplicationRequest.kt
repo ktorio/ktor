@@ -1,11 +1,10 @@
 package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import javax.servlet.http.*
@@ -20,16 +19,14 @@ class ServletApplicationRequest(val call: ServletApplicationCall, val servletReq
     }
 
     override val parameters: ValuesMap by lazy {
-        ValuesMap.build {
-            val parametersMap = servletRequest.parameterMap
-            if (parametersMap != null) {
-                for ((key, values) in parametersMap) {
-                    if (values != null) {
-                        appendAll(key, values.asList())
-                    }
+        val parametersMap = servletRequest.parameterMap ?: return@lazy ValuesMap.Empty
+        ValuesMapBuilder(size = parametersMap.size).apply {
+            for ((key, values) in parametersMap) {
+                if (values != null) {
+                    appendAll(key, values.asList())
                 }
             }
-        }
+        }.build()
     }
 
     override val headers: ValuesMap by lazy {
@@ -55,7 +52,7 @@ class ServletApplicationRequest(val call: ServletApplicationCall, val servletReq
         override fun getReadChannel(): ReadChannel = servletReadChannel
     }
 
-    override val cookies : RequestCookies = ServletRequestCookies(servletRequest, this)
+    override val cookies: RequestCookies = ServletRequestCookies(servletRequest, this)
 }
 
 private class ServletRequestCookies(val servletRequest: HttpServletRequest, request: ApplicationRequest) : RequestCookies(request) {
