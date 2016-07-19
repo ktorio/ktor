@@ -19,21 +19,38 @@ class ServletApplicationRequest(val call: ServletApplicationCall, val servletReq
     }
 
     override val parameters: ValuesMap by lazy {
-        val parametersMap = servletRequest.parameterMap ?: return@lazy ValuesMap.Empty
-        ValuesMapBuilder(size = parametersMap.size).apply {
-            for ((key, values) in parametersMap) {
-                if (values != null) {
-                    appendAll(key, values.asList())
-                }
+        object : ValuesMap {
+            override fun getAll(name: String): List<String> = servletRequest.getParameterValues(name)?.asList() ?: emptyList()
+            override fun entries(): Set<Map.Entry<String, List<String>>> {
+                return servletRequest.parameterNames.asSequence().map {
+                    object : Map.Entry<String, List<String>> {
+                        override val key: String get() = it
+                        override val value: List<String> get() = getAll(it)
+                    }
+                }.toSet()
             }
-        }.build()
+
+            override fun isEmpty(): Boolean = servletRequest.parameterNames.asSequence().none()
+            override val caseInsensitiveKey: Boolean get() = false
+            override fun names(): Set<String> = servletRequest.parameterNames.asSequence().toSet()
+        }
     }
 
     override val headers: ValuesMap by lazy {
-        ValuesMap.build(caseInsensitiveKey = true) {
-            servletRequest.headerNames.asSequence().forEach {
-                appendAll(it, servletRequest.getHeaders(it).toList())
+        object : ValuesMap {
+            override fun getAll(name: String): List<String> = servletRequest.getHeaders(name)?.toList() ?: emptyList()
+            override fun entries(): Set<Map.Entry<String, List<String>>> {
+                return servletRequest.headerNames.asSequence().map {
+                    object : Map.Entry<String, List<String>> {
+                        override val key: String get() = it
+                        override val value: List<String> get() = getAll(it)
+                    }
+                }.toSet()
             }
+
+            override fun isEmpty(): Boolean = servletRequest.headerNames.asSequence().none()
+            override val caseInsensitiveKey: Boolean get() = true
+            override fun names(): Set<String> = servletRequest.headerNames.asSequence().toSet()
         }
     }
 
