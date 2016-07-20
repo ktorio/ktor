@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.nio
 
+import org.jetbrains.ktor.util.*
 import java.io.*
 import java.nio.*
 import java.util.concurrent.*
@@ -10,8 +11,9 @@ interface AsyncHandler {
     fun failed(cause: Throwable)
 }
 
-interface Channel: Closeable {
+interface Channel : Closeable {
 }
+
 interface ReadChannel : Channel {
     /**
      * Initiates read operation. If there is already read operation pending then it fails with exception.
@@ -46,6 +48,8 @@ interface WriteChannel : Channel {
      * Request write flush. In fact there are no any guarantees that the data will be received by a remote peer.
      * Use it when you want to ensure that there is no pending data remains. Notice that the function is asynchronous,
      * it returns immediately and there are no guarantees when the flush will be actually performed.
+     * But for sure the [handler] will be notified ([AsyncHandler.successEnd] or [AsyncHandler.failed] will be called).
+     * Handler could be notified in the future or immediately.
      */
     fun flush(handler: AsyncHandler) {
         requestFlush()
@@ -184,6 +188,33 @@ private class InputStreamReadChannelAdapter(val input: InputStream) : ReadChanne
 }
 
 fun InputStream.asAsyncChannel(): ReadChannel = InputStreamReadChannelAdapter(this)
+
+private class OutputStreamWriteChannelAdapter(val output: OutputStream) : WriteChannel {
+    override fun write(src: ByteBuffer, handler: AsyncHandler) {
+        val size = src.remaining()
+
+        val buffer = if (src.hasArray()) {
+            src
+        } else {
+            src.copy()
+        }
+
+        output.write(buffer.array(), buffer.arrayOffset() + buffer.position(), size)
+
+        src.position(src.limit())
+        handler.success(size)
+    }
+
+    override fun close() {
+        output.close()
+    }
+
+    override fun requestFlush() {
+        output.flush()
+    }
+}
+
+fun OutputStream.asWriteChannel(): WriteChannel = OutputStreamWriteChannelAdapter(this)
 
 fun WriteChannel.writeFully(bb: ByteBuffer, handler: AsyncHandler) {
     val initialSize = bb.remaining()
