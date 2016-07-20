@@ -47,6 +47,7 @@ object HttpHeaders {
     val LastModified = "Last-Modified"
     val Location = "Location"
     val LockToken = "Lock-Token"
+    val Link = "Link"
     val MaxForwards = "Max-Forwards"
     val MIMEVersion = "MIME-Version"
     val OrderingType = "Ordering-Type"
