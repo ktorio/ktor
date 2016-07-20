@@ -12,7 +12,7 @@ class AsyncPump(bufferSize: Int = 8192, val from: ReadChannel, val to: WriteChan
     @Volatile
     private var bufferToWrite = false
 
-    val state = AtomicReference(State.PAUSED)
+    val state: AtomicReference<State> = AtomicReference(State.PAUSED)
     @Volatile
     var totalCount = 0L
         private set
