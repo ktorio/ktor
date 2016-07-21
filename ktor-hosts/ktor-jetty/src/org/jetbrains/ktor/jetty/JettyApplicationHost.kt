@@ -68,7 +68,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     init {
-        applicationLifecycle.interceptInitializeApplication {
+        applicationLifecycle.onBeforeInitializeApplication {
             setupDefaultHostPages()
             install(TransformationSupport).registerDefaultHandlers()
         }
@@ -126,7 +126,8 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     override fun start(wait: Boolean) {
-        application.environment.log.info("Starting server...") // touch application to ensure initialized
+        applicationLifecycle.ensureApplication()
+        environment.log.info("Starting server...")
 
         server.start()
         environment.log.info("Server running.")

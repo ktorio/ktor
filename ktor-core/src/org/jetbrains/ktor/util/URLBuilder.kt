@@ -6,25 +6,6 @@ import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
 
-data class URLProtocol(val name: String, val defaultPort: Int) {
-    init {
-        require(name.all { it.isLowerCase() }) { "All characters should be lower case" }
-    }
-
-    @Deprecated("Use name instead as it is always lower case", ReplaceWith("name"))
-    val nameLowerCase: String
-        get() = name
-
-    companion object {
-        val HTTP = URLProtocol("http", 80)
-        val HTTPS = URLProtocol("https", 443)
-        val WS = URLProtocol("ws", 80)
-        val WSS = URLProtocol("wss", 443)
-
-        val byName = listOf(HTTP, HTTPS, WS, WSS).associateBy { it.name }
-    }
-}
-
 class URLBuilder(
         var protocol: URLProtocol = URLProtocol.HTTP,
         var host: String = "localhost",
@@ -84,7 +65,7 @@ class URLBuilder(
 
 fun url(block: URLBuilder.() -> Unit) = URLBuilder().apply(block).build()
 fun ApplicationCall.url(block: URLBuilder.() -> Unit = {}): String {
-    val origin = request.originRoute
+    val origin = request.origin
 
     val builder = URLBuilder()
     builder.protocol = URLProtocol.byName[origin.scheme] ?: URLProtocol(origin.scheme, 0)

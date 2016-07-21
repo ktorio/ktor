@@ -33,7 +33,7 @@ open class ServletApplicationHost() : KtorServlet() {
     }
 
     init {
-        loader.interceptInitializeApplication {
+        loader.onBeforeInitializeApplication {
             setupDefaultHostPages()
             install(TransformationSupport).registerDefaultHandlers()
         }

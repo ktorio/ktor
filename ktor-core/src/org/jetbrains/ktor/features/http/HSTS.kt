@@ -39,7 +39,7 @@ object HSTS : ApplicationFeature<ApplicationCallPipeline, HSTS.HSTSConfig> {
         }
 
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
-            if (call.request.originRoute.run {
+            if (call.request.origin.run {
                 scheme == "https" && port == 443
             }) {
                 call.response.header(HttpHeaders.StrictTransportSecurity, hstsHeaderValue)

@@ -5,7 +5,7 @@ package org.jetbrains.ktor.http
  * There are at least two possible instances: "local" is how we see request at the server application and
  * "actual" is what we can recover from proxy provided headers.
  */
-interface RequestSocketRoute {
+interface RequestConnectionPoint {
     /**
      * Request scheme, for example "http" or "https"
      */
@@ -35,7 +35,7 @@ interface RequestSocketRoute {
 
     /**
      * Client address or host name (generally not resolved to name for performance reasons).
-     * For [org.jetbrains.ktor.application.ApplicationRequest.localRoute] instance could point to
+     * For [org.jetbrains.ktor.application.ApplicationRequest.local] instance could point to
      * a proxy our application running behind.
      * NEVER use it for user authentication as it can be easily falsified (user can simply set some HTTP headers
      * such as X-Forwarded-Host so you should NEVER rely on it in any security checks.

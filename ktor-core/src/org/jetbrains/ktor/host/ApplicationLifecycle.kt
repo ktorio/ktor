@@ -11,10 +11,14 @@ interface ApplicationLifecycle {
      */
     val application : Application
 
-    fun interceptInitializeApplication(initializer: Application.() -> Unit)
+    fun onBeforeInitializeApplication(initializer: Application.() -> Unit)
 
     /**
      * Stops an application and frees any resources associated with it
      */
     fun dispose()
+
+    fun ensureApplication() {
+        application
+    }
 }

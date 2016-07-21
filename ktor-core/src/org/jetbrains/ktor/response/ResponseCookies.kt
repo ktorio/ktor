@@ -7,13 +7,11 @@ import java.time.*
 import java.time.temporal.*
 
 class ResponseCookies(private val response: ApplicationResponse, private val request: ApplicationRequest) {
-    private val originRoute by lazy {
-        request.originRoute
-    }
+    private val originScheme = request.origin.scheme
 
     operator fun get(name: String): Cookie? = response.headers.values("Set-Cookie").map { parseServerSetCookieHeader(it) }.firstOrNull { it.name == name }
     fun append(item: Cookie) {
-        if (item.secure && originRoute.scheme != "https") {
+        if (item.secure && originScheme != "https") {
             throw IllegalArgumentException("You should set secure cookie only via secure transport (HTTPS)")
         }
         response.headers.append("Set-Cookie", renderSetCookieHeader(item))

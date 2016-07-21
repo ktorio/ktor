@@ -3,7 +3,7 @@ package org.jetbrains.ktor.servlet
 import org.jetbrains.ktor.http.*
 import javax.servlet.http.*
 
-internal class ServletRoute(val servletRequest: HttpServletRequest) : RequestSocketRoute {
+internal class ServletRoute(val servletRequest: HttpServletRequest) : RequestConnectionPoint {
     override val uri = servletRequest.queryString.let { query ->
         if (query == null) {
             servletRequest.requestURI!!

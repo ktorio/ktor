@@ -9,16 +9,23 @@ import java.util.*
 import kotlin.properties.*
 import kotlin.reflect.*
 
-val MutableOriginRouteKey = AttributeKey<MutableOriginRoute>("originRoute")
+/**
+ * Represents request and connection parameters possibly overridden via https headers.
+ * By default it fallbacks to [ApplicationRequest.local]
+ */
+val ApplicationRequest.origin: RequestConnectionPoint
+    get() = call.attributes.getOrNull(MutableOriginConnectionPointKey) ?: local
 
-class MutableOriginRoute(delegate: RequestSocketRoute) : RequestSocketRoute {
-    override var version by AssignableWithDelegate<RequestSocketRoute, String>(delegate)
-    override var uri by AssignableWithDelegate<RequestSocketRoute, String>(delegate)
-    override var method by AssignableWithDelegate<RequestSocketRoute, HttpMethod>(delegate)
-    override var scheme by AssignableWithDelegate<RequestSocketRoute, String>(delegate)
-    override var host by AssignableWithDelegate<RequestSocketRoute, String>(delegate)
-    override var port by AssignableWithDelegate<RequestSocketRoute, Int>(delegate)
-    override var remoteHost by AssignableWithDelegate<RequestSocketRoute, String>(delegate)
+val MutableOriginConnectionPointKey = AttributeKey<MutableOriginConnectionPoint>("MutableOriginConnectionPointKey")
+
+class MutableOriginConnectionPoint(delegate: RequestConnectionPoint) : RequestConnectionPoint {
+    override var version by AssignableWithDelegate<RequestConnectionPoint, String>(delegate)
+    override var uri by AssignableWithDelegate<RequestConnectionPoint, String>(delegate)
+    override var method by AssignableWithDelegate<RequestConnectionPoint, HttpMethod>(delegate)
+    override var scheme by AssignableWithDelegate<RequestConnectionPoint, String>(delegate)
+    override var host by AssignableWithDelegate<RequestConnectionPoint, String>(delegate)
+    override var port by AssignableWithDelegate<RequestConnectionPoint, Int>(delegate)
+    override var remoteHost by AssignableWithDelegate<RequestConnectionPoint, String>(delegate)
 }
 
 object XForwardedHeadersSupport : ApplicationFeature<ApplicationCallPipeline, XForwardedHeadersSupport.Config> {
@@ -31,7 +38,7 @@ object XForwardedHeadersSupport : ApplicationFeature<ApplicationCallPipeline, XF
 
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             call.forEachHeader(config.protoHeaders) { value ->
-                call.mutableOriginRoute.let { route ->
+                call.mutableOriginConnectionPoint.let { route ->
                     route.scheme = value
                     URLProtocol.byName[value]?.let {
                         route.port = it.defaultPort
@@ -41,7 +48,7 @@ object XForwardedHeadersSupport : ApplicationFeature<ApplicationCallPipeline, XF
 
             call.forEachHeader(config.httpsFlagHeaders) { value ->
                 if (value.toBoolean()) {
-                    call.mutableOriginRoute.let { route ->
+                    call.mutableOriginConnectionPoint.let { route ->
                         route.scheme = "https"
                         URLProtocol.byName[route.scheme]?.let {
                             route.port = it.defaultPort
@@ -54,7 +61,7 @@ object XForwardedHeadersSupport : ApplicationFeature<ApplicationCallPipeline, XF
                 val host = value.substringBefore(':')
                 val port = value.substringAfter(':', "")
 
-                call.mutableOriginRoute.let { route ->
+                call.mutableOriginConnectionPoint.let { route ->
                     route.host = host
                     port.tryParseInt()?.let {
                         route.port = it
@@ -67,7 +74,7 @@ object XForwardedHeadersSupport : ApplicationFeature<ApplicationCallPipeline, XF
             call.forEachHeader(config.forHeaders) { xForwardedFor ->
                 val remoteHost = xForwardedFor.split(",").first().trim()
                 if (remoteHost.isNotBlank()) {
-                    call.mutableOriginRoute.remoteHost = remoteHost
+                    call.mutableOriginConnectionPoint.remoteHost = remoteHost
                 }
             }
         }
@@ -103,7 +110,7 @@ object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, Unit
 
                 if (firstForward != null) {
                     if (firstForward.proto != null) {
-                        call.mutableOriginRoute.let { route ->
+                        call.mutableOriginConnectionPoint.let { route ->
                             val proto: String = firstForward.proto
                             route.scheme = proto
                             URLProtocol.byName[proto]?.let { p ->
@@ -114,14 +121,14 @@ object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, Unit
                     if (firstForward.forParam != null) {
                         val remoteHost = firstForward.forParam.split(",").first().trim()
                         if (remoteHost.isNotBlank()) {
-                            call.mutableOriginRoute.remoteHost = remoteHost
+                            call.mutableOriginConnectionPoint.remoteHost = remoteHost
                         }
                     }
                     if (firstForward.host != null) {
                         val host = firstForward.host.substringBefore(':')
                         val port = firstForward.host.substringAfter(':', "")
 
-                        call.mutableOriginRoute.let { route ->
+                        call.mutableOriginConnectionPoint.let { route ->
                             route.host = host
                             port.tryParseInt()?.let { route.port = it } ?: URLProtocol.byName[route.scheme]?.let {
                                 route.port = it.defaultPort
@@ -144,11 +151,8 @@ object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, Unit
     }
 }
 
-internal val ApplicationCall.mutableOriginRoute: MutableOriginRoute
-    get() = attributes.computeIfAbsent(MutableOriginRouteKey) { MutableOriginRoute(request.localRoute) }
-
-val ApplicationRequest.originRoute: RequestSocketRoute
-    get() = call.attributes.getOrNull(MutableOriginRouteKey) ?: localRoute
+internal val ApplicationCall.mutableOriginConnectionPoint: MutableOriginConnectionPoint
+    get() = attributes.computeIfAbsent(MutableOriginConnectionPointKey) { MutableOriginConnectionPoint(request.local) }
 
 private inline fun ApplicationCall.forEachHeader(headers: List<String>, block: (String) -> Unit) {
     for (name in headers) {

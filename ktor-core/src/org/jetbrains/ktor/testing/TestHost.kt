@@ -43,7 +43,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment) {
     private val applicationLoader = ApplicationLoader(environment, false)
 
     init {
-        applicationLoader.interceptInitializeApplication {
+        applicationLoader.onBeforeInitializeApplication {
             install(TransformationSupport).registerDefaultHandlers()
         }
     }
@@ -154,7 +154,7 @@ class TestApplicationRequest(
     var protocol: String = "http"
     override var call: ApplicationCall by Delegates.notNull()
 
-    override val localRoute = object : RequestSocketRoute {
+    override val local = object : RequestConnectionPoint {
         override val uri: String
             get() = this@TestApplicationRequest.uri
 

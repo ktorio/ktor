@@ -4,12 +4,12 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.http.*
 
-val ApplicationRequest.uri: String get() = originRoute.uri
+val ApplicationRequest.uri: String get() = origin.uri
 
 /**
  * Returns request HTTP method possibly overridden via header X-Http-Method-Override
  */
-val ApplicationRequest.httpMethod: HttpMethod get() = originRoute.method
-val ApplicationRequest.httpVersion: String get() = originRoute.version
+val ApplicationRequest.httpMethod: HttpMethod get() = origin.method
+val ApplicationRequest.httpVersion: String get() = origin.version
 
 fun ApplicationRequest.parameter(name: String): String? = parameters[name]

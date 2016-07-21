@@ -17,14 +17,14 @@ class OriginRouteTest {
             application.install(XForwardedHeadersSupport)
             application.routing {
                 get("/") {
-                    with(call.request.localRoute) {
+                    with(call.request.local) {
                         assertEquals("localhost", host)
                         assertEquals(80, port)
                         assertEquals("localhost", remoteHost)
                         assertEquals("http", scheme)
                     }
 
-                    with(call.request.originRoute) {
+                    with(call.request.origin) {
                         assertEquals("localhost", host)
                         assertEquals(80, port)
                         assertEquals("localhost", remoteHost)
@@ -45,7 +45,7 @@ class OriginRouteTest {
             application.install(XForwardedHeadersSupport)
             application.routing {
                 get("/") {
-                    with(call.request.originRoute) {
+                    with(call.request.origin) {
                         assertEquals("localhost", host)
                         assertEquals(80, port)
                         assertEquals("client", remoteHost)
@@ -68,7 +68,7 @@ class OriginRouteTest {
             application.install(XForwardedHeadersSupport)
             application.routing {
                 get("/") {
-                    with(call.request.originRoute) {
+                    with(call.request.origin) {
                         assertEquals("host", host)
                         assertEquals(80, port)
                         assertEquals("localhost", remoteHost)
@@ -91,7 +91,7 @@ class OriginRouteTest {
             application.install(XForwardedHeadersSupport)
             application.routing {
                 get("/") {
-                    with(call.request.originRoute) {
+                    with(call.request.origin) {
                         assertEquals("host", host)
                         assertEquals(90, port)
                         assertEquals("localhost", remoteHost)
@@ -114,7 +114,7 @@ class OriginRouteTest {
             application.install(XForwardedHeadersSupport)
             application.routing {
                 get("/") {
-                    with(call.request.originRoute) {
+                    with(call.request.origin) {
                         assertEquals("localhost", host)
                         assertEquals(443, port)
                         assertEquals("localhost", remoteHost)
@@ -137,7 +137,7 @@ class OriginRouteTest {
             application.install(XForwardedHeadersSupport)
             application.routing {
                 get("/") {
-                    with(call.request.originRoute) {
+                    with(call.request.origin) {
                         assertEquals("host", host)
                         assertEquals(90, port)
                         assertEquals("localhost", remoteHost)
@@ -161,7 +161,7 @@ class OriginRouteTest {
             application.install(XForwardedHeadersSupport)
             application.routing {
                 get("/") {
-                    with(call.request.originRoute) {
+                    with(call.request.origin) {
                         assertEquals("host", host)
                         assertEquals(443, port)
                         assertEquals("localhost", remoteHost)
@@ -185,7 +185,7 @@ class OriginRouteTest {
             application.install(XForwardedHeadersSupport)
             application.routing {
                 get("/") {
-                    with(call.request.originRoute) {
+                    with(call.request.origin) {
                         assertEquals(443, port)
                         assertEquals("https", scheme)
                     }
@@ -206,7 +206,7 @@ class OriginRouteTest {
             application.install(ForwardedHeaderSupport)
             application.routing {
                 get("/") {
-                    with(call.request.originRoute) {
+                    with(call.request.origin) {
                         assertEquals("host", host)
                         assertEquals(80, port)
                         assertEquals("client", remoteHost)
@@ -229,7 +229,7 @@ class OriginRouteTest {
             application.install(ForwardedHeaderSupport)
             application.routing {
                 get("/") {
-                    with(call.request.originRoute) {
+                    with(call.request.origin) {
                         assertEquals("host", host)
                         assertEquals(90, port)
                         assertEquals("client", remoteHost)
@@ -252,7 +252,7 @@ class OriginRouteTest {
             application.install(ForwardedHeaderSupport)
             application.routing {
                 get("/") {
-                    with(call.request.originRoute) {
+                    with(call.request.origin) {
                         assertEquals("host", host)
                         assertEquals(443, port)
                         assertEquals("client", remoteHost)
@@ -275,7 +275,7 @@ class OriginRouteTest {
             application.install(ForwardedHeaderSupport)
             application.routing {
                 get("/") {
-                    with(call.request.originRoute) {
+                    with(call.request.origin) {
                         assertEquals("localhost", host)
                         assertEquals(80, port)
                         assertEquals("client", remoteHost)
@@ -298,7 +298,7 @@ class OriginRouteTest {
             application.install(ForwardedHeaderSupport)
             application.routing {
                 get("/") {
-                    with(call.request.originRoute) {
+                    with(call.request.origin) {
                         assertEquals("host", host)
                         assertEquals(80, port)
                         assertEquals("client", remoteHost)

@@ -56,7 +56,7 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
             instance!!
         }
 
-    override fun interceptInitializeApplication(initializer: Application.() -> Unit) {
+    override fun onBeforeInitializeApplication(initializer: Application.() -> Unit) {
         appInitInterceptors.add(initializer)
     }
 

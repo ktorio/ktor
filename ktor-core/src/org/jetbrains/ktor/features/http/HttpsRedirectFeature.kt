@@ -13,7 +13,7 @@ object HttpsRedirectFeature : ApplicationFeature<ApplicationCallPipeline, HttpsR
         config.configure()
 
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
-            if (call.request.originRoute.scheme == "http") {
+            if (call.request.origin.scheme == "http") {
                 call.respondRedirect(call.url { protocol = URLProtocol.HTTPS; port = config.sslPort }, permanent = config.permanentRedirect)
             }
         }

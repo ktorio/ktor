@@ -73,7 +73,7 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     init {
-        applicationLifecycle.interceptInitializeApplication {
+        applicationLifecycle.onBeforeInitializeApplication {
             setupDefaultHostPages()
             install(TransformationSupport).registerDefaultHandlers()
         }

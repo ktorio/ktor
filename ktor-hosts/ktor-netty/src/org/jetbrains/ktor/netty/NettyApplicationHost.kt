@@ -61,14 +61,15 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     init {
-        applicationLifecycle.interceptInitializeApplication {
+        applicationLifecycle.onBeforeInitializeApplication {
             setupDefaultHostPages()
             install(TransformationSupport).registerDefaultHandlers()
         }
     }
 
     override fun start(wait: Boolean) {
-        application.environment.log.info("Starting server...") // touch application to ensure initialized
+        applicationLifecycle.ensureApplication()
+        environment.log.info("Starting server...")
         val channelFutures = bootstraps.zip(hostConfig.connectors).map { it.first.bind(it.second.host, it.second.port) }
         environment.log.info("Server running.")
 
