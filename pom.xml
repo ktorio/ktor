@@ -39,6 +39,43 @@
         <profile>
             <id>bintray</id>
         </profile>
+        <profile>
+            <id>kotlin-snapshot</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <properties>
+                <kotlin.version>1.1-SNAPSHOT</kotlin.version>
+            </properties>
+
+            <repositories>
+                <repository>
+                    <id>sonatype.oss.snapshots</id>
+                    <name>Sonatype OSS Snapshot Repository</name>
+                    <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>sonatype.oss.snapshots</id>
+                    <name>Sonatype OSS Snapshot Repository</name>
+                    <url>http://oss.sonatype.org/content/repositories/snapshots</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </pluginRepository>
+            </pluginRepositories>
+        </profile>
     </profiles>
 
     <dependencies>
