@@ -2,6 +2,11 @@ package org.jetbrains.ktor.tomcat
 
 import org.apache.catalina.connector.*
 import org.apache.catalina.startup.*
+import org.apache.coyote.http2.*
+import org.apache.tomcat.jni.*
+import org.apache.tomcat.util.net.*
+import org.apache.tomcat.util.net.jsse.*
+import org.apache.tomcat.util.net.openssl.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
@@ -53,6 +58,14 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
                         setAttribute("clientAuth", false)
                         setAttribute("sslProtocol", "TLS")
                         setAttribute("SSLEnabled", true)
+
+                        val sslImpl = chooseSSLImplementation()
+
+                        setAttribute("sslImplementationName", sslImpl.name)
+
+                        if (sslImpl.simpleName == "OpenSSLImplementation") {
+                            addUpgradeProtocol(Http2Protocol())
+                        }
                     } else {
                         scheme = "http"
                     }
@@ -94,5 +107,31 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
         server.stop()
         config.log.info("Server stopped.")
         tempDirectory.toFile().deleteRecursively()
+    }
+
+    companion object {
+        private val nativeNames = listOf("netty-tcnative", "libnetty-tcnative", "netty-tcnative-1", "libnetty-tcnative-1", "tcnative-1", "libtcnative-1", "netty-tcnative-windows-x86_64")
+
+        private fun chooseSSLImplementation(): Class<out SSLImplementation> {
+            return try {
+                val nativeName = nativeNames.firstOrNull { tryLoadLibrary(it) }
+                if (nativeName != null) {
+                    Library.initialize(nativeName)
+                    SSL.initialize(null)
+                    OpenSSLImplementation::class.java
+                } else {
+                    JSSEImplementation::class.java
+                }
+            } catch (t: Throwable) {
+                JSSEImplementation::class.java
+            }
+        }
+
+        private fun tryLoadLibrary(libraryName: String): Boolean = try {
+            System.loadLibrary(libraryName)
+            true
+        } catch(t: Throwable) {
+            false
+        }
     }
 }

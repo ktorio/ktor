@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.nio.*
-import org.jetbrains.ktor.util.*
+import java.io.*
 import java.nio.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
@@ -149,6 +149,9 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
 
     override fun close() {
         servletOutputStream.close()
+        fireHandler { handler, byteBuffer ->
+            handler.failed(IOException("Channel closed"))
+        }
     }
 
     private inline fun Semaphore.tryUse(permits: Int = 1, block: () -> Unit): Boolean {
