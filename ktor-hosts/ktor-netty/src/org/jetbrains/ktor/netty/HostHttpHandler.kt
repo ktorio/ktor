@@ -14,14 +14,14 @@ import org.jetbrains.ktor.util.*
 
 @ChannelHandler.Sharable
 class HostHttpHandler(private val nettyApplicationHost: NettyApplicationHost) : SimpleChannelInboundHandler<Any>(false) {
-    override fun channelRead0(context: ChannelHandlerContext, request: Any) {
-        if (request is HttpRequest) {
-            val requestContentType = request.headers().get(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
+    override fun channelRead0(context: ChannelHandlerContext, message: Any) {
+        if (message is HttpRequest) {
+            val requestContentType = message.headers().get(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
 
             if (requestContentType != null && requestContentType.match(ContentType.Application.FormUrlEncoded)) {
                 context.channel().config().isAutoRead = true
                 val urlEncodedHandler = FormUrlEncodedHandler(Charsets.UTF_8, { parameters ->
-                    startHttp1HandleRequest(context, request, true, { parameters }, null)
+                    startHttp1HandleRequest(context, message, true, { parameters }, null)
                 })
                 context.pipeline().addLast(urlEncodedHandler)
             } else {
@@ -29,12 +29,14 @@ class HostHttpHandler(private val nettyApplicationHost: NettyApplicationHost) : 
                 val dropsHandler = LastDropsCollectorHandler() // in spite of that we have cleared auto-read mode we still need to collect remaining events
                 context.pipeline().addLast(dropsHandler)
 
-                startHttp1HandleRequest(context, request, false, { ValuesMap.Empty }, dropsHandler)
+                startHttp1HandleRequest(context, message, false, { ValuesMap.Empty }, dropsHandler)
             }
-        } else if (request is Http2HeadersFrame) {
-            startHttp2(context, request.streamId(), request.headers())
-        } else if (request is Http2StreamFrame) {
-            context.callByStreamId[request.streamId()]?.request?.handler?.listener?.channelRead(context, request)
+        } else if (message is Http2HeadersFrame) {
+            startHttp2(context, message.streamId(), message.headers())
+        } else if (message is Http2StreamFrame) {
+            context.callByStreamId[message.streamId()]?.request?.handler?.listener?.channelRead(context, message)
+        } else {
+            context.fireChannelRead(message)
         }
     }
 

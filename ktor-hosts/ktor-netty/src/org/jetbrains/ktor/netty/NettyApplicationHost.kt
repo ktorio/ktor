@@ -38,6 +38,8 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             channel(NioServerSocketChannel::class.java)
             childHandler(object : ChannelInitializer<SocketChannel>() {
                 override fun initChannel(ch: SocketChannel) {
+                    val alpnProvider = findAlpnProvider()
+
                     with(ch.pipeline()) {
                         if (ktorConnector is HostSSLConnectorConfig) {
                             val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
@@ -46,19 +48,28 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                             password.fill('\u0000')
 
                             addLast("ssl", SslContextBuilder.forServer(kmf)
-                                    .sslProvider(SslProvider.JDK)
-                                    .ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
-                                    .applicationProtocolConfig(ApplicationProtocolConfig(
-                                            ApplicationProtocolConfig.Protocol.ALPN,
-                                            ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
-                                            ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
-                                            ApplicationProtocolNames.HTTP_2,
-                                            ApplicationProtocolNames.HTTP_1_1
-                                    ))
+                                    .apply {
+                                        if (alpnProvider != null) {
+                                            sslProvider(alpnProvider)
+                                            ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
+                                            applicationProtocolConfig(ApplicationProtocolConfig(
+                                                    ApplicationProtocolConfig.Protocol.ALPN,
+                                                    ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
+                                                    ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
+                                                    ApplicationProtocolNames.HTTP_2,
+                                                    ApplicationProtocolNames.HTTP_1_1
+                                            ))
+                                        }
+                                    }
                                     .build()
                                     .newHandler(ch.alloc()))
                         }
-                        addLast(Initializer())
+
+                        if (alpnProvider != null) {
+                            addLast(Initializer())
+                        } else {
+                            configurePipeline(this, ApplicationProtocolNames.HTTP_1_1)
+                        }
                     }
                 }
             })
@@ -92,32 +103,50 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         environment.log.info("Server stopped.")
     }
 
+    fun configurePipeline(pipeline: ChannelPipeline, protocol: String) {
+        when (protocol) {
+            ApplicationProtocolNames.HTTP_2 -> {
+                val connection = DefaultHttp2Connection(true)
+                val writer = DefaultHttp2FrameWriter()
+                val reader = DefaultHttp2FrameReader(false)
+
+                val encoder = DefaultHttp2ConnectionEncoder(connection, writer)
+                val decoder = DefaultHttp2ConnectionDecoder(connection, encoder, reader)
+
+                pipeline.addLast(HostHttp2Handler(encoder, decoder, Http2Settings()))
+                pipeline.addLast(Multiplexer(pipeline.channel(), HostHttpHandler(this@NettyApplicationHost)))
+            }
+            ApplicationProtocolNames.HTTP_1_1 -> {
+                with(pipeline) {
+                    addLast(HttpServerCodec())
+                    addLast(ChunkedWriteHandler())
+                    addLast(WriteTimeoutHandler(10))
+                    addLast(HostHttpHandler(this@NettyApplicationHost))
+                }
+            }
+            else -> {
+                application.environment.log.error("Unsupported protocol $protocol")
+                pipeline.close()
+            }
+        }
+    }
+
     inner class Initializer : ApplicationProtocolNegotiationHandler(ApplicationProtocolNames.HTTP_1_1) {
-        override fun configurePipeline(ctx: ChannelHandlerContext, protocol: String) {
-            when (protocol) {
-                ApplicationProtocolNames.HTTP_2 -> {
-                    val connection = DefaultHttp2Connection(true)
-                    val writer = DefaultHttp2FrameWriter()
-                    val reader = DefaultHttp2FrameReader(false)
+        override fun configurePipeline(ctx: ChannelHandlerContext, protocol: String) = this@NettyApplicationHost.configurePipeline(ctx.pipeline(), protocol)
+    }
 
-                    val encoder = DefaultHttp2ConnectionEncoder(connection, writer)
-                    val decoder = DefaultHttp2ConnectionDecoder(connection, encoder, reader)
+    companion object {
+        fun findAlpnProvider(): SslProvider? {
+            val jettyAlpn = try {
+                Class.forName("sun.security.ssl.ALPNExtension", true, null)
+                true
+            } catch (t: Throwable) {
+                false
+            }
 
-                    ctx.pipeline().addLast(HostHttp2Handler(encoder, decoder, Http2Settings()))
-                    ctx.pipeline().addLast(Multiplexer(ctx.channel(), HostHttpHandler(this@NettyApplicationHost)))
-                }
-                ApplicationProtocolNames.HTTP_1_1 -> {
-                    with(ctx.pipeline()) {
-                        addLast(HttpServerCodec())
-                        addLast(ChunkedWriteHandler())
-                        addLast(WriteTimeoutHandler(10))
-                        addLast(HostHttpHandler(this@NettyApplicationHost))
-                    }
-                }
-                else -> {
-                    application.environment.log.error("Unsupported protocol $protocol")
-                    ctx.close()
-                }
+            return when {
+                jettyAlpn -> SslProvider.JDK
+                else -> null
             }
         }
     }
