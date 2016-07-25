@@ -10,13 +10,15 @@ import java.io.*
 
 object TransformationSupport : ApplicationFeature<ApplicationCallPipeline, ApplicationTransform<PipelineContext<ResponsePipelineState>>> {
     override val key = AttributeKey<ApplicationTransform<PipelineContext<ResponsePipelineState>>>("Transformation Support")
+    private val TransformApplicationPhase = PipelinePhase("Transform")
 
     override fun install(pipeline: ApplicationCallPipeline, configure: ApplicationTransform<PipelineContext<ResponsePipelineState>>.() -> Unit): ApplicationTransform<PipelineContext<ResponsePipelineState>> {
         val table = ApplicationTransform<PipelineContext<ResponsePipelineState>>()
 
         configure(table)
 
-        pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
+        pipeline.phases.insertBefore(ApplicationCallPipeline.Infrastructure, TransformApplicationPhase)
+        pipeline.intercept(TransformApplicationPhase) { call ->
             call.respond.intercept(RespondPipeline.Transform) { state ->
                 transform()
             }

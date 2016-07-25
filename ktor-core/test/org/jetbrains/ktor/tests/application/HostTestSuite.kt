@@ -93,6 +93,22 @@ abstract class HostTestSuite : HostTestBase() {
         }
     }
 
+
+    @Test
+    fun testRedirectFromInterceptor() {
+        createAndStartServer {
+            application.intercept(ApplicationCallPipeline.Infrastructure) {
+                call.respondRedirect("/2", true)
+            }
+        }
+
+        withUrl("/1/") {
+            assertEquals(HttpStatusCode.MovedPermanently.value, responseCode)
+
+            assertEquals("/2", getHeaderField(HttpHeaders.Location))
+        }
+    }
+
     @Test
     fun testHeader() {
         createAndStartServer() {
