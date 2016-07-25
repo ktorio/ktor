@@ -14,7 +14,6 @@ class HelloApplication(environment: ApplicationEnvironment) : Application(enviro
     init {
         install(DefaultHeaders)
         install(CallLogging)
-        install(DefaultHeaders)
         routing {
             get("/") {
                 call.response.contentType(ContentType.Text.Html)
