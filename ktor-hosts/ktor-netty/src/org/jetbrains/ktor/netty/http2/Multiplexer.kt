@@ -28,7 +28,7 @@ internal class Multiplexer(val parent: Channel, val handler: ChannelHandler) : C
                 channels[msg.streamId()]?.fireRead(msg) ?: run {
                     release(msg)
                     // TODO send back error
-                    throw IOException()
+                    throw IOException("Stream ${msg.streamId()} has no associated stream object")
                 }
             }
         // TODO go away frame

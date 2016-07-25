@@ -38,6 +38,7 @@ internal class HostHttp2Handler(val encoder: Http2ConnectionEncoder, decoder: Ht
                     connection().local().flowController().consumeBytes(it, frame.windowSizeIncrement())
                 }
             }
+            is Http2PushPromiseFrame -> encoder.writePushPromise(ctx, frame.streamId(), frame.promisedStreamId, frame.headers, 0, promise)
 
             else -> throw UnsupportedMessageTypeException(frame)
         }

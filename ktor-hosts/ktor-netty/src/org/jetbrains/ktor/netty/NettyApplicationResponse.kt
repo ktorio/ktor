@@ -2,10 +2,12 @@ package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
-import io.netty.handler.codec.http.HttpHeaders
+import io.netty.handler.codec.http.HttpRequest
+import io.netty.handler.codec.http.HttpResponse
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.http.HttpHeaders
 import java.util.concurrent.atomic.*
 
 internal class NettyApplicationResponse(call: ApplicationCall, val request: HttpRequest, val response: HttpResponse, val context: ChannelHandlerContext) : BaseApplicationResponse(call) {
@@ -40,8 +42,8 @@ internal class NettyApplicationResponse(call: ApplicationCall, val request: Http
 
     fun sendRequestMessage(): ChannelFuture? {
         if (!commited) {
-            if (!HttpHeaders.isTransferEncodingChunked(response)) {
-                HttpHeaders.setContentLength(response, 0L)
+            if (!HttpUtil.isTransferEncodingChunked(response)) {
+                HttpUtil.setContentLength(response, 0L)
             }
             val f = context.writeAndFlush(response)
             commited = true
@@ -66,19 +68,19 @@ internal class NettyApplicationResponse(call: ApplicationCall, val request: Http
     }
 
     private fun ChannelFuture.scheduleClose() {
-        if (!HttpHeaders.isKeepAlive(request)) {
+        if (!HttpUtil.isKeepAlive(request)) {
             addListener(ChannelFutureListener.CLOSE)
         }
     }
 
     private fun setChunked() {
         if (commited) {
-            if (!response.headers().contains(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED, true)) {
+            if (!response.headers().contains(HttpHeaders.TransferEncoding, HttpHeaderValues.CHUNKED, true)) {
                 throw IllegalStateException("Already committed")
             }
         }
-        if (response.status.code() != HttpStatusCode.SwitchingProtocols.value) {
-            HttpHeaders.setTransferEncodingChunked(response)
+        if (response.status().code() != HttpStatusCode.SwitchingProtocols.value) {
+            HttpUtil.setTransferEncodingChunked(response, true)
         }
     }
 }

@@ -8,7 +8,11 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.netty.*
 import org.jetbrains.ktor.nio.*
 
-internal class NettyHttp2ApplicationResponse(call: ApplicationCall, val context: ChannelHandlerContext) : BaseApplicationResponse(call) {
+internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
+                                             val host: NettyApplicationHost,
+                                             val handler: HostHttpHandler,
+                                             val context: ChannelHandlerContext,
+                                             val connection: Http2Connection) : BaseApplicationResponse(call) {
 
     private val responseHeaders = DefaultHttp2Headers().apply {
         status(HttpStatusCode.OK.value.toString())
@@ -44,4 +48,9 @@ internal class NettyHttp2ApplicationResponse(call: ApplicationCall, val context:
         override fun getHostHeaderValues(name: String): List<String> = responseHeaders.getAll(name).map { it.toString() }
     }
 
+    override fun push(block: ResponsePushBuilder.() -> Unit) {
+        context.executeInLoop {
+            handler.startHttp2PushPromise(call, block, connection, context)
+        }
+    }
 }
