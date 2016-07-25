@@ -10,7 +10,7 @@ import org.jetbrains.ktor.tests.*
 import org.junit.*
 import kotlin.test.*
 
-class OriginRouteTest {
+class OriginConnectionPointTest {
     @Test
     fun testDirectRequest() {
         withTestApplication {
