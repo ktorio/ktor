@@ -32,7 +32,7 @@ internal class NettyApplicationRequest(
         }
     }
 
-    override val local = NettyRoute(request, context)
+    override val local = NettyConnectionPoint(request, context)
 
     private val contentChannelState = AtomicReference<ReadChannelState>(ReadChannelState.NEUTRAL)
     private val multipart = lazy {

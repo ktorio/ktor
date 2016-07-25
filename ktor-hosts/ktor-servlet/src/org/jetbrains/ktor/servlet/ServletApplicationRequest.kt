@@ -10,7 +10,7 @@ import java.io.*
 import javax.servlet.http.*
 
 class ServletApplicationRequest(override val call: ServletApplicationCall, val servletRequest: HttpServletRequest) : ApplicationRequest {
-    override val local: RequestConnectionPoint = ServletRoute(servletRequest)
+    override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 
     override val parameters: ValuesMap by lazy {
         object : ValuesMap {

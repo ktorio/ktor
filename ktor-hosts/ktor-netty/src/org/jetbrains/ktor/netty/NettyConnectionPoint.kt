@@ -7,7 +7,7 @@ import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.http.HttpMethod
 import java.net.*
 
-internal class NettyRoute(val request: HttpRequest, val context: ChannelHandlerContext) : RequestConnectionPoint {
+internal class NettyConnectionPoint(val request: HttpRequest, val context: ChannelHandlerContext) : RequestConnectionPoint {
     override val version: String
         get() = request.protocolVersion.text()
 
