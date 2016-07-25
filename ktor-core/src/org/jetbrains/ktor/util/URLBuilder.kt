@@ -66,12 +66,12 @@ class URLBuilder(
         fun createFromCall(call: ApplicationCall): URLBuilder {
             val origin = call.request.origin
 
-    val builder = URLBuilder()
-    builder.protocol = URLProtocol.byName[origin.scheme] ?: URLProtocol(origin.scheme, 0)
-    builder.host = origin.host
-    builder.port = origin.port
-    builder.encodedPath = call.request.path()
-    builder.parameters.appendAll(call.request.queryParameters)
+            val builder = URLBuilder()
+            builder.protocol = URLProtocol.byName[origin.scheme] ?: URLProtocol(origin.scheme, 0)
+            builder.host = origin.host.substringBefore(":")
+            builder.port = origin.port
+            builder.encodedPath = call.request.path()
+            builder.parameters.appendAll(call.request.queryParameters)
 
             return builder
         }
