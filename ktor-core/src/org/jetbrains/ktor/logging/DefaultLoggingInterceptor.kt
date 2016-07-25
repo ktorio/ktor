@@ -32,5 +32,5 @@ object CallLogging : ApplicationFeature<Application, Unit> {
         environment.log.error("$status: ${call.request.logInfo()}", e)
     }
 
-    private fun ApplicationRequest.logInfo() = "$httpMethod - ${path()}"
+    private fun ApplicationRequest.logInfo() = "${httpMethod.value} - ${path()}"
 }
