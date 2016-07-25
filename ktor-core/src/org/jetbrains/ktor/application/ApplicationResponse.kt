@@ -19,6 +19,14 @@ interface ApplicationResponse {
     fun status(value: HttpStatusCode)
 
     fun channel(): WriteChannel
+
+    /**
+     * Produces HTTP/2 push from server to client or sets HTTP/1.x hint header
+     * or does nothing (may call or not call [block]).
+     * Exact behaviour is up to host implementation.
+     */
+    fun push(block: ResponsePushBuilder.() -> Unit) {
+    }
 }
 
 fun ApplicationCall.respondWrite(body: Writer.() -> Unit) : Nothing = respond(object : FinalContent.StreamConsumer() {

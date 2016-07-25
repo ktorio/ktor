@@ -8,7 +8,7 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import java.util.concurrent.atomic.*
 
-internal class NettyApplicationResponse(val call: ApplicationCall, val request: HttpRequest, val response: HttpResponse, val context: ChannelHandlerContext) : BaseApplicationResponse(call) {
+internal class NettyApplicationResponse(call: ApplicationCall, val request: HttpRequest, val response: HttpResponse, val context: ChannelHandlerContext) : BaseApplicationResponse(call) {
     @Volatile
     private var commited = false
     private val closed = AtomicBoolean(false)

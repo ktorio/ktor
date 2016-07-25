@@ -103,9 +103,24 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             var pipelineState: PipelineState? = null
             var throwable: Throwable? = null
 
-            val call = ServletApplicationCall(application, request, response) {
+            val call = ServletApplicationCall(application, request, response, {
                 latch.countDown()
-            }
+            }, { call, block, next ->
+                if (baseRequest.httpChannel.httpTransport.isPushSupported) {
+                    baseRequest.pushBuilder.apply {
+                        val builder = DefaultResponsePushBuilder(call)
+                        builder.block()
+
+                        this.method(builder.method.value)
+                        this.path(builder.url.encodedPath)
+                        this.queryString(builder.url.build().substringAfter('?', ""))
+
+                        push()
+                    }
+                } else {
+                    next()
+                }
+            })
 
             setupUpgradeHelper(request, response, server, latch, call)
 

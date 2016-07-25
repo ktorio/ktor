@@ -1,10 +1,7 @@
 package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
-import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.transform.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import javax.servlet.http.*
@@ -14,13 +11,17 @@ abstract class KtorServlet : HttpServlet() {
     abstract val application: Application
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
+        if (response.isCommitted) {
+            return
+        }
+
         response.characterEncoding = "UTF-8"
         request.characterEncoding = "UTF-8"
 
         try {
             val latch = CountDownLatch(1)
             val upgraded = AtomicBoolean(false)
-            val call = ServletApplicationCall(application, request, response) { latch.countDown() }
+            val call = ServletApplicationCall(application, request, response, { latch.countDown() }, { call, block, next -> next() })
             var throwable: Throwable? = null
             var pipelineState: PipelineState? = null
 

@@ -8,7 +8,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.netty.*
 import org.jetbrains.ktor.nio.*
 
-internal class NettyHttp2ApplicationResponse(val call: ApplicationCall, val context: ChannelHandlerContext) : BaseApplicationResponse(call) {
+internal class NettyHttp2ApplicationResponse(call: ApplicationCall, val context: ChannelHandlerContext) : BaseApplicationResponse(call) {
 
     private val responseHeaders = DefaultHttp2Headers().apply {
         status(HttpStatusCode.OK.value.toString())

@@ -61,20 +61,22 @@ class URLBuilder(
 
     // note: 256 should fit 99.5% of all urls according to http://www.supermind.org/blog/740/average-length-of-a-url-part-2
     fun build(): String = appendTo(StringBuilder(256)).toString()
-}
 
-fun url(block: URLBuilder.() -> Unit) = URLBuilder().apply(block).build()
-fun ApplicationCall.url(block: URLBuilder.() -> Unit = {}): String {
-    val origin = request.origin
+    companion object {
+        fun createFromCall(call: ApplicationCall): URLBuilder {
+            val origin = call.request.origin
 
     val builder = URLBuilder()
     builder.protocol = URLProtocol.byName[origin.scheme] ?: URLProtocol(origin.scheme, 0)
     builder.host = origin.host
     builder.port = origin.port
-    builder.encodedPath = request.path()
-    builder.parameters.appendAll(request.queryParameters)
+    builder.encodedPath = call.request.path()
+    builder.parameters.appendAll(call.request.queryParameters)
 
-    builder.block()
-
-    return builder.build()
+            return builder
+        }
+    }
 }
+
+fun url(block: URLBuilder.() -> Unit) = URLBuilder().apply(block).build()
+fun ApplicationCall.url(block: URLBuilder.() -> Unit = {}) =URLBuilder.createFromCall(this).apply(block).build()

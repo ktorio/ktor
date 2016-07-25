@@ -35,6 +35,7 @@ class LinkHeader(uri: String, params: List<HeaderValueParam>) : HeaderValueWithP
         val PreConnect = "preconnect"
         val PreLoad = "preload"
         val PreRender = "prerender"
+        val Next = "next"
     }
 }
 
