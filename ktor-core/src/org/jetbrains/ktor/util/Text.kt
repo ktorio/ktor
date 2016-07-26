@@ -38,7 +38,7 @@ fun String.escapeHTML(): String {
 
         when (ch) {
             '\'' -> sb.append("&apos;")
-            '\"' -> sb.append("quot")
+            '\"' -> sb.append("&quot")
             '&' -> sb.append("&amp;")
             '<' -> sb.append("&lt;")
             '>' -> sb.append("&gt;")
