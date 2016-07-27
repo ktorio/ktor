@@ -1,4 +1,4 @@
-<img src="https://github.com/Kotlin/ktor/wiki/resources/ktor.png" alt="Ktor" style="width:600px; max-width:100%;">
+<img src="https://github.com/Kotlin/ktor/wiki/resources/ktor.png" alt="Ktor" width="600" style="max-width:100%;">
 
 [ ![Download](https://api.bintray.com/packages/kotlin/ktor/ktor/images/download.svg) ](https://bintray.com/kotlin/ktor/ktor/_latestVersion)
 [![TeamCity (simple build status)](https://img.shields.io/teamcity/http/teamcity.jetbrains.com/s/KotlinTools_Ktor_Build.svg)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=KotlinTools_Ktor_Build&branch_KotlinTools_Ktor=%3Cdefault%3E&tab=buildTypeStatusDiv)
