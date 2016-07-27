@@ -17,6 +17,11 @@ embeddedNettyServer(8080) {
 * Runs embedded web server on `localhost:8080`
 * Installs routing and responds with `Hello, world!` when receiving GET http request for root path
 
+## Documentation
+
+Please visit our [Documentation Wiki](https://github.com/Kotlin/ktor/wiki) for quick start, detailed explanations of
+features, usage and machinery. 
+
 ## Principles
 
 ### Unopinionated
@@ -54,11 +59,6 @@ In addition to core HTTP request processing and response building, Ktor provides
     * Automatic HEAD response: responds to HEAD requests by running through pipeline and dropping response body
     * CORS: verifies and sends headers according to cross-origin resource sharing control
     * HSTS and https redirect: supports strict transport security
-
-## Quick Start
-
-Please visit our [Documentation Wiki](https://github.com/Kotlin/ktor/wiki) for quick start, detailed explanations of
-features, usage and machinery. 
 
 ## Maven
 
