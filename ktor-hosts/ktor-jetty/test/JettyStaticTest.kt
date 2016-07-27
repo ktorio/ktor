@@ -12,6 +12,6 @@ class JettyStaticTest : HostTestSuite() {
         val config = hostConfig(port, sslPort)
         val env = applicationEnvironment {}
 
-        return embeddedJettyServer(config, env, application = block)
+        return embeddedJettyServer(config, env, routing = block)
     }
 }

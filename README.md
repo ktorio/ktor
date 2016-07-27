@@ -55,11 +55,10 @@ In addition to core HTTP request processing and response building, Ktor provides
     * CORS: verifies and sends headers according to cross-origin resource sharing control
     * HSTS and https redirect: supports strict transport security
 
-## Documentation
+## Quick Start
 
-* Index
-* Getting Started
-* Under the Hood
+Please visit our [Documentation Wiki](https://github.com/Kotlin/ktor/wiki) for quick start, detailed explanations of
+features, usage and machinery. 
 
 ## Maven
 

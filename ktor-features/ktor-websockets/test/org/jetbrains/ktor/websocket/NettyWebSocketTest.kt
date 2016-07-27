@@ -6,6 +6,6 @@ import org.jetbrains.ktor.routing.*
 
 class NettyWebSocketTest : WebSocketHostSuite() {
     override fun createServer(block: Routing.() -> Unit): ApplicationHost {
-        return embeddedNettyServer(port, application = block)
+        return embeddedNettyServer(port, routing = block)
     }
 }

@@ -11,6 +11,6 @@ class NettyStaticTest : HostTestSuite() {
         val config = hostConfig(port, sslPort)
         val env = applicationEnvironment {}
 
-        return embeddedNettyServer(config, env, application = block)
+        return embeddedNettyServer(config, env, routing = block)
     }
 }
