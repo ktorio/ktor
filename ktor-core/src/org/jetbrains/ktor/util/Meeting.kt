@@ -9,8 +9,12 @@ class Meeting(val parties: Int, val action: Meeting.() -> Unit) {
         require(parties > 0) { "parties should be positive (non zero)" }
     }
 
+    val value: Int
+        get() = current.get()
+
     fun reset() {
-        current.set(0)
+        require(value == parties) { "should be $parties (current = $value)" }
+        require(current.addAndGet(-parties) == 0)
     }
 
     fun acknowledge(): Boolean {
@@ -21,4 +25,10 @@ class Meeting(val parties: Int, val action: Meeting.() -> Unit) {
 
         return false
     }
+
+    override fun toString(): String {
+        return "Meeting($current of $parties)"
+    }
+
+
 }

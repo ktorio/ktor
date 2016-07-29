@@ -30,6 +30,9 @@ abstract class HostTestSuite : HostTestBase() {
         withUrl("/") {
             assertEquals("test", inputStream.reader().readText())
         }
+        withUrlHttp2("/") {
+//            assertEquals("test", contentAsString)
+        }
     }
 
     @Test

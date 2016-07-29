@@ -15,6 +15,7 @@
         <module>ktor-server-sessions</module>
         <module>ktor-locations</module>
         <module>ktor-websockets</module>
+        <module>jetty-http-client</module>
     </modules>
 
     <dependencies>

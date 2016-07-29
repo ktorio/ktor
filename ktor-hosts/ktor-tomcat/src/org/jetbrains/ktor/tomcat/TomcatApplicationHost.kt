@@ -118,6 +118,7 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
                 if (nativeName != null) {
                     Library.initialize(nativeName)
                     SSL.initialize(null)
+                    SSL.freeSSL(SSL.newSSL(SSL.SSL_PROTOCOL_ALL.toLong(), true))
                     OpenSSLImplementation::class.java
                 } else {
                     JSSEImplementation::class.java

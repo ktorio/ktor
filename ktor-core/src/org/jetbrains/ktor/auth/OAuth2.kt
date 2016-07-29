@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.auth.httpclient.*
+import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
@@ -114,7 +114,7 @@ private fun simpleOAuth2Step2(client: HttpClient,
         else -> throw UnsupportedOperationException()
     }
 
-    val connection = client.open(URL(getUri)) {
+    val response = client.openBlocking(URL(getUri)) {
         this.method = method
         header(HttpHeaders.Accept, listOf(ContentType.Application.FormUrlEncoded, ContentType.Application.Json).joinToString(","))
         if (useBasicAuth) {
@@ -133,19 +133,19 @@ private fun simpleOAuth2Step2(client: HttpClient,
     }
 
     val (contentType, content) = try {
-        if (connection.responseStatus == HttpStatusCode.NotFound) {
+        if (response.status == HttpStatusCode.NotFound) {
             throw IOException("Not found 404 for the page $baseUrl")
         }
-        val contentType = connection.responseHeaders[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ContentType.Any
-        val content = connection.responseStream.bufferedReader().readText()
+        val contentType = response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ContentType.Any
+        val content = response.stream.bufferedReader().readText()
 
         Pair(contentType, content)
     } catch (ioe: IOException) {
         throw ioe
     } catch (t: Throwable) {
-        throw IOException("Failed to acquire request token due to ${connection.responseStream.reader().readText()}", t)
+        throw IOException("Failed to acquire request token due to ${response.stream.reader().readText()}", t)
     } finally {
-        connection.close()
+        response.close()
     }
 
     val contentDecoded = decodeContent(content, contentType)

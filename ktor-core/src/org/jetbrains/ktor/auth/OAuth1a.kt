@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.auth.httpclient.*
+import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
@@ -68,25 +68,25 @@ private fun simpleOAuth1aStep1(client: HttpClient, secretKey: String, baseUrl: S
             nonce = nonce
     ).sign(HttpMethod.Post, baseUrl, secretKey, extraParameters)
 
-    val connection = client.open(URL(baseUrl.appendUrlParameters(extraParameters.formUrlEncode()))) {
+    val response = client.openBlocking(URL(baseUrl.appendUrlParameters(extraParameters.formUrlEncode()))) {
         method = HttpMethod.Post
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
         header(HttpHeaders.Accept, ContentType.Any.toString())
         body = {}
     }
     try {
-        if (connection.responseStatus.value != HttpStatusCode.OK.value) {
-            throw IOException("Bad response: ${connection.responseStatus}")
+        if (response.status.value != HttpStatusCode.OK.value) {
+            throw IOException("Bad response: ${response.status}")
         }
 
-        val response = connection.responseStream.reader().readText().parseUrlEncodedParameters()
-        require(response[HttpAuthHeader.Parameters.OAuthCallbackConfirmed] == "true") { "Response parameter oauth_callback_confirmed should be true" }
+        val responseText = response.stream.reader().readText().parseUrlEncodedParameters()
+        require(responseText[HttpAuthHeader.Parameters.OAuthCallbackConfirmed] == "true") { "Response parameter oauth_callback_confirmed should be true" }
 
-        return OAuthCallback.TokenPair(response[HttpAuthHeader.Parameters.OAuthToken]!!, response[HttpAuthHeader.Parameters.OAuthTokenSecret]!!)
+        return OAuthCallback.TokenPair(responseText[HttpAuthHeader.Parameters.OAuthToken]!!, responseText[HttpAuthHeader.Parameters.OAuthTokenSecret]!!)
     } catch (e: Throwable) {
-        throw IOException("Failed to acquire request token due to ${connection.responseStream.reader().readText()}", e)
+        throw IOException("Failed to acquire request token due to ${response.stream.reader().readText()}", e)
     } finally {
-        connection.close()
+        response.close()
     }
 }
 
@@ -118,7 +118,7 @@ private fun simpleOAuth1aStep2(client: HttpClient, secretKey: String, baseUrl: S
     ) + extraParameters.toList()
     val authHeader = upgradeRequestTokenHeader(consumerKey, token, nonce).sign(HttpMethod.Post, baseUrl, secretKey, params)
 
-    val connection = client.open(URL(baseUrl)) {
+    val response = client.openBlocking(URL(baseUrl)) {
         method = HttpMethod.Post
 
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
@@ -133,12 +133,12 @@ private fun simpleOAuth1aStep2(client: HttpClient, secretKey: String, baseUrl: S
     }
 
     try {
-        val response = connection.responseStream.reader().readText().parseUrlEncodedParameters()
-        return OAuthAccessTokenResponse.OAuth1a(response[HttpAuthHeader.Parameters.OAuthToken]!!, response[HttpAuthHeader.Parameters.OAuthTokenSecret]!!, response)
+        val responseText = response.stream.reader().readText().parseUrlEncodedParameters()
+        return OAuthAccessTokenResponse.OAuth1a(responseText[HttpAuthHeader.Parameters.OAuthToken]!!, responseText[HttpAuthHeader.Parameters.OAuthTokenSecret]!!, responseText)
     } catch (e: Throwable) {
-        throw IOException("Failed to acquire request token due to ${connection.responseStream.reader().readText()}", e)
+        throw IOException("Failed to acquire request token due to ${response.stream.reader().readText()}", e)
     } finally {
-        connection.close()
+        response.close()
     }
 }
 

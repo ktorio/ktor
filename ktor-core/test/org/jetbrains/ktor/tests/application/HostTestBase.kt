@@ -14,6 +14,7 @@ import java.util.*
 import java.util.concurrent.*
 import javax.net.ssl.*
 import kotlin.concurrent.*
+import kotlin.test.*
 
 abstract class HostTestBase {
     protected val port = findFreePort()
@@ -75,6 +76,11 @@ abstract class HostTestBase {
         withUrl(URL("https://127.0.0.1:$sslPort$path"), sslPort, block)
     }
 
+    protected fun withUrlHttp2(path: String, block: Unit.(Int) -> Unit) {
+        withHttp2(URL("http://127.0.0.1:$port$path"), port, block)
+//        withHttp2(URL("https://127.0.0.1:$sslPort$path"), sslPort, block)
+    }
+
     private fun withUrl(url: URL, port: Int, block: HttpURLConnection.(Int) -> Unit) {
         val connection = url.openConnection() as HttpURLConnection
         if (connection is HttpsURLConnection) {
@@ -85,6 +91,24 @@ abstract class HostTestBase {
         connection.instanceFollowRedirects = false
 
         connection.block(port)
+    }
+
+    private fun withHttp2(url: URL, port: Int, block: Unit.(Int) -> Unit) {
+//        val transport = HTTP2Client()
+//        val client = HttpClient(HttpClientTransportOverHTTP2(transport), null)
+//
+//        transport.start()
+//        client.start()
+//
+//        try {
+//            client.GET(url.toURI()).apply {
+//                assertEquals("HTTP/2.0", version.asString())
+//                block(port)
+//            }
+//        } finally {
+//            client.stop()
+//            transport.stop()
+//        }
     }
 
     protected fun PipelineContext<*>.failAndProceed(e: Throwable): Nothing {

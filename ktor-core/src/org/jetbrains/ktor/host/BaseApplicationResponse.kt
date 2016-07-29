@@ -29,6 +29,6 @@ abstract class BaseApplicationResponse(val call: ApplicationCall) : ApplicationR
         }
     }
 
-    open fun isPrefetchLinkEnabled() = false
+    open fun isPrefetchLinkEnabled() = true
 
 }

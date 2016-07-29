@@ -1,6 +1,6 @@
 package org.jetbrains.ktor.tests.auth
 
-import org.jetbrains.ktor.auth.httpclient.DefaultHttpClient
+import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.http.HttpMethod
 import org.jetbrains.ktor.http.HttpStatusCode
@@ -58,7 +58,7 @@ class HttpClientTest {
         }
 
         val port = portSync.take()
-        val connection = DefaultHttpClient.open(URL("http://127.0.0.1:$port/")) {
+        val response = DefaultHttpClient.openBlocking(URL("http://127.0.0.1:$port/")) {
             method = HttpMethod.Post
             path = "/url"
             header("header", "value")
@@ -70,9 +70,9 @@ class HttpClientTest {
         }
 
         try {
-            assertEquals(HttpStatusCode.OK, connection.responseStatus)
-            assertEquals("test", connection.responseHeaders[HttpHeaders.Server])
-            assertEquals("ok", connection.responseStream.reader().readText())
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("test", response.headers[HttpHeaders.Server])
+            assertEquals("ok", response.stream.reader().readText())
 
             val receivedHeaders = headersSync.take()
             assertEquals("value", receivedHeaders["header"])
@@ -81,7 +81,7 @@ class HttpClientTest {
 
             assertEquals("request-body", receivedContentSync.take())
         } finally {
-            connection.close()
+            response.close()
             th.join()
         }
     }
