@@ -1,0 +1,13 @@
+cache:
+    directories:
+    - $HOME/.m2
+    - $HOME/.kobalt
+
+language: java
+
+jdk:
+  - oraclejdk8
+
+install: true
+
+script: ./build-travis.sh
