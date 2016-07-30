@@ -3,6 +3,8 @@ import com.beust.kobalt.api.*
 import com.beust.kobalt.plugin.packaging.*
 import com.beust.kobalt.plugin.application.*
 import com.beust.kobalt.plugin.kotlin.*
+import com.beust.kobalt.plugin.packaging.*
+
 
 val repos = repos("http://dl.bintray.com/kotlin/kotlinx.support", "http://dl.bintray.com/kotlinx/kotlinx")
 
@@ -20,7 +22,7 @@ object Versions {
 /**
  * Common settings shared by all the projects.
  */
-fun Project.defineProject(projectName: String, parentDir: String = ".") {
+fun Project.defineProject(projectName: String, parentDir: String = ".", passedFatJar: Boolean = false) {
     name = projectName
     group = "org.jetbrains.ktor"
     artifactId = name
@@ -41,6 +43,7 @@ fun Project.defineProject(projectName: String, parentDir: String = ".") {
 
     assemble {
         jar {
+            fatJar = passedFatJar
         }
     }
 }
@@ -157,15 +160,29 @@ val samples = project(core) {
     }
 }
 
+/*
 val samplesProjects = listOf("hello", "async", "testable").forEach {
     project(samples) {
         defineProject("ktor-samples-$it", "ktor-samples")
+
+        assemble {
+            jar {
+                fatJar = true
+            }
+        }
+
+        application {
+            mainClass = "com.beust.kobalt.wrapper.Main"
+        }
     }
 }
+*/
+val samplesHello = project(samples, jetty) {
+    defineProject("ktor-samples-hello", "ktor-samples", passedFatJar = true)
 
-/*
-val samplesHello = project(samples) {
-    defineProject("ktor-samples-hello", "ktor-samples")
+    application {
+        mainClass = "org.jetbrains.ktor.jetty.DevelopmentHost"
+    }
 }
 
 val samplesAsync = project(samples) {
@@ -175,8 +192,6 @@ val samplesAsync = project(samples) {
 val samplesTestable = project(samples) {
     defineProject("ktor-samples-testable", "ktor-samples")
 }
-
-*/
 
 val samplesAuth = project(samples, locations) {
     defineProject("ktor-samples-auth", "ktor-samples")
