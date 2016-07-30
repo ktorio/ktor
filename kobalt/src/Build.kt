@@ -160,23 +160,6 @@ val samples = project(core) {
     }
 }
 
-/*
-val samplesProjects = listOf("hello", "async", "testable").forEach {
-    project(samples) {
-        defineProject("ktor-samples-$it", "ktor-samples")
-
-        assemble {
-            jar {
-                fatJar = true
-            }
-        }
-
-        application {
-            mainClass = "com.beust.kobalt.wrapper.Main"
-        }
-    }
-}
-*/
 val samplesHello = project(samples, jetty) {
     defineProject("ktor-samples-hello", "ktor-samples", passedFatJar = true)
 
@@ -196,6 +179,26 @@ val samplesTestable = project(samples) {
 val samplesAuth = project(samples, locations) {
     defineProject("ktor-samples-auth", "ktor-samples")
 }
+
+/*
+// You can be fancy and define the three projects above in a loop instead, since they
+// follow the exact same syntax.
+val samplesProjects = listOf("hello", "async", "testable").forEach {
+    project(samples) {
+        defineProject("ktor-samples-$it", "ktor-samples")
+
+        assemble {
+            jar {
+                fatJar = true
+            }
+        }
+
+        application {
+            mainClass = "com.beust.kobalt.wrapper.Main"
+        }
+    }
+}
+*/
 
 val samplesLocations = project(samples, locations) {
     defineProject("ktor-samples-locations", "ktor-samples")
