@@ -8,7 +8,7 @@ import org.jetbrains.ktor.pipeline.*
 fun Pipeline<ApplicationCall>.statusPage(phase: PipelinePhase = ApplicationCallPipeline.Infrastructure, handler: PipelineContext<ApplicationCall>.(HttpStatusCode) -> Unit) {
     intercept(phase) { call ->
         var handled = false
-        call.respond.intercept(RespondPipeline.After) {
+        call.response.pipeline.intercept(RespondPipeline.After) {
             val obj = subject.message
             val status = when (obj) {
                 is FinalContent -> obj.status

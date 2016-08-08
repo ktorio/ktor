@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.*
 import javax.servlet.http.*
 
 internal fun setupUpgradeHelper(request: HttpServletRequest, response: HttpServletResponse, latch: CountDownLatch, call: ServletApplicationCall, upgraded: AtomicBoolean) {
-    call.respond.intercept(RespondPipeline.After) {
+    call.response.pipeline.intercept(RespondPipeline.After) {
         val message = subject.message
         if (message is FinalContent.ProtocolUpgrade) {
             response.status = message.status?.value ?: HttpStatusCode.SwitchingProtocols.value

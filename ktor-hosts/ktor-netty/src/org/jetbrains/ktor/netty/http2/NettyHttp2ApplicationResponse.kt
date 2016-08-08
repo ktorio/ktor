@@ -12,7 +12,8 @@ internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
                                              val host: NettyApplicationHost,
                                              val handler: HostHttpHandler,
                                              val context: ChannelHandlerContext,
-                                             val connection: Http2Connection) : BaseApplicationResponse(call) {
+                                             respondPipeline: RespondPipeline,
+                                             val connection: Http2Connection) : BaseApplicationResponse(call, respondPipeline) {
 
     private val responseHeaders = DefaultHttp2Headers().apply {
         status(HttpStatusCode.OK.value.toString())

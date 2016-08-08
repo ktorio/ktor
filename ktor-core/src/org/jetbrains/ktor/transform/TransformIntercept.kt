@@ -19,7 +19,7 @@ object TransformationSupport : ApplicationFeature<ApplicationCallPipeline, Appli
 
         pipeline.phases.insertBefore(ApplicationCallPipeline.Infrastructure, TransformApplicationPhase)
         pipeline.intercept(TransformApplicationPhase) { call ->
-            call.respond.intercept(RespondPipeline.Transform) { state ->
+            call.response.pipeline.intercept(RespondPipeline.Transform) { state ->
                 transform()
             }
         }

@@ -30,7 +30,7 @@ object PartialContentSupport : ApplicationFeature<ApplicationCallPipeline, Parti
             if (rangeSpecifier != null) {
                 if (call.isGetOrHead()) {
                     call.attributes.put(CompressionAttributes.preventCompression, true)
-                    call.respond.intercept(RespondPipeline.After) {
+                    call.response.pipeline.intercept(RespondPipeline.After) {
                         val message = subject.message
                         if (message is FinalContent.ChannelContent && message !is RangeChannelProvider) {
                             message.contentLength()?.let { length -> tryProcessRange(message, call, rangeSpecifier, length, config) }
@@ -40,7 +40,7 @@ object PartialContentSupport : ApplicationFeature<ApplicationCallPipeline, Parti
                     call.respond(HttpStatusCode.MethodNotAllowed.description("Method ${call.request.local.method.value} is not allowed with range request"))
                 }
             } else {
-                call.respond.intercept(RespondPipeline.After) {
+                call.response.pipeline.intercept(RespondPipeline.After) {
                     val message = subject.message
                     if (message is FinalContent.ChannelContent && message !is RangeChannelProvider) {
                         call.respond(RangeChannelProvider.ByPass(message))

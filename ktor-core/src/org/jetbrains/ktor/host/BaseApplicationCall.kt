@@ -15,7 +15,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
 
     override fun respond(message: Any): Nothing {
         val state = ResponsePipelineState(this, message)
-        execution.execute(state, respond)
+        execution.execute(state, respondPipeline)
     }
 
     protected fun commit(o: FinalContent) {
@@ -25,13 +25,14 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         }
     }
 
-    final override val respond = RespondPipeline()
+    protected val respondPipeline = RespondPipeline()
+
     private val HostRespondPhase = PipelinePhase("HostRespondPhase")
 
     init {
-        respond.phases.insertAfter(RespondPipeline.After, HostRespondPhase)
+        respondPipeline.phases.insertAfter(RespondPipeline.After, HostRespondPhase)
 
-        respond.intercept(HostRespondPhase) { state ->
+        respondPipeline.intercept(HostRespondPhase) { state ->
             val value = state.message
 
             when (value) {

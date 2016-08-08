@@ -13,7 +13,7 @@ class ServletApplicationCall(application: Application,
                              pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit) : BaseApplicationCall(application) {
 
     override val request: ApplicationRequest = ServletApplicationRequest(this, servletRequest)
-    override val response: ApplicationResponse = ServletApplicationResponse(this, servletResponse, pushImpl)
+    override val response: ApplicationResponse = ServletApplicationResponse(this, respondPipeline, servletResponse, pushImpl)
 
     @Volatile
     private var asyncContext: AsyncContext? = null

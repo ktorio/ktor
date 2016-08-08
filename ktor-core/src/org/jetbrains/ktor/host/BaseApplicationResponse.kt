@@ -4,8 +4,10 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
 
-abstract class BaseApplicationResponse(val call: ApplicationCall) : ApplicationResponse {
+abstract class BaseApplicationResponse(val call: ApplicationCall, private val responsePipeline: RespondPipeline) : ApplicationResponse {
     private var _status: HttpStatusCode? = null
+    override val pipeline: RespondPipeline
+        get() = responsePipeline
 
     override val cookies = ResponseCookies(this, call.request)
 

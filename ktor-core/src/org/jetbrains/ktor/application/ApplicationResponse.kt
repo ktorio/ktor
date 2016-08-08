@@ -12,6 +12,7 @@ import java.io.*
  * Represents server's response
  */
 interface ApplicationResponse {
+    val pipeline: RespondPipeline
     val headers: ResponseHeaders
     val cookies: ResponseCookies
 

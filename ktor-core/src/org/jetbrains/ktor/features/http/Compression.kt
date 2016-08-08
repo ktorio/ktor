@@ -69,7 +69,7 @@ object CompressionSupport : ApplicationFeature<ApplicationCallPipeline, Compress
                         .map { it.first }
 
                 if (encoders.isNotEmpty()) {
-                    call.respond.intercept(RespondPipeline.After) {
+                    call.response.pipeline.intercept(RespondPipeline.After) {
                         val message = subject.message
                         if (message is FinalContent
                                 && message !is CompressedResponse

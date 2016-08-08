@@ -10,9 +10,9 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpHeaders
 import java.util.concurrent.atomic.*
 
-internal class NettyApplicationResponse(call: ApplicationCall, val request: HttpRequest, val response: HttpResponse, val context: ChannelHandlerContext) : BaseApplicationResponse(call) {
+internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline: RespondPipeline, val request: HttpRequest, val response: HttpResponse, val context: ChannelHandlerContext) : BaseApplicationResponse(call, responsePipeline) {
     @Volatile
-    private var commited = false
+    private var committed = false
     private val closed = AtomicBoolean(false)
 
     override fun setStatus(statusCode: HttpStatusCode) {
@@ -32,7 +32,7 @@ internal class NettyApplicationResponse(call: ApplicationCall, val request: Http
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         override fun hostAppendHeader(name: String, value: String) {
-            if (commited)
+            if (committed)
                 throw UnsupportedOperationException("Headers can no longer be set because response was already completed")
             response.headers().add(name, value)
         }
@@ -41,12 +41,12 @@ internal class NettyApplicationResponse(call: ApplicationCall, val request: Http
     }
 
     fun sendRequestMessage(): ChannelFuture? {
-        if (!commited) {
+        if (!committed) {
             if (!HttpUtil.isTransferEncodingChunked(response)) {
                 HttpUtil.setContentLength(response, 0L)
             }
             val f = context.writeAndFlush(response)
-            commited = true
+            committed = true
             return f
         }
         return null
@@ -74,7 +74,7 @@ internal class NettyApplicationResponse(call: ApplicationCall, val request: Http
     }
 
     private fun setChunked() {
-        if (commited) {
+        if (committed) {
             if (!response.headers().contains(HttpHeaders.TransferEncoding, HttpHeaderValues.CHUNKED, true)) {
                 throw IllegalStateException("Already committed")
             }

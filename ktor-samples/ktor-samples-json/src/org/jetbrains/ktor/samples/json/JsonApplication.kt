@@ -28,7 +28,7 @@ class JsonApplication(environment: ApplicationEnvironment) : Application(environ
 
         intercept(ApplicationCallPipeline.Infrastructure) { call ->
             if (call.request.accept() == "application/json") {
-                call.respond.intercept(RespondPipeline.Before) {
+                call.response.pipeline.intercept(RespondPipeline.Before) {
                     val message = subject.message
                     when (message) {
                         is Item, is Model -> {

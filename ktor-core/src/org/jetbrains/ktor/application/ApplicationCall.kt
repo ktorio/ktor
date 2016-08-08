@@ -19,11 +19,6 @@ interface ApplicationCall : Closeable {
     val request: ApplicationRequest
 
     /**
-     * Server response
-     */
-    val response: ApplicationResponse
-
-    /**
      * Attributes attached to this instance
      */
     val attributes: Attributes
@@ -35,8 +30,16 @@ interface ApplicationCall : Closeable {
 
     val parameters: ValuesMap
 
+    /**
+     * Server response
+     */
+    val response: ApplicationResponse
+
     fun respond(message: Any): Nothing
 
+    @Deprecated("Use response.pipeline instead", ReplaceWith("response.pipeline"))
     val respond: RespondPipeline
+        get() = response.pipeline
+
     val execution: PipelineMachine
 }

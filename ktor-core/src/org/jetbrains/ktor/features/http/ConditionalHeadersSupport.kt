@@ -16,7 +16,7 @@ object ConditionalHeadersSupport : ApplicationFeature<ApplicationCallPipeline, U
 
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             if (conditionalHeaders.any { it in call.request.headers }) {
-                call.respond.intercept(RespondPipeline.After) {
+                call.response.pipeline.intercept(RespondPipeline.After) {
                     val message = subject.message
                     when (message) {
                         is HasVersions -> checkVersions(call, message.versions)

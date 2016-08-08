@@ -9,7 +9,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 
 internal fun setupUpgradeHelper(call: NettyApplicationCall, context: ChannelHandlerContext, drops: LastDropsCollectorHandler?) {
-    call.respond.intercept(RespondPipeline.After) {
+    call.response.pipeline.intercept(RespondPipeline.After) {
         val message = subject.message
         if (message is FinalContent.ProtocolUpgrade) {
             context.executeInLoop {

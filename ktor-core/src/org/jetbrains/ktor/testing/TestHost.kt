@@ -129,7 +129,7 @@ class TestApplicationCall(application: Application, override val request: TestAp
         response.close()
     }
 
-    override val response = TestApplicationResponse(this)
+    override val response = TestApplicationResponse(this, respondPipeline)
 
     @Volatile
     var requestHandled = false
@@ -215,7 +215,7 @@ class TestApplicationRequest(
     override val cookies = RequestCookies(this)
 }
 
-class TestApplicationResponse(call: ApplicationCall) : BaseApplicationResponse(call) {
+class TestApplicationResponse(call: ApplicationCall, respondPipeline: RespondPipeline = RespondPipeline()) : BaseApplicationResponse(call, respondPipeline) {
     private val realContent = lazy { ByteArrayWriteChannel() }
     @Volatile
     private var closed = false

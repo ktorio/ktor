@@ -7,8 +7,10 @@ import org.jetbrains.ktor.nio.*
 import javax.servlet.http.*
 
 class ServletApplicationResponse(call: ServletApplicationCall,
+                                 responsePipeline: RespondPipeline,
                                  val servletResponse: HttpServletResponse,
-                                 val pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit) : BaseApplicationResponse(call) {
+                                 val pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit
+                                 ) : BaseApplicationResponse(call, responsePipeline) {
     private val servletCall = call
 
     override fun setStatus(statusCode: HttpStatusCode) {
