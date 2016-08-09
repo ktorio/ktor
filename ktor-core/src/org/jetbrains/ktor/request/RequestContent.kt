@@ -3,10 +3,28 @@ package org.jetbrains.ktor.request
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.util.*
 import java.io.*
 import kotlin.reflect.*
 
 abstract class RequestContent(private val request: ApplicationRequest) {
+    private val contentAsString by lazy { get<ReadChannel>().asInputStream().reader(request.contentCharset() ?: Charsets.ISO_8859_1).readText() }
+    private val computedValuesMap: ValuesMap by lazy {
+        if (request.contentType().match(ContentType.Application.FormUrlEncoded)) {
+            parseQueryString(get<String>())
+        } else if (request.contentType().match(ContentType.MultiPart.FormData)) {
+            ValuesMap.build {
+                get<MultiPartData>().parts.filterIsInstance<PartData.FormItem>().forEach { part ->
+                    part.partName?.let { name ->
+                        append(name, part.value)
+                    }
+                }
+            }
+        } else {
+            ValuesMap.Empty
+        }
+    }
+
     protected abstract fun getInputStream(): InputStream
     protected abstract fun getReadChannel(): ReadChannel
     protected abstract fun getMultiPartData(): MultiPartData
@@ -16,7 +34,8 @@ abstract class RequestContent(private val request: ApplicationRequest) {
         return when (type) {
             ReadChannel::class -> getReadChannel()
             InputStream::class -> getInputStream()
-            String::class -> getReadChannel().asInputStream().reader(request.contentCharset() ?: Charsets.ISO_8859_1).readText()
+            String::class -> contentAsString
+            ValuesMap::class -> computedValuesMap
             MultiPartData::class -> getMultiPartData()
             else -> throw UnknownContentAccessorRequest("Requested content accessor '$type' cannot be provided")
         } as T

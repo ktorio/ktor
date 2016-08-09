@@ -12,22 +12,8 @@ import javax.servlet.http.*
 class ServletApplicationRequest(override val call: ServletApplicationCall, val servletRequest: HttpServletRequest) : ApplicationRequest {
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 
-    override val parameters: ValuesMap by lazy {
-        object : ValuesMap {
-            override fun getAll(name: String): List<String> = servletRequest.getParameterValues(name)?.asList() ?: emptyList()
-            override fun entries(): Set<Map.Entry<String, List<String>>> {
-                return servletRequest.parameterNames.asSequence().map {
-                    object : Map.Entry<String, List<String>> {
-                        override val key: String get() = it
-                        override val value: List<String> get() = getAll(it)
-                    }
-                }.toSet()
-            }
-
-            override fun isEmpty(): Boolean = servletRequest.parameterNames.asSequence().none()
-            override val caseInsensitiveKey: Boolean get() = false
-            override fun names(): Set<String> = servletRequest.parameterNames.asSequence().toSet()
-        }
+    override val queryParameters by lazy {
+        servletRequest.queryString?.let { parseQueryString(it) } ?: ValuesMap.Empty
     }
 
     override val headers: ValuesMap by lazy {

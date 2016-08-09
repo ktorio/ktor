@@ -12,9 +12,8 @@ class ServletApplicationCall(application: Application,
                              private val servletResponse: HttpServletResponse,
                              val onAsyncStartedUnderLock: () -> Unit) : BaseApplicationCall(application) {
 
-    override val request: ApplicationRequest = ServletApplicationRequest(this, servletRequest)
-    override val response: ApplicationResponse = ServletApplicationResponse(this, servletResponse)
-    override val parameters: ValuesMap get() = request.parameters
+    override val request = ServletApplicationRequest(this, servletRequest)
+    override val response = ServletApplicationResponse(this, servletResponse)
 
     @Volatile
     private var asyncContext: AsyncContext? = null

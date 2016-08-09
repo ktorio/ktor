@@ -13,14 +13,14 @@ import java.util.concurrent.*
  * For general-purpose example see [OAuthLoginApplication]
  */
 class OAuthLoginNoLocationApplication(environment: ApplicationEnvironment) : Application(environment) {
-    val exec = Executors.newFixedThreadPool(8)
+    val exec = Executors.newFixedThreadPool(8)!!
 
     init {
         intercept(ApplicationCallPipeline.Infrastructure) { call ->
             // generally you shouldn't do like that however there are situation when you could need
             // to do everything on lower level
 
-            when (call.request.parameter("authStep")) {
+            when (call.parameters["authStep"]) {
                 "1" -> oauthRespondRedirect(DefaultHttpClient, exec, loginProviders.values.first(), "/any?authStep=2")
                 "2" -> oauthHandleCallback(DefaultHttpClient, exec, loginProviders.values.first(), "/any?authStep=2", "/") {
                     call.response.status(HttpStatusCode.OK)

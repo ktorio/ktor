@@ -40,8 +40,8 @@ internal fun PipelineContext<ApplicationCall>.oauth1a(client: HttpClient, exec: 
 }
 
 internal fun ApplicationCall.oauth1aHandleCallback(): OAuthCallback.TokenPair? {
-    val token = request.parameter(HttpAuthHeader.Parameters.OAuthToken)
-    val verifier = request.parameter(HttpAuthHeader.Parameters.OAuthVerifier)
+    val token = parameters[HttpAuthHeader.Parameters.OAuthToken]
+    val verifier = parameters[HttpAuthHeader.Parameters.OAuthVerifier]
 
     return when {
         token != null && verifier != null -> OAuthCallback.TokenPair(token, verifier)

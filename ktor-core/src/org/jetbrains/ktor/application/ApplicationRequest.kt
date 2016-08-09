@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.application
 
-import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 
 /**
@@ -22,7 +22,11 @@ interface ApplicationRequest {
     /**
      * Parameters for this request
      */
+    @Deprecated("Use queryParameters or content instead")
     val parameters: ValuesMap
+        get() = queryParameters + content.get()
+
+    val queryParameters: ValuesMap
 
     /**
      * Headers for this request

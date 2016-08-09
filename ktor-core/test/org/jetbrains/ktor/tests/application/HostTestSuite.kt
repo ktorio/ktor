@@ -51,6 +51,33 @@ abstract class HostTestSuite : HostTestBase() {
     }
 
     @Test
+    fun testRequestContentFormData() {
+        createAndStartServer() {
+            handle {
+                call.respond(call.request.content.get<ValuesMap>().formUrlEncode())
+            }
+        }
+
+        withUrl("/") {
+            doOutput = true
+            requestMethod = "POST"
+
+            outputStream.bufferedWriter().use {
+                valuesOf("a" to listOf("1")).formUrlEncodeTo(it)
+            }
+
+            assertEquals("a=1", inputStream.reader().readText())
+        }
+
+        withUrl("/") {
+            doOutput = false
+            requestMethod = "GET"
+
+            assertEquals("", inputStream.reader().readText())
+        }
+    }
+
+    @Test
     fun testStreamNoFlush() {
         createAndStartServer() {
             handle {
@@ -369,7 +396,7 @@ abstract class HostTestSuite : HostTestBase() {
     fun testFormUrlEncoded() {
         createAndStartServer() {
             post("/") {
-                call.respondText("${call.request.parameter("urlp")},${call.request.parameter("formp")}")
+                call.respondText("${call.parameters["urlp"]},${call.parameters["formp"]}")
             }
         }
 
@@ -767,7 +794,7 @@ abstract class HostTestSuite : HostTestBase() {
     fun testRequestParameters() {
         createAndStartServer {
             get("/*") {
-                call.respond(call.request.parameters.getAll(call.request.path().removePrefix("/")).toString())
+                call.respond(call.request.queryParameters.getAll(call.request.path().removePrefix("/")).toString())
             }
         }
 

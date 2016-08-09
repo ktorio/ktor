@@ -47,7 +47,7 @@ class ApplicationRequestHeaderTest {
                         assertEquals("/foo?key1=value1&key2=value2", call.request.uri)
                     }
                     it("should map two parameters key1=value1 and key2=value2") {
-                        val params = call.request.queryParameters()
+                        val params = call.request.queryParameters
                         assertEquals("value1", params["key1"])
                         assertEquals("value2", params["key2"])
                     }
@@ -108,7 +108,7 @@ class ApplicationRequestHeaderTest {
                         assertEquals("/?key1=value1&key2=value2", call.request.uri)
                     }
                     it("should map two parameters key1=value1 and key2=value2") {
-                        val params = call.request.queryParameters()
+                        val params = call.request.queryParameters
                         assertEquals("value1", params["key1"])
                         assertEquals("value2", params["key2"])
                     }

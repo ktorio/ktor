@@ -14,10 +14,8 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.transform.*
-import org.jetbrains.ktor.util.*
 import javax.net.ssl.*
 
 /**
@@ -89,21 +87,11 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     inner class HostHttpHandler : SimpleChannelInboundHandler<HttpRequest>(false) {
         override fun channelRead0(context: ChannelHandlerContext, request: HttpRequest) {
-            val requestContentType = request.headers().get(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
+            context.channel().config().isAutoRead = false
+            val dropsHandler = LastDropsCollectorHandler() // in spite of that we have cleared auto-read mode we still need to collect remaining events
+            context.pipeline().addLast(dropsHandler)
 
-            if (requestContentType != null && requestContentType.match(ContentType.Application.FormUrlEncoded)) {
-                context.channel().config().isAutoRead = true
-                val urlEncodedHandler = FormUrlEncodedHandler(Charsets.UTF_8, { parameters ->
-                    startHandleRequest(context, request, true, { parameters }, null)
-                })
-                context.pipeline().addLast(urlEncodedHandler)
-            } else {
-                context.channel().config().isAutoRead = false
-                val dropsHandler = LastDropsCollectorHandler() // in spite of that we have cleared auto-read mode we still need to collect remaining events
-                context.pipeline().addLast(dropsHandler)
-
-                startHandleRequest(context, request, false, { ValuesMap.Empty }, dropsHandler)
-            }
+            startHandleRequest(context, request, false, dropsHandler)
         }
 
         override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
@@ -115,8 +103,8 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             context.flush()
         }
 
-        private fun startHandleRequest(context: ChannelHandlerContext, request: HttpRequest, bodyConsumed: Boolean, urlEncodedParameters: () -> ValuesMap, drops: LastDropsCollectorHandler?) {
-            val call = NettyApplicationCall(application, context, request, bodyConsumed, urlEncodedParameters, drops)
+        private fun startHandleRequest(context: ChannelHandlerContext, request: HttpRequest, bodyConsumed: Boolean, drops: LastDropsCollectorHandler?) {
+            val call = NettyApplicationCall(application, context, request, bodyConsumed, drops)
 
             setupUpgradeHelper(call, context, drops)
 

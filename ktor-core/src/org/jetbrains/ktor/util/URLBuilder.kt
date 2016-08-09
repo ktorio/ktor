@@ -72,7 +72,7 @@ fun ApplicationCall.url(block: URLBuilder.() -> Unit = {}): String {
     builder.host = origin.host
     builder.port = origin.port
     builder.encodedPath = request.path()
-    builder.parameters.appendAll(request.queryParameters())
+    builder.parameters.appendAll(request.queryParameters)
 
     builder.block()
 

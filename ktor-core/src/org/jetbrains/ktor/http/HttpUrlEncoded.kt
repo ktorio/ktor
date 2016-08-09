@@ -6,12 +6,12 @@ import org.jetbrains.ktor.util.*
 import java.net.*
 import java.nio.charset.*
 
-fun ApplicationRequest.parseUrlEncodedParameters(): ValuesMap {
-    return content.get<String>().parseUrlEncodedParameters(contentCharset() ?: Charsets.UTF_8)
+fun ApplicationRequest.parseUrlEncodedParameters(limit: Int = 1000): ValuesMap {
+    return content.get<String>().parseUrlEncodedParameters(contentCharset() ?: Charsets.UTF_8, limit)
 }
 
-fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.UTF_8): ValuesMap {
-    val parameters = split("&").map { it.substringBefore("=") to it.substringAfter("=", "") }
+fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.UTF_8, limit: Int = 1000): ValuesMap {
+    val parameters = split("&", limit = limit).map { it.substringBefore("=") to it.substringAfter("=", "") }
     val encoding = parameters.firstOrNull { it.first == "_charset_" }?.second ?: defaultEncoding.name()
 
     return parameters.fold(ValuesMapBuilder()) { builder, pair ->

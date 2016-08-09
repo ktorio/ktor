@@ -11,7 +11,6 @@ internal class NettyApplicationCall(application: Application,
                                     val context: ChannelHandlerContext,
                                     val httpRequest: HttpRequest,
                                     bodyConsumed: Boolean,
-                                    urlEncodedParameters: () -> ValuesMap,
                                     val drops: LastDropsCollectorHandler?
 ) : BaseApplicationCall(application) {
 
@@ -19,9 +18,8 @@ internal class NettyApplicationCall(application: Application,
 
     val httpResponse = DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
 
-    override val request = NettyApplicationRequest(this, httpRequest, bodyConsumed, urlEncodedParameters, context, drops)
+    override val request = NettyApplicationRequest(this, httpRequest, bodyConsumed, context, drops)
     override val response = NettyApplicationResponse(this, httpRequest, httpResponse, context)
-    override val parameters: ValuesMap get() = request.parameters
 
     override fun close() {
         completed = true

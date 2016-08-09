@@ -309,7 +309,7 @@ class CompressionTest {
             application.install(CompressionSupport) {
                 configureDefault {
                     condition {
-                        request.parameters["compress"] == "true"
+                        parameters["compress"] == "true"
                     }
                 }
             }

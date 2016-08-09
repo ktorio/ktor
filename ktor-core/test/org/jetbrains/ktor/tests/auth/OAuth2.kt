@@ -322,15 +322,15 @@ private fun createOAuth2Server(server: OAuth2Server): TestingHttpClient {
     testApp.application.routing {
         route("/oauth/access_token") {
             handle {
-                val clientId = call.request.requireParameter(OAuth2RequestParameters.ClientId)
-                val clientSecret = call.request.requireParameter(OAuth2RequestParameters.ClientSecret)
-                val grantType = call.request.requireParameter(OAuth2RequestParameters.GrantType)
-                val state = call.request.parameter(OAuth2RequestParameters.State)
-                val code = call.request.parameter(OAuth2RequestParameters.Code)
-                val redirectUri = call.request.parameter(OAuth2RequestParameters.RedirectUri)
-                val username = call.request.parameter(OAuth2RequestParameters.UserName)
-                val password = call.request.parameter(OAuth2RequestParameters.Password)
-                val badContentType = call.request.parameter("badContentType") == "true"
+                val clientId = call.requireParameter(OAuth2RequestParameters.ClientId)
+                val clientSecret = call.requireParameter(OAuth2RequestParameters.ClientSecret)
+                val grantType = call.requireParameter(OAuth2RequestParameters.GrantType)
+                val state = call.parameters[OAuth2RequestParameters.State]
+                val code = call.parameters[OAuth2RequestParameters.Code]
+                val redirectUri = call.parameters[OAuth2RequestParameters.RedirectUri]
+                val username = call.parameters[OAuth2RequestParameters.UserName]
+                val password = call.parameters[OAuth2RequestParameters.Password]
+                val badContentType = call.parameters["badContentType"] == "true"
 
                 val obj = try {
                     val tokens = server.requestToken(clientId, clientSecret, grantType, state, code, redirectUri, username, password)
@@ -365,4 +365,4 @@ private fun createOAuth2Server(server: OAuth2Server): TestingHttpClient {
     return TestingHttpClient(testApp)
 }
 
-private fun ApplicationRequest.requireParameter(name: String) = parameter(name) ?: throw IllegalArgumentException("No parameter $name specified")
+private fun ApplicationCall.requireParameter(name: String) = parameters[name] ?: throw IllegalArgumentException("No parameter $name specified")

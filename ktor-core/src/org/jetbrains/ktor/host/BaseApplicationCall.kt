@@ -66,6 +66,8 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         }
     }
 
+    override val parameters: ValuesMap by lazy { request.queryParameters + request.content.get() }
+
     private class PipeResponse(val pipe: ChannelPipe, headersDelegate: () -> ValuesMap, val start: () -> Unit) : FinalContent.ChannelContent() {
         override val headers by lazy(headersDelegate)
 

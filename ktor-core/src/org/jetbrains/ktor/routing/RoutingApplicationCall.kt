@@ -11,7 +11,7 @@ open class RoutingApplicationCall(call: ApplicationCall,
                                   private val resolvedValues: ValuesMap) : ApplicationCall by call {
     override val parameters: ValuesMap by lazy {
         ValuesMap.build {
-            appendAll(request.parameters)
+            appendAll(call.parameters)
             appendMissing(resolvedValues)
         }
     }

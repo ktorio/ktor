@@ -3,12 +3,12 @@ package org.jetbrains.ktor.request
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 
-fun parseQueryString(query: String): ValuesMap {
+fun parseQueryString(query: String, limit: Int = 1000): ValuesMap {
     return if (query.isBlank()) {
         ValuesMap.Empty
     } else {
         ValuesMap.build {
-            val parameterSegments = query.splitToSequence("&").filter { it.isNotBlank() }
+            val parameterSegments = query.splitToSequence("&", limit = limit).filter { it.isNotBlank() }
             for (segment in parameterSegments) {
                 val pair = segment.split('=', limit = 2)
                 val name = decodeURLQueryComponent(pair[0]).trim()

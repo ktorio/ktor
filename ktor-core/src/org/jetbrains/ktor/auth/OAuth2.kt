@@ -33,8 +33,8 @@ internal fun PipelineContext<ApplicationCall>.oauth2(client: HttpClient, exec: E
 }
 
 internal fun ApplicationCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? {
-    val code = request.parameter(OAuth2RequestParameters.Code)
-    val state = request.parameter(OAuth2RequestParameters.State)
+    val code = parameters[OAuth2RequestParameters.Code]
+    val state = parameters[OAuth2RequestParameters.State]
 
     return when {
         code != null && state != null -> OAuthCallback.TokenSingle(code, state)
