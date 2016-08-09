@@ -156,7 +156,7 @@ val samples = project(core) {
     defineProject("ktor-samples")
 
     dependencies {
-        compile("org.jetbrains.kotlinx:kotlinx.html.jvm:[0.5,0.6)")
+        compile("org.jetbrains.kotlinx:kotlinx.html.jvm:0.6.0")
     }
 }
 
