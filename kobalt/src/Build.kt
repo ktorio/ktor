@@ -99,7 +99,7 @@ val freemarker = project(features, ktor) {
     defineProject("ktor-freemarker", "ktor-features")
 
     dependencies {
-        compile("org.freemarker:freemarker:[2.3.20,2.4)")
+        compile("org.freemarker:freemarker:2.3.23")
     }
 
     dependenciesTest {
