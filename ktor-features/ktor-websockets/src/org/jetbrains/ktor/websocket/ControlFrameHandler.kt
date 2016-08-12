@@ -9,11 +9,16 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
 internal class ControlFrameHandler (val parent: WebSocketImpl, val exec: ScheduledExecutorService) {
-    private var closeSent = false
-    private var closeReceived = false
     private val closeHandlers = ArrayList<Future<*>>()
     private val pingPongFuture = AtomicReference<Future<*>?>()
+
+    @Volatile
     private var expectedPong: String? = null
+    @Volatile
+    private var closeSent = false
+    @Volatile
+    private var closeReceived = false
+    @Volatile
     private var stopped = false
 
     private val timeoutTask = TimeoutTask(this)
