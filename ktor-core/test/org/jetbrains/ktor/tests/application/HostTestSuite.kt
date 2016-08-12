@@ -671,7 +671,7 @@ abstract class HostTestSuite : HostTestBase() {
         createAndStartServer() {
             install(XForwardedHeadersSupport)
             get("/") {
-                call.respond(call.url {  })
+                call.respond(call.url { })
             }
         }
 
@@ -760,6 +760,25 @@ abstract class HostTestSuite : HostTestBase() {
         }
         withUrl("/uri/1") {
             assertEquals("/uri/1", inputStream.reader().readText())
+        }
+    }
+
+    @Test
+    fun testRequestParameters() {
+        createAndStartServer {
+            get("/*") {
+                call.respond(call.request.parameters.getAll(call.request.path().removePrefix("/")).toString())
+            }
+        }
+
+        withUrl("/single?single=value") {
+            assertEquals("[value]", inputStream.reader().readText())
+        }
+        withUrl("/multiple?multiple=value1&multiple=value2") {
+            assertEquals("[value1, value2]", inputStream.reader().readText())
+        }
+        withUrl("/missing") {
+            assertEquals("null", inputStream.reader().readText())
         }
     }
 
