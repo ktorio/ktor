@@ -14,6 +14,7 @@ internal class ControlFrameHandler (val parent: WebSocketImpl, val exec: Schedul
     private val closeHandlers = ArrayList<Future<*>>()
     private val pingPongFuture = AtomicReference<Future<*>?>()
     private var expectedPong: String? = null
+    private var stopped = false
 
     private val timeoutTask = TimeoutTask(this)
 
@@ -66,7 +67,7 @@ internal class ControlFrameHandler (val parent: WebSocketImpl, val exec: Schedul
     }
 
     fun schedulePingPong(pingPeriod: Duration) {
-        if (!closeSent && !closeReceived) {
+        if (!closeSent && !closeReceived && !stopped) {
             pingPongFuture.getAndSet(exec.scheduleAtFixedRate({
                 if (closeReceived || closeSent) {
                     cancelPingPong()
@@ -82,6 +83,12 @@ internal class ControlFrameHandler (val parent: WebSocketImpl, val exec: Schedul
     fun cancelPingPong() {
         pingPongFuture.getAndSet(null)?.cancel(true)
         expectedPong = null
+    }
+
+    fun stop() {
+        stopped = true
+        cancelAllTimeouts()
+        cancelPingPong()
     }
 
     private fun generatePingMessage() = "[ping ${nextNonce()} ping]"
@@ -104,18 +111,17 @@ internal class ControlFrameHandler (val parent: WebSocketImpl, val exec: Schedul
     }
 
     private fun handleTimeout() {
-        cancelAllTimeouts()
         parent.close()
     }
 
-    private fun closeAfterTimeout(): ScheduledFuture<*> {
-        val f = exec.schedule(timeoutTask, parent.timeout.toMillis(), TimeUnit.MILLISECONDS)
+    private fun closeAfterTimeout() {
+        if (!stopped) {
+            val f = exec.schedule(timeoutTask, parent.timeout.toMillis(), TimeUnit.MILLISECONDS)
 
-        synchronized(closeHandlers) {
-            closeHandlers.add(f)
+            synchronized(closeHandlers) {
+                closeHandlers.add(f)
+            }
         }
-
-        return f
     }
 
     tailrec fun cancelAllTimeouts() {

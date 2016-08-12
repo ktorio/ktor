@@ -47,8 +47,7 @@ internal class WebSocketImpl(call: ApplicationCall, context: PipelineContext<*>,
     }
 
     override fun close(): Nothing {
-        controlFrameHandler.cancelAllTimeouts()
-        controlFrameHandler.cancelPingPong()
+        controlFrameHandler.stop()
 
         readChannel.close()
         writeChannel.close()
@@ -58,8 +57,7 @@ internal class WebSocketImpl(call: ApplicationCall, context: PipelineContext<*>,
 
     fun closeAsync(reason: CloseReason?) {
         try {
-            controlFrameHandler.cancelAllTimeouts()
-            controlFrameHandler.cancelPingPong()
+            controlFrameHandler.stop()
 
             closeHandler(reason)
         } finally {
