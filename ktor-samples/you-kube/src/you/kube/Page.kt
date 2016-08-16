@@ -60,7 +60,7 @@ fun ApplicationCall.respondDefaultHtml(versions: List<Version>, visibility: Cach
     }
 }
 
-class HtmlContent(override val versions: List<Version>, visibility: CacheControlVisibility, val builder: HTML.() -> Unit) : Resource, FinalContent.StreamConsumer() {
+class HtmlContent(override val versions: List<Version>, visibility: CacheControlVisibility, val builder: HTML.() -> Unit) : Resource, StreamConsumer() {
     override val contentType: ContentType
         get() = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 

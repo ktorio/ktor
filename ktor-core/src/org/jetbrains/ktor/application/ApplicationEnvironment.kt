@@ -2,6 +2,7 @@ package org.jetbrains.ktor.application
 
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.logging.*
+import org.jetbrains.ktor.nio.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
@@ -29,12 +30,19 @@ interface ApplicationEnvironment {
      * Host executor service constructor
      */
     val executorServiceBuilder: () -> ScheduledExecutorService
+
+    /**
+     * ByteBuffer instance pool
+     */
+    @Deprecated("")
+    val byteBufferPool: ByteBufferPool
 }
 
 class BasicApplicationEnvironment(override val classLoader: ClassLoader,
                                   override val log: ApplicationLog,
                                   override val config: ApplicationConfig,
-                                  override val executorServiceBuilder: () -> ScheduledExecutorService = DefaultExecutorServiceBuilder) : ApplicationEnvironment
+                                  override val executorServiceBuilder: () -> ScheduledExecutorService = DefaultExecutorServiceBuilder,
+                                  override val byteBufferPool: ByteBufferPool = NoPool) : ApplicationEnvironment
 
 /**
  * Creates [ApplicationEnvironment] using [ApplicationEnvironmentBuilder]
@@ -49,10 +57,9 @@ class ApplicationEnvironmentBuilder : ApplicationEnvironment {
     override var classLoader: ClassLoader = ApplicationEnvironmentBuilder::class.java.classLoader
     override var log: ApplicationLog = SLF4JApplicationLog("embedded")
     override val config = MapApplicationConfig()
-
     override var executorServiceBuilder: () -> ScheduledExecutorService = DefaultExecutorServiceBuilder
+    override var byteBufferPool: ByteBufferPool = NoPool
 }
-
 
 private val poolCounter = AtomicInteger()
 private val threadCounter = AtomicInteger()

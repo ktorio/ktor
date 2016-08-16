@@ -2,6 +2,7 @@ package org.jetbrains.ktor.jetty
 
 import org.eclipse.jetty.alpn.server.*
 import org.eclipse.jetty.http.*
+import org.eclipse.jetty.io.*
 import org.eclipse.jetty.http2.*
 import org.eclipse.jetty.http2.server.*
 import org.eclipse.jetty.server.*
@@ -11,9 +12,13 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.nio.ByteBufferPool
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.servlet.*
 import org.jetbrains.ktor.transform.*
+import java.io.*
+import java.nio.*
+import java.security.*
 import java.util.concurrent.*
 import javax.servlet.*
 import javax.servlet.http.*
@@ -23,7 +28,7 @@ import javax.servlet.http.*
  */
 class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                            val environment: ApplicationEnvironment,
-                           val applicationLifecycle: ApplicationLifecycle) : ApplicationHost {
+                           val applicationLifecycle: ApplicationLifecycle) : ApplicationHost, ApplicationHostStartable {
 
     private val application: Application get() = applicationLifecycle.application
 
@@ -93,18 +98,31 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     }
 
+    private val byteBufferPool = object : ByteBufferPool {
+        val jbp = MappedByteBufferPool(16)
+
+        override fun allocate(size: Int) = Ticket(jbp.acquire(size, false))
+        override fun release(buffer: PoolTicket) {
+            jbp.release(buffer.buffer)
+            (buffer as Ticket).release()
+        }
+
+        class Ticket(bb: ByteBuffer) : ReleasablePoolTicket(bb)
+    }
+
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
     private val hostPipeline = defaultHostPipeline()
 
     private inner class Handler : AbstractHandler() {
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
+            println("request!!!")
             response.characterEncoding = "UTF-8"
 
             val latch = CountDownLatch(1)
             var pipelineState: PipelineState? = null
             var throwable: Throwable? = null
 
-            val call = ServletApplicationCall(application, request, response, {
+            val call = JettyApplicationCall(application, server, request, response, byteBufferPool, {
                 latch.countDown()
             }, { call, block, next ->
                 if (baseRequest.httpChannel.httpTransport.isPushSupported) {
@@ -122,8 +140,6 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     next()
                 }
             })
-
-            setupUpgradeHelper(request, response, server, latch, call)
 
             try {
                 val contentType = request.contentType
@@ -153,7 +169,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     }
                 }
             } catch(ex: Throwable) {
-                environment.log.error("Application ${application.javaClass} cannot fulfill the request", ex);
+                environment.log.error("Application ${application.javaClass} cannot fulfill the request", ex)
                 call.execution.runBlockWithResult {
                     call.respond(HttpStatusCode.InternalServerError)
                 }

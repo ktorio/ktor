@@ -26,12 +26,13 @@ class ByteArrayReadChannel(val source: ByteBuffer, val maxReadSize: Int = Int.MA
     }
 
     override fun read(dst: ByteBuffer, handler: AsyncHandler) {
-        val size = source.putTo(dst, maxReadSize)
-        if (size == 0) {
+        if (!source.hasRemaining()) {
             handler.successEnd()
-        } else {
-            handler.success(size)
+            return
         }
+
+        val size = source.putTo(dst, maxReadSize)
+        handler.success(size)
     }
 
     override fun close() {

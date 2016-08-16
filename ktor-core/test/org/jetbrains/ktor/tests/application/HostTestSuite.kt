@@ -4,6 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.features.http.*
+import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
@@ -18,7 +19,7 @@ import java.util.zip.*
 import kotlin.concurrent.*
 import kotlin.test.*
 
-abstract class HostTestSuite : HostTestBase() {
+abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     @Test
     fun testTextContent() {
         createAndStartServer() {

@@ -2,7 +2,11 @@ package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.features.*
+import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.transform.*
 import java.lang.reflect.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
@@ -11,7 +15,7 @@ import javax.servlet.http.*
 abstract class KtorServlet : HttpServlet() {
 
     abstract val application: Application
-    private val hostPipeline = defaultHostPipeline()
+    protected val hostPipeline = defaultHostPipeline()
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         if (response.isCommitted) {
@@ -24,13 +28,11 @@ abstract class KtorServlet : HttpServlet() {
         try {
             val latch = CountDownLatch(1)
             val upgraded = AtomicBoolean(false)
-            val call = ServletApplicationCall(application, request, response, { latch.countDown() }, { call, block, next ->
+            val call = ServletApplicationCall(application, request, response, NoPool, { latch.countDown() }, { call, block, next ->
                 tryPush(request, call, block, next)
             })
             var throwable: Throwable? = null
             var pipelineState: PipelineState? = null
-
-            setupUpgradeHelper(request, response, latch, call, upgraded)
 
             call.executeOn(application.executor, hostPipeline).whenComplete { state, t ->
                 pipelineState = state

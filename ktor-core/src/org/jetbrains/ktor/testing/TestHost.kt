@@ -2,6 +2,7 @@ package org.jetbrains.ktor.testing
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
@@ -140,6 +141,14 @@ class TestApplicationCall(application: Application, override val request: TestAp
     var requestHandled = false
 
     override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : handled = $requestHandled"
+
+    override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
+        commit(upgrade)
+        upgrade.upgrade(this@TestApplicationCall, this, request.content.get(), response.channel())
+        pause()
+    }
+
+    override fun responseChannel(): WriteChannel = response.channel()
 
     fun await() {
         latch.await()

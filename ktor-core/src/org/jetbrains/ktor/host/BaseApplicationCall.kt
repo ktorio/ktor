@@ -7,6 +7,7 @@ import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
+import java.util.concurrent.*
 
 abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
     override val execution = PipelineMachine()
@@ -18,7 +19,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         execution.execute(state, respondPipeline)
     }
 
-    protected fun commit(o: FinalContent) {
+    protected fun commit(o: HostResponse) {
         o.status?.let { response.status(it) } ?: response.status() ?: response.status(HttpStatusCode.OK)
         for ((name, values) in o.headers.entries()) {
             for (value in values) {
@@ -27,18 +28,25 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         }
     }
 
-    protected val respondPipeline = RespondPipeline()
-
-    private val HostRespondPhase = PipelinePhase("HostRespondPhase")
+    protected final val respondPipeline = RespondPipeline()
+    protected final val HostRespondPhase = PipelinePhase("HostRespondPhase")
 
     init {
         respondPipeline.phases.insertAfter(RespondPipeline.After, HostRespondPhase)
 
         respondPipeline.intercept(HostRespondPhase) { state ->
+            val message = state.message
+            when (message) {
+                is FinalContent -> handleFinalContent(message)
+                is ProtocolUpgrade -> handleUpgrade(message)
+            }
+        }
+
+        respondPipeline.intercept(HostRespondPhase) { state ->
             val value = state.message
 
             when (value) {
-                is FinalContent.StreamConsumer -> {
+                is StreamConsumer -> {
                     val pipe = ChannelPipe()
                     closeAtEnd(pipe)
 
@@ -56,16 +64,53 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                         }
                     })
                 }
-                is FinalContent.ProtocolUpgrade -> {
-                    commit(value)
-                    value.upgrade(this@BaseApplicationCall, this, request.content.get(), response.channel())
-                    pause()
-                }
-                is FinalContent -> {
-                    commit(value)
-                    value.startContent(this@BaseApplicationCall, this)
-                }
             }
+        }
+    }
+
+    open fun PipelineContext<*>.handleFinalContent(content: FinalContent) {
+        commit(content)
+
+        when (content) {
+            is FinalContent.NoContent -> {
+                close()
+                finishAll()
+            }
+            is FinalContent.ChannelContent -> {
+                sendAsyncChannel(this@BaseApplicationCall, content.channel())
+            }
+            is FinalContent.StreamContentProvider -> {
+                sendAsyncChannel(this@BaseApplicationCall, content.stream().asAsyncChannel())
+            }
+        }
+    }
+
+    protected abstract fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade)
+    protected abstract fun responseChannel(): WriteChannel
+    protected open val pool: ByteBufferPool
+        get() = NoPool
+
+    protected fun PipelineContext<*>.sendAsyncChannel(call: ApplicationCall, channel: ReadChannel): Nothing {
+        val future = createMachineCompletableFuture()
+
+        closeAtEnd(channel, call) // TODO closeAtEnd(call) should be done globally at call start
+        channel.copyToAsyncThenComplete(responseChannel(), future, ignoreWriteError = true, alloc = pool)
+        pause()
+    }
+
+    protected fun PipelineContext<*>.createMachineCompletableFuture() = CompletableFuture<Long>().apply {
+        whenComplete { total, throwable ->
+            runBlockWithResult {
+                handleThrowable(throwable)
+            }
+        }
+    }
+
+    private fun PipelineContext<*>.handleThrowable(throwable: Throwable?) {
+        if (throwable == null || throwable is PipelineContinue || throwable.cause is PipelineContinue) {
+            finishAll()
+        } else if (throwable !is PipelineControlFlow && throwable.cause !is PipelineControlFlow) {
+            fail(throwable)
         }
     }
 
@@ -78,11 +123,5 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
             start()
             return pipe
         }
-    }
-
-
-    companion object {
-        val ResponseChannelOverride = AttributeKey<WriteChannel>("ktor.response.channel")
-        val RequestChannelOverride = AttributeKey<ReadChannel>("ktor.request.channel")
     }
 }

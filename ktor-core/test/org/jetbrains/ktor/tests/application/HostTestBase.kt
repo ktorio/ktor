@@ -16,10 +16,10 @@ import javax.net.ssl.*
 import kotlin.concurrent.*
 import kotlin.test.*
 
-abstract class HostTestBase {
+abstract class HostTestBase<H : ApplicationHost> {
     protected val port = findFreePort()
     protected val sslPort = findFreePort()
-    protected var server: ApplicationHost? = null
+    protected var server: H? = null
 
     @Before
     fun setUpBase() {
@@ -28,49 +28,32 @@ abstract class HostTestBase {
 
     @After
     fun tearDownBase() {
-        server?.stop()
+        (server as? ApplicationHostStartable)?.stop()
     }
 
-    protected abstract fun createServer(block: Routing.() -> Unit): ApplicationHost
+    protected abstract fun createServer(block: Routing.() -> Unit): H
 
-    protected fun createAndStartServer(block: Routing.() -> Unit): ApplicationHost {
+    protected fun createAndStartServer(block: Routing.() -> Unit): H {
         val server = createServer(block)
         startServer(server)
 
         return server
     }
 
-    protected fun startServer(server: ApplicationHost) {
+    protected fun startServer(server: H) {
         this.server = server
         val l = CountDownLatch(1)
         thread {
             l.countDown()
-            server.start()
+            (server as? ApplicationHostStartable)?.start()
         }
         l.await()
 
-        do {
-            Thread.sleep(50)
-            try {
-                Socket("localhost", port).close()
-                break
-            } catch (expected: IOException) {
-            }
-        } while (true)
-
-        if (server.hostConfig.connectors.any { it is HostSSLConnectorConfig }) {
-            do {
-                Thread.sleep(50)
-                try {
-                    Socket("localhost", sslPort).close()
-                    break
-                } catch (expected: IOException) {
-                }
-            } while (true)
-        }
+        waitForPort(port)
+        //waitForPort(sslPort)
     }
 
-    protected fun findFreePort() = ServerSocket(0).use {  it.localPort }
+    protected fun findFreePort() = ServerSocket(0).use { it.localPort }
     protected fun withUrl(path: String, block: HttpURLConnection.(Int) -> Unit) {
         withUrl(URL("http://127.0.0.1:$port$path"), port, block)
         withUrl(URL("https://127.0.0.1:$sslPort$path"), sslPort, block)
@@ -204,5 +187,15 @@ abstract class HostTestBase {
             }
         }
 
+        private fun waitForPort(port: Int) {
+            do {
+                Thread.sleep(50)
+                try {
+                    Socket("localhost", port).close()
+                    break
+                } catch (expected: IOException) {
+                }
+            } while (true)
+        }
     }
 }

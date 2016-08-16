@@ -10,7 +10,7 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import java.security.*
 
-class WebSocketUpgrade(call: ApplicationCall, val protocol: String? = null, val configure: WebSocket.() -> Unit) : FinalContent.ProtocolUpgrade() {
+class WebSocketUpgrade(call: ApplicationCall, val protocol: String? = null, val configure: WebSocket.() -> Unit) : ProtocolUpgrade() {
     private val key = call.request.header(HttpHeaders.SecWebSocketKey) ?: throw IllegalArgumentException("It should be ${HttpHeaders.SecWebSocketKey} header")
 
     override val status: HttpStatusCode?

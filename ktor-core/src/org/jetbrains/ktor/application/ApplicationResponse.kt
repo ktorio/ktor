@@ -20,6 +20,7 @@ interface ApplicationResponse {
     fun status(): HttpStatusCode?
     fun status(value: HttpStatusCode)
 
+    @Deprecated("")
     fun channel(): WriteChannel
 
     /**
@@ -31,7 +32,7 @@ interface ApplicationResponse {
     }
 }
 
-fun ApplicationCall.respondWrite(charset: Charset = Charsets.UTF_8, body: Writer.() -> Unit) : Nothing = respond(object : FinalContent.StreamConsumer() {
+fun ApplicationCall.respondWrite(charset: Charset = Charsets.UTF_8, body: Writer.() -> Unit) : Nothing = respond(object : StreamConsumer() {
     override val headers: ValuesMap get() = ValuesMap.Empty
 
     override fun stream(out: OutputStream) {

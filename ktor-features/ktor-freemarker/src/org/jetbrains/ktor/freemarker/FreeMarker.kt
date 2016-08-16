@@ -8,7 +8,7 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import kotlin.reflect.*
 
-class FreeMarkerTemplateResource internal constructor(val content: freemarker.template.Template, val model: Any, val etag: String, override val contentType: ContentType) : FinalContent.StreamConsumer(), Resource {
+class FreeMarkerTemplateResource internal constructor(val content: freemarker.template.Template, val model: Any, val etag: String, override val contentType: ContentType) : StreamConsumer(), Resource {
     override fun stream(out: OutputStream) {
         with(out.bufferedWriter(contentType.charset() ?: Charsets.UTF_8)) {
             content.process(model, this)

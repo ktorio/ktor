@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.netty
 
 import io.netty.bootstrap.*
+import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.channel.nio.*
 import io.netty.channel.socket.*
@@ -14,6 +15,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.http2.*
+import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.transform.*
 import javax.net.ssl.*
 
@@ -22,7 +24,7 @@ import javax.net.ssl.*
  */
 class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                            val environment: ApplicationEnvironment,
-                           val applicationLifecycle: ApplicationLifecycle) : ApplicationHost {
+                           val applicationLifecycle: ApplicationLifecycle) : ApplicationHost, ApplicationHostStartable {
 
     val application: Application get() = applicationLifecycle.application
 
@@ -85,6 +87,23 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     }
 
+    private val byteBufferPool = object : ByteBufferPool {
+        val nbp = PooledByteBufAllocator(false)
+
+        override fun allocate(size: Int): PoolTicket {
+            return Ticket(nbp.heapBuffer(size))
+        }
+
+        override fun release(buffer: PoolTicket) {
+            (buffer as Ticket).let {
+                it.bb.release()
+                it.release()
+            }
+        }
+
+        class Ticket(val bb: ByteBuf) : ReleasablePoolTicket(bb.nioBuffer(0, bb.capacity()))
+    }
+
     override fun start(wait: Boolean) {
         applicationLifecycle.ensureApplication()
         environment.log.info("Starting server...")
@@ -116,14 +135,14 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 val decoder = DefaultHttp2ConnectionDecoder(connection, encoder, reader)
 
                 pipeline.addLast(HostHttp2Handler(encoder, decoder, Http2Settings()))
-                pipeline.addLast(Multiplexer(pipeline.channel(), HostHttpHandler(this@NettyApplicationHost, connection, hostPipeline)))
+                pipeline.addLast(Multiplexer(pipeline.channel(), HostHttpHandler(this@NettyApplicationHost, connection, byteBufferPool, hostPipeline)))
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
                 with(pipeline) {
                     addLast(HttpServerCodec())
                     addLast(ChunkedWriteHandler())
                     addLast(WriteTimeoutHandler(10))
-                    addLast(HostHttpHandler(this@NettyApplicationHost, null, hostPipeline))
+                    addLast(HostHttpHandler(this@NettyApplicationHost, null, byteBufferPool, hostPipeline))
                 }
             }
             else -> {

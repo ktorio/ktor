@@ -9,7 +9,8 @@ import javax.servlet.http.*
 class ServletApplicationResponse(call: ServletApplicationCall,
                                  responsePipeline: RespondPipeline,
                                  val servletResponse: HttpServletResponse,
-                                 val pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit
+                                 val pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit,
+                                 val responseChannelOverride: () -> WriteChannel?
                                  ) : BaseApplicationResponse(call, responsePipeline) {
     private val servletCall = call
 
@@ -26,13 +27,9 @@ class ServletApplicationResponse(call: ServletApplicationCall,
         override fun getHostHeaderValues(name: String): List<String> = servletResponse.getHeaders(name).toList()
     }
 
-    override fun channel(): WriteChannel {
-        if (BaseApplicationCall.ResponseChannelOverride in call.attributes) {
-            return call.attributes[BaseApplicationCall.ResponseChannelOverride]
-        }
-
+    override fun channel(): WriteChannel = responseChannelOverride() ?: run {
         servletCall.ensureAsync()
-        return ServletWriteChannel(servletResponse.outputStream)
+        ServletWriteChannel(servletResponse.outputStream)
     }
 
     override fun push(block: ResponsePushBuilder.() -> Unit) {

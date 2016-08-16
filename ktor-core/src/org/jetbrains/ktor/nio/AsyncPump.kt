@@ -1,18 +1,17 @@
 package org.jetbrains.ktor.nio
 
-import java.nio.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
-class AsyncPump(bufferSize: Int = 8192, val from: ReadChannel, val to: WriteChannel, val completionHandler: CompletableFuture<Long> = CompletableFuture(), val progressListener: ProgressListener<AsyncPump> = object: ProgressListener<AsyncPump> {
+class AsyncPump(bufferSize: Int = 8192, val from: ReadChannel, val to: WriteChannel, val completionHandler: CompletableFuture<Long> = CompletableFuture(), val alloc: ByteBufferPool = NoPool, val progressListener: ProgressListener<AsyncPump> = object: ProgressListener<AsyncPump> {
     override fun progress(source: AsyncPump) {
     }
 }, ignoreWriteError: Boolean = false) {
-    private val buffer = ByteBuffer.allocate(bufferSize)
+    private var ticket = alloc.allocate(bufferSize)
     @Volatile
     private var bufferToWrite = false
 
-    val state: AtomicReference<State> = AtomicReference(State.PAUSED)
+    val state = AtomicReference<State>(State.PAUSED)
     @Volatile
     var totalCount = 0L
         private set
@@ -23,11 +22,13 @@ class AsyncPump(bufferSize: Int = 8192, val from: ReadChannel, val to: WriteChan
 
         override fun successEnd() {
             state.set(State.DONE)
+            done()
             completionHandler.complete(totalCount)
         }
 
         override fun failed(cause: Throwable) {
             state.set(State.DONE)
+            done()
             completionHandler.completeExceptionally(cause)
         }
     }
@@ -36,8 +37,8 @@ class AsyncPump(bufferSize: Int = 8192, val from: ReadChannel, val to: WriteChan
         override fun success(count: Int) {
             require(count >= 0)
 
-            if (count > 0 || !buffer.hasRemaining()) {
-                buffer.flip()
+            if (count > 0 || !ticket.buffer.hasRemaining()) {
+                ticket.buffer.flip()
                 bufferToWrite = true
                 write()
             } else {
@@ -51,6 +52,7 @@ class AsyncPump(bufferSize: Int = 8192, val from: ReadChannel, val to: WriteChan
 
         override fun failed(cause: Throwable) {
             state.set(State.DONE)
+            done()
             completionHandler.completeExceptionally(cause)
         }
     }
@@ -59,11 +61,11 @@ class AsyncPump(bufferSize: Int = 8192, val from: ReadChannel, val to: WriteChan
         override fun success(count: Int) {
             require(count >= 0)
 
-            if (count > 0 || !buffer.hasRemaining()) {
+            if (count > 0 || !ticket.buffer.hasRemaining()) {
                 totalCount += count
                 progressListener.progress(this@AsyncPump)
 
-                buffer.compact()
+                ticket.buffer.compact()
                 bufferToWrite = false
 
                 read()
@@ -77,6 +79,7 @@ class AsyncPump(bufferSize: Int = 8192, val from: ReadChannel, val to: WriteChan
 
         override fun failed(cause: Throwable) {
             state.set(State.DONE)
+            done()
 
             when (ignoreWriteError) {
                 true -> completionHandler.complete(totalCount)
@@ -103,15 +106,21 @@ class AsyncPump(bufferSize: Int = 8192, val from: ReadChannel, val to: WriteChan
         }
     }
 
+    private fun done() {
+        if (state.get() == State.DONE) {
+            alloc.release(ticket)
+        }
+    }
+
     private fun read() {
         if (state.get() == State.RUNNING) {
-            from.read(buffer, readHandler)
+            from.read(ticket.buffer, readHandler)
         }
     }
 
     private fun write() {
         if (state.get() == State.RUNNING) {
-            to.write(buffer, writeHandler)
+            to.write(ticket.buffer, writeHandler)
 
             flush()
         }
@@ -137,10 +146,10 @@ class AsyncPump(bufferSize: Int = 8192, val from: ReadChannel, val to: WriteChan
     }
 }
 
-fun ReadChannel.copyToAsync(out: WriteChannel, ignoreWriteError: Boolean = false) {
-    AsyncPump(from = this, to = out, ignoreWriteError = ignoreWriteError).start()
+fun ReadChannel.copyToAsync(out: WriteChannel, alloc: ByteBufferPool = NoPool, ignoreWriteError: Boolean = false) {
+    AsyncPump(from = this, to = out, alloc = alloc, ignoreWriteError = ignoreWriteError).start()
 }
 
-fun ReadChannel.copyToAsyncThenComplete(out: WriteChannel, completableFuture: CompletableFuture<Long>, ignoreWriteError: Boolean = false) {
-    AsyncPump(from = this, to = out, completionHandler = completableFuture, ignoreWriteError = ignoreWriteError).start()
+fun ReadChannel.copyToAsyncThenComplete(out: WriteChannel, completableFuture: CompletableFuture<Long>, alloc: ByteBufferPool = NoPool, ignoreWriteError: Boolean = false) {
+    AsyncPump(from = this, to = out, completionHandler = completableFuture, alloc = alloc, ignoreWriteError = ignoreWriteError).start()
 }

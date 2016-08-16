@@ -6,8 +6,8 @@ import org.jetbrains.ktor.netty.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.tests.application.*
 
-class NettyStaticTest : HostTestSuite() {
-    override fun createServer(block: Routing.() -> Unit): ApplicationHost {
+class NettyStaticTest : HostTestSuite<NettyApplicationHost>() {
+    override fun createServer(block: Routing.() -> Unit): NettyApplicationHost {
         val config = hostConfig(port, sslPort)
         val env = applicationEnvironment {}
 

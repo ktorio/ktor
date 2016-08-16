@@ -9,7 +9,7 @@ import org.jetbrains.ktor.routing.*
 import java.util.concurrent.*
 
 fun main(args: Array<String>) {
-    var server: ApplicationHost? = null
+    var server: JettyApplicationHost? = null
 
     // NOTE: Change to embeddedJettyServer to use Jetty
     server = embeddedJettyServer(8080) {

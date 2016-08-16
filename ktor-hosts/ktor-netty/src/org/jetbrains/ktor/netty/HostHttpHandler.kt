@@ -10,10 +10,11 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.netty.http2.*
+import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 
 @ChannelHandler.Sharable
-class HostHttpHandler(private val nettyApplicationHost: NettyApplicationHost, private val connection: Http2Connection?, private val hostPipeline: HostPipeline) : SimpleChannelInboundHandler<Any>(false) {
+class HostHttpHandler(private val nettyApplicationHost: NettyApplicationHost, private val connection: Http2Connection?, val pool: ByteBufferPool, , private val hostPipeline: HostPipeline) : SimpleChannelInboundHandler<Any>(false) {
     override fun channelRead0(context: ChannelHandlerContext, message: Any) {
         if (message is HttpRequest) {
             context.channel().config().isAutoRead = false
@@ -44,13 +45,12 @@ class HostHttpHandler(private val nettyApplicationHost: NettyApplicationHost, pr
     }
 
     private fun startHttp1HandleRequest(context: ChannelHandlerContext, request: HttpRequest, drops: LastDropsCollectorHandler?) {
-        val call = NettyApplicationCall(nettyApplicationHost.application, context, request, drops)
-        setupUpgradeHelper(call, context, drops)
+        val call = NettyApplicationCall(nettyApplicationHost.application, context, request, drops, pool)
         executeCall(call, request.uri())
     }
 
     private fun startHttp2(ctx: ChannelHandlerContext, streamId: Int, headers: Http2Headers, connection: Http2Connection) {
-        val call = NettyHttp2ApplicationCall(nettyApplicationHost.application, ctx, streamId, headers, this, nettyApplicationHost, connection)
+        val call = NettyHttp2ApplicationCall(nettyApplicationHost.application, ctx, streamId, headers, this, nettyApplicationHost, connection, pool)
         ctx.callByStreamId[streamId] = call
 
         call.executeOn(call.application.executor, hostPipeline).whenComplete { pipelineState, throwable ->

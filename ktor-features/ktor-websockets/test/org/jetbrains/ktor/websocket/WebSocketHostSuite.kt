@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.websocket
 
+import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.tests.application.*
 import org.jetbrains.ktor.util.*
@@ -11,7 +12,7 @@ import java.time.*
 import java.util.*
 import kotlin.test.*
 
-abstract class WebSocketHostSuite : HostTestBase() {
+abstract class WebSocketHostSuite<H : ApplicationHost> : HostTestBase<H>() {
 //    @Test
     @Test(timeout = 5000L)
     fun testWebSocketGenericSequence() {

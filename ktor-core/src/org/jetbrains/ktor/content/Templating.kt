@@ -5,7 +5,7 @@ import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.transform.*
 import kotlin.reflect.*
 
-interface TemplateEngine<C : Any, out R> where R : FinalContent, R : Resource {
+interface TemplateEngine<C : Any, out R> where R : Any, R : Resource {
     val contentClass: KClass<C>
     fun process(content: C): R
 }

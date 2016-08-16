@@ -1,19 +1,27 @@
 package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import javax.servlet.*
 import javax.servlet.http.*
 
-class ServletApplicationCall(application: Application,
-                             private val servletRequest: HttpServletRequest,
-                             private val servletResponse: HttpServletResponse,
+open class ServletApplicationCall(application: Application,
+                             protected val servletRequest: HttpServletRequest,
+                             protected val servletResponse: HttpServletResponse,
+                             override val pool: ByteBufferPool,
                              val onAsyncStartedUnderLock: () -> Unit,
                              pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit) : BaseApplicationCall(application) {
 
-    override val request: ApplicationRequest = ServletApplicationRequest(this, servletRequest)
-    override val response: ApplicationResponse = ServletApplicationResponse(this, respondPipeline, servletResponse, pushImpl)
+    override val request: ApplicationRequest = ServletApplicationRequest(this, servletRequest, { requestChannelOverride })
+    override val response: ApplicationResponse = ServletApplicationResponse(this, respondPipeline, servletResponse, pushImpl, { responseChannelOverride })
+
+    protected var requestChannelOverride: ReadChannel? = null
+    protected var responseChannelOverride: WriteChannel? = null
 
     @Volatile
     private var asyncContext: AsyncContext? = null
@@ -23,6 +31,25 @@ class ServletApplicationCall(application: Application,
 
     @Volatile
     var completed: Boolean = false
+
+    override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
+        servletResponse.status = upgrade.status?.value ?: HttpStatusCode.SwitchingProtocols.value
+        upgrade.headers.flattenEntries().forEach { e ->
+            servletResponse.addHeader(e.first, e.second)
+        }
+
+        val handler = servletRequest.upgrade(ServletUpgradeHandler::class.java)
+        handler.up = UpgradeRequest(servletResponse, this@ServletApplicationCall, upgrade, this)
+
+        requestChannelOverride = handler.readChannel
+        responseChannelOverride = handler.writeChannel
+
+        onAsyncStartedUnderLock()
+
+        pause()
+    }
+
+    override fun responseChannel(): WriteChannel = responseChannelOverride ?: response.channel()
 
     @Synchronized
     override fun close() {
@@ -48,4 +75,34 @@ class ServletApplicationCall(application: Application,
         onAsyncStartedUnderLock()
     }
 
+    // the following types need to be public as they are accessed through reflection
+
+    class UpgradeRequest(val response: HttpServletResponse, val call: ServletApplicationCall, val upgradeMessage: ProtocolUpgrade, val context: PipelineContext<*>)
+
+    class ServletUpgradeHandler : HttpUpgradeHandler {
+        @Volatile
+        lateinit var up: UpgradeRequest
+
+        var readChannel: ReadChannel? = null
+            private set
+
+        var writeChannel: WriteChannel? = null
+            private set
+
+        override fun init(wc: WebConnection) {
+            val call = up.call
+
+            val inputChannel = ServletReadChannel(wc.inputStream)
+            val outputChannel = ServletWriteChannel(wc.outputStream)
+
+            readChannel = inputChannel
+            writeChannel = outputChannel
+
+            up.upgradeMessage.upgrade(call, up.context, inputChannel, outputChannel)
+        }
+
+        override fun destroy() {
+        }
+
+    }
 }
