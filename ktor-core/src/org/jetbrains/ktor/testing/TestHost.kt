@@ -56,8 +56,8 @@ class TestApplicationHost(val environment: ApplicationEnvironment) {
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             onFail { exception ->
                 val testApplicationCall = call as? TestApplicationCall
-                testApplicationCall?.latch?.countDown()
                 this@TestApplicationHost.exception = exception
+                testApplicationCall?.latch?.countDown()
             }
 
             onSuccess {
