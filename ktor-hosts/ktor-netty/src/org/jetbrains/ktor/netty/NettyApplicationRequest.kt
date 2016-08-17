@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.*
 internal class NettyApplicationRequest(
         override val call: ApplicationCall,
         private val request: HttpRequest,
-        private val bodyConsumed: Boolean,
         val context: ChannelHandlerContext,
         val drops: LastDropsCollectorHandler?) : ApplicationRequest, Closeable {
     override val headers by lazy {
@@ -23,7 +22,7 @@ internal class NettyApplicationRequest(
     }
 
     override val queryParameters by lazy {
-        parseQueryString(request.uri.substringAfter("?", ""))
+        parseQueryString(request.uri().substringAfter("?", ""))
     }
 
     override val local = NettyConnectionPoint(request, context)
@@ -69,7 +68,7 @@ internal class NettyApplicationRequest(
         override fun getInputStream(): InputStream = getReadChannel().asInputStream()
         override fun getReadChannel(): ReadChannel {
             if (contentChannelState.switchTo(ReadChannelState.RAW_CHANNEL)) {
-                return if (bodyConsumed) EmptyReadChannel else contentChannel.value
+                return contentChannel.value
             }
 
             throw IllegalStateException("Couldn't get channel, most likely multipart processing was already started, state is ${contentChannelState.get()}")

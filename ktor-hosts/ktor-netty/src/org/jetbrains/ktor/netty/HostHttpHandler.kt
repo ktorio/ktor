@@ -18,23 +18,17 @@ import org.jetbrains.ktor.util.*
 class HostHttpHandler(private val nettyApplicationHost: NettyApplicationHost, private val connection: Http2Connection?) : SimpleChannelInboundHandler<Any>(false) {
     override fun channelRead0(context: ChannelHandlerContext, message: Any) {
         if (message is HttpRequest) {
-            val requestContentType = message.headers().get(HttpHeaders.ContentType)?.let { ContentType.parse(it) }
+            context.channel().config().isAutoRead = false
+            val dropsHandler = LastDropsCollectorHandler() // in spite of that we have cleared auto-read mode we still need to collect remaining events
+            context.pipeline().addLast(dropsHandler)
 
-            if (requestContentType != null && requestContentType.match(ContentType.Application.FormUrlEncoded)) {
-                context.channel().config().isAutoRead = true
-                val urlEncodedHandler = FormUrlEncodedHandler(Charsets.UTF_8, { parameters ->
-                    startHttp1HandleRequest(context, message, true, { parameters }, null)
-                })
-                context.pipeline().addLast(urlEncodedHandler)
-            } else {
-                context.channel().config().isAutoRead = false
-                val dropsHandler = LastDropsCollectorHandler() // in spite of that we have cleared auto-read mode we still need to collect remaining events
-                context.pipeline().addLast(dropsHandler)
-
-                startHttp1HandleRequest(context, message, false, { ValuesMap.Empty }, dropsHandler)
-            }
+            startHttp1HandleRequest(context, message, dropsHandler)
         } else if (message is Http2HeadersFrame) {
-            startHttp2(context, message.streamId(), message.headers(), connection!!) // TODO ???
+            if (connection == null) {
+                context.close()
+            } else {
+                startHttp2(context, message.streamId(), message.headers(), connection)
+            }
         } else if (message is Http2StreamFrame) {
             context.callByStreamId[message.streamId()]?.request?.handler?.listener?.channelRead(context, message)
         } else {
@@ -51,8 +45,8 @@ class HostHttpHandler(private val nettyApplicationHost: NettyApplicationHost, pr
         context.flush()
     }
 
-    private fun startHttp1HandleRequest(context: ChannelHandlerContext, request: HttpRequest, bodyConsumed: Boolean, urlEncodedParameters: () -> ValuesMap, drops: LastDropsCollectorHandler?) {
-        val call = NettyApplicationCall(nettyApplicationHost.application, context, request, bodyConsumed, urlEncodedParameters, drops)
+    private fun startHttp1HandleRequest(context: ChannelHandlerContext, request: HttpRequest, drops: LastDropsCollectorHandler?) {
+        val call = NettyApplicationCall(nettyApplicationHost.application, context, request, drops)
         setupUpgradeHelper(call, context, drops)
         executeCall(call, request.uri())
     }
