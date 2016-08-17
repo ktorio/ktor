@@ -26,7 +26,7 @@ fun ApplicationCall.respondWrite(body: Writer.() -> Unit) : Nothing = respond(ob
         get() = ValuesMap.Empty
 
     override fun stream(out: OutputStream) {
-        out.writer().use { writer ->
+        out.writer().let { writer ->
             writer.body()
             writer.flush()
         }

@@ -45,6 +45,8 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                             try {
                                 value.stream(pipe.asOutputStream())
                             } catch (ignore: ChannelPipe.PipeClosedException) {
+                            } catch (t: Throwable) {
+                                pipe.rethrow(t)
                             } finally {
                                 pipe.closeAndWait()
                             }

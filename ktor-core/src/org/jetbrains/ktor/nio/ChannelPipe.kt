@@ -8,6 +8,8 @@ import java.util.concurrent.atomic.*
 
 class ChannelPipe : ReadChannel, WriteChannel {
     private val closed = AtomicBoolean()
+    @Volatile
+    private var closedWithException: Throwable? = null
 
     @Volatile
     private var producerBuffer: ByteBuffer? = null
@@ -50,6 +52,19 @@ class ChannelPipe : ReadChannel, WriteChannel {
         latch.await()
     }
 
+    fun rethrow(t: Throwable) {
+        closedWithException = t
+        closed.set(true)
+
+        consumerHandler.getAndSet(null)?.let { handler ->
+            consumerBuffer = null
+            nofail {
+                handler.failed(t)
+            }
+        }
+        closeProducer()
+    }
+
     private fun closeConsumer() {
         consumerBuffer = null
         consumerHandler.getAndSet(null)?.let { handler ->
@@ -78,8 +93,9 @@ class ChannelPipe : ReadChannel, WriteChannel {
             return
         }
         if (closed.get()) {
-            consumerHandler.set(null)
-            handler.successEnd()
+            if (consumerHandler.compareAndSet(handler, null)) {
+                closedWithException?.let { handler.failed(it) } ?: handler.successEnd()
+            }
             return
         }
 
