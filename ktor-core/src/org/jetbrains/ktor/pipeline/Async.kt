@@ -11,6 +11,7 @@ fun <C : Any> PipelineContext<C>.runAsync(exec: Executor, block: PipelineContext
     pause()
 }
 
+@Deprecated("Use executeOn(executor, defaultHostPipeline) instead")
 fun ApplicationCall.execute(): CompletableFuture<PipelineState> = executeOn(application.executor, application)
 
 fun ApplicationCall.executeOn(exec: Executor, pipeline: Pipeline<ApplicationCall>): CompletableFuture<PipelineState> {

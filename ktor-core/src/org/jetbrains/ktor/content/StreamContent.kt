@@ -12,7 +12,7 @@ import java.util.concurrent.*
 internal fun PipelineContext<*>.sendAsyncChannel(call: ApplicationCall, channel: ReadChannel): Nothing {
     val future = createMachineCompletableFuture()
 
-    closeAtEnd(channel, call) // TODO closeAtEnd(call) should be done globally at call start
+    closeAtEnd(channel)
     channel.copyToAsyncThenComplete(call.response.channel(), future, ignoreWriteError = true)
     pause()
 }
@@ -20,7 +20,7 @@ internal fun PipelineContext<*>.sendAsyncChannel(call: ApplicationCall, channel:
 internal fun PipelineContext<*>.sendStream(call: ApplicationCall, stream: InputStream): Nothing {
     val future = createMachineCompletableFuture()
 
-    closeAtEnd(stream, call) // TODO closeAtEnd(call) should be done globally at call start
+    closeAtEnd(stream)
     stream.asAsyncChannel().copyToAsyncThenComplete(call.response.channel(), future, ignoreWriteError = true)
     pause()
 }

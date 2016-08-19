@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.pipeline.*
 import java.lang.reflect.*
 import java.util.concurrent.*
@@ -10,6 +11,7 @@ import javax.servlet.http.*
 abstract class KtorServlet : HttpServlet() {
 
     abstract val application: Application
+    private val hostPipeline = defaultHostPipeline()
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         if (response.isCommitted) {
@@ -30,7 +32,7 @@ abstract class KtorServlet : HttpServlet() {
 
             setupUpgradeHelper(request, response, latch, call, upgraded)
 
-            call.executeOn(application.executor, application).whenComplete { state, t ->
+            call.executeOn(application.executor, hostPipeline).whenComplete { state, t ->
                 pipelineState = state
                 throwable = t
                 latch.countDown()

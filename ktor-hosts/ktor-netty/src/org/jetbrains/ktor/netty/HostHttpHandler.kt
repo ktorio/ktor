@@ -3,19 +3,17 @@ package org.jetbrains.ktor.netty
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
-import io.netty.util.AttributeKey
+import io.netty.util.*
 import io.netty.util.collection.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.netty.http2.*
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.util.*
 
 @ChannelHandler.Sharable
-class HostHttpHandler(private val nettyApplicationHost: NettyApplicationHost, private val connection: Http2Connection?) : SimpleChannelInboundHandler<Any>(false) {
+class HostHttpHandler(private val nettyApplicationHost: NettyApplicationHost, private val connection: Http2Connection?, private val hostPipeline: HostPipeline) : SimpleChannelInboundHandler<Any>(false) {
     override fun channelRead0(context: ChannelHandlerContext, message: Any) {
         if (message is HttpRequest) {
             context.channel().config().isAutoRead = false
@@ -55,7 +53,7 @@ class HostHttpHandler(private val nettyApplicationHost: NettyApplicationHost, pr
         val call = NettyHttp2ApplicationCall(nettyApplicationHost.application, ctx, streamId, headers, this, nettyApplicationHost, connection)
         ctx.callByStreamId[streamId] = call
 
-        call.execute().whenComplete { pipelineState, throwable ->
+        call.executeOn(call.application.executor, hostPipeline).whenComplete { pipelineState, throwable ->
             val response: Any? = if (throwable != null) {
                 nettyApplicationHost.application.environment.log.error("Failed to process request", throwable)
                 HttpStatusCode.InternalServerError
@@ -103,7 +101,7 @@ class HostHttpHandler(private val nettyApplicationHost: NettyApplicationHost, pr
     }
 
     private fun executeCall(call: NettyApplicationCall, uri: String) {
-        call.execute().whenComplete { pipelineState, throwable ->
+        call.executeOn(call.application.executor, hostPipeline).whenComplete { pipelineState, throwable ->
             val response: Any? = if (throwable != null && !call.completed) {
                 nettyApplicationHost.application.environment.log.error("Failed to process request", throwable)
                 HttpStatusCode.InternalServerError

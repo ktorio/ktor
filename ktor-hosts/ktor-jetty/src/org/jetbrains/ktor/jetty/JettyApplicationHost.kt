@@ -94,6 +94,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
+    private val hostPipeline = defaultHostPipeline()
 
     private inner class Handler : AbstractHandler() {
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
@@ -131,7 +132,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     // TODO someone reported auto-cleanup issues so we have to check it
                 }
 
-                call.execute().whenComplete { state, t ->
+                call.executeOn(application.executor, hostPipeline).whenComplete { state, t ->
                     pipelineState = state
                     throwable = t
 

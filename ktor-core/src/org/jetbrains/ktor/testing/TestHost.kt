@@ -54,14 +54,20 @@ class TestApplicationHost(val environment: ApplicationEnvironment) {
 
     init {
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
+            call.response.pipeline.intercept(RespondPipeline.Before) {
+                (call as? TestApplicationCall)?.requestHandled = true
+            }
+
             onFail { exception ->
                 val testApplicationCall = call as? TestApplicationCall
                 this@TestApplicationHost.exception = exception
+                call.close()
                 testApplicationCall?.latch?.countDown()
             }
 
             onSuccess {
                 val testApplicationCall = call as? TestApplicationCall
+                call.close()
                 testApplicationCall?.latch?.countDown()
             }
             fork(call, application)
@@ -125,7 +131,6 @@ class TestApplicationCall(application: Application, override val request: TestAp
     internal val latch = CountDownLatch(1)
 
     override fun close() {
-        requestHandled = true
         response.close()
     }
 

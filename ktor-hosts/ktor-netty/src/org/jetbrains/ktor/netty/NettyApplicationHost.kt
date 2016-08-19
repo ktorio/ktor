@@ -76,6 +76,8 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     }
 
+    private val hostPipeline = defaultHostPipeline()
+
     init {
         applicationLifecycle.onBeforeInitializeApplication {
             setupDefaultHostPages()
@@ -114,14 +116,14 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 val decoder = DefaultHttp2ConnectionDecoder(connection, encoder, reader)
 
                 pipeline.addLast(HostHttp2Handler(encoder, decoder, Http2Settings()))
-                pipeline.addLast(Multiplexer(pipeline.channel(), HostHttpHandler(this@NettyApplicationHost, connection)))
+                pipeline.addLast(Multiplexer(pipeline.channel(), HostHttpHandler(this@NettyApplicationHost, connection, hostPipeline)))
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
                 with(pipeline) {
                     addLast(HttpServerCodec())
                     addLast(ChunkedWriteHandler())
                     addLast(WriteTimeoutHandler(10))
-                    addLast(HostHttpHandler(this@NettyApplicationHost, null))
+                    addLast(HostHttpHandler(this@NettyApplicationHost, null, hostPipeline))
                 }
             }
             else -> {
