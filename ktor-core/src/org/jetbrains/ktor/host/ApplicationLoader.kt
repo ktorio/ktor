@@ -74,7 +74,14 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
         val classLoader = if (autoreload) {
             val allUrls = environment.classLoader.allURLs()
             val watchPatterns = watchPatterns
-            val watchUrls = allUrls.filter { url -> watchPatterns.any { pattern -> url.toString().contains(pattern) } }
+
+            // we shouldn't watch URL for ktor-core classes, even if they match patterns,
+            // because otherwise it loads two ApplicationEnvironment (and other) types which do not match
+            val coreUrl = ApplicationEnvironment::class.java.protectionDomain.codeSource.location
+
+            val watchUrls = allUrls.filter { url ->
+                url != coreUrl && watchPatterns.any { pattern -> url.toString().contains(pattern) }
+            }
 
             if (watchUrls.isNotEmpty()) {
                 watchUrls(watchUrls)
