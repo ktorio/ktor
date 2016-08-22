@@ -15,18 +15,6 @@
             <artifactId>json-simple</artifactId>
             <version>1.1.1</version>
         </dependency>
-        <dependency>
-            <groupId>org.apache.directory.server</groupId>
-            <artifactId>apacheds-server-integ</artifactId>
-            <version>2.0.0-M21</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.directory.server</groupId>
-            <artifactId>apacheds-core-integ</artifactId>
-            <version>2.0.0-M21</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -43,7 +31,7 @@
                     <execution>
                         <phase>package</phase>
                         <goals>
-                            <goal>test-jar</goal>
+                            <!--<goal>test-jar</goal>-->
                         </goals>
                     </execution>
                 </executions>

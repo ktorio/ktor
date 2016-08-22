@@ -12,7 +12,7 @@ data class RoutingResolveResult(val succeeded: Boolean,
 
 class RoutingResolveContext(val routing: Route,
                             val call: ApplicationCall,
-                            val parameters: ValuesMap = ValuesMap.Empty,
+                            val parameters: ValuesMap = ValuesMap.Empty, // TODO don't pass parameters and headers, use call instead
                             val headers: ValuesMap = ValuesMap.Empty) {
     val path = parse(call.request.path())
 
@@ -25,7 +25,7 @@ class RoutingResolveContext(val routing: Route,
         return quality1 * quality2
     }
 
-    internal fun resolve(): RoutingResolveResult {
+    fun resolve(): RoutingResolveResult {
         return resolve(routing, this, 0)
     }
 

@@ -2,9 +2,9 @@ package org.jetbrains.ktor.jetty
 
 import org.eclipse.jetty.alpn.server.*
 import org.eclipse.jetty.http.*
-import org.eclipse.jetty.io.*
 import org.eclipse.jetty.http2.*
 import org.eclipse.jetty.http2.server.*
+import org.eclipse.jetty.io.*
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
 import org.eclipse.jetty.util.ssl.*
@@ -16,9 +16,7 @@ import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.nio.ByteBufferPool
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.transform.*
-import java.io.*
 import java.nio.*
-import java.security.*
 import java.util.concurrent.*
 import javax.servlet.*
 import javax.servlet.http.*
@@ -115,7 +113,6 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     private inner class Handler : AbstractHandler() {
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-            println("request!!!")
             response.characterEncoding = "UTF-8"
 
             val latch = CountDownLatch(1)

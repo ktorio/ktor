@@ -16,6 +16,7 @@
         <module>ktor-locations</module>
         <module>ktor-websockets</module>
         <module>jetty-http-client</module>
+        <module>ldap-auth</module>
     </modules>
 
     <dependencies>
@@ -26,9 +27,8 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains.ktor</groupId>
-            <artifactId>ktor-core</artifactId>
+            <artifactId>ktor-test-host</artifactId>
             <version>${project.version}</version>
-            <type>test-jar</type>
             <scope>test</scope>
         </dependency>
     </dependencies>

@@ -2,7 +2,6 @@ package org.jetbrains.ktor.websocket
 
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.tests.application.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
 import java.io.*
@@ -12,7 +11,7 @@ import java.time.*
 import java.util.*
 import kotlin.test.*
 
-abstract class WebSocketHostSuite<H : ApplicationHost> : HostTestBase<H>() {
+abstract class WebSocketHostSuite<H : ApplicationHost> : org.jetbrains.ktor.testing.HostTestBase<H>() {
 //    @Test
     @Test(timeout = 5000L)
     fun testWebSocketGenericSequence() {
@@ -149,7 +148,7 @@ abstract class WebSocketHostSuite<H : ApplicationHost> : HostTestBase<H>() {
         assertTrue(line.startsWith("HTTP/1.1"), "status line should start with HTTP version, actual content: $line")
 
         val statusCodeAndMessage = line.removePrefix("HTTP/1.1").trimStart()
-        val statusCodeString = statusCodeAndMessage.takeWhile { it.isDigit() }
+        val statusCodeString = statusCodeAndMessage.takeWhile(Char::isDigit)
         val message = statusCodeAndMessage.removePrefix(statusCodeString).trimStart()
 
         return HttpStatusCode(statusCodeString.toInt(), message)
@@ -164,7 +163,7 @@ abstract class WebSocketHostSuite<H : ApplicationHost> : HostTestBase<H>() {
                 return builder.build()
             }
 
-            val (name, value) = line.split(":").map { it.trim() }
+            val (name, value) = line.split(":").map(String::trim)
             builder.append(name, value)
         }
     }

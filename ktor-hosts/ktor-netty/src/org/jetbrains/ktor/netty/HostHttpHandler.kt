@@ -14,7 +14,7 @@ import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 
 @ChannelHandler.Sharable
-class HostHttpHandler(private val nettyApplicationHost: NettyApplicationHost, private val connection: Http2Connection?, val pool: ByteBufferPool, , private val hostPipeline: HostPipeline) : SimpleChannelInboundHandler<Any>(false) {
+class HostHttpHandler(private val nettyApplicationHost: NettyApplicationHost, private val connection: Http2Connection?, val pool: ByteBufferPool, private val hostPipeline: HostPipeline) : SimpleChannelInboundHandler<Any>(false) {
     override fun channelRead0(context: ChannelHandlerContext, message: Any) {
         if (message is HttpRequest) {
             context.channel().config().isAutoRead = false

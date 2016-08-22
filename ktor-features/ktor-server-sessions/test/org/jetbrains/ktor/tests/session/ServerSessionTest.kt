@@ -58,4 +58,7 @@ class ServerSessionTest {
             }
         }
     }
+
+    class EmptySession
+    data class TestUserSession(val userId: String, val cart: List<String>)
 }

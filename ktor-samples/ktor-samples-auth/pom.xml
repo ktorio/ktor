@@ -25,6 +25,11 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>org.jetbrains.ktor</groupId>
+            <artifactId>ldap-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx.html.jvm</artifactId>
             <version>[0.5,0.6)</version>

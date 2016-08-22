@@ -11,6 +11,9 @@
     <packaging>pom</packaging>
 
     <modules>
+        <module>ktor-hosts-common</module>
+        <module>ktor-test-host</module>
+
         <module>ktor-servlet</module>
         <module>ktor-jetty</module>
         <module>ktor-netty</module>
