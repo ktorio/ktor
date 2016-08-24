@@ -33,13 +33,13 @@ class ChatServer {
         broadcast("server", "Member renamed from $oldName to $to")
     }
 
-    fun memberLeaved(member: String, socket: WebSocket) {
+    fun memberLeft(member: String, socket: WebSocket) {
         val connections = members[member]
         connections?.remove(socket)
 
         if (connections != null && connections.isEmpty()) {
             val name = memberNames[member] ?: member
-            broadcast("server", "Member leaved: $name.")
+            broadcast("server", "Member left: $name.")
         }
     }
 
