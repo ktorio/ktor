@@ -2,8 +2,6 @@ package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
-import io.netty.handler.codec.http.HttpRequest
-import io.netty.handler.codec.http.HttpResponse
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
@@ -19,16 +17,16 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
         response.status = HttpResponseStatus(statusCode.value, statusCode.description)
     }
 
-    private val channelInstance = lazy {
+    internal val channelLazy = lazy {
         context.executeInLoop {
             setChunked()
-            sendRequestMessage()
+            sendResponseMessage()
         }
 
         NettyWriteChannel(request, this, context)
     }
 
-    override fun channel() = channelInstance.value
+    override fun channel() = channelLazy.value
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         override fun hostAppendHeader(name: String, value: String) {
@@ -40,7 +38,7 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
         override fun getHostHeaderValues(name: String): List<String> = response.headers().getAll(name) ?: emptyList()
     }
 
-    fun sendRequestMessage(): ChannelFuture? {
+    fun sendResponseMessage(): ChannelFuture? {
         if (!committed) {
             if (!HttpUtil.isTransferEncodingChunked(response)) {
                 HttpUtil.setContentLength(response, 0L)
@@ -54,15 +52,15 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
 
     fun finalize() {
         context.executeInLoop {
-            sendRequestMessage()
+            sendResponseMessage()
             context.flush()
             if (closed.compareAndSet(false, true)) {
                 context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).scheduleClose()
             }
             context.channel().config().isAutoRead = true
             context.read()
-            if (channelInstance.isInitialized()) {
-                channelInstance.value.close()
+            if (channelLazy.isInitialized()) {
+                channelLazy.value.close()
             }
         }
     }

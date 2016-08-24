@@ -438,19 +438,15 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
                         call.response.status(HttpStatusCode.OK)
                         call.response.contentType(ContentType.Application.OctetStream)
-                        val outChannel = call.response.channel()
 
-                        val writeFuture = CompletableFuture<Long>()
-                        writeFuture.whenComplete { size, throwable ->
-                            if (throwable != null) {
-                                failAndProceed(throwable)
-                            }
+                        runBlock {
+                            call.respond(object : FinalContent.ChannelContent() {
+                                override val headers: ValuesMap
+                                    get() = ValuesMap.Empty
 
-                            call.close()
-                            finishAllAndProceed()
+                                override fun channel() = ByteArrayReadChannel(buffer.toByteArray())
+                            })
                         }
-
-                        ByteArrayReadChannel(buffer.toByteArray()).copyToAsyncThenComplete(outChannel, writeFuture)
                     }
 
                     inChannel.copyToAsyncThenComplete(buffer, readFuture)
@@ -483,13 +479,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
             post("/") {
                 val text = call.request.content.get<ReadChannel>().asInputStream().bufferedReader().readText()
                 call.response.status(HttpStatusCode.OK)
-                call.response.channel().asOutputStream().bufferedWriter().use {
-                    it.write(text)
-                    it.flush()
-                }
-
-                call.close()
-                finishAll()
+                call.respond(text)
             }
         }
 

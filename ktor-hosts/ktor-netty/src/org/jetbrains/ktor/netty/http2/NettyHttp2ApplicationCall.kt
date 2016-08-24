@@ -25,7 +25,7 @@ internal class NettyHttp2ApplicationCall(override val application: Application,
         throw UnsupportedOperationException("HTTP/2 doesn't support upgrade")
     }
 
-    override fun responseChannel() = response.channel()
+    override fun responseChannel() = response.channelLazy.value
 
     override fun close() {
         // TODO send reset, remove headers

@@ -44,7 +44,7 @@ internal class NettyApplicationCall(application: Application,
                 drops?.forgetCompleted()
                 context.channel().pipeline().addFirst(NettyDirectEncoder())
 
-                upgrade.upgrade(this@NettyApplicationCall, this, request.content.get(), response.channel())
+                upgrade.upgrade(this@NettyApplicationCall, this, request.content.get(), responseChannel())
             }
         }
 
@@ -55,7 +55,7 @@ internal class NettyApplicationCall(application: Application,
         pause()
     }
 
-    override fun responseChannel(): WriteChannel = response.channel()
+    override fun responseChannel(): WriteChannel = response.channelLazy.value
 
     override fun close() {
         completed = true

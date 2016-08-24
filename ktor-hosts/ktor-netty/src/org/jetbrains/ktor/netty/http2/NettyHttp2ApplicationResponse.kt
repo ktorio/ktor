@@ -23,7 +23,7 @@ internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
         responseHeaders.status(statusCode.value.toString())
     }
 
-    private val _channel: Lazy<WriteChannel> = lazy {
+    internal val channelLazy: Lazy<WriteChannel> = lazy {
         context.executeInLoop {
             context.writeAndFlush(DefaultHttp2HeadersFrame(responseHeaders, false))
         }
@@ -32,12 +32,12 @@ internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
     }
 
     fun ensureChannelClosed() {
-        if (_channel.isInitialized()) {
-            _channel.value.close()
+        if (channelLazy.isInitialized()) {
+            channelLazy.value.close()
         }
     }
 
-    override fun channel() = _channel.value
+    override fun channel() = channelLazy.value
 
     override val headers = object : ResponseHeaders() {
         override fun hostAppendHeader(name: String, value: String) {

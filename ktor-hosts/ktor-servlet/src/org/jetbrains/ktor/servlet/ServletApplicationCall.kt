@@ -18,7 +18,7 @@ open class ServletApplicationCall(application: Application,
                                   pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit) : BaseApplicationCall(application) {
 
     override val request: ApplicationRequest = ServletApplicationRequest(this, { ensureAsync() }, servletRequest, { requestChannelOverride })
-    override val response: ApplicationResponse = ServletApplicationResponse(this, respondPipeline, servletResponse, pushImpl, { responseChannelOverride })
+    override val response: ApplicationResponse = ServletApplicationResponse(this, respondPipeline, servletResponse, pushImpl, { responseChannel() })
 
     @Volatile
     protected var requestChannelOverride: ReadChannel? = null
@@ -53,7 +53,12 @@ open class ServletApplicationCall(application: Application,
         pause()
     }
 
-    override fun responseChannel(): WriteChannel = responseChannelOverride ?: response.channel()
+    private val responseChannel by lazy {
+        ensureAsync()
+        ServletWriteChannel(servletResponse.outputStream)
+    }
+
+    override fun responseChannel(): WriteChannel = responseChannelOverride ?: responseChannel
 
     @Synchronized
     override fun close() {

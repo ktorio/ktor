@@ -144,11 +144,11 @@ class TestApplicationCall(application: Application, override val request: TestAp
 
     override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
         commit(upgrade)
-        upgrade.upgrade(this@TestApplicationCall, this, request.content.get(), response.channel())
+        upgrade.upgrade(this@TestApplicationCall, this, request.content.get(), response.realContent.value)
         pause()
     }
 
-    override fun responseChannel(): WriteChannel = response.channel()
+    override fun responseChannel(): WriteChannel = response.realContent.value
 
     fun await() {
         latch.await()
@@ -230,7 +230,8 @@ class TestApplicationRequest(
 }
 
 class TestApplicationResponse(call: ApplicationCall, respondPipeline: RespondPipeline = RespondPipeline()) : BaseApplicationResponse(call, respondPipeline) {
-    private val realContent = lazy { ByteArrayWriteChannel() }
+    internal val realContent = lazy { ByteArrayWriteChannel() }
+
     @Volatile
     private var closed = false
 
