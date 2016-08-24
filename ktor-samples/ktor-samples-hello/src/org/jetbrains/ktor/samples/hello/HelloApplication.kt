@@ -12,9 +12,9 @@ class HelloApplication(environment: ApplicationEnvironment) : Application(enviro
     init {
         install(DefaultHeaders)
         install(CallLogging)
-        routing {
+        install(Routing) {
             get("/") {
-                call.respondText(ContentType.Text.Plain, "Hello, World!")
+                call.respondText("Hello, World!")
             }
         }
     }
