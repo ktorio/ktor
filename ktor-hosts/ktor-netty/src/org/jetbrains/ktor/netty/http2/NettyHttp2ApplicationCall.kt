@@ -17,7 +17,7 @@ internal class NettyHttp2ApplicationCall(override val application: Application,
                                          host: NettyApplicationHost,
                                          connection: Http2Connection,
                                          override val pool: ByteBufferPool) : BaseApplicationCall(application) {
-    override val request = NettyHttp2ApplicationRequest(this, context, streamId, headers)
+    override val request = NettyHttp2ApplicationRequest(context, streamId, headers)
 
     override val response = NettyHttp2ApplicationResponse(this, host, handler, context, respondPipeline, connection)
 

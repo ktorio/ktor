@@ -8,7 +8,8 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import javax.servlet.http.*
 
-class ServletApplicationRequest(override val call: ServletApplicationCall, ensureAsync: () -> Unit, val servletRequest: HttpServletRequest, requestChannelOverride: () -> ReadChannel?) : ApplicationRequest {
+class ServletApplicationRequest(ensureAsync: () -> Unit, val servletRequest: HttpServletRequest, requestChannelOverride: () -> ReadChannel?) : ApplicationRequest {
+    override val attributes = Attributes()
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 
     override val queryParameters by lazy {

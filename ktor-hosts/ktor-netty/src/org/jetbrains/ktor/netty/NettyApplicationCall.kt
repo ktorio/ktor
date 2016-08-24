@@ -23,7 +23,7 @@ internal class NettyApplicationCall(application: Application,
 
     val httpResponse = DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
 
-    override val request = NettyApplicationRequest(this, httpRequest, context, drops)
+    override val request = NettyApplicationRequest(httpRequest, context, drops)
     override val response = NettyApplicationResponse(this, respondPipeline, httpRequest, httpResponse, context)
 
     override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {

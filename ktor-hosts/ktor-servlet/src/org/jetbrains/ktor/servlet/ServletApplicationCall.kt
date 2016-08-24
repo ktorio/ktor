@@ -17,7 +17,7 @@ open class ServletApplicationCall(application: Application,
                                   val onAsyncStartedUnderLock: () -> Unit,
                                   pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit) : BaseApplicationCall(application) {
 
-    override val request: ApplicationRequest = ServletApplicationRequest(this, { ensureAsync() }, servletRequest, { requestChannelOverride })
+    override val request: ApplicationRequest = ServletApplicationRequest({ ensureAsync() }, servletRequest, { requestChannelOverride })
     override val response: ApplicationResponse = ServletApplicationResponse(this, respondPipeline, servletResponse, pushImpl, { responseChannel() })
 
     @Volatile

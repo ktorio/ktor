@@ -9,7 +9,8 @@ import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.net.*
 
-internal class NettyHttp2ApplicationRequest(override val call: ApplicationCall, val context: ChannelHandlerContext, val streamId: Int, val nettyHeaders: Http2Headers) : ApplicationRequest {
+internal class NettyHttp2ApplicationRequest(val context: ChannelHandlerContext, streamId: Int, val nettyHeaders: Http2Headers) : ApplicationRequest {
+    override val attributes = Attributes()
     override val headers: ValuesMap by lazy { ValuesMap.build(caseInsensitiveKey = true) { nettyHeaders.forEach { append(it.key.toString(), it.value.toString()) } } }
     override val queryParameters: ValuesMap by lazy { header(":path")?.let { path ->
         parseQueryString(path.substringAfter("?", ""))

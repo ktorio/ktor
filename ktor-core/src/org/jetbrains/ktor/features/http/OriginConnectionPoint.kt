@@ -14,8 +14,9 @@ import kotlin.reflect.*
  * By default it fallbacks to [ApplicationRequest.local]
  */
 val ApplicationRequest.origin: RequestConnectionPoint
-    get() = call.attributes.getOrNull(MutableOriginConnectionPointKey) ?: local
+    get() = attributes.getOrNull(@Suppress("DEPRECATION") MutableOriginConnectionPointKey) ?: local
 
+@Deprecated("Not yet decided about API")
 val MutableOriginConnectionPointKey = AttributeKey<MutableOriginConnectionPoint>("MutableOriginConnectionPointKey")
 
 class MutableOriginConnectionPoint(delegate: RequestConnectionPoint) : RequestConnectionPoint {
@@ -152,7 +153,7 @@ object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, Unit
 }
 
 internal val ApplicationCall.mutableOriginConnectionPoint: MutableOriginConnectionPoint
-    get() = attributes.computeIfAbsent(MutableOriginConnectionPointKey) { MutableOriginConnectionPoint(request.local) }
+    get() = request.attributes.computeIfAbsent(@Suppress("DEPRECATION") MutableOriginConnectionPointKey) { MutableOriginConnectionPoint(request.local) }
 
 private inline fun ApplicationCall.forEachHeader(headers: List<String>, block: (String) -> Unit) {
     for (name in headers) {

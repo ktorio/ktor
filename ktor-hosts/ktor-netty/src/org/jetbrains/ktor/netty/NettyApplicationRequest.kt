@@ -13,10 +13,12 @@ import java.util.*
 import java.util.concurrent.atomic.*
 
 internal class NettyApplicationRequest(
-        override val call: ApplicationCall,
         private val request: HttpRequest,
         val context: ChannelHandlerContext,
         val drops: LastDropsCollectorHandler?) : ApplicationRequest, Closeable {
+
+    override val attributes = Attributes()
+
     override val headers by lazy {
         ValuesMap.build(caseInsensitiveKey = true) { request.headers().forEach { append(it.key, it.value) } }
     }

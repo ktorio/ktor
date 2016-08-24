@@ -14,7 +14,6 @@ import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.concurrent.*
-import kotlin.properties.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
@@ -125,10 +124,6 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
 }
 
 class TestApplicationCall(application: Application, override val request: TestApplicationRequest) : BaseApplicationCall(application) {
-    init {
-        request.call = this
-    }
-
     internal val latch = CountDownLatch(1)
 
     override fun close() {
@@ -162,10 +157,11 @@ class TestApplicationRequest(
         ) : ApplicationRequest {
 
     @Deprecated("Use primary constructor instead as HttpRequestLine is deprecated", level = DeprecationLevel.ERROR)
-    constructor(requestLine: HttpRequestLine) : this(requestLine.method, requestLine.uri, requestLine.version)
+    constructor(requestLine: @Suppress("DEPRECATION") HttpRequestLine) : this(requestLine.method, requestLine.uri, requestLine.version)
+
+    override val attributes = Attributes()
 
     var protocol: String = "http"
-    override var call: ApplicationCall by Delegates.notNull()
 
     override val local = object : RequestConnectionPoint {
         override val uri: String
