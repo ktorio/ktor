@@ -37,7 +37,7 @@ interface ApplicationCall : Closeable {
 
     fun respond(message: Any): Nothing
 
-    @Deprecated("Use response.pipeline instead", ReplaceWith("response.pipeline"))
+    @Deprecated("Use response.pipeline instead", ReplaceWith("response.pipeline"), level = DeprecationLevel.ERROR)
     val respond: RespondPipeline
         get() = response.pipeline
 

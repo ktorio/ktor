@@ -15,7 +15,7 @@ interface ApplicationRequest {
     /**
      * HTTP request line
      */
-    @Deprecated("Use local or origin instead")
+    @Deprecated("Use local or origin instead", level = DeprecationLevel.ERROR)
     val requestLine: HttpRequestLine
         get() = HttpRequestLine(local.method, local.uri, local.version)
 

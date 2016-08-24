@@ -161,7 +161,7 @@ class TestApplicationRequest(
         var version: String = "HTTP/1.1"
         ) : ApplicationRequest {
 
-    @Deprecated("Use primary constructor instead as HttpRequestLine is deprecated")
+    @Deprecated("Use primary constructor instead as HttpRequestLine is deprecated", level = DeprecationLevel.ERROR)
     constructor(requestLine: HttpRequestLine) : this(requestLine.method, requestLine.uri, requestLine.version)
 
     var protocol: String = "http"
