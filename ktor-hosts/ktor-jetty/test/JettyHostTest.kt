@@ -6,9 +6,9 @@ import org.jetbrains.ktor.routing.*
 
 class JettyHostTest : org.jetbrains.ktor.testing.HostTestSuite<JettyApplicationHost>() {
 
-    override fun createServer(block: Routing.() -> Unit): JettyApplicationHost {
+    override fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, block: Routing.() -> Unit): JettyApplicationHost {
         val config = hostConfig(port, sslPort)
-        val env = applicationEnvironment {}
+        val env = applicationEnvironment(envInit)
 
         return embeddedJettyServer(config, env, routing = block)
     }

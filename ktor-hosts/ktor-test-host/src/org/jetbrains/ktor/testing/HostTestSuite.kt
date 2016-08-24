@@ -6,6 +6,7 @@ import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
@@ -803,5 +804,44 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         }
     }
 
+    @Test
+    fun testCallLoggerOnError() {
+        val message = "expected, ${nextNonce()}"
+        val collected = CopyOnWriteArrayList<Throwable>()
+
+        createAndStartServer({
+            val delegate = SLF4JApplicationLog("embedded")
+            log = object: ApplicationLog by delegate {
+                override val name = "DummyLogger"
+
+                override fun fork(name: String) = this
+
+                override fun error(message: String, exception: Throwable?) {
+                    if (exception != null) {
+                        collected.add(exception)
+                    }
+
+                    delegate.error(message, exception)
+                }
+            }
+        }, {
+            application.install(CallLogging)
+
+            get("/") {
+                throw ExpectedException(message)
+            }
+        })
+
+        withUrl("/") {
+            assertFailsWith<IOException> {
+                inputStream.reader().readText()
+            }
+
+            assertEquals(message, collected.single { it is ExpectedException }.message)
+            collected.clear()
+        }
+    }
+
     private fun String.urlPath() = replace("\\", "/")
+    private class ExpectedException(message: String) : RuntimeException(message)
 }

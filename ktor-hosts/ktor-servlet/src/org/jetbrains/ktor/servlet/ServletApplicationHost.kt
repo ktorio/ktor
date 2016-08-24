@@ -7,7 +7,6 @@ import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.transform.*
-import javax.servlet.*
 import javax.servlet.annotation.*
 
 @MultipartConfig
@@ -35,7 +34,6 @@ open class ServletApplicationHost() : KtorServlet() {
 
     init {
         loader.onBeforeInitializeApplication {
-            setupDefaultHostPages()
             install(TransformationSupport).registerDefaultHandlers()
         }
     }

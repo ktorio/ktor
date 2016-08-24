@@ -6,9 +6,9 @@ import org.jetbrains.ktor.tomcat.*
 
 class TomcatHostTest : org.jetbrains.ktor.testing.HostTestSuite<TomcatApplicationHost>() {
 
-    override fun createServer(block: Routing.() -> Unit): TomcatApplicationHost {
+    override fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, block: Routing.() -> Unit): TomcatApplicationHost {
         val config = hostConfig(port, sslPort)
-        val env = applicationEnvironment {}
+        val env = applicationEnvironment(envInit)
 
         return embeddedTomcatServer(config, env, application = block)
     }

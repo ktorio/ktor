@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.testing
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
@@ -30,10 +31,10 @@ abstract class HostTestBase<H : ApplicationHost> {
         (server as? ApplicationHostStartable)?.stop()
     }
 
-    protected abstract fun createServer(block: Routing.() -> Unit): H
+    protected abstract fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, block: Routing.() -> Unit): H
 
-    protected fun createAndStartServer(block: Routing.() -> Unit): H {
-        val server = createServer(block)
+    protected fun createAndStartServer(envInit: ApplicationEnvironmentBuilder.() -> Unit = {}, block: Routing.() -> Unit): H {
+        val server = createServer(envInit, block)
         startServer(server)
 
         return server

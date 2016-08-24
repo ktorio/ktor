@@ -102,7 +102,7 @@ class StatusPageTest {
     fun testFailPage() {
         withTestApplication {
             application.errorPage { cause ->
-                call.respond(TextContentResponse(HttpStatusCode.InternalServerError, ContentType.Text.Plain.withCharset(Charsets.UTF_8), "${cause.javaClass.simpleName}"))
+                call.respond(TextContentResponse(HttpStatusCode.InternalServerError, ContentType.Text.Plain.withCharset(Charsets.UTF_8), cause.javaClass.simpleName))
             }
 
             application.routing {
@@ -131,7 +131,7 @@ class StatusPageTest {
         withTestApplication {
             application.transform.register<O> { throw IllegalStateException() }
             application.errorPage { cause ->
-                call.respond(TextContentResponse(HttpStatusCode.InternalServerError, ContentType.Text.Plain.withCharset(Charsets.UTF_8), "${cause.javaClass.simpleName}"))
+                call.respond(TextContentResponse(HttpStatusCode.InternalServerError, ContentType.Text.Plain.withCharset(Charsets.UTF_8), cause.javaClass.simpleName))
             }
 
             application.routing {
@@ -151,7 +151,7 @@ class StatusPageTest {
         withTestApplication {
             application.statusPage { throw IllegalStateException("") }
             application.errorPage { cause ->
-                call.respond(TextContentResponse(HttpStatusCode.InternalServerError, ContentType.Text.Plain.withCharset(Charsets.UTF_8), "${cause.javaClass.simpleName}"))
+                call.respond(TextContentResponse(HttpStatusCode.InternalServerError, ContentType.Text.Plain.withCharset(Charsets.UTF_8), cause.javaClass.simpleName))
             }
 
             application.intercept(ApplicationCallPipeline.Fallback) { call ->
