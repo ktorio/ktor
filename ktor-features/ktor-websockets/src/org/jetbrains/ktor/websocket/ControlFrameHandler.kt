@@ -119,7 +119,7 @@ internal class ControlFrameHandler (val parent: WebSocketImpl, val exec: Schedul
         parent.close()
     }
 
-    private fun closeAfterTimeout() {
+    fun closeAfterTimeout() {
         if (!stopped) {
             val f = exec.schedule(timeoutTask, parent.timeout.toMillis(), TimeUnit.MILLISECONDS)
 

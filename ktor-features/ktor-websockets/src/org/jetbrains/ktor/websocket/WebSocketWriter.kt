@@ -10,18 +10,40 @@ internal class WebSocketWriter(val parent: WebSocketImpl, val writeChannel: Writ
     private val buffer = ByteBuffer.allocate(8192)
     private val q = ArrayBlockingQueue<Frame>(1024)
     private var current: ByteBuffer? = null
+    private var writingCloseFrame = false
     private val writeInProgress = AtomicBoolean()
     private var maskBuffer: ByteBuffer? = null
     private var closeSent = false
 
+    private val flushListener = object : AsyncHandler {
+        override fun success(count: Int) {
+        }
+
+        override fun successEnd() {
+            if (closeSent && current == null) {
+                controlFrameHandler.closeSent()
+                return
+            }
+
+            listenerOnSuccess()
+        }
+
+        override fun failed(cause: Throwable) {
+            parent.closeAsync(null)
+        }
+    }
+
     private val listener = object : AsyncHandler {
         override fun success(count: Int) {
-            if (closeSent) {
-                controlFrameHandler.closeSent()
+            if (closeSent && current == null) {
+                controlFrameHandler.closeAfterTimeout()
+
+                doFlush()
+            } else if (q.isEmpty()) {
+                doFlush()
+            } else {
+                listenerOnSuccess()
             }
-            buffer.compact()
-            writeInProgress.set(false)
-            serializeAndScheduleWrite()
         }
 
         override fun successEnd() {
@@ -30,6 +52,16 @@ internal class WebSocketWriter(val parent: WebSocketImpl, val writeChannel: Writ
         override fun failed(cause: Throwable) {
             parent.closeAsync(null)
         }
+
+        private fun doFlush() {
+            writeChannel.flush(flushListener)
+        }
+    }
+
+    private fun listenerOnSuccess() {
+        buffer.compact()
+        writeInProgress.set(false)
+        serializeAndScheduleWrite()
     }
 
     fun send(frame: Frame) {
@@ -55,7 +87,6 @@ internal class WebSocketWriter(val parent: WebSocketImpl, val writeChannel: Writ
         buffer.flip()
         if (buffer.hasRemaining()) {
             writeChannel.write(buffer, listener)
-            writeChannel.requestFlush()
         } else {
             buffer.compact()
             writeInProgress.set(false)
@@ -75,6 +106,10 @@ internal class WebSocketWriter(val parent: WebSocketImpl, val writeChannel: Writ
 
     private fun serialize() {
         while (writeCurrentPayload()) {
+            if (writingCloseFrame) {
+                break
+            }
+
             val frame = q.peek() ?: break
             val mask = parent.masking
             setMaskBuffer(mask)
@@ -87,6 +122,9 @@ internal class WebSocketWriter(val parent: WebSocketImpl, val writeChannel: Writ
             serializeHeader(frame, mask)
             q.remove()
             current = frame.buffer.masked()
+            if (frame.frameType == FrameType.CLOSE) {
+                writingCloseFrame = true
+            }
         }
     }
 

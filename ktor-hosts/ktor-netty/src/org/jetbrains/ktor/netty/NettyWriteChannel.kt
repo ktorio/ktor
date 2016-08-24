@@ -51,16 +51,30 @@ internal class NettyWriteChannel(val request: HttpRequest, val appResponse: Nett
         }
 
         context.executeInLoop {
-            if (!released.get() && !context.isRemoved) {
-                context.flush()
-                handler.successEnd()
+            if (!released.get()) {
+                val flushFailure = try {
+                    context.flush()
+                    null
+                } catch (e: Throwable) {
+                    e
+                }
+
+                currentHandler.set(null)
+                if (flushFailure == null) {
+                    handler.successEnd()
+                } else {
+                    handler.failed(flushFailure)
+                }
+            } else {
+                currentHandler.set(null)
+                handler.failed(EOFException("Context already released"))
             }
         }
     }
 
     override fun requestFlush() {
         context.executeInLoop {
-            if (!released.get() && !context.isRemoved) {
+            if (!released.get()) {
                 context.flush()
             }
         }
