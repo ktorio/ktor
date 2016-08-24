@@ -47,7 +47,7 @@ class ChatApplication(environment: ApplicationEnvironment) : Application(environ
                 }
 
                 close { reason ->
-                    server.memberLeaved(session.id, this)
+                    server.memberLeft(session.id, this)
                 }
             }
 
