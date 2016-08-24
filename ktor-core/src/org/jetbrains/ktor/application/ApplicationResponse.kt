@@ -20,7 +20,7 @@ interface ApplicationResponse {
     fun status(): HttpStatusCode?
     fun status(value: HttpStatusCode)
 
-    @Deprecated("")
+    @Deprecated("Use call.respond instead")
     fun channel(): WriteChannel
 
     /**

@@ -11,16 +11,18 @@ import javax.servlet.*
 import javax.servlet.http.*
 
 open class ServletApplicationCall(application: Application,
-                             protected val servletRequest: HttpServletRequest,
-                             protected val servletResponse: HttpServletResponse,
-                             override val pool: ByteBufferPool,
-                             val onAsyncStartedUnderLock: () -> Unit,
-                             pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit) : BaseApplicationCall(application) {
+                                  protected val servletRequest: HttpServletRequest,
+                                  protected val servletResponse: HttpServletResponse,
+                                  override val pool: ByteBufferPool,
+                                  val onAsyncStartedUnderLock: () -> Unit,
+                                  pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit) : BaseApplicationCall(application) {
 
-    override val request: ApplicationRequest = ServletApplicationRequest(this, servletRequest, { requestChannelOverride })
+    override val request: ApplicationRequest = ServletApplicationRequest(this, { ensureAsync() }, servletRequest, { requestChannelOverride })
     override val response: ApplicationResponse = ServletApplicationResponse(this, respondPipeline, servletResponse, pushImpl, { responseChannelOverride })
 
+    @Volatile
     protected var requestChannelOverride: ReadChannel? = null
+    @Volatile
     protected var responseChannelOverride: WriteChannel? = null
 
     @Volatile
@@ -32,18 +34,20 @@ open class ServletApplicationCall(application: Application,
     @Volatile
     var completed: Boolean = false
 
+    @Volatile
+    private var upgraded: Boolean = false
+
     override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
         servletResponse.status = upgrade.status?.value ?: HttpStatusCode.SwitchingProtocols.value
         upgrade.headers.flattenEntries().forEach { e ->
             servletResponse.addHeader(e.first, e.second)
         }
 
+        servletResponse.flushBuffer()
         val handler = servletRequest.upgrade(ServletUpgradeHandler::class.java)
         handler.up = UpgradeRequest(servletResponse, this@ServletApplicationCall, upgrade, this)
 
-        requestChannelOverride = handler.readChannel
-        responseChannelOverride = handler.writeChannel
-
+        upgraded = true
         onAsyncStartedUnderLock()
 
         pause()
@@ -61,7 +65,7 @@ open class ServletApplicationCall(application: Application,
 
     @Synchronized
     fun ensureAsync() {
-        if (!asyncStarted) {
+        if (!asyncStarted && !upgraded) {
             startAsync()
         }
     }
@@ -83,20 +87,14 @@ open class ServletApplicationCall(application: Application,
         @Volatile
         lateinit var up: UpgradeRequest
 
-        var readChannel: ReadChannel? = null
-            private set
-
-        var writeChannel: WriteChannel? = null
-            private set
-
         override fun init(wc: WebConnection) {
             val call = up.call
 
             val inputChannel = ServletReadChannel(wc.inputStream)
             val outputChannel = ServletWriteChannel(wc.outputStream)
 
-            readChannel = inputChannel
-            writeChannel = outputChannel
+            up.call.requestChannelOverride = inputChannel
+            up.call.responseChannelOverride = outputChannel
 
             up.upgradeMessage.upgrade(call, up.context, inputChannel, outputChannel)
         }

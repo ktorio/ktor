@@ -2,14 +2,10 @@ package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.features.*
-import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.transform.*
 import java.lang.reflect.*
 import java.util.concurrent.*
-import java.util.concurrent.atomic.*
 import javax.servlet.http.*
 
 abstract class KtorServlet : HttpServlet() {
@@ -27,7 +23,6 @@ abstract class KtorServlet : HttpServlet() {
 
         try {
             val latch = CountDownLatch(1)
-            val upgraded = AtomicBoolean(false)
             val call = ServletApplicationCall(application, request, response, NoPool, { latch.countDown() }, { call, block, next ->
                 tryPush(request, call, block, next)
             })
@@ -45,9 +40,7 @@ abstract class KtorServlet : HttpServlet() {
                 throwable != null -> throw throwable!!
                 pipelineState == null -> {}
                 pipelineState == PipelineState.Executing -> {
-                    if (!upgraded.get()) {
-                        call.ensureAsync()
-                    }
+                    call.ensureAsync()
                 }
                 !call.completed -> {
                     response.sendError(HttpServletResponse.SC_NOT_FOUND)
