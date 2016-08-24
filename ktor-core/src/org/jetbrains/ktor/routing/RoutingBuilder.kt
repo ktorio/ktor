@@ -34,10 +34,18 @@ fun Route.param(name: String, value: String, build: Route.() -> Unit): Route {
 }
 
 /**
- * Builds a route to match parameter with specified [name]
+ * Builds a route to match parameter with specified [name] and capture its value
  */
 fun Route.param(name: String, build: Route.() -> Unit): Route {
     val selector = ParameterRouteSelector(name)
+    return select(selector).apply(build)
+}
+
+/**
+ * Builds a route to optionally capture parameter with specified [name], if it exists
+ */
+fun Route.optionalParam(name: String, build: Route.() -> Unit): Route {
+    val selector = OptionalParameterRouteSelector(name)
     return select(selector).apply(build)
 }
 
