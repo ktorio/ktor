@@ -106,21 +106,25 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
             val appEnvClass = ApplicationEnvironment::class.java
             fun isApplicationEnvironment(p: KParameter) = (p.type.javaType as? Class<*>)?.let { appEnvClass.isAssignableFrom(it) } ?: false
 
-            val constructors = applicationClass.kotlin.constructors.filter { it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) } }
-            if (constructors.isEmpty()) {
-                throw RuntimeException("There are no applicable constructors found in class $applicationClass")
-            }
+            val applicationEntryPoint = if (applicationClass.kotlin.objectInstance == null) {
+                val constructors = applicationClass.kotlin.constructors.filter { it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) } }
+                if (constructors.isEmpty()) {
+                    throw RuntimeException("There are no applicable constructors found in class $applicationClass")
+                }
 
-            val constructor = constructors.maxBy { it.parameters.size }!!
-            val applicationEntryPoint = constructor.callBy(constructor.parameters
-                    .filterNot { it.isOptional }
-                    .associateBy({ it }, { p ->
-                        when {
-                            isApplicationEnvironment(p) -> environment
-                            else -> throw RuntimeException("Parameter type ${p.type} of parameter ${p.name} is not supported")
-                        }
-                    })
-            )
+                val constructor = constructors.maxBy { it.parameters.size }!!
+                constructor.callBy(constructor.parameters
+                        .filterNot { it.isOptional }
+                        .associateBy({ it }, { p ->
+                            when {
+                                isApplicationEnvironment(p) -> environment
+                                else -> throw RuntimeException("Parameter type ${p.type} of parameter ${p.name} is not supported")
+                            }
+                        })
+                )
+            } else {
+                applicationClass.kotlin.objectInstance
+            }
 
             val application = when (applicationEntryPoint) {
                 is Application -> applicationEntryPoint

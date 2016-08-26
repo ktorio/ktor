@@ -53,19 +53,36 @@ class ApplicationLoaderTests {
         assertEquals("2", application.attributes[TestKey])
     }
 
+    @Test fun `valid class name should lookup application feature object instance`() {
+        val config = MapApplicationConfig(
+                "ktor.deployment.environment" to "test",
+                "ktor.application.class" to ApplicationLoaderTestApplicationFeatureObject::class.jvmName
+        )
+        val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
+        val application = ApplicationLoader(environment, false).application
+        assertNotNull(application)
+        assertEquals("3", application.attributes[TestKey])
+    }
+
     class ApplicationLoaderTestApplication(environment: ApplicationEnvironment) : Application(environment)
 
     class ApplicationLoaderTestApplicationFeature : ApplicationFeature<Application, Unit> {
-        override val key = AttributeKey<Unit>("app")
+        override val key = AttributeKey<Unit>("app1")
         override fun install(pipeline: Application, configure: Unit.() -> Unit) {
             pipeline.attributes.put(TestKey, "1")
         }
     }
     class ApplicationLoaderTestApplicationFeatureWithEnvironment(val environment: ApplicationEnvironment) : ApplicationFeature<Application, Unit> {
-        override val key = AttributeKey<Unit>("app")
+        override val key = AttributeKey<Unit>("app2")
         override fun install(pipeline: Application, configure: Unit.() -> Unit) {
             environment
             pipeline.attributes.put(TestKey, "2")
+        }
+    }
+    object ApplicationLoaderTestApplicationFeatureObject : ApplicationFeature<Application, Unit> {
+        override val key = AttributeKey<Unit>("app3")
+        override fun install(pipeline: Application, configure: Unit.() -> Unit) {
+            pipeline.attributes.put(TestKey, "3")
         }
     }
 
