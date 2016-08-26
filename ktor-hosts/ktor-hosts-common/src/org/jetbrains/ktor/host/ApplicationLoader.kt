@@ -1,12 +1,15 @@
 package org.jetbrains.ktor.host
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import java.io.*
 import java.net.*
 import java.nio.file.*
 import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.attribute.*
 import java.util.*
+import kotlin.reflect.*
+import kotlin.reflect.jvm.*
 
 /**
  * Implements [ApplicationLifecycle] by loading an [Application] from a folder or jar.
@@ -99,13 +102,39 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
             val applicationClass = classLoader.loadClass(applicationClassName)
                     ?: throw RuntimeException("Application class $applicationClassName cannot be loaded")
             log.debug("Application class: $applicationClass in ${applicationClass.classLoader}")
-            val cons = applicationClass.getConstructor(ApplicationEnvironment::class.java)
-            val application = cons.newInstance(environment)
-            if (application !is Application)
-                throw RuntimeException("Application class $applicationClassName should inherit from ${Application::class}")
+
+            val appEnvClass = ApplicationEnvironment::class.java
+            fun isApplicationEnvironment(p: KParameter) = (p.type.javaType as? Class<*>)?.let { appEnvClass.isAssignableFrom(it) } ?: false
+
+            val constructors = applicationClass.kotlin.constructors.filter { it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) } }
+            if (constructors.isEmpty()) {
+                throw RuntimeException("There are no applicable constructors found in class $applicationClass")
+            }
+
+            val constructor = constructors.maxBy { it.parameters.size }!!
+            val applicationEntryPoint = constructor.callBy(constructor.parameters
+                    .filterNot { it.isOptional }
+                    .associateBy({ it }, { p ->
+                        when {
+                            isApplicationEnvironment(p) -> environment
+                            else -> throw RuntimeException("Parameter type ${p.type} of parameter ${p.name} is not supported")
+                        }
+                    })
+            )
+
+            val application = when (applicationEntryPoint) {
+                is Application -> applicationEntryPoint
+                is ApplicationFeature<*, *> -> Application(environment)
+                else -> throw RuntimeException("Application class $applicationClassName should inherit from ${Application::class} or ${ApplicationFeature::class}<${Application::class.simpleName}, *>")
+            }
 
             appInitInterceptors.forEach {
                 it(application)
+            }
+
+            if (applicationEntryPoint is ApplicationFeature<*, *>) {
+                @Suppress("UNCHECKED_CAST")
+                (applicationEntryPoint as ApplicationFeature<Application, *>).install(application, {})
             }
 
             return application
@@ -167,11 +196,11 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
 
     private fun get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH(): WatchEvent.Modifier? {
         try {
-            val c = Class.forName("com.sun.nio.file.SensitivityWatchEventModifier");
-            val f = c.getField("HIGH");
+            val c = Class.forName("com.sun.nio.file.SensitivityWatchEventModifier")
+            val f = c.getField("HIGH")
             return f.get(c) as? WatchEvent.Modifier
         } catch (e: Exception) {
-            return null;
+            return null
         }
     }
 }

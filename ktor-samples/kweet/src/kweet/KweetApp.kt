@@ -14,7 +14,6 @@ import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.freemarker.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
-import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
@@ -52,8 +51,10 @@ class Logout()
 
 data class Session(val userId: String)
 
-class KweetApp(environment: ApplicationEnvironment) : Application(environment) {
-    val key = hex("6819b57a326945c1968f45236589")
+class KweetApp : ApplicationFeature<Application, KweetApp> {
+    override val key = AttributeKey<KweetApp>("KweetApp")
+
+    val hashKey = hex("6819b57a326945c1968f45236589")
     val dir = File("target/db")
     val pool = ComboPooledDataSource().apply {
         driverClass = Driver::class.java.name
@@ -62,49 +63,53 @@ class KweetApp(environment: ApplicationEnvironment) : Application(environment) {
         password = ""
     }
 
-    val hmacKey = SecretKeySpec(key, "HmacSHA1")
+    val hmacKey = SecretKeySpec(hashKey, "HmacSHA1")
     val dao: DAOFacade = DAOFacadeCache(DAOFacadeDatabase(Database.connect(pool)), File(dir.parentFile, "ehcache"))
 
-    init {
+    override fun install(pipeline: Application, configure: KweetApp.() -> Unit): KweetApp {
         dao.init()
 
-        install(DefaultHeaders)
-        install(CallLogging)
-        install(ConditionalHeadersSupport)
-        install(PartialContentSupport)
-        install(Locations)
+        with(pipeline) {
+            install(DefaultHeaders)
+//        install(CallLogging)
+            install(ConditionalHeadersSupport)
+            install(PartialContentSupport)
+            install(Locations)
 
-        templating(freemarker {
-            Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS).apply {
-                templateLoader = ClassTemplateLoader(KweetApp::class.java.classLoader, "templates")
+            templating(freemarker {
+                Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS).apply {
+                    templateLoader = ClassTemplateLoader(KweetApp::class.java.classLoader, "templates")
+                }
+            })
+
+            withSessions<Session> {
+                withCookieByValue {
+                    settings = SessionCookiesSettings(transformers = listOf(SessionCookieTransformerMessageAuthentication(hashKey)))
+                }
             }
-        })
 
-        withSessions<Session> {
-            withCookieByValue {
-                settings = SessionCookiesSettings(transformers = listOf(SessionCookieTransformerMessageAuthentication(key)))
+            val hashFunction = { s: String -> hash(s) }
+
+            routing {
+                styles()
+                index(dao)
+                postNew(dao, hashFunction)
+                delete(dao, hashFunction)
+                userPage(dao)
+                viewKweet(dao, hashFunction)
+
+                login(dao, hashFunction)
+                register(dao, hashFunction)
             }
         }
 
-        val hashFunction = { s: String -> hash(s) }
-
-        routing {
-            styles()
-            index(dao)
-            postNew(dao, hashFunction)
-            delete(dao, hashFunction)
-            userPage(dao)
-            viewKweet(dao, hashFunction)
-
-            login(dao, hashFunction)
-            register(dao, hashFunction)
-        }
+        return this
     }
 
-    override fun dispose() {
-        super.dispose()
-        pool.close()
-    }
+//    override fun dispose() {
+//        super.dispose()
+//        pool.close()
+//    }
 
     fun hash(password: String): String {
         val hmac = Mac.getInstance("HmacSHA1")
