@@ -6,6 +6,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpHeaders
+import org.jetbrains.ktor.response.*
 import java.util.concurrent.atomic.*
 
 internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline: RespondPipeline, val request: HttpRequest, val response: HttpResponse, val context: ChannelHandlerContext) : BaseApplicationResponse(call, responsePipeline) {

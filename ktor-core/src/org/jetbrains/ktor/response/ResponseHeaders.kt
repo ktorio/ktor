@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.host
+package org.jetbrains.ktor.response
 
 import org.jetbrains.ktor.util.*
 

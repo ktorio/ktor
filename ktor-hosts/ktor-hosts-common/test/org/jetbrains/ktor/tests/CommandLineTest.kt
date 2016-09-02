@@ -1,8 +1,8 @@
-package org.jetbrains.ktor.tests.host
+package org.jetbrains.ktor.tests
 
-import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.junit.*
+import java.io.*
 import java.net.*
 import kotlin.test.*
 
@@ -37,5 +37,14 @@ class CommandLineTest {
         val jar = findContainingZipFile(CommandLineTest::class.java.classLoader.getResources("java/util/ArrayList.class").nextElement().toURI())
         val urlClassLoader = commandLineConfig(arrayOf("-jar=${jar.absolutePath}")).second.classLoader as URLClassLoader
         assertEquals(jar.toURI(), urlClassLoader.urLs.single().toURI())
+    }
+
+    tailrec
+    private fun findContainingZipFile(uri: URI): File {
+        if (uri.scheme == "file") {
+            return File(uri.path.substringBefore("!"))
+        } else {
+            return findContainingZipFile(URI(uri.rawSchemeSpecificPart))
+        }
     }
 }

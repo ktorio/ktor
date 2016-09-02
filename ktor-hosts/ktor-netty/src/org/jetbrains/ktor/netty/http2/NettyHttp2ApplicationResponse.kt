@@ -7,6 +7,7 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.netty.*
 import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.response.*
 
 internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
                                              val host: NettyApplicationHost,
