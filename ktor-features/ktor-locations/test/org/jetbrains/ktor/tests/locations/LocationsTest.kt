@@ -7,11 +7,10 @@ import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
-import org.jetbrains.ktor.tests.*
 import org.junit.*
 import kotlin.test.*
 
-private fun withLocationsApplication(test: TestApplicationHost.() -> Unit) = withApplication<TestApplication> {
+private fun withLocationsApplication(test: TestApplicationHost.() -> Unit) = withApplicationFeature<TestApplication> {
     application.install(Locations)
     test()
 }

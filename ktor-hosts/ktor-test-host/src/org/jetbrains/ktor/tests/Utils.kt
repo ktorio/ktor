@@ -16,7 +16,7 @@ fun on(comment: String, body: On.() -> Unit) = On.body()
 inline fun On.it(description: String, body: It.() -> Unit) = It.body()
 
 fun withTestApplication(test: TestApplicationHost.() -> Unit) {
-    withApplication<TestApplication>(test)
+    withApplicationFeature<TestApplication>(test)
 }
 
 fun createTestHost(): TestApplicationHost {

@@ -11,7 +11,7 @@ import org.junit.*
 import kotlin.reflect.*
 import kotlin.test.*
 
-private fun withLocationsApplication(test: TestApplicationHost.() -> Unit) = withApplication<TestApplication> {
+private fun withLocationsApplication(test: TestApplicationHost.() -> Unit) = withApplicationFeature<TestApplication> {
     application.install(CustomLocationsFeature)
     test()
 }

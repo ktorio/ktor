@@ -30,43 +30,47 @@ class Index()
 
 data class Session(val userId: String)
 
-class App(environment: ApplicationEnvironment) : Application(environment) {
-    init {
-        install(DefaultHeaders)
-        install(CallLogging)
-        install(Locations)
-        install(ConditionalHeadersSupport)
-        install(PartialContentSupport)
-        install(CompressionSupport) {
-            configureDefault {
-                excludeMimeTypeMatch(ContentType.Video.Any)
+class App : ApplicationFeature<Application, Unit> {
+    override val key = AttributeKey<Unit>("YouKubeApp")
+
+    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
+        with(pipeline) {
+            install(DefaultHeaders)
+            install(CallLogging)
+            install(Locations)
+            install(ConditionalHeadersSupport)
+            install(PartialContentSupport)
+            install(CompressionSupport) {
+                configureDefault {
+                    excludeMimeTypeMatch(ContentType.Video.Any)
+                }
             }
-        }
 
-        val key = hex("03e156f6058a13813816065")
-        val uploadDir = File("ktor-samples/you-kube/.video")
-        if (!uploadDir.mkdirs() && !uploadDir.exists()) {
-            throw IOException("Failed to create directory ${uploadDir.absolutePath}")
-        }
-        val database = Database(uploadDir)
-
-        val users = UserHashedTableAuth(table = mapOf(
-                "root" to UserHashedTableAuth(table = emptyMap()).digester("root")
-        ))
-
-        withSessions<Session> {
-            withCookieByValue {
-                settings = SessionCookiesSettings(transformers = listOf(
-                        SessionCookieTransformerMessageAuthentication(key)
-                ))
+            val key = hex("03e156f6058a13813816065")
+            val uploadDir = File("ktor-samples/you-kube/.video")
+            if (!uploadDir.mkdirs() && !uploadDir.exists()) {
+                throw IOException("Failed to create directory ${uploadDir.absolutePath}")
             }
-        }
+            val database = Database(uploadDir)
 
-        routing {
-            login(users)
-            upload(database, uploadDir)
-            videos(database)
-            styles()
+            val users = UserHashedTableAuth(table = mapOf(
+                    "root" to UserHashedTableAuth(table = emptyMap()).digester("root")
+            ))
+
+            withSessions<Session> {
+                withCookieByValue {
+                    settings = SessionCookiesSettings(transformers = listOf(
+                            SessionCookieTransformerMessageAuthentication(key)
+                    ))
+                }
+            }
+
+            routing {
+                login(users)
+                upload(database, uploadDir)
+                videos(database)
+                styles()
+            }
         }
     }
 

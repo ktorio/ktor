@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.tomcat
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.routing.*
 
@@ -17,10 +16,8 @@ fun embeddedTomcatServer(port: Int = 80, host: String = "0.0.0.0", application: 
 }
 
 fun embeddedTomcatServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, application: Routing.() -> Unit): TomcatApplicationHost {
-    val applicationObject = object : Application(environment) {
-        init {
-            routing(application)
-        }
+    val applicationObject = Application(environment, Unit).apply {
+        routing(application)
     }
     return TomcatApplicationHost(hostConfig, environment, object : ApplicationLifecycle {
         override val application: Application = applicationObject

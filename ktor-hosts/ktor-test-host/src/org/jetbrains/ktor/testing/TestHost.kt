@@ -18,7 +18,12 @@ import java.util.concurrent.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
+@Deprecated("Use withApplicationFeature instead once you migrate to ApplicationFeature")
 inline fun <reified T : Application> withApplication(noinline test: TestApplicationHost.() -> Unit) {
+    withApplication(T::class, test)
+}
+
+inline fun <reified T : ApplicationFeature<*, *>> withApplicationFeature(noinline test: TestApplicationHost.() -> Unit) {
     withApplication(T::class, test)
 }
 
@@ -272,4 +277,8 @@ class TestApplicationResponse(call: ApplicationCall, respondPipeline: RespondPip
     }
 }
 
-class TestApplication(environment: ApplicationEnvironment) : Application(environment)
+class TestApplication : ApplicationFeature<Application, Unit> {
+    override val key = AttributeKey<Unit>(javaClass.simpleName)
+    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
+    }
+}

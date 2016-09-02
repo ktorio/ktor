@@ -7,7 +7,7 @@ import org.junit.*
 import kotlin.test.*
 
 class ApplicationTest {
-    @Test fun testRequest() = withApplication<TestableApplication> {
+    @Test fun testRequest() = withApplicationFeature<TestableApplication> {
         with (handleRequest(HttpMethod.Get, "/")) {
             assertEquals(HttpStatusCode.OK, response.status())
             assertEquals("Test String", response.content)

@@ -13,6 +13,7 @@ import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.util.*
 import java.util.concurrent.*
 
 @location("/") class index()
@@ -84,54 +85,57 @@ val loginProviders = listOf(
         )
 ).associateBy { it.name }
 
-class OAuthLoginApplication(environment: ApplicationEnvironment) : Application(environment) {
+class OAuthLoginApplication : ApplicationFeature<Application, Unit> {
+    override val key = AttributeKey<Unit>(javaClass.simpleName)
     val exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4)
 
-    init {
-        install(DefaultHeaders)
-        install(CallLogging)
-        install(Locations)
-        routing {
-            get<index>() {
-                call.response.contentType(ContentType.Text.Html)
-                call.respondWrite {
-                    appendHTML().html {
-                        head {
-                            title { +"index page" }
-                        }
-                        body {
-                            h1 {
-                                +"Try to login"
+    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
+        with(pipeline) {
+            install(DefaultHeaders)
+            install(CallLogging)
+            install(Locations)
+            routing {
+                get<index>() {
+                    call.response.contentType(ContentType.Text.Html)
+                    call.respondWrite {
+                        appendHTML().html {
+                            head {
+                                title { +"index page" }
                             }
-                            p {
-                                a(href = application.feature(Locations).href(login())) {
-                                    +"Login"
+                            body {
+                                h1 {
+                                    +"Try to login"
+                                }
+                                p {
+                                    a(href = application.feature(Locations).href(login())) {
+                                        +"Login"
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            location<login>() {
-                authentication {
-                    oauthAtLocation<login>(DefaultHttpClient, exec,
-                            providerLookup = { loginProviders[it.type] },
-                            urlProvider = { l, p -> redirectUrl(login(p.name), false) })
-                }
-
-                param("error") {
-                    handle {
-                        call.loginFailedPage(call.parameters.getAll("error").orEmpty())
+                location<login>() {
+                    authentication {
+                        oauthAtLocation<login>(DefaultHttpClient, exec,
+                                providerLookup = { loginProviders[it.type] },
+                                urlProvider = { l, p -> redirectUrl(login(p.name), false) })
                     }
-                }
 
-                handle {
-                    val principal = call.authentication.principal<OAuthAccessTokenResponse>()
-                    if (principal != null) {
-                        call.loggedInSuccessResponse(principal)
-                    } else {
-                        call.loginPage()
+                    param("error") {
+                        handle {
+                            call.loginFailedPage(call.parameters.getAll("error").orEmpty())
+                        }
+                    }
+
+                    handle {
+                        val principal = call.authentication.principal<OAuthAccessTokenResponse>()
+                        if (principal != null) {
+                            call.loggedInSuccessResponse(principal)
+                        } else {
+                            call.loginPage()
+                        }
                     }
                 }
             }

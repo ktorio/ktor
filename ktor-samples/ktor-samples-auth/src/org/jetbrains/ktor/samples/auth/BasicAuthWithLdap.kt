@@ -10,30 +10,34 @@ import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.util.*
 
 @location("/files") class Files()
 
-class BasicAuthWithLdapApplication(environment: ApplicationEnvironment) : Application(environment) {
-    init {
-        install(DefaultHeaders)
-        install(CallLogging)
-        install(Locations)
-        routing {
-            location<Files> {
-                authentication {
-                    basicAuthentication("files") { credentials ->
-                        ldapAuthenticate(credentials, "ldap://localhost:389", "cn=%s ou=users") {
-                            if (it.name == it.password) {
-                                UserIdPrincipal(it.name)
-                            } else null
+class BasicAuthWithLdapApplication : ApplicationFeature<Application, Unit> {
+    override val key = AttributeKey<Unit>(javaClass.simpleName)
+
+    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
+        with(pipeline) {
+            install(DefaultHeaders)
+            install(CallLogging)
+            install(Locations)
+            routing {
+                location<Files> {
+                    authentication {
+                        basicAuthentication("files") { credentials ->
+                            ldapAuthenticate(credentials, "ldap://localhost:389", "cn=%s ou=users") {
+                                if (it.name == it.password) {
+                                    UserIdPrincipal(it.name)
+                                } else null
+                            }
+
                         }
-
                     }
-                }
 
-                handle {
-                    call.response.status(HttpStatusCode.OK)
-                    call.respondText("""
+                    handle {
+                        call.response.status(HttpStatusCode.OK)
+                        call.respondText("""
                     Directory listing
 
                     .
@@ -41,6 +45,7 @@ class BasicAuthWithLdapApplication(environment: ApplicationEnvironment) : Applic
                     dir1
                     and so on
                     """)
+                    }
                 }
             }
         }

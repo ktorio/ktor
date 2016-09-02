@@ -40,9 +40,7 @@ fun embeddedNettyServer(hostConfig: ApplicationHostConfig, environment: Applicat
 }
 
 fun embeddedNettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, routing: Routing.() -> Unit): NettyApplicationHost {
-    return embeddedNettyServer(hostConfig, environment, object : Application(environment) {
-        init {
-            routing(routing)
-        }
+    return embeddedNettyServer(hostConfig, environment, Application(environment, Unit).apply {
+        routing(routing)
     })
 }

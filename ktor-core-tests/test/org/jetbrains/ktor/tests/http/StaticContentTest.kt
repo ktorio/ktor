@@ -66,7 +66,7 @@ class StaticContentTest {
     }
 
     fun withRangeApplication(test: TestApplicationHost.(File) -> Unit) {
-        withApplication<TestApplication> {
+        withTestApplication {
             val testDir = listOf(File("test"), File("ktor-core-tests/test")).first(File::exists)
 
             application.install(PartialContentSupport)

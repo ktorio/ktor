@@ -7,6 +7,8 @@ interface ApplicationFeature<in A : Pipeline<*>, T : Any> {
     val key: AttributeKey<T>
 
     fun install(pipeline: A, configure: T.() -> Unit): T
+    fun dispose() {
+    }
 }
 
 fun <A : Pipeline<*>, T : Any> A.feature(feature: ApplicationFeature<A, T>) = attributes[feature.key]

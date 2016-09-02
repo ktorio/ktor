@@ -14,6 +14,7 @@ import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.freemarker.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
@@ -71,7 +72,7 @@ class KweetApp : ApplicationFeature<Application, KweetApp> {
 
         with(pipeline) {
             install(DefaultHeaders)
-//        install(CallLogging)
+            install(CallLogging)
             install(ConditionalHeadersSupport)
             install(PartialContentSupport)
             install(Locations)
@@ -106,10 +107,10 @@ class KweetApp : ApplicationFeature<Application, KweetApp> {
         return this
     }
 
-//    override fun dispose() {
-//        super.dispose()
-//        pool.close()
-//    }
+    override fun dispose() {
+        super.dispose()
+        pool.close()
+    }
 
     fun hash(password: String): String {
         val hmac = Mac.getInstance("HmacSHA1")

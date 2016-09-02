@@ -10,19 +10,23 @@ import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.util.*
 import java.util.*
-import java.util.concurrent.*
 
-class AsyncApplication(environment: ApplicationEnvironment) : Application(environment) {
-    init {
-        install(DefaultHeaders)
-        install(CallLogging)
+class AsyncApplication : ApplicationFeature<Application, Unit> {
+    override val key = AttributeKey<Unit>("AsyncApplicationExampleApp")
 
-        routing {
-            get("/{...}") {
-                val start = System.currentTimeMillis()
-                runAsync(executor) {
-                    call.handleLongCalculation(start)
+    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
+        with(pipeline) {
+            install(DefaultHeaders)
+            install(CallLogging)
+
+            routing {
+                get("/{...}") {
+                    val start = System.currentTimeMillis()
+                    runAsync(executor) {
+                        call.handleLongCalculation(start)
+                    }
                 }
             }
         }

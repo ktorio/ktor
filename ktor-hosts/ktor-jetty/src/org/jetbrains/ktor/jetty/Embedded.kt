@@ -40,10 +40,8 @@ fun embeddedJettyServer(hostConfig: ApplicationHostConfig, environment: Applicat
 }
 
 fun embeddedJettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, routing: Routing.() -> Unit): JettyApplicationHost {
-    return embeddedJettyServer(hostConfig, environment, object : Application(environment) {
-        init {
-            routing(routing)
-        }
+    return embeddedJettyServer(hostConfig, environment, Application(environment, Unit).apply {
+        routing(routing)
     })
 }
 
