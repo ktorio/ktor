@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.application
 
 import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.response.*
