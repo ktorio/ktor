@@ -7,6 +7,7 @@ import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import java.io.*
+import java.nio.charset.*
 
 /**
  * Represents server's response
@@ -30,12 +31,11 @@ interface ApplicationResponse {
     }
 }
 
-fun ApplicationCall.respondWrite(body: Writer.() -> Unit) : Nothing = respond(object : FinalContent.StreamConsumer() {
-    override val headers: ValuesMap
-        get() = ValuesMap.Empty
+fun ApplicationCall.respondWrite(charset: Charset = Charsets.UTF_8, body: Writer.() -> Unit) : Nothing = respond(object : FinalContent.StreamConsumer() {
+    override val headers: ValuesMap get() = ValuesMap.Empty
 
     override fun stream(out: OutputStream) {
-        out.writer().let { writer ->
+        out.writer(charset).let { writer ->
             writer.body()
             writer.flush()
         }
