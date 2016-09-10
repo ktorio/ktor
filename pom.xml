@@ -19,14 +19,6 @@
         <module>ktor-hosts</module>
     </modules>
 
-    <repositories>
-        <repository>
-            <id>bintray-kotlin-kotlinx.support</id>
-            <name>bintray</name>
-            <url>http://dl.bintray.com/kotlin/kotlinx.support</url>
-        </repository>
-    </repositories>
-
     <profiles>
         <profile>
             <id>development</id>
@@ -104,7 +96,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-support-jdk8</artifactId>
-            <version>0.1-alpha-2</version>
+            <version>0.3</version>
             <type>pom</type>
         </dependency>
 
@@ -269,4 +261,10 @@
             <url>http://jcenter.bintray.com</url>
         </pluginRepository>
     </pluginRepositories>
+    <repositories>
+        <repository>
+            <id>jcenter</id>
+            <url>http://jcenter.bintray.com</url>
+        </repository>
+    </repositories>
 </project>
