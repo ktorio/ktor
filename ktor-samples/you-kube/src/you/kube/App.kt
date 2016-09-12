@@ -30,7 +30,7 @@ class Index()
 
 data class Session(val userId: String)
 
-class App : ApplicationFeature<Application, Unit> {
+class App : ApplicationFeature<Application, Unit, Unit> {
     override val key = AttributeKey<Unit>("YouKubeApp")
 
     override fun install(pipeline: Application, configure: Unit.() -> Unit) {

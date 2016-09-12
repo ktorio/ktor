@@ -8,13 +8,15 @@ import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.request.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 
 data class Model(val name: String, val items: List<Item>)
 data class Item(val key: String, val value: String)
 
-class JsonApplication : ApplicationFeature<Application, Unit> {
+class JsonApplication : ApplicationFeature<Application, Unit, Unit> {
     override val key = AttributeKey<Unit>(javaClass.simpleName)
 
     /*
@@ -30,14 +32,14 @@ class JsonApplication : ApplicationFeature<Application, Unit> {
             install(DefaultHeaders)
             install(CallLogging)
 
+            val gson = GsonBuilder().create()
             intercept(ApplicationCallPipeline.Infrastructure) { call ->
-                if (call.request.accept() == "application/json") {
-                    call.response.pipeline.intercept(RespondPipeline.Before) {
-                        val message = subject.message
-                        when (message) {
-                            is Item, is Model -> {
-                                call.respond(TextContent(ContentType.Application.Json, GsonBuilder().create().toJson(message)))
-                            }
+                if (HeaderValue("application/json") in call.request.acceptItems()) {
+                    call.transform.register<Any> { value ->
+                        val responseContentType = call.response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+                        when (responseContentType) {
+                            ContentType.Application.Json -> TextContent(ContentType.Application.Json, gson.toJson(value))
+                            else -> value
                         }
                     }
                 }
@@ -46,12 +48,17 @@ class JsonApplication : ApplicationFeature<Application, Unit> {
             val model = Model("root", listOf(Item("A", "Apache"), Item("B", "Bing")))
             routing {
                 get("/v1") {
-                    call.respond(model)
+                    call.respond(ContentType.Application.Json, model)
                 }
                 get("/v1/item/{key}") {
-                    call.respond(model.items.first { it.key == call.parameters["key"] })
+                    call.respond(ContentType.Application.Json, model.items.first { it.key == call.parameters["key"] })
                 }
             }
         }
     }
+}
+
+fun ApplicationCall.respond(contentType: ContentType, value: Any): Nothing {
+    response.contentType(contentType)
+    respond(value)
 }

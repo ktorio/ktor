@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
@@ -14,7 +15,7 @@ class CORSTest {
     @Test
     fun testNoOriginHeader() {
         withTestApplication {
-            application.CORS {
+            application.install(CORS) {
                 anyHost()
                 allowCredentials = true
             }
@@ -38,7 +39,7 @@ class CORSTest {
     @Test
     fun testWrongOriginHeader() {
         withTestApplication {
-            application.CORS {
+            application.install(CORS) {
                 anyHost()
                 allowCredentials = true
             }
@@ -62,7 +63,7 @@ class CORSTest {
     @Test
     fun testWrongOriginHeaderIsEmpty() {
         withTestApplication {
-            application.CORS {
+            application.install(CORS) {
                 anyHost()
                 allowCredentials = true
             }
@@ -86,7 +87,7 @@ class CORSTest {
     @Test
     fun testSimpleRequest() {
         withTestApplication {
-            application.CORS {
+            application.install(CORS) {
                 host("my-host")
             }
 
@@ -116,7 +117,7 @@ class CORSTest {
     @Test
     fun testSimpleRequestPort1() {
         withTestApplication {
-            application.CORS {
+            application.install(CORS) {
                 host("my-host")
             }
 
@@ -146,7 +147,7 @@ class CORSTest {
     @Test
     fun testSimpleRequestPort2() {
         withTestApplication {
-            application.CORS {
+            application.install(CORS) {
                 host("my-host:80")
             }
 
@@ -177,7 +178,7 @@ class CORSTest {
     @Test
     fun testSimpleRequestExposed() {
         withTestApplication {
-            application.CORS {
+            application.install(CORS) {
                 host("my-host")
                 exposeHeader(HttpHeaders.ETag)
                 exposeHeader(HttpHeaders.Vary)
@@ -203,7 +204,7 @@ class CORSTest {
     @Test
     fun testSimpleRequestHttps() {
         withTestApplication {
-            application.CORS {
+            application.install(CORS) {
                 host("my-host", schemes = listOf("http", "https"))
             }
 
@@ -241,7 +242,7 @@ class CORSTest {
     @Test
     fun testSimpleRequestSubDomains() {
         withTestApplication {
-            application.CORS {
+            application.install(CORS) {
                 host("my-host", subDomains = listOf("www"))
             }
 
@@ -279,7 +280,7 @@ class CORSTest {
     @Test
     fun testSimpleStar() {
         withTestApplication {
-            application.CORS {
+            application.install(CORS) {
                 anyHost()
             }
 
@@ -303,7 +304,7 @@ class CORSTest {
     @Test
     fun testSimpleStarCredentials() {
         withTestApplication {
-            application.CORS {
+            application.install(CORS) {
                 anyHost()
                 allowCredentials = true
             }
@@ -329,7 +330,7 @@ class CORSTest {
     @Test
     fun testSimpleNull() {
         withTestApplication {
-            application.CORS {
+            application.install(CORS) {
                 anyHost()
             }
 
@@ -352,7 +353,7 @@ class CORSTest {
     @Test
     fun testSimpleNullAllowCredentials() {
         withTestApplication {
-            application.CORS {
+            application.install(CORS) {
                 anyHost()
                 allowCredentials = true
             }
@@ -377,7 +378,7 @@ class CORSTest {
     fun testMultipleDomainsOriginNotSupported() {
         // the specification is not clear whether we should support multiple domains Origin header and how do we validate them
         withTestApplication {
-            application.CORS {
+            application.install(CORS) {
                 anyHost()
                 allowCredentials = true
             }
@@ -401,7 +402,7 @@ class CORSTest {
     @Test
     fun testPreFlight() {
         withTestApplication {
-            application.CORS {
+            application.install(CORS) {
                 anyHost()
                 header(HttpHeaders.Range)
             }

@@ -86,6 +86,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     }
 
+    class Ticket(val bb: ByteBuf) : ReleasablePoolTicket(bb.nioBuffer(0, bb.capacity()))
     private val byteBufferPool = object : ByteBufferPool {
         val nbp = PooledByteBufAllocator(false)
 
@@ -99,8 +100,6 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 it.release()
             }
         }
-
-        private inner class Ticket(val bb: ByteBuf) : ReleasablePoolTicket(bb.nioBuffer(0, bb.capacity()))
     }
 
     override fun start(wait: Boolean) {

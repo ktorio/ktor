@@ -52,7 +52,7 @@ class Logout()
 
 data class Session(val userId: String)
 
-class KweetApp : ApplicationFeature<Application, KweetApp> {
+class KweetApp : ApplicationFeature<Application, KweetApp, KweetApp> {
     override val key = AttributeKey<KweetApp>("KweetApp")
 
     val hashKey = hex("6819b57a326945c1968f45236589")

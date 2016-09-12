@@ -128,7 +128,7 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
 
             val application = when (applicationEntryPoint) {
                 is Application -> applicationEntryPoint
-                is ApplicationFeature<*, *> -> Application(environment, Unit)
+                is ApplicationFeature<*, *, *> -> Application(environment, Unit)
                 else -> throw RuntimeException("Application class $applicationClassName should inherit from ${Application::class} or ${ApplicationFeature::class}<${Application::class.simpleName}, *>")
             }
 
@@ -136,9 +136,9 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
                 it(application)
             }
 
-            if (applicationEntryPoint is ApplicationFeature<*, *>) {
+            if (applicationEntryPoint is ApplicationFeature<*, *, *>) {
                 @Suppress("UNCHECKED_CAST")
-                (applicationEntryPoint as ApplicationFeature<Application, *>).install(application, {})
+                (applicationEntryPoint as ApplicationFeature<Application, *, *>).install(application, {})
             }
 
             return application

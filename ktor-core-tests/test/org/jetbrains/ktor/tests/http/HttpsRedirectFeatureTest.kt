@@ -14,7 +14,7 @@ class HttpsRedirectFeatureTest {
     @Test
     fun testRedirect() {
         withTestApplication {
-            application.install(HttpsRedirectFeature)
+            application.install(HttpsRedirect)
             application.routing {
                 get("/") {
                     call.respond("ok")
@@ -33,7 +33,7 @@ class HttpsRedirectFeatureTest {
     fun testRedirectHttps() {
         withTestApplication {
             application.install(XForwardedHeadersSupport)
-            application.install(HttpsRedirectFeature)
+            application.install(HttpsRedirect)
             application.routing {
                 get("/") {
                     call.respond("ok")
@@ -52,7 +52,7 @@ class HttpsRedirectFeatureTest {
     @Test
     fun testDirectPathAndQuery() {
         withTestApplication {
-            application.install(HttpsRedirectFeature)
+            application.install(HttpsRedirect)
             application.intercept(ApplicationCallPipeline.Fallback) { call ->
                 call.respond("ok")
             }

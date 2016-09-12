@@ -85,7 +85,7 @@ val loginProviders = listOf(
         )
 ).associateBy { it.name }
 
-class OAuthLoginApplication : ApplicationFeature<Application, Unit> {
+class OAuthLoginApplication : ApplicationFeature<Application, Unit, Unit> {
     override val key = AttributeKey<Unit>(javaClass.simpleName)
     val exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4)
 

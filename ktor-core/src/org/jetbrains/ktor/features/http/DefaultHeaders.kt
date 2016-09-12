@@ -7,14 +7,17 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import java.time.*
 
-class DefaultHeaders {
-    private val headers = ValuesMapBuilder()
+class DefaultHeaders(config: Configuration) {
+    val headers = config.headers.build()
     private var cachedDateTimeStamp: Long = 0L
     @Volatile private var cachedDateText: String = ZonedDateTime.now(ZoneOffset.UTC).toHttpDateString()
 
-    fun header(name: String, value: String) = headers.append(name, value)
+    class Configuration {
+        val headers = ValuesMapBuilder()
+        fun header(name: String, value: String) = headers.append(name, value)
+    }
 
-    fun appendHeadersTo(call: ApplicationCall) {
+    private fun intercept(call: ApplicationCall) {
         appendDateHeader(call)
         headers.entries().forEach { entry -> entry.value.forEach { call.response.header(entry.key, it) } }
     }
@@ -30,27 +33,24 @@ class DefaultHeaders {
         call.response.header("Date", cachedDateText)
     }
 
-    companion object Feature : ApplicationFeature<Application, DefaultHeaders> {
+    companion object Feature : ApplicationFeature<Application, DefaultHeaders.Configuration, DefaultHeaders> {
         override val key = AttributeKey<DefaultHeaders>("Default Headers")
 
-        override fun install(pipeline: Application, configure: DefaultHeaders.() -> Unit): DefaultHeaders {
-            val feature = DefaultHeaders()
-            feature.configure()
-
-            if (feature.headers.getAll(HttpHeaders.Server) == null) {
+        override fun install(pipeline: Application, configure: DefaultHeaders.Configuration.() -> Unit): DefaultHeaders {
+            val config = DefaultHeaders.Configuration().apply(configure)
+            if (config.headers.getAll(HttpHeaders.Server) == null) {
                 val applicationClass = pipeline.javaClass
 
                 val ktorPackageName: String = Application::class.java.`package`.implementationTitle ?: "ktor"
                 val ktorPackageVersion: String = Application::class.java.`package`.implementationVersion ?: "debug"
-
                 val applicationPackageName: String = applicationClass.`package`.implementationTitle ?: applicationClass.simpleName
                 val applicationPackageVersion: String = applicationClass.`package`.implementationVersion ?: "debug"
 
-
-                feature.headers.append(HttpHeaders.Server, "$applicationPackageName/$applicationPackageVersion $ktorPackageName/$ktorPackageVersion")
+                config.headers.append(HttpHeaders.Server, "$applicationPackageName/$applicationPackageVersion $ktorPackageName/$ktorPackageVersion")
             }
 
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call -> feature.appendHeadersTo(call) }
+            val feature = DefaultHeaders(config)
+            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { feature.intercept(it) }
             return feature
         }
     }

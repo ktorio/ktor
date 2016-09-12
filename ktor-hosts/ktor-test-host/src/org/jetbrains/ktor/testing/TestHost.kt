@@ -23,7 +23,7 @@ inline fun <reified T : Application> withApplication(noinline test: TestApplicat
     withApplication(T::class, test)
 }
 
-inline fun <reified T : ApplicationFeature<*, *>> withApplicationFeature(noinline test: TestApplicationHost.() -> Unit) {
+inline fun <reified T : ApplicationFeature<*, *, *>> withApplicationFeature(noinline test: TestApplicationHost.() -> Unit) {
     withApplication(T::class, test)
 }
 
@@ -277,7 +277,7 @@ class TestApplicationResponse(call: ApplicationCall, respondPipeline: RespondPip
     }
 }
 
-class TestApplication : ApplicationFeature<Application, Unit> {
+class TestApplication : ApplicationFeature<Application, Unit, Unit> {
     override val key = AttributeKey<Unit>(javaClass.simpleName)
     override fun install(pipeline: Application, configure: Unit.() -> Unit) {
     }

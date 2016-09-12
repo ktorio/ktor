@@ -29,7 +29,7 @@ class MutableOriginConnectionPoint(delegate: RequestConnectionPoint) : RequestCo
     override var remoteHost by AssignableWithDelegate<RequestConnectionPoint, String>(delegate)
 }
 
-object XForwardedHeadersSupport : ApplicationFeature<ApplicationCallPipeline, XForwardedHeadersSupport.Config> {
+object XForwardedHeadersSupport : ApplicationFeature<ApplicationCallPipeline, XForwardedHeadersSupport.Config, XForwardedHeadersSupport.Config> {
 
     override val key = AttributeKey<Config>("XForwardedHeadersSupport")
 
@@ -96,7 +96,7 @@ object XForwardedHeadersSupport : ApplicationFeature<ApplicationCallPipeline, XF
 /**
  * Forwarded header support. See RFC 7239 https://tools.ietf.org/html/rfc7239
  */
-object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, Unit> {
+object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, Unit, Unit> {
     val ForwardedParsedKey = AttributeKey<List<ForwardedHeaderValue>>("ForwardedParsedKey")
     override val key = AttributeKey<Unit>("ForwardedHeaderSupport")
 

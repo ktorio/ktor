@@ -20,7 +20,7 @@ class CustomLocationRouteService : LocationRouteService {
     override fun findRoute(klass: KClass<*>): String? = klass.simpleName
 }
 
-object CustomLocationsFeature : ApplicationFeature<Application, Locations> {
+object CustomLocationsFeature : ApplicationFeature<Application, Locations, Locations> {
     override val key: AttributeKey<Locations> = Locations.key
 
     override fun install(pipeline: Application, configure: Locations.() -> Unit): Locations {

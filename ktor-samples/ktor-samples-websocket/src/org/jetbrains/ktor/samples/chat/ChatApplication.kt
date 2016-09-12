@@ -11,7 +11,7 @@ import org.jetbrains.ktor.util.*
 import org.jetbrains.ktor.websocket.*
 import java.time.*
 
-class ChatApplication() : ApplicationFeature<Application, Unit> {
+class ChatApplication() : ApplicationFeature<Application, Unit, Unit> {
     val server = ChatServer()
 
     override val key = AttributeKey<Unit>(javaClass.simpleName)

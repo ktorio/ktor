@@ -14,7 +14,7 @@ import org.jetbrains.ktor.util.*
 
 @location("/files") class Files()
 
-class BasicAuthWithLdapApplication : ApplicationFeature<Application, Unit> {
+class BasicAuthWithLdapApplication : ApplicationFeature<Application, Unit, Unit> {
     override val key = AttributeKey<Unit>(javaClass.simpleName)
 
     override fun install(pipeline: Application, configure: Unit.() -> Unit) {

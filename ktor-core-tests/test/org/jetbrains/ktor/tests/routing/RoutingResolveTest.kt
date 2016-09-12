@@ -8,7 +8,14 @@ import org.jetbrains.ktor.util.*
 import org.junit.*
 import kotlin.test.*
 
-fun routing() = Route(parent = null, selector = Routing.RootRouteSelector)
+private object RootRouteSelector : RouteSelector {
+    override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
+        throw UnsupportedOperationException("Root selector should not be evaluated")
+    }
+    override fun toString(): String = ""
+}
+
+fun routing() = Route(parent = null, selector = RootRouteSelector)
 fun context(routing: Route, path: String, parameters: ValuesMap = ValuesMap.Empty)
         = RoutingResolveContext(routing, TestApplicationCall(createTestHost().application, TestApplicationRequest(HttpMethod.Get, path)), parameters)
 

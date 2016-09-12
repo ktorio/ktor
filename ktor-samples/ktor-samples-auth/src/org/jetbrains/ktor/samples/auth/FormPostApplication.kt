@@ -12,7 +12,7 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 
-class FormPostApplication : ApplicationFeature<Application, Unit> {
+class FormPostApplication : ApplicationFeature<Application, Unit, Unit> {
     override val key = AttributeKey<Unit>(javaClass.simpleName)
 
     override fun install(pipeline: Application, configure: Unit.() -> Unit) {

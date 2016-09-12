@@ -66,20 +66,20 @@ class ApplicationLoaderTests {
 
     class ApplicationLoaderTestApplication(environment: ApplicationEnvironment) : Application(environment)
 
-    class ApplicationLoaderTestApplicationFeature : ApplicationFeature<Application, Unit> {
+    class ApplicationLoaderTestApplicationFeature : ApplicationFeature<Application, Unit, Unit> {
         override val key = AttributeKey<Unit>("app1")
         override fun install(pipeline: Application, configure: Unit.() -> Unit) {
             pipeline.attributes.put(TestKey, "1")
         }
     }
-    class ApplicationLoaderTestApplicationFeatureWithEnvironment(val environment: ApplicationEnvironment) : ApplicationFeature<Application, Unit> {
+    class ApplicationLoaderTestApplicationFeatureWithEnvironment(val environment: ApplicationEnvironment) : ApplicationFeature<Application, Unit, Unit> {
         override val key = AttributeKey<Unit>("app2")
         override fun install(pipeline: Application, configure: Unit.() -> Unit) {
             environment
             pipeline.attributes.put(TestKey, "2")
         }
     }
-    object ApplicationLoaderTestApplicationFeatureObject : ApplicationFeature<Application, Unit> {
+    object ApplicationLoaderTestApplicationFeatureObject : ApplicationFeature<Application, Unit, Unit> {
         override val key = AttributeKey<Unit>("app3")
         override fun install(pipeline: Application, configure: Unit.() -> Unit) {
             pipeline.attributes.put(TestKey, "3")

@@ -42,7 +42,7 @@ data class CompressionEncoderConfig(val name: String,
                                     val conditions: List<ApplicationCall.(FinalContent) -> Boolean>,
                                     val priority: Double)
 
-object CompressionSupport : ApplicationFeature<ApplicationCallPipeline, Compression> {
+object CompressionSupport : ApplicationFeature<ApplicationCallPipeline, Compression, Compression> {
     override val key = AttributeKey<Compression>("Compression")
     private val Comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>({ it.second.quality }, { it.first.priority }).reversed()
 

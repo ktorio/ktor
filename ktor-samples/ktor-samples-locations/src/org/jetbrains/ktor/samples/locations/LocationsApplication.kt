@@ -16,7 +16,7 @@ import java.util.*
 @location("/") class index()
 @location("/number") class number(val value: Int)
 
-class LocationsApplication : ApplicationFeature<Application, Unit> {
+class LocationsApplication : ApplicationFeature<Application, Unit, Unit> {
     override val key = AttributeKey<Unit>(javaClass.simpleName)
 
     override fun install(pipeline: Application, configure: Unit.() -> Unit) {

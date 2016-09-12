@@ -16,9 +16,8 @@ import org.jetbrains.ktor.util.*
 @location("/") class index()
 @location("/form") class post()
 
-class FormPostApplication : ApplicationFeature<Application, Unit> {
-    override val key = AttributeKey<Unit>(javaClass.simpleName
-    )
+class FormPostApplication : ApplicationFeature<Application, Unit, Unit> {
+    override val key = AttributeKey<Unit>(javaClass.simpleName)
 
     override fun install(pipeline: Application, configure: Unit.() -> Unit) {
         with(pipeline) {

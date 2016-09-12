@@ -6,7 +6,7 @@ import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 
-class TestableApplication : ApplicationFeature<Application, Unit> {
+class TestableApplication : ApplicationFeature<Application, Unit, Unit> {
     override val key = AttributeKey<Unit>("MyTestableApplication")
 
     override fun install(pipeline: Application, configure: Unit.() -> Unit) {

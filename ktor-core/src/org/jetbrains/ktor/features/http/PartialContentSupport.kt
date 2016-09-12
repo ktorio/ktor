@@ -3,7 +3,6 @@ package org.jetbrains.ktor.features.http
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
-import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
@@ -12,49 +11,49 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import kotlin.properties.*
 
-object PartialContentSupport : ApplicationFeature<ApplicationCallPipeline, PartialContentSupport.Configuration> {
-    override val key: AttributeKey<Configuration> = AttributeKey("Partial Content")
-
+class PartialContentSupport(val maxRangeCount : Int) {
     class Configuration {
         var maxRangeCount: Int by Delegates.vetoable(10) { p, old, new ->
             new <= 0 || throw IllegalArgumentException("Bad maxRangeCount value $new")
         }
     }
 
-    override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Configuration {
-        val config = Configuration()
-        configure(config)
+    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, PartialContentSupport> {
+        override val key: AttributeKey<PartialContentSupport> = AttributeKey("Partial Content")
+        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): PartialContentSupport {
+            val feature = PartialContentSupport(Configuration().apply(configure).maxRangeCount)
+            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { feature.intercept(it) }
+            return feature
+        }
+    }
 
-        pipeline.intercept(ApplicationCallPipeline.Infrastructure) { requestNext ->
-            val rangeSpecifier = call.request.ranges()
-            if (rangeSpecifier != null) {
-                if (call.isGetOrHead()) {
-                    call.attributes.put(CompressionAttributes.preventCompression, true)
-                    call.response.pipeline.intercept(RespondPipeline.After) {
-                        val message = subject.message
-                        if (message is FinalContent.ChannelContent && message !is RangeChannelProvider) {
-                            message.contentLength()?.let { length -> tryProcessRange(message, call, rangeSpecifier, length, config) }
-                        }
-                    }
-                } else {
-                    call.respond(HttpStatusCode.MethodNotAllowed.description("Method ${call.request.local.method.value} is not allowed with range request"))
-                }
-            } else {
+    fun intercept(call: ApplicationCall) {
+        val rangeSpecifier = call.request.ranges()
+        if (rangeSpecifier != null) {
+            if (call.isGetOrHead()) {
+                call.attributes.put(CompressionAttributes.preventCompression, true)
                 call.response.pipeline.intercept(RespondPipeline.After) {
                     val message = subject.message
                     if (message is FinalContent.ChannelContent && message !is RangeChannelProvider) {
-                        call.respond(RangeChannelProvider.ByPass(message))
+                        message.contentLength()?.let { length -> tryProcessRange(message, call, rangeSpecifier, length) }
                     }
+                }
+            } else {
+                call.respond(HttpStatusCode.MethodNotAllowed.description("Method ${call.request.local.method.value} is not allowed with range request"))
+            }
+        } else {
+            call.response.pipeline.intercept(RespondPipeline.After) {
+                val message = subject.message
+                if (message is FinalContent.ChannelContent && message !is RangeChannelProvider) {
+                    call.respond(RangeChannelProvider.ByPass(message))
                 }
             }
         }
-
-        return config
     }
 
-    private fun PipelineContext<*>.tryProcessRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long, config: Configuration): Unit {
+    private fun PipelineContext<*>.tryProcessRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long): Unit {
         if (checkIfRangeHeader(obj, call)) {
-            processRange(obj, call, rangesSpecifier, length, config)
+            processRange(obj, call, rangesSpecifier, length)
         } else {
             call.respond(RangeChannelProvider.ByPass(obj))
         }
@@ -76,10 +75,10 @@ object PartialContentSupport : ApplicationFeature<ApplicationCallPipeline, Parti
     }
 
 
-    private fun PipelineContext<*>.processRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long, config: Configuration): Nothing {
+    private fun PipelineContext<*>.processRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long): Nothing {
         require(length >= 0L)
 
-        val merged = rangesSpecifier.merge(length, config.maxRangeCount)
+        val merged = rangesSpecifier.merge(length, maxRangeCount)
         if (merged.isEmpty()) {
             call.response.contentRange(range = null, fullLength = length) // https://tools.ietf.org/html/rfc7233#section-4.4
             call.respond(HttpStatusCode.RequestedRangeNotSatisfiable.description("Couldn't satisfy range request $rangesSpecifier: it should comply with the restriction [0; $length)"))

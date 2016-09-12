@@ -7,11 +7,11 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 
-object HeadRequestSupport : ApplicationFeature<ApplicationCallPipeline, Unit> {
+object HeadRequestSupport : ApplicationFeature<ApplicationCallPipeline, Unit, Unit> {
     override val key = AttributeKey<Unit>("Automatic Head Response")
 
     override fun install(pipeline: ApplicationCallPipeline, configure: Unit.() -> Unit) {
-        configure(Unit)
+        Unit.configure()
 
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
             if (call.request.local.method == HttpMethod.Head) {
@@ -27,7 +27,6 @@ object HeadRequestSupport : ApplicationFeature<ApplicationCallPipeline, Unit> {
 
     private class HeadResponse(val delegate: FinalContent) : FinalContent.NoContent() {
         override val headers by lazy { delegate.headers }
-        override val status: HttpStatusCode?
-            get() = delegate.status
+        override val status: HttpStatusCode? get() = delegate.status
     }
 }

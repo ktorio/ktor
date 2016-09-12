@@ -13,7 +13,7 @@ import java.util.concurrent.*
  * This is special example demonstrates ability to use OAuth with no routes and locations.
  * For general-purpose example see [OAuthLoginApplication]
  */
-class OAuthLoginNoLocationApplication : ApplicationFeature<Application, Unit> {
+class OAuthLoginNoLocationApplication : ApplicationFeature<Application, Unit, Unit> {
     override val key = AttributeKey<Unit>(javaClass.simpleName)
     val exec = Executors.newFixedThreadPool(8)!!
 

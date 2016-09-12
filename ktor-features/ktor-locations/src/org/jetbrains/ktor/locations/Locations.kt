@@ -178,7 +178,7 @@ open class Locations(val conversionService: ConversionService, val routeService:
         return createEntry(parent, getOrCreateInfo(dataClass))
     }
 
-    companion object LocationsFeature : ApplicationFeature<Application, Locations> {
+    companion object LocationsFeature : ApplicationFeature<Application, Locations, Locations> {
         override val key: AttributeKey<Locations> = AttributeKey("Locations")
 
         override fun install(pipeline: Application, configure: Locations.() -> Unit): Locations {

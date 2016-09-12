@@ -3,25 +3,16 @@ package org.jetbrains.ktor.routing
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 
-
-class Routing(val application: Application) : Route(parent = null, selector = Routing.RootRouteSelector) {
-
-    object RootRouteSelector : RouteSelector {
-        override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation = throw UnsupportedOperationException()
-        override fun toString(): String = ""
-    }
-
-    internal fun interceptor(context: PipelineContext<ApplicationCall>) {
-        val call = context.call
+class Routing(val application: Application) : Route(parent = null, selector = RootRouteSelector) {
+    private fun interceptor(call: ApplicationCall) {
         val resolveContext = RoutingResolveContext(this, call, call.parameters, call.request.headers)
         val resolveResult = resolveContext.resolve()
         if (resolveResult.succeeded) {
             val routingCall = RoutingApplicationCall(call, resolveResult.entry, resolveResult.values)
             val pipeline = buildEntryPipeline(resolveResult.entry)
-            context.call.execution.execute(routingCall, pipeline)
+            call.execution.execute(routingCall, pipeline)
         }
     }
 
@@ -38,15 +29,22 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
         return pipeline
     }
 
-    companion object RoutingFeature : ApplicationFeature<Application, Routing> {
+    companion object Feature : ApplicationFeature<Application, Routing, Routing> {
         override val key: AttributeKey<Routing> = AttributeKey("Routing")
 
-        override fun install(pipeline: Application, configure: Routing.() -> Unit) = Routing(pipeline).apply {
-            configure()
-            pipeline.intercept(ApplicationCallPipeline.Call) { call ->
-                this@apply.interceptor(this)
-            }
+        override fun install(pipeline: Application, configure: Routing.() -> Unit): Routing {
+            val routing = Routing(pipeline).apply(configure)
+            pipeline.intercept(ApplicationCallPipeline.Call) { routing.interceptor(it) }
+            return routing
         }
+    }
+
+    private object RootRouteSelector : RouteSelector {
+        override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
+            throw UnsupportedOperationException("Root selector should not be evaluated")
+        }
+
+        override fun toString(): String = ""
     }
 }
 
