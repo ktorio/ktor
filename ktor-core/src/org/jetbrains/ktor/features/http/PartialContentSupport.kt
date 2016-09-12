@@ -31,7 +31,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
         val rangeSpecifier = call.request.ranges()
         if (rangeSpecifier != null) {
             if (call.isGetOrHead()) {
-                call.attributes.put(CompressionAttributes.preventCompression, true)
+                call.attributes.put(Compression.SuppressionAttribute, true)
                 call.response.pipeline.intercept(RespondPipeline.After) {
                     val message = subject.message
                     if (message is FinalContent.ChannelContent && message !is RangeChannelProvider) {
@@ -106,7 +106,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
     private fun processMultiRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, ranges: List<LongRange>, length: Long): Nothing {
         val boundary = "ktor-boundary-" + nextNonce()
 
-        call.attributes.put(CompressionAttributes.preventCompression, true) // multirange with compression is not supported yet
+        call.attributes.put(Compression.SuppressionAttribute, true) // multirange with compression is not supported yet
 
         val contentType = obj.contentType() ?: ContentType.Application.OctetStream
         call.respond(RangeChannelProvider.Multiple(call.isGet(), obj.headers, channel, ranges, length, boundary, contentType))

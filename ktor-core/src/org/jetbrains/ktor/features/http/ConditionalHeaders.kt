@@ -1,11 +1,60 @@
 package org.jetbrains.ktor.features.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
+import org.jetbrains.ktor.util.*
 import java.time.*
 import java.util.*
+
+class ConditionalHeaders {
+    private val headers = listOf(
+            HttpHeaders.IfModifiedSince,
+            HttpHeaders.IfUnmodifiedSince,
+            HttpHeaders.IfMatch,
+            HttpHeaders.IfNoneMatch
+    )
+
+    private fun checkVersions(call: ApplicationCall, versions: List<Version>) {
+        for (version in versions) {
+            val result = when (version) {
+                is EntityTagVersion -> call.checkEtag(version.etag)
+                is LastModifiedVersion -> call.checkLastModified(version.lastModified)
+                else -> ConditionalHeaderCheckResult.OK
+            }
+
+            if (result != ConditionalHeaderCheckResult.OK) {
+                call.respond(result.statusCode)
+            }
+        }
+    }
+
+    fun intercept(call: ApplicationCall) {
+        if (headers.any { it in call.request.headers }) {
+            call.response.pipeline.intercept(RespondPipeline.After) {
+                val message = subject.message
+                when (message) {
+                    is HasVersions -> checkVersions(call, message.versions)
+                    is FinalContent -> checkVersions(call, message.lastModifiedAndEtagVersions())
+                }
+            }
+        }
+    }
+
+    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Unit, ConditionalHeaders> {
+        override val key = AttributeKey<ConditionalHeaders>("Conditional Headers")
+        override fun install(pipeline: ApplicationCallPipeline, configure: Unit.() -> Unit): ConditionalHeaders {
+            configure(Unit)
+            val feature = ConditionalHeaders()
+            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { feature.intercept(call) }
+            return feature
+        }
+    }
+}
+
 
 enum class ConditionalHeaderCheckResult(val statusCode: HttpStatusCode) {
     OK(HttpStatusCode.OK),

@@ -7,24 +7,9 @@ import org.jetbrains.ktor.util.*
 import java.util.*
 import kotlin.properties.*
 
-class AuthenticationProcedure() : Pipeline<AuthenticationProcedureContext>(CheckAuthentication, RequestAuthentication) {
-    companion object {
-        val CheckAuthentication = PipelinePhase("CheckAuthentication")
-        val RequestAuthentication = PipelinePhase("RequestAuthentication")
-    }
-}
-
-object Authentication : ApplicationFeature<ApplicationCallPipeline, AuthenticationProcedure, AuthenticationProcedure> {
-    override val key = AttributeKey<AuthenticationProcedure>("Authentication")
-
-    override fun install(pipeline: ApplicationCallPipeline, configure: AuthenticationProcedure.() -> Unit): AuthenticationProcedure {
-        return pipeline.authentication(configure)
-    }
-}
-
-fun ApplicationCallPipeline.authentication(procedure: AuthenticationProcedure.() -> Unit) : AuthenticationProcedure {
-    val authenticationProcedure = AuthenticationProcedure().apply(procedure).apply {
-        intercept(AuthenticationProcedure.RequestAuthentication) { context ->
+class Authentication(val pipeline: Pipeline) {
+    init {
+        pipeline.intercept(Pipeline.RequestAuthentication) { context ->
             val principal = context.principal
             if (principal == null) {
                 val challenges = context.challenges
@@ -32,25 +17,47 @@ fun ApplicationCallPipeline.authentication(procedure: AuthenticationProcedure.()
                     val challengePhase = PipelinePhase("Challenge")
                     val challengePipeline = Pipeline(challengePhase, challenges)
                     challengePipeline.intercept(challengePhase) { challenge ->
-                        if (challenge.success) {
+                        if (challenge.success)
                             finishAll()
-                        }
                     }
                     context.call.execution.execute(AuthenticationProcedureChallenge(), challengePipeline)
                 }
             }
         }
     }
-    phases.insertAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
-    intercept(authenticationPhase) { call ->
+
+    private fun intercept(call: ApplicationCall) {
         val context = AuthenticationProcedureContext(call)
         call.attributes.put(AuthenticationProcedureContext.AttributeKey, context)
-        call.execution.execute(context, authenticationProcedure)
+        call.execution.execute(context, pipeline)
     }
-    return authenticationProcedure
+
+    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Pipeline, Authentication> {
+        val phase = PipelinePhase("Authenticate")
+
+        override val key = AttributeKey<Authentication>("Authentication")
+
+        override fun install(pipeline: ApplicationCallPipeline, configure: Pipeline.() -> Unit): Authentication {
+            val procedure = Pipeline().apply(configure)
+            val feature = Authentication(procedure)
+            pipeline.phases.insertAfter(ApplicationCallPipeline.Infrastructure, phase)
+            pipeline.intercept(phase) { feature.intercept(it) }
+            return feature
+        }
+    }
+
+    class Pipeline() : org.jetbrains.ktor.pipeline.Pipeline<AuthenticationProcedureContext>(CheckAuthentication, RequestAuthentication) {
+        companion object {
+            val CheckAuthentication = PipelinePhase("CheckAuthentication")
+            val RequestAuthentication = PipelinePhase("RequestAuthentication")
+        }
+    }
 }
 
-val authenticationPhase = PipelinePhase("Authenticate")
+
+fun ApplicationCallPipeline.authentication(procedure: Authentication.Pipeline.() -> Unit): Authentication {
+    return install(Authentication, procedure)
+}
 
 class AuthenticationProcedureChallenge {
     @Volatile

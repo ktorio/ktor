@@ -3,7 +3,6 @@ package org.jetbrains.ktor.features.http
 import org.jetbrains.ktor.http.*
 import java.util.logging.*
 
-
 object ContentTypeByExtension {
     private val contentTypesFileName = "mimelist.csv"
 

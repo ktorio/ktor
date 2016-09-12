@@ -73,7 +73,7 @@ class KweetApp : ApplicationFeature<Application, KweetApp, KweetApp> {
         with(pipeline) {
             install(DefaultHeaders)
             install(CallLogging)
-            install(ConditionalHeadersSupport)
+            install(ConditionalHeaders)
             install(PartialContentSupport)
             install(Locations)
 

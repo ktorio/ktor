@@ -38,12 +38,11 @@ class App : ApplicationFeature<Application, Unit, Unit> {
             install(DefaultHeaders)
             install(CallLogging)
             install(Locations)
-            install(ConditionalHeadersSupport)
+            install(ConditionalHeaders)
             install(PartialContentSupport)
-            install(CompressionSupport) {
-                configureDefault {
-                    excludeMimeTypeMatch(ContentType.Video.Any)
-                }
+            install(Compression) {
+                default()
+                excludeMimeTypeMatch(ContentType.Video.Any)
             }
 
             val key = hex("03e156f6058a13813816065")

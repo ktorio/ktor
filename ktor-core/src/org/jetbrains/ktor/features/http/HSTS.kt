@@ -46,7 +46,7 @@ class HSTS(config: Configuration) {
         }
     }
 
-    companion object : ApplicationFeature<ApplicationCallPipeline, HSTS.Configuration, HSTS> {
+    companion object Feature : ApplicationFeature<ApplicationCallPipeline, HSTS.Configuration, HSTS> {
         override val key = AttributeKey<HSTS>("HSTS")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): HSTS {
             val feature = HSTS(Configuration().apply(configure))

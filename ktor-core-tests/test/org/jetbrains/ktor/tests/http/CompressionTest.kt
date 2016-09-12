@@ -20,7 +20,7 @@ class CompressionTest {
     @Test
     fun testCompressionNotSpecified() {
         withTestApplication {
-            application.install(CompressionSupport)
+            application.install(Compression)
             application.routing {
                 get("/") {
                     call.respondText("text to be compressed")
@@ -34,7 +34,7 @@ class CompressionTest {
     @Test
     fun testCompressionUnknownAcceptedEncodings() {
         withTestApplication {
-            application.install(CompressionSupport)
+            application.install(Compression)
             application.routing {
                 get("/") {
                     call.respondText("text to be compressed")
@@ -48,7 +48,7 @@ class CompressionTest {
     @Test
     fun testCompressionDefaultDeflate() {
         withTestApplication {
-            application.install(CompressionSupport)
+            application.install(Compression)
             application.routing {
                 get("/") {
                     call.respondText("text to be compressed")
@@ -62,7 +62,7 @@ class CompressionTest {
     @Test
     fun testCompressionDefaultGzip() {
         withTestApplication {
-            application.install(CompressionSupport)
+            application.install(Compression)
             application.routing {
                 get("/") {
                     call.respondText("text to be compressed")
@@ -76,10 +76,8 @@ class CompressionTest {
     @Test
     fun testAcceptStarContentEncodingGzip() {
         withTestApplication {
-            application.install(CompressionSupport) {
-                configure {
-                    gzip()
-                }
+            application.install(Compression) {
+                gzip()
             }
 
             application.routing {
@@ -95,10 +93,8 @@ class CompressionTest {
     @Test
     fun testAcceptStarContentEncodingDeflate() {
         withTestApplication {
-            application.install(CompressionSupport) {
-                configure {
-                    deflate()
-                }
+            application.install(Compression) {
+                deflate()
             }
 
             application.routing {
@@ -114,7 +110,7 @@ class CompressionTest {
     @Test
     fun testUnknownEncodingListedEncoding() {
         withTestApplication {
-            application.install(CompressionSupport)
+            application.install(Compression)
             application.routing {
                 get("/") {
                     call.respondText("text to be compressed")
@@ -128,12 +124,11 @@ class CompressionTest {
     @Test
     fun testCustomEncoding() {
         withTestApplication {
-            application.install(CompressionSupport) {
-                configureDefault {
-                    encoder("special", object : CompressionEncoder {
-                        override fun open(delegate: ReadChannel) = delegate
-                    })
-                }
+            application.install(Compression) {
+                default()
+                encoder("special", object : CompressionEncoder {
+                    override fun open(delegate: ReadChannel) = delegate
+                })
             }
             application.routing {
                 get("/") {
@@ -154,10 +149,9 @@ class CompressionTest {
     @Test
     fun testMinSize() {
         withTestApplication {
-            application.install(CompressionSupport) {
-                configureDefault {
-                    minSize(10)
-                }
+            application.install(Compression) {
+                default()
+                minSize(10)
             }
 
             application.routing {
@@ -183,11 +177,10 @@ class CompressionTest {
     @Test
     fun testMimeTypes() {
         withTestApplication {
-            application.install(CompressionSupport) {
-                configureDefault {
-                    mimeTypeShouldMatch(ContentType.Text.Any)
-                    excludeMimeTypeMatch(ContentType.Text.VCard)
-                }
+            application.install(Compression) {
+                default()
+                mimeTypeShouldMatch(ContentType.Text.Any)
+                excludeMimeTypeMatch(ContentType.Text.VCard)
             }
 
             application.routing {
@@ -205,15 +198,13 @@ class CompressionTest {
     @Test
     fun testEncoderLevelCondition() {
         withTestApplication {
-            application.install(CompressionSupport) {
-                configure {
-                    gzip {
-                        condition {
-                            parameters["e"] == "1"
-                        }
+            application.install(Compression) {
+                gzip {
+                    condition {
+                        parameters["e"] == "1"
                     }
-                    deflate()
                 }
+                deflate()
             }
 
             application.routing {
@@ -231,14 +222,12 @@ class CompressionTest {
     @Test
     fun testEncoderPriority1() {
         withTestApplication {
-            application.install(CompressionSupport) {
-                configure {
-                    gzip {
-                        priority = 10.0
-                    }
-                    deflate {
-                        priority = 1.0
-                    }
+            application.install(Compression) {
+                gzip {
+                    priority = 10.0
+                }
+                deflate {
+                    priority = 1.0
                 }
             }
 
@@ -257,14 +246,12 @@ class CompressionTest {
     @Test
     fun testEncoderPriority2() {
         withTestApplication {
-            application.install(CompressionSupport) {
-                configure {
-                    gzip {
-                        priority = 1.0
-                    }
-                    deflate {
-                        priority = 10.0
-                    }
+            application.install(Compression) {
+                gzip {
+                    priority = 1.0
+                }
+                deflate {
+                    priority = 10.0
                 }
             }
 
@@ -283,11 +270,9 @@ class CompressionTest {
     @Test
     fun testEncoderQuality() {
         withTestApplication {
-            application.install(CompressionSupport) {
-                configure {
-                    gzip()
-                    deflate()
-                }
+            application.install(Compression) {
+                gzip()
+                deflate()
             }
 
             application.routing {
@@ -306,11 +291,10 @@ class CompressionTest {
     @Test
     fun testCustomCondition() {
         withTestApplication {
-            application.install(CompressionSupport) {
-                configureDefault {
-                    condition {
-                        parameters["compress"] == "true"
-                    }
+            application.install(Compression) {
+                default()
+                condition {
+                    parameters["compress"] == "true"
                 }
             }
 
@@ -330,12 +314,12 @@ class CompressionTest {
         val ldt = LocalDateTime.now()
 
         withTestApplication {
-            application.install(ConditionalHeadersSupport)
-            application.install(CompressionSupport)
+            application.install(ConditionalHeaders)
+            application.install(Compression)
 
             application.routing {
                 get("/") {
-                    call.respond(object: Resource, FinalContent.ChannelContent() {
+                    call.respond(object : Resource, FinalContent.ChannelContent() {
                         override val headers: ValuesMap
                             get() = super.headers
 
@@ -405,7 +389,7 @@ class CompressionTest {
         }
 
         withTestApplication {
-            application.install(CompressionSupport)
+            application.install(Compression)
             application.routing {
                 get("/") {
                     call.respondText(ContentType.Text.Plain, content)
@@ -420,7 +404,7 @@ class CompressionTest {
     @Test
     fun testRespondWrite() {
         withTestApplication {
-            application.install(CompressionSupport)
+            application.install(Compression)
             application.routing {
                 get("/") {
                     call.respondWrite {

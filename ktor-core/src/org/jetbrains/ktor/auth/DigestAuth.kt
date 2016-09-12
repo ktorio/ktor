@@ -33,14 +33,14 @@ fun ApplicationCall.extractDigest(): DigestCredential? {
 
 val DigestAuthKey: Any = "DigestAuth"
 
-fun AuthenticationProcedure.digestAuthentication(
+fun Authentication.Pipeline.digestAuthentication(
         realm: String = "ktor",
         digestAlgorithm: String = "MD5",
         digesterProvider: (String) -> MessageDigest = { MessageDigest.getInstance(it) },
         userNameRealmPasswordDigestProvider: (String, String) -> ByteArray) {
 
     val digester = digesterProvider(digestAlgorithm)
-    intercept(AuthenticationProcedure.RequestAuthentication) { context ->
+    intercept(Authentication.Pipeline.RequestAuthentication) { context ->
         val authorizationHeader = context.call.request.parseAuthorizationHeader()
         val credentials = authorizationHeader?.let { authHeader ->
             if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {

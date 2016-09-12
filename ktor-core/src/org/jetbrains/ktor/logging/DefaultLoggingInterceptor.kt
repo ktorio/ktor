@@ -10,8 +10,8 @@ import org.jetbrains.ktor.util.*
 object CallLogging : ApplicationFeature<Application, Unit, Unit> {
     override val key: AttributeKey<Unit> = AttributeKey("Call Logging")
 
-    private val loggingPhase = PipelinePhase("Logging")
     override fun install(pipeline: Application, configure: Unit.() -> Unit) {
+        val loggingPhase = PipelinePhase("Logging")
         pipeline.phases.insertBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
         pipeline.intercept(loggingPhase) { call ->
             onSuccess { pipeline.logCallFinished(call) }

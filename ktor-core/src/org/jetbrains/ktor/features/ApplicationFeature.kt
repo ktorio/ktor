@@ -3,16 +3,28 @@ package org.jetbrains.ktor.features
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
-interface ApplicationFeature<in P : Pipeline<*>, B : Any, F : Any> {
+interface ApplicationFeature<in P : Pipeline<*>, out B : Any, F : Any> {
+    /**
+     * Unique key that identifies a feature
+     */
     val key: AttributeKey<F>
 
+    /**
+     * Feature installation script
+     */
     fun install(pipeline: P, configure: B.() -> Unit): F
     fun dispose() {}
 }
 
-fun <A : Pipeline<*>, B : Any, F : Any> A.feature(feature: ApplicationFeature<A, B, F>) = attributes[feature.key]
+/**
+ * Gets feature instance for this pipeline, if any
+ */
+fun <A : Pipeline<*>, B : Any, F : Any> A.feature(feature: ApplicationFeature<A, B, F>): F = attributes[feature.key]
 
-fun <A : Pipeline<*>, B : Any, F : Any> A.install(feature: ApplicationFeature<A, B, F>, configure: B.() -> Unit = {}): F {
+/**
+ * Installs [feature] into this pipeline, if it is not yet installed
+ */
+fun <P : Pipeline<*>, B : Any, F : Any> P.install(feature: ApplicationFeature<P, B, F>, configure: B.() -> Unit = {}): F {
     val installedFeature = attributes.getOrNull(feature.key)
     when (installedFeature) {
         null -> {
