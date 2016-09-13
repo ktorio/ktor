@@ -2,7 +2,7 @@ package org.jetbrains.ktor.util
 
 import java.util.concurrent.*
 
-open class AttributeKey<T>(val name: String) {
+open class AttributeKey<out T>(val name: String) {
     override fun toString(): String = if (name.isEmpty())
         super.toString()
     else
@@ -39,6 +39,6 @@ class Attributes {
         return map.computeIfAbsent(key) { block() } as T
     }
 
-    val allKeys: List<AttributeKey<*>>
+    val allKeys: List<AttributeKey<Any?>>
         get() = if (touched) map.keys.toList() else emptyList()
 }

@@ -37,9 +37,13 @@ class ApplicationLoaderTests {
                 "ktor.application.class" to ApplicationLoaderTestApplicationFeature::class.jvmName
         )
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val loader = ApplicationLoader(environment, false)
+        val application = loader.application
         assertNotNull(application)
         assertEquals("1", application.attributes[TestKey])
+        assertEquals(1, ApplicationLoaderTestApplicationFeature.instances)
+        loader.destroyApplication()
+        assertEquals(0, ApplicationLoaderTestApplicationFeature.instances)
     }
 
     @Test fun `valid class name should create application feature with parameter`() {
@@ -66,10 +70,22 @@ class ApplicationLoaderTests {
 
     class ApplicationLoaderTestApplication(environment: ApplicationEnvironment) : Application(environment)
 
-    class ApplicationLoaderTestApplicationFeature : ApplicationFeature<Application, Unit, Unit> {
-        override val key = AttributeKey<Unit>("app1")
-        override fun install(pipeline: Application, configure: Unit.() -> Unit) {
+    class ApplicationLoaderTestApplicationFeature : ApplicationFeature<Application, Unit, ApplicationLoaderTestApplicationFeature>, AutoCloseable {
+        init {
+            instances++
+        }
+
+        override fun close() {
+            instances--
+        }
+
+        override val key = AttributeKey<ApplicationLoaderTestApplicationFeature>("app1")
+        override fun install(pipeline: Application, configure: Unit.() -> Unit) : ApplicationLoaderTestApplicationFeature {
             pipeline.attributes.put(TestKey, "1")
+            return this
+        }
+        companion object {
+            var instances = 0
         }
     }
     class ApplicationLoaderTestApplicationFeatureWithEnvironment(val environment: ApplicationEnvironment) : ApplicationFeature<Application, Unit, Unit> {

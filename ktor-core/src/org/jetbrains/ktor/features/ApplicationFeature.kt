@@ -52,4 +52,18 @@ fun <P : Pipeline<*>, B : Any, F : Any> P.install(feature: ApplicationFeature<P,
     }
 }
 
+fun <A : Pipeline<*>> A.uninstallAllFeatures() {
+    val registry = attributes.computeIfAbsent(ApplicationFeature.registry) { Attributes() }
+    registry.allKeys.forEach { uninstallFeature(it as AttributeKey<Any>) }
+}
+
+fun <A : Pipeline<*>, B : Any, F : Any> A.uninstall(feature: ApplicationFeature<A, B, F>) = uninstallFeature(feature.key)
+fun <A : Pipeline<*>, F : Any> A.uninstallFeature(key: AttributeKey<F>) {
+    val registry = attributes.computeIfAbsent(ApplicationFeature.registry) { Attributes() }
+    val instance = registry.getOrNull(key) ?: return
+    if (instance is AutoCloseable)
+        instance.close()
+    registry.remove(key)
+}
+
 class DuplicateApplicationFeatureException(message: String) : Exception(message)

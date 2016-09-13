@@ -138,7 +138,7 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
 
             if (applicationEntryPoint is ApplicationFeature<*, *, *>) {
                 @Suppress("UNCHECKED_CAST")
-                (applicationEntryPoint as ApplicationFeature<Application, *, *>).install(application, {})
+                application.install(applicationEntryPoint as ApplicationFeature<Application, *, *>)
             }
 
             return application

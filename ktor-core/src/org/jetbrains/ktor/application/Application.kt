@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.application
 
+import org.jetbrains.ktor.features.*
 import java.util.concurrent.*
 
 /**
@@ -15,6 +16,7 @@ open class Application(val environment: ApplicationEnvironment, forMigrationPurp
      * Called by host when [Application] is terminated
      */
     open fun dispose() {
+        uninstallAllFeatures()
         executor.shutdown()
         if (!executor.awaitTermination(10L, TimeUnit.SECONDS)) {
             environment.log.warning("Failed to stop application executor service")
