@@ -50,7 +50,7 @@ class Logout()
 
 data class Session(val userId: String)
 
-class KweetApp : ApplicationFeature<Application, KweetApp, KweetApp> {
+class KweetApp : ApplicationFeature<Application, KweetApp, KweetApp>, Closeable {
     override val key = AttributeKey<KweetApp>("KweetApp")
 
     val hashKey = hex("6819b57a326945c1968f45236589")
@@ -102,8 +102,7 @@ class KweetApp : ApplicationFeature<Application, KweetApp, KweetApp> {
         return this
     }
 
-    override fun dispose() {
-        super.dispose()
+    override fun close() {
         pool.close()
     }
 
