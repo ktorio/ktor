@@ -53,9 +53,10 @@ class ApplicationEnvironmentBuilder : ApplicationEnvironment {
 }
 
 private val poolCounter = AtomicInteger()
-private val threadCounter = AtomicInteger()
 internal val DefaultExecutorServiceBuilder = {
+    val pool: Int = poolCounter.incrementAndGet()
+    val threadCounter = AtomicInteger()
     Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), { r ->
-        Thread(r, "ktor-pool-${poolCounter.incrementAndGet()}-thread-${threadCounter.incrementAndGet()}")
-    })!!
+        Thread(r, "ktor-pool-$pool-thread-${threadCounter.incrementAndGet()}")
+    })
 }
