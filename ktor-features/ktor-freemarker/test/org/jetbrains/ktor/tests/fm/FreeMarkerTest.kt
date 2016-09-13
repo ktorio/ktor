@@ -1,9 +1,8 @@
 package org.jetbrains.ktor.tests.fm
 
 import freemarker.cache.*
-import freemarker.template.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.freemarker.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
@@ -41,15 +40,13 @@ class FreeMarkerTest {
     private fun Application.setUpTestTemplates() {
         val bax = "$"
 
-        templating(freemarker {
-            Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS).apply {
-                templateLoader = StringTemplateLoader().apply {
-                    putTemplate("test.ftl", """
+        install(FreeMarker) {
+            templateLoader = StringTemplateLoader().apply {
+                putTemplate("test.ftl", """
                         <p>Hello, $bax{id}</p>
                         <h1>$bax{title}</h1>
                     """.trimIndent())
-                }
             }
-        })
+        }
     }
 }

@@ -2,13 +2,11 @@ package kweet
 
 import com.mchange.v2.c3p0.*
 import freemarker.cache.*
-import freemarker.template.*
 import kweet.dao.*
 import kweet.model.*
 import org.h2.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.freemarker.*
@@ -76,12 +74,9 @@ class KweetApp : ApplicationFeature<Application, KweetApp, KweetApp> {
             install(ConditionalHeaders)
             install(PartialContentSupport)
             install(Locations)
-
-            templating(freemarker {
-                Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS).apply {
-                    templateLoader = ClassTemplateLoader(KweetApp::class.java.classLoader, "templates")
-                }
-            })
+            install(FreeMarker) {
+                templateLoader = ClassTemplateLoader(KweetApp::class.java.classLoader, "templates")
+            }
 
             withSessions<Session> {
                 withCookieByValue {
@@ -129,11 +124,11 @@ fun ApplicationCall.redirect(location: Any): Nothing {
 }
 
 fun ApplicationCall.securityCode(date: Long, user: User, hashFunction: (String) -> String) =
-    hashFunction("$date:${user.userId}:${request.host()}:${refererHost()}")
+        hashFunction("$date:${user.userId}:${request.host()}:${refererHost()}")
 
 fun ApplicationCall.verifyCode(date: Long, user: User, code: String, hashFunction: (String) -> String) =
-    securityCode(date, user, hashFunction) == code
-            && (System.currentTimeMillis() - date).let { it > 0 && it < TimeUnit.MILLISECONDS.convert(2, TimeUnit.HOURS) }
+        securityCode(date, user, hashFunction) == code
+                && (System.currentTimeMillis() - date).let { it > 0 && it < TimeUnit.MILLISECONDS.convert(2, TimeUnit.HOURS) }
 
 fun ApplicationCall.refererHost() = request.header(HttpHeaders.Referrer)?.let { URI.create(it).host }
 
