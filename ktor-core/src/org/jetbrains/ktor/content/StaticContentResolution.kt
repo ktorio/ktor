@@ -3,6 +3,7 @@ package org.jetbrains.ktor.content
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
+import org.jetbrains.ktor.util.*
 import java.io.*
 import java.net.*
 import java.nio.file.*
@@ -97,4 +98,3 @@ internal fun findContainingZipFile(uri: URI): File {
 }
 
 private fun String.appendIfNotEndsWith(suffix: String) = if (endsWith(suffix)) this else this + suffix
-private fun String.extension() = split("/\\").last().substringAfter(".")
