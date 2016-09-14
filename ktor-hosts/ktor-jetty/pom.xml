@@ -53,6 +53,14 @@
             <version>${jetty.version}</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.jetbrains.ktor</groupId>
+            <artifactId>ktor-core</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
+        </dependency>
+
         <!-- see http://www.eclipse.org/jetty/documentation/9.4.x/alpn-chapter.html#alpn-versions -->
         <!--<dependency>-->
             <!--<groupId>org.mortbay.jetty.alpn</groupId>-->

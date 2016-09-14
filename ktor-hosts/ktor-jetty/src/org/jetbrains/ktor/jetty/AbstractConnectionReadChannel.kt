@@ -89,6 +89,6 @@ internal class AbstractConnectionReadChannel(endp: EndPoint, exec: Executor) : A
 
     override fun onUpgradeTo(prefilled: ByteBuffer?) {
         // TODO use prefilled buffer
-        println("Got prefilled ${prefilled?.remaining()} bytes")
+        // println("Got prefilled ${prefilled?.remaining()} bytes")
     }
 }

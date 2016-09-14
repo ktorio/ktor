@@ -165,20 +165,20 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     override fun start(wait: Boolean) {
         applicationLifecycle.ensureApplication()
-        environment.log.info("Starting server...")
+        environment.log.trace("Starting server...")
 
         server.start()
-        environment.log.info("Server running.")
+        environment.log.trace("Server running.")
         if (wait) {
             server.join()
             applicationLifecycle.dispose()
-            environment.log.info("Server stopped.")
+            environment.log.trace("Server stopped.")
         }
     }
 
     override fun stop() {
         server.stop()
         applicationLifecycle.dispose()
-        environment.log.info("Server stopped.")
+        environment.log.trace("Server stopped.")
     }
 }

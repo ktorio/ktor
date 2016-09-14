@@ -11,7 +11,7 @@
 
     <properties>
         <!--<tomcat.version>8.5.4</tomcat.version>-->
-        <tomcat.version>9.0.0.M9</tomcat.version>
+        <tomcat.version>9.0.0.M6</tomcat.version>
     </properties>
 
     <dependencies>
@@ -40,6 +40,14 @@
             <groupId>org.apache.tomcat.embed</groupId>
             <artifactId>tomcat-embed-core</artifactId>
             <version>${tomcat.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jetbrains.ktor</groupId>
+            <artifactId>ktor-core</artifactId>
+            <version>${project.version}</version>
+            <type>test-jar</type>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

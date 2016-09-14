@@ -34,7 +34,7 @@ fun commandLineConfig(args: Array<String>): Pair<ApplicationHostConfig, Applicat
     val appConfig = HoconApplicationConfig(combinedConfig)
 
     val contentHiddenValue = ConfigValueFactory.fromAnyRef("***", "Content hidden")
-    log.info(combinedConfig.getObject("ktor")
+    log.trace(combinedConfig.getObject("ktor")
             .withoutKey("security")
             .withValue("security", contentHiddenValue)
             .render())

@@ -5,6 +5,7 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
 import org.junit.*
+import org.slf4j.*
 import sun.security.x509.*
 import java.io.*
 import java.math.*
@@ -21,9 +22,11 @@ abstract class HostTestBase<H : ApplicationHost> {
     protected val sslPort = findFreePort()
     protected var server: H? = null
 
+    val testLog : Logger = LoggerFactory.getLogger("HostTestBase")
+
     @Before
     fun setUpBase() {
-        println("Starting server on port $port (SSL $sslPort)")
+        testLog.trace("Starting server on port $port (SSL $sslPort)")
     }
 
     @After

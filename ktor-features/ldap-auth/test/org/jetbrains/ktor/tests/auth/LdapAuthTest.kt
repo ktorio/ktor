@@ -26,7 +26,7 @@ import kotlin.test.*
         transports = arrayOf(
                 CreateTransport(protocol = "LDAP")
         ))
-@Ignore("Very slow")
+@Ignore("LdapAuthTest is ignored because it is very slow. Run it explicitly when you need.")
 class LdapAuthTest {
     @Before
     fun setUp() {

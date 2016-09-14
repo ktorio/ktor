@@ -92,19 +92,19 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     override fun start(wait: Boolean) {
-        application.environment.log.info("Starting server...") // touch application to ensure initialized
+        application.environment.log.trace("Starting server...") // touch application to ensure initialized
         server.start()
-        config.log.info("Server started")
+        config.log.trace("Server started")
 
         if (wait) {
             server.server.await()
-            config.log.info("Server stopped.")
+            config.log.trace("Server stopped.")
         }
     }
 
     override fun stop() {
         server.stop()
-        config.log.info("Server stopped.")
+        config.log.trace("Server stopped.")
         tempDirectory.toFile().deleteRecursively()
     }
 

@@ -31,13 +31,13 @@ class FreeMarker(val config: Configuration) {
         return FreeMarkerTemplateResource(config.getTemplate(content.templateName), content.model, content.etag, content.contentType)
     }
 
-    private class FreeMarkerTemplateResource(val content: freemarker.template.Template,
+    private class FreeMarkerTemplateResource(val template: freemarker.template.Template,
                                              val model: Any,
                                              val etag: String,
                                              override val contentType: ContentType) : StreamConsumer(), Resource {
         override fun stream(out: OutputStream) {
             with(out.bufferedWriter(contentType.charset() ?: Charsets.UTF_8)) {
-                content.process(model, this)
+                template.process(model, this)
             }
         }
 

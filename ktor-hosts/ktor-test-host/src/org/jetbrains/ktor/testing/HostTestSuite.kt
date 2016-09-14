@@ -204,7 +204,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     fun testStaticServeFromDir() {
         val targetClasses = listOf(File("target/classes"), File("ktor-core/target/classes")).first { it.exists() }
         val file = targetClasses.walkBottomUp().filter { it.extension == "class" }.first()
-        println("test file is $file")
+        testLog.trace("test file is $file")
 
         createAndStartServer() {
             route("/files/") {
@@ -237,7 +237,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     @Test
     fun testLocalFileContent() {
         val file = listOf(File("src"), File("ktor-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" }.first()
-        println("test file is $file")
+        testLog.trace("test file is $file")
 
         createAndStartServer() {
             handle {
@@ -253,7 +253,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     @Test
     fun testLocalFileContentWithCompression() {
         val file = listOf(File("src"), File("ktor-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" }.first()
-        println("test file is $file")
+        testLog.trace("test file is $file")
 
         createAndStartServer() {
             application.install(Compression)
@@ -272,7 +272,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     @Test
     fun testLocalFileContentRange() {
         val file = listOf(File("src"), File("ktor-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }.first()
-        println("test file is $file")
+        testLog.trace("test file is $file")
 
         createAndStartServer() {
             application.install(PartialContentSupport)
@@ -294,7 +294,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     @Test
     fun testLocalFileContentRangeWithCompression() {
         val file = listOf(File("src"), File("ktor-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }.first()
-        println("test file is $file")
+        testLog.trace("test file is $file")
 
         createAndStartServer() {
             application.install(Compression)
@@ -358,7 +358,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     @Test
     fun testURIContentLocalFile() {
         val file = listOf(File("target/classes"), File("ktor-core/target/classes")).first { it.exists() }.walkBottomUp().filter { it.extension == "class" }.first()
-        println("test file is $file")
+        testLog.trace("test file is $file")
 
         createAndStartServer() {
             handle {
@@ -822,7 +822,6 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                         collected.add(exception)
                     }
 
-                    delegate.error(message, exception)
                 }
             }
         }, {

@@ -104,14 +104,14 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     override fun start(wait: Boolean) {
         applicationLifecycle.ensureApplication()
-        environment.log.info("Starting server...")
+        environment.log.trace("Starting server...")
         val channelFutures = bootstraps.zip(hostConfig.connectors).map { it.first.bind(it.second.host, it.second.port) }
-        environment.log.info("Server running.")
+        environment.log.trace("Server running.")
 
         if (wait) {
             channelFutures.map { it.channel().closeFuture() }.forEach { it.sync() }
             applicationLifecycle.dispose()
-            environment.log.info("Server stopped.")
+            environment.log.trace("Server stopped.")
         }
     }
 
@@ -119,7 +119,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         workerEventGroup.shutdownGracefully()
         mainEventGroup.shutdownGracefully()
         applicationLifecycle.dispose()
-        environment.log.info("Server stopped.")
+        environment.log.trace("Server stopped.")
     }
 
     fun configurePipeline(pipeline: ChannelPipeline, protocol: String) {
