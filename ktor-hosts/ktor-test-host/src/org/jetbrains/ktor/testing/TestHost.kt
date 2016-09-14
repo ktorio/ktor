@@ -277,8 +277,6 @@ class TestApplicationResponse(call: ApplicationCall, respondPipeline: RespondPip
     }
 }
 
-class TestApplication : ApplicationFeature<Application, Unit, Unit> {
-    override val key = AttributeKey<Unit>(javaClass.simpleName)
-    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
-    }
+class TestApplication : ApplicationModule() {
+    override fun install(application: Application) {}
 }

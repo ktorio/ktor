@@ -7,7 +7,7 @@ import java.util.concurrent.*
  * Represents configured and running web application, capable of handling requests
  */
 open class Application(val environment: ApplicationEnvironment, forMigrationPurposeOnly: Unit) : ApplicationCallPipeline() {
-    @Deprecated("Don't inherit from Application class but do from ApplicationFeature")
+    @Deprecated("Don't inherit from Application class, inherit ApplicationModule instead and override `install`")
     constructor(environment: ApplicationEnvironment) : this(environment, Unit) // TODO: drop primary constructor unit parameter when remove this
 
     val executor: ScheduledExecutorService = environment.executorServiceBuilder()

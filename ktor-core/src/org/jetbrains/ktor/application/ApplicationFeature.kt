@@ -52,12 +52,22 @@ fun <P : Pipeline<*>, B : Any, F : Any> P.install(feature: ApplicationFeature<P,
     }
 }
 
+/**
+ * Uninstalls all features from the pipeline
+ */
 fun <A : Pipeline<*>> A.uninstallAllFeatures() {
     val registry = attributes.computeIfAbsent(ApplicationFeature.registry) { Attributes() }
     registry.allKeys.forEach { uninstallFeature(it as AttributeKey<Any>) }
 }
 
+/**
+ * Uninstalls [feature] from the pipeline
+ */
 fun <A : Pipeline<*>, B : Any, F : Any> A.uninstall(feature: ApplicationFeature<A, B, F>) = uninstallFeature(feature.key)
+
+/**
+ * Uninstalls feature specified by [key] from the pipeline
+ */
 fun <A : Pipeline<*>, F : Any> A.uninstallFeature(key: AttributeKey<F>) {
     val registry = attributes.computeIfAbsent(ApplicationFeature.registry) { Attributes() }
     val instance = registry.getOrNull(key) ?: return

@@ -10,13 +10,11 @@ import org.jetbrains.ktor.util.*
 import org.jetbrains.ktor.websocket.*
 import java.time.*
 
-class ChatApplication() : ApplicationFeature<Application, Unit, Unit> {
+class ChatApplication() : ApplicationModule() {
     val server = ChatServer()
 
-    override val key = AttributeKey<Unit>(javaClass.simpleName)
-
-    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
-        with(pipeline) {
+    override fun install(application: Application) {
+        with(application) {
             install(DefaultHeaders)
             install(CallLogging)
 

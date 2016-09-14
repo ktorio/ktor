@@ -9,17 +9,14 @@ import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
-import org.jetbrains.ktor.util.*
 import java.util.*
 
 @location("/") class index()
 @location("/number") class number(val value: Int)
 
-class LocationsApplication : ApplicationFeature<Application, Unit, Unit> {
-    override val key = AttributeKey<Unit>(javaClass.simpleName)
-
-    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
-        with(pipeline) {
+class LocationsApplication : ApplicationModule() {
+    override fun install(application: Application) {
+        with(application) {
             install(DefaultHeaders)
             install(CallLogging)
             install(Locations)

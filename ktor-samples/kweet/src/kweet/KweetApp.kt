@@ -49,8 +49,7 @@ class Logout()
 
 data class Session(val userId: String)
 
-class KweetApp : ApplicationFeature<Application, KweetApp, KweetApp>, Closeable {
-    override val key = AttributeKey<KweetApp>("KweetApp")
+class KweetApp : ApplicationModule(), AutoCloseable {
 
     val hashKey = hex("6819b57a326945c1968f45236589")
     val dir = File("target/db")
@@ -64,10 +63,10 @@ class KweetApp : ApplicationFeature<Application, KweetApp, KweetApp>, Closeable 
     val hmacKey = SecretKeySpec(hashKey, "HmacSHA1")
     val dao: DAOFacade = DAOFacadeCache(DAOFacadeDatabase(Database.connect(pool)), File(dir.parentFile, "ehcache"))
 
-    override fun install(pipeline: Application, configure: KweetApp.() -> Unit): KweetApp {
+    override fun install(application: Application) {
         dao.init()
 
-        with(pipeline) {
+        with(application) {
             install(DefaultHeaders)
             install(CallLogging)
             install(ConditionalHeaders)
@@ -97,8 +96,6 @@ class KweetApp : ApplicationFeature<Application, KweetApp, KweetApp>, Closeable 
                 register(dao, hashFunction)
             }
         }
-
-        return this
     }
 
     override fun close() {

@@ -29,11 +29,9 @@ class Index()
 
 data class Session(val userId: String)
 
-class App : ApplicationFeature<Application, Unit, Unit> {
-    override val key = AttributeKey<Unit>("YouKubeApp")
-
-    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
-        with(pipeline) {
+class App : ApplicationModule() {
+    override fun install(application: Application) {
+        with(application) {
             install(DefaultHeaders)
             install(CallLogging)
             install(Locations)

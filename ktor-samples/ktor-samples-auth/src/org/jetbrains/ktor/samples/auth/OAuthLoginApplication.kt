@@ -12,7 +12,6 @@ import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
-import org.jetbrains.ktor.util.*
 import java.util.concurrent.*
 
 @location("/") class index()
@@ -84,12 +83,11 @@ val loginProviders = listOf(
         )
 ).associateBy { it.name }
 
-class OAuthLoginApplication : ApplicationFeature<Application, Unit, Unit> {
-    override val key = AttributeKey<Unit>(javaClass.simpleName)
+class OAuthLoginApplication : ApplicationModule() {
     val exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4)
 
-    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
-        with(pipeline) {
+    override fun install(application: Application) {
+        with(application) {
             install(DefaultHeaders)
             install(CallLogging)
             install(Locations)

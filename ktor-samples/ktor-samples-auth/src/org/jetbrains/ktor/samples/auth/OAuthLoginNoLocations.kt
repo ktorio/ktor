@@ -13,12 +13,11 @@ import java.util.concurrent.*
  * This is special example demonstrates ability to use OAuth with no routes and locations.
  * For general-purpose example see [OAuthLoginApplication]
  */
-class OAuthLoginNoLocationApplication : ApplicationFeature<Application, Unit, Unit> {
-    override val key = AttributeKey<Unit>(javaClass.simpleName)
+class OAuthLoginNoLocationApplication : ApplicationModule() {
     val exec = Executors.newFixedThreadPool(8)!!
 
-    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
-        with(pipeline) {
+    override fun install(application: Application) {
+        with(application) {
             intercept(ApplicationCallPipeline.Infrastructure) { call ->
                 // generally you shouldn't do like that however there are situation when you could need
                 // to do everything on lower level

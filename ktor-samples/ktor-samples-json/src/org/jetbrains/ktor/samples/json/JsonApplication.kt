@@ -10,13 +10,11 @@ import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.transform.*
-import org.jetbrains.ktor.util.*
 
 data class Model(val name: String, val items: List<Item>)
 data class Item(val key: String, val value: String)
 
-class JsonApplication : ApplicationFeature<Application, Unit, Unit> {
-    override val key = AttributeKey<Unit>(javaClass.simpleName)
+class JsonApplication : ApplicationModule() {
 
     /*
              > curl -v --compress --header "Accept: application/json" http://localhost:8080/v1
@@ -26,8 +24,8 @@ class JsonApplication : ApplicationFeature<Application, Unit, Unit> {
              {"key":"A","value":"Apache"}
          */
 
-    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
-        with(pipeline) {
+    override fun install(application: Application) {
+        with(application) {
             install(DefaultHeaders)
             install(CallLogging)
 

@@ -6,11 +6,9 @@ import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 
-class TestableApplication : ApplicationFeature<Application, Unit, Unit> {
-    override val key = AttributeKey<Unit>("MyTestableApplication")
-
-    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
-        pipeline.intercept(ApplicationCallPipeline.Call) { call ->
+class TestableApplication : ApplicationModule() {
+    override fun install(application: Application) {
+        application.intercept(ApplicationCallPipeline.Call) { call ->
             if (call.request.uri == "/")
                 call.respondText("Test String")
         }

@@ -2,7 +2,6 @@ package org.jetbrains.ktor.tests
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.util.*
@@ -70,7 +69,7 @@ class ApplicationLoaderTests {
 
     class ApplicationLoaderTestApplication(environment: ApplicationEnvironment) : Application(environment)
 
-    class ApplicationLoaderTestApplicationFeature : ApplicationFeature<Application, Unit, ApplicationLoaderTestApplicationFeature>, AutoCloseable {
+    class ApplicationLoaderTestApplicationFeature : ApplicationModule(), AutoCloseable {
         init {
             instances++
         }
@@ -79,26 +78,25 @@ class ApplicationLoaderTests {
             instances--
         }
 
-        override val key = AttributeKey<ApplicationLoaderTestApplicationFeature>("app1")
-        override fun install(pipeline: Application, configure: Unit.() -> Unit) : ApplicationLoaderTestApplicationFeature {
-            pipeline.attributes.put(TestKey, "1")
-            return this
+        override fun install(application: Application) {
+            application.attributes.put(TestKey, "1")
         }
+
         companion object {
             var instances = 0
         }
     }
-    class ApplicationLoaderTestApplicationFeatureWithEnvironment(val environment: ApplicationEnvironment) : ApplicationFeature<Application, Unit, Unit> {
-        override val key = AttributeKey<Unit>("app2")
-        override fun install(pipeline: Application, configure: Unit.() -> Unit) {
+
+    class ApplicationLoaderTestApplicationFeatureWithEnvironment(val environment: ApplicationEnvironment) : ApplicationModule() {
+        override fun install(application: Application) {
             environment
-            pipeline.attributes.put(TestKey, "2")
+            application.attributes.put(TestKey, "2")
         }
     }
-    object ApplicationLoaderTestApplicationFeatureObject : ApplicationFeature<Application, Unit, Unit> {
-        override val key = AttributeKey<Unit>("app3")
-        override fun install(pipeline: Application, configure: Unit.() -> Unit) {
-            pipeline.attributes.put(TestKey, "3")
+
+    object ApplicationLoaderTestApplicationFeatureObject : ApplicationModule() {
+        override fun install(application: Application) {
+            application.attributes.put(TestKey, "3")
         }
     }
 

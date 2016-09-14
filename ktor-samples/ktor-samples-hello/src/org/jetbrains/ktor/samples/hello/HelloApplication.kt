@@ -5,12 +5,10 @@ import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
-import org.jetbrains.ktor.util.*
 
-class HelloApplication : ApplicationFeature<Application, Unit, Unit> {
-    override val key = AttributeKey<Unit>(javaClass.simpleName)
-    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
-        with(pipeline) {
+class HelloApplication : ApplicationModule() {
+    override fun install(application: Application) {
+        with(application) {
             install(DefaultHeaders)
             install(CallLogging)
             install(Routing) {
