@@ -1,7 +1,6 @@
-package org.jetbrains.ktor.features.http
+package org.jetbrains.ktor.features
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
@@ -14,7 +13,7 @@ import kotlin.reflect.*
  * By default it fallbacks to [ApplicationRequest.local]
  */
 val ApplicationRequest.origin: RequestConnectionPoint
-    get() = attributes.getOrNull(@Suppress("DEPRECATION") MutableOriginConnectionPointKey) ?: local
+    get() = attributes.getOrNull(@Suppress("DEPRECATION") (org.jetbrains.ktor.features.MutableOriginConnectionPointKey)) ?: local
 
 @Deprecated("Not yet decided about API")
 val MutableOriginConnectionPointKey = AttributeKey<MutableOriginConnectionPoint>("MutableOriginConnectionPointKey")

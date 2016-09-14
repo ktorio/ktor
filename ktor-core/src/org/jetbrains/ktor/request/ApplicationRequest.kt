@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.request
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.http.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 
 val ApplicationRequest.uri: String get() = origin.uri

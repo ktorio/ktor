@@ -7,8 +7,12 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.concurrent.*
 
-class TestingHttpClient (val app: TestApplicationHost) : HttpClient {
-    override fun openConnection(host: String, port: Int, secure: Boolean) = TestingHttpConnection(app, host, port, secure)
+class TestingHttpClient (val host: TestApplicationHost) : HttpClient, AutoCloseable {
+    override fun close() {
+        host.dispose()
+    }
+
+    override fun openConnection(host: String, port: Int, secure: Boolean) = TestingHttpConnection(this.host, host, port, secure)
 }
 
 class TestingHttpConnection(val app: TestApplicationHost, val host: String, val port: Int, val secure: Boolean) : HttpConnection {

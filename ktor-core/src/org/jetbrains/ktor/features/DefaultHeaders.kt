@@ -1,7 +1,6 @@
-package org.jetbrains.ktor.features.http
+package org.jetbrains.ktor.features
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
@@ -33,11 +32,11 @@ class DefaultHeaders(config: Configuration) {
         call.response.header("Date", cachedDateText)
     }
 
-    companion object Feature : ApplicationFeature<Application, DefaultHeaders.Configuration, DefaultHeaders> {
+    companion object Feature : ApplicationFeature<Application, Configuration, DefaultHeaders> {
         override val key = AttributeKey<DefaultHeaders>("Default Headers")
 
-        override fun install(pipeline: Application, configure: DefaultHeaders.Configuration.() -> Unit): DefaultHeaders {
-            val config = DefaultHeaders.Configuration().apply(configure)
+        override fun install(pipeline: Application, configure: Configuration.() -> Unit): DefaultHeaders {
+            val config = Configuration().apply(configure)
             if (config.headers.getAll(HttpHeaders.Server) == null) {
                 val applicationClass = pipeline.javaClass
 

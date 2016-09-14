@@ -2,7 +2,9 @@ package org.jetbrains.ktor.tests.auth
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
+import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
@@ -12,6 +14,7 @@ import org.jetbrains.ktor.util.*
 import org.junit.*
 import java.time.*
 import java.util.concurrent.*
+import kotlin.reflect.jvm.*
 import kotlin.test.*
 
 class OAuth1aSignatureTest {
@@ -47,57 +50,68 @@ class OAuth1aSignatureTest {
     }
 }
 
-class OAuth1aFlowTest {
-    val testClient = createOAuthServer(object : TestingOAuthServer {
+class OAuth1aFlowTest  {
+    var testClient : TestingHttpClient? = null
 
-        override fun requestToken(ctx: ApplicationCall, callback: String?, consumerKey: String, nonce: String, signature: String, signatureMethod: String, timestamp: Long): TestOAuthTokenResponse {
-            if (consumerKey != "1CV4Ud1ZOOzRMwmRyCEe0PY7J") {
-                throw IllegalArgumentException("Bad consumer key specified: $consumerKey")
-            }
-            if (signatureMethod != "HMAC-SHA1") {
-                throw IllegalArgumentException("Bad signature method specified: $signatureMethod")
-            }
-            val now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-            if (Math.abs(now - timestamp) > 10000) {
-                throw IllegalArgumentException("timestamp is too old: $timestamp (now $now)")
-            }
+    @Before
+    fun createServer() {
+        testClient = createOAuthServer(object : TestingOAuthServer {
 
-            return TestOAuthTokenResponse(callback == "http://localhost/login?redirected=true", "token1", "tokenSecret1")
-        }
+            override fun requestToken(ctx: ApplicationCall, callback: String?, consumerKey: String, nonce: String, signature: String, signatureMethod: String, timestamp: Long): TestOAuthTokenResponse {
+                if (consumerKey != "1CV4Ud1ZOOzRMwmRyCEe0PY7J") {
+                    throw IllegalArgumentException("Bad consumer key specified: $consumerKey")
+                }
+                if (signatureMethod != "HMAC-SHA1") {
+                    throw IllegalArgumentException("Bad signature method specified: $signatureMethod")
+                }
+                val now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+                if (Math.abs(now - timestamp) > 10000) {
+                    throw IllegalArgumentException("timestamp is too old: $timestamp (now $now)")
+                }
 
-        override fun authorize(call: ApplicationCall, oauthToken: String): Unit {
-            if (oauthToken != "token1") {
-                call.respondRedirect("http://localhost/login?redirected=true&error=Wrong+token+$oauthToken")
-            }
-
-            call.respondRedirect("http://localhost/login?redirected=true&oauth_token=$oauthToken&oauth_verifier=verifier1")
-        }
-
-        override fun accessToken(ctx: ApplicationCall, consumerKey: String, nonce: String, signature: String, signatureMethod: String, timestamp: Long, token: String, verifier: String): OAuthAccessTokenResponse.OAuth1a {
-            if (consumerKey != "1CV4Ud1ZOOzRMwmRyCEe0PY7J") {
-                throw IllegalArgumentException("Bad consumer key specified $consumerKey")
-            }
-            if (signatureMethod != "HMAC-SHA1") {
-                throw IllegalArgumentException("Bad signature method specified: $signatureMethod")
-            }
-            val now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
-            if (Math.abs(now - timestamp) > 10000) {
-                throw IllegalArgumentException("timestamp is too old: $timestamp (now $now)")
-            }
-            // NOTE real server should test it but as we don't test the whole workflow in one test we can't do it
-            //            if (nonce !in knownNonces) {
-            //                throw IllegalArgumentException("Bad nonce specified: $nonce")
-            //            }
-            if (token != "token1") {
-                throw IllegalArgumentException("Wrong token specified: $token")
-            }
-            if (verifier != "verifier1") {
-                throw IllegalArgumentException("Wrong verifier specified: $verifier")
+                return TestOAuthTokenResponse(callback == "http://localhost/login?redirected=true", "token1", "tokenSecret1")
             }
 
-            return OAuthAccessTokenResponse.OAuth1a("temp-token-1", "temp-secret-1", ValuesMap.Empty)
-        }
-    })
+            override fun authorize(call: ApplicationCall, oauthToken: String): Unit {
+                if (oauthToken != "token1") {
+                    call.respondRedirect("http://localhost/login?redirected=true&error=Wrong+token+$oauthToken")
+                }
+
+                call.respondRedirect("http://localhost/login?redirected=true&oauth_token=$oauthToken&oauth_verifier=verifier1")
+            }
+
+            override fun accessToken(ctx: ApplicationCall, consumerKey: String, nonce: String, signature: String, signatureMethod: String, timestamp: Long, token: String, verifier: String): OAuthAccessTokenResponse.OAuth1a {
+                if (consumerKey != "1CV4Ud1ZOOzRMwmRyCEe0PY7J") {
+                    throw IllegalArgumentException("Bad consumer key specified $consumerKey")
+                }
+                if (signatureMethod != "HMAC-SHA1") {
+                    throw IllegalArgumentException("Bad signature method specified: $signatureMethod")
+                }
+                val now = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC)
+                if (Math.abs(now - timestamp) > 10000) {
+                    throw IllegalArgumentException("timestamp is too old: $timestamp (now $now)")
+                }
+                // NOTE real server should test it but as we don't test the whole workflow in one test we can't do it
+                //            if (nonce !in knownNonces) {
+                //                throw IllegalArgumentException("Bad nonce specified: $nonce")
+                //            }
+                if (token != "token1") {
+                    throw IllegalArgumentException("Wrong token specified: $token")
+                }
+                if (verifier != "verifier1") {
+                    throw IllegalArgumentException("Wrong verifier specified: $verifier")
+                }
+
+                return OAuthAccessTokenResponse.OAuth1a("temp-token-1", "temp-secret-1", ValuesMap.Empty)
+            }
+        })
+    }
+
+    @After
+    fun destroyServer() {
+        testClient?.close()
+        testClient = null
+    }
 
     val exec = Executors.newSingleThreadExecutor()
 
@@ -206,7 +220,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthRespondRedirect(testClient, exec, settings, "http://localhost/login?redirected=true")
+                    oauthRespondRedirect(testClient!!, exec, settings, "http://localhost/login?redirected=true")
                 }
             }
 
@@ -226,7 +240,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient, exec, settings, "http://localhost/login?redirected=true", "/") { token ->
+                    oauthHandleCallback(testClient!!, exec, settings, "http://localhost/login?redirected=true", "/") { token ->
                         call.respondText("Ho, $token")
                     }
                 }
@@ -249,7 +263,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient, exec, settings, "http://localhost/login?redirected=true", "/") { token ->
+                    oauthHandleCallback(testClient!!, exec, settings, "http://localhost/login?redirected=true", "/") { token ->
                         call.respondText("Ho, $token")
                     }
                 }
@@ -266,7 +280,7 @@ class OAuth1aFlowTest {
         routing {
             route(HttpMethod.Get, "/login") {
                 authentication {
-                    oauth(testClient, exec, { settings.mutateSettings() }, { settings -> redirectUrl })
+                    oauth(testClient!!, exec, { settings.mutateSettings() }, { settings -> redirectUrl })
                 }
 
                 handle {
@@ -300,7 +314,13 @@ private interface TestingOAuthServer {
 private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
     var testClient: TestingHttpClient? = null
 
-    withTestApplication {
+    val config = MapApplicationConfig(
+            "ktor.application.class" to TestApplication::class.qualifiedName!!
+    )
+    val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, SLF4JApplicationLog("ktor.test"), config)
+    val host = TestApplicationHost(environment)
+
+    with(host) {
         testClient = TestingHttpClient(this)
 
         application.intercept(ApplicationCallPipeline.Infrastructure) { call ->

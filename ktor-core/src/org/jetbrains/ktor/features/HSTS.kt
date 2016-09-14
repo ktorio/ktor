@@ -1,7 +1,6 @@
-package org.jetbrains.ktor.features.http
+package org.jetbrains.ktor.features
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
@@ -46,7 +45,7 @@ class HSTS(config: Configuration) {
         }
     }
 
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, HSTS.Configuration, HSTS> {
+    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, HSTS> {
         override val key = AttributeKey<HSTS>("HSTS")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): HSTS {
             val feature = HSTS(Configuration().apply(configure))

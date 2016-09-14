@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.features.http
+package org.jetbrains.ktor.features
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*

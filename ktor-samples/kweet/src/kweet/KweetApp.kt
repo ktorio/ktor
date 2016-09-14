@@ -8,7 +8,6 @@ import org.h2.*
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
-import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.freemarker.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*

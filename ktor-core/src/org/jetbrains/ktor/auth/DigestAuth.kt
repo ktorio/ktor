@@ -1,10 +1,7 @@
 package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.http.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.security.*
 

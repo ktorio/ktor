@@ -1,6 +1,6 @@
 package org.jetbrains.ktor.tests.http
 
-import org.jetbrains.ktor.features.http.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.junit.*
 import kotlin.test.*
