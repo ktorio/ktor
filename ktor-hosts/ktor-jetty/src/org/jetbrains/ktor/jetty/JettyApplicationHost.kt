@@ -26,14 +26,15 @@ import javax.servlet.http.*
  */
 class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                            val environment: ApplicationEnvironment,
-                           val applicationLifecycle: ApplicationLifecycle) : ApplicationHost, ApplicationHostStartable {
+                           val applicationLifecycle: ApplicationLifecycle,
+                           jettyServer: () -> Server = ::Server) : ApplicationHost, ApplicationHostStartable {
 
     private val application: Application get() = applicationLifecycle.application
 
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
     : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
 
-    private val server = Server().apply {
+    private val server = jettyServer().apply {
         connectors = hostConfig.connectors.map { ktorConnector ->
             val httpConfig = HttpConfiguration().apply {
                 sendServerVersion = false
