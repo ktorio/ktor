@@ -15,7 +15,7 @@ object CallLogging : ApplicationFeature<Application, Unit, Unit> {
         pipeline.phases.insertBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
         pipeline.intercept(loggingPhase) { call ->
             onSuccess { pipeline.logCallFinished(call) }
-            onFail { pipeline.logCallFailed(call, it) }
+            onFail { pipeline.logCallFailed(call, exception!!) }
         }
     }
 

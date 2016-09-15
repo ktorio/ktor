@@ -64,7 +64,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment) {
                 (call as? TestApplicationCall)?.requestHandled = true
             }
 
-            onFail { exception ->
+            onFail {
                 val testApplicationCall = call as? TestApplicationCall
                 this@TestApplicationHost.exception = exception
                 call.close()

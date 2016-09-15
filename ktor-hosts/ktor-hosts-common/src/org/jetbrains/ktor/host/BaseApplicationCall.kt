@@ -137,9 +137,9 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     }
 
     private fun PipelineContext<*>.handleThrowable(throwable: Throwable?) {
-        if (throwable == null || throwable is PipelineContinue || throwable.cause is PipelineContinue) {
+        if (throwable == null || throwable is PipelineControl.Continue || throwable.cause is PipelineControl.Continue) {
             finishAll()
-        } else if (throwable !is PipelineControlFlow && throwable.cause !is PipelineControlFlow) {
+        } else if (throwable !is PipelineControl && throwable.cause !is PipelineControl) {
             fail(throwable)
         }
     }

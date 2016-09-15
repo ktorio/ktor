@@ -26,9 +26,9 @@ fun Pipeline<ApplicationCall>.statusPage(phase: PipelinePhase = ApplicationCallP
 
 fun Pipeline<ApplicationCall>.errorPage(phase: PipelinePhase = ApplicationCallPipeline.Infrastructure, handler: PipelineContext<ApplicationCall>.(Throwable) -> Unit) {
     intercept(phase) { call ->
-        onFail { cause ->
+        onFail {
             if (call.response.status() == null) {
-                handler(cause)
+                handler(exception!!)
             }
         }
     }

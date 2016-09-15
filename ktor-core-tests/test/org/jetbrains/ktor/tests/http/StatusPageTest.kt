@@ -129,7 +129,10 @@ class StatusPageTest {
         class O
 
         withTestApplication {
-            application.transform.register<O> { throw IllegalStateException() }
+            application.transform.register<O> {
+                throw IllegalStateException()
+            }
+
             application.errorPage { cause ->
                 call.respond(TextContentResponse(HttpStatusCode.InternalServerError, ContentType.Text.Plain.withCharset(Charsets.UTF_8), cause.javaClass.simpleName))
             }

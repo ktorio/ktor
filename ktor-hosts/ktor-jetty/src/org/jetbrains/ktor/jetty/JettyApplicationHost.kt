@@ -9,7 +9,6 @@ import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
 import org.eclipse.jetty.util.ssl.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
@@ -142,7 +141,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
                 call.executeOn(application.executor, hostPipeline).whenComplete { state, t ->
                     when (state) {
-                        PipelineState.Succeeded -> {
+                        PipelineState.Finished, PipelineState.FinishedAll -> {
                             request.asyncContext.complete()
                         }
                         PipelineState.Failed -> {

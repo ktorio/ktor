@@ -3,7 +3,9 @@ package org.jetbrains.ktor.pipeline
 enum class PipelineState {
     Executing,
 
-    Succeeded,
+    Finished,
+
+    FinishedAll,
 
     Failed
 }

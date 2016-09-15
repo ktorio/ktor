@@ -697,6 +697,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testStatusCodeViaResponseObject() {
+        var completed = false
         createAndStartServer() {
             get("/") {
                 call.respond(HttpStatusCode.Found)
@@ -705,7 +706,9 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
         withUrl("/") {
             assertEquals(HttpStatusCode.Found.value, responseCode)
+            completed = true
         }
+        assertTrue(completed)
     }
 
     @Test

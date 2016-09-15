@@ -19,6 +19,7 @@ fun PipelineContext<ResponsePipelineState>.proceed(message: Any): Nothing {
     if (subject.message !== message) {
         subject.message = message
         subject.attributes[TransformationState.Key].markLastHandlerVisited()
+        repeat()
     }
 
     proceed()

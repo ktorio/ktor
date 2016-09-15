@@ -25,13 +25,3 @@ open class Pipeline<TSubject : Any>(vararg phase: PipelinePhase) {
     }
 }
 
-open class PipelineControlFlow : Throwable() {
-    @Suppress("unused", "VIRTUAL_MEMBER_HIDDEN") // implicit override
-    fun fillInStackTrace(): Throwable? {
-        return null
-    }
-}
-
-class PipelineCompleted : PipelineControlFlow()
-class PipelinePaused : PipelineControlFlow()
-class PipelineContinue : PipelineControlFlow()

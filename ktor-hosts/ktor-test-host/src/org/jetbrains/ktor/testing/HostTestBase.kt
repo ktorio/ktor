@@ -32,6 +32,7 @@ abstract class HostTestBase<H : ApplicationHost> {
 
     @After
     fun tearDownBase() {
+        testLog.trace("Disposing server on port $port (SSL $sslPort)")
         (server as? ApplicationHostStartable)?.stop()
     }
 

@@ -29,7 +29,7 @@ abstract class KtorServlet : HttpServlet() {
 
             call.executeOn(application.executor, hostPipeline).whenComplete { state, throwable ->
                 when (state) {
-                    PipelineState.Succeeded -> {
+                    PipelineState.Finished, PipelineState.FinishedAll -> {
                         request.asyncContext.complete()
                     }
                     PipelineState.Failed -> {

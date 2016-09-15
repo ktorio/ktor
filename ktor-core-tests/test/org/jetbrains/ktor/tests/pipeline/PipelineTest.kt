@@ -9,322 +9,409 @@ import kotlin.test.*
 class PipelineTest {
     val callPhase = PipelinePhase("Call")
 
+    fun pipeline(): Pipeline<String> = Pipeline(callPhase)
+
+    fun Pipeline<String>.intercept(block: PipelineContext<String>.(String) -> Unit) = phases.intercept(callPhase, block)
+
     fun <T : Any> Pipeline<T>.execute(subject: T): PipelineState {
         try {
             PipelineMachine().execute(subject, this)
-        } catch (e: PipelineControlFlow) {
+        } catch (e: PipelineControl) {
             when (e) {
-                is PipelineCompleted -> return PipelineState.Succeeded
-                is PipelinePaused -> return PipelineState.Executing
+                is PipelineControl.Completed -> return PipelineState.Finished
+                is PipelineControl.Paused -> return PipelineState.Executing
                 else -> throw e
             }
         }
     }
 
-    fun Pipeline<String>.intercept(block: PipelineContext<String>.(String) -> Unit) {
-        phases.intercept(callPhase, block)
-    }
-
-
-    fun createPipeline(): Pipeline<String> {
-        return Pipeline(callPhase)
-    }
-
     @Test
     fun emptyPipeline() {
-        val state = createPipeline().execute("some")
-        assertEquals(PipelineState.Succeeded, state)
+        val state = pipeline().execute("some")
+        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
     fun singleActionPipeline() {
-        var value = false
-        val pipeline = createPipeline()
+        val events = mutableListOf<String>()
+        val pipeline = pipeline()
+        pipeline.intercept { subject -> events.add("intercept $subject") }
+        val state = pipeline.execute("some")
+        assertEquals(listOf("intercept some"), events)
+        assertEquals(PipelineState.Finished, state)
+    }
+
+    @Test
+    fun singleActionRepeatPipeline() {
+        val events = mutableListOf<String>()
+        val pipeline = pipeline()
+        var repeated = false
         pipeline.intercept { subject ->
-            value = true
-            assertEquals("some", subject)
+            events.add("intercept $subject (repeated = $repeated)")
+            if (!repeated) {
+                repeated = true
+                repeat()
+            }
         }
         val state = pipeline.execute("some")
-        assertTrue(value)
-        assertEquals(PipelineState.Succeeded, state)
+        assertEquals(listOf("intercept some (repeated = false)", "intercept some (repeated = true)"), events)
+        assertEquals(PipelineState.Finished, state)
+    }
+
+    @Test
+    fun singleActionRepeatFailPipeline() {
+        val events = mutableListOf<String>()
+        val pipeline = pipeline()
+        var repeated = false
+        pipeline.intercept { subject ->
+            onSuccess {
+                events.add("success $subject")
+            }
+            onFail {
+                events.add("fail $subject")
+            }
+            events.add("intercept $subject (repeated = $repeated)")
+            if (!repeated) {
+                repeated = true
+                repeat()
+            } else {
+                throw IllegalStateException()
+            }
+        }
+        val state = pipeline.execute("some")
+        assertEquals(listOf("intercept some (repeated = false)", "intercept some (repeated = true)", "fail some"), events)
+        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
     fun singleActionPipelineWithFinish() {
-        var value = false
-        val pipeline = createPipeline()
+        val events = mutableListOf<String>()
+        val pipeline = pipeline()
         pipeline.intercept { subject ->
             onSuccess {
-                assertTrue(value)
+                events.add("success $subject")
             }
             onFail {
-                fail("This pipeline shouldn't fail")
+                events.add("fail $subject")
             }
-            assertFalse(value)
-            value = true
-            assertEquals("some", subject)
+            events.add("intercept $subject")
         }
         val state = pipeline.execute("some")
-        assertTrue(value)
-        assertEquals(PipelineState.Succeeded, state)
+        assertEquals(listOf("intercept some", "success some"), events)
+        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
     fun singleActionPipelineWithFail() {
-        var failed = false
-        val pipeline = createPipeline()
+        val events = mutableListOf<String>()
+        val pipeline = pipeline()
         pipeline.intercept { subject ->
-            onSuccess {
-                fail("This pipeline shouldn't finish")
-            }
-            onFail {
-                assertFalse(failed)
-                failed = true
-            }
-            assertEquals("some", subject)
+            onSuccess { events.add("success $subject") }
+            onFail { events.add("fail $subject") }
+            events.add("intercept $subject")
             throw UnsupportedOperationException()
         }
         val state = pipeline.execute("some")
-        assertTrue(failed)
-        assertEquals(PipelineState.Succeeded, state)
+        assertEquals(listOf("intercept some", "fail some"), events)
+        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
     fun actionFinishOrder() {
-        var count = 0
-        val pipeline = createPipeline()
+        val events = mutableListOf<String>()
+        val pipeline = pipeline()
         pipeline.intercept { subject ->
-            onSuccess {
-                assertEquals(1, count)
-                count--
-            }
-            assertEquals(0, count)
-            count++
+            onSuccess { events.add("success1 $subject") }
+            onFail { events.add("fail1 $subject") }
+            events.add("intercept1 $subject")
         }
 
         pipeline.intercept {
-            onSuccess {
-                assertEquals(2, count)
-                count--
-            }
-            assertEquals(1, count)
-            count++
+            onSuccess { events.add("success2 $subject") }
+            onFail { events.add("fail2 $subject") }
+            events.add("intercept2 $subject")
         }
         val state = pipeline.execute("some")
-        assertEquals(0, count)
-        assertEquals(PipelineState.Succeeded, state)
+        assertEquals(listOf("intercept1 some", "intercept2 some", "success2 some", "success1 some"), events)
+        assertEquals(PipelineState.Finished, state)
+    }
+
+    @Test
+    fun actionFinishAllOrder() {
+        val events = mutableListOf<String>()
+        val p1 = pipeline()
+
+        p1.intercept {
+            onSuccess { events.add("success-p1-1 $subject") }
+            onFail { events.add("fail-p1-1 $subject") }
+            events.add("intercept-p1-1 $subject")
+
+            val p2 = pipeline()
+            p2.intercept {
+                onSuccess { events.add("success-p2-1 $subject") }
+                onFail { events.add("fail-p2-1 $subject") }
+                events.add("intercept-p2-1 $subject")
+
+                val p3 = pipeline()
+                p3.intercept { subject ->
+                    onSuccess {
+                        events.add("success-p3-1 $subject")
+                        finishAll()
+                    }
+                    onFail { events.add("fail-p3-1 $subject") }
+                    events.add("intercept-p3-1 $subject")
+                }
+                p3.intercept {
+                    onSuccess { events.add("success-p3-2 $subject") }
+                    onFail { events.add("fail-p3-2 $subject") }
+                    events.add("intercept-p3-2 $subject")
+                }
+
+                fork("p3", p3)
+            }
+
+            fork("p2", p2)
+        }
+
+        p1.intercept {
+            onSuccess { events.add("success-p1-2 $subject") }
+            onFail { events.add("fail-p1-2 $subject") }
+            events.add("intercept-p1-2 $subject")
+        }
+
+        val state = p1.execute("p1")
+        assertEquals(listOf(
+                "intercept-p1-1 p1",
+                "intercept-p2-1 p2",
+                "intercept-p3-1 p3",
+                "intercept-p3-2 p3",
+                "success-p3-2 p3",
+                "success-p3-1 p3",
+                "success-p2-1 p2",
+                "success-p1-1 p1"
+        ), events)
+        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
     fun actionFailOrder() {
-        var count = 0
-        val pipeline = createPipeline()
+        val events = mutableListOf<String>()
+        val pipeline = pipeline()
         pipeline.intercept { subject ->
-            onFail {
-                assertEquals(1, count)
-                count--
-            }
-            assertEquals(0, count)
-            count++
+            onSuccess { events.add("success1 $subject") }
+            onFail { events.add("fail1 $subject") }
+            events.add("intercept1 $subject")
         }
 
         pipeline.intercept {
-            onFail {
-                assertEquals(2, count)
-                count--
-            }
-            assertEquals(1, count)
-            count++
+            onSuccess { events.add("success2 $subject") }
+            onFail { events.add("fail2 $subject") }
+            events.add("intercept2 $subject")
             throw UnsupportedOperationException()
         }
+
         val state = pipeline.execute("some")
-        assertEquals(0, count)
-        assertEquals(PipelineState.Succeeded, state)
+        assertEquals(listOf("intercept1 some", "intercept2 some", "fail2 some", "fail1 some"), events)
+        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
     fun actionFinishFailOrder() {
-        var count = 0
-        val pipeline = createPipeline()
+        val events = mutableListOf<String>()
+        val pipeline = pipeline()
         pipeline.intercept { subject ->
-            onFail {
-                assertEquals(1, count)
-                count--
-            }
-            onSuccess {
-                fail("This pipeline shouldn't finish")
-            }
-            assertEquals(0, count)
-            count++
+            onSuccess { events.add("success1 $subject") }
+            onFail { events.add("fail1 $subject") }
+            events.add("intercept1 $subject")
         }
 
         pipeline.intercept {
             onSuccess {
-                assertEquals(2, count)
-                count--
+                events.add("success2 $subject")
                 throw UnsupportedOperationException()
             }
-            assertEquals(1, count)
-            count++
+            onFail { events.add("fail2 $subject") }
+            events.add("intercept2 $subject")
         }
+
         val state = pipeline.execute("some")
-        assertEquals(0, count)
-        assertEquals(PipelineState.Succeeded, state)
+        assertEquals(listOf("intercept1 some", "intercept2 some", "success2 some", "fail1 some"), events)
+        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
     fun actionFailFailOrder() {
-        var count = 0
-        val pipeline = createPipeline()
+        val events = mutableListOf<String>()
+        val pipeline = pipeline()
         pipeline.intercept { subject ->
+            onSuccess { events.add("success1 $subject") }
             onFail {
-                assertEquals(1, count)
-                count--
-                assertEquals("1", it.message)
-                assertEquals(1, it.getSuppressed().size)
-                assertEquals("2", it.getSuppressed()[0].message)
+                events.add("fail1 $subject")
+                assertNotNull(exception)
+                assertEquals("1", exception!!.message)
+                assertEquals(1, exception!!.getSuppressed().size)
+                assertEquals("2", exception!!.getSuppressed()[0].message)
             }
-            onSuccess {
-                fail("This pipeline shouldn't finish")
-            }
-            assertEquals(0, count)
-            count++
+            events.add("intercept1 $subject")
         }
 
         pipeline.intercept {
+            onSuccess { events.add("success2 $subject") }
             onFail {
-                assertEquals(2, count)
-                count--
-                assertEquals("1", it.message)
-                assertEquals(0, it.getSuppressed().size)
+                events.add("fail2 $subject")
                 throw UnsupportedOperationException("2")
             }
-            assertEquals(1, count)
-            count++
+            events.add("intercept2 $subject")
             throw UnsupportedOperationException("1")
         }
+
         val state = pipeline.execute("some")
-        assertEquals(0, count)
-        assertEquals(PipelineState.Succeeded, state)
+        assertEquals(listOf("intercept1 some", "intercept2 some", "fail2 some", "fail1 some"), events)
+        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
     fun pauseResume() {
-        var count = 0
-        val pipeline = createPipeline()
+        val events = mutableListOf<String>()
+        val pipeline = pipeline()
         pipeline.intercept { subject ->
-            assertEquals(0, count)
-            count++
+            onSuccess { events.add("success1 $subject") }
+            onFail { events.add("fail1 $subject") }
+            events.add("intercept1 $subject")
             pause()
         }
 
         pipeline.intercept {
-            assertEquals(1, count)
-            count++
+            onSuccess { events.add("success2 $subject") }
+            onFail { events.add("fail2 $subject") }
+            events.add("intercept2 $subject")
         }
 
         val machine = PipelineMachine()
-        assertFailsWith<PipelinePaused> {
+        assertFailsWith<PipelineControl.Paused> {
             machine.execute("some", pipeline)
         }
-        assertFailsWith<PipelineCompleted> {
+        assertFailsWith<PipelineControl.Completed> {
             machine.proceed()
         }
-        assertEquals(2, count)
+        assertEquals(listOf("intercept1 some", "intercept2 some", "success2 some", "success1 some"), events)
     }
 
     @Test
-    fun fork() {
-        var count = 0
-        var max = 0
-        var secondaryOk = false
-        val pipeline = createPipeline()
+    fun forkSuccess() {
+        val events = mutableListOf<String>()
+        val pipeline = pipeline()
         pipeline.intercept {
-            onFail {
-                assertEquals(1, count)
-                count--
-            }
-            assertEquals(0, count)
-            count++
-            max = Math.max(max, count)
+            onSuccess { events.add("success1 $subject") }
+            onFail { events.add("fail1 $subject") }
+            events.add("intercept1 $subject")
         }
 
         pipeline.intercept {
-            val secondary = createPipeline()
+            onSuccess { events.add("success2 $subject") }
+            onFail { events.add("fail2 $subject") }
+            events.add("intercept2 $subject")
+
+            val secondary = pipeline()
             secondary.intercept { subject ->
-                onFail {
-                    fail("This pipeline shouldn't fail")
-                }
-                assertEquals("another", subject)
-                secondaryOk = true
+                onSuccess { events.add("success3 $subject") }
+                onFail { events.add("fail3 $subject") }
+                events.add("intercept3 $subject")
             }
             fork("another", secondary)
         }
 
         pipeline.intercept {
-            onFail {
-                assertEquals(2, count)
-                count--
-            }
-            assertEquals(1, count)
-            count++
-            max = Math.max(max, count)
-            throw UnsupportedOperationException()
+            onSuccess { events.add("success4 $subject") }
+            onFail { events.add("fail4 $subject") }
+            events.add("intercept4 $subject")
         }
+
         val state = pipeline.execute("some")
-        assertTrue(secondaryOk, "Secondary should be run")
-        assertEquals(0, count)
-        assertEquals(2, max)
-        assertEquals(PipelineState.Succeeded, state)
+        assertEquals(listOf("intercept1 some", "intercept2 some", "intercept3 another", "success3 another",
+                "intercept4 some", "success4 some", "success2 some", "success1 some"), events)
+        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
-    fun forkAndFail() {
-        var count = 0
-        var max = 0
-        var secondaryOk = false
-        val pipeline = createPipeline()
+    fun forkFailMain() {
+        val events = mutableListOf<String>()
+        val pipeline = pipeline()
         pipeline.intercept {
-            onFail {
-                assertEquals(1, count)
-                count--
-            }
-            onSuccess {
-                fail("This pipeline shouldn't finish")
-            }
-            assertEquals(0, count)
-            count++
-            max = Math.max(max, count)
+            onSuccess { events.add("success1 $subject") }
+            onFail { events.add("fail1 $subject") }
+            events.add("intercept1 $subject")
         }
 
         pipeline.intercept {
-            val secondary = createPipeline()
+            onSuccess { events.add("success2 $subject") }
+            onFail { events.add("fail2 $subject") }
+            events.add("intercept2 $subject")
+
+            val secondary = pipeline()
             secondary.intercept { subject ->
-                onSuccess {
-                    fail("This pipeline shouldn't finish")
-                }
-                assertEquals("another", subject)
-                secondaryOk = true
+                onSuccess { events.add("success3 $subject") }
+                onFail { events.add("fail3 $subject") }
+                events.add("intercept3 $subject")
+            }
+            fork("another", secondary)
+        }
+
+        pipeline.intercept {
+            onSuccess { events.add("success4 $subject") }
+            onFail { events.add("fail4 $subject") }
+            events.add("intercept4 $subject")
+            throw UnsupportedOperationException()
+        }
+
+        val state = pipeline.execute("some")
+        assertEquals(listOf("intercept1 some", "intercept2 some", "intercept3 another", "success3 another",
+                "intercept4 some", "fail4 some", "fail2 some", "fail1 some"), events)
+
+        assertEquals(PipelineState.Finished, state)
+    }
+
+    @Test
+    fun forkFailNested() {
+        val events = mutableListOf<String>()
+        val pipeline = pipeline()
+        pipeline.intercept {
+            onSuccess { events.add("success1 $subject") }
+            onFail { events.add("fail1 $subject") }
+            events.add("intercept1 $subject")
+        }
+
+        pipeline.intercept {
+            onSuccess { events.add("success2 $subject") }
+            onFail { events.add("fail2 $subject") }
+            events.add("intercept2 $subject")
+
+            val secondary = pipeline()
+            secondary.intercept { subject ->
+                onSuccess { events.add("success3 $subject") }
+                onFail { events.add("fail3 $subject") }
+                events.add("intercept3 $subject")
                 throw UnsupportedOperationException()
             }
             fork("another", secondary)
         }
 
         pipeline.intercept {
-            fail("This pipeline shouldn't run")
+            onSuccess { events.add("success4 $subject") }
+            onFail { events.add("fail4 $subject") }
+            events.add("intercept4 $subject")
         }
 
         val state = pipeline.execute("some")
-        assertTrue(secondaryOk, "Secondary should be run")
-        assertEquals(0, count)
-        assertEquals(1, max)
-        assertEquals(PipelineState.Succeeded, state)
+        assertEquals(listOf("intercept1 some", "intercept2 some", "intercept3 another", "fail3 another",
+                "fail2 some", "fail1 some"), events)
+        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
     fun asyncPipeline() {
         var count = 0
-        val pipeline = createPipeline()
+        val pipeline = pipeline()
         val latch = CountDownLatch(1)
         pipeline.intercept {
             CompletableFuture.runAsync {
@@ -349,7 +436,7 @@ class PipelineTest {
     @Test
     fun asyncFork() {
         var count = 0
-        val pipeline = createPipeline()
+        val pipeline = pipeline()
         var secondaryOk = false
         val latch = CountDownLatch(1)
         pipeline.intercept {
@@ -365,7 +452,7 @@ class PipelineTest {
         }
 
         pipeline.intercept {
-            val secondary = createPipeline()
+            val secondary = pipeline()
             secondary.intercept { subject ->
                 assertEquals("another", subject)
                 CompletableFuture.runAsync {
@@ -399,7 +486,7 @@ class PipelineTest {
         }
         val state = pipeline.execute("some")
         assertTrue(value)
-        assertEquals(PipelineState.Succeeded, state)
+        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
@@ -444,12 +531,12 @@ class PipelineTest {
 
     @Test
     fun executeDuringFailRollup() {
-        val pipeline = createPipeline()
+        val pipeline = pipeline()
         val events = mutableListOf<String>()
         val machine = PipelineMachine()
 
         pipeline.intercept { value ->
-            onFail { cause ->
+            onFail {
                 events.add("pre-failed $value")
             }
             onSuccess {
@@ -463,7 +550,7 @@ class PipelineTest {
             onFail {
                 events.add("failed2 $value")
             }
-            onFail { cause ->
+            onFail {
                 events.add("failed $value")
                 machine.execute("B", pipeline)
             }
@@ -487,12 +574,12 @@ class PipelineTest {
 
     @Test
     fun executeDuringSuccessRollup() {
-        val pipeline = createPipeline()
+        val pipeline = pipeline()
         val events = mutableListOf<String>()
         val machine = PipelineMachine()
 
         pipeline.intercept { value ->
-            onFail { cause ->
+            onFail {
                 events.add("pre-failed $value")
             }
             onSuccess {
@@ -503,7 +590,7 @@ class PipelineTest {
         pipeline.intercept { value ->
             events.add("handle $value")
 
-            onFail { cause ->
+            onFail {
                 events.add("failed $value")
             }
             onSuccess {
@@ -526,12 +613,12 @@ class PipelineTest {
 
     @Test
     fun executeFailingDuringSuccessRollup() {
-        val pipeline = createPipeline()
+        val pipeline = pipeline()
         val events = mutableListOf<String>()
         val machine = PipelineMachine()
 
         pipeline.intercept { value ->
-            onFail { cause ->
+            onFail {
                 events.add("pre-failed $value")
             }
             onSuccess {
@@ -542,7 +629,7 @@ class PipelineTest {
         pipeline.intercept { value ->
             events.add("handle $value")
 
-            onFail { cause ->
+            onFail {
                 events.add("failed $value")
             }
             onSuccess {

@@ -2,6 +2,7 @@ package org.jetbrains.ktor.tests.transform
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
@@ -10,7 +11,7 @@ import org.junit.*
 import java.util.concurrent.*
 import kotlin.test.*
 
-class AsyncTransformTest {
+class CallTransformTest {
 
     private val exec = Executors.newSingleThreadExecutor()
 
@@ -20,13 +21,30 @@ class AsyncTransformTest {
     }
 
     @Test
-    fun smokeTest() {
+    fun syncTest() {
+        withTestApplication {
+            application.routing {
+                get("/") {
+                    call.transform.register<Int> { it.toString() }
+                    call.respond(777)
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/").let { response ->
+                assertEquals("777", response.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun asyncTest() {
         withTestApplication {
             application.routing {
                 get("/") {
                     call.transform.register<Int> { value ->
-                        exec.submit { proceed(value.toString()) }
-                        pause()
+                        runAsync(exec) {
+                            proceed(value.toString())
+                        }
                     }
 
                     call.respond(777)
@@ -40,13 +58,14 @@ class AsyncTransformTest {
     }
 
     @Test
-    fun suspendThenSync() {
+    fun asyncThenSync() {
         withTestApplication {
             application.routing {
                 get("/") {
                     call.transform.register<Int> { value ->
-                        exec.submit { proceed(Wrapper(value + 1)) }
-                        pause()
+                        runAsync(exec) {
+                            proceed(Wrapper(value + 1))
+                        }
                     }
 
                     // TODO think of unsafe generics here

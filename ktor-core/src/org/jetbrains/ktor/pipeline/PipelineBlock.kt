@@ -1,10 +1,6 @@
 package org.jetbrains.ktor.pipeline
 
-internal class PipelineBlock<TSubject : Any>(private val execution: PipelineExecution<TSubject>,
-                                                       val function: PipelineContext<TSubject>.(TSubject) -> Unit) {
-
-    val successes = mutableListOf<() -> Unit>()
-    val failures = mutableListOf<(Throwable) -> Unit>()
-
-    fun call() = execution.function(execution.subject)
+internal class PipelineBlock(val function: PipelineContext<Any>.(Any) -> Unit) {
+    val successes = mutableListOf<PipelineContext<Any>.(Any) -> Unit>()
+    val failures = mutableListOf<PipelineContext<Any>.(Any) -> Unit>()
 }
