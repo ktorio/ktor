@@ -15,9 +15,8 @@ class JettyApplicationCall(application: Application,
                            servletRequest: HttpServletRequest,
                            servletResponse: HttpServletResponse,
                            pool: ByteBufferPool,
-                           onAsyncStartedUnderLock: () -> Unit,
                            pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit)
-: ServletApplicationCall(application, servletRequest, servletResponse, pool, onAsyncStartedUnderLock, pushImpl) {
+: ServletApplicationCall(application, servletRequest, servletResponse, pool, pushImpl) {
 
     override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
         // Jetty doesn't support Servlet API's upgrade so we have to implement our own
@@ -36,7 +35,6 @@ class JettyApplicationCall(application: Application,
         }
 
         servletResponse.flushBuffer()
-        onAsyncStartedUnderLock()
 
         upgrade.upgrade(this@JettyApplicationCall, this, inputChannel, outputChannel)
         pause()

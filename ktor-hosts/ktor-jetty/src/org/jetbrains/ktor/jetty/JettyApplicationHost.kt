@@ -17,7 +17,6 @@ import org.jetbrains.ktor.nio.ByteBufferPool
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.transform.*
 import java.nio.*
-import java.util.concurrent.*
 import javax.servlet.*
 import javax.servlet.http.*
 
@@ -99,13 +98,13 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     private val byteBufferPool = object : ByteBufferPool {
         val jbp = MappedByteBufferPool(16)
 
-        override fun allocate(size: Int) = Ticket(jbp.acquire(size, false))
+        override fun allocate(size: Int) = Ticket(jbp.acquire(size, false).apply { clear() })
         override fun release(buffer: PoolTicket) {
             jbp.release(buffer.buffer)
             (buffer as Ticket).release()
         }
 
-        class Ticket(bb: ByteBuffer) : ReleasablePoolTicket(bb)
+        private inner class Ticket(bb: ByteBuffer) : ReleasablePoolTicket(bb)
     }
 
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
@@ -115,13 +114,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             response.characterEncoding = "UTF-8"
 
-            val latch = CountDownLatch(1)
-            var pipelineState: PipelineState? = null
-            var throwable: Throwable? = null
-
-            val call = JettyApplicationCall(application, server, request, response, byteBufferPool, {
-                latch.countDown()
-            }, { call, block, next ->
+            val call = JettyApplicationCall(application, server, request, response, byteBufferPool, { call, block, next ->
                 if (baseRequest.httpChannel.httpTransport.isPushSupported) {
                     baseRequest.pushBuilder.apply {
                         val builder = DefaultResponsePushBuilder(call)
@@ -145,24 +138,21 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     // TODO someone reported auto-cleanup issues so we have to check it
                 }
 
+                request.startAsync()
+                baseRequest.isHandled = true
+
                 call.executeOn(application.executor, hostPipeline).whenComplete { state, t ->
-                    pipelineState = state
-                    throwable = t
-
-                    latch.countDown()
-                }
-
-                latch.await()
-                when {
-                    throwable != null -> throw throwable!!
-                    pipelineState == null -> baseRequest.isHandled = true
-                    pipelineState == PipelineState.Executing -> {
-                        baseRequest.isHandled = true
-                        call.ensureAsync()
-                    }
-                    pipelineState == PipelineState.Succeeded -> baseRequest.isHandled = call.completed
-                    pipelineState == PipelineState.Failed -> baseRequest.isHandled = true
-                    else -> {
+                    when (state) {
+                        PipelineState.Succeeded -> {
+                            request.asyncContext.complete()
+                        }
+                        PipelineState.Failed -> {
+                            environment.log.error("Application ${application.javaClass} cannot fulfill the request", t)
+                            call.execution.runBlockWithResult {
+                                call.respond(HttpStatusCode.InternalServerError)
+                            }
+                        }
+                        null, PipelineState.Executing -> {}
                     }
                 }
             } catch(ex: Throwable) {

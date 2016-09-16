@@ -56,7 +56,7 @@ private val poolCounter = AtomicInteger()
 internal val DefaultExecutorServiceBuilder = {
     val pool: Int = poolCounter.incrementAndGet()
     val threadCounter = AtomicInteger()
-    Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors(), { r ->
+    Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 8, { r ->
         Thread(r, "ktor-pool-$pool-thread-${threadCounter.incrementAndGet()}")
     })
 }

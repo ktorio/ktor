@@ -14,10 +14,9 @@ open class ServletApplicationCall(application: Application,
                                   protected val servletRequest: HttpServletRequest,
                                   protected val servletResponse: HttpServletResponse,
                                   override val pool: ByteBufferPool,
-                                  val onAsyncStartedUnderLock: () -> Unit,
                                   pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit) : BaseApplicationCall(application) {
 
-    override val request: ApplicationRequest = ServletApplicationRequest({ ensureAsync() }, servletRequest, { requestChannelOverride })
+    override val request: ApplicationRequest = ServletApplicationRequest(servletRequest, { requestChannelOverride })
     override val response: ApplicationResponse = ServletApplicationResponse(this, respondPipeline, servletResponse, pushImpl, { responseChannel() })
 
     @Volatile
@@ -25,9 +24,10 @@ open class ServletApplicationCall(application: Application,
     @Volatile
     protected var responseChannelOverride: WriteChannel? = null
 
-    @Volatile
-    private var asyncContext: AsyncContext? = null
+    private val asyncContext: AsyncContext?
+        get() = servletRequest.asyncContext
 
+    @Deprecated("Always true")
     val asyncStarted: Boolean
         get() = asyncContext != null
 
@@ -48,13 +48,13 @@ open class ServletApplicationCall(application: Application,
         handler.up = UpgradeRequest(servletResponse, this@ServletApplicationCall, upgrade, this)
 
         upgraded = true
-        onAsyncStartedUnderLock()
+        servletResponse.flushBuffer()
+        servletRequest.asyncContext?.complete()
 
         pause()
     }
 
     private val responseChannel by lazy {
-        ensureAsync()
         ServletWriteChannel(servletResponse.outputStream)
     }
 
@@ -69,19 +69,9 @@ open class ServletApplicationCall(application: Application,
     }
 
     @Synchronized
+    @Deprecated("Request processing is always async. Does nothing")
     fun ensureAsync() {
-        if (!asyncStarted && !upgraded) {
-            startAsync()
-        }
-    }
-
-    private fun startAsync() {
-        require(this.asyncContext == null) { "You can't reassign asyncContext" }
-
-        asyncContext = servletRequest.startAsync(servletRequest, servletResponse)
-        // asyncContext.timeout = ?
-
-        onAsyncStartedUnderLock()
+        requireNotNull(asyncContext)
     }
 
     // the following types need to be public as they are accessed through reflection

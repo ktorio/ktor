@@ -14,8 +14,10 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
+import org.junit.runners.model.*
 import java.io.*
 import java.util.concurrent.*
+import java.util.concurrent.atomic.*
 import java.util.zip.*
 import kotlin.concurrent.*
 import kotlin.test.*
@@ -811,7 +813,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
         createAndStartServer({
             val delegate = SLF4JApplicationLog("embedded")
-            log = object: ApplicationLog by delegate {
+            log = object : ApplicationLog by delegate {
                 override val name = "DummyLogger"
 
                 override fun fork(name: String) = this
@@ -840,6 +842,63 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
             assertEquals(message, collected.single { it is ExpectedException }.message)
             collected.clear()
         }
+    }
+
+    @Test(timeout = 30000L)
+    fun testBlockingConcurrency() {
+        val completed = AtomicInteger(0)
+
+        createAndStartServer({
+            executorServiceBuilder = {
+                Executors.newScheduledThreadPool(3)
+            }
+        }, {
+            get("/") {
+                call.respondWrite {
+                    try {
+                        appendln("OK")
+                    } finally {
+                        completed.incrementAndGet()
+                    }
+                }
+            }
+        })
+
+        val count = 100
+        val latch = CountDownLatch(count)
+        val errors = CopyOnWriteArrayList<Throwable>()
+
+        for (i in 1..latch.count) {
+            thread {
+                val isBlocker = i % 10L == 0L
+
+                try {
+                    withUrl("/") {
+                        inputStream.reader().use { reader ->
+                            assertEquals('O', reader.read().toChar())
+
+                            if (isBlocker) {
+                                Thread.sleep(1000)
+                            } else {
+                                assertEquals("K\n", reader.readText())
+                            }
+                        }
+                    }
+                } catch (t: Throwable) {
+                    errors += t
+                } finally {
+                    latch.countDown()
+                }
+            }
+        }
+
+        latch.await()
+
+        if (errors.isNotEmpty()) {
+            throw MultipleFailureException(errors)
+        }
+
+        assertEquals(count * 2, completed.get())
     }
 
     private fun String.urlPath() = replace("\\", "/")

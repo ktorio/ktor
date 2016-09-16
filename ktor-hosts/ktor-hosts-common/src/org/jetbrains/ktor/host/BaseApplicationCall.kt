@@ -30,9 +30,15 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
 
     protected val respondPipeline = RespondPipeline()
     protected val HostRespondPhase = PipelinePhase("HostRespondPhase")
+    protected val HostRespondFinalizationPhase = PipelinePhase("HostRespondFinalizationPhase")
+    protected val responseContentTransferFuture = CompletableFuture<Long>()
+    private var finalizeAction: (PipelineContext<*>) -> Nothing = { context ->
+        writeStartedAction(context, responseContentTransferFuture)
+    }
 
     init {
         respondPipeline.phases.insertAfter(RespondPipeline.After, HostRespondPhase)
+        respondPipeline.phases.insertAfter(HostRespondPhase, HostRespondFinalizationPhase)
 
         respondPipeline.intercept(HostRespondPhase) { state ->
             val message = state.message
@@ -50,19 +56,22 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                     val pipe = ChannelPipe()
                     closeAtEnd(pipe)
 
-                    // note: it is very important to resend it here rather than just use value.startContent
-                    respond(PipeResponse(pipe, { value.headers }) {
-                        application.executor.execute {
+                    // note: it is very important to resend it here rather than just handle right here
+                    // because we need compression, ranges and etc to work properly
+                    respond(PipeResponse(pipe, { value.headers }, start = {
+                        finalizeAction = {
                             try {
                                 value.stream(pipe.asOutputStream())
                             } catch (ignore: ChannelPipe.PipeClosedException) {
-                            } catch (t: Throwable) {
-                                pipe.rethrow(t)
+//                        } catch (t: Throwable) {
+//                            pipe.rethrow(t)
                             } finally {
                                 pipe.closeAndWait()
                             }
+
+                            writeStartedAction(this, responseContentTransferFuture)
                         }
-                    })
+                    }))
                 }
             }
         }
@@ -77,10 +86,10 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                 finishAll()
             }
             is FinalContent.ChannelContent -> {
-                sendAsyncChannel(this@BaseApplicationCall, content.channel())
+                sendAsyncChannel { content.channel() }
             }
             is FinalContent.StreamContentProvider -> {
-                sendAsyncChannel(this@BaseApplicationCall, content.stream().asAsyncChannel())
+                sendAsyncChannel { content.stream().asAsyncChannel() }
             }
         }
     }
@@ -90,28 +99,17 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     protected open val pool: ByteBufferPool
         get() = NoPool
 
-    protected fun PipelineContext<*>.sendAsyncChannel(call: ApplicationCall, channel: ReadChannel): Nothing {
-        val future = createMachineCompletableFuture()
+    protected fun PipelineContext<*>.sendAsyncChannel(channelProvider: () -> ReadChannel): Nothing {
+        // note: it is important to open response channel before we open request
+        // otherwise we can hit deadlock on event-based hosts
 
-        closeAtEnd(channel, call) // TODO closeAtEnd(call) should be done globally at call start
-        channel.copyToAsyncThenComplete(responseChannel(), future, ignoreWriteError = true, alloc = pool)
-        pause()
-    }
+        val response = responseChannel()
+        val channel = channelProvider()
 
-    protected fun PipelineContext<*>.createMachineCompletableFuture() = CompletableFuture<Long>().apply {
-        whenComplete { total, throwable ->
-            runBlockWithResult {
-                handleThrowable(throwable)
-            }
-        }
-    }
+        closeAtEnd(channel, this@BaseApplicationCall) // TODO closeAtEnd(call) should be done globally at call start
+        channel.copyToAsyncThenComplete(response, responseContentTransferFuture, ignoreWriteError = true, alloc = pool)
 
-    private fun PipelineContext<*>.handleThrowable(throwable: Throwable?) {
-        if (throwable == null || throwable is PipelineContinue || throwable.cause is PipelineContinue) {
-            finishAll()
-        } else if (throwable !is PipelineControlFlow && throwable.cause !is PipelineControlFlow) {
-            fail(throwable)
-        }
+        finalizeAction(this)
     }
 
     override val parameters: ValuesMap by lazy { request.queryParameters + request.content.get() }
@@ -122,6 +120,27 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         override fun channel(): ReadChannel {
             start()
             return pipe
+        }
+    }
+
+    private fun writeStartedAction(pipelineContext: PipelineContext<*>, copyFuture: CompletableFuture<*>): Nothing {
+        copyFuture.continueMachineOnFutureComplete(pipelineContext)
+        pipelineContext.pause()
+    }
+
+    private fun CompletableFuture<*>.continueMachineOnFutureComplete(pipelineContext: PipelineContext<*>) {
+        whenComplete { total, throwable ->
+            pipelineContext.runBlockWithResult {
+                pipelineContext.handleThrowable(throwable)
+            }
+        }
+    }
+
+    private fun PipelineContext<*>.handleThrowable(throwable: Throwable?) {
+        if (throwable == null || throwable is PipelineContinue || throwable.cause is PipelineContinue) {
+            finishAll()
+        } else if (throwable !is PipelineControlFlow && throwable.cause !is PipelineControlFlow) {
+            fail(throwable)
         }
     }
 }

@@ -2,10 +2,10 @@ package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 import java.lang.reflect.*
-import java.util.concurrent.*
 import javax.servlet.http.*
 
 abstract class KtorServlet : HttpServlet() {
@@ -22,31 +22,24 @@ abstract class KtorServlet : HttpServlet() {
         request.characterEncoding = "UTF-8"
 
         try {
-            val latch = CountDownLatch(1)
-            val call = ServletApplicationCall(application, request, response, NoPool, { latch.countDown() }, { call, block, next ->
+            request.startAsync()
+            val call = ServletApplicationCall(application, request, response, NoPool, { call, block, next ->
                 tryPush(request, call, block, next)
             })
-            var throwable: Throwable? = null
-            var pipelineState: PipelineState? = null
 
-            call.executeOn(application.executor, hostPipeline).whenComplete { state, t ->
-                pipelineState = state
-                throwable = t
-                latch.countDown()
-            }
-
-            latch.await()
-            when {
-                throwable != null -> throw throwable!!
-                pipelineState == null -> {}
-                pipelineState == PipelineState.Executing -> {
-                    call.ensureAsync()
+            call.executeOn(application.executor, hostPipeline).whenComplete { state, throwable ->
+                when (state) {
+                    PipelineState.Succeeded -> {
+                        request.asyncContext.complete()
+                    }
+                    PipelineState.Failed -> {
+                        application.environment.log.error("Application ${application.javaClass} cannot fulfill the request", throwable)
+                        call.execution.runBlockWithResult {
+                            call.respond(HttpStatusCode.InternalServerError)
+                        }
+                    }
+                    null, PipelineState.Executing -> {}
                 }
-                !call.completed -> {
-                    response.sendError(HttpServletResponse.SC_NOT_FOUND)
-                    call.close()
-                }
-                else -> {}
             }
         } catch (ex: Throwable) {
             application.environment.log.error("ServletApplicationHost cannot service the request", ex)

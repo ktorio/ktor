@@ -34,7 +34,7 @@ fun FinalContent.contentLength(): Long? {
         return contentLength
     }
 
-    return headers[HttpHeaders.ContentLength]?.let { it.toLong() }
+    return headers[HttpHeaders.ContentLength]?.let(String::toLong)
 }
 
 fun FinalContent.contentType(): ContentType? {
