@@ -856,7 +856,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
             get("/") {
                 call.respondWrite {
                     try {
-                        appendln("OK")
+                        append("OK\n")
                     } finally {
                         completed.incrementAndGet()
                     }
