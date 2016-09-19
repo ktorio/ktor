@@ -13,46 +13,44 @@ import java.time.*
 class ChatApplication() : ApplicationModule() {
     val server = ChatServer()
 
-    override fun install(application: Application) {
-        with(application) {
-            install(DefaultHeaders)
-            install(CallLogging)
+    override fun Application.install() {
+        install(DefaultHeaders)
+        install(CallLogging)
 
-            routing {
-                withSessions<Session> {
-                    withCookieByValue()
-                }
-
-                intercept(ApplicationCallPipeline.Infrastructure) {
-                    if (call.sessionOrNull<Session>() == null) {
-                        call.session(Session(nextNonce()))
-                    }
-                }
-
-                webSocket("/ws") {
-                    val session = call.sessionOrNull<Session>()
-                    if (session == null) {
-                        close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "No session"))
-                        return@webSocket
-                    }
-
-                    pingInterval = Duration.ofMinutes(1)
-
-                    server.memberJoin(session.id, this)
-
-                    handle { frame ->
-                        if (frame is Frame.Text) {
-                            receivedMessage(session.id, frame.readText())
-                        }
-                    }
-
-                    close { reason ->
-                        server.memberLeft(session.id, this)
-                    }
-                }
-
-                serveClasspathResources("web")
+        routing {
+            withSessions<Session> {
+                withCookieByValue()
             }
+
+            intercept(ApplicationCallPipeline.Infrastructure) {
+                if (call.sessionOrNull<Session>() == null) {
+                    call.session(Session(nextNonce()))
+                }
+            }
+
+            webSocket("/ws") {
+                val session = call.sessionOrNull<Session>()
+                if (session == null) {
+                    close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "No session"))
+                    return@webSocket
+                }
+
+                pingInterval = Duration.ofMinutes(1)
+
+                server.memberJoin(session.id, this)
+
+                handle { frame ->
+                    if (frame is Frame.Text) {
+                        receivedMessage(session.id, frame.readText())
+                    }
+                }
+
+                close { reason ->
+                    server.memberLeft(session.id, this)
+                }
+            }
+
+            serveClasspathResources("web")
         }
     }
 

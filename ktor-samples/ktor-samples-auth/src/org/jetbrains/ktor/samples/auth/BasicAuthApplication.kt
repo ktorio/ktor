@@ -17,33 +17,31 @@ class BasicAuthApplication : ApplicationModule() {
             "test" to decodeBase64("VltM4nfheqcJSyH887H+4NEOm2tDuKCl83p5axYXlF0=") // sha256 for "test"
     ))
 
-    override fun install(application: Application) {
-        with(application) {
-            install(DefaultHeaders)
-            install(CallLogging)
-            install(Locations)
-            routing {
-                get<Manual>() {
-                    authentication {
-                        basicAuthentication("ktor") { credentials ->
-                            if (credentials.name == credentials.password) {
-                                UserIdPrincipal(credentials.name)
-                            } else {
-                                null
-                            }
+    override fun Application.install() {
+        install(DefaultHeaders)
+        install(CallLogging)
+        install(Locations)
+        routing {
+            get<Manual>() {
+                authentication {
+                    basicAuthentication("ktor") { credentials ->
+                        if (credentials.name == credentials.password) {
+                            UserIdPrincipal(credentials.name)
+                        } else {
+                            null
                         }
                     }
-
-                    call.respondText("Success, ${call.principal<UserIdPrincipal>()?.name}")
                 }
 
-                get<SimpleUserTable>() {
-                    authentication {
-                        basicAuthentication("ktor") { hashedUserTable.authenticate(it) }
-                    }
+                call.respondText("Success, ${call.principal<UserIdPrincipal>()?.name}")
+            }
 
-                    call.respondText("Success")
+            get<SimpleUserTable>() {
+                authentication {
+                    basicAuthentication("ktor") { hashedUserTable.authenticate(it) }
                 }
+                call.respondText("Success")
+
             }
         }
     }

@@ -7,8 +7,8 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 
 class TestableApplication : ApplicationModule() {
-    override fun install(application: Application) {
-        application.intercept(ApplicationCallPipeline.Call) { call ->
+    override fun Application.install() {
+        intercept(ApplicationCallPipeline.Call) { call ->
             if (call.request.uri == "/")
                 call.respondText("Test String")
         }

@@ -24,32 +24,30 @@ class JsonApplication : ApplicationModule() {
              {"key":"A","value":"Apache"}
          */
 
-    override fun install(application: Application) {
-        with(application) {
-            install(DefaultHeaders)
-            install(CallLogging)
+    override fun Application.install() {
+        install(DefaultHeaders)
+        install(CallLogging)
 
-            val gson = GsonBuilder().create()
-            intercept(ApplicationCallPipeline.Infrastructure) { call ->
-                if (HeaderValue("application/json") in call.request.acceptItems()) {
-                    call.transform.register<Any> { value ->
-                        val responseContentType = call.response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
-                        when (responseContentType) {
-                            ContentType.Application.Json -> TextContent(ContentType.Application.Json, gson.toJson(value))
-                            else -> value
-                        }
+        val gson = GsonBuilder().create()
+        intercept(ApplicationCallPipeline.Infrastructure) { call ->
+            if (HeaderValue("application/json") in call.request.acceptItems()) {
+                call.transform.register<Any> { value ->
+                    val responseContentType = call.response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+                    when (responseContentType) {
+                        ContentType.Application.Json -> TextContent(ContentType.Application.Json, gson.toJson(value))
+                        else -> value
                     }
                 }
             }
+        }
 
-            val model = Model("root", listOf(Item("A", "Apache"), Item("B", "Bing")))
-            routing {
-                get("/v1") {
-                    call.respond(ContentType.Application.Json, model)
-                }
-                get("/v1/item/{key}") {
-                    call.respond(ContentType.Application.Json, model.items.first { it.key == call.parameters["key"] })
-                }
+        val model = Model("root", listOf(Item("A", "Apache"), Item("B", "Bing")))
+        routing {
+            get("/v1") {
+                call.respond(ContentType.Application.Json, model)
+            }
+            get("/v1/item/{key}") {
+                call.respond(ContentType.Application.Json, model.items.first { it.key == call.parameters["key"] })
             }
         }
     }

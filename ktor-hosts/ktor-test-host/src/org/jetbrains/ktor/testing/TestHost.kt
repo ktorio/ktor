@@ -278,5 +278,5 @@ class TestApplicationResponse(call: ApplicationCall, respondPipeline: RespondPip
 }
 
 class TestApplication : ApplicationModule() {
-    override fun install(application: Application) {}
+    override fun Application.install() {}
 }

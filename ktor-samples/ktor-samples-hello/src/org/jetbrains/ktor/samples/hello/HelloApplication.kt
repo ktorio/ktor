@@ -7,14 +7,12 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 
 class HelloApplication : ApplicationModule() {
-    override fun install(application: Application) {
-        with(application) {
-            install(DefaultHeaders)
-            install(CallLogging)
-            install(Routing) {
-                get("/") {
-                    call.respondText("Hello, World!")
-                }
+    override fun Application.install() {
+        install(DefaultHeaders)
+        install(CallLogging)
+        install(Routing) {
+            get("/") {
+                call.respondText("Hello, World!")
             }
         }
     }

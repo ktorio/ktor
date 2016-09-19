@@ -63,38 +63,36 @@ class KweetApp : ApplicationModule(), AutoCloseable {
     val hmacKey = SecretKeySpec(hashKey, "HmacSHA1")
     val dao: DAOFacade = DAOFacadeCache(DAOFacadeDatabase(Database.connect(pool)), File(dir.parentFile, "ehcache"))
 
-    override fun install(application: Application) {
+    override fun Application.install() {
         dao.init()
 
-        with(application) {
-            install(DefaultHeaders)
-            install(CallLogging)
-            install(ConditionalHeaders)
-            install(PartialContentSupport)
-            install(Locations)
-            install(FreeMarker) {
-                templateLoader = ClassTemplateLoader(KweetApp::class.java.classLoader, "templates")
+        install(DefaultHeaders)
+        install(CallLogging)
+        install(ConditionalHeaders)
+        install(PartialContentSupport)
+        install(Locations)
+        install(FreeMarker) {
+            templateLoader = ClassTemplateLoader(KweetApp::class.java.classLoader, "templates")
+        }
+
+        withSessions<Session> {
+            withCookieByValue {
+                settings = SessionCookiesSettings(transformers = listOf(SessionCookieTransformerMessageAuthentication(hashKey)))
             }
+        }
 
-            withSessions<Session> {
-                withCookieByValue {
-                    settings = SessionCookiesSettings(transformers = listOf(SessionCookieTransformerMessageAuthentication(hashKey)))
-                }
-            }
+        val hashFunction = { s: String -> hash(s) }
 
-            val hashFunction = { s: String -> hash(s) }
+        routing {
+            styles()
+            index(dao)
+            postNew(dao, hashFunction)
+            delete(dao, hashFunction)
+            userPage(dao)
+            viewKweet(dao, hashFunction)
 
-            routing {
-                styles()
-                index(dao)
-                postNew(dao, hashFunction)
-                delete(dao, hashFunction)
-                userPage(dao)
-                viewKweet(dao, hashFunction)
-
-                login(dao, hashFunction)
-                register(dao, hashFunction)
-            }
+            login(dao, hashFunction)
+            register(dao, hashFunction)
         }
     }
 

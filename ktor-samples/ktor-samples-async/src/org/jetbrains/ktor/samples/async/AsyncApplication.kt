@@ -12,17 +12,15 @@ import org.jetbrains.ktor.routing.*
 import java.util.*
 
 class AsyncApplication : ApplicationModule() {
-    override fun install(application: Application) {
-        with(application) {
-            install(DefaultHeaders)
-            install(CallLogging)
+    override fun Application.install() {
+        install(DefaultHeaders)
+        install(CallLogging)
 
-            routing {
-                get("/{...}") {
-                    val start = System.currentTimeMillis()
-                    runAsync(executor) {
-                        call.handleLongCalculation(start)
-                    }
+        routing {
+            get("/{...}") {
+                val start = System.currentTimeMillis()
+                runAsync(executor) {
+                    call.handleLongCalculation(start)
                 }
             }
         }

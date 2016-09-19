@@ -15,59 +15,57 @@ import org.jetbrains.ktor.routing.*
 @location("/form") class post()
 
 class FormPostApplication : ApplicationModule() {
-    override fun install(application: Application) {
-        with(application) {
-            install(DefaultHeaders)
-            install(CallLogging)
-            install(Locations)
-            routing {
-                get<index>() {
-                    val contentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
+    override fun Application.install() {
+        install(DefaultHeaders)
+        install(CallLogging)
+        install(Locations)
+        routing {
+            get<index>() {
+                val contentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 
-                    call.response.contentType(contentType)
-                    call.respondWrite {
-                        appendHTML().html {
-                            head {
-                                title { +"POST" }
-                                meta {
-                                    httpEquiv = HttpHeaders.ContentType
-                                    content = contentType.toString()
-                                }
+                call.response.contentType(contentType)
+                call.respondWrite {
+                    appendHTML().html {
+                        head {
+                            title { +"POST" }
+                            meta {
+                                httpEquiv = HttpHeaders.ContentType
+                                content = contentType.toString()
                             }
-                            body {
-                                p {
-                                    +"File upload example"
-                                }
-                                form(application.feature(Locations).href(post()), encType = FormEncType.multipartFormData, method = FormMethod.post) {
-                                    acceptCharset = "utf-8"
-                                    textInput { name = "field1" }
-                                    fileInput { name = "file1" }
-                                    submitInput { value = "send" }
-                                }
+                        }
+                        body {
+                            p {
+                                +"File upload example"
+                            }
+                            form(feature(Locations).href(post()), encType = FormEncType.multipartFormData, method = FormMethod.post) {
+                                acceptCharset = "utf-8"
+                                textInput { name = "field1" }
+                                fileInput { name = "file1" }
+                                submitInput { value = "send" }
                             }
                         }
                     }
                 }
+            }
 
-                post<post> {
-                    val multipart = call.request.content.get<MultiPartData>()
+            post<post> {
+                val multipart = call.request.content.get<MultiPartData>()
 
-                    call.response.contentType(ContentType.Text.Plain.withCharset(Charsets.UTF_8))
-                    call.respondWrite {
-                        if (!call.request.isMultipart()) {
-                            appendln("Not a multipart request")
-                        } else {
-                            multipart.parts.forEach { part ->
-                                when (part) {
-                                    is PartData.FormItem -> appendln("Form field: ${part.partName} = ${part.value}")
-                                    is PartData.FileItem -> appendln("File field: ${part.partName} -> ${part.originalFileName} of ${part.contentType}")
-                                }
-                                part.dispose()
+                call.response.contentType(ContentType.Text.Plain.withCharset(Charsets.UTF_8))
+                call.respondWrite {
+                    if (!call.request.isMultipart()) {
+                        appendln("Not a multipart request")
+                    } else {
+                        multipart.parts.forEach { part ->
+                            when (part) {
+                                is PartData.FormItem -> appendln("Form field: ${part.partName} = ${part.value}")
+                                is PartData.FileItem -> appendln("File field: ${part.partName} -> ${part.originalFileName} of ${part.contentType}")
                             }
+                            part.dispose()
                         }
                     }
-
                 }
+
             }
         }
     }

@@ -78,8 +78,8 @@ class ApplicationLoaderTests {
             instances--
         }
 
-        override fun install(application: Application) {
-            application.attributes.put(TestKey, "1")
+        override fun Application.install() {
+            attributes.put(TestKey, "1")
         }
 
         companion object {
@@ -88,15 +88,15 @@ class ApplicationLoaderTests {
     }
 
     class ApplicationLoaderTestApplicationFeatureWithEnvironment(val environment: ApplicationEnvironment) : ApplicationModule() {
-        override fun install(application: Application) {
-            environment
-            application.attributes.put(TestKey, "2")
+        override fun Application.install() {
+            this@ApplicationLoaderTestApplicationFeatureWithEnvironment.environment
+            attributes.put(TestKey, "2")
         }
     }
 
     object ApplicationLoaderTestApplicationFeatureObject : ApplicationModule() {
-        override fun install(application: Application) {
-            application.attributes.put(TestKey, "3")
+        override fun Application.install() {
+            attributes.put(TestKey, "3")
         }
     }
 

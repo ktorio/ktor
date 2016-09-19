@@ -86,53 +86,51 @@ val loginProviders = listOf(
 class OAuthLoginApplication : ApplicationModule() {
     val exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4)
 
-    override fun install(application: Application) {
-        with(application) {
-            install(DefaultHeaders)
-            install(CallLogging)
-            install(Locations)
-            routing {
-                get<index>() {
-                    call.response.contentType(ContentType.Text.Html)
-                    call.respondWrite {
-                        appendHTML().html {
-                            head {
-                                title { +"index page" }
+    override fun Application.install() {
+        install(DefaultHeaders)
+        install(CallLogging)
+        install(Locations)
+        routing {
+            get<index>() {
+                call.response.contentType(ContentType.Text.Html)
+                call.respondWrite {
+                    appendHTML().html {
+                        head {
+                            title { +"index page" }
+                        }
+                        body {
+                            h1 {
+                                +"Try to login"
                             }
-                            body {
-                                h1 {
-                                    +"Try to login"
-                                }
-                                p {
-                                    a(href = application.feature(Locations).href(login())) {
-                                        +"Login"
-                                    }
+                            p {
+                                a(href = feature(Locations).href(login())) {
+                                    +"Login"
                                 }
                             }
                         }
                     }
                 }
+            }
 
-                location<login>() {
-                    authentication {
-                        oauthAtLocation<login>(DefaultHttpClient, exec,
-                                providerLookup = { loginProviders[it.type] },
-                                urlProvider = { l, p -> redirectUrl(login(p.name), false) })
-                    }
+            location<login>() {
+                authentication {
+                    oauthAtLocation<login>(DefaultHttpClient, exec,
+                            providerLookup = { loginProviders[it.type] },
+                            urlProvider = { l, p -> redirectUrl(login(p.name), false) })
+                }
 
-                    param("error") {
-                        handle {
-                            call.loginFailedPage(call.parameters.getAll("error").orEmpty())
-                        }
-                    }
-
+                param("error") {
                     handle {
-                        val principal = call.authentication.principal<OAuthAccessTokenResponse>()
-                        if (principal != null) {
-                            call.loggedInSuccessResponse(principal)
-                        } else {
-                            call.loginPage()
-                        }
+                        call.loginFailedPage(call.parameters.getAll("error").orEmpty())
+                    }
+                }
+
+                handle {
+                    val principal = call.authentication.principal<OAuthAccessTokenResponse>()
+                    if (principal != null) {
+                        call.loggedInSuccessResponse(principal)
+                    } else {
+                        call.loginPage()
                     }
                 }
             }

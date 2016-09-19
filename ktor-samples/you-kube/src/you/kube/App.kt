@@ -30,43 +30,41 @@ class Index()
 data class Session(val userId: String)
 
 class App : ApplicationModule() {
-    override fun install(application: Application) {
-        with(application) {
-            install(DefaultHeaders)
-            install(CallLogging)
-            install(Locations)
-            install(ConditionalHeaders)
-            install(PartialContentSupport)
-            install(Compression) {
-                default()
-                excludeMimeTypeMatch(ContentType.Video.Any)
-            }
+    override fun Application.install() {
+        install(DefaultHeaders)
+        install(CallLogging)
+        install(Locations)
+        install(ConditionalHeaders)
+        install(PartialContentSupport)
+        install(Compression) {
+            default()
+            excludeMimeTypeMatch(ContentType.Video.Any)
+        }
 
-            val key = hex("03e156f6058a13813816065")
-            val uploadDir = File("ktor-samples/you-kube/.video")
-            if (!uploadDir.mkdirs() && !uploadDir.exists()) {
-                throw IOException("Failed to create directory ${uploadDir.absolutePath}")
-            }
-            val database = Database(uploadDir)
+        val key = hex("03e156f6058a13813816065")
+        val uploadDir = File("ktor-samples/you-kube/.video")
+        if (!uploadDir.mkdirs() && !uploadDir.exists()) {
+            throw IOException("Failed to create directory ${uploadDir.absolutePath}")
+        }
+        val database = Database(uploadDir)
 
-            val users = UserHashedTableAuth(table = mapOf(
-                    "root" to UserHashedTableAuth(table = emptyMap()).digester("root")
-            ))
+        val users = UserHashedTableAuth(table = mapOf(
+                "root" to UserHashedTableAuth(table = emptyMap()).digester("root")
+        ))
 
-            withSessions<Session> {
-                withCookieByValue {
-                    settings = SessionCookiesSettings(transformers = listOf(
-                            SessionCookieTransformerMessageAuthentication(key)
-                    ))
-                }
+        withSessions<Session> {
+            withCookieByValue {
+                settings = SessionCookiesSettings(transformers = listOf(
+                        SessionCookieTransformerMessageAuthentication(key)
+                ))
             }
+        }
 
-            routing {
-                login(users)
-                upload(database, uploadDir)
-                videos(database)
-                styles()
-            }
+        routing {
+            login(users)
+            upload(database, uploadDir)
+            videos(database)
+            styles()
         }
     }
 

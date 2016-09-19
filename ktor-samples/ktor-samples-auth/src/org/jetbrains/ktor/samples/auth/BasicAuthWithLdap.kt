@@ -13,35 +13,33 @@ import org.jetbrains.ktor.routing.*
 @location("/files") class Files()
 
 class BasicAuthWithLdapApplication : ApplicationModule() {
-    override fun install(application: Application) {
-        with(application) {
-            install(DefaultHeaders)
-            install(CallLogging)
-            install(Locations)
-            routing {
-                location<Files> {
-                    authentication {
-                        basicAuthentication("files") { credentials ->
-                            ldapAuthenticate(credentials, "ldap://localhost:389", "cn=%s ou=users") {
-                                if (it.name == it.password) {
-                                    UserIdPrincipal(it.name)
-                                } else null
-                            }
-
+    override fun Application.install() {
+        install(DefaultHeaders)
+        install(CallLogging)
+        install(Locations)
+        routing {
+            location<Files> {
+                authentication {
+                    basicAuthentication("files") { credentials ->
+                        ldapAuthenticate(credentials, "ldap://localhost:389", "cn=%s ou=users") {
+                            if (it.name == it.password) {
+                                UserIdPrincipal(it.name)
+                            } else null
                         }
-                    }
 
-                    handle {
-                        call.response.status(HttpStatusCode.OK)
-                        call.respondText("""
-                    Directory listing
-
-                    .
-                    ..
-                    dir1
-                    and so on
-                    """)
                     }
+                }
+
+                handle {
+                    call.response.status(HttpStatusCode.OK)
+                    call.respondText("""
+                Directory listing
+
+                .
+                ..
+                dir1
+                and so on
+                """)
                 }
             }
         }
