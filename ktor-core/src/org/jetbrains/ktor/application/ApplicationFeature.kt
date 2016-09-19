@@ -69,7 +69,7 @@ fun <A : Pipeline<*>, B : Any, F : Any> A.uninstall(feature: ApplicationFeature<
  * Uninstalls feature specified by [key] from the pipeline
  */
 fun <A : Pipeline<*>, F : Any> A.uninstallFeature(key: AttributeKey<F>) {
-    val registry = attributes.computeIfAbsent(ApplicationFeature.registry) { Attributes() }
+    val registry = attributes.getOrNull(ApplicationFeature.registry) ?: return
     val instance = registry.getOrNull(key) ?: return
     if (instance is AutoCloseable)
         instance.close()
