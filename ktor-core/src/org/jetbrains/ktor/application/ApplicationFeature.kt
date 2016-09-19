@@ -12,6 +12,7 @@ interface ApplicationFeature<in P : Pipeline<*>, out B : Any, F : Any> {
     /**
      * Feature installation script
      */
+    @Deprecated("This method cannot be called directly", ReplaceWith("pipeline.install(configure)"), DeprecationLevel.ERROR)
     fun install(pipeline: P, configure: B.() -> Unit): F
 
     companion object {
@@ -33,6 +34,7 @@ fun <P : Pipeline<*>, B : Any, F : Any> P.install(feature: ApplicationFeature<P,
     when (installedFeature) {
         null -> {
             try {
+                @Suppress("DEPRECATION_ERROR")
                 val installed = feature.install(this, configure)
                 registry.put(feature.key, installed)
                 //environment.log.trace("`${feature.name}` feature was installed successfully.")
