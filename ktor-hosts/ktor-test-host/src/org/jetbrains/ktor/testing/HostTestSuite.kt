@@ -873,7 +873,9 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                 try {
                     withUrl("/") {
                         inputStream.reader().use { reader ->
-                            assertEquals('O', reader.read().toChar())
+                            val firstByte = reader.read()
+                            assertNotEquals(-1, firstByte)
+                            assertEquals('O', firstByte.toChar())
 
                             if (isBlocker) {
                                 Thread.sleep(1000)
