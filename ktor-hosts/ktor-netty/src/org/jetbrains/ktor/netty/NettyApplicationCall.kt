@@ -11,6 +11,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
+import java.io.*
 
 internal class NettyApplicationCall(application: Application,
                                     val context: ChannelHandlerContext,
@@ -62,7 +63,12 @@ internal class NettyApplicationCall(application: Application,
         ReferenceCountUtil.release(httpRequest)
         drops?.close(context)
 
-        response.finalize()
-        request.close()
+        try {
+            response.finalize()
+            request.close()
+        } catch (t: Throwable) {
+            context.close()
+            throw IOException("response finalization or request close failed", t)
+        }
     }
 }

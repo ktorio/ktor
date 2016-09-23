@@ -13,7 +13,7 @@ fun PipelineContext<*>.closeAtEnd(vararg closeables: Closeable) {
 private fun Closeable.closeQuietly() {
     try {
         close()
-    } catch (ignore: Throwable) {
+    } catch (ignore: IOException) {
     }
 }
 
