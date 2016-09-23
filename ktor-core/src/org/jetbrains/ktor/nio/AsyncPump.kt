@@ -29,7 +29,11 @@ class AsyncPump(bufferSize: Int = 8192, val from: ReadChannel, val to: WriteChan
         override fun failed(cause: Throwable) {
             state.set(State.DONE)
             done()
-            completionHandler.completeExceptionally(cause)
+
+            when (ignoreWriteError) {
+                true -> completionHandler.complete(totalCount)
+                false -> completionHandler.completeExceptionally(cause)
+            }
         }
     }
 
