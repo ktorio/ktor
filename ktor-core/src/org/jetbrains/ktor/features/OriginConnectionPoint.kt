@@ -5,7 +5,6 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.util.*
-import kotlin.properties.*
 import kotlin.reflect.*
 
 /**
@@ -19,13 +18,13 @@ val ApplicationRequest.origin: RequestConnectionPoint
 val MutableOriginConnectionPointKey = AttributeKey<MutableOriginConnectionPoint>("MutableOriginConnectionPointKey")
 
 class MutableOriginConnectionPoint(delegate: RequestConnectionPoint) : RequestConnectionPoint {
-    override var version by AssignableWithDelegate<RequestConnectionPoint, String>(delegate)
-    override var uri by AssignableWithDelegate<RequestConnectionPoint, String>(delegate)
-    override var method by AssignableWithDelegate<RequestConnectionPoint, HttpMethod>(delegate)
-    override var scheme by AssignableWithDelegate<RequestConnectionPoint, String>(delegate)
-    override var host by AssignableWithDelegate<RequestConnectionPoint, String>(delegate)
-    override var port by AssignableWithDelegate<RequestConnectionPoint, Int>(delegate)
-    override var remoteHost by AssignableWithDelegate<RequestConnectionPoint, String>(delegate)
+    override var version by AssignableWithDelegate { delegate.version }
+    override var uri by AssignableWithDelegate { delegate.uri }
+    override var method by AssignableWithDelegate { delegate.method }
+    override var scheme by AssignableWithDelegate { delegate.scheme }
+    override var host by AssignableWithDelegate { delegate.host }
+    override var port by AssignableWithDelegate { delegate.port }
+    override var remoteHost by AssignableWithDelegate { delegate.remoteHost }
 }
 
 object XForwardedHeadersSupport : ApplicationFeature<ApplicationCallPipeline, XForwardedHeadersSupport.Config, XForwardedHeadersSupport.Config> {
@@ -144,6 +143,7 @@ object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, Unit
 
     // do we need it public?
     private fun ApplicationRequest.forwarded() = headers.getAll(HttpHeaders.Forwarded)?.flatMap { parseHeaderValue(";" + it) }?.mapNotNull { parseForwardedValue(it) }
+
     private fun parseForwardedValue(value: HeaderValue): ForwardedHeaderValue? {
         val map = value.params.associateByTo(HashMap<String, String>(), { it.name }, { it.value })
 
@@ -163,15 +163,19 @@ private inline fun ApplicationCall.forEachHeader(headers: List<String>, block: (
     }
 }
 
-private class AssignableWithDelegate<D : Any, T : Any>(val delegate: D) : ReadWriteProperty<D, T> {
+private class AssignableWithDelegate<T : Any>(val property: () -> T) {
     private var assigned: T? = null
 
     @Suppress("UNCHECKED_CAST")
-    override fun getValue(thisRef: D, property: KProperty<*>): T = assigned ?: (delegate.javaClass.kotlin.declaredMemberProperties.first { it.name == property.name }.get(delegate) as T)
+    operator fun getValue(thisRef: Any, property: KProperty<*>): T = assigned ?: property()
 
-    override fun setValue(thisRef: D, property: KProperty<*>, value: T) {
+    operator fun setValue(thisRef: Any, property: KProperty<*>, value: T) {
         assigned = value
     }
 }
 
-private fun String.tryParseInt() = try { if (isNotEmpty()) toInt() else null } catch (nfe: NumberFormatException) { null }
+private fun String.tryParseInt() = try {
+    if (isNotEmpty()) toInt() else null
+} catch (nfe: NumberFormatException) {
+    null
+}
