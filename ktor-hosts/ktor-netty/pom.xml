@@ -10,7 +10,7 @@
     <artifactId>ktor-netty</artifactId>
 
     <properties>
-        <netty.version>4.1.2.Final</netty.version>
+        <netty.version>4.1.5.Final</netty.version>
     </properties>
 
     <dependencies>
@@ -27,7 +27,7 @@
         </dependency>
         <dependency>
             <groupId>io.netty</groupId>
-            <artifactId>netty-all</artifactId>
+            <artifactId>netty-codec-http2</artifactId>
             <version>${netty.version}</version>
         </dependency>
         <dependency>
