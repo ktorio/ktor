@@ -2,6 +2,7 @@ package org.jetbrains.ktor.testing
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
 import org.junit.*
@@ -37,7 +38,10 @@ abstract class HostTestBase<H : ApplicationHost> {
     protected abstract fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, block: Routing.() -> Unit): H
 
     protected fun createAndStartServer(envInit: ApplicationEnvironmentBuilder.() -> Unit = {}, block: Routing.() -> Unit): H {
-        val server = createServer(envInit, block)
+        val server = createServer(envInit, {
+            application.install(CallLogging)
+            block()
+        })
         startServer(server)
 
         return server
@@ -76,7 +80,7 @@ abstract class HostTestBase<H : ApplicationHost> {
         connection.readTimeout = 30000
         connection.instanceFollowRedirects = false
 
-        connection.block(port)
+            connection.block(port)
     }
 
     private fun withHttp2(url: URL, port: Int, block: Unit.(Int) -> Unit) {
