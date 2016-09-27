@@ -10,8 +10,8 @@ import java.util.concurrent.*
 import kotlin.test.*
 
 
-class BlockingApplication(environment: ApplicationEnvironment) : Application(environment) {
-    init {
+class BlockingApplication : ApplicationModule() {
+    override fun Application.install() {
         routing {
             get("/") { call ->
                 println("Sleeping")
