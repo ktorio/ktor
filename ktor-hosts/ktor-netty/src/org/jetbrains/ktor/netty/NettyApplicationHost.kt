@@ -12,7 +12,6 @@ import io.netty.handler.ssl.*
 import io.netty.handler.stream.*
 import io.netty.handler.timeout.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.http2.*
 import org.jetbrains.ktor.nio.*
