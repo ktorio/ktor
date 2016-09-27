@@ -28,8 +28,17 @@ object CallLogging : ApplicationFeature<Application, Unit, Unit> {
     }
 
     private fun Application.logCallFailed(call: ApplicationCall, e: Throwable) {
-        val status = call.response.status()
-        environment.log.error("$status: ${call.request.logInfo()}", e)
+        try {
+            val status = call.response.status()
+            environment.log.error("$status: ${call.request.logInfo()}", e)
+        } catch (oom: OutOfMemoryError) {
+            try {
+                environment.log.error(e)
+            } catch (oomAttempt2: OutOfMemoryError) {
+                System.err.print("OutOfMemoryError: ")
+                System.err.println(e.message)
+            }
+        }
     }
 
     private fun ApplicationRequest.logInfo() = "${httpMethod.value} - ${path()}"
