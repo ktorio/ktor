@@ -5,7 +5,7 @@ import java.util.concurrent.*
 
 fun <C : Any> PipelineContext<C>.runAsync(exec: Executor, block: PipelineContext<C>.() -> Unit): Nothing {
     exec.execute {
-        runBlock(block)
+        runBlockWithResult(block)
     }
 
     pause()
