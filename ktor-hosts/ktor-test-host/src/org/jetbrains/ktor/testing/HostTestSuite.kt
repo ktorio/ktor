@@ -31,7 +31,8 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         }
 
         withUrl("/") {
-            assertEquals("test", inputStream.reader().readText())
+            assertEquals(200, responseCode)
+            assertEquals("test", inputStream.reader().use { it.readText() })
         }
         withUrlHttp2("/") {
 //            assertEquals("test", contentAsString)
@@ -52,7 +53,8 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         }
 
         withUrl("/") {
-            assertEquals("ABC123", inputStream.reader().readText())
+            assertEquals(200, responseCode)
+            assertEquals("ABC123", inputStream.reader().use { it.readText() })
         }
     }
 
@@ -72,14 +74,16 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                 valuesOf("a" to listOf("1")).formUrlEncodeTo(it)
             }
 
-            assertEquals("a=1", inputStream.reader().readText())
+            assertEquals(200, responseCode)
+            assertEquals("a=1", inputStream.reader().use { it.readText() })
         }
 
         withUrl("/") {
             doOutput = false
             requestMethod = "GET"
 
-            assertEquals("", inputStream.reader().readText())
+            assertEquals(200, responseCode)
+            assertEquals("", inputStream.reader().use { it.readText() })
         }
     }
 
@@ -95,7 +99,8 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         }
 
         withUrl("/") {
-            assertEquals("ABC123", inputStream.reader().readText())
+            assertEquals(200, responseCode)
+            assertEquals("ABC123", inputStream.reader().use { it.readText() })
         }
     }
 
@@ -108,7 +113,8 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         }
 
         withUrl("/") {
-            assertEquals("Hello", inputStream.reader().readText())
+            assertEquals(200, responseCode)
+            assertEquals("Hello", inputStream.reader().use { it.readText() })
             assertTrue(ContentType.parse(getHeaderField(HttpHeaders.ContentType)).match(ContentType.Text.Plain))
         }
     }
@@ -152,6 +158,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         }
 
         withUrl("/") {
+            assertEquals(200, responseCode)
             assertEquals("test-etag", getHeaderField(HttpHeaders.ETag))
         }
     }
@@ -166,6 +173,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         }
 
         withUrl("/") {
+            assertEquals(200, responseCode)
             assertEquals("k1=v1; \$x-enc=URI_ENCODING", getHeaderField(HttpHeaders.SetCookie))
         }
     }
@@ -202,7 +210,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testStaticServeFromDir() {
-        val targetClasses = listOf(File("target/classes"), File("ktor-core/target/classes")).first { it.exists() }
+        val targetClasses = listOf(File("target/classes"), File("ktor-core/target/classes")).first(File::exists)
         val file = targetClasses.walkBottomUp().filter { it.extension == "class" }.first()
         testLog.trace("test file is $file")
 
@@ -246,7 +254,8 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         }
 
         withUrl("/") {
-            assertEquals(file.readText(), inputStream.reader().readText())
+            assertEquals(200, responseCode)
+            assertEquals(file.readText(), inputStream.reader().use { it.readText() })
         }
     }
 
@@ -264,7 +273,9 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
         withUrl("/") {
             addRequestProperty(HttpHeaders.AcceptEncoding, "gzip")
-            assertEquals(file.readText(), GZIPInputStream(inputStream).reader().readText())
+
+            assertEquals(200, responseCode)
+            assertEquals(file.readText(), GZIPInputStream(inputStream).reader().use { it.readText() })
             assertEquals("gzip", getHeaderField(HttpHeaders.ContentEncoding))
         }
     }
@@ -283,11 +294,15 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
         withUrl("/") {
             setRequestProperty(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
-            assertEquals("p", inputStream.reader().readText())
+
+            assertEquals(HttpStatusCode.PartialContent.value, responseCode)
+            assertEquals("p", inputStream.reader().use { it.readText() })
         }
         withUrl("/") {
             setRequestProperty(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(1, 2))).toString())
-            assertEquals("ac", inputStream.reader().readText())
+
+            assertEquals(HttpStatusCode.PartialContent.value, responseCode)
+            assertEquals("ac", inputStream.reader().use { it.readText() })
         }
     }
 
@@ -309,7 +324,8 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
             addRequestProperty(HttpHeaders.AcceptEncoding, "gzip")
             setRequestProperty(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
 
-            assertEquals("p", inputStream.reader().readText()) // it should be no compression if range requested
+            assertEquals(HttpStatusCode.PartialContent.value, responseCode)
+            assertEquals("p", inputStream.reader().use { it.readText() }) // it should be no compression if range requested
         }
     }
 
@@ -322,6 +338,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         }
 
         withUrl("/") {
+            assertEquals(200, responseCode)
             inputStream.buffered().use { it.readBytes() }.let { bytes ->
                 assertNotEquals(0, bytes.size)
 
@@ -343,6 +360,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         }
 
         withUrl("/") {
+            assertEquals(200, responseCode)
             inputStream.buffered().use { it.readBytes() }.let { bytes ->
                 assertNotEquals(0, bytes.size)
 
@@ -367,6 +385,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         }
 
         withUrl("/") {
+            assertEquals(200, responseCode)
             inputStream.buffered().use { it.readBytes() }.let { bytes ->
                 assertNotEquals(0, bytes.size)
 
@@ -391,9 +410,11 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         }
 
         withUrl("/a%20b") {
+            assertEquals(200, responseCode)
             assertEquals("space", inputStream.bufferedReader().use { it.readText() })
         }
         withUrl("/a+b") {
+            assertEquals(200, responseCode)
             assertEquals("plus", inputStream.bufferedReader().use { it.readText() })
         }
     }
@@ -420,7 +441,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
             }
 
             assertEquals(HttpStatusCode.OK.value, responseCode)
-            assertEquals("1,2", inputStream.bufferedReader().readText())
+            assertEquals("1,2", inputStream.bufferedReader().use { it.readText() })
         }
     }
 
@@ -471,6 +492,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                 }
             }
 
+            assertEquals(200, responseCode)
             assertEquals("POST test\nAnother line", inputStream.bufferedReader().use { it.readText() })
         }
     }
@@ -498,12 +520,13 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                 }
             }
 
+            assertEquals(200, responseCode)
             assertEquals("POST content", inputStream.bufferedReader().use { it.readText() })
         }
     }
 
     @Test
-    open fun testMultipartFileUpload() {
+    fun testMultipartFileUpload() {
         createAndStartServer() {
             post("/") {
                 thread {
@@ -549,6 +572,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                 }
             }
 
+            assertEquals(200, responseCode)
             assertEquals("a story=Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\nfile:attachment,original.txt,File content goes here\n", inputStream.bufferedReader().use { it.readText() })
         }
     }
@@ -563,12 +587,12 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
         withUrl("/") {
             setRequestProperty(HttpHeaders.Connection, "close")
-            assertEquals("Text", inputStream.bufferedReader().readText())
+            assertEquals("Text", inputStream.bufferedReader().use { it.readText() })
         }
 
         withUrl("/") {
             setRequestProperty(HttpHeaders.Connection, "close")
-            assertEquals("Text", inputStream.bufferedReader().readText())
+            assertEquals("Text", inputStream.bufferedReader().use { it.readText() })
         }
     }
 
@@ -583,12 +607,16 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
         withUrl("/") {
             setRequestProperty(HttpHeaders.Connection, "keep-alive")
-            assertEquals("Text", inputStream.bufferedReader().readText())
+
+            assertEquals(200, responseCode)
+            assertEquals("Text", inputStream.bufferedReader().use { it.readText() })
         }
 
         withUrl("/") {
             setRequestProperty(HttpHeaders.Connection, "keep-alive")
-            assertEquals("Text", inputStream.bufferedReader().readText())
+
+            assertEquals(200, responseCode)
+            assertEquals("Text", inputStream.bufferedReader().use { it.readText() })
         }
     }
 
@@ -609,7 +637,24 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                 it.write("Hello".toByteArray())
             }
 
-            assertEquals("Hello", inputStream.reader().readText())
+            assertEquals(200, responseCode)
+            assertEquals("Hello", inputStream.reader().use { it.readText() })
+        }
+    }
+
+    @Test
+    fun testRepeatRequest() {
+        createAndStartServer {
+            get("/") {
+                call.respond("OK ${call.request.queryParameters["i"]}")
+            }
+        }
+
+        for (i in 1..100) {
+            withUrl("/?i=$i") {
+                assertEquals(200, responseCode)
+                assertEquals("OK $i", inputStream.reader().use { it.readText() })
+            }
         }
     }
 
@@ -630,7 +675,8 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                 it.write("Hello".toByteArray())
             }
 
-            assertEquals("Hello", inputStream.reader().readText())
+            assertEquals(200, responseCode)
+            assertEquals("Hello", inputStream.reader().use { it.readText() })
         }
     }
 
@@ -644,8 +690,8 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         }
 
         withUrl("/") {
-            assertEquals("Hello", inputStream.reader().readText())
             assertEquals(HttpStatusCode.Found.value, responseCode)
+            assertEquals("Hello", inputStream.reader().use { it.readText() })
         }
     }
 
@@ -702,28 +748,28 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
             setRequestProperty(HttpHeaders.XForwardedHost, "my-host:90")
 
             val expectedProto = if (port == sslPort) "https" else "http"
-            assertEquals("$expectedProto://my-host:90/", inputStream.reader().readText())
+            assertEquals("$expectedProto://my-host:90/", inputStream.reader().use { it.readText() })
         }
 
         withUrl("/") { port ->
             setRequestProperty(HttpHeaders.XForwardedHost, "my-host")
 
             val expectedProto = if (port == sslPort) "https" else "http"
-            assertEquals("$expectedProto://my-host/", inputStream.reader().readText())
+            assertEquals("$expectedProto://my-host/", inputStream.reader().use { it.readText() })
         }
 
         withUrl("/") {
             setRequestProperty(HttpHeaders.XForwardedHost, "my-host:90")
             setRequestProperty(HttpHeaders.XForwardedProto, "https")
 
-            assertEquals("https://my-host:90/", inputStream.reader().readText())
+            assertEquals("https://my-host:90/", inputStream.reader().use { it.readText() })
         }
 
         withUrl("/") {
             setRequestProperty(HttpHeaders.XForwardedHost, "my-host")
             setRequestProperty(HttpHeaders.XForwardedProto, "https")
 
-            assertEquals("https://my-host/", inputStream.reader().readText())
+            assertEquals("https://my-host/", inputStream.reader().use { it.readText() })
         }
     }
 
@@ -746,43 +792,43 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         }
 
         withUrl("/path/1?p=v") {
-            assertEquals("/path/1", inputStream.reader().readText())
+            assertEquals("/path/1", inputStream.reader().use { it.readText() })
         }
         withUrl("/path/1?") {
-            assertEquals("/path/1", inputStream.reader().readText())
+            assertEquals("/path/1", inputStream.reader().use { it.readText() })
         }
         withUrl("/path/1") {
-            assertEquals("/path/1", inputStream.reader().readText())
+            assertEquals("/path/1", inputStream.reader().use { it.readText() })
         }
 
         withUrl("/document/1?p=v") {
-            assertEquals("1", inputStream.reader().readText())
+            assertEquals("1", inputStream.reader().use { it.readText() })
         }
         withUrl("/document/1?") {
-            assertEquals("1", inputStream.reader().readText())
+            assertEquals("1", inputStream.reader().use { it.readText() })
         }
         withUrl("/document/1") {
-            assertEquals("1", inputStream.reader().readText())
+            assertEquals("1", inputStream.reader().use { it.readText() })
         }
 
         withUrl("/queryString/1?p=v") {
-            assertEquals("p=v", inputStream.reader().readText())
+            assertEquals("p=v", inputStream.reader().use { it.readText() })
         }
         withUrl("/queryString/1?") {
-            assertEquals("", inputStream.reader().readText())
+            assertEquals("", inputStream.reader().use { it.readText() })
         }
         withUrl("/queryString/1") {
-            assertEquals("", inputStream.reader().readText())
+            assertEquals("", inputStream.reader().use { it.readText() })
         }
 
         withUrl("/uri/1?p=v") {
-            assertEquals("/uri/1?p=v", inputStream.reader().readText())
+            assertEquals("/uri/1?p=v", inputStream.reader().use { it.readText() })
         }
         withUrl("/uri/1?") {
-            assertEquals("/uri/1?", inputStream.reader().readText())
+            assertEquals("/uri/1?", inputStream.reader().use { it.readText() })
         }
         withUrl("/uri/1") {
-            assertEquals("/uri/1", inputStream.reader().readText())
+            assertEquals("/uri/1", inputStream.reader().use { it.readText() })
         }
     }
 
@@ -795,13 +841,13 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         }
 
         withUrl("/single?single=value") {
-            assertEquals("[value]", inputStream.reader().readText())
+            assertEquals("[value]", inputStream.reader().use { it.readText() })
         }
         withUrl("/multiple?multiple=value1&multiple=value2") {
-            assertEquals("[value1, value2]", inputStream.reader().readText())
+            assertEquals("[value1, value2]", inputStream.reader().use { it.readText() })
         }
         withUrl("/missing") {
-            assertEquals("null", inputStream.reader().readText())
+            assertEquals("null", inputStream.reader().use { it.readText() })
         }
     }
 
@@ -825,8 +871,6 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                 }
             }
         }, {
-            application.install(CallLogging)
-
             get("/") {
                 throw ExpectedException(message)
             }
@@ -834,7 +878,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
         withUrl("/") {
             assertFailsWith<IOException> {
-                inputStream.reader().readText()
+                inputStream.reader().use { it.readText() }
             }
 
             assertEquals(message, collected.single { it is ExpectedException }.message)
