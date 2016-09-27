@@ -100,7 +100,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         get() = NoPool
 
     protected fun PipelineContext<*>.sendAsyncChannel(channelProvider: () -> ReadChannel): Nothing {
-        // note: it is important to open response channel before we open request
+        // note: it is important to open response channel before we open content channel
         // otherwise we can hit deadlock on event-based hosts
 
         val response = responseChannel()
