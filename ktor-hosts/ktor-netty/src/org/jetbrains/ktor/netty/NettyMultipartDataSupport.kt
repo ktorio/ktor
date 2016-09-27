@@ -13,7 +13,7 @@ import java.util.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 
-internal class NettyMultiPartData(val decoder: HttpPostMultipartRequestDecoder, val kRequest: NettyApplicationRequest) : MultiPartData, SimpleChannelInboundHandler<DefaultHttpContent>(true) {
+internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestDecoder, private val kRequest: NettyApplicationRequest) : MultiPartData, SimpleChannelInboundHandler<DefaultHttpContent>(true) {
     // netty's decoder doesn't provide us headers so we have to parse it or try to reconstruct
     // TODO original headers
 
@@ -21,6 +21,7 @@ internal class NettyMultiPartData(val decoder: HttpPostMultipartRequestDecoder, 
     private val elementPresent = lock.newCondition()
     private val all = ArrayList<PartData>()
     private var completed = false
+    private var destroyed = false
 
     override val parts: Sequence<PartData>
         get() = when {
@@ -69,6 +70,13 @@ internal class NettyMultiPartData(val decoder: HttpPostMultipartRequestDecoder, 
         lock.withLock {
             completed = true
             elementPresent.signalAll()
+        }
+    }
+
+    internal fun destroy() {
+        if (!destroyed) {
+            destroyed = true
+            decoder.destroy()
         }
     }
 

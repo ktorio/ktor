@@ -84,7 +84,7 @@ internal class NettyApplicationRequest(
             val handlersToRemove = ArrayList<ChannelHandlerAdapter>()
 
             if (multipart.isInitialized()) {
-                multipart.value.decoder.destroy()
+                multipart.value.destroy()
                 handlersToRemove.add(multipart.value)
             }
             if (contentChannel.isInitialized()) {
