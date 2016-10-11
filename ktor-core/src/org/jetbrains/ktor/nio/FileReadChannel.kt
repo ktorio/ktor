@@ -13,7 +13,6 @@ class FileReadChannel(val fc: AsynchronousFileChannel, val start: Long = 0, val 
 
     init {
         require(start >= 0L) { "start position shouldn't be negative but it is $start"}
-        require(endInclusive >= start) { "endInclusive shouldn't be less than start but start = $start, endInclusive = $endInclusive" }
         require(endInclusive <= fc.size() - 1) { "endInclusive points to the position out of the file: file size = ${fc.size()}, endInclusive = $endInclusive" }
     }
 
