@@ -11,3 +11,4 @@ out
 release.properties
 
 .video
+.attach_pid*
