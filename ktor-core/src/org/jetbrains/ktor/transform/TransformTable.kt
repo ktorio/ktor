@@ -8,8 +8,6 @@ import kotlin.concurrent.*
 class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
     private val topParent: TransformTable<C> = parent?.topParent ?: parent ?: this
     private val handlersCounter: AtomicInteger = parent?.handlersCounter ?: AtomicInteger()
-    val maxHandlerId: Int
-        get() = handlersCounter.get() + 1
 
     private val superTypesCacheLock = ReentrantReadWriteLock()
     private val superTypesCache = HashMap<Class<*>, Array<Class<*>>>()
@@ -71,17 +69,10 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
 
     fun newHandlersSet() = HandlersSet<C>()
 
-    inner class HandlersSet<C : Any> : AbstractMutableSet<Handler<C, *>>() {
-        private var bitSet = BitSet()
+    class HandlersSet<out C : Any> {
+        private val bitSet = BitSet()
 
-        override val size: Int
-            get() = bitSet.cardinality()
-
-        override fun iterator(): MutableIterator<Handler<C, *>> {
-            throw UnsupportedOperationException()
-        }
-
-        override fun add(element: Handler<C, *>): Boolean {
+        fun add(element: Handler<C, *>): Boolean {
             if (bitSet[element.id]) {
                 return false
             }
@@ -90,7 +81,7 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
             return true
         }
 
-        override fun remove(element: Handler<C, *>): Boolean {
+        fun remove(element: Handler<C, *>): Boolean {
             if (bitSet[element.id]) {
                 bitSet[element.id] = false
                 return true
@@ -99,7 +90,7 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
             return false
         }
 
-        override fun contains(element: Handler<C, *>) = bitSet[element.id]
+        operator fun contains(element: Handler<C, *>) = bitSet[element.id]
     }
 
     private fun <T : Any> collectHandlers(type: Class<T>): List<Handler<C, T>> {
