@@ -1,11 +1,15 @@
 package org.jetbrains.ktor.transform
 
 import java.util.*
+import java.util.concurrent.atomic.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 
 class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
     private val topParent: TransformTable<C> = parent?.topParent ?: parent ?: this
+    private val handlersCounter: AtomicInteger = parent?.handlersCounter ?: AtomicInteger()
+    val maxHandlerId: Int
+        get() = handlersCounter.get() + 1
 
     private val superTypesCacheLock = ReentrantReadWriteLock()
     private val superTypesCache = HashMap<Class<*>, Array<Class<*>>>()
@@ -26,7 +30,7 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
 
     fun <T : Any> register(type: Class<T>, predicate: C.(T) -> Boolean, handler: C.(T) -> Any) {
         topParent.superTypes(type)
-        addHandler(type, Handler(predicate, handler))
+        addHandler(type, Handler(handlersCounter.getAndIncrement(), predicate, handler))
 
         handlersCacheLock.write {
             handlersCache.keys.filter { type.isAssignableFrom(it) }.forEach {
@@ -61,8 +65,41 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
             partialResult
     }
 
-    class Handler<in C : Any, in T> internal constructor(val predicate: C.(T) -> Boolean, val handler: C.(T) -> Any) {
+    class Handler<in C : Any, in T> internal constructor(val id: Int, val predicate: C.(T) -> Boolean, val handler: C.(T) -> Any) {
         override fun toString() = handler.toString()
+    }
+
+    fun newHandlersSet() = HandlersSet<C>()
+
+    inner class HandlersSet<C : Any> : AbstractMutableSet<Handler<C, *>>() {
+        private var bitSet = BitSet()
+
+        override val size: Int
+            get() = bitSet.cardinality()
+
+        override fun iterator(): MutableIterator<Handler<C, *>> {
+            throw UnsupportedOperationException()
+        }
+
+        override fun add(element: Handler<C, *>): Boolean {
+            if (bitSet[element.id]) {
+                return false
+            }
+
+            bitSet[element.id] = true
+            return true
+        }
+
+        override fun remove(element: Handler<C, *>): Boolean {
+            if (bitSet[element.id]) {
+                bitSet[element.id] = false
+                return true
+            }
+
+            return false
+        }
+
+        override fun contains(element: Handler<C, *>) = bitSet[element.id]
     }
 
     private fun <T : Any> collectHandlers(type: Class<T>): List<Handler<C, T>> {
@@ -77,9 +114,6 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
                     result.addAll(hh as List<Handler<C, T>>)
                 }
             }
-
-//            @Suppress("UNCHECKED_CAST")
-//            superTypes.flatMapTo(result) { type -> handlers[type].orEmpty() as List<Handler<C, T>> }
         }
 
         return if (result.isEmpty()) emptyList() else result
