@@ -28,7 +28,7 @@ fun PipelineContext<ResponsePipelineState>.proceed(message: Any): Nothing {
 fun <C : Any> TransformTable<C>.transform(ctx: C, obj: Any) = transformImpl(ctx, obj)
 
 tailrec
-private fun <C : Any, T : Any> TransformTable<C>.transformImpl(ctx: C, obj: T, handlers: List<TransformTable.Handler<C, T>> = handlers(obj.javaClass), visited: MutableSet<TransformTable.Handler<C, *>> = HashSet()): Any {
+private fun <C : Any, T : Any> TransformTable<C>.transformImpl(ctx: C, obj: T, handlers: List<TransformTable.Handler<C, T>> = handlers(obj.javaClass), visited: MutableSet<TransformTable.Handler<C, *>> = HashSet(handlers.size * 2)): Any {
     for (handler in handlers) {
         if (handler !in visited && handler.predicate(ctx, obj)) {
             val result = handler.handler(ctx, obj)

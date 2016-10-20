@@ -15,6 +15,10 @@ class ApplicationTransform<C : Any>(private val parent: TransformTable<C>? = nul
     }
 
     fun <T : Any> register(type: KClass<T>, predicate: C.(T) -> Boolean, handler: C.(T) -> Any) {
+        register(type.javaObjectType, predicate, handler)
+    }
+
+    fun <T : Any> register(type: Class<T>, predicate: C.(T) -> Boolean, handler: C.(T) -> Any) {
         if (table === parent) {
             table = TransformTable(parent)
         }
@@ -23,5 +27,5 @@ class ApplicationTransform<C : Any>(private val parent: TransformTable<C>? = nul
     }
 
     fun <T : Any> handlers(type: Class<T>) = table.handlers(type)
-    inline fun <reified T : Any> handlers() = handlers(T::class.java)
+    inline fun <reified T : Any> handlers() = handlers(T::class.javaObjectType)
 }
