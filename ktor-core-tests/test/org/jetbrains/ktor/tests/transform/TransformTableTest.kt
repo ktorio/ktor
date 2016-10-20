@@ -138,7 +138,52 @@ class TransformTableTest {
         events.clear()
         table.register<BO> { events.add("BO"); it }
         table.transform(Unit, BO)
-        assertEquals("BOBLIBORI", events.joinToString("").replace("RL", "LR"))
+        assertEquals("BO,B,L,R,I", events.joinToString(",").replace("R,L", "L,R"))
+    }
+
+    @Test
+    fun testTablesInheritance1() {
+        val subTable = TransformTable(table)
+
+        table.register<CharSequence> { it.length }
+        subTable.register<String> { -it.length }
+
+        assertEquals(-2, subTable.transform(Unit, "OK"))
+        assertEquals(2, subTable.transform(Unit, StringBuilder("OK")))
+    }
+
+    @Test
+    fun testTablesInheritance2() {
+        val subTable = TransformTable(table)
+
+        table.register<String> { it.length }
+        subTable.register<CharSequence> { -it.length }
+
+        assertEquals(-2, subTable.transform(Unit, "OK"))
+        assertEquals(-2, subTable.transform(Unit, StringBuilder("OK")))
+    }
+
+    @Test
+    fun testLoop() {
+        table.register<String> { it + "." }
+
+        assertEquals("OK.", table.transform(Unit, "OK"))
+    }
+
+    @Test
+    @Ignore
+    fun testTableInheritanceLoop() {
+        table.register<String> { it.length }
+
+        val subTable = TransformTable(table)
+        subTable.register<CharSequence> { -it.length }
+        val sb = StringBuilder("OK")
+
+        while (true) {
+            if(-2 != subTable.transform(Unit, sb)) {
+                fail()
+            }
+        }
     }
 
     interface I
