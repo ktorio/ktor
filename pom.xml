@@ -20,6 +20,7 @@
         <module>ktor-core-tests</module>
         <module>ktor-features</module>
         <module>ktor-hosts</module>
+        <module>ktor-samples</module>
     </modules>
 
     <profiles>
