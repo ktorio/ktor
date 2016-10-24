@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.pipeline
 
+import java.util.*
+
 class PipelinePhase(val name: String) {
     override fun toString() = "Phase('$name')"
 }
@@ -18,6 +20,7 @@ class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
     }
 
     private val _phases = phases.mapTo(mutableListOf<PhaseContent<TSubject>>()) { PhaseContent(it, PipelinePhaseRelation.Last(), mutableListOf()) }
+    private var interceptorsQuantity = 0
 
     val items : List<PipelinePhase> get() = _phases.map { it.phase }
 
@@ -43,27 +46,29 @@ class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
     }
 
     fun interceptors(): List<PipelineContext<TSubject>.(TSubject) -> Unit> {
-        return _phases.flatMap { it.interceptors }
+        return _phases.flatMapTo(ArrayList(interceptorsQuantity)) { it.interceptors }
     }
 
     fun intercept(phase: PipelinePhase, block: PipelineContext<TSubject>.(TSubject) -> Unit) {
-        val phaseContent = _phases.firstOrNull() { it.phase == phase }
+        val phaseContent = _phases.firstOrNull { it.phase == phase }
                 ?: throw InvalidPhaseException("Phase $phase was not registered for this pipeline")
 
         phaseContent.interceptors.add(block)
+        interceptorsQuantity ++
     }
 
     fun merge(from: PipelinePhases<TSubject>) {
         from._phases.forEach { content ->
-            val phaseContent = _phases.firstOrNull() { it.phase == content.phase } ?: run {
+            val phaseContent = _phases.firstOrNull { it.phase == content.phase } ?: run {
                 when (content.relation) {
                     is PipelinePhaseRelation.Last -> add(content.phase)
                     is PipelinePhaseRelation.Before -> insertBefore(content.relation.relativeTo, content.phase)
                     is PipelinePhaseRelation.After -> insertAfter(content.relation.relativeTo, content.phase)
                 }
-                _phases.first() { it.phase == content.phase }
+                _phases.first { it.phase == content.phase }
             }
             phaseContent.interceptors.addAll(content.interceptors)
+            interceptorsQuantity += content.interceptors.size
         }
     }
 }
