@@ -9,6 +9,7 @@ internal class LastDropsCollectorHandler : SimpleChannelInboundHandler<DefaultHt
     private val collected = ArrayList<DefaultHttpContent>()
     private var completed = false
     private var transferred = false
+    private var removed = false
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: DefaultHttpContent) {
         collected.add(msg)
@@ -36,17 +37,27 @@ internal class LastDropsCollectorHandler : SimpleChannelInboundHandler<DefaultHt
         completed = false
     }
 
+    override fun handlerRemoved(ctx: ChannelHandlerContext?) {
+        removed = true
+        super.handlerRemoved(ctx)
+    }
+
     fun close(context: ChannelHandlerContext) {
         if (!transferred) {
-            try {
-                context.pipeline().remove(this)
-            } catch (ignore: NoSuchElementException) {
-            }
+            context.executeInLoop {
+                try {
+                    if (!removed) {
+                        context.pipeline().remove(this)
+                    }
+                } catch (ignore: NoSuchElementException) {
+                }
 
-            for (content in collected) {
-                ReferenceCountUtil.release(content)
+                for (content in collected) {
+                    ReferenceCountUtil.release(content)
+                }
+
+                collected.clear()
             }
-            collected.clear()
         }
     }
 }

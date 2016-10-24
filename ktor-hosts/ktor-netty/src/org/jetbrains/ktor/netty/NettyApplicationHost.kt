@@ -39,8 +39,6 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             channel(NioServerSocketChannel::class.java)
             childHandler(object : ChannelInitializer<SocketChannel>() {
                 override fun initChannel(ch: SocketChannel) {
-                    val alpnProvider = findAlpnProvider()
-
                     with(ch.pipeline()) {
                         if (ktorConnector is HostSSLConnectorConfig) {
                             val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
@@ -154,6 +152,8 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     companion object {
+        val alpnProvider by lazy { findAlpnProvider() }
+
         fun findAlpnProvider(): SslProvider? {
             val jettyAlpn = try {
                 Class.forName("sun.security.ssl.ALPNExtension", true, null)
