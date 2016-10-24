@@ -21,16 +21,11 @@ interface ValuesMap {
 }
 
 private class ValuesMapImpl(override val caseInsensitiveKey: Boolean = false, source: Map<String, Iterable<String>> = emptyMap()) : ValuesMap {
-    private val values = LinkedHashMap<String, List<String>>(source.size)
-    private val nameMapping = HashMap<String, String>(source.size) // map lowercased -> real case
+    private val values: MutableMap<String, List<String>> = if (caseInsensitiveKey) CaseInsensitiveMap(source.size) else LinkedHashMap(source.size)
 
     init {
         if (source.isNotEmpty()) {
             values.putAll(source.entries.map { it.key to it.value.toList() })
-
-            if (caseInsensitiveKey) {
-                nameMapping.putAll(source.keys.map { it.toLowerCase() to it })
-            }
         }
     }
 
@@ -44,12 +39,11 @@ private class ValuesMapImpl(override val caseInsensitiveKey: Boolean = false, so
     override fun isEmpty() = values.isEmpty()
     override fun entries() = Collections.unmodifiableSet(values.entries)
 
-    private fun listForKey(key: String): List<String>? = values[key] ?: values[nameMapping[key.toLowerCase()]]
+    private fun listForKey(key: String): List<String>? = values[key]
 }
 
 class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
-    private val values = LinkedHashMap<String, MutableList<String>>(size)
-    private val nameMapping = HashMap<String, String>(size) // map lowercased -> real case
+    private val values: MutableMap<String, MutableList<String>> = if (caseInsensitiveKey) CaseInsensitiveMap(size) else LinkedHashMap(size)
 
     fun getAll(name: String): List<String>? = listForKey(name)
     fun contains(name: String, value: String) = listForKey(name)?.contains(value) ?: false
@@ -59,13 +53,13 @@ class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
     fun entries(): Set<Map.Entry<String, List<String>>> = Collections.unmodifiableSet(values.entries)
 
     operator fun set(name: String, value: String) {
-        val list = ensureListForKey(name)
+        val list = ensureListForKey(name, 1)
         list.clear()
         list.add(value)
     }
 
     fun append(name: String, value: String) {
-        ensureListForKey(name).add(value)
+        ensureListForKey(name, 1).add(value)
     }
 
     fun appendAll(valuesMap: ValuesMap) {
@@ -79,7 +73,7 @@ class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
     }
 
     fun appendAll(key: String, values: Iterable<String>) {
-        ensureListForKey(key).addAll(values)
+        ensureListForKey(key, (values as? Collection)?.size ?: 2).addAll(values)
     }
 
     fun appendMissing(key: String, values: Iterable<String>) {
@@ -90,7 +84,6 @@ class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
 
     fun remove(name: String) {
         values.remove(name)
-        nameMapping.remove(name.toLowerCase())
     }
 
     fun removeKeysWithNoEntries() {
@@ -103,33 +96,25 @@ class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
 
     fun clear() {
         values.clear()
-        nameMapping.clear()
     }
 
     fun build(): ValuesMap = ValuesMapImpl(caseInsensitiveKey, values)
 
-    private fun ensureListForKey(key: String): MutableList<String> {
+    private fun ensureListForKey(key: String, size: Int): MutableList<String> {
         val existing = listForKey(key)
         if (existing != null) {
             return existing
         }
 
-        appendNewKey(key)
-        return ensureListForKey(key)
+        appendNewKey(key, size)
+        return ensureListForKey(key, size)
     }
 
-    private fun appendNewKey(key: String) {
-        values[key] = ArrayList()
-
-        if (caseInsensitiveKey) {
-            val keyLC = key.toLowerCase()
-            if (key != keyLC) {
-                nameMapping[keyLC] = key
-            }
-        }
+    private fun appendNewKey(key: String, size: Int) {
+        values[key] = ArrayList(size)
     }
 
-    private fun listForKey(key: String): MutableList<String>? = values[key] ?: values[nameMapping[key.toLowerCase()]]
+    private fun listForKey(key: String): MutableList<String>? = values[key]
 }
 
 fun valuesOf(vararg pairs: Pair<String, List<String>>): ValuesMap {
