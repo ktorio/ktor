@@ -9,13 +9,17 @@ import org.jetbrains.ktor.tests.*
 import org.openjdk.jmh.annotations.*
 import org.openjdk.jmh.runner.*
 import org.openjdk.jmh.runner.options.*
+import java.io.*
 import java.util.concurrent.*
 
 
 @State(Scope.Benchmark)
 open class FullBenchmark {
     private val testHost: TestApplicationHost = createTestHost()
-    private val classSignature =  listOf(0xca, 0xfe, 0xba, 0xbe).map(Int::toByte)
+    private val classSignature = listOf(0xca, 0xfe, 0xba, 0xbe).map(Int::toByte)
+    private val packageName = FullBenchmark::class.java.`package`.name
+    private val classFileName = FullBenchmark::class.simpleName!! + ".class"
+    private val pomFile = File("pom.xml")
 
     @Setup
     fun configureServer() {
@@ -25,6 +29,12 @@ open class FullBenchmark {
             }
             get("/jarfile") {
                 call.respond(call.resolveClasspathWithPath("java/lang/", "String.class")!!)
+            }
+            get("/regularClasspathFile") {
+                call.respond(call.resolveClasspathWithPath(packageName, classFileName)!!)
+            }
+            get("/regularFile") {
+                call.respond(LocalFileContent(pomFile))
             }
         }
     }
@@ -43,6 +53,18 @@ open class FullBenchmark {
         }
     }
 
+    @Benchmark
+    fun sayClasspathResourceRegular() = handle("/regularClasspathFile") {
+        if (response.byteContent!!.take(4) != classSignature) {
+            throw IllegalStateException("Wrong class signature")
+        }
+    }
+
+    @Benchmark
+    fun sayRegularFile() = handle("/regularFile") {
+        response.byteContent
+    }
+
     private inline fun <R> handle(url: String, block: TestApplicationCall.() -> R) = testHost.handleRequest(HttpMethod.Get, url).apply {
         await()
 
@@ -56,24 +78,26 @@ open class FullBenchmark {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            val options = OptionsBuilder()
-                    .mode(Mode.AverageTime)
-                    .timeUnit(TimeUnit.MICROSECONDS)
-                    .include(FullBenchmark::class.java.name)
-                    .warmupIterations(7)
-                    .measurementIterations(25)
-                    .measurementTime(TimeValue.milliseconds(500))
-                    .forks(1)
+            if (args.firstOrNull() != "profile") {
+                val options = OptionsBuilder()
+                        .mode(Mode.AverageTime)
+                        .timeUnit(TimeUnit.MICROSECONDS)
+                        .include(FullBenchmark::class.java.name)
+                        .warmupIterations(7)
+                        .measurementIterations(20)
+                        .measurementTime(TimeValue.milliseconds(500))
+                        .forks(1)
 
-            Runner(options.build()).run()
+                Runner(options.build()).run()
+            } else {
+                FullBenchmark().apply {
+                    configureServer()
 
-//            FullBenchmark().apply {
-//                configureServer()
-//
-//                while (true) {
-//                    sayClasspathResourceFromJar()
-//                }
-//            }
+                    while (true) {
+                        sayClasspathResourceRegular()
+                    }
+                }
+            }
         }
     }
 }
