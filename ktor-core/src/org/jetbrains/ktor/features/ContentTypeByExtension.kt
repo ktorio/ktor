@@ -1,13 +1,14 @@
 package org.jetbrains.ktor.features
 
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.util.CaseInsensitiveMap
 import java.util.logging.*
 
 object ContentTypeByExtension {
     private val contentTypesFileName = "mimelist.csv"
 
     val contentTypesByExtensions: Map<String, List<ContentType>> by lazy {
-        processRecords { ext, contentType -> ext to contentType }
+        processRecords { ext, contentType -> ext to contentType }.let { records -> CaseInsensitiveMap<List<ContentType>>(records.size).apply { putAll(records) } }
     }
 
     private val extensionsByContentType: Map<ContentType, List<String>> by lazy {
@@ -21,7 +22,7 @@ object ContentTypeByExtension {
     }
 
     fun lookupByExtension(ext: String): List<ContentType> {
-        var current = ext.removePrefix(".").toLowerCase()
+        var current = ext.removePrefix(".")
         while (current.isNotEmpty()) {
             val type = contentTypesByExtensions[current]
             if (type != null) {
