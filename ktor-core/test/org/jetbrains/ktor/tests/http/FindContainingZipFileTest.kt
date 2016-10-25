@@ -8,16 +8,16 @@ import kotlin.test.*
 class FindContainingZipFileTest {
     @Test
     fun testSimpleJar() {
-        assertEquals("/dist/app.jar", findContainingZipFile(URI("jar:file:/dist/app.jar/")).path.replace('\\', '/'))
+        assertEquals("/dist/app.jar", findContainingZipFile("jar:file:/dist/app.jar!/test").path.replace('\\', '/'))
     }
 
     @Test
-    fun testNestedJar() {
-        assertEquals("/dist/app.jar", findContainingZipFile(URI("jar:jar:file:/dist/app.jar!/my/jar.jar!/")).path.replace('\\', '/'))
+    fun testSimpleJarNoFile() {
+        assertEquals("/dist/app.jar", findContainingZipFile("jar:file:/dist/app.jar!").path.replace('\\', '/'))
     }
 
     @Test
     fun testEscapedChars() {
-        assertEquals("/Program Files/app.jar", findContainingZipFile(URI("jar:file:/Program%20Files/app.jar/")).path.replace('\\', '/'))
+        assertEquals("/Program Files/app.jar", findContainingZipFile("jar:file:/Program%20Files/app.jar!/test").path.replace('\\', '/'))
     }
 }

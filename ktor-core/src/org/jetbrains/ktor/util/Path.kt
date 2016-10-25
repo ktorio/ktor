@@ -4,7 +4,7 @@ import java.io.*
 import java.nio.file.*
 
 fun Path.extension() = fileName.toString().substringAfter(".")
-fun String.extension() = split("/\\").last().substringAfter(".")
+fun String.extension() = Math.max(lastIndexOf("/"), lastIndexOf("\\")).let { if (it == -1) this else substring(it + 1) }
 fun File.safeAppend(relativePath: Path): File {
     val normalized = relativePath.normalizeAndRelativize()
     if (normalized.startsWith("..")) {
@@ -23,4 +23,4 @@ fun Path.safeAppend(relativePath: Path): Path {
     return resolve(normalized)
 }
 
-fun Path.normalizeAndRelativize() = root?.relativize(this)?.normalize() ?: normalize()
+fun Path.normalizeAndRelativize() = root?.relativize(this)?.normalize() ?: normalize()!!
