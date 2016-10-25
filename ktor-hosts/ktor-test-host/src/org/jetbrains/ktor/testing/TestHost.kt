@@ -149,7 +149,16 @@ class TestApplicationCall(application: Application, override val request: TestAp
         pause()
     }
 
-    override fun responseChannel(): WriteChannel = response.realContent.value
+    override fun responseChannel(): WriteChannel = response.realContent.value.apply {
+        response.headers[HttpHeaders.ContentLength]?.let { contentLengthString ->
+            val contentLength = contentLengthString.toLong()
+            if (contentLength >= Int.MAX_VALUE) {
+                throw IllegalStateException("Content length is too big for test host")
+            }
+
+            ensureCapacity(contentLength.toInt())
+        }
+    }
 
     fun await() {
         latch.await()
@@ -260,7 +269,7 @@ class TestApplicationResponse(call: ApplicationCall, respondPipeline: RespondPip
 
     val content: String?
         get() = if (realContent.isInitialized()) {
-            realContent.value.toByteArray().toString(headers[HttpHeaders.ContentType]?.let { ContentType.parse(it).charset() } ?: Charsets.UTF_8)
+            realContent.value.toString(headers[HttpHeaders.ContentType]?.let { ContentType.parse(it).charset() } ?: Charsets.UTF_8)
         } else {
             null
         }
