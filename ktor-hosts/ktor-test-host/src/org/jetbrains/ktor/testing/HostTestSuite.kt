@@ -452,9 +452,9 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                 handle {
                     val inChannel = call.request.content.get<ReadChannel>()
                     val buffer = ByteArrayWriteChannel()
-                    val readFuture = CompletableFuture<Long>()
+                    val readFuture = CompletableFuture<Unit>()
 
-                    readFuture.whenComplete { size, throwable ->
+                    readFuture.whenComplete { unit, throwable ->
                         if (throwable != null) {
                             failAndProceed(throwable)
                         }

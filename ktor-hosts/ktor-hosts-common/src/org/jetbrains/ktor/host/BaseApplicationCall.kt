@@ -31,7 +31,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     protected val respondPipeline = RespondPipeline()
     protected val HostRespondPhase = PipelinePhase("HostRespondPhase")
     protected val HostRespondFinalizationPhase = PipelinePhase("HostRespondFinalizationPhase")
-    protected val responseContentTransferFuture = CompletableFuture<Long>()
+    protected val responseContentTransferFuture = CompletableFuture<Unit>()
     private var finalizeAction: (PipelineContext<*>) -> Nothing = { context ->
         writeStartedAction(context, responseContentTransferFuture)
     }
