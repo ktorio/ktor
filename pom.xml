@@ -36,39 +36,33 @@
             <id>bintray</id>
         </profile>
         <profile>
-            <id>kotlin-snapshot</id>
+            <id>kotlin-1.1</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
             </activation>
             <properties>
-                <kotlin.version>1.1-SNAPSHOT</kotlin.version>
+                <kotlin.version>1.1.0-dev-4137</kotlin.version>
             </properties>
 
             <repositories>
                 <repository>
-                    <id>sonatype.oss.snapshots</id>
-                    <name>Sonatype OSS Snapshot Repository</name>
-                    <url>http://oss.sonatype.org/content/repositories/snapshots</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
                     <snapshots>
-                        <enabled>true</enabled>
+                        <enabled>false</enabled>
                     </snapshots>
+                    <id>bintray-kotlin-kotlin-dev</id>
+                    <name>bintray</name>
+                    <url>http://dl.bintray.com/kotlin/kotlin-dev</url>
                 </repository>
             </repositories>
 
             <pluginRepositories>
                 <pluginRepository>
-                    <id>sonatype.oss.snapshots</id>
-                    <name>Sonatype OSS Snapshot Repository</name>
-                    <url>http://oss.sonatype.org/content/repositories/snapshots</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
                     <snapshots>
-                        <enabled>true</enabled>
+                        <enabled>false</enabled>
                     </snapshots>
+                    <id>bintray-kotlin-kotlin-dev</id>
+                    <name>bintray-plugins</name>
+                    <url>http://dl.bintray.com/kotlin/kotlin-dev</url>
                 </pluginRepository>
             </pluginRepositories>
         </profile>
@@ -200,7 +194,7 @@
             <plugin>
                 <groupId>com.devexperts.bintray</groupId>
                 <artifactId>bintray-maven-plugin</artifactId>
-                <version>1.0.1</version>
+                <version>1.1</version>
                 <executions>
                     <execution>
                         <id>bintray-deploy</id>
