@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.application
 
-import org.jetbrains.ktor.features.*
 import java.util.concurrent.*
 
 /**
