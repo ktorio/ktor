@@ -11,7 +11,7 @@ class PipelineMachine() {
     }
 
     fun <T : Any> execute(subject: T, pipeline: Pipeline<T>): Nothing {
-        pushExecution(subject, pipeline.interceptors)
+        pushExecution(subject, pipeline.phases.interceptors())
 
         if (executionStack.size == 1) {
             // machine is starting

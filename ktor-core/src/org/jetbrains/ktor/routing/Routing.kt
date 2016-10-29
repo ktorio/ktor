@@ -5,34 +5,19 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
 class Routing(val application: Application) : Route(parent = null, selector = RootRouteSelector) {
-    private fun interceptor(call: ApplicationCall) {
+    private fun interceptor(context: PipelineContext<ApplicationCall>) {
+        val call = context.call
         val resolveContext = RoutingResolveContext(this, call, call.parameters, call.request.headers)
         val resolveResult = resolveContext.resolve()
         if (resolveResult.succeeded) {
-            val routingCall = RoutingApplicationCall(call, resolveResult.entry, resolveResult.values)
-            val pipeline = buildEntryPipeline(resolveResult.entry)
-            call.execution.execute(routingCall, pipeline)
+            executeResult(context, resolveResult.entry, resolveResult.values)
         }
     }
 
-    private fun buildEntryPipeline(entry: Route): Pipeline<ApplicationCall> {
-        var current: Route? = entry
-        val pipeline = ApplicationCallPipeline()
-        val pipelines = mutableListOf<ApplicationCallPipeline>()
-        while (current != null) {
-            pipelines.add(current)
-            current = current.parent
-        }
-
-        for (index in pipelines.lastIndex downTo 0) {
-            pipeline.merge(pipelines[index])
-        }
-
-        val handlers = entry.handlers
-        for (index in 0..handlers.lastIndex) {
-            pipeline.intercept(ApplicationCallPipeline.Call, handlers[index])
-        }
-        return pipeline
+    private fun executeResult(context: PipelineContext<ApplicationCall>, route: Route, parameters: ValuesMap) {
+        val routingCall = RoutingApplicationCall(context.call, route, parameters)
+        val pipeline = route.buildPipeline()
+        context.fork(routingCall, pipeline)
     }
 
     companion object Feature : ApplicationFeature<Application, Routing, Routing> {
@@ -40,7 +25,7 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
 
         override fun install(pipeline: Application, configure: Routing.() -> Unit): Routing {
             val routing = Routing(pipeline).apply(configure)
-            pipeline.intercept(ApplicationCallPipeline.Call) { routing.interceptor(it) }
+            pipeline.intercept(ApplicationCallPipeline.Call) { routing.interceptor(this) }
             return routing
         }
     }
