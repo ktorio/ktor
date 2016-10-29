@@ -1,16 +1,12 @@
-package org.jetbrains.ktor.tests.full
+package org.jetbrains.ktor.tests
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
-import org.jetbrains.ktor.tests.*
 import org.openjdk.jmh.annotations.*
-import org.openjdk.jmh.runner.*
-import org.openjdk.jmh.runner.options.*
 import java.io.*
-import java.util.concurrent.*
 
 
 @State(Scope.Benchmark)
@@ -74,30 +70,20 @@ open class FullBenchmark {
 
         block()
     }
+}
 
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            if (args.firstOrNull() != "profile") {
-                val options = OptionsBuilder()
-                        .mode(Mode.AverageTime)
-                        .timeUnit(TimeUnit.MICROSECONDS)
-                        .include(FullBenchmark::class.java.name)
-                        .warmupIterations(7)
-                        .measurementIterations(20)
-                        .measurementTime(TimeValue.milliseconds(500))
-                        .forks(1)
-
-                Runner(options.build()).run()
-            } else {
-                FullBenchmark().apply {
-                    configureServer()
-
-                    while (true) {
-                        sayClasspathResourceRegular()
-                    }
-                }
+fun main(args: Array<String>) {
+    if (args.firstOrNull() == "profile") {
+        FullBenchmark().apply {
+            configureServer()
+            repeat(iterations) {
+                sayClasspathResourceRegular()
             }
         }
+        return
+    }
+
+    benchmark {
+        include<FullBenchmark>()
     }
 }

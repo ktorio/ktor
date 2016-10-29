@@ -1,11 +1,7 @@
-package org.jetbrains.ktor.tests.transform
+package org.jetbrains.ktor.tests
 
 import org.jetbrains.ktor.transform.*
 import org.openjdk.jmh.annotations.*
-
-import org.openjdk.jmh.runner.*
-import org.openjdk.jmh.runner.options.*
-import java.util.concurrent.*
 
 @State(Scope.Benchmark)
 open class TransformBenchmark {
@@ -51,16 +47,7 @@ open class TransformBenchmark {
 }
 
 fun main(args: Array<String>) {
-    val options = OptionsBuilder()
-            .mode(Mode.AverageTime)
-            .timeUnit(TimeUnit.MICROSECONDS)
-            .include(TransformBenchmark::class.java.name)
-            .warmupIterations(7)
-            .measurementIterations(25)
-            .measurementTime(TimeValue.milliseconds(500))
-            .jvm("/usr/java/jdk-9/bin/java")
-            .forks(1)
-
-    Runner(options.build()).run()
-
+    benchmark {
+        include<TransformBenchmark>()
+    }
 }
