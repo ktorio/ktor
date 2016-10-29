@@ -17,13 +17,10 @@ fun encodeURLPart(s: String): String {
 fun decodeURLQueryComponent(s: String): String = decode(s, true, Charsets.UTF_8)
 fun decodeURLPart(s: String): String = decode(s, false, Charsets.UTF_8)
 
-private val hexLow = "0123456789abcdef"
-private val hexHigh = "0123456789ABCDEF"
-
 /**
  * Optimized version of [URLDecoder.decode]
  */
-private fun decode(s: String, plusIsSpace: Boolean, enc: Charset): String {
+private fun decode(s: String, plusIsSpace: Boolean, charset: Charset): String {
     // cache length on stack
     val length = s.length
 
@@ -65,12 +62,10 @@ private fun decode(s: String, plusIsSpace: Boolean, enc: Charset): String {
                 // fill ByteArray with all the bytes, so Charset can decode text
                 var count = 0
                 while (index + 2 < length && s[index] == '%') {
-                    val c1 = s[index + 1]
-                    val c2 = s[index + 2]
-                    val digit1 = hexLow.indexOf(c1).let { if (it == -1) hexHigh.indexOf(c1) else it }
-                    val digit2 = hexLow.indexOf(c2).let { if (it == -1) hexHigh.indexOf(c2) else it }
+                    val digit1 = charToHexDigit(s[index + 1])
+                    val digit2 = charToHexDigit(s[index + 2])
                     if (digit1 == -1 || digit2 == -1)
-                        throw IllegalArgumentException("Escaped text `$c1$c2` is not a hex byte representation")
+                        break
 
                     bytes[count++] = (digit1 * 16 + digit2).toByte()
                     index += 3
@@ -78,7 +73,7 @@ private fun decode(s: String, plusIsSpace: Boolean, enc: Charset): String {
 
                 // Decode chars from bytes and put into StringBuilder
                 // Note: Tried using ByteBuffer and using enc.decode() – it's slower
-                sb.append(java.lang.String(bytes, 0, count, enc))
+                sb.append(java.lang.String(bytes, 0, count, charset))
             }
             else -> {
                 // Append text if we already has a difference with the original string
@@ -90,4 +85,11 @@ private fun decode(s: String, plusIsSpace: Boolean, enc: Charset): String {
     }
 
     return if (sb != null) sb.toString() else s
+}
+
+private fun charToHexDigit(c2: Char) = when (c2) {
+    in '0'..'9' -> c2 - '0'
+    in 'A'..'F' -> c2 - 'A' + 10
+    in 'a'..'f' -> c2 - 'a' + 10
+    else -> -1
 }
