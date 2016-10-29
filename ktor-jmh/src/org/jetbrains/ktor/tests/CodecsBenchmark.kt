@@ -23,11 +23,11 @@ open class CodecsBenchmark {
 }
 
 /*
-CodecsBenchmark.decodeHex        thrpt   25    2695.780 ±   52.937  ops/ms
-CodecsBenchmark.decodeHexJava    thrpt   25    1134.299 ±   18.629  ops/ms
+CodecsBenchmark.decodeHex        thrpt   25    2565.009 ±  121.976  ops/ms
+CodecsBenchmark.decodeHexJava    thrpt   25    1172.826 ±   30.980  ops/ms
 
-CodecsBenchmark.decodePlain      thrpt   25  102850.462 ± 2158.148  ops/ms
-CodecsBenchmark.decodePlainJava  thrpt   25   18082.128 ±  167.538  ops/ms
+CodecsBenchmark.decodePlain      thrpt   25  143535.384 ± 1981.501  ops/ms
+CodecsBenchmark.decodePlainJava  thrpt   25   16704.193 ±  234.256  ops/ms
  */
 
 fun main(args: Array<String>) {
