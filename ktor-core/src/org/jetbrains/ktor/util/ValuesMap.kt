@@ -20,6 +20,17 @@ interface ValuesMap {
     fun contains(name: String, value: String): Boolean = getAll(name)?.contains(value) ?: false
 }
 
+class ValuesMapSingleImpl(override val caseInsensitiveKey: Boolean, val name: String, val values: List<String>) : ValuesMap {
+    override fun getAll(name: String): List<String>? = if (this.name.equals(name, caseInsensitiveKey)) values else null
+    override fun entries(): Set<Map.Entry<String, List<String>>> = setOf(object : Map.Entry<String, List<String>> {
+        override val key: String = name
+        override val value: List<String> = values
+    })
+
+    override fun isEmpty(): Boolean = false
+    override fun names(): Set<String> = setOf(name)
+}
+
 private class ValuesMapImpl(override val caseInsensitiveKey: Boolean = false, source: Map<String, Iterable<String>> = emptyMap()) : ValuesMap {
     private val values: MutableMap<String, List<String>> = if (caseInsensitiveKey) CaseInsensitiveMap(source.size) else LinkedHashMap(source.size)
 
@@ -119,6 +130,10 @@ class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
 
 fun valuesOf(vararg pairs: Pair<String, List<String>>): ValuesMap {
     return ValuesMapImpl(false, pairs.asList().toMap())
+}
+
+fun valuesOf(pair: Pair<String, List<String>>): ValuesMap {
+    return ValuesMapSingleImpl(false, pair.first, pair.second)
 }
 
 fun valuesOf(map: Map<String, Iterable<String>>, caseInsensitiveKey: Boolean = false): ValuesMap = ValuesMapImpl(caseInsensitiveKey, map)

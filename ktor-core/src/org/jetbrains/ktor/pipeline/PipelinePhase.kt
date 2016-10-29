@@ -7,6 +7,7 @@ class PipelinePhase(val name: String) {
 }
 
 class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
+
     private class PhaseContent<TSubject : Any>(val phase: PipelinePhase,
                                                val relation: PipelinePhaseRelation,
                                                val interceptors: MutableList<PipelineContext<TSubject>.(TSubject) -> Unit>) {
@@ -16,17 +17,20 @@ class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
     sealed class PipelinePhaseRelation() {
         class After(val relativeTo: PipelinePhase) : PipelinePhaseRelation()
         class Before(val relativeTo: PipelinePhase) : PipelinePhaseRelation()
-        class Last() : PipelinePhaseRelation()
+        object Last : PipelinePhaseRelation()
     }
 
-    private val _phases = phases.mapTo(mutableListOf<PhaseContent<TSubject>>()) { PhaseContent(it, PipelinePhaseRelation.Last(), mutableListOf()) }
+    private val _phases = phases.mapTo(ArrayList<PhaseContent<TSubject>>(phases.size)) {
+        PhaseContent(it, PipelinePhaseRelation.Last, mutableListOf())
+    }
+
     private var interceptorsQuantity = 0
 
-    val items : List<PipelinePhase> get() = _phases.map { it.phase }
+    val items: List<PipelinePhase> get() = _phases.map { it.phase }
 
     fun add(phase: PipelinePhase) {
         if (_phases.any { it.phase == phase }) return
-        _phases.add(PhaseContent(phase, PipelinePhaseRelation.Last(), mutableListOf()))
+        _phases.add(PhaseContent(phase, PipelinePhaseRelation.Last, mutableListOf()))
     }
 
     fun insertAfter(reference: PipelinePhase, phase: PipelinePhase) {
@@ -54,21 +58,23 @@ class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
                 ?: throw InvalidPhaseException("Phase $phase was not registered for this pipeline")
 
         phaseContent.interceptors.add(block)
-        interceptorsQuantity ++
+        interceptorsQuantity++
     }
 
     fun merge(from: PipelinePhases<TSubject>) {
-        from._phases.forEach { content ->
-            val phaseContent = _phases.firstOrNull { it.phase == content.phase } ?: run {
-                when (content.relation) {
-                    is PipelinePhaseRelation.Last -> add(content.phase)
-                    is PipelinePhaseRelation.Before -> insertBefore(content.relation.relativeTo, content.phase)
-                    is PipelinePhaseRelation.After -> insertAfter(content.relation.relativeTo, content.phase)
+        val fromPhases = from._phases
+        for (index in 0..fromPhases.lastIndex) {
+            val fromContent = fromPhases[index]
+            val phaseContent = _phases.firstOrNull { it.phase == fromContent.phase } ?: run {
+                when (fromContent.relation) {
+                    is PipelinePhaseRelation.Last -> add(fromContent.phase)
+                    is PipelinePhaseRelation.Before -> insertBefore(fromContent.relation.relativeTo, fromContent.phase)
+                    is PipelinePhaseRelation.After -> insertAfter(fromContent.relation.relativeTo, fromContent.phase)
                 }
-                _phases.first { it.phase == content.phase }
+                _phases.first { it.phase == fromContent.phase }
             }
-            phaseContent.interceptors.addAll(content.interceptors)
-            interceptorsQuantity += content.interceptors.size
+            phaseContent.interceptors.addAll(fromContent.interceptors)
+            interceptorsQuantity += fromContent.interceptors.size
         }
     }
 }

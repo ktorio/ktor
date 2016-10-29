@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.routing
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
@@ -21,11 +20,18 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
         val pipeline = ApplicationCallPipeline()
         val pipelines = mutableListOf<ApplicationCallPipeline>()
         while (current != null) {
-            pipelines.add(0, current)
+            pipelines.add(current)
             current = current.parent
         }
-        pipelines.forEach { pipeline.merge(it) }
-        entry.handlers.forEach { pipeline.intercept(ApplicationCallPipeline.Call, it) }
+
+        for (index in pipelines.lastIndex downTo 0) {
+            pipeline.merge(pipelines[index])
+        }
+
+        val handlers = entry.handlers
+        for (index in 0..handlers.lastIndex) {
+            pipeline.intercept(ApplicationCallPipeline.Call, handlers[index])
+        }
         return pipeline
     }
 

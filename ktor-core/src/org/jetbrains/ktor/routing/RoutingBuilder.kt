@@ -167,9 +167,13 @@ fun Route.createRoute(path: String): Route {
 
 object UriPartParameterBuilder {
     fun parse(value: String): RouteSelector {
-        val prefix = value.substringBefore('{', "")
-        val suffix = value.substringAfterLast('}', "")
-        val signature = value.substring(prefix.length + 1, value.length - suffix.length - 1)
+        val prefixIndex = value.indexOf('{')
+        val suffixIndex = value.lastIndexOf('}')
+
+        val prefix = if (prefixIndex == 0) null else value.substring(0, prefixIndex)
+        val suffix = if (suffixIndex == value.length - 1) null else value.substring(suffixIndex + 1)
+
+        val signature = value.substring(prefixIndex + 1, suffixIndex)
         return when {
             signature.endsWith("?") -> UriPartOptionalParameterRouteSelector(signature.dropLast(1), prefix, suffix)
             signature.endsWith("...") -> UriPartTailcardRouteSelector(signature.dropLast(3))
