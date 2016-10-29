@@ -47,7 +47,7 @@ open class TransformBenchmark {
 }
 
 fun main(args: Array<String>) {
-    benchmark {
-        include<TransformBenchmark>()
+    benchmark(args) {
+        run<TransformBenchmark>()
     }
 }

@@ -33,6 +33,15 @@ class CodecTest {
     }
 
     @Test
+    fun testSimpleBasicEncodeDecode() {
+        val s = "simple"
+        val encoded = encodeURLQueryComponent(s)
+
+        assertEquals("simple", encoded)
+        encodeAndDecodeTest(s)
+    }
+
+    @Test
     fun testBasicEncodeDecodeURLPart() {
         val s = "Test me!"
         val encoded = encodeURLPart(s)
@@ -57,6 +66,15 @@ class CodecTest {
 
         assertEquals("%2A~%21%40%23%24%25%5E%26%28%29+%7B%7D%22%5C%3B%3A%60%2C%2F%5B%5D", encoded)
         encodeAndDecodeTestURLPart(s)
+    }
+
+    @Test
+    fun testAllReservedURLPartLowerCase() {
+        val s = " *~!@#$%^&()+{}\"\\;:`,/[]"
+        val encoded = encodeURLQueryComponent(s).toLowerCase()
+
+        assertEquals("+*%7e%21%40%23%24%25%5e%26%28%29%2b%7b%7d%22%5c%3b%3a%60%2c%2f%5b%5d", encoded)
+        assertEquals(s, decodeURLQueryComponent(encoded))
     }
 
     private fun encodeAndDecodeTest(s: String) {

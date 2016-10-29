@@ -19,7 +19,7 @@ open class RoutingBenchmark {
                 call.respond("long")
             }
             get("/plain/{path}/with/parameters/components") {
-                call.respond("param ${call.parameters["path"]}" ?: "Fail")
+                call.respond("param ${call.parameters["path"] ?: "Fail"}")
             }
         }
     }
@@ -48,21 +48,16 @@ open class RoutingBenchmark {
 
         block()
     }
-
 }
 
-fun main(args: Array<String>) {
-    if (args.firstOrNull() == "profile") {
-        RoutingBenchmark().apply {
-            configureRouting()
-            repeat(iterations) {
-                paramPath()
-            }
-        }
-        return
-    }
+/*
+RoutingBenchmark.longPath   thrpt   25  109.797 ± 2.399  ops/ms
+RoutingBenchmark.paramPath  thrpt   25  112.212 ± 1.653  ops/ms
+RoutingBenchmark.shortPath  thrpt   25  126.180 ± 1.363  ops/ms
+ */
 
-    benchmark {
-        include<RoutingBenchmark>()
+fun main(args: Array<String>) {
+    benchmark(args) {
+        run<RoutingBenchmark>()
     }
 }

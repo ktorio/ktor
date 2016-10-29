@@ -73,17 +73,7 @@ open class FullBenchmark {
 }
 
 fun main(args: Array<String>) {
-    if (args.firstOrNull() == "profile") {
-        FullBenchmark().apply {
-            configureServer()
-            repeat(iterations) {
-                sayClasspathResourceRegular()
-            }
-        }
-        return
-    }
-
-    benchmark {
-        include<FullBenchmark>()
+    benchmark(args) {
+        run<FullBenchmark>()
     }
 }
