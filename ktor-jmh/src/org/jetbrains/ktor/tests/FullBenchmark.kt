@@ -72,6 +72,13 @@ open class FullBenchmark {
     }
 }
 
+/*
+FullBenchmark.sayClasspathResourceFromJar  thrpt   10   23.610 ± 1.580  ops/ms
+FullBenchmark.sayClasspathResourceRegular  thrpt   10   15.055 ± 0.215  ops/ms
+FullBenchmark.sayOK                        thrpt   10  138.655 ± 2.271  ops/ms
+FullBenchmark.sayRegularFile               thrpt   10   24.001 ± 0.254  ops/ms
+ */
+
 fun main(args: Array<String>) {
     benchmark(args) {
         run<FullBenchmark>()

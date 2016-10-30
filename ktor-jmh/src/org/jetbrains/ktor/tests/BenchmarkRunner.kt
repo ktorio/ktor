@@ -9,8 +9,9 @@ val iterations = 100000
 val defaultOptions = OptionsBuilder()
         .mode(Mode.Throughput)
         .timeUnit(TimeUnit.MILLISECONDS)
-        .warmupIterations(7)
-        .measurementIterations(25)
+        .warmupIterations(10)
+        .measurementIterations(10)
+        .warmupTime(TimeValue.milliseconds(500))
         .measurementTime(TimeValue.milliseconds(500))
         .forks(1)
 
@@ -51,4 +52,13 @@ fun runJMH(classes: List<Class<*>>) {
 
 inline fun <reified T : Any> BenchmarkBuilder.run() {
     add(T::class.java)
+}
+
+fun main(args: Array<String>) {
+    benchmark(args) {
+        run<RoutingBenchmark>()
+        run<TransformBenchmark>()
+        run<CodecsBenchmark>()
+        run<FullBenchmark>()
+    }
 }
