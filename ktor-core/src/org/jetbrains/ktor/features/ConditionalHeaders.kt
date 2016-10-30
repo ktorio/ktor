@@ -36,7 +36,7 @@ class ConditionalHeaders {
             call.response.pipeline.intercept(RespondPipeline.After) {
                 val message = subject.message
                 when (message) {
-                    is HasVersions -> checkVersions(call, message.versions)
+                    is Resource -> checkVersions(call, message.versions)
                     is FinalContent -> checkVersions(call, message.lastModifiedAndEtagVersions())
                 }
             }

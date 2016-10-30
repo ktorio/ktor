@@ -9,7 +9,6 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
-import org.jetbrains.ktor.util.*
 import org.junit.*
 import java.time.*
 import java.util.zip.*
@@ -319,8 +318,7 @@ class CompressionTest {
             application.routing {
                 get("/") {
                     call.respond(object : Resource, FinalContent.ChannelContent() {
-                        override val headers: ValuesMap
-                            get() = super.headers
+                        override val headers by lazy { super.headers }
 
                         override val contentType: ContentType
                             get() = ContentType.Text.Plain
@@ -331,8 +329,6 @@ class CompressionTest {
                         override val expires = ldt
 
                         override val cacheControl = CacheControl.NoCache(CacheControlVisibility.PUBLIC)
-
-                        override val attributes = Attributes()
 
                         override val contentLength = 4L
 

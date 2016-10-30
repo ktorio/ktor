@@ -4,7 +4,6 @@ import freemarker.template.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.content.Version
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
@@ -46,10 +45,8 @@ class FreeMarker(val config: Configuration) {
 
         override val expires = null
         override val cacheControl = null
-        override val attributes = Attributes()
         override val contentLength = null
 
-        override val headers: ValuesMap
-            get() = super.headers
+        override val headers by lazy { super.headers }
     }
 }

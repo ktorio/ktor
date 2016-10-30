@@ -4,11 +4,9 @@ import kotlinx.html.*
 import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.sessions.*
-import org.jetbrains.ktor.util.*
 import java.io.*
 
 fun ApplicationCall.respondHtml(versions: List<Version>, visibility: CacheControlVisibility, block: HTML.() -> Unit): Nothing {
@@ -31,7 +29,7 @@ fun ApplicationCall.respondDefaultHtml(versions: List<Version>, visibility: Cach
                         div("brand-title") { +title }
                         div("brand-tagline") {
                             if (session != null) {
-                                +"${session.userId}"
+                                +session.userId
                             }
                         }
 
@@ -67,11 +65,9 @@ class HtmlContent(override val versions: List<Version>, visibility: CacheControl
     override val expires = null
     override val cacheControl = CacheControl.MaxAge(3600 * 24 * 7, mustRevalidate = true, visibility = visibility, proxyMaxAgeSeconds = null, proxyRevalidate = false)
 
-    override val attributes = Attributes()
     override val contentLength = null
 
-    override val headers: ValuesMap
-        get() = super.headers
+    override val headers by lazy { super.headers }
 
     override fun stream(out: OutputStream) {
         with(out.bufferedWriter()) {

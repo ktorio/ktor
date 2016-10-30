@@ -2,7 +2,6 @@ package org.jetbrains.ktor.content
 
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
-import org.jetbrains.ktor.util.Attributes
 import java.io.*
 import java.nio.file.*
 import java.util.jar.*
@@ -16,8 +15,6 @@ class ResourceFileContent(val zipFile: File, val resourcePath: String, val class
         require(!normalized.startsWith("..")) { "Bad resource relative path $resourcePath" }
     }
 
-    override val attributes = Attributes()
-
     override val versions: List<Version>
         get() =  listOf(LastModifiedVersion(Files.getLastModifiedTime(zipFile.toPath())))
 
@@ -25,8 +22,7 @@ class ResourceFileContent(val zipFile: File, val resourcePath: String, val class
         get() = JarFile(zipFile).use { it.getJarEntry(resourcePath)?.size }
 
 
-    override val headers: ValuesMap
-        get() = super.headers
+    override val headers by lazy { super.headers }
 
     override fun stream() = classLoader.getResourceAsStream(normalized) ?: throw IOException("Resource $normalized not found")
 

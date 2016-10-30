@@ -12,8 +12,6 @@ class LocalFileContent(val file: File, override val contentType: ContentType = d
     constructor(baseDir: File, vararg relativePath: String, contentType: ContentType = defaultContentType(relativePath.last().extension())) : this(baseDir.safeAppend(Paths.get("", *relativePath)), contentType)
     constructor(baseDir: Path, relativePath: Path, contentType: ContentType = defaultContentType(relativePath.fileName.extension())) : this(baseDir.safeAppend(relativePath).toFile(), contentType)
 
-    override val attributes = Attributes()
-
     override val contentLength: Long
         get() = file.length()
 
