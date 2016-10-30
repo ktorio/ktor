@@ -51,9 +51,9 @@ open class RoutingBenchmark {
 }
 
 /*
-RoutingBenchmark.longPath   thrpt   10  119.836 ± 13.525  ops/ms
-RoutingBenchmark.paramPath  thrpt   10  106.218 ± 11.797  ops/ms
-RoutingBenchmark.shortPath  thrpt   10  132.592 ±  5.171  ops/ms
+RoutingBenchmark.longPath   thrpt   10  137.896 ± 9.401  ops/ms
+RoutingBenchmark.paramPath  thrpt   10  122.476 ± 2.129  ops/ms
+RoutingBenchmark.shortPath  thrpt   10  143.573 ± 7.925  ops/ms
 */
 
 fun main(args: Array<String>) {

@@ -1,9 +1,10 @@
 package org.jetbrains.ktor.pipeline
 
 import kotlinx.support.jdk7.*
+import java.util.*
 
 class PipelineMachine() {
-    private val executionStack = mutableListOf<PipelineExecution>()
+    private val executionStack = ArrayList<PipelineExecution>(4)
 
     fun <T : Any> execute(subject: T, pipeline: Pipeline<T>): Nothing {
         val blocks = pipeline.phases.interceptors()
@@ -31,8 +32,10 @@ class PipelineMachine() {
     }
 
     fun loop(): Boolean {
-        // Do we have current pipeline executing?
-        val execution = executionStack.lastOrNull() ?: return false
+        // Get current executing pipeline, or finish
+        if (executionStack.isEmpty())
+            return false
+        val execution = executionStack[executionStack.lastIndex]
 
         // get current block index
         val blockIndex = execution.blockIndex
@@ -40,17 +43,23 @@ class PipelineMachine() {
         // unwinding done, pop current pipeline execution
         if (blockIndex == -1) {
             executionStack.removeAt(executionStack.lastIndex)
-            val nextExecution = executionStack.lastOrNull() ?: return false
+            if (executionStack.isEmpty())
+                return false
+
             // if FinishedAll or Failed, continue unwinding on next pipeline
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (execution.state) {
                 PipelineState.FinishedAll -> {
+                    val nextExecution = executionStack[executionStack.lastIndex]
                     // begin unwinding
                     nextExecution.blockIndex--
                     // propagate FinishedAll state
                     nextExecution.state = PipelineState.FinishedAll
                 }
-                PipelineState.Failed -> markFailed(nextExecution, execution.exception!!)
+                PipelineState.Failed -> {
+                    val nextExecution = executionStack[executionStack.lastIndex]
+                    markFailed(nextExecution, execution.exception!!)
+                }
             }
             return true
         }
@@ -68,23 +77,25 @@ class PipelineMachine() {
             PipelineState.FinishedAll,
             PipelineState.Finished -> {
                 // did we finish unwinding this block?
-                if (block.successes.isEmpty()) {
+                val successes = block.successes
+                if (successes.isEmpty()) {
                     // yes, remove it and go backwards to previous block
                     execution.blockIndex--
                     return true
                 }
                 // no, pop and execute last success action
-                return runAction(execution, block.successes.removeAt(block.successes.lastIndex))
+                return runAction(execution, successes.removeAt(successes.lastIndex))
             }
             PipelineState.Failed -> {
                 // did we finish unwinding this block?
-                if (block.failures.isEmpty()) {
+                val failures = block.failures
+                if (failures.isEmpty()) {
                     // yes, remove it and go backwards to previous block
                     execution.blockIndex--
                     return true
                 }
                 // no, pop and execute last failure action
-                return runAction(execution, block.failures.removeAt(block.failures.lastIndex))
+                return runAction(execution, failures.removeAt(failures.lastIndex))
             }
             PipelineState.Executing -> {
                 execution.repeatIndex = execution.blockIndex

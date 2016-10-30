@@ -31,6 +31,7 @@ class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
     fun add(phase: PipelinePhase) {
         if (_phases.any { it.phase == phase }) return
         _phases.add(PhaseContent(phase, PipelinePhaseRelation.Last, mutableListOf()))
+        interceptors = null
     }
 
     fun insertAfter(reference: PipelinePhase, phase: PipelinePhase) {
@@ -39,6 +40,7 @@ class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
         if (index == -1)
             throw InvalidPhaseException("Phase $reference was not registered for this pipeline")
         _phases.add(index + 1, PhaseContent(phase, PipelinePhaseRelation.After(reference), mutableListOf()))
+        interceptors = null
     }
 
     fun insertBefore(reference: PipelinePhase, phase: PipelinePhase) {
@@ -47,10 +49,26 @@ class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
         if (index == -1)
             throw InvalidPhaseException("Phase $reference was not registered for this pipeline")
         _phases.add(index, PhaseContent(phase, PipelinePhaseRelation.Before(reference), mutableListOf()))
+        interceptors = null
     }
 
-    fun interceptors(): List<PipelineContext<TSubject>.(TSubject) -> Unit> {
-        return _phases.flatMapTo(ArrayList(interceptorsQuantity)) { it.interceptors }
+    @Volatile
+    private var interceptors: ArrayList<PipelineContext<TSubject>.(TSubject) -> Unit>? = null
+
+    fun interceptors(): ArrayList<PipelineContext<TSubject>.(TSubject) -> Unit> {
+        return interceptors ?: cacheInterceptors()
+    }
+
+    private fun cacheInterceptors(): ArrayList<PipelineContext<TSubject>.(TSubject) -> Unit> {
+        val destination = ArrayList<PipelineContext<TSubject>.(TSubject) -> Unit>(interceptorsQuantity)
+        for (phaseIndex in 0.._phases.lastIndex) {
+            val elements = _phases[phaseIndex].interceptors
+            for (elementIndex in 0..elements.lastIndex) {
+                destination.add(elements[elementIndex])
+            }
+        }
+        interceptors = destination
+        return destination
     }
 
     fun intercept(phase: PipelinePhase, block: PipelineContext<TSubject>.(TSubject) -> Unit) {
@@ -59,6 +77,7 @@ class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
 
         phaseContent.interceptors.add(block)
         interceptorsQuantity++
+        interceptors = null
     }
 
     fun merge(from: PipelinePhases<TSubject>) {
@@ -76,6 +95,7 @@ class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
             phaseContent.interceptors.addAll(fromContent.interceptors)
             interceptorsQuantity += fromContent.interceptors.size
         }
+        interceptors = null
     }
 }
 
