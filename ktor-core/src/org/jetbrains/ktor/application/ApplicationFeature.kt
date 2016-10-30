@@ -12,7 +12,6 @@ interface ApplicationFeature<in P : Pipeline<*>, out B : Any, F : Any> {
     /**
      * Feature installation script
      */
-    @Deprecated("This method cannot be called directly", ReplaceWith("pipeline.install(configure)"), DeprecationLevel.ERROR)
     fun install(pipeline: P, configure: B.() -> Unit): F
 
     companion object {
