@@ -9,17 +9,17 @@ import java.util.concurrent.*
 
 val OAuthKey: Any = "OAuth"
 
-fun Authentication.Pipeline.oauth(client: HttpClient, exec: ExecutorService,
-                                  providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                  urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+fun AuthenticationPipeline.oauth(client: HttpClient, exec: ExecutorService,
+                                                providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                                urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     oauth1a(client, exec, providerLookup, urlProvider)
     oauth2(client, exec, providerLookup, urlProvider)
 }
 
-internal fun Authentication.Pipeline.oauth2(client: HttpClient, exec: ExecutorService,
-                                            providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                            urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
-    intercept(Authentication.Pipeline.RequestAuthentication) { context ->
+internal fun AuthenticationPipeline.oauth2(client: HttpClient, exec: ExecutorService,
+                                                          providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                                          urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+    intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val provider = context.call.providerLookup()
         when (provider) {
             is OAuthServerSettings.OAuth2ServerSettings -> {
@@ -41,10 +41,10 @@ internal fun Authentication.Pipeline.oauth2(client: HttpClient, exec: ExecutorSe
     }
 }
 
-internal fun Authentication.Pipeline.oauth1a(client: HttpClient, exec: ExecutorService,
-                                             providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                             urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
-    intercept(Authentication.Pipeline.RequestAuthentication) { context ->
+internal fun AuthenticationPipeline.oauth1a(client: HttpClient, exec: ExecutorService,
+                                                           providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                                           urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+    intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val provider = context.call.providerLookup()
         if (provider is OAuthServerSettings.OAuth1aServerSettings) {
             val token = context.call.oauth1aHandleCallback()
@@ -66,7 +66,7 @@ internal fun Authentication.Pipeline.oauth1a(client: HttpClient, exec: ExecutorS
     }
 }
 
-private fun PipelineContext<*>.runAsyncWithError(exec: ExecutorService, context: AuthenticationProcedureContext, block: () -> Unit) {
+private fun PipelineContext<*>.runAsyncWithError(exec: ExecutorService, context: AuthenticationContext, block: () -> Unit) {
     runAsync(exec) {
         try {
             block()

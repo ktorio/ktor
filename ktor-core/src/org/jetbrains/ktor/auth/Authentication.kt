@@ -1,15 +1,12 @@
 package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
-import java.util.*
-import kotlin.properties.*
 
-class Authentication(val pipeline: Pipeline) {
+class Authentication(val pipeline: AuthenticationPipeline) {
     init {
-        pipeline.intercept(Pipeline.RequestAuthentication) { context ->
+        pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
             val principal = context.principal
             if (principal == null) {
                 val challenges = context.challenges
@@ -20,42 +17,40 @@ class Authentication(val pipeline: Pipeline) {
                         if (challenge.success)
                             finishAll()
                     }
-                    context.call.execution.execute(AuthenticationProcedureChallenge(), challengePipeline)
+                    fork(AuthenticationProcedureChallenge(), challengePipeline)
                 }
             }
         }
     }
 
-    private fun intercept(call: ApplicationCall) {
-        val context = AuthenticationProcedureContext(call)
-        call.attributes.put(AuthenticationProcedureContext.AttributeKey, context)
-        call.execution.execute(context, pipeline)
-    }
-
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Pipeline, Authentication> {
-        val phase = PipelinePhase("Authenticate")
+    companion object Feature : ApplicationFeature<ApplicationCallPipeline, AuthenticationPipeline, Authentication> {
+        val authenticationPhase = PipelinePhase("Authenticate")
 
         override val key = AttributeKey<Authentication>("Authentication")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: Pipeline.() -> Unit): Authentication {
-            val procedure = Pipeline().apply(configure)
-            val feature = Authentication(procedure)
-            pipeline.phases.insertAfter(ApplicationCallPipeline.Infrastructure, phase)
-            pipeline.intercept(phase) { feature.intercept(it) }
+        override fun install(pipeline: ApplicationCallPipeline, configure: AuthenticationPipeline.() -> Unit): Authentication {
+            val authenticationPipeline = AuthenticationPipeline().apply(configure)
+            val feature = Authentication(authenticationPipeline)
+            pipeline.phases.insertAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
+            pipeline.intercept(authenticationPhase) {
+                val procedureContext = AuthenticationContext.from(call)
+                fork(procedureContext, feature.pipeline)
+            }
             return feature
         }
     }
 
-    class Pipeline() : org.jetbrains.ktor.pipeline.Pipeline<AuthenticationProcedureContext>(CheckAuthentication, RequestAuthentication) {
-        companion object {
-            val CheckAuthentication = PipelinePhase("CheckAuthentication")
-            val RequestAuthentication = PipelinePhase("RequestAuthentication")
-        }
+}
+
+class AuthenticationPipeline() : org.jetbrains.ktor.pipeline.Pipeline<AuthenticationContext>(CheckAuthentication, RequestAuthentication) {
+    companion object {
+        val CheckAuthentication = PipelinePhase("CheckAuthentication")
+        val RequestAuthentication = PipelinePhase("RequestAuthentication")
     }
 }
 
 
-fun ApplicationCallPipeline.authentication(procedure: Authentication.Pipeline.() -> Unit): Authentication {
+fun ApplicationCallPipeline.authentication(procedure: AuthenticationPipeline.() -> Unit): Authentication {
     return install(Authentication, procedure)
 }
 
@@ -77,56 +72,9 @@ sealed class NotAuthenticatedCause {
     open class Error(val cause: String) : NotAuthenticatedCause()
 }
 
-class AuthenticationProcedureContext(val call: ApplicationCall) {
-    var principal by Delegates.vetoable<Principal?>(null) { p, old, new -> require(old == null); true }
-    val errors = HashMap<Any, NotAuthenticatedCause>()
 
-    private val challengesCollector = mutableListOf<Pair<NotAuthenticatedCause, PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>>()
-
-    val challenges: List<PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>
-        get() = challengesCollector.filter { it.first !is NotAuthenticatedCause.Error }.sortedBy {
-            when (it.first) {
-                NotAuthenticatedCause.InvalidCredentials -> 1
-                NotAuthenticatedCause.NoCredentials -> 2
-                else -> throw NoWhenBranchMatchedException("${it.first}")
-            }
-        }.map { it.second }
-
-    val allChallenges: List<Pair<NotAuthenticatedCause, PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>>
-        get() = challengesCollector.toList()
-
-    fun principal(principal: Principal) {
-        this.principal = principal
-    }
-
-    fun hasPrincipal() = principal != null
-
-    inline fun <reified T : Principal> principal(): T? = principal as? T
-
-    fun error(key: Any, cause: NotAuthenticatedCause) {
-        errors[key] = cause
-    }
-
-    fun challenge(key: Any, cause: NotAuthenticatedCause, function: PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit) {
-        error(key, cause)
-        challengesCollector.add(cause to function)
-    }
-
-    override fun toString(): String {
-        return "AuthenticationProcedureContext(call=$call)"
-    }
-
-
-    companion object {
-        val AttributeKey = AttributeKey<AuthenticationProcedureContext>("AuthContext")
-
-        internal fun from(call: ApplicationCall) = call.attributes.computeIfAbsent(AttributeKey) { AuthenticationProcedureContext(call) }
-    }
-}
-
-
-val ApplicationCall.authentication: AuthenticationProcedureContext
-    get() = AuthenticationProcedureContext.from(this)
+val ApplicationCall.authentication: AuthenticationContext
+    get() = AuthenticationContext.from(this)
 
 
 inline fun <reified P : Principal> ApplicationCall.principal() = authentication.principal<P>()
