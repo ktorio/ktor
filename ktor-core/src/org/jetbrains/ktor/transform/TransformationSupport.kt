@@ -44,39 +44,4 @@ object TransformationSupport : ApplicationFeature<ApplicationCallPipeline, Appli
 
         return table
     }
-
-    tailrec
-    private fun PipelineContext<ResponsePipelineState>.transformStage(machine: PipelineMachine, state: TransformationState) {
-        if (state.completed) {
-            return
-        }
-
-        machine.pushExecution(subject, listOf({ p ->
-            @Suppress("NON_TAIL_RECURSIVE_CALL")
-            transformStage(machine, state)
-        }))
-
-        val message = subject.message
-        val visited = state.visited
-        val handlers = subject.call.transform.handlers(message.javaClass).filter { it !in visited }
-
-        if (handlers.isNotEmpty()) {
-            for (handler in handlers) {
-                if (handler.predicate(this, message)) {
-                    state.lastHandler = handler
-                    val nextResult = handler.handler(this, message)
-                    state.lastHandler = null
-
-                    if (nextResult !== message) {
-                        subject.message = nextResult
-                        visited.add(handler)
-                        return transformStage(machine, state)
-                    }
-                }
-            }
-        }
-
-        state.completed = true
-    }
-
 }

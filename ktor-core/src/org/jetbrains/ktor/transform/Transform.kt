@@ -54,7 +54,6 @@ private fun <C : Any, T : Any> TransformTable<C>.transformImpl(ctx: C, obj: T, h
 
 internal class TransformationState {
     val visited: MutableSet<TransformTable.Handler<PipelineContext<ResponsePipelineState>, *>> = hashSetOf()
-    var completed: Boolean = false
     var lastHandler: TransformTable.Handler<PipelineContext<ResponsePipelineState>, *>? = null
 
     fun markLastHandlerVisited() {

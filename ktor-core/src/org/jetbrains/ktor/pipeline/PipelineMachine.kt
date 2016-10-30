@@ -5,13 +5,10 @@ import kotlinx.support.jdk7.*
 class PipelineMachine() {
     private val executionStack = mutableListOf<PipelineExecution>()
 
-    fun <T : Any> pushExecution(subject: T, blocks: List<PipelineContext<T>.(T) -> Unit>) {
+    fun <T : Any> execute(subject: T, pipeline: Pipeline<T>): Nothing {
+        val blocks = pipeline.phases.interceptors()
         val execution = PipelineExecution(this, subject, blocks as List<PipelineContext<Any>.(Any) -> Unit>)
         executionStack.add(execution)
-    }
-
-    fun <T : Any> execute(subject: T, pipeline: Pipeline<T>): Nothing {
-        pushExecution(subject, pipeline.phases.interceptors())
 
         if (executionStack.size == 1) {
             // machine is starting
