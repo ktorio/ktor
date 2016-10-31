@@ -15,14 +15,31 @@ import kotlin.test.*
 
 class StatusPageTest {
     @Test
+    fun testStatusMapping() {
+        withTestApplication {
+            application.install(StatusPages) {
+                statusFile(HttpStatusCode.NotFound, filePattern = "error#.html")
+            }
+            application.intercept(ApplicationCallPipeline.Call) { call ->
+                call.respond(HttpStatusCode.NotFound)
+            }
+            handleRequest(HttpMethod.Get, "/foo").let { call ->
+                assertEquals("<html><body>error 404</body></html>", call.response.content)
+            }
+        }
+    }
+
+    @Test
     fun testStatus404() {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Fallback) { call ->
                 call.respond(HttpStatusCode.NotFound)
             }
 
-            application.statusPage { status ->
-                call.respond(TextContentResponse(status, ContentType.Text.Plain.withCharset(Charsets.UTF_8), "${status.value} ${status.description}"))
+            application.install(StatusPages) {
+                status(HttpStatusCode.NotFound) {
+                    call.respond(TextContentResponse(it, ContentType.Text.Plain.withCharset(Charsets.UTF_8), "${it.value} ${it.description}"))
+                }
             }
 
             application.routing {
@@ -51,8 +68,10 @@ class StatusPageTest {
     @Test
     fun testStatus404CustomObject() {
         withTestApplication {
-            application.statusPage { status ->
-                call.respond(TextContentResponse(status, ContentType.Text.Plain.withCharset(Charsets.UTF_8), "${status.value} ${status.description}"))
+            application.install(StatusPages) {
+                status(HttpStatusCode.NotFound) {
+                    call.respond(TextContentResponse(it, ContentType.Text.Plain.withCharset(Charsets.UTF_8), "${it.value} ${it.description}"))
+                }
             }
 
             application.intercept(ApplicationCallPipeline.Call) {
@@ -81,8 +100,10 @@ class StatusPageTest {
                 call.respond(HttpStatusCode.NotFound)
             }
 
-            application.statusPage { status ->
-                call.respond(TextContentResponse(status, ContentType.Text.Plain.withCharset(Charsets.UTF_8), "${status.value} ${status.description}"))
+            application.install(StatusPages) {
+                status(HttpStatusCode.NotFound) {
+                    call.respond(TextContentResponse(it, ContentType.Text.Plain.withCharset(Charsets.UTF_8), "${it.value} ${it.description}"))
+                }
             }
 
             application.transform.register<O> { HttpStatusCode.NotFound }
@@ -101,8 +122,10 @@ class StatusPageTest {
     @Test
     fun testFailPage() {
         withTestApplication {
-            application.errorPage { cause ->
-                call.respond(TextContentResponse(HttpStatusCode.InternalServerError, ContentType.Text.Plain.withCharset(Charsets.UTF_8), cause.javaClass.simpleName))
+            application.install(StatusPages) {
+                exception<Throwable> { cause ->
+                    call.respond(TextContentResponse(HttpStatusCode.InternalServerError, ContentType.Text.Plain.withCharset(Charsets.UTF_8), cause.javaClass.simpleName))
+                }
             }
 
             application.routing {
@@ -133,8 +156,10 @@ class StatusPageTest {
                 throw IllegalStateException()
             }
 
-            application.errorPage { cause ->
-                call.respond(TextContentResponse(HttpStatusCode.InternalServerError, ContentType.Text.Plain.withCharset(Charsets.UTF_8), cause.javaClass.simpleName))
+            application.install(StatusPages) {
+                exception<IllegalStateException> { cause ->
+                    call.respond(TextContentResponse(HttpStatusCode.InternalServerError, ContentType.Text.Plain.withCharset(Charsets.UTF_8), cause.javaClass.simpleName))
+                }
             }
 
             application.routing {
@@ -152,9 +177,13 @@ class StatusPageTest {
     @Test
     fun testErrorDuringStatus() {
         withTestApplication {
-            application.statusPage { throw IllegalStateException("") }
-            application.errorPage { cause ->
-                call.respond(TextContentResponse(HttpStatusCode.InternalServerError, ContentType.Text.Plain.withCharset(Charsets.UTF_8), cause.javaClass.simpleName))
+            application.install(StatusPages) {
+                status(HttpStatusCode.NotFound) {
+                    throw IllegalStateException("")
+                }
+                exception<Throwable> { cause ->
+                    call.respond(TextContentResponse(HttpStatusCode.InternalServerError, ContentType.Text.Plain.withCharset(Charsets.UTF_8), cause.javaClass.simpleName))
+                }
             }
 
             application.intercept(ApplicationCallPipeline.Fallback) { call ->
@@ -170,8 +199,10 @@ class StatusPageTest {
     @Test
     fun testErrorShouldNotRecurse() {
         withTestApplication {
-            application.errorPage {
-                throw IllegalStateException()
+            application.install(StatusPages) {
+                exception<IllegalStateException> { cause ->
+                    throw IllegalStateException()
+                }
             }
 
             application.intercept(ApplicationCallPipeline.Fallback) { call ->
