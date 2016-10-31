@@ -7,10 +7,12 @@ class CaseInsensitiveMap<V>(initialCapacity: Int = 16) : AbstractLinkedMap<Strin
         if (key == null) return 0
         if (key !is String) return key.hashCode()
 
+        @Suppress("USELESS_CAST") // we actually need to declare a new String variable here
+        val s = key as String     // otherwise we get checkcast instruction for every charAt invocation
         var hashCode = 0
 
-        for (idx in 0 .. key.lastIndex) {
-            hashCode = 31 * hashCode + key[idx].toLowerCase().toInt()
+        for (idx in 0 .. s.length - 1) {
+            hashCode = 31 * hashCode + s[idx].toLowerCase().toInt()
         }
 
         return hashCode
