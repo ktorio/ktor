@@ -21,10 +21,4 @@ class TomcatHostTest : HostTestSuite<TomcatApplicationHost>() {
 
         return embeddedTomcatServer(config, env, application = block)
     }
-
-    @Ignore
-    @Test
-    override fun testBlockingConcurrency() {
-        super.testBlockingConcurrency()
-    }
 }

@@ -171,7 +171,7 @@ abstract class HostTestBase<H : ApplicationHost> {
             return jks
         }
 
-        @org.junit.BeforeClass
+        @BeforeClass
         @JvmStatic
         fun setupAll() {
             keyStore = generateCertificates(keyStoreFile)
