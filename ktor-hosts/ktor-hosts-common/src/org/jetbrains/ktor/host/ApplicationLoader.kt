@@ -1,13 +1,13 @@
 package org.jetbrains.ktor.host
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import java.io.*
 import java.net.*
 import java.nio.file.*
 import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.attribute.*
 import java.util.*
+import kotlin.comparisons.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
@@ -31,13 +31,13 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
         get() = synchronized(applicationInstanceLock) {
             if (autoreload) {
                 val changes = packageWatchKeys.flatMap { it.pollEvents() }
-                if (changes.size > 0) {
+                if (changes.isNotEmpty()) {
                     log.info("Changes in application detected.")
                     var count = changes.size
                     while (true) {
                         Thread.sleep(200)
                         val moreChanges = packageWatchKeys.flatMap { it.pollEvents() }
-                        if (moreChanges.size == 0)
+                        if (moreChanges.isEmpty())
                             break
                         log.debug("Waiting for more changes.")
                         count += moreChanges.size
@@ -104,31 +104,41 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
             log.debug("Application class: $applicationClass in ${applicationClass.classLoader}")
 
             val appEnvClass = ApplicationEnvironment::class.java
-            fun isApplicationEnvironment(p: KParameter) = (p.type.javaType as? Class<*>)?.let { appEnvClass.isAssignableFrom(it) } ?: false
+            val appClass = Application::class.java
+            var applicationLazy: Application? = null
 
-            val applicationEntryPoint = if (applicationClass.kotlin.objectInstance == null) {
-                val constructors = applicationClass.kotlin.constructors.filter { it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) } }
+            fun isParameterOfType(p: KParameter, type: Class<*>) = (p.type.javaType as? Class<*>)?.let { type.isAssignableFrom(it) } ?: false
+            fun isApplicationEnvironment(p: KParameter) = isParameterOfType(p, appEnvClass)
+            fun isApplication(p: KParameter) = isParameterOfType(p, appClass)
+            fun application() = applicationLazy ?: Application(environment, Unit).apply { applicationLazy = this }
+
+            val applicationEntryPoint = applicationClass.kotlin.objectInstance ?: run {
+                val constructors = applicationClass.kotlin.constructors.filter { it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) || isApplication(p) } }
                 if (constructors.isEmpty()) {
                     throw RuntimeException("There are no applicable constructors found in class $applicationClass")
                 }
 
-                val constructor = constructors.maxBy { it.parameters.size }!!
+                val constructor = constructors.sortedWith(compareBy({ it.parameters.count { !it.isOptional } }, { it.parameters.size })).last()
                 constructor.callBy(constructor.parameters
                         .filterNot { it.isOptional }
                         .associateBy({ it }, { p ->
+                            @Suppress("IMPLICIT_CAST_TO_ANY")
                             when {
                                 isApplicationEnvironment(p) -> environment
+                                isApplication(p) -> application()
                                 else -> throw RuntimeException("Parameter type ${p.type} of parameter ${p.name} is not supported")
                             }
                         })
                 )
-            } else {
-                applicationClass.kotlin.objectInstance
+            }
+
+            if (applicationEntryPoint is Application && applicationLazy != null) {
+                throw IllegalArgumentException("Entry point $applicationClassName of type Application shouldn't have constructor parameters of type Application")
             }
 
             val application = when (applicationEntryPoint) {
                 is Application -> applicationEntryPoint
-                is ApplicationFeature<*, *, *> -> Application(environment, Unit)
+                is ApplicationFeature<*, *, *> -> application()
                 else -> throw RuntimeException("Application class $applicationClassName should inherit from ${Application::class} or ${ApplicationFeature::class}<${Application::class.simpleName}, *>")
             }
 

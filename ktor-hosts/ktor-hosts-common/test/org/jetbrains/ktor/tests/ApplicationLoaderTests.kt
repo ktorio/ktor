@@ -67,6 +67,39 @@ class ApplicationLoaderTests {
         assertEquals("3", application.attributes[TestKey])
     }
 
+    @Test fun `valid class name should lookup application module and inject application instance`() {
+        val config = MapApplicationConfig(
+                "ktor.deployment.environment" to "test",
+                "ktor.application.class" to ApplicationLoaderTestApplicationModuleWithApplication::class.jvmName
+        )
+        val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
+        val application = ApplicationLoader(environment, false).application
+        assertNotNull(application)
+        assertEquals("4", application.attributes[TestKey])
+    }
+
+    @Test fun `valid class name should lookup application module and inject both application and environment instance`() {
+        val config = MapApplicationConfig(
+                "ktor.deployment.environment" to "test",
+                "ktor.application.class" to ApplicationLoaderTestApplicationModuleWithApplicationAndEnvironment::class.jvmName
+        )
+        val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
+        val application = ApplicationLoader(environment, false).application
+        assertNotNull(application)
+        assertEquals("2+4", application.attributes[TestKey])
+    }
+
+    @Test fun `valid class name should lookup application module and respect optional parameters`() {
+        val config = MapApplicationConfig(
+                "ktor.deployment.environment" to "test",
+                "ktor.application.class" to ApplicationLoaderTestApplicationModuleWithOptionalConstructorParameter::class.jvmName
+        )
+        val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
+        val application = ApplicationLoader(environment, false).application
+        assertNotNull(application)
+        assertEquals("5", application.attributes[TestKey])
+    }
+
     class ApplicationLoaderTestApplication(environment: ApplicationEnvironment) : Application(environment)
 
     class ApplicationLoaderTestApplicationFeature : ApplicationModule(), AutoCloseable {
@@ -87,16 +120,39 @@ class ApplicationLoaderTests {
         }
     }
 
-    class ApplicationLoaderTestApplicationFeatureWithEnvironment(val environment: ApplicationEnvironment) : ApplicationModule() {
+    class ApplicationLoaderTestApplicationFeatureWithEnvironment(val _env: ApplicationEnvironment) : ApplicationModule() {
         override fun Application.install() {
-            this@ApplicationLoaderTestApplicationFeatureWithEnvironment.environment
+            requireNotNull(_env)
             attributes.put(TestKey, "2")
         }
     }
 
     object ApplicationLoaderTestApplicationFeatureObject : ApplicationModule() {
+
         override fun Application.install() {
             attributes.put(TestKey, "3")
+        }
+    }
+
+    class ApplicationLoaderTestApplicationModuleWithApplication(val application: Application) : ApplicationModule() {
+        override fun Application.install() {
+            requireNotNull(application)
+            attributes.put(TestKey, "4")
+        }
+    }
+
+    class ApplicationLoaderTestApplicationModuleWithApplicationAndEnvironment(val _app: Application, val _env: ApplicationEnvironment) : ApplicationModule() {
+        override fun Application.install() {
+            requireNotNull(_app)
+            requireNotNull(_env)
+
+            attributes.put(TestKey, "2+4")
+        }
+    }
+
+    class ApplicationLoaderTestApplicationModuleWithOptionalConstructorParameter(val optionalParameter: Int = 5) : ApplicationModule() {
+        override fun Application.install() {
+            attributes.put(TestKey, optionalParameter.toString())
         }
     }
 
