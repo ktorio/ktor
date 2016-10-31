@@ -927,6 +927,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                             val firstByte = reader.read()
                             if (firstByte == -1) {
                                 println("Premature end of response stream at iteration $i")
+                                fail("Premature end of response stream at iteration $i")
                             } else {
                                 assertEquals('O', firstByte.toChar())
                                 Thread.sleep(random.nextInt(1000).toLong())

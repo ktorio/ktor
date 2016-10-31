@@ -144,7 +144,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     try {
                         when (state) {
                             PipelineState.Finished, PipelineState.FinishedAll -> {
-                                request.asyncContext.complete()
+                                call.close()
                             }
                             PipelineState.Failed -> {
                                 environment.log.error("Application ${application.javaClass} cannot fulfill the request", t)

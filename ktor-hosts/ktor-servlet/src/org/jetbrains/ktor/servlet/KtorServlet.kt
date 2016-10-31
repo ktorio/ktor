@@ -30,7 +30,7 @@ abstract class KtorServlet : HttpServlet() {
             call.executeOn(application.executor, hostPipeline).whenComplete { state, throwable ->
                 when (state) {
                     PipelineState.Finished, PipelineState.FinishedAll -> {
-                        request.asyncContext.complete()
+                        call.close()
                     }
                     PipelineState.Failed -> {
                         application.environment.log.error("Application ${application.javaClass} cannot fulfill the request", throwable)

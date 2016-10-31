@@ -49,8 +49,8 @@ open class ServletApplicationCall(application: Application,
 
         upgraded = true
         servletResponse.flushBuffer()
-        servletRequest.asyncContext?.complete()
 
+        ensureCompleted()
         pause()
     }
 
@@ -62,16 +62,20 @@ open class ServletApplicationCall(application: Application,
 
     @Synchronized
     override fun close() {
-        if (!completed) {
-            completed = true
-            asyncContext?.complete()
-        }
+        ensureCompleted()
     }
 
     @Synchronized
     @Deprecated("Request processing is always async. Does nothing")
     fun ensureAsync() {
         requireNotNull(asyncContext)
+    }
+
+    private fun ensureCompleted() {
+        if (!completed) {
+            completed = true
+            asyncContext?.complete()
+        }
     }
 
     // the following types need to be public as they are accessed through reflection
