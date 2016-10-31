@@ -3,8 +3,9 @@ package org.jetbrains.ktor.tests.jetty
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.jetty.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.testing.*
 
-class JettyHostTest : org.jetbrains.ktor.testing.HostTestSuite<JettyApplicationHost>() {
+class JettyHostTest : HostTestSuite<JettyApplicationHost>() {
 
     override fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, block: Routing.() -> Unit): JettyApplicationHost {
         val config = hostConfig(port, sslPort)

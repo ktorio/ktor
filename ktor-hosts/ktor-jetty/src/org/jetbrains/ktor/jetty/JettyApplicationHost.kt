@@ -30,7 +30,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     private val application: Application get() = applicationLifecycle.application
 
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
-    : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
+            : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
 
     private val server = jettyServer().apply {
         connectors = hostConfig.connectors.map { ktorConnector ->
@@ -95,6 +95,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     class Ticket(bb: ByteBuffer) : ReleasablePoolTicket(bb)
+
     private val byteBufferPool = object : ByteBufferPool {
         val jbp = MappedByteBufferPool(16)
 
@@ -140,17 +141,22 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 baseRequest.isHandled = true
 
                 call.executeOn(application.executor, hostPipeline).whenComplete { state, t ->
-                    when (state) {
-                        PipelineState.Finished, PipelineState.FinishedAll -> {
-                            request.asyncContext.complete()
-                        }
-                        PipelineState.Failed -> {
-                            environment.log.error("Application ${application.javaClass} cannot fulfill the request", t)
-                            call.execution.runBlockWithResult {
-                                call.respond(HttpStatusCode.InternalServerError)
+                    try {
+                        when (state) {
+                            PipelineState.Finished, PipelineState.FinishedAll -> {
+                                request.asyncContext.complete()
+                            }
+                            PipelineState.Failed -> {
+                                environment.log.error("Application ${application.javaClass} cannot fulfill the request", t)
+                                call.execution.runBlockWithResult {
+                                    call.respond(HttpStatusCode.InternalServerError)
+                                }
+                            }
+                            null, PipelineState.Executing -> {
                             }
                         }
-                        null, PipelineState.Executing -> {}
+                    } catch(ex: Throwable) {
+                        environment.log.error("Application ${application.javaClass} failed to complete request", ex)
                     }
                 }
             } catch(ex: Throwable) {

@@ -15,6 +15,7 @@ import org.jetbrains.ktor.util.*
 import org.junit.*
 import org.junit.runners.model.*
 import java.io.*
+import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import java.util.zip.*
@@ -891,6 +892,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test(timeout = 30000L)
     open fun testBlockingConcurrency() {
+        println()
         val completed = AtomicInteger(0)
 
         createAndStartServer({
@@ -898,10 +900,12 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                 Executors.newScheduledThreadPool(3)
             }
         }, {
-            get("/") {
+            get("/{index}") {
+                val index = call.parameters["index"]!!.toInt()
                 call.respondWrite {
+                    print("[$index] ")
                     try {
-                        append("OK\n")
+                        append("OK:$index\n")
                     } finally {
                         completed.incrementAndGet()
                     }
@@ -913,21 +917,20 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         val latch = CountDownLatch(count)
         val errors = CopyOnWriteArrayList<Throwable>()
 
+        val random = Random()
         for (i in 1..latch.count) {
             thread {
-                val isBlocker = i % 10L == 0L
-
                 try {
-                    withUrl("/") {
+                    withUrl("/$i") {
+                        //setRequestProperty("Connection", "close")
                         inputStream.reader().use { reader ->
                             val firstByte = reader.read()
-                            assertNotEquals(-1, firstByte)
-                            assertEquals('O', firstByte.toChar())
-
-                            if (isBlocker) {
-                                Thread.sleep(1000)
+                            if (firstByte == -1) {
+                                println("Premature end of response stream at iteration $i")
                             } else {
-                                assertEquals("K\n", reader.readText())
+                                assertEquals('O', firstByte.toChar())
+                                Thread.sleep(random.nextInt(1000).toLong())
+                                assertEquals("K:$i\n", reader.readText())
                             }
                         }
                     }

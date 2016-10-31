@@ -23,7 +23,7 @@ abstract class HostTestBase<H : ApplicationHost> {
     protected val sslPort = findFreePort()
     protected var server: H? = null
 
-    val testLog : Logger = LoggerFactory.getLogger("HostTestBase")
+    val testLog: Logger = LoggerFactory.getLogger("HostTestBase")
 
     @Before
     fun setUpBase() {
@@ -58,7 +58,7 @@ abstract class HostTestBase<H : ApplicationHost> {
         l.await()
 
         waitForPort(port)
-        //waitForPort(sslPort)
+        waitForPort(sslPort)
     }
 
     protected fun findFreePort() = ServerSocket(0).use { it.localPort }
@@ -80,8 +80,7 @@ abstract class HostTestBase<H : ApplicationHost> {
         connection.connectTimeout = 10000
         connection.readTimeout = 30000
         connection.instanceFollowRedirects = false
-
-            connection.block(port)
+        connection.block(port)
     }
 
     private fun withHttp2(url: URL, port: Int, block: Unit.(Int) -> Unit) {
