@@ -57,8 +57,9 @@ abstract class HostTestBase<H : ApplicationHost> {
         }
         l.await()
 
-        waitForPort(port)
-        waitForPort(sslPort)
+        server.hostConfig.connectors.forEach { connector ->
+            waitForPort(connector.port)
+        }
     }
 
     protected fun findFreePort() = ServerSocket(0).use { it.localPort }
