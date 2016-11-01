@@ -103,55 +103,7 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
                     ?: throw RuntimeException("Application class $applicationClassName cannot be loaded")
             log.debug("Application class: $applicationClass in ${applicationClass.classLoader}")
 
-            val appEnvClass = ApplicationEnvironment::class.java
-            val appClass = Application::class.java
-            var applicationLazy: Application? = null
-
-            fun isParameterOfType(p: KParameter, type: Class<*>) = (p.type.javaType as? Class<*>)?.let { type.isAssignableFrom(it) } ?: false
-            fun isApplicationEnvironment(p: KParameter) = isParameterOfType(p, appEnvClass)
-            fun isApplication(p: KParameter) = isParameterOfType(p, appClass)
-            fun application() = applicationLazy ?: Application(environment, Unit).apply { applicationLazy = this }
-
-            val applicationEntryPoint = applicationClass.kotlin.objectInstance ?: run {
-                val constructors = applicationClass.kotlin.constructors.filter { it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) || isApplication(p) } }
-                if (constructors.isEmpty()) {
-                    throw RuntimeException("There are no applicable constructors found in class $applicationClass")
-                }
-
-                val constructor = constructors.sortedWith(compareBy({ it.parameters.count { !it.isOptional } }, { it.parameters.size })).last()
-                constructor.callBy(constructor.parameters
-                        .filterNot { it.isOptional }
-                        .associateBy({ it }, { p ->
-                            @Suppress("IMPLICIT_CAST_TO_ANY")
-                            when {
-                                isApplicationEnvironment(p) -> environment
-                                isApplication(p) -> application()
-                                else -> throw RuntimeException("Parameter type ${p.type} of parameter ${p.name} is not supported")
-                            }
-                        })
-                )
-            }
-
-            if (applicationEntryPoint is Application && applicationLazy != null) {
-                throw IllegalArgumentException("Entry point $applicationClassName of type Application shouldn't have constructor parameters of type Application")
-            }
-
-            val application = when (applicationEntryPoint) {
-                is Application -> applicationEntryPoint
-                is ApplicationFeature<*, *, *> -> application()
-                else -> throw RuntimeException("Application class $applicationClassName should inherit from ${Application::class} or ${ApplicationFeature::class}<${Application::class.simpleName}, *>")
-            }
-
-            appInitInterceptors.forEach {
-                it(application)
-            }
-
-            if (applicationEntryPoint is ApplicationFeature<*, *, *>) {
-                @Suppress("UNCHECKED_CAST")
-                application.install(applicationEntryPoint as ApplicationFeature<Application, *, *>)
-            }
-
-            return application
+            return instantiateAndConfigureApplication(applicationClass)
         } finally {
             currentThread.contextClassLoader = oldThreadClassLoader
         }
@@ -206,6 +158,64 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
         if (autoreload) {
             watcher.close()
         }
+    }
+
+    private val appEnvClass = ApplicationEnvironment::class.java
+    private val appClass = Application::class.java
+    private fun isParameterOfType(p: KParameter, type: Class<*>) = (p.type.javaType as? Class<*>)?.let { type.isAssignableFrom(it) } ?: false
+    private fun isApplicationEnvironment(p: KParameter) = isParameterOfType(p, appEnvClass)
+    private fun isApplication(p: KParameter) = isParameterOfType(p, appClass)
+
+    private fun instantiateAndConfigureApplication(applicationEntryClass: Class<*>): Application {
+        var applicationLazy: Application? = null
+        fun application() = applicationLazy ?: Application(environment, Unit).apply { applicationLazy = this }
+
+        val applicationEntryPoint = createApplicationEntry(applicationEntryClass, ::application)
+
+        if (applicationEntryPoint is Application && applicationLazy != null) {
+            throw IllegalArgumentException("Entry point $applicationClassName of type Application shouldn't have constructor parameters of type Application")
+        }
+
+        val application = when (applicationEntryPoint) {
+            is Application -> applicationEntryPoint
+            is ApplicationFeature<*, *, *> -> application()
+            else -> throw RuntimeException("Application class $applicationClassName should inherit from ${Application::class} or ${ApplicationFeature::class}<${Application::class.simpleName}, *>")
+        }
+
+        appInitInterceptors.forEach {
+            it(application)
+        }
+
+        if (applicationEntryPoint is ApplicationFeature<*, *, *>) {
+            @Suppress("UNCHECKED_CAST")
+            application.install(applicationEntryPoint as ApplicationFeature<Application, *, *>)
+        }
+
+        return application
+    }
+
+    private fun createApplicationEntry(applicationEntryClass: Class<*>, application: () -> Application): Any {
+        val applicationEntryPoint = applicationEntryClass.kotlin.objectInstance ?: run {
+            val constructors = applicationEntryClass.kotlin.constructors.filter { it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) || isApplication(p) } }
+            if (constructors.isEmpty()) {
+                throw RuntimeException("There are no applicable constructors found in class $applicationEntryClass")
+            }
+
+            val constructor = constructors.sortedWith(compareBy({ it.parameters.count { !it.isOptional } }, { it.parameters.size })).last()
+            constructor.callBy(constructor.parameters
+                    .filterNot { it.isOptional }
+                    .associateBy({ it }, { p ->
+                        @Suppress("IMPLICIT_CAST_TO_ANY")
+                        when {
+                            isApplicationEnvironment(p) -> environment
+                            isApplication(p) -> application()
+                            else -> throw RuntimeException("Parameter type ${p.type} of parameter ${p.name} is not supported")
+                        }
+                    })
+            )
+        }
+
+        return applicationEntryPoint
     }
 
     private fun get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH(): WatchEvent.Modifier? {
