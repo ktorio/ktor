@@ -15,7 +15,11 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
     private val closed = AtomicBoolean(false)
 
     override fun setStatus(statusCode: HttpStatusCode) {
-        response.status = HttpResponseStatus(statusCode.value, statusCode.description)
+        val cached = responseStatusCache[statusCode.value]
+
+        response.status =
+                if (cached != null && cached.reasonPhrase() == statusCode.description) cached
+                else HttpResponseStatus(statusCode.value, statusCode.description)
     }
 
     internal val channelLazy = lazy {
@@ -35,6 +39,7 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
                 throw UnsupportedOperationException("Headers can no longer be set because response was already completed")
             response.headers().add(name, value)
         }
+
         override fun getHostHeaderNames(): List<String> = response.headers().map { it.key }
         override fun getHostHeaderValues(name: String): List<String> = response.headers().getAll(name) ?: emptyList()
     }
@@ -81,5 +86,9 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
         if (response.status().code() != HttpStatusCode.SwitchingProtocols.value) {
             HttpUtil.setTransferEncodingChunked(response, true)
         }
+    }
+
+    companion object {
+        val responseStatusCache = HttpStatusCode.allStatusCodes.associateBy({ it.value }, { HttpResponseStatus.valueOf(it.value) })
     }
 }
