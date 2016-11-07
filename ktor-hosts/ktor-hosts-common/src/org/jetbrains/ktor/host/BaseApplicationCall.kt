@@ -31,9 +31,9 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     protected val respondPipeline = RespondPipeline()
     protected val HostRespondPhase = PipelinePhase("HostRespondPhase")
     protected val HostRespondFinalizationPhase = PipelinePhase("HostRespondFinalizationPhase")
-    protected val responseContentTransferFuture = CompletableFuture<Unit>()
+
     private var finalizeAction: (PipelineContext<*>) -> Nothing = { context ->
-        writeStartedAction(context, responseContentTransferFuture)
+        context.pause()
     }
 
     init {
@@ -59,17 +59,17 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                     // note: it is very important to resend it here rather than just handle right here
                     // because we need compression, ranges and etc to work properly
                     respond(PipeResponse(pipe, { value.headers }, start = {
-                        finalizeAction = {
+                        finalizeAction = { context ->
                             try {
                                 value.stream(pipe.asOutputStream())
                             } catch (ignore: ChannelPipe.PipeClosedException) {
-//                        } catch (t: Throwable) {
-//                            pipe.rethrow(t)
+                            } catch (t: Throwable) {
+                                pipe.rethrow(t)
                             } finally {
                                 pipe.closeAndWait()
                             }
 
-                            writeStartedAction(this, responseContentTransferFuture)
+                            context.pause()
                         }
                     }))
                 }
@@ -107,7 +107,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         val channel = channelProvider()
 
         closeAtEnd(channel, this@BaseApplicationCall) // TODO closeAtEnd(call) should be done globally at call start
-        channel.copyToAsyncThenComplete(response, responseContentTransferFuture, ignoreWriteError = true, alloc = pool)
+        channel.copyToAsync(response, writeCompletionHandler(this), ignoreWriteError = true, alloc = pool)
 
         finalizeAction(this)
     }
@@ -123,24 +123,18 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         }
     }
 
-    private fun writeStartedAction(pipelineContext: PipelineContext<*>, copyFuture: CompletableFuture<*>): Nothing {
-        copyFuture.continueMachineOnFutureComplete(pipelineContext)
-        pipelineContext.pause()
-    }
-
-    private fun CompletableFuture<*>.continueMachineOnFutureComplete(pipelineContext: PipelineContext<*>) {
-        whenComplete { total, throwable ->
-            pipelineContext.runBlockWithResult {
-                pipelineContext.handleThrowable(throwable)
-            }
+    private fun writeCompletionHandler(pipelineContext: PipelineContext<*>) = { failure: Throwable? ->
+        pipelineContext.runBlockWithResult {
+            pipelineContext.handleThrowable(failure)
         }
+        Unit
     }
 
-    private fun PipelineContext<*>.handleThrowable(throwable: Throwable?) {
-        if (throwable == null || throwable is PipelineControl.Continue || throwable.cause is PipelineControl.Continue) {
+    private fun PipelineContext<*>.handleThrowable(failure: Throwable?) {
+        if (failure == null || failure is PipelineControl.Continue || failure.cause is PipelineControl.Continue) {
             finishAll()
-        } else if (throwable !is PipelineControl && throwable.cause !is PipelineControl) {
-            fail(throwable)
+        } else if (failure !is PipelineControl && failure.cause !is PipelineControl) {
+            fail(failure)
         }
     }
 }
