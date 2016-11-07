@@ -16,19 +16,41 @@ open class BaselinePipeline {
         var index = 0
     }
 
-    fun StateHolder.executeNext(): Nothing {
+    fun StateHolder.executeNext(depth: Int): Nothing {
         functions[index++]()
         if (index == functions.size)
             throw PipelineControl.Completed
-        throw PipelineControl.Continue
+        continueStateMachine(depth)
+    }
+
+    @CompilerControl(CompilerControl.Mode.DONT_INLINE)
+    private fun continueStateMachine(depth: Int): Nothing {
+        if (depth == 0) {
+            throw PipelineControl.Continue
+        }
+        continueStateMachine(depth - 1)
     }
 
     @Benchmark
-    fun stateMachine(): PipelineState {
+    fun stateMachine0(): PipelineState {
+        return runStateMachine(0)
+    }
+
+    @Benchmark
+    fun stateMachine1(): PipelineState {
+        return runStateMachine(1)
+    }
+
+    @Benchmark
+    fun stateMachine2(): PipelineState {
+        return runStateMachine(2)
+    }
+
+    private fun runStateMachine(depth: Int): PipelineState {
         val state = StateHolder()
         loop@ while (true) {
             try {
-                state.executeNext()
+                state.executeNext(depth)
             } catch (e: PipelineControl) {
                 when (e) {
                     is PipelineControl.Completed -> return PipelineState.Finished
@@ -102,12 +124,14 @@ open class ActionPipeline : PipelineBenchmark() {
         pipeline.intercept {}
     }
 }
+
 open class ActionPipeline2 : PipelineBenchmark() {
     override fun Pipeline<String>.configure() {
         pipeline.intercept {}
         pipeline.intercept {}
     }
 }
+
 open class ActionPipeline3 : PipelineBenchmark() {
     override fun Pipeline<String>.configure() {
         pipeline.intercept {}
@@ -117,14 +141,19 @@ open class ActionPipeline3 : PipelineBenchmark() {
 }
 
 /*
-ActionPipeline.execute         thrpt   10  12913.291 ± 1219.844  ops/ms
-ActionPipeline2.execute        thrpt   10   9907.695 ±  258.292  ops/ms
-ActionPipeline3.execute        thrpt   10   6470.315 ±  731.727  ops/ms
-BaselinePipeline.directCalls   thrpt   10  59905.115 ± 5605.544  ops/ms
-BaselinePipeline.stateMachine  thrpt   10  51473.441 ± 4388.521  ops/ms
-ForkPipeline.execute           thrpt   10   3550.697 ±  388.819  ops/ms
-ForkPipeline2.execute          thrpt   10   2022.782 ±  204.074  ops/ms
- */
+Benchmark                        Mode  Cnt      Score      Error   Units
+ActionPipeline.execute          thrpt   10  13204.180 ±  383.599  ops/ms
+ActionPipeline2.execute         thrpt   10  10227.456 ±  528.144  ops/ms
+ActionPipeline3.execute         thrpt   10   6771.575 ±  101.107  ops/ms
+
+BaselinePipeline.directCalls    thrpt   10  54994.242 ± 1884.991  ops/ms
+BaselinePipeline.stateMachine0  thrpt   10   3282.537 ±  172.657  ops/ms
+BaselinePipeline.stateMachine1  thrpt   10   1805.310 ±   55.010  ops/ms
+BaselinePipeline.stateMachine2  thrpt   10   1304.670 ±   52.871  ops/ms
+
+ForkPipeline.execute            thrpt   10   3960.776 ±  106.883  ops/ms
+ForkPipeline2.execute           thrpt   10   1586.361 ±   77.047  ops/ms
+*/
 
 fun main(args: Array<String>) {
     benchmark(args) {
