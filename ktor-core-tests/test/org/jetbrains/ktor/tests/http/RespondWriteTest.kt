@@ -2,10 +2,12 @@ package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.junit.*
+import kotlin.concurrent.*
 import kotlin.test.*
 
 class RespondWriteTest {
@@ -41,7 +43,29 @@ class RespondWriteTest {
         }
     }
 
-//    @Test
+    @Test
+    fun testSuspendInside() {
+        withTestApplication {
+            application.routing {
+                get("/") {
+                    call.respondWrite {
+                        runAsync(application.executor) {
+                            write("OK")
+                            close()
+
+                            finishAll()
+                        }
+                    }
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/").let { call ->
+                assertEquals("OK", call.response.content)
+            }
+        }
+    }
+
+    //    @Test
     @Suppress("UNUSED")
     fun testFailureInsideUnresolvedCase() {
         withTestApplication {

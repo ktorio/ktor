@@ -31,6 +31,12 @@ interface ApplicationResponse {
     }
 }
 
+/**
+ * Respond with content producer. The function [body] will be called later when ktor ready with [Writer] instance
+ * at receiver. You don't need to close it.
+ * If you go async inside of [body] then you MUST handle exceptions properly and close provided [Writer] instance on you own
+ * otherwise the response could get stuck.
+ */
 fun ApplicationCall.respondWrite(charset: Charset = Charsets.UTF_8, body: Writer.() -> Unit) : Nothing = respond(object : StreamConsumer() {
     override val headers: ValuesMap get() = ValuesMap.Empty
 

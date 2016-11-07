@@ -7,7 +7,8 @@ import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
-import java.util.concurrent.*
+import java.util.concurrent.atomic.*
+import kotlinx.support.jdk7.addSuppressed
 
 abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
     override val execution = PipelineMachine()
@@ -32,8 +33,8 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     protected val HostRespondPhase = PipelinePhase("HostRespondPhase")
     protected val HostRespondFinalizationPhase = PipelinePhase("HostRespondFinalizationPhase")
 
-    private var finalizeAction: (PipelineContext<*>) -> Nothing = { context ->
-        context.pause()
+    private var contentProducer: (PipelineContext<*>) -> Nothing = { context ->
+        context.producerComplete(null)
     }
 
     init {
@@ -58,18 +59,23 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
 
                     // note: it is very important to resend it here rather than just handle right here
                     // because we need compression, ranges and etc to work properly
-                    respond(PipeResponse(pipe, { value.headers }, start = {
-                        finalizeAction = { context ->
-                            try {
+                    respond(PipeResponse(pipe, { value.headers }, onChannelOpen = {
+                        // it is important to only set a function reference
+                        contentProducer = { context ->
+                            val failure = try {
                                 value.stream(pipe.asOutputStream())
+                                pipe.closeAndWait()
+                                null
                             } catch (ignore: ChannelPipe.PipeClosedException) {
+                                null
+                            } catch (control: PipelineControl) {
+                                throw control
                             } catch (t: Throwable) {
                                 pipe.rethrow(t)
-                            } finally {
-                                pipe.closeAndWait()
+                                t
                             }
 
-                            context.pause()
+                            context.producerComplete(failure)
                         }
                     }))
                 }
@@ -107,30 +113,68 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         val channel = channelProvider()
 
         closeAtEnd(channel, this@BaseApplicationCall) // TODO closeAtEnd(call) should be done globally at call start
-        channel.copyToAsync(response, writeCompletionHandler(this), ignoreWriteError = true, alloc = pool)
+        channel.copyToAsync(response, pumpCompletionHandler(this), ignoreWriteError = true, alloc = pool)
 
-        finalizeAction(this)
+        contentProducer(this)
     }
 
     override val parameters: ValuesMap by lazy { request.queryParameters + request.content.get() }
 
-    private class PipeResponse(val pipe: ChannelPipe, headersDelegate: () -> ValuesMap, val start: () -> Unit) : FinalContent.ChannelContent() {
+    private class PipeResponse(val pipe: ChannelPipe, headersDelegate: () -> ValuesMap, val onChannelOpen: () -> Unit) : FinalContent.ChannelContent() {
         override val headers by lazy(headersDelegate)
 
         override fun channel(): ReadChannel {
-            start()
+            onChannelOpen()
             return pipe
         }
     }
 
-    private fun writeCompletionHandler(pipelineContext: PipelineContext<*>) = { failure: Throwable? ->
-        pipelineContext.runBlockWithResult {
-            pipelineContext.handleThrowable(failure)
+    private var producerFailure: Throwable? = null
+    private val producerCompleted = AtomicBoolean(false)
+
+    private var pumpFailure: Throwable? = null
+    private val pumpCompleted = AtomicBoolean(false)
+
+    private val completionCounter = AtomicInteger(2) // 2 = pump and producer
+
+    private fun PipelineContext<*>.producerComplete(failure: Throwable?): Nothing {
+        if (producerCompleted.compareAndSet(false, true)) {
+            producerFailure = failure
+            tryComplete()
         }
-        Unit
+
+        pause()
     }
 
-    private fun PipelineContext<*>.handleThrowable(failure: Throwable?) {
+    private fun pumpCompletionHandler(pipelineContext: PipelineContext<*>) = { failure: Throwable? ->
+        if (pumpCompleted.compareAndSet(false, true)) {
+            pumpFailure = failure
+            pipelineContext.tryComplete()
+        }
+    }
+
+    private fun PipelineContext<*>.tryComplete() {
+        if (completionCounter.decrementAndGet() == 0) {
+            runBlockWithResult {
+                doComplete()
+            }
+        }
+    }
+
+    // we get here only when both producer and pump completed. Only once so here we should choose exception
+    // and proceed pipeline (possibly previously suspended)
+    private fun PipelineContext<*>.doComplete() {
+        val failure = when {
+            pumpFailure != null && producerFailure != null -> if (pumpFailure !== producerFailure) {
+                producerFailure!!.addSuppressed(pumpFailure!!)
+                producerFailure
+            } else {
+                producerFailure
+            }
+
+            else -> producerFailure ?: pumpFailure
+        }
+
         if (failure == null || failure is PipelineControl.Continue || failure.cause is PipelineControl.Continue) {
             finishAll()
         } else if (failure !is PipelineControl && failure.cause !is PipelineControl) {
