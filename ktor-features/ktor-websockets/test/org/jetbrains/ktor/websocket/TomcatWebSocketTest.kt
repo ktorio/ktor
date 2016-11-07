@@ -6,7 +6,7 @@ import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.tomcat.*
 
 class TomcatWebSocketTest : WebSocketHostSuite<TomcatApplicationHost>() {
-    override fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, block: Routing.() -> Unit): TomcatApplicationHost {
+    override fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, routing: Routing.() -> Unit): TomcatApplicationHost {
         val hostConfig = applicationHostConfig {
             connector {
                 port = this@TomcatWebSocketTest.port
@@ -14,6 +14,6 @@ class TomcatWebSocketTest : WebSocketHostSuite<TomcatApplicationHost>() {
         }
         val environmentConfig = applicationEnvironment(envInit)
 
-        return embeddedTomcatServer(hostConfig, environmentConfig, application = block)
+        return embeddedTomcatServer(hostConfig, environmentConfig, application = routing)
     }
 }

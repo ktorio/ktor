@@ -15,10 +15,10 @@ class TomcatHostTest : HostTestSuite<TomcatApplicationHost>() {
         }
     }
 
-    override fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, block: Routing.() -> Unit): TomcatApplicationHost {
+    override fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, routing: Routing.() -> Unit): TomcatApplicationHost {
         val config = hostConfig(port, sslPort)
         val env = applicationEnvironment(envInit)
 
-        return embeddedTomcatServer(config, env, application = block)
+        return embeddedTomcatServer(config, env, application = routing)
     }
 }

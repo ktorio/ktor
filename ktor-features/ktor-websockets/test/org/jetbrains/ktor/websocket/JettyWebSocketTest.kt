@@ -6,7 +6,7 @@ import org.jetbrains.ktor.jetty.*
 import org.jetbrains.ktor.routing.*
 
 class JettyWebSocketTest : WebSocketHostSuite<JettyApplicationHost>() {
-    override fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, block: Routing.() -> Unit): JettyApplicationHost {
+    override fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, routing: Routing.() -> Unit): JettyApplicationHost {
         val _port = this.port
 
         val hostConfig = applicationHostConfig {
@@ -16,6 +16,8 @@ class JettyWebSocketTest : WebSocketHostSuite<JettyApplicationHost>() {
         }
         val environmentConfig = applicationEnvironment(envInit)
 
-        return embeddedJettyServer(hostConfig, routing = block, environment = environmentConfig)
+        return embeddedJettyServer(hostConfig, environmentConfig) {
+            install(Routing, routing)
+        }
     }
 }

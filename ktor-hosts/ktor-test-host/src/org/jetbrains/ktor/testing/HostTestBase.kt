@@ -36,7 +36,7 @@ abstract class HostTestBase<H : ApplicationHost> {
         (server as? ApplicationHostStartable)?.stop()
     }
 
-    protected abstract fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, block: Routing.() -> Unit): H
+    protected abstract fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, routing: Routing.() -> Unit): H
 
     protected fun createAndStartServer(envInit: ApplicationEnvironmentBuilder.() -> Unit = {}, block: Routing.() -> Unit): H {
         val server = createServer(envInit, {

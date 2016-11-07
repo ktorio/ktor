@@ -6,10 +6,12 @@ import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 
 class NettyHostTest : HostTestSuite<NettyApplicationHost>() {
-    override fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, block: Routing.() -> Unit): NettyApplicationHost {
+    override fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, routing: Routing.() -> Unit): NettyApplicationHost {
         val config = hostConfig(port, sslPort)
         val env = applicationEnvironment(envInit)
 
-        return embeddedNettyServer(config, env, routing = block)
+        return embeddedNettyServer(config, env) {
+            install(Routing, routing)
+        }
     }
 }

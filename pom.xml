@@ -270,11 +270,27 @@
             <id>devexperts-maven</id>
             <url>https://dl.bintray.com/devexperts/Maven</url>
         </pluginRepository>
+        <pluginRepository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>bintray-kotlin-kotlin-eap</id>
+            <name>bintray-plugins</name>
+            <url>http://dl.bintray.com/kotlin/kotlin-eap</url>
+        </pluginRepository>
     </pluginRepositories>
     <repositories>
         <repository>
             <id>jcenter</id>
             <url>http://jcenter.bintray.com</url>
+        </repository>
+        <repository>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+            <id>bintray-kotlin-kotlin-eap</id>
+            <name>bintray</name>
+            <url>http://dl.bintray.com/kotlin/kotlin-eap</url>
         </repository>
     </repositories>
 </project>

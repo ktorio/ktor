@@ -4,7 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.routing.*
 
-fun embeddedJettyServer(port: Int = 80, host: String = "0.0.0.0", routing: Routing.() -> Unit): JettyApplicationHost {
+fun embeddedJettyServer(port: Int = 80, host: String = "0.0.0.0", configure: Application.() -> Unit): JettyApplicationHost {
     val hostConfig = applicationHostConfig {
         connector {
             this.port = port
@@ -13,7 +13,7 @@ fun embeddedJettyServer(port: Int = 80, host: String = "0.0.0.0", routing: Routi
     }
 
     val applicationConfig = applicationEnvironment {}
-    return embeddedJettyServer(hostConfig, applicationConfig, routing)
+    return embeddedJettyServer(hostConfig, applicationConfig, configure)
 }
 
 fun embeddedJettyServer(port: Int = 80, host: String = "0.0.0.0", application: Application): ApplicationHost {
@@ -39,9 +39,7 @@ fun embeddedJettyServer(hostConfig: ApplicationHostConfig, environment: Applicat
     })
 }
 
-fun embeddedJettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, routing: Routing.() -> Unit): JettyApplicationHost {
-    return embeddedJettyServer(hostConfig, environment, Application(environment, Unit).apply {
-        routing(routing)
-    })
+fun embeddedJettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, configure: Application.() -> Unit): JettyApplicationHost {
+    return embeddedJettyServer(hostConfig, environment, Application(environment, Unit).apply(configure))
 }
 
