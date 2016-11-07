@@ -6,7 +6,5 @@ sealed class PipelineControl : Throwable() {
     object Continue : PipelineControl()
 
     @Suppress("unused", "VIRTUAL_MEMBER_HIDDEN") // implicit override
-    fun fillInStackTrace(): Throwable? {
-        return null
-    }
+    fun fillInStackTrace(): Throwable? = this
 }
