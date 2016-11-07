@@ -3,7 +3,6 @@ package org.jetbrains.ktor.testing
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
@@ -18,16 +17,17 @@ import java.util.concurrent.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
-@Deprecated("Use withApplicationFeature instead once you migrate to ApplicationFeature")
+@Deprecated("Use withTestApplication instead once you migrate to module functions")
 inline fun <reified T : Application> withApplication(noinline test: TestApplicationHost.() -> Unit) {
     withApplication(T::class, test)
 }
 
+@Deprecated("Use withTestApplication once you migrate to module functions")
 inline fun <reified T : ApplicationFeature<*, *, *>> withApplicationFeature(noinline test: TestApplicationHost.() -> Unit) {
     withApplication(T::class, test)
 }
 
-fun withApplication(environment: ApplicationEnvironment, test: TestApplicationHost.() -> Unit) {
+fun withApplication(environment: ApplicationEnvironment = emptyTestEnvironment(), test: TestApplicationHost.() -> Unit) {
     val host = TestApplicationHost(environment)
     try {
         host.test()
@@ -45,7 +45,12 @@ fun withApplication(applicationClass: KClass<*>, test: TestApplicationHost.() ->
     withApplication(environment, test)
 }
 
-class TestApplicationHost(val environment: ApplicationEnvironment) {
+fun emptyTestEnvironment(): ApplicationEnvironment {
+    val config = MapApplicationConfig("ktor.deployment.environment" to "test")
+    return BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, SLF4JApplicationLog("ktor.test"), config)
+}
+
+class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnvironment()) {
     private val applicationLoader = ApplicationLoader(environment, false)
 
     init {
@@ -286,6 +291,5 @@ class TestApplicationResponse(call: ApplicationCall, respondPipeline: RespondPip
     }
 }
 
-class TestApplication : ApplicationModule() {
-    override fun Application.install() {}
-}
+@Deprecated("You actually don't need to refer to this class. Use withTestApplication to eliminate it.")
+class TestApplication : Application(emptyTestEnvironment())

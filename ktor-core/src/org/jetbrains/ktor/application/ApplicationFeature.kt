@@ -3,6 +3,7 @@ package org.jetbrains.ktor.application
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
+@Suppress("AddVarianceModifier")
 interface ApplicationFeature<in P : Pipeline<*>, out B : Any, F : Any> {
     /**
      * Unique key that identifies a feature

@@ -2,6 +2,7 @@ package org.jetbrains.ktor.host
 
 import org.jetbrains.ktor.application.*
 import java.io.*
+import java.lang.reflect.*
 import java.net.*
 import java.nio.file.*
 import java.nio.file.StandardWatchEventKinds.*
@@ -21,7 +22,11 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
     private val applicationInstanceLock = Object()
     private val packageWatchKeys = ArrayList<WatchKey>()
     private val log = environment.log.fork("Loader")
-    private val applicationClassName: String = environment.config.property("ktor.application.class").getString()
+
+    private val applicationClassName: String? = environment.config.propertyOrNull("ktor.application.class")?.getString()
+    private val applicationFeatures: List<String>? = environment.config.propertyOrNull("ktor.application.features")?.getList()
+    private val applicationModules: List<String>? = environment.config.propertyOrNull("ktor.application.modules")?.getList()
+
     private val watchPatterns: List<String> = environment.config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()
     private val watcher by lazy { FileSystems.getDefault().newWatchService() }
     private val appInitInterceptors = ArrayList<Application.() -> Unit>()
@@ -99,11 +104,7 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
         val oldThreadClassLoader = currentThread.contextClassLoader
         currentThread.contextClassLoader = classLoader
         try {
-            val applicationClass = classLoader.loadClass(applicationClassName)
-                    ?: throw RuntimeException("Application class $applicationClassName cannot be loaded")
-            log.debug("Application class: $applicationClass in ${applicationClass.classLoader}")
-
-            return instantiateAndConfigureApplication(applicationClass)
+            return instantiateAndConfigureApplication(classLoader)
         } finally {
             currentThread.contextClassLoader = oldThreadClassLoader
         }
@@ -160,62 +161,122 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
         }
     }
 
-    private val appEnvClass = ApplicationEnvironment::class.java
-    private val appClass = Application::class.java
-    private fun isParameterOfType(p: KParameter, type: Class<*>) = (p.type.javaType as? Class<*>)?.let { type.isAssignableFrom(it) } ?: false
-    private fun isApplicationEnvironment(p: KParameter) = isParameterOfType(p, appEnvClass)
-    private fun isApplication(p: KParameter) = isParameterOfType(p, appClass)
+    private fun instantiateAndConfigureApplication(classLoader: ClassLoader): Application {
+        val application = applicationClassName?.let {
+            val applicationClass = classLoader.loadClass(it)
+            if (ApplicationFeatureClassInstance.isAssignableFrom(applicationClass)) {
+                throw IllegalArgumentException("$applicationClassName: use ktor.application.modules and ktor.application.features instead")
+            }
+            if (!ApplicationClassInstance.isAssignableFrom(applicationClass)) {
+                throw IllegalArgumentException("$applicationClassName (ktor.application.class) should inherit ${ApplicationClassInstance.name}")
+            }
 
-    private fun instantiateAndConfigureApplication(applicationEntryClass: Class<*>): Application {
-        var applicationLazy: Application? = null
-        fun application() = applicationLazy ?: Application(environment, Unit).apply { applicationLazy = this }
-
-        val applicationEntryPoint = createApplicationEntry(applicationEntryClass, ::application)
-
-        if (applicationEntryPoint is Application && applicationLazy != null) {
-            throw IllegalArgumentException("Entry point $applicationClassName of type Application shouldn't have constructor parameters of type Application")
-        }
-
-        val application = when (applicationEntryPoint) {
-            is Application -> applicationEntryPoint
-            is ApplicationFeature<*, *, *> -> application()
-            else -> throw RuntimeException("Application class $applicationClassName should inherit from ${Application::class} or ${ApplicationFeature::class}<${Application::class.simpleName}, *>")
-        }
+            createApplicationEntry(applicationClass, null) as Application
+        } ?: Application(environment, Unit)
 
         appInitInterceptors.forEach {
             it(application)
         }
 
-        if (applicationEntryPoint is ApplicationFeature<*, *, *>) {
-            @Suppress("UNCHECKED_CAST")
-            application.install(applicationEntryPoint as ApplicationFeature<Application, *, *>)
+        applicationFeatures?.forEach { featureFqName ->
+            instantiateAndConfigure(classLoader, featureFqName, application)
+        }
+
+        applicationModules?.forEach { fqName ->
+            instantiateAndConfigure(classLoader, fqName, application)
         }
 
         return application
     }
 
-    private fun createApplicationEntry(applicationEntryClass: Class<*>, application: () -> Application): Any {
-        val applicationEntryPoint = applicationEntryClass.kotlin.objectInstance ?: run {
-            val constructors = applicationEntryClass.kotlin.constructors.filter { it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) || isApplication(p) } }
+    private fun instantiateAndConfigure(classLoader: ClassLoader, fqName: String, application: Application) {
+        classLoader.loadClassOrNull(fqName)?.let { clazz ->
+            val entry = createApplicationEntry(clazz, application)
+
+            when (entry) {
+                is ApplicationModule -> {
+                    @Suppress("UNCHECKED_CAST")
+                    application.install(entry)
+                }
+                is ApplicationFeature<*, *, *> -> {
+                    // TODO validate install function signature to ensure first parameter is Application
+                    @Suppress("UNCHECKED_CAST")
+                    application.install(entry as ApplicationFeature<Application, *, *>)
+                }
+                else -> throw IllegalArgumentException("Entry point $fqName should be ApplicationModule or ApplicationFeature<Application, *, *>")
+            }
+
+            return
+        }
+
+        fqName.lastIndexOfAny(".#".toCharArray()).let { idx ->
+            if (idx == -1) return@let
+            val className = fqName.substring(0, idx)
+            val functionName = fqName.substring(idx + 1)
+            val clazz = classLoader.loadClassOrNull(className)
+
+            if (clazz != null) {
+                val kclass = clazz.kotlin
+
+                clazz.methods.filter { it.name == functionName && Modifier.isStatic(it.modifiers) }
+                        .mapNotNull { it.kotlinFunction }
+                        .nullIfEmpty()
+                        ?.bestFunction()?.let { moduleFunction ->
+
+                    callEntryPointFunction(null, moduleFunction, application)
+                    return
+                }
+
+                val instance = createApplicationEntry(clazz, application)
+                kclass.functions.filter { it.name == functionName }.nullIfEmpty()?.bestFunction()?.let { moduleFunction ->
+                    callEntryPointFunction(instance, moduleFunction, application)
+                    return
+                }
+            }
+        }
+
+        throw ClassNotFoundException("Neither function nor class exist for the fully qualified name $fqName")
+    }
+
+    private fun createApplicationEntry(applicationEntryClass: Class<*>, application: Application?): Any {
+        return applicationEntryClass.kotlin.objectInstance ?: run {
+            val constructors = applicationEntryClass.kotlin.constructors.filter {
+                it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) || (isApplication(p) && application != null) }
+            }
+
             if (constructors.isEmpty()) {
                 throw RuntimeException("There are no applicable constructors found in class $applicationEntryClass")
             }
 
-            val constructor = constructors.sortedWith(compareBy({ it.parameters.count { !it.isOptional } }, { it.parameters.size })).last()
-            constructor.callBy(constructor.parameters
-                    .filterNot { it.isOptional }
-                    .associateBy({ it }, { p ->
-                        @Suppress("IMPLICIT_CAST_TO_ANY")
-                        when {
-                            isApplicationEnvironment(p) -> environment
-                            isApplication(p) -> application()
-                            else -> throw RuntimeException("Parameter type ${p.type} of parameter ${p.name} is not supported")
-                        }
-                    })
-            )
+            val constructor = constructors.bestFunction()
+            callEntryPointFunction(null, constructor, application)
         }
+    }
 
-        return applicationEntryPoint
+    private fun <R> List<KFunction<R>>.bestFunction() = sortedWith(compareBy({ it.parameters.count { !it.isOptional } }, { it.parameters.size })).last()
+
+    private fun <R> callEntryPointFunction(instance: Any?, entryPoint: KFunction<R>, application: Application?): R {
+        return entryPoint.callBy(entryPoint.parameters
+                .filterNot { it.isOptional }
+                .associateBy({ it }, { p ->
+                    @Suppress("IMPLICIT_CAST_TO_ANY")
+                    when {
+                        p.kind == KParameter.Kind.INSTANCE -> instance
+                        isApplicationEnvironment(p) -> environment
+                        isApplication(p) -> application ?: throw IllegalArgumentException("Couldn't inject application instance to $entryPoint")
+                        else -> throw RuntimeException("Parameter type ${p.type} of parameter ${p.name} is not supported")
+                    }
+                }))
+    }
+
+    private fun <T> List<T>.nullIfEmpty() = if (isEmpty()) null else this
+
+    private fun ClassLoader.loadClassOrNull(name: String): Class<*>? {
+        try {
+            return loadClass(name)
+        } catch (e: ClassNotFoundException) {
+            return null
+        }
     }
 
     private fun get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH(): WatchEvent.Modifier? {
@@ -226,6 +287,16 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
         } catch (e: Exception) {
             return null
         }
+    }
+
+    companion object {
+        private fun isParameterOfType(p: KParameter, type: Class<*>) = (p.type.javaType as? Class<*>)?.let { type.isAssignableFrom(it) } ?: false
+        private fun isApplicationEnvironment(p: KParameter) = isParameterOfType(p, ApplicationEnvironmentClassInstance)
+        private fun isApplication(p: KParameter) = isParameterOfType(p, ApplicationClassInstance)
+
+        private val ApplicationFeatureClassInstance = ApplicationFeature::class.java
+        private val ApplicationEnvironmentClassInstance = ApplicationEnvironment::class.java
+        private val ApplicationClassInstance = Application::class.java
     }
 }
 

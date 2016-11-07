@@ -2,9 +2,7 @@ package org.jetbrains.ktor.tests.auth
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
-import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
@@ -14,7 +12,6 @@ import org.jetbrains.ktor.util.*
 import org.junit.*
 import java.time.*
 import java.util.concurrent.*
-import kotlin.reflect.jvm.*
 import kotlin.test.*
 
 class OAuth1aSignatureTest {
@@ -314,11 +311,7 @@ private interface TestingOAuthServer {
 private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
     var testClient: TestingHttpClient? = null
 
-    val config = MapApplicationConfig(
-            "ktor.application.class" to TestApplication::class.qualifiedName!!
-    )
-    val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, SLF4JApplicationLog("ktor.test"), config)
-    val host = TestApplicationHost(environment)
+    val host = TestApplicationHost()
 
     with(host) {
         testClient = TestingHttpClient(this)

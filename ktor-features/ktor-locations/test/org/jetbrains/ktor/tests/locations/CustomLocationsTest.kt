@@ -1,17 +1,17 @@
 package org.jetbrains.ktor.tests.locations
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
+import org.jetbrains.ktor.tests.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
 import kotlin.reflect.*
 import kotlin.test.*
 
-private fun withLocationsApplication(test: TestApplicationHost.() -> Unit) = withApplicationFeature<TestApplication> {
+private fun withLocationsApplication(test: TestApplicationHost.() -> Unit) = withTestApplication {
     application.install(CustomLocationsFeature)
     test()
 }
