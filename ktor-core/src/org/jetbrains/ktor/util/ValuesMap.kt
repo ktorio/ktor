@@ -31,12 +31,14 @@ class ValuesMapSingleImpl(override val caseInsensitiveKey: Boolean, val name: St
     override fun names(): Set<String> = setOf(name)
 }
 
-private class ValuesMapImpl(override val caseInsensitiveKey: Boolean = false, source: Map<String, Iterable<String>> = emptyMap()) : ValuesMap {
-    private val values: MutableMap<String, List<String>> = if (caseInsensitiveKey) CaseInsensitiveMap(source.size) else LinkedHashMap(source.size)
+private class ValuesMapImpl(override val caseInsensitiveKey: Boolean, sizeHint: Int) : ValuesMap {
+    private val values: MutableMap<String, List<String>> = if (caseInsensitiveKey) CaseInsensitiveMap(sizeHint) else LinkedHashMap(sizeHint)
 
-    init {
+    constructor(caseInsensitiveKey: Boolean = false, source: Map<String, Iterable<String>> = emptyMap()) : this(caseInsensitiveKey, source.size) {
         if (source.isNotEmpty()) {
-            values.putAll(source.entries.map { it.key to it.value.toList() })
+            for ((key, values) in source.entries) {
+                this.values[key] = values.toList()
+            }
         }
     }
 

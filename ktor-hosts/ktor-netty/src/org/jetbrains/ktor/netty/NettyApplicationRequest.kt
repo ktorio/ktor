@@ -81,22 +81,14 @@ internal class NettyApplicationRequest(
 
     override fun close() {
         context.executeInLoop {
-            val handlersToRemove = ArrayList<ChannelHandlerAdapter>()
-
             if (multipart.isInitialized()) {
                 multipart.value.destroy()
-                handlersToRemove.add(multipart.value)
-            }
-            if (contentChannel.isInitialized()) {
-                contentChannel.value.close()
-                handlersToRemove.add(contentChannel.value)
+                context.pipeline().remove(multipart.value)
             }
 
-            for (handler in handlersToRemove) {
-                try {
-                    context.pipeline().remove(handler)
-                } catch (ignore: NoSuchElementException) {
-                }
+            if (contentChannel.isInitialized()) {
+                contentChannel.value.close()
+                context.pipeline().remove(contentChannel.value)
             }
         }
     }

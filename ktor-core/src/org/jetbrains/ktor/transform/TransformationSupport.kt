@@ -20,13 +20,15 @@ object TransformationSupport : ApplicationFeature<ApplicationCallPipeline, Appli
                 subject.attributes.put(TransformationState.Key, transformationState)
                 val message = subject.message
                 val visited = transformationState.visited
-                val handlers = call.transform.handlers(message.javaClass).filter { it !in visited }
+                val handlers = call.transform.handlers(message.javaClass)
                 if (handlers.isEmpty()) {
                     return@response
                 }
 
-                for (handler in handlers) {
-                    if (handler.predicate(this, message)) {
+                for (i in 0..handlers.size - 1) {
+                    val handler = handlers[i]
+
+                    if (handler !in visited && handler.predicate(this, message)) {
                         transformationState.lastHandler = handler
                         val nextResult = handler.handler(this, message)
                         transformationState.lastHandler = null
