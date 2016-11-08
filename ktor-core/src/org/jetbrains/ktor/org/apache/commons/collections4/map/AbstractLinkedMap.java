@@ -67,7 +67,7 @@ public abstract class AbstractLinkedMap<K, V> extends AbstractHashedMap<K, V> {
      * Constructor which performs no validation on the passed in parameters.
      *
      * @param initialCapacity  the initial capacity, must be a power of two
-     * @param loadFactor  the load factor, must be > 0.0f and generally < 1.0f
+     * @param loadFactor  the load factor, must be &gt; 0.0f and generally &lt; 1.0f
      * @param threshold  the threshold, must be sensible
      */
     protected AbstractLinkedMap(final int initialCapacity, final float loadFactor, final int threshold) {
