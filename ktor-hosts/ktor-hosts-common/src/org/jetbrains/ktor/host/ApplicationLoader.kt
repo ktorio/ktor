@@ -8,7 +8,9 @@ import java.nio.file.*
 import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.attribute.*
 import java.util.*
+import java.util.concurrent.locks.*
 import kotlin.comparisons.*
+import kotlin.concurrent.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
@@ -19,8 +21,8 @@ import kotlin.reflect.jvm.*
  */
 class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload: Boolean) : ApplicationLifecycle {
     private var _applicationInstance: Application? = null
-    private val applicationInstanceLock = Object()
-    private val packageWatchKeys = ArrayList<WatchKey>()
+    private val applicationInstanceLock = ReentrantReadWriteLock()
+    private var packageWatchKeys = emptyList<WatchKey>()
     private val log = environment.log.fork("Loader")
 
     private val applicationClassName: String? = environment.config.propertyOrNull("ktor.application.class")?.getString()
@@ -33,7 +35,7 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
 
     @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
     override val application: Application
-        get() = synchronized(applicationInstanceLock) {
+        get() = applicationInstanceLock.read {
             if (autoreload) {
                 val changes = packageWatchKeys.flatMap { it.pollEvents() }
                 if (changes.isNotEmpty()) {
@@ -51,16 +53,14 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
                     log.debug("Changes to $count files caused application restart.")
                     changes.take(5).forEach { log.debug("...  ${it.context()}") }
                     destroyApplication()
-                    _applicationInstance = null
                 }
             }
 
-            var instance = _applicationInstance
-            if (instance == null) {
-                instance = createApplication()
-                _applicationInstance = instance
+            _applicationInstance ?: applicationInstanceLock.write {
+                val newApplication = createApplication()
+                _applicationInstance = newApplication
+                newApplication
             }
-            instance!!
         }
 
     override fun onBeforeInitializeApplication(initializer: Application.() -> Unit) {
@@ -111,14 +111,17 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
     }
 
     fun destroyApplication() {
-        synchronized(applicationInstanceLock) {
+        applicationInstanceLock.write {
             try {
                 _applicationInstance?.dispose()
             } catch(e: Throwable) {
                 log.error("Failed to destroy application instance.", e)
+            } finally {
+                _applicationInstance = null
             }
+
             packageWatchKeys.forEach { it.cancel() }
-            packageWatchKeys.clear()
+            packageWatchKeys = mutableListOf()
         }
     }
 
@@ -149,9 +152,9 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
             log.debug("Watching $path for changes.")
         }
         val modifiers = get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH()?.let { arrayOf(it) } ?: emptyArray()
-        packageWatchKeys.addAll(paths.map {
+        packageWatchKeys = paths.map {
             it.register(watcher, arrayOf(ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY), *modifiers)
-        })
+        }
     }
 
     override fun dispose() {
