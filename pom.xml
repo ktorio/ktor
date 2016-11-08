@@ -136,6 +136,11 @@
                 <directory>resources</directory>
             </resource>
         </resources>
+        <testResources>
+            <testResource>
+                <directory>test-resources</directory>
+            </testResource>
+        </testResources>
 
         <plugins>
             <plugin>

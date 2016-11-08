@@ -10,16 +10,6 @@
 
     <artifactId>ktor-samples-testable</artifactId>
 
-    <build>
-        <sourceDirectory>src</sourceDirectory>
-        <testSourceDirectory>test</testSourceDirectory>
-        <testResources>
-            <testResource>
-                <directory>test-resources</directory>
-            </testResource>
-        </testResources>
-    </build>
-
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.ktor</groupId>

@@ -18,12 +18,6 @@
     </dependencies>
 
     <build>
-        <testResources>
-            <testResource>
-                <directory>test-resources</directory>
-            </testResource>
-        </testResources>
-
         <plugins>
             <plugin>
                 <artifactId>maven-jar-plugin</artifactId>
