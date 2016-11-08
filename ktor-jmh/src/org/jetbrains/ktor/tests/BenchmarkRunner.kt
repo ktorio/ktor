@@ -4,9 +4,10 @@ import org.openjdk.jmh.annotations.*
 import org.openjdk.jmh.runner.*
 import org.openjdk.jmh.runner.options.*
 import java.util.concurrent.*
+import kotlin.concurrent.*
 
 val iterations = 100000
-val defaultOptions = OptionsBuilder()
+val jmhOptions = OptionsBuilder()
         .mode(Mode.Throughput)
         .timeUnit(TimeUnit.MILLISECONDS)
         .warmupIterations(10)
@@ -15,42 +16,72 @@ val defaultOptions = OptionsBuilder()
         .measurementTime(TimeValue.milliseconds(500))
         .forks(1)
 
-class BenchmarkBuilder {
+class BenchmarkSettings {
+    var threads = 1
     val classes = mutableListOf<Class<*>>()
     fun add(clazz: Class<*>) {
         classes.add(clazz)
     }
 }
 
-fun benchmark(args: Array<String>, configure: BenchmarkBuilder.() -> Unit) {
-    val options = BenchmarkBuilder().apply(configure)
+fun benchmark(args: Array<String>, configure: BenchmarkSettings.() -> Unit) {
+    val options = BenchmarkSettings().apply(configure)
     when (args.firstOrNull()) {
-        "profile" -> runProfiler(options.classes)
-        null, "benchmark" -> runJMH(options.classes)
+        "profile" -> runProfiler(options)
+        null, "benchmark" -> runJMH(options)
     }
 }
 
-fun runProfiler(classes: List<Class<*>>) {
-    classes.forEach {
+fun runProfiler(settings: BenchmarkSettings) {
+    settings.classes.forEach {
         val instance = it.getConstructor().newInstance()
         val setups = it.methods.filter { it.annotations.any { it.annotationClass == Setup::class } }
+        val teardowns = it.methods.filter { it.annotations.any { it.annotationClass == TearDown::class } }
         val benchmarks = it.methods.filter { it.annotations.any { it.annotationClass == Benchmark::class } }
-        setups.forEach { it.invoke(instance) }
 
-        repeat(iterations) {
-            benchmarks.forEach { it.invoke(instance) }
+        if (setups.isNotEmpty()) {
+            println("Setting up…")
+            setups.forEach { it.invoke(instance) }
+        }
+
+        if (settings.threads == 1) {
+            println("Running $iterations iterations…")
+            repeat(iterations) {
+                benchmarks.forEach { it.invoke(instance) }
+            }
+        } else {
+            val iterationsPerThread = iterations / settings.threads
+            println("Running ${settings.threads} threads with $iterationsPerThread iterations per thread…")
+            val threads = (0..settings.threads).map { index ->
+                thread(name = "Test Thread $index") {
+                    println("Started thread '${Thread.currentThread().name}'")
+                    repeat(iterationsPerThread) {
+                        benchmarks.forEach { it.invoke(instance) }
+                    }
+                    println("Finished thread '${Thread.currentThread().name}'")
+                }
+            }
+            threads.forEach {
+                it.join()
+            }
+        }
+
+        if (teardowns.isNotEmpty()) {
+            println("Tearing down…")
+            teardowns.forEach { it.invoke(instance) }
         }
     }
 }
 
-fun runJMH(classes: List<Class<*>>) {
-    val options = defaultOptions.apply {
-        classes.forEach { include(it.name) }
+fun runJMH(settings: BenchmarkSettings) {
+    val options = jmhOptions.apply {
+        threads(settings.threads)
+        settings.classes.forEach { include(it.name) }
     }
     Runner(options.build()).run()
 }
 
-inline fun <reified T : Any> BenchmarkBuilder.run() {
+inline fun <reified T : Any> BenchmarkSettings.run() {
     add(T::class.java)
 }
 
