@@ -11,42 +11,40 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import java.util.*
 
-class AsyncApplication : ApplicationModule() {
-    override fun Application.install() {
-        install(DefaultHeaders)
-        install(CallLogging)
+fun Application.main() {
+    install(DefaultHeaders)
+    install(CallLogging)
 
-        routing {
-            get("/{...}") {
-                val start = System.currentTimeMillis()
-                runAsync(executor) {
-                    call.handleLongCalculation(start)
-                }
+    routing {
+        get("/{...}") {
+            val start = System.currentTimeMillis()
+            runAsync(executor) {
+                call.handleLongCalculation(start)
             }
         }
     }
+}
 
-    private fun ApplicationCall.handleLongCalculation(start: Long) {
-        val queue = System.currentTimeMillis() - start
-        var number = 0
-        val random = Random()
-        for (index in 0..300) {
-            Thread.sleep(10)
-            number += random.nextInt(100)
-        }
+private fun ApplicationCall.handleLongCalculation(start: Long) {
+    val queue = System.currentTimeMillis() - start
+    var number = 0
+    val random = Random()
+    for (index in 0..300) {
+        Thread.sleep(10)
+        number += random.nextInt(100)
+    }
 
-        val time = System.currentTimeMillis() - start
+    val time = System.currentTimeMillis() - start
 
-        response.contentType(ContentType.Text.Html)
-        respondWrite {
-            appendHTML().html {
-                head {
-                    title { +"Async World" }
-                }
-                body {
-                    h1 {
-                        +"We calculated this after ${time}ms (${queue}ms in queue): $number"
-                    }
+    response.contentType(ContentType.Text.Html)
+    respondWrite {
+        appendHTML().html {
+            head {
+                title { +"Async World" }
+            }
+            body {
+                h1 {
+                    +"We calculated this after ${time}ms (${queue}ms in queue): $number"
                 }
             }
         }

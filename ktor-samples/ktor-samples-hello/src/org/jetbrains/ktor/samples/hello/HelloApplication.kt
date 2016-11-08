@@ -6,14 +6,12 @@ import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 
-class HelloApplication : ApplicationModule() {
-    override fun Application.install() {
-        install(DefaultHeaders)
-        install(CallLogging)
-        install(Routing) {
-            get("/") {
-                call.respondText("Hello, World!")
-            }
+fun Application.main() {
+    install(DefaultHeaders)
+    install(CallLogging)
+    install(Routing) {
+        get("/") {
+            call.respondText("Hello, World!")
         }
     }
 }

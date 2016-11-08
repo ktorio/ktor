@@ -14,31 +14,29 @@ import java.util.*
 @location("/") class index()
 @location("/number") class number(val value: Int)
 
-class LocationsApplication : ApplicationModule() {
-    override fun Application.install() {
-        install(DefaultHeaders)
-        install(CallLogging)
-        install(Locations)
-        routing {
-            get<index>() {
-                call.response.contentType(ContentType.Text.Html)
-                call.respondWrite {
-                    appendHTML().html {
-                        head {
-                            title { +"Numbers" }
+fun Application.main() {
+    install(DefaultHeaders)
+    install(CallLogging)
+    install(Locations)
+    routing {
+        get<index> {
+            call.response.contentType(ContentType.Text.Html)
+            call.respondWrite {
+                appendHTML().html {
+                    head {
+                        title { +"Numbers" }
+                    }
+                    body {
+                        h1 {
+                            +"Choose a Number"
                         }
-                        body {
-                            h1 {
-                                +"Choose a Number"
-                            }
-                            ul {
-                                val rnd = Random()
-                                (0..5).forEach {
-                                    li {
-                                        val number = number(rnd.nextInt(1000))
-                                        a(href = feature(Locations).href(number)) {
-                                            +"Number #${number.value}"
-                                        }
+                        ul {
+                            val rnd = Random()
+                            (0..5).forEach {
+                                li {
+                                    val number = number(rnd.nextInt(1000))
+                                    a(href = feature(Locations).href(number)) {
+                                        +"Number #${number.value}"
                                     }
                                 }
                             }
@@ -46,18 +44,18 @@ class LocationsApplication : ApplicationModule() {
                     }
                 }
             }
+        }
 
-            get<number>() { number ->
-                call.response.contentType(ContentType.Text.Html)
-                call.respondWrite {
-                    appendHTML().html {
-                        head {
-                            title { +"Numbers" }
-                        }
-                        body {
-                            h1 {
-                                +"Number is ${number.value}"
-                            }
+        get<number> { number ->
+            call.response.contentType(ContentType.Text.Html)
+            call.respondWrite {
+                appendHTML().html {
+                    head {
+                        title { +"Numbers" }
+                    }
+                    body {
+                        h1 {
+                            +"Number is ${number.value}"
                         }
                     }
                 }

@@ -83,129 +83,127 @@ val loginProviders = listOf(
         )
 ).associateBy { it.name }
 
-class OAuthLoginApplication : ApplicationModule() {
-    val exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4)
+private val exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4)
 
-    override fun Application.install() {
-        install(DefaultHeaders)
-        install(CallLogging)
-        install(Locations)
-        routing {
-            get<index>() {
-                call.response.contentType(ContentType.Text.Html)
-                call.respondWrite {
-                    appendHTML().html {
-                        head {
-                            title { +"index page" }
+fun Application.OAuthLoginApplication() {
+    install(DefaultHeaders)
+    install(CallLogging)
+    install(Locations)
+    routing {
+        get<index>() {
+            call.response.contentType(ContentType.Text.Html)
+            call.respondWrite {
+                appendHTML().html {
+                    head {
+                        title { +"index page" }
+                    }
+                    body {
+                        h1 {
+                            +"Try to login"
                         }
-                        body {
-                            h1 {
-                                +"Try to login"
-                            }
-                            p {
-                                a(href = feature(Locations).href(login())) {
-                                    +"Login"
-                                }
+                        p {
+                            a(href = feature(Locations).href(login())) {
+                                +"Login"
                             }
                         }
                     }
                 }
             }
+        }
 
-            location<login>() {
-                authentication {
-                    oauthAtLocation<login>(DefaultHttpClient, exec,
-                            providerLookup = { loginProviders[it.type] },
-                            urlProvider = { l, p -> redirectUrl(login(p.name), false) })
-                }
+        location<login>() {
+            authentication {
+                oauthAtLocation<login>(DefaultHttpClient, exec,
+                        providerLookup = { loginProviders[it.type] },
+                        urlProvider = { l, p -> redirectUrl(login(p.name), false) })
+            }
 
-                param("error") {
-                    handle {
-                        call.loginFailedPage(call.parameters.getAll("error").orEmpty())
-                    }
-                }
-
+            param("error") {
                 handle {
-                    val principal = call.authentication.principal<OAuthAccessTokenResponse>()
-                    if (principal != null) {
-                        call.loggedInSuccessResponse(principal)
-                    } else {
-                        call.loginPage()
-                    }
+                    call.loginFailedPage(call.parameters.getAll("error").orEmpty())
+                }
+            }
+
+            handle {
+                val principal = call.authentication.principal<OAuthAccessTokenResponse>()
+                if (principal != null) {
+                    call.loggedInSuccessResponse(principal)
+                } else {
+                    call.loginPage()
                 }
             }
         }
     }
+}
 
-    private fun <T : Any> ApplicationCall.redirectUrl(t: T, secure: Boolean = true): String {
-        val hostPort = request.host()!! + request.port().let { port -> if (port == 80) "" else ":$port" }
-        val protocol = when {
-            secure -> "https"
-            else -> "http"
-        }
-        return "$protocol://$hostPort${application.feature(Locations).href(t)}"
+private fun <T : Any> ApplicationCall.redirectUrl(t: T, secure: Boolean = true): String {
+    val hostPort = request.host()!! + request.port().let { port -> if (port == 80) "" else ":$port" }
+    val protocol = when {
+        secure -> "https"
+        else -> "http"
     }
+    return "$protocol://$hostPort${application.feature(Locations).href(t)}"
+}
 
-    private fun ApplicationCall.loginPage() {
-        response.contentType(ContentType.Text.Html)
-        respondWrite {
-            appendHTML().html {
-                head {
-                    title { +"Login with" }
-                }
-                body {
-                    h1 {
-                        +"Login with:"
-                    }
-
-                    for (p in loginProviders) {
-                        p {
-                            a(href = application.feature(Locations).href(login(p.key))) {
-                                +p.key
-                            }
-                        }
-                    }
-                }
+private fun ApplicationCall.loginPage() {
+    response.contentType(ContentType.Text.Html)
+    respondWrite {
+        appendHTML().html {
+            head {
+                title { +"Login with" }
             }
-        }
-    }
-
-    private fun ApplicationCall.loginFailedPage(errors: List<String>) {
-        response.contentType(ContentType.Text.Html)
-        respondWrite {
-            appendHTML().html {
-                head {
-                    title { +"Login with" }
+            body {
+                h1 {
+                    +"Login with:"
                 }
-                body {
-                    h1 {
-                        +"Login error"
-                    }
 
-                    for (e in errors) {
-                        p {
-                            +e
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun ApplicationCall.loggedInSuccessResponse(callback: OAuthAccessTokenResponse) {
-        response.contentType(ContentType.Text.Html)
-        respondWrite {
-            appendHTML().html {
-                head {
-                    title { +"Logged in" }
-                }
-                body {
-                    h1 {
-                        +"You are logged in"
-                    }
+                for (p in loginProviders) {
                     p {
-                        +"Your token is $callback"
+                        a(href = application.feature(Locations).href(login(p.key))) {
+                            +p.key
+                        }
                     }
+                }
+            }
+        }
+    }
+}
+
+private fun ApplicationCall.loginFailedPage(errors: List<String>) {
+    response.contentType(ContentType.Text.Html)
+    respondWrite {
+        appendHTML().html {
+            head {
+                title { +"Login with" }
+            }
+            body {
+                h1 {
+                    +"Login error"
+                }
+
+                for (e in errors) {
+                    p {
+                        +e
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun ApplicationCall.loggedInSuccessResponse(callback: OAuthAccessTokenResponse) {
+    response.contentType(ContentType.Text.Html)
+    respondWrite {
+        appendHTML().html {
+            head {
+                title { +"Logged in" }
+            }
+            body {
+                h1 {
+                    +"You are logged in"
+                }
+                p {
+                    +"Your token is $callback"
                 }
             }
         }

@@ -49,7 +49,7 @@ class Logout()
 
 data class Session(val userId: String)
 
-class KweetApp : ApplicationModule(), AutoCloseable {
+class KweetApp : AutoCloseable {
 
     val hashKey = hex("6819b57a326945c1968f45236589")
     val dir = File("target/db")
@@ -63,7 +63,7 @@ class KweetApp : ApplicationModule(), AutoCloseable {
     val hmacKey = SecretKeySpec(hashKey, "HmacSHA1")
     val dao: DAOFacade = DAOFacadeCache(DAOFacadeDatabase(Database.connect(pool)), File(dir.parentFile, "ehcache"))
 
-    override fun Application.install() {
+    fun Application.install() {
         dao.init()
 
         install(DefaultHeaders)
