@@ -3,7 +3,7 @@ package org.jetbrains.ktor.pipeline
 import kotlinx.support.jdk7.*
 import java.util.*
 
-class PipelineMachine() {
+class PipelineMachine {
     private val executionStack = ArrayList<PipelineExecution>(4)
 
     fun <T : Any> execute(subject: T, pipeline: Pipeline<T>): Nothing {
@@ -65,20 +65,18 @@ class PipelineMachine() {
         }
 
         // current pipeline finished, mark as Finished for unwinding and continue
-        if (blockIndex == execution.blocks.size) {
+        if (blockIndex == execution.size) {
             execution.blockIndex--
             execution.state = PipelineState.Finished
             return true
         }
 
-        // get current block in current pipeline
-        val block = execution.blocks[blockIndex]
         when (execution.state) {
             PipelineState.FinishedAll,
             PipelineState.Finished -> {
                 // did we finish unwinding this block?
-                val successes = block.successes
-                if (successes.isEmpty()) {
+                val successes = execution.blockSuccesses[blockIndex]
+                if (successes == null || successes.isEmpty()) {
                     // yes, remove it and go backwards to previous block
                     execution.blockIndex--
                     return true
@@ -88,8 +86,8 @@ class PipelineMachine() {
             }
             PipelineState.Failed -> {
                 // did we finish unwinding this block?
-                val failures = block.failures
-                if (failures.isEmpty()) {
+                val failures = execution.blockFailures[blockIndex]
+                if (failures == null || failures.isEmpty()) {
                     // yes, remove it and go backwards to previous block
                     execution.blockIndex--
                     return true
@@ -102,7 +100,7 @@ class PipelineMachine() {
                 // schedule next block
                 execution.blockIndex++
                 // execute current block's function
-                return runAction(execution, block.function)
+                return runAction(execution, execution.functions[blockIndex])
             }
         }
     }

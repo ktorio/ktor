@@ -1,13 +1,15 @@
 package org.jetbrains.ktor.pipeline
 
-import java.util.*
-
 internal class PipelineExecution(
         val machine: PipelineMachine,
         override val subject: Any,
-        functions: List<PipelineContext<Any>.(Any) -> Unit>) : PipelineContext<Any> {
+        val functions: List<PipelineContext<Any>.(Any) -> Unit>) : PipelineContext<Any> {
 
-    val blocks = functions.mapTo(ArrayList(functions.size)) { PipelineBlock(it) }
+    val size = functions.size
+
+    val blockSuccesses = arrayOfNulls<MutableList<PipelineContext<Any>.(Any) -> Unit>?>(size)
+    val blockFailures = arrayOfNulls<MutableList<PipelineContext<Any>.(Any) -> Unit>?>(size)
+
     var blockIndex = 0
     var repeatIndex = 0
 
@@ -16,11 +18,11 @@ internal class PipelineExecution(
 
 
     override fun onSuccess(body: PipelineContext<Any>.(Any) -> Unit) {
-        blocks[blockIndex - 1].successes.add(body)
+        blockSuccesses.ensure(blockIndex - 1).add(body)
     }
 
     override fun onFail(body: PipelineContext<Any>.(Any) -> Unit) {
-        blocks[blockIndex - 1].failures.add(body)
+        blockFailures.ensure(blockIndex - 1).add(body)
     }
 
     override fun <T : Any> fork(value: T, pipeline: Pipeline<T>) = machine.execute(value, pipeline)
@@ -38,10 +40,22 @@ internal class PipelineExecution(
         check(repeatIndex == blockIndex - 1) {
             "Repeating block is available only from within the same block, and only once"
         }
-        val block = blocks[repeatIndex]
-        block.failures.clear()
-        block.successes.clear()
+
+        blockFailures[repeatIndex]?.clear()
+        blockSuccesses[repeatIndex]?.clear()
         blockIndex = repeatIndex
+    }
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun Array<MutableList<PipelineContext<Any>.(Any) -> Unit>?>.ensure(index: Int): MutableList<PipelineContext<Any>.(Any) -> Unit> {
+        val existing = this[index]
+        if (existing != null) {
+            return existing
+        }
+
+        val created = mutableListOf<PipelineContext<Any>.(Any) -> Unit>()
+        this[index] = created
+        return created
     }
 }
 
