@@ -56,6 +56,11 @@ open class IntegrationBenchmark {
     }
 }
 
+/*
+Benchmark                    Mode  Cnt   Score   Error   Units
+IntegrationBenchmark.sayOK  thrpt   10  26.433 ± 2.410  ops/ms
+*/
+
 fun main(args: Array<String>) {
     benchmark(args) {
         threads = 8
