@@ -13,11 +13,15 @@ class ConfigTest {
         mapConfig.put("auth.values.0", "a")
         mapConfig.put("auth.values.1", "b")
 
+        mapConfig.putList("auth.listValues", listOf("a","b","c"))
+
         val auth = mapConfig.config("auth")
         kotlin.test.assertEquals("ktor", auth.property("salt").getString())
         val users = auth.configList("users")
         kotlin.test.assertEquals(1, users.size)
         kotlin.test.assertEquals("test", users[0].property("name").getString())
+
+        kotlin.test.assertEquals(listOf("a","b","c"), auth.property("listValues").getList())
 
         val values = auth.property("values").getList()
         kotlin.test.assertEquals("[a, b]", values.toString())

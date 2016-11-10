@@ -16,6 +16,12 @@ class MapApplicationConfig : ApplicationConfig {
         map.put(path, value)
     }
 
+    fun putList(path: String, values: List<String>) {
+        this.put(path, "")
+        this.put("$path.size", values.size.toString())
+        values.forEachIndexed { i, value -> put("$path.$i", value)}
+    }
+
     override fun property(path: String): ApplicationConfigValue {
         val key = combine(this.path, path)
         if (!map.containsKey(key) && !map.containsKey(combine(key, "size")))
