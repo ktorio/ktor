@@ -54,11 +54,29 @@ open class IntegrationBenchmark {
     fun sayOK(): String {
         return URL("http://localhost:$port/sayOK").readText()
     }
+
+    @Benchmark
+    fun jarfile(): ByteArray {
+        return URL("http://localhost:$port/jarfile").readBytes()
+    }
+
+    @Benchmark
+    fun regularClasspathFile(): ByteArray {
+        return URL("http://localhost:$port/regularClasspathFile").readBytes()
+    }
+
+    @Benchmark
+    fun regularFile(): ByteArray {
+        return URL("http://localhost:$port/regularFile").readBytes()
+    }
 }
 
 /*
-Benchmark                    Mode  Cnt   Score   Error   Units
-IntegrationBenchmark.sayOK  thrpt   10  26.433 ± 2.410  ops/ms
+Benchmark                                   Mode  Cnt   Score   Error   Units
+IntegrationBenchmark.jarfile               thrpt   10  10.041 ± 3.944  ops/ms
+IntegrationBenchmark.regularClasspathFile  thrpt   10   8.444 ± 2.189  ops/ms
+IntegrationBenchmark.regularFile           thrpt   10  15.393 ± 2.060  ops/ms
+IntegrationBenchmark.sayOK                 thrpt   10  21.573 ± 3.653  ops/ms
 */
 
 fun main(args: Array<String>) {
