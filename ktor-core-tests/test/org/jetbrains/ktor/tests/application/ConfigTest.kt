@@ -13,7 +13,7 @@ class ConfigTest {
         mapConfig.put("auth.values.0", "a")
         mapConfig.put("auth.values.1", "b")
 
-        mapConfig.putList("auth.listValues", listOf("a","b","c"))
+        mapConfig.put("auth.listValues", listOf("a","b","c"))
 
         val auth = mapConfig.config("auth")
         kotlin.test.assertEquals("ktor", auth.property("salt").getString())

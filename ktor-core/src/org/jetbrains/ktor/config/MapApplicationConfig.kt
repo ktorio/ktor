@@ -16,10 +16,13 @@ class MapApplicationConfig : ApplicationConfig {
         map.put(path, value)
     }
 
-    fun putList(path: String, values: List<String>) {
-        this.put(path, "")
-        this.put("$path.size", values.size.toString())
-        values.forEachIndexed { i, value -> put("$path.$i", value)}
+    fun put(path: String, values: Iterable<String>) {
+        var size = 0
+        values.forEachIndexed { i, value ->
+            put(combine(path, i.toString()), value)
+            size++
+        }
+        put(combine(path, "size"), size.toString())
     }
 
     override fun property(path: String): ApplicationConfigValue {
