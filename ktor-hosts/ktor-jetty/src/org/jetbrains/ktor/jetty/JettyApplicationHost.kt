@@ -107,7 +107,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
-    private val hostPipeline = defaultHostPipeline()
+    private val hostPipeline = defaultHostPipeline(environment)
 
     private inner class Handler : AbstractHandler() {
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {

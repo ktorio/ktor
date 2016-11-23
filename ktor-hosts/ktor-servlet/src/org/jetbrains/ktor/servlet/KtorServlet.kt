@@ -11,7 +11,7 @@ import javax.servlet.http.*
 abstract class KtorServlet : HttpServlet() {
 
     abstract val application: Application
-    protected val hostPipeline = defaultHostPipeline()
+    protected val hostPipeline by lazy { defaultHostPipeline(application.environment) }
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         if (response.isCommitted) {

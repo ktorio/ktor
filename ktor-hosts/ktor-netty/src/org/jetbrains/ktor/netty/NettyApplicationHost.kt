@@ -75,7 +75,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     }
 
-    private val hostPipeline = defaultHostPipeline()
+    private val hostPipeline = defaultHostPipeline(environment)
 
     init {
         applicationLifecycle.onBeforeInitializeApplication {
