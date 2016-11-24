@@ -34,7 +34,7 @@ class ServletApplicationRequest(val servletRequest: HttpServletRequest, requestC
         }
     }
 
-    private val servletReadChannel by lazy {
+    private val servletReadChannel = lazy {
         requestChannelOverride() ?: run {
             ServletReadChannel(servletRequest.inputStream)
         }
@@ -43,10 +43,16 @@ class ServletApplicationRequest(val servletRequest: HttpServletRequest, requestC
     override val content: RequestContent = object : RequestContent(this) {
         override fun getMultiPartData(): MultiPartData = ServletMultiPartData(this@ServletApplicationRequest, servletRequest)
         override fun getInputStream(): InputStream = servletRequest.inputStream
-        override fun getReadChannel(): ReadChannel = servletReadChannel
+        override fun getReadChannel(): ReadChannel = servletReadChannel.value
     }
 
     override val cookies: RequestCookies = ServletRequestCookies(servletRequest, this)
+
+    fun close() {
+        if (servletReadChannel.isInitialized()) {
+            servletReadChannel.value.close()
+        }
+    }
 }
 
 private class ServletRequestCookies(val servletRequest: HttpServletRequest, request: ApplicationRequest) : RequestCookies(request) {

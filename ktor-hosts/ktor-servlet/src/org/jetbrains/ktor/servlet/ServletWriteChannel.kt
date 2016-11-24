@@ -1,8 +1,8 @@
 package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.nio.*
-import java.io.*
 import java.nio.*
+import java.nio.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import javax.servlet.*
@@ -148,9 +148,12 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
     }
 
     override fun close() {
-        servletOutputStream.close()
-        fireHandler { handler, byteBuffer ->
-            handler.failed(IOException("Channel closed"))
+        try {
+            servletOutputStream.close()
+        } finally {
+            fireHandler { handler, byteBuffer ->
+                handler.failed(ClosedChannelException())
+            }
         }
     }
 

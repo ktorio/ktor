@@ -16,8 +16,8 @@ open class ServletApplicationCall(application: Application,
                                   override val pool: ByteBufferPool,
                                   pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit) : BaseApplicationCall(application) {
 
-    override val request: ApplicationRequest = ServletApplicationRequest(servletRequest, { requestChannelOverride })
-    override val response: ApplicationResponse = ServletApplicationResponse(this, respondPipeline, servletResponse, pushImpl, { responseChannel() })
+    override val request: ServletApplicationRequest = ServletApplicationRequest(servletRequest, { requestChannelOverride })
+    override val response: ServletApplicationResponse = ServletApplicationResponse(this, respondPipeline, servletResponse, pushImpl, { responseChannel() })
 
     @Volatile
     protected var requestChannelOverride: ReadChannel? = null
@@ -54,11 +54,11 @@ open class ServletApplicationCall(application: Application,
         pause()
     }
 
-    private val responseChannel by lazy {
+    private val responseChannel = lazy {
         ServletWriteChannel(servletResponse.outputStream)
     }
 
-    override fun responseChannel(): WriteChannel = responseChannelOverride ?: responseChannel
+    override fun responseChannel(): WriteChannel = responseChannelOverride ?: responseChannel.value
 
     @Synchronized
     override fun close() {
@@ -74,7 +74,15 @@ open class ServletApplicationCall(application: Application,
     private fun ensureCompleted() {
         if (!completed) {
             completed = true
-            asyncContext?.complete()
+
+            try {
+                request.close()
+                if (responseChannel.isInitialized()) {
+                    responseChannel.value.close()
+                }
+            } finally {
+                asyncContext?.complete()
+            }
         }
     }
 
