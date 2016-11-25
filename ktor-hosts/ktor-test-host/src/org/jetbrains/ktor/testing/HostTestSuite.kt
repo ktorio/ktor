@@ -15,6 +15,7 @@ import org.jetbrains.ktor.util.*
 import org.junit.*
 import org.junit.runners.model.*
 import java.io.*
+import java.security.*
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
@@ -952,6 +953,48 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         assertEquals(count * 2, completed.get())
     }
 
+    @Test
+    fun testBigFile() {
+        val file = File("target/large-file.dat")
+        val rnd = Random()
+
+        file.bufferedWriter().use { out ->
+            for (line in 1..30000) {
+                for (col in 1..(30 + rnd.nextInt(40))) {
+                    out.append('a' + rnd.nextInt(25))
+                }
+                out.append('\n')
+            }
+        }
+
+        val originalSha1 = file.inputStream().use { it.sha1() }
+
+        createAndStartServer {
+            get("/file") { call ->
+                call.respond(LocalFileContent(file))
+            }
+        }
+
+        withUrl("/file") {
+            assertEquals(originalSha1, inputStream.sha1())
+        }
+    }
+
     private fun String.urlPath() = replace("\\", "/")
     private class ExpectedException(message: String) : RuntimeException(message)
+
+    private fun InputStream.sha1(): String {
+        val md = MessageDigest.getInstance("SHA1")
+        val bytes = ByteArray(8192)
+
+        do {
+            val rc = read(bytes)
+            if (rc == -1) {
+                break
+            }
+            md.update(bytes, 0, rc)
+        } while (true)
+
+        return hex(md.digest())
+    }
 }
