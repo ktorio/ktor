@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.nio.*
-import org.jetbrains.ktor.util.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.*
@@ -122,7 +121,12 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
     private fun doWrite(buffer: ByteBuffer): Boolean {
         if (servletOutputStream.isReady) {
             writeBuffer(buffer)
-            return true
+            return servletOutputStream.isReady
+            // isReady check will schedule onWritePossible if returns false so we get here again (with empty buffer)
+            // so we will will handle write and pending flushes and notify currentHandler
+            // it is very important to do like that to eliminate possible concurrent array access
+            // we should never notify handler before servletOutputStream.isReady become true
+            // this is why we return false in spite we have written buffer (possibly partially)
         }
 
         return false
@@ -130,10 +134,13 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
 
     private fun writeBuffer(buffer: ByteBuffer) {
         lastWriteSize = buffer.remaining()
-        if (buffer.hasArray()) {
-//            servletOutputStream.write(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining())
-            servletOutputStream.write(buffer.getAll()) // TODO: we should do like this because of possible concurrent array access
-//            buffer.position(buffer.limit())
+        if (!buffer.hasRemaining()) {
+            // do nothing
+            // it is important to check it here rather than on earlier stage because we have to touch isReady
+            // even if we have an empty buffer
+        } else if (buffer.hasArray()) {
+            servletOutputStream.write(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining())
+            buffer.position(buffer.limit())
         } else {
             val heapBuffer = ByteBuffer.allocate(buffer.remaining())
             heapBuffer.put(buffer)
