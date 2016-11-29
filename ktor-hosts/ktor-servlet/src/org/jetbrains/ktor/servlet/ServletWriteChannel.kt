@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.util.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.*
@@ -130,7 +131,8 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
     private fun writeBuffer(buffer: ByteBuffer) {
         lastWriteSize = buffer.remaining()
         if (buffer.hasArray()) {
-            servletOutputStream.write(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining())
+//            servletOutputStream.write(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining())
+            servletOutputStream.write(buffer.getAll()) // TODO: we should do like this because of possible concurrent array access
             buffer.position(buffer.limit())
         } else {
             val heapBuffer = ByteBuffer.allocate(buffer.remaining())
