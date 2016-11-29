@@ -133,7 +133,7 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
         if (buffer.hasArray()) {
 //            servletOutputStream.write(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining())
             servletOutputStream.write(buffer.getAll()) // TODO: we should do like this because of possible concurrent array access
-            buffer.position(buffer.limit())
+//            buffer.position(buffer.limit())
         } else {
             val heapBuffer = ByteBuffer.allocate(buffer.remaining())
             heapBuffer.put(buffer)
