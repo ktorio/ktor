@@ -138,6 +138,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 }
 
                 request.startAsync()
+                request.asyncContext.timeout = 0 // Overwrite any default non-null timeout to prevent multiple dispatches
                 baseRequest.isHandled = true
 
                 call.executeOn(application.executor, hostPipeline).whenComplete { state, t ->
