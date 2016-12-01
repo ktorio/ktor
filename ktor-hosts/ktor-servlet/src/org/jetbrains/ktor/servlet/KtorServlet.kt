@@ -22,7 +22,9 @@ abstract class KtorServlet : HttpServlet() {
         request.characterEncoding = "UTF-8"
 
         try {
-            request.startAsync()
+            request.startAsync().apply {
+                timeout = 0L
+            }
             val call = ServletApplicationCall(application, request, response, NoPool, { call, block, next ->
                 tryPush(request, call, block, next)
             })
