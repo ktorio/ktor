@@ -11,6 +11,7 @@ import org.jetbrains.ktor.routing.Routing
 import org.jetbrains.ktor.routing.get
 import org.jetbrains.ktor.servlet.ServletApplicationRequest
 import org.junit.Test
+import java.net.ServerSocket
 import java.net.URL
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
@@ -18,9 +19,16 @@ import kotlin.test.assertEquals
 
 class MultipleDispatchOnTimeout {
 
+    private fun findFreePort() = ServerSocket(0).use { it.localPort }
+
+    /**
+     * We are testing that the servlet container does not trigger an extra error dispatch for calls that timeout from
+     * the perspective of the servlet container. The fact that it does so is apparently specified here on this url:
+     * https://docs.oracle.com/javaee/6/api/javax/servlet/AsyncContext.html
+     */
     @Test
-    fun foo(){
-        val port = 44003
+    fun `calls with duration longer than default timeout do not trigger a redispatch`(){
+        val port = findFreePort()
         val appHostConfig = applicationHostConfig { connector { this.port = port } }
         val appEnv = BasicApplicationEnvironment(javaClass.classLoader, SLF4JApplicationLog("KTorTest"), MapApplicationConfig())
 
@@ -30,8 +38,8 @@ class MultipleDispatchOnTimeout {
             install(Routing, {
                 get("/foo") {
                     callCount.incrementAndGet()
-                    val timeout: Long = (call.request as ServletApplicationRequest).servletRequest.asyncContext.timeout
-                    println("Timeout is: $timeout")
+                    val timeout = Math.max((call.request as ServletApplicationRequest).servletRequest.asyncContext.timeout, 0)
+//                    println("Timeout is: $timeout")
                     Thread.sleep(timeout + 1000)
                     call.respondWrite {
                         write("A ok!")
@@ -48,7 +56,7 @@ class MultipleDispatchOnTimeout {
                 it
             } ?: "<empty>"
 
-            println("Got result: $result" )
+//            println("Got result: $result" )
 
             assertEquals(1, callCount.get())
             assertEquals("A ok!", result)
