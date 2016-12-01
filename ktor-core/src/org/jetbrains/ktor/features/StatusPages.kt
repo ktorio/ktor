@@ -92,3 +92,13 @@ fun StatusPages.Configuration.statusFile(vararg status: HttpStatusCode, filePatt
         }
     }
 }
+
+@Deprecated("Use StatusPages feature instead", level = DeprecationLevel.ERROR)
+fun Pipeline<ApplicationCall>.statusPage(phase: PipelinePhase = ApplicationCallPipeline.Infrastructure, handler: PipelineContext<ApplicationCall>.(HttpStatusCode) -> Unit): Unit {
+    TODO("Deprecated feature. Use StatusPages feature instead")
+}
+
+@Deprecated("Use StatusPages feature instead", level = DeprecationLevel.ERROR)
+fun Pipeline<ApplicationCall>.errorPage(phase: PipelinePhase = ApplicationCallPipeline.Infrastructure, handler: PipelineContext<ApplicationCall>.(Throwable) -> Unit) {
+    TODO("Deprecated. Use StatusPages feature instead")
+}
