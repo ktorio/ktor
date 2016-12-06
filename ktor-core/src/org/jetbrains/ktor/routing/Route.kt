@@ -7,7 +7,7 @@ import java.util.*
 open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationCallPipeline() {
     val children: MutableList<Route> = ArrayList()
 
-    @Volatile var cachedPipeline : ApplicationCallPipeline? = null
+    @Volatile var cachedPipeline: ApplicationCallPipeline? = null
 
     internal val handlers = ArrayList<PipelineContext<ApplicationCall>.(ApplicationCall) -> Unit>()
 
@@ -67,5 +67,9 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
         }
     }
 
-    override fun toString() = if (parent != null) "$parent/$selector" else selector.toString()
+    override fun toString() = when {
+        parent == null -> "/"
+        parent.parent == null -> "/$selector"
+        else -> "$parent/$selector"
+    }
 }
