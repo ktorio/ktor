@@ -44,12 +44,12 @@ class JettyDeadlockTest {
         val e = Executors.newCachedThreadPool()
         val q = LinkedBlockingQueue<String>()
 
-        println("starting")
+        //println("starting")
         val conns = (0..2000).map { number ->
             e.submit(Callable<String> {
                 try {
                     URL("http://localhost:$port/").openConnection().inputStream.bufferedReader().readLine().apply {
-                        println("$number says $this")
+                        //println("$number says $this")
                     } ?: "<empty>"
                 } catch (t: Throwable) {
                     "error: ${t.message}"
@@ -59,7 +59,7 @@ class JettyDeadlockTest {
             })
         }
 
-        println("Main thread is waiting for responses")
+        //println("Main thread is waiting for responses")
 
         TimeUnit.SECONDS.sleep(5)
         var attempts = 7
@@ -67,7 +67,7 @@ class JettyDeadlockTest {
         fun dump() {
             val (valid, invalid) = conns.filter { it.isDone }.partition { it.get() == "Help !" }
 
-            println("Completed: ${valid.size} valid, ${invalid.size} invalid of ${valid.size + invalid.size} total [attempts $attempts]")
+            //println("Completed: ${valid.size} valid, ${invalid.size} invalid of ${valid.size + invalid.size} total [attempts $attempts]")
         }
 
         while (true) {

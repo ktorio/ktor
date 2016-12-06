@@ -893,7 +893,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test(timeout = 30000L)
     fun testBlockingConcurrency() {
-        println()
+        //println()
         val completed = AtomicInteger(0)
 
         createAndStartServer({
@@ -904,7 +904,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
             get("/{index}") {
                 val index = call.parameters["index"]!!.toInt()
                 call.respondWrite {
-                    print("[$index] ")
+                    //print("[$index] ")
                     try {
                         append("OK:$index\n")
                     } finally {
@@ -927,7 +927,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                         inputStream.reader().use { reader ->
                             val firstByte = reader.read()
                             if (firstByte == -1) {
-                                println("Premature end of response stream at iteration $i")
+                                //println("Premature end of response stream at iteration $i")
                                 fail("Premature end of response stream at iteration $i")
                             } else {
                                 assertEquals('O', firstByte.toChar())
