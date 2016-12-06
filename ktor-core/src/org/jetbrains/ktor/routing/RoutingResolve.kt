@@ -61,14 +61,15 @@ class RoutingResolveContext(val routing: Route,
             bestResult = RoutingResolveResult(true, subtreeResult.entry, combinedValues, combinedQuality)
         }
 
-        if (bestResult != null)
-            return bestResult
-
         // no child matched, match is either current entry if path is done & there is a handler, or failure
-        if (segmentIndex == request.path.size && entry.handlers.isNotEmpty())
+        if (segmentIndex == request.path.size && entry.handlers.isNotEmpty()) {
+            if (bestResult != null && bestResult.quality > RouteSelectorEvaluation.qualityMissing)
+                return bestResult
+
             return RoutingResolveResult(true, entry, ValuesMap.Empty, 1.0)
-        else
-            return RoutingResolveResult(false, failEntry ?: entry, ValuesMap.Empty, 0.0)
+        }
+
+        return bestResult ?: RoutingResolveResult(false, failEntry ?: entry, ValuesMap.Empty, 0.0)
     }
 }
 

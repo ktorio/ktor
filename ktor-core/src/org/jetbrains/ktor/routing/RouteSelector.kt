@@ -14,8 +14,8 @@ data class RouteSelectorEvaluation(val succeeded: Boolean,
 
         val qualityConstant = 1.0
         val qualityParameter = 0.8
-        val qualityMissing = 0.5
-        val qualityWildcard = 0.2
+        val qualityWildcard = 0.5
+        val qualityMissing = 0.2
     }
 }
 
@@ -136,11 +136,9 @@ object UriPartWildcardRouteSelector : RouteSelector {
 
 data class UriPartTailcardRouteSelector(val name: String = "") : RouteSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
-        if (index <= context.path.size) {
-            val values = if (name.isEmpty()) valuesOf() else valuesOf(name to context.path.drop(index).map { it })
-            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityWildcard, values, segmentIncrement = context.path.size - index)
-        }
-        return RouteSelectorEvaluation.Failed
+        val values = if (name.isEmpty()) valuesOf() else valuesOf(name to context.path.drop(index).map { it })
+        val quality = if (index < context.path.size) RouteSelectorEvaluation.qualityWildcard else RouteSelectorEvaluation.qualityMissing
+        return RouteSelectorEvaluation(true, quality, values, segmentIncrement = context.path.size - index)
     }
 
     override fun toString(): String = "{...}"
