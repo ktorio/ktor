@@ -20,7 +20,7 @@ object CallLogging : ApplicationFeature<Application, Unit, Unit> {
     }
 
     private fun Application.logCallFinished(call: ApplicationCall) {
-        val status = call.response.status()
+        val status = call.response.status() ?: "Unhandled"
         when (status) {
             HttpStatusCode.Found -> environment.log.trace("$status: ${call.request.logInfo()} -> ${call.response.headers[HttpHeaders.Location]}")
             else -> environment.log.trace("$status: ${call.request.logInfo()}")
@@ -29,7 +29,7 @@ object CallLogging : ApplicationFeature<Application, Unit, Unit> {
 
     private fun Application.logCallFailed(call: ApplicationCall, e: Throwable) {
         try {
-            val status = call.response.status()
+            val status = call.response.status() ?: "Unhandled"
             environment.log.error("$status: ${call.request.logInfo()}", e)
         } catch (oom: OutOfMemoryError) {
             try {
