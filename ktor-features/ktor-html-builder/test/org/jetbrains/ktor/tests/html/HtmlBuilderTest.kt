@@ -30,13 +30,15 @@ class HtmlBuilderTest {
         handleRequest(org.jetbrains.ktor.http.HttpMethod.Companion.Get, "/?name=John").response.let { response ->
             kotlin.test.assertNotNull(response.content)
             val lines = response.content!!
-            assertEquals("""<html>
+            assertEquals("""<!DOCTYPE html>
+<html>
   <body>
     <h1>Hello, John</h1>
   </body>
 </html>
 """, lines)
-            assertEquals(ContentType.Text.Html, ContentType.Companion.parse(assertNotNull(response.headers[HttpHeaders.ContentType])))
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.Companion.parse(contentTypeText))
         }
     }
 
@@ -65,13 +67,15 @@ class HtmlBuilderTest {
             assertNotNull(response.content)
             assertEquals(HttpStatusCode.NotImplemented, response.status())
             val lines = response.content!!
-            assertEquals("""<html>
+            assertEquals("""<!DOCTYPE html>
+<html>
   <body>
     <h1>This feature is not implemented yet</h1>
   </body>
 </html>
 """, lines)
-            assertEquals(ContentType.Text.Html, ContentType.Companion.parse(assertNotNull(response.headers[HttpHeaders.ContentType])))
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.Companion.parse(contentTypeText))
         }
     }
 }

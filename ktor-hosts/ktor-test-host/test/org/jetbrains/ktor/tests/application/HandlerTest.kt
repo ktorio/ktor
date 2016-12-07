@@ -21,8 +21,7 @@ class HandlerTest {
 
     @Test fun `application with transparent handler`() {
         val testHost = createTestHost()
-        testHost.application.intercept(ApplicationCallPipeline.Call) { call ->
-        }
+        testHost.application.intercept(ApplicationCallPipeline.Call) {}
         on("making a request") {
             val request = testHost.handleRequest { }
             it("should not be handled") {

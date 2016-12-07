@@ -200,12 +200,12 @@ class StatusPageTest {
     fun testErrorShouldNotRecurse() {
         withTestApplication {
             application.install(StatusPages) {
-                exception<IllegalStateException> { cause ->
+                exception<IllegalStateException> {
                     throw IllegalStateException()
                 }
             }
 
-            application.intercept(ApplicationCallPipeline.Fallback) { call ->
+            application.intercept(ApplicationCallPipeline.Fallback) {
                 throw NullPointerException()
             }
 

@@ -1,13 +1,11 @@
 package org.jetbrains.ktor.samples.async
 
 import kotlinx.html.*
-import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
-import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.html.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import java.util.*
 
@@ -35,17 +33,13 @@ private fun ApplicationCall.handleLongCalculation(start: Long) {
     }
 
     val time = System.currentTimeMillis() - start
-
-    response.contentType(ContentType.Text.Html)
-    respondWrite {
-        appendHTML().html {
-            head {
-                title { +"Async World" }
-            }
-            body {
-                h1 {
-                    +"We calculated this after ${time}ms (${queue}ms in queue): $number"
-                }
+    respondHtml {
+        head {
+            title { +"Async World" }
+        }
+        body {
+            h1 {
+                +"We calculated this after ${time}ms (${queue}ms in queue): $number"
             }
         }
     }

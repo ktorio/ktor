@@ -1,16 +1,15 @@
 package org.jetbrains.ktor.samples.auth
 
 import kotlinx.html.*
-import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.features.*
+import org.jetbrains.ktor.html.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.request.*
-import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import java.util.concurrent.*
 
@@ -90,21 +89,18 @@ fun Application.OAuthLoginApplication() {
     install(CallLogging)
     install(Locations)
     routing {
-        get<index>() {
-            call.response.contentType(ContentType.Text.Html)
-            call.respondWrite {
-                appendHTML().html {
-                    head {
-                        title { +"index page" }
+        get<index> {
+            call.respondHtml {
+                head {
+                    title { +"index page" }
+                }
+                body {
+                    h1 {
+                        +"Try to login"
                     }
-                    body {
-                        h1 {
-                            +"Try to login"
-                        }
-                        p {
-                            a(href = feature(Locations).href(login())) {
-                                +"Login"
-                            }
+                    p {
+                        a(href = feature(Locations).href(login())) {
+                            +"Login"
                         }
                     }
                 }
@@ -146,22 +142,19 @@ private fun <T : Any> ApplicationCall.redirectUrl(t: T, secure: Boolean = true):
 }
 
 private fun ApplicationCall.loginPage() {
-    response.contentType(ContentType.Text.Html)
-    respondWrite {
-        appendHTML().html {
-            head {
-                title { +"Login with" }
+    respondHtml {
+        head {
+            title { +"Login with" }
+        }
+        body {
+            h1 {
+                +"Login with:"
             }
-            body {
-                h1 {
-                    +"Login with:"
-                }
 
-                for (p in loginProviders) {
-                    p {
-                        a(href = application.feature(Locations).href(login(p.key))) {
-                            +p.key
-                        }
+            for (p in loginProviders) {
+                p {
+                    a(href = application.feature(Locations).href(login(p.key))) {
+                        +p.key
                     }
                 }
             }
@@ -170,21 +163,18 @@ private fun ApplicationCall.loginPage() {
 }
 
 private fun ApplicationCall.loginFailedPage(errors: List<String>) {
-    response.contentType(ContentType.Text.Html)
-    respondWrite {
-        appendHTML().html {
-            head {
-                title { +"Login with" }
+    respondHtml {
+        head {
+            title { +"Login with" }
+        }
+        body {
+            h1 {
+                +"Login error"
             }
-            body {
-                h1 {
-                    +"Login error"
-                }
 
-                for (e in errors) {
-                    p {
-                        +e
-                    }
+            for (e in errors) {
+                p {
+                    +e
                 }
             }
         }
@@ -192,19 +182,16 @@ private fun ApplicationCall.loginFailedPage(errors: List<String>) {
 }
 
 private fun ApplicationCall.loggedInSuccessResponse(callback: OAuthAccessTokenResponse) {
-    response.contentType(ContentType.Text.Html)
-    respondWrite {
-        appendHTML().html {
-            head {
-                title { +"Logged in" }
+    respondHtml {
+        head {
+            title { +"Logged in" }
+        }
+        body {
+            h1 {
+                +"You are logged in"
             }
-            body {
-                h1 {
-                    +"You are logged in"
-                }
-                p {
-                    +"Your token is $callback"
-                }
+            p {
+                +"Your token is $callback"
             }
         }
     }

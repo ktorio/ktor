@@ -1,9 +1,9 @@
 package org.jetbrains.ktor.samples.post
 
 import kotlinx.html.*
-import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
+import org.jetbrains.ktor.html.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.logging.*
@@ -22,26 +22,23 @@ fun Application.main() {
         get<index> {
             val contentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 
-            call.response.contentType(contentType)
-            call.respondWrite {
-                appendHTML().html {
-                    head {
-                        title { +"POST" }
-                        meta {
-                            httpEquiv = HttpHeaders.ContentType
-                            content = contentType.toString()
-                        }
+            call.respondHtml {
+                head {
+                    title { +"POST" }
+                    meta {
+                        httpEquiv = HttpHeaders.ContentType
+                        content = contentType.toString()
                     }
-                    body {
-                        p {
-                            +"File upload example"
-                        }
-                        form(feature(Locations).href(post()), encType = FormEncType.multipartFormData, method = FormMethod.post) {
-                            acceptCharset = "utf-8"
-                            textInput { name = "field1" }
-                            fileInput { name = "file1" }
-                            submitInput { value = "send" }
-                        }
+                }
+                body {
+                    p {
+                        +"File upload example"
+                    }
+                    form(feature(Locations).href(post()), encType = FormEncType.multipartFormData, method = FormMethod.post) {
+                        acceptCharset = "utf-8"
+                        textInput { name = "field1" }
+                        fileInput { name = "file1" }
+                        submitInput { value = "send" }
                     }
                 }
             }

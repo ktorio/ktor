@@ -277,7 +277,7 @@ class OAuth1aFlowTest  {
         routing {
             route(HttpMethod.Get, "/login") {
                 authentication {
-                    oauth(testClient!!, exec, { settings.mutateSettings() }, { settings -> redirectUrl })
+                    oauth(testClient!!, exec, { settings.mutateSettings() }, { redirectUrl })
                 }
 
                 handle {

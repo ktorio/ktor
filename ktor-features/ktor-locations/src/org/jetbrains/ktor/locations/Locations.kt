@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.locations
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
@@ -25,7 +24,8 @@ open class Locations(val conversionService: ConversionService, val routeService:
                                     val queryParameters: List<LocationInfoProperty>)
 
     private fun LocationInfo.create(request: ApplicationCall): Any {
-        val constructor: KFunction<Any> = klass.primaryConstructor ?: klass.constructors.single()
+        @Suppress("USELESS_CAST") // TODO: remove when bug is fixed in 1.1
+        val constructor: KFunction<Any> = klass.primaryConstructor as KFunction<Any>? ?: klass.constructors.single()
         val parameters = constructor.parameters
         val arguments = parameters.map { parameter ->
             val parameterType = parameter.type
@@ -62,7 +62,8 @@ open class Locations(val conversionService: ConversionService, val routeService:
 
             val path = routeService.findRoute(dataClass) ?: ""
 
-            val constructor: KFunction<Any> = dataClass.primaryConstructor ?: dataClass.constructors.single()
+            @Suppress("USELESS_CAST") // TODO: remove when bug is fixed in 1.1
+            val constructor: KFunction<Any> = dataClass.primaryConstructor as KFunction<Any>? ?: dataClass.constructors.single()
 
             val declaredProperties = constructor.parameters.map { parameter ->
                 val property = dataClass.declaredMemberProperties.singleOrNull { property -> property.name == parameter.name }
@@ -197,6 +198,6 @@ class LocationAttributeRouteService : LocationRouteService {
     }
 
     override fun findRoute(klass: KClass<*>): String? {
-        return klass.annotation<location>()?.let { it.path }
+        return klass.annotation<location>()?.path
     }
 }

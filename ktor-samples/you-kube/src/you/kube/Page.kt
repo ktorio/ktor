@@ -1,20 +1,16 @@
 package you.kube
 
 import kotlinx.html.*
-import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.html.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.sessions.*
-import java.io.*
-
-fun ApplicationCall.respondHtml(versions: List<Version>, visibility: CacheControlVisibility, block: HTML.() -> Unit): Nothing {
-    respond(HtmlContent(versions, visibility, block))
-}
 
 fun ApplicationCall.respondDefaultHtml(versions: List<Version>, visibility: CacheControlVisibility, title: String = "You Kube", block: DIV.() -> Unit): Nothing {
-    respondHtml(versions, visibility) {
+    val cacheControl = CacheControl.MaxAge(3600 * 24 * 7, mustRevalidate = true, visibility = visibility, proxyMaxAgeSeconds = null, proxyRevalidate = false)
+    respondHtml(HttpStatusCode.OK, versions, cacheControl) {
         val session = sessionOrNull<Session>()
         head {
             title { +title }
@@ -58,22 +54,4 @@ fun ApplicationCall.respondDefaultHtml(versions: List<Version>, visibility: Cach
     }
 }
 
-class HtmlContent(override val versions: List<Version>, visibility: CacheControlVisibility, val builder: HTML.() -> Unit) : Resource, StreamConsumer() {
-    override val contentType: ContentType
-        get() = ContentType.Text.Html.withCharset(Charsets.UTF_8)
 
-    override val expires = null
-    override val cacheControl = CacheControl.MaxAge(3600 * 24 * 7, mustRevalidate = true, visibility = visibility, proxyMaxAgeSeconds = null, proxyRevalidate = false)
-
-    override val contentLength = null
-
-    override val headers by lazy { super.headers }
-
-    override fun stream(out: OutputStream) {
-        with(out.bufferedWriter()) {
-            append("<!DOCTYPE html>\n")
-            appendHTML().html(builder)
-            flush()
-        }
-    }
-}

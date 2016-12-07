@@ -136,7 +136,7 @@ class StaticContentTest {
 
     @Test
     fun testSyntacticallyIncorrectRange() {
-        withRangeApplication { file ->
+        withRangeApplication {
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=1000000-7") // syntactically incorrect
             }).let { result ->
@@ -178,7 +178,7 @@ class StaticContentTest {
 
     @Test
     fun testHeadRequestRange() {
-        withRangeApplication { file ->
+        withRangeApplication {
             // head request
             handleRequest(HttpMethod.Head, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=0-0")
@@ -194,7 +194,7 @@ class StaticContentTest {
 
     @Test
     fun testPostRequestRange() {
-        withRangeApplication { file ->
+        withRangeApplication {
             // post request
             handleRequest(HttpMethod.Post, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=0-0")
@@ -207,7 +207,7 @@ class StaticContentTest {
 
     @Test
     fun testPostNoRange() {
-        withRangeApplication { file ->
+        withRangeApplication {
             // post request with no range
             handleRequest(HttpMethod.Post, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
 
@@ -220,7 +220,7 @@ class StaticContentTest {
 
     @Test
     fun testMultipleRanges() {
-        withRangeApplication { file ->
+        withRangeApplication {
             // multiple ranges
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=0-0,2-2")

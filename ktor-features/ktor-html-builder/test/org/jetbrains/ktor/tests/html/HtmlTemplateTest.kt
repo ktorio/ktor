@@ -66,7 +66,8 @@ class HtmlTemplateTest {
         handleRequest(HttpMethod.Get, "/?name=John").response.let { response ->
             assertNotNull(response.content)
             val lines = response.content!!
-            assertEquals("""<html>
+            assertEquals("""<!DOCTYPE html>
+<html>
   <head>
     <title>Template</title>
   </head>
@@ -79,7 +80,8 @@ class HtmlTemplateTest {
   </body>
 </html>
 """, lines)
-            assertEquals(ContentType.Text.Html, ContentType.parse(assertNotNull(response.headers[HttpHeaders.ContentType])))
+            val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.Companion.parse(contentTypeText))
         }
     }
 }

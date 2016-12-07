@@ -20,7 +20,7 @@ fun Route.videos(database: Database) {
         call.respondDefaultHtml(listOf(EntityTagVersion(etag)), visibility) {
             div("posts") {
             when {
-                topVideos.size == 0 -> {
+                topVideos.isEmpty() -> {
                     h1("content-subhead") { +"No Videos" }
                     div {
                         +"You need to upload some videos to watch them"

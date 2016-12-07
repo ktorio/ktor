@@ -59,7 +59,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
 
                     // note: it is very important to resend it here rather than just handle right here
                     // because we need compression, ranges and etc to work properly
-                    respond(PipeResponse(pipe, { value.headers }, onChannelOpen = {
+                    respond(PipeResponse(pipe, value.status, { value.headers }, onChannelOpen = {
                         // it is important to only set a function reference
                         contentProducer = { context ->
                             val failure = try {
@@ -120,7 +120,10 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
 
     override val parameters: ValuesMap by lazy { request.queryParameters + request.content.get() }
 
-    private class PipeResponse(val pipe: ChannelPipe, headersDelegate: () -> ValuesMap, val onChannelOpen: () -> Unit) : FinalContent.ChannelContent() {
+    private class PipeResponse(val pipe: ChannelPipe,
+                               override val status: HttpStatusCode?,
+                               headersDelegate: () -> ValuesMap,
+                               val onChannelOpen: () -> Unit) : FinalContent.ChannelContent() {
         override val headers by lazy(headersDelegate)
 
         override fun channel(): ReadChannel {
