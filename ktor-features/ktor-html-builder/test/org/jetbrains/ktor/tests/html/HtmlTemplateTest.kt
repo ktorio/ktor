@@ -45,19 +45,40 @@ class MainTemplate : Template<HTML> {
     }
 }
 
+class MulticolumnTemplate(val main: MainTemplate) : Template<HTML> {
+    val column1 = Placeholder<FlowContent>()
+    val column2 = Placeholder<FlowContent>()
+    override fun HTML.apply() {
+        insert(main) {
+            menu {
+                item { +"One" }
+                item { +"Two" }
+            }
+            content {
+                div("column") {
+                    insert(column1)
+                }
+                div("column") {
+                    insert(column2)
+                }
+            }
+        }
+    }
+}
+
 class HtmlTemplateTest {
     @Test
     fun testTemplate() = withTestApplication {
         application.routing {
             get("/") {
                 val name = call.parameters["name"]
-                call.respondHtmlTemplate(MainTemplate()) {
-                    content {
+
+                call.respondHtmlTemplate(MulticolumnTemplate(MainTemplate())) {
+                    column1 {
                         +"Hello, $name"
                     }
-                    menu {
-                        item { +"One" }
-                        item { +"Two" }
+                    column2 {
+                        +"col2"
                     }
                 }
             }
@@ -72,7 +93,10 @@ class HtmlTemplateTest {
     <title>Template</title>
   </head>
   <body>
-    <h1>Hello, John</h1>
+    <h1>
+      <div class="column">Hello, John</div>
+      <div class="column">col2</div>
+    </h1>
     <ul>
       <li><b>One</b></li>
       <li>Two</li>
