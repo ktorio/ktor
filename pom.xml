@@ -43,7 +43,7 @@
                 <activeByDefault>false</activeByDefault>
             </activation>
             <properties>
-                <kotlin.version>1.1.0-dev-4137</kotlin.version>
+                <kotlin.version>1.1-M04</kotlin.version>
             </properties>
 
             <repositories>
