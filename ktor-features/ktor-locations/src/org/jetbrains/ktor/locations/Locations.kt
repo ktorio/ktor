@@ -24,8 +24,7 @@ open class Locations(val conversionService: ConversionService, val routeService:
                                     val queryParameters: List<LocationInfoProperty>)
 
     private fun LocationInfo.create(request: ApplicationCall): Any {
-        @Suppress("USELESS_CAST") // TODO: remove when bug is fixed in 1.1
-        val constructor: KFunction<Any> = klass.primaryConstructor as KFunction<Any>? ?: klass.constructors.single()
+        val constructor: KFunction<Any> = klass.primaryConstructor ?: klass.constructors.single()
         val parameters = constructor.parameters
         val arguments = parameters.map { parameter ->
             val parameterType = parameter.type
@@ -62,8 +61,7 @@ open class Locations(val conversionService: ConversionService, val routeService:
 
             val path = routeService.findRoute(dataClass) ?: ""
 
-            @Suppress("USELESS_CAST") // TODO: remove when bug is fixed in 1.1
-            val constructor: KFunction<Any> = dataClass.primaryConstructor as KFunction<Any>? ?: dataClass.constructors.single()
+            val constructor: KFunction<Any> = dataClass.primaryConstructor ?: dataClass.constructors.single()
 
             val declaredProperties = constructor.parameters.map { parameter ->
                 val property = dataClass.declaredMemberProperties.singleOrNull { property -> property.name == parameter.name }
