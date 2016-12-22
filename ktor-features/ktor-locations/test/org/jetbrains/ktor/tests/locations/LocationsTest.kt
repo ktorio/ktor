@@ -249,7 +249,18 @@ class LocationsTest {
 
     @location("/") class multiquery(val value: List<Int>)
 
-    @Test fun `location with multiple query values`() = withLocationsApplication {
+    @Test fun `location with multiple query values - zero case`() = withLocationsApplication {
+        val href = application.feature(Locations).href(multiquery(listOf()))
+        assertEquals("/", href)
+        application.routing {
+            get<multiquery> {
+                call.respond(it.value.toString())
+            }
+        }
+        urlShouldBeHandled(href, "[]")
+    }
+
+    @Test fun `location with multiple query values - many case`() = withLocationsApplication {
         val href = application.feature(Locations).href(multiquery(listOf(1, 2, 3)))
         assertEquals("/?value=1&value=2&value=3", href)
         application.routing {
