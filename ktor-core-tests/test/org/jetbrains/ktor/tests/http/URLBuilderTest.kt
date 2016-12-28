@@ -125,7 +125,7 @@ class URLBuilderTest {
                 assertEquals("http://my-host/path%20/to?p=v", call.url {
                     assertEquals("my-host", host)
                     assertEquals("/path%20/to", encodedPath)
-                    assertEquals("v", parameters.build()["p"])
+                    assertEquals("v", parameters["p"])
                 })
             }
 
@@ -144,7 +144,7 @@ class URLBuilderTest {
                     assertEquals(8080, port)
                     assertEquals("my-host", host)
                     assertEquals("/path%20/to", encodedPath)
-                    assertEquals("v", parameters.build()["p"])
+                    assertEquals("v", parameters["p"])
                 })
             }
 

@@ -22,9 +22,11 @@ object JettyHttp2Client : HttpClient {
         override val status: HttpStatusCode
             get() = HttpStatusCode(response.status, response.reason ?: "")
 
-        override val headers: ValuesMap by lazy { ValuesMapBuilder(true).apply {
-            response.headers.forEach { append(it.name, it.value) }
-        }.build() }
+        override val headers: ValuesMap by lazy {
+            ValuesMap.build(true) {
+                response.headers.forEach { append(it.name, it.value) }
+            }
+        }
     }
 
     private class JettyClientReadChannel(val request: Request) : ReadChannel {

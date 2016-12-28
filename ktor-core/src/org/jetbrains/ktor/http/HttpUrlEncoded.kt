@@ -14,10 +14,9 @@ fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.UTF_8, 
     val parameters = split("&", limit = limit).map { it.substringBefore("=") to it.substringAfter("=", "") }
     val encoding = parameters.firstOrNull { it.first == "_charset_" }?.second ?: defaultEncoding.name()
 
-    return parameters.fold(ValuesMapBuilder()) { builder, pair ->
-        builder.append(URLDecoder.decode(pair.first, encoding), URLDecoder.decode(pair.second, encoding))
-        builder
-    }.build()
+    return ValuesMap.build {
+        parameters.forEach { append(URLDecoder.decode(it.first, encoding), URLDecoder.decode(it.second, encoding)) }
+    }
 }
 
 fun List<Pair<String, String?>>.formUrlEncode(): String {

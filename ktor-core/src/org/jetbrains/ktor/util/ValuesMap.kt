@@ -20,7 +20,7 @@ interface ValuesMap {
     fun contains(name: String, value: String): Boolean = getAll(name)?.contains(value) ?: false
 }
 
-class ValuesMapSingleImpl(override val caseInsensitiveKey: Boolean, val name: String, val values: List<String>) : ValuesMap {
+private class ValuesMapSingleImpl(override val caseInsensitiveKey: Boolean, val name: String, val values: List<String>) : ValuesMap {
     override fun getAll(name: String): List<String>? = if (this.name.equals(name, caseInsensitiveKey)) values else null
     override fun entries(): Set<Map.Entry<String, List<String>>> = setOf(object : Map.Entry<String, List<String>> {
         override val key: String = name
@@ -31,17 +31,7 @@ class ValuesMapSingleImpl(override val caseInsensitiveKey: Boolean, val name: St
     override fun names(): Set<String> = setOf(name)
 }
 
-private class ValuesMapImpl(override val caseInsensitiveKey: Boolean, sizeHint: Int) : ValuesMap {
-    private val values: MutableMap<String, List<String>> = if (caseInsensitiveKey) CaseInsensitiveMap(sizeHint) else LinkedHashMap(sizeHint)
-
-    constructor(caseInsensitiveKey: Boolean = false, source: Map<String, Iterable<String>> = emptyMap()) : this(caseInsensitiveKey, source.size) {
-        if (source.isNotEmpty()) {
-            for ((key, values) in source.entries) {
-                this.values[key] = values.toList()
-            }
-        }
-    }
-
+private class ValuesMapImpl(override val caseInsensitiveKey: Boolean = false, private val values: Map<String, List<String>> = emptyMap()) : ValuesMap {
     override operator fun get(name: String) = listForKey(name)?.firstOrNull()
     override fun getAll(name: String): List<String>? = listForKey(name)
 
@@ -57,6 +47,7 @@ private class ValuesMapImpl(override val caseInsensitiveKey: Boolean, sizeHint: 
 
 class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
     private val values: MutableMap<String, MutableList<String>> = if (caseInsensitiveKey) CaseInsensitiveMap(size) else LinkedHashMap(size)
+    private var built = false
 
     fun getAll(name: String): List<String>? = listForKey(name)
     fun contains(name: String, value: String) = listForKey(name)?.contains(value) ?: false
@@ -70,6 +61,8 @@ class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
         list.clear()
         list.add(value)
     }
+
+    operator fun get(name: String): String? = getAll(name)?.firstOrNull()
 
     fun append(name: String, value: String) {
         ensureListForKey(name, 1).add(value)
@@ -111,7 +104,11 @@ class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
         values.clear()
     }
 
-    fun build(): ValuesMap = ValuesMapImpl(caseInsensitiveKey, values)
+    fun build(): ValuesMap {
+        require(!built) { "ValueMapBuilder can only build single ValueMap" }
+        built = true
+        return ValuesMapImpl(caseInsensitiveKey, values)
+    }
 
     private fun ensureListForKey(key: String, size: Int): MutableList<String> {
         val existing = listForKey(key)
@@ -138,7 +135,20 @@ fun valuesOf(pair: Pair<String, List<String>>): ValuesMap {
     return ValuesMapSingleImpl(false, pair.first, pair.second)
 }
 
-fun valuesOf(map: Map<String, Iterable<String>>, caseInsensitiveKey: Boolean = false): ValuesMap = ValuesMapImpl(caseInsensitiveKey, map)
+fun valuesOf(): ValuesMap {
+    return ValuesMap.Empty
+}
+
+fun valuesOf(map: Map<String, Iterable<String>>, caseInsensitiveKey: Boolean = false): ValuesMap {
+    val size = map.size
+    if (size == 1) {
+        val entry = map.entries.single()
+        return ValuesMapSingleImpl(caseInsensitiveKey, entry.key, entry.value.toList())
+    }
+    val values: MutableMap<String, List<String>> = if (caseInsensitiveKey) CaseInsensitiveMap(size) else LinkedHashMap(size)
+    map.entries.forEach { values.put(it.key, it.value.toList()) }
+    return ValuesMapImpl(caseInsensitiveKey, values)
+}
 
 operator fun ValuesMap.plus(other: ValuesMap) = when {
     caseInsensitiveKey == other.caseInsensitiveKey -> when {
@@ -153,9 +163,23 @@ fun ValuesMap.toMap(): Map<String, List<String>> =
         entries().associateByTo(LinkedHashMap<String, List<String>>(), { it.key }, { it.value.toList() })
 
 fun ValuesMap.flattenEntries(): List<Pair<String, String>> = entries().flatMap { e -> e.value.map { e.key to it } }
-fun ValuesMap.filter(keepEmpty: Boolean = false, predicate: (String, String) -> Boolean) = valuesOf(
-        entries().map { e -> e.key to e.value.filter { predicate(e.key, it) } }
-                .filter { keepEmpty || it.second.isNotEmpty() }
-                .toMap(),
-        this.caseInsensitiveKey
-)
+
+fun ValuesMap.filter(keepEmpty: Boolean = false, predicate: (String, String) -> Boolean): ValuesMap {
+    val entries = entries()
+    val values: MutableMap<String, MutableList<String>> = if (caseInsensitiveKey) CaseInsensitiveMap(entries.size) else LinkedHashMap(entries.size)
+    entries.forEach { entry ->
+        val list = entry.value.filterTo(ArrayList(entry.value.size)) { predicate(entry.key, it) }
+        if (keepEmpty || list.isNotEmpty())
+            values.put(entry.key, list)
+    }
+
+    return ValuesMapImpl(caseInsensitiveKey, values)
+}
+
+fun ValuesMapBuilder.appendFiltered(source: ValuesMap, keepEmpty: Boolean = false, predicate: (String, String) -> Boolean) {
+    source.entries().forEach { entry ->
+        val list = entry.value.filterTo(ArrayList(entry.value.size)) { predicate(entry.key, it) }
+        if (keepEmpty || list.isNotEmpty())
+            appendAll(entry.key, list)
+    }
+}

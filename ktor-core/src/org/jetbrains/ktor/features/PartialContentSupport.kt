@@ -136,10 +136,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
 
             override val headers by lazy {
                 ValuesMap.build(true) {
-                    appendAll(delegateHeaders.filter { name, value ->
-                        !name.equals(HttpHeaders.ContentLength, true)
-                    })
-
+                    appendFiltered(delegateHeaders) { name, value -> !name.equals(HttpHeaders.ContentLength, true) }
                     acceptRanges()
                     contentRange(range, fullLength)
                 }
@@ -153,10 +150,9 @@ class PartialContentSupport(val maxRangeCount : Int) {
 
             override val headers: ValuesMap
                 get() = ValuesMap.build(true) {
-                    appendAll(delegateHeaders.filter { name, value ->
-                        !name.equals(HttpHeaders.ContentType, true) &&
-                                !name.equals(HttpHeaders.ContentLength, true)
-                    })
+                    appendFiltered(delegateHeaders) { name, value ->
+                        !name.equals(HttpHeaders.ContentType, true) && !name.equals(HttpHeaders.ContentLength, true)
+                    }
                     acceptRanges()
 
                     contentType(ContentType.MultiPart.ByteRanges.withParameter("boundary", boundary))

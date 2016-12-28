@@ -87,9 +87,12 @@ inline fun <reified T : Any> BenchmarkSettings.run() {
 
 fun main(args: Array<String>) {
     benchmark(args) {
-        run<RoutingBenchmark>()
-        run<TransformBenchmark>()
         run<CodecsBenchmark>()
         run<FullBenchmark>()
+        run<IntegrationBenchmark>()
+        run<PipelineBenchmark>()
+        run<RoutingBenchmark>()
+        run<TransformBenchmark>()
+        run<ValuesMapBenchmark>()
     }
 }

@@ -68,10 +68,7 @@ class Compression(compression: Configuration) {
         override fun channel() = encoder.open(delegateChannel)
         override val headers by lazy {
             ValuesMap.build(true) {
-                appendAll(delegateHeaders.filter { name, value ->
-                    !name.equals(HttpHeaders.ContentLength, true)
-                })
-
+                appendFiltered(delegateHeaders) { name, value -> !name.equals(HttpHeaders.ContentLength, true) }
                 append(HttpHeaders.ContentEncoding, encoding)
             }
         }

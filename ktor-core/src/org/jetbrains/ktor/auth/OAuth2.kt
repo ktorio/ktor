@@ -4,7 +4,6 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import org.json.simple.*
@@ -165,10 +164,11 @@ private fun simpleOAuth2Step2(client: HttpClient,
 
 private fun decodeContent(content: String, contentType: ContentType): ValuesMap = when {
     contentType.match(ContentType.Application.FormUrlEncoded) -> content.parseUrlEncodedParameters()
-    contentType.match(ContentType.Application.Json) ->
-        (JSONValue.parseWithException(content) as JSONObject)
-                .toList()
-                .fold(ValuesMapBuilder()) { builder, e -> builder.append(e.first.toString(), e.second.toString()); builder }.build() // TODO better json handling
+    contentType.match(ContentType.Application.Json) -> ValuesMap.build {
+        (JSONValue.parseWithException(content) as JSONObject).forEach {
+            append(it.key.toString(), it.value.toString())
+        }
+    } // TODO better json handling
 // TODO text/xml
     else -> {
         // some servers may respond with wrong content type so we have to try to guess
