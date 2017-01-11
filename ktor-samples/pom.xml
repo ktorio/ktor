@@ -12,6 +12,7 @@
 
     <modules>
         <module>ktor-samples-hello</module>
+        <module>ktor-samples-html</module>
         <module>ktor-samples-locations</module>
         <module>ktor-samples-auth</module>
         <module>ktor-samples-async</module>
