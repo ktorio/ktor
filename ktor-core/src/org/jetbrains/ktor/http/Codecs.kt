@@ -61,11 +61,16 @@ private fun decode(s: String, plusIsSpace: Boolean, charset: Charset): String {
 
                 // fill ByteArray with all the bytes, so Charset can decode text
                 var count = 0
-                while (index + 2 < length && s[index] == '%') {
+                while (index < length && s[index] == '%') {
+                    if (index + 2 >= length) {
+                        throw URISyntaxException(s, "Incomplete trailing HEX escape: ${s.substring(index)}", index)
+                    }
+
                     val digit1 = charToHexDigit(s[index + 1])
                     val digit2 = charToHexDigit(s[index + 2])
-                    if (digit1 == -1 || digit2 == -1)
-                        break
+                    if (digit1 == -1 || digit2 == -1) {
+                        throw URISyntaxException(s, "Wrong HEX escape: %${s[index + 1]}${s[index + 2]}", index)
+                    }
 
                     bytes[count++] = (digit1 * 16 + digit2).toByte()
                     index += 3
