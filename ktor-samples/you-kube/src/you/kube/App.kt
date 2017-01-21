@@ -41,7 +41,10 @@ fun Application.youKubeApplication() {
     }
 
     val key = hex("03e156f6058a13813816065")
-    val uploadDir = File("ktor-samples/you-kube/.video")
+    // val databaseConfig = environment.config.config("ktor.database")
+    // val location: String = File(databaseConfig.property("storage").getString()).resolve("h2").absolutePath
+    val uploadDirPath: String = environment.config.property("ktor.upload.dir").getString()
+    val uploadDir = File(uploadDirPath)
     if (!uploadDir.mkdirs() && !uploadDir.exists()) {
         throw IOException("Failed to create directory ${uploadDir.absolutePath}")
     }
@@ -68,4 +71,3 @@ fun Application.youKubeApplication() {
 }
 
 fun ApplicationCall.respondRedirect(location: Any): Nothing = respondRedirect(url(location), permanent = false)
-
