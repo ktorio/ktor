@@ -83,7 +83,7 @@ class KweetApp : AutoCloseable {
 
         val hashFunction = { s: String -> hash(s) }
 
-        routing {
+        install(Routing) {
             styles()
             index(dao)
             postNew(dao, hashFunction)

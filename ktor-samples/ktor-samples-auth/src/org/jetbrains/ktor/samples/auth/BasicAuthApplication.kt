@@ -20,7 +20,7 @@ fun Application.basicAuthApplication() {
     install(DefaultHeaders)
     install(CallLogging)
     install(Locations)
-    routing {
+    install(Routing) {
         get<Manual>() {
             authentication {
                 basicAuthentication("ktor") { credentials ->

@@ -16,7 +16,7 @@ fun Application.main() {
     install(DefaultHeaders)
     install(CallLogging)
     install(Locations)
-    routing {
+    install(Routing) {
         get<index> {
             call.respondHtml {
                 head {

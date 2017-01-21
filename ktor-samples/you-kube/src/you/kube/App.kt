@@ -59,7 +59,7 @@ fun Application.youKubeApplication() {
         }
     }
 
-    routing {
+    install(Routing) {
         login(users)
         upload(database, uploadDir)
         videos(database)
@@ -68,4 +68,3 @@ fun Application.youKubeApplication() {
 }
 
 fun ApplicationCall.respondRedirect(location: Any): Nothing = respondRedirect(url(location), permanent = false)
-

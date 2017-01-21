@@ -12,7 +12,7 @@ fun main(args: Array<String>) {
 
     // NOTE: Change to embeddedJettyServer to use Jetty
     server = embeddedJettyServer(8080) {
-        routing {
+        install(Routing) {
             get("/") {
                 call.respondText(ContentType.Text.Html, """Hello, world<br><a href="/bye">Say bye?</a>""")
             }
