@@ -39,11 +39,12 @@ fun Application.youKubeApplication() {
         default()
         excludeMimeTypeMatch(ContentType.Video.Any)
     }
+    val youkubeConfig = environment.config.config("youkube")
+    val sessionCookieConfig = youkubeConfig.config("session.cookie")
+    val key: String = sessionCookieConfig.property("key").getString()
+    val sessionkey = hex(key)
 
-    val key = hex("03e156f6058a13813816065")
-    // val databaseConfig = environment.config.config("ktor.database")
-    // val location: String = File(databaseConfig.property("storage").getString()).resolve("h2").absolutePath
-    val uploadDirPath: String = environment.config.property("ktor.upload.dir").getString()
+    val uploadDirPath: String = youkubeConfig.property("upload.dir").getString()
     val uploadDir = File(uploadDirPath)
     if (!uploadDir.mkdirs() && !uploadDir.exists()) {
         throw IOException("Failed to create directory ${uploadDir.absolutePath}")
@@ -57,7 +58,7 @@ fun Application.youKubeApplication() {
     withSessions<Session> {
         withCookieByValue {
             settings = SessionCookiesSettings(transformers = listOf(
-                    SessionCookieTransformerMessageAuthentication(key)
+                    SessionCookieTransformerMessageAuthentication(sessionkey)
             ))
         }
     }
