@@ -7,29 +7,33 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.util.*
 
+inline fun x(body : suspend ()->Unit) {
+
+}
+
 class StatusPages(config: Configuration) {
     val exceptions = HashMap(config.exceptions)
     val statuses = HashMap(config.statuses)
 
     class Configuration {
-        val exceptions = mutableMapOf<Class<*>, PipelineContext<ApplicationCall>.(Throwable) -> Unit>()
-        val statuses = mutableMapOf<HttpStatusCode, PipelineContext<ApplicationCall>.(HttpStatusCode) -> Unit>()
+        val exceptions = mutableMapOf<Class<*>, PipelineInterceptor<Throwable>>()
+        val statuses = mutableMapOf<HttpStatusCode, PipelineInterceptor<HttpStatusCode>>()
 
-        inline fun <reified T : Any> exception(noinline handler: PipelineContext<ApplicationCall>.(Throwable) -> Unit) =
+        inline fun <reified T : Any> exception(handler: PipelineInterceptor<Throwable>) =
                 exception(T::class.java, handler)
 
-        fun exception(klass: Class<*>, handler: PipelineContext<ApplicationCall>.(Throwable) -> Unit) {
+        fun exception(klass: Class<*>, handler: PipelineInterceptor<Throwable>) {
             exceptions.put(klass, handler)
         }
 
-        fun status(vararg status: HttpStatusCode, handler: PipelineContext<ApplicationCall>.(HttpStatusCode) -> Unit) {
+        fun status(vararg status: HttpStatusCode, handler: PipelineInterceptor<HttpStatusCode>) {
             status.forEach {
                 statuses.put(it, handler)
             }
         }
     }
 
-    private fun intercept(context: PipelineContext<ApplicationCall>) {
+    suspend private fun intercept(context: PipelineContext<ApplicationCall>) {
         context.onFail {
             // if response is already specified, do nothing
             if (call.response.status() == null) {
@@ -81,7 +85,7 @@ class StatusPages(config: Configuration) {
     }
 }
 
-fun StatusPages.Configuration.statusFile(vararg status: HttpStatusCode, filePattern: String, contentType: ContentType = ContentType.Text.Html) {
+suspend fun StatusPages.Configuration.statusFile(vararg status: HttpStatusCode, filePattern: String, contentType: ContentType = ContentType.Text.Html) {
     status(*status) { status ->
         val path = filePattern.replace("#", status.value.toString())
         val message = call.resolveClasspathWithPath("", path)

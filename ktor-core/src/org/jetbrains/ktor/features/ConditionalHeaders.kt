@@ -17,7 +17,7 @@ class ConditionalHeaders {
             HttpHeaders.IfNoneMatch
     )
 
-    private fun checkVersions(call: ApplicationCall, versions: List<Version>) {
+    suspend private fun checkVersions(call: ApplicationCall, versions: List<Version>) {
         for (version in versions) {
             val result = when (version) {
                 is EntityTagVersion -> call.checkEtag(version.etag)
@@ -96,7 +96,7 @@ fun ApplicationCall.checkEtag(etag: String): ConditionalHeaderCheckResult {
  * It never handles If-None-Match: *  as it is related to non-etag logic (for example, Last modified checks).
  * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26 for more details
  */
-fun <R> ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block: () -> R): R {
+suspend fun <R> ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block: () -> R): R {
     val result = checkEtag(etag)
 
     if (putHeader) {

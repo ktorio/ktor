@@ -1,23 +1,20 @@
 package org.jetbrains.ktor.pipeline
 
+import kotlin.reflect.*
+import kotlin.reflect.jvm.*
+
 interface PipelineContext<out TSubject : Any> {
     val subject: TSubject
-    val exception: Throwable?
 
-    fun onSuccess(body: PipelineContext<TSubject>.(Any) -> Unit)
-    fun onFail(body: PipelineContext<TSubject>.(Any) -> Unit)
+    suspend fun proceed()
+    suspend fun <T : Any> fork(value: T, pipeline: Pipeline<T>)
+}
 
-    fun onFinish(body: PipelineContext<TSubject>.(Any) -> Unit) {
-        onSuccess(body)
-        onFail(body)
-    }
+class X {
+    fun x() {}
+    suspend fun y() {}
+}
 
-    fun repeat()
-
-    fun pause(): Nothing
-    fun proceed(): Nothing
-    fun fail(exception: Throwable): Nothing
-    fun finish(): Nothing
-    fun finishAll(): Nothing
-    fun <T : Any> fork(value: T, pipeline: Pipeline<T>): Nothing
+fun main(args: Array<String>) {
+    val fn: KFunction1<X, Unit> = X::x
 }

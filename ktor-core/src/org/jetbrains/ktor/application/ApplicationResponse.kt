@@ -37,7 +37,7 @@ interface ApplicationResponse {
  * If you go async inside of [body] then you MUST handle exceptions properly and close provided [Writer] instance on you own
  * otherwise the response could get stuck.
  */
-fun ApplicationCall.respondWrite(charset: Charset = Charsets.UTF_8, body: Writer.() -> Unit) : Nothing = respond(object : StreamConsumer() {
+suspend fun ApplicationCall.respondWrite(charset: Charset = Charsets.UTF_8, body: Writer.() -> Unit) = respond(object : StreamConsumer() {
     override val headers: ValuesMap get() = ValuesMap.Empty
 
     override fun stream(out: OutputStream) {

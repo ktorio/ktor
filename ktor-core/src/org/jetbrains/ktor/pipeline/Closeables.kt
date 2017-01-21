@@ -2,11 +2,10 @@ package org.jetbrains.ktor.pipeline
 
 import java.io.*
 
-fun PipelineContext<*>.closeAtEnd(vararg closeables: Closeable) {
-    onFinish {
-        for (closeable in closeables) {
-            closeable.closeQuietly()
-        }
+suspend fun PipelineContext<*>.closeAtEnd(vararg closeables: Closeable) {
+    proceed()
+    for (closeable in closeables) {
+        closeable.closeQuietly()
     }
 }
 

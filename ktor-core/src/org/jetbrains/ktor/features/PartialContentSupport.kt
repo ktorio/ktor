@@ -26,7 +26,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
         }
     }
 
-    fun intercept(call: ApplicationCall) {
+    suspend fun intercept(call: ApplicationCall) {
         val rangeSpecifier = call.request.ranges()
         if (rangeSpecifier != null) {
             if (call.isGetOrHead()) {
@@ -50,7 +50,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
         }
     }
 
-    private fun PipelineContext<*>.tryProcessRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long): Unit {
+    suspend private fun PipelineContext<*>.tryProcessRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long): Unit {
         if (checkIfRangeHeader(obj, call)) {
             processRange(obj, call, rangesSpecifier, length)
         } else {
@@ -74,7 +74,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
     }
 
 
-    private fun PipelineContext<*>.processRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long): Nothing {
+    suspend private fun PipelineContext<*>.processRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long) {
         require(length >= 0L)
 
         val merged = rangesSpecifier.merge(length, maxRangeCount)
@@ -84,7 +84,6 @@ class PartialContentSupport(val maxRangeCount : Int) {
         }
 
         val channel = obj.channel()
-        onFinish { channel.close() }
 
         if (merged.size != 1 && !merged.isAscending() && channel !is SeekableChannel) {
             // merge into single range for non-seekable channel
@@ -96,13 +95,14 @@ class PartialContentSupport(val maxRangeCount : Int) {
         }
 
         processMultiRange(obj, call, channel, merged, length)
+        channel.close()
     }
 
-    private fun processSingleRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, range: LongRange, length: Long): Nothing {
+    suspend private fun processSingleRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, range: LongRange, length: Long) {
         call.respond(RangeChannelProvider.Single(call.isGet(), obj.headers, channel, range, length))
     }
 
-    private fun processMultiRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, ranges: List<LongRange>, length: Long): Nothing {
+    suspend private fun processMultiRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, ranges: List<LongRange>, length: Long) {
         val boundary = "ktor-boundary-" + nextNonce()
 
         call.attributes.put(Compression.SuppressionAttribute, true) // multirange with compression is not supported yet

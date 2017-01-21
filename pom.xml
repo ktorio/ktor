@@ -8,7 +8,7 @@
     <artifactId>ktor</artifactId>
 
     <properties>
-        <kotlin.version>1.0.6</kotlin.version>
+        <kotlin.version>1.1-M04</kotlin.version>
         <dokka.version>0.9.11</dokka.version>
         <jmh.version>1.15</jmh.version>
 
@@ -36,37 +36,6 @@
         </profile>
         <profile>
             <id>bintray</id>
-        </profile>
-        <profile>
-            <id>kotlin-1.1</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <kotlin.version>1.1-M04</kotlin.version>
-            </properties>
-
-            <repositories>
-                <repository>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <id>bintray-kotlin-kotlin-dev</id>
-                    <name>bintray</name>
-                    <url>http://dl.bintray.com/kotlin/kotlin-dev</url>
-                </repository>
-            </repositories>
-
-            <pluginRepositories>
-                <pluginRepository>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <id>bintray-kotlin-kotlin-dev</id>
-                    <name>bintray-plugins</name>
-                    <url>http://dl.bintray.com/kotlin/kotlin-dev</url>
-                </pluginRepository>
-            </pluginRepositories>
         </profile>
     </profiles>
 
