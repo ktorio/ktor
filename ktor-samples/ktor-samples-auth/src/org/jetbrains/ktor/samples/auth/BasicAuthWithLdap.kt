@@ -16,7 +16,7 @@ fun Application.basicAuthWithLdap() {
     install(DefaultHeaders)
     install(CallLogging)
     install(Locations)
-    routing {
+    install(Routing) {
         location<Files> {
             authentication {
                 basicAuthentication("files") { credentials ->

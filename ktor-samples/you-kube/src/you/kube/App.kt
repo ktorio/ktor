@@ -63,7 +63,7 @@ fun Application.youKubeApplication() {
         }
     }
 
-    routing {
+    install(Routing) {
         login(users)
         upload(database, uploadDir)
         videos(database)

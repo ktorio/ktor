@@ -24,7 +24,7 @@ data class Item(val key: String, val value: String)
 
 fun Application.main() {
     install(DefaultHeaders)
-    install(Compression.Feature)
+    install(Compression)
     install(CallLogging)
 
     val gson = GsonBuilder().create()

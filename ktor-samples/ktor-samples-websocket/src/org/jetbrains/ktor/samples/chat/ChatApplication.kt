@@ -16,8 +16,7 @@ private val server = ChatServer()
 fun Application.main() {
     install(DefaultHeaders)
     install(CallLogging)
-
-    routing {
+    install(Routing) {
         withSessions<Session> {
             withCookieByValue()
         }

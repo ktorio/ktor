@@ -12,8 +12,7 @@ import java.util.*
 fun Application.main() {
     install(DefaultHeaders)
     install(CallLogging)
-
-    routing {
+    install(Routing) {
         get("/{...}") {
             val start = System.currentTimeMillis()
             runAsync(executor) {
