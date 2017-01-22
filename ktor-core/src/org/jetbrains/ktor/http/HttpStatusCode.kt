@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.http
 
 import kotlin.reflect.*
+import kotlin.reflect.jvm.javaType
 
 @Suppress("unused")
 data class HttpStatusCode(val value: Int, val description: String) {
@@ -61,9 +62,14 @@ data class HttpStatusCode(val value: Int, val description: String) {
         val GatewayTimeout = HttpStatusCode(504, "Gateway Timeout")
         val VersionNotSupported = HttpStatusCode(505, "HTTP Version Not Supported")
         val VariantAlsoNegotiates = HttpStatusCode(506, "Variant Also Negotiates")
-
-        val allStatusCodes = HttpStatusCode.Companion::class.memberProperties.filter { it.returnType == HttpStatusCode::class }.map { it.get(this) as HttpStatusCode }
+        val allStatusCodes = HttpStatusCode.Companion::class.memberProperties
+                .filter {
+                    it.returnType.javaType == HttpStatusCode::class.java
+                }
+                .map {
+                    it.get(this) as HttpStatusCode
+                }
         val byCode = allStatusCodes.associateBy { it.value }
+
     }
 }
-
