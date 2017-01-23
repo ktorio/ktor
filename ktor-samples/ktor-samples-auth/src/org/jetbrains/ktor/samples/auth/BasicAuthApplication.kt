@@ -9,8 +9,8 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 
-@location("/manual") class Manual()
-@location("/userTable") class SimpleUserTable()
+@location("/manual") class Manual
+@location("/userTable") class SimpleUserTable
 
 val hashedUserTable = UserHashedTableAuth(table = mapOf(
         "test" to decodeBase64("VltM4nfheqcJSyH887H+4NEOm2tDuKCl83p5axYXlF0=") // sha256 for "test"
@@ -21,7 +21,7 @@ fun Application.basicAuthApplication() {
     install(CallLogging)
     install(Locations)
     install(Routing) {
-        get<Manual>() {
+        location<Manual> {
             authentication {
                 basicAuthentication("ktor") { credentials ->
                     if (credentials.name == credentials.password) {
@@ -32,15 +32,35 @@ fun Application.basicAuthApplication() {
                 }
             }
 
-            call.respondText("Success, ${call.principal<UserIdPrincipal>()?.name}")
+            get {
+                call.respondText("Success, ${call.principal<UserIdPrincipal>()?.name}")
+            }
         }
 
-        get<SimpleUserTable>() {
+        location<SimpleUserTable> {
             authentication {
                 basicAuthentication("ktor") { hashedUserTable.authenticate(it) }
             }
-            call.respondText("Success")
 
+            get {
+                call.respondText("Success")
+            }
+        }
+
+        route("/admin/*") {
+            authentication {
+                basicAuthentication("ktor") { credentials ->
+                    if (credentials.name == credentials.password) {
+                        UserIdPrincipal(credentials.name)
+                    } else {
+                        null
+                    }
+                }
+            }
+
+            get("ui") {
+                call.respondText("Success")
+            }
         }
     }
 }
