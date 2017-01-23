@@ -112,7 +112,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         val response = responseChannel()
         val channel = channelProvider()
 
-        closeAtEnd(channel, this@BaseApplicationCall) // TODO closeAtEnd(call) should be done globally at call start
+        closeAtEnd(channel)
         channel.copyToAsync(response, pumpCompletionHandler(this), ignoreWriteError = true, alloc = pool)
 
         contentProducer(this)
