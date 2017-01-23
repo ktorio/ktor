@@ -17,7 +17,7 @@
         <module>ktor-websockets</module>
         <module>ktor-html-builder</module>
         <module>jetty-http-client</module>
-        <module>ldap-auth</module>
+        <module>ktor-auth-ldap</module>
     </modules>
 
     <dependencies>
