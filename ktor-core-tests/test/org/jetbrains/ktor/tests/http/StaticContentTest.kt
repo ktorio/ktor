@@ -4,6 +4,8 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.jetbrains.ktor.util.*
@@ -364,6 +366,28 @@ class StaticContentTest {
 
             handleRequest(HttpMethod.Get, "/").let { result ->
                 assertFalse(result.requestHandled)
+            }
+        }
+    }
+
+    @Test
+    fun testInterceptCacheControl() {
+        withTestApplication {
+            application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
+                if (call.request.httpMethod == HttpMethod.Get ||
+                        call.request.httpMethod == HttpMethod.Head) {
+                    call.response.cacheControl(CacheControl.MaxAge(300))
+                }
+            }
+
+            application.intercept(ApplicationCallPipeline.Call) { call ->
+                call.respond(LocalFileContent(File(basedir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt")))
+            }
+
+            handleRequest(HttpMethod.Get, "/").let { result ->
+                assertTrue(result.requestHandled)
+                assertEquals(File(basedir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt".replaceSeparators()).readText(), result.response.content)
+                assertEquals(listOf("max-age=300"), result.response.headers.values(HttpHeaders.CacheControl))
             }
         }
     }
