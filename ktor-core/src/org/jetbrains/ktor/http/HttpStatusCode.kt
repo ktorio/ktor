@@ -62,8 +62,12 @@ data class HttpStatusCode(val value: Int, val description: String) {
         val VersionNotSupported = HttpStatusCode(505, "HTTP Version Not Supported")
         val VariantAlsoNegotiates = HttpStatusCode(506, "Variant Also Negotiates")
 
-        val allStatusCodes = HttpStatusCode.Companion::class.memberProperties.filter { it.returnType == HttpStatusCode::class }.map { it.get(this) as HttpStatusCode }
-        val byCode = allStatusCodes.associateBy { it.value }
+        val allStatusCodes = HttpStatusCode.Companion::class.memberProperties
+                .filter { it.returnType == HttpStatusCode::class.defaultType }
+                .map { it.get(this) as HttpStatusCode }
+
+        private val byValue by lazy { allStatusCodes.associateBy { it.value } }
+        fun fromValue(value: Int) = byValue[value]
     }
 }
 
