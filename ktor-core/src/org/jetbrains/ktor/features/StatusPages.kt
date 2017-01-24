@@ -7,26 +7,22 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.util.*
 
-inline fun x(body : suspend ()->Unit) {
-
-}
-
 class StatusPages(config: Configuration) {
     val exceptions = HashMap(config.exceptions)
     val statuses = HashMap(config.statuses)
 
     class Configuration {
-        val exceptions = mutableMapOf<Class<*>, PipelineInterceptor<Throwable>>()
-        val statuses = mutableMapOf<HttpStatusCode, PipelineInterceptor<HttpStatusCode>>()
+        val exceptions = mutableMapOf<Class<*>, suspend PipelineContext<ApplicationCall>.(Throwable) -> Unit>()
+        val statuses = mutableMapOf<HttpStatusCode, suspend PipelineContext<ApplicationCall>.(HttpStatusCode) -> Unit>()
 
-        inline fun <reified T : Any> exception(handler: PipelineInterceptor<Throwable>) =
+        inline fun <reified T : Any> exception(handler: suspend PipelineContext<ApplicationCall>.(Throwable) -> Unit) =
                 exception(T::class.java, handler)
 
-        fun exception(klass: Class<*>, handler: PipelineInterceptor<Throwable>) {
+        fun exception(klass: Class<*>, handler: suspend PipelineContext<ApplicationCall>.(Throwable) -> Unit) {
             exceptions.put(klass, handler)
         }
 
-        fun status(vararg status: HttpStatusCode, handler: PipelineInterceptor<HttpStatusCode>) {
+        fun status(vararg status: HttpStatusCode, handler: suspend PipelineContext<ApplicationCall>.(HttpStatusCode) -> Unit) {
             status.forEach {
                 statuses.put(it, handler)
             }
@@ -34,6 +30,7 @@ class StatusPages(config: Configuration) {
     }
 
     suspend private fun intercept(context: PipelineContext<ApplicationCall>) {
+/*
         context.onFail {
             // if response is already specified, do nothing
             if (call.response.status() == null) {
@@ -60,8 +57,10 @@ class StatusPages(config: Configuration) {
                 }
             }
         }
+*/
     }
 
+/*
     private fun findHandlerByType(clazz: Class<*>): (PipelineContext<ApplicationCall>.(Throwable) -> Unit)? {
         exceptions[clazz]?.let { return it }
         clazz.superclass?.let {
@@ -72,6 +71,7 @@ class StatusPages(config: Configuration) {
         }
         return null
     }
+*/
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, StatusPages> {
         override val key = AttributeKey<StatusPages>("Status Pages")
@@ -85,9 +85,9 @@ class StatusPages(config: Configuration) {
     }
 }
 
-suspend fun StatusPages.Configuration.statusFile(vararg status: HttpStatusCode, filePattern: String, contentType: ContentType = ContentType.Text.Html) {
+fun StatusPages.Configuration.statusFile(vararg status: HttpStatusCode, filePattern: String, contentType: ContentType = ContentType.Text.Html) {
     status(*status) { status ->
-        val path = filePattern.replace("#", status.value.toString())
+        val path = filePattern.replace("#", call.response.status()?.value.toString())
         val message = call.resolveClasspathWithPath("", path)
         if (message == null) {
             call.respond(HttpStatusCode.InternalServerError)
@@ -97,12 +97,3 @@ suspend fun StatusPages.Configuration.statusFile(vararg status: HttpStatusCode, 
     }
 }
 
-@Deprecated("Use StatusPages feature instead", level = DeprecationLevel.ERROR)
-fun Pipeline<ApplicationCall>.statusPage(phase: PipelinePhase = ApplicationCallPipeline.Infrastructure, handler: PipelineContext<ApplicationCall>.(HttpStatusCode) -> Unit): Unit {
-    TODO("Deprecated feature. Use StatusPages feature instead")
-}
-
-@Deprecated("Use StatusPages feature instead", level = DeprecationLevel.ERROR)
-fun Pipeline<ApplicationCall>.errorPage(phase: PipelinePhase = ApplicationCallPipeline.Infrastructure, handler: PipelineContext<ApplicationCall>.(Throwable) -> Unit) {
-    TODO("Deprecated. Use StatusPages feature instead")
-}

@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.testing
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.content.*
@@ -61,7 +62,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
 
     val application: Application = applicationLoader.application
     private val pipeline = ApplicationCallPipeline()
-    private var exception : Throwable? = null
+    private var exception: Throwable? = null
 
     init {
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
@@ -69,26 +70,22 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
                 (call as? TestApplicationCall)?.requestHandled = true
             }
 
-            onFail {
-                val testApplicationCall = call as? TestApplicationCall
-                this@TestApplicationHost.exception = exception
+            try {
+                application.execute(call)
+            } catch (error: Throwable) {
+                exception = error
+            } finally {
                 call.close()
+                val testApplicationCall = call as? TestApplicationCall
                 testApplicationCall?.latch?.countDown()
             }
-
-            onSuccess {
-                val testApplicationCall = call as? TestApplicationCall
-                call.close()
-                testApplicationCall?.latch?.countDown()
-            }
-            fork(call, application)
         }
     }
 
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createCall(setup)
 
-        call.execution.runBlockWithResult { call.execution.execute(call, pipeline) }
+        runBlocking(Here) { pipeline.execute(call) }
         call.await()
 
         exception?.let { throw it }
@@ -106,7 +103,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
             setup()
         }
 
-        call.execution.runBlockWithResult { call.execution.execute(call, pipeline) }
+        runBlocking(Here) { pipeline.execute(call) }
         call.await()
 
         exception?.let { throw it }
@@ -151,7 +148,6 @@ class TestApplicationCall(application: Application, override val request: TestAp
     override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
         commit(upgrade)
         upgrade.upgrade(this@TestApplicationCall, this, request.content.get(), response.realContent.value)
-        pause()
     }
 
     override fun responseChannel(): WriteChannel = response.realContent.value.apply {
@@ -174,7 +170,7 @@ class TestApplicationRequest(
         var method: HttpMethod = HttpMethod.Get,
         var uri: String = "/",
         var version: String = "HTTP/1.1"
-        ) : ApplicationRequest {
+) : ApplicationRequest {
 
     @Deprecated("Use primary constructor instead as HttpRequestLine is deprecated", level = DeprecationLevel.ERROR)
     constructor(requestLine: @Suppress("DEPRECATION") HttpRequestLine) : this(requestLine.method, requestLine.uri, requestLine.version)

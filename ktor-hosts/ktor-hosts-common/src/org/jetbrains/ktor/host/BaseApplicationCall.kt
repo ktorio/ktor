@@ -11,13 +11,11 @@ import java.util.concurrent.atomic.*
 import kotlinx.support.jdk7.addSuppressed
 
 abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
-    override val execution = PipelineMachine()
-
     final override val attributes = Attributes()
 
-    override fun respond(message: Any): Nothing {
+    suspend override fun respond(message: Any) {
         val state = ResponsePipelineState(this, message)
-        execution.execute(state, respondPipeline)
+        respondPipeline.execute(state)
     }
 
     protected fun commit(o: HostResponse) {
@@ -33,7 +31,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     protected val HostRespondPhase = PipelinePhase("HostRespondPhase")
     protected val HostRespondFinalizationPhase = PipelinePhase("HostRespondFinalizationPhase")
 
-    private var contentProducer: (PipelineContext<*>) -> Nothing = { context ->
+    private var contentProducer: (PipelineContext<*>) -> Unit = { context ->
         context.producerComplete(null)
     }
 
@@ -68,8 +66,6 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                                 null
                             } catch (ignore: ChannelPipe.PipeClosedException) {
                                 null
-                            } catch (control: PipelineControl) {
-                                throw control
                             } catch (t: Throwable) {
                                 pipe.rethrow(t)
                                 t
@@ -89,7 +85,6 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         when (content) {
             is FinalContent.NoContent -> {
                 close()
-                finishAll()
             }
             is FinalContent.ChannelContent -> {
                 sendAsyncChannel { content.channel() }
@@ -105,14 +100,14 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     protected open val pool: ByteBufferPool
         get() = NoPool
 
-    protected fun PipelineContext<*>.sendAsyncChannel(channelProvider: () -> ReadChannel): Nothing {
+    protected fun PipelineContext<*>.sendAsyncChannel(channelProvider: () -> ReadChannel) {
         // note: it is important to open response channel before we open content channel
         // otherwise we can hit deadlock on event-based hosts
 
         val response = responseChannel()
         val channel = channelProvider()
 
-        closeAtEnd(channel)
+        //closeAtEnd(channel, this@BaseApplicationCall) // TODO closeAtEnd(call) should be done globally at call start
         channel.copyToAsync(response, pumpCompletionHandler(this), ignoreWriteError = true, alloc = pool)
 
         contentProducer(this)
@@ -140,13 +135,11 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
 
     private val completionCounter = AtomicInteger(2) // 2 = pump and producer
 
-    private fun PipelineContext<*>.producerComplete(failure: Throwable?): Nothing {
+    private fun PipelineContext<*>.producerComplete(failure: Throwable?) {
         if (producerCompleted.compareAndSet(false, true)) {
             producerFailure = failure
             tryComplete()
         }
-
-        pause()
     }
 
     private fun pumpCompletionHandler(pipelineContext: PipelineContext<*>) = { failure: Throwable? ->
@@ -158,9 +151,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
 
     private fun PipelineContext<*>.tryComplete() {
         if (completionCounter.decrementAndGet() == 0) {
-            runBlockWithResult {
                 doComplete()
-            }
         }
     }
 
@@ -176,12 +167,6 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
             }
 
             else -> producerFailure ?: pumpFailure
-        }
-
-        if (failure == null || failure is PipelineControl.Continue || failure.cause is PipelineControl.Continue) {
-            finishAll()
-        } else if (failure !is PipelineControl && failure.cause !is PipelineControl) {
-            fail(failure)
         }
     }
 }

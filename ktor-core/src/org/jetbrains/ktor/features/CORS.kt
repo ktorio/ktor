@@ -87,13 +87,13 @@ class CORS(configuration: Configuration) {
         }
     }
 
-    suspend private fun ApplicationCall.corsCheckOrigins(origin: String) {
+    suspend /*private*/ fun ApplicationCall.corsCheckOrigins(origin: String) {
         if (!allowsAnyHost && normalizeOrigin(origin) !in hostsNormalized) {
             corsFail()
         }
     }
 
-    suspend private fun ApplicationCall.corsCheckRequestHeaders() {
+    suspend /*private*/ fun ApplicationCall.corsCheckRequestHeaders() {
         val requestHeaders = request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map { it.trim().toLowerCase() } ?: emptyList()
 
         if (requestHeaders.any { it !in headers }) {
@@ -101,7 +101,7 @@ class CORS(configuration: Configuration) {
         }
     }
 
-    suspend private fun ApplicationCall.corsCheckCurrentMethod() {
+    suspend /*private*/ fun ApplicationCall.corsCheckCurrentMethod() {
         val requestMethod = request.httpMethod
 
         if (requestMethod !in methods) {
@@ -109,7 +109,7 @@ class CORS(configuration: Configuration) {
         }
     }
 
-    suspend private fun ApplicationCall.corsCheckRequestMethod() {
+    suspend /*private*/ fun ApplicationCall.corsCheckRequestMethod() {
         val requestMethod = request.header(HttpHeaders.AccessControlRequestMethod)?.let { HttpMethod(it) }
 
         if (requestMethod == null || (requestMethod !in methods)) {
@@ -117,7 +117,7 @@ class CORS(configuration: Configuration) {
         }
     }
 
-    suspend private fun ApplicationCall.corsFail()= respond(HttpStatusCode.Forbidden)
+    suspend /*private*/ fun ApplicationCall.corsFail()= respond(HttpStatusCode.Forbidden)
 
     private fun isValidOrigin(origin: String): Boolean {
         if (origin.isEmpty()) {

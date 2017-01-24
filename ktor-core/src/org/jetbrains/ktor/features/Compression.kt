@@ -6,7 +6,6 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
-import kotlin.comparisons.*
 
 data class CompressionOptions(
         val encoders: Map<String, CompressionEncoderConfig> = emptyMap(),
@@ -22,7 +21,7 @@ class Compression(compression: Configuration) {
     private val options = compression.build()
     private val comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>({ it.second.quality }, { it.first.priority }).reversed()
 
-    fun intercept(call: ApplicationCall) {
+    suspend fun interceptor(call: ApplicationCall) {
         val acceptEncodingRaw = call.request.acceptEncoding()
         if (acceptEncodingRaw == null || call.isCompressionSuppressed())
             return
@@ -48,11 +47,11 @@ class Compression(compression: Configuration) {
                     && options.conditions.all { it(call, message) }
                     && !call.isCompressionSuppressed()
                     && message.headers[HttpHeaders.ContentEncoding].let { it == null || it == "identity" }
-            ) {
+                    ) {
                 val channel = when (message) {
                     is FinalContent.ChannelContent -> message.channel()
                     is FinalContent.StreamContentProvider -> message.stream().asAsyncChannel()
-                    else -> proceed()
+                    is FinalContent.NoContent -> return@intercept
                 }
 
                 val encoderOptions = encoders.firstOrNull { it.conditions.all { it(call, message) } }
@@ -84,7 +83,7 @@ class Compression(compression: Configuration) {
                 config.default()
 
             val feature = Compression(config)
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { feature.intercept(call) }
+            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { feature.interceptor(call) }
             return feature
         }
     }

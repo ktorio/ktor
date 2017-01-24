@@ -50,7 +50,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
         }
     }
 
-    suspend private fun PipelineContext<*>.tryProcessRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long): Unit {
+    suspend /*private*/ fun PipelineContext<*>.tryProcessRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long): Unit {
         if (checkIfRangeHeader(obj, call)) {
             processRange(obj, call, rangesSpecifier, length)
         } else {
@@ -74,7 +74,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
     }
 
 
-    suspend private fun PipelineContext<*>.processRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long) {
+    suspend /*private*/ fun PipelineContext<*>.processRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long) {
         require(length >= 0L)
 
         val merged = rangesSpecifier.merge(length, maxRangeCount)
@@ -98,11 +98,11 @@ class PartialContentSupport(val maxRangeCount : Int) {
         channel.close()
     }
 
-    suspend private fun processSingleRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, range: LongRange, length: Long) {
+    suspend /*private*/ fun processSingleRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, range: LongRange, length: Long) {
         call.respond(RangeChannelProvider.Single(call.isGet(), obj.headers, channel, range, length))
     }
 
-    suspend private fun processMultiRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, ranges: List<LongRange>, length: Long) {
+    suspend /*private*/ fun processMultiRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, ranges: List<LongRange>, length: Long) {
         val boundary = "ktor-boundary-" + nextNonce()
 
         call.attributes.put(Compression.SuppressionAttribute, true) // multirange with compression is not supported yet

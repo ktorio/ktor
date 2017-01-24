@@ -1,7 +1,8 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Core Tests" type="JUnit" factoryName="JUnit">
     <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
-    <module name="ktor-core" />
+    <extension name="org.jetbrains.fluid.java.FluidRunConfigurationExtension" fluid.enabledBundledTracers="false" fluid.enabledBundledTracers.list="" />
+    <module name="ktor-core-tests" />
     <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
     <option name="ALTERNATIVE_JRE_PATH" />
     <option name="PACKAGE_NAME" value="" />

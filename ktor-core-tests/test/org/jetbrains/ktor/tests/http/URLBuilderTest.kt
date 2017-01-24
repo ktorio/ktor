@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.testing.*
@@ -67,8 +66,8 @@ class URLBuilderTest {
 
     @Test
     fun testUserCredentials() {
-        assertEquals("http://user:pass@localhost/", url { user = UserPasswordCredential("user", "pass") })
-        assertEquals("http://user%20name:pass+@localhost/", url { user = UserPasswordCredential("user name", "pass+") })
+        assertEquals("http://user:pass@localhost/", url { user = "user"; password= "pass" })
+        assertEquals("http://user%20name:pass+@localhost/", url { user = "user name"; password = "pass+" })
     }
 
     @Test

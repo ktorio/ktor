@@ -12,23 +12,21 @@ val Application.transform: ApplicationTransform<PipelineContext<ResponsePipeline
 val ApplicationCall.transform: ApplicationTransform<PipelineContext<ResponsePipelineState>>
     get() = attributes.computeIfAbsent(ApplicationCallTransform) { ApplicationTransform(application.transform.table) }
 
-
 private val ApplicationCallTransform = AttributeKey<ApplicationTransform<PipelineContext<ResponsePipelineState>>>("ktor.transform")
 
-fun PipelineContext<ResponsePipelineState>.proceed(message: Any): Nothing {
+suspend fun PipelineContext<ResponsePipelineState>.proceed(message: Any) {
     if (subject.message !== message) {
         subject.message = message
         subject.attributes[TransformationState.Key].markLastHandlerVisited()
-        repeat()
+        //repeat()
     }
 
     proceed()
 }
 
-fun <C : Any> TransformTable<C>.transform(ctx: C, obj: Any) = transformImpl(ctx, obj)
+suspend fun <C : Any> TransformTable<C>.transform(ctx: C, obj: Any) = transformImpl(ctx, obj)
 
-tailrec
-private fun <C : Any, T : Any> TransformTable<C>.transformImpl(ctx: C, obj: T, handlers: List<TransformTable.Handler<C, T>> = handlers(obj.javaClass), visited: TransformTable.HandlersSet<C> = newHandlersSet()): Any {
+suspend fun <C : Any, T : Any> TransformTable<C>.transformImpl(ctx: C, obj: T, handlers: List<TransformTable.Handler<C, T>> = handlers(obj.javaClass), visited: TransformTable.HandlersSet<C> = newHandlersSet()): Any {
     for (i in 0 .. handlers.size - 1) {
         val handler = handlers[i]
 

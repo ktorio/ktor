@@ -96,28 +96,26 @@ fun ApplicationCall.checkEtag(etag: String): ConditionalHeaderCheckResult {
  * It never handles If-None-Match: *  as it is related to non-etag logic (for example, Last modified checks).
  * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26 for more details
  */
-suspend fun <R> ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block: () -> R): R {
+suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block: suspend () -> Unit): Unit {
     val result = checkEtag(etag)
 
     if (putHeader) {
         response.header(HttpHeaders.ETag, etag)
     }
 
-    return when (result) {
+    when (result) {
         ConditionalHeaderCheckResult.NOT_MODIFIED,
-        ConditionalHeaderCheckResult.PRECONDITION_FAILED -> {
-            respond(result.statusCode)
-        }
+        ConditionalHeaderCheckResult.PRECONDITION_FAILED -> respond(result.statusCode)
         ConditionalHeaderCheckResult.OK -> block()
     }
 }
 
-fun <R> ApplicationCall.withLastModified(lastModified: Date, putHeader: Boolean = true, block: () -> R): R {
-    return withLastModified(LocalDateTime.ofInstant(lastModified.toInstant(), ZoneId.systemDefault()), putHeader, block)
+suspend fun ApplicationCall.withLastModified(lastModified: Date, putHeader: Boolean = true, block: suspend () -> Unit): Unit {
+    withLastModified(LocalDateTime.ofInstant(lastModified.toInstant(), ZoneId.systemDefault()), putHeader, block)
 }
 
-fun <R> ApplicationCall.withLastModified(lastModified: ZonedDateTime, putHeader: Boolean = true, block: () -> R): R {
-    return withLastModified(lastModified.toLocalDateTime(), putHeader, block)
+suspend fun ApplicationCall.withLastModified(lastModified: ZonedDateTime, putHeader: Boolean = true, block: suspend () -> Unit): Unit {
+    withLastModified(lastModified.toLocalDateTime(), putHeader, block)
 }
 
 /**
@@ -168,7 +166,7 @@ fun ApplicationCall.checkLastModified(lastModified: LocalDateTime): ConditionalH
  * See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.28 and
  *  https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.25
  */
-fun <R> ApplicationCall.withLastModified(lastModified: LocalDateTime, putHeader: Boolean = true, block: () -> R): R {
+suspend fun ApplicationCall.withLastModified(lastModified: LocalDateTime, putHeader: Boolean = true, block: suspend () -> Unit): Unit {
     val result = checkLastModified(lastModified)
 
     if (putHeader) {
@@ -177,9 +175,7 @@ fun <R> ApplicationCall.withLastModified(lastModified: LocalDateTime, putHeader:
 
     return when (result) {
         ConditionalHeaderCheckResult.NOT_MODIFIED,
-        ConditionalHeaderCheckResult.PRECONDITION_FAILED -> {
-            respond(result.statusCode)
-        }
+        ConditionalHeaderCheckResult.PRECONDITION_FAILED -> respond(result.statusCode)
         ConditionalHeaderCheckResult.OK -> block()
     }
 }

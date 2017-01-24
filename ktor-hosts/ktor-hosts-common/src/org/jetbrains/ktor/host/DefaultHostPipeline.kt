@@ -3,11 +3,9 @@ package org.jetbrains.ktor.host
 import org.jetbrains.ktor.application.*
 
 fun defaultHostPipeline(environment: ApplicationEnvironment) = HostPipeline().apply {
-    intercept(HostPipeline.Before, {
-        onFinish {
-            subject.close()
-        }
-    })
+    intercept(HostPipeline.Before) {
+        subject.use { proceed() }
+    }
 
     environment.config.propertyOrNull("ktor.deployment.shutdown.url")?.getString()?.let { url ->
         install(ShutDownUrl.HostFeature) {
@@ -16,7 +14,8 @@ fun defaultHostPipeline(environment: ApplicationEnvironment) = HostPipeline().ap
     }
 
     intercept(HostPipeline.Call) {
-        fork(subject, subject.application)
+        subject.application.execute(subject)
+        proceed()
     }
 
     setupDefaultHostPages(HostPipeline.Before, HostPipeline.Fallback)

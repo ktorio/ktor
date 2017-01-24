@@ -6,19 +6,19 @@ class ApplicationTransform<C : Any>(private val parent: TransformTable<C>? = nul
     var table: TransformTable<C> = parent ?: TransformTable()
         private set
 
-    inline fun <reified T : Any> register(noinline handler: C.(T) -> Any) {
+    inline fun <reified T : Any> register(handler: suspend C.(T) -> Any) {
         register({ true }, handler)
     }
 
-    inline fun <reified T : Any> register(noinline predicate: C.(T) -> Boolean, noinline handler: C.(T) -> Any) {
+    inline fun <reified T : Any> register(noinline predicate: C.(T) -> Boolean,  handler: suspend C.(T) -> Any) {
         register(T::class, predicate, handler)
     }
 
-    fun <T : Any> register(type: KClass<T>, predicate: C.(T) -> Boolean, handler: C.(T) -> Any) {
+    fun <T : Any> register(type: KClass<T>, predicate: C.(T) -> Boolean, handler: suspend C.(T) -> Any) {
         register(type.javaObjectType, predicate, handler)
     }
 
-    fun <T : Any> register(type: Class<T>, predicate: C.(T) -> Boolean, handler: C.(T) -> Any) {
+    fun <T : Any> register(type: Class<T>, predicate: C.(T) -> Boolean, handler:suspend C.(T) -> Any) {
         if (table === parent) {
             table = TransformTable(parent)
         }

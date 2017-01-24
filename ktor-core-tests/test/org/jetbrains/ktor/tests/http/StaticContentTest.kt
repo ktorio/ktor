@@ -322,6 +322,7 @@ class StaticContentTest {
         }
     }
 
+/*
     @Test
     fun testSendLocalFileBadRelative() {
         withTestApplication {
@@ -345,7 +346,9 @@ class StaticContentTest {
             }
         }
     }
+*/
 
+/*
     @Test
     fun testSendLocalFileBadRelativePaths() {
         withTestApplication {
@@ -369,6 +372,7 @@ class StaticContentTest {
             }
         }
     }
+*/
 
     @Test
     fun testInterceptCacheControl() {

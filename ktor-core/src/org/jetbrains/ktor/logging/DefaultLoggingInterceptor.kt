@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.logging
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
@@ -14,8 +13,12 @@ object CallLogging : ApplicationFeature<Application, Unit, Unit> {
         val loggingPhase = PipelinePhase("Logging")
         pipeline.phases.insertBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
         pipeline.intercept(loggingPhase) { call ->
-            onSuccess { pipeline.logCallFinished(call) }
-            onFail { pipeline.logCallFailed(call, exception!!) }
+            try {
+                proceed()
+                pipeline.logCallFinished(call)
+            } catch(t: Throwable) {
+                pipeline.logCallFailed(call, t)
+            }
         }
     }
 

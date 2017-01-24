@@ -102,14 +102,6 @@ abstract class HostTestBase<H : ApplicationHost> {
 //        }
     }
 
-    protected fun PipelineContext<*>.failAndProceed(e: Throwable): Nothing {
-        runBlock { fail(e) }
-    }
-
-    protected fun PipelineContext<*>.finishAllAndProceed(): Nothing {
-        runBlock { finishAll() }
-    }
-
     companion object {
         val keyStoreFile = File("target/temp.jks")
         lateinit var keyStore: KeyStore

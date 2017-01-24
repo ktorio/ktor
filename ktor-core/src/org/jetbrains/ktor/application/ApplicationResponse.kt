@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.application
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.nio.*
@@ -37,12 +38,14 @@ interface ApplicationResponse {
  * If you go async inside of [body] then you MUST handle exceptions properly and close provided [Writer] instance on you own
  * otherwise the response could get stuck.
  */
-suspend fun ApplicationCall.respondWrite(charset: Charset = Charsets.UTF_8, body: Writer.() -> Unit) = respond(object : StreamConsumer() {
+suspend fun ApplicationCall.respondWrite(charset: Charset = Charsets.UTF_8, body: suspend Writer.() -> Unit) = respond(object : StreamConsumer() {
     override val headers: ValuesMap get() = ValuesMap.Empty
 
     override fun stream(out: OutputStream) {
         out.writer(charset).let { writer ->
-            writer.body()
+            runBlocking(Here) {
+                writer.body()
+            }
             writer.flush()
         }
     }

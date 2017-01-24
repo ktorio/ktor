@@ -18,15 +18,15 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
     private val handlersCacheLock = ReentrantReadWriteLock()
     private val handlersCache = HashMap<Class<*>, List<Handler<C, *>>>()
 
-    inline fun <reified T : Any> register(noinline handler: C.(T) -> Any) {
+    inline fun <reified T : Any> register(handler: suspend C.(T) -> Any) {
         register({ true }, handler)
     }
 
-    inline fun <reified T : Any> register(noinline predicate: C.(T) -> Boolean, noinline handler: C.(T) -> Any) {
+    inline fun <reified T : Any> register(noinline predicate: C.(T) -> Boolean, handler: suspend C.(T) -> Any) {
         register(T::class.javaObjectType, predicate, handler)
     }
 
-    fun <T : Any> register(type: Class<T>, predicate: C.(T) -> Boolean, handler: C.(T) -> Any) {
+    fun <T : Any> register(type: Class<T>, predicate: C.(T) -> Boolean, handler: suspend C.(T) -> Any) {
         topParent.superTypes(type)
         addHandler(type, Handler(handlersCounter.getAndIncrement(), predicate, handler))
 
@@ -63,7 +63,7 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
             partialResult
     }
 
-    class Handler<in C : Any, in T> internal constructor(val id: Int, val predicate: C.(T) -> Boolean, val handler: C.(T) -> Any) {
+    class Handler<in C : Any, in T> internal constructor(val id: Int, val predicate: C.(T) -> Boolean, val handler: suspend C.(T) -> Any) {
         override fun toString() = handler.toString()
     }
 

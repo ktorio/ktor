@@ -8,7 +8,7 @@
     <artifactId>ktor</artifactId>
 
     <properties>
-        <kotlin.version>1.1-M04</kotlin.version>
+        <kotlin.version>1.1.0-dev-6242</kotlin.version>
         <dokka.version>0.9.11</dokka.version>
         <jmh.version>1.15</jmh.version>
 
@@ -66,6 +66,12 @@
             <artifactId>kotlinx-support-jdk8</artifactId>
             <version>0.3</version>
         </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-jdk8</artifactId>
+            <version>0.3-beta-SNAPSHOT</version>
+        </dependency>
+
 
         <dependency>
             <groupId>junit</groupId>
@@ -257,9 +263,9 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-            <id>bintray-kotlin-kotlin-eap</id>
+            <id>bintray-kotlin-kotlin-dev</id>
             <name>bintray-plugins</name>
-            <url>http://dl.bintray.com/kotlin/kotlin-eap</url>
+            <url>http://dl.bintray.com/kotlin/kotlin-dev</url>
         </pluginRepository>
     </pluginRepositories>
     <repositories>
@@ -271,9 +277,9 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-            <id>bintray-kotlin-kotlin-eap</id>
+            <id>bintray-kotlin-kotlin-dev</id>
             <name>bintray</name>
-            <url>http://dl.bintray.com/kotlin/kotlin-eap</url>
+            <url>http://dl.bintray.com/kotlin/kotlin-dev</url>
         </repository>
     </repositories>
 </project>

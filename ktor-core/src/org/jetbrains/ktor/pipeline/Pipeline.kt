@@ -19,22 +19,24 @@ open class Pipeline<TSubject : Any>(vararg phase: PipelinePhase) {
     }
 
     suspend fun execute(subject: TSubject) {
-        val context = object : PipelineContext<TSubject> {
-            override val subject get() = subject
+        val interceptors = phases.interceptors()
+        if (interceptors.isEmpty())
+            return
+        val interceptor = interceptors[0]
+        val context = Context(interceptors, 0, subject)
+        interceptor.invoke(context, subject)
+    }
 
-            suspend override fun proceed() {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            suspend override fun <T : Any> fork(value: T, pipeline: Pipeline<T>) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-        }
-        for (interceptor in phases.interceptors()) {
-            interceptor.invoke(context, subject)
+    class Context<TSubject : Any>(private val interceptors: List<PipelineInterceptor<TSubject>>, val index: Int, override val subject: TSubject) : PipelineContext<TSubject> {
+        suspend override fun proceed() {
+            if (interceptors.lastIndex == index)
+                return
+            val context = Context(interceptors, index + 1, subject)
+            interceptors[index + 1].invoke(context, subject)
         }
     }
 
 }
 
 typealias PipelineInterceptor<TSubject> = suspend PipelineContext<TSubject>.(TSubject) -> Unit
+

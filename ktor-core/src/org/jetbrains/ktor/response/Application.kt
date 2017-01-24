@@ -4,12 +4,12 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 
-fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false): Nothing {
+suspend fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false) {
     response.headers.append(HttpHeaders.Location, url)
     respond(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
 }
 
-fun ApplicationCall.respondText(contentType: ContentType, text: String): Nothing = respond(TextContent(contentType, text))
-fun ApplicationCall.respondText(text: String): Nothing = respondText(ContentType.Text.Plain, text)
+suspend fun ApplicationCall.respondText(contentType: ContentType, text: String) = respond(TextContent(contentType, text))
+suspend fun ApplicationCall.respondText(text: String) = respondText(ContentType.Text.Plain, text)
 
 

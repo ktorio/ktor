@@ -13,7 +13,7 @@ class HttpsRedirect(config: Configuration) {
         var permanentRedirect = true
     }
 
-    fun intercept(call: ApplicationCall) {
+    suspend fun intercept(call: ApplicationCall) {
         if (call.request.origin.scheme == "http") {
             val redirectUrl = call.url { protocol = URLProtocol.HTTPS; port = redirectPort }
             call.respondRedirect(redirectUrl, permanent)

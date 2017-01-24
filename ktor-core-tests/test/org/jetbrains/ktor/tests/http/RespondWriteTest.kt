@@ -52,8 +52,6 @@ class RespondWriteTest {
                         runAsync(application.executor) {
                             write("OK")
                             close()
-
-                            finishAll()
                         }
                     }
                 }

@@ -36,7 +36,7 @@ object TransformationSupport : ApplicationFeature<ApplicationCallPipeline, Appli
                         if (nextResult !== message) {
                             subject.message = nextResult
                             visited.add(handler)
-                            repeat()
+                            //repeat()
                             break
                         }
                     }

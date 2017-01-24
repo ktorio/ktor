@@ -99,9 +99,8 @@ class RoutingProcessingTest {
                 intercept(ApplicationCallPipeline.Call) { call ->
                     userIntercepted = true
                     wrappedWithInterceptor = true
-                    onSuccess {
-                        wrappedWithInterceptor = false
-                    }
+                    proceed()
+                    wrappedWithInterceptor = false
                 }
                 get("{username}") {
                     userName = call.parameters["username"] ?: ""
@@ -134,9 +133,8 @@ class RoutingProcessingTest {
             intercept(ApplicationCallPipeline.Call) {
                 wrappedWithInterceptor = true
                 rootIntercepted = true
-                onFinish {
-                    wrappedWithInterceptor = false
-                }
+                proceed()
+                wrappedWithInterceptor = false
             }
 
             route("user") {
@@ -175,9 +173,8 @@ class RoutingProcessingTest {
             intercept(ApplicationCallPipeline.Infrastructure) {
                 wrappedWithInterceptor = true
                 rootIntercepted = true
-                onFinish {
-                    wrappedWithInterceptor = false
-                }
+                proceed()
+                wrappedWithInterceptor = false
             }
 
             route("user") {
@@ -216,9 +213,8 @@ class RoutingProcessingTest {
             intercept(ApplicationCallPipeline.Infrastructure) {
                 wrappedWithInterceptor = true
                 rootIntercepted = true
-                onFinish {
-                    wrappedWithInterceptor = false
-                }
+                proceed()
+                wrappedWithInterceptor = false
             }
 
             route("user") {

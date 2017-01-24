@@ -9,15 +9,14 @@ import org.jetbrains.ktor.request.*
 fun Pipeline<ApplicationCall>.setupDefaultHostPages(hostPhase: PipelinePhase, hostFallbackPhase: PipelinePhase
 ) {
     intercept(hostPhase) {
-        onFail {
+        try {
+            proceed()
             if (call.response.status() == null) {
-                val error = exception!!
-                call.respond(HttpStatusContent(HttpStatusCode.InternalServerError, "${error.javaClass.simpleName}: ${error.message}\n"))
+                call.respond(HttpStatusContent(HttpStatusCode.NotFound, "Not found: ${call.request.path()}\n"))
             }
-        }
-    }
+        } catch(error: Throwable) {
+            call.respond(HttpStatusContent(HttpStatusCode.InternalServerError, "${error.javaClass.simpleName}: ${error.message}\n"))
 
-    intercept(hostFallbackPhase) { call ->
-        call.respond(HttpStatusContent(HttpStatusCode.NotFound, "Not found: ${call.request.path()}\n"))
+        }
     }
 }

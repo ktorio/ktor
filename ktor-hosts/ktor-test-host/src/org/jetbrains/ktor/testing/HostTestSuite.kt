@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.testing
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
@@ -457,14 +458,10 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                     val readFuture = CompletableFuture<Unit>()
 
                     readFuture.whenComplete { unit, throwable ->
-                        if (throwable != null) {
-                            failAndProceed(throwable)
-                        }
-
                         call.response.status(HttpStatusCode.OK)
                         call.response.contentType(ContentType.Application.OctetStream)
 
-                        runBlock {
+                        runBlocking(Here) {
                             call.respond(object : FinalContent.ChannelContent() {
                                 override val headers: ValuesMap
                                     get() = ValuesMap.Empty
@@ -475,7 +472,6 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                     }
 
                     inChannel.copyToAsyncThenComplete(buffer, readFuture)
-                    pause()
                 }
             }
         }
@@ -532,7 +528,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         createAndStartServer() {
             post("/") {
                 thread {
-                    runBlockWithResult {
+                    runBlocking(Here) {
                         val response = StringBuilder()
 
                         call.request.content.get<MultiPartData>().parts.sortedBy { it.partName }.forEach { part ->
@@ -547,7 +543,6 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                         call.respondText(response.toString())
                     }
                 }
-                pause()
             }
         }
 
