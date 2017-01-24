@@ -1,7 +1,17 @@
 package org.jetbrains.ktor.pipeline
 
-interface PipelineContext<out TSubject : Any> {
-    val subject: TSubject
+class PipelineContext<out TSubject : Any>(private val interceptors: List<PipelineInterceptor<TSubject>>, val subject: TSubject) {
+    private var index = 0
 
-    suspend fun proceed()
+    suspend fun proceed() {
+        while (index >= 0) {
+            if (interceptors.size == index) {
+                index = -1 // finished
+                return
+            }
+            val executeInterceptor = interceptors[index]
+            index++
+            executeInterceptor.invoke(this, subject)
+        }
+    }
 }

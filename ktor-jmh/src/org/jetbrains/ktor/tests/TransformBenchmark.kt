@@ -24,8 +24,10 @@ open class TransformBenchmark {
     @Benchmark
     fun handlersSelectClass() = table.handlers(C::class.java)
 
+/*
     @Benchmark
     fun handlersTransform() = table.transform(Unit, O)
+*/
 
     @Benchmark
     fun subHandlersSelectExact() = subTable.handlers(I::class.java)
@@ -36,8 +38,10 @@ open class TransformBenchmark {
     @Benchmark
     fun subHandlersSelectClass() = subTable.handlers(C::class.java)
 
+/*
     @Benchmark
     fun subHandlersTransform() = subTable.transform(Unit, O)
+*/
 
     interface I
     interface M : I

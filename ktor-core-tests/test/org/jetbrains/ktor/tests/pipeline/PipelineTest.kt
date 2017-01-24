@@ -29,9 +29,20 @@ class PipelineTest {
     fun singleActionPipeline() {
         val events = mutableListOf<String>()
         val pipeline = pipeline()
-        pipeline.intercept { subject -> events.add("intercept $subject") }
+        pipeline.intercept { events.add("intercept $subject") }
         val state = pipeline.executeBlocking("some")
         assertEquals(listOf("intercept some"), events)
+        assertEquals(PipelineState.Finished, state)
+    }
+
+    @Test
+    fun implicitProceed() {
+        val events = mutableListOf<String>()
+        val pipeline = pipeline()
+        pipeline.intercept { events.add("intercept1 $subject") }
+        pipeline.intercept { events.add("intercept2 $subject") }
+        val state = pipeline.executeBlocking("some")
+        assertEquals(listOf("intercept1 some", "intercept2 some"), events)
         assertEquals(PipelineState.Finished, state)
     }
 

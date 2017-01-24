@@ -3,7 +3,6 @@ package org.jetbrains.ktor.tests
 import ch.qos.logback.classic.Level
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.jetty.*
 import org.jetbrains.ktor.routing.*
 import org.openjdk.jmh.annotations.*
 import org.slf4j.*
@@ -13,7 +12,7 @@ import java.net.*
 
 
 @State(Scope.Benchmark)
-open class IntegrationBenchmark {
+open class IntegrationBenchmark /*{
     private val packageName = FullBenchmark::class.java.`package`.name
     private val classFileName = FullBenchmark::class.simpleName!! + ".class"
     private val pomFile = File("pom.xml")
@@ -76,7 +75,7 @@ open class IntegrationBenchmark {
         return load("http://localhost:$port/regularFile")
     }
 }
-
+*/
 /*
 Benchmark                                   Mode  Cnt   Score   Error   Units
 IntegrationBenchmark.jarfile               thrpt   10  11.359 ± 2.814  ops/ms
