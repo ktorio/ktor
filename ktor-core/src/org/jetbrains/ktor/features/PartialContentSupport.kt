@@ -98,11 +98,11 @@ class PartialContentSupport(val maxRangeCount : Int) {
         channel.close()
     }
 
-    suspend /*private*/ fun processSingleRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, range: LongRange, length: Long) {
+    suspend private fun processSingleRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, range: LongRange, length: Long) {
         call.respond(RangeChannelProvider.Single(call.isGet(), obj.headers, channel, range, length))
     }
 
-    suspend /*private*/ fun processMultiRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, ranges: List<LongRange>, length: Long) {
+    suspend private fun processMultiRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, ranges: List<LongRange>, length: Long) {
         val boundary = "ktor-boundary-" + nextNonce()
 
         call.attributes.put(Compression.SuppressionAttribute, true) // multirange with compression is not supported yet

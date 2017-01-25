@@ -8,22 +8,17 @@ class RangeReadChannel(val source: ReadChannel, val skip: Long, val maxSize: Lon
 
     suspend override fun read(dst: ByteBuffer): Int {
         if (!skipped) {
-            if (source is RandomAccessReadChannel) {
-                source.seek(skip)
-            } else {
-                var skipped = 0
-                val skipTicket = bufferPool.allocate(8192)
-                val skipBuffer = skipTicket.buffer
-                while (skipped < skip) {
-                    skipBuffer.clear()
-                    val remaining = skip - skipped
-                    if (remaining < skipBuffer.capacity())
-                        skipBuffer.limit(remaining.toInt())
-
-                    val read = source.read(skipBuffer)
-                    if (read == -1)
+            when (source) {
+                is RandomAccessReadChannel -> {
+                    if (source.size <= skip) {
+                        skipped = true
                         return -1
-                    skipped += read
+                    }
+                    source.seek(skip)
+                }
+                else -> if (!seekBySkip()) {
+                    skipped = true
+                    return -1
                 }
             }
             skipped = true
@@ -41,6 +36,28 @@ class RangeReadChannel(val source: ReadChannel, val skip: Long, val maxSize: Lon
         }
         totalCount += count
         return count
+    }
+
+    private suspend fun seekBySkip(): Boolean {
+        var skipped = 0
+        val skipTicket = bufferPool.allocate(8192)
+        val skipBuffer = skipTicket.buffer
+        try {
+            while (skipped < skip) {
+                skipBuffer.clear()
+                val remaining = skip - skipped
+                if (remaining < skipBuffer.capacity())
+                    skipBuffer.limit(remaining.toInt())
+
+                val read = source.read(skipBuffer)
+                if (read == -1)
+                    return false
+                skipped += read
+            }
+        } finally {
+            bufferPool.release(skipTicket)
+        }
+        return true
     }
 
     override fun close() {

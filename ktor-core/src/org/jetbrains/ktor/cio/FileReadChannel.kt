@@ -20,6 +20,9 @@ class FileReadChannel(val fileChannel: AsynchronousFileChannel, val start: Long 
         require(endInclusive <= fileChannel.size() - 1) { "endInclusive points to the position out of the file: file size = ${fileChannel.size()}, endInclusive = $endInclusive" }
     }
 
+    override val size: Long
+        get() = fileChannel.size()
+
     suspend override fun read(dst: ByteBuffer): Int {
         dst.clear()
         val limit = Math.min(dst.capacity().toLong(), endInclusive - position + 1).toInt()

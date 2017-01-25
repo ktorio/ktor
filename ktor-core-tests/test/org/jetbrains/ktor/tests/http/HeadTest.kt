@@ -29,14 +29,12 @@ class HeadTest {
 
             handleRequest(HttpMethod.Get, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertNotNull(call.response.byteContent)
                 assertEquals("Hello", call.response.content)
                 assertEquals("1", call.response.headers["M"])
             }
 
             handleRequest(HttpMethod.Head, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertNull(call.response.byteContent)
                 assertNull(call.response.content)
                 assertEquals("1", call.response.headers["M"])
             }
@@ -56,14 +54,12 @@ class HeadTest {
 
             handleRequest(HttpMethod.Get, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertNotNull(call.response.byteContent)
                 assertEquals("Hello", call.response.content)
                 assertEquals("text/plain", call.response.headers[HttpHeaders.ContentType])
             }
 
             handleRequest(HttpMethod.Head, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertNull(call.response.byteContent)
                 assertNull(call.response.content)
                 assertEquals("text/plain", call.response.headers[HttpHeaders.ContentType])
             }
@@ -85,13 +81,11 @@ class HeadTest {
 
             handleRequest(HttpMethod.Get, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertNotNull(call.response.byteContent)
                 assertEquals("Hello", call.response.content)
             }
 
             handleRequest(HttpMethod.Head, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertNull(call.response.byteContent)
                 assertNull(call.response.content)
             }
         }
@@ -124,7 +118,6 @@ class HeadTest {
 
             handleRequest(HttpMethod.Head, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertNull(call.response.byteContent)
                 assertNull(call.response.content)
                 assertEquals("2", call.response.headers["M"])
             }

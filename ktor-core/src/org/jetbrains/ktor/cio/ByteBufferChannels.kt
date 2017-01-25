@@ -13,11 +13,14 @@ class ByteBufferReadChannel(val source: ByteBuffer, val maxReadSize: Int = Int.M
         require(maxReadSize > 0) { "maxReadSize should be positive: $maxReadSize" }
     }
 
+    override val size: Long
+        get() = source.limit().toLong()
+
     override val position: Long
         get() = (source.position() - initialPosition).toLong()
 
     override suspend fun seek(position: Long) {
-        val newPosition = initialPosition + Math.min(Int.MAX_VALUE.toLong(), position).toInt()
+        val newPosition = initialPosition + Math.min(maxReadSize.toLong(), position).toInt()
         if (newPosition > source.limit()) {
             throw IllegalArgumentException("Seek to $position failed for buffer size ${source.limit() - initialPosition}")
         } else {

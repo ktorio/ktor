@@ -7,52 +7,57 @@ import java.nio.*
 import kotlin.test.*
 
 class AsyncSeekAndCutTest {
+    fun rangeChannel(source: ReadChannel, skip: Long, maxSize: Long): ReadChannel {
+        // Hide RandomAccess capability of source channel
+        return RangeReadChannel(CompositeReadChannel(sequenceOf({ source })), skip, maxSize)
+    }
+
     @Test
     fun testCutOnly() {
         val source = { asyncOf("Hello, async!") }
 
-        assertEquals("Hello, async!", RangeReadChannel(source(), 0L, 1000).readText())
-        assertEquals("Hel", RangeReadChannel(source(), 0L, 3).readText())
-        assertEquals("", RangeReadChannel(source(), 0L, 0).readText())
+        assertEquals("Hello, async!", rangeChannel(source(), 0L, 1000).readText())
+        assertEquals("Hel", rangeChannel(source(), 0L, 3).readText())
+        assertEquals("", rangeChannel(source(), 0L, 0).readText())
     }
 
     @Test
     fun testEmptySource() {
         val source = { asyncOf("") }
 
-        assertEquals("", RangeReadChannel(source(), 0L, 1000).readText())
-//        assertEquals("", RangeReadChannel(source(), 10, 0).readText())
-        assertEquals("", RangeReadChannel(source(), 0L, 0).readText())
+        assertEquals("", rangeChannel(source(), 0L, 1000).readText())
+        assertEquals("", rangeChannel(source(), 10, 0).readText())
+        assertEquals("", rangeChannel(source(), 0L, 0).readText())
     }
 
     @Test
     fun testSeekOnly() {
         val source = { asyncOf("Hello, async!") }
 
-        assertEquals("ello, async!", RangeReadChannel(source(), 1L, 1000).readText())
-        assertEquals("", RangeReadChannel(source(), 13L, 1000).readText())
+        assertEquals("ello, async!", rangeChannel(source(), 1L, 1000).readText())
+        assertEquals("", rangeChannel(source(), 13L, 1000).readText())
     }
 
     @Test
     fun testSeekAndCut() {
         val source = { asyncOf("Hello, async!") }
 
-        assertEquals("ell", RangeReadChannel(source(), 1L, 3).readText())
-        assertEquals("", RangeReadChannel(source(), 13L, 0).readText())
+        assertEquals("ell", rangeChannel(source(), 1L, 3).readText())
+        assertEquals("", rangeChannel(source(), 13L, 0).readText())
     }
 
     @Test
     fun testSeekForSeek() {
         val source = { asyncOf("Hello, async!") }
 
-        assertEquals(", ", RangeReadChannel(RangeReadChannel(source(), 4L, 5L), 1L, 2L).readText())
+        assertEquals(", ", rangeChannel(rangeChannel(source(), 4L, 5L), 1L, 2L).readText())
     }
 
     @Test
     fun testSeekForSeekBytePerByte() {
         val source = { asyncOf("Hello, async!", 1) }
 
-        assertEquals(", ", RangeReadChannel(RangeReadChannel(source(), 4L, 5L), 1L, 2L).readText())
+        assertEquals(", ", rangeChannel(rangeChannel(source(), 4L, 5L), 1L, 2L).readText())
     }
 
     @Test

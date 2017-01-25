@@ -16,7 +16,7 @@ class ByteArrayReadChannel(val source: ByteBuffer, val maxReadSize: Int = Int.MA
         get() = (source.position() - initialPosition).toLong()
 
     override fun seek(position: Long, handler: AsyncHandler) {
-        val newPosition = initialPosition + Math.min(Int.MAX_VALUE.toLong(), position).toInt()
+        val newPosition = initialPosition + Math.min(maxReadSize.toLong(), position).toInt()
         if (newPosition > source.limit()) {
             handler.failed(IllegalArgumentException("Seek to $position failed for buffer size ${source.limit() - initialPosition}"))
         } else {

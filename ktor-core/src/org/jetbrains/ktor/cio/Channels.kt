@@ -15,6 +15,7 @@ interface WriteChannel : Channel {
 
 interface RandomAccessReadChannel : ReadChannel {
     val position: Long
+    val size: Long
 
     suspend fun seek(position: Long)
 }
