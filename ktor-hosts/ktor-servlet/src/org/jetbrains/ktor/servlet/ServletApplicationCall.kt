@@ -13,7 +13,7 @@ import javax.servlet.http.*
 open class ServletApplicationCall(application: Application,
                                   protected val servletRequest: HttpServletRequest,
                                   protected val servletResponse: HttpServletResponse,
-                                  override val pool: ByteBufferPool,
+                                  override val bufferPool: ByteBufferPool,
                                   pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit) : BaseApplicationCall(application) {
 
     override val request: ServletApplicationRequest = ServletApplicationRequest(servletRequest, { requestChannelOverride })

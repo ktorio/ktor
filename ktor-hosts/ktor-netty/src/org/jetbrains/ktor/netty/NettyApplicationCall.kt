@@ -17,7 +17,7 @@ internal class NettyApplicationCall(application: Application,
                                     val context: ChannelHandlerContext,
                                     val httpRequest: HttpRequest,
                                     val drops: LastDropsCollectorHandler?,
-                                    override val pool: ByteBufferPool
+                                    override val bufferPool: ByteBufferPool
 ) : BaseApplicationCall(application) {
 
     var completed: Boolean = false

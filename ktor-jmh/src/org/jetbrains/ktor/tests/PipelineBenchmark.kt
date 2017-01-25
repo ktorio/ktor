@@ -2,6 +2,7 @@ package org.jetbrains.ktor.tests
 
 import kotlinx.coroutines.experimental.intrinsics.*
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.util.*
 import org.openjdk.jmh.annotations.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
@@ -22,21 +23,6 @@ open class BaselinePipeline {
             suspendFunctions.sumBy { it() }
         }
     }
-}
-
-fun <T> runSync(block: suspend () -> T): T {
-    val result = block.startCoroutineOrReturn(NoopContinuation)
-    if (result == SUSPENDED_MARKER) {
-        throw IllegalStateException("function passed to runSync suspended")
-    }
-    @Suppress("UNCHECKED_CAST")
-    return result as T
-}
-
-object NoopContinuation : Continuation<Any?> {
-    override val context: CoroutineContext = EmptyCoroutineContext
-    override fun resume(value: Any?) {}
-    override fun resumeWithException(exception: Throwable) {}
 }
 
 @State(Scope.Benchmark)

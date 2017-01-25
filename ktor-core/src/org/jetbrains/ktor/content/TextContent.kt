@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.content
 
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 
@@ -23,5 +23,5 @@ class TextContentResponse(override val status: HttpStatusCode?, contentType: Con
         }
     }
 
-    override fun channel() = ByteArrayReadChannel(bytes)
+    override fun channel() = ByteBufferReadChannel(bytes)
 }

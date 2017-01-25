@@ -3,7 +3,7 @@ package org.jetbrains.ktor.features
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
@@ -85,7 +85,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
 
         val channel = obj.channel()
 
-        if (merged.size != 1 && !merged.isAscending() && channel !is SeekableChannel) {
+        if (merged.size != 1 && !merged.isAscending() && channel !is RandomAccessReadChannel) {
             // merge into single range for non-seekable channel
             processSingleRange(obj, call, channel, rangesSpecifier.mergeToSingle(length)!!, length)
         }
@@ -128,12 +128,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
 
         class Single(val get: Boolean, val delegateHeaders: ValuesMap, val delegate: ReadChannel, val range: LongRange, val fullLength: Long) : RangeChannelProvider() {
             override val status: HttpStatusCode? get() = if (get) HttpStatusCode.PartialContent else null
-
-            override fun channel() = when (delegate) {
-                is SeekableChannel -> SeekAndCutReadChannel(delegate, range.start, range.length, preventClose = true)
-                else -> SkipAndCutReadChannel(delegate, range.start, range.length, preventClose = true)
-            }
-
+            override fun channel() = RangeReadChannel(delegate, range.start, range.length)
             override val headers by lazy {
                 ValuesMap.build(true) {
                     appendFiltered(delegateHeaders) { name, value -> !name.equals(HttpHeaders.ContentLength, true) }

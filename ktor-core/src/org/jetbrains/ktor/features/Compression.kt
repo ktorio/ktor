@@ -3,7 +3,7 @@ package org.jetbrains.ktor.features
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 
@@ -50,14 +50,14 @@ class Compression(compression: Configuration) {
                     ) {
                 val channel = when (message) {
                     is FinalContent.ChannelContent -> message.channel()
-                    is FinalContent.StreamContentProvider -> message.stream().asAsyncChannel()
+                    is FinalContent.StreamContentProvider -> message.stream().toReadChannel()
                     is FinalContent.NoContent -> return@intercept
                 }
 
                 val encoderOptions = encoders.firstOrNull { it.conditions.all { it(call, message) } }
 
                 if (encoderOptions != null) {
-                    call.respond(CompressedResponse(channel, message.headers, encoderOptions.name, encoderOptions.encoder))
+                    subject.message = CompressedResponse(channel, message.headers, encoderOptions.name, encoderOptions.encoder)
                 }
             }
         }

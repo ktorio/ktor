@@ -2,13 +2,13 @@ package org.jetbrains.ktor.request
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import kotlin.reflect.*
 
 abstract class RequestContent(private val request: ApplicationRequest) {
-    private val contentAsString by lazy { get<ReadChannel>().asInputStream().reader(request.contentCharset() ?: Charsets.ISO_8859_1).readText() }
+    private val contentAsString by lazy { get<ReadChannel>().toInputStream().reader(request.contentCharset() ?: Charsets.ISO_8859_1).readText() }
     private val computedValuesMap: ValuesMap by lazy {
         if (request.contentType().match(ContentType.Application.FormUrlEncoded)) {
             parseQueryString(get<String>())

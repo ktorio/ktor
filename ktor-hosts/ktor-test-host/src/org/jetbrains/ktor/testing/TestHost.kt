@@ -7,14 +7,13 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 import java.io.*
-import java.util.concurrent.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
@@ -76,20 +75,14 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
                 exception = error
             } finally {
                 call.close()
-                val testApplicationCall = call as? TestApplicationCall
-                testApplicationCall?.latch?.countDown()
             }
         }
     }
 
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createCall(setup)
-
         runBlocking(Here) { pipeline.execute(call) }
-        call.await()
-
         exception?.let { throw it }
-
         return call
     }
 
@@ -104,7 +97,6 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
         }
 
         runBlocking(Here) { pipeline.execute(call) }
-        call.await()
 
         exception?.let { throw it }
 
@@ -132,8 +124,6 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
 }
 
 class TestApplicationCall(application: Application, override val request: TestApplicationRequest) : BaseApplicationCall(application) {
-    internal val latch = CountDownLatch(1)
-
     override fun close() {
         response.close()
     }
@@ -146,7 +136,7 @@ class TestApplicationCall(application: Application, override val request: TestAp
     override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : handled = $requestHandled"
 
     override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
-        commit(upgrade)
+        commitHeaders(upgrade)
         upgrade.upgrade(this@TestApplicationCall, this, request.content.get(), response.realContent.value)
     }
 
@@ -159,10 +149,6 @@ class TestApplicationCall(application: Application, override val request: TestAp
 
             ensureCapacity(contentLength.toInt())
         }
-    }
-
-    fun await() {
-        latch.await()
     }
 }
 
@@ -227,7 +213,7 @@ class TestApplicationRequest(
 
     override val content: RequestContent = object : RequestContent(this) {
         override fun getInputStream(): InputStream = ByteArrayInputStream(bodyBytes)
-        override fun getReadChannel() = ByteArrayReadChannel(bodyBytes)
+        override fun getReadChannel() = ByteBufferReadChannel(bodyBytes)
 
         override fun getMultiPartData(): MultiPartData = object : MultiPartData {
             override val parts: Sequence<PartData>
@@ -242,7 +228,7 @@ class TestApplicationRequest(
 }
 
 class TestApplicationResponse(call: ApplicationCall, respondPipeline: RespondPipeline = RespondPipeline()) : BaseApplicationResponse(call, respondPipeline) {
-    internal val realContent = lazy { ByteArrayWriteChannel() }
+    internal val realContent = lazy { ByteBufferWriteChannel() }
 
     @Volatile
     private var closed = false
