@@ -36,7 +36,7 @@ class AsyncPumpTest {
     private fun doCopy(text: String, step: Int = Int.MAX_VALUE) = runSync {
         val source = asyncOf(text, step)
         val out = ByteBufferWriteChannel()
-        source.sendTo(out)
+        source.copyTo(out)
 
         assertEquals(text, out.toString(Charsets.ISO_8859_1))
     }

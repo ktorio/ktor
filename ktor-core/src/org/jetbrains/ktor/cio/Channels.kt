@@ -20,10 +20,11 @@ interface RandomAccessReadChannel : ReadChannel {
     suspend fun seek(position: Long)
 }
 
-suspend fun ReadChannel.sendTo(out: WriteChannel, bufferSize: Int = 8192, bufferPool: ByteBufferPool = NoPool) {
+suspend fun ReadChannel.copyTo(out: WriteChannel, bufferSize: Int = 8192, bufferPool: ByteBufferPool = NoPool): Int {
     val ticket = bufferPool.allocate(bufferSize)
+    var bytes = 0
     try {
-        while (read(ticket.buffer) != -1) {
+        while (read(ticket.buffer).also { bytes += it } != -1) {
             ticket.buffer.flip()
             out.write(ticket.buffer)
             ticket.buffer.clear()
@@ -31,5 +32,6 @@ suspend fun ReadChannel.sendTo(out: WriteChannel, bufferSize: Int = 8192, buffer
     } finally {
         bufferPool.release(ticket)
     }
+    return bytes + 1 // compensate for -1 as EOF
 }
 

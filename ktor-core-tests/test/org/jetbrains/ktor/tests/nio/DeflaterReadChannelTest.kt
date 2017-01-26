@@ -14,7 +14,7 @@ class DeflaterReadChannelTest {
         val file = listOf(File("test/org/jetbrains/ktor/tests/nio/DeflaterReadChannelTest.kt"),
                 File("ktor-core-tests/test/org/jetbrains/ktor/tests/nio/DeflaterReadChannelTest.kt")).first(File::exists)
 
-        val actual = file.asyncReadOnlyFileChannel().deflated().toInputStream().ungzip().reader().readText()
+        val actual = file.readChannel().deflated().toInputStream().ungzip().reader().readText()
         assertEquals(file.readText(), actual)
     }
 
@@ -26,7 +26,7 @@ class DeflaterReadChannelTest {
         val content = file.readText()
 
         fun read(from: Long, to: Long) =
-                file.asyncReadOnlyFileChannel(from, to).toInputStream().reader().readText()
+                file.readChannel(from, to).toInputStream().reader().readText()
 
         assertEquals(content.take(3), read(0, 2))
         assertEquals(content.drop(1).take(2), read(1, 2))

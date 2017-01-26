@@ -27,6 +27,7 @@ class FileReadChannel(val source: AsynchronousFileChannel, val start: Long = 0, 
         require(endInclusive <= source.size() - 1) { "endInclusive points to the position out of the file: file size = ${source.size()}, endInclusive = $endInclusive" }
     }
 
+    override var position: Long = start
     override val size: Long
         get() = source.size()
 
@@ -35,15 +36,13 @@ class FileReadChannel(val source: AsynchronousFileChannel, val start: Long = 0, 
         if (limit <= 0)
             return -1
         dst.limit(dst.position() + limit)
-        return suspendCoroutineOrReturn<Int> {
+        return suspendCoroutineOrReturn {
             check(currentContinuation == null)
             currentContinuation = it
             source.read(dst, position, this, completionHandler)
             SUSPENDED_MARKER
         }
     }
-
-    override var position: Long = start
 
     suspend override fun seek(position: Long) {
         require(position >= 0L) { "position should not be negative: $position" }
@@ -57,11 +56,11 @@ class FileReadChannel(val source: AsynchronousFileChannel, val start: Long = 0, 
     }
 }
 
-fun Path.asyncReadOnlyFileChannel(start: Long = 0, endInclusive: Long = Files.size(this) - 1): FileReadChannel {
+fun Path.readChannel(start: Long = 0, endInclusive: Long = Files.size(this) - 1): FileReadChannel {
     val asyncFileChannel = AsynchronousFileChannel.open(this, StandardOpenOption.READ)
     return FileReadChannel(asyncFileChannel, start, endInclusive)
 }
 
-fun File.asyncReadOnlyFileChannel(start: Long = 0, endInclusive: Long = length() - 1): FileReadChannel {
-    return toPath().asyncReadOnlyFileChannel(start, endInclusive)
+fun File.readChannel(start: Long = 0, endInclusive: Long = length() - 1): FileReadChannel {
+    return toPath().readChannel(start, endInclusive)
 }

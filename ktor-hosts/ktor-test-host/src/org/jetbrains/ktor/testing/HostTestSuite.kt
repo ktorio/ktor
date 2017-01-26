@@ -453,7 +453,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
             route("/echo") {
                 handle {
                     val buffer = ByteBufferWriteChannel()
-                    call.request.content.get<ReadChannel>().sendTo(buffer)
+                    call.request.content.get<ReadChannel>().copyTo(buffer)
 
                     call.response.status(HttpStatusCode.OK)
                     call.response.contentType(ContentType.Application.OctetStream)

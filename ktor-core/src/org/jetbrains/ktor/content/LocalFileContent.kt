@@ -38,6 +38,6 @@ class LocalFileContent(val file: File,
 
     override val headers by lazy { super.headers }
 
-    override fun channel() = file.asyncReadOnlyFileChannel()
+    override fun channel() = file.readChannel()
 }
 

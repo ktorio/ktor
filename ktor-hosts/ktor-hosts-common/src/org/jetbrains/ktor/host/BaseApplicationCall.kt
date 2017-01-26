@@ -68,7 +68,8 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
 
         val response = responseChannel()
         channel.use {
-            it.sendTo(response, bufferPool = bufferPool)
+            it.copyTo(response, bufferPool = bufferPool)
+            response.close()
         }
     }
 
