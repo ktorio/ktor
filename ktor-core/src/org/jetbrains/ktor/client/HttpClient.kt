@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.client
 
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.net.*
@@ -41,7 +41,7 @@ interface HttpResponse : Closeable {
 }
 
 val HttpResponse.stream: InputStream
-    get() = channel.asInputStream()
+    get() = channel.toInputStream()
 
 interface HttpClient {
     fun openConnection(host: String, port: Int, secure: Boolean = false): HttpConnection

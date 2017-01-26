@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.client
 
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.util.*
 import java.net.*
 import java.util.concurrent.*
@@ -63,7 +63,7 @@ object DefaultHttpClient : HttpClient {
                 javaNetConnection.inputStream
             } catch (t: Throwable) {
                 javaNetConnection.errorStream ?: "".byteInputStream()
-            }.asAsyncChannel()
+            }.toReadChannel()
 
         override fun close() {
             javaNetConnection.disconnect()
