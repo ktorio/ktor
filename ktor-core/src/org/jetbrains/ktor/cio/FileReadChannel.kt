@@ -11,7 +11,7 @@ class FileReadChannel(val fileChannel: AsynchronousFileChannel, val start: Long 
     companion object {
         val completionHandler = object : CompletionHandler<Int, Continuation<Int>> {
             override fun completed(result: Int, continuation: Continuation<Int>) = continuation.resume(result)
-            override fun failed(exc: Throwable, attachment: Continuation<Int>) = attachment.resumeWithException(exc)
+            override fun failed(exc: Throwable, continuation: Continuation<Int>) = continuation.resumeWithException(exc)
         }
     }
 
