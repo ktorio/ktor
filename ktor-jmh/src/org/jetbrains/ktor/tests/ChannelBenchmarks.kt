@@ -50,6 +50,13 @@ open class ChannelBenchmarks {
         file.readChannel().use { it.toInputStream().readBytes().size }
     }
 }
+/*
+ChannelBenchmarks.asyncChannelReads       thrpt   10   47.120 ±  1.486  ops/ms
+ChannelBenchmarks.directReads             thrpt   10  111.603 ± 26.161  ops/ms
+ChannelBenchmarks.directStreamReads       thrpt   10  103.636 ±  9.133  ops/ms
+ChannelBenchmarks.readChannelReads        thrpt   10   54.903 ±  0.754  ops/ms
+ChannelBenchmarks.readChannelStreamReads  thrpt   10   48.044 ±  1.214  ops/ms
+ */
 
 fun main(args: Array<String>) {
     benchmark(args) {
