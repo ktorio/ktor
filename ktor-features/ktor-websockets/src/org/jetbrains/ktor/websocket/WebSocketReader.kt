@@ -1,6 +1,6 @@
 package org.jetbrains.ktor.websocket
 
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import java.nio.*
 import java.util.concurrent.atomic.*
 
@@ -11,7 +11,7 @@ internal class WebSocketReader(val maxFrameSize: () -> Long, val close: (CloseRe
     private val collector = SimpleFrameCollector()
     private var suspended = false
 
-    fun start() {
+    suspend fun start() {
         if (!state.compareAndSet(State.CREATED, State.FRAME)) {
             throw IllegalStateException("Already initialized")
         }
@@ -19,36 +19,12 @@ internal class WebSocketReader(val maxFrameSize: () -> Long, val close: (CloseRe
         read()
     }
 
-    private val readHandler = object : AsyncHandler {
-        override fun success(count: Int) {
-            handleRead()
-        }
-
-        override fun successEnd() {
-            close(lastReason())
-        }
-
-        override fun failed(cause: Throwable) {
-            close(null)
-            // TODO notify handlers
-        }
-    }
-
-    private fun read() {
+    private suspend fun read() {
         if (!suspended) {
             buffer.compact()
-            channel.read(buffer, readHandler)
-        }
-    }
-
-    private fun handleRead() {
-        buffer.flip()
-
-        try {
+            channel.read(buffer)
+            buffer.flip()
             parseLoop()
-            read()
-        } catch (e: Throwable) {
-            close(null)
         }
     }
 

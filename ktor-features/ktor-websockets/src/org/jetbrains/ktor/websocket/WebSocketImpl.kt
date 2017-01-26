@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.websocket
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.pipeline.*
 import java.time.*
 
@@ -61,9 +61,7 @@ internal class WebSocketImpl(call: ApplicationCall, context: PipelineContext<*>,
 
             closeHandler(reason)
         } finally {
-            context.runBlockWithResult {
-                close()
-            }
+            close()
         }
     }
 }

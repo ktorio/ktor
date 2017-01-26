@@ -81,7 +81,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
 
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createCall(setup)
-        runBlocking(Here) { pipeline.execute(call) }
+        runBlocking { pipeline.execute(call) }
         exception?.let { throw it }
         return call
     }

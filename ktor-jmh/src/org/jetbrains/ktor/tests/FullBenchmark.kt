@@ -24,10 +24,12 @@ open class FullBenchmark {
                 call.respond("OK")
             }
             get("/jarfile") {
-                call.respond(call.resolveClasspathWithPath("java/lang/", "String.class")!!)
+                val resource = call.resolveClasspathWithPath("java/lang/", "String.class")!!
+                call.respond(resource)
             }
             get("/regularClasspathFile") {
-                call.respond(call.resolveClasspathWithPath(packageName, classFileName)!!)
+                val resource = call.resolveClasspathWithPath(packageName, classFileName)!!
+                call.respond(resource)
             }
             get("/regularFile") {
                 call.respond(LocalFileContent(pomFile))

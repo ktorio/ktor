@@ -115,23 +115,23 @@ class PartialContentSupport(val maxRangeCount : Int) {
     }
 
     private sealed class RangeChannelProvider : FinalContent.ChannelContent() {
-        class ByPass(val delegate: ChannelContent) : RangeChannelProvider() {
+        class ByPass(val content: ChannelContent) : RangeChannelProvider() {
             override val status: HttpStatusCode?
-                get() = delegate.status
+                get() = content.status
 
-            override fun channel() = delegate.channel()
+            override fun channel() = content.channel()
 
             override val headers by lazy {
                 ValuesMap.build(true) {
-                    appendAll(delegate.headers)
+                    appendAll(content.headers)
                     acceptRanges()
                 }
             }
         }
 
-        class Single(val get: Boolean, val delegateHeaders: ValuesMap, val delegate: ReadChannel, val range: LongRange, val fullLength: Long) : RangeChannelProvider() {
+        class Single(val get: Boolean, val delegateHeaders: ValuesMap, val source: ReadChannel, val range: LongRange, val fullLength: Long) : RangeChannelProvider() {
             override val status: HttpStatusCode? get() = if (get) HttpStatusCode.PartialContent else null
-            override fun channel() = RangeReadChannel(delegate, range.start, range.length)
+            override fun channel() = RangeReadChannel(source, range.start, range.length, closeSource = false)
             override val headers by lazy {
                 ValuesMap.build(true) {
                     appendFiltered(delegateHeaders) { name, value -> !name.equals(HttpHeaders.ContentLength, true) }
@@ -141,10 +141,10 @@ class PartialContentSupport(val maxRangeCount : Int) {
             }
         }
 
-        class Multiple(val get: Boolean, val delegateHeaders: ValuesMap, val delegate: ReadChannel, val ranges: List<LongRange>, val length: Long, val boundary: String, val contentType: ContentType) : RangeChannelProvider() {
+        class Multiple(val get: Boolean, val delegateHeaders: ValuesMap, val source: ReadChannel, val ranges: List<LongRange>, val length: Long, val boundary: String, val contentType: ContentType) : RangeChannelProvider() {
             override val status: HttpStatusCode? get() = if (get) HttpStatusCode.PartialContent else null
 
-            override fun channel() = ByteRangesChannel.forRegular(ranges, delegate, length, boundary, contentType.toString())
+            override fun channel() = MultipleRangesReadChannel.create(source, ranges, length, boundary, contentType.toString())
 
             override val headers: ValuesMap
                 get() = ValuesMap.build(true) {

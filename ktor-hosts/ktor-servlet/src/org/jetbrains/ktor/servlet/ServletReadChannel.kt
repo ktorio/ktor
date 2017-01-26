@@ -1,6 +1,6 @@
 package org.jetbrains.ktor.servlet
 
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.atomic.*

@@ -1,6 +1,6 @@
 package org.jetbrains.ktor.websocket
 
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.util.*
 import java.nio.*
 import java.util.concurrent.*

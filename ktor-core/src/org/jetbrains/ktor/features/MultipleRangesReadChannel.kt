@@ -4,25 +4,24 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.util.*
 
-object ByteRangesChannel {
-    fun forSeekable(ranges: List<LongRange>, ch: RandomAccessReadChannel, fullLength: Long?, boundary: String, contentType: String): ReadChannel =
+object MultipleRangesReadChannel {
+    fun create(source: RandomAccessReadChannel, ranges: List<LongRange>, fullLength: Long?, boundary: String, contentType: String): ReadChannel =
             CompositeReadChannel(ranges.build(fullLength, boundary, contentType) { range ->
-                RangeReadChannel(ch, range.start, range.length)
+                RangeReadChannel(source, range.start, range.length, closeSource = false)
             })
 
-    fun forRegular(ranges: List<LongRange>, ch: ReadChannel, fullLength: Long?, boundary: String, contentType: String): ReadChannel {
-        if (ch is RandomAccessReadChannel) {
-            return forSeekable(ranges, ch, fullLength, boundary, contentType)
+    fun create(source: ReadChannel, ranges: List<LongRange>, fullLength: Long?, boundary: String, contentType: String): ReadChannel {
+        if (source is RandomAccessReadChannel) {
+            return create(source, ranges, fullLength, boundary, contentType)
         }
 
         var position = 0L
 
         return CompositeReadChannel(ranges.build(fullLength, boundary, contentType) { range ->
-            val start = position
-            val skip = range.start - start
+            val skip = range.start - position
             position = range.endInclusive + 1
 
-            RangeReadChannel(ch, skip, range.length)
+            RangeReadChannel(source, skip, range.length, closeSource = false)
         })
     }
 

@@ -4,7 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import javax.servlet.*
@@ -51,7 +51,6 @@ open class ServletApplicationCall(application: Application,
         servletResponse.flushBuffer()
 
         ensureCompleted()
-        pause()
     }
 
     private val responseChannel = lazy {

@@ -2,7 +2,7 @@ package org.jetbrains.ktor.cio
 
 import java.nio.*
 
-class RangeReadChannel(val source: ReadChannel, val skip: Long, val maxSize: Long, val bufferPool: ByteBufferPool = NoPool) : ReadChannel {
+class RangeReadChannel(val source: ReadChannel, val skip: Long, val maxSize: Long, val bufferPool: ByteBufferPool = NoPool, val closeSource: Boolean = true) : ReadChannel {
     var totalCount = 0
     var skipped = false
 
@@ -60,6 +60,7 @@ class RangeReadChannel(val source: ReadChannel, val skip: Long, val maxSize: Lon
     }
 
     override fun close() {
-        source.close()
+        if (closeSource)
+            source.close()
     }
 }

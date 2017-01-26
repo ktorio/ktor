@@ -1,9 +1,9 @@
 package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 import java.lang.reflect.*
 import javax.servlet.http.*
@@ -36,11 +36,10 @@ abstract class KtorServlet : HttpServlet() {
                     }
                     PipelineState.Failed -> {
                         application.environment.log.error("Application ${application.javaClass} cannot fulfill the request", throwable)
-                        call.execution.runBlockWithResult {
-                            call.respond(HttpStatusCode.InternalServerError)
-                        }
+                        call.respond(HttpStatusCode.InternalServerError)
                     }
-                    null, PipelineState.Executing -> {}
+                    null, PipelineState.Executing -> {
+                    }
                 }
             }
         } catch (ex: Throwable) {
@@ -63,9 +62,9 @@ abstract class KtorServlet : HttpServlet() {
                 "org.jetbrains.ktor.servlet.v4.PushKt.doPush",
                 "org.jetbrains.ktor.servlet.v4.TomcatInternalPushKt.doPushInternal"
         ).mapNotNull { tryFind(it) }
-        .firstOrNull { function ->
-            tryInvoke(function, request, call, block, next)
-        } ?: next()
+                .firstOrNull { function ->
+                    tryInvoke(function, request, call, block, next)
+                } ?: next()
     }
 
     private fun tryInvoke(function: Method, request: HttpServletRequest, call: ApplicationCall, block: ResponsePushBuilder.() -> Unit, next: () -> Unit) = try {
