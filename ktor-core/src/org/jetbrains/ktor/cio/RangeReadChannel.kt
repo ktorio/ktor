@@ -28,9 +28,8 @@ class RangeReadChannel(val source: ReadChannel, val skip: Long, val maxSize: Lon
         if (remaining == 0L)
             return -1
         val count = if (remaining < dst.remaining()) {
-            val wrapped = dst.slice()
-            wrapped.limit(remaining.toInt())
-            source.read(wrapped)
+            dst.limit(dst.position() + remaining.toInt())
+            source.read(dst)
         } else {
             source.read(dst)
         }

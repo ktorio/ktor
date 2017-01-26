@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.host
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
@@ -31,14 +32,15 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     suspend fun respondStream(value: StreamConsumer) {
         // note: it is very important to resend it here rather than just handle right here
         // because we need compression, ranges and etc to work properly
-        val pipe = OutputStreamChannel {
-            value.stream(it)
+        val pipe = OutputStreamChannel()
+        launch(CommonPool) {
+            value.stream(pipe)
+            pipe.close()
         }
 
         val pipeContent = object : FinalContent.ChannelContent() {
             override val headers: ValuesMap get() = value.headers
             override fun channel(): ReadChannel = pipe
-
         }
         respond(pipeContent)
     }

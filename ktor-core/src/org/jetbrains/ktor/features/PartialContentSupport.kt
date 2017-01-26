@@ -50,7 +50,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
         }
     }
 
-    suspend /*private*/ fun PipelineContext<*>.tryProcessRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long): Unit {
+    suspend private fun PipelineContext<*>.tryProcessRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long): Unit {
         if (checkIfRangeHeader(obj, call)) {
             processRange(obj, call, rangesSpecifier, length)
         } else {
@@ -74,27 +74,30 @@ class PartialContentSupport(val maxRangeCount : Int) {
     }
 
 
-    suspend /*private*/ fun PipelineContext<*>.processRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long) {
+    suspend private fun processRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long) {
         require(length >= 0L)
 
         val merged = rangesSpecifier.merge(length, maxRangeCount)
         if (merged.isEmpty()) {
             call.response.contentRange(range = null, fullLength = length) // https://tools.ietf.org/html/rfc7233#section-4.4
             call.respond(HttpStatusCode.RequestedRangeNotSatisfiable.description("Couldn't satisfy range request $rangesSpecifier: it should comply with the restriction [0; $length)"))
+            return
         }
 
         val channel = obj.channel()
 
-        if (merged.size != 1 && !merged.isAscending() && channel !is RandomAccessReadChannel) {
-            // merge into single range for non-seekable channel
-            processSingleRange(obj, call, channel, rangesSpecifier.mergeToSingle(length)!!, length)
+        when {
+            merged.size != 1 && !merged.isAscending() && channel !is RandomAccessReadChannel -> {
+                // merge into single range for non-seekable channel
+                processSingleRange(obj, call, channel, rangesSpecifier.mergeToSingle(length)!!, length)
+            }
+            merged.size == 1 -> {
+                processSingleRange(obj, call, channel, merged.single(), length)
+            }
+            else -> {
+                processMultiRange(obj, call, channel, merged, length)
+            }
         }
-
-        if (merged.size == 1) {
-            processSingleRange(obj, call, channel, merged.single(), length)
-        }
-
-        processMultiRange(obj, call, channel, merged, length)
         channel.close()
     }
 

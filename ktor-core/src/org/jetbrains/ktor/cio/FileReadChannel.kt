@@ -9,11 +9,18 @@ import kotlin.coroutines.intrinsics.*
 
 class FileReadChannel(val fileChannel: AsynchronousFileChannel, val start: Long = 0, val endInclusive: Long = fileChannel.size() - 1) : RandomAccessReadChannel {
     companion object {
-        val completionHandler = object : CompletionHandler<Int, Continuation<Int>> {
-            override fun completed(result: Int, continuation: Continuation<Int>) = continuation.resume(result)
-            override fun failed(exc: Throwable, continuation: Continuation<Int>) = continuation.resumeWithException(exc)
+        val completionHandler = object : CompletionHandler<Int, FileReadChannel> {
+            override fun completed(result: Int, channel: FileReadChannel) {
+                channel.position += result
+                channel.currentContinuation!!.also { channel.currentContinuation = null }.resume(result)
+            }
+            override fun failed(exc: Throwable, channel: FileReadChannel) {
+                channel.currentContinuation!!.also { channel.currentContinuation = null }.resumeWithException(exc)
+            }
         }
     }
+
+    var currentContinuation : Continuation<Int>? = null
 
     init {
         require(start >= 0L) { "start position shouldn't be negative but it is $start" }
@@ -24,18 +31,16 @@ class FileReadChannel(val fileChannel: AsynchronousFileChannel, val start: Long 
         get() = fileChannel.size()
 
     suspend override fun read(dst: ByteBuffer): Int {
-        dst.clear()
-        val limit = Math.min(dst.capacity().toLong(), endInclusive - position + 1).toInt()
+        val limit = Math.min(dst.remaining().toLong(), endInclusive - position + 1).toInt()
         if (limit <= 0)
             return -1
-        dst.limit(limit)
-        val result = suspendCoroutine<Int> {
-            // TODO: use unsafe variant of suspendCoroutine to avoid SafeContinuation allocation
-            fileChannel.read(dst, position, it, completionHandler)
+        dst.limit(dst.position() + limit)
+        return suspendCoroutineOrReturn<Int> {
+            check(currentContinuation == null)
+            currentContinuation = it
+            fileChannel.read(dst, position, this, completionHandler)
             SUSPENDED_MARKER
         }
-        position += result
-        return result
     }
 
     override var position: Long = start
