@@ -20,13 +20,19 @@
             <artifactId>ktor-test-host</artifactId>
             <version>${project.version}</version>
         </dependency>
-<!--
         <dependency>
             <groupId>org.jetbrains.ktor</groupId>
-            <artifactId>ktor-jetty</artifactId>
+            <artifactId>ktor-netty</artifactId>
             <version>${project.version}</version>
         </dependency>
--->
+
+        <!--
+                <dependency>
+                    <groupId>org.jetbrains.ktor</groupId>
+                    <artifactId>ktor-jetty</artifactId>
+                    <version>${project.version}</version>
+                </dependency>
+        -->
 <!--
         <dependency>
             <groupId>org.jetbrains.ktor</groupId>
