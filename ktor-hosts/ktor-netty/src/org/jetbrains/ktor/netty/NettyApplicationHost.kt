@@ -8,13 +8,13 @@ import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
+import io.netty.handler.flow.*
 import io.netty.handler.ssl.*
 import io.netty.handler.stream.*
 import io.netty.handler.timeout.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.netty.http2.*
-import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.transform.*
 import javax.net.ssl.*
 
@@ -129,12 +129,15 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 val encoder = DefaultHttp2ConnectionEncoder(connection, writer)
                 val decoder = DefaultHttp2ConnectionDecoder(connection, encoder, reader)
 
+/*
                 pipeline.addLast(HostHttp2Handler(encoder, decoder, Http2Settings()))
                 pipeline.addLast(Multiplexer(pipeline.channel(), HostHttpHandler(this@NettyApplicationHost, connection, byteBufferPool, hostPipeline)))
+*/
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
                 with(pipeline) {
                     addLast(HttpServerCodec())
+                    addLast(FlowControlHandler())
                     addLast(ChunkedWriteHandler())
                     addLast(WriteTimeoutHandler(10))
                     addLast(HostHttpHandler(this@NettyApplicationHost, null, byteBufferPool, hostPipeline))

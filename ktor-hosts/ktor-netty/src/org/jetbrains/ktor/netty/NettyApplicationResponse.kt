@@ -28,7 +28,7 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
             sendResponseMessage()
         }
 
-        NettyWriteChannel(request, this, context)
+        HttpContentWriteChannel(context)
     }
 
     override fun channel() = channelLazy.value

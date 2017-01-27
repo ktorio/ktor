@@ -10,9 +10,3 @@ suspend fun <C : Any> PipelineContext<C>.runAsync(exec: Executor, block: Pipelin
     block(this, subject)
 }
 
-fun ApplicationCall.executeOn(exec: Executor, pipeline: Pipeline<ApplicationCall>): CompletableFuture<PipelineState> {
-    return future(exec.toCoroutineDispatcher()) {
-        pipeline.execute(this@executeOn)
-        PipelineState.Finished
-    }
-}

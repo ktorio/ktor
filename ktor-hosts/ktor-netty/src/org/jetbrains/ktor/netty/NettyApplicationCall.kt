@@ -8,7 +8,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.io.*
@@ -16,7 +16,6 @@ import java.io.*
 internal class NettyApplicationCall(application: Application,
                                     val context: ChannelHandlerContext,
                                     val httpRequest: HttpRequest,
-                                    val drops: LastDropsCollectorHandler?,
                                     override val bufferPool: ByteBufferPool
 ) : BaseApplicationCall(application) {
 
@@ -24,7 +23,7 @@ internal class NettyApplicationCall(application: Application,
 
     val httpResponse = DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
 
-    override val request = NettyApplicationRequest(httpRequest, context, drops)
+    override val request = NettyApplicationRequest(httpRequest, context)
     override val response = NettyApplicationResponse(this, respondPipeline, httpRequest, httpResponse, context)
 
     override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
@@ -38,22 +37,14 @@ internal class NettyApplicationCall(application: Application,
             }
 
             context.channel().pipeline().addFirst(NettyDirectDecoder())
-            drops?.forgetCompleted()
 
             context.writeAndFlush(httpResponse).addListener {
                 context.channel().pipeline().remove(HttpServerCodec::class.java)
-                drops?.forgetCompleted()
                 context.channel().pipeline().addFirst(NettyDirectEncoder())
 
                 upgrade.upgrade(this@NettyApplicationCall, this, request.content.get(), responseChannel())
             }
         }
-
-        onFinish {
-            context.close()
-        }
-
-        pause()
     }
 
     override fun responseChannel(): WriteChannel = response.channelLazy.value
@@ -61,7 +52,6 @@ internal class NettyApplicationCall(application: Application,
     override fun close() {
         completed = true
         ReferenceCountUtil.release(httpRequest)
-        drops?.close(context)
 
         try {
             response.finalize()
