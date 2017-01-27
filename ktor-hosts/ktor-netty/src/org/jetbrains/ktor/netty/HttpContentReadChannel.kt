@@ -11,6 +11,7 @@ internal class HttpContentReadChannel(val context: ChannelHandlerContext) : Read
     private var currentContinuation: Continuation<Int>? = null
     private var currentBuffer: ByteBuffer? = null
     private var currentMessage: DefaultHttpContent? = null
+    private var endOfContent = false
 
     override fun channelRead0(ctx: ChannelHandlerContext, msg: DefaultHttpContent) {
         check(currentMessage == null)
@@ -20,45 +21,61 @@ internal class HttpContentReadChannel(val context: ChannelHandlerContext) : Read
         if (continuation == null)
             return // nobody reads yet, so just remember content
 
-        when (msg) {
-            is DefaultLastHttpContent -> { // end of stream
-                continuation.resume(-1)
+        val count = msg.putTo(currentBuffer!!)
+        if (!msg.content().isReadable) { // End of input message, request another one
+            msg.release()
+            if (msg is DefaultLastHttpContent) {
+                // end of content, no more content expected
+                endOfContent = true
             }
-            is DefaultHttpContent -> {
-                val count = msg.putTo(currentBuffer!!)
-                if (!msg.content().isReadable) { // End of input message, request another one
-                    msg.release()
-                    currentMessage = null
-                    context.read() // request more content, can come synchronously reentrantly
-                } else {
-                    currentMessage = msg
-                }
-                continuation.resume(count) // resume ReadChannel.read
-            }
+            currentMessage = null
+            if (!endOfContent)
+                context.read() // request more content, can come synchronously reentrantly
+        } else {
+            currentMessage = msg
         }
+        if (count > 0)
+            continuation.resume(count) // resume ReadChannel.read
+        else
+            continuation.resume(-1) // resume ReadChannel.read and signal EOF
+
     }
 
     override suspend fun read(dst: ByteBuffer): Int {
-        if (!dst.hasRemaining())
-            return 0
-
+        var totalCount = 0
         do {
+            if (!dst.hasRemaining())
+                return totalCount // some message may be pending, but no place to in dst buffer
+
             val msg = currentMessage
+            currentMessage = null
+
             if (msg != null) {
-                if (msg is DefaultLastHttpContent) {
-                    msg.release()
-                    return -1
-                }
+                // there is message available and, there is place in output buffer
                 val count = msg.putTo(dst)
+                totalCount += count
+
                 if (msg.content().isReadable) {
-                    // msg has some more data
-                    return count
+                    // msg has some more data, but no place in dst
+                    return totalCount
+                }
+
+                // okay, message is done, clean it
+                if (msg is DefaultLastHttpContent) {
+                    // stream finished, no more messages expected
+                    endOfContent = true
                 }
                 msg.release()
-                currentMessage = null
             }
-            // no message, or no data in last message, request some more
-            context.read() // can complete sync
+            if (endOfContent) {
+                if (totalCount > 0)
+                    return totalCount
+                else
+                    return -1 // EOF
+            }
+
+            // request more data, it can complete synchronously so continue loop
+            context.read()
         } while (currentMessage != null)
 
         return suspendCoroutineOrReturn {
