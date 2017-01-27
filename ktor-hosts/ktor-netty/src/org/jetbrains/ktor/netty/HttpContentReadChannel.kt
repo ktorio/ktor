@@ -46,6 +46,7 @@ internal class HttpContentReadChannel(val context: ChannelHandlerContext) : Read
             val msg = currentMessage
             if (msg != null) {
                 if (msg is DefaultLastHttpContent) {
+                    msg.release()
                     return -1
                 }
                 val count = msg.putTo(dst)
@@ -53,6 +54,7 @@ internal class HttpContentReadChannel(val context: ChannelHandlerContext) : Read
                     // msg has some more data
                     return count
                 }
+                msg.release()
                 currentMessage = null
             }
             // no message, or no data in last message, request some more

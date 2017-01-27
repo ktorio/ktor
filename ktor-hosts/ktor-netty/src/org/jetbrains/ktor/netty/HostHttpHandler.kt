@@ -3,8 +3,6 @@ package org.jetbrains.ktor.netty
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
-import io.netty.util.*
-import io.netty.util.collection.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.application.*
@@ -17,29 +15,28 @@ import org.jetbrains.ktor.request.*
 @ChannelHandler.Sharable
 class HostHttpHandler(private val nettyApplicationHost: NettyApplicationHost, private val http2: Http2Connection?, val pool: ByteBufferPool, private val hostPipeline: HostPipeline) : SimpleChannelInboundHandler<Any>(false) {
     override fun channelRead0(context: ChannelHandlerContext, message: Any) {
-        if (message is HttpRequest) {
-            context.channel().config().isAutoRead = false
-            startHttp1HandleRequest(context, message)
-        } else if (message is Http2HeadersFrame) {
-            if (http2 == null) {
-                context.close()
-            } else {
-                startHttp2(context, message.streamId(), message.headers(), http2)
+        when (message) {
+            is HttpRequest -> {
+                context.channel().config().isAutoRead = false
+                startHttp1HandleRequest(context, message)
             }
-        } else if (message is Http2StreamFrame) {
-            //context.callByStreamId[message.streamId()]?.request?.handler?.listener?.channelRead(context, message)
-        } else {
-            context.fireChannelRead(message)
+            is Http2HeadersFrame -> {
+                if (http2 == null) {
+                    context.close()
+                } else {
+                    startHttp2(context, message.streamId(), message.headers(), http2)
+                }
+            }
+            is Http2StreamFrame -> {
+                //context.callByStreamId[message.streamId()]?.request?.handler?.listener?.channelRead(context, message)
+            }
+            else -> context.fireChannelRead(message)
         }
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         nettyApplicationHost.environment.log.error("Application ${nettyApplicationHost.application.javaClass} cannot fulfill the request", cause)
         ctx.close()
-    }
-
-    override fun channelReadComplete(context: ChannelHandlerContext) {
-        context.flush()
     }
 
     private fun startHttp1HandleRequest(context: ChannelHandlerContext, request: HttpRequest) {

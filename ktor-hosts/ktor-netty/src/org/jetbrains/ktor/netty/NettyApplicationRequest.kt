@@ -47,7 +47,6 @@ internal class NettyApplicationRequest(
         val channel = HttpContentReadChannel(context)
         context.executeInLoop {
             context.pipeline().addLast(channel)
-            context.read()
         }
         channel
     }

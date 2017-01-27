@@ -5,16 +5,15 @@ import org.jetbrains.ktor.cio.*
 import java.nio.*
 
 internal class HttpContentWriteChannel(val context: ChannelHandlerContext) : WriteChannel {
-    private val byteBuf = context.alloc().buffer()
+    private val allocator = context.alloc()
     override suspend fun write(src: ByteBuffer) {
         while (src.hasRemaining()) {
-            byteBuf.clear()
-            byteBuf.writeBytes(src)
-            context.write(byteBuf, context.voidPromise())
+            val buffer = allocator.buffer()
+            buffer.writeBytes(src)
+            context.write(buffer, context.voidPromise())
         }
     }
 
     override fun close() {
-        context.flush()
     }
 }
