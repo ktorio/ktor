@@ -15,35 +15,50 @@ object TransformationSupport : ApplicationFeature<ApplicationCallPipeline, Appli
 
         pipeline.phases.insertBefore(ApplicationCallPipeline.Infrastructure, TransformApplicationPhase)
         pipeline.intercept(TransformApplicationPhase) { call ->
-            val transformationState = TransformationState()
-            call.response.pipeline.intercept(RespondPipeline.Transform) response@ { state ->
-                subject.attributes.put(TransformationState.Key, transformationState)
+            call.response.pipeline.intercept(RespondPipeline.Transform) {
                 val message = subject.message
-                val visited = transformationState.visited
-                val handlers = call.transform.handlers(message.javaClass)
-                if (handlers.isEmpty()) {
-                    return@response
-                }
-
-                for (i in 0..handlers.size - 1) {
-                    val handler = handlers[i]
-
-                    if (handler !in visited && handler.predicate(this, message)) {
-                        transformationState.lastHandler = handler
-                        val nextResult = handler.handler(this, message)
-                        transformationState.lastHandler = null
-
-                        if (nextResult !== message) {
-                            subject.message = nextResult
-                            visited.add(handler)
-                            //repeat()
-                            break
-                        }
-                    }
-                }
+                val newMessage = call.transform.table.transform(this, message)
+                subject.message = newMessage
             }
         }
 
         return table
     }
+}
+
+val Application.transform: ApplicationTransform<PipelineContext<ResponsePipelineState>>
+    get() = feature(TransformationSupport)
+
+val ApplicationCall.transform: ApplicationTransform<PipelineContext<ResponsePipelineState>>
+    get() = attributes.computeIfAbsent(ApplicationCallTransform) { ApplicationTransform(application.transform.table) }
+
+private val ApplicationCallTransform = AttributeKey<ApplicationTransform<PipelineContext<ResponsePipelineState>>>("ktor.transform")
+
+suspend fun <C : Any> TransformTable<C>.transform(ctx: C, obj: Any): Any {
+    val visited: TransformTable.HandlersSet<C> = newHandlersSet()
+    var value: Any = obj
+    var handlers = handlers(obj.javaClass)
+
+    nextValue@ while (true) {
+        for (i in 0..handlers.lastIndex) {
+            val handler = handlers[i]
+
+            if (handler in visited || !handler.predicate(ctx, value))
+                continue
+
+            val result = handler.handler(ctx, value)
+            if (result === value)
+                continue
+
+            visited.add(handler)
+            if (result.javaClass !== value.javaClass) {
+                handlers = handlers(result.javaClass)
+            }
+            value = result
+            continue@nextValue
+        }
+        break
+    }
+
+    return value
 }
