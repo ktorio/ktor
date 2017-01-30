@@ -10,7 +10,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 
 @ChannelHandler.Sharable
-class HostHttpHandler(private val host: NettyApplicationHost, private val http2: Http2Connection?, private val hostPipeline: HostPipeline) : SimpleChannelInboundHandler<Any>(false) {
+class NettyHostHttpHandler(private val host: NettyApplicationHost, private val http2: Http2Connection?, private val hostPipeline: HostPipeline) : SimpleChannelInboundHandler<Any>(false) {
     override fun channelRead0(context: ChannelHandlerContext, message: Any) {
         when (message) {
             is HttpRequest -> {

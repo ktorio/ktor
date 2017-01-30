@@ -121,7 +121,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     addLast(HttpServerCodec())
                     addLast(ChunkedWriteHandler())
                     addLast(WriteTimeoutHandler(10))
-                    addLast(HostHttpHandler(this@NettyApplicationHost, null, hostPipeline))
+                    addLast(NettyHostHttpHandler(this@NettyApplicationHost, null, hostPipeline))
                 }
             }
             else -> {

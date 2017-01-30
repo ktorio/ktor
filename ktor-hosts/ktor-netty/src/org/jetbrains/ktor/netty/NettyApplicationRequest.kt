@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.netty
 
-import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.cookie.*
 import io.netty.handler.codec.http.multipart.*
@@ -32,11 +31,9 @@ internal class NettyApplicationRequest(private val request: HttpRequest, overrid
         val multipartHandler = NettyMultiPartData(decoder, this@NettyApplicationRequest)
 
 /*
-        context.executeInLoop {
             context.pipeline().addLast(multipartHandler)
             context.channel().config().isAutoRead = true
             context.read()
-        }
 */
 
         multipartHandler
@@ -97,23 +94,5 @@ private class NettyRequestCookies(val owner: ApplicationRequest) : RequestCookie
             acc.putAll(ServerCookieDecoder.LAX.decode(cookieHeader).associateBy({ it.name() }, { it.value() }))
             acc
         } ?: emptyMap<String, String>()
-    }
-}
-
-internal inline fun ChannelHandlerContext.executeInLoop(crossinline block: () -> Unit) {
-    val executor = executor()
-    if (channel().isRegistered && !executor.inEventLoop()) {
-        executor.execute { block() }
-    } else {
-        block()
-    }
-}
-
-internal fun ChannelHandlerContext.executeInLoop(block: Runnable) {
-    val executor = executor()
-    if (channel().isRegistered && !executor.inEventLoop()) {
-        executor.execute(block)
-    } else {
-        block.run()
     }
 }

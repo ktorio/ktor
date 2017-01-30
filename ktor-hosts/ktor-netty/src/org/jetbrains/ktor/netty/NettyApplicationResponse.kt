@@ -21,12 +21,9 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
                 ?: HttpResponseStatus(statusCode.value, statusCode.description)
     }
 
-    internal val writeChannel = lazy {
-        context.executeInLoop {
-            setChunked()
-            sendResponseMessage()
-        }
-
+    internal val responseChannel = lazy {
+        setChunked()
+        sendResponseMessage()
         HttpContentWriteChannel(context)
     }
 
@@ -55,8 +52,8 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
 
     fun close() {
         sendResponseMessage()
-        if (writeChannel.isInitialized()) {
-            writeChannel.value.close()
+        if (responseChannel.isInitialized()) {
+            responseChannel.value.close()
         }
     }
 

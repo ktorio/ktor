@@ -19,6 +19,10 @@ sealed class FinalContent : HostResponse {
         abstract fun channel(): ReadChannel
     }
 
+    abstract class ByteArrayContent : FinalContent() {
+        abstract fun bytes(): ByteArray
+    }
+
     abstract class StreamContentProvider : FinalContent() {
         abstract fun stream(): InputStream
     }

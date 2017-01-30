@@ -52,6 +52,7 @@ class Compression(compression: Configuration) {
                     is FinalContent.ChannelContent -> message.channel()
                     is FinalContent.StreamContentProvider -> message.stream().toReadChannel()
                     is FinalContent.NoContent -> return@intercept
+                    is FinalContent.ByteArrayContent -> ByteBufferReadChannel(message.bytes())
                 }
 
                 val encoderOptions = encoders.firstOrNull { it.conditions.all { it(call, message) } }

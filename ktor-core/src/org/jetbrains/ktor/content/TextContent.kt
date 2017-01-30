@@ -9,7 +9,7 @@ data class TextContent(val contentType: ContentType, val text: String) {
     override fun toString() = "TextContent[$contentType] \"${text.take(30)}\""
 }
 
-class TextContentResponse(override val status: HttpStatusCode?, contentType: ContentType?, text: String) : FinalContent.ChannelContent() {
+class TextContentResponse(override val status: HttpStatusCode?, contentType: ContentType?, text: String) : FinalContent.ByteArrayContent() {
     private val bytes by lazy {
         text.toByteArray(contentType?.charset() ?: Charsets.UTF_8)
     }
@@ -23,5 +23,5 @@ class TextContentResponse(override val status: HttpStatusCode?, contentType: Con
         }
     }
 
-    override fun channel() = ByteBufferReadChannel(bytes)
+    override fun bytes(): ByteArray = bytes
 }

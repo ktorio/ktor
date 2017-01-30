@@ -20,7 +20,7 @@ interface RandomAccessReadChannel : ReadChannel {
     suspend fun seek(position: Long)
 }
 
-suspend fun ReadChannel.copyTo(out: WriteChannel, bufferSize: Int = 8192, bufferPool: ByteBufferPool = NoPool): Int {
+suspend fun ReadChannel.copyTo(out: WriteChannel, bufferPool: ByteBufferPool = NoPool, bufferSize: Int = 8192): Int {
     val bufferTicket = bufferPool.allocate(bufferSize)
     val buffer = bufferTicket.buffer
     var bytes = 0

@@ -8,6 +8,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
+import java.nio.*
 
 abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
     final override val attributes = Attributes()
@@ -59,17 +60,22 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         return when (content) {
             is FinalContent.ChannelContent -> respondFromChannel(content.channel())
             is FinalContent.StreamContentProvider -> respondFromChannel(content.stream().toReadChannel())
-            is FinalContent.NoContent -> {
-            }
+            is FinalContent.NoContent -> { /* no-op */ }
+            is FinalContent.ByteArrayContent -> respondFromBytes(content.bytes())
         }
     }
 
-    protected suspend fun respondFromChannel(channel: ReadChannel) {
+    private suspend fun respondFromBytes(bytes: ByteArray) {
+        val response = responseChannel()
+        response.write(ByteBuffer.wrap(bytes))
+    }
+
+    private suspend fun respondFromChannel(channel: ReadChannel) {
         // note: it is important to open response channel before we open content channel
         // otherwise we can hit deadlock on event-based hosts
 
         val response = responseChannel()
-        channel.copyTo(response, bufferPool = bufferPool)
+        channel.copyTo(response, bufferPool)
         channel.close()
     }
 

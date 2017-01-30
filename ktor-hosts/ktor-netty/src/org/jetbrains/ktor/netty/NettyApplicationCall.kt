@@ -13,9 +13,7 @@ import java.util.concurrent.atomic.*
 internal class NettyApplicationCall(application: Application,
                                     val context: ChannelHandlerContext,
                                     val httpRequest: HttpRequest,
-                                    contentQueue: NettyContentQueue
-
-) : BaseApplicationCall(application) {
+                                    contentQueue: NettyContentQueue) : BaseApplicationCall(application) {
 
     var completed: Boolean = false
 
@@ -25,6 +23,7 @@ internal class NettyApplicationCall(application: Application,
     override val response = NettyApplicationResponse(this, respondPipeline, context)
 
     class NettyBufferTicket(val bb: ByteBuf) : ReleasablePoolTicket(bb.nioBuffer(0, bb.capacity()))
+
     override val bufferPool = object : ByteBufferPool {
         private val allocator = context.alloc()
 
@@ -89,5 +88,5 @@ internal class NettyApplicationCall(application: Application,
 */
     }
 
-    override fun responseChannel(): WriteChannel = response.writeChannel.value
+    override fun responseChannel(): WriteChannel = response.responseChannel.value
 }
