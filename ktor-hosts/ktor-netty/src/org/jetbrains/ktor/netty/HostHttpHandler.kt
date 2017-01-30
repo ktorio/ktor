@@ -7,11 +7,10 @@ import io.netty.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.host.*
 
 @ChannelHandler.Sharable
-class HostHttpHandler(private val host: NettyApplicationHost, private val http2: Http2Connection?, val pool: ByteBufferPool, private val hostPipeline: HostPipeline) : SimpleChannelInboundHandler<Any>(false) {
+class HostHttpHandler(private val host: NettyApplicationHost, private val http2: Http2Connection?, private val hostPipeline: HostPipeline) : SimpleChannelInboundHandler<Any>(false) {
     override fun channelRead0(context: ChannelHandlerContext, message: Any) {
         when (message) {
             is HttpRequest -> {
@@ -24,7 +23,7 @@ class HostHttpHandler(private val host: NettyApplicationHost, private val http2:
                 }
 
                 ReferenceCountUtil.retain(message)
-                val call = NettyApplicationCall(host.application, context, message, pool, httpContentQueue.queue)
+                val call = NettyApplicationCall(host.application, context, message, httpContentQueue.queue)
                 context.executeCall(call)
             }
             is Http2HeadersFrame -> {

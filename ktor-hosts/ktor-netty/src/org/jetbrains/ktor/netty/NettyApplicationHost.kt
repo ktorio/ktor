@@ -1,19 +1,16 @@
 package org.jetbrains.ktor.netty
 
 import io.netty.bootstrap.*
-import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.channel.nio.*
 import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
-import io.netty.handler.logging.*
 import io.netty.handler.ssl.*
 import io.netty.handler.stream.*
 import io.netty.handler.timeout.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.transform.*
 import javax.net.ssl.*
@@ -28,7 +25,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     val application: Application get() = applicationLifecycle.application
 
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
-    : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
+            : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
 
     private val mainEventGroup = NioEventLoopGroup()
     private val workerEventGroup = NioEventLoopGroup()
@@ -83,22 +80,6 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     }
 
-    class Ticket(val bb: ByteBuf) : ReleasablePoolTicket(bb.nioBuffer(0, bb.capacity()))
-    private val byteBufferPool = object : ByteBufferPool {
-        val nbp = PooledByteBufAllocator(false)
-
-        override fun allocate(size: Int): PoolTicket {
-            return Ticket(nbp.heapBuffer(size))
-        }
-
-        override fun release(buffer: PoolTicket) {
-            (buffer as Ticket).let {
-                it.bb.release()
-                it.release()
-            }
-        }
-    }
-
     override fun start(wait: Boolean) {
         applicationLifecycle.ensureApplication()
         environment.log.trace("Starting server...")
@@ -140,7 +121,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     addLast(HttpServerCodec())
                     addLast(ChunkedWriteHandler())
                     addLast(WriteTimeoutHandler(10))
-                    addLast(HostHttpHandler(this@NettyApplicationHost, null, byteBufferPool, hostPipeline))
+                    addLast(HostHttpHandler(this@NettyApplicationHost, null, hostPipeline))
                 }
             }
             else -> {

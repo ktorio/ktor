@@ -7,12 +7,12 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.response.*
-import java.util.concurrent.atomic.*
 
-internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline: RespondPipeline, val request: HttpRequest, val response: HttpResponse, val context: ChannelHandlerContext) : BaseApplicationResponse(call, responsePipeline) {
+internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline: RespondPipeline, val context: ChannelHandlerContext) : BaseApplicationResponse(call, responsePipeline) {
+    val response = DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
+
     @Volatile
     private var responseMessageSent = false
-    private val closed = AtomicBoolean(false)
 
     override fun setStatus(statusCode: HttpStatusCode) {
         val cached = responseStatusCache[statusCode.value]
@@ -57,23 +57,6 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
         sendResponseMessage()
         if (writeChannel.isInitialized()) {
             writeChannel.value.close()
-        }
-        if (closed.compareAndSet(false, true)) {
-            val finishContent = context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
-            if (!HttpUtil.isKeepAlive(request)) {
-                // close channel if keep-alive was not requested
-                finishContent.addListener(ChannelFutureListener.CLOSE)
-            } else {
-                // reenable read operations on a channel if keep-alive was requested
-                finishContent.addListener {
-                    // remove finished content queue, handler will install new
-                    // TODO: change it to shareable context-agnostic concurrent map
-                    context.pipeline().remove(HttpContentQueue::class.java)
-
-                    context.channel().config().isAutoRead = true
-                    context.read()
-                }
-            }
         }
     }
 

@@ -6,7 +6,7 @@ import org.jetbrains.ktor.http.*
 import java.time.*
 import java.time.temporal.*
 
-class ResponseCookies(private val response: ApplicationResponse, private val request: ApplicationRequest) {
+class ResponseCookies(private val response: ApplicationResponse, request: ApplicationRequest) {
     private val originScheme = request.origin.scheme
 
     operator fun get(name: String): Cookie? = response.headers.values("Set-Cookie").map { parseServerSetCookieHeader(it) }.firstOrNull { it.name == name }

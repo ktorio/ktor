@@ -11,12 +11,12 @@ interface PoolTicket {
     val buffer: ByteBuffer
 }
 
-abstract class ReleasablePoolTicket(private var bb: ByteBuffer) : PoolTicket {
+abstract class ReleasablePoolTicket(private var _buffer: ByteBuffer) : PoolTicket {
     final override val buffer: ByteBuffer
-        get() = bb.let { if (it === RELEASED) throw IllegalStateException("Buffer already released") else it }
+        get() = _buffer.also { if (it === RELEASED) throw IllegalStateException("Buffer already released") }
 
-    open fun release() {
-        bb = RELEASED
+    fun release() {
+        _buffer = RELEASED
     }
 
     companion object {

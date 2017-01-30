@@ -21,16 +21,17 @@ interface RandomAccessReadChannel : ReadChannel {
 }
 
 suspend fun ReadChannel.copyTo(out: WriteChannel, bufferSize: Int = 8192, bufferPool: ByteBufferPool = NoPool): Int {
-    val ticket = bufferPool.allocate(bufferSize)
+    val bufferTicket = bufferPool.allocate(bufferSize)
+    val buffer = bufferTicket.buffer
     var bytes = 0
     try {
-        while (read(ticket.buffer).also { bytes += it } != -1) {
-            ticket.buffer.flip()
-            out.write(ticket.buffer)
-            ticket.buffer.clear()
+        while (read(buffer).also { bytes += it } != -1) {
+            buffer.flip()
+            out.write(buffer)
+            buffer.clear()
         }
     } finally {
-        bufferPool.release(ticket)
+        bufferPool.release(bufferTicket)
     }
     return bytes + 1 // compensate for -1 as EOF
 }
