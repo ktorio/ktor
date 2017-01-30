@@ -4,7 +4,7 @@ import java.nio.*
 import java.nio.charset.*
 
 fun ByteBuffer.putTo(other: ByteBuffer, limit: Int = Int.MAX_VALUE): Int {
-    val size = Math.min(limit, Math.min(remaining(), other.remaining()))
+    val size = minOf(limit, remaining(), other.remaining())
     for (i in 1..size) {
         other.put(get())
     }

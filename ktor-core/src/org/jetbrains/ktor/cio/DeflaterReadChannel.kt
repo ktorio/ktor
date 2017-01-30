@@ -9,19 +9,10 @@ private class DeflaterReadChannel(val source: ReadChannel, val gzip: Boolean = t
     private val crc = CRC32()
     private val deflater = Deflater(Deflater.BEST_COMPRESSION, true)
     private val input = bufferPool.allocate(8192)
-    private val compressed = bufferPool.allocate(8192).apply {
-        buffer.position(buffer.limit())
-    }
 
-    private val header = ByteBuffer.allocate(10).apply {
-        if (gzip) {
-            order(ByteOrder.LITTLE_ENDIAN)
-            putShort(GZIP_MAGIC.toShort())
-            put(Deflater.DEFLATED.toByte())
-            clear()
-        } else {
-            flip()
-        }
+    private val compressed = bufferPool.allocate(8192).apply {
+        putGzipHeader(buffer)
+        buffer.flip()
     }
     private val trailing = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).apply {
         flip()
@@ -37,34 +28,40 @@ private class DeflaterReadChannel(val source: ReadChannel, val gzip: Boolean = t
         if (!dst.hasRemaining())
             return -1
 
-        if (header.hasRemaining())
-            return header.putTo(dst)
-
         if (deflater.finished()) {
             return readFinish(dst)
         }
 
-        input.buffer.clear()
-        val inputSize = source.read(input.buffer)
-        if (inputSize == -1) {
-            return readFinish(dst)
+        fillCompressedBufferIfPossible()
+
+        if (compressed.buffer.hasRemaining()) {
+            return compressed.buffer.putTo(dst)
         }
 
-        input.buffer.flip()
-        crc.update(input.buffer.array(), 0, input.buffer.remaining())
-        deflater.setInput(input.buffer.array(), 0, input.buffer.remaining())
+        while (true) {
+            input.buffer.clear()
+            val inputSize = source.read(input.buffer)
+            if (inputSize == -1) {
+                return readFinish(dst)
+            }
 
-        var counter = 0
-        while (!deflater.needsInput() && dst.hasRemaining()) {
-            compressed.buffer.compact()
+            input.buffer.flip()
+            crc.update(input.buffer.array(), 0, input.buffer.remaining())
+            deflater.setInput(input.buffer.array(), 0, input.buffer.remaining())
 
-            deflater.deflate(compressed.buffer)
-            compressed.buffer.flip()
+            var counter = 0
+            while (!deflater.needsInput() && dst.hasRemaining()) {
+                compressed.buffer.compact()
 
-            counter += compressed.buffer.putTo(dst)
+                deflater.deflate(compressed.buffer)
+                compressed.buffer.flip()
+
+                counter += compressed.buffer.putTo(dst)
+            }
+
+            if (counter > 0 || !dst.hasRemaining())
+                return counter
         }
-
-        return counter
     }
 
     private fun readFinish(dst: ByteBuffer): Int {
@@ -77,6 +74,18 @@ private class DeflaterReadChannel(val source: ReadChannel, val gzip: Boolean = t
             return -1
         } else {
             return size
+        }
+    }
+
+    private fun fillCompressedBufferIfPossible() {
+        if (!deflater.needsInput()) {
+            compressed.buffer.compact()
+
+            if (!deflater.needsInput() && compressed.buffer.hasRemaining()) {
+                deflater.deflate(compressed.buffer)
+            }
+
+            compressed.buffer.flip()
         }
     }
 
@@ -102,6 +111,15 @@ private class DeflaterReadChannel(val source: ReadChannel, val gzip: Boolean = t
             trailing.putInt(crc.value.toInt())
             trailing.putInt(deflater.totalIn)
             trailing.flip()
+        }
+    }
+
+    private fun putGzipHeader(buffer: ByteBuffer) {
+        if (gzip) {
+            buffer.order(ByteOrder.LITTLE_ENDIAN)
+            buffer.putShort(GZIP_MAGIC.toShort())
+            buffer.put(Deflater.DEFLATED.toByte())
+            buffer.position(buffer.position() + 7)
         }
     }
 
