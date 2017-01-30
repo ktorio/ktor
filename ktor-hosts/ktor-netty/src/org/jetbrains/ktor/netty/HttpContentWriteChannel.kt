@@ -7,13 +7,15 @@ import java.nio.*
 internal class HttpContentWriteChannel(val context: ChannelHandlerContext) : WriteChannel {
     private val allocator = context.alloc()
     override suspend fun write(src: ByteBuffer) {
+        val buffer = allocator.buffer()
         while (src.hasRemaining()) {
-            val buffer = allocator.buffer()
+            buffer.clear()
             buffer.writeBytes(src)
             context.write(buffer, context.voidPromise())
         }
     }
 
     override fun close() {
+
     }
 }

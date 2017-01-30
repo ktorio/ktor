@@ -15,18 +15,18 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     protected val respondPipeline = RespondPipeline()
 
     suspend override fun respond(message: Any) {
-        val state = ResponsePipelineState(this, message)
+        val responseMessage = ResponseMessage(this, message)
         val phases = respondPipeline.phases
-        val respondContext = PipelineContext(phases.interceptors(), state)
-        respondContext.proceed()
+        val pipelineContext = PipelineContext(phases.interceptors(), responseMessage)
+        pipelineContext.proceed()
 
-        val value = state.message
+        val value = responseMessage.message
         when (value) {
             is FinalContent -> respondFinalContent(value)
-            is ProtocolUpgrade -> respondContext.handleUpgrade(value)
+            is ProtocolUpgrade -> pipelineContext.handleUpgrade(value)
             is StreamConsumer -> respondStream(value)
         }
-        respondContext.finish()
+        pipelineContext.finish()
     }
 
     suspend fun respondStream(value: StreamConsumer) {
@@ -56,9 +56,11 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
 
     open suspend fun respondFinalContent(content: FinalContent) {
         commitHeaders(content)
-        when (content) {
+        return when (content) {
             is FinalContent.ChannelContent -> respondFromChannel(content.channel())
             is FinalContent.StreamContentProvider -> respondFromChannel(content.stream().toReadChannel())
+            is FinalContent.NoContent -> {
+            }
         }
     }
 
@@ -67,9 +69,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         // otherwise we can hit deadlock on event-based hosts
 
         val response = responseChannel()
-        channel.use {
-            it.copyTo(response, bufferPool = bufferPool)
-        }
+        channel.copyTo(response, bufferPool = bufferPool)
     }
 
     protected abstract fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade)

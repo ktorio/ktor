@@ -13,14 +13,14 @@ open class ApplicationCallPipeline() : Pipeline<ApplicationCall>(Infrastructure,
     }
 }
 
-class ResponsePipelineState(val call: ApplicationCall, message: Any) {
+class ResponseMessage(val call: ApplicationCall, message: Any) {
     var message: Any = message
         internal set
 
     val attributes = Attributes()
 }
 
-open class RespondPipeline : Pipeline<ResponsePipelineState>(Before, Transform, Render, After) {
+open class RespondPipeline : Pipeline<ResponseMessage>(Before, Transform, Render, After) {
     companion object RespondPhase {
         val Before = PipelinePhase("Before")
 
@@ -32,6 +32,6 @@ open class RespondPipeline : Pipeline<ResponsePipelineState>(Before, Transform, 
     }
 }
 
-val PipelineContext<ResponsePipelineState>.call: ApplicationCall
+val PipelineContext<ResponseMessage>.call: ApplicationCall
     @JvmName("getCallFromRespondPipeline")
     get() = subject.call

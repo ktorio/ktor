@@ -13,7 +13,7 @@ import java.util.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 
-internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestDecoder, private val kRequest: NettyApplicationRequest) : MultiPartData, SimpleChannelInboundHandler<DefaultHttpContent>(true) {
+internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestDecoder, private val request: NettyApplicationRequest) : MultiPartData, SimpleChannelInboundHandler<DefaultHttpContent>(true) {
     // netty's decoder doesn't provide us headers so we have to parse it or try to reconstruct
     // TODO original headers
 
@@ -23,17 +23,10 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
     private var completed = false
     private var destroyed = false
 
-    override val parts: Sequence<PartData>
-        get() = when {
-            kRequest.isMultipart() -> object : Sequence<PartData> {
-                override fun iterator() = PartIterator()
-            }
-            else -> throw IOException("The request content is not multipart encoded")
-        }
-
-    override fun acceptInboundMessage(msg: Any?): Boolean {
-        return super.acceptInboundMessage(msg)
-    }
+    override val parts get() = if (request.isMultipart())
+        PartIterator().asSequence()
+    else
+        throw IOException("The request content is not multipart encoded")
 
     override fun channelRead0(context: ChannelHandlerContext, msg: DefaultHttpContent) {
         var added = 0
@@ -63,13 +56,6 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
                 completed = true
                 elementPresent.signalAll()
             }
-        }
-    }
-
-    override fun channelReadComplete(ctx: ChannelHandlerContext) {
-        lock.withLock {
-            completed = true
-            elementPresent.signalAll()
         }
     }
 

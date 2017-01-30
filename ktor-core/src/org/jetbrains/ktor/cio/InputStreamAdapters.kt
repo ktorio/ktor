@@ -15,14 +15,14 @@ class InputStreamFromChannel(val channel: ReadChannel, val bufferPool: ByteBuffe
         singleByte.buffer.get().toInt() and 0xff
     }
 
-    override fun close() {
-        super.close()
-        bufferPool.release(singleByte)
-    }
-
     override fun read(b: ByteArray, off: Int, len: Int): Int = runBlocking(Here) {
         val bb = ByteBuffer.wrap(b, off, len)
         channel.read(bb)
+    }
+
+    override fun close() {
+        super.close()
+        bufferPool.release(singleByte)
     }
 }
 

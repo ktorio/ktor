@@ -6,7 +6,7 @@ import org.openjdk.jmh.runner.options.*
 import java.util.concurrent.*
 import kotlin.concurrent.*
 
-val iterations = 100000
+val iterations = 1000
 val jmhOptions = OptionsBuilder()
         .mode(Mode.Throughput)
         .timeUnit(TimeUnit.MILLISECONDS)

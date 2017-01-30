@@ -12,9 +12,7 @@ import java.io.*
 import java.util.*
 import java.util.concurrent.atomic.*
 
-internal class NettyApplicationRequest(
-        private val request: HttpRequest,
-        val context: ChannelHandlerContext) : ApplicationRequest, Closeable {
+internal class NettyApplicationRequest(private val request: HttpRequest, val context: ChannelHandlerContext, val contentQueue: NettyContentQueue) : ApplicationRequest, Closeable {
 
     override val attributes = Attributes()
 
@@ -34,22 +32,18 @@ internal class NettyApplicationRequest(
         val decoder = HttpPostMultipartRequestDecoder(request)
         val multipartHandler = NettyMultiPartData(decoder, this@NettyApplicationRequest)
 
+/*
         context.executeInLoop {
             context.pipeline().addLast(multipartHandler)
             context.channel().config().isAutoRead = true
             context.read()
         }
+*/
 
         multipartHandler
     }
 
-    private val contentChannel = lazy {
-        val channel = HttpContentReadChannel(context)
-        context.executeInLoop {
-            context.pipeline().addLast(channel)
-        }
-        channel
-    }
+    private val contentChannel = lazy { HttpContentReadChannel(contentQueue) }
 
     override val content: RequestContent = object : RequestContent(this) {
         override fun getMultiPartData(): MultiPartData {
@@ -73,16 +67,17 @@ internal class NettyApplicationRequest(
     override val cookies: RequestCookies = NettyRequestCookies(this)
 
     override fun close() {
+/*
         context.executeInLoop {
             if (multipart.isInitialized()) {
                 multipart.value.destroy()
                 context.pipeline().remove(multipart.value)
             }
+        }
+*/
 
-            if (contentChannel.isInitialized()) {
-                contentChannel.value.close()
-                context.pipeline().remove(contentChannel.value)
-            }
+        if (contentChannel.isInitialized()) {
+            contentChannel.value.close()
         }
     }
 

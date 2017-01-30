@@ -8,7 +8,7 @@ import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 
-fun ApplicationTransform<PipelineContext<ResponsePipelineState>>.registerDefaultHandlers() {
+fun ApplicationTransform<PipelineContext<ResponseMessage>>.registerDefaultHandlers() {
     register<String> { value ->
         val responseContentType = call.response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
         val contentType = responseContentType ?: ContentType.Text.Plain.withCharset(Charsets.UTF_8)
@@ -23,14 +23,9 @@ fun ApplicationTransform<PipelineContext<ResponsePipelineState>>.registerDefault
                 "<H1>${value.code}</H1>${value.message.escapeHTML()}")
     }
 
-    register<HttpStatusCode> { value ->
-        object : FinalContent.NoContent() {
-            override val status: HttpStatusCode
-                get() = value
 
-            override val headers: ValuesMap
-                get() = ValuesMap.Empty
-        }
+    register<HttpStatusCode> { value ->
+        HttpStatusCodeContent(value)
     }
 
     register<URIFileContent> { value ->
@@ -38,4 +33,12 @@ fun ApplicationTransform<PipelineContext<ResponsePipelineState>>.registerDefault
             LocalFileContent(File(value.uri))
         } else value
     }
+}
+
+class HttpStatusCodeContent(private val value: HttpStatusCode) : FinalContent.NoContent() {
+    override val status: HttpStatusCode
+        get() = value
+
+    override val headers: ValuesMap
+        get() = ValuesMap.Empty
 }

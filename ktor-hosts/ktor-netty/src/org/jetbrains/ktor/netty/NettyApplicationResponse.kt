@@ -11,18 +11,17 @@ import java.util.concurrent.atomic.*
 
 internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline: RespondPipeline, val request: HttpRequest, val response: HttpResponse, val context: ChannelHandlerContext) : BaseApplicationResponse(call, responsePipeline) {
     @Volatile
-    private var committed = false
+    private var responseMessageSent = false
     private val closed = AtomicBoolean(false)
 
     override fun setStatus(statusCode: HttpStatusCode) {
         val cached = responseStatusCache[statusCode.value]
 
-        response.status =
-                if (cached != null && cached.reasonPhrase() == statusCode.description) cached
-                else HttpResponseStatus(statusCode.value, statusCode.description)
+        response.status = cached?.takeIf { cached.reasonPhrase() == statusCode.description }
+                ?: HttpResponseStatus(statusCode.value, statusCode.description)
     }
 
-    internal val channelLazy = lazy {
+    internal val writeChannel = lazy {
         context.executeInLoop {
             setChunked()
             sendResponseMessage()
@@ -31,11 +30,9 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
         HttpContentWriteChannel(context)
     }
 
-    override fun channel() = channelLazy.value
-
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         override fun hostAppendHeader(name: String, value: String) {
-            if (committed)
+            if (responseMessageSent)
                 throw UnsupportedOperationException("Headers can no longer be set because response was already completed")
             response.headers().add(name, value)
         }
@@ -44,30 +41,27 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
         override fun getHostHeaderValues(name: String): List<String> = response.headers().getAll(name) ?: emptyList()
     }
 
-    fun sendResponseMessage(): ChannelFuture? {
-        if (!committed) {
+    private fun sendResponseMessage(): ChannelFuture? {
+        if (!responseMessageSent) {
             if (!HttpUtil.isTransferEncodingChunked(response)) {
                 HttpUtil.setContentLength(response, 0L)
             }
             val f = context.writeAndFlush(response)
-            committed = true
+            responseMessageSent = true
             return f
         }
         return null
     }
 
     fun finalize() {
-        context.executeInLoop {
-            sendResponseMessage()
-            context.flush()
-            if (closed.compareAndSet(false, true)) {
-                context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).scheduleClose()
-            }
-            context.channel().config().isAutoRead = true
-            context.read()
-            if (channelLazy.isInitialized()) {
-                channelLazy.value.close()
-            }
+        sendResponseMessage()
+        if (closed.compareAndSet(false, true)) {
+            context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).scheduleClose()
+        }
+        context.channel().config().isAutoRead = true
+        context.read()
+        if (writeChannel.isInitialized()) {
+            writeChannel.value.close()
         }
     }
 
@@ -78,7 +72,7 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
     }
 
     private fun setChunked() {
-        if (committed) {
+        if (responseMessageSent) {
             if (!response.headers().contains(HttpHeaders.TransferEncoding, HttpHeaderValues.CHUNKED, true)) {
                 throw IllegalStateException("Already committed")
             }

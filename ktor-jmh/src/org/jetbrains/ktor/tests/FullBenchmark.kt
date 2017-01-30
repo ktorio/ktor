@@ -65,7 +65,7 @@ open class FullBenchmark {
 
     private inline fun <R> handle(url: String, block: TestApplicationCall.() -> R) = testHost.handleRequest(HttpMethod.Get, url).apply {
         if (response.status() != HttpStatusCode.OK) {
-            throw IllegalStateException("wrong response code")
+            throw IllegalStateException("Expected 'HttpStatusCode.OK' but got '${response.status()}'")
         }
 
         block()

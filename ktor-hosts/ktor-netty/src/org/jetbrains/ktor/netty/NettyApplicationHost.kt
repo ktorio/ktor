@@ -8,7 +8,6 @@ import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
-import io.netty.handler.flow.*
 import io.netty.handler.ssl.*
 import io.netty.handler.stream.*
 import io.netty.handler.timeout.*
@@ -137,7 +136,6 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             ApplicationProtocolNames.HTTP_1_1 -> {
                 with(pipeline) {
                     addLast(HttpServerCodec())
-                    addLast(FlowControlHandler())
                     addLast(ChunkedWriteHandler())
                     addLast(WriteTimeoutHandler(10))
                     addLast(HostHttpHandler(this@NettyApplicationHost, null, byteBufferPool, hostPipeline))

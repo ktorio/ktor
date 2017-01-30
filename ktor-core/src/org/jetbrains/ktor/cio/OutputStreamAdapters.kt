@@ -3,25 +3,27 @@ package org.jetbrains.ktor.cio
 import java.io.*
 import java.nio.*
 import java.util.concurrent.locks.*
+import kotlin.concurrent.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
 
 class OutputStreamChannel : OutputStream(), ReadChannel {
-    val buffer = ByteBuffer.allocate(8192)
-    val lock = ReentrantLock()
-    val notFull = lock.newCondition()
-    var currentContinuation: Continuation<Int>? = null
-    var currentBuffer: ByteBuffer? = null
-    var closed = false
+    private val buffer = ByteBuffer.allocate(8192)
+    private val lock = ReentrantLock()
+    private val notFull = lock.newCondition()
+    private var currentContinuation: Continuation<Int>? = null
+    private var currentBuffer: ByteBuffer? = null
+    private var closed = false
 
     suspend override fun read(dst: ByteBuffer): Int {
         check(dst.hasRemaining())
         return suspendCoroutineOrReturn { cont ->
-            locked {
+            lock.withLock {
                 val count = tryRead(dst)
                 if (count > 0)
                     count
-                else if (closed) -1
+                else if (closed)
+                    -1
                 else {
                     check(currentContinuation == null)
                     check(currentBuffer == null)
@@ -47,7 +49,7 @@ class OutputStreamChannel : OutputStream(), ReadChannel {
     }
 
     override fun write(b: Int) {
-        val (cont, result) = locked {
+        val (cont, result) = lock.withLock {
             while (!buffer.hasRemaining()) {
                 notFull.await()
             }
@@ -64,18 +66,9 @@ class OutputStreamChannel : OutputStream(), ReadChannel {
 
     override fun close() {
         super.close()
-        locked {
+        lock.withLock {
             closed = true
             currentContinuation?.also { currentContinuation = null }
         }?.resume(-1)
-    }
-
-    inline fun <T> locked(body: () -> T): T {
-        lock.lock()
-        try {
-            return body()
-        } finally {
-            lock.unlock()
-        }
     }
 }

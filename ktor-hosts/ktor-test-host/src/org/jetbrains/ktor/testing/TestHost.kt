@@ -2,12 +2,12 @@ package org.jetbrains.ktor.testing
 
 import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
-import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
@@ -61,28 +61,23 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
 
     val application: Application = applicationLoader.application
     private val pipeline = ApplicationCallPipeline()
-    private var exception: Throwable? = null
 
     init {
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             call.response.pipeline.intercept(RespondPipeline.Before) {
+                proceed()
                 (call as? TestApplicationCall)?.requestHandled = true
             }
 
-            try {
-                application.execute(call)
-            } catch (error: Throwable) {
-                exception = error
-            } finally {
-                call.close()
-            }
+            application.execute(call)
         }
     }
 
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createCall(setup)
-        runBlocking { pipeline.execute(call) }
-        exception?.let { throw it }
+        runBlocking {
+            pipeline.execute(call)
+        }
         return call
     }
 
@@ -97,8 +92,6 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
         }
 
         runBlocking(Here) { pipeline.execute(call) }
-
-        exception?.let { throw it }
 
         return call
     }
@@ -124,7 +117,8 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
 }
 
 class TestApplicationCall(application: Application, override val request: TestApplicationRequest) : BaseApplicationCall(application) {
-    override fun close() {
+    suspend override fun respond(message: Any) {
+        super.respond(message)
         response.close()
     }
 
@@ -235,8 +229,6 @@ class TestApplicationResponse(call: ApplicationCall, respondPipeline: RespondPip
 
     override fun setStatus(statusCode: HttpStatusCode) {
     }
-
-    override fun channel() = realContent.value
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         private val headersMap = ValuesMapBuilder(true)

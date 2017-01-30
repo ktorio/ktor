@@ -4,12 +4,12 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
-object TransformationSupport : ApplicationFeature<ApplicationCallPipeline, ApplicationTransform<PipelineContext<ResponsePipelineState>>, ApplicationTransform<PipelineContext<ResponsePipelineState>>> {
-    override val key = AttributeKey<ApplicationTransform<PipelineContext<ResponsePipelineState>>>("Transformation Support")
+object TransformationSupport : ApplicationFeature<ApplicationCallPipeline, ApplicationTransform<PipelineContext<ResponseMessage>>, ApplicationTransform<PipelineContext<ResponseMessage>>> {
+    override val key = AttributeKey<ApplicationTransform<PipelineContext<ResponseMessage>>>("Transformation Support")
     private val TransformApplicationPhase = PipelinePhase("Transform")
 
-    override fun install(pipeline: ApplicationCallPipeline, configure: ApplicationTransform<PipelineContext<ResponsePipelineState>>.() -> Unit): ApplicationTransform<PipelineContext<ResponsePipelineState>> {
-        val table = ApplicationTransform<PipelineContext<ResponsePipelineState>>()
+    override fun install(pipeline: ApplicationCallPipeline, configure: ApplicationTransform<PipelineContext<ResponseMessage>>.() -> Unit): ApplicationTransform<PipelineContext<ResponseMessage>> {
+        val table = ApplicationTransform<PipelineContext<ResponseMessage>>()
 
         configure(table)
 
@@ -26,13 +26,13 @@ object TransformationSupport : ApplicationFeature<ApplicationCallPipeline, Appli
     }
 }
 
-val Application.transform: ApplicationTransform<PipelineContext<ResponsePipelineState>>
+val Application.transform: ApplicationTransform<PipelineContext<ResponseMessage>>
     get() = feature(TransformationSupport)
 
-val ApplicationCall.transform: ApplicationTransform<PipelineContext<ResponsePipelineState>>
+val ApplicationCall.transform: ApplicationTransform<PipelineContext<ResponseMessage>>
     get() = attributes.computeIfAbsent(ApplicationCallTransform) { ApplicationTransform(application.transform.table) }
 
-private val ApplicationCallTransform = AttributeKey<ApplicationTransform<PipelineContext<ResponsePipelineState>>>("ktor.transform")
+private val ApplicationCallTransform = AttributeKey<ApplicationTransform<PipelineContext<ResponseMessage>>>("ktor.transform")
 
 suspend fun <C : Any> TransformTable<C>.transform(ctx: C, obj: Any): Any {
     val visited: TransformTable.HandlersSet<C> = newHandlersSet()

@@ -16,15 +16,30 @@ import java.io.*
 internal class NettyApplicationCall(application: Application,
                                     val context: ChannelHandlerContext,
                                     val httpRequest: HttpRequest,
-                                    override val bufferPool: ByteBufferPool
+                                    override val bufferPool: ByteBufferPool,
+                                    val contentQueue: NettyContentQueue
+
 ) : BaseApplicationCall(application) {
 
     var completed: Boolean = false
 
     val httpResponse = DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
 
-    override val request = NettyApplicationRequest(httpRequest, context)
+    override val request = NettyApplicationRequest(httpRequest, context, contentQueue)
     override val response = NettyApplicationResponse(this, respondPipeline, httpRequest, httpResponse, context)
+
+    suspend override fun respond(message: Any) {
+        super.respond(message)
+
+        completed = true
+        try {
+            response.finalize()
+            request.close()
+        } catch (t: Throwable) {
+            context.close()
+            throw IOException("response finalization or request close failed", t)
+        }
+    }
 
     override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
         context.executeInLoop {
@@ -47,18 +62,5 @@ internal class NettyApplicationCall(application: Application,
         }
     }
 
-    override fun responseChannel(): WriteChannel = response.channelLazy.value
-
-    override fun close() {
-        completed = true
-        ReferenceCountUtil.release(httpRequest)
-
-        try {
-            response.finalize()
-            request.close()
-        } catch (t: Throwable) {
-            context.close()
-            throw IOException("response finalization or request close failed", t)
-        }
-    }
+    override fun responseChannel(): WriteChannel = response.writeChannel.value
 }
