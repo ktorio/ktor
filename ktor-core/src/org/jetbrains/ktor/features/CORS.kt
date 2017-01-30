@@ -27,7 +27,10 @@ class CORS(configuration: Configuration) {
 
     suspend fun intercept(call: ApplicationCall) {
         val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
-        if (origin != null && isValidOrigin(origin)) {
+                ?.takeIf(this::isValidOrigin)
+                ?: return
+
+        if (isValidOrigin(origin)) {
             call.corsCheckOrigins(origin)
 
             if (call.request.httpMethod == HttpMethod.Options) {
