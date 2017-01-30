@@ -30,7 +30,7 @@ internal class NettyApplicationCall(application: Application,
         super.respond(message)
 
         completed = true
-        response.finalize()
+        response.close()
         request.close()
     }
 

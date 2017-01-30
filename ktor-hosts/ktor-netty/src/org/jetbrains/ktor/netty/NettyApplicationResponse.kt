@@ -53,7 +53,7 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
         return null
     }
 
-    fun finalize() {
+    fun close() {
         sendResponseMessage()
         if (writeChannel.isInitialized()) {
             writeChannel.value.close()
