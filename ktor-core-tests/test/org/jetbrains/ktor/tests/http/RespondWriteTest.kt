@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.tests.http
 
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
@@ -49,10 +51,9 @@ class RespondWriteTest {
             application.routing {
                 get("/") {
                     call.respondWrite {
-                        runAsync(application.executor) {
+                        future(application.executor.toCoroutineDispatcher()) {
                             write("OK")
-                            close()
-                        }
+                        }.await()
                     }
                 }
             }
