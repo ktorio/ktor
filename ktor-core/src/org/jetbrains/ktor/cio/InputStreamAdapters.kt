@@ -8,9 +8,15 @@ class InputStreamFromChannel(val channel: ReadChannel, val bufferPool: ByteBuffe
     private val singleByte = bufferPool.allocate(1)
     override fun read(): Int = runBlocking(Here) {
         singleByte.buffer.clear()
-        val count = channel.read(singleByte.buffer)
-        if (count == -1)
-            return@runBlocking -1
+
+        while (true) {
+            val count = channel.read(singleByte.buffer)
+            if (count == -1)
+                return@runBlocking -1
+            else if (count == 1)
+                break
+        }
+
         singleByte.buffer.flip()
         singleByte.buffer.get().toInt() and 0xff
     }
