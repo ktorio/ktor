@@ -70,6 +70,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
 
         val response = responseChannel()
         channel.copyTo(response, bufferPool = bufferPool)
+        channel.close()
     }
 
     protected abstract fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade)

@@ -89,12 +89,7 @@ class HostHttpHandler(private val host: NettyApplicationHost, private val http2:
         val eventLoop = channel().eventLoop()
         val dispatcher = eventLoop.toCoroutineDispatcher()
         future(dispatcher) {
-            try {
-                hostPipeline.execute(call)
-            } finally {
-                flush()
-                close()
-            }
+            hostPipeline.execute(call)
         }
     }
 

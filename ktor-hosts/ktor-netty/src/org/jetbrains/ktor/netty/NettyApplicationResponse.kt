@@ -55,19 +55,25 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
 
     fun finalize() {
         sendResponseMessage()
-        if (closed.compareAndSet(false, true)) {
-            context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).scheduleClose()
-        }
-        context.channel().config().isAutoRead = true
-        context.read()
         if (writeChannel.isInitialized()) {
             writeChannel.value.close()
         }
-    }
+        if (closed.compareAndSet(false, true)) {
+            val finishContent = context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
+            if (!HttpUtil.isKeepAlive(request)) {
+                // close channel if keep-alive was not requested
+                finishContent.addListener(ChannelFutureListener.CLOSE)
+            } else {
+                // reenable read operations on a channel if keep-alive was requested
+                finishContent.addListener {
+                    // remove finished content queue, handler will install new
+                    // TODO: change it to shareable context-agnostic concurrent map
+                    context.pipeline().remove(HttpContentQueue::class.java)
 
-    private fun ChannelFuture.scheduleClose() {
-        if (!HttpUtil.isKeepAlive(request)) {
-            addListener(ChannelFutureListener.CLOSE)
+                    context.channel().config().isAutoRead = true
+                    context.read()
+                }
+            }
         }
     }
 

@@ -12,7 +12,7 @@ import java.io.*
 import java.util.*
 import java.util.concurrent.atomic.*
 
-internal class NettyApplicationRequest(private val request: HttpRequest, val context: ChannelHandlerContext, val contentQueue: NettyContentQueue) : ApplicationRequest, Closeable {
+internal class NettyApplicationRequest(private val request: HttpRequest, override val local: NettyConnectionPoint, val contentQueue: NettyContentQueue) : ApplicationRequest, Closeable {
 
     override val attributes = Attributes()
 
@@ -24,7 +24,6 @@ internal class NettyApplicationRequest(private val request: HttpRequest, val con
         parseQueryString(request.uri().substringAfter("?", ""))
     }
 
-    override val local = NettyConnectionPoint(request, context)
 
     private val contentChannelState = AtomicReference<ReadChannelState>(ReadChannelState.NEUTRAL)
 

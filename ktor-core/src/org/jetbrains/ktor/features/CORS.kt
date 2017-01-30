@@ -31,13 +31,22 @@ class CORS(configuration: Configuration) {
                 ?: return
 
         if (isValidOrigin(origin)) {
-            call.corsCheckOrigins(origin)
-
-            if (call.request.httpMethod == HttpMethod.Options) {
-                call.preFlight(call, origin)
+            if (!call.corsCheckOrigins(origin)) {
+                call.respondCorsFailed()
+                return
             }
 
-            call.corsCheckCurrentMethod()
+
+            if (call.request.httpMethod == HttpMethod.Options) {
+                call.respondPreflight(origin)
+                return
+            }
+
+            if (!call.corsCheckCurrentMethod()) {
+                call.respondCorsFailed()
+                return
+            }
+
             call.accessControlAllowOrigin(origin)
             call.accessControlAllowCredentials()
 
@@ -47,17 +56,19 @@ class CORS(configuration: Configuration) {
         }
     }
 
-    suspend private fun ApplicationCall.preFlight(call: ApplicationCall, origin: String) {
-        corsCheckRequestMethod()
-        corsCheckRequestHeaders()
+    suspend private fun ApplicationCall.respondPreflight(origin: String) {
+        if (!corsCheckRequestMethod() || !corsCheckRequestHeaders()) {
+            respondCorsFailed()
+            return
+        }
 
-        call.accessControlAllowOrigin(origin)
-        call.response.header(HttpHeaders.AccessControlAllowMethods, methodsListHeaderValue)
-        call.response.header(HttpHeaders.AccessControlAllowHeaders, headersListHeaderValue)
-        call.accessControlAllowCredentials()
-        call.accessControlMaxAge()
+        accessControlAllowOrigin(origin)
+        response.header(HttpHeaders.AccessControlAllowMethods, methodsListHeaderValue)
+        response.header(HttpHeaders.AccessControlAllowHeaders, headersListHeaderValue)
+        accessControlAllowCredentials()
+        accessControlMaxAge()
 
-        call.respond(HttpStatusCode.OK)
+        respond(HttpStatusCode.OK)
     }
 
     private fun ApplicationCall.accessControlAllowOrigin(origin: String) {
@@ -90,37 +101,26 @@ class CORS(configuration: Configuration) {
         }
     }
 
-    suspend /*private*/ fun ApplicationCall.corsCheckOrigins(origin: String) {
-        if (!allowsAnyHost && normalizeOrigin(origin) !in hostsNormalized) {
-            corsFail()
-        }
+    private fun ApplicationCall.corsCheckOrigins(origin: String): Boolean {
+        return allowsAnyHost || normalizeOrigin(origin) in hostsNormalized
     }
 
-    suspend /*private*/ fun ApplicationCall.corsCheckRequestHeaders() {
+    private fun ApplicationCall.corsCheckRequestHeaders(): Boolean {
         val requestHeaders = request.headers.getAll(HttpHeaders.AccessControlRequestHeaders)?.flatMap { it.split(",") }?.map { it.trim().toLowerCase() } ?: emptyList()
 
-        if (requestHeaders.any { it !in headers }) {
-            corsFail()
-        }
+        return !requestHeaders.any { it !in headers }
     }
 
-    suspend /*private*/ fun ApplicationCall.corsCheckCurrentMethod() {
-        val requestMethod = request.httpMethod
-
-        if (requestMethod !in methods) {
-            corsFail()
-        }
+    private fun ApplicationCall.corsCheckCurrentMethod(): Boolean {
+        return request.httpMethod in methods
     }
 
-    suspend /*private*/ fun ApplicationCall.corsCheckRequestMethod() {
+    private fun ApplicationCall.corsCheckRequestMethod(): Boolean {
         val requestMethod = request.header(HttpHeaders.AccessControlRequestMethod)?.let { HttpMethod(it) }
-
-        if (requestMethod == null || (requestMethod !in methods)) {
-            corsFail()
-        }
+        return requestMethod != null && !(requestMethod !in methods)
     }
 
-    suspend /*private*/ fun ApplicationCall.corsFail()= respond(HttpStatusCode.Forbidden)
+    suspend private fun ApplicationCall.respondCorsFailed() = respond(HttpStatusCode.Forbidden)
 
     private fun isValidOrigin(origin: String): Boolean {
         if (origin.isEmpty()) {

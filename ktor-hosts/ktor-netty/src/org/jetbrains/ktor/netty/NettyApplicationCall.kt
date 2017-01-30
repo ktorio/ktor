@@ -3,21 +3,19 @@ package org.jetbrains.ktor.netty
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.stream.*
-import io.netty.util.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
-import java.io.*
 
 internal class NettyApplicationCall(application: Application,
                                     val context: ChannelHandlerContext,
-                                    val httpRequest: HttpRequest,
+                                    httpRequest: HttpRequest,
                                     override val bufferPool: ByteBufferPool,
-                                    val contentQueue: NettyContentQueue
+                                    contentQueue: NettyContentQueue
 
 ) : BaseApplicationCall(application) {
 
@@ -25,20 +23,15 @@ internal class NettyApplicationCall(application: Application,
 
     val httpResponse = DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
 
-    override val request = NettyApplicationRequest(httpRequest, context, contentQueue)
+    override val request = NettyApplicationRequest(httpRequest, NettyConnectionPoint(httpRequest, context), contentQueue)
     override val response = NettyApplicationResponse(this, respondPipeline, httpRequest, httpResponse, context)
 
     suspend override fun respond(message: Any) {
         super.respond(message)
 
         completed = true
-        try {
-            response.finalize()
-            request.close()
-        } catch (t: Throwable) {
-            context.close()
-            throw IOException("response finalization or request close failed", t)
-        }
+        response.finalize()
+        request.close()
     }
 
     override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {

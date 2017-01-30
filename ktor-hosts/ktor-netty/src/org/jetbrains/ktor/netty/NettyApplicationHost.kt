@@ -8,6 +8,7 @@ import io.netty.channel.socket.*
 import io.netty.channel.socket.nio.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
+import io.netty.handler.logging.*
 import io.netty.handler.ssl.*
 import io.netty.handler.stream.*
 import io.netty.handler.timeout.*
@@ -135,6 +136,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
                 with(pipeline) {
+                    //addLast(LoggingHandler())
                     addLast(HttpServerCodec())
                     addLast(ChunkedWriteHandler())
                     addLast(WriteTimeoutHandler(10))

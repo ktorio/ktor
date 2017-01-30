@@ -86,7 +86,7 @@ IntegrationBenchmark.sayOK                 thrpt   10  21.792 ± 3.005  ops/ms
 
 fun main(args: Array<String>) {
     benchmark(args) {
-        threads = 1
+        threads = 8
         run<IntegrationBenchmark>()
     }
 }

@@ -52,7 +52,7 @@ fun runProfiler(settings: BenchmarkSettings) {
         } else {
             val iterationsPerThread = iterations / settings.threads
             println("Running ${settings.threads} threads with $iterationsPerThread iterations per thread…")
-            val threads = (0..settings.threads).map { index ->
+            val threads = (1..settings.threads).map { index ->
                 thread(name = "Test Thread $index") {
                     println("Started thread '${Thread.currentThread().name}'")
                     repeat(iterationsPerThread) {
