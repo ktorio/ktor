@@ -459,9 +459,9 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                     call.response.contentType(ContentType.Application.OctetStream)
 
                     runBlocking(Here) {
-                        call.respond(object : FinalContent.ChannelContent() {
+                        call.respond(object : FinalContent.ReadChannelContent() {
                             override val headers: ValuesMap get() = ValuesMap.Empty
-                            override fun channel() = ByteBufferReadChannel(buffer.toByteArray())
+                            override fun readFrom() = ByteBufferReadChannel(buffer.toByteArray())
                         })
                     }
                 }

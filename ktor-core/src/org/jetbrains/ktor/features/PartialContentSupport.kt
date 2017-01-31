@@ -33,7 +33,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
                 call.attributes.put(Compression.SuppressionAttribute, true)
                 call.response.pipeline.intercept(RespondPipeline.After) {
                     val message = subject.message
-                    if (message is FinalContent.ChannelContent && message !is RangeChannelProvider) {
+                    if (message is FinalContent.ReadChannelContent && message !is RangeChannelProvider) {
                         message.contentLength()?.let { length -> tryProcessRange(message, call, rangeSpecifier, length) }
                     }
                 }
@@ -43,14 +43,14 @@ class PartialContentSupport(val maxRangeCount : Int) {
         } else {
             call.response.pipeline.intercept(RespondPipeline.After) {
                 val message = subject.message
-                if (message is FinalContent.ChannelContent && message !is RangeChannelProvider) {
+                if (message is FinalContent.ReadChannelContent && message !is RangeChannelProvider) {
                     call.respond(RangeChannelProvider.ByPass(message))
                 }
             }
         }
     }
 
-    suspend private fun PipelineContext<*>.tryProcessRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long): Unit {
+    suspend private fun PipelineContext<*>.tryProcessRange(obj: FinalContent.ReadChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long): Unit {
         if (checkIfRangeHeader(obj, call)) {
             processRange(obj, call, rangesSpecifier, length)
         } else {
@@ -58,7 +58,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
         }
     }
 
-    private fun checkIfRangeHeader(obj: FinalContent.ChannelContent, call: ApplicationCall): Boolean {
+    private fun checkIfRangeHeader(obj: FinalContent.ReadChannelContent, call: ApplicationCall): Boolean {
         val versions = obj.lastModifiedAndEtagVersions()
         val ifRange = call.request.header(HttpHeaders.IfRange)
 
@@ -74,7 +74,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
     }
 
 
-    suspend private fun processRange(obj: FinalContent.ChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long) {
+    suspend private fun processRange(obj: FinalContent.ReadChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long) {
         require(length >= 0L)
 
         val merged = rangesSpecifier.merge(length, maxRangeCount)
@@ -84,7 +84,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
             return
         }
 
-        val channel = obj.channel()
+        val channel = obj.readFrom()
 
         when {
             merged.size != 1 && !merged.isAscending() && channel !is RandomAccessReadChannel -> {
@@ -101,11 +101,11 @@ class PartialContentSupport(val maxRangeCount : Int) {
         channel.close()
     }
 
-    suspend private fun processSingleRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, range: LongRange, length: Long) {
+    suspend private fun processSingleRange(obj: FinalContent.ReadChannelContent, call: ApplicationCall, channel: ReadChannel, range: LongRange, length: Long) {
         call.respond(RangeChannelProvider.Single(call.isGet(), obj.headers, channel, range, length))
     }
 
-    suspend private fun processMultiRange(obj: FinalContent.ChannelContent, call: ApplicationCall, channel: ReadChannel, ranges: List<LongRange>, length: Long) {
+    suspend private fun processMultiRange(obj: FinalContent.ReadChannelContent, call: ApplicationCall, channel: ReadChannel, ranges: List<LongRange>, length: Long) {
         val boundary = "ktor-boundary-" + nextNonce()
 
         call.attributes.put(Compression.SuppressionAttribute, true) // multirange with compression is not supported yet
@@ -114,12 +114,12 @@ class PartialContentSupport(val maxRangeCount : Int) {
         call.respond(RangeChannelProvider.Multiple(call.isGet(), obj.headers, channel, ranges, length, boundary, contentType))
     }
 
-    private sealed class RangeChannelProvider : FinalContent.ChannelContent() {
-        class ByPass(val content: ChannelContent) : RangeChannelProvider() {
+    private sealed class RangeChannelProvider : FinalContent.ReadChannelContent() {
+        class ByPass(val content: ReadChannelContent) : RangeChannelProvider() {
             override val status: HttpStatusCode?
                 get() = content.status
 
-            override fun channel() = content.channel()
+            override fun readFrom() = content.readFrom()
 
             override val headers by lazy {
                 ValuesMap.build(true) {
@@ -131,7 +131,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
 
         class Single(val get: Boolean, val delegateHeaders: ValuesMap, val source: ReadChannel, val range: LongRange, val fullLength: Long) : RangeChannelProvider() {
             override val status: HttpStatusCode? get() = if (get) HttpStatusCode.PartialContent else null
-            override fun channel() = RangeReadChannel(source, range.start, range.length, closeSource = false)
+            override fun readFrom() = RangeReadChannel(source, range.start, range.length, closeSource = false)
             override val headers by lazy {
                 ValuesMap.build(true) {
                     appendFiltered(delegateHeaders) { name, value -> !name.equals(HttpHeaders.ContentLength, true) }
@@ -144,7 +144,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
         class Multiple(val get: Boolean, val delegateHeaders: ValuesMap, val source: ReadChannel, val ranges: List<LongRange>, val length: Long, val boundary: String, val contentType: ContentType) : RangeChannelProvider() {
             override val status: HttpStatusCode? get() = if (get) HttpStatusCode.PartialContent else null
 
-            override fun channel() = MultipleRangesReadChannel.create(source, ranges, length, boundary, contentType.toString())
+            override fun readFrom() = MultipleRangesReadChannel.create(source, ranges, length, boundary, contentType.toString())
 
             override val headers: ValuesMap
                 get() = ValuesMap.build(true) {

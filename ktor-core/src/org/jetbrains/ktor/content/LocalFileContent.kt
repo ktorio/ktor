@@ -10,7 +10,7 @@ import java.time.*
 class LocalFileContent(val file: File,
                        override val contentType: ContentType = defaultContentType(file.extension),
                        override val expires: LocalDateTime? = null,
-                       override val cacheControl: CacheControl? = null) : FinalContent.ChannelContent(), Resource {
+                       override val cacheControl: CacheControl? = null) : FinalContent.ReadChannelContent(), Resource {
 
     constructor(baseDir: File,
                 relativePath: String,
@@ -38,6 +38,8 @@ class LocalFileContent(val file: File,
 
     override val headers by lazy { super.headers }
 
-    override fun channel() = file.readChannel()
+    // TODO: consider using WriteChannelContent to avoid piping
+    // Or even make it dual-content so host implementation can choose
+    override fun readFrom() = file.readChannel()
 }
 

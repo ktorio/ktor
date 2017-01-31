@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.cio
 
+import kotlinx.coroutines.experimental.*
 import java.io.*
 import java.nio.*
 import java.util.concurrent.locks.*
@@ -7,7 +8,7 @@ import kotlin.concurrent.*
 import kotlin.coroutines.experimental.*
 import kotlin.coroutines.experimental.intrinsics.*
 
-class OutputStreamChannel : OutputStream(), ReadChannel {
+class ReadChannelFromOutputStream : OutputStream(), ReadChannel {
     private val buffer = ByteBuffer.allocate(8192)
     private val lock = ReentrantLock()
     private val notFull = lock.newCondition()
@@ -72,3 +73,18 @@ class OutputStreamChannel : OutputStream(), ReadChannel {
         }?.resume(-1)
     }
 }
+
+class OutputStreamFromWriteChannel(val channel: WriteChannel, val bufferPool: ByteBufferPool = NoPool) : OutputStream() {
+    private val singleByte = bufferPool.allocate(1)
+    override fun write(b: Int) = runBlocking(Here) {
+        singleByte.buffer.clear()
+        singleByte.buffer.put(b.toByte())
+        channel.write(singleByte.buffer)
+    }
+
+    override fun write(b: ByteArray, off: Int, len: Int) = runBlocking(Here) {
+        channel.write(ByteBuffer.wrap(b, off, len))
+    }
+}
+
+fun WriteChannel.toOutputStream(): OutputStream = OutputStreamFromWriteChannel(this)

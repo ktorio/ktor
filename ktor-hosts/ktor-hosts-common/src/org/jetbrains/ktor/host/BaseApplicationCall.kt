@@ -25,25 +25,8 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         when (value) {
             is FinalContent -> respondFinalContent(value)
             is ProtocolUpgrade -> pipelineContext.handleUpgrade(value)
-            is StreamConsumer -> respondStream(value)
         }
         pipelineContext.finish()
-    }
-
-    suspend fun respondStream(value: StreamConsumer) {
-        // note: it is very important to resend it here rather than just handle right here
-        // because we need compression, ranges and etc to work properly
-        val pipe = OutputStreamChannel()
-        launch(CommonPool) {
-            value.stream(pipe)
-            pipe.close()
-        }
-
-        val pipeContent = object : FinalContent.ChannelContent() {
-            override val headers: ValuesMap get() = value.headers
-            override fun channel(): ReadChannel = pipe
-        }
-        respond(pipeContent)
     }
 
     protected fun commitHeaders(o: HostResponse) {
@@ -58,10 +41,17 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     open suspend fun respondFinalContent(content: FinalContent) {
         commitHeaders(content)
         return when (content) {
-            is FinalContent.ChannelContent -> respondFromChannel(content.channel())
-            is FinalContent.StreamContentProvider -> respondFromChannel(content.stream().toReadChannel())
-            is FinalContent.NoContent -> { /* no-op */ }
+            // ByteArrayContent is most efficient
             is FinalContent.ByteArrayContent -> respondFromBytes(content.bytes())
+
+            // WriteChannelContent is more efficient than ReadChannelContent
+            is FinalContent.WriteChannelContent -> content.writeTo(responseChannel())
+
+            // Pipe is least efficient
+            is FinalContent.ReadChannelContent -> respondFromChannel(content.readFrom())
+
+            // Do nothing, but maintain `when` exhaustiveness
+            is FinalContent.NoContent -> { /* no-op */ }
         }
     }
 

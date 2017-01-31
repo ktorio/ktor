@@ -4,7 +4,7 @@ import kotlinx.coroutines.experimental.*
 import java.io.*
 import java.nio.*
 
-class InputStreamFromChannel(val channel: ReadChannel, val bufferPool: ByteBufferPool = NoPool) : InputStream() {
+class InputStreamFromReadChannel(val channel: ReadChannel, val bufferPool: ByteBufferPool = NoPool) : InputStream() {
     private val singleByte = bufferPool.allocate(1)
     override fun read(): Int = runBlocking(Here) {
         singleByte.buffer.clear()
@@ -32,7 +32,7 @@ class InputStreamFromChannel(val channel: ReadChannel, val bufferPool: ByteBuffe
     }
 }
 
-private class ChannelFromInputStream(val input: InputStream) : ReadChannel {
+private class ReadChannelFromInputStream(val input: InputStream) : ReadChannel {
     override suspend fun read(dst: ByteBuffer): Int {
         val count = input.read(dst.array(), dst.arrayOffset() + dst.position(), dst.remaining())
         if (count > 0) {
@@ -47,5 +47,5 @@ private class ChannelFromInputStream(val input: InputStream) : ReadChannel {
 }
 
 
-fun ReadChannel.toInputStream(): InputStream = InputStreamFromChannel(this)
-fun InputStream.toReadChannel(): ReadChannel = ChannelFromInputStream(this)
+fun ReadChannel.toInputStream(): InputStream = InputStreamFromReadChannel(this)
+fun InputStream.toReadChannel(): ReadChannel = ReadChannelFromInputStream(this)

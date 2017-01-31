@@ -15,22 +15,17 @@ interface HostResponse {
 sealed class FinalContent : HostResponse {
     abstract class NoContent : FinalContent()
 
-    abstract class ChannelContent : FinalContent() {
-        abstract fun channel(): ReadChannel
+    abstract class ReadChannelContent : FinalContent() {
+        abstract fun readFrom(): ReadChannel
+    }
+
+    abstract class WriteChannelContent : FinalContent() {
+        abstract fun writeTo(channel: WriteChannel)
     }
 
     abstract class ByteArrayContent : FinalContent() {
         abstract fun bytes(): ByteArray
     }
-
-    abstract class StreamContentProvider : FinalContent() {
-        abstract fun stream(): InputStream
-    }
-
-}
-
-abstract class StreamConsumer : HostResponse {
-    abstract fun stream(out : OutputStream): Unit
 }
 
 fun FinalContent.contentLength(): Long? {

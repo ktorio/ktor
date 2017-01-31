@@ -3,6 +3,7 @@ package org.jetbrains.ktor.features
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 
 object HeadRequestSupport : ApplicationFeature<ApplicationCallPipeline, Unit, Unit> {
@@ -13,12 +14,9 @@ object HeadRequestSupport : ApplicationFeature<ApplicationCallPipeline, Unit, Un
 
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
             if (call.request.local.method == HttpMethod.Head) {
-                it.response.pipeline.intercept(RespondPipeline.After) {
-                    val message = subject.message
-                    if (message is FinalContent && message !is FinalContent.NoContent) {
-                        call.respond(HeadResponse(message))
-                    }
-                }
+                call.transform.register<FinalContent>(
+                        predicate = { message -> message !is FinalContent.NoContent },
+                        handler = { message -> HeadResponse(message) })
             }
         }
     }

@@ -7,9 +7,9 @@ import org.junit.*
 import java.nio.*
 import kotlin.test.*
 
-class OutputStreamChannelTest {
+class ReadChannelFromOutputStreamTest {
     @Test fun streamByte() = runBlocking {
-        val osc = OutputStreamChannel()
+        val osc = ReadChannelFromOutputStream()
         osc.write(42)
         val dst = ByteBuffer.allocate(1)
         val count = osc.read(dst)
@@ -19,7 +19,7 @@ class OutputStreamChannelTest {
     }
 
     @Test fun streamByteReadFirst() = runBlocking {
-        val osc = OutputStreamChannel()
+        val osc = ReadChannelFromOutputStream()
         val dst = ByteBuffer.allocate(1)
         val count = defer(context) {
             osc.read(dst)
@@ -31,7 +31,7 @@ class OutputStreamChannelTest {
     }
 
     @Test fun streamString() = runBlocking {
-        val osc = OutputStreamChannel()
+        val osc = ReadChannelFromOutputStream()
         val sendText = "Hello, Coroutine!"
         osc.writer().apply {
             write(sendText)

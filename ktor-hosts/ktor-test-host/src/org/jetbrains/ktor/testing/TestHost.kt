@@ -60,10 +60,10 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
     }
 
     val application: Application = applicationLoader.application
-    private val pipeline = ApplicationCallPipeline()
+    private val hostPipeline = ApplicationCallPipeline()
 
     init {
-        pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
+        hostPipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
             call.response.pipeline.intercept(RespondPipeline.Before) {
                 proceed()
                 (call as? TestApplicationCall)?.requestHandled = true
@@ -76,7 +76,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createCall(setup)
         runBlocking {
-            pipeline.execute(call)
+            hostPipeline.execute(call)
         }
         return call
     }
@@ -91,7 +91,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
             setup()
         }
 
-        runBlocking(Here) { pipeline.execute(call) }
+        runBlocking(Here) { hostPipeline.execute(call) }
 
         return call
     }

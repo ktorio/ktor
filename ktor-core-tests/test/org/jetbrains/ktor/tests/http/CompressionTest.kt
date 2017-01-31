@@ -317,7 +317,7 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respond(object : Resource, FinalContent.ChannelContent() {
+                    call.respond(object : Resource, FinalContent.ReadChannelContent() {
                         override val headers by lazy { super.headers }
 
                         override val contentType: ContentType
@@ -332,7 +332,7 @@ class CompressionTest {
 
                         override val contentLength = 4L
 
-                        override fun channel() = "test".byteInputStream().toReadChannel()
+                        override fun readFrom() = "test".byteInputStream().toReadChannel()
                     })
                 }
             }
