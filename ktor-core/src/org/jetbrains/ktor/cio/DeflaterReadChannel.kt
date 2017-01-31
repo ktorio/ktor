@@ -5,13 +5,15 @@ import java.nio.*
 import java.util.zip.*
 
 private class DeflaterReadChannel(val source: ReadChannel, val gzip: Boolean = true, val bufferPool: ByteBufferPool = NoPool) : ReadChannel {
-    private val GZIP_MAGIC = 0x8b1f
     private val crc = CRC32()
     private val deflater = Deflater(Deflater.BEST_COMPRESSION, true)
     private val input = bufferPool.allocate(8192)
 
     private val compressed = bufferPool.allocate(8192).apply {
-        putGzipHeader(buffer)
+        if (gzip) {
+            putGzipHeader(buffer)
+        }
+
         buffer.flip()
     }
     private val trailing = ByteBuffer.allocate(8).order(ByteOrder.LITTLE_ENDIAN).apply {
@@ -26,7 +28,7 @@ private class DeflaterReadChannel(val source: ReadChannel, val gzip: Boolean = t
 
     override suspend fun read(dst: ByteBuffer): Int {
         if (!dst.hasRemaining())
-            return -1
+            return 0
 
         if (deflater.finished()) {
             return readFinish(dst)
@@ -46,8 +48,8 @@ private class DeflaterReadChannel(val source: ReadChannel, val gzip: Boolean = t
             }
 
             input.buffer.flip()
-            crc.update(input.buffer.array(), 0, input.buffer.remaining())
-            deflater.setInput(input.buffer.array(), 0, input.buffer.remaining())
+            crc.updateKeepPosition(input.buffer)
+            deflater.setInput(input.buffer)
 
             var counter = 0
             while (!deflater.needsInput() && dst.hasRemaining()) {
@@ -108,28 +110,11 @@ private class DeflaterReadChannel(val source: ReadChannel, val gzip: Boolean = t
     private fun prepareTrailer() {
         if (gzip) {
             trailing.clear()
-            trailing.putInt(crc.value.toInt())
-            trailing.putInt(deflater.totalIn)
+            putGzipTrailer(crc, deflater, trailing)
             trailing.flip()
-        }
-    }
-
-    private fun putGzipHeader(buffer: ByteBuffer) {
-        if (gzip) {
-            buffer.order(ByteOrder.LITTLE_ENDIAN)
-            buffer.putShort(GZIP_MAGIC.toShort())
-            buffer.put(Deflater.DEFLATED.toByte())
-            buffer.position(buffer.position() + 7)
         }
     }
 
 }
 
 fun ReadChannel.deflated(gzip: Boolean = true): ReadChannel = DeflaterReadChannel(this, gzip)
-
-private fun Deflater.deflate(outBuffer: ByteBuffer) {
-    if (outBuffer.hasRemaining()) {
-        val written = deflate(outBuffer.array(), outBuffer.arrayOffset() + outBuffer.position(), outBuffer.remaining())
-        outBuffer.position(outBuffer.position() + written)
-    }
-}

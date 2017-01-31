@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.tests.nio
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.cio.*
 import org.junit.*
 import java.io.*
@@ -14,8 +15,13 @@ class DeflaterReadChannelTest {
         val file = listOf(File("test/org/jetbrains/ktor/tests/nio/DeflaterReadChannelTest.kt"),
                 File("ktor-core-tests/test/org/jetbrains/ktor/tests/nio/DeflaterReadChannelTest.kt")).first(File::exists)
 
-        val actual = file.readChannel().deflated().toInputStream().ungzip().reader().readText()
-        assertEquals(file.readText(), actual)
+        file.readChannel().use {
+            testReadChannel(file.readText(), it)
+        }
+
+        file.readChannel().use {
+            testWriteChannel(file.readText(), it)
+        }
     }
 
     @Test
@@ -39,7 +45,8 @@ class DeflaterReadChannelTest {
         assertEquals(text, asyncOf(text, 3).toInputStream().reader().readText())
 
         for (step in 1..text.length) {
-            assertEquals(text, asyncOf(text, step).deflated().toInputStream().ungzip().reader().readText())
+            testReadChannel(text, asyncOf(text, step))
+            testWriteChannel(text, asyncOf(text, step))
         }
     }
 
@@ -54,7 +61,10 @@ class DeflaterReadChannelTest {
 
         for (step in generateSequence(1) { it * 2 }.dropWhile { it < 64 }.takeWhile { it <= 8192 }.flatMap { sequenceOf(it, it - 1, it + 1) }) {
             bb.clear()
-            assertEquals(text, asyncOf(bb, step).deflated().toInputStream().ungzip().reader().readText())
+            testReadChannel(text, asyncOf(bb, step))
+
+            bb.clear()
+            testWriteChannel(text, asyncOf(bb, step))
         }
     }
 
@@ -65,11 +75,27 @@ class DeflaterReadChannelTest {
                 append("test$i\n".padStart(10, ' '))
             }
         }
-        assertEquals(text, asyncOf(text, 3).deflated().toInputStream().ungzip().reader().readText())
+
+        testReadChannel(text, asyncOf(text, 3))
+        testWriteChannel(text, asyncOf(text, 3))
     }
 
     private fun asyncOf(text: String, step: Int) = asyncOf(ByteBuffer.wrap(text.toByteArray(Charsets.ISO_8859_1)), step)
     private fun asyncOf(bb: ByteBuffer, step: Int) = ByteBufferReadChannel(bb, step)
 
     private fun InputStream.ungzip() = GZIPInputStream(this)
+
+    private fun testReadChannel(expected: String, src: ReadChannel) {
+        assertEquals(expected, src.deflated().toInputStream().ungzip().reader().readText())
+    }
+    private fun testWriteChannel(expected: String, src: ReadChannel) {
+        val out = ByteBufferWriteChannel()
+        runBlocking {
+            out.deflated().use {
+                src.copyTo(it)
+            }
+        }
+
+        assertEquals(expected, out.toByteArray().inputStream().ungzip().reader().readText())
+    }
 }
