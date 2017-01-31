@@ -88,7 +88,7 @@ class Compression(compression: Configuration) {
             }
         }
 
-        override fun writeTo(channel: WriteChannel) {
+        override suspend fun writeTo(channel: WriteChannel) {
             delegate.writeTo(encoder.open(channel))
         }
     }

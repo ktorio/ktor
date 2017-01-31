@@ -10,10 +10,10 @@ import java.nio.charset.*
 class WriterContent(private val body: suspend Writer.() -> Unit, private val charset: Charset) : FinalContent.WriteChannelContent() {
     override val headers: ValuesMap get() = ValuesMap.Empty
 
-    override fun writeTo(channel: WriteChannel) {
+    override suspend fun writeTo(channel: WriteChannel) {
         val writer = channel.toOutputStream().writer(charset)
         writer.use {
-            runBlocking(Here) { it.body() }
+            it.body()
         }
         channel.close()
     }

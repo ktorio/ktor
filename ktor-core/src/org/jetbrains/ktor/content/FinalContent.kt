@@ -20,7 +20,7 @@ sealed class FinalContent : HostResponse {
     }
 
     abstract class WriteChannelContent : FinalContent() {
-        abstract fun writeTo(channel: WriteChannel)
+        abstract suspend fun writeTo(channel: WriteChannel)
     }
 
     abstract class ByteArrayContent : FinalContent() {
