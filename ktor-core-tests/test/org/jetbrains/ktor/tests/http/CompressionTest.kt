@@ -126,6 +126,7 @@ class CompressionTest {
                 default()
                 encoder("special", object : CompressionEncoder {
                     override fun open(delegate: ReadChannel) = delegate
+                    override fun open(delegate: WriteChannel) = delegate
                 })
             }
             application.routing {
