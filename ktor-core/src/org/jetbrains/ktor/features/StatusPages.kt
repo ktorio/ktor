@@ -30,17 +30,6 @@ class StatusPages(config: Configuration) {
     }
 
     suspend private fun intercept(context: PipelineContext<ApplicationCall>) {
-/*
-        context.onFail {
-            // if response is already specified, do nothing
-            if (call.response.status() == null) {
-                val failure = exception!!
-                val handler = findHandlerByType(failure.javaClass)
-                if (handler != null) {
-                    context.handler(failure)
-                }
-            }
-        }
         var statusHandled = false
         context.call.response.pipeline.intercept(RespondPipeline.After) {
             if (!statusHandled) {
@@ -57,11 +46,21 @@ class StatusPages(config: Configuration) {
                 }
             }
         }
-*/
+
+        try {
+            context.proceed()
+        } catch(exception: Throwable) {
+            if (context.call.response.status() == null) {
+                val handler = findHandlerByType(exception.javaClass)
+                if (handler != null) {
+                    context.handler(exception)
+                } else
+                    throw exception
+            }
+        }
     }
 
-/*
-    private fun findHandlerByType(clazz: Class<*>): (PipelineContext<ApplicationCall>.(Throwable) -> Unit)? {
+    private fun findHandlerByType(clazz: Class<*>): (suspend PipelineContext<ApplicationCall>.(Throwable) -> Unit)? {
         exceptions[clazz]?.let { return it }
         clazz.superclass?.let {
             findHandlerByType(it)?.let { return it }
@@ -71,7 +70,6 @@ class StatusPages(config: Configuration) {
         }
         return null
     }
-*/
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, StatusPages> {
         override val key = AttributeKey<StatusPages>("Status Pages")
@@ -96,4 +94,3 @@ fun StatusPages.Configuration.statusFile(vararg status: HttpStatusCode, filePatt
         }
     }
 }
-
