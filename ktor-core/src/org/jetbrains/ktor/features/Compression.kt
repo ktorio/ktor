@@ -51,8 +51,8 @@ class Compression(compression: Configuration) {
 
                 val encoderOptions = encoders.firstOrNull { it.conditions.all { it(call, message) } }
 
-                val channel = when (message) {
-                    is FinalContent.ReadChannelContent -> message.readFrom()
+                val channel: () -> ReadChannel = when (message) {
+                    is FinalContent.ReadChannelContent ->  ({ message.readFrom() })
                     is FinalContent.WriteChannelContent -> {
                         if (encoderOptions != null) {
                             subject.message = CompressedWriteResponse(message, encoderOptions.name, encoderOptions.encoder)
@@ -60,7 +60,7 @@ class Compression(compression: Configuration) {
                         return@intercept
                     }
                     is FinalContent.NoContent -> return@intercept
-                    is FinalContent.ByteArrayContent -> ByteBufferReadChannel(message.bytes())
+                    is FinalContent.ByteArrayContent -> ({ ByteBufferReadChannel(message.bytes()) })
                 }
 
                 if (encoderOptions != null) {
@@ -70,11 +70,11 @@ class Compression(compression: Configuration) {
         }
     }
 
-    private class CompressedResponse(val delegateChannel: ReadChannel, val delegateHeaders: ValuesMap, val encoding: String, val encoder: CompressionEncoder) : FinalContent.ReadChannelContent() {
-        override fun readFrom() = encoder.open(delegateChannel)
+    private class CompressedResponse(val delegateChannel: () -> ReadChannel, val delegateHeaders: ValuesMap, val encoding: String, val encoder: CompressionEncoder) : FinalContent.ReadChannelContent() {
+        override fun readFrom() = encoder.open(delegateChannel())
         override val headers by lazy {
             ValuesMap.build(true) {
-                appendFiltered(delegateHeaders) { name, value -> !name.equals(HttpHeaders.ContentLength, true) }
+                appendFiltered(delegateHeaders) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
                 append(HttpHeaders.ContentEncoding, encoding)
             }
         }
@@ -83,7 +83,7 @@ class Compression(compression: Configuration) {
     private class CompressedWriteResponse(val delegate: WriteChannelContent, val encoding: String, val encoder: CompressionEncoder) : FinalContent.WriteChannelContent() {
         override val headers by lazy {
             ValuesMap.build(true) {
-                appendFiltered(delegate.headers) { name, value -> !name.equals(HttpHeaders.ContentLength, true) }
+                appendFiltered(delegate.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
                 append(HttpHeaders.ContentEncoding, encoding)
             }
         }
