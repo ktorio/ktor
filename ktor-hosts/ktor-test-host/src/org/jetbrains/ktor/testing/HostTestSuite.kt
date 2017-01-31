@@ -28,7 +28,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     fun testTextContent() {
         createAndStartServer {
             handle {
-                call.respond(TextContent(ContentType.Text.Plain, "test"))
+                call.respond(TextContent("test", ContentType.Text.Plain))
             }
         }
 
@@ -110,7 +110,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     fun testSendTextWithContentType() {
         createAndStartServer {
             handle {
-                call.respondText(ContentType.Text.Plain, "Hello")
+                call.respondText("Hello", ContentType.Text.Plain)
             }
         }
 
@@ -155,7 +155,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         createAndStartServer {
             handle {
                 call.response.headers.append(HttpHeaders.ETag, "test-etag")
-                call.respondText(ContentType.Text.Plain, "Hello")
+                call.respondText("Hello", ContentType.Text.Plain)
             }
         }
 
@@ -170,7 +170,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         createAndStartServer {
             handle {
                 call.response.cookies.append("k1", "v1")
-                call.respondText(ContentType.Text.Plain, "Hello")
+                call.respondText("Hello", ContentType.Text.Plain)
             }
         }
 
@@ -566,7 +566,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     fun testRequestTwiceNoKeepAlive() {
         createAndStartServer {
             get("/") {
-                call.respond(TextContent(ContentType.Text.Plain, "Text"))
+                call.respond(TextContent("Text", ContentType.Text.Plain))
             }
         }
 
@@ -585,7 +585,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     fun testRequestTwiceWithKeepAlive() {
         createAndStartServer {
             get("/") {
-                call.respond(TextContent(ContentType.Text.Plain, "Text"))
+                call.respond(TextContent("Text", ContentType.Text.Plain))
             }
         }
 

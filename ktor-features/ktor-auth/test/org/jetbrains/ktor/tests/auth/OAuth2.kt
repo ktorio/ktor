@@ -73,7 +73,7 @@ class OAuth2Test {
                 }
 
                 handle {
-                    call.respondText(ContentType.Text.Plain, "Hej, ${call.authentication.principal}")
+                    call.respondText("Hej, ${call.authentication.principal}", ContentType.Text.Plain)
                 }
             }
             route("/resource") {
@@ -357,7 +357,7 @@ private fun createOAuth2Server(server: OAuth2Server): TestingHttpClient {
                 }
 
                 call.response.status(HttpStatusCode.OK)
-                call.respondText(contentType, obj.toJSONString())
+                call.respondText(obj.toJSONString(), contentType)
             }
         }
     }

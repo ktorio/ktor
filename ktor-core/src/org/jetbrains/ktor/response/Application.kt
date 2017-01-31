@@ -9,7 +9,7 @@ suspend fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = fa
     respond(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
 }
 
-suspend fun ApplicationCall.respondText(contentType: ContentType, text: String) = respond(TextContent(contentType, text))
-suspend fun ApplicationCall.respondText(text: String) = respondText(ContentType.Text.Plain, text)
+suspend fun ApplicationCall.respondText(text: String, contentType: ContentType) = respond(TextContent(text, contentType))
+suspend fun ApplicationCall.respondText(text: String) = respondText(text, ContentType.Text.Plain)
 
 

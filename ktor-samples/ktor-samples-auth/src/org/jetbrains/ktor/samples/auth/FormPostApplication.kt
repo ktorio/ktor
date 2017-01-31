@@ -50,7 +50,7 @@ fun Application.formPostAuthApplication() {
                             }
                         }
                     }
-                    call.respondText(ContentType.Text.Html, html)
+                    call.respondText(html, ContentType.Text.Html)
                 }
             }
         }

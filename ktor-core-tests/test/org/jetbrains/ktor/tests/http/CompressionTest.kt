@@ -183,7 +183,7 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respondText(ContentType.parse(call.parameters["t"]!!), "OK")
+                    call.respondText("OK", ContentType.parse(call.parameters["t"]!!))
                 }
             }
 
@@ -387,7 +387,7 @@ class CompressionTest {
             application.install(Compression)
             application.routing {
                 get("/") {
-                    call.respondText(ContentType.Text.Plain, content)
+                    call.respondText(content, ContentType.Text.Plain)
                 }
             }
 

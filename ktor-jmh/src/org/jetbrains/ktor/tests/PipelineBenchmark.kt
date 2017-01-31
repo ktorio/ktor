@@ -1,11 +1,8 @@
 package org.jetbrains.ktor.tests
 
-import kotlinx.coroutines.experimental.intrinsics.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import org.openjdk.jmh.annotations.*
-import kotlin.coroutines.*
-import kotlin.coroutines.intrinsics.*
 
 @State(Scope.Benchmark)
 open class BaselinePipeline {

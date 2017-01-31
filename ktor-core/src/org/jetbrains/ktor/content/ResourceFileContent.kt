@@ -25,7 +25,7 @@ class ResourceFileContent(val zipFile: File, val resourcePath: String, val class
 
     override val headers by lazy { super.headers }
 
-    override fun readFrom() = classLoader.getResourceAsStream(normalized).toReadChannel() ?: throw IOException("Resource $normalized not found")
+    override fun readFrom() = classLoader.getResourceAsStream(normalized)?.toReadChannel() ?: throw IOException("Resource $normalized not found")
 
     override val expires = null
     override val cacheControl = null

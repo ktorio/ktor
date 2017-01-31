@@ -14,7 +14,7 @@ fun main(args: Array<String>) {
     server = embeddedJettyServer(8080) {
         install(Routing) {
             get("/") {
-                call.respondText(ContentType.Text.Html, """Hello, world<br><a href="/bye">Say bye?</a>""")
+                call.respondText("""Hello, world<br><a href="/bye">Say bye?</a>""", ContentType.Text.Html)
             }
 
             get("/bye") {

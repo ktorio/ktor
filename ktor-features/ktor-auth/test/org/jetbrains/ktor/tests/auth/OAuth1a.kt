@@ -343,12 +343,12 @@ private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
                     val rr = server.requestToken(call, callback, consumerKey, nonce, signature, signatureMethod, timestamp)
 
                     call.response.status(HttpStatusCode.OK)
-                    call.respondText(ContentType.Application.FormUrlEncoded,
-                            listOf(
-                                    HttpAuthHeader.Parameters.OAuthToken to rr.token,
-                                    HttpAuthHeader.Parameters.OAuthTokenSecret to rr.tokenSecret,
-                                    HttpAuthHeader.Parameters.OAuthCallbackConfirmed to rr.callbackConfirmed.toString()
-                            ).formUrlEncode()
+                    call.respondText(listOf(
+                            HttpAuthHeader.Parameters.OAuthToken to rr.token,
+                            HttpAuthHeader.Parameters.OAuthTokenSecret to rr.tokenSecret,
+                            HttpAuthHeader.Parameters.OAuthCallbackConfirmed to rr.callbackConfirmed.toString()
+                    ).formUrlEncode(),
+                            ContentType.Application.FormUrlEncoded
                     )
                 } catch (e: Exception) {
                     call.fail(e.message)
@@ -382,10 +382,10 @@ private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
                     val tokenPair = server.accessToken(call, consumerKey, nonce, signature, signatureMethod, timestamp, token, verifier)
 
                     call.response.status(HttpStatusCode.OK)
-                    call.respondText(ContentType.Application.FormUrlEncoded, (listOf(
+                    call.respondText((listOf(
                             HttpAuthHeader.Parameters.OAuthToken to tokenPair.token,
                             HttpAuthHeader.Parameters.OAuthTokenSecret to tokenPair.tokenSecret
-                    ) + tokenPair.extraParameters.flattenEntries()).formUrlEncode())
+                    ) + tokenPair.extraParameters.flattenEntries()).formUrlEncode(), ContentType.Application.FormUrlEncoded)
                 } catch (e: Exception) {
                     call.fail(e.message)
                 }

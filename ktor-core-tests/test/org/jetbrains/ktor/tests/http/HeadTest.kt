@@ -47,7 +47,7 @@ class HeadTest {
             application.routing {
                 route("/") {
                     handle {
-                        call.respond(TextContent(ContentType.Text.Plain, "Hello"))
+                        call.respond(TextContent("Hello", ContentType.Text.Plain))
                     }
                 }
             }

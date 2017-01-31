@@ -12,21 +12,18 @@ fun ApplicationTransform<PipelineContext<ResponseMessage>>.registerDefaultHandle
     register<String> { value ->
         val responseContentType = call.response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
         val contentType = responseContentType ?: ContentType.Text.Plain.withCharset(Charsets.UTF_8)
-        TextContentResponse(null, contentType, value)
+        TextContent(value, contentType, null)
     }
 
-    register<TextContent> { value -> TextContentResponse(null, value.contentType, value.text) }
+    register<ByteArray> { value -> ByteArrayContent(value)}
 
     register<HttpStatusContent> { value ->
-        TextContentResponse(value.code,
+        TextContent("<H1>${value.code}</H1>${value.message.escapeHTML()}",
                 ContentType.Text.Html.withCharset(Charsets.UTF_8),
-                "<H1>${value.code}</H1>${value.message.escapeHTML()}")
+                value.code)
     }
 
-
-    register<HttpStatusCode> { value ->
-        HttpStatusCodeContent(value)
-    }
+    register<HttpStatusCode> { value -> HttpStatusCodeContent(value) }
 
     register<URIFileContent> { value ->
         if (value.uri.scheme == "file") {
