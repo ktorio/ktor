@@ -14,9 +14,10 @@ import java.net.*
 
 @State(Scope.Benchmark)
 open class IntegrationBenchmark {
-    private val packageName = FullBenchmark::class.java.`package`.name
-    private val classFileName = FullBenchmark::class.simpleName!! + ".class"
-    private val pomFile = File("pom.xml")
+    private val packageName = IntegrationBenchmark::class.java.`package`.name
+    private val classFileName = IntegrationBenchmark::class.simpleName!! + ".class"
+    private val smallFile = File("pom.xml")
+    private val largeFile = File("ktor-core/target/ktor-core-0.2.5-SNAPSHOT.jar")
 
     lateinit private var server: NettyApplicationHost
 
@@ -37,8 +38,17 @@ open class IntegrationBenchmark {
                 get("/regularClasspathFile") {
                     call.respond(call.resolveClasspathWithPath(packageName, classFileName)!!)
                 }
-                get("/regularFile") {
-                    call.respond(LocalFileContent(pomFile))
+                get("/smallFile") {
+                    call.respond(LocalFileContent(smallFile))
+                }
+                get("/smallFileSync") {
+                    call.respond(smallFile.readBytes())
+                }
+                get("/largeFile") {
+                    call.respond(LocalFileContent(largeFile))
+                }
+                get("/largeFileSync") {
+                    call.respond(largeFile.readBytes())
                 }
             }
         }
@@ -72,8 +82,23 @@ open class IntegrationBenchmark {
     }
 
     @Benchmark
-    fun regularFile(): ByteArray {
-        return load("http://localhost:$port/regularFile")
+    fun smallFile(): ByteArray {
+        return load("http://localhost:$port/smallFile")
+    }
+
+    @Benchmark
+    fun smallFileSync(): ByteArray {
+        return load("http://localhost:$port/smallFileSync")
+    }
+    
+    @Benchmark
+    fun largeFile(): ByteArray {
+        return load("http://localhost:$port/largeFile")
+    }
+
+    @Benchmark
+    fun largeFileSync(): ByteArray {
+        return load("http://localhost:$port/largeFileSync")
     }
 }
 /*
@@ -87,7 +112,7 @@ IntegrationBenchmark.sayOK                 thrpt   10  21.792 ± 3.005  ops/ms
 fun main(args: Array<String>) {
     benchmark(args) {
         threads = 4
-        run<IntegrationBenchmark>("sayOK")
+        run<IntegrationBenchmark>()
     }
 }
 
