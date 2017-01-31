@@ -103,7 +103,7 @@ class TestHostMultipartTest {
                 }
             }
 
-            assertFailsWith<IOException> {
+            assertFailsWith<AssertionError> {
                 handleRequest(HttpMethod.Post, "/")
             }
         }
