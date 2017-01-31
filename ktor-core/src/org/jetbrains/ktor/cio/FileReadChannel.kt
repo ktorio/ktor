@@ -4,8 +4,8 @@ import java.io.*
 import java.nio.*
 import java.nio.channels.*
 import java.nio.file.*
-import kotlin.coroutines.*
-import kotlin.coroutines.intrinsics.*
+import kotlin.coroutines.experimental.*
+import kotlin.coroutines.experimental.intrinsics.*
 
 class FileReadChannel(val source: AsynchronousFileChannel, val start: Long = 0, val endInclusive: Long = source.size() - 1) : RandomAccessReadChannel {
     companion object {
@@ -14,13 +14,14 @@ class FileReadChannel(val source: AsynchronousFileChannel, val start: Long = 0, 
                 channel.position += result
                 channel.currentContinuation!!.also { channel.currentContinuation = null }.resume(result)
             }
+
             override fun failed(exc: Throwable, channel: FileReadChannel) {
                 channel.currentContinuation!!.also { channel.currentContinuation = null }.resumeWithException(exc)
             }
         }
     }
 
-    var currentContinuation : Continuation<Int>? = null
+    var currentContinuation: Continuation<Int>? = null
 
     init {
         require(start >= 0L) { "start position shouldn't be negative but it is $start" }
@@ -40,7 +41,7 @@ class FileReadChannel(val source: AsynchronousFileChannel, val start: Long = 0, 
             check(currentContinuation == null)
             currentContinuation = it
             source.read(dst, position, this, completionHandler)
-            SUSPENDED_MARKER
+            COROUTINE_SUSPENDED
         }
     }
 

@@ -519,22 +519,18 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     fun testMultipartFileUpload() {
         createAndStartServer {
             post("/") {
-                thread {
-                    runBlocking(Here) {
-                        val response = StringBuilder()
+                val response = StringBuilder()
 
-                        call.request.content.get<MultiPartData>().parts.sortedBy { it.partName }.forEach { part ->
-                            when (part) {
-                                is PartData.FormItem -> response.append("${part.partName}=${part.value}\n")
-                                is PartData.FileItem -> response.append("file:${part.partName},${part.originalFileName},${part.streamProvider().bufferedReader().readText()}\n")
-                            }
-
-                            part.dispose()
-                        }
-
-                        call.respondText(response.toString())
+                call.request.content.get<MultiPartData>().parts.sortedBy { it.partName }.forEach { part ->
+                    when (part) {
+                        is PartData.FormItem -> response.append("${part.partName}=${part.value}\n")
+                        is PartData.FileItem -> response.append("file:${part.partName},${part.originalFileName},${part.streamProvider().bufferedReader().readText()}\n")
                     }
+
+                    part.dispose()
                 }
+
+                call.respondText(response.toString())
             }
         }
 

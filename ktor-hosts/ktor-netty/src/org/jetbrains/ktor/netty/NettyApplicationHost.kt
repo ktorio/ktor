@@ -27,8 +27,9 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
             : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
 
-    private val mainEventGroup = NioEventLoopGroup()
-    private val workerEventGroup = NioEventLoopGroup()
+    private val mainEventGroup = NioEventLoopGroup() // accepts connections
+    private val workerEventGroup = NioEventLoopGroup() // processes socket data
+    internal val callEventGroup = CallEventLoopGroup() // executes call handlers
 
     private val bootstraps = hostConfig.connectors.map { ktorConnector ->
         ServerBootstrap().apply {
@@ -96,6 +97,8 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     override fun stop() {
         workerEventGroup.shutdownGracefully()
         mainEventGroup.shutdownGracefully()
+        callEventGroup.shutdownGracefully()
+
         applicationLifecycle.dispose()
         environment.log.trace("Server stopped.")
     }
@@ -121,7 +124,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     addLast(HttpServerCodec())
                     addLast(ChunkedWriteHandler())
                     addLast(WriteTimeoutHandler(10))
-                    addLast(NettyHostHttpHandler(this@NettyApplicationHost, null, hostPipeline))
+                    addLast(NettyHostHttp1Handler(this@NettyApplicationHost, hostPipeline))
                 }
             }
             else -> {
@@ -154,4 +157,6 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
 }
+
+class CallEventLoopGroup : NioEventLoopGroup()
 

@@ -8,7 +8,7 @@
     <artifactId>ktor</artifactId>
 
     <properties>
-        <kotlin.version>1.1.0-dev-6340</kotlin.version>
+        <kotlin.version>1.1.0-dev-6605</kotlin.version>
         <dokka.version>0.9.11</dokka.version>
         <jmh.version>1.15</jmh.version>
 
@@ -69,7 +69,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-jdk8</artifactId>
-            <version>0.4-beta-SNAPSHOT</version>
+            <version>0.6-rc-SNAPSHOT</version>
         </dependency>
 
 
@@ -165,6 +165,13 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+<!--
+                    <args>
+                        <arg>-Xcoroutines=enable</arg>
+                    </args>
+-->
+                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-release-plugin</artifactId>

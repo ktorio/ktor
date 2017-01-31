@@ -4,8 +4,8 @@ import java.io.*
 import java.nio.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
-import kotlin.coroutines.*
-import kotlin.coroutines.intrinsics.*
+import kotlin.coroutines.experimental.*
+import kotlin.coroutines.experimental.intrinsics.*
 
 class OutputStreamChannel : OutputStream(), ReadChannel {
     private val buffer = ByteBuffer.allocate(8192)
@@ -29,7 +29,7 @@ class OutputStreamChannel : OutputStream(), ReadChannel {
                     check(currentBuffer == null)
                     currentContinuation = cont
                     currentBuffer = dst
-                    SUSPENDED_MARKER
+                    COROUTINE_SUSPENDED
                 }
             }
         }

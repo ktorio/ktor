@@ -3,23 +3,22 @@ package org.jetbrains.ktor.pipeline
 import java.util.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
-import kotlin.coroutines.*
-import kotlin.coroutines.intrinsics.*
+import kotlin.coroutines.experimental.*
+import kotlin.coroutines.experimental.intrinsics.*
 
 open class SuspendQueue<T : Any>(initialSize: Int) : Iterable<T> {
     val lock = ReentrantLock()
     val queue = ArrayDeque<T>(initialSize)
-    var continuation: Continuation<T>? = null
+    var continuation: Continuation<T?>? = null
     var endOfStream = false
 
-    fun finish() = lock.withLock {
-        endOfStream = true
-    }
-
-    fun push(element: T) {
+    fun push(element: T, lastElement: Boolean) {
         check(!endOfStream)
         val cont = lock.withLock {
             onPush(element)
+            if (lastElement)
+                endOfStream = true
+
             val cont = continuation
             if (cont == null) {
                 queue.offer(element)
@@ -33,20 +32,22 @@ open class SuspendQueue<T : Any>(initialSize: Int) : Iterable<T> {
     }
 
     suspend fun pull(): T? {
-        lock.withLock {
-            val element: T? = queue.poll()
-            if (element != null) {
-                onPull(element)
-                return element
-            }
-        }
-        if (endOfStream)
-            return null
-
         return suspendCoroutineOrReturn {
-            check(continuation == null)
-            continuation = it
-            SUSPENDED_MARKER
+            lock.withLock {
+                val element: T? = queue.poll()
+                when {
+                    element != null -> {
+                        onPull(element)
+                        element
+                    }
+                    endOfStream -> null
+                    else -> {
+                        check(continuation == null)
+                        continuation = it
+                        COROUTINE_SUSPENDED
+                    }
+                }
+            }
         }
     }
 

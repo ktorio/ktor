@@ -3,6 +3,7 @@ package org.jetbrains.ktor.netty
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import io.netty.util.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
@@ -62,7 +63,9 @@ internal class NettyApplicationCall(application: Application,
                     context.read()
                 }
             }
+            ReferenceCountUtil.release(httpRequest)
         }
+
     }
 
     override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {

@@ -1,12 +1,12 @@
 package org.jetbrains.ktor.util
 
 import kotlinx.coroutines.experimental.intrinsics.*
-import kotlin.coroutines.*
-import kotlin.coroutines.intrinsics.*
+import kotlin.coroutines.experimental.*
+import kotlin.coroutines.experimental.intrinsics.*
 
 fun <T> runSync(block: suspend () -> T): T {
     val result = block.startCoroutineOrReturn(NoopContinuation)
-    if (result == SUSPENDED_MARKER) {
+    if (result == COROUTINE_SUSPENDED) {
         throw IllegalStateException("function passed to runSync suspended")
     }
     @Suppress("UNCHECKED_CAST")
