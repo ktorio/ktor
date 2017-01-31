@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.host
 
-import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
@@ -15,12 +14,15 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
 
     protected val respondPipeline = RespondPipeline()
 
+    var responded = false
     suspend override fun respond(message: Any) {
         val responseMessage = ResponseMessage(this, message)
         val phases = respondPipeline.phases
         val pipelineContext = PipelineContext(phases.interceptors(), responseMessage)
         pipelineContext.proceed()
-
+        if (responded)
+            return
+        responded = true
         val value = responseMessage.message
         when (value) {
             is FinalContent -> respondFinalContent(value)
@@ -41,17 +43,18 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     open suspend fun respondFinalContent(content: FinalContent) {
         commitHeaders(content)
         return when (content) {
-            // ByteArrayContent is most efficient
+        // ByteArrayContent is most efficient
             is FinalContent.ByteArrayContent -> respondFromBytes(content.bytes())
 
-            // WriteChannelContent is more efficient than ReadChannelContent
+        // WriteChannelContent is more efficient than ReadChannelContent
             is FinalContent.WriteChannelContent -> content.writeTo(responseChannel())
 
-            // Pipe is least efficient
+        // Pipe is least efficient
             is FinalContent.ReadChannelContent -> respondFromChannel(content.readFrom())
 
-            // Do nothing, but maintain `when` exhaustiveness
-            is FinalContent.NoContent -> { /* no-op */ }
+        // Do nothing, but maintain `when` exhaustiveness
+            is FinalContent.NoContent -> { /* no-op */
+            }
         }
     }
 
