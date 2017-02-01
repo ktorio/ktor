@@ -108,7 +108,7 @@ class KweetApp : AutoCloseable {
 
 }
 
-fun ApplicationCall.redirect(location: Any): Nothing {
+suspend fun ApplicationCall.redirect(location: Any) {
     val host = request.host() ?: "localhost"
     val portSpec = request.port().let { if (it == 80) "" else ":$it" }
     val address = host + portSpec

@@ -10,9 +10,9 @@ class AuthenticationContext(val call: ApplicationCall) {
     var principal by Delegates.vetoable<Principal?>(null) { p, old, new -> require(old == null); true }
     val errors = HashMap<Any, NotAuthenticatedCause>()
 
-    private val challengesCollector = mutableListOf<Pair<NotAuthenticatedCause, PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>>()
+    private val challengesCollector = mutableListOf<Pair<NotAuthenticatedCause, suspend PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>>()
 
-    val challenges: List<PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>
+    val challenges: List<suspend PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>
         get() = challengesCollector.filter { it.first !is NotAuthenticatedCause.Error }.sortedBy {
             when (it.first) {
                 NotAuthenticatedCause.InvalidCredentials -> 1
@@ -21,7 +21,7 @@ class AuthenticationContext(val call: ApplicationCall) {
             }
         }.map { it.second }
 
-    val allChallenges: List<Pair<NotAuthenticatedCause, PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>>
+    val allChallenges: List<Pair<NotAuthenticatedCause, suspend PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>>
         get() = challengesCollector.toList()
 
     fun principal(principal: Principal) {
@@ -36,7 +36,7 @@ class AuthenticationContext(val call: ApplicationCall) {
         errors[key] = cause
     }
 
-    fun challenge(key: Any, cause: NotAuthenticatedCause, function: PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit) {
+    suspend fun challenge(key: Any, cause: NotAuthenticatedCause, function: suspend PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit) {
         error(key, cause)
         challengesCollector.add(cause to function)
     }

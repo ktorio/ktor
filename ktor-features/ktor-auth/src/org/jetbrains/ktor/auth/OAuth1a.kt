@@ -4,7 +4,6 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import java.io.*
@@ -14,11 +13,10 @@ import java.util.*
 import java.util.concurrent.*
 import javax.crypto.*
 import javax.crypto.spec.*
-import kotlin.comparisons.*
 
-internal fun PipelineContext<ApplicationCall>.oauth1a(client: HttpClient, exec: ExecutorService,
-                                                      providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                                      urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+suspend internal fun PipelineContext<ApplicationCall>.oauth1a(client: HttpClient, exec: ExecutorService,
+                                                              providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                                              urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     val provider = call.providerLookup()
     if (provider is OAuthServerSettings.OAuth1aServerSettings) {
         val token = call.oauth1aHandleCallback()
@@ -90,11 +88,11 @@ private fun simpleOAuth1aStep1(client: HttpClient, secretKey: String, baseUrl: S
     }
 }
 
-internal fun ApplicationCall.redirectAuthenticateOAuth1a(settings: OAuthServerSettings.OAuth1aServerSettings, requestToken: OAuthCallback.TokenPair): Nothing {
+suspend internal fun ApplicationCall.redirectAuthenticateOAuth1a(settings: OAuthServerSettings.OAuth1aServerSettings, requestToken: OAuthCallback.TokenPair) {
     redirectAuthenticateOAuth1a(settings.authorizeUrl, requestToken.token)
 }
 
-internal fun ApplicationCall.redirectAuthenticateOAuth1a(authenticateUrl: String, requestToken: String): Nothing {
+suspend internal fun ApplicationCall.redirectAuthenticateOAuth1a(authenticateUrl: String, requestToken: String) {
     val url = authenticateUrl.appendUrlParameters("${HttpAuthHeader.Parameters.OAuthToken}=${encodeURLQueryComponent(requestToken)}")
     respondRedirect(url)
 }

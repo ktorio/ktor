@@ -35,5 +35,10 @@
             <artifactId>gson</artifactId>
             <version>2.3.1</version>
         </dependency>
+        <dependency>
+            <groupId>org.jetbrains.ktor</groupId>
+            <artifactId>ktor-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

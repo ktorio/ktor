@@ -71,4 +71,4 @@ fun Application.youKubeApplication() {
     }
 }
 
-fun ApplicationCall.respondRedirect(location: Any): Nothing = respondRedirect(url(location), permanent = false)
+suspend fun ApplicationCall.respondRedirect(location: Any) = respondRedirect(url(location), permanent = false)

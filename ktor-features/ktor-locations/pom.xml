@@ -17,5 +17,10 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.jetbrains.ktor</groupId>
+            <artifactId>ktor-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

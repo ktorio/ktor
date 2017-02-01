@@ -141,7 +141,7 @@ private fun <T : Any> ApplicationCall.redirectUrl(t: T, secure: Boolean = true):
     return "$protocol://$hostPort${application.feature(Locations).href(t)}"
 }
 
-private fun ApplicationCall.loginPage() {
+suspend private fun ApplicationCall.loginPage() {
     respondHtml {
         head {
             title { +"Login with" }
@@ -162,7 +162,7 @@ private fun ApplicationCall.loginPage() {
     }
 }
 
-private fun ApplicationCall.loginFailedPage(errors: List<String>) {
+suspend private fun ApplicationCall.loginFailedPage(errors: List<String>) {
     respondHtml {
         head {
             title { +"Login with" }
@@ -181,7 +181,7 @@ private fun ApplicationCall.loginFailedPage(errors: List<String>) {
     }
 }
 
-private fun ApplicationCall.loggedInSuccessResponse(callback: OAuthAccessTokenResponse) {
+suspend private fun ApplicationCall.loggedInSuccessResponse(callback: OAuthAccessTokenResponse) {
     respondHtml {
         head {
             title { +"Logged in" }

@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.auth
 
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.http.*
@@ -52,20 +54,20 @@ object OAuthGrandTypes {
     val Password = "password"
 }
 
-fun PipelineContext<ApplicationCall>.oauth(client: HttpClient, exec: ExecutorService,
-                                           providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                           urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+suspend fun PipelineContext<ApplicationCall>.oauth(client: HttpClient, exec: ExecutorService,
+                                                   providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                                   urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     oauth1a(client, exec, providerLookup, urlProvider)
     oauth2(client, exec, providerLookup, urlProvider)
 }
 
-fun PipelineContext<ApplicationCall>.oauthRespondRedirect(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String) {
+suspend fun PipelineContext<ApplicationCall>.oauthRespondRedirect(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String) {
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
-            runAsync(exec) {
+            future(exec.toCoroutineDispatcher()) {
                 val requestToken = simpleOAuth1aStep1(client, provider, callbackUrl)
                 call.redirectAuthenticateOAuth1a(provider, requestToken)
-            }
+            }.await()
         }
         is OAuthServerSettings.OAuth2ServerSettings -> {
             call.redirectAuthenticateOAuth2(provider, callbackUrl, nextNonce(), scopes = provider.defaultScopes)
@@ -73,13 +75,13 @@ fun PipelineContext<ApplicationCall>.oauthRespondRedirect(client: HttpClient, ex
     }
 }
 
-fun PipelineContext<ApplicationCall>.oauthHandleCallback(client: HttpClient,
-                                                         exec: ExecutorService,
-                                                         provider: OAuthServerSettings,
-                                                         callbackUrl: String,
-                                                         loginPageUrl: String,
-                                                         configure: RequestBuilder.() -> Unit = {},
-                                                         block: (OAuthAccessTokenResponse) -> Unit) {
+suspend fun PipelineContext<ApplicationCall>.oauthHandleCallback(client: HttpClient,
+                                                                 exec: ExecutorService,
+                                                                 provider: OAuthServerSettings,
+                                                                 callbackUrl: String,
+                                                                 loginPageUrl: String,
+                                                                 configure: RequestBuilder.() -> Unit = {},
+                                                                 block: suspend (OAuthAccessTokenResponse) -> Unit) {
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
             val tokens = call.oauth1aHandleCallback()
@@ -122,9 +124,7 @@ fun PipelineContext<ApplicationCall>.oauthHandleCallback(client: HttpClient,
     }
 }
 
-internal fun ApplicationCall.oauthHandleFail(redirectUrl: String): Nothing {
-    respondRedirect(redirectUrl)
-}
+suspend internal fun ApplicationCall.oauthHandleFail(redirectUrl: String) = respondRedirect(redirectUrl)
 
 internal fun String.appendUrlParameters(parameters: String) =
         when {

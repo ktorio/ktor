@@ -15,9 +15,9 @@ class Authentication(val pipeline: AuthenticationPipeline) {
                     val challengePipeline = Pipeline(challengePhase, challenges)
                     challengePipeline.intercept(challengePhase) { challenge ->
                         if (challenge.success)
-                            finishAll()
+                            finish() // TODO: was finishAll
                     }
-                    fork(AuthenticationProcedureChallenge(), challengePipeline)
+                    challengePipeline.execute(AuthenticationProcedureChallenge())
                 }
             }
         }
@@ -34,7 +34,7 @@ class Authentication(val pipeline: AuthenticationPipeline) {
             pipeline.phases.insertAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
             pipeline.intercept(authenticationPhase) {
                 val procedureContext = AuthenticationContext.from(call)
-                fork(procedureContext, feature.pipeline)
+                feature.pipeline.execute(procedureContext)
             }
             return feature
         }

@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.samples.async
 
+import kotlinx.coroutines.experimental.*
 import kotlinx.html.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
@@ -15,19 +16,19 @@ fun Application.main() {
     install(Routing) {
         get("/{...}") {
             val start = System.currentTimeMillis()
-            runAsync(executor) {
+            defer(executor.toCoroutineDispatcher()) {
                 call.handleLongCalculation(start)
-            }
+            }.await()
         }
     }
 }
 
-private fun ApplicationCall.handleLongCalculation(start: Long) {
+private suspend fun ApplicationCall.handleLongCalculation(start: Long) {
     val queue = System.currentTimeMillis() - start
     var number = 0
     val random = Random()
     for (index in 0..300) {
-        Thread.sleep(10)
+        delay(10)
         number += random.nextInt(100)
     }
 

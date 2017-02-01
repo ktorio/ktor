@@ -31,7 +31,7 @@ fun Application.main() {
     intercept(ApplicationCallPipeline.Infrastructure) { call ->
         if (call.request.acceptItems().any { it.value == "application/json" }) {
             call.transform.register<JsonResponse> { value ->
-                TextContent(ContentType.Application.Json, gson.toJson(value.data))
+                TextContent(gson.toJson(value.data), ContentType.Application.Json)
             }
         }
     }

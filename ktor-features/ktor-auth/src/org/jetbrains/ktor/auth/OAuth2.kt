@@ -11,9 +11,9 @@ import java.io.*
 import java.net.*
 import java.util.concurrent.*
 
-internal fun PipelineContext<ApplicationCall>.oauth2(client: HttpClient, exec: ExecutorService,
-                                                     providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                                     urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+suspend internal fun PipelineContext<ApplicationCall>.oauth2(client: HttpClient, exec: ExecutorService,
+                                                             providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                                             urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     val provider = call.providerLookup()
     when (provider) {
         is OAuthServerSettings.OAuth2ServerSettings -> {
@@ -41,7 +41,7 @@ internal fun ApplicationCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? 
     }
 }
 
-internal fun ApplicationCall.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList()): Nothing {
+suspend internal fun ApplicationCall.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList()){
     redirectAuthenticateOAuth2(authenticateUrl = settings.authorizeUrl,
             callbackRedirectUrl = callbackRedirectUrl,
             clientId = settings.clientId,
@@ -71,7 +71,7 @@ internal fun simpleOAuth2Step2(client: HttpClient,
     )
 }
 
-private fun ApplicationCall.redirectAuthenticateOAuth2(authenticateUrl: String, callbackRedirectUrl: String, clientId: String, state: String, scopes: List<String> = emptyList(), parameters: List<Pair<String, String>> = emptyList()): Nothing {
+suspend private fun ApplicationCall.redirectAuthenticateOAuth2(authenticateUrl: String, callbackRedirectUrl: String, clientId: String, state: String, scopes: List<String> = emptyList(), parameters: List<Pair<String, String>> = emptyList()) {
     respondRedirect(authenticateUrl
             .appendUrlParameters("${OAuth2RequestParameters.ClientId}=${encodeURLQueryComponent(clientId)}&${OAuth2RequestParameters.RedirectUri}=${encodeURLQueryComponent(callbackRedirectUrl)}")
             .appendUrlParameters(optionalParameter(OAuth2RequestParameters.Scope, scopes.joinToString(",")))
