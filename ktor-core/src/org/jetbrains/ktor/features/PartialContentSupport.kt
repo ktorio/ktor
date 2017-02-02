@@ -18,6 +18,8 @@ class PartialContentSupport(val maxRangeCount : Int) {
     }
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, PartialContentSupport> {
+        val PartialContentPhase = PipelinePhase("PartialContent")
+
         override val key: AttributeKey<PartialContentSupport> = AttributeKey("Partial Content")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): PartialContentSupport {
             val feature = PartialContentSupport(Configuration().apply(configure).maxRangeCount)
@@ -31,7 +33,8 @@ class PartialContentSupport(val maxRangeCount : Int) {
         if (rangeSpecifier != null) {
             if (call.isGetOrHead()) {
                 call.attributes.put(Compression.SuppressionAttribute, true)
-                call.response.pipeline.intercept(RespondPipeline.After) {
+                call.response.pipeline.registerPhase()
+                call.response.pipeline.intercept(PartialContentPhase) {
                     val message = subject.message
                     if (message is FinalContent.ReadChannelContent && message !is RangeChannelProvider) {
                         message.contentLength()?.let { length -> tryProcessRange(message, call, rangeSpecifier, length) }
@@ -41,13 +44,18 @@ class PartialContentSupport(val maxRangeCount : Int) {
                 call.respond(HttpStatusCode.MethodNotAllowed.description("Method ${call.request.local.method.value} is not allowed with range request"))
             }
         } else {
-            call.response.pipeline.intercept(RespondPipeline.After) {
+            call.response.pipeline.registerPhase()
+            call.response.pipeline.intercept(PartialContentPhase) {
                 val message = subject.message
                 if (message is FinalContent.ReadChannelContent && message !is RangeChannelProvider) {
                     call.respond(RangeChannelProvider.ByPass(message))
                 }
             }
         }
+    }
+
+    private fun RespondPipeline.registerPhase() {
+        phases.insertAfter(RespondPipeline.ContentEncoding, PartialContentPhase)
     }
 
     suspend private fun PipelineContext<*>.tryProcessRange(obj: FinalContent.ReadChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long): Unit {

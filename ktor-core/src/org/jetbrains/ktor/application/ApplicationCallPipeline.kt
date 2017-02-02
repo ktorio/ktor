@@ -20,13 +20,17 @@ class ResponseMessage(val call: ApplicationCall, message: Any) {
     val attributes = Attributes()
 }
 
-open class RespondPipeline : Pipeline<ResponseMessage>(Before, Transform, Render, After) {
+open class RespondPipeline : Pipeline<ResponseMessage>(Before, Transform, Render, ContentEncoding, TransferEncoding, After) {
     companion object RespondPhase {
         val Before = PipelinePhase("Before")
 
         val Transform = PipelinePhase("Transform")
 
         val Render = PipelinePhase("Render")
+
+        val ContentEncoding = PipelinePhase("ContentEncoding")
+
+        val TransferEncoding = PipelinePhase("TransferEncoding")
 
         val After = PipelinePhase("After")
     }

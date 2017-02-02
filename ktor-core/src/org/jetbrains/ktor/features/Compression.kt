@@ -40,7 +40,7 @@ class Compression(compression: Configuration) {
         if (!encoders.isNotEmpty())
             return
 
-        call.response.pipeline.intercept(RespondPipeline.After) {
+        call.response.pipeline.intercept(RespondPipeline.ContentEncoding) {
             val message = subject.message
             if (message is FinalContent
                     && message !is CompressedResponse
