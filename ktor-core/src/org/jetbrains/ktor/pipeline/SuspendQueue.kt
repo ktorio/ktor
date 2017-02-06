@@ -7,10 +7,10 @@ import kotlin.coroutines.experimental.*
 import kotlin.coroutines.experimental.intrinsics.*
 
 open class SuspendQueue<T : Any>(initialSize: Int) : Iterable<T> {
-    val lock = ReentrantLock()
-    val queue = ArrayDeque<T>(initialSize)
-    var continuation: Continuation<T?>? = null
-    var endOfStream = false
+    internal val lock = ReentrantLock()
+    protected val queue = ArrayDeque<T>(initialSize)
+    protected var continuation: Continuation<T?>? = null
+    protected var endOfStream = false
 
     fun push(element: T, lastElement: Boolean) {
         check(!endOfStream)
@@ -58,6 +58,7 @@ open class SuspendQueue<T : Any>(initialSize: Int) : Iterable<T> {
         }
     }
 
+    @Deprecated("Isn't it dangerous to iterate over concurrently accessed queue with no lock?")
     override fun iterator(): Iterator<T> = queue.iterator()
 
     open fun onPush(element: T) {}
