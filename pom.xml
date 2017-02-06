@@ -8,7 +8,7 @@
     <artifactId>ktor</artifactId>
 
     <properties>
-        <kotlin.version>1.1.0-dev-6605</kotlin.version>
+        <kotlin.version>1.1.0-dev-6720</kotlin.version>
         <dokka.version>0.9.11</dokka.version>
         <jmh.version>1.15</jmh.version>
 
@@ -166,11 +166,11 @@
                     </execution>
                 </executions>
                 <configuration>
-<!--
+
                     <args>
                         <arg>-Xcoroutines=enable</arg>
                     </args>
--->
+
                 </configuration>
             </plugin>
             <plugin>
