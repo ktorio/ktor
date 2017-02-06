@@ -98,7 +98,7 @@ class HeadTest {
                 route("/") {
                     handle {
                         call.respond(object : FinalContent.ReadChannelContent() {
-                            override fun readFrom() = ByteBufferReadChannel("Hello".toByteArray())
+                            override fun readFrom() = "Hello".toByteArray().toReadChannel()
 
                             override val headers: ValuesMap
                                 get() = ValuesMap.build(true) {

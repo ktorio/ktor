@@ -78,3 +78,6 @@ class ByteBufferWriteChannel : WriteChannel {
         private val EMPTY = ByteArray(0)
     }
 }
+
+fun ByteBuffer.toReadChannel() = ByteBufferReadChannel(this)
+fun ByteArray.toReadChannel() = ByteBufferReadChannel(this)

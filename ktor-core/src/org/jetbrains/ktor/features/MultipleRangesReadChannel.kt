@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.features
 
-import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.cio.*
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 
 object MultipleRangesReadChannel {
@@ -30,7 +30,7 @@ object MultipleRangesReadChannel {
 
         return asSequence().flatMap { range ->
             sequenceOf({
-                ByteBufferReadChannel(buildString {
+                buildString {
                     append(boundary)
                     append("\r\n")
 
@@ -45,16 +45,16 @@ object MultipleRangesReadChannel {
                     append("\r\n")
 
                     append("\r\n")
-                }.toByteArray(Charsets.ISO_8859_1))
+                }.toByteArray(Charsets.ISO_8859_1).toReadChannel()
             }, {
                 builder(range)
             }, {
-                ByteBufferReadChannel(buildString {
+                buildString {
                     append("\r\n")
-                }.toByteArray(Charsets.ISO_8859_1))
+                }.toByteArray(Charsets.ISO_8859_1).toReadChannel()
             })
         } + sequenceOf({
-            ByteBufferReadChannel(boundary.toByteArray(Charsets.ISO_8859_1))
+            boundary.toByteArray(Charsets.ISO_8859_1).toReadChannel()
         })
     }
 }

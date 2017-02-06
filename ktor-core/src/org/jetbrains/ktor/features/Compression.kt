@@ -60,7 +60,7 @@ class Compression(compression: Configuration) {
                         return@intercept
                     }
                     is FinalContent.NoContent -> return@intercept
-                    is FinalContent.ByteArrayContent -> ({ ByteBufferReadChannel(message.bytes()) })
+                    is FinalContent.ByteArrayContent -> ({ message.bytes().toReadChannel() })
                 }
 
                 if (encoderOptions != null) {
