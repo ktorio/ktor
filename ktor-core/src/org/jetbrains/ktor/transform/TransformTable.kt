@@ -18,11 +18,11 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
     private val handlersCacheLock = ReentrantReadWriteLock()
     private val handlersCache = HashMap<Class<*>, List<Handler<C, *>>>()
 
-    inline fun <reified T : Any> register(handler: suspend C.(T) -> Any) {
+    inline fun <reified T : Any> register(noinline handler: suspend C.(T) -> Any) {
         register({ true }, handler)
     }
 
-    inline fun <reified T : Any> register(noinline predicate: C.(T) -> Boolean, handler: suspend C.(T) -> Any) {
+    inline fun <reified T : Any> register(noinline predicate: C.(T) -> Boolean, noinline handler: suspend C.(T) -> Any) {
         register(T::class.javaObjectType, predicate, handler)
     }
 

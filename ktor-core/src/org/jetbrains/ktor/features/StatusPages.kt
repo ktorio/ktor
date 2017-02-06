@@ -15,7 +15,7 @@ class StatusPages(config: Configuration) {
         val exceptions = mutableMapOf<Class<*>, suspend PipelineContext<ApplicationCall>.(Throwable) -> Unit>()
         val statuses = mutableMapOf<HttpStatusCode, suspend PipelineContext<ApplicationCall>.(HttpStatusCode) -> Unit>()
 
-        inline fun <reified T : Any> exception(handler: suspend PipelineContext<ApplicationCall>.(Throwable) -> Unit) =
+        inline fun <reified T : Any> exception(noinline handler: suspend PipelineContext<ApplicationCall>.(Throwable) -> Unit) =
                 exception(T::class.java, handler)
 
         fun exception(klass: Class<*>, handler: suspend PipelineContext<ApplicationCall>.(Throwable) -> Unit) {

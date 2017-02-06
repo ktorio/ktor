@@ -6,11 +6,11 @@ class ApplicationTransform<C : Any>(private val parent: TransformTable<C>? = nul
     var table: TransformTable<C> = parent ?: TransformTable()
         private set
 
-    inline fun <reified T : Any> register(handler: suspend C.(T) -> Any) {
+    inline fun <reified T : Any> register(noinline handler: suspend C.(T) -> Any) {
         register({ true }, handler)
     }
 
-    inline fun <reified T : Any> register(noinline predicate: C.(T) -> Boolean,  handler: suspend C.(T) -> Any) {
+    inline fun <reified T : Any> register(noinline predicate: C.(T) -> Boolean, noinline handler: suspend C.(T) -> Any) {
         register(T::class, predicate, handler)
     }
 
