@@ -24,9 +24,6 @@
     </option>
     <envs />
     <patterns />
-    <RunnerSettings RunnerId="JProfiler">
-      <option name="WINDOW" value="false" />
-    </RunnerSettings>
     <method />
   </configuration>
 </component>
