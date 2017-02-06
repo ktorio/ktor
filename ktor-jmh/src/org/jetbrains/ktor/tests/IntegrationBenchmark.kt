@@ -3,6 +3,7 @@ package org.jetbrains.ktor.tests
 import ch.qos.logback.classic.Level
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.*
 import org.jetbrains.ktor.routing.*
 import org.openjdk.jmh.annotations.*
@@ -19,7 +20,7 @@ open class IntegrationBenchmark {
     private val smallFile = File("pom.xml")
     private val largeFile = File("ktor-core/target/ktor-core-0.2.5-SNAPSHOT.jar")
 
-    lateinit private var server: NettyApplicationHost
+    lateinit private var server: ApplicationHostStartable
 
     private val port = 5678
 
@@ -102,11 +103,16 @@ open class IntegrationBenchmark {
     }
 }
 /*
+Netty:
+
 Benchmark                                   Mode  Cnt   Score   Error   Units
-IntegrationBenchmark.jarfile               thrpt   10  11.359 ± 2.814  ops/ms
-IntegrationBenchmark.regularClasspathFile  thrpt   10  14.951 ± 0.848  ops/ms
-IntegrationBenchmark.regularFile           thrpt   10  15.070 ± 0.607  ops/ms
-IntegrationBenchmark.sayOK                 thrpt   10  21.792 ± 3.005  ops/ms
+IntegrationBenchmark.jarfile               thrpt   10   9.972 ± 3.298  ops/ms
+IntegrationBenchmark.largeFile             thrpt   10   0.867 ± 0.173  ops/ms
+IntegrationBenchmark.largeFileSync         thrpt   10   1.465 ± 0.154  ops/ms
+IntegrationBenchmark.regularClasspathFile  thrpt   10  14.976 ± 0.806  ops/ms
+IntegrationBenchmark.sayOK                 thrpt   10  23.301 ± 1.221  ops/ms
+IntegrationBenchmark.smallFile             thrpt   10  16.916 ± 1.150  ops/ms
+IntegrationBenchmark.smallFileSync         thrpt   10  17.866 ± 4.305  ops/ms
 */
 
 fun main(args: Array<String>) {
