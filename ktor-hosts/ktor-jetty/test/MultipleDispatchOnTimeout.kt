@@ -1,8 +1,8 @@
 import org.jetbrains.ktor.application.BasicApplicationEnvironment
 import org.jetbrains.ktor.application.call
 import org.jetbrains.ktor.application.install
-import org.jetbrains.ktor.application.respondWrite
 import org.jetbrains.ktor.config.MapApplicationConfig
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.applicationHostConfig
 import org.jetbrains.ktor.host.connector
 import org.jetbrains.ktor.jetty.embeddedJettyServer

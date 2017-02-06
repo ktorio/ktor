@@ -5,52 +5,63 @@ import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.atomic.*
 import javax.servlet.*
+import kotlin.coroutines.experimental.*
+import kotlin.coroutines.experimental.intrinsics.*
 
 class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChannel {
     private val listenerInstalled = AtomicBoolean()
-    private val currentHandler = AtomicReference<AsyncHandler?>()
+    private val currentHandler = AtomicReference<Continuation<Int>?>()
     private var currentBuffer: ByteBuffer? = null
     @Volatile
     private var closed = false
 
     private val readListener = object : ReadListener {
         override fun onAllDataRead() {
-            withHandler { handler, buffer ->
-                handler.successEnd()
+            withHandler { handler, _ ->
+                closed = true
+                handler.resume(-1)
             }
         }
 
         override fun onError(t: Throwable) {
-            withHandler { handler, buffer ->
-                handler.failed(t)
+            withHandler { handler, _ ->
+                handler.resumeWithException(t)
             }
         }
 
         override fun onDataAvailable() {
             withHandler { handler, buffer ->
-                doRead(handler, buffer)
+                val result = doRead(buffer)
+                if (result is Int) {
+                    handler.resume(result)
+                } else {
+                    handler.resumeWithException(IllegalStateException("data is available but we couldn't read it"))
+                }
             }
         }
     }
 
-    override fun read(dst: ByteBuffer, handler: AsyncHandler) {
+    suspend override fun read(dst: ByteBuffer): Int {
         if (!dst.hasRemaining()) {
-            handler.success(0)
-            return
+            return 0
         }
+
         if (closed) {
-            throw IllegalStateException("Read channel is already closed")
+            return -1
         }
 
-        if (!currentHandler.compareAndSet(null, handler)) {
-            throw IllegalStateException("Read operation is already in progress")
-        }
-        currentBuffer = dst
+        return suspendCoroutineOrReturn { continuation ->
+            if (!currentHandler.compareAndSet(null, continuation)) {
+                throw IllegalStateException("Read operation is already in progress")
+            }
 
-        if (listenerInstalled.compareAndSet(false, true)) {
-            servletInputStream.setReadListener(readListener)
-        } else {
-            doRead(handler, dst)
+            currentBuffer = dst
+            if (listenerInstalled.compareAndSet(false, true)) {
+                servletInputStream.setReadListener(readListener)
+                COROUTINE_SUSPENDED
+            } else {
+                doRead(dst)
+            }
         }
     }
 
@@ -62,25 +73,21 @@ class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChann
         } finally {
             closed = true
 
-            withHandler { handler, buffer ->
-                handler.failed(ClosedChannelException())
+            withHandler { handler, _ ->
+                handler.resumeWithException(ClosedChannelException())
             }
         }
     }
 
-    private fun doRead(handler: AsyncHandler, buffer: ByteBuffer) {
+    private fun doRead(buffer: ByteBuffer): Any {
         if (servletInputStream.isFinished) {
             clearReferences()
-            handler.successEnd()
+            return -1
         } else if (servletInputStream.isReady) {
             clearReferences()
-
-            val size = servletInputStream.read(buffer)
-            if (size == -1) {
-                handler.successEnd()
-            } else {
-                handler.success(size)
-            }
+            return servletInputStream.read(buffer)
+        } else {
+            return COROUTINE_SUSPENDED
         }
     }
 
@@ -101,7 +108,7 @@ class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChann
         }
     }
 
-    private inline fun withHandler(block: (AsyncHandler, ByteBuffer) -> Unit) {
+    private inline fun withHandler(block: (Continuation<Int>, ByteBuffer) -> Unit) {
         currentHandler.getAndSet(null)?.let { handler ->
             currentBuffer?.let { buffer ->
                 currentBuffer = null

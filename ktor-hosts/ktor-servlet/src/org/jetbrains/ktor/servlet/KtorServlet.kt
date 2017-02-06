@@ -1,10 +1,10 @@
 package org.jetbrains.ktor.servlet
 
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.pipeline.*
 import java.lang.reflect.*
 import javax.servlet.http.*
 
@@ -29,18 +29,11 @@ abstract class KtorServlet : HttpServlet() {
                 tryPush(request, call, block, next)
             })
 
-            call.executeOn(application.executor, hostPipeline).whenComplete { state, throwable ->
-                when (state) {
-                    PipelineState.Finished, PipelineState.FinishedAll -> {
-                        call.close()
-                    }
-                    PipelineState.Failed -> {
-                        application.environment.log.error("Application ${application.javaClass} cannot fulfill the request", throwable)
-                        call.respond(HttpStatusCode.InternalServerError)
-                    }
-                    null, PipelineState.Executing -> {
-                    }
-                }
+            val dispatcher = application.executor.toCoroutineDispatcher()
+            future(dispatcher) {
+                hostPipeline.execute(call)
+            }.whenComplete { _, _ ->
+                request.asyncContext?.complete()
             }
         } catch (ex: Throwable) {
             application.environment.log.error("ServletApplicationHost cannot service the request", ex)

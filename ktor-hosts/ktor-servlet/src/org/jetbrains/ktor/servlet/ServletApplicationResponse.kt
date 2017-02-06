@@ -10,9 +10,8 @@ import javax.servlet.http.*
 class ServletApplicationResponse(call: ServletApplicationCall,
                                  responsePipeline: RespondPipeline,
                                  val servletResponse: HttpServletResponse,
-                                 val pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit,
-                                 val responseChannel: () -> WriteChannel
-                                 ) : BaseApplicationResponse(call, responsePipeline) {
+                                 val pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit
+) : BaseApplicationResponse(call, responsePipeline) {
     override fun setStatus(statusCode: HttpStatusCode) {
         servletResponse.status = statusCode.value
     }
@@ -25,8 +24,6 @@ class ServletApplicationResponse(call: ServletApplicationCall,
         override fun getHostHeaderNames(): List<String> = servletResponse.headerNames.toList()
         override fun getHostHeaderValues(name: String): List<String> = servletResponse.getHeaders(name).toList()
     }
-
-    override fun channel(): WriteChannel = responseChannel()
 
     override fun push(block: ResponsePushBuilder.() -> Unit) {
         pushImpl(call, block, { super.push(block) })

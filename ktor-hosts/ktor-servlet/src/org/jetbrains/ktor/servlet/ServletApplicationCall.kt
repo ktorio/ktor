@@ -17,7 +17,7 @@ open class ServletApplicationCall(application: Application,
                                   pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit) : BaseApplicationCall(application) {
 
     override val request: ServletApplicationRequest = ServletApplicationRequest(servletRequest, { requestChannelOverride })
-    override val response: ServletApplicationResponse = ServletApplicationResponse(this, respondPipeline, servletResponse, pushImpl, { responseChannel() })
+    override val response: ServletApplicationResponse = ServletApplicationResponse(this, respondPipeline, servletResponse, pushImpl)
 
     @Volatile
     protected var requestChannelOverride: ReadChannel? = null
@@ -26,10 +26,6 @@ open class ServletApplicationCall(application: Application,
 
     private val asyncContext: AsyncContext?
         get() = servletRequest.asyncContext
-
-    @Deprecated("Always true")
-    val asyncStarted: Boolean
-        get() = asyncContext != null
 
     @Volatile
     var completed: Boolean = false
@@ -59,15 +55,15 @@ open class ServletApplicationCall(application: Application,
 
     override fun responseChannel(): WriteChannel = responseChannelOverride ?: responseChannel.value
 
-    @Synchronized
-    override fun close() {
-        ensureCompleted()
-    }
+    suspend override fun respond(message: Any) {
+        super.respond(message)
 
-    @Synchronized
-    @Deprecated("Request processing is always async. Does nothing")
-    fun ensureAsync() {
-        requireNotNull(asyncContext)
+        request.close()
+        if (responseChannel.isInitialized()) {
+            responseChannel.value.close()
+        } else {
+            servletResponse.flushBuffer()
+        }
     }
 
     private fun ensureCompleted() {
@@ -80,7 +76,7 @@ open class ServletApplicationCall(application: Application,
                     responseChannel.value.close()
                 }
             } finally {
-                asyncContext?.complete()
+                asyncContext?.complete() // causes pipeline execution break however it is required for websocket
             }
         }
     }

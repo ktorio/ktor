@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.jetty
 
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.future.*
 import org.eclipse.jetty.alpn.server.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.*
@@ -9,11 +11,10 @@ import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
 import org.eclipse.jetty.util.ssl.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
+import org.jetbrains.ktor.cio.ByteBufferPool
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
-import org.jetbrains.ktor.nio.ByteBufferPool
-import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.transform.*
 import java.nio.*
 import javax.servlet.*
@@ -141,28 +142,15 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 request.asyncContext.timeout = 0 // Overwrite any default non-null timeout to prevent multiple dispatches
                 baseRequest.isHandled = true
 
-                call.executeOn(application.executor, hostPipeline).whenComplete { state, t ->
-                    try {
-                        when (state) {
-                            PipelineState.Finished, PipelineState.FinishedAll -> {
-                                call.close()
-                            }
-                            PipelineState.Failed -> {
-                                environment.log.error("Application ${application.javaClass} cannot fulfill the request", t)
-                                call.execution.runBlockWithResult {
-                                    call.respond(HttpStatusCode.InternalServerError)
-                                }
-                            }
-                            null, PipelineState.Executing -> {
-                            }
-                        }
-                    } catch(ex: Throwable) {
-                        environment.log.error("Application ${application.javaClass} failed to complete request", ex)
-                    }
+                future(application.executor.toCoroutineDispatcher()) {
+                    hostPipeline.execute(call)
+                }.whenComplete { _, _ ->
+                    request.asyncContext?.complete()
                 }
             } catch(ex: Throwable) {
                 environment.log.error("Application ${application.javaClass} cannot fulfill the request", ex)
-                call.execution.runBlockWithResult {
+
+                future(application.executor.toCoroutineDispatcher()) {
                     call.respond(HttpStatusCode.InternalServerError)
                 }
             }
