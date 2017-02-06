@@ -6,18 +6,18 @@ import org.openjdk.jmh.annotations.*
 
 @State(Scope.Benchmark)
 open class BaselinePipeline {
-    val functions = listOf({ 1 }, { 2 }, { 3 })
-    val suspendFunctions = listOf<suspend () -> Int>({ 1 }, { 2 }, { 3 })
+    val functions = listOf({ "1" }, { "2" }, { "3" })
+    val suspendFunctions = listOf<suspend () -> String>({ "1" }, { "2" }, { "3" })
 
     @Benchmark
-    fun directCalls(): Int {
-        return functions.sumBy { it() }
+    fun directCalls(): String {
+        return functions.fold("") { a, b -> a + b() }
     }
 
     @Benchmark
-    fun suspendCalls(): Int {
+    fun suspendCalls(): String {
         return runSync {
-            suspendFunctions.sumBy { it() }
+            suspendFunctions.fold("") { a, b -> a + b() }
         }
     }
 }
@@ -120,8 +120,8 @@ open class PipelineAction3Implicit : PipelineBenchmark() {
 }
 
 /*
-BaselinePipeline.directCalls     thrpt   10  46760.335 ± 1067.980  ops/ms
-BaselinePipeline.suspendCalls    thrpt   10  22505.835 ± 1989.106  ops/ms
+BaselinePipeline.directCalls     thrpt   10  10661.608 ± 2258.592  ops/ms
+BaselinePipeline.suspendCalls    thrpt   10   6814.299 ± 1460.205  ops/ms
 
 PipelineAction.execute           thrpt   10  20156.554 ± 2235.894  ops/ms
 PipelineAction2.execute          thrpt   10  15280.387 ±  247.277  ops/ms
