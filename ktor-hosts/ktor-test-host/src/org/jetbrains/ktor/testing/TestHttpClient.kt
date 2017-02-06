@@ -53,7 +53,7 @@ class TestingHttpConnection(val app: TestApplicationHost, val host: String, val 
     private class TestingHttpResponse(override val connection: HttpConnection, val call: TestApplicationCall) : HttpResponse {
 
         override val channel: ReadChannel
-            get() = call.response.byteContent?.let { ByteBufferReadChannel(it) } ?: EmptyReadChannel
+            get() = call.response.byteContent?.toReadChannel() ?: EmptyReadChannel
 
         override val headers: ValuesMap
             get() = call.response.headers.allValues()
