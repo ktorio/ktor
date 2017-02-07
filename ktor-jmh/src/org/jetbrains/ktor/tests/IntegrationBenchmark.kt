@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.jetty.*
 import org.jetbrains.ktor.netty.*
 import org.jetbrains.ktor.routing.*
 import org.openjdk.jmh.annotations.*
@@ -14,21 +15,25 @@ import java.net.*
 
 
 @State(Scope.Benchmark)
-open class IntegrationBenchmark {
+abstract class IntegrationBenchmark {
     private val packageName = IntegrationBenchmark::class.java.`package`.name
     private val classFileName = IntegrationBenchmark::class.simpleName!! + ".class"
     private val smallFile = File("pom.xml")
-    private val largeFile = File("ktor-core/target/ktor-core-0.2.5-SNAPSHOT.jar")
+    private val largeFile = File("ktor-core/target/").walkTopDown().maxDepth(1).filter {
+        it.name.startsWith("ktor-core") && it.name.endsWith("SNAPSHOT.jar")
+    }.single()
 
     lateinit private var server: ApplicationHostStartable
 
     private val port = 5678
 
+    abstract fun createServer(port: Int, configure: Application.() -> Unit): ApplicationHostStartable
+
     @Setup
     fun configureServer() {
         val root = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
         root.level = Level.ERROR
-        server = embeddedNettyServer(port) {
+        server = createServer(port) {
             routing {
                 get("/sayOK") {
                     call.respond("OK")
@@ -91,7 +96,7 @@ open class IntegrationBenchmark {
     fun smallFileSync(): ByteArray {
         return load("http://localhost:$port/smallFileSync")
     }
-    
+
     @Benchmark
     fun largeFile(): ByteArray {
         return load("http://localhost:$port/largeFile")
@@ -102,23 +107,39 @@ open class IntegrationBenchmark {
         return load("http://localhost:$port/largeFileSync")
     }
 }
-/*
-Netty:
 
-Benchmark                                   Mode  Cnt   Score   Error   Units
-IntegrationBenchmark.jarfile               thrpt   10   9.972 ± 3.298  ops/ms
-IntegrationBenchmark.largeFile             thrpt   10   0.867 ± 0.173  ops/ms
-IntegrationBenchmark.largeFileSync         thrpt   10   1.465 ± 0.154  ops/ms
-IntegrationBenchmark.regularClasspathFile  thrpt   10  14.976 ± 0.806  ops/ms
-IntegrationBenchmark.sayOK                 thrpt   10  23.301 ± 1.221  ops/ms
-IntegrationBenchmark.smallFile             thrpt   10  16.916 ± 1.150  ops/ms
-IntegrationBenchmark.smallFileSync         thrpt   10  17.866 ± 4.305  ops/ms
+open class NettyIntegrationBenchmark : IntegrationBenchmark() {
+    override fun createServer(port: Int, configure: Application.() -> Unit): ApplicationHostStartable {
+        return embeddedNettyServer(port, configure = configure)
+    }
+}
+
+open class JettyIntegrationBenchmark : IntegrationBenchmark() {
+    override fun createServer(port: Int, configure: Application.() -> Unit): ApplicationHostStartable {
+        return embeddedJettyServer(port, configure = configure)
+    }
+}
+
+/*
+Benchmark                                        Mode  Cnt   Score   Error   Units
+JettyIntegrationBenchmark.jarfile               thrpt   10  12.509 ± 2.196  ops/ms
+JettyIntegrationBenchmark.largeFile             thrpt   10   1.021 ± 0.089  ops/ms
+JettyIntegrationBenchmark.regularClasspathFile  thrpt   10  15.423 ± 1.317  ops/ms
+JettyIntegrationBenchmark.sayOK                 thrpt   10  25.281 ± 2.988  ops/ms
+JettyIntegrationBenchmark.smallFile             thrpt   10  17.042 ± 1.622  ops/ms
+
+NettyIntegrationBenchmark.jarfile               thrpt   10   9.374 ± 2.783  ops/ms
+NettyIntegrationBenchmark.largeFile             thrpt   10   0.525 ± 0.021  ops/ms
+NettyIntegrationBenchmark.regularClasspathFile  thrpt   10  11.799 ± 3.637  ops/ms
+NettyIntegrationBenchmark.sayOK                 thrpt   10  18.154 ± 7.519  ops/ms
+NettyIntegrationBenchmark.smallFile             thrpt   10  12.484 ± 3.729  ops/ms
 */
 
 fun main(args: Array<String>) {
     benchmark(args) {
         threads = 4
-        run<IntegrationBenchmark>()
+        run<NettyIntegrationBenchmark>()
+        run<JettyIntegrationBenchmark>()
     }
 }
 
