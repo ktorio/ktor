@@ -22,8 +22,8 @@ class ResponseCookies(private val response: ApplicationResponse, request: Applic
                encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
                maxAge: Int = 0,
                expires: Temporal? = null,
-               domain: String = "",
-               path: String = "",
+               domain: String? = null,
+               path: String? = null,
                secure: Boolean = false,
                httpOnly: Boolean = false,
                extensions: Map<String, String?> = emptyMap()) {
@@ -41,7 +41,7 @@ class ResponseCookies(private val response: ApplicationResponse, request: Applic
                      ))
     }
 
-    fun appendExpired(name: String, domain: String = "", path: String = "") {
+    fun appendExpired(name: String, domain: String? = null, path: String? = null) {
         append(name, "", domain = domain, path = path, expires = Instant.EPOCH)
     }
 }

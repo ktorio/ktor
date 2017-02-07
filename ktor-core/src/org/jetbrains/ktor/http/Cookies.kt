@@ -10,8 +10,8 @@ data class Cookie(
         val encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
         val maxAge: Int = 0,
         val expires: Temporal? = null,
-        val domain: String = "",
-        val path: String = "",
+        val domain: String? = null,
+        val path: String? = null,
         val secure: Boolean = false,
         val httpOnly: Boolean = false,
         val extensions: Map<String, String?> = emptyMap()
@@ -33,9 +33,9 @@ fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
             value = decodeCookieValue(first.value, encoding),
             encoding = encoding,
             maxAge = loweredMap["max-age"]?.toInt() ?: 0,
-            expires = loweredMap["expires"]?.let { it.fromHttpDateString() },
-            domain = loweredMap["domain"] ?: "",
-            path = loweredMap["path"] ?: "",
+            expires = loweredMap["expires"]?.fromHttpDateString(),
+            domain = loweredMap["domain"],
+            path = loweredMap["path"],
             secure = "secure" in loweredMap,
             httpOnly = "httponly" in loweredMap,
             extensions = asMap.filterKeys {
@@ -77,8 +77,8 @@ fun renderSetCookieHeader(name: String,
                                  encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
                                  maxAge: Int = 0,
                                  expires: Temporal? = null,
-                                 domain: String = "",
-                                 path: String = "",
+                                 domain: String? = null,
+                                 path: String? = null,
                                  secure: Boolean = false,
                                  httpOnly: Boolean = false,
                                  extensions: Map<String, String?> = emptyMap()): String =
@@ -86,8 +86,8 @@ fun renderSetCookieHeader(name: String,
                 cookiePart(name.assertCookieName(), value, encoding),
                 cookiePartUnencoded("Max-Age", if (maxAge > 0) maxAge else null),
                 cookiePartUnencoded("Expires", expires?.toHttpDateString()),
-                cookiePart("Domain", domain.nullIfEmpty(), CookieEncoding.RAW),
-                cookiePart("Path", path.nullIfEmpty(), CookieEncoding.RAW),
+                cookiePart("Domain", domain, CookieEncoding.RAW),
+                cookiePart("Path", path, CookieEncoding.RAW),
 
                 cookiePartFlag("Secure", secure),
                 cookiePartFlag("HttpOnly", httpOnly)
@@ -146,6 +146,3 @@ private inline fun cookiePartFlag(name: String, value: Boolean) =
 @Suppress("NOTHING_TO_INLINE")
 private inline fun cookiePartExt(name: String, value: String?, encoding: CookieEncoding) =
         if (value == null) cookiePartFlag(name, true) else cookiePart(name, value, encoding)
-
-@Suppress("NOTHING_TO_INLINE")
-private inline fun String.nullIfEmpty() = if (this.isEmpty()) null else this
