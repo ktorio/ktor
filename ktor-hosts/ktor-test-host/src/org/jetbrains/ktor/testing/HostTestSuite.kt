@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.testing
 
-import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
@@ -458,12 +457,10 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                     call.response.status(HttpStatusCode.OK)
                     call.response.contentType(ContentType.Application.OctetStream)
 
-                    runBlocking(Here) {
-                        call.respond(object : FinalContent.ReadChannelContent() {
-                            override val headers: ValuesMap get() = ValuesMap.Empty
-                            override fun readFrom() = buffer.toByteArray().toReadChannel()
-                        })
-                    }
+                    call.respond(object : FinalContent.ReadChannelContent() {
+                        override val headers: ValuesMap get() = ValuesMap.Empty
+                        override fun readFrom() = buffer.toByteArray().toReadChannel()
+                    })
                 }
             }
         }
