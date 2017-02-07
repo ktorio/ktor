@@ -15,6 +15,8 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     protected val respondPipeline = RespondPipeline()
 
     var responded = false
+        private set
+
     suspend override fun respond(message: Any) {
         val responseMessage = ResponseMessage(this, message)
         val phases = respondPipeline.phases
