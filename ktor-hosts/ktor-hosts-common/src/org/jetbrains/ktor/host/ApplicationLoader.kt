@@ -223,15 +223,14 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
 
                 clazz.methods.filter { it.name == functionName && Modifier.isStatic(it.modifiers) }
                         .mapNotNull { it.kotlinFunction }
-                        .nullIfEmpty()
-                        ?.bestFunction()?.let { moduleFunction ->
+                        .bestFunction()?.let { moduleFunction ->
 
                     callEntryPointFunction(null, moduleFunction, application)
                     return
                 }
 
                 val instance = createApplicationEntry(clazz, application)
-                kclass.functions.filter { it.name == functionName }.nullIfEmpty()?.bestFunction()?.let { moduleFunction ->
+                kclass.functions.filter { it.name == functionName }.bestFunction()?.let { moduleFunction ->
                     callEntryPointFunction(instance, moduleFunction, application)
                     return
                 }
@@ -247,16 +246,12 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
                 it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) || (isApplication(p) && application != null) }
             }
 
-            if (constructors.isEmpty()) {
-                throw RuntimeException("There are no applicable constructors found in class $applicationEntryClass")
-            }
-
-            val constructor = constructors.bestFunction()
+            val constructor = constructors.bestFunction() ?: throw RuntimeException("There are no applicable constructors found in class $applicationEntryClass")
             callEntryPointFunction(null, constructor, application)
         }
     }
 
-    private fun <R> List<KFunction<R>>.bestFunction() = sortedWith(compareBy({ it.parameters.count { !it.isOptional } }, { it.parameters.size })).last()
+    private fun <R> List<KFunction<R>>.bestFunction() = sortedWith(compareBy({ it.parameters.count { !it.isOptional } }, { it.parameters.size })).lastOrNull()
 
     private fun <R> callEntryPointFunction(instance: Any?, entryPoint: KFunction<R>, application: Application?): R {
         return entryPoint.callBy(entryPoint.parameters
@@ -271,8 +266,6 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
                     }
                 }))
     }
-
-    private fun <T> List<T>.nullIfEmpty() = if (isEmpty()) null else this
 
     private fun ClassLoader.loadClassOrNull(name: String): Class<*>? {
         try {
