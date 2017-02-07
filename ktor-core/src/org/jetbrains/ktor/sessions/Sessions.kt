@@ -62,7 +62,7 @@ fun <S : Any> Pipeline<ApplicationCall>.withSessions(sessionConfig: SessionConfi
     }
 }
 
-fun ApplicationCall.clearSession() {
+suspend fun ApplicationCall.clearSession() {
     val sessionConfig = attributes.getOrNull(SessionConfigKey)
 
     if (sessionConfig != null) {

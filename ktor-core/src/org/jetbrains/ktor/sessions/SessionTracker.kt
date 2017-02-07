@@ -17,10 +17,10 @@ interface SessionTracker<S : Any> {
     /**
      * Assign session using the context. Override if there is existing session. Could be blocking.
      */
-    fun assign(call: ApplicationCall, session: S)
+    suspend fun assign(call: ApplicationCall, session: S)
 
     /**
      * Unassign session if present. Does nothing if no session assigned.
      */
-    fun unassign(call: ApplicationCall)
+    suspend fun unassign(call: ApplicationCall)
 }

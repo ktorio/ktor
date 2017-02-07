@@ -7,7 +7,7 @@ import kotlin.reflect.*
 class CookieValueSessionTracker<S : Any>(val cookieSettings: SessionCookiesSettings,
                                          val cookieName: String,
                                          val serializer: SessionSerializer<S>) : SessionTracker<S> {
-    override fun assign(call: ApplicationCall, session: S) {
+    override suspend fun assign(call: ApplicationCall, session: S) {
         val serialized = serializer.serialize(session)
         val cookie = cookieSettings.toCookie(cookieName, serialized)
         call.response.cookies.append(cookie)
@@ -23,7 +23,7 @@ class CookieValueSessionTracker<S : Any>(val cookieSettings: SessionCookiesSetti
         context.proceed()
     }
 
-    override fun unassign(call: ApplicationCall) {
+    override suspend fun unassign(call: ApplicationCall) {
         call.response.cookies.appendExpired(cookieName)
     }
 }
