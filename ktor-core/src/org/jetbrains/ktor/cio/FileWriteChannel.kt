@@ -14,6 +14,6 @@ class FileWriteChannel(val target: RandomAccessFile) : WriteChannel {
 }
 
 fun File.writeChannel(): FileWriteChannel {
-    return FileWriteChannel(RandomAccessFile(this, "r"))
+    return FileWriteChannel(RandomAccessFile(this, "rw"))
 }
 

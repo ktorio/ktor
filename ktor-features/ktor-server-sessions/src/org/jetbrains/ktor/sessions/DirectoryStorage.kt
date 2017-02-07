@@ -22,17 +22,25 @@ internal class DirectoryStorage(val dir: File) : SessionStorage, Closeable {
 
     override suspend fun <R> read(id: String, consumer: suspend (ReadChannel) -> R): R {
         requireId(id)
-        val file = fileOf(id)
+        try {
+            val file = fileOf(id)
 
-        file.parentFile?.mkdirsOrFail()
-        return consumer(file.readChannel())
+            file.parentFile?.mkdirsOrFail()
+            return consumer(file.readChannel())
+        } catch (notFound: FileNotFoundException) {
+            throw NoSuchElementException("No session data found for id $id")
+        }
     }
 
     override suspend fun invalidate(id: String) {
         requireId(id)
-        val file = fileOf(id)
-        file.delete()
-        file.parentFile?.deleteParentsWhileEmpty(dir)
+        try {
+            val file = fileOf(id)
+            file.delete()
+            file.parentFile?.deleteParentsWhileEmpty(dir)
+        } catch (notFound: FileNotFoundException) {
+            throw NoSuchElementException("No session data found for id $id")
+        }
     }
 
     private fun fileOf(id: String) = File(dir, split(id).joinToString(File.separator, postfix = ".dat"))

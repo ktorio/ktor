@@ -4,6 +4,7 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.sessions.*
 import org.junit.*
+import java.lang.ref.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.test.*
@@ -92,9 +93,11 @@ class CacheTest {
         var ref: D? = null
         val weak = WeakReferenceCache<Int, D> { ref = D(it); ref!! }
 
-        assertEquals(D(1), weak.getOrCompute(1))
+        var value : D? = weak.getOrCompute(1)
+        assertEquals(D(1), value)
         assertNotNull(ref)
         assertEquals(D(1), weak.peek(1))
+        value = null // workaround for coroutine holding reference
         ref = null
 
         System.gc()
