@@ -1,18 +1,26 @@
 package org.jetbrains.ktor.servlet
 
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.cio.*
 import java.nio.*
 import java.nio.channels.*
+import java.util.*
+import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import javax.servlet.*
 import kotlin.coroutines.experimental.*
 import kotlin.coroutines.experimental.intrinsics.*
 
-internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream) : WriteChannel {
-    private val listenerInstalled = AtomicBoolean()
-
+internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream, val exec: ExecutorService) : WriteChannel {
+    private var listenerInstalled = false
     private val currentHandler = AtomicReference<Continuation<Unit>>()
-    private val currentBuffer = AtomicReference<ByteBuffer?>()
+    private var currentBuffer: ByteBuffer? = null
+    private var bytesWrittenWithNoSuspend = 0L
+
+    companion object {
+        const val MaxChunkWithoutSuspension = 100 * 1024 * 1024 // 100K
+    }
 
     private val writeReadyListener = object : WriteListener {
         override fun onWritePossible() {
@@ -23,7 +31,9 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
                     // onWritePossible or onError will be called again later once write operation complete so we have to restore handler and buffer references
                     // since we are on an event thread it is safe to set handler reference to null and then restore it back
                     if (currentHandler.compareAndSet(null, continuation)) {
-                        currentBuffer.set(buffer)
+                        currentBuffer = buffer
+                    } else {
+                        continuation.resumeWithException(ConcurrentModificationException())
                     }
                 }
             }
@@ -46,16 +56,29 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
                 throw IllegalStateException("Write operation is pending")
             }
 
-            currentBuffer.set(src)
+            currentBuffer = src
+            val size = src.remaining()
 
-            if (listenerInstalled.compareAndSet(false, true)) {
+            if (!listenerInstalled) {
+                listenerInstalled = true
                 servletOutputStream.setWriteListener(writeReadyListener)
                 COROUTINE_SUSPENDED
             } else if (tryWrite(src)) {
-                currentBuffer.set(null)
+                currentBuffer = null
                 currentHandler.compareAndSet(continuation, null)
-                Unit
+
+                bytesWrittenWithNoSuspend += size
+                if (bytesWrittenWithNoSuspend > MaxChunkWithoutSuspension) {
+                    future (exec.toCoroutineDispatcher()) {
+                        bytesWrittenWithNoSuspend = 0L
+                        continuation.resume(Unit)
+                    }
+                    COROUTINE_SUSPENDED
+                } else {
+                    Unit
+                }
             } else {
+                bytesWrittenWithNoSuspend = 0L
                 COROUTINE_SUSPENDED
             }
         }
@@ -94,10 +117,10 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
     }
 
     private inline fun fireHandler(block: (Continuation<Unit>, ByteBuffer?) -> Unit) {
-        val buffer = currentBuffer.get()
+        val buffer = currentBuffer
 
         currentHandler.getAndSet(null)?.let { handler ->
-            currentBuffer.compareAndSet(buffer, null)
+            currentBuffer = null
 
             block(handler, buffer)
         }

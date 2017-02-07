@@ -50,7 +50,7 @@ open class ServletApplicationCall(application: Application,
     }
 
     private val responseChannel = lazy {
-        ServletWriteChannel(servletResponse.outputStream)
+        ServletWriteChannel(servletResponse.outputStream, application.executor)
     }
 
     override fun responseChannel(): WriteChannel = responseChannelOverride ?: responseChannel.value
@@ -58,11 +58,14 @@ open class ServletApplicationCall(application: Application,
     suspend override fun respond(message: Any) {
         super.respond(message)
 
-        request.close()
-        if (responseChannel.isInitialized()) {
-            responseChannel.value.close()
-        } else {
-            servletResponse.flushBuffer()
+        if (!completed) {
+            completed = true
+            request.close()
+            if (responseChannel.isInitialized()) {
+                responseChannel.value.close()
+            } else {
+                servletResponse.flushBuffer()
+            }
         }
     }
 
@@ -93,7 +96,7 @@ open class ServletApplicationCall(application: Application,
             val call = up.call
 
             val inputChannel = ServletReadChannel(wc.inputStream)
-            val outputChannel = ServletWriteChannel(wc.outputStream)
+            val outputChannel = ServletWriteChannel(wc.outputStream, call.application.executor)
 
             up.call.requestChannelOverride = inputChannel
             up.call.responseChannelOverride = outputChannel

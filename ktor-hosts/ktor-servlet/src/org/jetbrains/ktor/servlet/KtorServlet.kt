@@ -29,11 +29,12 @@ abstract class KtorServlet : HttpServlet() {
                 tryPush(request, call, block, next)
             })
 
-            val dispatcher = application.executor.toCoroutineDispatcher()
-            future(dispatcher) {
-                hostPipeline.execute(call)
-            }.whenComplete { _, _ ->
-                request.asyncContext?.complete()
+            future(application.executor.toCoroutineDispatcher()) {
+                try {
+                    hostPipeline.execute(call)
+                } finally {
+                    request.asyncContext?.complete()
+                }
             }
         } catch (ex: Throwable) {
             application.environment.log.error("ServletApplicationHost cannot service the request", ex)

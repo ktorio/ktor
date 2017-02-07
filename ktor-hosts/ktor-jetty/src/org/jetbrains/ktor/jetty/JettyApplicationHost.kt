@@ -143,9 +143,11 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 baseRequest.isHandled = true
 
                 future(application.executor.toCoroutineDispatcher()) {
-                    hostPipeline.execute(call)
-                }.whenComplete { _, _ ->
-                    request.asyncContext?.complete()
+                    try {
+                        hostPipeline.execute(call)
+                    } finally {
+                        request.asyncContext?.complete()
+                    }
                 }
             } catch(ex: Throwable) {
                 environment.log.error("Application ${application.javaClass} cannot fulfill the request", ex)
