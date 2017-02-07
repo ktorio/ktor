@@ -1,6 +1,8 @@
 package org.jetbrains.ktor.tests.session
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
@@ -13,7 +15,7 @@ import kotlin.test.*
 class ServerSessionTest {
 
     @Test
-    fun testSessionById() {
+    fun testSessionById() = runBlocking {
         val sessionStorage = inMemorySessionStorage()
 
         withTestApplication {
@@ -49,7 +51,9 @@ class ServerSessionTest {
                 sessionId = sessionCookie!!.value
                 assertTrue { sessionId.matches("[A-Za-z0-9]+".toRegex()) }
             }
-            val serializedSession = sessionStorage.read(sessionId) { it.reader().readText() }.get()
+            val serializedSession = runBlocking {
+                sessionStorage.read(sessionId) { it.toInputStream().reader().readText() }
+            }
             assertNotNull(serializedSession)
             assertEquals("id2", autoSerializerOf<TestUserSession>().deserialize(serializedSession).userId)
 

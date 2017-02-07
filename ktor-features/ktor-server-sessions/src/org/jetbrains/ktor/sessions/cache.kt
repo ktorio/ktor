@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.sessions
 
+import kotlinx.coroutines.experimental.*
 import java.lang.ref.*
 import java.util.*
 import java.util.concurrent.*
@@ -7,7 +8,7 @@ import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 
 interface Cache<in K : Any, V : Any> {
-    operator fun get(key: K): V
+    suspend fun getOrCompute(key: K): V
     fun peek(key: K): V?
     fun invalidate(key: K): V?
     fun invalidate(key: K, value: V): Boolean
@@ -18,35 +19,35 @@ internal interface CacheReference<out K> {
     val key: K
 }
 
-internal class BaseCache<in K : Any, V : Any>(val calc: (K) -> V) : Cache<K, V> {
-    private val container = ConcurrentHashMap<K, Lazy<V>>()
+internal class BaseCache<in K : Any, V : Any>(val calc: suspend (K) -> V) : Cache<K, V> {
+    private val container = ConcurrentHashMap<K, Deferred<V>>()
 
-    override fun get(key: K): V =
-            container.computeIfAbsent(key) { lazy(LazyThreadSafetyMode.SYNCHRONIZED) { calc(key) } }.value
+    override suspend fun getOrCompute(key: K): V =
+            container.computeIfAbsent(key) { defer(Unconfined) { calc(key) } }.await()
 
-    override fun peek(key: K): V? = container[key]?.let { if (it.isInitialized()) it.value else null }
+    override fun peek(key: K): V? = container[key]?.let { if (!it.isActive) it.getCompleted() else null }
 
-    override fun invalidate(key: K): V? = container.remove(key)?.let { l -> if (l.isInitialized()) l.value else null }
-    override fun invalidate(key: K, value: V) = container[key]?.let { l -> l.isInitialized() && l.value == value && container.remove(key, l) } ?: false
+    override fun invalidate(key: K): V? = container.remove(key)?.let { if (!it.isActive) it.getCompleted() else null }
+    override fun invalidate(key: K, value: V) = container[key]?.let { l -> !l.isActive && l.getCompleted() == value && container.remove(key, l) } ?: false
     override fun invalidateAll() {
         container.clear()
     }
 }
 
-internal open class ReferenceCache<K : Any, V : Any, out R>(val calc: (K) -> V, val wrapFunction: (K, V, ReferenceQueue<V>) -> R) : Cache<K, V> where R : Reference<V>, R : CacheReference<K> {
+internal open class ReferenceCache<K : Any, V : Any, out R>(val calc: suspend (K) -> V, val wrapFunction: (K, V, ReferenceQueue<V>) -> R) : Cache<K, V> where R : Reference<V>, R : CacheReference<K> {
     private val queue = ReferenceQueue<V>()
     private val container = BaseCache { key: K -> forkThreadIfNeeded(); wrapFunction(key, calc(key), queue) }
     private val workerThread by lazy { Thread(ReferenceWorker(container, queue)).apply { isDaemon = true; start() } }
 
-    override fun get(key: K): V {
-        val ref = container[key]
+    override suspend fun getOrCompute(key: K): V {
+        val ref = container.getOrCompute(key)
         val value = ref.get()
 
         if (value == null) {
             if (container.invalidate(key, ref)) {
                 ref.enqueue()
             }
-            return get(key)
+            return getOrCompute(key)
         }
 
         return value
@@ -59,7 +60,7 @@ internal open class ReferenceCache<K : Any, V : Any, out R>(val calc: (K) -> V, 
         val ref = container.peek(key)
 
         if (ref?.get() == value) {
-            ref!!.enqueue()
+            ref.enqueue()
             return container.invalidate(key, ref)
         }
 
@@ -97,10 +98,12 @@ private class ReferenceWorker<out K : Any, R : CacheReference<K>>(owner: Cache<K
 internal class CacheSoftReference<out K, V>(override val key: K, value: V, queue: ReferenceQueue<V>) : SoftReference<V>(value, queue), CacheReference<K>
 internal class CacheWeakReference<out K, V>(override val key: K, value: V, queue: ReferenceQueue<V>) : WeakReference<V>(value, queue), CacheReference<K>
 
-internal class SoftReferenceCache<K : Any, V : Any>(calc: (K) -> V) : ReferenceCache<K, V, CacheSoftReference<K, V>>(calc, { k, v, q -> CacheSoftReference(k, v, q) })
-internal class WeakReferenceCache<K : Any, V : Any>(calc: (K) -> V) : ReferenceCache<K, V, CacheWeakReference<K, V>>(calc, { k, v, q -> CacheWeakReference(k, v, q) })
+internal class SoftReferenceCache<K : Any, V : Any>(calc: suspend (K) -> V) : ReferenceCache<K, V, CacheSoftReference<K, V>>(calc, { k, v, q -> CacheSoftReference(k, v, q) })
+internal class WeakReferenceCache<K : Any, V : Any>(calc: suspend (K) -> V) : ReferenceCache<K, V, CacheWeakReference<K, V>>(calc, { k, v, q -> CacheWeakReference(k, v, q) })
 
-internal class BaseTimeoutCache<in K : Any, V : Any>(val timeoutValue: Long, val touchOnGet: Boolean, val delegate: Cache<K, V>) : Cache<K, V> {
+internal class BaseTimeoutCache<in K : Any, V : Any>(val timeoutValue: Long,
+                                                     val touchOnGet: Boolean,
+                                                     val delegate: Cache<K, V>) : Cache<K, V> {
 
     private val lock = ReentrantLock()
     private val cond = lock.newCondition()
@@ -110,11 +113,11 @@ internal class BaseTimeoutCache<in K : Any, V : Any>(val timeoutValue: Long, val
 
     private val workerThread by lazy { Thread(TimeoutWorker(this, lock, cond, items)).apply { isDaemon = true; start() } }
 
-    override fun get(key: K): V {
+    override suspend fun getOrCompute(key: K): V {
         if (touchOnGet) {
             pull(key)
         }
-        return delegate[key]
+        return delegate.getOrCompute(key)
     }
 
     override fun peek(key: K): V? {

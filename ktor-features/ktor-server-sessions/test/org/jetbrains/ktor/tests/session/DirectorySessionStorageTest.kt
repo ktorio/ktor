@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.tests.session
 
+import kotlinx.coroutines.experimental.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.sessions.*
 import org.junit.*
 import java.io.*
@@ -22,22 +24,23 @@ class DirectorySessionStorageTest {
     }
 
     @Test(expected = NoSuchElementException::class)
-    fun testMissingSession() {
+    fun testMissingSession() = runBlocking {
         storage.read("id0") {}
     }
 
     @Test
-    fun testSaveSimple() {
-        storage.save("id1") { it.writer().use { it.write("test1") } }
-        assertEquals("test1", storage.read("id1") { it.reader().readText() }.get())
+    fun testSaveSimple() = runBlocking {
+        storage.save("id1") { it.toOutputStream().writer().use { it.write("test1") } }
+        assertEquals("test1", storage.read("id1") { it.toInputStream().reader().readText() })
     }
 
     @Test
-    fun testInvalidate() {
+    fun testInvalidate() = runBlocking {
         testSaveSimple()
-        storage.invalidate("id1").get()
+        storage.invalidate("id1")
         assertFailsWith(NoSuchElementException::class) {
-            storage.read("id1") {}
+            runBlocking { storage.read("id1") {} }
         }
+        Unit
     }
 }
