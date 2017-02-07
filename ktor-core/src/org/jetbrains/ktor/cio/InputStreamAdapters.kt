@@ -6,7 +6,7 @@ import java.nio.*
 
 class InputStreamFromReadChannel(val channel: ReadChannel, val bufferPool: ByteBufferPool = NoPool) : InputStream() {
     private val singleByte = bufferPool.allocate(1)
-    override fun read(): Int = runBlocking(Here) {
+    override fun read(): Int = runBlocking(Unconfined) {
         singleByte.buffer.clear()
 
         while (true) {
@@ -21,7 +21,7 @@ class InputStreamFromReadChannel(val channel: ReadChannel, val bufferPool: ByteB
         singleByte.buffer.get().toInt() and 0xff
     }
 
-    override fun read(b: ByteArray, off: Int, len: Int): Int = runBlocking(Here) {
+    override fun read(b: ByteArray, off: Int, len: Int): Int = runBlocking(Unconfined) {
         val bb = ByteBuffer.wrap(b, off, len)
         channel.read(bb)
     }

@@ -76,13 +76,13 @@ class ReadChannelFromOutputStream : OutputStream(), ReadChannel {
 
 class OutputStreamFromWriteChannel(val channel: WriteChannel, val bufferPool: ByteBufferPool = NoPool) : OutputStream() {
     private val singleByte = bufferPool.allocate(1)
-    override fun write(b: Int) = runBlocking(Here) {
+    override fun write(b: Int) = runBlocking(Unconfined) {
         singleByte.buffer.clear()
         singleByte.buffer.put(b.toByte())
         channel.write(singleByte.buffer)
     }
 
-    override fun write(b: ByteArray, off: Int, len: Int) = runBlocking(Here) {
+    override fun write(b: ByteArray, off: Int, len: Int) = runBlocking(Unconfined) {
         channel.write(ByteBuffer.wrap(b, off, len))
     }
 }

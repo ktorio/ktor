@@ -61,7 +61,7 @@ class AsyncSeekAndCutTest {
     }
 
     @Test
-    fun testMultipleSeekForSource() = runBlocking(Here) {
+    fun testMultipleSeekForSource() = runBlocking {
         // TODO move to separate test
         val source = { asyncOf("Hello, async!") }
 

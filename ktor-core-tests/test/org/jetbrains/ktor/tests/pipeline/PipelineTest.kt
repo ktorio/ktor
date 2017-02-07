@@ -12,7 +12,7 @@ class PipelineTest {
     fun Pipeline<String>.intercept(block: PipelineInterceptor<String>) = phases.intercept(callPhase, block)
     fun <T : Any> Pipeline<T>.executeBlocking(subject: T): PipelineState {
         try {
-            runBlocking(Here) { execute(subject) }
+            runBlocking { execute(subject) }
         } catch (t: Throwable) {
             return PipelineState.Failed
         }
