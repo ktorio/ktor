@@ -28,7 +28,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                            val applicationLifecycle: ApplicationLifecycle,
                            jettyServer: () -> Server = ::Server) : ApplicationHost, ApplicationHostStartable {
 
-    private val application: Application get() = applicationLifecycle.application
+    val application: Application get() = applicationLifecycle.application
 
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
             : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
@@ -176,5 +176,9 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         server.stop()
         applicationLifecycle.dispose()
         environment.log.trace("Server stopped.")
+    }
+
+    override fun toString(): String {
+        return "Jetty($hostConfig)"
     }
 }
