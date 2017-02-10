@@ -8,7 +8,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 
 @ChannelHandler.Sharable
-class NettyHostHttp1Handler(private val host: NettyApplicationHost, private val hostPipeline: HostPipeline) : SimpleChannelInboundHandler<Any>(false) {
+class NettyHostHttp1Handler(private val host: NettyApplicationHost) : SimpleChannelInboundHandler<Any>(false) {
 
     override fun channelRead0(context: ChannelHandlerContext, message: Any) {
         when (message) {
@@ -32,7 +32,7 @@ class NettyHostHttp1Handler(private val host: NettyApplicationHost, private val 
 
     private fun executeCall(call: ApplicationCall) {
         future(host.callDispatcher) {
-            hostPipeline.execute(call)
+            host.pipeline.execute(call)
         }
     }
 }
