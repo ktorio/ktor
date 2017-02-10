@@ -70,7 +70,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         // otherwise we can hit deadlock on event-based hosts
 
         val response = responseChannel()
-        channel.copyTo(response, bufferPool)
+        channel.copyTo(response, bufferPool, 65536)
         channel.close()
     }
 
