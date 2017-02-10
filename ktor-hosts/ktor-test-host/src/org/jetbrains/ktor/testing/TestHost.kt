@@ -131,7 +131,7 @@ class TestApplicationCall(application: Application, override val request: TestAp
 
     override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
         commitHeaders(upgrade)
-        upgrade.upgrade(this@TestApplicationCall, this, request.content.get(), response.realContent.value)
+        upgrade.upgrade(this@TestApplicationCall, this, request.content.get(), response.realContent.value, Closeable { })
     }
 
     override fun responseChannel(): WriteChannel = response.realContent.value.apply {

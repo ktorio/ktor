@@ -1,13 +1,13 @@
 package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
-import javax.servlet.*
+import java.io.*
 import javax.servlet.http.*
 
 open class ServletApplicationCall(application: Application,
@@ -24,14 +24,8 @@ open class ServletApplicationCall(application: Application,
     @Volatile
     protected var responseChannelOverride: WriteChannel? = null
 
-    private val asyncContext: AsyncContext?
-        get() = servletRequest.asyncContext
-
     @Volatile
     var completed: Boolean = false
-
-    @Volatile
-    private var upgraded: Boolean = false
 
     override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
         servletResponse.status = upgrade.status?.value ?: HttpStatusCode.SwitchingProtocols.value
@@ -43,10 +37,10 @@ open class ServletApplicationCall(application: Application,
         val handler = servletRequest.upgrade(ServletUpgradeHandler::class.java)
         handler.up = UpgradeRequest(servletResponse, this@ServletApplicationCall, upgrade, this)
 
-        upgraded = true
-        servletResponse.flushBuffer()
+//        servletResponse.flushBuffer()
 
-        ensureCompleted()
+        completed = true
+//        servletRequest.asyncContext?.complete() // causes pipeline execution break however it is required for websocket
     }
 
     private val responseChannel = lazy {
@@ -69,21 +63,6 @@ open class ServletApplicationCall(application: Application,
         }
     }
 
-    private fun ensureCompleted() {
-        if (!completed) {
-            completed = true
-
-            try {
-                request.close()
-                if (responseChannel.isInitialized()) {
-                    responseChannel.value.close()
-                }
-            } finally {
-                asyncContext?.complete() // causes pipeline execution break however it is required for websocket
-            }
-        }
-    }
-
     // the following types need to be public as they are accessed through reflection
 
     class UpgradeRequest(val response: HttpServletResponse, val call: ServletApplicationCall, val upgradeMessage: ProtocolUpgrade, val context: PipelineContext<*>)
@@ -92,7 +71,10 @@ open class ServletApplicationCall(application: Application,
         @Volatile
         lateinit var up: UpgradeRequest
 
-        override fun init(wc: WebConnection) {
+        override fun init(wc: WebConnection?) {
+            if (wc == null) {
+                throw IllegalArgumentException("Upgrade processing requires WebConnection instance")
+            }
             val call = up.call
 
             val inputChannel = ServletReadChannel(wc.inputStream)
@@ -101,7 +83,9 @@ open class ServletApplicationCall(application: Application,
             up.call.requestChannelOverride = inputChannel
             up.call.responseChannelOverride = outputChannel
 
-            up.upgradeMessage.upgrade(call, up.context, inputChannel, outputChannel)
+            up.upgradeMessage.upgrade(call, up.context, inputChannel, outputChannel, Closeable {
+                wc.close()
+            })
         }
 
         override fun destroy() {

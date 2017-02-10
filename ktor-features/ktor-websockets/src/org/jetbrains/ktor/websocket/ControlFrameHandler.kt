@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.websocket
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.util.*
 import java.lang.ref.*
 import java.nio.*
@@ -36,13 +37,13 @@ internal class ControlFrameHandler (val parent: WebSocketImpl, val exec: Schedul
         }
     }
 
-    fun closeSent() {
+    suspend fun closeSent() {
         if (closeReceived) {
             parent.closeAsync(currentReason)
         }
     }
 
-    fun received(frame: Frame) {
+    suspend fun received(frame: Frame) {
         require(frame.frameType.controlFrame) { "frame should be control frame" }
 
         when (frame) {
@@ -77,7 +78,9 @@ internal class ControlFrameHandler (val parent: WebSocketImpl, val exec: Schedul
                 if (closeReceived || closeSent) {
                     cancelPingPong()
                 } else {
-                    doPing()
+                    runBlocking(Unconfined) {
+                        doPing()
+                    }
                 }
             }, pingPeriod.toMillis(), pingPeriod.toMillis(), TimeUnit.MILLISECONDS))?.cancel(false)
         } else {
@@ -98,12 +101,12 @@ internal class ControlFrameHandler (val parent: WebSocketImpl, val exec: Schedul
 
     private fun generatePingMessage() = "[ping ${nextNonce()} ping]"
 
-    private fun doPing() {
+    private suspend fun doPing() {
         val ping = generatePingMessage()
         expectedPong = ping
 
-        parent.send(Frame.Ping(ByteBuffer.wrap(ping.toByteArray(Charsets.UTF_8))))
         closeAfterTimeout()
+        parent.send(Frame.Ping(ByteBuffer.wrap(ping.toByteArray(Charsets.UTF_8))))
     }
 
     private fun handlePong(frame: Frame) {

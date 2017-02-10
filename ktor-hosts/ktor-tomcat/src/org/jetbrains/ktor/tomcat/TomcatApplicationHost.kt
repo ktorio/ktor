@@ -8,7 +8,6 @@ import org.apache.tomcat.util.net.*
 import org.apache.tomcat.util.net.jsse.*
 import org.apache.tomcat.util.net.openssl.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.servlet.*
 import org.jetbrains.ktor.transform.*
@@ -32,8 +31,6 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     val server = Tomcat().apply {
-        connector = null
-
         service.apply {
             findConnectors().forEach { existing ->
                 removeConnector(existing)
@@ -73,7 +70,9 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
             }
         }
 
-        connector = Connector()
+        if (connector == null) {
+            connector = service.findConnectors()?.firstOrNull() ?: Connector().apply { port = 80 }
+        }
         setBaseDir(tempDirectory.toString())
 
         val ctx = addContext("", tempDirectory.toString())
