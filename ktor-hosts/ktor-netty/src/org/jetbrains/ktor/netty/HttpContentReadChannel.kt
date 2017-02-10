@@ -4,7 +4,7 @@ import io.netty.handler.codec.http.*
 import org.jetbrains.ktor.cio.*
 import java.nio.*
 
-internal class HttpContentReadChannel(val queue: NettyContentQueue) : ReadChannel {
+internal class HttpContentReadChannel(val queue: NettyContentQueue, val buffered: Boolean = true) : ReadChannel {
     private var lastContent: HttpContent? = null
 
     override suspend fun read(dst: ByteBuffer): Int {
@@ -26,7 +26,12 @@ internal class HttpContentReadChannel(val queue: NettyContentQueue) : ReadChanne
                 content.release()
                 null
             }
+
+            if (total > 0 && !buffered) {
+                break
+            }
         }
+
         return total
     }
 

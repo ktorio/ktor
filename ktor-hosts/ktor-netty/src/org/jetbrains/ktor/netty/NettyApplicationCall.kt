@@ -3,12 +3,16 @@ package org.jetbrains.ktor.netty
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import io.netty.handler.stream.*
 import io.netty.util.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.util.*
+import java.io.*
 import java.util.concurrent.atomic.*
 
 internal class NettyApplicationCall(application: Application,
@@ -57,7 +61,10 @@ internal class NettyApplicationCall(application: Application,
                 finishContent.addListener {
                     // remove finished content queue, handler will install new
                     // TODO: change it to shareable context-agnostic concurrent map
-                    context.pipeline().remove(HttpContentQueue::class.java)
+                    try {
+                        context.pipeline().remove(HttpContentQueue::class.java)
+                    } catch (ignore: NoSuchElementException) {
+                    }
 
                     context.channel().config().isAutoRead = true
                     context.read()
@@ -69,26 +76,38 @@ internal class NettyApplicationCall(application: Application,
     }
 
     override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
-/*
-        context.executeInLoop {
-            context.channel().pipeline().remove(ChunkedWriteHandler::class.java)
-            context.channel().pipeline().remove(HostHttpHandler::class.java)
+//        executeInLoop {
+        val upgradeContentQueue = RawContentQueue(context)
 
-            response.status(upgrade.status ?: HttpStatusCode.SwitchingProtocols)
-            upgrade.headers.flattenEntries().forEach { e ->
-                response.headers.append(e.first, e.second)
-            }
-
-            context.channel().pipeline().addFirst(NettyDirectDecoder())
-
-            context.writeAndFlush(httpResponse).addListener {
-                context.channel().pipeline().remove(HttpServerCodec::class.java)
-                context.channel().pipeline().addFirst(NettyDirectEncoder())
-
-                upgrade.upgrade(this@NettyApplicationCall, this, request.content.get(), responseChannel())
-            }
+        context.channel().pipeline().replace(HttpContentQueue::class.java, "WebSocketReadQueue", upgradeContentQueue).queue.clear {
+            if (it is LastHttpContent)
+                it.release()
+            else
+                upgradeContentQueue.queue.push(it, false)
         }
-*/
+
+        context.channel().pipeline().remove(ChunkedWriteHandler::class.java)
+        context.channel().pipeline().remove(NettyHostHttp1Handler::class.java)
+        context.channel().pipeline().addFirst(NettyDirectDecoder())
+
+        response.chunked = false
+        response.status(upgrade.status ?: HttpStatusCode.SwitchingProtocols)
+        upgrade.headers.flattenEntries().forEach { e ->
+            response.headers.append(e.first, e.second)
+        }
+
+        response.sendResponseMessage()?.addListener {
+            context.channel().pipeline().remove(HttpServerCodec::class.java)
+            context.channel().pipeline().addFirst(NettyDirectEncoder())
+
+            upgrade.upgrade(this@NettyApplicationCall, this, HttpContentReadChannel(upgradeContentQueue.queue, buffered = false), responseChannel(), Closeable {
+                context.channel().close().get()
+                upgradeContentQueue.close()
+            })
+            context.read()
+
+        } ?: throw IllegalStateException("Response has been already sent")
+//        }
     }
 
     override fun responseChannel(): WriteChannel = response.responseChannel.value
