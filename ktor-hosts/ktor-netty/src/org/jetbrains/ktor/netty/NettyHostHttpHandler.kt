@@ -3,7 +3,6 @@ package org.jetbrains.ktor.netty
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.*
-import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
@@ -17,6 +16,7 @@ class NettyHostHttp1Handler(private val host: NettyApplicationHost, private val 
                 context.channel().config().isAutoRead = false
                 val httpContentQueue = HttpContentQueue(context)
                 context.pipeline().addLast(httpContentQueue)
+                context.read() // request first content to be fetched into queue
 
                 if (message is HttpContent) {
                     httpContentQueue.queue.push(message, message is LastHttpContent)
