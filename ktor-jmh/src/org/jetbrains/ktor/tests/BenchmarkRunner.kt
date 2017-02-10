@@ -3,6 +3,7 @@ package org.jetbrains.ktor.tests
 import org.openjdk.jmh.annotations.*
 import org.openjdk.jmh.runner.*
 import org.openjdk.jmh.runner.options.*
+import java.lang.reflect.*
 import java.util.concurrent.*
 import kotlin.concurrent.*
 
@@ -36,6 +37,7 @@ fun benchmark(args: Array<String>, configure: BenchmarkSettings.() -> Unit) {
 
 fun runProfiler(settings: BenchmarkSettings) {
     settings.benchmarks.forEach { (clazz, method) ->
+        println("${clazz.name}.${method ?: "*"}")
         val instance = clazz.getConstructor().newInstance()
         val setups = clazz.methods.filter { it.annotations.any { it.annotationClass == Setup::class } }
         val teardowns = clazz.methods.filter { it.annotations.any { it.annotationClass == TearDown::class } }
@@ -47,20 +49,19 @@ fun runProfiler(settings: BenchmarkSettings) {
             setups.forEach { it.invoke(instance) }
         }
 
+        println("Warming up…")
+        benchmarks.forEach { it.invoke(instance) }
+
         if (settings.threads == 1) {
             println("Running $iterations iterations…")
-            repeat(iterations) {
-                benchmarks.forEach { it.invoke(instance) }
-            }
+            instance.executeBenchmarks(benchmarks, iterations)
         } else {
             val iterationsPerThread = iterations / settings.threads
             println("Running ${settings.threads} threads with $iterationsPerThread iterations per thread…")
             val threads = (1..settings.threads).map { index ->
                 thread(name = "Test Thread $index") {
                     println("Started thread '${Thread.currentThread().name}'")
-                    repeat(iterationsPerThread) {
-                        benchmarks.forEach { it.invoke(instance) }
-                    }
+                    instance.executeBenchmarks(benchmarks, iterationsPerThread)
                     println("Finished thread '${Thread.currentThread().name}'")
                 }
             }
@@ -72,6 +73,14 @@ fun runProfiler(settings: BenchmarkSettings) {
         if (teardowns.isNotEmpty()) {
             println("Tearing down…")
             teardowns.forEach { it.invoke(instance) }
+        }
+    }
+}
+
+private fun Any?.executeBenchmarks(benchmarks: List<Method>, iterations: Int) {
+    benchmarks.forEach { benchmark ->
+        repeat(iterations) {
+            benchmark.invoke(this)
         }
     }
 }
