@@ -10,7 +10,7 @@
     <properties>
         <kotlin.version>1.1.0-beta-38</kotlin.version>
         <dokka.version>0.9.11</dokka.version>
-        <jmh.version>1.15</jmh.version>
+        <jmh.version>1.17</jmh.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
