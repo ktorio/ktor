@@ -10,10 +10,11 @@ suspend fun ChannelFuture.suspendAwait() {
         addListener { f ->
             try {
                 f.get()
-                continuation.resume(Unit)
             } catch (t: Throwable) {
                 continuation.resumeWithException(t)
+                return@addListener
             }
+            continuation.resume(Unit)
         }
     }
 }
