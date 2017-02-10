@@ -5,13 +5,12 @@ import java.nio.*
 import java.nio.file.*
 
 class FileReadChannel(val source: RandomAccessFile, val start: Long = 0, val endInclusive: Long = source.length() - 1) : RandomAccessReadChannel {
-    private var initialSeek = false
+    private var initialPositionSet = start == 0L
 
-    override val position: Long
-        get() = source.filePointer
+    override var position: Long = 0
 
     override val size: Long
-        get() = source.length()
+        get() = endInclusive - start + 1
 
     init {
         require(start >= 0L) { "start position shouldn't be negative but it is $start" }
@@ -19,24 +18,28 @@ class FileReadChannel(val source: RandomAccessFile, val start: Long = 0, val end
     }
 
     suspend override fun read(dst: ByteBuffer): Int {
-        if (!initialSeek) {
-            seek(start)
+        if (!initialPositionSet) {
+            seek(0)
+            initialPositionSet = true
         }
 
-        val limit = Math.min(dst.remaining().toLong(), endInclusive - position + 1).toInt()
+        val limit = Math.min(dst.remaining().toLong(), size - position).toInt()
         if (limit <= 0)
             return -1
-        dst.limit(dst.position() + limit)
 
-        return source.channel.read(dst)
+
+        val count = source.read(dst.array(), dst.arrayOffset() + dst.position(), limit)
+        dst.position(dst.position() + count)
+        position += count
+        return count
     }
 
     suspend override fun seek(position: Long) {
         require(position >= 0L) { "position should not be negative: $position" }
-        require(position <= source.length()) { "position should not run out of the file range: $position !in [0, ${source.length()}]" }
+        require(position <= size) { "position should not run out of the file range: $position !in [0, ${source.length()}]" }
 
-        source.seek(position)
-        initialSeek = true
+        source.seek(position + start)
+        this.position = position
     }
 
     override fun close() {
@@ -44,10 +47,9 @@ class FileReadChannel(val source: RandomAccessFile, val start: Long = 0, val end
     }
 }
 
-fun Path.readChannel(start: Long = 0, endInclusive: Long = Files.size(this) - 1): FileReadChannel {
-    return toFile().readChannel(start, endInclusive)
-}
+fun Path.readChannel(start: Long, endInclusive: Long) = toFile().readChannel(start, endInclusive)
+fun Path.readChannel() = toFile().readChannel()
 
-fun File.readChannel(start: Long = 0, endInclusive: Long = length() - 1): FileReadChannel {
-    return FileReadChannel(RandomAccessFile(this, "r"), start, endInclusive)
-}
+fun File.readChannel() = FileReadChannel(RandomAccessFile(this, "r"))
+fun File.readChannel(start: Long, endInclusive: Long) = FileReadChannel(RandomAccessFile(this, "r"), start, endInclusive)
+

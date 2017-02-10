@@ -34,7 +34,7 @@ class FileChannelTest {
     fun testSingleByteFileOffsetEnd() {
         temp.writeBytes(byteArrayOf(7))
 
-        assertEquals(0, temp.readChannel(start = 1L).toInputStream().use { it.readBytes().size })
+        assertEquals(0, temp.readChannel(start = 1L, endInclusive = temp.length() - 1).toInputStream().use { it.readBytes().size })
     }
 
     @Test
