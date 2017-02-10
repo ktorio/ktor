@@ -37,6 +37,19 @@ private class DeflaterWriteChannel(val gzip: Boolean, val out: WriteChannel, val
         writeOutgoingBytes()
     }
 
+    suspend override fun flush() {
+        if (released.get()) {
+            throw IllegalStateException("Already closed")
+        }
+
+        buffer.clear()
+        ensureGzipHeader()
+        buffer.flip()
+
+        writeOutgoingBytes()
+        out.flush()
+    }
+
     override fun close() {
         if (released.compareAndSet(false, true)) {
             runBlocking {

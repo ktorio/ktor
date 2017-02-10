@@ -15,5 +15,11 @@ internal class HttpContentWriteChannel(val context: ChannelHandlerContext) : Wri
         }
     }
 
-    override fun close() {}
+    suspend override fun flush() {
+        context.flush() // TODO: does it really completes flush once it returns? seems to be it doesn't
+    }
+
+    override fun close() {
+        context.flush()
+    }
 }

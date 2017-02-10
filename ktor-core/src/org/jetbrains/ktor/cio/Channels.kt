@@ -11,6 +11,7 @@ interface ReadChannel : Channel {
 
 interface WriteChannel : Channel {
     suspend fun write(src: ByteBuffer)
+    suspend fun flush()
 }
 
 interface RandomAccessReadChannel : ReadChannel {

@@ -57,6 +57,9 @@ class ByteBufferWriteChannel : WriteChannel {
     override fun close() {
     }
 
+    suspend override fun flush() {
+    }
+
     override suspend fun write(src: ByteBuffer) {
         val size = src.remaining()
         ensureCapacity(count + size)

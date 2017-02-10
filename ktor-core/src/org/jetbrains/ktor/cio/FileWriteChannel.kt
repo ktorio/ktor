@@ -8,6 +8,10 @@ class FileWriteChannel(val target: RandomAccessFile) : WriteChannel {
         target.write(src.array(), src.arrayOffset() + src.position(), src.limit())
     }
 
+    suspend override fun flush() {
+        target.fd.sync()
+    }
+
     override fun close() {
         target.close()
     }
