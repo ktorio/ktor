@@ -19,7 +19,7 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
     private var destroyed = false
 
     override val parts: Sequence<PartData>
-        get() = runBlocking { parts() }
+        get() = runBlocking(Unconfined) { parts() }
 
     suspend fun parts(): Sequence<PartData> {
         if (!fetched)
@@ -29,10 +29,13 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
 
     suspend fun processQueue() {
         while (true) {
-            val item = queue.pull() ?: return
+            val item = queue.pull() ?: run {
+                fetched = true
+                return
+            }
             processItem(item)
         }
-        fetched = true
+
     }
 
     fun processItem(content: HttpContent) {
