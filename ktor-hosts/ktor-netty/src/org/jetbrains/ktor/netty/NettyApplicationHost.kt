@@ -10,9 +10,12 @@ import io.netty.handler.codec.http2.*
 import io.netty.handler.ssl.*
 import io.netty.handler.stream.*
 import io.netty.handler.timeout.*
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.transform.*
+import java.util.concurrent.*
+import java.util.concurrent.ForkJoinPool.*
 import javax.net.ssl.*
 
 /**
@@ -27,13 +30,17 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
             : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
 
-    private val mainEventGroup = NioEventLoopGroup() // accepts connections
-    private val workerEventGroup = NioEventLoopGroup() // processes socket data
-    internal val callEventGroup = CallEventLoopGroup() // executes call handlers
+    private val parallelism = 3
+    private val connectionEventGroup = NettyConnectionPool(parallelism) // accepts connections
+    private val workerEventGroup = NettyWorkerPool(parallelism) // processes socket data
+
+    private val callThreadPool = ForkJoinPool(parallelism, defaultForkJoinWorkerThreadFactory, null, true)
+    internal val callDispatcher = callThreadPool.toCoroutineDispatcher() // executes call handlers
+
 
     private val bootstraps = hostConfig.connectors.map { ktorConnector ->
         ServerBootstrap().apply {
-            group(mainEventGroup, workerEventGroup)
+            group(connectionEventGroup, workerEventGroup)
             channel(NioServerSocketChannel::class.java)
             childHandler(object : ChannelInitializer<SocketChannel>() {
                 override fun initChannel(ch: SocketChannel) {
@@ -96,8 +103,8 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     override fun stop() {
         workerEventGroup.shutdownGracefully()
-        mainEventGroup.shutdownGracefully()
-        callEventGroup.shutdownGracefully()
+        connectionEventGroup.shutdownGracefully()
+        callThreadPool.shutdown()
 
         applicationLifecycle.dispose()
         environment.log.trace("Server stopped.")
@@ -158,5 +165,6 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
 }
 
-class CallEventLoopGroup : NioEventLoopGroup()
 
+class NettyConnectionPool(parallelism: Int) : NioEventLoopGroup(parallelism)
+class NettyWorkerPool(parallelism: Int) : NioEventLoopGroup(parallelism)

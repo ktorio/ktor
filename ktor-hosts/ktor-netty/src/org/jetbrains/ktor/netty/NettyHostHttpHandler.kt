@@ -24,16 +24,14 @@ class NettyHostHttp1Handler(private val host: NettyApplicationHost, private val 
 
                 ReferenceCountUtil.retain(message)
                 val call = NettyApplicationCall(host.application, context, message, httpContentQueue.queue)
-                context.executeCall(call)
+                executeCall(call)
             }
             else -> context.fireChannelRead(message)
         }
     }
 
-    private fun ChannelHandlerContext.executeCall(call: ApplicationCall) {
-        val eventLoop = host.callEventGroup
-        val dispatcher = eventLoop.toCoroutineDispatcher()
-        future(dispatcher) {
+    private fun executeCall(call: ApplicationCall) {
+        future(host.callDispatcher) {
             hostPipeline.execute(call)
         }
     }
