@@ -1,20 +1,16 @@
-import org.jetbrains.ktor.application.BasicApplicationEnvironment
-import org.jetbrains.ktor.application.call
-import org.jetbrains.ktor.application.install
-import org.jetbrains.ktor.config.MapApplicationConfig
+import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.host.applicationHostConfig
-import org.jetbrains.ktor.host.connector
-import org.jetbrains.ktor.jetty.embeddedJettyServer
-import org.jetbrains.ktor.logging.SLF4JApplicationLog
-import org.jetbrains.ktor.routing.Routing
-import org.jetbrains.ktor.routing.get
-import org.jetbrains.ktor.servlet.ServletApplicationRequest
-import org.junit.Test
-import java.net.ServerSocket
-import java.net.URL
-import java.util.concurrent.atomic.AtomicInteger
-import kotlin.test.assertEquals
+import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.jetty.*
+import org.jetbrains.ktor.logging.*
+import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.servlet.*
+import org.junit.*
+import java.net.*
+import java.util.concurrent.*
+import java.util.concurrent.atomic.*
+import kotlin.test.*
 
 
 class MultipleDispatchOnTimeout {
@@ -27,7 +23,7 @@ class MultipleDispatchOnTimeout {
      * https://docs.oracle.com/javaee/6/api/javax/servlet/AsyncContext.html
      */
     @Test
-    fun `calls with duration longer than default timeout do not trigger a redispatch`(){
+    fun `calls with duration longer than default timeout do not trigger a redispatch`() {
         val port = findFreePort()
         val appHostConfig = applicationHostConfig { connector { this.port = port } }
         val appEnv = BasicApplicationEnvironment(javaClass.classLoader, SLF4JApplicationLog("KTorTest"), MapApplicationConfig())
@@ -61,7 +57,7 @@ class MultipleDispatchOnTimeout {
             assertEquals(1, callCount.get())
             assertEquals("A ok!", result)
         } finally {
-            jetty.stop()
+            jetty.stop(1, 5, TimeUnit.SECONDS)
         }
     }
 

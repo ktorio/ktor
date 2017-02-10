@@ -3,7 +3,6 @@ package org.jetbrains.ktor.testing
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.logging.*
-import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
 import org.junit.*
 import org.slf4j.*
@@ -33,7 +32,7 @@ abstract class HostTestBase<H : ApplicationHost> {
     @After
     fun tearDownBase() {
         testLog.trace("Disposing server on port $port (SSL $sslPort)")
-        (server as? ApplicationHostStartable)?.stop()
+        (server as? ApplicationHostStartable)?.stop(100, 5000, TimeUnit.MILLISECONDS)
     }
 
     protected abstract fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, routing: Routing.() -> Unit): H

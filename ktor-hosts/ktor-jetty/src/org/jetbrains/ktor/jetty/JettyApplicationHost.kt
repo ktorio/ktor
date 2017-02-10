@@ -17,6 +17,7 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.transform.*
 import java.nio.*
+import java.util.concurrent.*
 import javax.servlet.*
 import javax.servlet.http.*
 
@@ -172,7 +173,8 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     }
 
-    override fun stop() {
+    override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+        server.stopTimeout = timeUnit.toMillis(timeout)
         server.stop()
         applicationLifecycle.dispose()
         environment.log.trace("Server stopped.")

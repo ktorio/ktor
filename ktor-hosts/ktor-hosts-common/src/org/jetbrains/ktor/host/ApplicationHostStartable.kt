@@ -1,6 +1,8 @@
 package org.jetbrains.ktor.host
 
+import java.util.concurrent.*
+
 interface ApplicationHostStartable {
     fun start(wait: Boolean = false)
-    fun stop()
+    fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit)
 }
