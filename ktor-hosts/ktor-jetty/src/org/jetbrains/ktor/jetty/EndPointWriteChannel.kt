@@ -2,42 +2,38 @@ package org.jetbrains.ktor.jetty
 
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.util.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import java.nio.*
+import kotlin.coroutines.experimental.*
 
 internal class EndPointWriteChannel(val endPoint: EndPoint) : WriteChannel {
     @Volatile
-    private var handler: AsyncHandler? = null
-    private var positionBefore: Int = 0
-    private var bb: ByteBuffer? = null
+    private var handler: Continuation<Unit>? = null
 
     private val callback = object : Callback {
         override fun succeeded() {
             val h = handler
-            val buffer = bb!!
-            val size = buffer.position() - positionBefore
 
             handler = null
-            bb = null
 
-            h?.success(size)
+            h?.resume(Unit)
         }
 
         override fun failed(x: Throwable?) {
-            handler?.failed(x ?: Exception())
+            handler?.resumeWithException(x ?: Exception())
         }
     }
 
-    override fun write(src: ByteBuffer, handler: AsyncHandler) {
-        bb = src
-        positionBefore = src.position()
-        this.handler = handler
+    suspend override fun write(src: ByteBuffer) {
+        if (!src.hasRemaining()) return
 
-        endPoint.write(callback, src)
+        return suspendCoroutine { continuation ->
+            this.handler = continuation
+            endPoint.write(callback, src)
+        }
     }
 
-    override fun requestFlush() {
-        // looks like there is nothing to do here
+    suspend override fun flush() {
     }
 
     override fun close() {
