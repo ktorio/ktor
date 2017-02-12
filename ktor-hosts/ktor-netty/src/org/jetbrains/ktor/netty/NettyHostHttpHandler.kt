@@ -5,7 +5,6 @@ import io.netty.handler.codec.http.*
 import io.netty.util.*
 import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.host.*
 
 @ChannelHandler.Sharable
 class NettyHostHttp1Handler(private val host: NettyApplicationHost) : SimpleChannelInboundHandler<Any>(false) {
@@ -13,10 +12,14 @@ class NettyHostHttp1Handler(private val host: NettyApplicationHost) : SimpleChan
     override fun channelRead0(context: ChannelHandlerContext, message: Any) {
         when (message) {
             is HttpRequest -> {
+                /*
+                    if (HttpUtil.is100ContinueExpected(req)) {
+                        ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
+                    }
+                */
                 context.channel().config().isAutoRead = false
                 val httpContentQueue = HttpContentQueue(context)
                 context.pipeline().addLast(httpContentQueue)
-                context.read() // request first content to be fetched into queue
 
                 if (message is HttpContent) {
                     httpContentQueue.queue.push(message, message is LastHttpContent)

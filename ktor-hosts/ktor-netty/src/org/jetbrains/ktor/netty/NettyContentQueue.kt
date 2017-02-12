@@ -10,21 +10,9 @@ class NettyContentQueue(val context: ChannelHandlerContext) : SuspendQueue<HttpC
         clear { it.release() }
     }
 
-    override fun onPull(element: HttpContent) {
+    override fun onPull(element: HttpContent?) {
         context.read()
     }
-
-    /*
-    companion object {
-        private val queueRecycler = object : Recycler<NettyContentQueue>() {
-            override fun newObject(handle: Handle<NettyContentQueue>) = NettyContentQueue(handle)
-        }
-
-        operator fun invoke(): NettyContentQueue {
-            return queueRecycler.get()
-        }
-    }
-*/
 }
 
 internal class RawContentQueue(val context: ChannelHandlerContext) : ChannelInboundHandlerAdapter() {
