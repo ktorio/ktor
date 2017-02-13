@@ -4,14 +4,15 @@ import org.eclipse.jetty.client.api.*
 import org.eclipse.jetty.http2.client.*
 import org.eclipse.jetty.http2.client.http.*
 import org.eclipse.jetty.util.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.nio.*
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
+import kotlin.coroutines.experimental.*
 
 object JettyHttp2Client : HttpClient {
     override fun openConnection(host: String, port: Int, secure: Boolean): HttpConnection {
@@ -30,7 +31,7 @@ object JettyHttp2Client : HttpClient {
     }
 
     private class JettyClientReadChannel(val request: Request) : ReadChannel {
-        private val currentHandler = AtomicReference<AsyncHandler?>()
+        private val currentHandler = AtomicReference<Continuation<Int>?>()
         private var currentBuffer: ByteBuffer? = null
 
         private var contentEof = false
@@ -40,7 +41,7 @@ object JettyHttp2Client : HttpClient {
 
 
         init {
-            request.onResponseContentAsync { response, buffer, callback ->
+            request.onResponseContentAsync { _, buffer, callback ->
                 if (buffer.hasRemaining()) {
                     contentCallbacks.add(callback)
                     contentBuffers.add(buffer)
@@ -55,7 +56,7 @@ object JettyHttp2Client : HttpClient {
 
                 tryMeet()
             }
-            request.onResponseFailure { response, throwable ->
+            request.onResponseFailure { _, throwable ->
                 contentEof = true
                 contentError = throwable
 
@@ -63,21 +64,20 @@ object JettyHttp2Client : HttpClient {
             }
         }
 
-        override fun read(dst: ByteBuffer, handler: AsyncHandler) {
-            if (contentError != null) {
-                val error = contentError!!
-                return handler.failed(error)
-            }
+        override suspend fun read(dst: ByteBuffer): Int {
+            contentError?.let { throw it }
             if (contentEof && contentBuffers.isEmpty()) {
-                handler.successEnd()
-                return
+                return -1
             }
-            if (!currentHandler.compareAndSet(null, handler)) {
-                throw IllegalStateException("Read operation is already in progress")
-            }
-            currentBuffer = dst
 
-            tryMeet()
+            return suspendCoroutine { continuation ->
+                if (!currentHandler.compareAndSet(null, continuation)) {
+                    throw IllegalStateException("Read operation is already in progress")
+                }
+                currentBuffer = dst
+
+                tryMeet()
+            }
         }
 
         override fun close() {
@@ -117,7 +117,7 @@ object JettyHttp2Client : HttpClient {
                         currentBuffer = null
                         currentHandler.set(null)
 
-                        handler.success(copied)
+                        handler.resume(copied)
                     }
                 } // else we get one more tryMeet iteration that will succeed
             }
@@ -126,7 +126,7 @@ object JettyHttp2Client : HttpClient {
         private fun meetEof() {
             withCounter {
                 currentBuffer = null
-                currentHandler.getAndSet(null)?.successEnd()
+                currentHandler.getAndSet(null)?.resume(-1)
             }
         }
 
@@ -140,7 +140,7 @@ object JettyHttp2Client : HttpClient {
                 contentCallbacks.clear()
                 contentBuffers.clear()
 
-                currentHandler.getAndSet(null)?.failed(error)
+                currentHandler.getAndSet(null)?.resumeWithException(error)
             }
 
             tryMeet()
@@ -165,7 +165,7 @@ object JettyHttp2Client : HttpClient {
             request.onResponseBegin { response ->
                 handler(CompletableFuture.completedFuture(JettyHttp2Response(connection, response, channel)))
             }
-            request.onRequestFailure { request, throwable ->
+            request.onRequestFailure { _, throwable ->
                 handler(CompletableFuture<HttpResponse>().apply {
                     completeExceptionally(throwable)
                 })
@@ -173,7 +173,7 @@ object JettyHttp2Client : HttpClient {
         }
 
         fun send() {
-            request.send { result ->
+            request.send {
             }
         }
     }
