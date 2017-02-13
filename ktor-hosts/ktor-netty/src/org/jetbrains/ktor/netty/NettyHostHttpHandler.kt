@@ -2,21 +2,19 @@ package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import io.netty.handler.codec.http.HttpResponseStatus.*
+import io.netty.handler.codec.http.HttpVersion.*
 import io.netty.util.*
-import kotlinx.coroutines.experimental.future.*
-import org.jetbrains.ktor.application.*
 
 @ChannelHandler.Sharable
-class NettyHostHttp1Handler(private val host: NettyApplicationHost) : SimpleChannelInboundHandler<Any>(false) {
-
-    override fun channelRead0(context: ChannelHandlerContext, message: Any) {
+internal class NettyHostHttp1Handler(private val host: NettyApplicationHost) : SimpleChannelInboundHandler<HttpObject>(false) {
+    override fun channelRead0(context: ChannelHandlerContext, message: HttpObject) {
         when (message) {
             is HttpRequest -> {
-                /*
-                    if (HttpUtil.is100ContinueExpected(req)) {
-                        ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
-                    }
-                */
+                if (HttpUtil.is100ContinueExpected(message)) {
+                    context.write(DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
+                }
+
                 context.channel().config().isAutoRead = false
                 val httpContentQueue = HttpContentQueue(context)
                 context.pipeline().addLast(httpContentQueue)
@@ -27,15 +25,9 @@ class NettyHostHttp1Handler(private val host: NettyApplicationHost) : SimpleChan
 
                 ReferenceCountUtil.retain(message)
                 val call = NettyApplicationCall(host.application, context, message, httpContentQueue.queue)
-                executeCall(call)
+                context.fireChannelRead(call)
             }
             else -> context.fireChannelRead(message)
-        }
-    }
-
-    private fun executeCall(call: ApplicationCall) {
-        future(host.callDispatcher) {
-            host.pipeline.execute(call)
         }
     }
 }

@@ -59,11 +59,11 @@ class NettyChannelInitializer(val host: NettyApplicationHost, val connector: Hos
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
                 with(pipeline) {
-                    //addLast(LoggingHandler())
                     addLast(HttpServerCodec())
                     addLast(ChunkedWriteHandler())
                     addLast(WriteTimeoutHandler(10))
                     addLast(NettyHostHttp1Handler(host))
+                    addLast(host.callEventGroup, NettyApplicationCallHandler(host))
                 }
             }
             else -> {

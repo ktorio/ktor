@@ -37,7 +37,7 @@ internal open class HttpContentQueue(val context: ChannelHandlerContext) : Simpl
 
     val queue get() = _queue ?: NettyContentQueue(context).also { _queue = it }
 
-    override fun channelRead0(ctx: ChannelHandlerContext, msg: HttpContent) {
+    override fun channelRead0(context: ChannelHandlerContext, msg: HttpContent) {
         queue.push(msg, msg is LastHttpContent)
     }
 

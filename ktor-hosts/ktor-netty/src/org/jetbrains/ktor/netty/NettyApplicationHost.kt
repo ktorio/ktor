@@ -24,12 +24,8 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     private val parallelism = 3
     private val connectionEventGroup = NettyConnectionPool(parallelism) // accepts connections
-    private val workerEventGroup = NettyWorkerPool(parallelism) // processes socket data
-
-    private val callThreadPool = ForkJoinPool(parallelism, defaultForkJoinWorkerThreadFactory, Thread.UncaughtExceptionHandler { _, throwable ->
-        application.environment.log.error(throwable)
-    }, true)
-    internal val callDispatcher = callThreadPool.toCoroutineDispatcher() // executes call handlers
+    internal val workerEventGroup = NettyWorkerPool(parallelism) // processes socket data and parse HTTP
+    internal val callEventGroup = NettyCallPool(parallelism) // processes calls
 
     private val bootstraps = hostConfig.connectors.map { connector ->
         ServerBootstrap().apply {
@@ -63,10 +59,11 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         environment.log.trace("Stopping server…")
         val shutdownConnections = connectionEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
         val shutdownWorkers = workerEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
+        val shutdownCall = callEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
         shutdownConnections.await()
         shutdownWorkers.await()
+        shutdownCall.await()
 
-        callThreadPool.shutdown()
         applicationLifecycle.dispose()
         environment.log.trace("Server stopped.")
     }
@@ -78,3 +75,4 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
 class NettyConnectionPool(parallelism: Int) : NioEventLoopGroup(parallelism)
 class NettyWorkerPool(parallelism: Int) : NioEventLoopGroup(parallelism)
+class NettyCallPool(parallelism: Int) : NioEventLoopGroup(parallelism)
