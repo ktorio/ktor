@@ -80,7 +80,11 @@ fun runProfiler(settings: BenchmarkSettings) {
 private fun Any?.executeBenchmarks(benchmarks: List<Method>, iterations: Int) {
     benchmarks.forEach { benchmark ->
         repeat(iterations) {
-            benchmark.invoke(this)
+            try {
+                benchmark.invoke(this)
+            } catch (e: Throwable) {
+                e.printStackTrace()
+            }
         }
     }
 }
