@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.netty
 
-import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.stream.*
@@ -26,23 +25,7 @@ internal class NettyApplicationCall(application: Application,
 
     override val request = NettyApplicationRequest(httpRequest, NettyConnectionPoint(httpRequest, context), contentQueue)
     override val response = NettyApplicationResponse(this, respondPipeline, context)
-
-    class NettyBufferTicket(val bb: ByteBuf) : ReleasablePoolTicket(bb.nioBuffer(0, bb.capacity()))
-
-    override val bufferPool = object : ByteBufferPool {
-        private val allocator = context.alloc()
-
-        override fun allocate(size: Int): PoolTicket {
-            val heapBuffer = allocator.heapBuffer(size)
-            return NettyBufferTicket(heapBuffer)
-        }
-
-        override fun release(buffer: PoolTicket) {
-            val ticket = buffer as NettyBufferTicket
-            ticket.bb.release()
-            ticket.release()
-        }
-    }
+    override val bufferPool = NettyByteBufferPool(context)
 
     suspend override fun respond(message: Any) {
         super.respond(message)

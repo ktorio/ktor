@@ -42,7 +42,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         }
     }
 
-    open suspend fun respondFinalContent(content: FinalContent) {
+    protected open suspend fun respondFinalContent(content: FinalContent) {
         commitHeaders(content)
         return when (content) {
         // ByteArrayContent is most efficient

@@ -4,17 +4,17 @@ import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import io.netty.util.concurrent.*
-import org.jetbrains.ktor.netty.*
-import org.jetbrains.ktor.nio.*
-import java.io.*
+import org.jetbrains.ktor.cio.*
 import java.nio.*
+import java.nio.channels.*
 import java.util.concurrent.atomic.*
+import kotlin.coroutines.experimental.*
 
 internal class NettyHttp2WriteChannel(val context: ChannelHandlerContext) : WriteChannel {
     @Volatile
     private var lastPromise: ChannelPromise? = null
 
-    private val currentHandler = AtomicReference<AsyncHandler?>()
+    private val currentHandler = AtomicReference<Continuation<Unit>?>()
     private var currentBuffer: ByteBuffer? = null
 
     private val closed = AtomicBoolean()
@@ -28,10 +28,8 @@ internal class NettyHttp2WriteChannel(val context: ChannelHandlerContext) : Writ
             val handler = currentHandler.getAndSet(null)
 
             if (handler != null && buffer != null) {
-                val remaining = buffer.remaining()
-
                 buffer.position(buffer.limit())
-                handler.success(remaining)
+                handler.resume(Unit)
             }
         } catch (t: Throwable) {
             val buffer = currentBuffer
@@ -39,30 +37,28 @@ internal class NettyHttp2WriteChannel(val context: ChannelHandlerContext) : Writ
             val handler = currentHandler.getAndSet(null)
 
             if (handler != null && buffer != null) {
-                handler.failed(t)
+                handler.resumeWithException(t)
             }
         }
     }
 
-    override fun requestFlush() {
-        // we don't need to do anything
-    }
-
-    override fun flush(handler: AsyncHandler) {
-        lastPromise?.addListener { f ->
-            try {
-                f.get()
-                handler.successEnd()
-            } catch (t: Throwable) {
-                handler.failed(t)
-            }
-        } ?: run { handler.successEnd() }
+    override suspend fun flush() {
+        return suspendCoroutine { handler ->
+            lastPromise?.addListener { f ->
+                try {
+                    f.get()
+                    handler.resume(Unit)
+                } catch (t: Throwable) {
+                    handler.resumeWithException(t)
+                }
+            } ?: run { handler.resume(Unit) }
+        }
     }
 
     override fun close() {
         if (closed.compareAndSet(false, true)) {
             fun sendEnd() {
-                context.executeInLoop {
+                context.onLoop {
                     context.writeAndFlush(DefaultHttp2DataFrame(true))
                 }
             }
@@ -71,28 +67,38 @@ internal class NettyHttp2WriteChannel(val context: ChannelHandlerContext) : Writ
         }
     }
 
-    override fun write(src: ByteBuffer, handler: AsyncHandler) {
-        if (!currentHandler.compareAndSet(null, handler)) {
-            throw IllegalStateException("write operation is already in progress")
-        }
-        if (closed.get()) {
-            currentHandler.set(null)
-            handler.failed(IOException("Channel closed"))
-            return
-        }
-        currentBuffer = src
+    override suspend fun write(src: ByteBuffer) {
+        return suspendCoroutine { continuation ->
+            if (!currentHandler.compareAndSet(null, continuation)) {
+                throw IllegalStateException("write operation is already in progress")
+            }
+            if (closed.get()) {
+                currentHandler.set(null)
+                continuation.resumeWithException(ClosedChannelException())
+            } else {
+                currentBuffer = src
 
-        context.executeInLoop(writeImpl)
+                context.onLoop {
+                    val data = Unpooled.wrappedBuffer(currentBuffer!!)
+
+                    val promise = context.channel().newPromise()
+                    lastPromise = promise
+
+                    context.writeAndFlush(DefaultHttp2DataFrame(data, false), promise)
+
+                    promise.addListener(writeFutureListener)
+                }
+            }
+        }
     }
 
-    private val writeImpl = Runnable {
-        val data = Unpooled.wrappedBuffer(currentBuffer!!)
-
-        val promise = context.channel().newPromise()
-        lastPromise = promise
-
-        context.writeAndFlush(DefaultHttp2DataFrame(data, false), promise)
-
-        promise.addListener(writeFutureListener)
+    private inline fun ChannelHandlerContext.onLoop(crossinline block: () -> Unit) {
+        if (channel().eventLoop().inEventLoop()) {
+            block()
+        } else {
+            channel().eventLoop().execute {
+                block()
+            }
+        }
     }
 }

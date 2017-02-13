@@ -3,15 +3,14 @@ package org.jetbrains.ktor.netty.http2
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.netty.*
-import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.response.*
 
 internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
-                                             val host: NettyApplicationHost,
-                                             val handler: HostHttpHandler,
+                                             val handler: NettyHostHttp2Handler,
                                              val context: ChannelHandlerContext,
                                              respondPipeline: RespondPipeline,
                                              val connection: Http2Connection) : BaseApplicationResponse(call, respondPipeline) {
@@ -25,9 +24,9 @@ internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
     }
 
     internal val channelLazy: Lazy<WriteChannel> = lazy {
-        context.executeInLoop {
+//        context.executeInLoop {
             context.writeAndFlush(DefaultHttp2HeadersFrame(responseHeaders, false))
-        }
+//        }
 
         NettyHttp2WriteChannel(context)
     }
@@ -37,8 +36,6 @@ internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
             channelLazy.value.close()
         }
     }
-
-    override fun channel() = channelLazy.value
 
     override val headers = object : ResponseHeaders() {
         override fun hostAppendHeader(name: String, value: String) {
@@ -51,8 +48,8 @@ internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
     }
 
     override fun push(block: ResponsePushBuilder.() -> Unit) {
-        context.executeInLoop {
+//        context.executeInLoop {
             handler.startHttp2PushPromise(call, block, connection, context)
-        }
+//        }
     }
 }

@@ -2,14 +2,17 @@ package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
+import io.netty.util.*
+import io.netty.util.collection.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.netty.http2.*
 
 @ChannelHandler.Sharable
-class NettyHostHttp2Handler(private val host: NettyApplicationHost, private val http2: Http2Connection?, private val hostPipeline: HostPipeline) : SimpleChannelInboundHandler<Any>(false) {
-    override fun channelRead0(context: ChannelHandlerContext, message: Any) {
+class NettyHostHttp2Handler(private val host: NettyApplicationHost, private val http2: Http2Connection?, private val hostPipeline: HostPipeline) : ChannelInboundHandlerAdapter() {
+    override fun channelRead(context: ChannelHandlerContext, message: Any?) {
         when (message) {
             is Http2HeadersFrame -> {
                 if (http2 == null) {
@@ -31,15 +34,12 @@ class NettyHostHttp2Handler(private val host: NettyApplicationHost, private val 
     }
 
     private fun startHttp2(context: ChannelHandlerContext, streamId: Int, headers: Http2Headers, http2: Http2Connection) {
-/*
-        val call = NettyHttp2ApplicationCall(nettyApplicationHost.application, context, streamId, headers, this, nettyApplicationHost, http2, pool)
+        val call = NettyHttp2ApplicationCall(host.application, context, streamId, headers, this, http2)
         context.callByStreamId[streamId] = call
         context.executeCall(call)
-*/
     }
 
     fun startHttp2PushPromise(call: ApplicationCall, block: ResponsePushBuilder.() -> Unit, connection: Http2Connection, context: ChannelHandlerContext) {
-/*
         val builder = DefaultResponsePushBuilder(call)
         block(builder)
 
@@ -66,7 +66,6 @@ class NettyHostHttp2Handler(private val host: NettyApplicationHost, private val 
         context.writeAndFlush(pushPromiseFrame)
 
         startHttp2(context, streamId, pushPromiseFrame.headers, connection)
-*/
     }
 
     private fun ChannelHandlerContext.executeCall(call: ApplicationCall) {
@@ -78,13 +77,11 @@ class NettyHostHttp2Handler(private val host: NettyApplicationHost, private val 
     }
 
     companion object {
-        //private val CallByStreamIdKey = AttributeKey.newInstance<IntObjectHashMap<NettyHttp2ApplicationCall>>("ktor.CallByStreamIdKey")
+        private val CallByStreamIdKey = AttributeKey.newInstance<IntObjectHashMap<NettyHttp2ApplicationCall>>("ktor.CallByStreamIdKey")
 
-/*
         private val ChannelHandlerContext.callByStreamId: IntObjectHashMap<NettyHttp2ApplicationCall>
             get() = channel().attr(CallByStreamIdKey).let { attr ->
                 attr.get() ?: IntObjectHashMap<NettyHttp2ApplicationCall>().apply { attr.set(this) }
             }
-*/
     }
 }

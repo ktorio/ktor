@@ -72,7 +72,10 @@ internal abstract class Http2StreamChannel(parent: Channel, val streamId: Int, v
         pipeline().fireChannelReadComplete()
     }
 
+    // needs event loop
     override fun doWrite(outbound: ChannelOutboundBuffer) {
+        require(context.executor().inEventLoop())
+
         if (closed.get()) {
             throw StreamBufferingEncoder.Http2ChannelClosedException()
         }
@@ -86,7 +89,7 @@ internal abstract class Http2StreamChannel(parent: Channel, val streamId: Int, v
             }
         }
 
-        context.executeInLoop {
+//        context.executeInLoop {
             for (message in retained) {
                 try {
                     beforeWrite(message)
@@ -94,7 +97,7 @@ internal abstract class Http2StreamChannel(parent: Channel, val streamId: Int, v
                     context.fireExceptionCaught(t)
                 }
             }
-        }
+//        }
 
         while (!outbound.isEmpty) {
             val message = outbound.current()
@@ -111,6 +114,7 @@ internal abstract class Http2StreamChannel(parent: Channel, val streamId: Int, v
         context.flush()
     }
 
+    // on event loop
     private fun beforeWrite(msg: Any) {
         if (msg !is Http2StreamFrame) {
             ReferenceCountUtil.release(msg)
@@ -152,7 +156,8 @@ internal abstract class Http2StreamChannel(parent: Channel, val streamId: Int, v
     }
 
     fun fireChildReadComplete() {
-        context.executeInLoop(fireChildReadCompleteTask)
+//        context.executeInLoop(fireChildReadCompleteTask)
+        fireChildReadCompleteTask.run()
     }
 
     private val fireChildReadCompleteTask = Runnable {

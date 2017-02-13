@@ -13,10 +13,12 @@ import io.netty.handler.timeout.*
 import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.netty.http2.*
 import org.jetbrains.ktor.transform.*
+import java.security.*
+import java.security.cert.*
 import java.util.concurrent.*
-import java.util.concurrent.ForkJoinPool.*
-import javax.net.ssl.*
+import java.util.concurrent.ForkJoinPool.defaultForkJoinWorkerThreadFactory
 
 /**
  * [ApplicationHost] implementation for running standalone Netty Host
@@ -46,12 +48,17 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 override fun initChannel(ch: SocketChannel) {
                     with(ch.pipeline()) {
                         if (ktorConnector is HostSSLConnectorConfig) {
-                            val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+//                            val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
+//                            kmf.init(ktorConnector.keyStore, password)
+//                            password.fill('\u0000')
+
+                            val chain1 = ktorConnector.keyStore.getCertificateChain(ktorConnector.keyAlias).toList() as List<X509Certificate>
+                            val certs = chain1.toList().toTypedArray<X509Certificate>()
                             val password = ktorConnector.privateKeyPassword()
-                            kmf.init(ktorConnector.keyStore, password)
+                            val pk = ktorConnector.keyStore.getKey(ktorConnector.keyAlias, password) as PrivateKey
                             password.fill('\u0000')
 
-                            addLast("ssl", SslContextBuilder.forServer(kmf)
+                            addLast("ssl", SslContextBuilder.forServer(pk, *certs)
                                     .apply {
                                         if (alpnProvider != null) {
                                             sslProvider(alpnProvider)
@@ -120,10 +127,8 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 val encoder = DefaultHttp2ConnectionEncoder(connection, writer)
                 val decoder = DefaultHttp2ConnectionDecoder(connection, encoder, reader)
 
-/*
                 pipeline.addLast(HostHttp2Handler(encoder, decoder, Http2Settings()))
-                pipeline.addLast(Multiplexer(pipeline.channel(), HostHttpHandler(this@NettyApplicationHost, connection, byteBufferPool, hostPipeline)))
-*/
+                pipeline.addLast(Multiplexer(pipeline.channel(), NettyHostHttp2Handler(this, connection, hostPipeline)))
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
                 with(pipeline) {
@@ -149,17 +154,20 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         val alpnProvider by lazy { findAlpnProvider() }
 
         fun findAlpnProvider(): SslProvider? {
-            val jettyAlpn = try {
+            try {
                 Class.forName("sun.security.ssl.ALPNExtension", true, null)
-                true
-            } catch (t: Throwable) {
-                false
+                return SslProvider.JDK
+            } catch (ignore: Throwable) {
             }
 
-            return when {
-                jettyAlpn -> SslProvider.JDK
-                else -> null
+            try {
+                if (OpenSsl.isAlpnSupported()) {
+                    return SslProvider.OPENSSL
+                }
+            } catch (ignore: Throwable) {
             }
+
+            return null
         }
     }
 
