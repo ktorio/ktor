@@ -1,17 +1,21 @@
 package org.jetbrains.ktor.tests
 
 import ch.qos.logback.classic.Level
+import org.apache.http.client.methods.*
+import org.apache.http.impl.client.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.jetty.*
 import org.jetbrains.ktor.netty.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.openjdk.jmh.annotations.*
 import org.slf4j.*
 import org.slf4j.Logger
 import java.io.*
 import java.net.*
+import java.util.concurrent.*
 
 
 @State(Scope.Benchmark)
@@ -24,6 +28,8 @@ abstract class IntegrationBenchmark {
     }.single()
 
     lateinit private var server: ApplicationHostStartable
+    private var httpClient: CloseableHttpClient? = null
+    private val useApacheClient = false
 
     private val port = 5678
 
@@ -36,7 +42,7 @@ abstract class IntegrationBenchmark {
         server = createServer(port) {
             routing {
                 get("/sayOK") {
-                    call.respond("OK")
+                    call.respondText("OK")
                 }
                 get("/jarfile") {
                     call.respond(call.resolveClasspathWithPath("java/lang/", "String.class")!!)
@@ -61,50 +67,78 @@ abstract class IntegrationBenchmark {
         server.start()
     }
 
-    private fun load(url: String): ByteArray {
-        return (URL(url).openConnection() as HttpURLConnection).apply {
-            setRequestProperty("Accept-Encoding", "gzip")
-        }.inputStream.readBytes()
+    @TearDown
+    fun shutdownServer() {
+        server.stop(100, 5000, TimeUnit.MILLISECONDS)
+    }
+
+    @Setup
+    fun configureClient() {
+        if (useApacheClient) {
+            val builder = HttpClientBuilder.create()
+            httpClient = builder.build()
+        }
+
     }
 
     @TearDown
-    fun shutdownServer() {
-        server.stop()
+    fun shutdownClient() {
+        if (useApacheClient) {
+            httpClient!!.close()
+            httpClient = null
+        }
+    }
+
+    private fun load(url: String) {
+        val inputStream = if (useApacheClient) {
+            val httpGet = HttpGet(url)
+            val response = httpClient!!.execute(httpGet)
+            response.entity.content
+        } else {
+            (URL(url).openConnection() as HttpURLConnection).apply {
+                // setRequestProperty("Connection", "close")
+                setRequestProperty("Accept-Encoding", "gzip")
+            }.inputStream
+        }
+        inputStream.use {
+            val buf = ByteArray(8192)
+            while (it.read(buf) != -1);
+        }
     }
 
     @Benchmark
-    fun sayOK(): ByteArray {
-        return load("http://localhost:$port/sayOK")
+    fun sayOK() {
+        load("http://localhost:$port/sayOK")
     }
 
     @Benchmark
-    fun jarfile(): ByteArray {
-        return load("http://localhost:$port/jarfile")
+    fun jarfile() {
+        load("http://localhost:$port/jarfile")
     }
 
     @Benchmark
-    fun regularClasspathFile(): ByteArray {
-        return load("http://localhost:$port/regularClasspathFile")
+    fun regularClasspathFile() {
+        load("http://localhost:$port/regularClasspathFile")
     }
 
     @Benchmark
-    fun smallFile(): ByteArray {
-        return load("http://localhost:$port/smallFile")
+    fun smallFile() {
+        load("http://localhost:$port/smallFile")
     }
 
     @Benchmark
-    fun smallFileSync(): ByteArray {
-        return load("http://localhost:$port/smallFileSync")
+    fun smallFileSync() {
+        load("http://localhost:$port/smallFileSync")
     }
 
     @Benchmark
-    fun largeFile(): ByteArray {
-        return load("http://localhost:$port/largeFile")
+    fun largeFile() {
+        load("http://localhost:$port/largeFile")
     }
 
     @Benchmark
-    fun largeFileSync(): ByteArray {
-        return load("http://localhost:$port/largeFileSync")
+    fun largeFileSync() {
+        load("http://localhost:$port/largeFileSync")
     }
 }
 
@@ -136,10 +170,13 @@ NettyIntegrationBenchmark.smallFile             thrpt   10  12.484 ± 3.729  ops
 */
 
 fun main(args: Array<String>) {
+    if (args.firstOrNull() == "daemon") {
+        NettyIntegrationBenchmark().configureServer()
+    } else
     benchmark(args) {
-        threads = 4
+        threads = 32
         run<NettyIntegrationBenchmark>()
-        run<JettyIntegrationBenchmark>()
+        //run<JettyIntegrationBenchmark>()
     }
 }
 
