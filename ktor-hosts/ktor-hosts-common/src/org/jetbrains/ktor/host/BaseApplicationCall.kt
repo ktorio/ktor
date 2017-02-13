@@ -40,6 +40,11 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                 response.header(name, value)
             }
         }
+
+        val connection = request.headers["Connection"]
+        if (connection != null && connection.equals("close", true)) {
+            response.header("Connection", "close")
+        }
     }
 
     protected open suspend fun respondFinalContent(content: FinalContent) {
