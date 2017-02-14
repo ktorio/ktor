@@ -12,6 +12,7 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.servlet.*
 import org.jetbrains.ktor.transform.*
 import java.nio.file.*
+import java.util.concurrent.*
 import javax.servlet.*
 
 class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
@@ -101,7 +102,7 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     }
 
-    override fun stop() {
+    override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
         server.stop()
         config.log.trace("Server stopped.")
         tempDirectory.toFile().deleteRecursively()

@@ -21,7 +21,7 @@ fun main(args: Array<String>) {
                 // Schedule server shutdown in 100ms
                 val executor = Executors.newSingleThreadScheduledExecutor()
                 executor.schedule({
-                    server?.stop()
+                    server?.stop(100, 1000, TimeUnit.MILLISECONDS)
                     executor.shutdown()
                 }, 100, TimeUnit.MILLISECONDS)
 
