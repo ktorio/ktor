@@ -57,7 +57,12 @@ internal class NettyApplicationCall(application: Application,
             }
             ReferenceCountUtil.release(httpRequest)
         }
+    }
 
+    suspend override fun respondFromBytes(bytes: ByteArray) {
+        response.sendResponseMessage(flush = false)
+        val buf = context.alloc().ioBuffer(bytes.size).writeBytes(bytes)
+        context.writeAndFlush(buf).suspendAwait()
     }
 
     override suspend fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
