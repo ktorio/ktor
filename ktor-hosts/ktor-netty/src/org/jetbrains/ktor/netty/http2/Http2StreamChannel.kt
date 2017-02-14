@@ -126,7 +126,7 @@ internal abstract class Http2StreamChannel(parent: Channel, val streamId: Int, v
             ReferenceCountUtil.release(frame)
             throw IllegalArgumentException("Stream must not be set on the frame")
         }
-        frame.setStreamId(streamId)
+        frame.streamId(streamId)
 
         writeFromStreamChannel(msg, true)
     }

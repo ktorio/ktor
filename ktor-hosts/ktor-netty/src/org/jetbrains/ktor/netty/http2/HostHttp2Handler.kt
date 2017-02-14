@@ -60,7 +60,7 @@ internal class HostHttp2Handler(val encoder: Http2ConnectionEncoder, decoder: Ht
 
     private inner class FrameListener : Http2FrameAdapter() {
         override fun onHeadersRead(ctx: ChannelHandlerContext, streamId: Int, headers: Http2Headers, padding: Int, endStream: Boolean) {
-            ctx.fireChannelRead(DefaultHttp2HeadersFrame(headers, endStream, padding).apply { setStreamId(streamId) })
+            ctx.fireChannelRead(DefaultHttp2HeadersFrame(headers, endStream, padding).apply { streamId(streamId) })
         }
 
         override fun onHeadersRead(ctx: ChannelHandlerContext, streamId: Int, headers: Http2Headers, streamDependency: Int, weight: Short, exclusive: Boolean, padding: Int, endStream: Boolean) {
@@ -70,13 +70,13 @@ internal class HostHttp2Handler(val encoder: Http2ConnectionEncoder, decoder: Ht
         override fun onDataRead(ctx: ChannelHandlerContext, streamId: Int, data: ByteBuf, padding: Int,
                                 endOfStream: Boolean): Int {
 
-            ctx.fireChannelRead(DefaultHttp2DataFrame(data.retain(), endOfStream, padding).apply { setStreamId(streamId) })
+            ctx.fireChannelRead(DefaultHttp2DataFrame(data.retain(), endOfStream, padding).apply { streamId(streamId) })
 
             return 0
         }
 
         override fun onRstStreamRead(ctx: ChannelHandlerContext, streamId: Int, errorCode: Long) {
-            ctx.fireChannelRead(DefaultHttp2ResetFrame(errorCode).apply { setStreamId(streamId) })
+            ctx.fireChannelRead(DefaultHttp2ResetFrame(errorCode).apply { streamId(streamId) })
         }
     }
 }
