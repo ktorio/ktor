@@ -18,6 +18,7 @@ internal class NettyHostHttp1Handler(private val host: NettyApplicationHost) : S
                 context.channel().config().isAutoRead = false
                 val httpContentQueue = HttpContentQueue(context)
                 context.pipeline().addLast(httpContentQueue)
+                context.pipeline().addLast(host.callEventGroup, NettyApplicationCallHandler(host))
 
                 if (message is HttpContent) {
                     httpContentQueue.queue.push(message, message is LastHttpContent)

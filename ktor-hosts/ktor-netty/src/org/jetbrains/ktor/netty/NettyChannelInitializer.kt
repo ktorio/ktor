@@ -4,6 +4,7 @@ import io.netty.channel.*
 import io.netty.channel.socket.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
+import io.netty.handler.logging.*
 import io.netty.handler.ssl.*
 import io.netty.handler.stream.*
 import io.netty.handler.timeout.*
@@ -59,11 +60,13 @@ class NettyChannelInitializer(val host: NettyApplicationHost, val connector: Hos
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
                 with(pipeline) {
+                    //addLast(LoggingHandler(LogLevel.INFO))
                     addLast(HttpServerCodec())
+                    //addLast(LoggingHandler(LogLevel.INFO))
                     addLast(ChunkedWriteHandler())
+               //     addLast(LoggingHandler(LogLevel.INFO))
                     addLast(WriteTimeoutHandler(10))
                     addLast(NettyHostHttp1Handler(host))
-                    addLast(host.callEventGroup, NettyApplicationCallHandler(host))
                 }
             }
             else -> {
