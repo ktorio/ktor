@@ -9,7 +9,9 @@ import java.io.*
 import java.time.*
 import java.util.*
 
-abstract class WebSocket internal constructor(val application: Application, protected val context: PipelineContext<*>) : Closeable {
+abstract class WebSocket internal constructor(val call: ApplicationCall, protected val context: PipelineContext<*>) : Closeable {
+    val application: Application = call.application
+
     private val handlers = ArrayList<suspend (Frame) -> Unit>()
     private val errorHandlers = ArrayList<(Throwable) -> Unit>()
     private val closeHandlers = ArrayList<suspend (CloseReason?) -> Unit>()
@@ -41,20 +43,12 @@ abstract class WebSocket internal constructor(val application: Application, prot
         closeHandlers.add(handler)
     }
 
-    /**
-     *
-     */
-    abstract fun offer(frame: Frame)
+    abstract fun enqueue(frame: Frame)
+    abstract suspend fun flush()
     abstract suspend fun send(frame: Frame)
 
     override fun close() {
-//        call.close() // TODO move call.close() to some generic point
         context.finish()
-
-//        context.proceed()
-//        runBlocking(Unconfined) {
-//            context.proceed()
-//        }
     }
 
     suspend fun close(reason: CloseReason) {
@@ -82,7 +76,7 @@ abstract class WebSocket internal constructor(val application: Application, prot
     }
 }
 
-fun Route.webSocket(path: String, protocol: String? = null, configure: WebSocket.() -> Unit) {
+fun Route.webSocket(path: String, protocol: String? = null, configure: suspend WebSocket.() -> Unit) {
     route(HttpMethod.Get, path) {
         header(HttpHeaders.Connection, "Upgrade") {
             header(HttpHeaders.Upgrade, "websocket") {

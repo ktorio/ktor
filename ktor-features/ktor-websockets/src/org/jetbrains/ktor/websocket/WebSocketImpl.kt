@@ -8,7 +8,7 @@ import org.jetbrains.ktor.pipeline.*
 import java.io.*
 import java.time.*
 
-internal class WebSocketImpl(application: Application, context: PipelineContext<*>, val readChannel: ReadChannel, val writeChannel: WriteChannel, val channel: Closeable) : WebSocket(application, context) {
+internal class WebSocketImpl(call: ApplicationCall, context: PipelineContext<*>, val readChannel: ReadChannel, val writeChannel: WriteChannel, val channel: Closeable) : WebSocket(call, context) {
     private val controlFrameHandler = ControlFrameHandler(this, application.executor)
     private val outbound = WebSocketWriter(this, writeChannel, controlFrameHandler)
     private val reader = WebSocketReader(
@@ -43,12 +43,16 @@ internal class WebSocketImpl(application: Application, context: PipelineContext<
         super.frameHandler(frame)
     }
 
-    override fun offer(frame: Frame) {
+    override fun enqueue(frame: Frame) {
         if (frame.frameType.controlFrame) {
             throw IllegalArgumentException("You should never enqueue control frames as they are delivery-time sensitive, use send() instead")
         }
 
         outbound.enqueue(frame)
+    }
+
+    suspend override fun flush() {
+        outbound.flush()
     }
 
     override suspend fun send(frame: Frame) {
