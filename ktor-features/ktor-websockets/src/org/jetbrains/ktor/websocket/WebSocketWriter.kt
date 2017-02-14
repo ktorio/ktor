@@ -7,7 +7,7 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
 internal class WebSocketWriter(parent: WebSocketImpl, val writeChannel: WriteChannel, val controlFrameHandler: ControlFrameHandler) {
-    private val serializer = Serializer(parent.masking)
+    private val serializer = Serializer(parent::masking)
     private val buffer = ByteBuffer.allocate(8192)
 
     private val writeInProgress = AtomicBoolean()

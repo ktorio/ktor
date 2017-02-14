@@ -14,6 +14,8 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 import java.io.*
+import java.time.*
+import java.util.concurrent.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 
@@ -127,11 +129,13 @@ class TestApplicationCall(application: Application, override val request: TestAp
     @Volatile
     var requestHandled = false
 
+    private val webSocketCompleted = CountDownLatch(1)
+
     override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : handled = $requestHandled"
 
     override suspend fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
         commitHeaders(upgrade)
-        upgrade.upgrade(this@TestApplicationCall, this, request.content.get(), response.realContent.value, Closeable { })
+        upgrade.upgrade(this@TestApplicationCall, this, request.content.get(), response.realContent.value, Closeable { webSocketCompleted.countDown() })
     }
 
     override fun responseChannel(): WriteChannel = response.realContent.value.apply {
@@ -143,6 +147,11 @@ class TestApplicationCall(application: Application, override val request: TestAp
 
             ensureCapacity(contentLength.toInt())
         }
+    }
+
+    fun awaitWebSocket(duration: Duration) {
+        if (!webSocketCompleted.await(duration.toMillis(), TimeUnit.MILLISECONDS))
+            throw TimeoutException()
     }
 }
 
