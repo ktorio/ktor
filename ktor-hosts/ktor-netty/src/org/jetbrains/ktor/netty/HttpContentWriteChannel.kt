@@ -9,7 +9,7 @@ internal class HttpContentWriteChannel(val context: ChannelHandlerContext) : Wri
 
     override suspend fun write(src: ByteBuffer) {
         while (src.hasRemaining()) {
-            val buffer = allocator.buffer(src.remaining())
+            val buffer = allocator.ioBuffer(src.remaining())
             buffer.writeBytes(src)
             context.writeAndFlush(buffer).suspendAwait()
         }
