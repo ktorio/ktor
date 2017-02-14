@@ -39,10 +39,10 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
         override fun getHostHeaderValues(name: String): List<String> = response.headers().getAll(name) ?: emptyList()
     }
 
-    internal fun sendResponseMessage(): ChannelFuture? {
+    internal fun sendResponseMessage(flush: Boolean = true): ChannelFuture? {
         if (!responseMessageSent) {
             setChunked()
-            val f = context.writeAndFlush(response)
+            val f = if (flush) context.writeAndFlush(response) else context.write(response)
             responseMessageSent = true
             return f
         }
