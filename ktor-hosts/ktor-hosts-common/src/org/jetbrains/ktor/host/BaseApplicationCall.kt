@@ -65,12 +65,12 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         }
     }
 
-    private suspend fun respondFromBytes(bytes: ByteArray) {
+    protected open suspend fun respondFromBytes(bytes: ByteArray) {
         val response = responseChannel()
         response.write(ByteBuffer.wrap(bytes))
     }
 
-    private suspend fun respondFromChannel(channel: ReadChannel) {
+    protected open suspend fun respondFromChannel(channel: ReadChannel) {
         // note: it is important to open response channel before we open content channel
         // otherwise we can hit deadlock on event-based hosts
 
