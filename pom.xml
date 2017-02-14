@@ -8,7 +8,7 @@
     <artifactId>ktor</artifactId>
 
     <properties>
-        <kotlin.version>1.1.0-beta-38</kotlin.version>
+        <kotlin.version>1.1.0-rc-69</kotlin.version>
         <dokka.version>0.9.11</dokka.version>
         <jmh.version>1.17</jmh.version>
 
@@ -272,7 +272,7 @@
             </snapshots>
             <id>bintray-kotlin-eap-1.1</id>
             <name>bintray-plugins</name>
-            <url>http://dl.bintray.com/kotlin/kotlin-eap-1.1</url>
+            <url>http://dl.bintray.com/kotlin/kotlin-dev</url>
         </pluginRepository>
     </pluginRepositories>
     <repositories>
@@ -286,7 +286,7 @@
             </snapshots>
             <id>bintray-kotlin-eap-1.1</id>
             <name>bintray</name>
-            <url>http://dl.bintray.com/kotlin/kotlin-eap-1.1</url>
+            <url>http://dl.bintray.com/kotlin/kotlin-dev</url>
         </repository>
     </repositories>
 </project>
