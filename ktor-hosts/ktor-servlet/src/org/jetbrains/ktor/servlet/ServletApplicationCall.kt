@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.servlet
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
@@ -27,7 +28,7 @@ open class ServletApplicationCall(application: Application,
     @Volatile
     var completed: Boolean = false
 
-    override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
+    override suspend fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
         servletResponse.status = upgrade.status?.value ?: HttpStatusCode.SwitchingProtocols.value
         upgrade.headers.flattenEntries().forEach { e ->
             servletResponse.addHeader(e.first, e.second)
@@ -83,9 +84,11 @@ open class ServletApplicationCall(application: Application,
             up.call.requestChannelOverride = inputChannel
             up.call.responseChannelOverride = outputChannel
 
-            up.upgradeMessage.upgrade(call, up.context, inputChannel, outputChannel, Closeable {
-                wc.close()
-            })
+            runBlocking {
+                up.upgradeMessage.upgrade(call, up.context, inputChannel, outputChannel, Closeable {
+                    wc.close()
+                })
+            }
         }
 
         override fun destroy() {

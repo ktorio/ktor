@@ -19,7 +19,7 @@ internal class NettyHttp2ApplicationCall(override val application: Application,
     override val request = NettyHttp2ApplicationRequest(context, streamId, headers)
     override val response = NettyHttp2ApplicationResponse(this, handler, context, respondPipeline, connection)
 
-    override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
+    override suspend fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
         throw UnsupportedOperationException("HTTP/2 doesn't support upgrade")
     }
 

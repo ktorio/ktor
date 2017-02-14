@@ -59,7 +59,7 @@ fun Application.main() {
 
 data class Session(val id: String)
 
-private fun receivedMessage(id: String, command: String) {
+private suspend fun receivedMessage(id: String, command: String) {
     when {
         command.startsWith("/who") -> server.who(id)
         command.startsWith("/user") -> {

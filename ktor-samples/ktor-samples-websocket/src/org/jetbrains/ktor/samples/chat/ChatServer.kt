@@ -13,7 +13,7 @@ class ChatServer {
     val members = ConcurrentHashMap<String, MutableList<WebSocket>>()
     val lastMessages = LinkedList<String>()
 
-    fun memberJoin(member: String, socket: WebSocket) {
+    suspend fun memberJoin(member: String, socket: WebSocket) {
         val name = memberNames.computeIfAbsent(member) { "user${usersCounter.incrementAndGet()}" }
         val list = members.computeIfAbsent(member) { CopyOnWriteArrayList<WebSocket>() }
         list.add(socket)
@@ -28,12 +28,12 @@ class ChatServer {
         }
     }
 
-    fun memberRenamed(member: String, to: String) {
+    suspend fun memberRenamed(member: String, to: String) {
         val oldName = memberNames.put(member, to) ?: member
         broadcast("server", "Member renamed from $oldName to $to")
     }
 
-    fun memberLeft(member: String, socket: WebSocket) {
+    suspend fun memberLeft(member: String, socket: WebSocket) {
         val connections = members[member]
         connections?.remove(socket)
 
@@ -43,19 +43,19 @@ class ChatServer {
         }
     }
 
-    fun who(sender: String) {
+    suspend fun who(sender: String) {
         members[sender]?.send(Frame.Text(memberNames.keys.joinToString(prefix = "[server::who] ")))
     }
 
-    fun help(sender: String) {
+    suspend fun help(sender: String) {
         members[sender]?.send(Frame.Text("[server::help] Possible commands are: /user, /help and /who"))
     }
 
-    fun sendTo(receipient: String, sender: String, message: String) {
+    suspend fun sendTo(receipient: String, sender: String, message: String) {
         members[receipient]?.send(Frame.Text("[$sender] $message"))
     }
 
-    fun message(sender: String, message: String) {
+    suspend fun message(sender: String, message: String) {
         val name = memberNames[sender] ?: sender
         val formatted = "[$name] $message"
 
@@ -68,24 +68,24 @@ class ChatServer {
         }
     }
 
-    fun broadcast(message: String) {
+    suspend fun broadcast(message: String) {
         broadcast(buildByteBuffer {
             putString(message, Charsets.UTF_8)
         })
     }
 
-    fun broadcast(sender: String, message: String) {
+    suspend fun broadcast(sender: String, message: String) {
         val name = memberNames[sender] ?: sender
         broadcast("[$name] $message")
     }
 
-    fun broadcast(serialized: ByteBuffer) {
+    suspend fun broadcast(serialized: ByteBuffer) {
         members.values.forEach { socket ->
             socket.send(Frame.Text(true, serialized.duplicate()))
         }
     }
 
-    fun List<WebSocket>.send(frame: Frame) {
+    suspend fun List<WebSocket>.send(frame: Frame) {
         forEach { it.send(frame.copy()) }
     }
 }

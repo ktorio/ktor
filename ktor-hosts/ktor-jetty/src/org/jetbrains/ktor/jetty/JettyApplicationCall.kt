@@ -18,7 +18,7 @@ class JettyApplicationCall(application: Application,
                            pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit)
 : ServletApplicationCall(application, servletRequest, servletResponse, pool, pushImpl) {
 
-    override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
+    override suspend fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
         // Jetty doesn't support Servlet API's upgrade so we have to implement our own
 
         val connection = servletRequest.getAttribute("org.eclipse.jetty.server.HttpConnection") as HttpConnection

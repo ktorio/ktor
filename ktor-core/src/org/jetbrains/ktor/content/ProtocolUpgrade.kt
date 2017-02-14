@@ -6,5 +6,5 @@ import org.jetbrains.ktor.pipeline.*
 import java.io.*
 
 abstract class ProtocolUpgrade() : HostResponse {
-    abstract fun upgrade(call: ApplicationCall, context: PipelineContext<*>, input: ReadChannel, output: WriteChannel, channel: Closeable): Closeable
+    abstract suspend fun upgrade(call: ApplicationCall, context: PipelineContext<*>, input: ReadChannel, output: WriteChannel, channel: Closeable): Closeable
 }

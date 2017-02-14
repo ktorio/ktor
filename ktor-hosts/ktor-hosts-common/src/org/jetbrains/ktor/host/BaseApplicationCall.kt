@@ -74,7 +74,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         channel.close()
     }
 
-    protected abstract fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade)
+    protected abstract suspend fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade)
     protected abstract fun responseChannel(): WriteChannel
     protected open val bufferPool: ByteBufferPool get() = NoPool
 

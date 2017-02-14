@@ -129,7 +129,7 @@ class TestApplicationCall(application: Application, override val request: TestAp
 
     override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : handled = $requestHandled"
 
-    override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
+    override suspend fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
         commitHeaders(upgrade)
         upgrade.upgrade(this@TestApplicationCall, this, request.content.get(), response.realContent.value, Closeable { })
     }
