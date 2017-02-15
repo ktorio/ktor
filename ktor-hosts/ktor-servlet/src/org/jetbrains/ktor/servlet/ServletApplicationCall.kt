@@ -57,7 +57,10 @@ open class ServletApplicationCall(application: Application,
             completed = true
             request.close()
             if (responseChannel.isInitialized()) {
-                responseChannel.value.close()
+                responseChannel.value.apply {
+                    flush()
+                    close()
+                }
             } else {
                 servletResponse.flushBuffer()
             }

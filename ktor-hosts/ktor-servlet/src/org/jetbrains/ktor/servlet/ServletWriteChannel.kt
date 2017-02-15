@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.servlet
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.cio.*
 import java.nio.*
 import java.nio.channels.*
@@ -41,8 +42,10 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream,
     }
 
     suspend override fun flush() {
-        awaitForWriteReady()
-        servletOutputStream.flush()
+        if (listenerInstalled.get()) {
+            awaitForWriteReady()
+            servletOutputStream.flush()
+        }
     }
 
     private suspend fun awaitForWriteReady() {
