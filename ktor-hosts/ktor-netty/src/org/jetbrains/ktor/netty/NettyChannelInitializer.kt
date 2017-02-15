@@ -43,10 +43,12 @@ class NettyChannelInitializer(val host: NettyApplicationHost, val connector: Hos
                         }
                         .build()
                         .newHandler(ch.alloc()))
-            }
 
-            if (alpnProvider != null) {
-                addLast(NegotiatedPipelineInitializer())
+                if (alpnProvider != null) {
+                    addLast(NegotiatedPipelineInitializer())
+                } else {
+                    configurePipeline(this, ApplicationProtocolNames.HTTP_1_1)
+                }
             } else {
                 configurePipeline(this, ApplicationProtocolNames.HTTP_1_1)
             }
