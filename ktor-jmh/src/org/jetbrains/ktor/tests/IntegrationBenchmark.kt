@@ -162,11 +162,14 @@ JettyIntegrationBenchmark.regularClasspathFile  thrpt   10  15.423 ± 1.317  ops
 JettyIntegrationBenchmark.sayOK                 thrpt   10  25.281 ± 2.988  ops/ms
 JettyIntegrationBenchmark.smallFile             thrpt   10  17.042 ± 1.622  ops/ms
 
-NettyIntegrationBenchmark.jarfile               thrpt   10   9.374 ± 2.783  ops/ms
-NettyIntegrationBenchmark.largeFile             thrpt   10   0.525 ± 0.021  ops/ms
-NettyIntegrationBenchmark.regularClasspathFile  thrpt   10  11.799 ± 3.637  ops/ms
-NettyIntegrationBenchmark.sayOK                 thrpt   10  18.154 ± 7.519  ops/ms
-NettyIntegrationBenchmark.smallFile             thrpt   10  12.484 ± 3.729  ops/ms
+Benchmark                                        Mode  Cnt   Score   Error   Units
+NettyIntegrationBenchmark.jarfile               thrpt   10   9.104 ± 2.282  ops/ms
+NettyIntegrationBenchmark.largeFile             thrpt   10   2.393 ± 0.314  ops/ms
+NettyIntegrationBenchmark.largeFileSync         thrpt   10   2.676 ± 0.227  ops/ms
+NettyIntegrationBenchmark.regularClasspathFile  thrpt   10  16.470 ± 3.606  ops/ms
+NettyIntegrationBenchmark.sayOK                 thrpt   10  35.345 ± 4.163  ops/ms
+NettyIntegrationBenchmark.smallFile             thrpt   10  25.252 ± 5.469  ops/ms
+NettyIntegrationBenchmark.smallFileSync         thrpt   10  29.195 ± 6.683  ops/ms
 */
 
 fun main(args: Array<String>) {
