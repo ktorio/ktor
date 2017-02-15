@@ -156,11 +156,13 @@ open class JettyIntegrationBenchmark : IntegrationBenchmark() {
 
 /*
 Benchmark                                        Mode  Cnt   Score   Error   Units
-JettyIntegrationBenchmark.jarfile               thrpt   10  12.509 ± 2.196  ops/ms
-JettyIntegrationBenchmark.largeFile             thrpt   10   1.021 ± 0.089  ops/ms
-JettyIntegrationBenchmark.regularClasspathFile  thrpt   10  15.423 ± 1.317  ops/ms
-JettyIntegrationBenchmark.sayOK                 thrpt   10  25.281 ± 2.988  ops/ms
-JettyIntegrationBenchmark.smallFile             thrpt   10  17.042 ± 1.622  ops/ms
+JettyIntegrationBenchmark.jarfile               thrpt   10  12.046 ± 4.394  ops/ms
+JettyIntegrationBenchmark.largeFile             thrpt   10  ------ ± -----  ops/ms
+JettyIntegrationBenchmark.largeFileSync         thrpt   10   2.279 ± 0.079  ops/ms
+JettyIntegrationBenchmark.regularClasspathFile  thrpt   10  15.307 ± 6.669  ops/ms
+JettyIntegrationBenchmark.sayOK                 thrpt   10  30.287 ± 6.032  ops/ms
+JettyIntegrationBenchmark.smallFile             thrpt   10  20.538 ± 6.103  ops/ms
+JettyIntegrationBenchmark.smallFileSync         thrpt   10  21.785 ± 1.998  ops/ms
 
 Benchmark                                        Mode  Cnt   Score   Error   Units
 NettyIntegrationBenchmark.jarfile               thrpt   10   9.104 ± 2.282  ops/ms
@@ -179,7 +181,7 @@ fun main(args: Array<String>) {
     benchmark(args) {
         threads = 32
         run<NettyIntegrationBenchmark>()
-        //run<JettyIntegrationBenchmark>()
+        run<JettyIntegrationBenchmark>()
     }
 }
 
