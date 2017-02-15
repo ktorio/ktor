@@ -35,6 +35,10 @@ class TestingHttpConnection(val app: TestApplicationHost, val host: String, val 
         return TestingHttpResponse(this, call)
     }
 
+    suspend override fun request(init: RequestBuilder.() -> Unit): HttpResponse {
+        return requestBlocking(init)
+    }
+
     override fun requestAsync(init: RequestBuilder.() -> Unit, handler: (Future<HttpResponse>) -> Unit) {
         val f = try {
             CompletableFuture.completedFuture(requestBlocking(init))

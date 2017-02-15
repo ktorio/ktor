@@ -35,6 +35,10 @@ object DefaultHttpClient : HttpClient {
             return DefaultHttpResponse(this, connection)
         }
 
+        suspend override fun request(init: RequestBuilder.() -> Unit): HttpResponse {
+            return requestBlocking(init)
+        }
+
         override fun requestAsync(init: RequestBuilder.() -> Unit, handler: (Future<HttpResponse>) -> Unit) {
             val response = try {
                 CompletableFuture.completedFuture(requestBlocking(init))

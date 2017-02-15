@@ -9,6 +9,9 @@ import java.util.concurrent.*
 
 interface HttpConnection : Closeable {
     fun requestBlocking(init: RequestBuilder.() -> Unit) : HttpResponse
+    suspend fun request(init: RequestBuilder.() -> Unit): HttpResponse
+
+    @Deprecated("Use suspend fun request instead")
     fun requestAsync(init: RequestBuilder.() -> Unit, handler: (Future<HttpResponse>) -> Unit)
 }
 
