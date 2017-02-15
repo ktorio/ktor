@@ -48,6 +48,7 @@ internal class NettyApplicationCall(application: Application,
                     // TODO: change it to shareable context-agnostic concurrent map
                     try {
                         context.pipeline().remove(HttpContentQueue::class.java)
+                        context.pipeline().remove(NettyApplicationCallHandler::class.java)
                     } catch (ignore: NoSuchElementException) {
                     }
 
