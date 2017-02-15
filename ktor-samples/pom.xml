@@ -23,6 +23,7 @@
         <module>you-kube</module>
         <module>kweet</module>
         <module>ktor-samples-websocket</module>
+        <module>ktor-samples-ssl-http2</module>
     </modules>
 
     <dependencies>
