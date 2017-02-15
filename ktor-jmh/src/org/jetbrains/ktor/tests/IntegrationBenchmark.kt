@@ -1,8 +1,6 @@
 package org.jetbrains.ktor.tests
 
 import ch.qos.logback.classic.Level
-import org.apache.http.client.methods.*
-import org.apache.http.impl.client.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
@@ -14,7 +12,6 @@ import org.openjdk.jmh.annotations.*
 import org.slf4j.*
 import org.slf4j.Logger
 import java.io.*
-import java.net.*
 import java.util.concurrent.*
 
 
@@ -27,9 +24,8 @@ abstract class IntegrationBenchmark {
         it.name.startsWith("ktor-core") && it.name.endsWith("SNAPSHOT.jar")
     }.single()
 
-    lateinit private var server: ApplicationHostStartable
-    private var httpClient: CloseableHttpClient? = null
-    private val useApacheClient = false
+    lateinit var server: ApplicationHostStartable
+    private val httpClient = OkHttpBenchmarkClient()
 
     private val port = 5678
 
@@ -74,33 +70,16 @@ abstract class IntegrationBenchmark {
 
     @Setup
     fun configureClient() {
-        if (useApacheClient) {
-            val builder = HttpClientBuilder.create()
-            httpClient = builder.build()
-        }
-
+        httpClient.setup()
     }
 
     @TearDown
     fun shutdownClient() {
-        if (useApacheClient) {
-            httpClient!!.close()
-            httpClient = null
-        }
+        httpClient.shutdown()
     }
 
     private fun load(url: String) {
-        val inputStream = if (useApacheClient) {
-            val httpGet = HttpGet(url)
-            val response = httpClient!!.execute(httpGet)
-            response.entity.content
-        } else {
-            (URL(url).openConnection() as HttpURLConnection).apply {
-                // setRequestProperty("Connection", "close")
-                setRequestProperty("Accept-Encoding", "gzip")
-            }.inputStream
-        }
-        inputStream.use {
+        httpClient.load(url).use {
             val buf = ByteArray(8192)
             while (it.read(buf) != -1);
         }
