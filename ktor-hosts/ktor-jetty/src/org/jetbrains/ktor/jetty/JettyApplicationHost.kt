@@ -27,7 +27,7 @@ import javax.servlet.http.*
 class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                            val environment: ApplicationEnvironment,
                            val applicationLifecycle: ApplicationLifecycle,
-                           jettyServer: () -> Server = ::Server) : ApplicationHost, ApplicationHostStartable {
+                           jettyServer: () -> Server = ::Server) : ApplicationHostStartable {
 
     val application: Application get() = applicationLifecycle.application
 

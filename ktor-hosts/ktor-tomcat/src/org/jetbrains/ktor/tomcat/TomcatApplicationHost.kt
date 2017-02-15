@@ -17,7 +17,7 @@ import javax.servlet.*
 
 class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
                             val config: ApplicationEnvironment,
-                            val applicationLifecycle: ApplicationLifecycle) : ApplicationHost, ApplicationHostStartable {
+                            val applicationLifecycle: ApplicationLifecycle) : ApplicationHostStartable {
 
 
     private val application: Application get() = applicationLifecycle.application

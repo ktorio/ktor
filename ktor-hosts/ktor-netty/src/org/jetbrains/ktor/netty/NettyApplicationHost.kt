@@ -15,14 +15,14 @@ import java.util.concurrent.ForkJoinPool.*
  */
 class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                            val environment: ApplicationEnvironment,
-                           val applicationLifecycle: ApplicationLifecycle) : ApplicationHost, ApplicationHostStartable {
+                           val applicationLifecycle: ApplicationLifecycle) : ApplicationHostStartable {
 
     val application: Application get() = applicationLifecycle.application
 
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
             : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
 
-    private val parallelism = 0 // 0 means default
+    private val parallelism = 3 // 0 means default
     private val connectionEventGroup = NettyConnectionPool(parallelism) // accepts connections
     internal val workerEventGroup = NettyWorkerPool(parallelism) // processes socket data and parse HTTP
     internal val callEventGroup = NettyCallPool(parallelism) // processes calls
