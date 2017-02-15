@@ -10,9 +10,7 @@
     <option name="PASS_PARENT_ENVS" value="true" />
     <module name="ktor-samples-ssl-http2" />
     <envs />
-    <RunnerSettings RunnerId="JProfiler">
-      <option name="WINDOW" value="false" />
-    </RunnerSettings>
+    <RunnerSettings RunnerId="JProfiler" />
     <method />
   </configuration>
 </component>
