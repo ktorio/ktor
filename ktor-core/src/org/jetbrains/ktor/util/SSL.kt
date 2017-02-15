@@ -9,16 +9,16 @@ import java.util.*
 
 
 /**
- * Generates simple SHA1withRSA self-signed certificate with [keyAlias] name, private key is encrypted with [keyPassword],
+ * Generates simple self-signed certificate with [keyAlias] name, private key is encrypted with [keyPassword],
  * and a JKS keystore to hold it in [file] with [jksPassword].
+ *
  * Only for testing purposes: NEVER use it for production!
  *
  * A generated certificate will have 3 days validity period and 1024-bits key strength.
  * Only localhost and 127.0.0.1 domains are valid with the certificate.
  */
-fun generateCertificate(file: File, keyAlias: String = "mykey", keyPassword: String = "changeit", jksPassword: String = keyPassword): KeyStore {
+fun generateCertificate(file: File, algorithm: String = "SHA1withRSA", keyAlias: String = "mykey", keyPassword: String = "changeit", jksPassword: String = keyPassword): KeyStore {
     val daysValid: Long = 3
-    val algorithm = "SHA1withRSA"
     val jks = KeyStore.getInstance("JKS")!!
     jks.load(null, null)
 
