@@ -26,7 +26,7 @@
             <groupId>io.netty</groupId>
             <artifactId>netty-tcnative-boringssl-static</artifactId>
             <version>${tcnative.version}</version>
-            <classifier>${os.name}-x86_64</classifier>
+            <classifier>${tc.native.classifier}</classifier>
         </dependency>
     </dependencies>
 
@@ -38,4 +38,40 @@
             </resource>
         </resources>
     </build>
+
+    <profiles>
+        <profile>
+            <id>examples-linux</id>
+            <activation>
+                <os>
+                    <name>linux</name>
+                </os>
+            </activation>
+            <properties>
+                <tc.native.classifier>linux-x86_64</tc.native.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>examples-osx</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <tc.native.classifier>osx-x86_64</tc.native.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>examples-windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <tc.native.classifier>windows-x86_64</tc.native.classifier>
+            </properties>
+        </profile>
+    </profiles>
 </project>
