@@ -37,7 +37,7 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
         }
     }
 
-    fun <T : Any> handlers(type: Class<T>): List<Handler<C, T>> {
+    fun <T : Any> handlers(type: Class<out T>): List<Handler<C, T>> {
         val cached = handlersCacheLock.read { handlersCache[type] }
         val partialResult = if (cached == null) {
             val collected = collectHandlers(type)
@@ -93,7 +93,7 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
         operator fun contains(element: Handler<C, *>) = bitSet[element.id]
     }
 
-    private fun <T : Any> collectHandlers(type: Class<T>): List<Handler<C, T>> {
+    private fun <T : Any> collectHandlers(type: Class<out T>): List<Handler<C, T>> {
         val result = ArrayList<Handler<C, T>>(2)
         val superTypes = topParent.superTypes(type)
 

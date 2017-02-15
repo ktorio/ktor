@@ -37,7 +37,7 @@ private val ApplicationCallTransform = AttributeKey<ApplicationTransform<Pipelin
 suspend fun <C : Any> TransformTable<C>.transform(ctx: C, obj: Any): Any {
     val visited: TransformTable.HandlersSet<C> = newHandlersSet()
     var value: Any = obj
-    var handlers = handlers(obj.javaClass)
+    var handlers = handlers(obj::class.java)
 
     nextValue@ while (true) {
         for (i in 0..handlers.lastIndex) {
@@ -51,8 +51,8 @@ suspend fun <C : Any> TransformTable<C>.transform(ctx: C, obj: Any): Any {
                 continue
 
             visited.add(handler)
-            if (result.javaClass !== value.javaClass) {
-                handlers = handlers(result.javaClass)
+            if (result::class.java !== value::class.java) {
+                handlers = handlers(result::class.java)
             }
             value = result
             continue@nextValue

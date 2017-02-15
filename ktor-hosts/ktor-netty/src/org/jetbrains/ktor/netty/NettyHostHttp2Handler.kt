@@ -29,7 +29,7 @@ class NettyHostHttp2Handler(private val host: NettyApplicationHost, private val 
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        host.environment.log.error("Application ${host.application.javaClass} cannot fulfill the request", cause)
+        host.environment.log.error("Application ${host.application::class.java} cannot fulfill the request", cause)
         ctx.close()
     }
 

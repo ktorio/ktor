@@ -124,7 +124,7 @@ class StatusPageTest {
         withTestApplication {
             application.install(StatusPages) {
                 exception<Throwable> { cause ->
-                    call.respond(TextContent(cause.javaClass.simpleName, ContentType.Text.Plain.withCharset(Charsets.UTF_8), HttpStatusCode.InternalServerError))
+                    call.respond(TextContent(cause::class.java.simpleName, ContentType.Text.Plain.withCharset(Charsets.UTF_8), HttpStatusCode.InternalServerError))
                 }
             }
 
@@ -158,7 +158,7 @@ class StatusPageTest {
 
             application.install(StatusPages) {
                 exception<IllegalStateException> { cause ->
-                    call.respond(TextContent(cause.javaClass.simpleName, ContentType.Text.Plain.withCharset(Charsets.UTF_8), HttpStatusCode.InternalServerError))
+                    call.respond(TextContent(cause::class.java.simpleName, ContentType.Text.Plain.withCharset(Charsets.UTF_8), HttpStatusCode.InternalServerError))
                 }
             }
 
@@ -182,7 +182,7 @@ class StatusPageTest {
                     throw IllegalStateException("")
                 }
                 exception<Throwable> { cause ->
-                    call.respond(TextContent(cause.javaClass.simpleName, ContentType.Text.Plain.withCharset(Charsets.UTF_8), HttpStatusCode.InternalServerError))
+                    call.respond(TextContent(cause::class.java.simpleName, ContentType.Text.Plain.withCharset(Charsets.UTF_8), HttpStatusCode.InternalServerError))
                 }
             }
 

@@ -35,7 +35,7 @@ class JettyDeadlockTest {
 
         val appHostConfig = applicationHostConfig { connector { this.port = port } }
 
-        val appEnv = BasicApplicationEnvironment(javaClass.classLoader, SLF4JApplicationLog("KTorTest"), MapApplicationConfig(
+        val appEnv = BasicApplicationEnvironment(this::class.java.classLoader, SLF4JApplicationLog("KTorTest"), MapApplicationConfig(
                 "ktor.application.class" to BlockingApplication::class.qualifiedName!!
         ))
 

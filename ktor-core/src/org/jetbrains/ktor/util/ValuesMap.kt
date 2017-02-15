@@ -93,7 +93,7 @@ class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
     }
 
     fun removeKeysWithNoEntries() {
-        for ((k, v) in values.filter { it.value.isEmpty() }) {
+        for ((k, _) in values.filter { it.value.isEmpty() }) {
             remove(k)
         }
     }

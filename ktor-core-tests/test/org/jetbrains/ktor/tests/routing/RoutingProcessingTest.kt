@@ -96,7 +96,7 @@ class RoutingProcessingTest {
 
         testHost.application.routing {
             route("user") {
-                intercept(ApplicationCallPipeline.Call) { call ->
+                intercept(ApplicationCallPipeline.Call) { 
                     userIntercepted = true
                     wrappedWithInterceptor = true
                     proceed()

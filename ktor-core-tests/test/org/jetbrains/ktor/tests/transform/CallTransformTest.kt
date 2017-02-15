@@ -68,7 +68,7 @@ class CallTransformTest {
                         value.value.toString() + "s"
                     }
 
-                    call.transform.register(Wrapper::class, { true }) { v -> }
+                    call.transform.register(Wrapper::class, { true }) { }
 
                     call.respond(777)
                 }

@@ -26,7 +26,7 @@ class MultipleDispatchOnTimeout {
     fun `calls with duration longer than default timeout do not trigger a redispatch`() {
         val port = findFreePort()
         val appHostConfig = applicationHostConfig { connector { this.port = port } }
-        val appEnv = BasicApplicationEnvironment(javaClass.classLoader, SLF4JApplicationLog("KTorTest"), MapApplicationConfig())
+        val appEnv = BasicApplicationEnvironment(this::class.java.classLoader, SLF4JApplicationLog("KTorTest"), MapApplicationConfig())
 
         val callCount = AtomicInteger(0)
 

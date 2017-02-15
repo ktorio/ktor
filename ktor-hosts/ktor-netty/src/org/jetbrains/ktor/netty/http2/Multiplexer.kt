@@ -14,7 +14,7 @@ internal class Multiplexer(val parent: Channel, val handler: ChannelHandler) : C
 
     init {
         require((handler is ChannelHandlerAdapter && handler.isSharable)
-                || handler.javaClass.isAnnotationPresent(ChannelHandler.Sharable::class.java)) { "handler must be Sharable" }
+                || handler::class.java.isAnnotationPresent(ChannelHandler.Sharable::class.java)) { "handler must be Sharable" }
     }
 
     override fun handlerAdded(ctx: ChannelHandlerContext) {

@@ -91,7 +91,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
             setup()
         }
 
-        runBlocking(Here) { hostPipeline.execute(call) }
+        runBlocking(Unconfined) { hostPipeline.execute(call) }
 
         return call
     }

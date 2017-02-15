@@ -23,7 +23,7 @@ internal class BaseCache<in K : Any, V : Any>(val calc: suspend (K) -> V) : Cach
     private val container = ConcurrentHashMap<K, Deferred<V>>()
 
     override suspend fun getOrCompute(key: K): V =
-            container.computeIfAbsent(key) { defer(Unconfined) { calc(key) } }.await()
+            container.computeIfAbsent(key) { async(Unconfined) { calc(key) } }.await()
 
     override fun peek(key: K): V? = container[key]?.let { if (!it.isActive) it.getCompleted() else null }
 

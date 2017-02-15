@@ -20,7 +20,7 @@ fun defaultHostPipeline(environment: ApplicationEnvironment) = HostPipeline().ap
             }
         } catch (error: Throwable) {
             environment.log.error("Failed to process request", error)
-            call.respond(HttpStatusContent(HttpStatusCode.InternalServerError, "${error.javaClass.simpleName}: ${error.message}\n"))
+            call.respond(HttpStatusContent(HttpStatusCode.InternalServerError, "${error::class.simpleName}: ${error.message}\n"))
         }
     }
 }

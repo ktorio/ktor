@@ -5,6 +5,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 import kotlin.reflect.*
+import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
 class InconsistentRoutingException(message: String) : Exception(message)
@@ -107,7 +108,7 @@ open class Locations(val conversionService: ConversionService, val routeService:
 
     // TODO: optimize allocations
     private fun pathAndQuery(location: Any): ResolvedUriInfo {
-        val info = getOrCreateInfo(location.javaClass.kotlin)
+        val info = getOrCreateInfo(location::class.java.kotlin)
 
         fun propertyValue(instance: Any, name: String): List<String> {
             // TODO: Cache properties by name in info

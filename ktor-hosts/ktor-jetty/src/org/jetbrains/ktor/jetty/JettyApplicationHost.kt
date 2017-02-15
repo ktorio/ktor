@@ -151,7 +151,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                     }
                 }
             } catch(ex: Throwable) {
-                environment.log.error("Application ${application.javaClass} cannot fulfill the request", ex)
+                environment.log.error("Application ${application::class.java} cannot fulfill the request", ex)
 
                 future(application.executor.toCoroutineDispatcher()) {
                     call.respond(HttpStatusCode.InternalServerError)

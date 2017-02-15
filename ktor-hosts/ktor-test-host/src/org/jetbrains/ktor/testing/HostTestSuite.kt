@@ -356,7 +356,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     fun testURIContent() {
         createAndStartServer {
             handle {
-                call.respond(URIFileContent(javaClass.classLoader.getResources("java/util/ArrayList.class").toList().first()))
+                call.respond(URIFileContent(this::class.java.classLoader.getResources("java/util/ArrayList.class").toList().first()))
             }
         }
 
