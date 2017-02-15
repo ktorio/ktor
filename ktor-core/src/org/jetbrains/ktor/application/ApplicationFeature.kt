@@ -4,16 +4,16 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 
 @Suppress("AddVarianceModifier")
-interface ApplicationFeature<in P : Pipeline<*>, out B : Any, F : Any> {
+interface ApplicationFeature<in TPipeline : Pipeline<*>, out TBuilder : Any, TFeature : Any> {
     /**
      * Unique key that identifies a feature
      */
-    val key: AttributeKey<F>
+    val key: AttributeKey<TFeature>
 
     /**
      * Feature installation script
      */
-    fun install(pipeline: P, configure: B.() -> Unit): F
+    fun install(pipeline: TPipeline, configure: TBuilder.() -> Unit): TFeature
 
     companion object {
         val registry = AttributeKey<Attributes>("ApplicationRegistry")
