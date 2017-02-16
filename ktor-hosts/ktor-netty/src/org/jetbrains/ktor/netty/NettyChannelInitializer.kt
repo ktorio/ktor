@@ -10,23 +10,28 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.http2.*
 import java.security.*
 import java.security.cert.*
+import kotlin.system.*
 
 class NettyChannelInitializer(val host: NettyApplicationHost, val connector: HostConnectorConfig) : ChannelInitializer<SocketChannel>() {
-    override fun initChannel(ch: SocketChannel) {
-        with(ch.pipeline()) {
-            if (connector is HostSSLConnectorConfig) {
+    private var sslContext: SslContext? = null
 
+    init {
+        if (connector is HostSSLConnectorConfig) {
+
+            // It is better but netty-openssl doesn't support it
 //              val kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm())
 //              kmf.init(ktorConnector.keyStore, password)
 //              password.fill('\u0000')
 
-                val chain1 = connector.keyStore.getCertificateChain(connector.keyAlias).toList() as List<X509Certificate>
-                val certs = chain1.toList().toTypedArray<X509Certificate>()
-                val password = connector.privateKeyPassword()
-                val pk = connector.keyStore.getKey(connector.keyAlias, password) as PrivateKey
-                password.fill('\u0000')
+            @Suppress("UNCHECKED_CAST")
+            val chain1 = connector.keyStore.getCertificateChain(connector.keyAlias).toList() as List<X509Certificate>
+            val certs = chain1.toList().toTypedArray<X509Certificate>()
+            val password = connector.privateKeyPassword()
+            val pk = connector.keyStore.getKey(connector.keyAlias, password) as PrivateKey
+            password.fill('\u0000')
 
-                addLast("ssl", SslContextBuilder.forServer(pk, *certs)
+            val sslBuilding = measureTimeMillis {
+                sslContext = SslContextBuilder.forServer(pk, *certs)
                         .apply {
                             if (alpnProvider != null) {
                                 sslProvider(alpnProvider)
@@ -41,7 +46,16 @@ class NettyChannelInitializer(val host: NettyApplicationHost, val connector: Hos
                             }
                         }
                         .build()
-                        .newHandler(ch.alloc()))
+            }
+
+            println("SSL context building: $sslBuilding ms")
+        }
+    }
+
+    override fun initChannel(ch: SocketChannel) {
+        with(ch.pipeline()) {
+            if (connector is HostSSLConnectorConfig) {
+                addLast("ssl", sslContext!!.newHandler(ch.alloc()))
 
                 if (alpnProvider != null) {
                     addLast(NegotiatedPipelineInitializer())
