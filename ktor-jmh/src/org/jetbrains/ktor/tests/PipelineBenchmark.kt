@@ -28,14 +28,7 @@ abstract class PipelineBenchmark {
     fun pipeline(): Pipeline<String> = Pipeline(callPhase)
     fun Pipeline<String>.intercept(block: suspend PipelineContext<String>.(String) -> Unit) = phases.intercept(callPhase, block)
 
-    fun <T : Any> Pipeline<T>.executeBlocking(subject: T): PipelineState {
-        try {
-            runSync { execute(subject) }
-        } catch (t: Throwable) {
-            return PipelineState.Failed
-        }
-        return PipelineState.Finished
-    }
+    fun <T : Any> Pipeline<T>.executeBlocking(subject: T) = runSync { execute(subject) }
 
     lateinit var pipeline: Pipeline<String>
 
@@ -48,8 +41,8 @@ abstract class PipelineBenchmark {
     abstract fun Pipeline<String>.configure()
 
     @Benchmark
-    fun execute(): PipelineState {
-        return pipeline.executeBlocking("some")
+    fun execute() {
+        pipeline.executeBlocking("some")
     }
 }
 

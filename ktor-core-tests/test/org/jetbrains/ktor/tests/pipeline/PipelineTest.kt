@@ -10,19 +10,11 @@ class PipelineTest {
     val callPhase = PipelinePhase("Call")
     fun pipeline(): Pipeline<String> = Pipeline(callPhase)
     fun Pipeline<String>.intercept(block: PipelineInterceptor<String>) = phases.intercept(callPhase, block)
-    fun <T : Any> Pipeline<T>.executeBlocking(subject: T): PipelineState {
-        try {
-            runBlocking { execute(subject) }
-        } catch (t: Throwable) {
-            return PipelineState.Failed
-        }
-        return PipelineState.Finished
-    }
+    fun <T : Any> Pipeline<T>.executeBlocking(subject: T) = runBlocking { execute(subject) }
 
     @Test
     fun emptyPipeline() {
-        val state = pipeline().executeBlocking("some")
-        assertEquals(PipelineState.Finished, state)
+        pipeline().executeBlocking("some")
     }
 
     @Test
@@ -30,9 +22,8 @@ class PipelineTest {
         val events = mutableListOf<String>()
         val pipeline = pipeline()
         pipeline.intercept { events.add("intercept $subject") }
-        val state = pipeline.executeBlocking("some")
+        pipeline.executeBlocking("some")
         assertEquals(listOf("intercept some"), events)
-        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
@@ -41,9 +32,8 @@ class PipelineTest {
         val pipeline = pipeline()
         pipeline.intercept { events.add("intercept1 $subject") }
         pipeline.intercept { events.add("intercept2 $subject") }
-        val state = pipeline.executeBlocking("some")
+        pipeline.executeBlocking("some")
         assertEquals(listOf("intercept1 some", "intercept2 some"), events)
-        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
@@ -59,9 +49,8 @@ class PipelineTest {
                 events.add("fail $subject")
             }
         }
-        val state = pipeline.executeBlocking("some")
+        pipeline.executeBlocking("some")
         assertEquals(listOf("intercept some", "fail some"), events)
-        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
@@ -87,9 +76,8 @@ class PipelineTest {
                 events.add("fail2 $subject")
             }
         }
-        val state = pipeline.executeBlocking("some")
+        pipeline.executeBlocking("some")
         assertEquals(listOf("intercept1 some", "intercept2 some", "success2 some", "success1 some"), events)
-        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
@@ -133,7 +121,7 @@ class PipelineTest {
             proceed()
         }
 
-        val state = p1.executeBlocking("p1")
+        p1.executeBlocking("p1")
         assertEquals(listOf(
                 "intercept-p1-1 p1",
                 "intercept-p2-1 p2",
@@ -143,7 +131,6 @@ class PipelineTest {
                 "intercept-p1-2 p1",
                 "success-p1-1 p1"
         ), events)
-        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
@@ -171,9 +158,8 @@ class PipelineTest {
             }
         }
 
-        val state = pipeline.executeBlocking("some")
+        pipeline.executeBlocking("some")
         assertEquals(listOf("intercept1 some", "intercept2 some", "fail2 some", "fail1 some"), events)
-        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
@@ -201,9 +187,8 @@ class PipelineTest {
             }
         }
 
-        val state = pipeline.executeBlocking("some")
+        pipeline.executeBlocking("some")
         assertEquals(listOf("intercept1 some", "intercept2 some", "fail2 some", "fail1 some"), events)
-        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
@@ -231,9 +216,8 @@ class PipelineTest {
             }
         }
 
-        val state = pipeline.executeBlocking("some")
+        pipeline.executeBlocking("some")
         assertEquals(listOf("intercept1 some", "intercept2 some", "fail2 some", "fail1 some"), events)
-        assertEquals(PipelineState.Finished, state)
     }
 
 
@@ -262,9 +246,8 @@ class PipelineTest {
             events.add("intercept4 $subject")
         }
 
-        val state = pipeline.executeBlocking("some")
+        pipeline.executeBlocking("some")
         assertEquals(listOf("intercept1 some", "intercept2 some", "intercept3 another", "intercept4 some"), events)
-        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
@@ -294,11 +277,11 @@ class PipelineTest {
             throw UnsupportedOperationException()
         }
 
-        val state = pipeline.executeBlocking("some")
+        assertFailsWith<UnsupportedOperationException> {
+            pipeline.executeBlocking("some")
+        }
         assertEquals(listOf("intercept1 some", "intercept2 some", "intercept3 another",
                 "intercept4 some", "fail1 some"), events)
-
-        assertEquals(PipelineState.Failed, state)
     }
 
     @Test
@@ -330,9 +313,10 @@ class PipelineTest {
             events.add("intercept4 $subject")
         }
 
-        val state = pipeline.executeBlocking("some")
+        assertFailsWith<UnsupportedOperationException> {
+            pipeline.executeBlocking("some")
+        }
         assertEquals(listOf("intercept1 some", "intercept2 some", "intercept3 another", "fail1 some"), events)
-        assertEquals(PipelineState.Failed, state)
     }
 
     @Test
@@ -352,9 +336,8 @@ class PipelineTest {
             events.add("intercept2 $subject")
         }
 
-        val state = pipeline.executeBlocking("some")
+        pipeline.executeBlocking("some")
         assertEquals(listOf("intercept1 some", "future1 some", "intercept2 some", "success1 some"), events)
-        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
@@ -382,9 +365,8 @@ class PipelineTest {
         }
 
 
-        val state = pipeline.executeBlocking("some")
+        pipeline.executeBlocking("some")
         assertEquals(listOf("intercept1 some", "future1 some", "intercept2 another", "success1 some"), events)
-        assertEquals(PipelineState.Finished, state)
     }
 
     private fun checkBeforeAfterPipeline(after: PipelinePhase, before: PipelinePhase, pipeline: Pipeline<String>) {
@@ -397,9 +379,8 @@ class PipelineTest {
             assertFalse(value)
             proceed()
         }
-        val state = pipeline.executeBlocking("some")
+        pipeline.executeBlocking("some")
         assertTrue(value)
-        assertEquals(PipelineState.Finished, state)
     }
 
     @Test
