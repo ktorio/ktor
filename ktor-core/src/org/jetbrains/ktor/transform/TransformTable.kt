@@ -1,32 +1,33 @@
 package org.jetbrains.ktor.transform
 
+import org.jetbrains.ktor.util.*
 import java.util.*
 import java.util.concurrent.atomic.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 
-class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
-    private val topParent: TransformTable<C> = parent?.topParent ?: parent ?: this
+class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = null) {
+    private val topParent: TransformTable<TContext> = parent?.topParent ?: parent ?: this
     private val handlersCounter: AtomicInteger = parent?.handlersCounter ?: AtomicInteger()
 
     private val superTypesCacheLock = ReentrantReadWriteLock()
     private val superTypesCache = HashMap<Class<*>, Array<Class<*>>>()
 
     private val handlersLock = ReentrantReadWriteLock()
-    private val handlers = HashMap<Class<*>, MutableList<Handler<C, *>>>()
+    private val handlers = HashMap<Class<*>, MutableList<Handler<TContext, *>>>()
 
     private val handlersCacheLock = ReentrantReadWriteLock()
-    private val handlersCache = HashMap<Class<*>, List<Handler<C, *>>>()
+    private val handlersCache = HashMap<Class<*>, List<Handler<TContext, *>>>()
 
-    inline fun <reified T : Any> register(noinline handler: suspend C.(T) -> Any) {
+    inline fun <reified T : Any> register(noinline handler: suspend TContext.(T) -> Any) {
         register({ true }, handler)
     }
 
-    inline fun <reified T : Any> register(noinline predicate: C.(T) -> Boolean, noinline handler: suspend C.(T) -> Any) {
+    inline fun <reified T : Any> register(noinline predicate: TContext.(T) -> Boolean, noinline handler: suspend TContext.(T) -> Any) {
         register(T::class.javaObjectType, predicate, handler)
     }
 
-    fun <T : Any> register(type: Class<T>, predicate: C.(T) -> Boolean, handler: suspend C.(T) -> Any) {
+    fun <T : Any> register(type: Class<T>, predicate: TContext.(T) -> Boolean, handler: suspend TContext.(T) -> Any) {
         topParent.superTypes(type)
         addHandler(type, Handler(handlersCounter.getAndIncrement(), predicate, handler))
 
@@ -37,7 +38,7 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
         }
     }
 
-    fun <T : Any> handlers(type: Class<out T>): List<Handler<C, T>> {
+    fun <T : Any> handlers(type: Class<out T>): List<Handler<TContext, T>> {
         val cached = handlersCacheLock.read { handlersCache[type] }
         val partialResult = if (cached == null) {
             val collected = collectHandlers(type)
@@ -49,7 +50,7 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
             collected
         } else {
             @Suppress("UNCHECKED_CAST")
-            cached as List<Handler<C, T>>
+            cached as List<Handler<TContext, T>>
         }
 
         return if (parent != null) {
@@ -63,11 +64,40 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
             partialResult
     }
 
+    suspend fun transform(ctx: TContext, obj: Any): Any {
+        val visited: TransformTable.HandlersSet<TContext> = newHandlersSet()
+        var value: Any = obj
+        var handlers = handlers(obj::class.java)
+
+        nextValue@ while (true) {
+            for (i in 0..handlers.lastIndex) {
+                val handler = handlers[i]
+
+                if (handler in visited || !handler.predicate(ctx, value))
+                    continue
+
+                val result = handler.handler(ctx, value)
+                if (result === value)
+                    continue
+
+                visited.add(handler)
+                if (result::class.java !== value::class.java) {
+                    handlers = handlers(result::class.java)
+                }
+                value = result
+                continue@nextValue
+            }
+            break
+        }
+
+        return value
+    }
+
     class Handler<in C : Any, in T> internal constructor(val id: Int, val predicate: C.(T) -> Boolean, val handler: suspend C.(T) -> Any) {
         override fun toString() = handler.toString()
     }
 
-    fun newHandlersSet() = HandlersSet<C>()
+    fun newHandlersSet() = HandlersSet<TContext>()
 
     class HandlersSet<out C : Any> {
         private val bitSet = BitSet()
@@ -93,8 +123,8 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
         operator fun contains(element: Handler<C, *>) = bitSet[element.id]
     }
 
-    private fun <T : Any> collectHandlers(type: Class<out T>): List<Handler<C, T>> {
-        val result = ArrayList<Handler<C, T>>(2)
+    private fun <T : Any> collectHandlers(type: Class<out T>): List<Handler<TContext, T>> {
+        val result = ArrayList<Handler<TContext, T>>(2)
         val superTypes = topParent.superTypes(type)
 
         handlersLock.read {
@@ -102,7 +132,7 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
                 val hh = handlers[superType]
                 if (hh != null && hh.isNotEmpty()) {
                     @Suppress("UNCHECKED_CAST")
-                    result.addAll(hh as List<Handler<C, T>>)
+                    result.addAll(hh as List<Handler<TContext, T>>)
                 }
             }
         }
@@ -110,7 +140,7 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
         return if (result.isEmpty()) emptyList() else result
     }
 
-    private fun addHandler(type: Class<*>, handler: Handler<C, *>) {
+    private fun addHandler(type: Class<*>, handler: Handler<TContext, *>) {
         handlersLock.write {
             handlers.getOrPut(type) { ArrayList(2) }.add(handler)
         }
@@ -118,9 +148,10 @@ class TransformTable<C : Any>(val parent: TransformTable<C>? = null) {
 
     private fun superTypes(type: Class<*>): Array<Class<*>> = superTypesCacheLock.read {
         superTypesCache[type] ?: superTypesCacheLock.write {
-            buildSuperTypes(type).apply { superTypesCache[type] = this }
+            buildSuperTypes(type).also { superTypesCache[type] = it }
         }
     }
 
-    private fun buildSuperTypes(type: Class<*>) = dfs(type).asReversed().toTypedArray()
+    private fun buildSuperTypes(type: Class<*>) = type.findAllSupertypes().asReversed().toTypedArray()
 }
+

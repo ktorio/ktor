@@ -1,26 +1,26 @@
-package org.jetbrains.ktor.tests.transform
+package org.jetbrains.ktor.tests.util
 
-import org.jetbrains.ktor.transform.*
+import org.jetbrains.ktor.util.*
 import org.junit.*
 import kotlin.test.*
 
-class DFSTest {
+class ReflectionSupertypesTest {
 
     @Test
     fun testSymmetricRhombus() {
-        val result = dfs<B>()
+        val result = B::class.java.findAllSupertypes()
         assertEquals(listOf("I", "R", "L", "B"), result.map { it.simpleName })
     }
 
     @Test
     fun testAsymmetric() {
-        val result = dfs<B2>()
+        val result = B2::class.java.findAllSupertypes()
         assertEquals(listOf("I", "M", "M2", "B2"), result.map { it.simpleName })
     }
 
     @Test
     fun testAsymmetric2() {
-        val result = dfs<B3>()
+        val result = B3::class.java.findAllSupertypes()
         assertEquals(listOf("I", "M", "M2", "B3"), result.map { it.simpleName })
     }
 

@@ -34,7 +34,7 @@ open class ServletApplicationHost() : KtorServlet() {
 
     init {
         loader.onBeforeInitializeApplication {
-            install(TransformationSupport).registerDefaultHandlers()
+            install(ApplicationTransform).registerDefaultHandlers()
         }
     }
 

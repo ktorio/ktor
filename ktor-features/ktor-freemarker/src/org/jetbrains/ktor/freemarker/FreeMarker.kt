@@ -21,7 +21,7 @@ class FreeMarker(val config: Configuration) {
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): FreeMarker {
             val config = Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS).apply(configure)
             val feature = FreeMarker(config)
-            pipeline.feature(TransformationSupport).register<FreeMarkerContent> { model -> feature.process(model) }
+            pipeline.feature(ApplicationTransform).register<FreeMarkerContent> { model -> feature.process(model) }
             return feature
         }
     }

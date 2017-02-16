@@ -39,7 +39,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     init {
         applicationLifecycle.onBeforeInitializeApplication {
-            install(TransformationSupport).registerDefaultHandlers()
+            install(ApplicationTransform).registerDefaultHandlers()
         }
     }
 

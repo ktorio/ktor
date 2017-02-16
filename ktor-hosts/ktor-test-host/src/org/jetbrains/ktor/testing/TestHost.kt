@@ -57,7 +57,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
 
     init {
         applicationLoader.onBeforeInitializeApplication {
-            install(TransformationSupport).registerDefaultHandlers()
+            install(ApplicationTransform).registerDefaultHandlers()
         }
     }
 
