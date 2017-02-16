@@ -4,10 +4,8 @@ import org.eclipse.jetty.server.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.servlet.*
-import org.jetbrains.ktor.util.*
 import javax.servlet.http.*
 
 class JettyApplicationCall(application: Application,
@@ -29,10 +27,7 @@ class JettyApplicationCall(application: Application,
         responseChannelOverride = outputChannel
 
         servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, inputChannel)
-        servletResponse.status = upgrade.status?.value ?: HttpStatusCode.SwitchingProtocols.value
-        upgrade.headers.flattenEntries().forEach { e ->
-            servletResponse.addHeader(e.first, e.second)
-        }
+        commitHeaders(upgrade)
 
         servletResponse.flushBuffer()
 

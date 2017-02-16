@@ -3,12 +3,10 @@ package org.jetbrains.ktor.netty
 import io.netty.bootstrap.*
 import io.netty.channel.nio.*
 import io.netty.channel.socket.nio.*
-import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.transform.*
 import java.util.concurrent.*
-import java.util.concurrent.ForkJoinPool.*
 
 /**
  * [ApplicationHost] implementation for running standalone Netty Host

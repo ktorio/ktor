@@ -83,13 +83,13 @@ internal class NettyApplicationCall(application: Application,
                     upgradeContentQueue.queue.push(it, false)
             }
 
-            context.channel().pipeline().remove(NettyHostHttp1Handler::class.java)
-            context.channel().pipeline().addFirst(NettyDirectDecoder())
-
-            response.status(upgrade.status ?: HttpStatusCode.SwitchingProtocols)
-            upgrade.headers.flattenEntries().forEach { e ->
-                response.headers.append(e.first, e.second)
+            with(context.channel().pipeline()) {
+                get("chunked")?.let { remove(it) }
+                remove(NettyHostHttp1Handler::class.java)
+                addFirst(NettyDirectDecoder())
             }
+
+            commitHeaders(upgrade)
 
             response.sendResponseMessage(chunked = false)?.addListener {
                 future(context.channel().eventLoop().toCoroutineDispatcher()) {
