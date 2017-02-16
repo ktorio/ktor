@@ -65,59 +65,46 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
     }
 
     suspend fun transform(ctx: TContext, obj: Any): Any {
-        val visited: TransformTable.HandlersSet<TContext> = newHandlersSet()
+        val visited = HandlersSet<TContext>()
+
         var value: Any = obj
         var handlers = handlers(obj::class.java)
+        var handlerIndex = 0
 
-        nextValue@ while (true) {
-            for (i in 0..handlers.lastIndex) {
-                val handler = handlers[i]
+        while (handlerIndex < handlers.size) {
+            val handler = handlers[handlerIndex++]
 
-                if (handler in visited || !handler.predicate(ctx, value))
-                    continue
+            if (handler in visited || !handler.predicate(ctx, value))
+                continue
 
-                val result = handler.handler(ctx, value)
-                if (result === value)
-                    continue
+            val result = handler.transformation(ctx, value)
+            if (result === value)
+                continue
 
-                visited.add(handler)
-                if (result::class.java !== value::class.java) {
-                    handlers = handlers(result::class.java)
-                }
-                value = result
-                continue@nextValue
+            visited.add(handler)
+            handlerIndex = 0
+            if (result::class.java !== value::class.java) {
+                handlers = handlers(result::class.java)
             }
-            break
+            value = result
         }
 
         return value
     }
 
-    class Handler<in C : Any, in T> internal constructor(val id: Int, val predicate: C.(T) -> Boolean, val handler: suspend C.(T) -> Any) {
-        override fun toString() = handler.toString()
+    class Handler<in C : Any, in T> internal constructor(val id: Int, val predicate: C.(T) -> Boolean, val transformation: suspend C.(T) -> Any) {
+        override fun toString() = transformation.toString()
     }
-
-    fun newHandlersSet() = HandlersSet<TContext>()
 
     class HandlersSet<out C : Any> {
         private val bitSet = BitSet()
 
-        fun add(element: Handler<C, *>): Boolean {
-            if (bitSet[element.id]) {
-                return false
-            }
-
-            bitSet[element.id] = true
-            return true
+        fun add(element: Handler<C, *>) {
+            bitSet.set(element.id)
         }
 
-        fun remove(element: Handler<C, *>): Boolean {
-            if (bitSet[element.id]) {
-                bitSet[element.id] = false
-                return true
-            }
-
-            return false
+        fun remove(element: Handler<C, *>) {
+            bitSet.clear(element.id)
         }
 
         operator fun contains(element: Handler<C, *>) = bitSet[element.id]
