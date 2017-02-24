@@ -11,7 +11,9 @@ import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.concurrent.atomic.*
@@ -47,8 +49,11 @@ internal class NettyApplicationCall(application: Application,
                     // remove finished content queue, handler will install new
                     // TODO: change it to shareable context-agnostic concurrent map
                     try {
-                        context.pipeline().remove(HttpContentQueue::class.java)
-                        context.pipeline().remove(NettyApplicationCallHandler::class.java)
+                        with (context.pipeline()) {
+                            get("chunked")?.let { remove(it) }
+                            remove(HttpContentQueue::class.java)
+                            remove(NettyApplicationCallHandler::class.java)
+                        }
                     } catch (ignore: NoSuchElementException) {
                     }
 
@@ -61,6 +66,7 @@ internal class NettyApplicationCall(application: Application,
     }
 
     suspend override fun respondFromBytes(bytes: ByteArray) {
+        response.header(HttpHeaders.ContentLength, bytes.size)
         response.sendResponseMessage(flush = false, chunked = false)
         val buf = context.alloc().ioBuffer(bytes.size).writeBytes(bytes)
         context.writeAndFlush(buf).suspendAwait()
@@ -77,7 +83,6 @@ internal class NettyApplicationCall(application: Application,
                     upgradeContentQueue.queue.push(it, false)
             }
 
-            context.channel().pipeline().remove(ChunkedWriteHandler::class.java)
             context.channel().pipeline().remove(NettyHostHttp1Handler::class.java)
             context.channel().pipeline().addFirst(NettyDirectDecoder())
 

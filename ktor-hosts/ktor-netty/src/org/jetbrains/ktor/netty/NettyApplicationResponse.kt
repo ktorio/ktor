@@ -2,6 +2,7 @@ package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import io.netty.handler.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
@@ -64,6 +65,7 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
         }
         if (response.status().code() != HttpStatusCode.SwitchingProtocols.value) {
             HttpUtil.setTransferEncodingChunked(response, true)
+            context.pipeline().addAfter("codec", "chunked", ChunkedWriteHandler())
         }
     }
 

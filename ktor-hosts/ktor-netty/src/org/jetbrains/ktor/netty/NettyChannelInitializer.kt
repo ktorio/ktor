@@ -5,7 +5,6 @@ import io.netty.channel.socket.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
 import io.netty.handler.ssl.*
-import io.netty.handler.stream.*
 import io.netty.handler.timeout.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.http2.*
@@ -70,10 +69,9 @@ class NettyChannelInitializer(val host: NettyApplicationHost, val connector: Hos
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
                 with(pipeline) {
-                    addLast(HttpServerCodec())
-                    addLast(ChunkedWriteHandler())
-                    addLast(WriteTimeoutHandler(10))
-                    addLast(NettyHostHttp1Handler(host))
+                    addLast("codec", HttpServerCodec())
+                    addLast("timeout", WriteTimeoutHandler(10))
+                    addLast("http1", NettyHostHttp1Handler(host))
                 }
             }
             else -> {
