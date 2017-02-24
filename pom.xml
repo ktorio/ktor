@@ -8,7 +8,7 @@
     <artifactId>ktor</artifactId>
 
     <properties>
-        <kotlin.version>1.1.0-rc-69</kotlin.version>
+        <kotlin.version>1.1.0-rc-91</kotlin.version>
         <dokka.version>0.9.11</dokka.version>
         <jmh.version>1.17</jmh.version>
 
@@ -69,7 +69,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-jdk8</artifactId>
-            <version>0.9-rc</version>
+            <version>0.11-rc</version>
         </dependency>
 
 
