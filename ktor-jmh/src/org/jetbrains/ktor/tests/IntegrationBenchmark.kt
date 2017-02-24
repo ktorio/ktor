@@ -135,22 +135,21 @@ open class JettyIntegrationBenchmark : IntegrationBenchmark() {
 
 /*
 Benchmark                                        Mode  Cnt   Score   Error   Units
-JettyIntegrationBenchmark.jarfile               thrpt   10  10.194 ± 3.107  ops/ms
-JettyIntegrationBenchmark.largeFile             thrpt   10   2.425 ± 0.316  ops/ms
-JettyIntegrationBenchmark.largeFileSync         thrpt   10   2.056 ± 0.237  ops/ms
-JettyIntegrationBenchmark.regularClasspathFile  thrpt   10  13.652 ± 1.316  ops/ms
-JettyIntegrationBenchmark.sayOK                 thrpt   10  25.498 ± 1.992  ops/ms
-JettyIntegrationBenchmark.smallFile             thrpt   10  17.311 ± 1.919  ops/ms
-JettyIntegrationBenchmark.smallFileSync         thrpt   10  17.899 ± 5.520  ops/ms
+JettyIntegrationBenchmark.jarfile               thrpt   20  12.966 ± 1.676  ops/ms
+JettyIntegrationBenchmark.largeFile             thrpt   20   2.352 ± 0.110  ops/ms
+JettyIntegrationBenchmark.largeFileSync         thrpt   20   1.953 ± 0.111  ops/ms
+JettyIntegrationBenchmark.regularClasspathFile  thrpt   20  18.118 ± 0.568  ops/ms
+JettyIntegrationBenchmark.sayOK                 thrpt   20  27.796 ± 1.445  ops/ms
+JettyIntegrationBenchmark.smallFile             thrpt   20  20.637 ± 0.765  ops/ms
+JettyIntegrationBenchmark.smallFileSync         thrpt   20  21.408 ± 1.150  ops/ms
 
-NettyIntegrationBenchmark.jarfile               thrpt   10   9.218 ± 2.156  ops/ms
-NettyIntegrationBenchmark.largeFile             thrpt   10   1.940 ± 0.161  ops/ms
-NettyIntegrationBenchmark.largeFileSync         thrpt   10   2.135 ± 0.321  ops/ms
-NettyIntegrationBenchmark.regularClasspathFile  thrpt   10  15.623 ± 3.605  ops/ms
-NettyIntegrationBenchmark.sayOK                 thrpt   10  26.493 ± 2.215  ops/ms
-NettyIntegrationBenchmark.smallFile             thrpt   10  18.867 ± 5.658  ops/ms
-NettyIntegrationBenchmark.smallFileSync         thrpt   10  24.642 ± 4.252  ops/ms
-*/
+NettyIntegrationBenchmark.jarfile               thrpt   20  10.107 ± 0.729  ops/ms
+NettyIntegrationBenchmark.largeFile             thrpt   20   1.871 ± 0.101  ops/ms
+NettyIntegrationBenchmark.largeFileSync         thrpt   20   2.201 ± 0.067  ops/ms
+NettyIntegrationBenchmark.regularClasspathFile  thrpt   20  15.126 ± 0.985  ops/ms
+NettyIntegrationBenchmark.sayOK                 thrpt   20  43.506 ± 1.765  ops/ms
+NettyIntegrationBenchmark.smallFile             thrpt   20  21.542 ± 0.566  ops/ms
+NettyIntegrationBenchmark.smallFileSync         thrpt   20  30.185 ± 3.666  ops/ms*/
 
 fun main(args: Array<String>) {
     if (args.firstOrNull() == "daemon") {
