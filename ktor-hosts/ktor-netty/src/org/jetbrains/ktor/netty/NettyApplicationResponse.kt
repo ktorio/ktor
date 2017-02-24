@@ -14,8 +14,6 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
     @Volatile
     private var responseMessageSent = false
 
-    internal var chunked = true
-
     override fun setStatus(statusCode: HttpStatusCode) {
         val cached = responseStatusCache[statusCode.value]
 
@@ -39,9 +37,10 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
         override fun getHostHeaderValues(name: String): List<String> = response.headers().getAll(name) ?: emptyList()
     }
 
-    internal fun sendResponseMessage(flush: Boolean = true): ChannelFuture? {
+    internal fun sendResponseMessage(chunked: Boolean = true, flush: Boolean = true): ChannelFuture? {
         if (!responseMessageSent) {
-            setChunked()
+            if (chunked)
+                setChunked()
             val f = if (flush) context.writeAndFlush(response) else context.write(response)
             responseMessageSent = true
             return f
@@ -58,15 +57,13 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
     }
 
     private fun setChunked() {
-        if (chunked) {
-            if (responseMessageSent) {
-                if (!response.headers().contains(HttpHeaders.TransferEncoding, HttpHeaderValues.CHUNKED, true)) {
-                    throw IllegalStateException("Already committed")
-                }
+        if (responseMessageSent) {
+            if (!response.headers().contains(HttpHeaders.TransferEncoding, HttpHeaderValues.CHUNKED, true)) {
+                throw IllegalStateException("Already committed")
             }
-            if (response.status().code() != HttpStatusCode.SwitchingProtocols.value) {
-                HttpUtil.setTransferEncodingChunked(response, true)
-            }
+        }
+        if (response.status().code() != HttpStatusCode.SwitchingProtocols.value) {
+            HttpUtil.setTransferEncodingChunked(response, true)
         }
     }
 

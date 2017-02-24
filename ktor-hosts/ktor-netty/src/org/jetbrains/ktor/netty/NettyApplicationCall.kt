@@ -61,7 +61,7 @@ internal class NettyApplicationCall(application: Application,
     }
 
     suspend override fun respondFromBytes(bytes: ByteArray) {
-        response.sendResponseMessage(flush = false)
+        response.sendResponseMessage(flush = false, chunked = false)
         val buf = context.alloc().ioBuffer(bytes.size).writeBytes(bytes)
         context.writeAndFlush(buf).suspendAwait()
     }
@@ -81,13 +81,12 @@ internal class NettyApplicationCall(application: Application,
             context.channel().pipeline().remove(NettyHostHttp1Handler::class.java)
             context.channel().pipeline().addFirst(NettyDirectDecoder())
 
-            response.chunked = false
             response.status(upgrade.status ?: HttpStatusCode.SwitchingProtocols)
             upgrade.headers.flattenEntries().forEach { e ->
                 response.headers.append(e.first, e.second)
             }
 
-            response.sendResponseMessage()?.addListener {
+            response.sendResponseMessage(chunked = false)?.addListener {
                 future(context.channel().eventLoop().toCoroutineDispatcher()) {
                     context.channel().pipeline().remove(HttpServerCodec::class.java)
                     context.channel().pipeline().addFirst(NettyDirectEncoder())
