@@ -160,7 +160,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     }
 
-    override fun start(wait: Boolean) {
+    override fun start(wait: Boolean) : JettyApplicationHost {
         applicationLifecycle.ensureApplication()
         environment.log.trace("Starting server...")
 
@@ -171,6 +171,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             applicationLifecycle.dispose()
             environment.log.trace("Server stopped.")
         }
+        return this
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {

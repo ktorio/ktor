@@ -91,7 +91,7 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     }
 
-    override fun start(wait: Boolean) {
+    override fun start(wait: Boolean) : TomcatApplicationHost {
         application.environment.log.trace("Starting server...") // touch application to ensure initialized
         server.start()
         config.log.trace("Server started")
@@ -100,6 +100,7 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
             server.server.await()
             config.log.trace("Server stopped.")
         }
+        return this
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {

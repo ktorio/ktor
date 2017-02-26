@@ -43,7 +43,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     }
 
-    override fun start(wait: Boolean) {
+    override fun start(wait: Boolean) : NettyApplicationHost {
         applicationLifecycle.ensureApplication()
         environment.log.trace("Starting server…")
         val channelFutures = bootstraps.zip(hostConfig.connectors).map { it.first.bind(it.second.host, it.second.port) }
@@ -53,6 +53,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             channelFutures.map { it.channel().closeFuture() }.forEach { it.sync() }
             stop(1, 5, TimeUnit.SECONDS)
         }
+        return this
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
