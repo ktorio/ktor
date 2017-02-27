@@ -66,7 +66,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
 
     init {
         hostPipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
-            call.response.pipeline.intercept(RespondPipeline.Before) {
+            call.response.pipeline.intercept(ApplicationResponsePipeline.Before) {
                 proceed()
                 (call as? TestApplicationCall)?.requestHandled = true
             }
@@ -230,7 +230,7 @@ class TestApplicationRequest(
     override val cookies = RequestCookies(this)
 }
 
-class TestApplicationResponse(call: ApplicationCall, respondPipeline: RespondPipeline = RespondPipeline()) : BaseApplicationResponse(call, respondPipeline) {
+class TestApplicationResponse(call: ApplicationCall, respondPipeline: ApplicationResponsePipeline = ApplicationResponsePipeline()) : BaseApplicationResponse(call, respondPipeline) {
     internal val realContent = lazy { ByteBufferWriteChannel() }
 
     @Volatile

@@ -18,7 +18,7 @@ open class Pipeline<TSubject : Any>(vararg phase: PipelinePhase) {
         phases.intercept(phase, block)
     }
 
-    suspend fun execute(subject: TSubject) = PipelineContext(phases.interceptors(), subject).proceed()
+    suspend fun execute(subject: TSubject): TSubject = PipelineContext(phases.interceptors(), subject).proceed()
 }
 
 typealias PipelineInterceptor<TSubject> = suspend PipelineContext<TSubject>.(TSubject) -> Unit

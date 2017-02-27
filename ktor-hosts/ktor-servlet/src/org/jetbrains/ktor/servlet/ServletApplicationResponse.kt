@@ -8,7 +8,7 @@ import org.jetbrains.ktor.response.*
 import javax.servlet.http.*
 
 class ServletApplicationResponse(call: ServletApplicationCall,
-                                 responsePipeline: RespondPipeline,
+                                 responsePipeline: ApplicationResponsePipeline,
                                  val servletResponse: HttpServletResponse,
                                  val pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit
 ) : BaseApplicationResponse(call, responsePipeline) {

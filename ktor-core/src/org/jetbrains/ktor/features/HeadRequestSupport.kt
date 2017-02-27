@@ -17,10 +17,10 @@ object HeadRequestSupport : ApplicationFeature<ApplicationCallPipeline, Unit, Un
 
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
             if (call.request.local.method == HttpMethod.Head) {
-                it.response.pipeline.phases.insertBefore(RespondPipeline.TransferEncoding, HeadPhase)
+                it.response.pipeline.phases.insertBefore(ApplicationResponsePipeline.TransferEncoding, HeadPhase)
 
                 it.response.pipeline.intercept(HeadPhase) {
-                    val message = subject.message
+                    val message = subject
                     if (message is FinalContent && message !is FinalContent.NoContent) {
                         call.respond(HeadResponse(message))
                     }

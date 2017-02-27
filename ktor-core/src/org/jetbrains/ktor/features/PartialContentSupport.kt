@@ -35,7 +35,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
                 call.attributes.put(Compression.SuppressionAttribute, true)
                 call.response.pipeline.registerPhase()
                 call.response.pipeline.intercept(PartialContentPhase) {
-                    val message = subject.message
+                    val message = subject
                     if (message is FinalContent.ReadChannelContent && message !is RangeChannelProvider) {
                         message.contentLength()?.let { length -> tryProcessRange(message, call, rangeSpecifier, length) }
                     }
@@ -46,7 +46,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
         } else {
             call.response.pipeline.registerPhase()
             call.response.pipeline.intercept(PartialContentPhase) {
-                val message = subject.message
+                val message = subject
                 if (message is FinalContent.ReadChannelContent && message !is RangeChannelProvider) {
                     call.respond(RangeChannelProvider.ByPass(message))
                 }
@@ -54,8 +54,8 @@ class PartialContentSupport(val maxRangeCount : Int) {
         }
     }
 
-    private fun RespondPipeline.registerPhase() {
-        phases.insertAfter(RespondPipeline.ContentEncoding, PartialContentPhase)
+    private fun ApplicationResponsePipeline.registerPhase() {
+        phases.insertAfter(ApplicationResponsePipeline.ContentEncoding, PartialContentPhase)
     }
 
     suspend private fun PipelineContext<*>.tryProcessRange(obj: FinalContent.ReadChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long): Unit {

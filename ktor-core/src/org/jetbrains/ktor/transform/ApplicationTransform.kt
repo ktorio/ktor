@@ -5,7 +5,7 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import kotlin.reflect.*
 
-class ApplicationTransform<TContext : Any>(private val parent: TransformTable<TContext>? = null) {
+class ApplicationTransform<TContext : ApplicationCall>(private val parent: TransformTable<TContext>? = null) {
     var table: TransformTable<TContext> = parent ?: TransformTable()
         private set
 
@@ -29,23 +29,23 @@ class ApplicationTransform<TContext : Any>(private val parent: TransformTable<TC
         table.register(type, predicate, handler)
     }
 
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, ApplicationTransform<PipelineContext<ResponseMessage>>, ApplicationTransform<PipelineContext<ResponseMessage>>> {
-        override val key = AttributeKey<ApplicationTransform<PipelineContext<ResponseMessage>>>("Transformation Support")
+    companion object Feature : ApplicationFeature<ApplicationCallPipeline, ApplicationTransform<ApplicationCall>, ApplicationTransform<ApplicationCall>> {
+        override val key = AttributeKey<ApplicationTransform<ApplicationCall>>("Transformation Support")
         private val TransformApplicationPhase = PipelinePhase("Transform")
-        internal val ApplicationCallTransform = AttributeKey<ApplicationTransform<PipelineContext<ResponseMessage>>>("ktor.transform")
+        internal val ApplicationCallTransform = AttributeKey<ApplicationTransform<ApplicationCall>>("ktor.transform")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: ApplicationTransform<PipelineContext<ResponseMessage>>.() -> Unit): ApplicationTransform<PipelineContext<ResponseMessage>> {
-            val table = ApplicationTransform<PipelineContext<ResponseMessage>>()
+        override fun install(pipeline: ApplicationCallPipeline, configure: ApplicationTransform<ApplicationCall>.() -> Unit): ApplicationTransform<ApplicationCall> {
+            val table = ApplicationTransform<ApplicationCall>()
 
             configure(table)
 
             pipeline.phases.insertBefore(ApplicationCallPipeline.Infrastructure, TransformApplicationPhase)
             pipeline.intercept(TransformApplicationPhase) { call ->
-                call.response.pipeline.intercept(RespondPipeline.Transform) {
-                    val message = subject.message
+                call.response.pipeline.intercept(ApplicationResponsePipeline.Transform) {
+                    val message = subject
                     val newMessage = (call.attributes.getOrNull(ApplicationCallTransform) ?: call.application.transform)
-                            .table.transform(this, message)
-                    subject.message = newMessage
+                            .table.transform(call, message)
+                    proceedWith(newMessage)
                 }
             }
 
@@ -54,9 +54,9 @@ class ApplicationTransform<TContext : Any>(private val parent: TransformTable<TC
     }
 }
 
-val Application.transform: ApplicationTransform<PipelineContext<ResponseMessage>>
+val Application.transform: ApplicationTransform<ApplicationCall>
     get() = feature(ApplicationTransform)
 
-val ApplicationCall.transform: ApplicationTransform<PipelineContext<ResponseMessage>>
+val ApplicationCall.transform: ApplicationTransform<ApplicationCall>
     get() = attributes.computeIfAbsent(ApplicationTransform.ApplicationCallTransform) { ApplicationTransform(application.transform.table) }
 

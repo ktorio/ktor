@@ -33,8 +33,8 @@ class ConditionalHeaders {
 
     fun intercept(call: ApplicationCall) {
         if (headers.any { it in call.request.headers }) {
-            call.response.pipeline.intercept(RespondPipeline.After) {
-                val message = subject.message
+            call.response.pipeline.intercept(ApplicationResponsePipeline.After) {
+                val message = subject
                 when (message) {
                     is Resource -> checkVersions(call, message.versions)
                     is FinalContent -> checkVersions(call, message.lastModifiedAndEtagVersions())

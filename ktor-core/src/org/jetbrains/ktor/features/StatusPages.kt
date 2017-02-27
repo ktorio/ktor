@@ -31,12 +31,12 @@ class StatusPages(config: Configuration) {
 
     suspend private fun intercept(context: PipelineContext<ApplicationCall>) {
         var statusHandled = false
-        context.call.response.pipeline.intercept(RespondPipeline.After) {
+        context.call.response.pipeline.intercept(ApplicationResponsePipeline.After) {
             if (!statusHandled) {
-                val obj = subject.message
-                val status = when (obj) {
-                    is FinalContent -> obj.status
-                    is HttpStatusCode -> obj
+                val message = subject
+                val status = when (message) {
+                    is FinalContent -> message.status
+                    is HttpStatusCode -> message
                     else -> null
                 }
                 val handler = statuses[status]

@@ -12,20 +12,19 @@ import java.nio.*
 abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
     final override val attributes = Attributes()
 
-    protected val respondPipeline = RespondPipeline()
+    protected val respondPipeline = ApplicationResponsePipeline()
 
     var responded = false
         private set
 
     suspend override fun respond(message: Any) {
-        val responseMessage = ResponseMessage(this, message)
         val phases = respondPipeline.phases
-        val pipelineContext = PipelineContext(phases.interceptors(), responseMessage)
+        val pipelineContext = PipelineContext(phases.interceptors(), message)
         pipelineContext.proceed()
         if (responded)
             return
         responded = true
-        val value = responseMessage.message
+        val value = pipelineContext.subject
         when (value) {
             is FinalContent -> respondFinalContent(value)
             is ProtocolUpgrade -> pipelineContext.handleUpgrade(value)

@@ -65,7 +65,7 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
     }
 
     suspend fun transform(ctx: TContext, obj: Any): Any {
-        val visited = HandlersSet<TContext>()
+        val visited = BitSet()
 
         var value: Any = obj
         var handlers = handlers(obj::class.java)
@@ -74,14 +74,14 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
         while (handlerIndex < handlers.size) {
             val handler = handlers[handlerIndex++]
 
-            if (handler in visited || !handler.predicate(ctx, value))
+            if (visited.get(handler.id) || !handler.predicate(ctx, value))
                 continue
 
             val result = handler.transformation(ctx, value)
             if (result === value)
                 continue
 
-            visited.add(handler)
+            visited.set(handler.id)
             handlerIndex = 0
             if (result::class.java !== value::class.java) {
                 handlers = handlers(result::class.java)
@@ -92,22 +92,10 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
         return value
     }
 
-    class Handler<in C : Any, in T> internal constructor(val id: Int, val predicate: C.(T) -> Boolean, val transformation: suspend C.(T) -> Any) {
+    class Handler<in TContext : Any, in TValue> internal constructor(val id: Int,
+                                                                     val predicate: TContext.(TValue) -> Boolean,
+                                                                     val transformation: suspend TContext.(TValue) -> Any) {
         override fun toString() = transformation.toString()
-    }
-
-    class HandlersSet<out C : Any> {
-        private val bitSet = BitSet()
-
-        fun add(element: Handler<C, *>) {
-            bitSet.set(element.id)
-        }
-
-        fun remove(element: Handler<C, *>) {
-            bitSet.clear(element.id)
-        }
-
-        operator fun contains(element: Handler<C, *>) = bitSet[element.id]
     }
 
     private fun <T : Any> collectHandlers(type: Class<out T>): List<Handler<TContext, T>> {

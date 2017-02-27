@@ -3,32 +3,33 @@ package org.jetbrains.ktor.host
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 
-fun ApplicationTransform<PipelineContext<ResponseMessage>>.registerDefaultHandlers() {
+fun ApplicationTransform<ApplicationCall>.registerDefaultHandlers() {
     register<String> { value ->
-        val responseContentType = call.response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+        val responseContentType = response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
         val contentType = responseContentType ?: ContentType.Text.Plain.withCharset(Charsets.UTF_8)
         TextContent(value, contentType, null)
     }
 
-    register<ByteArray> { value -> ByteArrayContent(value)}
+    register<ByteArray> { value ->
+        ByteArrayContent(value)
+    }
 
     register<HttpStatusContent> { value ->
-        TextContent("<H1>${value.code}</H1>${value.message.escapeHTML()}",
+        TextContent("<H1>${value.code}</H1><P>${value.message.escapeHTML()}</P>",
                 ContentType.Text.Html.withCharset(Charsets.UTF_8),
                 value.code)
     }
 
-    register<HttpStatusCode> { value -> HttpStatusCodeContent(value) }
+    register<HttpStatusCode> { value ->
+        HttpStatusCodeContent(value)
+    }
 
-    register<URIFileContent> { value ->
-        if (value.uri.scheme == "file") {
-            LocalFileContent(File(value.uri))
-        } else value
+    register<URIFileContent>(predicate = { it.uri.scheme == "file" }) { value ->
+        LocalFileContent(File(value.uri))
     }
 }
 

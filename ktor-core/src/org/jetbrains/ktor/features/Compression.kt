@@ -40,8 +40,8 @@ class Compression(compression: Configuration) {
         if (!encoders.isNotEmpty())
             return
 
-        call.response.pipeline.intercept(RespondPipeline.ContentEncoding) {
-            val message = subject.message
+        call.response.pipeline.intercept(ApplicationResponsePipeline.ContentEncoding) {
+            val message = subject
             if (message is FinalContent
                     && message !is CompressedResponse
                     && options.conditions.all { it(call, message) }
@@ -55,7 +55,7 @@ class Compression(compression: Configuration) {
                     is FinalContent.ReadChannelContent ->  ({ message.readFrom() })
                     is FinalContent.WriteChannelContent -> {
                         if (encoderOptions != null) {
-                            subject.message = CompressedWriteResponse(message, encoderOptions.name, encoderOptions.encoder)
+                            proceedWith(CompressedWriteResponse(message, encoderOptions.name, encoderOptions.encoder))
                         }
                         return@intercept
                     }
@@ -64,7 +64,7 @@ class Compression(compression: Configuration) {
                 }
 
                 if (encoderOptions != null) {
-                    subject.message = CompressedResponse(channel, message.headers, encoderOptions.name, encoderOptions.encoder)
+                    proceedWith(CompressedResponse(channel, message.headers, encoderOptions.name, encoderOptions.encoder))
                 }
             }
         }
