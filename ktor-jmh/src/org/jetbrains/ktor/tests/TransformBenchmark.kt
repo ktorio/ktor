@@ -48,14 +48,14 @@ open class TransformBenchmark {
 }
 
 /*
-TransformBenchmark.handlersSelectClass         thrpt   10  49115.226 ± 3019.768  ops/ms
-TransformBenchmark.handlersSelectExact         thrpt   10  44736.116 ± 4150.297  ops/ms
-TransformBenchmark.handlersSelectInterface     thrpt   10  45388.982 ± 2390.448  ops/ms
-TransformBenchmark.handlersTransform           thrpt   10  13724.432 ±  849.569  ops/ms
-TransformBenchmark.subHandlersSelectClass      thrpt   10  13706.470 ± 1096.372  ops/ms
-TransformBenchmark.subHandlersSelectExact      thrpt   10  24532.588 ±  651.986  ops/ms
-TransformBenchmark.subHandlersSelectInterface  thrpt   10  13546.368 ± 1068.164  ops/ms
-TransformBenchmark.subHandlersTransform        thrpt   10   6891.998 ±  200.673  ops/ms
+TransformBenchmark.handlersSelectClass         thrpt   20  47604.798 ± 1676.656  ops/ms
+TransformBenchmark.handlersSelectExact         thrpt   20  47700.687 ± 1577.830  ops/ms
+TransformBenchmark.handlersSelectInterface     thrpt   20  44411.919 ± 2571.797  ops/ms
+TransformBenchmark.handlersTransform           thrpt   20  12168.531 ±  505.025  ops/ms
+TransformBenchmark.subHandlersSelectClass      thrpt   20  44466.004 ± 1993.300  ops/ms
+TransformBenchmark.subHandlersSelectExact      thrpt   20  46456.387 ± 1514.119  ops/ms
+TransformBenchmark.subHandlersSelectInterface  thrpt   20  42702.777 ± 2455.606  ops/ms
+TransformBenchmark.subHandlersTransform        thrpt   20  12627.306 ±  108.101  ops/ms
 */
 
 fun main(args: Array<String>) {

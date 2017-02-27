@@ -4,20 +4,18 @@ import org.jetbrains.ktor.util.*
 import java.util.*
 import java.util.concurrent.atomic.*
 import java.util.concurrent.locks.*
+import kotlin.collections.ArrayList
 import kotlin.concurrent.*
 
 class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = null) {
-    private val topParent: TransformTable<TContext> = parent?.topParent ?: parent ?: this
-    private val handlersCounter: AtomicInteger = parent?.handlersCounter ?: AtomicInteger()
+    private val registrationCounter: AtomicInteger = parent?.registrationCounter ?: AtomicInteger()
 
-    private val superTypesCacheLock = ReentrantReadWriteLock()
-    private val superTypesCache = HashMap<Class<*>, Array<Class<*>>>()
+    private val registrationsLock = ReentrantReadWriteLock()
+    private val registrations = HashMap<Class<*>, Any>()
 
-    private val handlersLock = ReentrantReadWriteLock()
-    private val handlers = HashMap<Class<*>, MutableList<Handler<TContext, *>>>()
-
+    private var handlersCacheCounter: Int = registrationCounter.get()
     private val handlersCacheLock = ReentrantReadWriteLock()
-    private val handlersCache = HashMap<Class<*>, List<Handler<TContext, *>>>()
+    private var handlersCache = HashMap<Class<*>, List<Handler<TContext, *>>>()
 
     inline fun <reified T : Any> register(noinline handler: suspend TContext.(T) -> Any) {
         register({ true }, handler)
@@ -28,56 +26,78 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
     }
 
     fun <T : Any> register(type: Class<T>, predicate: TContext.(T) -> Boolean, handler: suspend TContext.(T) -> Any) {
-        topParent.superTypes(type)
-        addHandler(type, Handler(handlersCounter.getAndIncrement(), predicate, handler))
+        val entry = Handler(registrationCounter.getAndIncrement(), predicate, handler)
+        registrationsLock.write {
+            val current = registrations[type]
+
+            @Suppress("UNCHECKED_CAST")
+            when (current) {
+                null -> registrations[type] = entry
+                is Handler<*,*> -> registrations[type] = ArrayList<Handler<TContext, *>>(2).apply {
+                    add(current as Handler<TContext, *>)
+                    add(entry)
+                }
+                is ArrayList<*> -> (current as ArrayList<Handler<TContext, *>>).add(entry)
+                else -> throw IllegalStateException("Unknown entry in registrations table: $current")
+            }
+        }
 
         handlersCacheLock.write {
-            handlersCache.keys.filter { type.isAssignableFrom(it) }.forEach {
-                handlersCache.remove(it)
-            }
+            handlersCacheCounter = registrationCounter.get()
+            handlersCache.clear()
         }
     }
 
     fun <T : Any> handlers(type: Class<out T>): List<Handler<TContext, T>> {
-        val cached = handlersCacheLock.read { handlersCache[type] }
-        val partialResult = if (cached == null) {
-            val collected = collectHandlers(type)
-
-            handlersCacheLock.write {
-                handlersCache[type] = collected
+        val cached = handlersCacheLock.read {
+            val currentRegistrationCounter = registrationCounter.get()
+            if (handlersCacheCounter != currentRegistrationCounter) {
+                handlersCacheLock.write {
+                    if (handlersCacheCounter != currentRegistrationCounter) {
+                        handlersCacheCounter = currentRegistrationCounter
+                        handlersCache.clear()
+                    }
+                }
             }
-
-            collected
-        } else {
-            @Suppress("UNCHECKED_CAST")
-            cached as List<Handler<TContext, T>>
+            handlersCache[type]
         }
 
-        return if (parent != null) {
-            val parentResult = parent.handlers(type)
+        if (cached != null) {
+            @Suppress("UNCHECKED_CAST")
+            return cached as List<Handler<TContext, T>>
+        }
+
+        val thisHandlers = computeHandlers(type)
+        val result = if (parent != null) {
+            val parentHandlers = parent.handlers(type)
             when {
-                parentResult.isEmpty() -> partialResult
-                partialResult.isEmpty() -> parentResult
-                else -> partialResult + parentResult
+                parentHandlers.isEmpty() -> thisHandlers
+                thisHandlers.isEmpty() -> parentHandlers
+                else -> thisHandlers + parentHandlers
             }
-        } else
-            partialResult
+        } else thisHandlers
+
+        handlersCacheLock.write {
+            handlersCache[type] = result
+        }
+
+        return result
     }
 
-    suspend fun transform(ctx: TContext, obj: Any): Any {
+    suspend fun transform(context: TContext, message: Any): Any {
         val visited = BitSet()
 
-        var value: Any = obj
-        var handlers = handlers(obj::class.java)
+        var value: Any = message
+        var handlers = handlers(message::class.java)
         var handlerIndex = 0
 
         while (handlerIndex < handlers.size) {
             val handler = handlers[handlerIndex++]
 
-            if (visited.get(handler.id) || !handler.predicate(ctx, value))
+            if (visited.get(handler.id) || !handler.predicate(context, value))
                 continue
 
-            val result = handler.transformation(ctx, value)
+            val result = handler.transformation(context, value)
             if (result === value)
                 continue
 
@@ -98,16 +118,20 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
         override fun toString() = transformation.toString()
     }
 
-    private fun <T : Any> collectHandlers(type: Class<out T>): List<Handler<TContext, T>> {
+    private fun <T : Any> computeHandlers(type: Class<out T>): List<Handler<TContext, T>> {
         val result = ArrayList<Handler<TContext, T>>(2)
-        val superTypes = topParent.superTypes(type)
+        val superTypes = type.getAllSuperTypes()
 
-        handlersLock.read {
+        registrationsLock.read {
             for (superType in superTypes) {
-                val hh = handlers[superType]
-                if (hh != null && hh.isNotEmpty()) {
-                    @Suppress("UNCHECKED_CAST")
-                    result.addAll(hh as List<Handler<TContext, T>>)
+                val handlers = registrations[superType]
+                @Suppress("UNCHECKED_CAST")
+                when (handlers) {
+                    is Handler<*, *> -> result.add(handlers as Handler<TContext, T>)
+                    is List<*> -> {
+                        if ((handlers as List<Handler<TContext, T>>).isNotEmpty())
+                            result.addAll(handlers)
+                    }
                 }
             }
         }
@@ -115,18 +139,17 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
         return if (result.isEmpty()) emptyList() else result
     }
 
-    private fun addHandler(type: Class<*>, handler: Handler<TContext, *>) {
-        handlersLock.write {
-            handlers.getOrPut(type) { ArrayList(2) }.add(handler)
-        }
-    }
+    companion object {
+        private val classHierarchyCacheLock = ReentrantReadWriteLock()
+        private val classHierarchyCache = HashMap<Class<*>, Array<Class<*>>>()
 
-    private fun superTypes(type: Class<*>): Array<Class<*>> = superTypesCacheLock.read {
-        superTypesCache[type] ?: superTypesCacheLock.write {
-            buildSuperTypes(type).also { superTypesCache[type] = it }
+        private fun Class<*>.getAllSuperTypes(): Array<Class<*>> = classHierarchyCacheLock.read {
+            classHierarchyCache[this] ?: classHierarchyCacheLock.write {
+                computeSuperTypes(this).also { classHierarchyCache[this] = it }
+            }
         }
-    }
 
-    private fun buildSuperTypes(type: Class<*>) = type.findAllSupertypes().asReversed().toTypedArray()
+        private fun computeSuperTypes(type: Class<*>) = type.findAllSupertypes().asReversed().toTypedArray()
+    }
 }
 
