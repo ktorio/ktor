@@ -152,9 +152,6 @@ NettyIntegrationBenchmark.smallFile             thrpt   20  21.542 ± 0.566  ops
 NettyIntegrationBenchmark.smallFileSync         thrpt   20  30.185 ± 3.666  ops/ms*/
 
 fun main(args: Array<String>) {
-    if (args.firstOrNull() == "daemon") {
-        NettyIntegrationBenchmark().configureServer()
-    } else
     benchmark(args) {
         threads = 32
         run<NettyIntegrationBenchmark>()

@@ -30,8 +30,27 @@ data class BenchmarkDescriptor(val clazz: Class<*>, val method: String? = null)
 fun benchmark(args: Array<String>, configure: BenchmarkSettings.() -> Unit) {
     val options = BenchmarkSettings().apply(configure)
     when (args.firstOrNull()) {
+        "daemon" -> runDaemon(options)
         "profile" -> runProfiler(options)
         null, "benchmark" -> runJMH(options)
+    }
+}
+
+fun runDaemon(settings: BenchmarkSettings) {
+    val (clazz, method) = settings.benchmarks.singleOrNull() ?: throw IllegalArgumentException("Daemon mode supports only single benchmark")
+    println("${clazz.name}.${method ?: "*"}")
+    val instance = clazz.getConstructor().newInstance()
+    val setups = clazz.methods.filter { it.annotations.any { it.annotationClass == Setup::class } }
+    val teardowns = clazz.methods.filter { it.annotations.any { it.annotationClass == TearDown::class } }
+    if (setups.isNotEmpty()) {
+        println("Setting up…")
+        setups.forEach { it.invoke(instance) }
+    }
+    println("Press ENTER to exit")
+    readLine()
+    if (teardowns.isNotEmpty()) {
+        println("Tearing down…")
+        teardowns.forEach { it.invoke(instance) }
     }
 }
 
