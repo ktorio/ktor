@@ -11,7 +11,7 @@ import org.junit.*
 import kotlin.test.*
 
 class MenuTemplate : Template<FlowContent> {
-    val item = PlaceholderList<FlowContent, FlowContent>()
+    val item = PlaceholderList<UL, FlowContent>()
     override fun FlowContent.apply() {
         if (!item.isEmpty()) {
             ul {
@@ -30,7 +30,7 @@ class MenuTemplate : Template<FlowContent> {
 }
 
 class MainTemplate : Template<HTML> {
-    val content = Placeholder<BODY>()
+    val content = Placeholder<HtmlBlockTag>()
     val menu = TemplatePlaceholder<MenuTemplate>()
     override fun HTML.apply() {
         head {
