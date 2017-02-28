@@ -10,34 +10,27 @@ import kotlin.coroutines.experimental.intrinsics.*
 
 class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChannel {
     private val listenerInstalled = AtomicBoolean()
-    private val currentHandler = AtomicReference<Continuation<Int>?>()
-    private var currentBuffer: ByteBuffer? = null
+    private val continuation = AtomicReference<Continuation<State>?>()
+
     @Volatile
     private var closed = false
 
+    private enum class State {
+        End,
+        Available
+    }
+
     private val readListener = object : ReadListener {
         override fun onAllDataRead() {
-            withHandler { handler, _ ->
-                closed = true
-                handler.resume(-1)
-            }
+            continuation.getAndSet(null)?.resume(State.End)
         }
 
         override fun onError(t: Throwable) {
-            withHandler { handler, _ ->
-                handler.resumeWithException(t)
-            }
+            continuation.getAndSet(null)?.resumeWithException(t)
         }
 
         override fun onDataAvailable() {
-            withHandler { handler, buffer ->
-                val result = doRead(buffer)
-                if (result is Int) {
-                    handler.resume(result)
-                } else {
-                    handler.resumeWithException(IllegalStateException("data is available but we couldn't read it"))
-                }
-            }
+            continuation.getAndSet(null)?.resume(State.Available)
         }
     }
 
@@ -50,18 +43,33 @@ class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChann
             return -1
         }
 
-        return suspendCoroutineOrReturn { continuation ->
-            if (!currentHandler.compareAndSet(null, continuation)) {
-                throw IllegalStateException("Read operation is already in progress")
-            }
+        return when (awaitState()) {
+            State.End -> -1
+            State.Available -> servletInputStream.read(dst)
+        }
+    }
 
-            currentBuffer = dst
-            if (listenerInstalled.compareAndSet(false, true)) {
-                servletInputStream.setReadListener(readListener)
-                COROUTINE_SUSPENDED
-            } else {
-                doRead(dst)
+    private suspend fun awaitState(): State {
+        if (listenerInstalled.compareAndSet(false, true)) {
+            return suspendCoroutine {
+                if (!continuation.compareAndSet(null, it)) {
+                    listenerInstalled.set(false)
+                    it.resumeWithException(IllegalStateException("Async operation is already in progress"))
+                } else
+                    servletInputStream.setReadListener(readListener)
             }
+        }
+
+        if (servletInputStream.isFinished) return State.End
+
+        return suspendCoroutineOrReturn { continuation ->
+            if (!this.continuation.compareAndSet(null, continuation))
+                throw IllegalStateException("Async operation is already in progress")
+
+            if (servletInputStream.isReady) {
+                this.continuation.set(null)
+                State.Available
+            } else COROUTINE_SUSPENDED
         }
     }
 
@@ -73,21 +81,7 @@ class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChann
         } finally {
             closed = true
 
-            withHandler { handler, _ ->
-                handler.resumeWithException(ClosedChannelException())
-            }
-        }
-    }
-
-    private fun doRead(buffer: ByteBuffer): Any {
-        if (servletInputStream.isFinished) {
-            clearReferences()
-            return -1
-        } else if (servletInputStream.isReady) {
-            clearReferences()
-            return servletInputStream.read(buffer)
-        } else {
-            return COROUTINE_SUSPENDED
+            continuation.getAndSet(null)?.resumeWithException(ClosedChannelException())
         }
     }
 
@@ -106,20 +100,5 @@ class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChann
             }
             return size
         }
-    }
-
-    private inline fun withHandler(block: (Continuation<Int>, ByteBuffer) -> Unit) {
-        currentHandler.getAndSet(null)?.let { handler ->
-            currentBuffer?.let { buffer ->
-                currentBuffer = null
-
-                block(handler, buffer)
-            }
-        }
-    }
-
-    private fun clearReferences() {
-        currentHandler.set(null)
-        currentBuffer = null
     }
 }
