@@ -201,23 +201,6 @@ class TransformTableTest {
         assertEquals("OK.", table.transform(Unit, "OK"))
     }
 
-    @Test
-    @Ignore
-    fun testTableInheritanceLoop() = runBlocking {
-        val table = TransformTable<Unit>()
-        table.register<String> { it.length }
-
-        val subTable = TransformTable(table)
-        subTable.register<CharSequence> { -it.length }
-        val sb = StringBuilder("OK")
-
-        while (true) {
-            if (-2 != subTable.transform(Unit, sb)) {
-                fail()
-            }
-        }
-    }
-
     interface I
     interface L : I
     interface R : I
