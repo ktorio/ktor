@@ -8,8 +8,7 @@ import kotlin.collections.ArrayList
 import kotlin.concurrent.*
 
 class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = null) {
-    private val registrationCounter: AtomicInteger = parent?.registrationCounter ?: AtomicInteger()
-
+    private val registrationCounter = AtomicInteger()
     private val registrationsLock = ReentrantReadWriteLock()
     private val registrations = HashMap<Class<*>, Any>()
 
@@ -26,14 +25,14 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
     }
 
     fun <T : Any> register(type: Class<T>, predicate: TContext.(T) -> Boolean, handler: suspend TContext.(T) -> Any) {
-        val entry = Handler(registrationCounter.getAndIncrement(), predicate, handler)
+        val entry = Handler(predicate, handler)
         registrationsLock.write {
             val current = registrations[type]
 
             @Suppress("UNCHECKED_CAST")
             when (current) {
                 null -> registrations[type] = entry
-                is Handler<*,*> -> registrations[type] = ArrayList<Handler<TContext, *>>(2).apply {
+                is Handler<*, *> -> registrations[type] = ArrayList<Handler<TContext, *>>(2).apply {
                     add(current as Handler<TContext, *>)
                     add(entry)
                 }
@@ -43,18 +42,20 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
         }
 
         handlersCacheLock.write {
-            handlersCacheCounter = registrationCounter.get()
+            registrationCounter.getAndIncrement()
+            val combinedRegistrationCounter = registrationCounter.get() + (parent?.registrationCounter?.get() ?: 0)
+            handlersCacheCounter = combinedRegistrationCounter
             handlersCache.clear()
         }
     }
 
     fun <T : Any> handlers(type: Class<out T>): List<Handler<TContext, T>> {
         val cached = handlersCacheLock.read {
-            val currentRegistrationCounter = registrationCounter.get()
-            if (handlersCacheCounter != currentRegistrationCounter) {
+            val combinedRegistrationCounter = registrationCounter.get() + (parent?.registrationCounter?.get() ?: 0)
+            if (handlersCacheCounter != combinedRegistrationCounter) {
                 handlersCacheLock.write {
-                    if (handlersCacheCounter != currentRegistrationCounter) {
-                        handlersCacheCounter = currentRegistrationCounter
+                    if (handlersCacheCounter != combinedRegistrationCounter) {
+                        handlersCacheCounter = combinedRegistrationCounter
                         handlersCache.clear()
                     }
                 }
@@ -94,14 +95,14 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
         while (handlerIndex < handlers.size) {
             val handler = handlers[handlerIndex++]
 
-            if (visited.get(handler.id) || !handler.predicate(context, value))
+            if (visited.get(handlerIndex) || !handler.predicate(context, value))
                 continue
 
             val result = handler.transformation(context, value)
             if (result === value)
                 continue
 
-            visited.set(handler.id)
+            visited.set(handlerIndex)
             handlerIndex = 0
             if (result::class.java !== value::class.java) {
                 handlers = handlers(result::class.java)
@@ -112,8 +113,7 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
         return value
     }
 
-    class Handler<in TContext : Any, in TValue> internal constructor(val id: Int,
-                                                                     val predicate: TContext.(TValue) -> Boolean,
+    class Handler<in TContext : Any, in TValue> internal constructor(val predicate: TContext.(TValue) -> Boolean,
                                                                      val transformation: suspend TContext.(TValue) -> Any) {
         override fun toString() = transformation.toString()
     }
