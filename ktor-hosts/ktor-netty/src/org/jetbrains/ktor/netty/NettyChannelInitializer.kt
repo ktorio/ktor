@@ -47,8 +47,6 @@ class NettyChannelInitializer(val host: NettyApplicationHost, val connector: Hos
                         }
                         .build()
             }
-
-            println("SSL context building: $sslBuilding ms")
         }
     }
 
