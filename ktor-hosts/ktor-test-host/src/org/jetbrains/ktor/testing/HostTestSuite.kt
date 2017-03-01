@@ -447,15 +447,13 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     }
 
     @Test
+    @Ignore // disabled while https://github.com/eclipse/jetty.project/issues/1363 is under investigation
     fun testRequestBodyAsyncEcho() {
         createAndStartServer {
             route("/echo") {
                 handle {
                     val buffer = ByteBufferWriteChannel()
                     call.request.content.get<ReadChannel>().copyTo(buffer)
-
-                    call.response.status(HttpStatusCode.OK)
-                    call.response.contentType(ContentType.Application.OctetStream)
 
                     call.respond(object : FinalContent.ReadChannelContent() {
                         override val headers: ValuesMap get() = ValuesMap.Empty
