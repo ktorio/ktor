@@ -64,7 +64,7 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-jdk8</artifactId>
-            <version>0.11-rc</version>
+            <version>0.12</version>
         </dependency>
 
         <dependency>
@@ -160,11 +160,10 @@
                     </execution>
                 </executions>
                 <configuration>
-
+                    <jvmTarget>1.8</jvmTarget>
                     <args>
                         <arg>-Xcoroutines=enable</arg>
                     </args>
-
                 </configuration>
             </plugin>
             <plugin>
@@ -260,22 +259,6 @@
             <id>devexperts-maven</id>
             <url>https://dl.bintray.com/devexperts/Maven</url>
         </pluginRepository>
-        <pluginRepository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>bintray-kotlin-dev</id>
-            <name>bintray-plugins</name>
-            <url>http://dl.bintray.com/kotlin/kotlin-dev</url>
-        </pluginRepository>
-        <pluginRepository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>bintray-kotlin-eap-1.1</id>
-            <name>bintray-plugins</name>
-            <url>http://dl.bintray.com/kotlin/kotlin-eap-1.1</url>
-        </pluginRepository>
     </pluginRepositories>
     <repositories>
         <repository>
@@ -289,14 +272,6 @@
             <id>bintray-kotlin-eap-1.1</id>
             <name>bintray</name>
             <url>http://dl.bintray.com/kotlin/kotlin-eap-1.1</url>
-        </repository>
-        <repository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>bintray-kotlin-dev</id>
-            <name>bintray</name>
-            <url>http://dl.bintray.com/kotlin/kotlin-dev</url>
         </repository>
     </repositories>
 </project>
