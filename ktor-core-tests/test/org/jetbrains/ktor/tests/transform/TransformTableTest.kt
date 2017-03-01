@@ -179,6 +179,30 @@ class TransformTableTest {
     }
 
     @Test
+    fun testTablesInheritance3() = runBlocking {
+        val table = TransformTable<Unit>()
+        val subTable = TransformTable(table)
+
+        table.register<Int> { it.toString()+"x" }
+        subTable.register<CharSequence> { -it.length }
+
+        assertEquals("-2x", subTable.transform(Unit, "OK"))
+    }
+
+    @Test
+    fun testTablesInheritance4() = runBlocking {
+        val table = TransformTable<Unit>()
+        val subTable = TransformTable(table)
+        val moreTable = TransformTable(subTable)
+
+        table.register<Int> { it.toString()+"x" }
+        subTable.register<CharSequence> { -it.length }
+        moreTable.register<Float> { it.toString() }
+
+        assertEquals("-4x", moreTable.transform(Unit, 1.54f))
+    }
+
+    @Test
     fun testTablesInheritanceWithModification() = runBlocking {
         val table = TransformTable<Unit>()
         val subTable = TransformTable(table)

@@ -25,7 +25,7 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
     }
 
     fun <T : Any> register(type: Class<T>, predicate: TContext.(T) -> Boolean, handler: suspend TContext.(T) -> Any) {
-        val entry = Handler(predicate, handler)
+        val entry = Handler(this, registrationCounter.getAndIncrement(), predicate, handler)
         registrationsLock.write {
             val current = registrations[type]
 
@@ -42,7 +42,6 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
         }
 
         handlersCacheLock.write {
-            registrationCounter.getAndIncrement()
             val combinedRegistrationCounter = registrationCounter.get() + (parent?.registrationCounter?.get() ?: 0)
             handlersCacheCounter = combinedRegistrationCounter
             handlersCache.clear()
@@ -85,6 +84,12 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
         return result
     }
 
+    tailrec fun adjustIdToParents(table: TransformTable<TContext>, id: Int): Int {
+        val parent = table.parent ?: return id
+        val localId = id + parent.registrationCounter.get()
+        return adjustIdToParents(parent, localId)
+    }
+
     suspend fun transform(context: TContext, message: Any): Any {
         val visited = BitSet()
 
@@ -94,15 +99,16 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
 
         while (handlerIndex < handlers.size) {
             val handler = handlers[handlerIndex++]
+            val handlerId = adjustIdToParents(handler.table, handler.localId)
 
-            if (visited.get(handlerIndex) || !handler.predicate(context, value))
+            if (visited.get(handlerId) || !handler.predicate(context, value))
                 continue
 
             val result = handler.transformation(context, value)
             if (result === value)
                 continue
 
-            visited.set(handlerIndex)
+            visited.set(handlerId)
             handlerIndex = 0
             if (result::class.java !== value::class.java) {
                 handlers = handlers(result::class.java)
@@ -113,8 +119,11 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
         return value
     }
 
-    class Handler<in TContext : Any, in TValue> internal constructor(val predicate: TContext.(TValue) -> Boolean,
-                                                                     val transformation: suspend TContext.(TValue) -> Any) {
+    class Handler<TContext : Any, in TValue>(
+            val table: TransformTable<TContext>,
+            val localId: Int,
+            val predicate: TContext.(TValue) -> Boolean,
+            val transformation: suspend TContext.(TValue) -> Any) {
         override fun toString() = transformation.toString()
     }
 
@@ -152,4 +161,3 @@ class TransformTable<TContext : Any>(val parent: TransformTable<TContext>? = nul
         private fun computeSuperTypes(type: Class<*>) = type.findAllSupertypes().asReversed().toTypedArray()
     }
 }
-

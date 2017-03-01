@@ -43,8 +43,8 @@ class ApplicationTransform<TContext : ApplicationCall>(private val parent: Trans
             pipeline.intercept(TransformApplicationPhase) { call ->
                 call.response.pipeline.intercept(ApplicationResponsePipeline.Transform) {
                     val message = subject
-                    val newMessage = (call.attributes.getOrNull(ApplicationCallTransform) ?: call.application.transform)
-                            .table.transform(call, message)
+                    val transformator = call.attributes.getOrNull(ApplicationCallTransform) ?: call.application.transform
+                    val newMessage = transformator.table.transform(call, message)
                     proceedWith(newMessage)
                 }
             }
