@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.servlet
 
-import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.cio.*
 import java.nio.*
 import java.nio.channels.*
@@ -76,6 +75,7 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream,
 
         val size = servletOutputStream.doWrite(src)
         bytesWrittenWithNoSuspend += size
+        awaitForWriteReady() // TODO: don't check listenerInstalled twice
 
         if (bytesWrittenWithNoSuspend > MaxChunkWithoutSuspension) {
             forceReschedule()
