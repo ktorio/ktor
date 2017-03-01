@@ -118,17 +118,16 @@ abstract class WebSocketHostSuite<H : ApplicationHost> : org.jetbrains.ktor.test
         }
     }
 
-    private fun Socket.assertCloseFrame(code: Short = 0x03e8) {
+    private fun Socket.assertCloseFrame(closeCode: Short = CloseReason.Codes.NORMAL.code) {
         loop@
         while (true) {
             try {
                 val frame = getInputStream().readFrame()
-                println("Got $frame")
 
-                when (frame.frameType) {
-                    FrameType.PING -> continue@loop
-                    FrameType.CLOSE -> {
-                        assertEquals(code, frame.buffer.order(ByteOrder.BIG_ENDIAN).getShort())
+                when (frame) {
+                    is Frame.Ping -> continue@loop
+                    is Frame.Close -> {
+                        assertEquals(closeCode, frame.readReason()?.code)
                         close()
                         break@loop
                     }

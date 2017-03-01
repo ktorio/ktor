@@ -53,10 +53,11 @@ fun Frame.Text.readText(): String {
 }
 
 fun Frame.Close.readReason(): CloseReason? {
-    buffer.mark()
     if (buffer.remaining() < 2) {
         return null
     }
+
+    buffer.mark()
     val code = buffer.getShort()
     val message = buffer.getString(Charsets.UTF_8)
 

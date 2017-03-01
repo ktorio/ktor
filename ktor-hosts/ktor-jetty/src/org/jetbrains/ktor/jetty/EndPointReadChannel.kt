@@ -85,6 +85,8 @@ internal class EndPointReadChannel(endp: EndPoint, exec: Executor) : AbstractCon
     override fun onUpgradeTo(prefilled: ByteBuffer?) {
         if (prefilled != null && prefilled.hasRemaining()) {
             println("Got prefilled ${prefilled.remaining()} bytes")
+            // TODO in theory client could try to start communication with no server upgrade acknowledge
+            // it is generally not the case so it is not implemented yet
         }
     }
 }
