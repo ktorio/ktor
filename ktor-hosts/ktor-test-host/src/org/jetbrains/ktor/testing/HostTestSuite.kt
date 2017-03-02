@@ -447,7 +447,6 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     }
 
     @Test
-    @Ignore // disabled while https://github.com/eclipse/jetty.project/issues/1363 is under investigation
     fun testRequestBodyAsyncEcho() {
         createAndStartServer {
             route("/echo") {

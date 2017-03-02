@@ -9,7 +9,7 @@
 
     <artifactId>ktor-jetty</artifactId>
     <properties>
-        <jetty.version>9.4.2.v20170220</jetty.version>
+        <jetty.version>9.4.1.v20170120</jetty.version>
     </properties>
 
     <dependencies>
