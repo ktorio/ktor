@@ -25,13 +25,13 @@ class DirectorySessionStorageTest {
 
     @Test(expected = NoSuchElementException::class)
     fun testMissingSession() = runBlocking {
-        storage.read("id0") {}
+        storage.read("id0") { it.close() }
     }
 
     @Test
     fun testSaveSimple() = runBlocking {
         storage.save("id1") { it.toOutputStream().writer().use { it.write("test1") } }
-        assertEquals("test1", storage.read("id1") { it.toInputStream().reader().readText() })
+        assertEquals("test1", storage.read("id1") { it.toInputStream().reader().use { it.readText() } })
     }
 
     @Test
@@ -39,7 +39,7 @@ class DirectorySessionStorageTest {
         testSaveSimple()
         storage.invalidate("id1")
         assertFailsWith(NoSuchElementException::class) {
-            runBlocking { storage.read("id1") {} }
+            runBlocking { storage.read("id1") { it.close() } }
         }
         Unit
     }
