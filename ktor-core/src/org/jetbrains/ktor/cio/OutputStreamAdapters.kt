@@ -85,6 +85,11 @@ class OutputStreamFromWriteChannel(val channel: WriteChannel, val bufferPool: By
     override fun write(b: ByteArray, off: Int, len: Int) = runBlocking(Unconfined) {
         channel.write(ByteBuffer.wrap(b, off, len))
     }
+
+    override fun close() {
+        super.close()
+        channel.close()
+    }
 }
 
 fun WriteChannel.toOutputStream(): OutputStream = OutputStreamFromWriteChannel(this)

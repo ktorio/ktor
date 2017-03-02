@@ -28,6 +28,7 @@ class InputStreamFromReadChannel(val channel: ReadChannel, val bufferPool: ByteB
 
     override fun close() {
         super.close()
+        channel.close()
         bufferPool.release(singleByte)
     }
 }
