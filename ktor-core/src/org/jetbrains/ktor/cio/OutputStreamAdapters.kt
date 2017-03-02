@@ -90,6 +90,10 @@ class OutputStreamFromWriteChannel(val channel: WriteChannel, val bufferPool: By
         super.close()
         channel.close()
     }
+
+    override fun flush() = runBlocking(Unconfined) {
+        channel.flush()
+    }
 }
 
 fun WriteChannel.toOutputStream(): OutputStream = OutputStreamFromWriteChannel(this)
