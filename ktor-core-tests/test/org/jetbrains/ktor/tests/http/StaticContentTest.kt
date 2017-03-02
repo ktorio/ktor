@@ -322,21 +322,20 @@ class StaticContentTest {
         }
     }
 
-/*
     @Test
     fun testSendLocalFileBadRelative() {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) { call ->
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir, "/../../../../../../../../../../../../../etc/passwd"))
                 }
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir, "../pom.xml"))
                 }
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir, "../../pom.xml"))
                 }
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir, "/../pom.xml"))
                 }
             }
@@ -346,23 +345,21 @@ class StaticContentTest {
             }
         }
     }
-*/
 
-/*
     @Test
     fun testSendLocalFileBadRelativePaths() {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) { call ->
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../../../../../../../../../../../../../etc/passwd")))
                 }
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir.toPath(), Paths.get("../pom.xml")))
                 }
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir.toPath(), Paths.get("../../pom.xml")))
                 }
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../pom.xml")))
                 }
             }
@@ -372,7 +369,6 @@ class StaticContentTest {
             }
         }
     }
-*/
 
     @Test
     fun testInterceptCacheControl() {
@@ -485,4 +481,22 @@ class StaticContentTest {
     }
 
     private fun String.replaceSeparators() = replace("/", File.separator)
+}
+
+private inline suspend fun <reified T> assertFailsWithSuspended(noinline block: suspend () -> Unit): T {
+    val exceptionClass = T::class.java
+    try {
+        block()
+    } catch (e: Throwable) {
+        if (exceptionClass.isInstance(e)) {
+            @Suppress("UNCHECKED_CAST")
+            return e as T
+        }
+
+        @Suppress("INVISIBLE_MEMBER")
+        asserter.fail("Expected an exception of type $exceptionClass to be thrown, but was $e")
+    }
+
+    @Suppress("INVISIBLE_MEMBER")
+    asserter.fail("Expected an exception of type $exceptionClass to be thrown, but was completed successfully.")
 }
