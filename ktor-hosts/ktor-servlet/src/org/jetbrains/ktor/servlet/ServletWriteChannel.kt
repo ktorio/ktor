@@ -42,19 +42,13 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream,
 
     suspend override fun flush() {
         if (listenerInstalled.get()) {
+            awaitForListenerInstalled()
             awaitForWriteReady()
             servletOutputStream.flush()
         }
     }
 
     private suspend fun awaitForWriteReady() {
-        if (!listenerInstalled.get() && listenerInstalled.compareAndSet(false, true)) {
-            suspendCoroutine<Unit> { continuation ->
-                currentHandler = continuation
-                servletOutputStream.setWriteListener(writeReadyListener)
-            }
-        }
-
         while (!servletOutputStream.isReady) {
             suspendCoroutineOrReturn<Unit> { continuation ->
                 currentHandler = continuation
@@ -70,12 +64,26 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream,
         }
     }
 
+    private suspend fun awaitForListenerInstalled() {
+        if (!listenerInstalled.get() && listenerInstalled.compareAndSet(false, true)) {
+            suspendCoroutine<Unit> { continuation ->
+                currentHandler = continuation
+                servletOutputStream.setWriteListener(writeReadyListener)
+            }
+        }
+    }
+
     override suspend fun write(src: ByteBuffer) {
+        awaitForListenerInstalled()
         awaitForWriteReady()
 
         val size = servletOutputStream.doWrite(src)
         bytesWrittenWithNoSuspend += size
-        awaitForWriteReady() // TODO: don't check listenerInstalled twice
+        awaitForWriteReady()
+        // it is very important here to wait for isReady again otherwise the buffer we have provided is still in use
+        // by the container so we shouldn't use it before (otherwise the content could be corrupted or duplicated)
+        // notice that in most cases isReady = true after write as there is already buffer inside of the output
+        // so we actually don't need double-buffering here
 
         if (bytesWrittenWithNoSuspend > MaxChunkWithoutSuspension) {
             forceReschedule()
