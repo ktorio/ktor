@@ -25,5 +25,12 @@
             <artifactId>moshi</artifactId>
             <version>1.4.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.jetbrains.ktor</groupId>
+            <artifactId>ktor-html-builder</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
     </dependencies>
 </project>
