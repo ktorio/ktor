@@ -3,14 +3,14 @@
     <parent>
         <artifactId>ktor-features</artifactId>
         <groupId>org.jetbrains.ktor</groupId>
-        <version>0.2.4-SNAPSHOT</version>
+        <version>0.3.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>jetty-http-client</artifactId>
 
     <properties>
-        <jetty.client.version>9.3.13.v20161014</jetty.client.version>
+        <jetty.client.version>9.4.2.v20170220</jetty.client.version>
     </properties>
 
     <dependencies>

@@ -7,10 +7,10 @@ import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.request.*
-import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.transform.*
 
+class JsonResponse(val data: Any)
 data class Model(val name: String, val items: List<Item>)
 data class Item(val key: String, val value: String)
 
@@ -24,17 +24,14 @@ data class Item(val key: String, val value: String)
 
 fun Application.main() {
     install(DefaultHeaders)
+    install(Compression)
     install(CallLogging)
 
     val gson = GsonBuilder().create()
     intercept(ApplicationCallPipeline.Infrastructure) { call ->
-        if (HeaderValue("application/json") in call.request.acceptItems()) {
-            call.transform.register<Any> { value ->
-                val responseContentType = call.response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
-                when (responseContentType) {
-                    ContentType.Application.Json -> TextContent(ContentType.Application.Json, gson.toJson(value))
-                    else -> value
-                }
+        if (call.request.acceptItems().any { it.value == "application/json" }) {
+            call.transform.register<JsonResponse> { value ->
+                TextContent(gson.toJson(value.data), ContentType.Application.Json)
             }
         }
     }
@@ -42,15 +39,10 @@ fun Application.main() {
     val model = Model("root", listOf(Item("A", "Apache"), Item("B", "Bing")))
     routing {
         get("/v1") {
-            call.respond(ContentType.Application.Json, model)
+            call.respond(JsonResponse(model))
         }
         get("/v1/item/{key}") {
-            call.respond(ContentType.Application.Json, model.items.first { it.key == call.parameters["key"] })
+            call.respond(JsonResponse(model.items.first { it.key == call.parameters["key"] }))
         }
     }
-}
-
-fun ApplicationCall.respond(contentType: ContentType, value: Any): Nothing {
-    response.contentType(contentType)
-    respond(value)
 }

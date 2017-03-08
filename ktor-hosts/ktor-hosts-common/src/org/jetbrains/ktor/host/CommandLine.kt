@@ -13,7 +13,7 @@ fun commandLineConfig(args: Array<String>): Pair<ApplicationHostConfig, Applicat
 
     val jar = argsMap["-jar"]?.let { File(it).toURI().toURL() }
     val argConfig = ConfigFactory.parseMap(argsMap.filterKeys { it.startsWith("-P:") }.mapKeys { it.key.removePrefix("-P:") }, "Command-line options")
-    val combinedConfig = argConfig.withFallback(ConfigFactory.load())
+    val combinedConfig = argConfig.withFallback(ConfigFactory.systemProperties().withOnlyPath("ktor").withFallback(ConfigFactory.load()))
 
     val applicationIdPath = "ktor.application.id"
 

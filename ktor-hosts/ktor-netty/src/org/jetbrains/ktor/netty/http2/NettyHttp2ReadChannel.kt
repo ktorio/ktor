@@ -3,17 +3,18 @@ package org.jetbrains.ktor.netty.http2
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.util.*
 import java.nio.*
 import java.util.*
 import java.util.concurrent.atomic.*
+import kotlin.coroutines.experimental.*
 
 internal class NettyHttp2ReadChannel(val streamId: Int, val context: ChannelHandlerContext) : ReadChannel {
     private val sourceBuffers = LinkedList<ByteBuf>()
 
     private var destinationBuffer: ByteBuffer? = null
-    private val currentHandler = AtomicReference<AsyncHandler?>()
+    private val currentHandler = AtomicReference<Continuation<Int>?>()
 
     @Volatile
     private var eof: Boolean = false
@@ -42,22 +43,26 @@ internal class NettyHttp2ReadChannel(val streamId: Int, val context: ChannelHand
         }
     }
 
-    override fun read(dst: ByteBuffer, handler: AsyncHandler) {
-        if (!currentHandler.compareAndSet(null, handler)) {
-            throw IllegalStateException("Read operation is already in progress")
-        }
+    override suspend fun read(dst: ByteBuffer): Int {
+        if (!dst.hasRemaining()) return 0
 
-        if (eof && sourceBuffers.isEmpty()) {
-            currentHandler.set(null)
-            handler.successEnd()
-        } else {
-            destinationBuffer = dst
-            meet.acknowledge()
+        return suspendCoroutine { continuation ->
+            if (!currentHandler.compareAndSet(null, continuation)) {
+                throw IllegalStateException("Read operation is already in progress")
+            }
+
+            if (eof && sourceBuffers.isEmpty()) {
+                currentHandler.set(null)
+                continuation.resume(-1)
+            } else {
+                destinationBuffer = dst
+                meet.acknowledge()
+            }
         }
     }
 
     private fun meet() {
-        val handler = currentHandler.getAndSet(null)!!
+        val continuation = currentHandler.getAndSet(null)!!
         val dst = destinationBuffer!!
         destinationBuffer = null
 
@@ -85,9 +90,9 @@ internal class NettyHttp2ReadChannel(val streamId: Int, val context: ChannelHand
         this.total += total
 
         if (total == 0 && sourceBuffers.isEmpty() && eof) {
-            handler.successEnd()
+            continuation.resume(-1)
         } else {
-            handler.success(total)
+            continuation.resume(total)
         }
     }
 

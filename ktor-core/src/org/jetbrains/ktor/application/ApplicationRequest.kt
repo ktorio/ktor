@@ -8,25 +8,9 @@ import org.jetbrains.ktor.util.*
  * Represents client's request
  */
 interface ApplicationRequest {
-
-    @Deprecated("Pass call instead of request to here. To be removed.", level = DeprecationLevel.ERROR)
-    val call: ApplicationCall
-        get() = throw UnsupportedOperationException("Deprecated")
-
     /**
-     * HTTP request line
+     * Parameters provided in an URL
      */
-    @Deprecated("Use local or origin instead", level = DeprecationLevel.ERROR)
-    val requestLine: @Suppress("DEPRECATION") HttpRequestLine
-        get() = throw UnsupportedOperationException("Deprecated")
-
-    /**
-     * Parameters for this request
-     */
-    @Deprecated("Use queryParameters or content instead")
-    val parameters: ValuesMap
-        get() = queryParameters + content.get()
-
     val queryParameters: ValuesMap
 
     /**

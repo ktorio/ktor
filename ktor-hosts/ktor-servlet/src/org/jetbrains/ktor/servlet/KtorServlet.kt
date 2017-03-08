@@ -1,17 +1,17 @@
 package org.jetbrains.ktor.servlet
 
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
-import org.jetbrains.ktor.pipeline.*
 import java.lang.reflect.*
 import javax.servlet.http.*
 
 abstract class KtorServlet : HttpServlet() {
 
     abstract val application: Application
-    protected val hostPipeline = defaultHostPipeline()
+    protected val hostPipeline by lazy { defaultHostPipeline(application.environment) }
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         if (response.isCommitted) {
@@ -22,23 +22,18 @@ abstract class KtorServlet : HttpServlet() {
         request.characterEncoding = "UTF-8"
 
         try {
-            request.startAsync()
+            request.startAsync().apply {
+                timeout = 0L
+            }
             val call = ServletApplicationCall(application, request, response, NoPool, { call, block, next ->
                 tryPush(request, call, block, next)
             })
 
-            call.executeOn(application.executor, hostPipeline).whenComplete { state, throwable ->
-                when (state) {
-                    PipelineState.Finished, PipelineState.FinishedAll -> {
-                        call.close()
-                    }
-                    PipelineState.Failed -> {
-                        application.environment.log.error("Application ${application.javaClass} cannot fulfill the request", throwable)
-                        call.execution.runBlockWithResult {
-                            call.respond(HttpStatusCode.InternalServerError)
-                        }
-                    }
-                    null, PipelineState.Executing -> {}
+            future(application.executor.toCoroutineDispatcher()) {
+                try {
+                    hostPipeline.execute(call)
+                } finally {
+                    request.asyncContext?.complete()
                 }
             }
         } catch (ex: Throwable) {
@@ -61,9 +56,9 @@ abstract class KtorServlet : HttpServlet() {
                 "org.jetbrains.ktor.servlet.v4.PushKt.doPush",
                 "org.jetbrains.ktor.servlet.v4.TomcatInternalPushKt.doPushInternal"
         ).mapNotNull { tryFind(it) }
-        .firstOrNull { function ->
-            tryInvoke(function, request, call, block, next)
-        } ?: next()
+                .firstOrNull { function ->
+                    tryInvoke(function, request, call, block, next)
+                } ?: next()
     }
 
     private fun tryInvoke(function: Method, request: HttpServletRequest, call: ApplicationCall, block: ResponsePushBuilder.() -> Unit, next: () -> Unit) = try {

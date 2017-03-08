@@ -3,8 +3,8 @@ package org.jetbrains.ktor.netty.http2
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.net.*
@@ -46,7 +46,7 @@ internal class NettyHttp2ApplicationRequest(val context: ChannelHandlerContext, 
     val handler: NettyHttp2ReadChannel = NettyHttp2ReadChannel(streamId, context)
 
     override val content = object : RequestContent(this) {
-        override fun getInputStream() = getReadChannel().asInputStream()
+        override fun getInputStream() = getReadChannel().toInputStream()
         override fun getMultiPartData(): MultiPartData {
             throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
         }

@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.jetty
 
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.future.*
 import org.eclipse.jetty.alpn.server.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.*
@@ -9,13 +11,13 @@ import org.eclipse.jetty.server.*
 import org.eclipse.jetty.server.handler.*
 import org.eclipse.jetty.util.ssl.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
+import org.jetbrains.ktor.cio.ByteBufferPool
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
-import org.jetbrains.ktor.nio.ByteBufferPool
-import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.transform.*
 import java.nio.*
+import java.util.concurrent.*
 import javax.servlet.*
 import javax.servlet.http.*
 
@@ -25,9 +27,9 @@ import javax.servlet.http.*
 class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                            val environment: ApplicationEnvironment,
                            val applicationLifecycle: ApplicationLifecycle,
-                           jettyServer: () -> Server = ::Server) : ApplicationHost, ApplicationHostStartable {
+                           jettyServer: () -> Server = ::Server) : ApplicationHostStartable {
 
-    private val application: Application get() = applicationLifecycle.application
+    val application: Application get() = applicationLifecycle.application
 
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
             : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
@@ -90,7 +92,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     init {
         applicationLifecycle.onBeforeInitializeApplication {
-            install(TransformationSupport).registerDefaultHandlers()
+            install(ApplicationTransform).registerDefaultHandlers()
         }
     }
 
@@ -107,7 +109,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
-    private val hostPipeline = defaultHostPipeline()
+    private val hostPipeline = defaultHostPipeline(environment)
 
     private inner class Handler : AbstractHandler() {
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
@@ -138,37 +140,27 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                 }
 
                 request.startAsync()
+                request.asyncContext.timeout = 0 // Overwrite any default non-null timeout to prevent multiple dispatches
                 baseRequest.isHandled = true
 
-                call.executeOn(application.executor, hostPipeline).whenComplete { state, t ->
+                future(application.executor.toCoroutineDispatcher()) {
                     try {
-                        when (state) {
-                            PipelineState.Finished, PipelineState.FinishedAll -> {
-                                call.close()
-                            }
-                            PipelineState.Failed -> {
-                                environment.log.error("Application ${application.javaClass} cannot fulfill the request", t)
-                                call.execution.runBlockWithResult {
-                                    call.respond(HttpStatusCode.InternalServerError)
-                                }
-                            }
-                            null, PipelineState.Executing -> {
-                            }
-                        }
-                    } catch(ex: Throwable) {
-                        environment.log.error("Application ${application.javaClass} failed to complete request", ex)
+                        hostPipeline.execute(call)
+                    } finally {
+                        request.asyncContext?.complete()
                     }
                 }
             } catch(ex: Throwable) {
-                environment.log.error("Application ${application.javaClass} cannot fulfill the request", ex)
-                call.execution.runBlockWithResult {
+                environment.log.error("Application ${application::class.java} cannot fulfill the request", ex)
+
+                future(application.executor.toCoroutineDispatcher()) {
                     call.respond(HttpStatusCode.InternalServerError)
                 }
             }
         }
     }
 
-    override fun start(wait: Boolean) {
+    override fun start(wait: Boolean) : JettyApplicationHost {
         applicationLifecycle.ensureApplication()
         environment.log.trace("Starting server...")
 
@@ -179,11 +171,17 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
             applicationLifecycle.dispose()
             environment.log.trace("Server stopped.")
         }
+        return this
     }
 
-    override fun stop() {
+    override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+        server.stopTimeout = timeUnit.toMillis(timeout)
         server.stop()
         applicationLifecycle.dispose()
         environment.log.trace("Server stopped.")
+    }
+
+    override fun toString(): String {
+        return "Jetty($hostConfig)"
     }
 }

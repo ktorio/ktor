@@ -3,10 +3,9 @@ package org.jetbrains.ktor.features
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
-import kotlin.comparisons.*
 
 data class CompressionOptions(
         val encoders: Map<String, CompressionEncoderConfig> = emptyMap(),
@@ -22,7 +21,7 @@ class Compression(compression: Configuration) {
     private val options = compression.build()
     private val comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>({ it.second.quality }, { it.first.priority }).reversed()
 
-    fun intercept(call: ApplicationCall) {
+    suspend fun interceptor(call: ApplicationCall) {
         val acceptEncodingRaw = call.request.acceptEncoding()
         if (acceptEncodingRaw == null || call.isCompressionSuppressed())
             return
@@ -41,39 +40,56 @@ class Compression(compression: Configuration) {
         if (!encoders.isNotEmpty())
             return
 
-        call.response.pipeline.intercept(RespondPipeline.After) {
-            val message = subject.message
+        call.response.pipeline.intercept(ApplicationResponsePipeline.ContentEncoding) {
+            val message = subject
             if (message is FinalContent
                     && message !is CompressedResponse
                     && options.conditions.all { it(call, message) }
                     && !call.isCompressionSuppressed()
                     && message.headers[HttpHeaders.ContentEncoding].let { it == null || it == "identity" }
-            ) {
-                val channel = when (message) {
-                    is FinalContent.ChannelContent -> message.channel()
-                    is FinalContent.StreamContentProvider -> message.stream().asAsyncChannel()
-                    else -> proceed()
-                }
+                    ) {
 
                 val encoderOptions = encoders.firstOrNull { it.conditions.all { it(call, message) } }
 
+                val channel: () -> ReadChannel = when (message) {
+                    is FinalContent.ReadChannelContent ->  ({ message.readFrom() })
+                    is FinalContent.WriteChannelContent -> {
+                        if (encoderOptions != null) {
+                            proceedWith(CompressedWriteResponse(message, encoderOptions.name, encoderOptions.encoder))
+                        }
+                        return@intercept
+                    }
+                    is FinalContent.NoContent -> return@intercept
+                    is FinalContent.ByteArrayContent -> ({ message.bytes().toReadChannel() })
+                }
+
                 if (encoderOptions != null) {
-                    call.respond(CompressedResponse(channel, message.headers, encoderOptions.name, encoderOptions.encoder))
+                    proceedWith(CompressedResponse(channel, message.headers, encoderOptions.name, encoderOptions.encoder))
                 }
             }
         }
     }
 
-    private class CompressedResponse(val delegateChannel: ReadChannel, val delegateHeaders: ValuesMap, val encoding: String, val encoder: CompressionEncoder) : FinalContent.ChannelContent() {
-        override fun channel() = encoder.open(delegateChannel)
+    private class CompressedResponse(val delegateChannel: () -> ReadChannel, val delegateHeaders: ValuesMap, val encoding: String, val encoder: CompressionEncoder) : FinalContent.ReadChannelContent() {
+        override fun readFrom() = encoder.open(delegateChannel())
         override val headers by lazy {
             ValuesMap.build(true) {
-                appendAll(delegateHeaders.filter { name, value ->
-                    !name.equals(HttpHeaders.ContentLength, true)
-                })
-
+                appendFiltered(delegateHeaders) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
                 append(HttpHeaders.ContentEncoding, encoding)
             }
+        }
+    }
+
+    private class CompressedWriteResponse(val delegate: WriteChannelContent, val encoding: String, val encoder: CompressionEncoder) : FinalContent.WriteChannelContent() {
+        override val headers by lazy {
+            ValuesMap.build(true) {
+                appendFiltered(delegate.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
+                append(HttpHeaders.ContentEncoding, encoding)
+            }
+        }
+
+        override suspend fun writeTo(channel: WriteChannel) {
+            delegate.writeTo(encoder.open(channel))
         }
     }
 
@@ -87,7 +103,7 @@ class Compression(compression: Configuration) {
                 config.default()
 
             val feature = Compression(config)
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { feature.intercept(call) }
+            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { feature.interceptor(call) }
             return feature
         }
     }
@@ -123,18 +139,22 @@ private fun ApplicationCall.isCompressionSuppressed() = Compression.SuppressionA
 
 interface CompressionEncoder {
     fun open(delegate: ReadChannel): ReadChannel
+    fun open(delegate: WriteChannel): WriteChannel
 }
 
 object GzipEncoder : CompressionEncoder {
     override fun open(delegate: ReadChannel) = delegate.deflated(true)
+    override fun open(delegate: WriteChannel) = delegate.deflated(true)
 }
 
 object DeflateEncoder : CompressionEncoder {
     override fun open(delegate: ReadChannel) = delegate.deflated(false)
+    override fun open(delegate: WriteChannel) = delegate.deflated(false)
 }
 
 object IdentityEncoder : CompressionEncoder {
     override fun open(delegate: ReadChannel) = delegate
+    override fun open(delegate: WriteChannel) = delegate
 }
 
 interface ConditionsHolderBuilder {

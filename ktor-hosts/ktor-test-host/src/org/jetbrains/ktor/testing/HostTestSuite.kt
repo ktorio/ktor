@@ -1,13 +1,12 @@
 package org.jetbrains.ktor.testing
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
-import org.jetbrains.ktor.nio.*
-import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
@@ -15,6 +14,7 @@ import org.jetbrains.ktor.util.*
 import org.junit.*
 import org.junit.runners.model.*
 import java.io.*
+import java.security.*
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
@@ -25,9 +25,9 @@ import kotlin.test.*
 abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     @Test
     fun testTextContent() {
-        createAndStartServer() {
+        createAndStartServer {
             handle {
-                call.respond(TextContent(ContentType.Text.Plain, "test"))
+                call.respond(TextContent("test", ContentType.Text.Plain))
             }
         }
 
@@ -36,13 +36,13 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
             assertEquals("test", inputStream.reader().use { it.readText() })
         }
         withUrlHttp2("/") {
-//            assertEquals("test", contentAsString)
+            //            assertEquals("test", contentAsString)
         }
     }
 
     @Test
     fun testStream() {
-        createAndStartServer() {
+        createAndStartServer {
             handle {
                 call.respondWrite {
                     write("ABC")
@@ -61,7 +61,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testRequestContentFormData() {
-        createAndStartServer() {
+        createAndStartServer {
             handle {
                 call.respond(call.request.content.get<ValuesMap>().formUrlEncode())
             }
@@ -90,7 +90,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testStreamNoFlush() {
-        createAndStartServer() {
+        createAndStartServer {
             handle {
                 call.respondWrite {
                     write("ABC")
@@ -107,9 +107,9 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testSendTextWithContentType() {
-        createAndStartServer() {
+        createAndStartServer {
             handle {
-                call.respondText(ContentType.Text.Plain, "Hello")
+                call.respondText("Hello", ContentType.Text.Plain)
             }
         }
 
@@ -122,7 +122,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testRedirect() {
-        createAndStartServer() {
+        createAndStartServer {
             handle {
                 call.respondRedirect("http://localhost:${call.request.port()}/page", true)
             }
@@ -151,10 +151,10 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testHeader() {
-        createAndStartServer() {
+        createAndStartServer {
             handle {
                 call.response.headers.append(HttpHeaders.ETag, "test-etag")
-                call.respondText(ContentType.Text.Plain, "Hello")
+                call.respondText("Hello", ContentType.Text.Plain)
             }
         }
 
@@ -166,10 +166,10 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testCookie() {
-        createAndStartServer() {
+        createAndStartServer {
             handle {
                 call.response.cookies.append("k1", "v1")
-                call.respondText(ContentType.Text.Plain, "Hello")
+                call.respondText("Hello", ContentType.Text.Plain)
             }
         }
 
@@ -181,7 +181,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testStaticServe() {
-        createAndStartServer() {
+        createAndStartServer {
             route("/files/") {
                 serveClasspathResources("org/jetbrains/ktor/testing")
             }
@@ -215,7 +215,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         val file = targetClasses.walkBottomUp().filter { it.extension == "class" }.first()
         testLog.trace("test file is $file")
 
-        createAndStartServer() {
+        createAndStartServer {
             route("/files/") {
                 serveFileSystem(targetClasses)
             }
@@ -248,7 +248,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         val file = listOf(File("src"), File("ktor-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" }.first()
         testLog.trace("test file is $file")
 
-        createAndStartServer() {
+        createAndStartServer {
             handle {
                 call.respond(LocalFileContent(file))
             }
@@ -265,7 +265,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         val file = listOf(File("src"), File("ktor-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" }.first()
         testLog.trace("test file is $file")
 
-        createAndStartServer() {
+        createAndStartServer {
             application.install(Compression)
             handle {
                 call.respond(LocalFileContent(file))
@@ -286,7 +286,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         val file = listOf(File("src"), File("ktor-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }.first()
         testLog.trace("test file is $file")
 
-        createAndStartServer() {
+        createAndStartServer {
             application.install(PartialContentSupport)
             handle {
                 call.respond(LocalFileContent(file))
@@ -312,7 +312,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         val file = listOf(File("src"), File("ktor-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }.first()
         testLog.trace("test file is $file")
 
-        createAndStartServer() {
+        createAndStartServer {
             application.install(Compression)
             application.install(PartialContentSupport)
 
@@ -332,7 +332,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testJarFileContent() {
-        createAndStartServer() {
+        createAndStartServer {
             handle {
                 call.respond(call.resolveClasspathWithPath("java/util", "/ArrayList.class")!!)
             }
@@ -354,9 +354,9 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testURIContent() {
-        createAndStartServer() {
+        createAndStartServer {
             handle {
-                call.respond(URIFileContent(javaClass.classLoader.getResources("java/util/ArrayList.class").toList().first()))
+                call.respond(URIFileContent(this::class.java.classLoader.getResources("java/util/ArrayList.class").toList().first()))
             }
         }
 
@@ -379,7 +379,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         val file = listOf(File("target/classes"), File("ktor-core/target/classes")).first { it.exists() }.walkBottomUp().filter { it.extension == "class" }.first()
         testLog.trace("test file is $file")
 
-        createAndStartServer() {
+        createAndStartServer {
             handle {
                 call.respond(URIFileContent(file.toURI()))
             }
@@ -401,7 +401,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testPathComponentsDecoding() {
-        createAndStartServer() {
+        createAndStartServer {
             get("/a%20b") {
                 call.respondText("space")
             }
@@ -422,7 +422,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testFormUrlEncoded() {
-        createAndStartServer() {
+        createAndStartServer {
             post("/") {
                 call.respondText("${call.parameters["urlp"]},${call.parameters["formp"]}")
             }
@@ -448,33 +448,16 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testRequestBodyAsyncEcho() {
-        createAndStartServer() {
+        createAndStartServer {
             route("/echo") {
                 handle {
-                    val inChannel = call.request.content.get<ReadChannel>()
-                    val buffer = ByteArrayWriteChannel()
-                    val readFuture = CompletableFuture<Unit>()
+                    val buffer = ByteBufferWriteChannel()
+                    call.request.content.get<ReadChannel>().copyTo(buffer)
 
-                    readFuture.whenComplete { unit, throwable ->
-                        if (throwable != null) {
-                            failAndProceed(throwable)
-                        }
-
-                        call.response.status(HttpStatusCode.OK)
-                        call.response.contentType(ContentType.Application.OctetStream)
-
-                        runBlock {
-                            call.respond(object : FinalContent.ChannelContent() {
-                                override val headers: ValuesMap
-                                    get() = ValuesMap.Empty
-
-                                override fun channel() = ByteArrayReadChannel(buffer.toByteArray())
-                            })
-                        }
-                    }
-
-                    inChannel.copyToAsyncThenComplete(buffer, readFuture)
-                    pause()
+                    call.respond(object : FinalContent.ReadChannelContent() {
+                        override val headers: ValuesMap get() = ValuesMap.Empty
+                        override fun readFrom() = buffer.toByteArray().toReadChannel()
+                    })
                 }
             }
         }
@@ -500,9 +483,9 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testEchoBlocking() {
-        createAndStartServer() {
+        createAndStartServer {
             post("/") {
-                val text = call.request.content.get<ReadChannel>().asInputStream().bufferedReader().readText()
+                val text = call.request.content.get<ReadChannel>().toInputStream().bufferedReader().readText()
                 call.response.status(HttpStatusCode.OK)
                 call.respond(text)
             }
@@ -528,25 +511,20 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testMultipartFileUpload() {
-        createAndStartServer() {
+        createAndStartServer {
             post("/") {
-                thread {
-                    runBlockWithResult {
-                        val response = StringBuilder()
+                val response = StringBuilder()
 
-                        call.request.content.get<MultiPartData>().parts.sortedBy { it.partName }.forEach { part ->
-                            when (part) {
-                                is PartData.FormItem -> response.append("${part.partName}=${part.value}\n")
-                                is PartData.FileItem -> response.append("file:${part.partName},${part.originalFileName},${part.streamProvider().bufferedReader().readText()}\n")
-                            }
-
-                            part.dispose()
-                        }
-
-                        call.respondText(response.toString())
+                call.request.content.get<MultiPartData>().parts.sortedBy { it.partName }.forEach { part ->
+                    when (part) {
+                        is PartData.FormItem -> response.append("${part.partName}=${part.value}\n")
+                        is PartData.FileItem -> response.append("file:${part.partName},${part.originalFileName},${part.streamProvider().bufferedReader().readText()}\n")
                     }
+
+                    part.dispose()
                 }
-                pause()
+
+                call.respondText(response.toString())
             }
         }
 
@@ -580,9 +558,9 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testRequestTwiceNoKeepAlive() {
-        createAndStartServer() {
+        createAndStartServer {
             get("/") {
-                call.respond(TextContent(ContentType.Text.Plain, "Text"))
+                call.respond(TextContent("Text", ContentType.Text.Plain))
             }
         }
 
@@ -599,9 +577,9 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testRequestTwiceWithKeepAlive() {
-        createAndStartServer() {
+        createAndStartServer {
             get("/") {
-                call.respond(TextContent(ContentType.Text.Plain, "Text"))
+                call.respond(TextContent("Text", ContentType.Text.Plain))
             }
         }
 
@@ -623,7 +601,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testRequestContentString() {
-        createAndStartServer() {
+        createAndStartServer {
             post("/") {
                 call.respond(call.request.content.get<String>())
             }
@@ -661,7 +639,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testRequestContentInputStream() {
-        createAndStartServer() {
+        createAndStartServer {
             post("/") {
                 call.respond(call.request.content.get<InputStream>().reader().readText())
             }
@@ -683,7 +661,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testStatusCodeDirect() {
-        createAndStartServer() {
+        createAndStartServer {
             get("/") {
                 call.response.status(HttpStatusCode.Found)
                 call.respond("Hello")
@@ -699,7 +677,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     @Test
     fun testStatusCodeViaResponseObject() {
         var completed = false
-        createAndStartServer() {
+        createAndStartServer {
             get("/") {
                 call.respond(HttpStatusCode.Found)
             }
@@ -714,7 +692,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testStatusCodeViaResponseObject2() {
-        createAndStartServer() {
+        createAndStartServer {
             get("/") {
                 call.respond(HttpStatusContent(HttpStatusCode.Found, "Hello"))
             }
@@ -727,7 +705,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun test404() {
-        createAndStartServer() {
+        createAndStartServer {
         }
 
         withUrl("/") {
@@ -741,7 +719,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test
     fun testProxyHeaders() {
-        createAndStartServer() {
+        createAndStartServer {
             install(XForwardedHeadersSupport)
             get("/") {
                 call.respond(call.url { })
@@ -892,7 +870,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
 
     @Test(timeout = 30000L)
     fun testBlockingConcurrency() {
-        println()
+        //println()
         val completed = AtomicInteger(0)
 
         createAndStartServer({
@@ -903,7 +881,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
             get("/{index}") {
                 val index = call.parameters["index"]!!.toInt()
                 call.respondWrite {
-                    print("[$index] ")
+                    //print("[$index] ")
                     try {
                         append("OK:$index\n")
                     } finally {
@@ -926,7 +904,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                         inputStream.reader().use { reader ->
                             val firstByte = reader.read()
                             if (firstByte == -1) {
-                                println("Premature end of response stream at iteration $i")
+                                //println("Premature end of response stream at iteration $i")
                                 fail("Premature end of response stream at iteration $i")
                             } else {
                                 assertEquals('O', firstByte.toChar())
@@ -952,6 +930,48 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         assertEquals(count * 2, completed.get())
     }
 
+    @Test
+    fun testBigFile() {
+        val file = File("target/large-file.dat")
+        val rnd = Random()
+
+        file.bufferedWriter().use { out ->
+            for (line in 1..30000) {
+                for (col in 1..(30 + rnd.nextInt(40))) {
+                    out.append('a' + rnd.nextInt(25))
+                }
+                out.append('\n')
+            }
+        }
+
+        val originalSha1 = file.inputStream().use { it.sha1() }
+
+        createAndStartServer {
+            get("/file") { call ->
+                call.respond(LocalFileContent(file))
+            }
+        }
+
+        withUrl("/file") {
+            assertEquals(originalSha1, inputStream.sha1())
+        }
+    }
+
     private fun String.urlPath() = replace("\\", "/")
     private class ExpectedException(message: String) : RuntimeException(message)
+
+    private fun InputStream.sha1(): String {
+        val md = MessageDigest.getInstance("SHA1")
+        val bytes = ByteArray(8192)
+
+        do {
+            val rc = read(bytes)
+            if (rc == -1) {
+                break
+            }
+            md.update(bytes, 0, rc)
+        } while (true)
+
+        return hex(md.digest())
+    }
 }

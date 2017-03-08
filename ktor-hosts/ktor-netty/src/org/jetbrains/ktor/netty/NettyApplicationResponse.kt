@@ -2,40 +2,34 @@ package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import io.netty.handler.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.response.*
-import java.util.concurrent.atomic.*
 
-internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline: RespondPipeline, val request: HttpRequest, val response: HttpResponse, val context: ChannelHandlerContext) : BaseApplicationResponse(call, responsePipeline) {
+internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline: ApplicationResponsePipeline, val context: ChannelHandlerContext) : BaseApplicationResponse(call, responsePipeline) {
+    val response = DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
+
     @Volatile
-    private var committed = false
-    private val closed = AtomicBoolean(false)
+    private var responseMessageSent = false
 
     override fun setStatus(statusCode: HttpStatusCode) {
         val cached = responseStatusCache[statusCode.value]
 
-        response.status =
-                if (cached != null && cached.reasonPhrase() == statusCode.description) cached
-                else HttpResponseStatus(statusCode.value, statusCode.description)
+        response.status = cached?.takeIf { cached.reasonPhrase() == statusCode.description }
+                ?: HttpResponseStatus(statusCode.value, statusCode.description)
     }
 
-    internal val channelLazy = lazy {
-        context.executeInLoop {
-            setChunked()
-            sendResponseMessage()
-        }
-
-        NettyWriteChannel(request, this, context)
+    internal val responseChannel = lazy {
+        sendResponseMessage()
+        HttpContentWriteChannel(context)
     }
-
-    override fun channel() = channelLazy.value
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         override fun hostAppendHeader(name: String, value: String) {
-            if (committed)
+            if (responseMessageSent)
                 throw UnsupportedOperationException("Headers can no longer be set because response was already completed")
             response.headers().add(name, value)
         }
@@ -44,47 +38,34 @@ internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline:
         override fun getHostHeaderValues(name: String): List<String> = response.headers().getAll(name) ?: emptyList()
     }
 
-    fun sendResponseMessage(): ChannelFuture? {
-        if (!committed) {
-            if (!HttpUtil.isTransferEncodingChunked(response)) {
-                HttpUtil.setContentLength(response, 0L)
-            }
-            val f = context.writeAndFlush(response)
-            committed = true
+    internal fun sendResponseMessage(chunked: Boolean = true, flush: Boolean = true): ChannelFuture? {
+        if (!responseMessageSent) {
+            if (chunked)
+                setChunked()
+            val f = if (flush) context.writeAndFlush(response) else context.write(response)
+            responseMessageSent = true
             return f
         }
+
         return null
     }
 
-    fun finalize() {
-        context.executeInLoop {
-            sendResponseMessage()
-            context.flush()
-            if (closed.compareAndSet(false, true)) {
-                context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT).scheduleClose()
-            }
-            context.channel().config().isAutoRead = true
-            context.read()
-            if (channelLazy.isInitialized()) {
-                channelLazy.value.close()
-            }
-        }
-    }
-
-    private fun ChannelFuture.scheduleClose() {
-        if (!HttpUtil.isKeepAlive(request)) {
-            addListener(ChannelFutureListener.CLOSE)
+    fun close() {
+        sendResponseMessage()
+        if (responseChannel.isInitialized()) {
+            responseChannel.value.close()
         }
     }
 
     private fun setChunked() {
-        if (committed) {
+        if (responseMessageSent) {
             if (!response.headers().contains(HttpHeaders.TransferEncoding, HttpHeaderValues.CHUNKED, true)) {
                 throw IllegalStateException("Already committed")
             }
         }
         if (response.status().code() != HttpStatusCode.SwitchingProtocols.value) {
             HttpUtil.setTransferEncodingChunked(response, true)
+            context.pipeline().addAfter("codec", "chunked", ChunkedWriteHandler())
         }
     }
 

@@ -8,6 +8,7 @@ import java.math.*
 import java.util.*
 import java.util.concurrent.*
 import kotlin.reflect.*
+import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
 
@@ -96,7 +97,7 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
                 value == null -> null
                 isListType(type) -> when {
                     value !is List<*> && value is Iterable<*> -> coerceType(type, value.toList())
-                    value !is List<*> -> throw IllegalArgumentException("Couldn't coerce type ${value.javaClass} to $type")
+                    value !is List<*> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
 
                     else -> {
                         listOf(type.toJavaClass().kotlin, ArrayList::class)
@@ -105,12 +106,12 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
                                 .firstHasNoArgConstructor()
                                 ?.callNoArgConstructor()
                                 ?.withUnsafe { addAll(value); this }
-                                ?: throw IllegalArgumentException("Couldn't coerce type ${value.javaClass} to $type")
+                                ?: throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                     }
                 }
                 isSetType(type) -> when {
                     value !is Set<*> && value is Iterable<*> -> coerceType(type, value.toSet())
-                    value !is Set<*> -> throw IllegalArgumentException("Couldn't coerce type ${value.javaClass} to $type")
+                    value !is Set<*> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
 
                     else -> {
                         listOf(type.toJavaClass().kotlin, LinkedHashSet::class, HashSet::class, TreeSet::class)
@@ -119,11 +120,11 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
                                 .firstHasNoArgConstructor()
                                 ?.callNoArgConstructor()
                                 ?.withUnsafe { addAll(value); this }
-                                ?: throw IllegalArgumentException("Couldn't coerce type ${value.javaClass} to $type")
+                                ?: throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                     }
                 }
                 isMapType(type) -> when {
-                    value !is Map<*, *> -> throw IllegalArgumentException("Couldn't coerce type ${value.javaClass} to $type")
+                    value !is Map<*, *> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
 
                     else -> {
                         listOf(type.toJavaClass().kotlin, LinkedHashMap::class, HashMap::class, TreeMap::class, ConcurrentHashMap::class)
@@ -132,7 +133,7 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
                                 .firstHasNoArgConstructor()
                                 ?.callNoArgConstructor()
                                 ?.withUnsafe { putAll(value); this }
-                                ?: throw IllegalArgumentException("Couldn't coerce type ${value.javaClass} to $type")
+                                ?: throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                     }
                 }
                 type.toJavaClass() == Float::class.java && value is Number -> value.toFloat()
@@ -220,8 +221,8 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
                 is Double -> "#f$value"
                 is Boolean -> "#bo${value.toString().first()}"
                 is Char -> "#ch$value"
-                is BigDecimal -> "#bd${value.toString()}"
-                is BigInteger -> "#bi${value.toString()}"
+                is BigDecimal -> "#bd$value"
+                is BigInteger -> "#bi$value"
                 is Optional<*> -> when {
                     value.isPresent -> "#op${serializeValue(value.get())}"
                     else -> "#om"
@@ -230,7 +231,7 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
                 is List<*> -> "#cl${serializeCollection(value)}"
                 is Set<*> -> "#cs${serializeCollection(value)}"
                 is Map<*, *> -> "#m${serializeMap(value)}"
-                else -> throw IllegalArgumentException("Unsupported value type ${value.javaClass.name}")
+                else -> throw IllegalArgumentException("Unsupported value type ${value::class.java.name}")
             }
 
     private fun deserializeCollection(value: String): List<*> = decodeURLQueryComponent(value).split("&").filter { it.isNotEmpty() }.map { deserializeValue(decodeURLQueryComponent(it)) }

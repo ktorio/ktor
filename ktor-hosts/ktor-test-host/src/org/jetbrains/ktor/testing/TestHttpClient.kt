@@ -2,7 +2,7 @@ package org.jetbrains.ktor.testing
 
 import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.concurrent.*
@@ -35,6 +35,10 @@ class TestingHttpConnection(val app: TestApplicationHost, val host: String, val 
         return TestingHttpResponse(this, call)
     }
 
+    suspend override fun request(init: RequestBuilder.() -> Unit): HttpResponse {
+        return requestBlocking(init)
+    }
+
     override fun requestAsync(init: RequestBuilder.() -> Unit, handler: (Future<HttpResponse>) -> Unit) {
         val f = try {
             CompletableFuture.completedFuture(requestBlocking(init))
@@ -53,7 +57,7 @@ class TestingHttpConnection(val app: TestApplicationHost, val host: String, val 
     private class TestingHttpResponse(override val connection: HttpConnection, val call: TestApplicationCall) : HttpResponse {
 
         override val channel: ReadChannel
-            get() = call.response.byteContent?.let { ByteArrayReadChannel(it) } ?: EmptyReadChannel
+            get() = call.response.byteContent?.toReadChannel() ?: EmptyReadChannel
 
         override val headers: ValuesMap
             get() = call.response.headers.allValues()

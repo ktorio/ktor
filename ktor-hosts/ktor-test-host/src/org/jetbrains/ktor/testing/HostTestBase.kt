@@ -1,19 +1,16 @@
 package org.jetbrains.ktor.testing
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.logging.*
-import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.util.*
 import org.junit.*
 import org.slf4j.*
-import sun.security.x509.*
 import java.io.*
-import java.math.*
 import java.net.*
 import java.security.*
-import java.time.*
-import java.util.*
 import java.util.concurrent.*
 import javax.net.ssl.*
 import kotlin.concurrent.*
@@ -33,7 +30,7 @@ abstract class HostTestBase<H : ApplicationHost> {
     @After
     fun tearDownBase() {
         testLog.trace("Disposing server on port $port (SSL $sslPort)")
-        (server as? ApplicationHostStartable)?.stop()
+        (server as? ApplicationHostStartable)?.stop(100, 5000, TimeUnit.MILLISECONDS)
     }
 
     protected abstract fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, routing: Routing.() -> Unit): H
@@ -102,79 +99,16 @@ abstract class HostTestBase<H : ApplicationHost> {
 //        }
     }
 
-    protected fun PipelineContext<*>.failAndProceed(e: Throwable): Nothing {
-        runBlock { fail(e) }
-    }
-
-    protected fun PipelineContext<*>.finishAllAndProceed(): Nothing {
-        runBlock { finishAll() }
-    }
-
     companion object {
         val keyStoreFile = File("target/temp.jks")
         lateinit var keyStore: KeyStore
         lateinit var sslSocketFactory: SSLSocketFactory
         lateinit var hostConfig: (Int, Int) -> ApplicationHostConfig
 
-        private fun generateCertificates(file: File, keyAlias: String = "mykey", password: String = "changeit"): KeyStore {
-            val algorithm = "SHA1withRSA"
-            val jks = KeyStore.getInstance("JKS")!!
-            jks.load(null, null)
-
-            val keyPairGenerator = KeyPairGenerator.getInstance("RSA")!!
-            keyPairGenerator.initialize(1024)
-            val keyPair = keyPairGenerator.genKeyPair()!!
-
-            val certInfo = X509CertInfo()
-            val from = Date()
-            val to = LocalDateTime.now().plusDays(3).atZone(ZoneId.systemDefault())
-            val certValidity = CertificateValidity(from, Date.from(to.toInstant()))
-
-            val sn = BigInteger(64, SecureRandom())
-
-            val owner = X500Name("cn=localhost, ou=Kotlin, o=JetBrains, c=RU")
-
-            certInfo.set(X509CertInfo.VALIDITY, certValidity)
-            certInfo.set(X509CertInfo.SERIAL_NUMBER, CertificateSerialNumber(sn))
-            certInfo.set(X509CertInfo.SUBJECT, owner)
-            certInfo.set(X509CertInfo.ISSUER, owner)
-            certInfo.set(X509CertInfo.KEY, CertificateX509Key(keyPair.public))
-            certInfo.set(X509CertInfo.VERSION, CertificateVersion(CertificateVersion.V3))
-            certInfo.set(X509CertInfo.EXTENSIONS, CertificateExtensions().apply {
-                set(SubjectAlternativeNameExtension.NAME, SubjectAlternativeNameExtension(GeneralNames().apply {
-                    add(GeneralName(DNSName("localhost")))
-                    add(GeneralName(IPAddressName("127.0.0.1")))
-                }))
-            })
-
-            var algo = AlgorithmId(AlgorithmId.sha1WithRSAEncryption_oid)
-            certInfo.set(X509CertInfo.ALGORITHM_ID, CertificateAlgorithmId(algo))
-
-            var cert = X509CertImpl(certInfo)
-            cert.sign(keyPair.private, algorithm)
-
-            algo = cert.get(X509CertImpl.SIG_ALG) as AlgorithmId
-            certInfo.set(CertificateAlgorithmId.NAME + "." + CertificateAlgorithmId.ALGORITHM, algo)
-            certInfo.set("version", CertificateVersion(2))
-
-            cert = X509CertImpl(certInfo)
-            cert.sign(keyPair.private, algorithm)
-
-            jks.setCertificateEntry(keyAlias, cert)
-            jks.setKeyEntry(keyAlias, keyPair.private, password.toCharArray(), arrayOf(cert))
-
-            file.parentFile.mkdirs()
-            file.outputStream().use {
-                jks.store(it, password.toCharArray())
-            }
-
-            return jks
-        }
-
         @BeforeClass
         @JvmStatic
         fun setupAll() {
-            keyStore = generateCertificates(keyStoreFile)
+            keyStore = generateCertificate(keyStoreFile)
 
             val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
             tmf.init(keyStore)

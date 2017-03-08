@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.tests.transform
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.transform.*
 import org.junit.*
 import java.nio.*
@@ -7,10 +8,9 @@ import java.util.*
 import kotlin.test.*
 
 class TransformTableTest {
-    val table = TransformTable<Unit>()
-
     @Test
-    fun testStringToIntSingle() {
+    fun testStringToIntSingle() = runBlocking {
+        val table = TransformTable<Unit>()
         table.register<String>(handler = { it.length })
 
         assertEquals(2, table.transform(Unit, "ok"))
@@ -18,7 +18,8 @@ class TransformTableTest {
     }
 
     @Test
-    fun testStringToIntMultiple() {
+    fun testStringToIntMultiple() = runBlocking {
+        val table = TransformTable<Unit>()
         table.register<String>(handler = { it.length })
         table.register<String>(handler = { it.length })
 
@@ -27,7 +28,8 @@ class TransformTableTest {
     }
 
     @Test
-    fun testHierarchy() {
+    fun testHierarchy() = runBlocking {
+        val table = TransformTable<Unit>()
         table.register<String>(handler = { it.length })
         table.register<CharSequence>(handler = { -1 })
 
@@ -36,7 +38,8 @@ class TransformTableTest {
     }
 
     @Test
-    fun testHierarchyX3() {
+    fun testHierarchyX3() = runBlocking {
+        val table = TransformTable<Unit>()
         table.register<String>(handler = { if (it == "x3") it else it.length })
         table.register<CharSequence>(handler = { -1 })
 
@@ -46,7 +49,8 @@ class TransformTableTest {
     }
 
     @Test
-    fun testHierarchyX3Order() {
+    fun testHierarchyX3Order() = runBlocking {
+        val table = TransformTable<Unit>()
         val order = mutableListOf<String>()
         table.register<String>(handler = { order.add("first"); it })
         table.register<CharSequence>(handler = { order.add("second"); it })
@@ -57,20 +61,23 @@ class TransformTableTest {
     }
 
     @Test
-    fun testNothingRegistered() {
+    fun testNothingRegistered() = runBlocking {
+        val table = TransformTable<Unit>()
         assertEquals("ok", table.transform(Unit, "ok"))
         assertEquals(1, table.transform(Unit, 1))
     }
 
     @Test
-    fun testUnknownType() {
+    fun testUnknownType() = runBlocking {
+        val table = TransformTable<Unit>()
         table.register<CharSequence>(handler = { -1 })
 
         assertEquals(1, table.transform(Unit, 1))
     }
 
     @Test
-    fun testNobodyCanHandle() {
+    fun testNobodyCanHandle() = runBlocking {
+        val table = TransformTable<Unit>()
         table.register<String>(handler = { it })
         table.register<String>(handler = { it })
         table.register<CharSequence>(handler = { it })
@@ -79,7 +86,8 @@ class TransformTableTest {
     }
 
     @Test
-    fun testCycle() {
+    fun testCycle() = runBlocking {
+        val table = TransformTable<Unit>()
         table.register<CharSequence>(handler = { CharBuffer.wrap(it) })
 
         val obj = "ok"
@@ -90,14 +98,16 @@ class TransformTableTest {
     }
 
     @Test
-    fun testCycle2() {
+    fun testCycle2() = runBlocking {
+        val table = TransformTable<Unit>()
         table.register<Int>(handler = { it + 1 })
 
         assertEquals(2, table.transform(Unit, 1))
     }
 
     @Test
-    fun testMultipleHandlersChain() {
+    fun testMultipleHandlersChain() = runBlocking {
+        val table = TransformTable<Unit>()
         table.register<Int>(handler = { it + 1 })
         table.register<Int>(handler = { it + 1 })
         table.register<Int>(handler = { it + 1 })
@@ -106,7 +116,8 @@ class TransformTableTest {
     }
 
     @Test
-    fun testPredicate() {
+    fun testPredicate() = runBlocking {
+        val table = TransformTable<Unit>()
         table.register<Int>(predicate = { it >= 0 }, handler = { it + 1 })
 
         assertEquals(1, table.transform(Unit, 0))
@@ -115,7 +126,8 @@ class TransformTableTest {
     }
 
     @Test
-    fun testPredicateCycle() {
+    fun testPredicateCycle() = runBlocking {
+        val table = TransformTable<Unit>()
         table.register<Int>(predicate = { it > 0 }, handler = { it + 1 })
         table.register<Int>(handler = { it + 1 })
 
@@ -124,7 +136,8 @@ class TransformTableTest {
     }
 
     @Test
-    fun testRhombus() {
+    fun testRhombus() = runBlocking {
+        val table = TransformTable<Unit>()
         val events = ArrayList<String>()
 
         table.register<B> { events.add("B"); it }
@@ -142,7 +155,8 @@ class TransformTableTest {
     }
 
     @Test
-    fun testTablesInheritance1() {
+    fun testTablesInheritance1() = runBlocking {
+        val table = TransformTable<Unit>()
         val subTable = TransformTable(table)
 
         table.register<CharSequence> { it.length }
@@ -153,7 +167,8 @@ class TransformTableTest {
     }
 
     @Test
-    fun testTablesInheritance2() {
+    fun testTablesInheritance2() = runBlocking {
+        val table = TransformTable<Unit>()
         val subTable = TransformTable(table)
 
         table.register<String> { it.length }
@@ -164,26 +179,50 @@ class TransformTableTest {
     }
 
     @Test
-    fun testLoop() {
-        table.register<String> { it + "." }
+    fun testTablesInheritance3() = runBlocking {
+        val table = TransformTable<Unit>()
+        val subTable = TransformTable(table)
 
-        assertEquals("OK.", table.transform(Unit, "OK"))
+        table.register<Int> { it.toString()+"x" }
+        subTable.register<CharSequence> { -it.length }
+
+        assertEquals("-2x", subTable.transform(Unit, "OK"))
     }
 
     @Test
-    @Ignore
-    fun testTableInheritanceLoop() {
-        table.register<String> { it.length }
-
+    fun testTablesInheritance4() = runBlocking {
+        val table = TransformTable<Unit>()
         val subTable = TransformTable(table)
-        subTable.register<CharSequence> { -it.length }
-        val sb = StringBuilder("OK")
+        val moreTable = TransformTable(subTable)
 
-        while (true) {
-            if(-2 != subTable.transform(Unit, sb)) {
-                fail()
-            }
-        }
+        table.register<Int> { it.toString()+"x" }
+        subTable.register<CharSequence> { -it.length }
+        moreTable.register<Float> { it.toString() }
+
+        assertEquals("-4x", moreTable.transform(Unit, 1.54f))
+    }
+
+    @Test
+    fun testTablesInheritanceWithModification() = runBlocking {
+        val table = TransformTable<Unit>()
+        val subTable = TransformTable(table)
+
+        table.register<CharSequence> { it.length }
+        subTable.register<String> { -it.length }
+
+        assertEquals(-2, subTable.transform(Unit, "OK"))
+        assertEquals(2, subTable.transform(Unit, StringBuilder("OK")))
+
+        table.register<StringBuilder> { 101 }
+        assertEquals(101, subTable.transform(Unit, StringBuilder("OK")))
+    }
+
+    @Test
+    fun testLoop() = runBlocking {
+        val table = TransformTable<Unit>()
+        table.register<String> { it + "." }
+
+        assertEquals("OK.", table.transform(Unit, "OK"))
     }
 
     interface I

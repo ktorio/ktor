@@ -3,7 +3,6 @@ package org.jetbrains.ktor.websocket
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 import java.io.*
@@ -11,9 +10,12 @@ import java.time.*
 import java.util.*
 
 abstract class WebSocket internal constructor(val call: ApplicationCall, protected val context: PipelineContext<*>) : Closeable {
-    private val handlers = ArrayList<(Frame) -> Unit>()
+    val application: Application = call.application
+
+    private val handlers = ArrayList<suspend (Frame) -> Unit>()
     private val errorHandlers = ArrayList<(Throwable) -> Unit>()
-    private val closeHandlers = ArrayList<(CloseReason?) -> Unit>()
+    private val closeHandlers = ArrayList<suspend (CloseReason?) -> Unit>()
+    private val closedLatch = AsyncCountDownLatch(1)
 
     /**
      * Enable or disable masking output messages by a random xor mask.
@@ -29,7 +31,7 @@ abstract class WebSocket internal constructor(val call: ApplicationCall, protect
     var timeout: Duration = Duration.ofSeconds(15)
     abstract var pingInterval: Duration?
 
-    fun handle(handler: (Frame) -> Unit) {
+    fun handle(handler: suspend (Frame) -> Unit) {
         handlers.add(handler)
     }
 
@@ -37,34 +39,44 @@ abstract class WebSocket internal constructor(val call: ApplicationCall, protect
         errorHandlers.add(handler)
     }
 
-    fun close(handler: (reason: CloseReason?) -> Unit) {
+    fun close(handler: suspend (reason: CloseReason?) -> Unit) {
         closeHandlers.add(handler)
     }
 
-    abstract fun send(frame: Frame)
+    abstract fun enqueue(frame: Frame)
+    abstract suspend fun flush()
+    abstract suspend fun send(frame: Frame)
 
-    override fun close(): Nothing {
-        call.close() // TODO move call.close() to some generic point
-        context.finishAll()
+    override fun close() {
+        context.finish()
     }
 
-    fun close(reason: CloseReason) {
+    suspend fun close(reason: CloseReason) {
         send(Frame.Close(buildByteBuffer {
             putShort(reason.code)
             putString(reason.message, Charsets.UTF_8)
         }))
+        awaitClose()
     }
 
-    protected open fun frameHandler(frame: Frame) {
+    suspend fun awaitClose() {
+        closedLatch.await()
+    }
+
+    protected suspend open fun frameHandler(frame: Frame) {
         handlers.forEach { it(frame) }
     }
 
-    protected open fun closeHandler(reason: CloseReason?) {
-        closeHandlers.forEach { it(reason) }
+    protected suspend open fun closeHandler(reason: CloseReason?) {
+        try {
+            closeHandlers.forEach { it(reason) }
+        } finally {
+            closedLatch.countDown()
+        }
     }
 }
 
-fun Route.webSocket(path: String, protocol: String? = null, configure: WebSocket.() -> Unit) {
+fun Route.webSocket(path: String, protocol: String? = null, configure: suspend WebSocket.() -> Unit) {
     route(HttpMethod.Get, path) {
         header(HttpHeaders.Connection, "Upgrade") {
             header(HttpHeaders.Upgrade, "websocket") {

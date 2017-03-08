@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.content
 
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 
@@ -15,18 +15,17 @@ interface HostResponse {
 sealed class FinalContent : HostResponse {
     abstract class NoContent : FinalContent()
 
-    abstract class ChannelContent : FinalContent() {
-        abstract fun channel(): ReadChannel
+    abstract class ReadChannelContent : FinalContent() {
+        abstract fun readFrom(): ReadChannel
     }
 
-    abstract class StreamContentProvider : FinalContent() {
-        abstract fun stream(): InputStream
+    abstract class WriteChannelContent : FinalContent() {
+        abstract suspend fun writeTo(channel: WriteChannel)
     }
 
-}
-
-abstract class StreamConsumer : HostResponse {
-    abstract fun stream(out : OutputStream): Unit
+    abstract class ByteArrayContent : FinalContent() {
+        abstract fun bytes(): ByteArray
+    }
 }
 
 fun FinalContent.contentLength(): Long? {

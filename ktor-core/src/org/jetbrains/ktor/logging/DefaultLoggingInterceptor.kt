@@ -1,39 +1,52 @@
 package org.jetbrains.ktor.logging
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 
-object CallLogging : ApplicationFeature<Application, Unit, Unit> {
-    override val key: AttributeKey<Unit> = AttributeKey("Call Logging")
+class CallLogging(val log: ApplicationLog, val logSuccess: Boolean) {
 
-    override fun install(pipeline: Application, configure: Unit.() -> Unit) {
-        val loggingPhase = PipelinePhase("Logging")
-        pipeline.phases.insertBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
-        pipeline.intercept(loggingPhase) { call ->
-            onSuccess { pipeline.logCallFinished(call) }
-            onFail { pipeline.logCallFailed(call, exception!!) }
+    class Configuration {
+        var logSuccess = true
+    }
+
+    companion object Feature : ApplicationFeature<Application, CallLogging.Configuration, CallLogging> {
+        override val key: AttributeKey<CallLogging> = AttributeKey("Call Logging")
+        override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
+            val loggingPhase = PipelinePhase("Logging")
+            val configuration = Configuration().apply(configure)
+            val feature = CallLogging(pipeline.environment.log, configuration.logSuccess)
+            pipeline.phases.insertBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
+            pipeline.intercept(loggingPhase) { call ->
+                try {
+                    proceed()
+                    if (feature.logSuccess)
+                        feature.logSuccess(call)
+                } catch(t: Throwable) {
+                    feature.logFailure(call, t)
+                }
+            }
+            return feature
         }
     }
 
-    private fun Application.logCallFinished(call: ApplicationCall) {
-        val status = call.response.status()
+    private fun logSuccess(call: ApplicationCall) {
+        val status = call.response.status() ?: "Unhandled"
         when (status) {
-            HttpStatusCode.Found -> environment.log.trace("$status: ${call.request.logInfo()} -> ${call.response.headers[HttpHeaders.Location]}")
-            else -> environment.log.trace("$status: ${call.request.logInfo()}")
+            HttpStatusCode.Found -> log.trace("$status: ${call.request.logInfo()} -> ${call.response.headers[HttpHeaders.Location]}")
+            else -> log.trace("$status: ${call.request.logInfo()}")
         }
     }
 
-    private fun Application.logCallFailed(call: ApplicationCall, e: Throwable) {
+    private fun logFailure(call: ApplicationCall, e: Throwable) {
         try {
-            val status = call.response.status()
-            environment.log.error("$status: ${call.request.logInfo()}", e)
+            val status = call.response.status() ?: "Unhandled"
+            log.error("$status: ${call.request.logInfo()}", e)
         } catch (oom: OutOfMemoryError) {
             try {
-                environment.log.error(e)
+                log.error(e)
             } catch (oomAttempt2: OutOfMemoryError) {
                 System.err.print("OutOfMemoryError: ")
                 System.err.println(e.message)

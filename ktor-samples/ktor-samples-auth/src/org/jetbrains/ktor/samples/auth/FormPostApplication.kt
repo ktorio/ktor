@@ -13,7 +13,7 @@ import org.jetbrains.ktor.routing.*
 fun Application.formPostAuthApplication() {
     install(DefaultHeaders)
     install(CallLogging)
-    routing {
+    install(Routing) {
         route("/login") {
             authentication {
                 formAuthentication { up: UserPasswordCredential ->
@@ -50,7 +50,7 @@ fun Application.formPostAuthApplication() {
                             }
                         }
                     }
-                    call.respondText(ContentType.Text.Html, html)
+                    call.respondText(html, ContentType.Text.Html)
                 }
             }
         }

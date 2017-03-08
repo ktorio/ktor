@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ktor-samples</artifactId>
         <groupId>org.jetbrains.ktor</groupId>
-        <version>0.2.4-SNAPSHOT</version>
+        <version>0.3.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>ktor-samples-locations</artifactId>
@@ -25,16 +25,9 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jetbrains.kotlinx</groupId>
-            <artifactId>kotlinx.html.jvm</artifactId>
-            <version>[0.5,0.6)</version>
+            <groupId>org.jetbrains.ktor</groupId>
+            <artifactId>ktor-html-builder</artifactId>
+            <version>${project.version}</version>
         </dependency>
     </dependencies>
-    <repositories>
-        <repository>
-            <id>bintray-kotlinx</id>
-            <name>bintray</name>
-            <url>http://dl.bintray.com/kotlinx/kotlinx</url>
-        </repository>
-    </repositories>
 </project>

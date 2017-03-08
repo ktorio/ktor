@@ -1,18 +1,20 @@
 package org.jetbrains.ktor.testing
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
-import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 import java.io.*
+import java.time.*
 import java.util.concurrent.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
@@ -55,44 +57,29 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
 
     init {
         applicationLoader.onBeforeInitializeApplication {
-            install(TransformationSupport).registerDefaultHandlers()
+            install(ApplicationTransform).registerDefaultHandlers()
         }
     }
 
     val application: Application = applicationLoader.application
-    private val pipeline = ApplicationCallPipeline()
-    private var exception : Throwable? = null
+    private val hostPipeline = ApplicationCallPipeline()
 
     init {
-        pipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
-            call.response.pipeline.intercept(RespondPipeline.Before) {
+        hostPipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
+            call.response.pipeline.intercept(ApplicationResponsePipeline.Before) {
+                proceed()
                 (call as? TestApplicationCall)?.requestHandled = true
             }
 
-            onFail {
-                val testApplicationCall = call as? TestApplicationCall
-                this@TestApplicationHost.exception = exception
-                call.close()
-                testApplicationCall?.latch?.countDown()
-            }
-
-            onSuccess {
-                val testApplicationCall = call as? TestApplicationCall
-                call.close()
-                testApplicationCall?.latch?.countDown()
-            }
-            fork(call, application)
+            application.execute(call)
         }
     }
 
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createCall(setup)
-
-        call.execution.runBlockWithResult { call.execution.execute(call, pipeline) }
-        call.await()
-
-        exception?.let { throw it }
-
+        runBlocking {
+            hostPipeline.execute(call)
+        }
         return call
     }
 
@@ -106,10 +93,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
             setup()
         }
 
-        call.execution.runBlockWithResult { call.execution.execute(call, pipeline) }
-        call.await()
-
-        exception?.let { throw it }
+        runBlocking(Unconfined) { hostPipeline.execute(call) }
 
         return call
     }
@@ -135,9 +119,8 @@ fun TestApplicationHost.handleRequest(method: HttpMethod, uri: String, setup: Te
 }
 
 class TestApplicationCall(application: Application, override val request: TestApplicationRequest) : BaseApplicationCall(application) {
-    internal val latch = CountDownLatch(1)
-
-    override fun close() {
+    suspend override fun respond(message: Any) {
+        super.respond(message)
         response.close()
     }
 
@@ -146,12 +129,13 @@ class TestApplicationCall(application: Application, override val request: TestAp
     @Volatile
     var requestHandled = false
 
+    private val webSocketCompleted = CountDownLatch(1)
+
     override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : handled = $requestHandled"
 
-    override fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
-        commit(upgrade)
-        upgrade.upgrade(this@TestApplicationCall, this, request.content.get(), response.realContent.value)
-        pause()
+    override suspend fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
+        commitHeaders(upgrade)
+        upgrade.upgrade(this@TestApplicationCall, this, request.content.get(), response.realContent.value, Closeable { webSocketCompleted.countDown() })
     }
 
     override fun responseChannel(): WriteChannel = response.realContent.value.apply {
@@ -165,8 +149,9 @@ class TestApplicationCall(application: Application, override val request: TestAp
         }
     }
 
-    fun await() {
-        latch.await()
+    fun awaitWebSocket(duration: Duration) {
+        if (!webSocketCompleted.await(duration.toMillis(), TimeUnit.MILLISECONDS))
+            throw TimeoutException()
     }
 }
 
@@ -174,7 +159,7 @@ class TestApplicationRequest(
         var method: HttpMethod = HttpMethod.Get,
         var uri: String = "/",
         var version: String = "HTTP/1.1"
-        ) : ApplicationRequest {
+) : ApplicationRequest {
 
     @Deprecated("Use primary constructor instead as HttpRequestLine is deprecated", level = DeprecationLevel.ERROR)
     constructor(requestLine: @Suppress("DEPRECATION") HttpRequestLine) : this(requestLine.method, requestLine.uri, requestLine.version)
@@ -231,7 +216,7 @@ class TestApplicationRequest(
 
     override val content: RequestContent = object : RequestContent(this) {
         override fun getInputStream(): InputStream = ByteArrayInputStream(bodyBytes)
-        override fun getReadChannel() = ByteArrayReadChannel(bodyBytes)
+        override fun getReadChannel() = bodyBytes.toReadChannel()
 
         override fun getMultiPartData(): MultiPartData = object : MultiPartData {
             override val parts: Sequence<PartData>
@@ -245,8 +230,8 @@ class TestApplicationRequest(
     override val cookies = RequestCookies(this)
 }
 
-class TestApplicationResponse(call: ApplicationCall, respondPipeline: RespondPipeline = RespondPipeline()) : BaseApplicationResponse(call, respondPipeline) {
-    internal val realContent = lazy { ByteArrayWriteChannel() }
+class TestApplicationResponse(call: ApplicationCall, respondPipeline: ApplicationResponsePipeline = ApplicationResponsePipeline()) : BaseApplicationResponse(call, respondPipeline) {
+    internal val realContent = lazy { ByteBufferWriteChannel() }
 
     @Volatile
     private var closed = false
@@ -254,12 +239,9 @@ class TestApplicationResponse(call: ApplicationCall, respondPipeline: RespondPip
     override fun setStatus(statusCode: HttpStatusCode) {
     }
 
-    override fun channel() = realContent.value
-
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         private val headersMap = ValuesMapBuilder(true)
-        private val headers: ValuesMap
-            get() = headersMap.build()
+        private val headers: ValuesMap by lazy { headersMap.build() }
 
         override fun hostAppendHeader(name: String, value: String) {
             if (closed)

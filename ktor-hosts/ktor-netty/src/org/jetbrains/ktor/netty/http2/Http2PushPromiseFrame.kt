@@ -7,7 +7,7 @@ class Http2PushPromiseFrame : Http2StreamFrame {
     val headers = DefaultHttp2Headers(true, 10)
     var promisedStreamId: Int = -1
 
-    override fun setStreamId(streamId: Int): Http2StreamFrame {
+    override fun streamId(streamId: Int): Http2StreamFrame {
         this.streamId = streamId
         return this
     }

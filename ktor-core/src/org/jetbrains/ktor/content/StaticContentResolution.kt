@@ -50,7 +50,9 @@ private val defaultClassLoader = ApplicationCall::class.java.classLoader
  *
  * @return [LocalFileContent] or [ResourceFileContent] or `null`
  */
-fun ApplicationCall.resolveClasspathWithPath(basePackage: String, path: String, mimeResolve: (String) -> ContentType = { defaultContentType(it) }): Resource? = resolveClasspathWithPath(basePackage, path, defaultClassLoader, mimeResolve)
+fun ApplicationCall.resolveClasspathWithPath(basePackage: String, path: String, mimeResolve: (String) -> ContentType = { defaultContentType(it) }): Resource? {
+    return resolveClasspathWithPath(basePackage, path, defaultClassLoader, mimeResolve)
+}
 
 private fun resolveClasspathWithPath(basePackage: String, path: String, classLoader: ClassLoader = defaultClassLoader, mimeResolve: (String) -> ContentType = { defaultContentType(it) }): Resource? {
     val packagePath = basePackage.replace('.', '/').appendPathPart(path)

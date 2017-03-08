@@ -2,6 +2,8 @@ package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.http.*
 import org.junit.*
+import java.net.*
+import java.util.*
 import kotlin.test.*
 
 class CodecTest {
@@ -75,6 +77,42 @@ class CodecTest {
 
         assertEquals("+*%7e%21%40%23%24%25%5e%26%28%29%2b%7b%7d%22%5c%3b%3a%60%2c%2f%5b%5d", encoded)
         assertEquals(s, decodeURLQueryComponent(encoded))
+    }
+
+    @Test
+    fun testBrokenOrIncompleteHEX() {
+        assertFails {
+            decodeURLQueryComponent("foo+%+bar")
+        }
+        assertEquals("0", decodeURLQueryComponent("%30"))
+        assertFails {
+            decodeURLQueryComponent("%")
+        }
+        assertFails {
+            decodeURLQueryComponent("%0")
+        }
+    }
+
+    @Test(timeout = 1000L)
+    fun testDecodeRandom() {
+        val rnd = Random()
+        val chars = "+%0123abc"
+
+        for (step in 0..1000) {
+            val size = rnd.nextInt(15) + 1
+            val sb = CharArray(size)
+
+            for (i in 0..size - 1) {
+                sb[i] = chars[rnd.nextInt(chars.length)]
+            }
+
+            try {
+                decodeURLQueryComponent(String(sb))
+            } catch (ignore: URISyntaxException) {
+            } catch (t: Throwable) {
+                fail("Failed at ${String(sb)}")
+            }
+        }
     }
 
     private fun encodeAndDecodeTest(s: String) {

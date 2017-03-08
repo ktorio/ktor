@@ -4,6 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.logging.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
 import org.jetbrains.ktor.util.*
@@ -15,8 +16,7 @@ private val server = ChatServer()
 fun Application.main() {
     install(DefaultHeaders)
     install(CallLogging)
-
-    routing {
+    install(Routing) {
         withSessions<Session> {
             withCookieByValue()
         }
@@ -49,13 +49,17 @@ fun Application.main() {
             }
         }
 
+        get("/") {
+            call.respondRedirect("/index.html")
+        }
+
         serveClasspathResources("web")
     }
 }
 
 data class Session(val id: String)
 
-private fun receivedMessage(id: String, command: String) {
+private suspend fun receivedMessage(id: String, command: String) {
     when {
         command.startsWith("/who") -> server.who(id)
         command.startsWith("/user") -> {

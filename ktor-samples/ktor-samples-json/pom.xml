@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ktor-samples</artifactId>
         <groupId>org.jetbrains.ktor</groupId>
-        <version>0.2.4-SNAPSHOT</version>
+        <version>0.3.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>ktor-samples-json</artifactId>
@@ -25,11 +25,4 @@
             <version>2.3.1</version>
         </dependency>
     </dependencies>
-    <repositories>
-        <repository>
-            <id>bintray-kotlinx</id>
-            <name>bintray</name>
-            <url>http://dl.bintray.com/kotlinx/kotlinx</url>
-        </repository>
-    </repositories>
 </project>

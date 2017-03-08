@@ -1,62 +1,31 @@
 package org.jetbrains.ktor.websocket
 
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import java.nio.*
 import java.util.concurrent.atomic.*
 
-internal class WebSocketReader(val maxFrameSize: () -> Long, val close: (CloseReason?) -> Unit, val sendClose: (CloseReason) -> Unit, val channel: ReadChannel, val frameHandler: (Frame) -> Unit, val lastReason: () -> CloseReason?) {
-    private val state = AtomicReference(State.CREATED)
+internal class WebSocketReader(val maxFrameSize: () -> Long, val close: suspend (CloseReason?) -> Unit, val sendClose: suspend (CloseReason) -> Unit, val channel: ReadChannel, val frameHandler: suspend (Frame) -> Unit, val lastReason: () -> CloseReason?) {
+    private val state = AtomicReference(State.FRAME)
     private val buffer = ByteBuffer.allocate(8192).apply { flip() }
     private val frameParser = FrameParser()
     private val collector = SimpleFrameCollector()
     private var suspended = false
 
-    fun start() {
-        if (!state.compareAndSet(State.CREATED, State.FRAME)) {
-            throw IllegalStateException("Already initialized")
-        }
-
-        read()
-    }
-
-    private val readHandler = object : AsyncHandler {
-        override fun success(count: Int) {
-            handleRead()
-        }
-
-        override fun successEnd() {
-            close(lastReason())
-        }
-
-        override fun failed(cause: Throwable) {
-            close(null)
-            // TODO notify handlers
-        }
-    }
-
-    private fun read() {
-        if (!suspended) {
+    suspend fun readLoop() {
+        while (!suspended) {
             buffer.compact()
-            channel.read(buffer, readHandler)
-        }
-    }
-
-    private fun handleRead() {
-        buffer.flip()
-
-        try {
+            if (channel.read(buffer) == -1) {
+                return close(lastReason())
+            }
+            buffer.flip()
             parseLoop()
-            read()
-        } catch (e: Throwable) {
-            close(null)
         }
     }
 
-    private fun parseLoop() {
+    private suspend fun parseLoop() {
         loop@
         while (buffer.hasRemaining()) {
             when (state.get()!!) {
-                State.CREATED -> throw IllegalStateException("State is CREATED")
                 State.FRAME -> {
                     frameParser.frame(buffer)
 
@@ -83,7 +52,7 @@ internal class WebSocketReader(val maxFrameSize: () -> Long, val close: (CloseRe
         }
     }
 
-    private fun handleFrameIfProduced() {
+    private suspend fun handleFrameIfProduced() {
         if (!collector.hasRemaining) {
             state.set(State.FRAME)
             frameHandler(Frame.byType(frameParser.fin, frameParser.frameType, collector.take(frameParser.maskKey)))
@@ -92,7 +61,6 @@ internal class WebSocketReader(val maxFrameSize: () -> Long, val close: (CloseRe
     }
 
     enum class State {
-        CREATED,
         FRAME,
         BODY
     }

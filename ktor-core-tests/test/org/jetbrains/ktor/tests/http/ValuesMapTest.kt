@@ -32,7 +32,7 @@ class ValuesMapTest {
     }
 
     @Test
-    fun `two value case insensitive map`() {
+    fun `three value case insensitive map`() {
         val map = ValuesMap.build(true) {
             append("Key1", "value1")
             append("Key1", "value2")
@@ -69,6 +69,48 @@ class ValuesMapTest {
 
         assertNotNull(map.getAll("key"))
         assertFalse { map.isEmpty() }
+    }
+
+    @Test
+    fun `filter`() {
+        val map = ValuesMap.build(true) {
+            append("Key1", "value1")
+            append("Key1", "value2")
+            append("Key1", "Value3")
+        }.filter { name, value -> value.startsWith("V") }
+        assertEquals("Value3", map["key1"])
+        assertEquals("Value3", map["keY1"])
+        assertEquals(setOf("Key1"), map.names())
+        assertEquals(listOf("Key1" to listOf("Value3")), map.entries().map { it.key to it.value })
+        assertEquals(listOf("Value3"), map.getAll("key1"))
+        assertEquals(listOf("Value3"), map.getAll("kEy1"))
+        assertTrue { map.contains("Key1") }
+        assertFalse { map.contains("Key1", "value1") }
+        assertFalse { map.contains("kEy1", "value2") }
+        assertFalse { map.contains("kEy1", "value3") }
+    }
+
+    @Test
+    fun `appendFilter`() {
+        val original = ValuesMap.build(true) {
+            append("Key1", "value1")
+            append("Key1", "value2")
+            append("Key1", "Value3")
+        }
+        val map = ValuesMap.build(true) {
+            appendFiltered(original) { name, value -> value.startsWith("V") }
+        }
+
+        assertEquals("Value3", map["key1"])
+        assertEquals("Value3", map["keY1"])
+        assertEquals(setOf("Key1"), map.names())
+        assertEquals(listOf("Key1" to listOf("Value3")), map.entries().map { it.key to it.value })
+        assertEquals(listOf("Value3"), map.getAll("key1"))
+        assertEquals(listOf("Value3"), map.getAll("kEy1"))
+        assertTrue { map.contains("Key1") }
+        assertFalse { map.contains("Key1", "value1") }
+        assertFalse { map.contains("kEy1", "value2") }
+        assertFalse { map.contains("kEy1", "value3") }
     }
 }
 

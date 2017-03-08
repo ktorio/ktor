@@ -4,7 +4,7 @@
     <parent>
         <artifactId>ktor</artifactId>
         <groupId>org.jetbrains.ktor</groupId>
-        <version>0.2.4-SNAPSHOT</version>
+        <version>0.3.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>ktor-features</artifactId>
@@ -15,8 +15,10 @@
         <module>ktor-server-sessions</module>
         <module>ktor-locations</module>
         <module>ktor-websockets</module>
+        <module>ktor-html-builder</module>
         <module>jetty-http-client</module>
-        <module>ldap-auth</module>
+        <module>ktor-auth</module>
+        <module>ktor-auth-ldap</module>
     </modules>
 
     <dependencies>

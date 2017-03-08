@@ -1,21 +1,17 @@
 package org.jetbrains.ktor.netty
 
-import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.cookie.*
 import io.netty.handler.codec.http.multipart.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.*
 import java.util.concurrent.atomic.*
 
-internal class NettyApplicationRequest(
-        private val request: HttpRequest,
-        val context: ChannelHandlerContext,
-        val drops: LastDropsCollectorHandler?) : ApplicationRequest, Closeable {
+internal class NettyApplicationRequest(private val request: HttpRequest, override val local: NettyConnectionPoint, val contentQueue: NettyContentQueue) : ApplicationRequest, Closeable {
 
     override val attributes = Attributes()
 
@@ -27,36 +23,17 @@ internal class NettyApplicationRequest(
         parseQueryString(request.uri().substringAfter("?", ""))
     }
 
-    override val local = NettyConnectionPoint(request, context)
 
     private val contentChannelState = AtomicReference<ReadChannelState>(ReadChannelState.NEUTRAL)
+
     private val multipart = lazy {
+        if (!isMultipart())
+            throw IOException("The request content is not multipart encoded")
         val decoder = HttpPostMultipartRequestDecoder(request)
-        val multipartHandler = NettyMultiPartData(decoder, this@NettyApplicationRequest)
-
-        context.executeInLoop {
-            drops?.transferTo(context, multipartHandler)
-
-            context.pipeline().addLast(multipartHandler)
-            context.channel().config().isAutoRead = true
-            context.read()
-        }
-
-        multipartHandler
+        NettyMultiPartData(decoder, contentQueue)
     }
 
-    private val contentChannel = lazy {
-        val channel = BodyHandlerChannelAdapter(context)
-
-        context.executeInLoop {
-            drops?.transferTo(context, channel)
-
-            context.pipeline().addLast(channel)
-            channel.requestNext()
-        }
-
-        channel
-    }
+    private val contentChannel = lazy { HttpContentReadChannel(contentQueue) }
 
     override val content: RequestContent = object : RequestContent(this) {
         override fun getMultiPartData(): MultiPartData {
@@ -67,7 +44,7 @@ internal class NettyApplicationRequest(
             throw IllegalStateException("Couldn't get multipart, most likely a raw channel already acquired, state is ${contentChannelState.get()}")
         }
 
-        override fun getInputStream(): InputStream = getReadChannel().asInputStream()
+        override fun getInputStream(): InputStream = getReadChannel().toInputStream()
         override fun getReadChannel(): ReadChannel {
             if (contentChannelState.switchTo(ReadChannelState.RAW_CHANNEL)) {
                 return contentChannel.value
@@ -80,16 +57,17 @@ internal class NettyApplicationRequest(
     override val cookies: RequestCookies = NettyRequestCookies(this)
 
     override fun close() {
+/*
         context.executeInLoop {
             if (multipart.isInitialized()) {
                 multipart.value.destroy()
                 context.pipeline().remove(multipart.value)
             }
+        }
+*/
 
-            if (contentChannel.isInitialized()) {
-                contentChannel.value.close()
-                context.pipeline().remove(contentChannel.value)
-            }
+        if (contentChannel.isInitialized()) {
+            contentChannel.value.close()
         }
     }
 
@@ -110,23 +88,5 @@ private class NettyRequestCookies(val owner: ApplicationRequest) : RequestCookie
             acc.putAll(ServerCookieDecoder.LAX.decode(cookieHeader).associateBy({ it.name() }, { it.value() }))
             acc
         } ?: emptyMap<String, String>()
-    }
-}
-
-internal inline fun ChannelHandlerContext.executeInLoop(crossinline block: () -> Unit) {
-    val executor = executor()
-    if (channel().isRegistered && !executor.inEventLoop()) {
-        executor.execute { block() }
-    } else {
-        block()
-    }
-}
-
-internal fun ChannelHandlerContext.executeInLoop(block: Runnable) {
-    val executor = executor()
-    if (channel().isRegistered && !executor.inEventLoop()) {
-        executor.execute(block)
-    } else {
-        block.run()
     }
 }

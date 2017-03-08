@@ -24,10 +24,12 @@ open class FullBenchmark {
                 call.respond("OK")
             }
             get("/jarfile") {
-                call.respond(call.resolveClasspathWithPath("java/lang/", "String.class")!!)
+                val resource = call.resolveClasspathWithPath("java/lang/", "String.class")!!
+                call.respond(resource)
             }
             get("/regularClasspathFile") {
-                call.respond(call.resolveClasspathWithPath(packageName, classFileName)!!)
+                val resource = call.resolveClasspathWithPath(packageName, classFileName)!!
+                call.respond(resource)
             }
             get("/regularFile") {
                 call.respond(LocalFileContent(pomFile))
@@ -62,10 +64,8 @@ open class FullBenchmark {
     }
 
     private inline fun <R> handle(url: String, block: TestApplicationCall.() -> R) = testHost.handleRequest(HttpMethod.Get, url).apply {
-        await()
-
         if (response.status() != HttpStatusCode.OK) {
-            throw IllegalStateException("wrong response code")
+            throw IllegalStateException("Expected 'HttpStatusCode.OK' but got '${response.status()}'")
         }
 
         block()

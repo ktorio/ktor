@@ -1,70 +1,22 @@
 package org.jetbrains.ktor.websocket
 
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.util.*
 import java.nio.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
-internal class WebSocketWriter(val parent: WebSocketImpl, val writeChannel: WriteChannel, val controlFrameHandler: ControlFrameHandler) {
+internal class WebSocketWriter(parent: WebSocketImpl, val writeChannel: WriteChannel, val controlFrameHandler: ControlFrameHandler) {
+    private val serializer = Serializer(parent::masking)
     private val buffer = ByteBuffer.allocate(8192)
-    private val q = ArrayBlockingQueue<Frame>(1024)
-    private var current: ByteBuffer? = null
-    private var writingCloseFrame = false
+
     private val writeInProgress = AtomicBoolean()
-    private var maskBuffer: ByteBuffer? = null
     private var closeSent = false
 
-    private val flushListener = object : AsyncHandler {
-        override fun success(count: Int) {
-        }
-
-        override fun successEnd() {
-            if (closeSent && current == null) {
-                controlFrameHandler.closeSent()
-                return
-            }
-
-            listenerOnSuccess()
-        }
-
-        override fun failed(cause: Throwable) {
-            parent.closeAsync(null)
-        }
-    }
-
-    private val listener = object : AsyncHandler {
-        override fun success(count: Int) {
-            if (closeSent && current == null) {
-                controlFrameHandler.closeAfterTimeout()
-
-                doFlush()
-            } else if (q.isEmpty()) {
-                doFlush()
-            } else {
-                listenerOnSuccess()
-            }
-        }
-
-        override fun successEnd() {
-        }
-
-        override fun failed(cause: Throwable) {
-            parent.closeAsync(null)
-        }
-
-        private fun doFlush() {
-            writeChannel.flush(flushListener)
-        }
-    }
-
-    private fun listenerOnSuccess() {
-        buffer.compact()
-        writeInProgress.set(false)
-        serializeAndScheduleWrite()
-    }
-
-    fun send(frame: Frame) {
+    /**
+     * enqueue frame for future sending, may block if too many enqueued frames
+     */
+    fun enqueue(frame: Frame) {
         if (closeSent) {
             throw IllegalStateException("Outbound is already closed (close frame has been sent)")
         }
@@ -72,109 +24,57 @@ internal class WebSocketWriter(val parent: WebSocketImpl, val writeChannel: Writ
             closeSent = true
         }
 
-        q.put(frame)
-        serializeAndScheduleWrite()
+        serializer.enqueue(frame)
     }
 
-    private fun serializeAndScheduleWrite() {
+    /**
+     * Send a frame and write it and all outstanding frames in the queue
+     */
+    suspend fun send(frame: Frame) {
+        enqueue(frame)
+        flush()
+    }
+
+    /**
+     * Ensures all enqueued messages has been written
+     */
+    suspend fun flush() {
+        while (serializer.hasOutstandingBytes) {
+            writeLoop()
+        }
+    }
+
+    private suspend fun writeLoop() {
         if (writeInProgress.compareAndSet(false, true)) {
-            serialize()
-            doSend()
-        }
-    }
+            try {
+                serializer.serialize(buffer)
+                buffer.flip()
+                while (buffer.hasRemaining()) {
+                    if (closeSent && !serializer.hasOutstandingBytes) {
+                        controlFrameHandler.closeAfterTimeout()
+                    }
 
-    private fun doSend() {
-        buffer.flip()
-        if (buffer.hasRemaining()) {
-            writeChannel.write(buffer, listener)
-        } else {
-            buffer.compact()
-            writeInProgress.set(false)
-        }
-    }
+                    writeChannel.write(buffer)
 
-    private fun writeCurrentPayload(): Boolean {
-        val frame = current ?: return true
-        frame.putTo(buffer)
-        if (!frame.hasRemaining()) {
-            current = null
-            return true
-        }
+                    if (closeSent && !serializer.hasOutstandingBytes) {
+                        writeChannel.flush()
+                        controlFrameHandler.closeSent()
+                        break
+                    }
 
-        return false
-    }
+                    buffer.compact()
+                    serializer.serialize(buffer)
+                    buffer.flip()
+                }
+                buffer.compact()
 
-    private fun serialize() {
-        while (writeCurrentPayload()) {
-            if (writingCloseFrame) {
-                break
-            }
-
-            val frame = q.peek() ?: break
-            val mask = parent.masking
-            setMaskBuffer(mask)
-
-            val headerSize = estimateFrameHeaderSize(frame, mask)
-            if (buffer.remaining() < headerSize) {
-                break
-            }
-
-            serializeHeader(frame, mask)
-            q.remove()
-            current = frame.buffer.masked()
-            if (frame.frameType == FrameType.CLOSE) {
-                writingCloseFrame = true
+                writeChannel.flush()
+            } finally {
+                writeInProgress.set(false)
             }
         }
+
+        // TODO try {} catch ( parent.closeAsync }
     }
 
-    private fun serializeHeader(f: Frame, mask: Boolean) {
-        val size = f.buffer.remaining()
-        val length1 = when {
-            size < 126 -> size
-            size <= Short.MAX_VALUE -> 126
-            else -> 127
-        }
-
-        buffer.put(
-                (f.fin.flagAt(7) or f.frameType.opcode).toByte()
-        )
-        buffer.put(
-                (mask.flagAt(7) or length1).toByte()
-        )
-
-        if (length1 == 126) {
-            buffer.putShort(f.buffer.remaining().toShort())
-        } else if (length1 == 127) {
-            buffer.putLong(f.buffer.remaining().toLong())
-        }
-
-        maskBuffer?.let { bb ->
-            bb.duplicate().putTo(buffer)
-        }
-    }
-
-    private fun estimateFrameHeaderSize(f: Frame, mask: Boolean): Int {
-        val size = f.buffer.remaining()
-        return when {
-            size < 126 -> 2
-            size <= Short.MAX_VALUE -> 2 + 2
-            else -> 2 + 8
-        } + maskSize(mask)
-    }
-
-    private fun maskSize(mask: Boolean) = if (mask) 4 else 0
-
-    private fun ByteBuffer.masked() = maskBuffer?.let { mask -> copy().apply { xor(mask) } } ?: this
-
-    private fun setMaskBuffer(mask: Boolean) {
-        if (mask) {
-            maskBuffer = ByteBuffer.allocate(4).apply {
-                asIntBuffer().put(nonceRandom.nextInt())
-                clear()
-            }
-        } else {
-            maskBuffer = null
-        }
-    }
 }

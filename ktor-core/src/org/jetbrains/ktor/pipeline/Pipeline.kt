@@ -10,12 +10,16 @@ open class Pipeline<TSubject : Any>(vararg phase: PipelinePhase) {
 
     val phases = PipelinePhases<TSubject>(*phase)
 
-    constructor(phase: PipelinePhase, interceptors: List<PipelineContext<TSubject>.(TSubject) -> Unit>) : this(phase) {
+    constructor(phase: PipelinePhase, interceptors: List<PipelineInterceptor<TSubject>>) : this(phase) {
         interceptors.forEach { phases.intercept(phase, it) }
     }
 
-    open fun intercept(phase: PipelinePhase, block: PipelineContext<TSubject>.(TSubject) -> Unit) {
+    open fun intercept(phase: PipelinePhase, block: PipelineInterceptor<TSubject>) {
         phases.intercept(phase, block)
     }
+
+    suspend fun execute(subject: TSubject): TSubject = PipelineContext(phases.interceptors(), subject).proceed()
 }
+
+typealias PipelineInterceptor<TSubject> = suspend PipelineContext<TSubject>.(TSubject) -> Unit
 

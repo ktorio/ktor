@@ -7,8 +7,8 @@ import java.util.concurrent.*
 import kotlin.reflect.*
 
 inline fun <reified T : Any> AuthenticationPipeline.oauthAtLocation(client: HttpClient, exec: ExecutorService,
-                                                                    noinline providerLookup: ApplicationCall.(T) -> OAuthServerSettings?,
-                                                                    noinline urlProvider: ApplicationCall.(T, OAuthServerSettings) -> String) {
+                                                                                            noinline providerLookup: ApplicationCall.(T) -> OAuthServerSettings?,
+                                                                                            noinline urlProvider: ApplicationCall.(T, OAuthServerSettings) -> String) {
     oauthWithType(T::class, client, exec, providerLookup, urlProvider)
 }
 

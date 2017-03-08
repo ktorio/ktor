@@ -12,16 +12,16 @@ fun main(args: Array<String>) {
 
     // NOTE: Change to embeddedJettyServer to use Jetty
     server = embeddedJettyServer(8080) {
-        routing {
+        install(Routing) {
             get("/") {
-                call.respondText(ContentType.Text.Html, """Hello, world<br><a href="/bye">Say bye?</a>""")
+                call.respondText("""Hello, world<br><a href="/bye">Say bye?</a>""", ContentType.Text.Html)
             }
 
             get("/bye") {
                 // Schedule server shutdown in 100ms
                 val executor = Executors.newSingleThreadScheduledExecutor()
                 executor.schedule({
-                    server?.stop()
+                    server?.stop(100, 1000, TimeUnit.MILLISECONDS)
                     executor.shutdown()
                 }, 100, TimeUnit.MILLISECONDS)
 

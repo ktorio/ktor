@@ -12,15 +12,15 @@ interface SessionTracker<S : Any> {
      * Lookup session using the context, call [processSession] if available
      * It is recommended to be async if there is external session store
      */
-    fun lookup(context: PipelineContext<ApplicationCall>, processSession: (S) -> Unit) : Nothing
+    suspend fun lookup(context: PipelineContext<ApplicationCall>, processSession: (S) -> Unit)
 
     /**
      * Assign session using the context. Override if there is existing session. Could be blocking.
      */
-    fun assign(call: ApplicationCall, session: S)
+    suspend fun assign(call: ApplicationCall, session: S)
 
     /**
      * Unassign session if present. Does nothing if no session assigned.
      */
-    fun unassign(call: ApplicationCall)
+    suspend fun unassign(call: ApplicationCall)
 }

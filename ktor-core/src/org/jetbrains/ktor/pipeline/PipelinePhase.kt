@@ -10,7 +10,7 @@ class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
 
     private class PhaseContent<TSubject : Any>(val phase: PipelinePhase,
                                                val relation: PipelinePhaseRelation,
-                                               val interceptors: MutableList<PipelineContext<TSubject>.(TSubject) -> Unit>) {
+                                               val interceptors: MutableList<PipelineInterceptor<TSubject>>) {
         override fun toString(): String = "Phase `${phase.name}`, ${interceptors.size} handlers"
     }
 
@@ -53,14 +53,14 @@ class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
     }
 
     @Volatile
-    private var interceptors: ArrayList<PipelineContext<TSubject>.(TSubject) -> Unit>? = null
+    private var interceptors: ArrayList<PipelineInterceptor<TSubject>>? = null
 
-    fun interceptors(): ArrayList<PipelineContext<TSubject>.(TSubject) -> Unit> {
+    fun interceptors(): ArrayList<PipelineInterceptor<TSubject>> {
         return interceptors ?: cacheInterceptors()
     }
 
-    private fun cacheInterceptors(): ArrayList<PipelineContext<TSubject>.(TSubject) -> Unit> {
-        val destination = ArrayList<PipelineContext<TSubject>.(TSubject) -> Unit>(interceptorsQuantity)
+    private fun cacheInterceptors(): ArrayList<PipelineInterceptor<TSubject>> {
+        val destination = ArrayList<PipelineInterceptor<TSubject>>(interceptorsQuantity)
         for (phaseIndex in 0.._phases.lastIndex) {
             val elements = _phases[phaseIndex].interceptors
             for (elementIndex in 0..elements.lastIndex) {
@@ -71,7 +71,7 @@ class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
         return destination
     }
 
-    fun intercept(phase: PipelinePhase, block: PipelineContext<TSubject>.(TSubject) -> Unit) {
+    fun intercept(phase: PipelinePhase, block: PipelineInterceptor<TSubject>) {
         val phaseContent = _phases.firstOrNull { it.phase == phase }
                 ?: throw InvalidPhaseException("Phase $phase was not registered for this pipeline")
 

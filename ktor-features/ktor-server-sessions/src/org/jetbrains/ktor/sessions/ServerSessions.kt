@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.sessions
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.util.concurrent.*
@@ -33,34 +34,34 @@ internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val 
 
     private val SessionIdKey = AttributeKey<String>("SessionId")
 
-    override fun assign(call: ApplicationCall, session: S) {
+    override suspend fun assign(call: ApplicationCall, session: S) {
         val sessionId = call.attributes.computeIfAbsent(SessionIdKey, sessionIdProvider)
         val serialized = serializer.serialize(session)
-        storage.save(sessionId) { out ->
-            out.bufferedWriter().use { writer ->
+        storage.save(sessionId) { channel ->
+            channel.toOutputStream().bufferedWriter().use { writer ->
                 writer.write(serialized)
             }
         }
         call.response.cookies.append(settings.toCookie(cookieName, sessionId))
     }
 
-    override fun lookup(context: PipelineContext<ApplicationCall>, processSession: (S) -> Unit): Nothing {
+    override suspend fun lookup(context: PipelineContext<ApplicationCall>, processSession: (S) -> Unit) {
         val call = context.call
-        val sessionId = call.request.cookies[cookieName] ?: context.proceed()
+        val cookie = call.request.cookies[cookieName]
+        val sessionId = if (cookie != null) cookie else {
+            context.proceed()
+            return
+        }
 
         call.attributes.put(SessionIdKey, sessionId)
-        context.runAsync(exec, {
-            storage.read(sessionId) { input ->
-                val text = input.bufferedReader().readText() // TODO what can we do if failed?
-                context.runAsync(exec, {
-                    val session = serializer.deserialize(text)
-                    processSession(session)
-                })
-            }
-        })
+        storage.read(sessionId) { channel ->
+            val text = channel.toInputStream().bufferedReader().readText()
+            val session = serializer.deserialize(text)
+            processSession(session)
+        }
     }
 
-    override fun unassign(call: ApplicationCall) {
+    override suspend fun unassign(call: ApplicationCall) {
         call.attributes.remove(SessionIdKey)
 
         call.request.cookies[cookieName]?.let { sessionId ->

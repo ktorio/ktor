@@ -14,22 +14,31 @@ fun encodeURLPart(s: String): String {
             .replace("%7E", "~")
 }
 
-fun decodeURLQueryComponent(s: String): String = decode(s, true, Charsets.UTF_8)
-fun decodeURLPart(s: String): String = decode(s, false, Charsets.UTF_8)
+fun decodeURLQueryComponent(s: String): String = decodeScan(s, true, Charsets.UTF_8)
+fun decodeURLPart(s: String): String = decodeScan(s, false, Charsets.UTF_8)
 
-/**
- * Optimized version of [URLDecoder.decode]
- */
-private fun decode(s: String, plusIsSpace: Boolean, charset: Charset): String {
-    // cache length on stack
+private fun decodeScan(s: String, plusIsSpace: Boolean, charset: Charset): String {
+    for (index in 0..s.length - 1) {
+        val ch = s[index]
+        if (ch == '%' || (plusIsSpace && ch == '+')) {
+            return decodeImpl(s, index, plusIsSpace, charset)
+        }
+    }
+
+    return s
+}
+
+private fun decodeImpl(s: String, prefixLength: Int, plusIsSpace: Boolean, charset: Charset): String {
     val length = s.length
-
-    // do not create StringBuilder until we need changing something in the string
-    var sb: StringBuilder? = null
     // if length is big, it probably means it is encoded
     val sbSize = if (length > 255) length / 3 else length
+    val sb = StringBuilder(sbSize)
 
-    var index = 0
+    if (prefixLength > 0) {
+        sb.append(s, 0, prefixLength)
+    }
+
+    var index = prefixLength
 
     // reuse ByteArray for hex decoding stripes
     var bytes: ByteArray? = null
@@ -38,11 +47,6 @@ private fun decode(s: String, plusIsSpace: Boolean, charset: Charset): String {
         val c = s[index]
         when {
             plusIsSpace && c == '+' -> {
-                // if StringBuilder was not needed before, create it and append all the string before
-                if (sb == null) {
-                    sb = StringBuilder(sbSize)
-                    sb.append(s, 0, index)
-                }
                 sb.append(' ')
                 index++
             }
@@ -51,21 +55,18 @@ private fun decode(s: String, plusIsSpace: Boolean, charset: Charset): String {
                 if (bytes == null)
                     bytes = ByteArray((length - index) / 3)
 
-                // if StringBuilder was not needed before, create it and append all the string before
-                // Note: we assume that broken URLs ending with incomplete %xx are rare
-                //       so we don't try to save on StringBuilder at the cost of extra control statements
-                if (sb == null) {
-                    sb = StringBuilder(sbSize)
-                    sb.append(s, 0, index)
-                }
-
                 // fill ByteArray with all the bytes, so Charset can decode text
                 var count = 0
-                while (index + 2 < length && s[index] == '%') {
+                while (index < length && s[index] == '%') {
+                    if (index + 2 >= length) {
+                        throw URISyntaxException(s, "Incomplete trailing HEX escape: ${s.substring(index)}", index)
+                    }
+
                     val digit1 = charToHexDigit(s[index + 1])
                     val digit2 = charToHexDigit(s[index + 2])
-                    if (digit1 == -1 || digit2 == -1)
-                        break
+                    if (digit1 == -1 || digit2 == -1) {
+                        throw URISyntaxException(s, "Wrong HEX escape: %${s[index + 1]}${s[index + 2]}", index)
+                    }
 
                     bytes[count++] = (digit1 * 16 + digit2).toByte()
                     index += 3
@@ -76,15 +77,13 @@ private fun decode(s: String, plusIsSpace: Boolean, charset: Charset): String {
                 sb.append(java.lang.String(bytes, 0, count, charset))
             }
             else -> {
-                // Append text if we already has a difference with the original string
-                if (sb != null)
-                    sb.append(c)
+                sb.append(c)
                 index++
             }
         }
     }
 
-    return if (sb != null) sb.toString() else s
+    return sb.toString()
 }
 
 private fun charToHexDigit(c2: Char) = when (c2) {

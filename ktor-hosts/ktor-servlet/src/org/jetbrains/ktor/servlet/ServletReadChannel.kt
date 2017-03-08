@@ -1,101 +1,104 @@
 package org.jetbrains.ktor.servlet
 
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import java.nio.*
+import java.nio.channels.*
 import java.util.concurrent.atomic.*
 import javax.servlet.*
+import kotlin.coroutines.experimental.*
+import kotlin.coroutines.experimental.intrinsics.*
 
 class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChannel {
     private val listenerInstalled = AtomicBoolean()
-    private val currentHandler = AtomicReference<AsyncHandler?>()
-    private var currentBuffer: ByteBuffer? = null
+    private val continuation = AtomicReference<Continuation<State>?>()
+
+    @Volatile
+    private var closed = false
+
+    private enum class State {
+        End,
+        Available
+    }
 
     private val readListener = object : ReadListener {
         override fun onAllDataRead() {
-            withHandler { handler, buffer ->
-                handler.successEnd()
-            }
+            continuation.getAndSet(null)?.resume(State.End)
         }
 
         override fun onError(t: Throwable) {
-            withHandler { handler, buffer ->
-                handler.failed(t)
-            }
+            continuation.getAndSet(null)?.resumeWithException(t)
         }
 
         override fun onDataAvailable() {
-            withHandler { handler, buffer ->
-                doRead(handler, buffer)
-            }
+            continuation.getAndSet(null)?.resume(State.Available)
         }
     }
 
-    override fun read(dst: ByteBuffer, handler: AsyncHandler) {
+    suspend override fun read(dst: ByteBuffer): Int {
         if (!dst.hasRemaining()) {
-            handler.success(0)
-            return
+            return 0
         }
 
-        if (!currentHandler.compareAndSet(null, handler)) {
-            throw IllegalStateException("Read operation is already in progress")
+        if (closed) {
+            return -1
         }
-        currentBuffer = dst
 
+        return when (awaitState()) {
+            State.End -> -1
+            State.Available -> servletInputStream.read(dst)
+        }
+    }
+
+    private suspend fun awaitState(): State {
         if (listenerInstalled.compareAndSet(false, true)) {
-            servletInputStream.setReadListener(readListener)
-        } else {
-            doRead(handler, dst)
+            return suspendCoroutine {
+                if (!continuation.compareAndSet(null, it)) {
+                    listenerInstalled.set(false)
+                    it.resumeWithException(IllegalStateException("Async operation is already in progress"))
+                } else
+                    servletInputStream.setReadListener(readListener)
+            }
+        }
+
+        if (servletInputStream.isFinished) return State.End
+
+        return suspendCoroutineOrReturn { continuation ->
+            if (!this.continuation.compareAndSet(null, continuation))
+                throw IllegalStateException("Async operation is already in progress")
+
+            if (servletInputStream.isReady) {
+                this.continuation.set(null)
+                State.Available
+            } else COROUTINE_SUSPENDED
         }
     }
 
     override fun close() {
-        servletInputStream.close()
-    }
+        try {
+            listenerInstalled.set(true)
+            closed = true
+            servletInputStream.close()
+        } finally {
+            closed = true
 
-    private fun doRead(handler: AsyncHandler, buffer: ByteBuffer) {
-        if (servletInputStream.isFinished) {
-            clearReferences()
-            handler.successEnd()
-        } else if (servletInputStream.isReady) {
-            clearReferences()
-
-            val size = servletInputStream.read(buffer)
-            if (size == -1) {
-                handler.successEnd()
-            } else {
-                handler.success(size)
-            }
+            continuation.getAndSet(null)?.resumeWithException(ClosedChannelException())
         }
     }
 
-    private fun ServletInputStream.read(buffer: ByteBuffer): Int =
+    private fun ServletInputStream.read(buffer: ByteBuffer): Int {
         if (buffer.hasArray()) {
             val size = read(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining())
             if (size > 0) {
                 buffer.position(buffer.position() + size)
             }
-            size
+            return size
         } else {
             val tempArray = ByteArray(buffer.remaining())
             val size = read(tempArray)
             if (size > 0) {
                 buffer.put(tempArray, 0, size)
             }
-            size
+            return size
         }
-
-    private inline fun withHandler(block: (AsyncHandler, ByteBuffer) -> Unit) {
-        currentHandler.getAndSet(null)?.let { handler ->
-            currentBuffer?.let { buffer ->
-                currentBuffer = null
-
-                block(handler, buffer)
-            }
-        }
-    }
-
-    private fun clearReferences() {
-        currentHandler.set(null)
-        currentBuffer = null
     }
 }

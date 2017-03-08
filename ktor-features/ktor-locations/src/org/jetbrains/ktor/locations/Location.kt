@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.locations
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
@@ -15,7 +14,7 @@ inline fun <reified T : Any> Route.location(noinline body: Route.() -> Unit): Ro
     return location(T::class, body)
 }
 
-inline fun <reified T : Any> Route.get(noinline body: PipelineContext<ApplicationCall>.(T) -> Unit): Route {
+inline fun <reified T : Any> Route.get(noinline body: suspend PipelineContext<ApplicationCall>.(T) -> Unit): Route {
     return location(T::class) {
         method(HttpMethod.Get) {
             handle(body)
@@ -23,7 +22,7 @@ inline fun <reified T : Any> Route.get(noinline body: PipelineContext<Applicatio
     }
 }
 
-inline fun <reified T : Any> Route.post(noinline body: PipelineContext<ApplicationCall>.(T) -> Unit): Route {
+inline fun <reified T : Any> Route.post(noinline body: suspend PipelineContext<ApplicationCall>.(T) -> Unit): Route {
     return location(T::class) {
         method(HttpMethod.Post) {
             handle(body)
@@ -36,11 +35,11 @@ fun <T : Any> Route.location(data: KClass<T>, body: Route.() -> Unit): Route {
     return entry.apply(body)
 }
 
-inline fun <reified T : Any> Route.handle(noinline body: PipelineContext<ApplicationCall>.(T) -> Unit) {
+inline fun <reified T : Any> Route.handle(noinline body: suspend PipelineContext<ApplicationCall>.(T) -> Unit) {
     return handle(T::class, body)
 }
 
-inline fun <T : Any> Route.handle(dataClass: KClass<T>, crossinline body: PipelineContext<ApplicationCall>.(T) -> Unit) {
+fun <T : Any> Route.handle(dataClass: KClass<T>, body: suspend PipelineContext<ApplicationCall>.(T) -> Unit) {
     handle {
         val location = locations().resolve<T>(dataClass, call)
         body(location)

@@ -28,6 +28,8 @@ abstract class WebSocketHostSuite<H : ApplicationHost> : org.jetbrains.ktor.test
         }
 
         Socket("localhost", port).use { socket ->
+            socket.soTimeout = 4000
+
             // send upgrade request
             socket.outputStream.apply {
                 write("""
@@ -61,22 +63,25 @@ abstract class WebSocketHostSuite<H : ApplicationHost> : org.jetbrains.ktor.test
                 flush()
             }
 
-            assertEquals("880203e8", hex(socket.inputStream.readBytes(4)).takeLast(8), "Server should reply us close frame")
+            socket.assertCloseFrame()
         }
 
         assertEquals(listOf("Hello"), collected)
     }
 
-//        @Test
-    @Test(timeout = 5000L)
+        @Test
+//    @Test(timeout = 5000L)
     fun testWebSocketPingPong() {
-        createAndStartServer() {
+        createAndStartServer {
             webSocket("/") {
+                timeout = Duration.ofSeconds(120)
                 pingInterval = Duration.ofMillis(50)
             }
         }
 
         Socket("localhost", port).use { socket ->
+//            socket.soTimeout = 4000
+
             // send upgrade request
             socket.outputStream.apply {
                 write("""
@@ -109,7 +114,28 @@ abstract class WebSocketHostSuite<H : ApplicationHost> : org.jetbrains.ktor.test
                 flush()
             }
 
-            assertEquals("880203e8", hex(socket.inputStream.readBytes(4)).takeLast(8), "Server should reply us close frame")
+            socket.assertCloseFrame()
+        }
+    }
+
+    private fun Socket.assertCloseFrame(closeCode: Short = CloseReason.Codes.NORMAL.code) {
+        loop@
+        while (true) {
+            try {
+                val frame = getInputStream().readFrame()
+
+                when (frame) {
+                    is Frame.Ping -> continue@loop
+                    is Frame.Close -> {
+                        assertEquals(closeCode, frame.readReason()?.code)
+                        close()
+                        break@loop
+                    }
+                    else -> fail("Unexpected frame $frame: \n${hex(frame.buffer.getAll())}")
+                }
+            } catch (expected: EOFException) {
+                break
+            }
         }
     }
 
@@ -185,7 +211,7 @@ abstract class WebSocketHostSuite<H : ApplicationHost> : org.jetbrains.ktor.test
     private fun InputStream.readOrFail(): Int {
         val rc = read()
         if (rc == -1) {
-            throw IOException("EOF")
+            throw EOFException()
         }
         return rc
     }

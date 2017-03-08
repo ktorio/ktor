@@ -1,23 +1,30 @@
 package org.jetbrains.ktor.pipeline
 
-interface PipelineContext<out TSubject : Any> {
-    val subject: TSubject
-    val exception: Throwable?
+class PipelineContext<TSubject : Any>(private val interceptors: List<PipelineInterceptor<TSubject>>, subject: TSubject) {
+    var subject: TSubject = subject
+        internal set
 
-    fun onSuccess(body: PipelineContext<TSubject>.(Any) -> Unit)
-    fun onFail(body: PipelineContext<TSubject>.(Any) -> Unit)
+    private var index = 0
 
-    fun onFinish(body: PipelineContext<TSubject>.(Any) -> Unit) {
-        onSuccess(body)
-        onFail(body)
+    fun finish() {
+        index = -1
     }
 
-    fun repeat()
+    suspend fun proceedWith(subject: TSubject): TSubject {
+        this.subject = subject
+        return proceed()
+    }
 
-    fun pause(): Nothing
-    fun proceed(): Nothing
-    fun fail(exception: Throwable): Nothing
-    fun finish(): Nothing
-    fun finishAll(): Nothing
-    fun <T : Any> fork(value: T, pipeline: Pipeline<T>): Nothing
+    suspend fun proceed(): TSubject {
+        while (index >= 0) {
+            if (interceptors.size == index) {
+                index = -1 // finished
+                return subject
+            }
+            val executeInterceptor = interceptors[index]
+            index++
+            executeInterceptor.invoke(this, subject)
+        }
+        return subject
+    }
 }

@@ -1,10 +1,10 @@
 package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
@@ -29,14 +29,12 @@ class HeadTest {
 
             handleRequest(HttpMethod.Get, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertNotNull(call.response.byteContent)
                 assertEquals("Hello", call.response.content)
                 assertEquals("1", call.response.headers["M"])
             }
 
             handleRequest(HttpMethod.Head, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertNull(call.response.byteContent)
                 assertNull(call.response.content)
                 assertEquals("1", call.response.headers["M"])
             }
@@ -49,21 +47,19 @@ class HeadTest {
             application.routing {
                 route("/") {
                     handle {
-                        call.respond(TextContent(ContentType.Text.Plain, "Hello"))
+                        call.respond(TextContent("Hello", ContentType.Text.Plain))
                     }
                 }
             }
 
             handleRequest(HttpMethod.Get, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertNotNull(call.response.byteContent)
                 assertEquals("Hello", call.response.content)
                 assertEquals("text/plain", call.response.headers[HttpHeaders.ContentType])
             }
 
             handleRequest(HttpMethod.Head, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertNull(call.response.byteContent)
                 assertNull(call.response.content)
                 assertEquals("text/plain", call.response.headers[HttpHeaders.ContentType])
             }
@@ -85,13 +81,11 @@ class HeadTest {
 
             handleRequest(HttpMethod.Get, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertNotNull(call.response.byteContent)
                 assertEquals("Hello", call.response.content)
             }
 
             handleRequest(HttpMethod.Head, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertNull(call.response.byteContent)
                 assertNull(call.response.content)
             }
         }
@@ -103,8 +97,8 @@ class HeadTest {
             application.routing {
                 route("/") {
                     handle {
-                        call.respond(object : FinalContent.ChannelContent() {
-                            override fun channel() = ByteArrayReadChannel("Hello".toByteArray())
+                        call.respond(object : FinalContent.ReadChannelContent() {
+                            override fun readFrom() = "Hello".toByteArray().toReadChannel()
 
                             override val headers: ValuesMap
                                 get() = ValuesMap.build(true) {
@@ -124,7 +118,6 @@ class HeadTest {
 
             handleRequest(HttpMethod.Head, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
-                assertNull(call.response.byteContent)
                 assertNull(call.response.content)
                 assertEquals("2", call.response.headers["M"])
             }

@@ -4,7 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
@@ -126,6 +126,7 @@ class CompressionTest {
                 default()
                 encoder("special", object : CompressionEncoder {
                     override fun open(delegate: ReadChannel) = delegate
+                    override fun open(delegate: WriteChannel) = delegate
                 })
             }
             application.routing {
@@ -183,7 +184,7 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respondText(ContentType.parse(call.parameters["t"]!!), "OK")
+                    call.respondText("OK", ContentType.parse(call.parameters["t"]!!))
                 }
             }
 
@@ -317,7 +318,7 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respond(object : Resource, FinalContent.ChannelContent() {
+                    call.respond(object : Resource, FinalContent.ReadChannelContent() {
                         override val headers by lazy { super.headers }
 
                         override val contentType: ContentType
@@ -332,7 +333,7 @@ class CompressionTest {
 
                         override val contentLength = 4L
 
-                        override fun channel() = "test".byteInputStream().asAsyncChannel()
+                        override fun readFrom() = "test".byteInputStream().toReadChannel()
                     })
                 }
             }
@@ -387,7 +388,7 @@ class CompressionTest {
             application.install(Compression)
             application.routing {
                 get("/") {
-                    call.respondText(ContentType.Text.Plain, content)
+                    call.respondText(content, ContentType.Text.Plain)
                 }
             }
 

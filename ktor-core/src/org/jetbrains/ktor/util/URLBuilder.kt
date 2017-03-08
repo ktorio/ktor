@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.util
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
@@ -10,7 +9,8 @@ class URLBuilder(
         var protocol: URLProtocol = URLProtocol.HTTP,
         var host: String = "localhost",
         var port: Int = protocol.defaultPort,
-        var user: UserPasswordCredential? = null,
+        var user: String? = null,
+        var password: String? = null,
         var encodedPath: String = "/",
         val parameters: ValuesMapBuilder = ValuesMapBuilder(),
         var fragment: String = ""
@@ -26,10 +26,12 @@ class URLBuilder(
     fun <A : Appendable> appendTo(out: A): A {
         out.append(protocol.name)
         out.append("://")
-        user?.let {
-            out.append(encodeURLPart(it.name))
-            out.append(":")
-            out.append(encodeURLPart(it.password))
+        user?.let { usr ->
+            out.append(encodeURLPart(usr))
+            password?.let { pwd ->
+                out.append(":")
+                out.append(encodeURLPart(pwd))
+            }
             out.append("@")
         }
         out.append(host)
@@ -79,4 +81,4 @@ class URLBuilder(
 }
 
 fun url(block: URLBuilder.() -> Unit) = URLBuilder().apply(block).build()
-fun ApplicationCall.url(block: URLBuilder.() -> Unit = {}) =URLBuilder.createFromCall(this).apply(block).build()
+fun ApplicationCall.url(block: URLBuilder.() -> Unit = {}) = URLBuilder.createFromCall(this).apply(block).build()

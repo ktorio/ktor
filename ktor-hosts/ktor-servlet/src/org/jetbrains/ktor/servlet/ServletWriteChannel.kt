@@ -1,178 +1,137 @@
 package org.jetbrains.ktor.servlet
 
-import org.jetbrains.ktor.nio.*
-import java.io.*
+import org.jetbrains.ktor.cio.*
 import java.nio.*
+import java.nio.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import javax.servlet.*
+import kotlin.coroutines.experimental.*
+import kotlin.coroutines.experimental.intrinsics.*
 
-internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream) : WriteChannel {
-    private val listenerInstalled = AtomicBoolean()
-    private val currentHandler = AtomicReference<AsyncHandler?>()
-    private val pendingFlush = AtomicInteger(0)
-    private val writeSemaphore = Semaphore(1)
-
-    private val currentBuffer = AtomicReference<ByteBuffer?>()
+internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream, val exec: ExecutorService) : WriteChannel {
+    private val listenerInstalled = AtomicBoolean(false)
 
     @Volatile
-    private var lastWriteSize: Int = 0
+    private var currentHandler: Continuation<Unit>? = null
+
+    private var bytesWrittenWithNoSuspend = 0L
+    private var heapBuffer: ByteBuffer? = null
+
+    companion object {
+        const val MaxChunkWithoutSuspension = 100 * 1024 * 1024 // 100K
+    }
 
     private val writeReadyListener = object : WriteListener {
         override fun onWritePossible() {
-            writeAndNotify()
+            currentHandler?.let { continuation ->
+                if (servletOutputStream.isReady) {
+                    currentHandler = null
+                    continuation.resume(Unit)
+                }
+            }
         }
 
         override fun onError(t: Throwable?) {
-            fireHandler { handler, buffer ->
-                handler.failed(t ?: RuntimeException("ServletWriteChannel.onError(null)"))
+            currentHandler?.let { continuation ->
+                currentHandler = null
+                continuation.resumeWithException(t ?: RuntimeException("ServletWriteChannel.onError(null)"))
             }
         }
     }
 
-    override fun write(src: ByteBuffer, handler: AsyncHandler) {
-        if (!currentHandler.compareAndSet(null, handler)) {
-            handler.failed(IllegalStateException("Write operation is already in progress"))
-            return
-        }
-        currentBuffer.set(src)
-        lastWriteSize = 0
-
-        setupOrWrite()
-    }
-
-    override fun flush(handler: AsyncHandler) {
-        if (!currentHandler.compareAndSet(null, handler)) {
-            handler.failed(IllegalStateException("Write operation is already in progress"))
-            return
-        }
-        currentBuffer.set(null)
-        lastWriteSize = 0
-
-        requestFlush()
-    }
-
-    override fun requestFlush() {
-        pendingFlush.incrementAndGet()
-        setupOrWrite()
-    }
-
-    private fun setupOrWrite() {
-        if (listenerInstalled.compareAndSet(false, true)) {
-            servletOutputStream.setWriteListener(writeReadyListener)
-        } else {
-            writeAndNotify()
-        }
-    }
-
-    private fun writeAndNotify() {
-        val done = try {
-            doPendingWriteFlush()
-        } catch (e: Exception) {
-            fireHandler { handler, buffer ->
-                handler.failed(e)
-            }
-
-            false
-        }
-
-        if (done) {
-            fireHandler { handler, buffer ->
-                if (buffer != null) {
-                    handler.success(lastWriteSize)
-                } else {
-                    handler.successEnd()
-                }
-            }
-        }
-    }
-
-    private fun doPendingWriteFlush(): Boolean {
-        var writeRequested = false
-        var written = false
-
-        var flushRequested = false
-        var flushed = false
-
-        writeSemaphore.tryUse {
-            val handler = currentHandler.get()
-            val buffer = this.currentBuffer.get()
-
-            if (handler != null && buffer != null) {
-                writeRequested = true
-                written = doWrite(buffer)
-                if (!written) {
-                    return false
-                }
-            }
-
-            if (pendingFlush.getAndSet(0) > 0) {
-                flushRequested = true
-                flushed = doFlush()
-                if (!flushed) {
-                    pendingFlush.incrementAndGet()
-                }
-            }
-        }
-
-        return (!writeRequested || written) && (!flushRequested || flushed) && (writeRequested || flushRequested)
-    }
-
-    private fun doWrite(buffer: ByteBuffer): Boolean {
-        if (servletOutputStream.isReady) {
-            writeBuffer(buffer)
-            return true
-        }
-
-        return false
-    }
-
-    private fun writeBuffer(buffer: ByteBuffer) {
-        lastWriteSize = buffer.remaining()
-        if (buffer.hasArray()) {
-            servletOutputStream.write(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining())
-            buffer.position(buffer.limit())
-        } else {
-            val heapBuffer = ByteBuffer.allocate(buffer.remaining())
-            heapBuffer.put(buffer)
-            writeBuffer(heapBuffer)
-        }
-    }
-
-    private fun doFlush(): Boolean {
-        if (servletOutputStream.isReady) {
+    suspend override fun flush() {
+        if (listenerInstalled.get()) {
+            awaitForListenerInstalled()
+            awaitForWriteReady()
             servletOutputStream.flush()
-            return true
         }
-        return false
+    }
+
+    private suspend fun awaitForWriteReady() {
+        while (!servletOutputStream.isReady) {
+            suspendCoroutineOrReturn<Unit> { continuation ->
+                currentHandler = continuation
+
+                if (servletOutputStream.isReady) {
+                    currentHandler = null
+                    Unit
+                } else {
+                    bytesWrittenWithNoSuspend = 0L
+                    COROUTINE_SUSPENDED
+                }
+            }
+        }
+    }
+
+    private suspend fun awaitForListenerInstalled() {
+        if (!listenerInstalled.get() && listenerInstalled.compareAndSet(false, true)) {
+            suspendCoroutine<Unit> { continuation ->
+                currentHandler = continuation
+                servletOutputStream.setWriteListener(writeReadyListener)
+            }
+        }
+    }
+
+    override suspend fun write(src: ByteBuffer) {
+        awaitForListenerInstalled()
+        awaitForWriteReady()
+
+        val size = servletOutputStream.doWrite(src)
+        bytesWrittenWithNoSuspend += size
+        awaitForWriteReady()
+        // it is very important here to wait for isReady again otherwise the buffer we have provided is still in use
+        // by the container so we shouldn't use it before (otherwise the content could be corrupted or duplicated)
+        // notice that in most cases isReady = true after write as there is already buffer inside of the output
+        // so we actually don't need double-buffering here
+
+        if (bytesWrittenWithNoSuspend > MaxChunkWithoutSuspension) {
+            forceReschedule()
+        }
+    }
+
+    private fun ServletOutputStream.doWrite(src: ByteBuffer): Int {
+        val size = src.remaining()
+
+        if (src.hasArray()) {
+            write0(src, size)
+        } else {
+            val copy = heapBuffer?.takeIf { it.capacity() >= size } ?: ByteBuffer.allocate(size)!!.also { heapBuffer = it }
+            copy.clear()
+            copy.put(src)
+
+            write0(copy, size)
+        }
+
+        return size
+    }
+
+    private fun ServletOutputStream.write0(src: ByteBuffer, size: Int) {
+        write(src.array(), src.arrayOffset() + src.position(), size)
+        src.position(src.position() + size)
+    }
+
+    /**
+     * always suspends and resumes later on a pool. Useful to make thread free for other jobs.
+     */
+    private suspend fun forceReschedule() {
+        suspendCoroutineOrReturn<Unit> {
+            bytesWrittenWithNoSuspend = 0L
+            exec.submit {
+                it.resume(Unit)
+            }
+            COROUTINE_SUSPENDED
+        }
     }
 
     override fun close() {
-        servletOutputStream.close()
-        fireHandler { handler, byteBuffer ->
-            handler.failed(IOException("Channel closed"))
-        }
-    }
-
-    private inline fun Semaphore.tryUse(permits: Int = 1, block: () -> Unit): Boolean {
-        if (tryAcquire(permits)) {
-            try {
-                block()
-            } finally {
-                release(permits)
+        try {
+            servletOutputStream.close()
+        } finally {
+            currentHandler?.let { continuation ->
+                currentHandler = null
+                continuation.resumeWithException(ClosedChannelException())
             }
-            return true
-        }
-        return false
-    }
-
-    private inline fun fireHandler(block: (AsyncHandler, ByteBuffer?) -> Unit) {
-        val buffer = currentBuffer.get()
-
-        currentHandler.getAndSet(null)?.let { handler ->
-            currentBuffer.compareAndSet(buffer, null)
-
-            block(handler, buffer)
         }
     }
 }

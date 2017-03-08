@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.tests
 
 import org.jetbrains.ktor.transform.*
+import org.jetbrains.ktor.util.*
 import org.openjdk.jmh.annotations.*
 
 @State(Scope.Benchmark)
@@ -25,7 +26,7 @@ open class TransformBenchmark {
     fun handlersSelectClass() = table.handlers(C::class.java)
 
     @Benchmark
-    fun handlersTransform() = table.transform(Unit, O)
+    fun handlersTransform() = runSync { table.transform(Unit, O) }
 
     @Benchmark
     fun subHandlersSelectExact() = subTable.handlers(I::class.java)
@@ -37,7 +38,7 @@ open class TransformBenchmark {
     fun subHandlersSelectClass() = subTable.handlers(C::class.java)
 
     @Benchmark
-    fun subHandlersTransform() = subTable.transform(Unit, O)
+    fun subHandlersTransform() = runSync { subTable.transform(Unit, O) }
 
     interface I
     interface M : I
@@ -47,15 +48,15 @@ open class TransformBenchmark {
 }
 
 /*
-TransformBenchmark.handlersSelectClass         thrpt   10  33104.770 ±  298.878  ops/ms
-TransformBenchmark.handlersSelectExact         thrpt   10  50728.081 ± 2513.610  ops/ms
-TransformBenchmark.handlersSelectInterface     thrpt   10  46478.099 ± 2555.443  ops/ms
-TransformBenchmark.handlersTransform           thrpt   10  19637.388 ±  179.239  ops/ms
-TransformBenchmark.subHandlersSelectClass      thrpt   10  14326.617 ±  714.602  ops/ms
-TransformBenchmark.subHandlersSelectExact      thrpt   10  24108.043 ±  447.044  ops/ms
-TransformBenchmark.subHandlersSelectInterface  thrpt   10  14650.240 ±  214.701  ops/ms
-TransformBenchmark.subHandlersTransform        thrpt   10   7735.440 ±  283.133  ops/ms
- */
+TransformBenchmark.handlersSelectClass         thrpt   20  47604.798 ± 1676.656  ops/ms
+TransformBenchmark.handlersSelectExact         thrpt   20  47700.687 ± 1577.830  ops/ms
+TransformBenchmark.handlersSelectInterface     thrpt   20  44411.919 ± 2571.797  ops/ms
+TransformBenchmark.handlersTransform           thrpt   20  12168.531 ±  505.025  ops/ms
+TransformBenchmark.subHandlersSelectClass      thrpt   20  44466.004 ± 1993.300  ops/ms
+TransformBenchmark.subHandlersSelectExact      thrpt   20  46456.387 ± 1514.119  ops/ms
+TransformBenchmark.subHandlersSelectInterface  thrpt   20  42702.777 ± 2455.606  ops/ms
+TransformBenchmark.subHandlersTransform        thrpt   20  12627.306 ±  108.101  ops/ms
+*/
 
 fun main(args: Array<String>) {
     benchmark(args) {

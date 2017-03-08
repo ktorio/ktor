@@ -1,75 +1,51 @@
 package org.jetbrains.ktor.netty
 
-import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.multipart.*
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
-import java.io.*
 import java.util.*
-import java.util.concurrent.locks.*
-import kotlin.concurrent.*
 
-internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestDecoder, private val kRequest: NettyApplicationRequest) : MultiPartData, SimpleChannelInboundHandler<DefaultHttpContent>(true) {
+internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestDecoder, private val queue: NettyContentQueue) : MultiPartData {
     // netty's decoder doesn't provide us headers so we have to parse it or try to reconstruct
     // TODO original headers
 
-    private val lock = ReentrantLock()
-    private val elementPresent = lock.newCondition()
     private val all = ArrayList<PartData>()
-    private var completed = false
+    private var fetched = false
     private var destroyed = false
 
     override val parts: Sequence<PartData>
-        get() = when {
-            kRequest.isMultipart() -> object : Sequence<PartData> {
-                override fun iterator() = PartIterator()
-            }
-            else -> throw IOException("The request content is not multipart encoded")
-        }
+        get() = runBlocking(Unconfined) { parts() }
 
-    override fun acceptInboundMessage(msg: Any?): Boolean {
-        return super.acceptInboundMessage(msg)
+    suspend fun parts(): Sequence<PartData> {
+        if (!fetched)
+            processQueue()
+        return all.asSequence()
     }
 
-    override fun channelRead0(context: ChannelHandlerContext, msg: DefaultHttpContent) {
-        var added = 0
-
-        lock.withLock {
-            decoder.offer(msg)
-
-            try {
-                while (true) {
-                    val hostPart = decoder.next() ?: break
-                    val part = convert(hostPart)
-                    if (part != null) {
-                        all.add(part)
-                        added++
-                    }
-                }
-
-                if (added > 0) {
-                    elementPresent.signalAll()
-                }
-            } catch (e: HttpPostRequestDecoder.EndOfDataDecoderException) {
-                completed = true
-                elementPresent.signalAll()
+    suspend fun processQueue() {
+        while (true) {
+            val item = queue.pull() ?: run {
+                fetched = true
+                return
             }
-
-            if (msg is LastHttpContent) {
-                completed = true
-                elementPresent.signalAll()
-            }
+            processItem(item)
         }
+
     }
 
-    override fun channelReadComplete(ctx: ChannelHandlerContext) {
-        lock.withLock {
-            completed = true
-            elementPresent.signalAll()
+    fun processItem(content: HttpContent) {
+        decoder.offer(content)
+        while (true) {
+            val hostPart = decoder.next() ?: break
+            val part = convert(hostPart)
+            if (part != null) {
+                all.add(part)
+            }
         }
     }
 
@@ -77,27 +53,6 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
         if (!destroyed) {
             destroyed = true
             decoder.destroy()
-        }
-    }
-
-    private inner class PartIterator : AbstractIterator<PartData>() {
-        private var index = 0
-
-        override fun computeNext() {
-            lock.withLock {
-                while (true) {
-                    if (index < all.size) {
-                        setNext(all[index])
-                        index++
-                        break
-                    } else if (completed) {
-                        done()
-                        break
-                    } else {
-                        elementPresent.await()
-                    }
-                }
-            }
         }
     }
 

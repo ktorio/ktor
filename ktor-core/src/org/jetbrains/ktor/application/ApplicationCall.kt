@@ -1,13 +1,11 @@
 package org.jetbrains.ktor.application
 
-import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
-import java.io.*
 
 /**
  * Represents a single act of communication between client and server.
  */
-interface ApplicationCall : Closeable {
+interface ApplicationCall {
     /**
      * Application being called
      */
@@ -19,27 +17,22 @@ interface ApplicationCall : Closeable {
     val request: ApplicationRequest
 
     /**
+     * Server response
+     */
+    val response: ApplicationResponse
+
+    /**
      * Attributes attached to this instance
      */
     val attributes: Attributes
 
     /**
-     * Closes this call and sends out any remaining data
+     * Parameters associated with this call
      */
-    override fun close(): Unit
-
     val parameters: ValuesMap
 
     /**
-     * Server response
+     * Sends a [message] as a response
      */
-    val response: ApplicationResponse
-
-    fun respond(message: Any): Nothing
-
-    @Deprecated("Use response.pipeline instead", ReplaceWith("response.pipeline"), level = DeprecationLevel.ERROR)
-    val respond: RespondPipeline
-        get() = response.pipeline
-
-    val execution: PipelineMachine
+    suspend fun respond(message: Any)
 }

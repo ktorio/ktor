@@ -107,7 +107,7 @@ class LocationsTest {
                 call.respond(HttpStatusCode.OK)
             }
             assertFailsWith(InconsistentRoutingException::class) {
-                get<pathContainer.badItems> {  }
+                get<pathContainer.badItems> { }
             }
         }
         urlShouldBeHandled(href)
@@ -130,7 +130,7 @@ class LocationsTest {
                 call.respond(HttpStatusCode.OK)
             }
             assertFailsWith(InconsistentRoutingException::class) {
-                get<queryContainer.badItems> {  }
+                get<queryContainer.badItems> { }
             }
         }
         urlShouldBeHandled(href)
@@ -248,6 +248,7 @@ class LocationsTest {
     }
 
     @location("/") class multiquery(val value: List<Int>)
+    @location("/") class multiquery2(val name: List<String>)
 
     @Test fun `location with multiple query values`() = withLocationsApplication {
         val href = application.feature(Locations).href(multiquery(listOf(1, 2, 3)))
@@ -259,6 +260,49 @@ class LocationsTest {
 
         }
         urlShouldBeHandled(href, "[1, 2, 3]")
+    }
+
+    @Test fun `location with multiple query values can select by query params`() = withLocationsApplication {
+        val href = application.feature(Locations).href(multiquery(listOf(1)))
+        assertEquals("/?value=1", href)
+        application.routing {
+            get<multiquery> {
+                call.respond("1: ${it.value}")
+            }
+            get<multiquery2> {
+                call.respond("2: ${it.name}")
+            }
+
+        }
+        urlShouldBeHandled(href, "1: [1]")
+    }
+
+    @Test fun `location with multiple query values can select by query params2`() = withLocationsApplication {
+        val href = application.feature(Locations).href(multiquery2(listOf("john, mary")))
+        assertEquals("/?name=john%2C+mary", href)
+        application.routing {
+            get<multiquery> {
+                call.respond("1: ${it.value}")
+            }
+            get<multiquery2> {
+                call.respond("2: ${it.name}")
+            }
+
+        }
+        urlShouldBeHandled(href, "2: [john, mary]")
+    }
+
+    @location("/") class multiqueryWithDefault(val value: List<Int> = emptyList())
+
+    @Test fun `location with multiple query values and default`() = withLocationsApplication {
+        val href = application.feature(Locations).href(multiqueryWithDefault(listOf()))
+        assertEquals("/", href)
+        application.routing {
+            get<multiqueryWithDefault> {
+                call.respond(it.value.toString())
+            }
+        }
+        urlShouldBeHandled(href, "[]")
     }
 
     @location("/space in") class SpaceInPath()

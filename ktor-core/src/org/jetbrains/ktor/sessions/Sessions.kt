@@ -46,7 +46,7 @@ inline fun <S : Any> Pipeline<ApplicationCall>.withSessions(type: KClass<S>, blo
 
 fun <S : Any> Pipeline<ApplicationCall>.withSessions(sessionConfig: SessionConfig<S>) {
     intercept(ApplicationCallPipeline.Infrastructure) { call ->
-        call.response.pipeline.intercept(RespondPipeline.Before) {
+        call.response.pipeline.intercept(ApplicationResponsePipeline.Before) {
             if (call.attributes.contains(SessionKey)) {
                 val session = call.sessionOrNull(sessionConfig.sessionType)
                 if (session != null) {
@@ -62,7 +62,7 @@ fun <S : Any> Pipeline<ApplicationCall>.withSessions(sessionConfig: SessionConfi
     }
 }
 
-fun ApplicationCall.clearSession() {
+suspend fun ApplicationCall.clearSession() {
     val sessionConfig = attributes.getOrNull(SessionConfigKey)
 
     if (sessionConfig != null) {

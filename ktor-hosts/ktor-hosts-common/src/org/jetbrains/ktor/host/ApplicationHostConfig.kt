@@ -22,4 +22,8 @@ class ApplicationHostConfigBuilder : ApplicationHostConfig {
     override val connectors = ArrayList<HostConnectorConfig>()
 
     override var autoreload: Boolean = false
+
+    override fun toString(): String {
+        return "ApplicationHostConfig($connectors, autoreload=$autoreload)"
+    }
 }

@@ -4,6 +4,8 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.jetbrains.ktor.util.*
@@ -136,7 +138,7 @@ class StaticContentTest {
 
     @Test
     fun testSyntacticallyIncorrectRange() {
-        withRangeApplication { file ->
+        withRangeApplication {
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=1000000-7") // syntactically incorrect
             }).let { result ->
@@ -178,7 +180,7 @@ class StaticContentTest {
 
     @Test
     fun testHeadRequestRange() {
-        withRangeApplication { file ->
+        withRangeApplication {
             // head request
             handleRequest(HttpMethod.Head, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=0-0")
@@ -194,7 +196,7 @@ class StaticContentTest {
 
     @Test
     fun testPostRequestRange() {
-        withRangeApplication { file ->
+        withRangeApplication {
             // post request
             handleRequest(HttpMethod.Post, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=0-0")
@@ -207,7 +209,7 @@ class StaticContentTest {
 
     @Test
     fun testPostNoRange() {
-        withRangeApplication { file ->
+        withRangeApplication {
             // post request with no range
             handleRequest(HttpMethod.Post, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
 
@@ -220,7 +222,7 @@ class StaticContentTest {
 
     @Test
     fun testMultipleRanges() {
-        withRangeApplication { file ->
+        withRangeApplication {
             // multiple ranges
             handleRequest(HttpMethod.Get, "/org/jetbrains/ktor/tests/http/StaticContentTest.kt", {
                 addHeader(HttpHeaders.Range, "bytes=0-0,2-2")
@@ -324,16 +326,16 @@ class StaticContentTest {
     fun testSendLocalFileBadRelative() {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) { call ->
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir, "/../../../../../../../../../../../../../etc/passwd"))
                 }
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir, "../pom.xml"))
                 }
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir, "../../pom.xml"))
                 }
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir, "/../pom.xml"))
                 }
             }
@@ -348,22 +350,44 @@ class StaticContentTest {
     fun testSendLocalFileBadRelativePaths() {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) { call ->
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../../../../../../../../../../../../../etc/passwd")))
                 }
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir.toPath(), Paths.get("../pom.xml")))
                 }
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir.toPath(), Paths.get("../../pom.xml")))
                 }
-                assertFailsWith<IllegalArgumentException> {
+                assertFailsWithSuspended<IllegalArgumentException> {
                     call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../pom.xml")))
                 }
             }
 
             handleRequest(HttpMethod.Get, "/").let { result ->
                 assertFalse(result.requestHandled)
+            }
+        }
+    }
+
+    @Test
+    fun testInterceptCacheControl() {
+        withTestApplication {
+            application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
+                if (call.request.httpMethod == HttpMethod.Get ||
+                        call.request.httpMethod == HttpMethod.Head) {
+                    call.response.cacheControl(CacheControl.MaxAge(300))
+                }
+            }
+
+            application.intercept(ApplicationCallPipeline.Call) { call ->
+                call.respond(LocalFileContent(File(basedir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt")))
+            }
+
+            handleRequest(HttpMethod.Get, "/").let { result ->
+                assertTrue(result.requestHandled)
+                assertEquals(File(basedir, "org/jetbrains/ktor/tests/http/StaticContentTest.kt".replaceSeparators()).readText(), result.response.content)
+                assertEquals(listOf("max-age=300"), result.response.headers.values(HttpHeaders.CacheControl))
             }
         }
     }
@@ -457,4 +481,22 @@ class StaticContentTest {
     }
 
     private fun String.replaceSeparators() = replace("/", File.separator)
+}
+
+private inline suspend fun <reified T> assertFailsWithSuspended(noinline block: suspend () -> Unit): T {
+    val exceptionClass = T::class.java
+    try {
+        block()
+    } catch (e: Throwable) {
+        if (exceptionClass.isInstance(e)) {
+            @Suppress("UNCHECKED_CAST")
+            return e as T
+        }
+
+        @Suppress("INVISIBLE_MEMBER")
+        asserter.fail("Expected an exception of type $exceptionClass to be thrown, but was $e")
+    }
+
+    @Suppress("INVISIBLE_MEMBER")
+    asserter.fail("Expected an exception of type $exceptionClass to be thrown, but was completed successfully.")
 }

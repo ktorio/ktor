@@ -7,7 +7,7 @@ import java.util.logging.*
 object ContentTypeByExtension {
     private val contentTypesFileName = "mimelist.csv"
 
-    val contentTypesByExtensions: Map<String, List<ContentType>> by lazy {
+    val contentTypesByExtensions: Map<String, List<ContentType>> by lazy(LazyThreadSafetyMode.PUBLICATION) {
         processRecords { ext, contentType -> ext to contentType }.let { records -> CaseInsensitiveMap<List<ContentType>>(records.size).apply { putAll(records) } }
     }
 

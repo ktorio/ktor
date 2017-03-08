@@ -4,12 +4,12 @@
     <parent>
         <artifactId>ktor-hosts</artifactId>
         <groupId>org.jetbrains.ktor</groupId>
-        <version>0.2.4-SNAPSHOT</version>
+        <version>0.3.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>ktor-jetty</artifactId>
     <properties>
-        <jetty.version>9.3.13.v20161014</jetty.version>
+        <jetty.version>9.4.1.v20170120</jetty.version>
     </properties>
 
     <dependencies>

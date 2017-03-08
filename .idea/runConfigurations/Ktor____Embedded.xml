@@ -12,9 +12,6 @@
     <option name="PASS_PARENT_ENVS" value="true" />
     <module name="ktor-samples-embedded" />
     <envs />
-    <RunnerSettings RunnerId="JProfiler">
-      <option name="WINDOW" value="false" />
-    </RunnerSettings>
     <method />
   </configuration>
 </component>

@@ -1,5 +1,6 @@
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.jetty.*
 import org.jetbrains.ktor.logging.*
@@ -34,7 +35,7 @@ class JettyDeadlockTest {
 
         val appHostConfig = applicationHostConfig { connector { this.port = port } }
 
-        val appEnv = BasicApplicationEnvironment(javaClass.classLoader, SLF4JApplicationLog("KTorTest"), MapApplicationConfig(
+        val appEnv = BasicApplicationEnvironment(this::class.java.classLoader, SLF4JApplicationLog("KTorTest"), MapApplicationConfig(
                 "ktor.application.class" to BlockingApplication::class.qualifiedName!!
         ))
 
@@ -44,12 +45,12 @@ class JettyDeadlockTest {
         val e = Executors.newCachedThreadPool()
         val q = LinkedBlockingQueue<String>()
 
-        println("starting")
+        //println("starting")
         val conns = (0..2000).map { number ->
             e.submit(Callable<String> {
                 try {
                     URL("http://localhost:$port/").openConnection().inputStream.bufferedReader().readLine().apply {
-                        println("$number says $this")
+                        //println("$number says $this")
                     } ?: "<empty>"
                 } catch (t: Throwable) {
                     "error: ${t.message}"
@@ -59,7 +60,7 @@ class JettyDeadlockTest {
             })
         }
 
-        println("Main thread is waiting for responses")
+        //println("Main thread is waiting for responses")
 
         TimeUnit.SECONDS.sleep(5)
         var attempts = 7
@@ -67,7 +68,7 @@ class JettyDeadlockTest {
         fun dump() {
             val (valid, invalid) = conns.filter { it.isDone }.partition { it.get() == "Help !" }
 
-            println("Completed: ${valid.size} valid, ${invalid.size} invalid of ${valid.size + invalid.size} total [attempts $attempts]")
+            //println("Completed: ${valid.size} valid, ${invalid.size} invalid of ${valid.size + invalid.size} total [attempts $attempts]")
         }
 
         while (true) {

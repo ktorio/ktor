@@ -44,6 +44,10 @@ inline fun ApplicationHostConfigBuilder.sslConnector(keyStore: KeyStore, keyAlia
 open class HostConnectorBuilder(override val type: ConnectorType = ConnectorType.HTTP) : HostConnectorConfig {
     override var host: String = "0.0.0.0"
     override var port: Int = 80
+
+    override fun toString(): String {
+        return "${type.name} $host:$port"
+    }
 }
 
 class HostSSLConnectorBuilder(override var keyStore: KeyStore,

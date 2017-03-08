@@ -3,7 +3,7 @@
     <parent>
         <artifactId>ktor-hosts</artifactId>
         <groupId>org.jetbrains.ktor</groupId>
-        <version>0.2.4-SNAPSHOT</version>
+        <version>0.3.1-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -11,7 +11,7 @@
 
     <properties>
         <!--<tomcat.version>8.5.4</tomcat.version>-->
-        <tomcat.version>9.0.0.M11</tomcat.version>
+        <tomcat.version>9.0.0.M17</tomcat.version>
     </properties>
 
     <dependencies>

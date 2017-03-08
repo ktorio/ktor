@@ -2,12 +2,12 @@ package org.jetbrains.ktor.freemarker
 
 import freemarker.template.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.content.Version
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
-import java.io.*
 
 class FreeMarkerContent(val templateName: String,
                         val model: Any,
@@ -21,7 +21,7 @@ class FreeMarker(val config: Configuration) {
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): FreeMarker {
             val config = Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS).apply(configure)
             val feature = FreeMarker(config)
-            pipeline.feature(TransformationSupport).register<FreeMarkerContent> { model -> feature.process(model) }
+            pipeline.feature(ApplicationTransform).register<FreeMarkerContent> { model -> feature.process(model) }
             return feature
         }
     }
@@ -33,9 +33,9 @@ class FreeMarker(val config: Configuration) {
     private class FreeMarkerTemplateResource(val template: freemarker.template.Template,
                                              val model: Any,
                                              val etag: String,
-                                             override val contentType: ContentType) : StreamConsumer(), Resource {
-        override fun stream(out: OutputStream) {
-            with(out.bufferedWriter(contentType.charset() ?: Charsets.UTF_8)) {
+                                             override val contentType: ContentType) : FinalContent.WriteChannelContent(), Resource {
+        suspend override fun writeTo(channel: WriteChannel) {
+            with(channel.toOutputStream().bufferedWriter(contentType.charset() ?: Charsets.UTF_8)) {
                 template.process(model, this)
             }
         }

@@ -6,10 +6,11 @@ abstract class ResponseHeaders {
     operator fun contains(name: String): Boolean = getHostHeaderValues(name).isNotEmpty()
     operator fun get(name: String): String? = getHostHeaderValues(name).firstOrNull()
     fun values(name: String): List<String> = getHostHeaderValues(name)
-    fun allValues(): ValuesMap = getHostHeaderNames().fold(ValuesMapBuilder(true)) { builder, headerName ->
-        builder.appendAll(headerName, getHostHeaderValues(headerName))
-        builder
-    }.build()
+    fun allValues(): ValuesMap = ValuesMap.build(true) {
+        getHostHeaderNames().forEach {
+            appendAll(it, getHostHeaderValues(it))
+        }
+    }
 
     fun append(name: String, value: String) {
         hostAppendHeader(name, value)

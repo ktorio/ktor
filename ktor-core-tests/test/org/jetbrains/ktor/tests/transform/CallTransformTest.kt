@@ -1,8 +1,8 @@
 package org.jetbrains.ktor.tests.transform
 
+import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
@@ -42,11 +42,8 @@ class CallTransformTest {
             application.routing {
                 get("/") {
                     call.transform.register<Int> { value ->
-                        runAsync(exec) {
-                            proceed(value.toString())
-                        }
+                        future { value.toString() }.await()
                     }
-
                     call.respond(777)
                 }
             }
@@ -63,9 +60,7 @@ class CallTransformTest {
             application.routing {
                 get("/") {
                     call.transform.register<Int> { value ->
-                        runAsync(exec) {
-                            proceed(Wrapper(value + 1))
-                        }
+                        future { Wrapper(value + 1) }.await()
                     }
 
                     // TODO think of unsafe generics here
@@ -73,7 +68,7 @@ class CallTransformTest {
                         value.value.toString() + "s"
                     }
 
-                    call.transform.register(Wrapper::class, { true }) { v -> }
+                    call.transform.register(Wrapper::class, { true }) { }
 
                     call.respond(777)
                 }

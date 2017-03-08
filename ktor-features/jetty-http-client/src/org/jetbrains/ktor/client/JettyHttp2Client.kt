@@ -1,17 +1,21 @@
 package org.jetbrains.ktor.client
 
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.future.*
 import org.eclipse.jetty.client.api.*
 import org.eclipse.jetty.http2.client.*
 import org.eclipse.jetty.http2.client.http.*
 import org.eclipse.jetty.util.*
+import org.eclipse.jetty.util.ssl.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.nio.*
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
+import kotlin.coroutines.experimental.*
 
 object JettyHttp2Client : HttpClient {
     override fun openConnection(host: String, port: Int, secure: Boolean): HttpConnection {
@@ -22,13 +26,15 @@ object JettyHttp2Client : HttpClient {
         override val status: HttpStatusCode
             get() = HttpStatusCode(response.status, response.reason ?: "")
 
-        override val headers: ValuesMap by lazy { ValuesMapBuilder(true).apply {
-            response.headers.forEach { append(it.name, it.value) }
-        }.build() }
+        override val headers: ValuesMap by lazy {
+            ValuesMap.build(true) {
+                response.headers.forEach { append(it.name, it.value) }
+            }
+        }
     }
 
     private class JettyClientReadChannel(val request: Request) : ReadChannel {
-        private val currentHandler = AtomicReference<AsyncHandler?>()
+        private val currentHandler = AtomicReference<Continuation<Int>?>()
         private var currentBuffer: ByteBuffer? = null
 
         private var contentEof = false
@@ -38,7 +44,7 @@ object JettyHttp2Client : HttpClient {
 
 
         init {
-            request.onResponseContentAsync { response, buffer, callback ->
+            request.onResponseContentAsync { _, buffer, callback ->
                 if (buffer.hasRemaining()) {
                     contentCallbacks.add(callback)
                     contentBuffers.add(buffer)
@@ -53,7 +59,7 @@ object JettyHttp2Client : HttpClient {
 
                 tryMeet()
             }
-            request.onResponseFailure { response, throwable ->
+            request.onResponseFailure { _, throwable ->
                 contentEof = true
                 contentError = throwable
 
@@ -61,21 +67,20 @@ object JettyHttp2Client : HttpClient {
             }
         }
 
-        override fun read(dst: ByteBuffer, handler: AsyncHandler) {
-            if (contentError != null) {
-                val error = contentError!!
-                return handler.failed(error)
-            }
+        override suspend fun read(dst: ByteBuffer): Int {
+            contentError?.let { throw it }
             if (contentEof && contentBuffers.isEmpty()) {
-                handler.successEnd()
-                return
+                return -1
             }
-            if (!currentHandler.compareAndSet(null, handler)) {
-                throw IllegalStateException("Read operation is already in progress")
-            }
-            currentBuffer = dst
 
-            tryMeet()
+            return suspendCoroutine { continuation ->
+                if (!currentHandler.compareAndSet(null, continuation)) {
+                    throw IllegalStateException("Read operation is already in progress")
+                }
+                currentBuffer = dst
+
+                tryMeet()
+            }
         }
 
         override fun close() {
@@ -115,7 +120,7 @@ object JettyHttp2Client : HttpClient {
                         currentBuffer = null
                         currentHandler.set(null)
 
-                        handler.success(copied)
+                        handler.resume(copied)
                     }
                 } // else we get one more tryMeet iteration that will succeed
             }
@@ -124,7 +129,7 @@ object JettyHttp2Client : HttpClient {
         private fun meetEof() {
             withCounter {
                 currentBuffer = null
-                currentHandler.getAndSet(null)?.successEnd()
+                currentHandler.getAndSet(null)?.resume(-1)
             }
         }
 
@@ -138,7 +143,7 @@ object JettyHttp2Client : HttpClient {
                 contentCallbacks.clear()
                 contentBuffers.clear()
 
-                currentHandler.getAndSet(null)?.failed(error)
+                currentHandler.getAndSet(null)?.resumeWithException(error)
             }
 
             tryMeet()
@@ -156,50 +161,54 @@ object JettyHttp2Client : HttpClient {
         }
     }
 
-    private class JettyRequestProcessor(val request: Request, val connection: JettyHttp2Connection, handler: (Future<HttpResponse>) -> Unit) {
+    private class JettyRequestProcessor(val request: Request, val connection: JettyHttp2Connection, handler: Continuation<HttpResponse>) {
         private val channel = JettyClientReadChannel(request)
 
         init {
             request.onResponseBegin { response ->
-                handler(CompletableFuture.completedFuture(JettyHttp2Response(connection, response, channel)))
+                handler.resume(JettyHttp2Response(connection, response, channel))
             }
-            request.onRequestFailure { request, throwable ->
-                handler(CompletableFuture<HttpResponse>().apply {
-                    completeExceptionally(throwable)
-                })
+            request.onRequestFailure { _, throwable ->
+                handler.resumeWithException(throwable)
             }
         }
 
         fun send() {
-            request.send { result ->
+            request.send {
             }
         }
     }
 
     private class JettyHttp2Connection(val host: String, val port: Int, secure: Boolean) : HttpConnection {
+        val ssl = if (secure) SslContextFactory(true) else null
+
         private val transport = HTTP2Client()
-        private val client = org.eclipse.jetty.client.HttpClient(HttpClientTransportOverHTTP2(transport), null).apply {
+        private val client = org.eclipse.jetty.client.HttpClient(HttpClientTransportOverHTTP2(transport), ssl).apply {
             isConnectBlocking = false
             isStrictEventOrdering = true
-        } // TODO: SSL context
+
+            if (ssl != null) {
+                addBean(ssl)
+            }
+        }
 
         override fun requestBlocking(init: RequestBuilder.() -> Unit): HttpResponse {
-            val future = CompletableFuture<HttpResponse>()
+            return runBlocking { request(init) }
+        }
 
-            requestAsync(init, {
-                try {
-                    future.complete(it.get())
-                } catch (t: Throwable) {
-                    future.completeExceptionally(t)
-                }
-            })
-
-            return future.get()
+        suspend override fun request(init: RequestBuilder.() -> Unit): HttpResponse {
+            ensureRunning()
+            return suspendCoroutine { continuation ->
+                JettyRequestProcessor(newRequest(RequestBuilder().apply(init)), this, continuation).send()
+            }
         }
 
         override fun requestAsync(init: RequestBuilder.() -> Unit, handler: (Future<HttpResponse>) -> Unit) {
-            ensureRunning()
-            JettyRequestProcessor(newRequest(RequestBuilder().apply(init)), this, handler).send()
+            val f = future {
+                request(init)
+            }
+
+            f.whenComplete { _, _ -> handler(f) }
         }
 
         private fun newRequest(builder: RequestBuilder): Request {

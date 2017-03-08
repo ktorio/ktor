@@ -14,7 +14,7 @@ internal class Multiplexer(val parent: Channel, val handler: ChannelHandler) : C
 
     init {
         require((handler is ChannelHandlerAdapter && handler.isSharable)
-                || handler.javaClass.isAnnotationPresent(ChannelHandler.Sharable::class.java)) { "handler must be Sharable" }
+                || handler::class.java.isAnnotationPresent(ChannelHandler.Sharable::class.java)) { "handler must be Sharable" }
     }
 
     override fun handlerAdded(ctx: ChannelHandlerContext) {
@@ -52,10 +52,8 @@ internal class Multiplexer(val parent: Channel, val handler: ChannelHandler) : C
 
     private fun streamClosed(streamId: Int) {
         channels[streamId]?.let { channel ->
-            context.executeInLoop {
-                channel.doClose()
-                channel.handleRead(Unit)
-            }
+            channel.doClose()
+            channel.handleRead(Unit)
         }
     }
 
@@ -89,11 +87,9 @@ internal class Multiplexer(val parent: Channel, val handler: ChannelHandler) : C
 
     private inner class Http2StreamChannelImpl(streamId: Int) : Http2StreamChannel(parent, streamId, context) {
         override fun writeFromStreamChannel(msg: Http2StreamFrame, flush: Boolean) {
-            context.executeInLoop {
-                write(context, msg, context.newPromise())
-                if (flush) {
-                    flush(context)
-                }
+            write(context, msg, context.newPromise())
+            if (flush) {
+                flush(context)
             }
         }
     }

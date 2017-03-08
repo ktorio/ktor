@@ -3,14 +3,14 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.jetbrains.ktor</groupId>
-    <version>0.2.4-SNAPSHOT</version>
+    <version>0.3.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <artifactId>ktor</artifactId>
 
     <properties>
-        <kotlin.version>1.0.5</kotlin.version>
-        <dokka.version>0.9.8</dokka.version>
-        <jmh.version>1.15</jmh.version>
+        <kotlin.version>1.1.0</kotlin.version>
+        <dokka.version>0.9.11</dokka.version>
+        <jmh.version>1.17.5</jmh.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -37,37 +37,6 @@
         <profile>
             <id>bintray</id>
         </profile>
-        <profile>
-            <id>kotlin-1.1</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-            <properties>
-                <kotlin.version>1.1.0-dev-4137</kotlin.version>
-            </properties>
-
-            <repositories>
-                <repository>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <id>bintray-kotlin-kotlin-dev</id>
-                    <name>bintray</name>
-                    <url>http://dl.bintray.com/kotlin/kotlin-dev</url>
-                </repository>
-            </repositories>
-
-            <pluginRepositories>
-                <pluginRepository>
-                    <snapshots>
-                        <enabled>false</enabled>
-                    </snapshots>
-                    <id>bintray-kotlin-kotlin-dev</id>
-                    <name>bintray-plugins</name>
-                    <url>http://dl.bintray.com/kotlin/kotlin-dev</url>
-                </pluginRepository>
-            </pluginRepositories>
-        </profile>
     </profiles>
 
     <dependencies>
@@ -83,7 +52,7 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlin</groupId>
-            <artifactId>kotlin-stdlib</artifactId>
+            <artifactId>kotlin-stdlib-jre8</artifactId>
             <version>${kotlin.version}</version>
         </dependency>
         <dependency>
@@ -94,8 +63,8 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
-            <artifactId>kotlinx-support-jdk8</artifactId>
-            <version>0.3</version>
+            <artifactId>kotlinx-coroutines-jdk8</artifactId>
+            <version>0.12</version>
         </dependency>
 
         <dependency>
@@ -107,12 +76,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.21</version>
+            <version>1.7.24</version>
         </dependency>
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.1.2</version>
+            <version>1.2.1</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe</groupId>
@@ -123,7 +92,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>log4j-over-slf4j</artifactId>
-            <version>1.7.21</version>
+            <version>1.7.24</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -190,6 +159,12 @@
                         </goals>
                     </execution>
                 </executions>
+                <configuration>
+                    <jvmTarget>1.8</jvmTarget>
+                    <args>
+                        <arg>-Xcoroutines=enable</arg>
+                    </args>
+                </configuration>
             </plugin>
             <plugin>
                 <artifactId>maven-release-plugin</artifactId>
@@ -284,14 +259,6 @@
             <id>devexperts-maven</id>
             <url>https://dl.bintray.com/devexperts/Maven</url>
         </pluginRepository>
-        <pluginRepository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <id>bintray-kotlin-kotlin-eap</id>
-            <name>bintray-plugins</name>
-            <url>http://dl.bintray.com/kotlin/kotlin-eap</url>
-        </pluginRepository>
     </pluginRepositories>
     <repositories>
         <repository>
@@ -302,9 +269,9 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-            <id>bintray-kotlin-kotlin-eap</id>
+            <id>bintray-kotlin-eap-1.1</id>
             <name>bintray</name>
-            <url>http://dl.bintray.com/kotlin/kotlin-eap</url>
+            <url>http://dl.bintray.com/kotlin/kotlin-eap-1.1</url>
         </repository>
     </repositories>
 </project>

@@ -4,7 +4,7 @@
     <parent>
         <artifactId>ktor</artifactId>
         <groupId>org.jetbrains.ktor</groupId>
-        <version>0.2.4-SNAPSHOT</version>
+        <version>0.3.1-SNAPSHOT</version>
     </parent>
 
     <artifactId>ktor-samples</artifactId>
@@ -12,6 +12,7 @@
 
     <modules>
         <module>ktor-samples-hello</module>
+        <module>ktor-samples-html</module>
         <module>ktor-samples-locations</module>
         <module>ktor-samples-auth</module>
         <module>ktor-samples-async</module>
@@ -22,6 +23,7 @@
         <module>you-kube</module>
         <module>kweet</module>
         <module>ktor-samples-websocket</module>
+        <module>ktor-samples-ssl-http2</module>
     </modules>
 
     <dependencies>

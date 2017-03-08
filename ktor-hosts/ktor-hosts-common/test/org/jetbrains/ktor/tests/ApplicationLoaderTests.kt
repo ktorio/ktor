@@ -277,7 +277,7 @@ class ApplicationLoaderTests {
         val config = HoconApplicationConfig(ConfigFactory.parseMap(
                 mapOf(
                         "ktor.deployment.environment" to "test",
-                        "ktor.application.features" to listOf(CallLogging::class.jvmName)
+                        "ktor.application.features" to listOf(CallLogging.Feature::class.jvmName)
                 )))
 
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)

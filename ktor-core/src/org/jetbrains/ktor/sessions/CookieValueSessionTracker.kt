@@ -7,22 +7,23 @@ import kotlin.reflect.*
 class CookieValueSessionTracker<S : Any>(val cookieSettings: SessionCookiesSettings,
                                          val cookieName: String,
                                          val serializer: SessionSerializer<S>) : SessionTracker<S> {
-    override fun assign(call: ApplicationCall, session: S) {
+    override suspend fun assign(call: ApplicationCall, session: S) {
         val serialized = serializer.serialize(session)
         val cookie = cookieSettings.toCookie(cookieName, serialized)
         call.response.cookies.append(cookie)
     }
 
-    override fun lookup(context: PipelineContext<ApplicationCall>, processSession: (S) -> Unit): Nothing {
+    suspend override fun lookup(context: PipelineContext<ApplicationCall>, processSession: (S) -> Unit) {
         val cookie = context.call.request.cookies[cookieName]
-        val value = cookieSettings.fromCookie(cookie) ?: context.proceed()
-
-        val deserialize = serializer.deserialize(value)
-        processSession(deserialize)
+        val value = cookieSettings.fromCookie(cookie)
+        if (value != null) {
+            val deserialize = serializer.deserialize(value)
+            processSession(deserialize)
+        }
         context.proceed()
     }
 
-    override fun unassign(call: ApplicationCall) {
+    override suspend fun unassign(call: ApplicationCall) {
         call.response.cookies.appendExpired(cookieName)
     }
 }

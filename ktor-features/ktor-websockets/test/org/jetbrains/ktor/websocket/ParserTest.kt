@@ -5,6 +5,7 @@ import org.jetbrains.ktor.tests.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
 import java.nio.*
+import java.time.*
 import kotlin.test.*
 
 class ParserTest {
@@ -27,6 +28,7 @@ class ParserTest {
                     0x81 0x05 0x48 0x65 0x6c 0x6c 0x6f
                 """.trimHex())
             }.let { call ->
+                call.awaitWebSocket(Duration.ofSeconds(10))
                 assertEquals("810548656c6c6f", hex(call.response.byteContent!!))
             }
         }
@@ -54,6 +56,8 @@ class ParserTest {
                     0x81 0x85 0x37 0xfa 0x21 0x3d 0x7f 0x9f 0x4d 0x51 0x58
                 """.trimHex())
             }.let { call ->
+                call.awaitWebSocket(Duration.ofSeconds(10))
+
                 val bb = ByteBuffer.wrap(call.response.byteContent!!)
                 val parser = FrameParser()
                 parser.frame(bb)
@@ -85,6 +89,7 @@ class ParserTest {
                     0x88 0x02 0xe8 0x03
                 """.trimHex())
             }.let { call ->
+                call.awaitWebSocket(Duration.ofSeconds(10))
                 assertEquals("0x88 0x02 0xe8 0x03".trimHex(), hex(call.response.byteContent!!))
             }
         }

@@ -1,63 +1,23 @@
 package org.jetbrains.ktor.tests
 
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.util.*
 import org.openjdk.jmh.annotations.*
 
 @State(Scope.Benchmark)
 open class BaselinePipeline {
-    val functions = listOf({ PipelineState.Finished }, { PipelineState.Finished }, { PipelineState.Finished })
+    val functions = listOf({ "1" }, { "2" }, { "3" })
+    val suspendFunctions = listOf<suspend () -> String>({ "1" }, { "2" }, { "3" })
 
     @Benchmark
-    fun directCalls() {
-        functions.forEach { it() }
-    }
-
-    class StateHolder {
-        var index = 0
-    }
-
-    fun StateHolder.executeNext(depth: Int): Nothing {
-        functions[index++]()
-        if (index == functions.size)
-            throw PipelineControl.Completed
-        continueStateMachine(depth)
-    }
-
-    @CompilerControl(CompilerControl.Mode.DONT_INLINE)
-    private fun continueStateMachine(depth: Int): Nothing {
-        if (depth == 0) {
-            throw PipelineControl.Continue
-        }
-        continueStateMachine(depth - 1)
+    fun directCalls(): String {
+        return functions.fold("") { a, b -> a + b() }
     }
 
     @Benchmark
-    fun stateMachine0(): PipelineState {
-        return runStateMachine(0)
-    }
-
-    @Benchmark
-    fun stateMachine1(): PipelineState {
-        return runStateMachine(1)
-    }
-
-    @Benchmark
-    fun stateMachine2(): PipelineState {
-        return runStateMachine(2)
-    }
-
-    private fun runStateMachine(depth: Int): PipelineState {
-        val state = StateHolder()
-        loop@ while (true) {
-            try {
-                state.executeNext(depth)
-            } catch (e: PipelineControl) {
-                when (e) {
-                    is PipelineControl.Completed -> return PipelineState.Finished
-                    is PipelineControl.Continue -> continue@loop
-                    else -> throw e
-                }
-            }
+    fun suspendCalls(): String {
+        return runSync {
+            suspendFunctions.fold("") { a, b -> a + b() }
         }
     }
 }
@@ -66,18 +26,9 @@ open class BaselinePipeline {
 abstract class PipelineBenchmark {
     val callPhase = PipelinePhase("Call")
     fun pipeline(): Pipeline<String> = Pipeline(callPhase)
-    fun Pipeline<String>.intercept(block: PipelineContext<String>.(String) -> Unit) = phases.intercept(callPhase, block)
-    fun <T : Any> Pipeline<T>.execute(subject: T): PipelineState {
-        try {
-            PipelineMachine().execute(subject, this)
-        } catch (e: PipelineControl) {
-            when (e) {
-                is PipelineControl.Completed -> return PipelineState.Finished
-                is PipelineControl.Paused -> return PipelineState.Executing
-                else -> throw e
-            }
-        }
-    }
+    fun Pipeline<String>.intercept(block: suspend PipelineContext<String>.(String) -> Unit) = phases.intercept(callPhase, block)
+
+    fun <T : Any> Pipeline<T>.executeBlocking(subject: T) = runSync { execute(subject) }
 
     lateinit var pipeline: Pipeline<String>
 
@@ -90,78 +41,99 @@ abstract class PipelineBenchmark {
     abstract fun Pipeline<String>.configure()
 
     @Benchmark
-    fun execute(): PipelineState {
-        return pipeline.execute("some")
+    fun execute() {
+        pipeline.executeBlocking("some")
     }
 }
 
-open class ForkPipeline : PipelineBenchmark() {
+open class PipelineFork : PipelineBenchmark() {
     override fun Pipeline<String>.configure() {
         val another = pipeline()
-        another.intercept {}
+        another.intercept { proceed() }
         pipeline.intercept {
-            fork("another", another)
+            another.execute("another")
+            proceed()
         }
     }
 }
 
-open class ForkPipeline2 : PipelineBenchmark() {
+open class PipelineFork2 : PipelineBenchmark() {
     override fun Pipeline<String>.configure() {
         val another = pipeline()
         val double = pipeline()
-        double.intercept {}
+        double.intercept { proceed() }
         another.intercept {
-            fork("double", double)
+            double.execute("double")
+            proceed()
         }
         pipeline.intercept {
-            fork("another", another)
+            another.execute("another")
+            proceed()
         }
     }
 }
 
-open class ActionPipeline : PipelineBenchmark() {
+open class PipelineFork2Implicit : PipelineBenchmark() {
     override fun Pipeline<String>.configure() {
-        pipeline.intercept {}
+        val another = pipeline()
+        val double = pipeline()
+        double.intercept { }
+        another.intercept { double.execute("double") }
+        pipeline.intercept { another.execute("another") }
     }
 }
 
-open class ActionPipeline2 : PipelineBenchmark() {
+open class PipelineAction : PipelineBenchmark() {
     override fun Pipeline<String>.configure() {
-        pipeline.intercept {}
-        pipeline.intercept {}
+        pipeline.intercept { proceed() }
     }
 }
 
-open class ActionPipeline3 : PipelineBenchmark() {
+open class PipelineAction2 : PipelineBenchmark() {
     override fun Pipeline<String>.configure() {
-        pipeline.intercept {}
-        pipeline.intercept {}
-        pipeline.intercept {}
+        pipeline.intercept { proceed() }
+        pipeline.intercept { proceed() }
+    }
+}
+
+open class PipelineAction3 : PipelineBenchmark() {
+    override fun Pipeline<String>.configure() {
+        pipeline.intercept { proceed() }
+        pipeline.intercept { proceed() }
+        pipeline.intercept { proceed() }
+    }
+}
+
+open class PipelineAction3Implicit : PipelineBenchmark() {
+    override fun Pipeline<String>.configure() {
+        pipeline.intercept { }
+        pipeline.intercept { }
+        pipeline.intercept { }
     }
 }
 
 /*
-Benchmark                        Mode  Cnt      Score      Error   Units
-ActionPipeline.execute          thrpt   10  13204.180 ±  383.599  ops/ms
-ActionPipeline2.execute         thrpt   10  10227.456 ±  528.144  ops/ms
-ActionPipeline3.execute         thrpt   10   6771.575 ±  101.107  ops/ms
+BaselinePipeline.directCalls     thrpt   10  10661.608 ± 2258.592  ops/ms
+BaselinePipeline.suspendCalls    thrpt   10   6814.299 ± 1460.205  ops/ms
 
-BaselinePipeline.directCalls    thrpt   10  54994.242 ± 1884.991  ops/ms
-BaselinePipeline.stateMachine0  thrpt   10   3282.537 ±  172.657  ops/ms
-BaselinePipeline.stateMachine1  thrpt   10   1805.310 ±   55.010  ops/ms
-BaselinePipeline.stateMachine2  thrpt   10   1304.670 ±   52.871  ops/ms
-
-ForkPipeline.execute            thrpt   10   3960.776 ±  106.883  ops/ms
-ForkPipeline2.execute           thrpt   10   1586.361 ±   77.047  ops/ms
-*/
+PipelineAction.execute           thrpt   10  20156.554 ± 2235.894  ops/ms
+PipelineAction2.execute          thrpt   10  15280.387 ±  247.277  ops/ms
+PipelineAction3.execute          thrpt   10  11361.312 ± 1358.427  ops/ms
+PipelineAction3Implicit.execute  thrpt   10  15664.903 ± 1489.025  ops/ms
+PipelineFork.execute             thrpt   10  10688.013 ±  732.490  ops/ms
+PipelineFork2.execute            thrpt   10   8955.689 ±  227.900  ops/ms
+PipelineFork2Implicit.execute    thrpt   10  11414.864 ±  378.706  ops/ms
+ */
 
 fun main(args: Array<String>) {
     benchmark(args) {
         run<BaselinePipeline>()
-        run<ActionPipeline>()
-        run<ActionPipeline2>()
-        run<ActionPipeline3>()
-        run<ForkPipeline>()
-        run<ForkPipeline2>()
+        run<PipelineAction>()
+        run<PipelineAction2>()
+        run<PipelineAction3>()
+        run<PipelineAction3Implicit>()
+        run<PipelineFork>()
+        run<PipelineFork2>()
+        run<PipelineFork2Implicit>()
     }
 }

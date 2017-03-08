@@ -1,16 +1,16 @@
 package org.jetbrains.ktor.websocket
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.nio.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.security.*
 
-class WebSocketUpgrade(call: ApplicationCall, val protocol: String? = null, val configure: WebSocket.() -> Unit) : ProtocolUpgrade() {
+class WebSocketUpgrade(call: ApplicationCall, val protocol: String? = null, val configure: suspend WebSocket.() -> Unit) : ProtocolUpgrade() {
     private val key = call.request.header(HttpHeaders.SecWebSocketKey) ?: throw IllegalArgumentException("It should be ${HttpHeaders.SecWebSocketKey} header")
 
     override val status: HttpStatusCode?
@@ -27,8 +27,9 @@ class WebSocketUpgrade(call: ApplicationCall, val protocol: String? = null, val 
             // TODO extensions
         }
 
-    override fun upgrade(call: ApplicationCall, context: PipelineContext<*>, input: ReadChannel, output: WriteChannel): Closeable {
-        val webSocket = WebSocketImpl(call, context, input, output)
+    override suspend fun upgrade(call: ApplicationCall, context: PipelineContext<*>, input: ReadChannel, output: WriteChannel, channel: Closeable): Closeable {
+        val webSocket = WebSocketImpl(call, context, input, output, channel)
+
         configure(webSocket)
 
         webSocket.init()

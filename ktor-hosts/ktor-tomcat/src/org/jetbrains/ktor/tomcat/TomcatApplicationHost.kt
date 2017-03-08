@@ -8,16 +8,16 @@ import org.apache.tomcat.util.net.*
 import org.apache.tomcat.util.net.jsse.*
 import org.apache.tomcat.util.net.openssl.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.servlet.*
 import org.jetbrains.ktor.transform.*
 import java.nio.file.*
+import java.util.concurrent.*
 import javax.servlet.*
 
 class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
                             val config: ApplicationEnvironment,
-                            val applicationLifecycle: ApplicationLifecycle) : ApplicationHost, ApplicationHostStartable {
+                            val applicationLifecycle: ApplicationLifecycle) : ApplicationHostStartable {
 
 
     private val application: Application get() = applicationLifecycle.application
@@ -32,8 +32,6 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     val server = Tomcat().apply {
-        connector = null
-
         service.apply {
             findConnectors().forEach { existing ->
                 removeConnector(existing)
@@ -73,7 +71,9 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
             }
         }
 
-        connector = Connector()
+        if (connector == null) {
+            connector = service.findConnectors()?.firstOrNull() ?: Connector().apply { port = 80 }
+        }
         setBaseDir(tempDirectory.toString())
 
         val ctx = addContext("", tempDirectory.toString())
@@ -87,11 +87,11 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     init {
         applicationLifecycle.onBeforeInitializeApplication {
-            install(TransformationSupport).registerDefaultHandlers()
+            install(ApplicationTransform).registerDefaultHandlers()
         }
     }
 
-    override fun start(wait: Boolean) {
+    override fun start(wait: Boolean) : TomcatApplicationHost {
         application.environment.log.trace("Starting server...") // touch application to ensure initialized
         server.start()
         config.log.trace("Server started")
@@ -100,9 +100,10 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
             server.server.await()
             config.log.trace("Server stopped.")
         }
+        return this
     }
 
-    override fun stop() {
+    override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
         server.stop()
         config.log.trace("Server stopped.")
         tempDirectory.toFile().deleteRecursively()

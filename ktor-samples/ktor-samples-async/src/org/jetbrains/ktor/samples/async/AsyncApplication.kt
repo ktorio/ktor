@@ -1,51 +1,45 @@
 package org.jetbrains.ktor.samples.async
 
+import kotlinx.coroutines.experimental.*
 import kotlinx.html.*
-import kotlinx.html.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
-import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.html.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import java.util.*
 
 fun Application.main() {
     install(DefaultHeaders)
     install(CallLogging)
-
-    routing {
+    install(Routing) {
         get("/{...}") {
             val start = System.currentTimeMillis()
-            runAsync(executor) {
+            defer(executor.toCoroutineDispatcher()) {
                 call.handleLongCalculation(start)
-            }
+            }.await()
         }
     }
 }
 
-private fun ApplicationCall.handleLongCalculation(start: Long) {
+private suspend fun ApplicationCall.handleLongCalculation(start: Long) {
     val queue = System.currentTimeMillis() - start
     var number = 0
     val random = Random()
     for (index in 0..300) {
-        Thread.sleep(10)
+        delay(10)
         number += random.nextInt(100)
     }
 
     val time = System.currentTimeMillis() - start
-
-    response.contentType(ContentType.Text.Html)
-    respondWrite {
-        appendHTML().html {
-            head {
-                title { +"Async World" }
-            }
-            body {
-                h1 {
-                    +"We calculated this after ${time}ms (${queue}ms in queue): $number"
-                }
+    respondHtml {
+        head {
+            title { +"Async World" }
+        }
+        body {
+            h1 {
+                +"We calculated this after ${time}ms (${queue}ms in queue): $number"
             }
         }
     }
