@@ -1,0 +1,2981 @@
+{
+	"variables": [],
+	"info": {
+		"name": "httpbin",
+		"_postman_id": "c279fcdd-2ca3-559d-be49-193903ce46f7",
+		"description": "",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;"
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "{{type}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/get?params",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"const schema ={\"$schema\":\"http://json-schema.org/draft-04/schema#\", \"type\":\"object\", \"properties\":{\"args\":{\"type\":\"object\", \"properties\":{}, \"additionalProperties\":{\"type\":\"string\"}, \"required\":[]}, \"data\":{\"type\":\"string\"}, \"files\":{\"type\":\"object\", \"properties\":{}, \"additionalProperties\":{\"type\":\"string\"}, \"required\":[]}, \"form\":{\"type\":\"object\", \"properties\":{}, \"additionalProperties\":{\"type\":\"string\"}, \"required\":[]}, \"headers\":{\"type\":\"object\", \"properties\":{}, \"required\":[]}, \"origin\":{\"type\":\"string\"}, \"url\":{\"type\":\"string\"}}, \"required\":[]};",
+							"schema.required = [\"args\", \"origin\", \"headers\", \"url\"];",
+							"",
+							"assertJson((json) => {",
+							"    ",
+							"   validate(json, schema, \"JSON Schema\");",
+							"   ",
+							"   tests[\"Has expected args\"] = (json.args.id === \"1\") && (json.args.gender===\"MALE\");",
+							"   testHeader(\"Content-Encoding\", \"gzip\");",
+							"   testHeader(\"Transfer-Encoding\", \"chunked\");",
+							"   testHeader(\"Access-Control-Allow-Origin\", \"\", \"CORS:\");",
+							"   ",
+							"});",
+							"",
+							"//// Postman Test Functions /////",
+							"function testHeader(headerName, search, prefix = \"\") {",
+							"    tests[`${prefix} Header ${headerName} contains ${search}`] = postman.getResponseHeader(headerName) && postman.getResponseHeader(headerName).indexOf(search) >= 0;",
+							"}",
+							"function assertJson(callback) {",
+							"    responseOK();",
+							"    const isJson = postman.getResponseHeader(\"Content-Type\").startsWith(\"application/json\");",
+							"    tests[\"Content-Type = json\"] = isJson;",
+							"    if (isJson) {",
+							"        const json = JSON.parse(responseBody);",
+							"        callback(json);",
+							"    }",
+							"}",
+							"function responseOK() {",
+							"    tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"}",
+							"function setEnv(name, value) {",
+							"    postman.setEnvironmentVariable(name,value) ;",
+							"    tests[`Setting {{${name})} = ${value}`] = (value !== null);",
+							"}",
+							"function getEnv(name) {",
+							"    return postman.setEnvironmentVariable(name);",
+							"}",
+							"function validate(json, schema, testName) {",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							"",
+							"",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/get?id=1&gender=MALE",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Origin",
+						"value": "http://localhost",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": [
+				{
+					"id": "e290eaa8-e9b6-4ac9-9954-4008ef2f20fa",
+					"name": "httpbin",
+					"originalRequest": {
+						"url": "{{httpbin}}/get?id=1&gender=MALE&id=3",
+						"method": "GET",
+						"header": [],
+						"body": {}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"_postman_previewtype": "text",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true",
+							"name": "Access-Control-Allow-Credentials",
+							"description": "Indicates whether or not the response to the request can be exposed when the credentials flag is true. When used as part of a response to a preflight request, this indicates whether or not the actual request can be made using credentials."
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*",
+							"name": "Access-Control-Allow-Origin",
+							"description": "Specifies a URI that may access the resource. For requests without credentials, the server may specify '*' as a wildcard, thereby allowing any origin to access the resource."
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive",
+							"name": "Connection",
+							"description": "Options that are desired for the connection"
+						},
+						{
+							"key": "Content-Length",
+							"value": "432",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Wed, 08 Mar 2017 15:40:42 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Server",
+							"value": "nginx",
+							"name": "Server",
+							"description": "A name for the server"
+						}
+					],
+					"cookie": [],
+					"responseTime": 153,
+					"body": "{\n  \"args\": {\n    \"gender\": \"MALE\", \n    \"id\": [\n      \"1\", \n      \"3\"\n    ]\n  }, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n    \"Accept-Encoding\": \"gzip, deflate\", \n    \"Cache-Control\": \"no-cache\", \n    \"Host\": \"httpbin.org\", \n    \"Postman-Token\": \"cf441938-f704-463a-9bef-00d79d644eeb\", \n    \"User-Agent\": \"PostmanRuntime/3.0.11-hotfix.2\"\n  }, \n  \"origin\": \"79.192.214.133\", \n  \"url\": \"https://httpbin.org/get?id=1&gender=MALE&id=3\"\n}\n"
+				}
+			]
+		},
+		{
+			"name": "/image (random type)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"let type = postman.getGlobalVariable(\"type\");",
+							"",
+							"postman.clearGlobalVariable(\"type\");",
+							"",
+							"tests[\"Content-Type is \" + type] = postman.getResponseHeader(\"Content-Type\").startsWith(type) ;"
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"let types = [\"image/png\", \"image/jpeg\", \"image/webp\", \"image/svg+xml\"];",
+							"let randomIndex = Math.floor((Math.random() * types.length));",
+							"let type = types[randomIndex];",
+							"postman.setGlobalVariable(\"type\", type);",
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/image",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "{{type}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/image/webp",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"let type = \"image/webp\";",
+							"",
+							"tests[\"Content-Type is \" + type] = postman.getResponseHeader(\"Content-Type\").startsWith(type) ;"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/image/webp",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/xml",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							"const json = xml2Json(responseBody);",
+							"tests[\"Valid xml\"] = true",
+							"",
+							"tests[\"/slideshow/[title]\"] = json.slideshow.$.title ",
+							"   === \"Sample Slide Show\";",
+							"",
+							"tests[\"/slideshow/slide[0]/title\"] = json.slideshow.slide[0].title === \"Wake up to WonderWidgets!\";",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/xml",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"comments\": \"cheese was delicious\", \n    \"custemail\": \"john@example.com\", \n    \"custname\": \"John Doe\", \n    \"custtel\": \"0170\", \n    \"delivery\": \"13:45\", \n    \"size\": \"small\", \n    \"topping\": \"cheese\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/postman",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/postman",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/octet-stream",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/ip",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"const schema = {\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"origin\":{\"type\":\"string\"}},\"required\":[\"origin\"]};",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"const json = JSON.parse(responseBody);",
+							"",
+							"validate(json, schema, \"Check JSON Schema\");",
+							"",
+							"",
+							"",
+							"function validate(json, schema, testName) {",
+							"    // Parameters: ",
+							"    // const json = JSON.parse(responseBody);",
+							"    // schema: generate from http://jsonschema.net/#/",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/ip",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/user-agent",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"const json = JSON.parse(responseBody);",
+							"const schema = {\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"user-agent\":{\"type\":\"string\"}},\"required\":[\"user-agent\"]};",
+							"",
+							"validate(json, schema, \"Validate JSON Schema\");",
+							"",
+							"function validate(json, schema, testName) {",
+							"    // Usage ",
+							"    // const json = JSON.parse(responseBody);",
+							"    // const schema = ... generate from http://jsonschema.net/#/",
+							"    // validate(json, schema, \"Validate JSON Schema\");",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/user-agent",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/get",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"const schema ={\"$schema\":\"http://json-schema.org/draft-04/schema#\", \"type\":\"object\", \"properties\":{\"args\":{\"type\":\"object\", \"properties\":{}, \"additionalProperties\":{\"type\":\"string\"}, \"required\":[]}, \"data\":{\"type\":\"string\"}, \"files\":{\"type\":\"object\", \"properties\":{}, \"additionalProperties\":{\"type\":\"string\"}, \"required\":[]}, \"form\":{\"type\":\"object\", \"properties\":{}, \"additionalProperties\":{\"type\":\"string\"}, \"required\":[]}, \"headers\":{\"type\":\"object\", \"properties\":{}, \"required\":[]}, \"origin\":{\"type\":\"string\"}, \"url\":{\"type\":\"string\"}}, \"required\":[]};",
+							"schema.required =  [\"args\",\"headers\",\"origin\",\"url\"];",
+							"",
+							"assertJson((json) => {",
+							"   ",
+							"   validate(json, schema, \"Validate JSON Schema\");",
+							"   const keys = Object.keys(json.args);",
+							"    tests[\"Has no args\"] = keys.length === 0;",
+							" ",
+							"});",
+							"",
+							"//// Postman Test Functions /////",
+							"function assertJson(callback) {",
+							"    responseOK();",
+							"    const isJson = postman.getResponseHeader(\"Content-Type\").startsWith(\"application/json\");",
+							"    tests[\"Content-Type = json\"] = isJson;",
+							"    if (isJson) {",
+							"        const json = JSON.parse(responseBody);",
+							"        callback(json);",
+							"    }",
+							"}",
+							"function responseOK() {",
+							"    tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"}",
+							"function setEnv(name, value) {",
+							"    postman.setEnvironmentVariable(name,value) ;",
+							"    tests[`Setting {{${name})} = ${value}`] = (value !== null);",
+							"}",
+							"function getEnv(name) {",
+							"    return postman.setEnvironmentVariable(name);",
+							"}",
+							"function validate(json, schema, testName) {",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							"",
+							"",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/get",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/status/{status}",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code - Not modified\"] = responseCode.code === 304;",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/status/304",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/cache with ETag",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code - Not modified\"] = responseCode.code === 304;",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/cache",
+				"method": "GET",
+				"header": [
+					{
+						"key": "If-None-Match",
+						"value": "db7a0a2684bb439e858ee25ae5b9a5c6",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/cache (+LastModified)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code - Not modified\"] = responseCode.code === 304;",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/cache",
+				"method": "GET",
+				"header": [
+					{
+						"key": "If-Modified-Since",
+						"value": "Mon, 15 Feb 2016 00:00:00 GMT",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/cache/:n",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code - OK\"] = responseCode.code === 200;",
+							"",
+							"var expected = \"max-age=3600, public\"",
+							"tests[`Cache-Control: ${expected} `] = postman.getResponseHeader(\"Cache-Control\") == expected;"
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/cache/3600",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/headers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"const schema = {",
+							"  \"$schema\": \"http://json-schema.org/draft-04/schema#\",",
+							"  \"type\": \"object\",",
+							"  \"properties\": {",
+							"    \"headers\": {",
+							"      \"type\": \"object\",",
+							"      \"items\": { ",
+							"          \"type\" : [\"string\", \"array\"]",
+							"      }",
+							"    }",
+							"  },",
+							"  \"required\": [",
+							"    \"headers\"",
+							"  ]",
+							"}",
+							"",
+							"assertJson((json) => {",
+							"",
+							"  validate(json, schema, \"Validate JSON Schema\");    ",
+							"  ",
+							"  tests[\"Header X-Requested-With\"] = json.headers[\"X-Requested-With\"] === \"httpbin\";",
+							"",
+							"});",
+							"",
+							"",
+							"//// Postman Test Functions /////",
+							"function assertJson(callback) {",
+							"    responseOK();",
+							"    const isJson = postman.getResponseHeader(\"Content-Type\").startsWith(\"application/json\");",
+							"    tests[\"Content-Type = json\"] = isJson;",
+							"    if (isJson) {",
+							"        const json = JSON.parse(responseBody);",
+							"        callback(json);",
+							"    }",
+							"}",
+							"function responseOK() {",
+							"    tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"}",
+							"function setEnv(name, value) {",
+							"    postman.setEnvironmentVariable(name,value) ;",
+							"    tests[`Setting {{${name})} = ${value}`] = (value !== null);",
+							"}",
+							"function getEnv(name) {",
+							"    return postman.setEnvironmentVariable(name);",
+							"}",
+							"function validate(json, schema, testName) {",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							"",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/headers",
+				"method": "GET",
+				"header": [
+					{
+						"key": "X-Requested-With",
+						"value": "httpbin",
+						"description": ""
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/response-headers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"assertJson((json) => {",
+							"    ",
+							"   testHeader(\"X-Requested-With\", \"Postman\");",
+							"   ",
+							"   testHeader(\"Cache-Control\", \"private\");",
+							"   tests[`Check json`] = json[\"X-Requested-With\"] == \"Postman\" && json[\"Cache-Control\"] == \"private\";",
+							"});",
+							"",
+							"//// Postman Test Functions /////",
+							"function testHeader(headerName, search, prefix = \"\") {",
+							"    tests[`${prefix} Header ${headerName} contains ${search}`] = postman.getResponseHeader(headerName) && postman.getResponseHeader(headerName).indexOf(search) >= 0;",
+							"}",
+							"function assertJson(callback) {",
+							"    responseOK();",
+							"    const isJson = postman.getResponseHeader(\"Content-Type\").startsWith(\"application/json\");",
+							"    tests[\"Content-Type = json\"] = isJson;",
+							"    if (isJson) {",
+							"        const json = JSON.parse(responseBody);",
+							"        callback(json);",
+							"    }",
+							"}",
+							"function responseOK() {",
+							"    tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"}",
+							"function setEnv(name, value) {",
+							"    postman.setEnvironmentVariable(name,value) ;",
+							"    tests[`Setting {{${name})} = ${value}`] = (value !== null);",
+							"}",
+							"function getEnv(name) {",
+							"    return postman.setEnvironmentVariable(name);",
+							"}",
+							"function validate(json, schema, testName) {",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							"",
+							"",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/response-headers?X-Requested-With=Postman&Cache-Control=private",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/delay",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							"const validTime = responseTime < 2000 && responseTime > 200;",
+							"tests[\"Response time is 2s\"] = validTime ;"
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/delay/1",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/post form-data",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"const schema ={\"$schema\":\"http://json-schema.org/draft-04/schema#\", \"type\":\"object\", \"properties\":{\"args\":{\"type\":\"object\", \"properties\":{}, \"additionalProperties\":{\"type\":\"string\"}, \"required\":[]}, \"data\":{\"type\":\"string\"}, \"files\":{\"type\":\"object\", \"properties\":{}, \"additionalProperties\":{\"type\":\"string\"}, \"required\":[]}, \"form\":{\"type\":\"object\", \"properties\":{}, \"additionalProperties\":{\"type\":\"string\"}, \"required\":[]}, \"headers\":{\"type\":\"object\", \"properties\":{}, \"required\":[]}, \"origin\":{\"type\":\"string\"}, \"url\":{\"type\":\"string\"}}, \"required\":[]};",
+							"schema.required = [\"form\", \"headers\"];",
+							"schema.properties.form.required = ",
+							"  [\"comments\", \"custemail\", \"delivery\", \"size\", \"topping\"];",
+							"",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"const json = JSON.parse(responseBody);",
+							"",
+							"let ct = json.headers[\"Content-Type\"] || \"\";",
+							"tests[\"was form-data\"] = ct.indexOf(\"multipart/form-data\") !== -1;",
+							"",
+							"validate(json, schema, \"Validate JSON Schema\");",
+							"",
+							"function validate(json, schema, testName) {",
+							"    // Usage ",
+							"    // const json = JSON.parse(responseBody);",
+							"    // const schema = ... generate from http://jsonschema.net/#/",
+							"    // validate(json, schema, \"Validate JSON Schema\");",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							"",
+							"",
+							"tests[\"Has expected args\"] = json.form.size === \"small\";"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/post",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "multipart/form-data",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "comments",
+							"value": "chesse is delicious!",
+							"type": "text",
+							"enabled": true
+						},
+						{
+							"key": "custtel",
+							"value": "0170",
+							"type": "text",
+							"enabled": true
+						},
+						{
+							"key": "delivery",
+							"value": "13:45",
+							"type": "text",
+							"enabled": true
+						},
+						{
+							"key": "size",
+							"value": "small",
+							"type": "text",
+							"enabled": true
+						},
+						{
+							"key": "topping",
+							"value": "cheese",
+							"type": "text",
+							"enabled": true
+						},
+						{
+							"key": "custemail",
+							"value": "john@example.com",
+							"type": "text",
+							"enabled": true
+						}
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/post form-urlencoded",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"const schema ={\"$schema\":\"http://json-schema.org/draft-04/schema#\", \"type\":\"object\", \"properties\":{\"args\":{\"type\":\"object\", \"properties\":{}, \"additionalProperties\":{\"type\":\"string\"}, \"required\":[]}, \"data\":{\"type\":\"string\"}, \"files\":{\"type\":\"object\", \"properties\":{}, \"additionalProperties\":{\"type\":\"string\"}, \"required\":[]}, \"form\":{\"type\":\"object\", \"properties\":{}, \"additionalProperties\":{\"type\":\"string\"}, \"required\":[]}, \"headers\":{\"type\":\"object\", \"properties\":{}, \"required\":[]}, \"origin\":{\"type\":\"string\"}, \"url\":{\"type\":\"string\"}}, \"required\":[]};",
+							"schema.required = [\"form\", \"headers\"];",
+							"schema.properties.form.required = ",
+							"  [\"comments\", \"custemail\", \"delivery\", \"size\", \"topping\"];",
+							"",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							"",
+							"const json = JSON.parse(responseBody);",
+							"",
+							"tests[\"was url-encoded\"] = ",
+							" json.headers[\"Content-Type\"] === \"application/x-www-form-urlencoded\";",
+							"",
+							"",
+							"validate(json, schema, \"Validate JSON Schema\");",
+							"",
+							"function validate(json, schema, testName) {",
+							"    // Usage ",
+							"    // const json = JSON.parse(responseBody);",
+							"    // const schema = ... generate from http://jsonschema.net/#/",
+							"    // validate(json, schema, \"Validate JSON Schema\");",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							"",
+							"tests[\"Has expected args\"] = json.form.size === \"small\";",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/post",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/x-www-form-urlencoded",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "urlencoded",
+					"urlencoded": [
+						{
+							"key": "comments",
+							"value": "chesse is delicious!",
+							"type": "text",
+							"enabled": true
+						},
+						{
+							"key": "custemail",
+							"value": "john@example.com",
+							"type": "text",
+							"enabled": true
+						},
+						{
+							"key": "custtel",
+							"value": "0170",
+							"type": "text",
+							"enabled": true
+						},
+						{
+							"key": "delivery",
+							"value": "13:45",
+							"type": "text",
+							"enabled": true
+						},
+						{
+							"key": "size",
+							"value": "small",
+							"type": "text",
+							"enabled": true
+						},
+						{
+							"key": "topping",
+							"value": "cheese",
+							"type": "text",
+							"enabled": true
+						}
+					]
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/post json body",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"const schema ={\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"args\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"data\":{\"type\":\"string\"},\"files\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"json\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"form\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"headers\":{\"type\":\"object\",\"properties\":{},\"required\":[]},\"origin\":{\"type\":\"string\"},\"url\":{\"type\":\"string\"}},\"required\":[]};",
+							"schema.required = [\"data\", \"json\"];",
+							"schema.properties.json.required = ",
+							"  [\"comments\", \"custemail\", \"delivery\", \"size\", \"topping\"];",
+							"",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							"",
+							"const json = JSON.parse(responseBody);",
+							"",
+							"tests[\"was json body\"] = ",
+							" json.headers[\"Content-Type\"] === \"application/json\";",
+							"",
+							"",
+							"validate(json, schema, \"Validate JSON Schema\");",
+							"",
+							"function validate(json, schema, testName) {",
+							"    // Usage ",
+							"    // const json = JSON.parse(responseBody);",
+							"    // const schema = ... generate from http://jsonschema.net/#/",
+							"    // validate(json, schema, \"Validate JSON Schema\");",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							"",
+							"",
+							"tests[\"Has expected args\"] = json.json.size === \"small\";",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/post",
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"comments\": \"cheese was delicious\", \n    \"custemail\": \"john@example.com\", \n    \"custname\": \"John Doe\", \n    \"custtel\": \"0170\", \n    \"delivery\": \"13:45\", \n    \"size\": \"small\", \n    \"topping\": \"cheese\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/put json body",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"const schema ={\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"args\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"data\":{\"type\":\"string\"},\"files\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"json\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"form\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"headers\":{\"type\":\"object\",\"properties\":{},\"required\":[]},\"origin\":{\"type\":\"string\"},\"url\":{\"type\":\"string\"}},\"required\":[]};",
+							"schema.required = [\"data\", \"json\"];",
+							"schema.properties.json.required = ",
+							"  [\"comments\", \"custemail\", \"delivery\", \"size\", \"topping\"];",
+							"",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							"",
+							"const json = JSON.parse(responseBody);",
+							"",
+							"tests[\"was json body\"] = ",
+							" json.headers[\"Content-Type\"] === \"application/json\";",
+							"",
+							"",
+							"validate(json, schema, \"Validate JSON Schema\");",
+							"",
+							"function validate(json, schema, testName) {",
+							"    // Usage ",
+							"    // const json = JSON.parse(responseBody);",
+							"    // const schema = ... generate from http://jsonschema.net/#/",
+							"    // validate(json, schema, \"Validate JSON Schema\");",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							"",
+							"",
+							"tests[\"Has expected args\"] = json.json.size === \"small\";",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/put",
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"comments\": \"cheese was delicious\", \n    \"custemail\": \"john@example.com\", \n    \"custname\": \"John Doe\", \n    \"custtel\": \"0170\", \n    \"delivery\": \"13:45\", \n    \"size\": \"small\", \n    \"topping\": \"cheese\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/patch json body",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"const schema ={\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"args\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"data\":{\"type\":\"string\"},\"files\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"json\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"form\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"headers\":{\"type\":\"object\",\"properties\":{},\"required\":[]},\"origin\":{\"type\":\"string\"},\"url\":{\"type\":\"string\"}},\"required\":[]};",
+							"schema.required = [\"data\", \"json\"];",
+							"schema.properties.json.required = ",
+							"  [\"comments\", \"custemail\", \"delivery\", \"size\", \"topping\"];",
+							"",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							"",
+							"const json = JSON.parse(responseBody);",
+							"",
+							"tests[\"was json body\"] = ",
+							" json.headers[\"Content-Type\"] === \"application/json\";",
+							"",
+							"",
+							"validate(json, schema, \"Validate JSON Schema\");",
+							"",
+							"function validate(json, schema, testName) {",
+							"    // Usage ",
+							"    // const json = JSON.parse(responseBody);",
+							"    // const schema = ... generate from http://jsonschema.net/#/",
+							"    // validate(json, schema, \"Validate JSON Schema\");",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							"",
+							"tests[\"Has expected args\"] = json.json.size === \"small\";",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/patch",
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"comments\": \"cheese was delicious\", \n    \"custemail\": \"john@example.com\", \n    \"custname\": \"John Doe\", \n    \"custtel\": \"0170\", \n    \"delivery\": \"13:45\", \n    \"size\": \"small\", \n    \"topping\": \"cheese\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/delete json body",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"const schema ={\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"args\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"data\":{\"type\":\"string\"},\"files\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"json\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"form\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"headers\":{\"type\":\"object\",\"properties\":{},\"required\":[]},\"origin\":{\"type\":\"string\"},\"url\":{\"type\":\"string\"}},\"required\":[]};",
+							"schema.required = [\"data\", \"json\"];",
+							"schema.properties.json.required = ",
+							"  [\"comments\", \"custemail\", \"delivery\", \"size\", \"topping\"];",
+							"",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							"",
+							"const json = JSON.parse(responseBody);",
+							"",
+							"tests[\"was json body\"] = ",
+							" json.headers[\"Content-Type\"] === \"application/json\";",
+							"",
+							"",
+							"validate(json, schema, \"Validate JSON Schema\");",
+							"",
+							"function validate(json, schema, testName) {",
+							"    // Usage ",
+							"    // const json = JSON.parse(responseBody);",
+							"    // const schema = ... generate from http://jsonschema.net/#/",
+							"    // validate(json, schema, \"Validate JSON Schema\");",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							"",
+							"tests[\"Has expected args\"] = json.json.size === \"small\";",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/delete",
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"comments\": \"cheese was delicious\", \n    \"custemail\": \"john@example.com\", \n    \"custname\": \"John Doe\", \n    \"custtel\": \"0170\", \n    \"delivery\": \"13:45\", \n    \"size\": \"small\", \n    \"topping\": \"cheese\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/cookies/set",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"const schema ={\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"args\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"data\":{\"type\":\"string\"},\"files\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"json\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"cookies\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"form\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"headers\":{\"type\":\"object\",\"properties\":{},\"required\":[]},\"origin\":{\"type\":\"string\"},\"url\":{\"type\":\"string\"}},\"required\":[]};",
+							"schema.required = [\"cookies\"];",
+							"schema.properties.cookies.requied = [\"expire\", \"track\"];",
+							"",
+							"assertJson(json => {",
+							"",
+							"   validate(json, schema, \"Validate JSON Schema\");",
+							"   tests[\"tack: no\"] = (json.cookies.track === \"no\");",
+							"    ",
+							"});",
+							"",
+							"",
+							"//// Postman Test Functions /////",
+							"function assertJson(callback) {",
+							"    responseOK();",
+							"    const isJson = postman.getResponseHeader(\"Content-Type\").startsWith(\"application/json\");",
+							"    tests[\"Content-Type = json\"] = isJson;",
+							"    if (isJson && responseCode.code < 400) {",
+							"        const json = JSON.parse(responseBody);",
+							"        callback(json);",
+							"    }",
+							"}",
+							"function responseOK() {",
+							"    tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"}",
+							"function setEnv(name, value) {",
+							"    postman.setEnvironmentVariable(name,value) ;",
+							"    tests[`Setting {{${name})} = ${value}`] = (value !== null);",
+							"}",
+							"function getEnv(name) {",
+							"    return postman.setEnvironmentVariable(name);",
+							"}",
+							"function validate(json, schema, testName) {",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/cookies/set?track=no&expire=immediatly",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"comments\": \"cheese was delicious\", \n    \"custemail\": \"john@example.com\", \n    \"custname\": \"John Doe\", \n    \"custtel\": \"0170\", \n    \"delivery\": \"13:45\", \n    \"size\": \"small\", \n    \"topping\": \"cheese\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/cookies",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"const schema ={\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"args\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"data\":{\"type\":\"string\"},\"files\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"json\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"cookies\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"form\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"headers\":{\"type\":\"object\",\"properties\":{},\"required\":[]},\"origin\":{\"type\":\"string\"},\"url\":{\"type\":\"string\"}},\"required\":[]};",
+							"schema.required = [\"cookies\"];",
+							"schema.properties.cookies.requied = [\"expire\", \"track\"];",
+							"",
+							"assertJson(json => {",
+							"    validate(json, schema, \"Validate JSON schema\");",
+							"    tests[\"tack: no\"] = (json.cookies.track === \"no\");    ",
+							"});",
+							"",
+							"",
+							"",
+							"//// Postman Test Functions /////",
+							"function assertJson(callback) {",
+							"    responseOK();",
+							"    const isJson = postman.getResponseHeader(\"Content-Type\").startsWith(\"application/json\");",
+							"    tests[\"Content-Type = json\"] = isJson;",
+							"    if (isJson && responseCode.code < 400) {",
+							"        const json = JSON.parse(responseBody);",
+							"        callback(json);",
+							"    }",
+							"}",
+							"function responseOK() {",
+							"    tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"}",
+							"function setEnv(name, value) {",
+							"    postman.setEnvironmentVariable(name,value) ;",
+							"    tests[`Setting {{${name})} = ${value}`] = (value !== null);",
+							"}",
+							"function getEnv(name) {",
+							"    return postman.setEnvironmentVariable(name);",
+							"}",
+							"function validate(json, schema, testName) {",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/cookies",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"comments\": \"cheese was delicious\", \n    \"custemail\": \"john@example.com\", \n    \"custname\": \"John Doe\", \n    \"custtel\": \"0170\", \n    \"delivery\": \"13:45\", \n    \"size\": \"small\", \n    \"topping\": \"cheese\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/cookies/delete",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"const schema ={\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"args\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"data\":{\"type\":\"string\"},\"files\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"json\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"cookies\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"form\":{\"type\":\"object\",\"properties\":{},\"additionalProperties\":{\"type\":\"string\"},\"required\":[]},\"headers\":{\"type\":\"object\",\"properties\":{},\"required\":[]},\"origin\":{\"type\":\"string\"},\"url\":{\"type\":\"string\"}},\"required\":[]};",
+							"schema.required = [\"cookies\"];",
+							"",
+							"assertJson((json) => {",
+							"    validate(json, schema, \"Validate JSON schema\");",
+							"    tests[\"cookie deleted\"] = !json.cookies.track;",
+							"     tests[\"cookie deleted\"] = !json.cookies.expire;",
+							"});",
+							"",
+							"",
+							"//// Postman Test Functions /////",
+							"function assertJson(callback) {",
+							"    responseOK();",
+							"    const isJson = postman.getResponseHeader(\"Content-Type\").startsWith(\"application/json\");",
+							"    tests[\"Content-Type = json\"] = isJson;",
+							"    if (isJson && responseCode.code < 400) {",
+							"        const json = JSON.parse(responseBody);",
+							"        callback(json);",
+							"    }",
+							"}",
+							"function responseOK() {",
+							"    tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"}",
+							"function setEnv(name, value) {",
+							"    postman.setEnvironmentVariable(name,value) ;",
+							"    tests[`Setting {{${name})} = ${value}`] = (value !== null);",
+							"}",
+							"function getEnv(name) {",
+							"    return postman.setEnvironmentVariable(name);",
+							"}",
+							"function validate(json, schema, testName) {",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/cookies/delete?track&expire",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"description": ""
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"comments\": \"cheese was delicious\", \n    \"custemail\": \"john@example.com\", \n    \"custname\": \"John Doe\", \n    \"custtel\": \"0170\", \n    \"delivery\": \"13:45\", \n    \"size\": \"small\", \n    \"topping\": \"cheese\"\n}"
+				},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/encoding/utf8",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/encoding/utf8",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/octet-stream",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/gzip",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"const schema ={\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"gzipped\":{\"type\":\"boolean\"},\"headers\":{\"type\":\"object\",\"properties\":{\"Accept\":{\"type\":\"string\"},\"Accept-Encoding\":{\"type\":\"string\"},\"Cache-Control\":{\"type\":\"string\"},\"Host\":{\"type\":\"string\"},\"Postman-Token\":{\"type\":\"string\"},\"User-Agent\":{\"type\":\"string\"}},\"required\":[\"Accept\",\"Accept-Encoding\",\"Cache-Control\",\"Host\",\"Postman-Token\",\"User-Agent\"]},\"method\":{\"type\":\"string\"},\"origin\":{\"type\":\"string\"}},\"required\":[\"gzipped\",\"headers\",\"method\",\"origin\"]};",
+							"",
+							"assertJson(json => {",
+							"   validate(json, schema, \"Validate JSON Schema\");",
+							"  tests[`json.gzipped = true`] = json.gzipped = true;",
+							"  tests[\"Content-Encoding → gzip\"] = postman.getResponseHeader(\"Content-Encoding\") == \"gzip\";",
+							"});",
+							"",
+							"//// Postman Test Functions /////",
+							"function assertJson(callback) {",
+							"    responseOK();",
+							"    const isJson = postman.getResponseHeader(\"Content-Type\").startsWith(\"application/json\");",
+							"    tests[\"Content-Type = json\"] = isJson;",
+							"    if (isJson && responseCode.code < 400) {",
+							"        const json = JSON.parse(responseBody);",
+							"        callback(json);",
+							"    }",
+							"}",
+							"function responseOK() {",
+							"    tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"}",
+							"function setEnv(name, value) {",
+							"    postman.setEnvironmentVariable(name,value) ;",
+							"    tests[`Setting {{${name})} = ${value}`] = (value !== null);",
+							"}",
+							"function getEnv(name) {",
+							"    return postman.setEnvironmentVariable(name);",
+							"}",
+							"function validate(json, schema, testName) {",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/gzip",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": [
+				{
+					"id": "4e81ce05-cb12-4f23-ac22-f7582469a0e4",
+					"name": "gzip",
+					"originalRequest": {
+						"url": "{{httpbino}}/gzip",
+						"method": "GET",
+						"header": [],
+						"body": {}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"_postman_previewtype": "text",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true",
+							"name": "Access-Control-Allow-Credentials",
+							"description": "Indicates whether or not the response to the request can be exposed when the credentials flag is true. When used as part of a response to a preflight request, this indicates whether or not the actual request can be made using credentials."
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*",
+							"name": "Access-Control-Allow-Origin",
+							"description": "Specifies a URI that may access the resource. For requests without credentials, the server may specify '*' as a wildcard, thereby allowing any origin to access the resource."
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive",
+							"name": "Connection",
+							"description": "Options that are desired for the connection"
+						},
+						{
+							"key": "Content-Encoding",
+							"value": "gzip",
+							"name": "Content-Encoding",
+							"description": "The type of encoding used on the data."
+						},
+						{
+							"key": "Content-Length",
+							"value": "244",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 10 Mar 2017 08:06:56 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Server",
+							"value": "nginx",
+							"name": "Server",
+							"description": "A name for the server"
+						}
+					],
+					"cookie": [],
+					"responseTime": 389,
+					"body": "{\n  \"gzipped\": true, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n    \"Accept-Encoding\": \"gzip, deflate\", \n    \"Cache-Control\": \"no-cache\", \n    \"Host\": \"httpbin.org\", \n    \"Postman-Token\": \"e382b55e-7e29-4fbb-a8c6-33fd81289c37\", \n    \"User-Agent\": \"PostmanRuntime/3.0.11-hotfix.2\"\n  }, \n  \"method\": \"GET\", \n  \"origin\": \"79.192.218.154\"\n}\n"
+				},
+				{
+					"id": "c5aae850-41f6-47d1-af96-8f6a015d9900",
+					"name": "gzip",
+					"originalRequest": {
+						"url": "{{httpbino}}/gzip",
+						"method": "GET",
+						"header": [],
+						"body": {}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"_postman_previewtype": "text",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true",
+							"name": "Access-Control-Allow-Credentials",
+							"description": ""
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*",
+							"name": "Access-Control-Allow-Origin",
+							"description": ""
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive",
+							"name": "Connection",
+							"description": ""
+						},
+						{
+							"key": "Content-Encoding",
+							"value": "gzip",
+							"name": "Content-Encoding",
+							"description": ""
+						},
+						{
+							"key": "Content-Length",
+							"value": "244",
+							"name": "Content-Length",
+							"description": ""
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"name": "Content-Type",
+							"description": ""
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 10 Mar 2017 08:06:56 GMT",
+							"name": "Date",
+							"description": ""
+						},
+						{
+							"key": "Server",
+							"value": "nginx",
+							"name": "Server",
+							"description": ""
+						}
+					],
+					"cookie": [],
+					"responseTime": "389",
+					"body": "{\n  \"gzipped\": true, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n    \"Accept-Encoding\": \"gzip, deflate\", \n    \"Cache-Control\": \"no-cache\", \n    \"Host\": \"httpbin.org\", \n    \"Postman-Token\": \"e382b55e-7e29-4fbb-a8c6-33fd81289c37\", \n    \"User-Agent\": \"PostmanRuntime/3.0.11-hotfix.2\"\n  }, \n  \"method\": \"GET\", \n  \"origin\": \"79.192.218.154\"\n}\n"
+				}
+			]
+		},
+		{
+			"name": "/deflate",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"const schema ={\"$schema\":\"http://json-schema.org/draft-04/schema#\",\"type\":\"object\",\"properties\":{\"deflated\":{\"type\":\"boolean\"},\"headers\":{\"type\":\"object\",\"properties\":{\"Accept\":{\"type\":\"string\"},\"Accept-Encoding\":{\"type\":\"string\"},\"Cache-Control\":{\"type\":\"string\"},\"Host\":{\"type\":\"string\"},\"Postman-Token\":{\"type\":\"string\"},\"User-Agent\":{\"type\":\"string\"}},\"required\":[\"Accept\",\"Accept-Encoding\",\"Cache-Control\",\"Host\",\"Postman-Token\",\"User-Agent\"]},\"method\":{\"type\":\"string\"},\"origin\":{\"type\":\"string\"}},\"required\":[\"deflated\",\"headers\",\"method\",\"origin\"]};",
+							"",
+							"assertJson(json => {",
+							"   validate(json, schema, \"Validate JSON Schema\");",
+							"  tests[`json.deflated = true`] = json.deflated = true;",
+							"  tests[\"Content-Encoding → deflate\"] = postman.getResponseHeader(\"Content-Encoding\") == \"deflate\";",
+							"});",
+							"",
+							"//// Postman Test Functions /////",
+							"function assertJson(callback) {",
+							"    responseOK();",
+							"    const isJson = postman.getResponseHeader(\"Content-Type\").startsWith(\"application/json\");",
+							"    tests[\"Content-Type = json\"] = isJson;",
+							"    if (isJson && responseCode.code < 400) {",
+							"        const json = JSON.parse(responseBody);",
+							"        callback(json);",
+							"    }",
+							"}",
+							"function responseOK() {",
+							"    tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"}",
+							"function setEnv(name, value) {",
+							"    postman.setEnvironmentVariable(name,value) ;",
+							"    tests[`Setting {{${name})} = ${value}`] = (value !== null);",
+							"}",
+							"function getEnv(name) {",
+							"    return postman.setEnvironmentVariable(name);",
+							"}",
+							"function validate(json, schema, testName) {",
+							"    const validation = tv4.validateMultiple(json, schema);",
+							"    const truncate = _.truncate || _.trunc;",
+							"",
+							"    if (validation.valid) {",
+							"        tests[testName] = true;",
+							"    } else {",
+							"        let message = \"\";",
+							"        let count=0;",
+							"        for (let key in validation.errors) {",
+							"            let e = validation.errors[key];",
+							"            message += `${e.dataPath} => ${e.message} ||`;",
+							"            count++;",
+							"        }",
+							"        message = truncate(message, {'length' : 400});",
+							"        tests[`${testName} -- ${count} errors detected -- ${message}`] = false;",
+							"    }",
+							"}",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/deflate",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept-Encoding",
+						"value": "deflate",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": [
+				{
+					"id": "b4da27dc-d71a-4a4d-8dae-60037cc732d7",
+					"name": "gzip",
+					"originalRequest": {
+						"url": "{{httpbino}}/gzip",
+						"method": "GET",
+						"header": [],
+						"body": {}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"_postman_previewtype": "text",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true",
+							"name": "Access-Control-Allow-Credentials",
+							"description": "Indicates whether or not the response to the request can be exposed when the credentials flag is true. When used as part of a response to a preflight request, this indicates whether or not the actual request can be made using credentials."
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*",
+							"name": "Access-Control-Allow-Origin",
+							"description": "Specifies a URI that may access the resource. For requests without credentials, the server may specify '*' as a wildcard, thereby allowing any origin to access the resource."
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive",
+							"name": "Connection",
+							"description": "Options that are desired for the connection"
+						},
+						{
+							"key": "Content-Encoding",
+							"value": "gzip",
+							"name": "Content-Encoding",
+							"description": "The type of encoding used on the data."
+						},
+						{
+							"key": "Content-Length",
+							"value": "244",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 10 Mar 2017 08:06:56 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Server",
+							"value": "nginx",
+							"name": "Server",
+							"description": "A name for the server"
+						}
+					],
+					"cookie": [],
+					"responseTime": 389,
+					"body": "{\n  \"gzipped\": true, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n    \"Accept-Encoding\": \"gzip, deflate\", \n    \"Cache-Control\": \"no-cache\", \n    \"Host\": \"httpbin.org\", \n    \"Postman-Token\": \"e382b55e-7e29-4fbb-a8c6-33fd81289c37\", \n    \"User-Agent\": \"PostmanRuntime/3.0.11-hotfix.2\"\n  }, \n  \"method\": \"GET\", \n  \"origin\": \"79.192.218.154\"\n}\n"
+				}
+			]
+		},
+		{
+			"name": "/html",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/html",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": [
+				{
+					"id": "2249f0a9-6c02-4890-aab4-d9e6c28e9097",
+					"name": "gzip",
+					"originalRequest": {
+						"url": "{{httpbino}}/gzip",
+						"method": "GET",
+						"header": [],
+						"body": {}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"_postman_previewtype": "text",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true",
+							"name": "Access-Control-Allow-Credentials",
+							"description": "Indicates whether or not the response to the request can be exposed when the credentials flag is true. When used as part of a response to a preflight request, this indicates whether or not the actual request can be made using credentials."
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*",
+							"name": "Access-Control-Allow-Origin",
+							"description": "Specifies a URI that may access the resource. For requests without credentials, the server may specify '*' as a wildcard, thereby allowing any origin to access the resource."
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive",
+							"name": "Connection",
+							"description": "Options that are desired for the connection"
+						},
+						{
+							"key": "Content-Encoding",
+							"value": "gzip",
+							"name": "Content-Encoding",
+							"description": "The type of encoding used on the data."
+						},
+						{
+							"key": "Content-Length",
+							"value": "244",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 10 Mar 2017 08:06:56 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Server",
+							"value": "nginx",
+							"name": "Server",
+							"description": "A name for the server"
+						}
+					],
+					"cookie": [],
+					"responseTime": 389,
+					"body": "{\n  \"gzipped\": true, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n    \"Accept-Encoding\": \"gzip, deflate\", \n    \"Cache-Control\": \"no-cache\", \n    \"Host\": \"httpbin.org\", \n    \"Postman-Token\": \"e382b55e-7e29-4fbb-a8c6-33fd81289c37\", \n    \"User-Agent\": \"PostmanRuntime/3.0.11-hotfix.2\"\n  }, \n  \"method\": \"GET\", \n  \"origin\": \"79.192.218.154\"\n}\n"
+				}
+			]
+		},
+		{
+			"name": "/robots.txt",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/robots.txt",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": [
+				{
+					"id": "02059ddf-a975-4984-a5ca-ba5d9095b2a2",
+					"name": "gzip",
+					"originalRequest": {
+						"url": "{{httpbino}}/gzip",
+						"method": "GET",
+						"header": [],
+						"body": {}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"_postman_previewtype": "text",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true",
+							"name": "Access-Control-Allow-Credentials",
+							"description": "Indicates whether or not the response to the request can be exposed when the credentials flag is true. When used as part of a response to a preflight request, this indicates whether or not the actual request can be made using credentials."
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*",
+							"name": "Access-Control-Allow-Origin",
+							"description": "Specifies a URI that may access the resource. For requests without credentials, the server may specify '*' as a wildcard, thereby allowing any origin to access the resource."
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive",
+							"name": "Connection",
+							"description": "Options that are desired for the connection"
+						},
+						{
+							"key": "Content-Encoding",
+							"value": "gzip",
+							"name": "Content-Encoding",
+							"description": "The type of encoding used on the data."
+						},
+						{
+							"key": "Content-Length",
+							"value": "244",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 10 Mar 2017 08:06:56 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Server",
+							"value": "nginx",
+							"name": "Server",
+							"description": "A name for the server"
+						}
+					],
+					"cookie": [],
+					"responseTime": 389,
+					"body": "{\n  \"gzipped\": true, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n    \"Accept-Encoding\": \"gzip, deflate\", \n    \"Cache-Control\": \"no-cache\", \n    \"Host\": \"httpbin.org\", \n    \"Postman-Token\": \"e382b55e-7e29-4fbb-a8c6-33fd81289c37\", \n    \"User-Agent\": \"PostmanRuntime/3.0.11-hotfix.2\"\n  }, \n  \"method\": \"GET\", \n  \"origin\": \"79.192.218.154\"\n}\n"
+				}
+			]
+		},
+		{
+			"name": "/deny",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/deny",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": [
+				{
+					"id": "aa546a1b-c9ed-43e8-9a96-00594c9592f4",
+					"name": "gzip",
+					"originalRequest": {
+						"url": "{{httpbino}}/gzip",
+						"method": "GET",
+						"header": [],
+						"body": {}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"_postman_previewtype": "text",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true",
+							"name": "Access-Control-Allow-Credentials",
+							"description": "Indicates whether or not the response to the request can be exposed when the credentials flag is true. When used as part of a response to a preflight request, this indicates whether or not the actual request can be made using credentials."
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*",
+							"name": "Access-Control-Allow-Origin",
+							"description": "Specifies a URI that may access the resource. For requests without credentials, the server may specify '*' as a wildcard, thereby allowing any origin to access the resource."
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive",
+							"name": "Connection",
+							"description": "Options that are desired for the connection"
+						},
+						{
+							"key": "Content-Encoding",
+							"value": "gzip",
+							"name": "Content-Encoding",
+							"description": "The type of encoding used on the data."
+						},
+						{
+							"key": "Content-Length",
+							"value": "244",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 10 Mar 2017 08:06:56 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Server",
+							"value": "nginx",
+							"name": "Server",
+							"description": "A name for the server"
+						}
+					],
+					"cookie": [],
+					"responseTime": 389,
+					"body": "{\n  \"gzipped\": true, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n    \"Accept-Encoding\": \"gzip, deflate\", \n    \"Cache-Control\": \"no-cache\", \n    \"Host\": \"httpbin.org\", \n    \"Postman-Token\": \"e382b55e-7e29-4fbb-a8c6-33fd81289c37\", \n    \"User-Agent\": \"PostmanRuntime/3.0.11-hotfix.2\"\n  }, \n  \"method\": \"GET\", \n  \"origin\": \"79.192.218.154\"\n}\n"
+				}
+			]
+		},
+		{
+			"name": "/links/:n",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/links/10/3",
+				"method": "GET",
+				"header": [],
+				"body": {},
+				"description": ""
+			},
+			"response": [
+				{
+					"id": "ce6c27f3-dd8d-4cd8-82ab-683e44b124a8",
+					"name": "gzip",
+					"originalRequest": {
+						"url": "{{httpbino}}/gzip",
+						"method": "GET",
+						"header": [],
+						"body": {}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"_postman_previewtype": "text",
+					"header": [
+						{
+							"key": "Access-Control-Allow-Credentials",
+							"value": "true",
+							"name": "Access-Control-Allow-Credentials",
+							"description": "Indicates whether or not the response to the request can be exposed when the credentials flag is true. When used as part of a response to a preflight request, this indicates whether or not the actual request can be made using credentials."
+						},
+						{
+							"key": "Access-Control-Allow-Origin",
+							"value": "*",
+							"name": "Access-Control-Allow-Origin",
+							"description": "Specifies a URI that may access the resource. For requests without credentials, the server may specify '*' as a wildcard, thereby allowing any origin to access the resource."
+						},
+						{
+							"key": "Connection",
+							"value": "keep-alive",
+							"name": "Connection",
+							"description": "Options that are desired for the connection"
+						},
+						{
+							"key": "Content-Encoding",
+							"value": "gzip",
+							"name": "Content-Encoding",
+							"description": "The type of encoding used on the data."
+						},
+						{
+							"key": "Content-Length",
+							"value": "244",
+							"name": "Content-Length",
+							"description": "The length of the response body in octets (8-bit bytes)"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"name": "Content-Type",
+							"description": "The mime type of this content"
+						},
+						{
+							"key": "Date",
+							"value": "Fri, 10 Mar 2017 08:06:56 GMT",
+							"name": "Date",
+							"description": "The date and time that the message was sent"
+						},
+						{
+							"key": "Server",
+							"value": "nginx",
+							"name": "Server",
+							"description": "A name for the server"
+						}
+					],
+					"cookie": [],
+					"responseTime": 389,
+					"body": "{\n  \"gzipped\": true, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n    \"Accept-Encoding\": \"gzip, deflate\", \n    \"Cache-Control\": \"no-cache\", \n    \"Host\": \"httpbin.org\", \n    \"Postman-Token\": \"e382b55e-7e29-4fbb-a8c6-33fd81289c37\", \n    \"User-Agent\": \"PostmanRuntime/3.0.11-hotfix.2\"\n  }, \n  \"method\": \"GET\", \n  \"origin\": \"79.192.218.154\"\n}\n"
+				}
+			]
+		},
+		{
+			"name": "/throw",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 500;"
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/throw",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "{{type}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/notFound",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 404;",
+							"",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/notFound",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "{{type}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/redirect/:n",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/redirect/5",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "{{type}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/redirect-to?url=",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"",
+							"",
+							""
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"if (!postman.getGlobalVariable(\"httpbin\")) {     postman.setGlobalVariable(\"httpbin\", \"http://localhost:8080\") } ",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/redirect-to?url=https://www.wikipedia.org/portal/wikipedia.org/assets/img/Wikipedia_wordmark.png",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "{{type}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/bytes/:n",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/bytes/1024",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/octet-stream",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/stream/:n",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Body has 42 lines\"] = responseBody.trim().split(\"\\n\").length == 42;"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/stream/42",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/octet-stream",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/basic-auth (Authorization header)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var user = postman.getEnvironmentVariable(\"user\");",
+							"if (user == \"test:test\") {",
+							"    tests[\"Status code is 200 for \" + user] = responseCode.code === 200;    ",
+							"} else {",
+							"    tests[\"Status code is 401 for \" + user] = responseCode.code === 401;",
+							"}",
+							"postman.clearEnvironmentVariable(\"user\");",
+							"postman.clearEnvironmentVariable(\"auth\");"
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var user = (Math.random() < 0.5) ? \"test:test\" : \"admin:admin\";",
+							"postman.setEnvironmentVariable(\"user\", user);",
+							"postman.setEnvironmentVariable(\"auth\", \"Basic \" + btoa(user));"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8080/basic-auth",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "{{auth}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/basic-auth/test/test",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var user = postman.getEnvironmentVariable(\"user\");",
+							"if (user == \"test\") {",
+							"    tests[\"Status code is 200 for \" + user] = responseCode.code === 200;    ",
+							"} else {",
+							"    tests[\"Status code is 401 for \" + user] = responseCode.code === 401;",
+							"}",
+							"postman.clearEnvironmentVariable(\"user\");",
+							"postman.clearEnvironmentVariable(\"auth\");"
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var user = (Math.random() < 0.5) ? \"test\" : \"admin\";",
+							"postman.setEnvironmentVariable(\"user\", user);",
+							"postman.setEnvironmentVariable(\"auth\", \"Basic \" + btoa(user + \":\" + user));"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/basic-auth/{{user}}/{{user}}",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/octet-stream",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/hidden-basic-auth/{user}/{password}",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 401;",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/hidden-basic-auth/test/test",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/octet-stream",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		}
+	]
+}
