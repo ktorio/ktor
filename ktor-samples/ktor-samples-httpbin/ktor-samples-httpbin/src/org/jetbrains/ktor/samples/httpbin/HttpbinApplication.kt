@@ -1,9 +1,9 @@
 package org.jetbrains.ktor.samples.httpbin
 
-import jsonOf
-import moshi
+import com.squareup.moshi.Moshi
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.TextContent
+import org.jetbrains.ktor.content.resolveLocalFile
 import org.jetbrains.ktor.features.Compression
 import org.jetbrains.ktor.features.DefaultHeaders
 import org.jetbrains.ktor.http.ContentType
@@ -14,39 +14,27 @@ import org.jetbrains.ktor.request.header
 import org.jetbrains.ktor.request.location
 import org.jetbrains.ktor.response.header
 import org.jetbrains.ktor.response.respondText
-import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.routing.get
+import org.jetbrains.ktor.routing.routing
 import org.jetbrains.ktor.transform.transform
 import org.jetbrains.ktor.util.ValuesMap
-import parseJson
-
-class Something
-
+import sun.management.Agent
 
 class JsonResponse(
     var args: ValuesMap? = null,
     var headers: ValuesMap? = null,
     var origin: String? = null,
     var url: String? = null,
-    var `user-agent`: String? = null,
-    var data: String? = null,
-    var files: String? = null,
-    var form: ValuesMap? = null,
-    var json: Map<String, Any>? = null
+    var `user-agent`: String? = null
 )
 
-suspend fun ApplicationCall.sendResponse(operation: JsonResponse.() -> Unit) {
-    val response = JsonResponse(
-        args = request.queryParameters,
-        headers = request.headers
-    )
-    response.operation()
-    respond(response)
-}
+val moshi = Moshi.Builder()
+    .add(MapAdapter())
+    .build()
 
 
-fun Route.contentTypeRequest(contentType: ContentType, build: Route.() -> Unit): Route {
-    return header("Content-Type", "${contentType.contentType}/${contentType.contentSubtype}", build)
-}
+fun jsonOf(value: JsonResponse) : String
+    = moshi.adapter(JsonResponse::class.java).toJson(value)
 
 
 fun Application.main() {
@@ -77,36 +65,6 @@ fun Application.main() {
                 url = call.request.location()
             )
             call.respond(response)
-        }
-        route("/post") {
-
-            contentTypeRequest(ContentType.MultiPart.FormData) {
-                post {
-                    call.sendResponse {
-                        form = call.request.content.get<ValuesMap>()
-                    }
-                }
-            }
-            contentTypeRequest(ContentType.Application.FormUrlEncoded) {
-                post {
-                    call.sendResponse {
-                        form = call.request.content.get<ValuesMap>()
-                    }
-                }
-            }
-            contentTypeRequest(ContentType.Application.Json) {
-                post {
-                    call.sendResponse {
-                        val content = call.request.content.get<String>()
-                        json = parseJson(content)
-                    }
-                }
-            }
-            post {
-                call.sendResponse {
-                    data = call.request.content.get<String>()
-                }
-            }
         }
         get("/cache") {
             val etag = "db7a0a2684bb439e858ee25ae5b9a5c6"
