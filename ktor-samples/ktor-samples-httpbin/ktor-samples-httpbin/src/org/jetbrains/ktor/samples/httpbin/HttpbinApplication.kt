@@ -9,11 +9,14 @@ import org.jetbrains.ktor.http.ContentType
 import org.jetbrains.ktor.http.HttpStatusCode
 import org.jetbrains.ktor.logging.CallLogging
 import org.jetbrains.ktor.pipeline.PipelineContext
+import org.jetbrains.ktor.request.MultiPartData
 import org.jetbrains.ktor.request.header
 import org.jetbrains.ktor.request.location
 import org.jetbrains.ktor.response.header
 import org.jetbrains.ktor.response.respondText
+import org.jetbrains.ktor.routing.contentType
 import org.jetbrains.ktor.routing.get
+import org.jetbrains.ktor.routing.post
 import org.jetbrains.ktor.routing.routing
 import org.jetbrains.ktor.transform.transform
 import org.jetbrains.ktor.util.ValuesMap
@@ -26,7 +29,11 @@ class JsonResponse(
     var headers: ValuesMap? = null,
     var origin: String? = null,
     var url: String? = null,
-    var `user-agent`: String? = null
+    var `user-agent`: String? = null,
+    var data: String? = null,
+    var files: String? = null,
+    var form: MultiPartData? = null,
+    var json: ValuesMap? = null
 )
 
 
@@ -58,6 +65,27 @@ fun Application.main() {
                 url = call.request.location()
             )
             call.respond(response)
+        }
+        post("/post") {
+
+            val response = JsonResponse(
+                args = call.request.queryParameters,
+                headers = call.request.headers
+            )
+            contentType(ContentType.MultiPart.FormData) {
+                response.form = call.request.content.get()
+            }
+            contentType(ContentType.Application.FormUrlEncoded) {
+                response.form = call.request.content.get()
+            }
+            contentType(ContentType.Application.Json) {
+                response.json = call.request.content.get()
+            }
+            contentType(ContentType.Text.Any) {
+                response.data = call.request.content.get()
+            }
+            call.respond(response)
+
         }
         get("/cache") {
             val etag = "db7a0a2684bb439e858ee25ae5b9a5c6"

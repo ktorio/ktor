@@ -1,6 +1,8 @@
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.ToJson
+import org.jetbrains.ktor.request.MultiPartData
+import org.jetbrains.ktor.request.PartData
 import org.jetbrains.ktor.samples.httpbin.JsonResponse
 import org.jetbrains.ktor.util.ValuesMap
 import java.util.*
@@ -30,7 +32,24 @@ private class MapAdapter {
         return result
     }
 
+    @ToJson
+    fun multipart(multiPartData: MultiPartData?): Map<Any, Any>? {
+        if (multiPartData == null) {
+            return null
+        }
+        val result = LinkedHashMap<Any, Any>()
+        for (part in multiPartData.parts) {
+            when (part) {
+                is PartData.FormItem -> result.put(part.partName!!, part.value)
+                is PartData.FileItem -> result.put(part.partName!!, "A file of type ${part.contentType}")
+            }
+        }
+        return result
+    }
+
     @FromJson fun from(map: Map<String, String>) : ValuesMap = ValuesMap.Empty
+
+    @FromJson fun fromMultipart(map: Map<String, String>) : MultiPartData? = null
 }
 
 
