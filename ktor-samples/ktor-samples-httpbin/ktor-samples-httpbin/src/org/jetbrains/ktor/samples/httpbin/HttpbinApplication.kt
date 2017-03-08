@@ -1,9 +1,8 @@
 package org.jetbrains.ktor.samples.httpbin
 
-import com.squareup.moshi.Moshi
+import jsonOf
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.TextContent
-import org.jetbrains.ktor.content.resolveLocalFile
 import org.jetbrains.ktor.features.Compression
 import org.jetbrains.ktor.features.DefaultHeaders
 import org.jetbrains.ktor.http.ContentType
@@ -18,7 +17,9 @@ import org.jetbrains.ktor.routing.get
 import org.jetbrains.ktor.routing.routing
 import org.jetbrains.ktor.transform.transform
 import org.jetbrains.ktor.util.ValuesMap
-import sun.management.Agent
+
+class Something
+
 
 class JsonResponse(
     var args: ValuesMap? = null,
@@ -27,14 +28,6 @@ class JsonResponse(
     var url: String? = null,
     var `user-agent`: String? = null
 )
-
-val moshi = Moshi.Builder()
-    .add(MapAdapter())
-    .build()
-
-
-fun jsonOf(value: JsonResponse) : String
-    = moshi.adapter(JsonResponse::class.java).toJson(value)
 
 
 fun Application.main() {
