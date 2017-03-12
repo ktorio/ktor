@@ -33,10 +33,3 @@ fun ApplicationTransform<ApplicationCall>.registerDefaultHandlers() {
     }
 }
 
-class HttpStatusCodeContent(private val value: HttpStatusCode) : FinalContent.NoContent() {
-    override val status: HttpStatusCode
-        get() = value
-
-    override val headers: ValuesMap
-        get() = ValuesMap.Empty
-}
