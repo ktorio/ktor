@@ -6,7 +6,6 @@ import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import javax.servlet.http.*
@@ -28,7 +27,7 @@ open class ServletApplicationCall(application: Application,
     @Volatile
     var completed: Boolean = false
 
-    override suspend fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
+    suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
         servletResponse.status = upgrade.status?.value ?: HttpStatusCode.SwitchingProtocols.value
         upgrade.headers.flattenEntries().forEach { e ->
             servletResponse.addHeader(e.first, e.second)
@@ -36,7 +35,7 @@ open class ServletApplicationCall(application: Application,
 
         servletResponse.flushBuffer()
         val handler = servletRequest.upgrade(ServletUpgradeHandler::class.java)
-        handler.up = UpgradeRequest(servletResponse, this@ServletApplicationCall, upgrade, this)
+        handler.up = UpgradeRequest(servletResponse, this@ServletApplicationCall, upgrade)
 
 //        servletResponse.flushBuffer()
 
@@ -69,7 +68,7 @@ open class ServletApplicationCall(application: Application,
 
     // the following types need to be public as they are accessed through reflection
 
-    class UpgradeRequest(val response: HttpServletResponse, val call: ServletApplicationCall, val upgradeMessage: ProtocolUpgrade, val context: PipelineContext<*>)
+    class UpgradeRequest(val response: HttpServletResponse, val call: ServletApplicationCall, val upgradeMessage: FinalContent.ProtocolUpgrade)
 
     class ServletUpgradeHandler : HttpUpgradeHandler {
         @Volatile
@@ -88,7 +87,7 @@ open class ServletApplicationCall(application: Application,
             up.call.responseChannelOverride = outputChannel
 
             runBlocking {
-                up.upgradeMessage.upgrade(call, up.context, inputChannel, outputChannel, Closeable {
+                up.upgradeMessage.upgrade(call, inputChannel, outputChannel, Closeable {
                     wc.close()
                 })
             }

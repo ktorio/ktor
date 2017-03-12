@@ -89,6 +89,7 @@ class Compression(compression: Configuration) {
                     }
                     is FinalContent.NoContent -> return@intercept
                     is FinalContent.ByteArrayContent -> ({ message.bytes().toReadChannel() })
+                    is FinalContent.ProtocolUpgrade -> return@intercept
                 }
 
                 if (encoderOptions != null) {

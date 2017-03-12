@@ -8,7 +8,10 @@ import org.jetbrains.ktor.pipeline.*
 import java.io.*
 import java.time.*
 
-internal class WebSocketImpl(call: ApplicationCall, context: PipelineContext<*>, val readChannel: ReadChannel, val writeChannel: WriteChannel, val channel: Closeable) : WebSocket(call, context) {
+internal class WebSocketImpl(call: ApplicationCall,
+                             val readChannel: ReadChannel,
+                             val writeChannel: WriteChannel,
+                             val channel: Closeable) : WebSocket(call) {
     private val controlFrameHandler = ControlFrameHandler(this, application.executor)
     private val outbound = WebSocketWriter(this, writeChannel, controlFrameHandler)
     private val reader = WebSocketReader(
@@ -83,8 +86,6 @@ internal class WebSocketImpl(call: ApplicationCall, context: PipelineContext<*>,
         } catch (t: Throwable) {
             application.environment.log.debug("Failed to close write channel")
         }
-
-        super.close()
     }
 
     suspend fun closeAsync(reason: CloseReason?) {
