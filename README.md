@@ -43,7 +43,10 @@ Ktor pipeline machinery and API is utilising a number of Kotlin features to prov
 
 ### Testable
 
-Ktor application can be hosted in a TestHost, which emulates to some extent web server without actually doing any networking. It provides easy way to test an application without mocking too much stuff, and still achieve good performance while validating application calls. Integration tests with real embedded web server are of course possible, too.
+Ktor application can be hosted in a [TestHost](https://github.com/Kotlin/ktor/wiki/Testing), which emulates to some 
+extent web server without actually doing any networking. It provides easy way to test an application without mocking 
+too much stuff, and still achieve good performance while validating application calls. Integration tests with real 
+embedded web server are of course possible, too.
 
 ## Features
 
