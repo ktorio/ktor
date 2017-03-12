@@ -3,12 +3,14 @@ package org.jetbrains.ktor.features
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import java.time.*
 import java.util.*
 
+/**
+ * Feature to check modified/match conditional headers and avoid sending contents if it was not changed
+ */
 class ConditionalHeaders {
     private val headers = listOf(
             HttpHeaders.IfModifiedSince,
@@ -17,32 +19,39 @@ class ConditionalHeaders {
             HttpHeaders.IfNoneMatch
     )
 
-    suspend private fun checkVersions(call: ApplicationCall, versions: List<Version>) {
+    private fun intercept(call: ApplicationCall) {
+        // Check if any conditional header is present
+        if (!headers.any { it in call.request.headers })
+            return
+
+        // Intercept response pipeline and after the content is ready to be served
+        // check if it needs to be served according to conditions
+        call.response.pipeline.intercept(ApplicationResponsePipeline.After) {
+            val message = subject
+            val status = when (message) {
+                is Resource -> checkVersions(call, message.versions)
+                is FinalContent -> checkVersions(call, message.lastModifiedAndEtagVersions())
+                else -> VersionCheckResult.OK
+            }
+            if (status != VersionCheckResult.OK) {
+                proceedWith(HttpStatusCodeContent(status.statusCode))
+            }
+        }
+    }
+
+    private suspend fun checkVersions(call: ApplicationCall, versions: List<Version>): VersionCheckResult {
         for (version in versions) {
-            val result = when (version) {
-                is EntityTagVersion -> call.checkEtag(version.etag)
-                is LastModifiedVersion -> call.checkLastModified(version.lastModified)
-                else -> ConditionalHeaderCheckResult.OK
-            }
-
-            if (result != ConditionalHeaderCheckResult.OK) {
-                call.respond(result.statusCode)
+            val result = version.check(call)
+            if (result != VersionCheckResult.OK) {
+                return result
             }
         }
+        return VersionCheckResult.OK
     }
 
-    fun intercept(call: ApplicationCall) {
-        if (headers.any { it in call.request.headers }) {
-            call.response.pipeline.intercept(ApplicationResponsePipeline.After) {
-                val message = subject
-                when (message) {
-                    is Resource -> checkVersions(call, message.versions)
-                    is FinalContent -> checkVersions(call, message.lastModifiedAndEtagVersions())
-                }
-            }
-        }
-    }
-
+    /**
+     * `ApplicationFeature` implementation for [ConditionalHeaders]
+     */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Unit, ConditionalHeaders> {
         override val key = AttributeKey<ConditionalHeaders>("Conditional Headers")
         override fun install(pipeline: ApplicationCallPipeline, configure: Unit.() -> Unit): ConditionalHeaders {
@@ -54,40 +63,6 @@ class ConditionalHeaders {
     }
 }
 
-
-enum class ConditionalHeaderCheckResult(val statusCode: HttpStatusCode) {
-    OK(HttpStatusCode.OK),
-    NOT_MODIFIED(HttpStatusCode.NotModified),
-    PRECONDITION_FAILED(HttpStatusCode.PreconditionFailed)
-}
-
-/**
- * Checks current [etag] value and pass it through conditions supplied by the remote client. Depends on conditions it
- * produces return value of enum type [ConditionalHeaderCheckResult]
- *
- * It never handles If-None-Match: *  as it is related to non-etag logic (for example, Last modified checks).
- * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26 for more details
- *
- * @param etag - current entity tag, for example file's content hash
- * @return [ConditionalHeaderCheckResult.OK] if all headers pass or there was no related headers,
- *      [ConditionalHeaderCheckResult.NOT_MODIFIED] for successful If-None-Match,
- *      [ConditionalHeaderCheckResult.PRECONDITION_FAILED] for failed If-Match
- */
-fun ApplicationCall.checkEtag(etag: String): ConditionalHeaderCheckResult {
-    val givenNoneMatchEtags = request.header(HttpHeaders.IfNoneMatch)?.parseMatchTag()
-    val givenMatchEtags = request.header(HttpHeaders.IfMatch)?.parseMatchTag()
-
-    if (givenNoneMatchEtags != null && etag in givenNoneMatchEtags && "*" !in givenNoneMatchEtags) {
-        return ConditionalHeaderCheckResult.NOT_MODIFIED
-    }
-
-    if (givenMatchEtags != null && givenMatchEtags.isNotEmpty() && etag !in givenMatchEtags && "*" !in givenMatchEtags) {
-        return ConditionalHeaderCheckResult.PRECONDITION_FAILED
-    }
-
-    return ConditionalHeaderCheckResult.OK
-}
-
 /**
  * Checks current [etag] value and pass it through conditions supplied by the remote client. Depends on conditions it
  * produces 410 Precondition Failed or 304 Not modified responses when necessary.
@@ -97,16 +72,16 @@ fun ApplicationCall.checkEtag(etag: String): ConditionalHeaderCheckResult {
  * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26 for more details
  */
 suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block: suspend () -> Unit): Unit {
-    val result = checkEtag(etag)
-
+    val version = EntityTagVersion(etag)
+    val result = version.check(this)
     if (putHeader) {
+        // TODO: use version.appendHeader
         response.header(HttpHeaders.ETag, etag)
     }
-
     when (result) {
-        ConditionalHeaderCheckResult.NOT_MODIFIED,
-        ConditionalHeaderCheckResult.PRECONDITION_FAILED -> respond(result.statusCode)
-        ConditionalHeaderCheckResult.OK -> block()
+        VersionCheckResult.NOT_MODIFIED,
+        VersionCheckResult.PRECONDITION_FAILED -> respond(result.statusCode)
+        VersionCheckResult.OK -> block()
     }
 }
 
@@ -116,41 +91,6 @@ suspend fun ApplicationCall.withLastModified(lastModified: Date, putHeader: Bool
 
 suspend fun ApplicationCall.withLastModified(lastModified: ZonedDateTime, putHeader: Boolean = true, block: suspend () -> Unit): Unit {
     withLastModified(lastModified.toLocalDateTime(), putHeader, block)
-}
-
-/**
- * The function passes the given [lastModified] date through the client provided
- *  http conditional headers If-Modified-Since and If-Unmodified-Since.
- *
- * Notice the second precision so it may work wrong if there were few changes during the same second.
- *
- * For better behaviour use etag instead
- *
- * See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.28 and
- *  https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.25
- *
- *  @param lastModified of the current content, for example file's last modified date
- *  @return [ConditionalHeaderCheckResult.OK] if all header pass or there was no headers in the request,
- *      [ConditionalHeaderCheckResult.NOT_MODIFIED] for If-Modified-Since,
- *      [ConditionalHeaderCheckResult.PRECONDITION_FAILED] for If-Unmodified*Since
- */
-fun ApplicationCall.checkLastModified(lastModified: LocalDateTime): ConditionalHeaderCheckResult {
-    val normalized = lastModified.withNano(0) // we need this because of the http date format that only has seconds
-    val ifModifiedSince = request.headers[HttpHeaders.IfModifiedSince]?.let { it.fromHttpDateString().toLocalDateTime() }
-    val ifUnmodifiedSince = request.headers[HttpHeaders.IfUnmodifiedSince]?.let { it.fromHttpDateString().toLocalDateTime() }
-
-    if (ifModifiedSince != null) {
-        if (normalized <= ifModifiedSince) {
-            return ConditionalHeaderCheckResult.NOT_MODIFIED
-        }
-    }
-    if (ifUnmodifiedSince != null) {
-        if (normalized > ifUnmodifiedSince) {
-            return ConditionalHeaderCheckResult.PRECONDITION_FAILED
-        }
-    }
-
-    return ConditionalHeaderCheckResult.OK
 }
 
 /**
@@ -167,17 +107,18 @@ fun ApplicationCall.checkLastModified(lastModified: LocalDateTime): ConditionalH
  *  https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.25
  */
 suspend fun ApplicationCall.withLastModified(lastModified: LocalDateTime, putHeader: Boolean = true, block: suspend () -> Unit): Unit {
-    val result = checkLastModified(lastModified)
+    val version = LastModifiedVersion(lastModified)
+    val result = version.check(this)
 
     if (putHeader) {
+        // TODO: use version.appendHeader
         response.header(HttpHeaders.LastModified, lastModified)
     }
 
     return when (result) {
-        ConditionalHeaderCheckResult.NOT_MODIFIED,
-        ConditionalHeaderCheckResult.PRECONDITION_FAILED -> respond(result.statusCode)
-        ConditionalHeaderCheckResult.OK -> block()
+        VersionCheckResult.NOT_MODIFIED,
+        VersionCheckResult.PRECONDITION_FAILED -> respond(result.statusCode)
+        VersionCheckResult.OK -> block()
     }
 }
 
-private fun String.parseMatchTag() = split("\\s*,\\s*".toRegex()).map { it.removePrefix("W/") }.filter { it.isNotEmpty() }.toSet()
