@@ -11,6 +11,7 @@ data class RouteSelectorEvaluation(val succeeded: Boolean,
     companion object {
         val Failed = RouteSelectorEvaluation(false, 0.0)
         val Missing = RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityMissing)
+        val Constant = RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant)
 
         val qualityConstant = 1.0
         val qualityParameter = 0.8
@@ -26,7 +27,7 @@ interface RouteSelector {
 data class ConstantParameterRouteSelector(val name: String, val value: String) : RouteSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         if (context.parameters.contains(name, value))
-            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant)
+            return RouteSelectorEvaluation.Constant
         return RouteSelectorEvaluation.Failed
     }
 
@@ -174,7 +175,7 @@ data class AndRouteSelector(val first: RouteSelector, val second: RouteSelector)
 data class HttpMethodRouteSelector(val method: HttpMethod) : RouteSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         if (context.call.request.httpMethod == method)
-            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant)
+            return RouteSelectorEvaluation.Constant
         return RouteSelectorEvaluation.Failed
     }
 
