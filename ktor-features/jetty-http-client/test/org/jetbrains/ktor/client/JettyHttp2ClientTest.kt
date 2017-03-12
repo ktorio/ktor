@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.client
 
+import kotlinx.coroutines.experimental.*
 import org.eclipse.jetty.http2.server.*
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.servlet.*
@@ -20,7 +21,7 @@ class JettyHttp2ClientTest {
     }
 
     @Test
-    fun smokeTest() {
+    fun smokeTest() = runBlocking {
         server = createServer("/", 9096) { request, response ->
             response.status = HttpServletResponse.SC_OK
             response.contentType = "text/plain;charset=utf-8"
@@ -32,7 +33,7 @@ class JettyHttp2ClientTest {
             }
         }
 
-        val r = JettyHttp2Client.openBlocking(URL("http://localhost:9096/"))
+        val r = JettyHttp2Client.request(URL("http://localhost:9096/"))
         try {
             assertEquals(200, r.status.value)
 

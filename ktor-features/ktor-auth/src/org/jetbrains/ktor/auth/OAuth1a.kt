@@ -47,7 +47,7 @@ internal fun ApplicationCall.oauth1aHandleCallback(): OAuthCallback.TokenPair? {
     }
 }
 
-internal fun simpleOAuth1aStep1(client: HttpClient, settings: OAuthServerSettings.OAuth1aServerSettings, callbackUrl: String, nonce: String = nextNonce(), extraParameters: List<Pair<String, String>> = emptyList()): OAuthCallback.TokenPair {
+internal suspend fun simpleOAuth1aStep1(client: HttpClient, settings: OAuthServerSettings.OAuth1aServerSettings, callbackUrl: String, nonce: String = nextNonce(), extraParameters: List<Pair<String, String>> = emptyList()): OAuthCallback.TokenPair {
     return simpleOAuth1aStep1(
             client,
             settings.consumerSecret + "&",
@@ -59,14 +59,14 @@ internal fun simpleOAuth1aStep1(client: HttpClient, settings: OAuthServerSetting
     )
 }
 
-private fun simpleOAuth1aStep1(client: HttpClient, secretKey: String, baseUrl: String, callback: String, consumerKey: String, nonce: String = nextNonce(), extraParameters: List<Pair<String, String>> = emptyList()): OAuthCallback.TokenPair {
+private suspend fun simpleOAuth1aStep1(client: HttpClient, secretKey: String, baseUrl: String, callback: String, consumerKey: String, nonce: String = nextNonce(), extraParameters: List<Pair<String, String>> = emptyList()): OAuthCallback.TokenPair {
     val authHeader = obtainRequestTokenHeader(
             callback = callback,
             consumerKey = consumerKey,
             nonce = nonce
     ).sign(HttpMethod.Post, baseUrl, secretKey, extraParameters)
 
-    val response = client.openBlocking(URL(baseUrl.appendUrlParameters(extraParameters.formUrlEncode()))) {
+    val response = client.request(URL(baseUrl.appendUrlParameters(extraParameters.formUrlEncode()))) {
         method = HttpMethod.Post
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
         header(HttpHeaders.Accept, ContentType.Any.toString())
@@ -97,7 +97,7 @@ suspend internal fun ApplicationCall.redirectAuthenticateOAuth1a(authenticateUrl
     respondRedirect(url)
 }
 
-internal fun simpleOAuth1aStep2(client: HttpClient, settings: OAuthServerSettings.OAuth1aServerSettings, callbackResponse: OAuthCallback.TokenPair, nonce: String = nextNonce(), extraParameters: Map<String, String> = emptyMap()): OAuthAccessTokenResponse.OAuth1a {
+internal suspend fun simpleOAuth1aStep2(client: HttpClient, settings: OAuthServerSettings.OAuth1aServerSettings, callbackResponse: OAuthCallback.TokenPair, nonce: String = nextNonce(), extraParameters: Map<String, String> = emptyMap()): OAuthAccessTokenResponse.OAuth1a {
     return simpleOAuth1aStep2(
             client,
             settings.consumerSecret + "&", // TODO??
@@ -110,13 +110,13 @@ internal fun simpleOAuth1aStep2(client: HttpClient, settings: OAuthServerSetting
     )
 }
 
-private fun simpleOAuth1aStep2(client: HttpClient, secretKey: String, baseUrl: String, consumerKey: String, token: String, verifier: String, nonce: String = nextNonce(), extraParameters: Map<String, String> = emptyMap()): OAuthAccessTokenResponse.OAuth1a {
+private suspend fun simpleOAuth1aStep2(client: HttpClient, secretKey: String, baseUrl: String, consumerKey: String, token: String, verifier: String, nonce: String = nextNonce(), extraParameters: Map<String, String> = emptyMap()): OAuthAccessTokenResponse.OAuth1a {
     val params = listOf(
             HttpAuthHeader.Parameters.OAuthVerifier to verifier
     ) + extraParameters.toList()
     val authHeader = upgradeRequestTokenHeader(consumerKey, token, nonce).sign(HttpMethod.Post, baseUrl, secretKey, params)
 
-    val response = client.openBlocking(URL(baseUrl)) {
+    val response = client.request(URL(baseUrl)) {
         method = HttpMethod.Post
 
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))

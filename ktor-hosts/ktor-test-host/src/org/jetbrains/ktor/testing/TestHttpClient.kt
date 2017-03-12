@@ -1,22 +1,24 @@
 package org.jetbrains.ktor.testing
 
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.util.*
 import java.io.*
-import java.util.concurrent.*
 
-class TestingHttpClient (val host: TestApplicationHost) : HttpClient, AutoCloseable {
+class TestingHttpClient(val host: TestApplicationHost) : HttpClient(), AutoCloseable {
     override fun close() {
         host.dispose()
     }
 
-    override fun openConnection(host: String, port: Int, secure: Boolean) = TestingHttpConnection(this.host, host, port, secure)
+    override suspend fun openConnection(host: String, port: Int, secure: Boolean): TestingHttpConnection {
+        return TestingHttpConnection(this.host, host, port, secure)
+    }
 }
 
 class TestingHttpConnection(val app: TestApplicationHost, val host: String, val port: Int, val secure: Boolean) : HttpConnection {
-    override fun requestBlocking(init: RequestBuilder.() -> Unit): HttpResponse {
+
+    fun requestBlocking(init: RequestBuilder.() -> Unit): HttpResponse {
         val builder = RequestBuilder()
         builder.init()
 
@@ -35,20 +37,8 @@ class TestingHttpConnection(val app: TestApplicationHost, val host: String, val 
         return TestingHttpResponse(this, call)
     }
 
-    suspend override fun request(init: RequestBuilder.() -> Unit): HttpResponse {
-        return requestBlocking(init)
-    }
-
-    override fun requestAsync(init: RequestBuilder.() -> Unit, handler: (Future<HttpResponse>) -> Unit) {
-        val f = try {
-            CompletableFuture.completedFuture(requestBlocking(init))
-        } catch (t: Throwable) {
-            CompletableFuture<HttpResponse>().apply {
-                completeExceptionally(t)
-            }
-        }
-
-        handler(f)
+    suspend override fun request(configure: RequestBuilder.() -> Unit): HttpResponse {
+        return requestBlocking(configure)
     }
 
     override fun close() {

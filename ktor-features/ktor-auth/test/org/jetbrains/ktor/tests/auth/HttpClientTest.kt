@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.tests.auth
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.http.*
 import org.junit.*
@@ -11,7 +12,7 @@ import kotlin.test.*
 
 class HttpClientTest {
     @Test
-    fun testDefaultHttpConnection() {
+    fun testDefaultHttpConnection() = runBlocking {
         val portSync = ArrayBlockingQueue<Int>(1)
         val headersSync = ArrayBlockingQueue<Map<String, String>>(1)
         val receivedContentSync = ArrayBlockingQueue<String>(1)
@@ -53,7 +54,7 @@ class HttpClientTest {
         }
 
         val port = portSync.take()
-        val response = DefaultHttpClient.openBlocking(URL("http://127.0.0.1:$port/")) {
+        val response = DefaultHttpClient.request(URL("http://127.0.0.1:$port/")) {
             method = HttpMethod.Post
             path = "/url"
             header("header", "value")

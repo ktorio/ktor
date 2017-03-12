@@ -27,10 +27,10 @@ fun ApplicationRequest.basicAuthenticationCredentials(): UserPasswordCredential?
 }
 
 val BasicAuthKey: Any = "BasicAuth"
-fun AuthenticationPipeline.basicAuthentication(realm: String, validate: (UserPasswordCredential) -> Principal?) {
+fun AuthenticationPipeline.basicAuthentication(realm: String, validate: suspend (UserPasswordCredential) -> Principal?) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val credentials = context.call.request.basicAuthenticationCredentials()
-        val principal = credentials?.let(validate)
+        val principal = credentials?.let { validate(it) }
 
         val cause = when {
             credentials == null -> NotAuthenticatedCause.NoCredentials
