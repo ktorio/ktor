@@ -125,8 +125,8 @@ class CompressionTest {
             application.install(Compression) {
                 default()
                 encoder("special", object : CompressionEncoder {
-                    override fun open(delegate: ReadChannel) = delegate
-                    override fun open(delegate: WriteChannel) = delegate
+                    override fun compress(readChannel: ReadChannel) = readChannel
+                    override fun compress(writeChannel: WriteChannel) = writeChannel
                 })
             }
             application.routing {
@@ -150,7 +150,7 @@ class CompressionTest {
         withTestApplication {
             application.install(Compression) {
                 default()
-                minSize(10)
+                minimumSize(10)
             }
 
             application.routing {
@@ -178,8 +178,8 @@ class CompressionTest {
         withTestApplication {
             application.install(Compression) {
                 default()
-                mimeTypeShouldMatch(ContentType.Text.Any)
-                excludeMimeTypeMatch(ContentType.Text.VCard)
+                matchContentType(ContentType.Text.Any)
+                excludeContentType(ContentType.Text.VCard)
             }
 
             application.routing {
