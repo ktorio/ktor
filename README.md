@@ -8,8 +8,10 @@ Ktor is a framework for quickly creating web applications in Kotlin with minimal
 
 ```kotlin
 embeddedNettyServer(8080) {
-    get("/") {
-        call.respondText(ContentType.Text.Html, "Hello, world!")
+    routing {
+        get("/") {
+            call.respondText(ContentType.Text.Html, "Hello, world!")
+        }
     }
 }.start(wait = true)
 ```
