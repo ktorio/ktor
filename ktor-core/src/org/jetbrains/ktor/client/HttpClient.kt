@@ -5,14 +5,27 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.net.*
-import java.util.concurrent.*
+
+abstract class HttpClient {
+    protected abstract suspend fun openConnection(host: String, port: Int, secure: Boolean = false): HttpConnection
+
+    suspend fun request(url: URL, block: RequestBuilder.() -> Unit = {}): HttpResponse {
+        val connection = openConnection(url.host, url.computedPort(), url.protocol.toLowerCase() == "https")
+        return connection.request {
+            path = url.path + if (url.query.isNullOrBlank()) "" else "?" + url.query
+            block()
+        }
+    }
+
+    private fun URL.computedPort() = when {
+        port != -1 -> port
+        protocol.toLowerCase() == "https" -> 443
+        else -> 80
+    }
+}
 
 interface HttpConnection : Closeable {
-    fun requestBlocking(init: RequestBuilder.() -> Unit) : HttpResponse
-    suspend fun request(init: RequestBuilder.() -> Unit): HttpResponse
-
-    @Deprecated("Use suspend fun request instead")
-    fun requestAsync(init: RequestBuilder.() -> Unit, handler: (Future<HttpResponse>) -> Unit)
+    suspend fun request(configure: RequestBuilder.() -> Unit): HttpResponse
 }
 
 interface HttpResponse : Closeable {
@@ -31,31 +44,6 @@ interface HttpResponse : Closeable {
 val HttpResponse.stream: InputStream
     get() = channel.toInputStream()
 
-interface HttpClient {
-    fun openConnection(host: String, port: Int, secure: Boolean = false): HttpConnection
-
-    fun openBlocking(url: URL, block: RequestBuilder.() -> Unit = {}): HttpResponse = openConnection(url.host, url.computedPort(), url.protocol.toLowerCase() == "https").run {
-        requestBlocking {
-            path = url.path + if (url.query.isNullOrBlank()) "" else "?" + url.query
-            block()
-        }
-    }
-
-    fun openAsync(url: URL, block: RequestBuilder.() -> Unit, handler: (Future<HttpResponse>) -> Unit) {
-        openConnection(url.host, url.computedPort(), url.protocol.toLowerCase() == "https").run {
-            requestAsync({
-                path = url.path + if (url.query.isNullOrBlank()) "" else "?" + url.query
-                block()
-            }, handler)
-        }
-    }
-
-    private fun URL.computedPort() = when {
-        port != -1 -> port
-        protocol.toLowerCase() == "https" -> 443
-        else -> 80
-    }
-}
 
 class RequestBuilder {
     private val headersBuilder = ValuesMapBuilder()
@@ -66,6 +54,7 @@ class RequestBuilder {
     fun header(name: String, value: String) {
         headersBuilder.append(name, value)
     }
+
     fun contentType(contentType: ContentType) {
         header(HttpHeaders.ContentType, contentType.toString())
     }

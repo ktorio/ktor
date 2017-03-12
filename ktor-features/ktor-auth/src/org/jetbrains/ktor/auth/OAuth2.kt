@@ -50,12 +50,12 @@ suspend internal fun ApplicationCall.redirectAuthenticateOAuth2(settings: OAuthS
             parameters = extraParameters)
 }
 
-internal fun simpleOAuth2Step2(client: HttpClient,
-                               settings: OAuthServerSettings.OAuth2ServerSettings,
-                               usedRedirectUrl: String,
-                               callbackResponse: OAuthCallback.TokenSingle,
-                               extraParameters: Map<String, String> = emptyMap(),
-                               configure: RequestBuilder.() -> Unit = {}): OAuthAccessTokenResponse.OAuth2 {
+internal suspend fun simpleOAuth2Step2(client: HttpClient,
+                                       settings: OAuthServerSettings.OAuth2ServerSettings,
+                                       usedRedirectUrl: String,
+                                       callbackResponse: OAuthCallback.TokenSingle,
+                                       extraParameters: Map<String, String> = emptyMap(),
+                                       configure: RequestBuilder.() -> Unit = {}): OAuthAccessTokenResponse.OAuth2 {
     return simpleOAuth2Step2(
             client,
             settings.requestMethod,
@@ -85,18 +85,18 @@ internal fun optionalParameter(name: String, value: String, condition: (String) 
         if (condition(value)) "${encodeURLQueryComponent(name)}=${encodeURLQueryComponent(value)}"
         else ""
 
-private fun simpleOAuth2Step2(client: HttpClient,
-                              method: HttpMethod,
-                              usedRedirectUrl: String?,
-                              baseUrl: String,
-                              clientId: String,
-                              clientSecret: String,
-                              state: String?,
-                              code: String?,
-                              extraParameters: Map<String, String> = emptyMap(),
-                              configure: RequestBuilder.() -> Unit = {},
-                              useBasicAuth: Boolean = false,
-                              grantType: String = OAuthGrandTypes.AuthorizationCode): OAuthAccessTokenResponse.OAuth2 {
+private suspend fun simpleOAuth2Step2(client: HttpClient,
+                                      method: HttpMethod,
+                                      usedRedirectUrl: String?,
+                                      baseUrl: String,
+                                      clientId: String,
+                                      clientSecret: String,
+                                      state: String?,
+                                      code: String?,
+                                      extraParameters: Map<String, String> = emptyMap(),
+                                      configure: RequestBuilder.() -> Unit = {},
+                                      useBasicAuth: Boolean = false,
+                                      grantType: String = OAuthGrandTypes.AuthorizationCode): OAuthAccessTokenResponse.OAuth2 {
     val urlParameters =
             (listOf(
                     OAuth2RequestParameters.ClientId to clientId,
@@ -113,7 +113,7 @@ private fun simpleOAuth2Step2(client: HttpClient,
         else -> throw UnsupportedOperationException()
     }
 
-    val response = client.openBlocking(URL(getUri)) {
+    val response = client.request(URL(getUri)) {
         this.method = method
         header(HttpHeaders.Accept, listOf(ContentType.Application.FormUrlEncoded, ContentType.Application.Json).joinToString(","))
         if (useBasicAuth) {
@@ -186,7 +186,7 @@ private fun decodeContent(content: String, contentType: ContentType): ValuesMap 
  *
  * Takes [UserPasswordCredential] and validates it using OAuth2 sequence, provides [OAuthAccessTokenResponse.OAuth2] if succeeds
  */
-fun verifyWithOAuth2(c: UserPasswordCredential, client: HttpClient, settings: OAuthServerSettings.OAuth2ServerSettings): OAuthAccessTokenResponse.OAuth2 {
+suspend fun verifyWithOAuth2(c: UserPasswordCredential, client: HttpClient, settings: OAuthServerSettings.OAuth2ServerSettings): OAuthAccessTokenResponse.OAuth2 {
     return simpleOAuth2Step2(client, HttpMethod.Post,
             usedRedirectUrl = null,
             baseUrl = settings.accessTokenUrl,
