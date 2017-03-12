@@ -8,7 +8,6 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
-import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.transform.*
@@ -133,9 +132,9 @@ class TestApplicationCall(application: Application, override val request: TestAp
 
     override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : handled = $requestHandled"
 
-    override suspend fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
+    suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
         commitHeaders(upgrade)
-        upgrade.upgrade(this@TestApplicationCall, this, request.content.get(), response.realContent.value, Closeable { webSocketCompleted.countDown() })
+        upgrade.upgrade(this@TestApplicationCall, request.content.get(), response.realContent.value, Closeable { webSocketCompleted.countDown() })
     }
 
     override fun responseChannel(): WriteChannel = response.realContent.value.apply {

@@ -47,6 +47,6 @@ class FreeMarker(val config: Configuration) {
         override val cacheControl = null
         override val contentLength = null
 
-        override val headers by lazy { super.headers }
+        override val headers by lazy { super<Resource>.headers }
     }
 }

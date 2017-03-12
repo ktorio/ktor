@@ -2,7 +2,6 @@ package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
-import io.netty.handler.stream.*
 import io.netty.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.future.*
@@ -10,11 +9,8 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpHeaders
-import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.response.*
-import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.concurrent.atomic.*
 
@@ -72,7 +68,7 @@ internal class NettyApplicationCall(application: Application,
         context.writeAndFlush(buf).suspendAwait()
     }
 
-    override suspend fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
+    override suspend fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
         future(context.channel().eventLoop().toCoroutineDispatcher()) {
             val upgradeContentQueue = RawContentQueue(context)
 
@@ -96,7 +92,7 @@ internal class NettyApplicationCall(application: Application,
                     context.channel().pipeline().remove(HttpServerCodec::class.java)
                     context.channel().pipeline().addFirst(NettyDirectEncoder())
 
-                    upgrade.upgrade(this@NettyApplicationCall, this, HttpContentReadChannel(upgradeContentQueue.queue, buffered = false), responseChannel(), Closeable {
+                    upgrade.upgrade(this@NettyApplicationCall, HttpContentReadChannel(upgradeContentQueue.queue, buffered = false), responseChannel(), Closeable {
                         context.channel().close().get()
                         upgradeContentQueue.close()
                     })

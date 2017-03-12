@@ -6,7 +6,6 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.*
-import org.jetbrains.ktor.pipeline.*
 
 internal class NettyHttp2ApplicationCall(override val application: Application,
                                          val context: ChannelHandlerContext,
@@ -19,7 +18,7 @@ internal class NettyHttp2ApplicationCall(override val application: Application,
     override val request = NettyHttp2ApplicationRequest(context, streamId, headers)
     override val response = NettyHttp2ApplicationResponse(this, handler, context, respondPipeline, connection)
 
-    override suspend fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade) {
+    suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
         throw UnsupportedOperationException("HTTP/2 doesn't support upgrade")
     }
 

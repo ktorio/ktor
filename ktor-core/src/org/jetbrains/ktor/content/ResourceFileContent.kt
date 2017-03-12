@@ -23,7 +23,7 @@ class ResourceFileContent(val zipFile: File, val resourcePath: String, val class
         get() = JarFile(zipFile).use { it.getJarEntry(resourcePath)?.size }
 
 
-    override val headers by lazy { super.headers }
+    override val headers by lazy { super<Resource>.headers }
 
     override fun readFrom() = classLoader.getResourceAsStream(normalized)?.toReadChannel() ?: throw IOException("Resource $normalized not found")
 
