@@ -6,54 +6,49 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 
-class TestingHttpClient(val host: TestApplicationHost) : HttpClient(), AutoCloseable {
+class TestingHttpClient(private val applicationHost: TestApplicationHost) : HttpClient(), AutoCloseable {
+    override suspend fun openConnection(host: String, port: Int, secure: Boolean): HttpConnection {
+        return TestingHttpConnection(applicationHost)
+    }
+
     override fun close() {
-        host.dispose()
+        applicationHost.dispose()
     }
 
-    override suspend fun openConnection(host: String, port: Int, secure: Boolean): TestingHttpConnection {
-        return TestingHttpConnection(this.host, host, port, secure)
-    }
-}
+    private class TestingHttpConnection(val app: TestApplicationHost) : HttpConnection {
 
-class TestingHttpConnection(val app: TestApplicationHost, val host: String, val port: Int, val secure: Boolean) : HttpConnection {
+        suspend override fun request(configure: RequestBuilder.() -> Unit): HttpResponse {
+            val builder = RequestBuilder()
+            builder.configure()
 
-    fun requestBlocking(init: RequestBuilder.() -> Unit): HttpResponse {
-        val builder = RequestBuilder()
-        builder.init()
+            val call = app.handleRequest(builder.method, builder.path) {
+                builder.headers().forEach {
+                    addHeader(it.first, it.second)
+                }
 
-        val call = app.handleRequest(builder.method, builder.path) {
-            builder.headers().forEach {
-                addHeader(it.first, it.second)
+                builder.body?.let { content ->
+                    val bos = ByteArrayOutputStream()
+                    content(bos)
+                    body = bos.toByteArray().toString(Charsets.UTF_8)
+                }
             }
 
-            builder.body?.let { content ->
-                val bos = ByteArrayOutputStream()
-                content(bos)
-                body = bos.toByteArray().toString(Charsets.UTF_8)
-            }
+            return TestingHttpResponse(this, call)
         }
 
-        return TestingHttpResponse(this, call)
-    }
+        private class TestingHttpResponse(override val connection: HttpConnection, val call: TestApplicationCall) : HttpResponse {
 
-    suspend override fun request(configure: RequestBuilder.() -> Unit): HttpResponse {
-        return requestBlocking(configure)
-    }
+            override val channel: ReadChannel
+                get() = call.response.byteContent?.toReadChannel() ?: EmptyReadChannel
 
-    override fun close() {
-    }
+            override val headers: ValuesMap
+                get() = call.response.headers.allValues()
 
-    private class TestingHttpResponse(override val connection: HttpConnection, val call: TestApplicationCall) : HttpResponse {
+            override val status: HttpStatusCode
+                get() = call.response.status() ?: throw IllegalArgumentException("There is no status code assigned")
+        }
 
-        override val channel: ReadChannel
-            get() = call.response.byteContent?.toReadChannel() ?: EmptyReadChannel
-
-        override val headers: ValuesMap
-            get() = call.response.headers.allValues()
-
-        override val status: HttpStatusCode
-            get() = call.response.status() ?: throw IllegalArgumentException("There is no status code assigned")
-
+        override fun close() {}
     }
 }
+
