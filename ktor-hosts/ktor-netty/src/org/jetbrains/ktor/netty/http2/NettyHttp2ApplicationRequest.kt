@@ -2,14 +2,14 @@ package org.jetbrains.ktor.netty.http2
 
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
+import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.net.*
 
-internal class NettyHttp2ApplicationRequest(val context: ChannelHandlerContext, streamId: Int, val nettyHeaders: Http2Headers) : ApplicationRequest {
+internal class NettyHttp2ApplicationRequest(val context: ChannelHandlerContext, streamId: Int, val nettyHeaders: Http2Headers) : BaseApplicationRequest() {
     override val attributes = Attributes()
     override val headers: ValuesMap by lazy { ValuesMap.build(caseInsensitiveKey = true) { nettyHeaders.forEach { append(it.key.toString(), it.value.toString()) } } }
     override val queryParameters: ValuesMap by lazy { header(":path")?.let { path ->

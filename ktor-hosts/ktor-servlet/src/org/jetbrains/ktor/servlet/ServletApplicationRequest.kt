@@ -3,12 +3,13 @@ package org.jetbrains.ktor.servlet
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.cio.*
+import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import javax.servlet.http.*
 
-class ServletApplicationRequest(val servletRequest: HttpServletRequest, requestChannelOverride: () -> ReadChannel?) : ApplicationRequest {
+class ServletApplicationRequest(val servletRequest: HttpServletRequest, requestChannelOverride: () -> ReadChannel?) : BaseApplicationRequest() {
     override val attributes = Attributes()
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 

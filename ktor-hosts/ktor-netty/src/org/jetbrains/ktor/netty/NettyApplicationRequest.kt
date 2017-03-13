@@ -5,13 +5,14 @@ import io.netty.handler.codec.http.cookie.*
 import io.netty.handler.codec.http.multipart.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
+import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.*
 import java.util.concurrent.atomic.*
 
-internal class NettyApplicationRequest(private val request: HttpRequest, override val local: NettyConnectionPoint, val contentQueue: NettyContentQueue) : ApplicationRequest, Closeable {
+internal class NettyApplicationRequest(private val request: HttpRequest, override val local: NettyConnectionPoint, val contentQueue: NettyContentQueue) : BaseApplicationRequest(), Closeable {
 
     override val attributes = Attributes()
 
