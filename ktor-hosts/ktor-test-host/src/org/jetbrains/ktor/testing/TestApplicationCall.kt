@@ -15,7 +15,7 @@ class TestApplicationCall(application: Application, override val request: TestAp
         response.close()
     }
 
-    override val response = TestApplicationResponse(this, respondPipeline)
+    override val response = TestApplicationResponse(this)
 
     @Volatile
     var requestHandled = false

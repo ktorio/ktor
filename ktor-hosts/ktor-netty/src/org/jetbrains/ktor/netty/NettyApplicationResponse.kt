@@ -9,7 +9,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.response.*
 
-internal class NettyApplicationResponse(call: ApplicationCall, responsePipeline: ApplicationResponsePipeline, val context: ChannelHandlerContext) : BaseApplicationResponse(call, responsePipeline) {
+internal class NettyApplicationResponse(call: ApplicationCall, val context: ChannelHandlerContext) : BaseApplicationResponse(call) {
     val response = DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
 
     @Volatile

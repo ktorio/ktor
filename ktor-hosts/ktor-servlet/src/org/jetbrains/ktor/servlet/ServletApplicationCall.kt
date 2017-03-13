@@ -17,7 +17,7 @@ open class ServletApplicationCall(application: Application,
                                   pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit) : BaseApplicationCall(application) {
 
     override val request: ServletApplicationRequest = ServletApplicationRequest(servletRequest, { requestChannelOverride })
-    override val response: ServletApplicationResponse = ServletApplicationResponse(this, respondPipeline, servletResponse, pushImpl)
+    override val response: ServletApplicationResponse = ServletApplicationResponse(this, servletResponse, pushImpl)
 
     @Volatile
     protected var requestChannelOverride: ReadChannel? = null

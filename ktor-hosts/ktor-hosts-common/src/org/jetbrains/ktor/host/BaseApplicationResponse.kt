@@ -5,9 +5,9 @@ import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
 
-abstract class BaseApplicationResponse(val call: ApplicationCall, private val responsePipeline: ApplicationResponsePipeline) : ApplicationResponse {
+abstract class BaseApplicationResponse(val call: ApplicationCall) : ApplicationResponse {
     private var _status: HttpStatusCode? = null
-    override val pipeline: ApplicationResponsePipeline get() = responsePipeline
+    override val pipeline = ApplicationResponsePipeline()
 
     override val cookies by lazy { ResponseCookies(this, call.request.origin.scheme == "https") }
 

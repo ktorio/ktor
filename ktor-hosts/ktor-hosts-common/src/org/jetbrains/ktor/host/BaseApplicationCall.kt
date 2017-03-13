@@ -12,13 +12,11 @@ import java.nio.*
 abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
     final override val attributes = Attributes()
 
-    protected val respondPipeline = ApplicationResponsePipeline()
-
     var responded = false
         private set
 
     suspend override fun respond(message: Any) {
-        val phases = respondPipeline.phases
+        val phases = response.pipeline.phases
         val pipelineContext = PipelineContext(phases.interceptors(), message)
         pipelineContext.proceed()
         if (responded)

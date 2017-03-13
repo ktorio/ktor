@@ -7,7 +7,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 
-class TestApplicationResponse(call: ApplicationCall, respondPipeline: ApplicationResponsePipeline = ApplicationResponsePipeline()) : BaseApplicationResponse(call, respondPipeline) {
+class TestApplicationResponse(call: ApplicationCall) : BaseApplicationResponse(call) {
     internal val realContent = lazy { ByteBufferWriteChannel() }
 
     @Volatile
