@@ -322,15 +322,17 @@ private fun createOAuth2Server(server: OAuth2Server): TestingHttpClient {
     testApp.application.routing {
         route("/oauth/access_token") {
             handle {
-                val clientId = call.requireParameter(OAuth2RequestParameters.ClientId)
-                val clientSecret = call.requireParameter(OAuth2RequestParameters.ClientSecret)
-                val grantType = call.requireParameter(OAuth2RequestParameters.GrantType)
-                val state = call.parameters[OAuth2RequestParameters.State]
-                val code = call.parameters[OAuth2RequestParameters.Code]
-                val redirectUri = call.parameters[OAuth2RequestParameters.RedirectUri]
-                val username = call.parameters[OAuth2RequestParameters.UserName]
-                val password = call.parameters[OAuth2RequestParameters.Password]
-                val badContentType = call.parameters["badContentType"] == "true"
+                val values = call.parameters + call.request.receive<ValuesMap>()
+
+                val clientId = values.requireParameter(OAuth2RequestParameters.ClientId)
+                val clientSecret = values.requireParameter(OAuth2RequestParameters.ClientSecret)
+                val grantType = values.requireParameter(OAuth2RequestParameters.GrantType)
+                val state = values[OAuth2RequestParameters.State]
+                val code = values[OAuth2RequestParameters.Code]
+                val redirectUri = values[OAuth2RequestParameters.RedirectUri]
+                val username = values[OAuth2RequestParameters.UserName]
+                val password = values[OAuth2RequestParameters.Password]
+                val badContentType = values["badContentType"] == "true"
 
                 val obj = try {
                     val tokens = server.requestToken(clientId, clientSecret, grantType, state, code, redirectUri, username, password)
@@ -365,4 +367,4 @@ private fun createOAuth2Server(server: OAuth2Server): TestingHttpClient {
     return TestingHttpClient(testApp)
 }
 
-private fun ApplicationCall.requireParameter(name: String) = parameters[name] ?: throw IllegalArgumentException("No parameter $name specified")
+private fun ValuesMap.requireParameter(name: String) = get(name) ?: throw IllegalArgumentException("No parameter $name specified")

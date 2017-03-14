@@ -7,7 +7,6 @@ import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
-import java.io.*
 import kotlin.test.*
 
 class TestHostMultipartTest {
@@ -97,7 +96,7 @@ class TestHostMultipartTest {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) { call ->
                 try {
-                    call.request.content.get<MultiPartData>().parts.toList()
+                    call.request.receive<MultiPartData>().parts.toList()
                 } catch (error: Throwable) {
                     fail("This pipeline shouldn't finish successfully")
                 }
@@ -113,7 +112,7 @@ class TestHostMultipartTest {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) { call ->
                 if (call.request.isMultipart()) {
-                    asserts(call.request.content.get())
+                    asserts(call.request.receive<MultiPartData>())
                 } else {
                     asserts(null)
                 }

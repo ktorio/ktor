@@ -1,14 +1,8 @@
 package org.jetbrains.ktor.http
 
-import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.net.*
 import java.nio.charset.*
-
-fun ApplicationRequest.parseUrlEncodedParameters(limit: Int = 1000): ValuesMap {
-    return content.get<String>().parseUrlEncodedParameters(contentCharset() ?: Charsets.UTF_8, limit)
-}
 
 fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.UTF_8, limit: Int = 1000): ValuesMap {
     val parameters = split("&", limit = limit).map { it.substringBefore("=") to it.substringAfter("=", "") }

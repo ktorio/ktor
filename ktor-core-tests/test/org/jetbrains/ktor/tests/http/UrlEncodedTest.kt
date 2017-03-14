@@ -1,12 +1,21 @@
 package org.jetbrains.ktor.tests.http
 
+import kotlinx.coroutines.experimental.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
 import kotlin.test.*
 
 class UrlEncodedTest {
+    fun ApplicationRequest.parseUrlEncodedParameters(limit: Int = 1000): ValuesMap {
+        return runBlocking {
+            receive<String>().parseUrlEncodedParameters(contentCharset() ?: Charsets.UTF_8, limit)
+        }
+    }
+
     @Test
     fun `should parse simple with no headers`() {
         with(TestApplicationRequest()) {

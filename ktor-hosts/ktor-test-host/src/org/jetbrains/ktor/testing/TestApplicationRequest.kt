@@ -66,17 +66,15 @@ class TestApplicationRequest(
         valuesOf(map, caseInsensitiveKey = true)
     }
 
-    override val content: RequestContent = object : RequestContent(this) {
-        override fun getInputStream(): InputStream = ByteArrayInputStream(bodyBytes)
-        override fun getReadChannel() = bodyBytes.toReadChannel()
+    override fun getReadChannel() = bodyBytes.toReadChannel()
+    override fun getInputStream(): InputStream = ByteArrayInputStream(bodyBytes)
 
-        override fun getMultiPartData(): MultiPartData = object : MultiPartData {
-            override val parts: Sequence<PartData>
-                get() = when {
-                    isMultipart() -> multiPartEntries.asSequence()
-                    else -> throw IOException("The request content is not multipart encoded")
-                }
-        }
+    override fun getMultiPartData(): MultiPartData = object : MultiPartData {
+        override val parts: Sequence<PartData>
+            get() = when {
+                isMultipart() -> multiPartEntries.asSequence()
+                else -> throw IOException("The request content is not multipart encoded")
+            }
     }
 
     override val cookies = RequestCookies(this)

@@ -42,7 +42,7 @@ fun Route.upload(database: Database, uploadDir: File) {
         if (session == null) {
             call.respond(HttpStatusCode.Forbidden.description("Not logged in"))
         } else {
-            val multipart = call.request.content.get<MultiPartData>()
+            val multipart = call.request.receive<MultiPartData>()
             var title = ""
             var videoFile: File? = null
 

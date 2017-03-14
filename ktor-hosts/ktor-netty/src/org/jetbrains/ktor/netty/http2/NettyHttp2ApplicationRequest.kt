@@ -12,9 +12,12 @@ import java.net.*
 internal class NettyHttp2ApplicationRequest(val context: ChannelHandlerContext, streamId: Int, val nettyHeaders: Http2Headers) : BaseApplicationRequest() {
     override val attributes = Attributes()
     override val headers: ValuesMap by lazy { ValuesMap.build(caseInsensitiveKey = true) { nettyHeaders.forEach { append(it.key.toString(), it.value.toString()) } } }
-    override val queryParameters: ValuesMap by lazy { header(":path")?.let { path ->
-        parseQueryString(path.substringAfter("?", ""))
-    } ?: ValuesMap.Empty }
+
+    override val queryParameters: ValuesMap by lazy {
+        header(":path")?.let { path ->
+            parseQueryString(path.substringAfter("?", ""))
+        } ?: ValuesMap.Empty
+    }
 
     override val local = object : RequestConnectionPoint {
         override val method: HttpMethod = nettyHeaders.method()?.let { HttpMethod.parse(it.toString()) } ?: HttpMethod.Get
@@ -45,14 +48,9 @@ internal class NettyHttp2ApplicationRequest(val context: ChannelHandlerContext, 
 
     val handler: NettyHttp2ReadChannel = NettyHttp2ReadChannel(streamId, context)
 
-    override val content = object : RequestContent(this) {
-        override fun getInputStream() = getReadChannel().toInputStream()
-        override fun getMultiPartData(): MultiPartData {
-            throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
-        }
-
-        override fun getReadChannel(): ReadChannel {
-            return handler
-        }
+    override fun getReadChannel(): ReadChannel = handler
+    override fun getMultiPartData(): MultiPartData {
+        throw UnsupportedOperationException("not implemented") //To change body of created functions use File | Settings | File Templates.
     }
+
 }

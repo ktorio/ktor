@@ -372,7 +372,9 @@ private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
                 if (!call.request.contentType().match(ContentType.Application.FormUrlEncoded)) {
                     call.fail("content type should be ${ContentType.Application.FormUrlEncoded}")
                 }
-                val verifier = call.parameters[HttpAuthHeader.Parameters.OAuthVerifier] ?: throw IllegalArgumentException("oauth_verified is not provided in the POST request body")
+
+                val values = call.request.receive<ValuesMap>()
+                val verifier = values[HttpAuthHeader.Parameters.OAuthVerifier] ?: throw IllegalArgumentException("oauth_verified is not provided in the POST request body")
 
                 try {
                     val tokenPair = server.accessToken(call, consumerKey, nonce, signature, signatureMethod, timestamp, token, verifier)

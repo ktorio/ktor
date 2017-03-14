@@ -26,7 +26,7 @@ class TestApplicationCall(application: Application, override val request: TestAp
 
     suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
         commitHeaders(upgrade)
-        upgrade.upgrade(this@TestApplicationCall, request.content.get(), response.realContent.value, Closeable { webSocketCompleted.countDown() })
+        upgrade.upgrade(this@TestApplicationCall, request.receive<ReadChannel>(), response.realContent.value, Closeable { webSocketCompleted.countDown() })
     }
 
     override fun responseChannel(): WriteChannel = response.realContent.value.apply {

@@ -89,5 +89,5 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     protected abstract fun responseChannel(): WriteChannel
     protected open val bufferPool: ByteBufferPool get() = NoPool
 
-    override val parameters: ValuesMap by lazy { request.queryParameters + request.content.get() }
+    override val parameters: ValuesMap get() = request.queryParameters
 }

@@ -3,6 +3,7 @@ package org.jetbrains.ktor.application
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
+import kotlin.reflect.*
 
 /**
  * Represents client's request
@@ -35,7 +36,12 @@ interface ApplicationRequest {
     val cookies: RequestCookies
 
     /**
-     * Content for this request
+     * Receive content for this request
      */
-    val content: RequestContent
+    suspend fun <T : Any> receive(type: KClass<T>): T
 }
+
+inline suspend fun <reified T : Any> ApplicationRequest.receive(): T = receive(T::class)
+
+@Deprecated("Replace 'content.get<>()' with 'receive<>'", level = DeprecationLevel.ERROR)
+val ApplicationRequest.content : Any get() = TODO()

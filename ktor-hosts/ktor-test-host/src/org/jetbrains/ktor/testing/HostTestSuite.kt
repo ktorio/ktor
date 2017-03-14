@@ -63,7 +63,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     fun testRequestContentFormData() {
         createAndStartServer {
             handle {
-                call.respond(call.request.content.get<ValuesMap>().formUrlEncode())
+                call.respond(call.request.receive<ValuesMap>().formUrlEncode())
             }
         }
 
@@ -424,7 +424,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     fun testFormUrlEncoded() {
         createAndStartServer {
             post("/") {
-                call.respondText("${call.parameters["urlp"]},${call.parameters["formp"]}")
+                call.respondText("${call.parameters["urlp"]},${call.request.receive<ValuesMap>()["formp"]}")
             }
         }
 
@@ -452,7 +452,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
             route("/echo") {
                 handle {
                     val buffer = ByteBufferWriteChannel()
-                    call.request.content.get<ReadChannel>().copyTo(buffer)
+                    call.request.receive<ReadChannel>().copyTo(buffer)
 
                     call.respond(object : FinalContent.ReadChannelContent() {
                         override val headers: ValuesMap get() = ValuesMap.Empty
@@ -485,7 +485,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     fun testEchoBlocking() {
         createAndStartServer {
             post("/") {
-                val text = call.request.content.get<ReadChannel>().toInputStream().bufferedReader().readText()
+                val text = call.request.receive<ReadChannel>().toInputStream().bufferedReader().readText()
                 call.response.status(HttpStatusCode.OK)
                 call.respond(text)
             }
@@ -515,7 +515,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
             post("/") {
                 val response = StringBuilder()
 
-                call.request.content.get<MultiPartData>().parts.sortedBy { it.partName }.forEach { part ->
+                call.request.receive<MultiPartData>().parts.sortedBy { it.partName }.forEach { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.partName}=${part.value}\n")
                         is PartData.FileItem -> response.append("file:${part.partName},${part.originalFileName},${part.streamProvider().bufferedReader().readText()}\n")
@@ -603,7 +603,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     fun testRequestContentString() {
         createAndStartServer {
             post("/") {
-                call.respond(call.request.content.get<String>())
+                call.respond(call.request.receive<String>())
             }
         }
 
@@ -641,7 +641,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     fun testRequestContentInputStream() {
         createAndStartServer {
             post("/") {
-                call.respond(call.request.content.get<InputStream>().reader().readText())
+                call.respond(call.request.receive<InputStream>().reader().readText())
             }
         }
 

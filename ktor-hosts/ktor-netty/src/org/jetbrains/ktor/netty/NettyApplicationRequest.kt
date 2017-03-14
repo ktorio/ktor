@@ -36,23 +36,20 @@ internal class NettyApplicationRequest(private val request: HttpRequest, overrid
 
     private val contentChannel = lazy { HttpContentReadChannel(contentQueue) }
 
-    override val content: RequestContent = object : RequestContent(this) {
-        override fun getMultiPartData(): MultiPartData {
-            if (contentChannelState.switchTo(ReadChannelState.MULTIPART_HANDLER)) {
-                return multipart.value
-            }
-
-            throw IllegalStateException("Couldn't get multipart, most likely a raw channel already acquired, state is ${contentChannelState.get()}")
+    override fun getMultiPartData(): MultiPartData {
+        if (contentChannelState.switchTo(ReadChannelState.MULTIPART_HANDLER)) {
+            return multipart.value
         }
 
-        override fun getInputStream(): InputStream = getReadChannel().toInputStream()
-        override fun getReadChannel(): ReadChannel {
-            if (contentChannelState.switchTo(ReadChannelState.RAW_CHANNEL)) {
-                return contentChannel.value
-            }
+        throw IllegalStateException("Couldn't get multipart, most likely a raw channel already acquired, state is ${contentChannelState.get()}")
+    }
 
-            throw IllegalStateException("Couldn't get channel, most likely multipart processing was already started, state is ${contentChannelState.get()}")
+    override fun getReadChannel(): ReadChannel {
+        if (contentChannelState.switchTo(ReadChannelState.RAW_CHANNEL)) {
+            return contentChannel.value
         }
+
+        throw IllegalStateException("Couldn't get channel, most likely multipart processing was already started, state is ${contentChannelState.get()}")
     }
 
     override val cookies: RequestCookies = NettyRequestCookies(this)
