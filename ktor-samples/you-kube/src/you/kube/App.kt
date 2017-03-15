@@ -37,7 +37,7 @@ fun Application.youKubeApplication() {
     install(PartialContentSupport)
     install(Compression) {
         default()
-        excludeMimeTypeMatch(ContentType.Video.Any)
+        excludeContentType(ContentType.Video.Any)
     }
     val youkubeConfig = environment.config.config("youkube")
     val sessionCookieConfig = youkubeConfig.config("session.cookie")

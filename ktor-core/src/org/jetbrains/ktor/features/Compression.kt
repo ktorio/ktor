@@ -1,27 +1,55 @@
 package org.jetbrains.ktor.features
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 
+/**
+ * Compression feature configuration
+ */
 data class CompressionOptions(
+        /**
+         * Map of encoder configurations
+         */
         val encoders: Map<String, CompressionEncoderConfig> = emptyMap(),
+        /**
+         * Conditions for all encoders
+         */
         val conditions: List<ApplicationCall.(FinalContent) -> Boolean> = emptyList()
 )
 
-data class CompressionEncoderConfig(val name: String,
-                                    val encoder: CompressionEncoder,
-                                    val conditions: List<ApplicationCall.(FinalContent) -> Boolean>,
-                                    val priority: Double)
+/**
+ * Configuration for an encoder
+ */
+data class CompressionEncoderConfig(
+        /**
+         * Name of the encoder, matched against entry in `Accept-Encoding` header
+         */
+        val name: String,
+        /**
+         * Encoder implementation
+         */
+        val encoder: CompressionEncoder,
+        /**
+         * Conditions for the encoder
+         */
+        val conditions: List<ApplicationCall.(FinalContent) -> Boolean>,
+        /**
+         * Priority of the encoder
+         */
+        val priority: Double)
 
+/**
+ * Feature to compress a response based on conditions and ability of client to decompress it
+ */
 class Compression(compression: Configuration) {
     private val options = compression.build()
     private val comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>({ it.second.quality }, { it.first.priority }).reversed()
 
-    suspend fun interceptor(call: ApplicationCall) {
+    private suspend fun interceptor(call: ApplicationCall) {
         val acceptEncodingRaw = call.request.acceptEncoding()
         if (acceptEncodingRaw == null || call.isCompressionSuppressed())
             return
@@ -52,7 +80,7 @@ class Compression(compression: Configuration) {
                 val encoderOptions = encoders.firstOrNull { it.conditions.all { it(call, message) } }
 
                 val channel: () -> ReadChannel = when (message) {
-                    is FinalContent.ReadChannelContent ->  ({ message.readFrom() })
+                    is FinalContent.ReadChannelContent -> ({ message.readFrom() })
                     is FinalContent.WriteChannelContent -> {
                         if (encoderOptions != null) {
                             proceedWith(CompressedWriteResponse(message, encoderOptions.name, encoderOptions.encoder))
@@ -61,6 +89,7 @@ class Compression(compression: Configuration) {
                     }
                     is FinalContent.NoContent -> return@intercept
                     is FinalContent.ByteArrayContent -> ({ message.bytes().toReadChannel() })
+                    is FinalContent.ProtocolUpgrade -> return@intercept
                 }
 
                 if (encoderOptions != null) {
@@ -71,7 +100,7 @@ class Compression(compression: Configuration) {
     }
 
     private class CompressedResponse(val delegateChannel: () -> ReadChannel, val delegateHeaders: ValuesMap, val encoding: String, val encoder: CompressionEncoder) : FinalContent.ReadChannelContent() {
-        override fun readFrom() = encoder.open(delegateChannel())
+        override fun readFrom() = encoder.compress(delegateChannel())
         override val headers by lazy {
             ValuesMap.build(true) {
                 appendFiltered(delegateHeaders) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
@@ -89,10 +118,13 @@ class Compression(compression: Configuration) {
         }
 
         override suspend fun writeTo(channel: WriteChannel) {
-            delegate.writeTo(encoder.open(channel))
+            delegate.writeTo(encoder.compress(channel))
         }
     }
 
+    /**
+     * `ApplicationFeature` implementation for [Compression]
+     */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, Compression> {
         val SuppressionAttribute = AttributeKey<Boolean>("preventCompression")
 
@@ -108,10 +140,16 @@ class Compression(compression: Configuration) {
         }
     }
 
+    /**
+     * Configuration builder for Compression feature
+     */
     class Configuration() : ConditionsHolderBuilder {
         val encoders = hashMapOf<String, CompressionEncoderBuilder>()
         override val conditions = arrayListOf<ApplicationCall.(FinalContent) -> Boolean>()
 
+        /**
+         * Appends an encoder to the configuration
+         */
         fun encoder(name: String, encoder: CompressionEncoder, block: CompressionEncoderBuilder.() -> Unit = {}) {
             require(name.isNotBlank()) { "encoder name couldn't be blank" }
             if (name in encoders) {
@@ -121,12 +159,18 @@ class Compression(compression: Configuration) {
             encoders[name] = CompressionEncoderBuilder(name, encoder).apply(block)
         }
 
+        /**
+         * Appends default configuration
+         */
         fun default() {
             gzip()
             deflate()
             identity()
         }
 
+        /**
+         * Builds `CompressionOptions`
+         */
         fun build() = CompressionOptions(
                 encoders = encoders.mapValues { it.value.build() },
                 conditions = conditions.toList()
@@ -137,70 +181,131 @@ class Compression(compression: Configuration) {
 
 private fun ApplicationCall.isCompressionSuppressed() = Compression.SuppressionAttribute in attributes
 
+/**
+ * Represents a Compression encoder
+ */
 interface CompressionEncoder {
-    fun open(delegate: ReadChannel): ReadChannel
-    fun open(delegate: WriteChannel): WriteChannel
+    /**
+     * Wraps [readChannel] into a compressing [ReadChannel]
+     */
+    fun compress(readChannel: ReadChannel): ReadChannel
+
+    /**
+     * Wraps [writeChannel] into a compressing [WriteChannel]
+     */
+    fun compress(writeChannel: WriteChannel): WriteChannel
 }
 
+/**
+ * Implementation of the gzip encoder
+ */
 object GzipEncoder : CompressionEncoder {
-    override fun open(delegate: ReadChannel) = delegate.deflated(true)
-    override fun open(delegate: WriteChannel) = delegate.deflated(true)
+    override fun compress(readChannel: ReadChannel) = readChannel.deflated(true)
+    override fun compress(writeChannel: WriteChannel) = writeChannel.deflated(true)
 }
 
+/**
+ * Implementation of the deflate encoder
+ */
 object DeflateEncoder : CompressionEncoder {
-    override fun open(delegate: ReadChannel) = delegate.deflated(false)
-    override fun open(delegate: WriteChannel) = delegate.deflated(false)
+    override fun compress(readChannel: ReadChannel) = readChannel.deflated(false)
+    override fun compress(writeChannel: WriteChannel) = writeChannel.deflated(false)
 }
 
+/**
+ *  Implementation of the identity encoder
+ */
 object IdentityEncoder : CompressionEncoder {
-    override fun open(delegate: ReadChannel) = delegate
-    override fun open(delegate: WriteChannel) = delegate
+    override fun compress(readChannel: ReadChannel) = readChannel
+    override fun compress(writeChannel: WriteChannel) = writeChannel
 }
 
+/**
+ * Represents a builder for conditions
+ */
 interface ConditionsHolderBuilder {
     val conditions: MutableList<ApplicationCall.(FinalContent) -> Boolean>
 }
 
+/**
+ * Builder for compression encoder configuration
+ */
 class CompressionEncoderBuilder internal constructor(val name: String, val encoder: CompressionEncoder) : ConditionsHolderBuilder {
+    /**
+     * List of conditions for this encoder
+     */
     override val conditions = arrayListOf<ApplicationCall.(FinalContent) -> Boolean>()
+
+    /**
+     * Priority for this encoder
+     */
     var priority: Double = 1.0
 
+    /**
+     * Builds [CompressionEncoderConfig] instance
+     */
     fun build(): CompressionEncoderConfig {
         return CompressionEncoderConfig(name, encoder, conditions.toList(), priority)
     }
 }
 
 
-fun Compression.Configuration.gzip(block: CompressionEncoderBuilder.() -> Unit = {}): Unit = encoder("gzip", GzipEncoder, block)
-fun Compression.Configuration.deflate(block: CompressionEncoderBuilder.() -> Unit = {}): Unit = encoder("deflate", DeflateEncoder) {
-    priority = 0.9
-    block()
+/**
+ * Appends `gzip` encoder
+ */
+fun Compression.Configuration.gzip(block: CompressionEncoderBuilder.() -> Unit = {}) {
+    encoder("gzip", GzipEncoder, block)
 }
 
-fun Compression.Configuration.identity(block: CompressionEncoderBuilder.() -> Unit = {}): Unit = encoder("identity", IdentityEncoder, block)
+/**
+ * Appends `deflate` encoder with default priority of 0.9
+ */
+fun Compression.Configuration.deflate(block: CompressionEncoderBuilder.() -> Unit = {}) {
+    encoder("deflate", DeflateEncoder) {
+        priority = 0.9
+        block()
+    }
+}
 
+/**
+ * Appends `identity` encoder
+ */
+fun Compression.Configuration.identity(block: CompressionEncoderBuilder.() -> Unit = {}) {
+    encoder("identity", IdentityEncoder, block)
+}
+
+/**
+ * Appends a custom condition to the encoder or Compression configuration
+ */
 fun ConditionsHolderBuilder.condition(predicate: ApplicationCall.(FinalContent) -> Boolean) {
     conditions.add(predicate)
 }
 
-fun ConditionsHolderBuilder.minSize(minSize: Long) {
+/**
+ * Appends a minimum size condition to the encoder or Compression configuration
+ */
+fun ConditionsHolderBuilder.minimumSize(minSize: Long) {
     condition { it.contentLength()?.let { it >= minSize } ?: true }
 }
 
-fun ConditionsHolderBuilder.mimeTypeShouldMatch(vararg mimeTypes: ContentType) {
+/**
+ * Appends a content type condition to the encoder or Compression configuration
+ */
+fun ConditionsHolderBuilder.matchContentType(vararg mimeTypes: ContentType) {
     condition {
         it.contentType()?.let { mimeType ->
-            mimeTypes.any {
-                mimeType.match(it)
-            }
+            mimeTypes.any { mimeType.match(it) }
         } ?: false
     }
 }
 
-fun ConditionsHolderBuilder.excludeMimeTypeMatch(mimeType: ContentType) {
+/**
+ * Appends a content type exclusion condition to the encoder or Compression configuration
+ */
+fun ConditionsHolderBuilder.excludeContentType(vararg mimeTypes: ContentType) {
     condition {
-        it.contentType()?.let { actual ->
-            !actual.match(mimeType)
-        } ?: true
+        it.contentType()?.let { mimeType ->
+            mimeTypes.none { mimeType.match(it) }
+        } ?: false
     }
 }

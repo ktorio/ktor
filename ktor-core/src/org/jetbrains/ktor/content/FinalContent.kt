@@ -1,18 +1,18 @@
 package org.jetbrains.ktor.content
 
-import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 
-interface HostResponse {
-    val status: HttpStatusCode?
+sealed class FinalContent {
+    open val status: HttpStatusCode?
         get() = null
 
-    val headers: ValuesMap
-}
+    open val headers: ValuesMap
+        get() = ValuesMap.Empty
 
-sealed class FinalContent : HostResponse {
     abstract class NoContent : FinalContent()
 
     abstract class ReadChannelContent : FinalContent() {
@@ -25,6 +25,13 @@ sealed class FinalContent : HostResponse {
 
     abstract class ByteArrayContent : FinalContent() {
         abstract fun bytes(): ByteArray
+    }
+
+    abstract class ProtocolUpgrade() : FinalContent() {
+        abstract suspend fun upgrade(call: ApplicationCall,
+                                     input: ReadChannel,
+                                     output: WriteChannel,
+                                     channel: Closeable): Closeable
     }
 }
 

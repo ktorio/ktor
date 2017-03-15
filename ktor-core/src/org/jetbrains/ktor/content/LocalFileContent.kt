@@ -36,7 +36,7 @@ class LocalFileContent(val file: File,
     override val versions: List<Version>
         get() = listOf(LastModifiedVersion(Files.getLastModifiedTime(file.toPath())))
 
-    override val headers by lazy { super.headers }
+    override val headers by lazy { super<Resource>.headers }
 
     // TODO: consider using WriteChannelContent to avoid piping
     // Or even make it dual-content so host implementation can choose

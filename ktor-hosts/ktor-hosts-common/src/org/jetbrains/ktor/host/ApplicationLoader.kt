@@ -9,7 +9,6 @@ import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.attribute.*
 import java.util.*
 import java.util.concurrent.locks.*
-import kotlin.comparisons.*
 import kotlin.concurrent.*
 import kotlin.reflect.*
 import kotlin.reflect.jvm.*
@@ -78,28 +77,7 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
     }
 
     private fun createApplication(): Application {
-        val classLoader = if (autoreload) {
-            val allUrls = environment.classLoader.allURLs()
-            val watchPatterns = watchPatterns
-
-            // we shouldn't watch URL for ktor-core classes, even if they match patterns,
-            // because otherwise it loads two ApplicationEnvironment (and other) types which do not match
-            val coreUrl = ApplicationEnvironment::class.java.protectionDomain.codeSource.location
-
-            val watchUrls = allUrls.filter { url ->
-                url != coreUrl && watchPatterns.any { pattern -> url.toString().contains(pattern) }
-            }
-
-            if (watchUrls.isNotEmpty()) {
-                watchUrls(watchUrls)
-                OverridingClassLoader(watchUrls, environment.classLoader)
-            } else {
-                log.warning("No ktor.deployment.watch patterns specified: hot reload is disabled")
-                environment.classLoader
-            }
-        } else
-            environment.classLoader
-
+        val classLoader = createClassLoader()
         val currentThread = Thread.currentThread()
         val oldThreadClassLoader = currentThread.contextClassLoader
         currentThread.contextClassLoader = classLoader
@@ -108,6 +86,35 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
         } finally {
             currentThread.contextClassLoader = oldThreadClassLoader
         }
+    }
+
+    private fun createClassLoader(): ClassLoader {
+        val baseClassLoader = environment.classLoader
+        if (!autoreload)
+            return baseClassLoader
+
+        val allUrls = baseClassLoader.allURLs()
+        val watchPatterns = watchPatterns
+        if (watchPatterns.isEmpty()) {
+            log.warning("No ktor.deployment.watch patterns specified, hot reload is disabled")
+            return baseClassLoader
+        }
+
+        // we shouldn't watch URL for ktor-core classes, even if they match patterns,
+        // because otherwise it loads two ApplicationEnvironment (and other) types which do not match
+        val coreUrl = ApplicationEnvironment::class.java.protectionDomain.codeSource.location
+
+        val watchUrls = allUrls.filter { url ->
+            url != coreUrl && watchPatterns.any { pattern -> url.toString().contains(pattern) }
+        }
+
+        if (!watchUrls.isNotEmpty()) {
+            log.warning("No ktor.deployment.watch patterns match classpath entries, hot reload is disabled")
+            return baseClassLoader
+        }
+
+        watchUrls(watchUrls)
+        return OverridingClassLoader(watchUrls, baseClassLoader)
     }
 
     fun destroyApplication() {

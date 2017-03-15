@@ -8,8 +8,10 @@ Ktor is a framework for quickly creating web applications in Kotlin with minimal
 
 ```kotlin
 embeddedNettyServer(8080) {
-    get("/") {
-        call.respondText(ContentType.Text.Html, "Hello, world!")
+    routing {
+        get("/") {
+            call.respondText(ContentType.Text.Html, "Hello, world!")
+        }
     }
 }.start(wait = true)
 ```
@@ -21,6 +23,9 @@ embeddedNettyServer(8080) {
 
 Please visit our [Documentation Wiki](https://github.com/Kotlin/ktor/wiki) for quick start, detailed explanations of
 features, usage and machinery. 
+
+If you want to contribute to Documentation please clone [Documentation Repository](https://github.com/Kotlin/ktor-wiki),
+edit it and send us a Pull Request. We will sync wiki in this project and that repository periodically as needed.
 
 ## Principles
 
@@ -38,7 +43,10 @@ Ktor pipeline machinery and API is utilising a number of Kotlin features to prov
 
 ### Testable
 
-Ktor application can be hosted in a TestHost, which emulates to some extent web server without actually doing any networking. It provides easy way to test an application without mocking too much stuff, and still achieve good performance while validating application calls. Integration tests with real embedded web server are of course possible, too.
+Ktor application can be hosted in a [TestHost](https://github.com/Kotlin/ktor/wiki/Testing), which emulates to some 
+extent web server without actually doing any networking. It provides easy way to test an application without mocking 
+too much stuff, and still achieve good performance while validating application calls. Integration tests with real 
+embedded web server are of course possible, too.
 
 ## Features
 

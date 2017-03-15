@@ -1,7 +1,5 @@
 package org.jetbrains.ktor.client
 
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.future.*
 import org.eclipse.jetty.client.api.*
 import org.eclipse.jetty.http2.client.*
 import org.eclipse.jetty.http2.client.http.*
@@ -13,12 +11,11 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import java.nio.*
 import java.util.*
-import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
 
-object JettyHttp2Client : HttpClient {
-    override fun openConnection(host: String, port: Int, secure: Boolean): HttpConnection {
+object JettyHttp2Client : HttpClient() {
+    override suspend fun openConnection(host: String, port: Int, secure: Boolean): HttpConnection {
         return JettyHttp2Connection(host, port, secure)
     }
 
@@ -192,23 +189,11 @@ object JettyHttp2Client : HttpClient {
             }
         }
 
-        override fun requestBlocking(init: RequestBuilder.() -> Unit): HttpResponse {
-            return runBlocking { request(init) }
-        }
-
-        suspend override fun request(init: RequestBuilder.() -> Unit): HttpResponse {
+        suspend override fun request(configure: RequestBuilder.() -> Unit): HttpResponse {
             ensureRunning()
             return suspendCoroutine { continuation ->
-                JettyRequestProcessor(newRequest(RequestBuilder().apply(init)), this, continuation).send()
+                JettyRequestProcessor(newRequest(RequestBuilder().apply(configure)), this, continuation).send()
             }
-        }
-
-        override fun requestAsync(init: RequestBuilder.() -> Unit, handler: (Future<HttpResponse>) -> Unit) {
-            val f = future {
-                request(init)
-            }
-
-            f.whenComplete { _, _ -> handler(f) }
         }
 
         private fun newRequest(builder: RequestBuilder): Request {

@@ -26,13 +26,17 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         responded = true
         val value = pipelineContext.subject
         when (value) {
-            is FinalContent -> respondFinalContent(value)
-            is ProtocolUpgrade -> pipelineContext.handleUpgrade(value)
+            is FinalContent -> {
+                respondFinalContent(value)
+            }
+            else -> {
+                application.environment.log.warning("Response pipeline didn't finish with the FinalContent, but ended with $value")
+            }
         }
         pipelineContext.finish()
     }
 
-    protected fun commitHeaders(o: HostResponse) {
+    protected fun commitHeaders(o: FinalContent) {
         o.status?.let { response.status(it) } ?: response.status() ?: response.status(HttpStatusCode.OK)
         for ((name, values) in o.headers.entries()) {
             for (value in values) {
@@ -52,6 +56,8 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     protected open suspend fun respondFinalContent(content: FinalContent) {
         commitHeaders(content)
         return when (content) {
+            is FinalContent.ProtocolUpgrade -> respondUpgrade(content)
+
         // ByteArrayContent is most efficient
             is FinalContent.ByteArrayContent -> respondFromBytes(content.bytes())
 
@@ -81,10 +87,9 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         channel.close()
     }
 
-    protected abstract suspend fun PipelineContext<*>.handleUpgrade(upgrade: ProtocolUpgrade)
+    protected abstract suspend fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade)
     protected abstract fun responseChannel(): WriteChannel
     protected open val bufferPool: ByteBufferPool get() = NoPool
-
 
     override val parameters: ValuesMap by lazy { request.queryParameters + request.content.get() }
 }

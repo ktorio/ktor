@@ -5,6 +5,9 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import java.time.*
 
+/**
+ * Designates a resource that can be mixed into [FinalContent] to give more information about content
+ */
 interface Resource {
     val contentType: ContentType
     val contentLength: Long?

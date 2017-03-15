@@ -1,17 +1,78 @@
 package org.jetbrains.ktor.content
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import java.nio.file.attribute.*
 import java.time.*
 import java.util.*
 
+/**
+ * Represents content version
+ *
+ * An example of version is [EntityTagVersion] or [LastModifiedVersion]
+ */
 interface Version {
+    /**
+     * Checks [call] against this version and returns [VersionCheckResult]
+     */
+    fun check(call: ApplicationCall): VersionCheckResult
+
+    /**
+     * Appends relevant headers to the builder
+     */
     fun appendHeadersTo(builder: ValuesMapBuilder)
 }
 
+/**
+ *
+ */
+enum class VersionCheckResult(val statusCode: HttpStatusCode) {
+    OK(HttpStatusCode.OK),
+    NOT_MODIFIED(HttpStatusCode.NotModified),
+    PRECONDITION_FAILED(HttpStatusCode.PreconditionFailed)
+}
+
+/**
+ * This version passes the given [lastModified] date through the client provided
+ * http conditional headers If-Modified-Since and If-Unmodified-Since.
+ *
+ * Notice the second precision so it may work wrong if there were few changes during the same second.
+ *
+ * For better behaviour use etag instead
+ *
+ * See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.28 and
+ *  https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.25
+ *
+ *  @param lastModified of the current content, for example file's last modified date
+ */
 data class LastModifiedVersion(val lastModified: LocalDateTime) : Version {
+    /**
+     *  @return [VersionCheckResult.OK] if all header pass or there was no headers in the request,
+     *  [VersionCheckResult.NOT_MODIFIED] for If-Modified-Since,
+     *  [VersionCheckResult.PRECONDITION_FAILED] for If-Unmodified*Since
+     */
+    override fun check(call: ApplicationCall): VersionCheckResult {
+        val normalized = lastModified.withNano(0) // we need this because of the http date format that only has seconds
+        val ifModifiedSince = call.request.headers[HttpHeaders.IfModifiedSince]?.fromHttpDateString()?.toLocalDateTime()
+        val ifUnmodifiedSince = call.request.headers[HttpHeaders.IfUnmodifiedSince]?.fromHttpDateString()?.toLocalDateTime()
+
+        if (ifModifiedSince != null) {
+            if (normalized <= ifModifiedSince) {
+                return VersionCheckResult.NOT_MODIFIED
+            }
+        }
+        if (ifUnmodifiedSince != null) {
+            if (normalized > ifUnmodifiedSince) {
+                return VersionCheckResult.PRECONDITION_FAILED
+            }
+        }
+
+        return VersionCheckResult.OK
+    }
+
     constructor(lastModified: FileTime) : this(LocalDateTime.ofInstant(lastModified.toInstant(), ZoneId.systemDefault()))
     constructor(lastModified: Date) : this(lastModified.toLocalDateTime())
 
@@ -20,7 +81,36 @@ data class LastModifiedVersion(val lastModified: LocalDateTime) : Version {
     }
 }
 
+/**
+ * This version checks [etag] value and pass it through conditions supplied by the remote client. Depending on conditions it
+ * produces return value of enum type [VersionCheckResult]
+ *
+ * It never handles If-None-Match: *  as it is related to non-etag logic (for example, Last modified checks).
+ * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26 for more details
+ *
+ * @param etag - entity tag, for example file's content hash
+ * @return [VersionCheckResult.OK] if all headers pass or there was no related headers,
+ * [VersionCheckResult.NOT_MODIFIED] for successful If-None-Match,
+ * [VersionCheckResult.PRECONDITION_FAILED] for failed If-Match
+ */
 data class EntityTagVersion(val etag: String) : Version {
+    override fun check(call: ApplicationCall): VersionCheckResult {
+        val givenNoneMatchEtags = call.request.header(HttpHeaders.IfNoneMatch)?.parseMatchTag()
+        val givenMatchEtags = call.request.header(HttpHeaders.IfMatch)?.parseMatchTag()
+
+        if (givenNoneMatchEtags != null && etag in givenNoneMatchEtags && "*" !in givenNoneMatchEtags) {
+            return VersionCheckResult.NOT_MODIFIED
+        }
+
+        if (givenMatchEtags != null && givenMatchEtags.isNotEmpty() && etag !in givenMatchEtags && "*" !in givenMatchEtags) {
+            return VersionCheckResult.PRECONDITION_FAILED
+        }
+
+        return VersionCheckResult.OK
+    }
+
+    private fun String.parseMatchTag() = split("\\s*,\\s*".toRegex()).map { it.removePrefix("W/") }.filter { it.isNotEmpty() }.toSet()
+
     override fun appendHeadersTo(builder: ValuesMapBuilder) {
         builder.etag(etag)
     }

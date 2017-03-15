@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.host
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
 
@@ -8,7 +9,7 @@ abstract class BaseApplicationResponse(val call: ApplicationCall, private val re
     private var _status: HttpStatusCode? = null
     override val pipeline: ApplicationResponsePipeline get() = responsePipeline
 
-    override val cookies = ResponseCookies(this, call.request)
+    override val cookies by lazy { ResponseCookies(this, call.request.origin.scheme == "https") }
 
     override fun status() = _status
     override fun status(value: HttpStatusCode) {

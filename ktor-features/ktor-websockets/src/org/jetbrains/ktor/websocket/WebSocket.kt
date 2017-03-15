@@ -9,7 +9,7 @@ import java.io.*
 import java.time.*
 import java.util.*
 
-abstract class WebSocket internal constructor(val call: ApplicationCall, protected val context: PipelineContext<*>) : Closeable {
+abstract class WebSocket internal constructor(val call: ApplicationCall) : Closeable {
     val application: Application = call.application
 
     private val handlers = ArrayList<suspend (Frame) -> Unit>()
@@ -46,10 +46,6 @@ abstract class WebSocket internal constructor(val call: ApplicationCall, protect
     abstract fun enqueue(frame: Frame)
     abstract suspend fun flush()
     abstract suspend fun send(frame: Frame)
-
-    override fun close() {
-        context.finish()
-    }
 
     suspend fun close(reason: CloseReason) {
         send(Frame.Close(buildByteBuffer {
@@ -102,9 +98,9 @@ private fun Route.webSocketProtocol(protocol: String?, block: Route.() -> Unit) 
 
 private class WebSocketProtocolsSelector(val requiredProtocol: String) : RouteSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
-        val protocols = context.headers[HttpHeaders.SecWebSocketProtocol] ?: return RouteSelectorEvaluation(true, 1.0)
+        val protocols = context.headers[HttpHeaders.SecWebSocketProtocol] ?: return RouteSelectorEvaluation.Failed
         if (requiredProtocol in parseHeaderValue(protocols).map { it.value }) {
-            return RouteSelectorEvaluation(true, 1.0)
+            return RouteSelectorEvaluation.Constant
         }
 
         return RouteSelectorEvaluation.Failed
