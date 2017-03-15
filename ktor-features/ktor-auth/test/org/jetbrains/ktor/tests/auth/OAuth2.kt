@@ -195,7 +195,7 @@ class OAuth2Test {
             assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertTrue { result.response.content!!.startsWith("Ho, ") }
-            assertFalse { result.response.content!!.contains("null") }
+            assertTrue { result.response.content!!.contains("OAuth2") }
         }
     }
 
@@ -261,7 +261,7 @@ class OAuth2Test {
             assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertTrue { result.response.content!!.startsWith("Ho, ") }
-            assertFalse { result.response.content!!.contains("null") }
+            assertTrue { result.response.content!!.contains("OAuth2") }
         }
     }
 

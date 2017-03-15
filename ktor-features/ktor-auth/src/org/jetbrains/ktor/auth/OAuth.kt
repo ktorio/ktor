@@ -40,13 +40,13 @@ sealed class OAuthServerSettings(val name: String, val version: OAuthVersion) {
 }
 
 sealed class OAuthCallback {
-    class TokenPair(val token: String, val tokenSecret: String) : OAuthCallback()
-    class TokenSingle(val token: String, val state: String) : OAuthCallback()
+    data class TokenPair(val token: String, val tokenSecret: String) : OAuthCallback()
+    data class TokenSingle(val token: String, val state: String) : OAuthCallback()
 }
 
 sealed class OAuthAccessTokenResponse : Principal {
-    class OAuth1a(val token: String, val tokenSecret: String, val extraParameters: ValuesMap = ValuesMap.Empty) : OAuthAccessTokenResponse()
-    class OAuth2(val accessToken: String, val tokenType: String, val expiresIn: Long, val refreshToken: String?, val extraParameters: ValuesMap = ValuesMap.Empty) : OAuthAccessTokenResponse()
+    data class OAuth1a(val token: String, val tokenSecret: String, val extraParameters: ValuesMap = ValuesMap.Empty) : OAuthAccessTokenResponse()
+    data class OAuth2(val accessToken: String, val tokenType: String, val expiresIn: Long, val refreshToken: String?, val extraParameters: ValuesMap = ValuesMap.Empty) : OAuthAccessTokenResponse()
 }
 
 object OAuthGrandTypes {
