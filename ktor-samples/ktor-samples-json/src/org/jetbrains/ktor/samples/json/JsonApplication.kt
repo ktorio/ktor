@@ -37,8 +37,18 @@ fun Application.main() {
     }
 
     val model = Model("root", listOf(Item("A", "Apache"), Item("B", "Bing")))
+
+    // Ktor Sample:: Json (Jetty)
+    // curl -v --compress --header "Accept: application/json" http://localhost:8080/v1
     routing {
         get("/v1") {
+            contentType(ContentType.Application.Json) {
+                println("JSON, as expected")
+            }
+            contentType(ContentType.Video.MP4) {
+                println("Will never happen, we are safe")
+                throw Exception("Oops, I didn't expected this branch to be executed!!")
+            }
             call.respond(JsonResponse(model))
         }
         get("/v1/item/{key}") {
