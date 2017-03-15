@@ -43,6 +43,7 @@ private class ValuesMapImpl(override val caseInsensitiveKey: Boolean = false, pr
     override fun entries() = Collections.unmodifiableSet(values.entries)
 
     private fun listForKey(key: String): List<String>? = values[key]
+    override fun toString() = "ValuesMap(case=${!caseInsensitiveKey}) $values"
 }
 
 class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
