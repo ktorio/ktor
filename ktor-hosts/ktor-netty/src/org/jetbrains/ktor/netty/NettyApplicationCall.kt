@@ -62,7 +62,8 @@ internal class NettyApplicationCall(application: Application,
     }
 
     suspend override fun respondFromBytes(bytes: ByteArray) {
-        response.header(HttpHeaders.ContentLength, bytes.size)
+        // Note that it shouldn't set HttpHeaders.ContentLength even if we know it here,
+        // because it should've been set by commitHeaders earlier
         response.sendResponseMessage(flush = false, chunked = false)
         val buf = context.alloc().ioBuffer(bytes.size).writeBytes(bytes)
         context.writeAndFlush(buf).suspendAwait()
