@@ -105,6 +105,9 @@ fun Application.main() {
     install(CORS) {
         anyHost()
         allowCredentials = true
+        listOf(HttpMethod("PATCH"), HttpMethod.Put, HttpMethod.Delete).forEach {
+            method(it)
+        }
     }
     install(StatusPages) {
         exception<Throwable> { cause ->
@@ -133,10 +136,13 @@ fun Application.main() {
             "/html" to "moby.html",
             "/robots.txt" to "robots.txt",
             "/forms/post" to "forms-post.html",
-            "/postman" to "httpbin.postman_collection.json"
+            "/postman" to "httpbin.postman_collection.json",
+            "/httpbin.js" to "httpbin.js"
+
         )
         for ((path, filename) in staticFilesMap) {
             get(path) {
+                call.response.cacheControl(CacheControl.NoStore(null))
                 call.respond(call.resolveClasspathWithPath("", "static/$filename")!!)
             }
         }
