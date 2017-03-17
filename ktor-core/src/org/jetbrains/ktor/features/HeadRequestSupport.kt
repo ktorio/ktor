@@ -4,7 +4,6 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 
 object HeadRequestSupport : ApplicationFeature<ApplicationCallPipeline, Unit, Unit> {
@@ -18,13 +17,16 @@ object HeadRequestSupport : ApplicationFeature<ApplicationCallPipeline, Unit, Un
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
             if (call.request.local.method == HttpMethod.Head) {
                 it.response.pipeline.phases.insertBefore(ApplicationResponsePipeline.TransferEncoding, HeadPhase)
-
                 it.response.pipeline.intercept(HeadPhase) {
                     val message = subject
                     if (message is FinalContent && message !is FinalContent.NoContent) {
-                        call.respond(HeadResponse(message))
+                        proceedWith(HeadResponse(message))
                     }
                 }
+
+                // Pretend the request was with GET method so that all normal routes and interceptors work
+                // but in the end we will drop the content
+                call.mutableOriginConnectionPoint.method = HttpMethod.Get
             }
         }
     }

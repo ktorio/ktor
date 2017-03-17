@@ -19,11 +19,9 @@ class HeadTest {
     fun testSimple() {
         withHeadApplication {
             application.routing {
-                route("/") {
-                    handle {
-                        call.response.header("M", "1")
-                        call.respond("Hello")
-                    }
+                get("/") {
+                    call.response.header("M", "1")
+                    call.respond("Hello")
                 }
             }
 
@@ -45,10 +43,8 @@ class HeadTest {
     fun testTextContent() {
         withHeadApplication {
             application.routing {
-                route("/") {
-                    handle {
-                        call.respond(TextContent("Hello", ContentType.Text.Plain))
-                    }
+                get("/") {
+                    call.respond(TextContent("Hello", ContentType.Text.Plain))
                 }
             }
 
@@ -70,11 +66,9 @@ class HeadTest {
     fun testTextRespond() {
         withHeadApplication {
             application.routing {
-                route("/") {
-                    handle {
-                        call.respondWrite {
-                            write("Hello")
-                        }
+                get("/") {
+                    call.respondWrite {
+                        write("Hello")
                     }
                 }
             }
@@ -95,17 +89,15 @@ class HeadTest {
     fun testCustomFinalContent() {
         withHeadApplication {
             application.routing {
-                route("/") {
-                    handle {
-                        call.respond(object : FinalContent.ReadChannelContent() {
-                            override fun readFrom() = "Hello".toByteArray().toReadChannel()
+                get("/") {
+                    call.respond(object : FinalContent.ReadChannelContent() {
+                        override fun readFrom() = "Hello".toByteArray().toReadChannel()
 
-                            override val headers: ValuesMap
-                                get() = ValuesMap.build(true) {
-                                    append("M", "2")
-                                }
-                        })
-                    }
+                        override val headers: ValuesMap
+                            get() = ValuesMap.build(true) {
+                                append("M", "2")
+                            }
+                    })
                 }
             }
 
