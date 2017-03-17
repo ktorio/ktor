@@ -13,11 +13,29 @@ interface ApplicationResponse {
      */
     val call: ApplicationCall
 
+    /**
+     * Pipeline for transforming responded object into FinalContent
+     */
     val pipeline: ApplicationResponsePipeline
+
+    /**
+     * Headers for this response
+     */
     val headers: ResponseHeaders
+
+    /**
+     * Cookies for this response
+     */
     val cookies: ResponseCookies
 
+    /**
+     * Currently set status code for this response, or null if none was set
+     */
     fun status(): HttpStatusCode?
+
+    /**
+     * Set status for this response
+     */
     fun status(value: HttpStatusCode)
 
     /**
