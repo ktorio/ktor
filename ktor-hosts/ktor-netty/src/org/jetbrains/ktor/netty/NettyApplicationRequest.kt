@@ -17,7 +17,14 @@ internal class NettyApplicationRequest(private val request: HttpRequest, overrid
     override val attributes = Attributes()
 
     override val headers by lazy {
-        ValuesMap.build(caseInsensitiveKey = true) { request.headers().forEach { append(it.key, it.value) } }
+        ValuesMap.build(caseInsensitiveKey = true) {
+            // Netty headers are stored as CharSequences, getting normal iterator() causes extra allocations
+            // Calling toString() here per value saves on wrapping an iterator and each StringEntry for each item
+            val iterator = request.headers().iteratorCharSequence()
+            for (it in iterator) {
+                append(it.key.toString(), it.value.toString())
+            }
+        }
     }
 
     override val queryParameters by lazy {

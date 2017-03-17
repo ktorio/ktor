@@ -128,12 +128,16 @@ class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
     private fun listForKey(key: String): MutableList<String>? = values[key]
 }
 
-fun valuesOf(vararg pairs: Pair<String, List<String>>): ValuesMap {
-    return ValuesMapImpl(false, pairs.asList().toMap())
+fun valuesOf(vararg pairs: Pair<String, List<String>>, caseInsensitiveKey: Boolean = false): ValuesMap {
+    return ValuesMapImpl(caseInsensitiveKey, pairs.asList().toMap())
 }
 
-fun valuesOf(pair: Pair<String, List<String>>): ValuesMap {
+fun valuesOf(pair: Pair<String, List<String>>, caseInsensitiveKey: Boolean = false): ValuesMap {
     return ValuesMapSingleImpl(false, pair.first, pair.second)
+}
+
+fun valuesOf(name: String, value: List<String>, caseInsensitiveKey: Boolean = false): ValuesMap {
+    return ValuesMapSingleImpl(caseInsensitiveKey, name, value)
 }
 
 fun valuesOf(): ValuesMap {

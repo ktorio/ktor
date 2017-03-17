@@ -25,7 +25,11 @@ object JettyHttp2Client : HttpClient() {
 
         override val headers: ValuesMap by lazy {
             ValuesMap.build(true) {
-                response.headers.forEach { append(it.name, it.value) }
+                val fields = response.headers
+                for (index in 0..fields.size()) {
+                    val field = fields.getField(index)
+                    append(field.name, field.value)
+                }
             }
         }
     }

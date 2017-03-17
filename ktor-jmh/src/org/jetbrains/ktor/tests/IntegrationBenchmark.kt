@@ -155,8 +155,8 @@ NettyIntegrationBenchmark.smallFileSync         thrpt   20  39.414 ± 1.668  ops
 fun main(args: Array<String>) {
     benchmark(args) {
         threads = 32
-        run<NettyIntegrationBenchmark>("sayOK")
-        run<JettyIntegrationBenchmark>("sayOK")
+        run<NettyIntegrationBenchmark>()
+        run<JettyIntegrationBenchmark>()
     }
 }
 
