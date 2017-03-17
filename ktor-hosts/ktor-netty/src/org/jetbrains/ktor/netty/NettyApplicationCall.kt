@@ -86,8 +86,6 @@ internal class NettyApplicationCall(application: Application,
                 addFirst(NettyDirectDecoder())
             }
 
-            commitHeaders(upgrade)
-
             response.sendResponseMessage(chunked = false)?.addListener {
                 future(context.channel().eventLoop().toCoroutineDispatcher()) {
                     context.channel().pipeline().remove(HttpServerCodec::class.java)

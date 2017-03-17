@@ -27,7 +27,6 @@ class JettyApplicationCall(application: Application,
         responseChannelOverride = outputChannel
 
         servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, inputChannel)
-        commitHeaders(upgrade)
 
         servletResponse.flushBuffer()
 

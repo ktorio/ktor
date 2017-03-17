@@ -25,7 +25,6 @@ class TestApplicationCall(application: Application, override val request: TestAp
     override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : handled = $requestHandled"
 
     suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
-        commitHeaders(upgrade)
         upgrade.upgrade(this@TestApplicationCall, request.receive<ReadChannel>(), response.realContent.value, Closeable { webSocketCompleted.countDown() })
     }
 
