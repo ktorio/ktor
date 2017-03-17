@@ -27,11 +27,26 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     fun testTextContent() {
         createAndStartServer {
             handle {
-                call.respond(TextContent("test", ContentType.Text.Plain))
+                call.respond(TextContent("test", ContentType.Text.Plain.withCharset(Charsets.UTF_8)))
             }
         }
 
         withUrl("/") {
+            val fields = headerFields.toMutableMap()
+            fields.remove(null) // Remove response line HTTP/1.1 200 OK since it's not a header
+            fields.remove("Date") // Do not check for Date field since it's unstable
+
+            // Check content type manually because spacing and case can be different per host
+            val contentType = fields.remove("Content-Type")?.single()
+            assertNotNull(contentType) // Content-Type should be present
+            val parsedContentType = ContentType.parse(contentType!!) // It should parse
+            assertEquals(ContentType.Text.Plain, parsedContentType.withoutParameters())
+            assertEquals(Charsets.UTF_8, parsedContentType.charset())
+
+            assertEquals(mapOf(
+                    "Connection" to listOf("keep-alive"),
+                    "Content-Length" to listOf("4")), fields)
+
             assertEquals(200, responseCode)
             assertEquals("test", inputStream.reader().use { it.readText() })
         }
