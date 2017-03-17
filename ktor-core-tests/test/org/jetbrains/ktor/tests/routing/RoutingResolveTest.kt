@@ -17,12 +17,17 @@ private object RootRouteSelector : RouteSelector {
 
 fun routing() = Route(parent = null, selector = RootRouteSelector)
 fun context(routing: Route, path: String, parameters: ValuesMap = ValuesMap.Empty)
-        = RoutingResolveContext(routing, TestApplicationCall(createTestHost().application, TestApplicationRequest(HttpMethod.Get, path)), parameters)
+        = RoutingResolveContext(routing, TestApplicationCall(createTestHost().application).apply {
+    request.method = HttpMethod.Get
+    request.uri = path
+}, parameters)
 
 fun context(routing: Route, path: String, parameters: ValuesMap = ValuesMap.Empty, headers: ValuesMap = ValuesMap.Empty)
-        = RoutingResolveContext(routing, TestApplicationCall(createTestHost().application, TestApplicationRequest(HttpMethod.Companion.Get, path).apply {
-    headers.flattenEntries().forEach { addHeader(it.first, it.second) }
-}), parameters, headers)
+        = RoutingResolveContext(routing, TestApplicationCall(createTestHost().application).apply {
+    request.method = HttpMethod.Get
+    request.uri = path
+    headers.flattenEntries().forEach { request.addHeader(it.first, it.second) }
+}, parameters, headers)
 
 fun Route.selectHandle(selector: RouteSelector) = select(selector).apply { handle {} }
 

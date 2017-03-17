@@ -5,7 +5,7 @@ import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
 
-abstract class BaseApplicationResponse(val call: ApplicationCall) : ApplicationResponse {
+abstract class BaseApplicationResponse(override val call: ApplicationCall) : ApplicationResponse {
     private var _status: HttpStatusCode? = null
     override val pipeline = ApplicationResponsePipeline()
 

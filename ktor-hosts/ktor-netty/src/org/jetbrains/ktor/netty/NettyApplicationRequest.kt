@@ -12,9 +12,11 @@ import java.io.*
 import java.util.*
 import java.util.concurrent.atomic.*
 
-internal class NettyApplicationRequest(private val request: HttpRequest, override val local: NettyConnectionPoint, val contentQueue: NettyContentQueue) : BaseApplicationRequest(), Closeable {
-
-    override val attributes = Attributes()
+internal class NettyApplicationRequest(
+        override val call: NettyApplicationCall,
+        private val request: HttpRequest,
+        override val local: NettyConnectionPoint,
+        val contentQueue: NettyContentQueue) : BaseApplicationRequest(), Closeable {
 
     override val headers by lazy {
         ValuesMap.build(caseInsensitiveKey = true) {

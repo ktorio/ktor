@@ -9,12 +9,13 @@ import java.io.*
 import java.time.*
 import java.util.concurrent.*
 
-class TestApplicationCall(application: Application, override val request: TestApplicationRequest) : BaseApplicationCall(application) {
+class TestApplicationCall(application: Application) : BaseApplicationCall(application) {
     suspend override fun respond(message: Any) {
         super.respond(message)
         response.close()
     }
 
+    override val request: TestApplicationRequest = TestApplicationRequest(this)
     override val response = TestApplicationResponse(this)
 
     @Volatile

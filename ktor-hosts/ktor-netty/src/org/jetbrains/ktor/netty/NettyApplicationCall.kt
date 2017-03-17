@@ -23,7 +23,7 @@ internal class NettyApplicationCall(application: Application,
 
     private val closed = AtomicBoolean(false)
 
-    override val request = NettyApplicationRequest(httpRequest, NettyConnectionPoint(httpRequest, context), contentQueue)
+    override val request = NettyApplicationRequest(this, httpRequest, NettyConnectionPoint(httpRequest, context), contentQueue)
     override val response = NettyApplicationResponse(this, context)
     override val bufferPool = NettyByteBufferPool(context)
 

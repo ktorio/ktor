@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.testing
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
@@ -8,15 +9,11 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 
 class TestApplicationRequest(
+        override val call: ApplicationCall,
         var method: HttpMethod = HttpMethod.Get,
         var uri: String = "/",
         var version: String = "HTTP/1.1"
 ) : BaseApplicationRequest() {
-
-    @Deprecated("Use primary constructor instead as HttpRequestLine is deprecated", level = DeprecationLevel.ERROR)
-    constructor(requestLine: @Suppress("DEPRECATION") HttpRequestLine) : this(requestLine.method, requestLine.uri, requestLine.version)
-
-    override val attributes = Attributes()
 
     var protocol: String = "http"
 

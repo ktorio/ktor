@@ -16,7 +16,7 @@ open class ServletApplicationCall(application: Application,
                                   override val bufferPool: ByteBufferPool,
                                   pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit) : BaseApplicationCall(application) {
 
-    override val request: ServletApplicationRequest = ServletApplicationRequest(servletRequest, { requestChannelOverride })
+    override val request: ServletApplicationRequest = ServletApplicationRequest(this, servletRequest, { requestChannelOverride })
     override val response: ServletApplicationResponse = ServletApplicationResponse(this, servletResponse, pushImpl)
 
     @Volatile

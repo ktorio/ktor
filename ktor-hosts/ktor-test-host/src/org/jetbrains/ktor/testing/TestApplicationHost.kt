@@ -57,10 +57,9 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
         application.dispose()
     }
 
-    private fun createCall(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
-        val request = TestApplicationRequest()
-        setup(request)
-
-        return TestApplicationCall(application, request)
+    fun createCall(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
+        return TestApplicationCall(application).apply {
+            setup(request)
+        }
     }
 }

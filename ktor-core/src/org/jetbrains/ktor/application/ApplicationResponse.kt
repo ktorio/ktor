@@ -8,6 +8,11 @@ import org.jetbrains.ktor.response.*
  * Represents server's response
  */
 interface ApplicationResponse {
+    /**
+     * [ApplicationCall] instance this ApplicationResponse is attached to
+     */
+    val call: ApplicationCall
+
     val pipeline: ApplicationResponsePipeline
     val headers: ResponseHeaders
     val cookies: ResponseCookies

@@ -169,16 +169,16 @@ class CookiesTest {
 
     private fun withTestApplicationResponse(block: TestApplicationResponse.() -> Unit) {
         withTestApplication {
-            with(TestApplicationResponse(TestApplicationCall(application, TestApplicationRequest().apply { protocol = "https" }))) {
-                block()
-            }
+            createCall { protocol = "https" }.response.apply(block)
         }
     }
 
     private fun withRawCookies(header: String, block: TestApplicationRequest.() -> Unit) {
-        with(TestApplicationRequest()) {
-            addHeader("Cookie", header)
-            block()
+        withTestApplication {
+            createCall { protocol = "https" }.request.apply {
+                addHeader("Cookie", header)
+                block()
+            }
         }
     }
 
