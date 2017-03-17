@@ -25,10 +25,21 @@ private class ValuesMapSingleImpl(override val caseInsensitiveKey: Boolean, val 
     override fun entries(): Set<Map.Entry<String, List<String>>> = setOf(object : Map.Entry<String, List<String>> {
         override val key: String = name
         override val value: List<String> = values
+        override fun toString() = "$key=$value"
     })
 
     override fun isEmpty(): Boolean = false
     override fun names(): Set<String> = setOf(name)
+    override fun toString() = "ValuesMap(case=${!caseInsensitiveKey}) ${entries()}"
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ValuesMap) return false
+        if (caseInsensitiveKey != other.caseInsensitiveKey) return false
+        return entriesEquals(entries(), other.entries())
+    }
+
+    override fun hashCode() = entriesHashCode(entries(), 31 * caseInsensitiveKey.hashCode())
 }
 
 private class ValuesMapImpl(override val caseInsensitiveKey: Boolean = false, private val values: Map<String, List<String>> = emptyMap()) : ValuesMap {
@@ -38,12 +49,21 @@ private class ValuesMapImpl(override val caseInsensitiveKey: Boolean = false, pr
     override operator fun contains(name: String) = listForKey(name) != null
     override fun contains(name: String, value: String) = listForKey(name)?.contains(value) ?: false
 
-    override fun names() = Collections.unmodifiableSet(values.keys)
+    override fun names(): Set<String> = Collections.unmodifiableSet(values.keys)
     override fun isEmpty() = values.isEmpty()
-    override fun entries() = Collections.unmodifiableSet(values.entries)
+    override fun entries(): Set<Map.Entry<String, List<String>>> = Collections.unmodifiableSet(values.entries)
 
     private fun listForKey(key: String): List<String>? = values[key]
-    override fun toString() = "ValuesMap(case=${!caseInsensitiveKey}) $values"
+    override fun toString() = "ValuesMap(case=${!caseInsensitiveKey}) ${entries()}"
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ValuesMap) return false
+        if (caseInsensitiveKey != other.caseInsensitiveKey) return false
+        return entriesEquals(entries(), other.entries())
+    }
+
+    override fun hashCode() = entriesHashCode(entries(), 31 * caseInsensitiveKey.hashCode())
 }
 
 class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
@@ -133,7 +153,7 @@ fun valuesOf(vararg pairs: Pair<String, List<String>>, caseInsensitiveKey: Boole
 }
 
 fun valuesOf(pair: Pair<String, List<String>>, caseInsensitiveKey: Boolean = false): ValuesMap {
-    return ValuesMapSingleImpl(false, pair.first, pair.second)
+    return ValuesMapSingleImpl(caseInsensitiveKey, pair.first, pair.second)
 }
 
 fun valuesOf(name: String, value: List<String>, caseInsensitiveKey: Boolean = false): ValuesMap {
@@ -187,4 +207,12 @@ fun ValuesMapBuilder.appendFiltered(source: ValuesMap, keepEmpty: Boolean = fals
         if (keepEmpty || list.isNotEmpty())
             appendAll(entry.key, list)
     }
+}
+
+private fun entriesEquals(a: Set<Map.Entry<String, List<String>>>, b: Set<Map.Entry<String, List<String>>>): Boolean {
+    return a == b
+}
+
+private fun entriesHashCode(entries: Set<Map.Entry<String, List<String>>>, seed: Int): Int {
+    return seed * 31 + entries.hashCode()
 }
