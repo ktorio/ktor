@@ -144,7 +144,7 @@
 			},
 			"response": [
 				{
-					"id": "7bbd85f8-6b19-4f00-bfe6-d56fc5f6b766",
+					"id": "e290eaa8-e9b6-4ac9-9954-4008ef2f20fa",
 					"name": "httpbin",
 					"originalRequest": {
 						"url": "{{httpbin}}/get?id=1&gender=MALE&id=3",
@@ -207,7 +207,7 @@
 			]
 		},
 		{
-			"name": "/image",
+			"name": "/image (random type)",
 			"event": [
 				{
 					"listen": "test",
@@ -1923,7 +1923,7 @@
 			},
 			"response": [
 				{
-					"id": "2b93b8e1-b2a3-4cb3-99ec-e664d52a9417",
+					"id": "4e81ce05-cb12-4f23-ac22-f7582469a0e4",
 					"name": "gzip",
 					"originalRequest": {
 						"url": "{{httpbino}}/gzip",
@@ -1990,7 +1990,7 @@
 					"body": "{\n  \"gzipped\": true, \n  \"headers\": {\n    \"Accept\": \"*/*\", \n    \"Accept-Encoding\": \"gzip, deflate\", \n    \"Cache-Control\": \"no-cache\", \n    \"Host\": \"httpbin.org\", \n    \"Postman-Token\": \"e382b55e-7e29-4fbb-a8c6-33fd81289c37\", \n    \"User-Agent\": \"PostmanRuntime/3.0.11-hotfix.2\"\n  }, \n  \"method\": \"GET\", \n  \"origin\": \"79.192.218.154\"\n}\n"
 				},
 				{
-					"id": "ecae2fe4-4823-48e8-b72a-bc11773aa798",
+					"id": "c5aae850-41f6-47d1-af96-8f6a015d9900",
 					"name": "gzip",
 					"originalRequest": {
 						"url": "{{httpbino}}/gzip",
@@ -2145,7 +2145,7 @@
 			},
 			"response": [
 				{
-					"id": "3301e3c7-a799-4236-af10-872fcb607579",
+					"id": "b4da27dc-d71a-4a4d-8dae-60037cc732d7",
 					"name": "gzip",
 					"originalRequest": {
 						"url": "{{httpbino}}/gzip",
@@ -2248,7 +2248,7 @@
 			},
 			"response": [
 				{
-					"id": "93378d90-024f-4127-a075-a4061b52c277",
+					"id": "2249f0a9-6c02-4890-aab4-d9e6c28e9097",
 					"name": "gzip",
 					"originalRequest": {
 						"url": "{{httpbino}}/gzip",
@@ -2351,7 +2351,7 @@
 			},
 			"response": [
 				{
-					"id": "e00e3d31-15a8-4f60-bc97-9c1d1e2307d1",
+					"id": "02059ddf-a975-4984-a5ca-ba5d9095b2a2",
 					"name": "gzip",
 					"originalRequest": {
 						"url": "{{httpbino}}/gzip",
@@ -2454,7 +2454,7 @@
 			},
 			"response": [
 				{
-					"id": "2ec41476-fe3f-4829-8253-c5c030f31256",
+					"id": "aa546a1b-c9ed-43e8-9a96-00594c9592f4",
 					"name": "gzip",
 					"originalRequest": {
 						"url": "{{httpbino}}/gzip",
@@ -2557,7 +2557,7 @@
 			},
 			"response": [
 				{
-					"id": "91eadede-8598-4081-99a5-c0995082910c",
+					"id": "ce6c27f3-dd8d-4cd8-82ab-683e44b124a8",
 					"name": "gzip",
 					"originalRequest": {
 						"url": "{{httpbino}}/gzip",
@@ -2782,6 +2782,193 @@
 					{
 						"key": "Accept",
 						"value": "{{type}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/bytes/:n",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/bytes/1024",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/octet-stream",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/stream/:n",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"\"use strict\";",
+							"",
+							"tests[\"Status code is 200\"] = responseCode.code === 200;",
+							"tests[\"Body has 42 lines\"] = responseBody.trim().split(\"\\n\").length == 42;"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/stream/42",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/octet-stream",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/basic-auth (Authorization header)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var user = postman.getEnvironmentVariable(\"user\");",
+							"if (user == \"test:test\") {",
+							"    tests[\"Status code is 200 for \" + user] = responseCode.code === 200;    ",
+							"} else {",
+							"    tests[\"Status code is 401 for \" + user] = responseCode.code === 401;",
+							"}",
+							"postman.clearEnvironmentVariable(\"user\");",
+							"postman.clearEnvironmentVariable(\"auth\");"
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var user = (Math.random() < 0.5) ? \"test:test\" : \"admin:admin\";",
+							"postman.setEnvironmentVariable(\"user\", user);",
+							"postman.setEnvironmentVariable(\"auth\", \"Basic \" + btoa(user));"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "http://localhost:8080/basic-auth",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"description": ""
+					},
+					{
+						"key": "Authorization",
+						"value": "{{auth}}",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/basic-auth/test/test",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var user = postman.getEnvironmentVariable(\"user\");",
+							"if (user == \"test\") {",
+							"    tests[\"Status code is 200 for \" + user] = responseCode.code === 200;    ",
+							"} else {",
+							"    tests[\"Status code is 401 for \" + user] = responseCode.code === 401;",
+							"}",
+							"postman.clearEnvironmentVariable(\"user\");",
+							"postman.clearEnvironmentVariable(\"auth\");"
+						]
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var user = (Math.random() < 0.5) ? \"test\" : \"admin\";",
+							"postman.setEnvironmentVariable(\"user\", user);",
+							"postman.setEnvironmentVariable(\"auth\", \"Basic \" + btoa(user + \":\" + user));"
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/basic-auth/{{user}}/{{user}}",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/octet-stream",
+						"description": ""
+					}
+				],
+				"body": {},
+				"description": ""
+			},
+			"response": []
+		},
+		{
+			"name": "/hidden-basic-auth/{user}/{password}",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"tests[\"Status code is 200\"] = responseCode.code === 401;",
+							""
+						]
+					}
+				}
+			],
+			"request": {
+				"url": "{{httpbin}}/hidden-basic-auth/test/test",
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/octet-stream",
 						"description": ""
 					}
 				],

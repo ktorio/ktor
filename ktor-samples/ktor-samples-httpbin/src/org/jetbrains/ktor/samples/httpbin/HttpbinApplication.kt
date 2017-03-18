@@ -1,10 +1,10 @@
 package org.jetbrains.ktor.samples.httpbin
 
+import kotlinx.coroutines.experimental.delay
+import okio.Buffer
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.content.CacheControl
-import org.jetbrains.ktor.content.CacheControlVisibility
-import org.jetbrains.ktor.content.TextContent
-import org.jetbrains.ktor.content.resolveClasspathWithPath
+import org.jetbrains.ktor.auth.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.html.respondHtml
 import org.jetbrains.ktor.http.*
@@ -16,6 +16,7 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.transform.transform
 import org.jetbrains.ktor.util.ValuesMap
+import org.jetbrains.ktor.util.decodeBase64
 import org.jetbrains.ktor.util.flattenEntries
 import java.io.File
 import java.time.Instant
@@ -23,6 +24,7 @@ import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.temporal.Temporal
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 /**
  * Httpbin Ktor Application implementing (large parts of)
@@ -68,6 +70,13 @@ import java.util.*
  *     /cookies/delete?name            Delete specified cookies
  *     /redirect/:n                    Redirect n times
  *     /redirect-to?url=               Redirect to an URL
+ *     /delay/:n                       Delays responding for n seconds.
+ *     /stream/:n                      Streams n lines.
+ *     /cache/:n                       Sets a Cache-Control header for n seconds.
+ *     /bytes/:n                       Generates n random bytes of binary data
+ *     /basic-auth + Authorization     Challenges HTTPBasic Auth.
+ *     /basic-auth/:user/:passwd        Challenges HTTPBasic Auth.
+ *     /hidden-basic-auth/:user/:passwd 404'd BasicAuth.
  */
 
 
@@ -125,27 +134,34 @@ fun Application.main() {
         }
     }
 
-    val baseDir = File("ktor-samples/ktor-samples-httpbin/resources/static")
-    require(baseDir.exists()) { "Cannot find ${baseDir.absolutePath}" }
+
+    val staticfilesDir = File("ktor-samples/ktor-samples-httpbin/resources/static")
+    require(staticfilesDir.exists()) { "Cannot find ${staticfilesDir.absolutePath}" }
+
+    // Authorization
+    val hashedUserTable = UserHashedTableAuth(table = mapOf(
+        "test" to decodeBase64("VltM4nfheqcJSyH887H+4NEOm2tDuKCl83p5axYXlF0=") // sha256 for "test"
+    ))
+
 
     routing {
-        val staticFilesMap = mapOf(
-            "/" to "httpbin.1.html", // TODO: convert to freemarker
-            "/xml" to "sample.xml",
-            "/encoding/utf8" to "UTF-8-demo.html",
-            "/html" to "moby.html",
-            "/robots.txt" to "robots.txt",
-            "/forms/post" to "forms-post.html",
-            "/postman" to "httpbin.postman_collection.json",
-            "/httpbin.js" to "httpbin.js"
 
+        get("/get") {
+            call.sendHttpbinResponse()
+        }
+
+        val postPutDelete = mapOf(
+            "/post" to HttpMethod.Post,
+            "/put" to HttpMethod.Put,
+            "/delete" to HttpMethod.Delete,
+            "/patch" to HttpMethod("PATCH")
         )
-        for ((path, filename) in staticFilesMap) {
-            get(path) {
-                call.response.cacheControl(CacheControl.NoStore(null))
-                call.respond(call.resolveClasspathWithPath("", "static/$filename")!!)
+        for ((route, method) in postPutDelete) {
+            route(route) {
+                handleRequestWithBodyFor(method)
             }
         }
+
         route("/image") {
             val imageConfigs = listOf(
                 ImageConfig("jpeg", ContentType.Image.JPEG, "jackal.jpg"),
@@ -168,21 +184,6 @@ fun Application.main() {
             }
         }
 
-        val postPutDelete = mapOf(
-            "/post" to HttpMethod.Post,
-            "/put" to HttpMethod.Put,
-            "/delete" to HttpMethod.Delete,
-            "/patch" to HttpMethod("PATCH")
-        )
-        for ((route, method) in postPutDelete) {
-            route(route) {
-                handleRequestWithBodyFor(method)
-            }
-        }
-
-        get("/get") {
-            call.sendHttpbinResponse()
-        }
 
         get("/headers") {
             call.sendHttpbinResponse {
@@ -220,7 +221,6 @@ fun Application.main() {
                     call.sendHttpbinResponse()
                 }
             }
-
         }
 
         get("/cache/{n}") {
@@ -331,53 +331,75 @@ fun Application.main() {
             }
         }
 
+        route("/basic-auth") {
+            authentication {
+                basicAuthentication("ktor-samples-httpbin") { hashedUserTable.authenticate(it) }
+            }
+            get {
+                call.sendHttpbinResponse()
+            }
+        }
+
         get("/basic-auth/{user}/{password}") {
-            val user = call.parameters.get("user")!!
-            val password = call.parameters.get("password")!!
-            TODO("Challenges HTTPBasic Auth.")
+            val credentials = call.parameters.run {
+                UserPasswordCredential(get("user")!!, get("password")!!)
+            }
+            val userIdPrincipal = hashedUserTable.authenticate(credentials)
+            if (userIdPrincipal == null) {
+                call.response.status(HttpStatusCode.Unauthorized)
+            } else {
+                call.sendHttpbinResponse()
+            }
         }
 
         get("/hidden-basic-auth/{user}/{password}") {
-            val user = call.parameters.get("user")!!
-            val password = call.parameters.get("password")!!
-            TODO("404'd HTTPBasic Auth.")
-        }
-
-        get("/digest-auth/{user}/{password}") {
-            val user = call.parameters.get("user")!!
-            val password = call.parameters.get("password")!!
-            TODO("Challenges HTTP Digest Auth.")
+            call.response.status(HttpStatusCode.Unauthorized)
         }
 
         get("/stream/{n}") {
-            val n = call.parameters.get("n")!!.toInt()
-            TODO("Streams min(n, 100) lines.")
+            val buffer = Buffer()
+            val lorenIpsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n"
+            val times = call.parameters["n"]!!.toInt()
+            repeat(times) {
+                buffer.writeUtf8(lorenIpsum)
+            }
+            call.respondText(buffer.readUtf8())
         }
 
         get("/delay/{n}") {
-            val n = call.parameters.get("n")!!.toInt()
-            TODO("Delays responding for min(n, 10) seconds.")
-        }
-
-        /** /drip?numbytes=n&duration=s&delay=s&code=code **/
-        get("/drip") {
-            TODO("Drips data over a duration after an optional initial delay, then (optionally) returns with the given status code.")
-        }
-
-        /** /range/1024?duration=s&chunk_size=code  */
-        get("/range/{n}") {
-            val n = call.parameters.get("n")!!.toInt()
-            TODO("Streams n bytes, and allows specifying a Range header to select a subset of the data. Accepts a chunk_size and request duration parameter.")
+            val n = call.parameters["n"]!!.toLong()
+            require(n in 0..10) { "Expected a number of seconds between 0 and 10" }
+            delay(n, TimeUnit.SECONDS)
+            call.sendHttpbinResponse()
         }
 
         get("/bytes/{n}") {
             val n = call.parameters.get("n")!!.toInt()
-            TODO("Generates n random bytes of binary data, accepts optional seed integer parameter.")
+            val r = Random()
+            val buffer = ByteArray(n) { r.nextInt().toByte() }
+            call.respond(buffer)
         }
 
-        get("/stream-bytes/{n}") {
-            val n = call.parameters.get("n")!!.toInt()
-            TODO("Streams n random bytes of binary data, accepts optional seed and chunk_size integer parameters.")
+        val staticFilesMap = mapOf(
+            "/" to "httpbin.1.html",
+            "/xml" to "sample.xml",
+            "/encoding/utf8" to "UTF-8-demo.html",
+            "/html" to "moby.html",
+            "/robots.txt" to "robots.txt",
+            "/forms/post" to "forms-post.html",
+            "/postman" to "httpbin.postman_collection.json",
+            "/httpbin.js" to "httpbin.js"
+
+        )
+        for ((path, filename) in staticFilesMap) {
+            get(path) {
+                call.respond(call.resolveClasspathWithPath("", "static/$filename")!!)
+            }
+        }
+
+        // http://localhost:8080/static/httpbin.1.html for example will show the documentation
+        route("/static/") {
+            serveFileSystem(staticfilesDir)
         }
 
         route("{...}") {
