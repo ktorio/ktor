@@ -5,13 +5,8 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
          version="3.0">
     <servlet>
-<<<<<<< HEAD
-        <display-name>Ktor Httpbin Sample</display-name>
-        <servlet-name>KtorHttpbinSample</servlet-name>
-=======
-        <display-name>Ktor Json Sample</display-name>
-        <servlet-name>KtorJsonSample</servlet-name>
->>>>>>> Begin httpbin implementation
+        <display-name>Ktor Samples Httpbin</display-name>
+        <servlet-name>KtorSamplesHttpbin</servlet-name>
         <servlet-class>org.jetbrains.ktor.servlet.ServletApplicationHost</servlet-class>
         <multipart-config>
             <!-- 100mb max file upload -->
@@ -22,11 +17,7 @@
     </servlet>
 
     <servlet-mapping>
-<<<<<<< HEAD
-        <servlet-name>KtorHttpbinSample</servlet-name>
-=======
-        <servlet-name>KtorJsonSample</servlet-name>
->>>>>>> Begin httpbin implementation
+        <servlet-name>KtorSamplesHttpbin</servlet-name>
         <url-pattern>/</url-pattern>
     </servlet-mapping>
 
