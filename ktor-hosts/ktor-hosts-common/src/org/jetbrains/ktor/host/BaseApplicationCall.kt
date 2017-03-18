@@ -28,7 +28,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                 respondFinalContent(value)
             }
             else -> {
-                application.environment.log.warning("Response pipeline didn't finish with the FinalContent, but ended with $value")
+                application.log.warning("Response pipeline didn't finish with the FinalContent, but ended with $value")
             }
         }
         pipelineContext.finish()

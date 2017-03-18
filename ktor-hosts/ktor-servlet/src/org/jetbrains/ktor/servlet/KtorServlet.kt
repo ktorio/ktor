@@ -37,13 +37,13 @@ abstract class KtorServlet : HttpServlet() {
                 }
             }
         } catch (ex: Throwable) {
-            application.environment.log.error("ServletApplicationHost cannot service the request", ex)
+            application.log.error("ServletApplicationHost cannot service the request", ex)
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.message)
         }
     }
 
     override fun init() {
-        application.environment.log.trace("Application initialized") // access application to ensure initialized
+        application.log.trace("Application initialized") // access application to ensure initialized
     }
 
     override fun destroy() {

@@ -18,8 +18,13 @@ open class Application(val environment: ApplicationEnvironment, forMigrationPurp
         uninstallAllFeatures()
         executor.shutdown()
         if (!executor.awaitTermination(10L, TimeUnit.SECONDS)) {
-            environment.log.warning("Failed to stop application executor service")
+            log.warning("Failed to stop application executor service")
             executor.shutdownNow()
         }
     }
 }
+
+/**
+ * Convenience property to access log from application
+ */
+val Application.log get() = environment.log

@@ -10,7 +10,7 @@ import kotlin.system.*
 class ShutDownUrl(val url: String, val exitCode: ApplicationCall.() -> Int) {
 
     suspend fun doShutdown(call: ApplicationCall) {
-        call.application.environment.log.warning("Shutdown URL was called: server is going down")
+        call.application.log.warning("Shutdown URL was called: server is going down")
         thread {
             call.application.dispose()
             exitProcess(exitCode(call))

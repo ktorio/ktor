@@ -6,6 +6,7 @@ import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
 import io.netty.handler.ssl.*
 import io.netty.handler.timeout.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.http2.*
 import java.security.*
@@ -87,7 +88,7 @@ class NettyChannelInitializer(val host: NettyApplicationHost, val connector: Hos
                 }
             }
             else -> {
-                host.application.environment.log.error("Unsupported protocol $protocol")
+                host.application.log.error("Unsupported protocol $protocol")
                 pipeline.close()
             }
         }

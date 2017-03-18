@@ -16,7 +16,7 @@ import java.util.concurrent.*
 import javax.servlet.*
 
 class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
-                            val config: ApplicationEnvironment,
+                            val environment: ApplicationEnvironment,
                             val applicationLifecycle: ApplicationLifecycle) : ApplicationHostStartable {
 
 
@@ -92,20 +92,20 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     override fun start(wait: Boolean) : TomcatApplicationHost {
-        application.environment.log.trace("Starting server...") // touch application to ensure initialized
+        application.log.trace("Starting server...") // touch application to ensure initialized
         server.start()
-        config.log.trace("Server started")
+        environment.log.trace("Server started")
 
         if (wait) {
             server.server.await()
-            config.log.trace("Server stopped.")
+            environment.log.trace("Server stopped.")
         }
         return this
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
         server.stop()
-        config.log.trace("Server stopped.")
+        environment.log.trace("Server stopped.")
         tempDirectory.toFile().deleteRecursively()
     }
 

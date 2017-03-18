@@ -17,7 +17,7 @@ class CallLogging(val log: ApplicationLog, val logSuccess: Boolean) {
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
             val loggingPhase = PipelinePhase("Logging")
             val configuration = Configuration().apply(configure)
-            val feature = CallLogging(pipeline.environment.log, configuration.logSuccess)
+            val feature = CallLogging(pipeline.log, configuration.logSuccess)
             pipeline.phases.insertBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
             pipeline.intercept(loggingPhase) { call ->
                 try {

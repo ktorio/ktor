@@ -72,19 +72,19 @@ internal class WebSocketImpl(call: ApplicationCall,
         try {
             readChannel.close()
         } catch (t: Throwable) {
-            application.environment.log.debug("Failed to close read channel")
+            application.log.debug("Failed to close read channel")
         }
 
         try {
             writeChannel.close()
         } catch (t: Throwable) {
-            application.environment.log.debug("Failed to close write channel")
+            application.log.debug("Failed to close write channel")
         }
 
         try {
             channel.close()
         } catch (t: Throwable) {
-            application.environment.log.debug("Failed to close write channel")
+            application.log.debug("Failed to close write channel")
         }
     }
 
