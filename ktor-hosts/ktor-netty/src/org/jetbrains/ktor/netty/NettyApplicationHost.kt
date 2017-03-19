@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.netty
 
 import io.netty.bootstrap.*
+import io.netty.channel.*
 import io.netty.channel.nio.*
 import io.netty.channel.socket.nio.*
 import org.jetbrains.ktor.application.*
@@ -25,6 +26,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     internal val workerEventGroup = NettyWorkerPool(parallelism) // processes socket data and parse HTTP
     internal val callEventGroup = NettyCallPool(parallelism) // processes calls
 
+    private var channels: List<Channel>? = null
     private val bootstraps = hostConfig.connectors.map { connector ->
         ServerBootstrap().apply {
             group(connectionEventGroup, workerEventGroup)
@@ -44,11 +46,13 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     override fun start(wait: Boolean) : NettyApplicationHost {
         applicationLifecycle.ensureApplication()
         environment.log.trace("Starting server…")
-        val channelFutures = bootstraps.zip(hostConfig.connectors).map { it.first.bind(it.second.host, it.second.port) }
+        channels = bootstraps.zip(hostConfig.connectors)
+                .map { it.first.bind(it.second.host, it.second.port) }
+                .map { it.sync().channel() }
         environment.log.trace("Server running.")
 
         if (wait) {
-            channelFutures.map { it.channel().closeFuture() }.forEach { it.sync() }
+            channels?.map { it.closeFuture() }?.forEach { it.sync() }
             stop(1, 5, TimeUnit.SECONDS)
         }
         return this
@@ -56,6 +60,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
         environment.log.trace("Stopping server…")
+        channels?.forEach { it.close().sync() }
         val shutdownConnections = connectionEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
         val shutdownWorkers = workerEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
         val shutdownCall = callEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
