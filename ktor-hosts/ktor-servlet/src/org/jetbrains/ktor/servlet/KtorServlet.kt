@@ -6,7 +6,9 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.host.*
 import java.lang.reflect.*
+import javax.servlet.*
 import javax.servlet.http.*
+import kotlin.coroutines.experimental.*
 
 abstract class KtorServlet : HttpServlet() {
 
@@ -22,18 +24,18 @@ abstract class KtorServlet : HttpServlet() {
         request.characterEncoding = "UTF-8"
 
         try {
-            request.startAsync().apply {
+            val asyncContext = request.startAsync().apply {
                 timeout = 0L
             }
             val call = ServletApplicationCall(application, request, response, NoPool, { call, block, next ->
                 tryPush(request, call, block, next)
             })
 
-            future(application.executor.toCoroutineDispatcher()) {
+            future(AsyncContextCoroutineDispatcher(asyncContext)) {
                 try {
                     hostPipeline.execute(call)
                 } finally {
-                    request.asyncContext?.complete()
+                    asyncContext?.complete()
                 }
             }
         } catch (ex: Throwable) {
@@ -79,5 +81,9 @@ abstract class KtorServlet : HttpServlet() {
         null
     } catch (ignore: LinkageError) {
         null
+    }
+
+    private class AsyncContextCoroutineDispatcher(val asyncContext: AsyncContext) : CoroutineDispatcher() {
+        override fun dispatch(context: CoroutineContext, block: Runnable) = asyncContext.start(block)
     }
 }
