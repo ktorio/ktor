@@ -76,13 +76,11 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         response.write(ByteBuffer.wrap(bytes))
     }
 
-    protected open suspend fun respondFromChannel(channel: ReadChannel) {
-        // note: it is important to open response channel before we open content channel
-        // otherwise we can hit deadlock on event-based hosts
-
-        val response = responseChannel()
-        channel.copyTo(response, bufferPool, 65536)
-        channel.close()
+    protected open suspend fun respondFromChannel(readChannel: ReadChannel) {
+        val writeChannel = responseChannel()
+        readChannel.copyTo(writeChannel, bufferPool, 65536)
+        readChannel.close()
+        writeChannel.close()
     }
 
     protected abstract suspend fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade)
