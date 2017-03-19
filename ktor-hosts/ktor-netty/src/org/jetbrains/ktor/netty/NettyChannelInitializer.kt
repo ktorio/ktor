@@ -11,7 +11,6 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.http2.*
 import java.security.*
 import java.security.cert.*
-import kotlin.system.*
 
 class NettyChannelInitializer(val host: NettyApplicationHost, val connector: HostConnectorConfig) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
@@ -31,23 +30,21 @@ class NettyChannelInitializer(val host: NettyApplicationHost, val connector: Hos
             val pk = connector.keyStore.getKey(connector.keyAlias, password) as PrivateKey
             password.fill('\u0000')
 
-            val sslBuilding = measureTimeMillis {
-                sslContext = SslContextBuilder.forServer(pk, *certs)
-                        .apply {
-                            if (alpnProvider != null) {
-                                sslProvider(alpnProvider)
-                                ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
-                                applicationProtocolConfig(ApplicationProtocolConfig(
-                                        ApplicationProtocolConfig.Protocol.ALPN,
-                                        ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
-                                        ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
-                                        ApplicationProtocolNames.HTTP_2,
-                                        ApplicationProtocolNames.HTTP_1_1
-                                ))
-                            }
+            sslContext = SslContextBuilder.forServer(pk, *certs)
+                    .apply {
+                        if (alpnProvider != null) {
+                            sslProvider(alpnProvider)
+                            ciphers(Http2SecurityUtil.CIPHERS, SupportedCipherSuiteFilter.INSTANCE)
+                            applicationProtocolConfig(ApplicationProtocolConfig(
+                                    ApplicationProtocolConfig.Protocol.ALPN,
+                                    ApplicationProtocolConfig.SelectorFailureBehavior.NO_ADVERTISE,
+                                    ApplicationProtocolConfig.SelectedListenerFailureBehavior.ACCEPT,
+                                    ApplicationProtocolNames.HTTP_2,
+                                    ApplicationProtocolNames.HTTP_1_1
+                            ))
                         }
-                        .build()
-            }
+                    }
+                    .build()
         }
     }
 
