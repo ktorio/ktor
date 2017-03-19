@@ -17,14 +17,14 @@ import javax.servlet.*
 
 class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
                             val environment: ApplicationEnvironment,
-                            val applicationLifecycle: ApplicationLifecycle) : ApplicationHostStartable {
+                            val lifecycle: ApplicationLifecycle) : ApplicationHostStartable {
 
 
-    private val application: Application get() = applicationLifecycle.application
+    private val application: Application get() = lifecycle.application
     private val tempDirectory by lazy { Files.createTempDirectory("ktor-tomcat-") }
 
     constructor(hostConfig: ApplicationHostConfig, config: ApplicationEnvironment)
-    : this(hostConfig, config, ApplicationLoader(config, hostConfig.autoreload))
+            : this(hostConfig, config, ApplicationLifecycleReloading(config, hostConfig.autoreload))
 
     private val ktorServlet = object : KtorServlet() {
         override val application: Application
@@ -86,26 +86,24 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     init {
-        applicationLifecycle.onBeforeInitializeApplication {
-            install(ApplicationTransform).registerDefaultHandlers()
+        environment.monitor.applicationStart += {
+            it.install(ApplicationTransform).registerDefaultHandlers()
         }
     }
 
-    override fun start(wait: Boolean) : TomcatApplicationHost {
-        application.log.trace("Starting server...") // touch application to ensure initialized
+    override fun start(wait: Boolean): TomcatApplicationHost {
+        lifecycle.start()
         server.start()
-        environment.log.trace("Server started")
-
         if (wait) {
             server.server.await()
-            environment.log.trace("Server stopped.")
+            stop(1, 5, TimeUnit.SECONDS)
         }
         return this
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
         server.stop()
-        environment.log.trace("Server stopped.")
+        lifecycle.stop()
         tempDirectory.toFile().deleteRecursively()
     }
 

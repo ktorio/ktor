@@ -16,9 +16,9 @@ import kotlin.reflect.jvm.*
 /**
  * Implements [ApplicationLifecycle] by loading an [Application] from a folder or jar.
  *
- * When [autoreload] is `true`, it watches changes in folder/jar and implements hot reloading
+ * When [automaticReload] is `true`, it watches changes in folder/jar and implements hot reloading
  */
-class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload: Boolean) : ApplicationLifecycle {
+class ApplicationLifecycleReloading(override val environment: ApplicationEnvironment, val automaticReload: Boolean) : ApplicationLifecycle {
     private var _applicationInstance: Application? = null
     private val applicationInstanceLock = ReentrantReadWriteLock()
     private var packageWatchKeys = emptyList<WatchKey>()
@@ -30,12 +30,11 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
 
     private val watchPatterns: List<String> = environment.config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()
     private val watcher by lazy { FileSystems.getDefault().newWatchService() }
-    private val appInitInterceptors = ArrayList<Application.() -> Unit>()
 
     @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
     override val application: Application
         get() = applicationInstanceLock.read {
-            if (autoreload) {
+            if (automaticReload) {
                 val changes = packageWatchKeys.flatMap { it.pollEvents() }
                 if (changes.isNotEmpty()) {
                     log.info("Changes in application detected.")
@@ -62,10 +61,6 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
             }
         }
 
-    override fun onBeforeInitializeApplication(initializer: Application.() -> Unit) {
-        appInitInterceptors.add(initializer)
-    }
-
     fun ClassLoader.allURLs(): List<URL> {
         val parentUrls = parent?.allURLs() ?: emptyList()
         if (this is URLClassLoader) {
@@ -90,7 +85,7 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
 
     private fun createClassLoader(): ClassLoader {
         val baseClassLoader = environment.classLoader
-        if (!autoreload)
+        if (!automaticReload)
             return baseClassLoader
 
         val allUrls = baseClassLoader.allURLs()
@@ -119,14 +114,16 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
 
     fun destroyApplication() {
         applicationInstanceLock.write {
-            try {
-                _applicationInstance?.dispose()
-            } catch(e: Throwable) {
-                log.error("Failed to destroy application instance.", e)
-            } finally {
-                _applicationInstance = null
+            val currentApplication = _applicationInstance
+            if (currentApplication != null) {
+                try {
+                    environment.monitor.applicationStop(currentApplication)
+                    currentApplication.dispose()
+                } catch(e: Throwable) {
+                    log.error("Failed to destroy application instance.", e)
+                }
             }
-
+            _applicationInstance = null
             packageWatchKeys.forEach { it.cancel() }
             packageWatchKeys = mutableListOf()
         }
@@ -164,9 +161,13 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
         }
     }
 
-    override fun dispose() {
+    override fun start() {
+        application // create an application and notify monitor
+    }
+
+    override fun stop() {
         destroyApplication()
-        if (autoreload) {
+        if (automaticReload) {
             watcher.close()
         }
     }
@@ -184,10 +185,6 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
             createApplicationEntry(applicationClass, null) as Application
         } ?: Application(environment, Unit)
 
-        appInitInterceptors.forEach {
-            it(application)
-        }
-
         applicationFeatures?.forEach { featureFqName ->
             instantiateAndConfigure(classLoader, featureFqName, application)
         }
@@ -196,6 +193,7 @@ class ApplicationLoader(val environment: ApplicationEnvironment, val autoreload:
             instantiateAndConfigure(classLoader, fqName, application)
         }
 
+        environment.monitor.applicationStart(application)
         return application
     }
 

@@ -916,9 +916,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         val completed = AtomicInteger(0)
 
         createAndStartServer({
-            executorServiceBuilder = {
-                Executors.newScheduledThreadPool(3)
-            }
+            executor = Executors.newScheduledThreadPool(3)
         }, {
             get("/{index}") {
                 val index = call.parameters["index"]!!.toInt()

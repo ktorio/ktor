@@ -11,7 +11,7 @@ import kotlin.reflect.*
 import kotlin.reflect.jvm.*
 import kotlin.test.*
 
-class ApplicationLoaderTests {
+class ApplicationLifecycleReloadingTests {
 
     @Test fun `invalid class name should throw`() {
         val config = MapApplicationConfig(
@@ -19,7 +19,7 @@ class ApplicationLoaderTests {
                 "ktor.application.class" to "NonExistingApplicationName"
         )
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        assertFailsWith(ClassNotFoundException::class) { ApplicationLoader(environment, false).application }
+        assertFailsWith(ClassNotFoundException::class) { ApplicationLifecycleReloading(environment, false).application }
     }
 
     @Test fun `valid class name should create application`() {
@@ -28,7 +28,7 @@ class ApplicationLoaderTests {
                 "ktor.application.class" to ApplicationLoaderTestApplication::class.jvmName
         )
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
     }
 
@@ -39,12 +39,12 @@ class ApplicationLoaderTests {
                         "ktor.application.modules" to listOf(ApplicationLoaderTestApplicationModule::class.jvmName)
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val loader = ApplicationLoader(environment, false)
-        val application = loader.application
+        val lifecycle = ApplicationLifecycleReloading(environment, false)
+        val application = lifecycle.application
         assertNotNull(application)
         assertEquals("1", application.attributes[TestKey])
         assertEquals(1, ApplicationLoaderTestApplicationModule.instances)
-        loader.destroyApplication()
+        lifecycle.destroyApplication()
         assertEquals(0, ApplicationLoaderTestApplicationModule.instances)
     }
 
@@ -57,8 +57,8 @@ class ApplicationLoaderTests {
         ))
 
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val loader = ApplicationLoader(environment, false)
-        val application = loader.application
+        val lifecycle = ApplicationLifecycleReloading(environment, false)
+        val application = lifecycle.application
         assertNotNull(application)
         assertEquals("ApplicationLoaderTestApplicationFeature", application.attributes[TestKey])
     }
@@ -70,7 +70,7 @@ class ApplicationLoaderTests {
                         "ktor.application.modules" to listOf(ApplicationLoaderTestApplicationModuleWithEnvironment::class.jvmName)
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("2", application.attributes[TestKey])
     }
@@ -82,7 +82,7 @@ class ApplicationLoaderTests {
                         "ktor.application.features" to listOf(ApplicationLoaderTestApplicationFeatureObject::class.jvmName)
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("3", application.attributes[TestKey])
     }
@@ -94,7 +94,7 @@ class ApplicationLoaderTests {
                         "ktor.application.modules" to listOf(ApplicationLoaderTestApplicationModuleWithApplication::class.jvmName)
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("4", application.attributes[TestKey])
     }
@@ -106,7 +106,7 @@ class ApplicationLoaderTests {
                         "ktor.application.modules" to listOf(ApplicationLoaderTestApplicationModuleWithApplicationAndEnvironment::class.jvmName)
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("2+4", application.attributes[TestKey])
     }
@@ -118,7 +118,7 @@ class ApplicationLoaderTests {
                         "ktor.application.modules" to listOf(ApplicationLoaderTestApplicationModuleWithOptionalConstructorParameter::class.jvmName)
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("5", application.attributes[TestKey])
     }
@@ -130,7 +130,7 @@ class ApplicationLoaderTests {
                         "ktor.application.modules" to listOf(Application::topLevelExtensionFunction.fqName)
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("topLevelExtensionFunction", application.attributes[TestKey])
     }
@@ -142,7 +142,7 @@ class ApplicationLoaderTests {
                         "ktor.application.modules" to listOf(::topLevelFunction.fqName)
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("topLevelFunction", application.attributes[TestKey])
     }
@@ -154,7 +154,7 @@ class ApplicationLoaderTests {
                         "ktor.application.modules" to listOf(Companion::class.jvmName + "." + "companionObjectExtensionFunction")
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("companionObjectExtensionFunction", application.attributes[TestKey])
     }
@@ -167,7 +167,7 @@ class ApplicationLoaderTests {
                         "ktor.application.modules" to listOf(Companion::class.functionFqName("companionObjectFunction"))
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("companionObjectFunction", application.attributes[TestKey])
     }
@@ -179,7 +179,7 @@ class ApplicationLoaderTests {
                         "ktor.application.modules" to listOf(Companion::class.jvmName + "." + "companionObjectJvmStaticExtensionFunction")
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("companionObjectJvmStaticExtensionFunction", application.attributes[TestKey])
     }
@@ -192,7 +192,7 @@ class ApplicationLoaderTests {
                         "ktor.application.modules" to listOf(Companion::class.functionFqName("companionObjectJvmStaticFunction"))
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("companionObjectJvmStaticFunction", application.attributes[TestKey])
     }
@@ -204,7 +204,7 @@ class ApplicationLoaderTests {
                         "ktor.application.modules" to listOf(ObjectModuleFunctionHolder::class.jvmName + "." + "objectExtensionFunction")
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("objectExtensionFunction", application.attributes[TestKey])
     }
@@ -217,7 +217,7 @@ class ApplicationLoaderTests {
                         "ktor.application.modules" to listOf(ObjectModuleFunctionHolder::class.functionFqName("objectFunction"))
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("objectFunction", application.attributes[TestKey])
     }
@@ -229,7 +229,7 @@ class ApplicationLoaderTests {
                         "ktor.application.modules" to listOf(ClassModuleFunctionHolder::class.jvmName + "." + "classExtensionFunction")
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("classExtensionFunction", application.attributes[TestKey])
     }
@@ -241,7 +241,7 @@ class ApplicationLoaderTests {
                         "ktor.application.modules" to listOf(ClassModuleFunctionHolder::classFunction.fqName)
                 )))
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("classFunction", application.attributes[TestKey])
     }
@@ -255,7 +255,7 @@ class ApplicationLoaderTests {
                 )))
 
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals(1, NoArgModuleFunction.result)
     }
@@ -268,7 +268,7 @@ class ApplicationLoaderTests {
                 )))
 
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertEquals("best function called", application.attributes[TestKey])
     }
@@ -281,7 +281,7 @@ class ApplicationLoaderTests {
                 )))
 
         val environment = BasicApplicationEnvironment(ApplicationEnvironment::class.java.classLoader, NullApplicationLog(), config)
-        val application = ApplicationLoader(environment, false).application
+        val application = ApplicationLifecycleReloading(environment, false).application
         assertNotNull(application)
         assertNotNull(application.feature(CallLogging))
     }
@@ -364,29 +364,29 @@ class ApplicationLoaderTests {
         }
 
         fun main(app: Application) {
-            app.attributes.put(ApplicationLoaderTests.TestKey, "best function called")
+            app.attributes.put(ApplicationLifecycleReloadingTests.TestKey, "best function called")
         }
     }
 
     class ClassModuleFunctionHolder {
         @Suppress("UNUSED")
         fun Application.classExtensionFunction() {
-            attributes.put(ApplicationLoaderTests.TestKey, "classExtensionFunction")
+            attributes.put(ApplicationLifecycleReloadingTests.TestKey, "classExtensionFunction")
         }
 
         fun classFunction(app: Application) {
-            app.attributes.put(ApplicationLoaderTests.TestKey, "classFunction")
+            app.attributes.put(ApplicationLifecycleReloadingTests.TestKey, "classFunction")
         }
     }
 
     object ObjectModuleFunctionHolder {
         @Suppress("UNUSED")
         fun Application.objectExtensionFunction() {
-            attributes.put(ApplicationLoaderTests.TestKey, "objectExtensionFunction")
+            attributes.put(ApplicationLifecycleReloadingTests.TestKey, "objectExtensionFunction")
         }
 
         fun objectFunction(app: Application) {
-            app.attributes.put(ApplicationLoaderTests.TestKey, "objectFunction")
+            app.attributes.put(ApplicationLifecycleReloadingTests.TestKey, "objectFunction")
         }
     }
 
@@ -400,31 +400,31 @@ class ApplicationLoaderTests {
 
         @Suppress("UNUSED")
         fun Application.companionObjectExtensionFunction() {
-            attributes.put(ApplicationLoaderTests.TestKey, "companionObjectExtensionFunction")
+            attributes.put(ApplicationLifecycleReloadingTests.TestKey, "companionObjectExtensionFunction")
         }
 
         fun companionObjectFunction(app: Application) {
-            app.attributes.put(ApplicationLoaderTests.TestKey, "companionObjectFunction")
+            app.attributes.put(ApplicationLifecycleReloadingTests.TestKey, "companionObjectFunction")
         }
 
         @Suppress("UNUSED")
         @JvmStatic
         fun Application.companionObjectJvmStaticExtensionFunction() {
-            attributes.put(ApplicationLoaderTests.TestKey, "companionObjectJvmStaticExtensionFunction")
+            attributes.put(ApplicationLifecycleReloadingTests.TestKey, "companionObjectJvmStaticExtensionFunction")
         }
 
         @JvmStatic
         fun companionObjectJvmStaticFunction(app: Application) {
-            app.attributes.put(ApplicationLoaderTests.TestKey, "companionObjectJvmStaticFunction")
+            app.attributes.put(ApplicationLifecycleReloadingTests.TestKey, "companionObjectJvmStaticFunction")
         }
     }
 }
 
 fun Application.topLevelExtensionFunction() {
-    attributes.put(ApplicationLoaderTests.TestKey, "topLevelExtensionFunction")
+    attributes.put(ApplicationLifecycleReloadingTests.TestKey, "topLevelExtensionFunction")
 }
 
 fun topLevelFunction(app: Application) {
-    app.attributes.put(ApplicationLoaderTests.TestKey, "topLevelFunction")
+    app.attributes.put(ApplicationLifecycleReloadingTests.TestKey, "topLevelFunction")
 }
 

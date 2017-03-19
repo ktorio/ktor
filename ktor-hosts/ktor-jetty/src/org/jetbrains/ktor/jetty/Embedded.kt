@@ -2,7 +2,6 @@ package org.jetbrains.ktor.jetty
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.routing.*
 
 fun embeddedJettyServer(port: Int = 80, host: String = "0.0.0.0", configure: Application.() -> Unit): JettyApplicationHost {
     val hostConfig = applicationHostConfig {
@@ -12,11 +11,11 @@ fun embeddedJettyServer(port: Int = 80, host: String = "0.0.0.0", configure: App
         }
     }
 
-    val applicationConfig = applicationEnvironment {}
-    return embeddedJettyServer(hostConfig, applicationConfig, configure)
+    val environment = applicationEnvironment {}
+    return embeddedJettyServer(hostConfig, environment, configure)
 }
 
-fun embeddedJettyServer(port: Int = 80, host: String = "0.0.0.0", application: Application): ApplicationHost {
+fun embeddedJettyServer(port: Int = 80, host: String = "0.0.0.0", application: Application): JettyApplicationHost {
     val hostConfig = applicationHostConfig {
         connector {
             this.port = port
@@ -24,22 +23,15 @@ fun embeddedJettyServer(port: Int = 80, host: String = "0.0.0.0", application: A
         }
     }
 
-    val applicationConfig = applicationEnvironment {}
-    return embeddedJettyServer(hostConfig, applicationConfig, application)
-}
-
-fun embeddedJettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, application: Application): JettyApplicationHost {
-    return JettyApplicationHost(hostConfig, environment, object : ApplicationLifecycle {
-        override val application: Application = application
-        override fun onBeforeInitializeApplication(initializer: Application.() -> Unit) {
-            application.initializer()
-        }
-
-        override fun dispose() = application.dispose()
-    })
+    val environment = applicationEnvironment {}
+    return embeddedJettyServer(hostConfig, environment, application)
 }
 
 fun embeddedJettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, configure: Application.() -> Unit): JettyApplicationHost {
     return embeddedJettyServer(hostConfig, environment, Application(environment, Unit).apply(configure))
 }
 
+fun embeddedJettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, application: Application): JettyApplicationHost {
+    environment.monitor.applicationStop += { environment.close() }
+    return JettyApplicationHost(hostConfig, environment, ApplicationLifecycleStatic(environment, application))
+}

@@ -44,15 +44,6 @@ abstract class KtorServlet : HttpServlet() {
         }
     }
 
-    override fun init() {
-        application.log.trace("Application initialized") // access application to ensure initialized
-    }
-
-    override fun destroy() {
-        super.destroy()
-        application.dispose()
-    }
-
     private fun tryPush(request: HttpServletRequest, call: ApplicationCall, block: ResponsePushBuilder.() -> Unit, next: () -> Unit) {
         listOf(
                 "org.jetbrains.ktor.servlet.v4.PushKt.doPush",

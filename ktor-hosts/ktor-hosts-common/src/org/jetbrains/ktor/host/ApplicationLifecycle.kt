@@ -11,14 +11,19 @@ interface ApplicationLifecycle {
      */
     val application : Application
 
-    fun onBeforeInitializeApplication(initializer: Application.() -> Unit)
+    /**
+     * Instance of [ApplicationEnvironment] for this lifecycle
+     */
+    val environment : ApplicationEnvironment
 
     /**
-     * Stops an application and frees any resources associated with it
+     * Starts [ApplicationLifecycle] and creates an application
      */
-    fun dispose()
+    fun start()
 
-    fun ensureApplication() {
-        application
-    }
+    /**
+     * Stops [ApplicationLifecycle] and destroys any running application
+     */
+    fun stop()
 }
+

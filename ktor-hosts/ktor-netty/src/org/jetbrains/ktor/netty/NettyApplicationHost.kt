@@ -14,12 +14,12 @@ import java.util.concurrent.*
  */
 class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                            val environment: ApplicationEnvironment,
-                           val applicationLifecycle: ApplicationLifecycle) : ApplicationHostStartable {
+                           val lifecycle: ApplicationLifecycle) : ApplicationHostStartable {
 
-    val application: Application get() = applicationLifecycle.application
+    val application: Application get() = lifecycle.application
 
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
-            : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
+            : this(hostConfig, environment, ApplicationLifecycleReloading(environment, hostConfig.autoreload))
 
     private val parallelism = Runtime.getRuntime().availableProcessors() / 3 + 1
     private val connectionEventGroup = NettyConnectionPool(parallelism) // accepts connections
@@ -38,18 +38,16 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     val pipeline = defaultHostPipeline(environment)
 
     init {
-        applicationLifecycle.onBeforeInitializeApplication {
-            install(ApplicationTransform).registerDefaultHandlers()
+        environment.monitor.applicationStart += {
+            it.install(ApplicationTransform).registerDefaultHandlers()
         }
     }
 
     override fun start(wait: Boolean) : NettyApplicationHost {
-        applicationLifecycle.ensureApplication()
-        environment.log.trace("Starting server…")
+        lifecycle.start()
         channels = bootstraps.zip(hostConfig.connectors)
                 .map { it.first.bind(it.second.host, it.second.port) }
                 .map { it.sync().channel() }
-        environment.log.trace("Server running.")
 
         if (wait) {
             channels?.map { it.closeFuture() }?.forEach { it.sync() }
@@ -59,7 +57,6 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
-        environment.log.trace("Stopping server…")
         channels?.forEach { it.close().sync() }
         val shutdownConnections = connectionEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
         val shutdownWorkers = workerEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
@@ -68,8 +65,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         shutdownWorkers.await()
         shutdownCall.await()
 
-        applicationLifecycle.dispose()
-        environment.log.trace("Server stopped.")
+        lifecycle.stop()
     }
 
     override fun toString(): String {

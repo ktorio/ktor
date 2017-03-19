@@ -2,7 +2,6 @@ package org.jetbrains.ktor.netty
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.routing.*
 
 fun embeddedNettyServer(port: Int = 80, host: String = "0.0.0.0", configure: Application.() -> Unit): NettyApplicationHost {
     val hostConfig = applicationHostConfig {
@@ -12,8 +11,8 @@ fun embeddedNettyServer(port: Int = 80, host: String = "0.0.0.0", configure: App
         }
     }
 
-    val applicationConfig = applicationEnvironment {}
-    return embeddedNettyServer(hostConfig, applicationConfig, configure)
+    val environment = applicationEnvironment {}
+    return embeddedNettyServer(hostConfig, environment, configure)
 }
 
 fun embeddedNettyServer(port: Int = 80, host: String = "0.0.0.0", application: Application): NettyApplicationHost {
@@ -24,21 +23,15 @@ fun embeddedNettyServer(port: Int = 80, host: String = "0.0.0.0", application: A
         }
     }
 
-    val applicationConfig = applicationEnvironment {}
-    return embeddedNettyServer(hostConfig, applicationConfig, application)
-}
-
-fun embeddedNettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, application: Application): NettyApplicationHost {
-    return NettyApplicationHost(hostConfig, environment, object : ApplicationLifecycle {
-        override val application: Application = application
-        override fun onBeforeInitializeApplication(initializer: Application.() -> Unit) {
-            application.initializer()
-        }
-
-        override fun dispose() = application.dispose()
-    })
+    val environment = applicationEnvironment {}
+    return embeddedNettyServer(hostConfig, environment, application)
 }
 
 fun embeddedNettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, configure: Application.() -> Unit): NettyApplicationHost {
     return embeddedNettyServer(hostConfig, environment, Application(environment, Unit).apply(configure))
+}
+
+fun embeddedNettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, application: Application): NettyApplicationHost {
+    environment.monitor.applicationStop += { environment.close() }
+    return NettyApplicationHost(hostConfig, environment, ApplicationLifecycleStatic(environment, application))
 }

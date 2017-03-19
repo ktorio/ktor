@@ -9,18 +9,11 @@ open class Application(val environment: ApplicationEnvironment, forMigrationPurp
     @Deprecated("Don't inherit from Application class, inherit ApplicationModule instead and override `install`")
     constructor(environment: ApplicationEnvironment) : this(environment, Unit) // TODO: drop primary constructor unit parameter when remove this
 
-    val executor: ScheduledExecutorService = environment.executorServiceBuilder()
-
     /**
      * Called by host when [Application] is terminated
      */
     open fun dispose() {
         uninstallAllFeatures()
-        executor.shutdown()
-        if (!executor.awaitTermination(10L, TimeUnit.SECONDS)) {
-            log.warning("Failed to stop application executor service")
-            executor.shutdownNow()
-        }
     }
 }
 
@@ -28,3 +21,4 @@ open class Application(val environment: ApplicationEnvironment, forMigrationPurp
  * Convenience property to access log from application
  */
 val Application.log get() = environment.log
+val Application.executor get() = environment.executor

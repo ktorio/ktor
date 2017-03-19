@@ -8,19 +8,19 @@ import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 
 class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnvironment()) {
-    private val applicationLoader = ApplicationLoader(environment, false)
+    private val lifecycle: ApplicationLifecycle = ApplicationLifecycleReloading(environment, false)
 
     init {
-        applicationLoader.onBeforeInitializeApplication {
-            install(ApplicationTransform).registerDefaultHandlers()
+        environment.monitor.applicationStart += {
+            it.install(ApplicationTransform).registerDefaultHandlers()
         }
     }
 
-    val application: Application = applicationLoader.application
+    val application: Application = lifecycle.application
     private val hostPipeline = ApplicationCallPipeline()
 
     init {
-        hostPipeline.intercept(ApplicationCallPipeline.Infrastructure) { call ->
+        hostPipeline.intercept(ApplicationCallPipeline.Call) { call ->
             call.response.pipeline.intercept(ApplicationResponsePipeline.Before) {
                 proceed()
                 (call as? TestApplicationCall)?.requestHandled = true
@@ -28,6 +28,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
 
             application.execute(call)
         }
+        lifecycle.start()
     }
 
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
@@ -54,7 +55,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
     }
 
     fun dispose() {
-        application.dispose()
+        lifecycle.stop()
     }
 
     fun createCall(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {

@@ -14,6 +14,8 @@ class TomcatWebSocketTest : WebSocketHostSuite<TomcatApplicationHost>() {
         }
         val environmentConfig = applicationEnvironment(envInit)
 
-        return embeddedTomcatServer(hostConfig, environmentConfig, application = routing)
+        return embeddedTomcatServer(hostConfig, environmentConfig) {
+            install(Routing, routing)
+        }
     }
 }

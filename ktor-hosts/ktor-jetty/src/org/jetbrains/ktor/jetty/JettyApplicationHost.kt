@@ -26,13 +26,13 @@ import javax.servlet.http.*
  */
 class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
                            val environment: ApplicationEnvironment,
-                           val applicationLifecycle: ApplicationLifecycle,
+                           val lifecycle: ApplicationLifecycle,
                            jettyServer: () -> Server = ::Server) : ApplicationHostStartable {
 
-    val application: Application get() = applicationLifecycle.application
+    val application: Application get() = lifecycle.application
 
     constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
-            : this(hostConfig, environment, ApplicationLoader(environment, hostConfig.autoreload))
+            : this(hostConfig, environment, ApplicationLifecycleReloading(environment, hostConfig.autoreload))
 
     private val server = jettyServer().apply {
         connectors = hostConfig.connectors.map { ktorConnector ->
@@ -91,8 +91,8 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     init {
-        applicationLifecycle.onBeforeInitializeApplication {
-            install(ApplicationTransform).registerDefaultHandlers()
+        environment.monitor.applicationStart += {
+            it.install(ApplicationTransform).registerDefaultHandlers()
         }
     }
 
@@ -161,15 +161,11 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     override fun start(wait: Boolean) : JettyApplicationHost {
-        applicationLifecycle.ensureApplication()
-        environment.log.trace("Starting server...")
-
+        lifecycle.start()
         server.start()
-        environment.log.trace("Server running.")
         if (wait) {
             server.join()
-            applicationLifecycle.dispose()
-            environment.log.trace("Server stopped.")
+            stop(1, 5, TimeUnit.SECONDS)
         }
         return this
     }
@@ -177,8 +173,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
         server.stopTimeout = timeUnit.toMillis(timeout)
         server.stop()
-        applicationLifecycle.dispose()
-        environment.log.trace("Server stopped.")
+        lifecycle.stop()
     }
 
     override fun toString(): String {
