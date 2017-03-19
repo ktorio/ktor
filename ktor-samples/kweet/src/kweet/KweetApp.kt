@@ -49,7 +49,7 @@ class Logout()
 
 data class Session(val userId: String)
 
-class KweetApp : AutoCloseable {
+class KweetApp {
 
     val hashKey = hex("6819b57a326945c1968f45236589")
     val dir = File("target/db")
@@ -65,6 +65,7 @@ class KweetApp : AutoCloseable {
 
     fun Application.install() {
         dao.init()
+        environment.monitor.applicationStop += { pool.close() }
 
         install(DefaultHeaders)
         install(CallLogging)
@@ -94,10 +95,6 @@ class KweetApp : AutoCloseable {
             login(dao, hashFunction)
             register(dao, hashFunction)
         }
-    }
-
-    override fun close() {
-        pool.close()
     }
 
     fun hash(password: String): String {
