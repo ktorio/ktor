@@ -11,6 +11,9 @@ interface RequestConnectionPoint {
      */
     val scheme: String
 
+    /**
+     * Protocol version string
+     */
     val version: String
 
     /**
