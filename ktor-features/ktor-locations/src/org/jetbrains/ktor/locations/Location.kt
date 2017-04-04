@@ -4,6 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.util.*
 import kotlin.reflect.*
 
 annotation class location(val path: String)
@@ -25,7 +26,10 @@ inline fun <reified T : Any> Route.get(noinline body: suspend PipelineContext<Ap
 inline fun <reified T : Any> Route.post(noinline body: suspend PipelineContext<ApplicationCall>.(T) -> Unit): Route {
     return location(T::class) {
         method(HttpMethod.Post) {
-            handle(body)
+            handle {
+                val formPostData = call.request.receive<ValuesMap>()
+                body(this, locations().resolve(T::class, call.parameters + formPostData))
+            }
         }
     }
 }

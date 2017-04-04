@@ -1,14 +1,14 @@
 package org.jetbrains.ktor.locations
 
-import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.util.*
 import java.lang.reflect.*
 
-public interface ConversionService {
-    fun fromContext(call: ApplicationCall, name: String, type: Type, optional: Boolean): Any?
+interface ConversionService {
+    fun fromValuesMap(parameters: ValuesMap, name: String, type: Type, optional: Boolean): Any?
     fun toURI(value: Any?, name: String, optional: Boolean): List<String>
 }
 
-public open class DefaultConversionService : ConversionService {
+open class DefaultConversionService : ConversionService {
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     override fun toURI(value: Any?, name: String, optional: Boolean): List<String> {
         return when (value) {
@@ -69,15 +69,15 @@ public open class DefaultConversionService : ConversionService {
         return convert(values.single(), type)
     }
 
-    override fun fromContext(call: ApplicationCall, name: String, type: Type, optional: Boolean): Any? {
-        val requestParameters = call.parameters.getAll(name)
-        return if (requestParameters == null) {
+    override fun fromValuesMap(parameters: ValuesMap, name: String, type: Type, optional: Boolean): Any? {
+        val values = parameters.getAll(name)
+        return if (values == null) {
             if (!optional) {
                 throw InconsistentRoutingException("Parameter '$name' was not found in the request")
             }
             null
         } else {
-            convert(requestParameters, type)
+            convert(values, type)
         }
     }
 }

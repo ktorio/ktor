@@ -24,16 +24,16 @@ open class Locations(val conversionService: ConversionService, val routeService:
                                     val pathParameters: List<LocationInfoProperty>,
                                     val queryParameters: List<LocationInfoProperty>)
 
-    private fun LocationInfo.create(request: ApplicationCall): Any {
+    private fun LocationInfo.create(allParameters: ValuesMap): Any {
         val constructor: KFunction<Any> = klass.primaryConstructor ?: klass.constructors.single()
         val parameters = constructor.parameters
         val arguments = parameters.map { parameter ->
             val parameterType = parameter.type
             val parameterName = parameter.name ?: getParameterNameFromAnnotation(parameter)
             val value: Any? = if (parent != null && parameterType == parent.klass.defaultType) {
-                parent.create(request)
+                parent.create(allParameters)
             } else {
-                conversionService.fromContext(request, parameterName, parameterType.javaType, parameter.isOptional)
+                conversionService.fromValuesMap(allParameters, parameterName, parameterType.javaType, parameter.isOptional)
             }
             parameter to value
         }.filterNot { it.first.isOptional && it.second == null }.toMap()
@@ -103,7 +103,12 @@ open class Locations(val conversionService: ConversionService, val routeService:
 
     @Suppress("UNCHECKED_CAST")
     fun <T : Any> resolve(dataClass: KClass<*>, request: ApplicationCall): T {
-        return getOrCreateInfo(dataClass).create(request) as T
+        return resolve(dataClass, request.parameters)
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun <T : Any> resolve(dataClass: KClass<*>, parameters: ValuesMap): T {
+        return getOrCreateInfo(dataClass).create(parameters) as T
     }
 
     // TODO: optimize allocations
