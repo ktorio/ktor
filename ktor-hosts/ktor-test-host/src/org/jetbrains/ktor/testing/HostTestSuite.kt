@@ -75,6 +75,33 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     }
 
     @Test
+    fun testInternalServerErrorWithoutCallLog() {
+        createAndStartServer {
+            application.uninstall(CallLogging)
+            handle {
+                throw Exception("Boom!")
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.InternalServerError.value, responseCode)
+        }
+    }
+
+    @Test
+    fun testInternalServerError() {
+        createAndStartServer {
+            handle {
+                throw Exception("Boom!")
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.InternalServerError.value, responseCode)
+        }
+    }
+
+    @Test
     fun testRequestContentFormData() {
         createAndStartServer {
             handle {
