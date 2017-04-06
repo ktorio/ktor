@@ -123,13 +123,13 @@ abstract class IntegrationBenchmark {
 
 open class NettyIntegrationBenchmark : IntegrationBenchmark() {
     override fun createServer(port: Int, main: Application.() -> Unit): ApplicationHost {
-        return embeddedServer(Netty, port, main = main)
+        return embeddedServer(Netty, port, module = main)
     }
 }
 
 open class JettyIntegrationBenchmark : IntegrationBenchmark() {
     override fun createServer(port: Int, main: Application.() -> Unit): ApplicationHost {
-        return embeddedServer(Jetty, port, main = main)
+        return embeddedServer(Jetty, port, module = main)
     }
 }
 

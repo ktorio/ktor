@@ -20,7 +20,7 @@ import kotlin.reflect.jvm.*
 /**
  * Implements [ApplicationHostEnvironment] by loading an [Application] from a folder or jar.
  *
- * When [automaticReload] is `true`, it watches changes in folder/jar and implements hot reloading
+ * When [reloadPackages] is `true`, it watches changes in folder/jar and implements hot reloading
  */
 class ApplicationHostEnvironmentReloading(
         override val classLoader: ClassLoader,
@@ -28,49 +28,70 @@ class ApplicationHostEnvironmentReloading(
         override val config: ApplicationConfig,
         override val connectors: List<HostConnectorConfig>,
         override val executor: ScheduledExecutorService,
-        val directModules: List<Application.() -> Unit>,
-        val automaticReload: Boolean = false)
+        val modules: List<Application.() -> Unit>,
+        val reloadPackages: List<String> = emptyList()
+)
     : ApplicationHostEnvironment {
+
     private var _applicationInstance: Application? = null
     private val applicationInstanceLock = ReentrantReadWriteLock()
     private var packageWatchKeys = emptyList<WatchKey>()
 
-    private val configModules: List<String>? = config.propertyOrNull("ktor.application.modules")?.getList()
+    private val watchPatterns: List<String> = (config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()) + reloadPackages
 
-    private val watchPatterns: List<String> = config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()
+    private val moduleFunctionNames: List<String>? = run {
+        val configModules = config.propertyOrNull("ktor.application.modules")?.getList()
+        if (watchPatterns.isEmpty()) configModules
+        else {
+            val unlinkedModules = modules.map {
+                val fn = (it as? KFunction<*>)?.javaMethod ?: throw RuntimeException("Module function provided as lambda cannot be unlinked for reload")
+                val clazz = fn.declaringClass
+                val name = fn.name
+                "${clazz.name}.$name"
+            }
+            if (configModules == null)
+                unlinkedModules
+            else
+                configModules + unlinkedModules
+        }
+    }
+
     private val watcher by lazy { FileSystems.getDefault().newWatchService() }
 
     override val monitor = ApplicationMonitor().logEvents()
 
     @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
     override val application: Application
-        get() = applicationInstanceLock.read {
-            if (automaticReload) {
-                val changes = packageWatchKeys.flatMap { it.pollEvents() }
-                if (changes.isNotEmpty()) {
-                    log.info("Changes in application detected.")
-                    var count = changes.size
-                    while (true) {
-                        Thread.sleep(200)
-                        val moreChanges = packageWatchKeys.flatMap { it.pollEvents() }
-                        if (moreChanges.isEmpty())
-                            break
-                        log.debug("Waiting for more changes.")
-                        count += moreChanges.size
-                    }
+        get() = currentApplication()
 
-                    log.debug("Changes to $count files caused application restart.")
-                    changes.take(5).forEach { log.debug("...  ${it.context()}") }
-                    destroyApplication()
+
+    private fun currentApplication(): Application = applicationInstanceLock.read {
+        if (watchPatterns.isNotEmpty()) {
+            val changes = packageWatchKeys.flatMap { it.pollEvents() }
+            if (changes.isNotEmpty()) {
+                log.info("Changes in application detected.")
+                var count = changes.size
+                while (true) {
+                    Thread.sleep(200)
+                    val moreChanges = packageWatchKeys.flatMap { it.pollEvents() }
+                    if (moreChanges.isEmpty())
+                        break
+                    log.debug("Waiting for more changes.")
+                    count += moreChanges.size
                 }
-            }
 
-            _applicationInstance ?: applicationInstanceLock.write {
-                val newApplication = createApplication()
-                _applicationInstance = newApplication
-                newApplication
+                log.debug("Changes to $count files caused application restart.")
+                changes.take(5).forEach { log.debug("...  ${it.context()}") }
+                destroyApplication()
             }
         }
+
+        _applicationInstance ?: applicationInstanceLock.write {
+            val newApplication = createApplication()
+            _applicationInstance = newApplication
+            newApplication
+        }
+    }
 
     fun ClassLoader.allURLs(): List<URL> {
         val parentUrls = parent?.allURLs() ?: emptyList()
@@ -98,7 +119,7 @@ class ApplicationHostEnvironmentReloading(
 
     private fun createClassLoader(): ClassLoader {
         val baseClassLoader = classLoader
-        if (!automaticReload)
+        if (watchPatterns.isEmpty())
             return baseClassLoader
 
         val allUrls = baseClassLoader.allURLs()
@@ -116,7 +137,7 @@ class ApplicationHostEnvironmentReloading(
             url != coreUrl && watchPatterns.any { pattern -> url.toString().contains(pattern) }
         }
 
-        if (!watchUrls.isNotEmpty()) {
+        if (watchUrls.isEmpty()) {
             log.warning("No ktor.deployment.watch patterns match classpath entries, hot reload is disabled")
             return baseClassLoader
         }
@@ -125,21 +146,19 @@ class ApplicationHostEnvironmentReloading(
         return OverridingClassLoader(watchUrls, baseClassLoader)
     }
 
-    fun destroyApplication() {
-        applicationInstanceLock.write {
-            val currentApplication = _applicationInstance
-            if (currentApplication != null) {
-                try {
-                    monitor.applicationStop(currentApplication)
-                    currentApplication.dispose()
-                } catch(e: Throwable) {
-                    log.error("Failed to destroy application instance.", e)
-                }
+    fun destroyApplication() = applicationInstanceLock.write {
+        val currentApplication = _applicationInstance
+        if (currentApplication != null) {
+            try {
+                monitor.applicationStop(currentApplication)
+                currentApplication.dispose()
+            } catch(e: Throwable) {
+                log.error("Failed to destroy application instance.", e)
             }
-            _applicationInstance = null
-            packageWatchKeys.forEach { it.cancel() }
-            packageWatchKeys = mutableListOf()
         }
+        _applicationInstance = null
+        packageWatchKeys.forEach { it.cancel() }
+        packageWatchKeys = mutableListOf()
     }
 
     fun watchUrls(urls: List<URL>) {
@@ -180,7 +199,7 @@ class ApplicationHostEnvironmentReloading(
 
     override fun stop() {
         destroyApplication()
-        if (automaticReload) {
+        if (watchPatterns.isNotEmpty()) {
             watcher.close()
         }
     }
@@ -188,10 +207,14 @@ class ApplicationHostEnvironmentReloading(
     private fun instantiateAndConfigureApplication(classLoader: ClassLoader): Application {
         val application = Application(this)
 
-        configModules?.forEach { fqName ->
+        moduleFunctionNames?.forEach { fqName ->
             executeModuleFunction(classLoader, fqName, application)
         }
-        directModules.forEach { it(application) }
+
+        if (watchPatterns.isEmpty()) {
+            modules.forEach { it(application) }
+        }
+
         return application
     }
 
@@ -201,20 +224,32 @@ class ApplicationHostEnvironmentReloading(
             val className = fqName.substring(0, idx)
             val functionName = fqName.substring(idx + 1)
             val clazz = classLoader.loadClassOrNull(className) ?: return@let
-            val kclass = clazz.kotlin
 
-            clazz.methods
+            val staticFunctions = clazz.methods
                     .filter { it.name == functionName && Modifier.isStatic(it.modifiers) }
                     .mapNotNull { it.kotlinFunction }
-                    .bestFunction()?.let { moduleFunction ->
 
-                callEntryPointFunction(null, moduleFunction, application)
+            staticFunctions.bestFunction()?.let { moduleFunction ->
+                callFunctionWithInjection(null, moduleFunction, application)
                 return
             }
 
-            val instance = createModuleContainer(clazz, application)
+            if (Function1::class.java.isAssignableFrom(clazz)) {
+                val constructor = clazz.declaredConstructors.single()
+                if (constructor.parameterCount != 0) {
+                    throw RuntimeException("Module function with captured variables cannot be instantiated '$fqName'")
+                }
+                constructor.isAccessible = true
+                @Suppress("UNCHECKED_CAST")
+                val function = constructor.newInstance() as Function1<Application, Unit>
+                function(application)
+                return
+            }
+
+            val kclass = clazz.kotlin
+            val instance = createModuleContainer(kclass, application)
             kclass.functions.filter { it.name == functionName }.bestFunction()?.let { moduleFunction ->
-                callEntryPointFunction(instance, moduleFunction, application)
+                callFunctionWithInjection(instance, moduleFunction, application)
                 return
             }
         }
@@ -222,20 +257,23 @@ class ApplicationHostEnvironmentReloading(
         throw ClassNotFoundException("Module function cannot be found for the fully qualified name '$fqName'")
     }
 
-    private fun createModuleContainer(applicationEntryClass: Class<*>, application: Application?): Any {
-        return applicationEntryClass.kotlin.objectInstance ?: run {
-            val constructors = applicationEntryClass.kotlin.constructors.filter {
-                it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) || (isApplication(p) && application != null) }
-            }
+    private fun createModuleContainer(applicationEntryClass: KClass<*>, application: Application?): Any {
+        val objectInstance = applicationEntryClass.objectInstance
+        if (objectInstance != null) return objectInstance
 
-            val constructor = constructors.bestFunction() ?: throw RuntimeException("There are no applicable constructors found in class $applicationEntryClass")
-            callEntryPointFunction(null, constructor, application)
+        val constructors = applicationEntryClass.constructors.filter {
+            it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) || (isApplication(p) && application != null) }
         }
+
+        val constructor = constructors.bestFunction() ?: throw RuntimeException("There are no applicable constructors found in class $applicationEntryClass")
+        return callFunctionWithInjection(null, constructor, application)
     }
 
-    private fun <R> List<KFunction<R>>.bestFunction() = sortedWith(compareBy({ it.parameters.count { !it.isOptional } }, { it.parameters.size })).lastOrNull()
+    private fun <R> List<KFunction<R>>.bestFunction(): KFunction<R>? {
+        return sortedWith(compareBy({ it.parameters.count { !it.isOptional } }, { it.parameters.size })).lastOrNull()
+    }
 
-    private fun <R> callEntryPointFunction(instance: Any?, entryPoint: KFunction<R>, application: Application?): R {
+    private fun <R> callFunctionWithInjection(instance: Any?, entryPoint: KFunction<R>, application: Application?): R {
         return entryPoint.callBy(entryPoint.parameters
                 .filterNot { it.isOptional }
                 .associateBy({ it }, { p ->
@@ -276,4 +314,3 @@ class ApplicationHostEnvironmentReloading(
         private val ApplicationClassInstance = Application::class.java
     }
 }
-

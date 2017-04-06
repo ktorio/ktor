@@ -33,32 +33,6 @@ interface ApplicationHostEnvironment : ApplicationEnvironment {
     fun stop()
 }
 
-abstract class BaseApplicationHostEnvironment(override val classLoader: ClassLoader,
-                                              override val log: ApplicationLog,
-                                              override val config: ApplicationConfig,
-                                              override val executor: ScheduledExecutorService = DefaultExecutorServiceBuilder()) : ApplicationHostEnvironment {
-
-    override val monitor = ApplicationMonitor().logEvents()
-
-    fun close() {
-        // TODO: should we shutdown the service here?
-        executor.shutdown()
-        if (!executor.awaitTermination(10L, TimeUnit.SECONDS)) {
-            log.warning("Failed to stop environment executor service")
-            executor.shutdownNow()
-        }
-    }
-}
-
-private val poolCounter = AtomicInteger()
-internal val DefaultExecutorServiceBuilder = {
-    val pool: Int = poolCounter.incrementAndGet()
-    val threadCounter = AtomicInteger()
-    Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 8, { r ->
-        Thread(r, "ktor-pool-$pool-thread-${threadCounter.incrementAndGet()}")
-    })
-}
-
 /**
  * Creates [ApplicationHostEnvironment] using [ApplicationHostEnvironmentBuilder]
  */
@@ -67,7 +41,7 @@ fun applicationHostEnvironment(builder: ApplicationHostEnvironmentBuilder.() -> 
 }
 
 class ApplicationHostEnvironmentBuilder {
-    var automaticReload = false
+    var reloadPackages = emptyList<String>()
     var classLoader: ClassLoader = ApplicationHostEnvironment::class.java.classLoader
     var log: ApplicationLog = NullApplicationLog()
     var config: ApplicationConfig = MapApplicationConfig()
@@ -81,7 +55,18 @@ class ApplicationHostEnvironmentBuilder {
     }
 
     fun build(builder: ApplicationHostEnvironmentBuilder.() -> Unit): ApplicationHostEnvironment {
-        builder()
-        return ApplicationHostEnvironmentReloading(classLoader, log, config, connectors, executor, modules, automaticReload)
+        builder(this)
+        return ApplicationHostEnvironmentReloading(classLoader, log, config, connectors, executor, modules, reloadPackages)
+    }
+
+    companion object {
+        private val poolCounter = AtomicInteger()
+        internal val DefaultExecutorServiceBuilder = {
+            val pool: Int = poolCounter.incrementAndGet()
+            val threadCounter = AtomicInteger()
+            Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 8, { r ->
+                Thread(r, "ktor-pool-$pool-thread-${threadCounter.incrementAndGet()}")
+            })
+        }
     }
 }

@@ -82,8 +82,8 @@ fun commandLineEnvironment(args: Array<String>): ApplicationHostEnvironment {
             }
         }
 
-        (argsMap["-autoreload"] ?: combinedConfig.tryGetString(hostReload))?.let {
-            automaticReload = it.toBoolean()
+        (argsMap["-reload"] ?: combinedConfig.tryGetString(hostReload))?.let {
+            reloadPackages = it.split(",")
         }
     }
 

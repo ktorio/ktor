@@ -9,5 +9,5 @@ object Tomcat : ApplicationHostFactory<TomcatApplicationHost> {
 
 @Deprecated("Replace with 'embeddedServer(Tomcat, …)", replaceWith = ReplaceWith("embeddedServer(Tomcat, port, host, configure)", "org.jetbrains.ktor.host.embeddedServer"))
 fun embeddedTomcatServer(port: Int = 80, host: String = "0.0.0.0", main: Application.() -> Unit): TomcatApplicationHost {
-    return embeddedServer(Tomcat, port, host, main)
+    return embeddedServer(Tomcat, port, host, module = main)
 }
