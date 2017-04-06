@@ -1,6 +1,8 @@
 package org.jetbrains.ktor.host
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.config.*
+import org.jetbrains.ktor.logging.*
 import java.io.*
 import java.lang.reflect.*
 import java.net.*
@@ -8,28 +10,37 @@ import java.nio.file.*
 import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.attribute.*
 import java.util.*
+import java.util.concurrent.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 import kotlin.reflect.*
+import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
 /**
- * Implements [ApplicationLifecycle] by loading an [Application] from a folder or jar.
+ * Implements [ApplicationHostEnvironment] by loading an [Application] from a folder or jar.
  *
  * When [automaticReload] is `true`, it watches changes in folder/jar and implements hot reloading
  */
-class ApplicationLifecycleReloading(override val environment: ApplicationEnvironment, val automaticReload: Boolean) : ApplicationLifecycle {
+class ApplicationHostEnvironmentReloading(
+        override val classLoader: ClassLoader,
+        override val log: ApplicationLog,
+        override val config: ApplicationConfig,
+        override val connectors: List<HostConnectorConfig>,
+        override val executor: ScheduledExecutorService,
+        val directModules: List<Application.() -> Unit>,
+        val automaticReload: Boolean = false)
+    : ApplicationHostEnvironment {
     private var _applicationInstance: Application? = null
     private val applicationInstanceLock = ReentrantReadWriteLock()
     private var packageWatchKeys = emptyList<WatchKey>()
-    private val log = environment.log.fork("Loader")
 
-    private val applicationClassName: String? = environment.config.propertyOrNull("ktor.application.class")?.getString()
-    private val applicationFeatures: List<String>? = environment.config.propertyOrNull("ktor.application.features")?.getList()
-    private val applicationModules: List<String>? = environment.config.propertyOrNull("ktor.application.modules")?.getList()
+    private val configModules: List<String>? = config.propertyOrNull("ktor.application.modules")?.getList()
 
-    private val watchPatterns: List<String> = environment.config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()
+    private val watchPatterns: List<String> = config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()
     private val watcher by lazy { FileSystems.getDefault().newWatchService() }
+
+    override val monitor = ApplicationMonitor().logEvents()
 
     @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
     override val application: Application
@@ -77,14 +88,16 @@ class ApplicationLifecycleReloading(override val environment: ApplicationEnviron
         val oldThreadClassLoader = currentThread.contextClassLoader
         currentThread.contextClassLoader = classLoader
         try {
-            return instantiateAndConfigureApplication(classLoader)
+            return instantiateAndConfigureApplication(classLoader).also {
+                monitor.applicationStart(it)
+            }
         } finally {
             currentThread.contextClassLoader = oldThreadClassLoader
         }
     }
 
     private fun createClassLoader(): ClassLoader {
-        val baseClassLoader = environment.classLoader
+        val baseClassLoader = classLoader
         if (!automaticReload)
             return baseClassLoader
 
@@ -117,7 +130,7 @@ class ApplicationLifecycleReloading(override val environment: ApplicationEnviron
             val currentApplication = _applicationInstance
             if (currentApplication != null) {
                 try {
-                    environment.monitor.applicationStop(currentApplication)
+                    monitor.applicationStop(currentApplication)
                     currentApplication.dispose()
                 } catch(e: Throwable) {
                     log.error("Failed to destroy application instance.", e)
@@ -173,79 +186,43 @@ class ApplicationLifecycleReloading(override val environment: ApplicationEnviron
     }
 
     private fun instantiateAndConfigureApplication(classLoader: ClassLoader): Application {
-        val application = applicationClassName?.let {
-            val applicationClass = classLoader.loadClass(it)
-            if (ApplicationFeatureClassInstance.isAssignableFrom(applicationClass)) {
-                throw IllegalArgumentException("$applicationClassName: use ktor.application.modules and ktor.application.features instead")
-            }
-            if (!ApplicationClassInstance.isAssignableFrom(applicationClass)) {
-                throw IllegalArgumentException("$applicationClassName (ktor.application.class) should inherit ${ApplicationClassInstance.name}")
-            }
+        val application = Application(this)
 
-            createApplicationEntry(applicationClass, null) as Application
-        } ?: Application(environment, Unit)
-
-        applicationFeatures?.forEach { featureFqName ->
-            instantiateAndConfigure(classLoader, featureFqName, application)
+        configModules?.forEach { fqName ->
+            executeModuleFunction(classLoader, fqName, application)
         }
-
-        applicationModules?.forEach { fqName ->
-            instantiateAndConfigure(classLoader, fqName, application)
-        }
-
-        environment.monitor.applicationStart(application)
+        directModules.forEach { it(application) }
         return application
     }
 
-    private fun instantiateAndConfigure(classLoader: ClassLoader, fqName: String, application: Application) {
-        classLoader.loadClassOrNull(fqName)?.let { clazz ->
-            val entry = createApplicationEntry(clazz, application)
-
-            when (entry) {
-                is ApplicationModule -> {
-                    @Suppress("UNCHECKED_CAST")
-                    application.install(entry)
-                }
-                is ApplicationFeature<*, *, *> -> {
-                    // TODO validate install function signature to ensure first parameter is Application
-                    @Suppress("UNCHECKED_CAST")
-                    application.install(entry as ApplicationFeature<Application, *, *>)
-                }
-                else -> throw IllegalArgumentException("Entry point $fqName should be ApplicationModule or ApplicationFeature<Application, *, *>")
-            }
-
-            return
-        }
-
+    private fun executeModuleFunction(classLoader: ClassLoader, fqName: String, application: Application) {
         fqName.lastIndexOfAny(".#".toCharArray()).let { idx ->
             if (idx == -1) return@let
             val className = fqName.substring(0, idx)
             val functionName = fqName.substring(idx + 1)
-            val clazz = classLoader.loadClassOrNull(className)
+            val clazz = classLoader.loadClassOrNull(className) ?: return@let
+            val kclass = clazz.kotlin
 
-            if (clazz != null) {
-                val kclass = clazz.kotlin
+            clazz.methods
+                    .filter { it.name == functionName && Modifier.isStatic(it.modifiers) }
+                    .mapNotNull { it.kotlinFunction }
+                    .bestFunction()?.let { moduleFunction ->
 
-                clazz.methods.filter { it.name == functionName && Modifier.isStatic(it.modifiers) }
-                        .mapNotNull { it.kotlinFunction }
-                        .bestFunction()?.let { moduleFunction ->
+                callEntryPointFunction(null, moduleFunction, application)
+                return
+            }
 
-                    callEntryPointFunction(null, moduleFunction, application)
-                    return
-                }
-
-                val instance = createApplicationEntry(clazz, application)
-                kclass.functions.filter { it.name == functionName }.bestFunction()?.let { moduleFunction ->
-                    callEntryPointFunction(instance, moduleFunction, application)
-                    return
-                }
+            val instance = createModuleContainer(clazz, application)
+            kclass.functions.filter { it.name == functionName }.bestFunction()?.let { moduleFunction ->
+                callEntryPointFunction(instance, moduleFunction, application)
+                return
             }
         }
 
-        throw ClassNotFoundException("Neither function nor class exist for the fully qualified name $fqName")
+        throw ClassNotFoundException("Module function cannot be found for the fully qualified name '$fqName'")
     }
 
-    private fun createApplicationEntry(applicationEntryClass: Class<*>, application: Application?): Any {
+    private fun createModuleContainer(applicationEntryClass: Class<*>, application: Application?): Any {
         return applicationEntryClass.kotlin.objectInstance ?: run {
             val constructors = applicationEntryClass.kotlin.constructors.filter {
                 it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) || (isApplication(p) && application != null) }
@@ -265,7 +242,7 @@ class ApplicationLifecycleReloading(override val environment: ApplicationEnviron
                     @Suppress("IMPLICIT_CAST_TO_ANY")
                     when {
                         p.kind == KParameter.Kind.INSTANCE -> instance
-                        isApplicationEnvironment(p) -> environment
+                        isApplicationEnvironment(p) -> this
                         isApplication(p) -> application ?: throw IllegalArgumentException("Couldn't inject application instance to $entryPoint")
                         else -> throw RuntimeException("Parameter type ${p.type} of parameter ${p.name} is not supported")
                     }
@@ -295,7 +272,6 @@ class ApplicationLifecycleReloading(override val environment: ApplicationEnviron
         private fun isApplicationEnvironment(p: KParameter) = isParameterOfType(p, ApplicationEnvironmentClassInstance)
         private fun isApplication(p: KParameter) = isParameterOfType(p, ApplicationClassInstance)
 
-        private val ApplicationFeatureClassInstance = ApplicationFeature::class.java
         private val ApplicationEnvironmentClassInstance = ApplicationEnvironment::class.java
         private val ApplicationClassInstance = Application::class.java
     }

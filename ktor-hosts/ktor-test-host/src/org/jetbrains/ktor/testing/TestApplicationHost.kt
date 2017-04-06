@@ -7,16 +7,14 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 
-class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnvironment()) {
-    private val lifecycle: ApplicationLifecycle = ApplicationLifecycleReloading(environment, false)
-
+class TestApplicationHost(val environment: ApplicationHostEnvironment = emptyTestEnvironment()) {
     init {
         environment.monitor.applicationStart += {
             it.install(ApplicationTransform).registerDefaultHandlers()
         }
     }
 
-    val application: Application = lifecycle.application
+    val application: Application get() = environment.application
     private val hostPipeline = ApplicationCallPipeline()
 
     init {
@@ -28,7 +26,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
 
             application.execute(call)
         }
-        lifecycle.start()
+        environment.start()
     }
 
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
@@ -55,7 +53,7 @@ class TestApplicationHost(val environment: ApplicationEnvironment = emptyTestEnv
     }
 
     fun dispose() {
-        lifecycle.stop()
+        environment.stop()
     }
 
     fun createCall(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {

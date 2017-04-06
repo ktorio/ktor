@@ -8,7 +8,7 @@ import java.io.*
 import java.net.*
 import java.security.*
 
-fun commandLineConfig(args: Array<String>): Pair<ApplicationHostConfig, ApplicationEnvironment> {
+fun commandLineEnvironment(args: Array<String>): ApplicationHostEnvironment {
     val argsMap = args.mapNotNull { it.splitPair('=') }.toMap()
 
     val jar = argsMap["-jar"]?.let { File(it).toURI().toURL() }
@@ -28,18 +28,20 @@ fun commandLineConfig(args: Array<String>): Pair<ApplicationHostConfig, Applicat
     val hostSslPrivateKeyPassword = "ktor.security.ssl.privateKeyPassword"
 
     val applicationId = combinedConfig.tryGetString(applicationIdPath) ?: "Application"
-    val log = SLF4JApplicationLog(applicationId)
-    val classLoader = jar?.let { URLClassLoader(arrayOf(jar), ApplicationEnvironment::class.java.classLoader) }
-            ?: ApplicationEnvironment::class.java.classLoader
-    val appConfig = HoconApplicationConfig(combinedConfig)
 
-    val contentHiddenValue = ConfigValueFactory.fromAnyRef("***", "Content hidden")
-    log.trace(combinedConfig.getObject("ktor")
-            .withoutKey("security")
-            .withValue("security", contentHiddenValue)
-            .render())
+    val environment = applicationHostEnvironment {
+        log = SLF4JApplicationLog(applicationId)
+        classLoader = jar?.let { URLClassLoader(arrayOf(jar), ApplicationEnvironment::class.java.classLoader) }
+                ?: ApplicationEnvironment::class.java.classLoader
+        config = HoconApplicationConfig(combinedConfig)
 
-    val hostConfig = applicationHostConfig {
+        val contentHiddenValue = ConfigValueFactory.fromAnyRef("***", "Content hidden")
+        log.trace(combinedConfig.getObject("ktor")
+                .withoutKey("security")
+                .withValue("security", contentHiddenValue)
+                .render())
+
+
         val host = argsMap["-host"] ?: combinedConfig.tryGetString(hostConfigPath) ?: "0.0.0.0"
         val port = argsMap["-port"] ?: combinedConfig.tryGetString(hostPortPath) ?: "80"
         val sslPort = argsMap["-sslPort"] ?: combinedConfig.tryGetString(hostSslPortPath)
@@ -81,14 +83,14 @@ fun commandLineConfig(args: Array<String>): Pair<ApplicationHostConfig, Applicat
         }
 
         (argsMap["-autoreload"] ?: combinedConfig.tryGetString(hostReload))?.let {
-            autoreload = it.toBoolean()
+            automaticReload = it.toBoolean()
         }
     }
 
-    return hostConfig to BasicApplicationEnvironment(classLoader, log, appConfig)
+    return environment
 }
 
-private fun Config.tryGetString(path: String): String? = if (hasPath(path)) getString(path) else null
+fun Config.tryGetString(path: String): String? = if (hasPath(path)) getString(path) else null
 
 private fun String.splitPair(ch: Char): Pair<String, String>? = indexOf(ch).let { idx ->
     when (idx) {

@@ -5,14 +5,11 @@ import java.util.concurrent.*
 /**
  * Represents configured and running web application, capable of handling requests
  */
-open class Application(val environment: ApplicationEnvironment, forMigrationPurposeOnly: Unit) : ApplicationCallPipeline() {
-    @Deprecated("Don't inherit from Application class, inherit ApplicationModule instead and override `install`")
-    constructor(environment: ApplicationEnvironment) : this(environment, Unit) // TODO: drop primary constructor unit parameter when remove this
-
+class Application(val environment: ApplicationEnvironment) : ApplicationCallPipeline() {
     /**
      * Called by host when [Application] is terminated
      */
-    open fun dispose() {
+    fun dispose() {
         uninstallAllFeatures()
     }
 }

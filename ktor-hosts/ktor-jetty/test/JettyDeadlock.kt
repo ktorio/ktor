@@ -11,15 +11,13 @@ import java.util.concurrent.*
 import kotlin.test.*
 
 
-class BlockingApplication : ApplicationModule() {
-    override fun Application.install() {
-        routing {
-            get("/") { call ->
-                println("Sleeping")
-                TimeUnit.SECONDS.sleep(1)
-                call.respondWrite(Charsets.ISO_8859_1) {
-                    this.write("Help !")
-                }
+fun Application.blockingApplication() {
+    routing {
+        get("/") { call ->
+            println("Sleeping")
+            TimeUnit.SECONDS.sleep(1)
+            call.respondWrite(Charsets.ISO_8859_1) {
+                this.write("Help !")
             }
         }
     }
@@ -29,17 +27,17 @@ class JettyDeadlockTest {
 
     @Test
     @Ignore
-    // long integration test
+            // long integration test
     fun testLongRunningWithSleep() {
         val port = 44003
 
-        val appHostConfig = applicationHostConfig { connector { this.port = port } }
+        val environment = applicationHostEnvironment {
+            connector { this.port = port }
+            module(Application::blockingApplication)
+            log = SLF4JApplicationLog("ktor.test")
+        }
 
-        val appEnv = BasicApplicationEnvironment(this::class.java.classLoader, SLF4JApplicationLog("KTorTest"), MapApplicationConfig(
-                "ktor.application.class" to BlockingApplication::class.qualifiedName!!
-        ))
-
-        val jetty = JettyApplicationHost(appHostConfig, appEnv)
+        val jetty = JettyApplicationHost(environment)
         jetty.start()
 
         val e = Executors.newCachedThreadPool()

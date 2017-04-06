@@ -12,14 +12,9 @@ import java.util.concurrent.*
 /**
  * [ApplicationHost] implementation for running standalone Netty Host
  */
-class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
-                           val environment: ApplicationEnvironment,
-                           val lifecycle: ApplicationLifecycle) : ApplicationHostStartable {
+class NettyApplicationHost(override val environment: ApplicationHostEnvironment) : ApplicationHost {
 
-    val application: Application get() = lifecycle.application
-
-    constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
-            : this(hostConfig, environment, ApplicationLifecycleReloading(environment, hostConfig.autoreload))
+    val application: Application get() = environment.application
 
     private val parallelism = Runtime.getRuntime().availableProcessors() / 3 + 1
     private val connectionEventGroup = NettyConnectionPool(parallelism) // accepts connections
@@ -27,7 +22,7 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     internal val callEventGroup = NettyCallPool(parallelism) // processes calls
 
     private var channels: List<Channel>? = null
-    private val bootstraps = hostConfig.connectors.map { connector ->
+    private val bootstraps = environment.connectors.map { connector ->
         ServerBootstrap().apply {
             group(connectionEventGroup, workerEventGroup)
             channel(NioServerSocketChannel::class.java)
@@ -43,9 +38,9 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         }
     }
 
-    override fun start(wait: Boolean) : NettyApplicationHost {
-        lifecycle.start()
-        channels = bootstraps.zip(hostConfig.connectors)
+    override fun start(wait: Boolean): NettyApplicationHost {
+        environment.start()
+        channels = bootstraps.zip(environment.connectors)
                 .map { it.first.bind(it.second.host, it.second.port) }
                 .map { it.sync().channel() }
 
@@ -65,11 +60,11 @@ class NettyApplicationHost(override val hostConfig: ApplicationHostConfig,
         shutdownWorkers.await()
         shutdownCall.await()
 
-        lifecycle.stop()
+        environment.stop()
     }
 
     override fun toString(): String {
-        return "Netty($hostConfig)"
+        return "Netty($environment)"
     }
 }
 

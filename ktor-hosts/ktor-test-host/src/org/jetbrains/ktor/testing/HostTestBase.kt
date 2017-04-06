@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.testing
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
@@ -15,10 +14,10 @@ import java.util.concurrent.*
 import javax.net.ssl.*
 import kotlin.concurrent.*
 
-abstract class HostTestBase<H : ApplicationHost> {
+abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory: ApplicationHostFactory<THost>) {
     protected val port = findFreePort()
     protected val sslPort = findFreePort()
-    protected var server: H? = null
+    protected var server: THost? = null
 
     val testLog: Logger = LoggerFactory.getLogger("HostTestBase")
 
@@ -30,31 +29,47 @@ abstract class HostTestBase<H : ApplicationHost> {
     @After
     fun tearDownBase() {
         testLog.trace("Disposing server on port $port (SSL $sslPort)")
-        (server as? ApplicationHostStartable)?.stop(100, 5000, TimeUnit.MILLISECONDS)
+        (server as? ApplicationHost)?.stop(100, 5000, TimeUnit.MILLISECONDS)
     }
 
-    protected abstract fun createServer(envInit: ApplicationEnvironmentBuilder.() -> Unit, routing: Routing.() -> Unit): H
+    protected open fun createServer(log: ApplicationLog?, executor: ScheduledExecutorService?, module: Application.() -> Unit): THost {
+        val _port = this.port
+        val environment = applicationHostEnvironment {
+            log?.let { this.log = it  }
+            executor?.let { this.executor = it  }
+            connector { port = _port }
+            sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
+                this.port = sslPort
+                this.keyStorePath = keyStoreFile.absoluteFile
+            }
 
-    protected fun createAndStartServer(envInit: ApplicationEnvironmentBuilder.() -> Unit = {}, block: Routing.() -> Unit): H {
-        val server = createServer(envInit, {
-            application.install(CallLogging)
-            block()
-        })
+            module(module)
+        }
+        return embeddedServer(applicationHostFactory, environment)
+    }
+
+    protected fun createAndStartServer(log: ApplicationLog? = null,
+                                       executor: ScheduledExecutorService? = null,
+                                       block: Routing.() -> Unit): THost {
+        val server = createServer(log, executor) {
+            install(CallLogging)
+            install(Routing, block)
+        }
         startServer(server)
 
         return server
     }
 
-    protected fun startServer(server: H) {
+    protected fun startServer(server: THost) {
         this.server = server
         val l = CountDownLatch(1)
         thread {
             l.countDown()
-            (server as? ApplicationHostStartable)?.start()
+            (server as? ApplicationHost)?.start()
         }
         l.await()
 
-        server.hostConfig.connectors.forEach { connector ->
+        server.environment.connectors.forEach { connector ->
             waitForPort(connector.port)
         }
     }
@@ -103,30 +118,16 @@ abstract class HostTestBase<H : ApplicationHost> {
         val keyStoreFile = File("target/temp.jks")
         lateinit var keyStore: KeyStore
         lateinit var sslSocketFactory: SSLSocketFactory
-        lateinit var hostConfig: (Int, Int) -> ApplicationHostConfig
 
         @BeforeClass
         @JvmStatic
         fun setupAll() {
             keyStore = generateCertificate(keyStoreFile)
-
             val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
             tmf.init(keyStore)
             val ctx = SSLContext.getInstance("TLS")
             ctx.init(null, tmf.trustManagers, null)
-
             sslSocketFactory = ctx.socketFactory
-            hostConfig = { port, sslPort ->
-                applicationHostConfig {
-                    connector {
-                        this.port = port
-                    }
-                    sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
-                        this.port = sslPort
-                        this.keyStorePath = keyStoreFile.absoluteFile
-                    }
-                }
-            }
         }
 
         private fun waitForPort(port: Int) {

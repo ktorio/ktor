@@ -3,35 +3,11 @@ package org.jetbrains.ktor.netty
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 
-fun embeddedNettyServer(port: Int = 80, host: String = "0.0.0.0", configure: Application.() -> Unit): NettyApplicationHost {
-    val hostConfig = applicationHostConfig {
-        connector {
-            this.port = port
-            this.host = host
-        }
-    }
-
-    val environment = applicationEnvironment {}
-    return embeddedNettyServer(hostConfig, environment, configure)
+object Netty : ApplicationHostFactory<NettyApplicationHost> {
+    override fun create(environment: ApplicationHostEnvironment) = NettyApplicationHost(environment)
 }
 
-fun embeddedNettyServer(port: Int = 80, host: String = "0.0.0.0", application: Application): NettyApplicationHost {
-    val hostConfig = applicationHostConfig {
-        connector {
-            this.port = port
-            this.host = host
-        }
-    }
-
-    val environment = applicationEnvironment {}
-    return embeddedNettyServer(hostConfig, environment, application)
-}
-
-fun embeddedNettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, configure: Application.() -> Unit): NettyApplicationHost {
-    return embeddedNettyServer(hostConfig, environment, Application(environment, Unit).apply(configure))
-}
-
-fun embeddedNettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, application: Application): NettyApplicationHost {
-    environment.monitor.applicationStop += { environment.close() }
-    return NettyApplicationHost(hostConfig, environment, ApplicationLifecycleStatic(environment, application))
+@Deprecated("Replace with 'embeddedServer(Netty, …)", replaceWith = ReplaceWith("embeddedServer(Netty, port, host, configure)", "org.jetbrains.ktor.host.embeddedServer"))
+fun embeddedNettyServer(port: Int = 80, host: String = "0.0.0.0", main: Application.() -> Unit): NettyApplicationHost {
+    return embeddedServer(Netty, port, host, main)
 }

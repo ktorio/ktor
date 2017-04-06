@@ -24,12 +24,12 @@ abstract class IntegrationBenchmark {
         it.name.startsWith("ktor-core") && it.name.endsWith("SNAPSHOT.jar")
     }.single()
 
-    lateinit var server: ApplicationHostStartable
+    lateinit var server: ApplicationHost
     private val httpClient = OkHttpBenchmarkClient()
 
     private val port = 5678
 
-    abstract fun createServer(port: Int, configure: Application.() -> Unit): ApplicationHostStartable
+    abstract fun createServer(port: Int, main: Application.() -> Unit): ApplicationHost
 
     @Setup
     fun configureServer() {
@@ -122,14 +122,14 @@ abstract class IntegrationBenchmark {
 }
 
 open class NettyIntegrationBenchmark : IntegrationBenchmark() {
-    override fun createServer(port: Int, configure: Application.() -> Unit): ApplicationHostStartable {
-        return embeddedNettyServer(port, configure = configure)
+    override fun createServer(port: Int, main: Application.() -> Unit): ApplicationHost {
+        return embeddedServer(Netty, port, main = main)
     }
 }
 
 open class JettyIntegrationBenchmark : IntegrationBenchmark() {
-    override fun createServer(port: Int, configure: Application.() -> Unit): ApplicationHostStartable {
-        return embeddedJettyServer(port, configure = configure)
+    override fun createServer(port: Int, main: Application.() -> Unit): ApplicationHost {
+        return embeddedServer(Jetty, port, main = main)
     }
 }
 

@@ -3,35 +3,11 @@ package org.jetbrains.ktor.jetty
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 
-fun embeddedJettyServer(port: Int = 80, host: String = "0.0.0.0", configure: Application.() -> Unit): JettyApplicationHost {
-    val hostConfig = applicationHostConfig {
-        connector {
-            this.port = port
-            this.host = host
-        }
-    }
-
-    val environment = applicationEnvironment {}
-    return embeddedJettyServer(hostConfig, environment, configure)
+object Jetty : ApplicationHostFactory<JettyApplicationHost> {
+    override fun create(environment: ApplicationHostEnvironment) = JettyApplicationHost(environment)
 }
 
-fun embeddedJettyServer(port: Int = 80, host: String = "0.0.0.0", application: Application): JettyApplicationHost {
-    val hostConfig = applicationHostConfig {
-        connector {
-            this.port = port
-            this.host = host
-        }
-    }
-
-    val environment = applicationEnvironment {}
-    return embeddedJettyServer(hostConfig, environment, application)
-}
-
-fun embeddedJettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, configure: Application.() -> Unit): JettyApplicationHost {
-    return embeddedJettyServer(hostConfig, environment, Application(environment, Unit).apply(configure))
-}
-
-fun embeddedJettyServer(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment, application: Application): JettyApplicationHost {
-    environment.monitor.applicationStop += { environment.close() }
-    return JettyApplicationHost(hostConfig, environment, ApplicationLifecycleStatic(environment, application))
+@Deprecated("Replace with 'embeddedServer(Jetty, …)", replaceWith = ReplaceWith("embeddedServer(Jetty, port, host, configure)", "org.jetbrains.ktor.host.embeddedServer"))
+fun embeddedJettyServer(port: Int = 80, host: String = "0.0.0.0", main: Application.() -> Unit): JettyApplicationHost {
+    return embeddedServer(Jetty, port, host, main)
 }

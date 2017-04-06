@@ -33,11 +33,11 @@ interface HostSSLConnectorConfig : HostConnectorConfig {
     val privateKeyPassword: () -> CharArray
 }
 
-inline fun ApplicationHostConfigBuilder.connector(builder: HostConnectorBuilder.() -> Unit) {
+inline fun ApplicationHostEnvironmentBuilder.connector(builder: HostConnectorBuilder.() -> Unit) {
     connectors.add(HostConnectorBuilder().apply(builder))
 }
 
-inline fun ApplicationHostConfigBuilder.sslConnector(keyStore: KeyStore, keyAlias: String, noinline keyStorePassword: () -> CharArray, noinline privateKeyPassword: () -> CharArray, builder: HostSSLConnectorBuilder.() -> Unit) {
+inline fun ApplicationHostEnvironmentBuilder.sslConnector(keyStore: KeyStore, keyAlias: String, noinline keyStorePassword: () -> CharArray, noinline privateKeyPassword: () -> CharArray, builder: HostSSLConnectorBuilder.() -> Unit) {
     connectors.add(HostSSLConnectorBuilder(keyStore, keyAlias, keyStorePassword, privateKeyPassword).apply(builder))
 }
 

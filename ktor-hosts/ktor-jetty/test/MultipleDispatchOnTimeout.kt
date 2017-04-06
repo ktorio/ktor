@@ -1,5 +1,4 @@
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.jetty.*
@@ -24,25 +23,27 @@ class MultipleDispatchOnTimeout {
      */
     @Test
     fun `calls with duration longer than default timeout do not trigger a redispatch`() {
-        val port = findFreePort()
-        val appHostConfig = applicationHostConfig { connector { this.port = port } }
-        val appEnv = BasicApplicationEnvironment(this::class.java.classLoader, SLF4JApplicationLog("KTorTest"), MapApplicationConfig())
-
         val callCount = AtomicInteger(0)
-
-        val jetty = embeddedJettyServer(appHostConfig, appEnv) {
-            install(Routing, {
-                get("/foo") {
-                    callCount.incrementAndGet()
-                    val timeout = Math.max((call.request as ServletApplicationRequest).servletRequest.asyncContext.timeout, 0)
-//                    println("Timeout is: $timeout")
-                    Thread.sleep(timeout + 1000)
-                    call.respondWrite {
-                        write("A ok!")
+        val port = findFreePort()
+        val environment = applicationHostEnvironment {
+            connector { this.port = port }
+            log = SLF4JApplicationLog("ktor.test")
+            module {
+                install(Routing) {
+                    get("/foo") {
+                        callCount.incrementAndGet()
+                        val timeout = Math.max((call.request as ServletApplicationRequest).servletRequest.asyncContext.timeout, 0)
+        //                    println("Timeout is: $timeout")
+                        Thread.sleep(timeout + 1000)
+                        call.respondWrite {
+                            write("A ok!")
+                        }
                     }
                 }
-            })
+            }
         }
+
+        val jetty = embeddedServer(Jetty, environment)
         try {
             jetty.start()
 

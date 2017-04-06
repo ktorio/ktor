@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.tomcat
 
 import org.apache.catalina.connector.*
-import org.apache.catalina.startup.*
+import org.apache.catalina.startup.Tomcat
 import org.apache.coyote.http2.*
 import org.apache.tomcat.jni.*
 import org.apache.tomcat.util.net.*
@@ -15,16 +15,11 @@ import java.nio.file.*
 import java.util.concurrent.*
 import javax.servlet.*
 
-class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
-                            val environment: ApplicationEnvironment,
-                            val lifecycle: ApplicationLifecycle) : ApplicationHostStartable {
+class TomcatApplicationHost(override val environment: ApplicationHostEnvironment) : ApplicationHost {
 
 
-    private val application: Application get() = lifecycle.application
+    private val application: Application get() = environment.application
     private val tempDirectory by lazy { Files.createTempDirectory("ktor-tomcat-") }
-
-    constructor(hostConfig: ApplicationHostConfig, config: ApplicationEnvironment)
-            : this(hostConfig, config, ApplicationLifecycleReloading(config, hostConfig.autoreload))
 
     private val ktorServlet = object : KtorServlet() {
         override val application: Application
@@ -37,7 +32,7 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
                 removeConnector(existing)
             }
 
-            hostConfig.connectors.forEach { ktorConnector ->
+            environment.connectors.forEach { ktorConnector ->
                 addConnector(Connector().apply {
                     port = ktorConnector.port
 
@@ -92,7 +87,7 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     override fun start(wait: Boolean): TomcatApplicationHost {
-        lifecycle.start()
+        environment.start()
         server.start()
         if (wait) {
             server.server.await()
@@ -103,7 +98,7 @@ class TomcatApplicationHost(override val hostConfig: ApplicationHostConfig,
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
         server.stop()
-        lifecycle.stop()
+        environment.stop()
         tempDirectory.toFile().deleteRecursively()
     }
 

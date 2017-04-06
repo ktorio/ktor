@@ -24,18 +24,13 @@ import javax.servlet.http.*
 /**
  * [ApplicationHost] implementation for running standalone Jetty Host
  */
-class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
-                           val environment: ApplicationEnvironment,
-                           val lifecycle: ApplicationLifecycle,
-                           jettyServer: () -> Server = ::Server) : ApplicationHostStartable {
+class JettyApplicationHost(override val environment: ApplicationHostEnvironment,
+                           jettyServer: () -> Server = ::Server) : ApplicationHost {
 
-    val application: Application get() = lifecycle.application
-
-    constructor(hostConfig: ApplicationHostConfig, environment: ApplicationEnvironment)
-            : this(hostConfig, environment, ApplicationLifecycleReloading(environment, hostConfig.autoreload))
+    val application: Application get() = environment.application
 
     private val server = jettyServer().apply {
-        connectors = hostConfig.connectors.map { ktorConnector ->
+        connectors = environment.connectors.map { ktorConnector ->
             val httpConfig = HttpConfiguration().apply {
                 sendServerVersion = false
                 sendDateHeader = false
@@ -161,7 +156,7 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     }
 
     override fun start(wait: Boolean) : JettyApplicationHost {
-        lifecycle.start()
+        environment.start()
         server.start()
         if (wait) {
             server.join()
@@ -173,10 +168,10 @@ class JettyApplicationHost(override val hostConfig: ApplicationHostConfig,
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
         server.stopTimeout = timeUnit.toMillis(timeout)
         server.stop()
-        lifecycle.stop()
+        environment.stop()
     }
 
     override fun toString(): String {
-        return "Jetty($hostConfig)"
+        return "Jetty($environment)"
     }
 }

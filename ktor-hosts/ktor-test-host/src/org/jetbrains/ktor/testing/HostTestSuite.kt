@@ -22,7 +22,7 @@ import java.util.zip.*
 import kotlin.concurrent.*
 import kotlin.test.*
 
-abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
+abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHostFactory<THost>) : HostTestBase<THost>(hostFactory) {
     @Test
     fun testTextContent() {
         createAndStartServer {
@@ -880,25 +880,21 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
         val message = "expected, ${nextNonce()}"
         val collected = CopyOnWriteArrayList<Throwable>()
 
-        createAndStartServer({
-            val delegate = SLF4JApplicationLog("embedded")
-            log = object : ApplicationLog by delegate {
-                override val name = "DummyLogger"
-
-                override fun fork(name: String) = this
-
-                override fun error(message: String, exception: Throwable?) {
-                    if (exception != null) {
-                        collected.add(exception)
-                    }
-
+        val log = object : ApplicationLog by SLF4JApplicationLog("embedded") {
+            override val name = "DummyLogger"
+            override fun fork(name: String) = this
+            override fun error(message: String, exception: Throwable?) {
+                if (exception != null) {
+                    collected.add(exception)
                 }
             }
-        }, {
+        }
+
+        createAndStartServer(log) {
             get("/") {
                 throw ExpectedException(message)
             }
-        })
+        }
 
         withUrl("/") {
             assertFailsWith<IOException> {
@@ -914,10 +910,9 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
     fun testBlockingConcurrency() {
         //println()
         val completed = AtomicInteger(0)
+        val executor = Executors.newScheduledThreadPool(3)
 
-        createAndStartServer({
-            executor = Executors.newScheduledThreadPool(3)
-        }, {
+        createAndStartServer(executor = executor) {
             get("/{index}") {
                 val index = call.parameters["index"]!!.toInt()
                 call.respondWrite {
@@ -929,7 +924,7 @@ abstract class HostTestSuite<H : ApplicationHost> : HostTestBase<H>() {
                     }
                 }
             }
-        })
+        }
 
         val count = 100
         val latch = CountDownLatch(count)

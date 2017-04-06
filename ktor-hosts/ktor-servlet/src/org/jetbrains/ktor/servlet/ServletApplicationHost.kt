@@ -9,14 +9,15 @@ import org.jetbrains.ktor.transform.*
 import javax.servlet.annotation.*
 
 @MultipartConfig
-open class ServletApplicationHost() : KtorServlet() {
-    private val lifecycle: ApplicationLifecycleReloading by lazy {
+open class ServletApplicationHost : KtorServlet() {
+    private val environment: ApplicationHostEnvironmentReloading by lazy {
         val servletContext = servletContext
         val parameterNames = servletContext.initParameterNames.toList().filter { it.startsWith("org.jetbrains.ktor") }
         val parameters = parameterNames.associateBy({ it.removePrefix("org.jetbrains.") }, { servletContext.getInitParameter(it) })
 
         val hocon = ConfigFactory.parseMap(parameters)
         val configPath = "ktor.config"
+        val applicationIdPath = "ktor.application.id"
 
         val combinedConfig = if (hocon.hasPath(configPath)) {
             val configStream = servletContext.classLoader.getResourceAsStream(hocon.getString(configPath))
@@ -25,23 +26,28 @@ open class ServletApplicationHost() : KtorServlet() {
         } else
             hocon.withFallback(ConfigFactory.load())
 
-        val log = SLF4JApplicationLog("ktor.application")
-        val config = HoconApplicationConfig(combinedConfig)
-        val environment = BasicApplicationEnvironment(servletContext.classLoader, log, config)
-        environment.monitor.applicationStart += {
-            it.install(ApplicationTransform).registerDefaultHandlers()
+        val applicationId = combinedConfig.tryGetString(applicationIdPath) ?: "Application"
+
+        applicationHostEnvironment {
+            config = HoconApplicationConfig(combinedConfig)
+            log = SLF4JApplicationLog(applicationId)
+            classLoader = servletContext.classLoader
         }
-        ApplicationLifecycleReloading(environment, false)
+        environment.apply {
+            monitor.applicationStart += {
+                it.install(ApplicationTransform).registerDefaultHandlers()
+            }
+        }
     }
 
-    override val application: Application get() = lifecycle.application
+    override val application: Application get() = environment.application
     override fun init() {
-        lifecycle.start()
+        environment.start()
         super.init()
     }
 
     override fun destroy() {
         super.destroy()
-        lifecycle.stop()
+        environment.stop()
     }
 }

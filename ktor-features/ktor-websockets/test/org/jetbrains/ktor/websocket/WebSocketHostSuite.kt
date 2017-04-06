@@ -2,6 +2,7 @@ package org.jetbrains.ktor.websocket
 
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
 import java.io.*
@@ -11,13 +12,13 @@ import java.time.*
 import java.util.*
 import kotlin.test.*
 
-abstract class WebSocketHostSuite<H : ApplicationHost> : org.jetbrains.ktor.testing.HostTestBase<H>() {
+abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: ApplicationHostFactory<THost>) : HostTestBase<THost>(hostFactory) {
 //    @Test
     @Test(timeout = 5000L)
     fun testWebSocketGenericSequence() {
         val collected = ArrayList<String>()
 
-        createAndStartServer() {
+        createAndStartServer {
             webSocket("/") {
                 handle { frame ->
                     if (frame is Frame.Text) {
