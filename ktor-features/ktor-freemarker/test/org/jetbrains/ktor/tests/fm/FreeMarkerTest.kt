@@ -31,7 +31,8 @@ class FreeMarkerTest {
                 assert(response.content!!.lines()) {
                     shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
                 }
-                assertEquals(ContentType.Text.Html, ContentType.Companion.parse(assertNotNull(response.headers[HttpHeaders.ContentType])))
+                val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+                assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
                 assertEquals("e", response.headers[HttpHeaders.ETag])
             }
         }
