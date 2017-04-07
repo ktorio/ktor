@@ -12,7 +12,7 @@ import org.jetbrains.ktor.util.*
 class FreeMarkerContent(val templateName: String,
                         val model: Any,
                         val etag: String,
-                        val contentType: ContentType = ContentType.Text.Html)
+                        val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8))
 
 class FreeMarker(val config: Configuration) {
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, FreeMarker> {
