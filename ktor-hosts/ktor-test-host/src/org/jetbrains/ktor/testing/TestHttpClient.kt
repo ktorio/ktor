@@ -5,6 +5,7 @@ import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 import java.io.*
+import java.util.concurrent.*
 
 class TestingHttpClient(private val applicationHost: TestApplicationHost) : HttpClient(), AutoCloseable {
     override suspend fun openConnection(host: String, port: Int, secure: Boolean): HttpConnection {
@@ -12,7 +13,7 @@ class TestingHttpClient(private val applicationHost: TestApplicationHost) : Http
     }
 
     override fun close() {
-        applicationHost.dispose()
+        applicationHost.stop(0L, 0L, TimeUnit.MILLISECONDS)
     }
 
     private class TestingHttpConnection(val app: TestApplicationHost) : HttpConnection {

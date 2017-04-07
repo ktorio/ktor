@@ -22,9 +22,11 @@ class ApplicationHostEnvironmentReloadingTests {
                     )))
         }
 
+        environment.start()
         val application = environment.application
         assertNotNull(application)
         assertEquals("topLevelExtensionFunction", application.attributes[TestKey])
+        environment.stop()
     }
 
     @Test fun `top level non-extension function as module function`() {
@@ -35,9 +37,11 @@ class ApplicationHostEnvironmentReloadingTests {
                             "ktor.application.modules" to listOf(::topLevelFunction.fqName)
                     )))
         }
+        environment.start()
         val application = environment.application
         assertNotNull(application)
         assertEquals("topLevelFunction", application.attributes[TestKey])
+        environment.stop()
     }
 
     @Test fun `companion object extension function as module function`() {
@@ -48,9 +52,11 @@ class ApplicationHostEnvironmentReloadingTests {
                             "ktor.application.modules" to listOf(Companion::class.jvmName + "." + "companionObjectExtensionFunction")
                     )))
         }
+        environment.start()
         val application = environment.application
         assertNotNull(application)
         assertEquals("companionObjectExtensionFunction", application.attributes[TestKey])
+        environment.stop()
     }
 
     @Test fun `companion object non-extension function as module function`() {
@@ -62,9 +68,11 @@ class ApplicationHostEnvironmentReloadingTests {
                             "ktor.application.modules" to listOf(Companion::class.functionFqName("companionObjectFunction"))
                     )))
         }
+        environment.start()
         val application = environment.application
         assertNotNull(application)
         assertEquals("companionObjectFunction", application.attributes[TestKey])
+        environment.stop()
     }
 
     @Test fun `companion object jvmstatic extension function as module function`() {
@@ -75,9 +83,11 @@ class ApplicationHostEnvironmentReloadingTests {
                             "ktor.application.modules" to listOf(Companion::class.jvmName + "." + "companionObjectJvmStaticExtensionFunction")
                     )))
         }
+        environment.start()
         val application = environment.application
         assertNotNull(application)
         assertEquals("companionObjectJvmStaticExtensionFunction", application.attributes[TestKey])
+        environment.stop()
     }
 
     @Test fun `companion object jvmstatic non-extension function as module function`() {
@@ -89,9 +99,11 @@ class ApplicationHostEnvironmentReloadingTests {
                             "ktor.application.modules" to listOf(Companion::class.functionFqName("companionObjectJvmStaticFunction"))
                     )))
         }
+        environment.start()
         val application = environment.application
         assertNotNull(application)
         assertEquals("companionObjectJvmStaticFunction", application.attributes[TestKey])
+        environment.stop()
     }
 
     @Test fun `object holder extension function as module function`() {
@@ -102,9 +114,11 @@ class ApplicationHostEnvironmentReloadingTests {
                             "ktor.application.modules" to listOf(ObjectModuleFunctionHolder::class.jvmName + "." + "objectExtensionFunction")
                     )))
         }
+        environment.start()
         val application = environment.application
         assertNotNull(application)
         assertEquals("objectExtensionFunction", application.attributes[TestKey])
+        environment.stop()
     }
 
     @Test fun `object holder non-extension function as module function`() {
@@ -116,9 +130,11 @@ class ApplicationHostEnvironmentReloadingTests {
                             "ktor.application.modules" to listOf(ObjectModuleFunctionHolder::class.functionFqName("objectFunction"))
                     )))
         }
+        environment.start()
         val application = environment.application
         assertNotNull(application)
         assertEquals("objectFunction", application.attributes[TestKey])
+        environment.stop()
     }
 
     @Test fun `class holder extension function as module function`() {
@@ -129,9 +145,11 @@ class ApplicationHostEnvironmentReloadingTests {
                             "ktor.application.modules" to listOf(ClassModuleFunctionHolder::class.jvmName + "." + "classExtensionFunction")
                     )))
         }
+        environment.start()
         val application = environment.application
         assertNotNull(application)
         assertEquals("classExtensionFunction", application.attributes[TestKey])
+        environment.stop()
     }
 
     @Test fun `class holder non-extension function as module function`() {
@@ -142,9 +160,11 @@ class ApplicationHostEnvironmentReloadingTests {
                             "ktor.application.modules" to listOf(ClassModuleFunctionHolder::classFunction.fqName)
                     )))
         }
+        environment.start()
         val application = environment.application
         assertNotNull(application)
         assertEquals("classFunction", application.attributes[TestKey])
+        environment.stop()
     }
 
     @Test fun `no-arg module function`() {
@@ -157,9 +177,11 @@ class ApplicationHostEnvironmentReloadingTests {
                     )))
 
         }
+        environment.start()
         val application = environment.application
         assertNotNull(application)
         assertEquals(1, NoArgModuleFunction.result)
+        environment.stop()
     }
 
     @Test fun `multiple module functions`() {
@@ -171,23 +193,11 @@ class ApplicationHostEnvironmentReloadingTests {
                     )))
 
         }
+        environment.start()
         val application = environment.application
         assertNotNull(application)
         assertEquals("best function called", application.attributes[TestKey])
-    }
-
-    @Test fun `install call logger feature`() {
-        val environment = applicationHostEnvironment {
-            config = HoconApplicationConfig(ConfigFactory.parseMap(
-                    mapOf(
-                            "ktor.deployment.environment" to "test",
-                            "ktor.application.features" to listOf(CallLogging.Feature::class.jvmName)
-                    )))
-
-        }
-        val application = environment.application
-        assertNotNull(application)
-        assertNotNull(application.feature(CallLogging))
+        environment.stop()
     }
 
     object NoArgModuleFunction {

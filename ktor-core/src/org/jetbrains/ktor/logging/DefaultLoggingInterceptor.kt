@@ -13,6 +13,7 @@ class CallLogging(val log: ApplicationLog) {
     companion object Feature : ApplicationFeature<Application, CallLogging.Configuration, CallLogging> {
         override val key: AttributeKey<CallLogging> = AttributeKey("Call Logging")
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
+            pipeline.environment.monitor.logEvents()
             val loggingPhase = PipelinePhase("Logging")
             Configuration().apply(configure)
             val feature = CallLogging(pipeline.log)
@@ -23,7 +24,15 @@ class CallLogging(val log: ApplicationLog) {
             }
             return feature
         }
+
+        fun ApplicationMonitor.logEvents() {
+            applicationStarted += { it.log.trace("Application started: $it") }
+            applicationStopped += { it.log.trace("Application stopped: $it") }
+            applicationStarting += { it.log.trace("Application starting: $it") }
+            applicationStopping += { it.log.trace("Application stopping: $it") }
+        }
     }
+
 
     private fun logSuccess(call: ApplicationCall) {
         val status = call.response.status() ?: "Unhandled"

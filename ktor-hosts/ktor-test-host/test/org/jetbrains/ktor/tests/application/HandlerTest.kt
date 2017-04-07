@@ -3,38 +3,36 @@ package org.jetbrains.ktor.tests.application
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
+import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.junit.*
 import kotlin.test.*
 
 class HandlerTest {
 
-    @Test fun `application with empty handler`() {
-        val testHost = createTestHost()
+    @Test fun `application with empty handler`() = withTestApplication {
         on("making a request") {
-            val request = testHost.handleRequest { }
+            val request = handleRequest { }
             it("should not be handled") {
                 assertFalse(request.requestHandled)
             }
         }
     }
 
-    @Test fun `application with transparent handler`() {
-        val testHost = createTestHost()
-        testHost.application.intercept(ApplicationCallPipeline.Call) {}
+    @Test fun `application with transparent handler`() = withTestApplication {
+        application.intercept(ApplicationCallPipeline.Call) {}
         on("making a request") {
-            val request = testHost.handleRequest { }
+            val request = handleRequest { }
             it("should not be handled") {
                 assertFalse(request.requestHandled)
             }
         }
     }
 
-    @Test fun `application with handler returning true`() {
-        val testHost = createTestHost()
-        testHost.application.intercept(ApplicationCallPipeline.Call) { call -> call.respond(HttpStatusCode.OK) }
+    @Test fun `application with handler returning true`() = withTestApplication {
+        application.intercept(ApplicationCallPipeline.Call) { call -> call.respond(HttpStatusCode.OK) }
         on("making a request") {
-            val request = testHost.handleRequest { }
+            val request = handleRequest { }
             it("should be handled") {
                 assertTrue(request.requestHandled)
             }

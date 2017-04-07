@@ -4,17 +4,13 @@ import io.netty.bootstrap.*
 import io.netty.channel.*
 import io.netty.channel.nio.*
 import io.netty.channel.socket.nio.*
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.transform.*
 import java.util.concurrent.*
 
 /**
  * [ApplicationHost] implementation for running standalone Netty Host
  */
-class NettyApplicationHost(override val environment: ApplicationHostEnvironment) : ApplicationHost {
-
-    val application: Application get() = environment.application
+class NettyApplicationHost(environment: ApplicationHostEnvironment) : BaseApplicationHost(environment) {
 
     private val parallelism = Runtime.getRuntime().availableProcessors() / 3 + 1
     private val connectionEventGroup = NettyConnectionPool(parallelism) // accepts connections
@@ -27,14 +23,6 @@ class NettyApplicationHost(override val environment: ApplicationHostEnvironment)
             group(connectionEventGroup, workerEventGroup)
             channel(NioServerSocketChannel::class.java)
             childHandler(NettyChannelInitializer(this@NettyApplicationHost, connector))
-        }
-    }
-
-    val pipeline = defaultHostPipeline(environment)
-
-    init {
-        environment.monitor.applicationStart += {
-            it.install(ApplicationTransform).registerDefaultHandlers()
         }
     }
 

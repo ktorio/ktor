@@ -58,7 +58,7 @@ class ApplicationHostEnvironmentReloading(
 
     private val watcher by lazy { FileSystems.getDefault().newWatchService() }
 
-    override val monitor = ApplicationMonitor().logEvents()
+    override val monitor = ApplicationMonitor()
 
     @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
     override val application: Application
@@ -82,15 +82,14 @@ class ApplicationHostEnvironmentReloading(
 
                 log.debug("Changes to $count files caused application restart.")
                 changes.take(5).forEach { log.debug("...  ${it.context()}") }
-                destroyApplication()
+                applicationInstanceLock.write {
+                    destroyApplication()
+                    _applicationInstance = createApplication()
+                }
             }
         }
 
-        _applicationInstance ?: applicationInstanceLock.write {
-            val newApplication = createApplication()
-            _applicationInstance = newApplication
-            newApplication
-        }
+        _applicationInstance ?: throw IllegalStateException("ApplicationHostEnvironment was not started")
     }
 
     fun ClassLoader.allURLs(): List<URL> {
@@ -109,9 +108,7 @@ class ApplicationHostEnvironmentReloading(
         val oldThreadClassLoader = currentThread.contextClassLoader
         currentThread.contextClassLoader = classLoader
         try {
-            return instantiateAndConfigureApplication(classLoader).also {
-                monitor.applicationStart(it)
-            }
+            return instantiateAndConfigureApplication(classLoader)
         } finally {
             currentThread.contextClassLoader = oldThreadClassLoader
         }
@@ -146,12 +143,13 @@ class ApplicationHostEnvironmentReloading(
         return OverridingClassLoader(watchUrls, baseClassLoader)
     }
 
-    fun destroyApplication() = applicationInstanceLock.write {
+    fun destroyApplication() {
         val currentApplication = _applicationInstance
         if (currentApplication != null) {
+            monitor.applicationStopping(currentApplication)
             try {
-                monitor.applicationStop(currentApplication)
                 currentApplication.dispose()
+                monitor.applicationStopped(currentApplication)
             } catch(e: Throwable) {
                 log.error("Failed to destroy application instance.", e)
             }
@@ -194,11 +192,15 @@ class ApplicationHostEnvironmentReloading(
     }
 
     override fun start() {
-        application // create an application and notify monitor
+        applicationInstanceLock.write {
+            _applicationInstance = createApplication()
+        }
     }
 
     override fun stop() {
-        destroyApplication()
+        applicationInstanceLock.write {
+            destroyApplication()
+        }
         if (watchPatterns.isNotEmpty()) {
             watcher.close()
         }
@@ -206,6 +208,7 @@ class ApplicationHostEnvironmentReloading(
 
     private fun instantiateAndConfigureApplication(classLoader: ClassLoader): Application {
         val application = Application(this)
+        monitor.applicationStarting(application)
 
         moduleFunctionNames?.forEach { fqName ->
             executeModuleFunction(classLoader, fqName, application)
@@ -215,6 +218,7 @@ class ApplicationHostEnvironmentReloading(
             modules.forEach { it(application) }
         }
 
+        monitor.applicationStarted(application)
         return application
     }
 
@@ -257,12 +261,12 @@ class ApplicationHostEnvironmentReloading(
         throw ClassNotFoundException("Module function cannot be found for the fully qualified name '$fqName'")
     }
 
-    private fun createModuleContainer(applicationEntryClass: KClass<*>, application: Application?): Any {
+    private fun createModuleContainer(applicationEntryClass: KClass<*>, application: Application): Any {
         val objectInstance = applicationEntryClass.objectInstance
         if (objectInstance != null) return objectInstance
 
         val constructors = applicationEntryClass.constructors.filter {
-            it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) || (isApplication(p) && application != null) }
+            it.parameters.all { p -> p.isOptional || isApplicationEnvironment(p) || isApplication(p) }
         }
 
         val constructor = constructors.bestFunction() ?: throw RuntimeException("There are no applicable constructors found in class $applicationEntryClass")
@@ -273,7 +277,7 @@ class ApplicationHostEnvironmentReloading(
         return sortedWith(compareBy({ it.parameters.count { !it.isOptional } }, { it.parameters.size })).lastOrNull()
     }
 
-    private fun <R> callFunctionWithInjection(instance: Any?, entryPoint: KFunction<R>, application: Application?): R {
+    private fun <R> callFunctionWithInjection(instance: Any?, entryPoint: KFunction<R>, application: Application): R {
         return entryPoint.callBy(entryPoint.parameters
                 .filterNot { it.isOptional }
                 .associateBy({ it }, { p ->
@@ -281,7 +285,7 @@ class ApplicationHostEnvironmentReloading(
                     when {
                         p.kind == KParameter.Kind.INSTANCE -> instance
                         isApplicationEnvironment(p) -> this
-                        isApplication(p) -> application ?: throw IllegalArgumentException("Couldn't inject application instance to $entryPoint")
+                        isApplication(p) -> application
                         else -> throw RuntimeException("Parameter type ${p.type} of parameter ${p.name} is not supported")
                     }
                 }))

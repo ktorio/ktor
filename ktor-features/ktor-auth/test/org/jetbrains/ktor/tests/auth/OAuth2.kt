@@ -7,7 +7,6 @@ import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
-import org.jetbrains.ktor.tests.*
 import org.jetbrains.ktor.util.*
 import org.json.simple.*
 import org.junit.*
@@ -28,7 +27,7 @@ class OAuth2Test {
             clientSecret = "clientSecret1"
     )
 
-    val testClient = createOAuth2Server(object: OAuth2Server {
+    val testClient = createOAuth2Server(object : OAuth2Server {
         override fun requestToken(clientId: String, clientSecret: String, grantType: String, state: String?, code: String?, redirectUri: String?, userName: String?, password: String?): OAuthAccessTokenResponse.OAuth2 {
             if (clientId != "clientId1") {
                 throw IllegalArgumentException("Wrong clientId $clientId")
@@ -57,16 +56,15 @@ class OAuth2Test {
                 }
 
                 return OAuthAccessTokenResponse.OAuth2("accessToken1", "type", Long.MAX_VALUE, null)
-            } else  {
+            } else {
                 throw IllegalArgumentException("Wrong grand type $grantType")
             }
         }
     })
 
-    val host = createTestHost()
     val failures = ArrayList<Throwable>()
-    init {
-        host.application.routing {
+    fun Application.module() {
+        routing {
             route("/login") {
                 authentication {
                     oauth(testClient, exec, { settings }, { "http://localhost/login" })
@@ -99,8 +97,8 @@ class OAuth2Test {
     }
 
     @Test
-    fun testRedirect() {
-        val result = host.handleRequest {
+    fun testRedirect() = withTestApplication({ module() }) {
+        val result = handleRequest {
             uri = "/login"
         }
 
@@ -119,8 +117,8 @@ class OAuth2Test {
     }
 
     @Test
-    fun testRequestToken() {
-        val result = host.handleRequest {
+    fun testRequestToken() = withTestApplication({ module() }) {
+        val result = handleRequest {
             uri = "/login?" + listOf(
                     OAuth2RequestParameters.Code to "code1",
                     OAuth2RequestParameters.State to "state1"
@@ -134,8 +132,8 @@ class OAuth2Test {
     }
 
     @Test
-    fun testRequestTokenBadCode() {
-        val call = host.handleRequest {
+    fun testRequestTokenBadCode() = withTestApplication({ module() }) {
+        val call = handleRequest {
             uri = "/login?" + listOf(
                     OAuth2RequestParameters.Code to "code2",
                     OAuth2RequestParameters.State to "state1"
@@ -267,13 +265,13 @@ class OAuth2Test {
 
 
     @Test
-    fun testResourceOwnerPasswordCredentials() {
-        host.handleRequestWithBasic("/resource", "user", "pass").let { result ->
+    fun testResourceOwnerPasswordCredentials() = withTestApplication({ module() }) {
+        handleRequestWithBasic("/resource", "user", "pass").let { result ->
             waitExecutor()
             assertWWWAuthenticateHeaderExist(result)
         }
 
-        host.handleRequestWithBasic("/resource", "user1", "password1").let { result ->
+        handleRequestWithBasic("/resource", "user1", "password1").let { result ->
             waitExecutor()
             assertFailures()
             assertEquals("ok", result.response.content)
@@ -318,53 +316,57 @@ private interface OAuth2Server {
 }
 
 private fun createOAuth2Server(server: OAuth2Server): TestingHttpClient {
-    val testApp = createTestHost()
-    testApp.application.routing {
-        route("/oauth/access_token") {
-            handle {
-                val values = call.parameters + call.request.receive<ValuesMap>()
+    val environment = createTestEnvironment {
+        module {
+            routing {
+                route("/oauth/access_token") {
+                    handle {
+                        val values = call.parameters + call.request.receive<ValuesMap>()
 
-                val clientId = values.requireParameter(OAuth2RequestParameters.ClientId)
-                val clientSecret = values.requireParameter(OAuth2RequestParameters.ClientSecret)
-                val grantType = values.requireParameter(OAuth2RequestParameters.GrantType)
-                val state = values[OAuth2RequestParameters.State]
-                val code = values[OAuth2RequestParameters.Code]
-                val redirectUri = values[OAuth2RequestParameters.RedirectUri]
-                val username = values[OAuth2RequestParameters.UserName]
-                val password = values[OAuth2RequestParameters.Password]
-                val badContentType = values["badContentType"] == "true"
+                        val clientId = values.requireParameter(OAuth2RequestParameters.ClientId)
+                        val clientSecret = values.requireParameter(OAuth2RequestParameters.ClientSecret)
+                        val grantType = values.requireParameter(OAuth2RequestParameters.GrantType)
+                        val state = values[OAuth2RequestParameters.State]
+                        val code = values[OAuth2RequestParameters.Code]
+                        val redirectUri = values[OAuth2RequestParameters.RedirectUri]
+                        val username = values[OAuth2RequestParameters.UserName]
+                        val password = values[OAuth2RequestParameters.Password]
+                        val badContentType = values["badContentType"] == "true"
 
-                val obj = try {
-                    val tokens = server.requestToken(clientId, clientSecret, grantType, state, code, redirectUri, username, password)
+                        val obj = try {
+                            val tokens = server.requestToken(clientId, clientSecret, grantType, state, code, redirectUri, username, password)
 
-                    JSONObject().apply {
-                        put(OAuth2ResponseParameters.AccessToken, tokens.accessToken)
-                        put(OAuth2ResponseParameters.TokenType, tokens.tokenType)
-                        put(OAuth2ResponseParameters.ExpiresIn, tokens.expiresIn)
-                        put(OAuth2ResponseParameters.RefreshToken, tokens.refreshToken)
-                        for (extraParam in tokens.extraParameters.flattenEntries()) {
-                            put(extraParam.first, extraParam.second)
+                            JSONObject().apply {
+                                put(OAuth2ResponseParameters.AccessToken, tokens.accessToken)
+                                put(OAuth2ResponseParameters.TokenType, tokens.tokenType)
+                                put(OAuth2ResponseParameters.ExpiresIn, tokens.expiresIn)
+                                put(OAuth2ResponseParameters.RefreshToken, tokens.refreshToken)
+                                for (extraParam in tokens.extraParameters.flattenEntries()) {
+                                    put(extraParam.first, extraParam.second)
+                                }
+                            }
+                        } catch (t: Throwable) {
+                            JSONObject().apply {
+                                put(OAuth2ResponseParameters.Error, 1) // in fact we should provide code here, good enough for testing
+                                put(OAuth2ResponseParameters.ErrorDescription, t.message)
+                            }
                         }
-                    }
-                } catch (t: Throwable) {
-                    JSONObject().apply {
-                        put(OAuth2ResponseParameters.Error, 1) // in fact we should provide code here, good enough for testing
-                        put(OAuth2ResponseParameters.ErrorDescription, t.message)
+
+                        val contentType = when {
+                            badContentType == true -> ContentType.Text.Plain
+                            else -> ContentType.Application.Json
+                        }
+
+                        call.response.status(HttpStatusCode.OK)
+                        call.respondText(obj.toJSONString(), contentType)
                     }
                 }
-
-                val contentType = when {
-                    badContentType == true -> ContentType.Text.Plain
-                    else -> ContentType.Application.Json
-                }
-
-                call.response.status(HttpStatusCode.OK)
-                call.respondText(obj.toJSONString(), contentType)
             }
         }
     }
-
-    return TestingHttpClient(testApp)
+    val host = TestApplicationHost(environment)
+    host.start()
+    return TestingHttpClient(host)
 }
 
 private fun ValuesMap.requireParameter(name: String) = get(name) ?: throw IllegalArgumentException("No parameter $name specified")

@@ -15,13 +15,12 @@ import java.nio.file.*
 import java.util.concurrent.*
 import javax.servlet.*
 
-class TomcatApplicationHost(override val environment: ApplicationHostEnvironment) : ApplicationHost {
-
-
-    private val application: Application get() = environment.application
+class TomcatApplicationHost(environment: ApplicationHostEnvironment) : BaseApplicationHost(environment) {
     private val tempDirectory by lazy { Files.createTempDirectory("ktor-tomcat-") }
 
     private val ktorServlet = object : KtorServlet() {
+        override val hostPipeline: HostPipeline
+            get() = this@TomcatApplicationHost.pipeline
         override val application: Application
             get() = this@TomcatApplicationHost.application
     }
@@ -77,12 +76,6 @@ class TomcatApplicationHost(override val environment: ApplicationHostEnvironment
             addMapping("/*")
             isAsyncSupported = true
             multipartConfigElement = MultipartConfigElement("")
-        }
-    }
-
-    init {
-        environment.monitor.applicationStart += {
-            it.install(ApplicationTransform).registerDefaultHandlers()
         }
     }
 

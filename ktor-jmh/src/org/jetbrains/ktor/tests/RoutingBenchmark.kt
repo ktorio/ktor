@@ -5,12 +5,15 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.openjdk.jmh.annotations.*
+import java.util.concurrent.*
 
 @State(Scope.Benchmark)
 open class RoutingBenchmark {
-    private val testHost: TestApplicationHost = createTestHost()
+    private val testHost: TestApplicationHost = TestApplicationHost(createTestEnvironment())
+
     @Setup
-    fun configureRouting() {
+    fun startServer() {
+        testHost.start()
         testHost.application.routing {
             get("/short") {
                 call.respond("short")
@@ -22,6 +25,11 @@ open class RoutingBenchmark {
                 call.respond("param ${call.parameters["path"] ?: "Fail"}")
             }
         }
+    }
+
+    @TearDown
+    fun stopServer() {
+        testHost.stop(0L, 0L, TimeUnit.MILLISECONDS)
     }
 
     @Benchmark

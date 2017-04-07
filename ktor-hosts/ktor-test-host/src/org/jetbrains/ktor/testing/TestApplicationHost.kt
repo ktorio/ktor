@@ -4,35 +4,39 @@ import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
+import java.util.concurrent.*
 
-class TestApplicationHost(val environment: ApplicationHostEnvironment = emptyTestEnvironment()) {
-    init {
-        environment.monitor.applicationStart += {
-            it.install(ApplicationTransform).registerDefaultHandlers()
-        }
-    }
+class TestApplicationHost(environment: ApplicationHostEnvironment = createTestEnvironment()) : BaseApplicationHost(environment) {
 
-    val application: Application get() = environment.application
-    private val hostPipeline = ApplicationCallPipeline()
-
-    init {
-        hostPipeline.intercept(ApplicationCallPipeline.Call) { call ->
-            call.response.pipeline.intercept(ApplicationResponsePipeline.Before) {
-                proceed()
-                (call as? TestApplicationCall)?.requestHandled = true
+    override fun createHostPipeline(): HostPipeline {
+        return HostPipeline().apply {
+            intercept(HostPipeline.Call) {
+                call.application.execute(call)
             }
-
-            application.execute(call)
+            intercept(HostPipeline.Before) { call ->
+                call.response.pipeline.intercept(ApplicationResponsePipeline.Before) {
+                    proceed()
+                    (call as? TestApplicationCall)?.requestHandled = true
+                }
+            }
         }
-        environment.start()
     }
+
+    override fun start(wait: Boolean): ApplicationHost {
+        environment.start()
+        return this
+    }
+
+    override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+        environment.stop()
+    }
+
 
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createCall(setup)
         runBlocking {
-            hostPipeline.execute(call)
+            pipeline.execute(call)
         }
         return call
     }
@@ -47,13 +51,9 @@ class TestApplicationHost(val environment: ApplicationHostEnvironment = emptyTes
             setup()
         }
 
-        runBlocking(Unconfined) { hostPipeline.execute(call) }
+        runBlocking(Unconfined) { pipeline.execute(call) }
 
         return call
-    }
-
-    fun dispose() {
-        environment.stop()
     }
 
     fun createCall(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {

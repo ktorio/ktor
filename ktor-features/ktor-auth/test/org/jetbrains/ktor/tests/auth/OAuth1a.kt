@@ -7,7 +7,6 @@ import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
-import org.jetbrains.ktor.tests.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
 import java.time.*
@@ -47,8 +46,8 @@ class OAuth1aSignatureTest {
     }
 }
 
-class OAuth1aFlowTest  {
-    var testClient : TestingHttpClient? = null
+class OAuth1aFlowTest {
+    var testClient: TestingHttpClient? = null
 
     @Before
     fun createServer() {
@@ -302,101 +301,93 @@ private interface TestingOAuthServer {
 }
 
 private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
-    var testClient: TestingHttpClient? = null
+    val environment = createTestEnvironment {
+        module {
+            routing {
+                post("/oauth/request_token") {
+                    val authHeader = call.request.parseAuthorizationHeader() ?: throw IllegalArgumentException("No auth header found")
 
-    val host = TestApplicationHost()
+                    assertEquals(AuthScheme.OAuth, authHeader.authScheme, "This is not an OAuth request")
+                    if (authHeader !is HttpAuthHeader.Parameterized) {
+                        call.fail("Bad OAuth header supplied: should be parameterized auth header but token68 blob found")
+                        return@post
+                    }
 
-    with(host) {
-        testClient = TestingHttpClient(this)
+                    val callback = authHeader.parameter(HttpAuthHeader.Parameters.OAuthCallback)?.let { decodeURLPart(it) }
+                    val consumerKey = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthConsumerKey)
+                    val nonce = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthNonce)
+                    val signatureMethod = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthSignatureMethod)
+                    val signature = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthSignature)
+                    val timestamp = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthTimestamp).toLong()
+                    val version = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthVersion)
 
-/*
-        application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
-            onFail { call.response.status(HttpStatusCode.InternalServerError) }
-        }
-*/
+                    assertEquals("1.0", version)
 
-        application.routing {
-            post("/oauth/request_token") {
-                val authHeader = call.request.parseAuthorizationHeader() ?: throw IllegalArgumentException("No auth header found")
+                    try {
+                        val rr = server.requestToken(call, callback, consumerKey, nonce, signature, signatureMethod, timestamp)
 
-                assertEquals(AuthScheme.OAuth, authHeader.authScheme, "This is not an OAuth request")
-                if (authHeader !is HttpAuthHeader.Parameterized) {
-                    call.fail("Bad OAuth header supplied: should be parameterized auth header but token68 blob found")
-                    return@post
+                        call.response.status(HttpStatusCode.OK)
+                        call.respondText(listOf(
+                                HttpAuthHeader.Parameters.OAuthToken to rr.token,
+                                HttpAuthHeader.Parameters.OAuthTokenSecret to rr.tokenSecret,
+                                HttpAuthHeader.Parameters.OAuthCallbackConfirmed to rr.callbackConfirmed.toString()
+                        ).formUrlEncode(),
+                                ContentType.Application.FormUrlEncoded
+                        )
+                    } catch (e: Exception) {
+                        call.fail(e.message)
+                    }
                 }
+                post("/oauth/access_token") {
+                    val authHeader = call.request.parseAuthorizationHeader() ?: throw IllegalArgumentException("No auth header found")
+                    assertEquals(AuthScheme.OAuth, authHeader.authScheme, "This is not an OAuth request")
+                    if (authHeader !is HttpAuthHeader.Parameterized) {
+                        throw IllegalStateException("Bad OAuth header supplied: should be parameterized auth header but token68 blob found")
+                    }
 
-                val callback = authHeader.parameter(HttpAuthHeader.Parameters.OAuthCallback)?.let { decodeURLPart(it) }
-                val consumerKey = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthConsumerKey)
-                val nonce = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthNonce)
-                val signatureMethod = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthSignatureMethod)
-                val signature = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthSignature)
-                val timestamp = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthTimestamp).toLong()
-                val version = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthVersion)
+                    val consumerKey = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthConsumerKey)
+                    val nonce = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthNonce)
+                    val signature = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthSignature)
+                    val signatureMethod = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthSignatureMethod)
+                    val timestamp = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthTimestamp).toLong()
+                    val token = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthToken)
+                    val version = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthVersion)
 
-                assertEquals("1.0", version)
+                    if (version != "1.0") {
+                        call.fail("Only version 1.0 is supported")
+                    }
 
-                try {
-                    val rr = server.requestToken(call, callback, consumerKey, nonce, signature, signatureMethod, timestamp)
+                    if (!call.request.contentType().match(ContentType.Application.FormUrlEncoded)) {
+                        call.fail("content type should be ${ContentType.Application.FormUrlEncoded}")
+                    }
 
+                    val values = call.request.receive<ValuesMap>()
+                    val verifier = values[HttpAuthHeader.Parameters.OAuthVerifier] ?: throw IllegalArgumentException("oauth_verified is not provided in the POST request body")
+
+                    try {
+                        val tokenPair = server.accessToken(call, consumerKey, nonce, signature, signatureMethod, timestamp, token, verifier)
+
+                        call.response.status(HttpStatusCode.OK)
+                        call.respondText((listOf(
+                                HttpAuthHeader.Parameters.OAuthToken to tokenPair.token,
+                                HttpAuthHeader.Parameters.OAuthTokenSecret to tokenPair.tokenSecret
+                        ) + tokenPair.extraParameters.flattenEntries()).formUrlEncode(), ContentType.Application.FormUrlEncoded)
+                    } catch (e: Exception) {
+                        call.fail(e.message)
+                    }
+                }
+                post("/oauth/authorize") {
+                    val oauthToken = call.parameters[HttpAuthHeader.Parameters.OAuthToken] ?: throw IllegalArgumentException("No oauth_token parameter specified")
+                    server.authorize(call, oauthToken)
                     call.response.status(HttpStatusCode.OK)
-                    call.respondText(listOf(
-                            HttpAuthHeader.Parameters.OAuthToken to rr.token,
-                            HttpAuthHeader.Parameters.OAuthTokenSecret to rr.tokenSecret,
-                            HttpAuthHeader.Parameters.OAuthCallbackConfirmed to rr.callbackConfirmed.toString()
-                    ).formUrlEncode(),
-                            ContentType.Application.FormUrlEncoded
-                    )
-                } catch (e: Exception) {
-                    call.fail(e.message)
                 }
             }
-            post("/oauth/access_token") {
-                val authHeader = call.request.parseAuthorizationHeader() ?: throw IllegalArgumentException("No auth header found")
-                assertEquals(AuthScheme.OAuth, authHeader.authScheme, "This is not an OAuth request")
-                if (authHeader !is HttpAuthHeader.Parameterized) {
-                    throw IllegalStateException("Bad OAuth header supplied: should be parameterized auth header but token68 blob found")
-                }
 
-                val consumerKey = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthConsumerKey)
-                val nonce = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthNonce)
-                val signature = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthSignature)
-                val signatureMethod = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthSignatureMethod)
-                val timestamp = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthTimestamp).toLong()
-                val token = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthToken)
-                val version = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthVersion)
-
-                if (version != "1.0") {
-                    call.fail("Only version 1.0 is supported")
-                }
-
-                if (!call.request.contentType().match(ContentType.Application.FormUrlEncoded)) {
-                    call.fail("content type should be ${ContentType.Application.FormUrlEncoded}")
-                }
-
-                val values = call.request.receive<ValuesMap>()
-                val verifier = values[HttpAuthHeader.Parameters.OAuthVerifier] ?: throw IllegalArgumentException("oauth_verified is not provided in the POST request body")
-
-                try {
-                    val tokenPair = server.accessToken(call, consumerKey, nonce, signature, signatureMethod, timestamp, token, verifier)
-
-                    call.response.status(HttpStatusCode.OK)
-                    call.respondText((listOf(
-                            HttpAuthHeader.Parameters.OAuthToken to tokenPair.token,
-                            HttpAuthHeader.Parameters.OAuthTokenSecret to tokenPair.tokenSecret
-                    ) + tokenPair.extraParameters.flattenEntries()).formUrlEncode(), ContentType.Application.FormUrlEncoded)
-                } catch (e: Exception) {
-                    call.fail(e.message)
-                }
-            }
-            post("/oauth/authorize") {
-                val oauthToken = call.parameters[HttpAuthHeader.Parameters.OAuthToken] ?: throw IllegalArgumentException("No oauth_token parameter specified")
-                server.authorize(call, oauthToken)
-                call.response.status(HttpStatusCode.OK)
-            }
         }
     }
-
-    return testClient!!
+    val host = TestApplicationHost(environment)
+    host.start()
+    return TestingHttpClient(host)
 }
 
 suspend private fun ApplicationCall.fail(text: String?) {

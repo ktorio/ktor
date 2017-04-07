@@ -24,10 +24,8 @@ import javax.servlet.http.*
 /**
  * [ApplicationHost] implementation for running standalone Jetty Host
  */
-class JettyApplicationHost(override val environment: ApplicationHostEnvironment,
-                           jettyServer: () -> Server = ::Server) : ApplicationHost {
-
-    val application: Application get() = environment.application
+class JettyApplicationHost(environment: ApplicationHostEnvironment,
+                           jettyServer: () -> Server = ::Server) : BaseApplicationHost(environment) {
 
     private val server = jettyServer().apply {
         connectors = environment.connectors.map { ktorConnector ->
@@ -85,12 +83,6 @@ class JettyApplicationHost(override val environment: ApplicationHostEnvironment,
         handler = Handler()
     }
 
-    init {
-        environment.monitor.applicationStart += {
-            it.install(ApplicationTransform).registerDefaultHandlers()
-        }
-    }
-
     class Ticket(bb: ByteBuffer) : ReleasablePoolTicket(bb)
 
     private val byteBufferPool = object : ByteBufferPool {
@@ -104,7 +96,6 @@ class JettyApplicationHost(override val environment: ApplicationHostEnvironment,
     }
 
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
-    private val hostPipeline = defaultHostPipeline(environment)
 
     private inner class Handler : AbstractHandler() {
         override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
@@ -140,7 +131,7 @@ class JettyApplicationHost(override val environment: ApplicationHostEnvironment,
 
                 future(application.executor.toCoroutineDispatcher()) {
                     try {
-                        hostPipeline.execute(call)
+                        pipeline.execute(call)
                     } finally {
                         request.asyncContext?.complete()
                     }

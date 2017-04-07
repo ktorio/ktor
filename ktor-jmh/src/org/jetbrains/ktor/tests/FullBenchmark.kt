@@ -7,18 +7,20 @@ import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.openjdk.jmh.annotations.*
 import java.io.*
+import java.util.concurrent.*
 
 
 @State(Scope.Benchmark)
 open class FullBenchmark {
-    private val testHost: TestApplicationHost = createTestHost()
+    private val testHost: TestApplicationHost = TestApplicationHost(createTestEnvironment())
     private val classSignature = listOf(0xca, 0xfe, 0xba, 0xbe).map(Int::toByte)
     private val packageName = FullBenchmark::class.java.`package`.name
     private val classFileName = FullBenchmark::class.simpleName!! + ".class"
     private val pomFile = File("pom.xml")
 
     @Setup
-    fun configureServer() {
+    fun startServer() {
+        testHost.start()
         testHost.application.routing {
             get("/sayOK") {
                 call.respond("OK")
@@ -35,6 +37,11 @@ open class FullBenchmark {
                 call.respond(LocalFileContent(pomFile))
             }
         }
+    }
+
+    @TearDown
+    fun stopServer() {
+        testHost.stop(0L, 0L, TimeUnit.MILLISECONDS)
     }
 
     @Benchmark

@@ -34,13 +34,15 @@ open class ServletApplicationHost : KtorServlet() {
             classLoader = servletContext.classLoader
         }
         environment.apply {
-            monitor.applicationStart += {
+            monitor.applicationStarting += {
                 it.install(ApplicationTransform).registerDefaultHandlers()
             }
         }
     }
 
     override val application: Application get() = environment.application
+    override val hostPipeline: HostPipeline = defaultHostPipeline(environment)
+
     override fun init() {
         environment.start()
         super.init()

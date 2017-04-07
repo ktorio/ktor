@@ -3,21 +3,21 @@ package org.jetbrains.ktor.tests.routing
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
+import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.junit.*
 import kotlin.test.*
 
 class RoutingProcessingTest {
-    @Test fun `host with routing on GET foo-bar`() {
-        val testHost = createTestHost()
-        testHost.application.routing {
+    @Test fun `host with routing on GET foo-bar`() = withTestApplication {
+        application.routing {
             get("/foo/bar") {
                 call.respond(HttpStatusCode.OK)
             }
         }
 
         on("making get request to /foo/bar") {
-            val result = testHost.handleRequest {
+            val result = handleRequest {
                 uri = "/foo/bar"
                 method = HttpMethod.Get
             }
@@ -30,7 +30,7 @@ class RoutingProcessingTest {
         }
 
         on("making post request to /foo/bar") {
-            val result = testHost.handleRequest {
+            val result = handleRequest {
                 uri = "/foo/bar"
                 method = HttpMethod.Post
             }
@@ -40,10 +40,9 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `host with routing on GET user with parameter`() {
-        val testHost = createTestHost()
+    @Test fun `host with routing on GET user with parameter`() = withTestApplication {
         var username = ""
-        testHost.application.routing {
+        application.routing {
             route("user") {
                 param("name") {
                     method(HttpMethod.Get) {
@@ -55,7 +54,7 @@ class RoutingProcessingTest {
             }
         }
         on("making get request to /user with query parameters") {
-            testHost.handleRequest {
+            handleRequest {
                 uri = "/user?name=john"
                 method = HttpMethod.Get
             }
@@ -66,16 +65,15 @@ class RoutingProcessingTest {
 
     }
 
-    @Test fun `host with routing on GET user with surrounded parameter`() {
-        val testHost = createTestHost()
+    @Test fun `host with routing on GET user with surrounded parameter`() = withTestApplication {
         var username = ""
-        testHost.application.routing {
+        application.routing {
             get("/user-{name}-get") {
                 username = call.parameters["name"] ?: ""
             }
         }
         on("making get request to /user with query parameters") {
-            testHost.handleRequest {
+            handleRequest {
                 uri = "/user-john-get"
                 method = HttpMethod.Get
             }
@@ -86,15 +84,14 @@ class RoutingProcessingTest {
 
     }
 
-    @Test fun `host with routing on GET -user-username with interceptors`() {
-        val testHost = createTestHost()
+    @Test fun `host with routing on GET -user-username with interceptors`() = withTestApplication {
 
         var userIntercepted = false
         var wrappedWithInterceptor = false
         var userName = ""
         var userNameGotWithinInterceptor = false
 
-        testHost.application.routing {
+        application.routing {
             route("user") {
                 intercept(ApplicationCallPipeline.Call) { 
                     userIntercepted = true
@@ -110,7 +107,7 @@ class RoutingProcessingTest {
         }
 
         on("handling GET /user/john") {
-            testHost.handleRequest {
+            handleRequest {
                 uri = "/user/john"
                 method = HttpMethod.Get
             }
@@ -120,16 +117,14 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `verify interception order when outer should be after`() {
-        val testHost = createTestHost()
-
+    @Test fun `verify interception order when outer should be after`() = withTestApplication {
         var userIntercepted = false
         var wrappedWithInterceptor = false
         var rootIntercepted = false
         var userName = ""
         var routingInterceptorWrapped = false
 
-        testHost.application.routing {
+        application.routing {
             intercept(ApplicationCallPipeline.Call) {
                 wrappedWithInterceptor = true
                 rootIntercepted = true
@@ -149,7 +144,7 @@ class RoutingProcessingTest {
         }
 
         on("handling GET /user/john") {
-            testHost.handleRequest {
+            handleRequest {
                 uri = "/user/john"
                 method = HttpMethod.Get
             }
@@ -160,16 +155,14 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `verify interception order when outer should be before because of phase`() {
-        val testHost = createTestHost()
-
+    @Test fun `verify interception order when outer should be before because of phase`() = withTestApplication {
         var userIntercepted = false
         var wrappedWithInterceptor = false
         var rootIntercepted = false
         var userName = ""
         var routingInterceptorWrapped = false
 
-        testHost.application.routing {
+        application.routing {
             intercept(ApplicationCallPipeline.Infrastructure) {
                 wrappedWithInterceptor = true
                 rootIntercepted = true
@@ -189,7 +182,7 @@ class RoutingProcessingTest {
         }
 
         on("handling GET /user/john") {
-            testHost.handleRequest {
+            handleRequest {
                 uri = "/user/john"
                 method = HttpMethod.Get
             }
@@ -200,16 +193,14 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `verify interception order when outer should be before because of order`() {
-        val testHost = createTestHost()
-
+    @Test fun `verify interception order when outer should be before because of order`() = withTestApplication {
         var userIntercepted = false
         var wrappedWithInterceptor = false
         var rootIntercepted = false
         var userName = ""
         var routingInterceptorWrapped = false
 
-        testHost.application.routing {
+        application.routing {
             intercept(ApplicationCallPipeline.Infrastructure) {
                 wrappedWithInterceptor = true
                 rootIntercepted = true
@@ -229,7 +220,7 @@ class RoutingProcessingTest {
         }
 
         on("handling GET /user/john") {
-            testHost.handleRequest {
+            handleRequest {
                 uri = "/user/john"
                 method = HttpMethod.Get
             }

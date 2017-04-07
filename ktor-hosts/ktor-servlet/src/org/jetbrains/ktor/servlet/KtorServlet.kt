@@ -13,7 +13,7 @@ import kotlin.coroutines.experimental.*
 abstract class KtorServlet : HttpServlet() {
 
     abstract val application: Application
-    protected val hostPipeline by lazy { defaultHostPipeline(application.environment) }
+    abstract val hostPipeline : HostPipeline
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         if (response.isCommitted) {
