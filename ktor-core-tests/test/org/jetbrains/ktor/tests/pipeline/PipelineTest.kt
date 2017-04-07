@@ -44,7 +44,6 @@ class PipelineTest {
             try {
                 events.add("intercept $subject")
                 throw UnsupportedOperationException()
-                events.add("success $subject")
             } catch (e: Throwable) {
                 events.add("fail $subject")
             }
@@ -151,7 +150,6 @@ class PipelineTest {
             try {
                 events.add("intercept2 $subject")
                 throw UnsupportedOperationException()
-                events.add("success2 $subject")
             } catch (e: Throwable) {
                 events.add("fail2 $subject")
                 throw e
@@ -180,7 +178,6 @@ class PipelineTest {
             try {
                 events.add("intercept2 $subject")
                 throw UnsupportedOperationException()
-                events.add("success2 $subject")
             } catch (e: Throwable) {
                 events.add("fail2 $subject")
                 throw e
@@ -209,7 +206,6 @@ class PipelineTest {
             try {
                 events.add("intercept2 $subject")
                 throw UnsupportedOperationException("1")
-                events.add("success2 $subject")
             } catch (e: Throwable) {
                 events.add("fail2 $subject")
                 throw UnsupportedOperationException("2")

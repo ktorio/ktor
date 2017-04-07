@@ -21,7 +21,7 @@ class ReadChannelFromOutputStreamTest {
     @Test fun streamByteReadFirst() = runBlocking {
         val osc = ReadChannelFromOutputStream()
         val dst = ByteBuffer.allocate(1)
-        val count = defer(context) {
+        val count = async(context) {
             osc.read(dst)
         }
         osc.write(42)

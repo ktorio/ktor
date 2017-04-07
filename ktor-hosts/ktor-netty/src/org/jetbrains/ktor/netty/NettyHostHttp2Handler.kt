@@ -70,7 +70,7 @@ class NettyHostHttp2Handler(private val host: NettyApplicationHost, private val 
 
     private fun ChannelHandlerContext.executeCall(call: ApplicationCall) {
         val eventLoop = channel().eventLoop().parent()
-        val dispatcher = eventLoop.toCoroutineDispatcher()
+        val dispatcher = eventLoop.asCoroutineDispatcher()
         future(dispatcher) {
             hostPipeline.execute(call)
         }

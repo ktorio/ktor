@@ -12,7 +12,7 @@ import kotlin.properties.*
 
 class PartialContentSupport(val maxRangeCount : Int) {
     class Configuration {
-        var maxRangeCount: Int by Delegates.vetoable(10) { p, old, new ->
+        var maxRangeCount: Int by Delegates.vetoable(10) { _, _, new ->
             new <= 0 || throw IllegalArgumentException("Bad maxRangeCount value $new")
         }
     }
@@ -142,7 +142,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
             override fun readFrom() = RangeReadChannel(source, range.start, range.length, closeSource = false)
             override val headers by lazy {
                 ValuesMap.build(true) {
-                    appendFiltered(delegateHeaders) { name, value -> !name.equals(HttpHeaders.ContentLength, true) }
+                    appendFiltered(delegateHeaders) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
                     acceptRanges()
                     contentRange(range, fullLength)
                 }
@@ -156,7 +156,7 @@ class PartialContentSupport(val maxRangeCount : Int) {
 
             override val headers: ValuesMap
                 get() = ValuesMap.build(true) {
-                    appendFiltered(delegateHeaders) { name, value ->
+                    appendFiltered(delegateHeaders) { name, _ ->
                         !name.equals(HttpHeaders.ContentType, true) && !name.equals(HttpHeaders.ContentLength, true)
                     }
                     acceptRanges()

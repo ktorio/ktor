@@ -7,7 +7,7 @@ import java.util.*
 import kotlin.properties.*
 
 class AuthenticationContext(val call: ApplicationCall) {
-    var principal by Delegates.vetoable<Principal?>(null) { p, old, new -> require(old == null); true }
+    var principal by Delegates.vetoable<Principal?>(null) { _, old, _ -> require(old == null); true }
     val errors = HashMap<Any, NotAuthenticatedCause>()
 
     private val challengesCollector = mutableListOf<Pair<NotAuthenticatedCause, suspend PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>>()

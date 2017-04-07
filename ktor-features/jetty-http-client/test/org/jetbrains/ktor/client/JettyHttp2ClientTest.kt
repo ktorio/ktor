@@ -22,7 +22,7 @@ class JettyHttp2ClientTest {
 
     @Test
     fun smokeTest() = runBlocking {
-        server = createServer("/", 9096) { request, response ->
+        server = createServer("/", 9096) { _, response ->
             response.status = HttpServletResponse.SC_OK
             response.contentType = "text/plain;charset=utf-8"
             response.writer.apply {

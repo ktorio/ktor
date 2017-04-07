@@ -64,7 +64,7 @@ suspend fun PipelineContext<ApplicationCall>.oauth(client: HttpClient, exec: Exe
 suspend fun PipelineContext<ApplicationCall>.oauthRespondRedirect(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String) {
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
-            future(exec.toCoroutineDispatcher()) {
+            future(exec.asCoroutineDispatcher()) {
                 val requestToken = simpleOAuth1aStep1(client, provider, callbackUrl)
                 call.redirectAuthenticateOAuth1a(provider, requestToken)
             }.await()

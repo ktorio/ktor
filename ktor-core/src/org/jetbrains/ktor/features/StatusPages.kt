@@ -83,7 +83,7 @@ class StatusPages(config: Configuration) {
     }
 }
 
-fun StatusPages.Configuration.statusFile(vararg status: HttpStatusCode, filePattern: String, contentType: ContentType = ContentType.Text.Html) {
+fun StatusPages.Configuration.statusFile(vararg status: HttpStatusCode, filePattern: String) {
     status(*status) { status ->
         val path = filePattern.replace("#", status.value.toString())
         val message = call.resolveClasspathWithPath("", path)

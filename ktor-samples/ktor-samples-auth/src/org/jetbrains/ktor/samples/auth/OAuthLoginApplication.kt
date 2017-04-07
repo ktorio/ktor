@@ -111,7 +111,7 @@ fun Application.OAuthLoginApplication() {
             authentication {
                 oauthAtLocation<login>(DefaultHttpClient, exec,
                         providerLookup = { loginProviders[it.type] },
-                        urlProvider = { l, p -> redirectUrl(login(p.name), false) })
+                        urlProvider = { _, p -> redirectUrl(login(p.name), false) })
             }
 
             param("error") {

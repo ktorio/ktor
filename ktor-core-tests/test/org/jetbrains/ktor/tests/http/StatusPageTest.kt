@@ -7,7 +7,6 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
-import org.jetbrains.ktor.tests.*
 import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 import org.junit.*

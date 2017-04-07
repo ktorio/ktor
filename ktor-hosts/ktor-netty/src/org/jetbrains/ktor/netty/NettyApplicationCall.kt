@@ -70,7 +70,7 @@ internal class NettyApplicationCall(application: Application,
     }
 
     override suspend fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
-        future(context.channel().eventLoop().toCoroutineDispatcher()) {
+        future(context.channel().eventLoop().asCoroutineDispatcher()) {
             val upgradeContentQueue = RawContentQueue(context)
 
             context.channel().pipeline().replace(HttpContentQueue::class.java, "WebSocketReadQueue", upgradeContentQueue).queue.clear {
@@ -87,7 +87,7 @@ internal class NettyApplicationCall(application: Application,
             }
 
             response.sendResponseMessage(chunked = false)?.addListener {
-                future(context.channel().eventLoop().toCoroutineDispatcher()) {
+                future(context.channel().eventLoop().asCoroutineDispatcher()) {
                     context.channel().pipeline().remove(HttpServerCodec::class.java)
                     context.channel().pipeline().addFirst(NettyDirectEncoder())
 

@@ -44,7 +44,7 @@ fun Application.main() {
                 }
             }
 
-            close { reason ->
+            close {
                 server.memberLeft(session.id, this)
             }
         }

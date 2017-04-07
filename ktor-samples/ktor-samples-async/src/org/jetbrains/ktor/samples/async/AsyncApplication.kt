@@ -15,7 +15,7 @@ fun Application.main() {
     install(Routing) {
         get("/{...}") {
             val start = System.currentTimeMillis()
-            async(executor.toCoroutineDispatcher()) {
+            async(executor.asCoroutineDispatcher()) {
                 call.handleLongCalculation(start)
             }.await()
         }

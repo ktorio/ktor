@@ -23,7 +23,7 @@ internal class WebSocketImpl(call: ApplicationCall,
             { controlFrameHandler.currentReason })
 
     fun init() {
-        future(application.executor.toCoroutineDispatcher()) {
+        future(application.executor.asCoroutineDispatcher()) {
             reader.readLoop()
         }
     }

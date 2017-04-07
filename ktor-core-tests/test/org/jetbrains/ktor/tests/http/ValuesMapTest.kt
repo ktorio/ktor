@@ -77,7 +77,7 @@ class ValuesMapTest {
             append("Key1", "value1")
             append("Key1", "value2")
             append("Key1", "Value3")
-        }.filter { name, value -> value.startsWith("V") }
+        }.filter { _, value -> value.startsWith("V") }
         assertEquals("Value3", map["key1"])
         assertEquals("Value3", map["keY1"])
         assertEquals(setOf("Key1"), map.names())
@@ -98,7 +98,7 @@ class ValuesMapTest {
             append("Key1", "Value3")
         }
         val map = ValuesMap.build(true) {
-            appendFiltered(original) { name, value -> value.startsWith("V") }
+            appendFiltered(original) { _, value -> value.startsWith("V") }
         }
 
         assertEquals("Value3", map["key1"])

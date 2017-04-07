@@ -59,7 +59,10 @@ fun <P : Pipeline<*>, B : Any, F : Any> P.install(feature: ApplicationFeature<P,
  */
 fun <A : Pipeline<*>> A.uninstallAllFeatures() {
     val registry = attributes.computeIfAbsent(ApplicationFeature.registry) { Attributes() }
-    registry.allKeys.forEach { uninstallFeature(it as AttributeKey<Any>) }
+    registry.allKeys.forEach {
+        @Suppress("UNCHECKED_CAST")
+        uninstallFeature(it as AttributeKey<Any>)
+    }
 }
 
 /**
