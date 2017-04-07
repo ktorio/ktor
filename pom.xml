@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>org.jetbrains.ktor</groupId>
-    <version>0.3.1-SNAPSHOT</version>
+    <version>0.3.1</version>
     <packaging>pom</packaging>
     <artifactId>ktor</artifactId>
 
@@ -236,7 +236,7 @@
         <connection>scm:git:https://github.com/Kotlin/ktor.git</connection>
         <developerConnection>scm:git:git@github.com:Kotlin/ktor.git</developerConnection>
         <url>https://github.com/Kotlin/ktor</url>
-        <tag>HEAD</tag>
+        <tag>ktor-0.3.1</tag>
     </scm>
 
     <pluginRepositories>
