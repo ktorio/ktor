@@ -3,6 +3,7 @@ package org.jetbrains.ktor.host
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.logging.*
+import org.jetbrains.ktor.util.*
 import java.io.*
 import java.lang.reflect.*
 import java.net.*
@@ -143,16 +144,25 @@ class ApplicationHostEnvironmentReloading(
         return OverridingClassLoader(watchUrls, baseClassLoader)
     }
 
+    fun safeRiseEvent(event: Event<Application>, application: Application) {
+        try {
+            event(application)
+        } catch(e: Throwable) {
+            log.error("One or more of the handlers thrown an exception", e)
+        }
+    }
+
     fun destroyApplication() {
         val currentApplication = _applicationInstance
         if (currentApplication != null) {
-            monitor.applicationStopping(currentApplication)
+            safeRiseEvent(monitor.applicationStopping, currentApplication)
             try {
                 currentApplication.dispose()
-                monitor.applicationStopped(currentApplication)
             } catch(e: Throwable) {
                 log.error("Failed to destroy application instance.", e)
             }
+
+            safeRiseEvent(monitor.applicationStopped, currentApplication)
         }
         _applicationInstance = null
         packageWatchKeys.forEach { it.cancel() }
@@ -208,7 +218,7 @@ class ApplicationHostEnvironmentReloading(
 
     private fun instantiateAndConfigureApplication(classLoader: ClassLoader): Application {
         val application = Application(this)
-        monitor.applicationStarting(application)
+        safeRiseEvent(monitor.applicationStarting, application)
 
         moduleFunctionNames?.forEach { fqName ->
             executeModuleFunction(classLoader, fqName, application)
@@ -218,7 +228,7 @@ class ApplicationHostEnvironmentReloading(
             modules.forEach { it(application) }
         }
 
-        monitor.applicationStarted(application)
+        safeRiseEvent(monitor.applicationStarted, application)
         return application
     }
 
