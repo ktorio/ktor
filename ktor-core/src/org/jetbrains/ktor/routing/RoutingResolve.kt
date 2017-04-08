@@ -17,8 +17,26 @@ class RoutingResolveContext(val routing: Route,
     val path = parse(call.request.path())
 
     private fun parse(path: String): List<String> {
-        if (path == "/") return listOf()
-        return path.split('/').filter { it.isNotEmpty() }.map { decodeURLPart(it) }
+        if (path.isEmpty() || path == "/") return listOf()
+        val length = path.length
+        var beginSegment = 0
+        var nextSegment = 0
+        val segments = ArrayList<String>(path.count { it == '/' })
+        while (nextSegment < length) {
+            nextSegment = path.indexOf('/', beginSegment)
+            if (nextSegment == -1) {
+                nextSegment = length
+            }
+            if (nextSegment == beginSegment) {
+                // empty path segment, skip it
+                beginSegment = nextSegment + 1
+                continue
+            }
+            val segment = decodeURLPart(path, beginSegment, nextSegment)
+            segments.add(segment)
+            beginSegment = nextSegment + 1
+        }
+        return segments
     }
 
     private fun combineQuality(quality1: Double, quality2: Double): Double {
@@ -57,8 +75,14 @@ class RoutingResolveContext(val routing: Route,
                 continue
 
             // only calculate values if match is better then previous one
-            val combinedValues = result.values + subtreeResult.values
-            bestResult = RoutingResolveResult(true, subtreeResult.entry, combinedValues, combinedQuality)
+            if (result.values.isEmpty() && combinedQuality == subtreeResult.quality) {
+                // do not allocate new RoutingResolveResult if it will be the same as subtreeResult
+                // TODO: Evaluate if we can make RoutingResolveResult mutable altogether and avoid allocations
+                bestResult = subtreeResult
+            } else {
+                val combinedValues = result.values + subtreeResult.values
+                bestResult = RoutingResolveResult(true, subtreeResult.entry, combinedValues, combinedQuality)
+            }
         }
 
         // no child matched, match is either current entry if path is done & there is a handler, or failure
