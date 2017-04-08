@@ -35,9 +35,11 @@ class FreeMarker(val config: Configuration) {
                                              val etag: String,
                                              override val contentType: ContentType) : FinalContent.WriteChannelContent(), Resource {
         suspend override fun writeTo(channel: WriteChannel) {
-            with(channel.toOutputStream().bufferedWriter(contentType.charset() ?: Charsets.UTF_8)) {
-                template.process(model, this)
+            val writer = channel.toOutputStream().bufferedWriter(contentType.charset() ?: Charsets.UTF_8)
+            writer.use {
+                template.process(model, it)
             }
+            channel.close()
         }
 
         override val versions: List<Version>
