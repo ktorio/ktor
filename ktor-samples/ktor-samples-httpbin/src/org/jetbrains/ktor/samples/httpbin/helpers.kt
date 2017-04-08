@@ -1,44 +1,35 @@
 package org.jetbrains.ktor.samples.httpbin
 
-import com.squareup.moshi.FromJson
+import com.squareup.moshi.*
 import com.squareup.moshi.Moshi
-import com.squareup.moshi.ToJson
 import kotlinx.html.*
-import kotlinx.html.stream.appendHTML
-import org.jetbrains.ktor.application.ApplicationCall
-import org.jetbrains.ktor.application.ApplicationRequest
-import org.jetbrains.ktor.cio.WriteChannel
-import org.jetbrains.ktor.cio.toOutputStream
-import org.jetbrains.ktor.content.CacheControl
-import org.jetbrains.ktor.content.FinalContent
-import org.jetbrains.ktor.content.Resource
-import org.jetbrains.ktor.content.Version
-import org.jetbrains.ktor.features.origin
-import org.jetbrains.ktor.http.ContentType
-import org.jetbrains.ktor.http.HttpStatusCode
-import org.jetbrains.ktor.http.withCharset
-import org.jetbrains.ktor.request.MultiPartData
-import org.jetbrains.ktor.request.PartData
-import org.jetbrains.ktor.request.httpMethod
+import kotlinx.html.stream.*
+import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
+import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.features.*
+import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.ValuesMap
 import java.util.*
 
-
-/** By default send what is expected for /get
- ** Use a lambda to customize the response  **/
-suspend fun ApplicationCall.sendHttpbinResponse(configure: HttpbinResponse.() -> Unit = {}) {
-    val response = HttpbinResponse(
-        args = request.queryParameters,
-        headers = request.headers,
-        url = request.url(),
-        origin = request.origin.remoteHost,
-        method = request.origin.method.value
+/**
+ * By default send what is expected for /get
+ * Use a lambda to customize the response
+ **/
+suspend fun ApplicationCall.sendHttpBinResponse(configure: suspend HttpBinResponse.() -> Unit = {}) {
+    val response = HttpBinResponse(
+            args = request.queryParameters,
+            headers = request.headers,
+            url = request.url(),
+            origin = request.origin.remoteHost,
+            method = request.origin.method.value
     )
     response.configure()
     respond(response)
 }
 
-fun HttpbinResponse.clear() {
+fun HttpBinResponse.clear() {
     args = null
     headers = null
     url = null
@@ -134,16 +125,16 @@ class HtmlContent(override val status: HttpStatusCode? = null,
 object Moshi {
 
     val moshi = Moshi.Builder()
-        .add(MapAdapter())
-        .build()
+            .add(MapAdapter())
+            .build()
 
 
     val Map = moshi.adapter(Map::class.java).lenient()
 
-    val JsonResponse = moshi.adapter(HttpbinResponse::class.java)
+    val JsonResponse = moshi.adapter(HttpBinResponse::class.java)
 
     /** See MapAdapter#serializeHttpbinError **/
-    val Errors = moshi.adapter(HttpbinError::class.java)
+    val Errors = moshi.adapter(HttpBinError::class.java)
 
     val ValuesMap = moshi.adapter(ValuesMap::class.java)
 
@@ -158,20 +149,20 @@ object Moshi {
 
     private class MapAdapter {
 
-        @ToJson fun serializeHttpbinError(error: HttpbinError) : SerializedError {
+        @ToJson fun serializeHttpBinError(error: HttpBinError): SerializedError {
             val stacktrace =
-                if (error.cause == null) null
-                else error.cause.stackTrace.take(3).map { e -> e.toString() }
+                    if (error.cause == null) null
+                    else error.cause.stackTrace.take(3).map { e -> e.toString() }
             val result = SerializedError(
-                message = error.message,
-                method = error.request.httpMethod.value,
-                url = error.request.url(),
-                stacktrace = stacktrace
+                    message = error.message,
+                    method = error.request.httpMethod.value,
+                    url = error.request.url(),
+                    stacktrace = stacktrace
             )
             return result
         }
 
-        @ToJson fun serializeFilePart(part: PartData.FileItem) : String {
+        @ToJson fun serializeFilePart(part: PartData.FileItem): String {
             return "File ${part.originalFileName} of type ${part.contentType}"
         }
 
@@ -204,15 +195,17 @@ object Moshi {
 
 
         @FromJson fun unserializeMultiPartDataserialize(map: Map<String, String>): MultiPartData?
-            = TODO("Required by moshi but not needed")
-        @FromJson fun unserializeValuesMap(map: Map<String, String>): ValuesMap
-            = TODO("Required by moshi but not needed")
-        @FromJson fun unserializeHttpbinError(map: SerializedError) : HttpbinError
-            = TODO("Required by moshi but not needed")
-        @FromJson fun unserializeFilePart(json: String) : PartData.FileItem
-            = TODO("Required by moshi but not needed")
-    }
+                = TODO("Required by moshi but not needed")
 
+        @FromJson fun unserializeValuesMap(map: Map<String, String>): ValuesMap
+                = TODO("Required by moshi but not needed")
+
+        @FromJson fun unserializeHttpbinError(map: SerializedError): HttpBinError
+                = TODO("Required by moshi but not needed")
+
+        @FromJson fun unserializeFilePart(json: String): PartData.FileItem
+                = TODO("Required by moshi but not needed")
+    }
 
 
 }

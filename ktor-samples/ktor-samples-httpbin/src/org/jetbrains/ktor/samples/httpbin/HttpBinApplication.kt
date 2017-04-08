@@ -1,11 +1,13 @@
 package org.jetbrains.ktor.samples.httpbin
 
+import freemarker.cache.*
 import kotlinx.coroutines.experimental.delay
 import okio.Buffer
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
+import org.jetbrains.ktor.freemarker.*
 import org.jetbrains.ktor.html.respondHtml
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.CallLogging
@@ -19,10 +21,8 @@ import org.jetbrains.ktor.util.ValuesMap
 import org.jetbrains.ktor.util.decodeBase64
 import org.jetbrains.ktor.util.flattenEntries
 import java.io.File
-import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.time.temporal.Temporal
 import java.util.*
 import java.util.concurrent.TimeUnit
 
@@ -34,7 +34,6 @@ import java.util.concurrent.TimeUnit
  * ENDPOINTS
  *
  *     /                               HTML page describing the service
- *          TODO: httpbin.1.html needs to be converted to freemarker so that the links work
  *     /postman                        Downloads postman collection for httpbin
  *     /ip                             Returns Origin IP.
  *     /user-agent                     Returns user-agent.
@@ -80,7 +79,7 @@ import java.util.concurrent.TimeUnit
  */
 
 
-class HttpbinResponse(
+class HttpBinResponse(
     var args: ValuesMap? = null,
     var headers: ValuesMap? = null,
     var origin: String? = null,
@@ -96,7 +95,7 @@ class HttpbinResponse(
     var cookies: Map<String, String>? = null
 )
 
-data class HttpbinError(
+data class HttpBinError(
     val request: ApplicationRequest,
     val message: String,
     val code: HttpStatusCode,
@@ -111,6 +110,9 @@ fun Application.main() {
     install(ConditionalHeaders)
     install(PartialContentSupport)
     install(HeadRequestSupport)
+    install(FreeMarker) {
+        templateLoader = ClassTemplateLoader(environment.classLoader, "static")
+    }
     install(CORS) {
         anyHost()
         allowCredentials = true
@@ -120,15 +122,15 @@ fun Application.main() {
     }
     install(StatusPages) {
         exception<Throwable> { cause ->
-            val error = HttpbinError(code = HttpStatusCode.InternalServerError, request = call.request, message = cause.toString(), cause = cause)
+            val error = HttpBinError(code = HttpStatusCode.InternalServerError, request = call.request, message = cause.toString(), cause = cause)
             call.respond(error)
         }
     }
     intercept(ApplicationCallPipeline.Infrastructure) { call ->
-        call.transform.register { value: HttpbinResponse ->
+        call.transform.register { value: HttpBinResponse ->
             TextContent(Moshi.JsonResponse.toJson(value), ContentType.Application.Json)
         }
-        call.transform.register { value: HttpbinError ->
+        call.transform.register { value: HttpBinError ->
             call.response.status(value.code)
             TextContent(Moshi.Errors.toJson(value), ContentType.Application.Json)
         }
@@ -145,9 +147,12 @@ fun Application.main() {
 
 
     routing {
+        get("/") {
+            call.respond(FreeMarkerContent("index.ftl", Unit, ""))
+        }
 
         get("/get") {
-            call.sendHttpbinResponse()
+            call.sendHttpBinResponse()
         }
 
         val postPutDelete = mapOf(
@@ -186,14 +191,14 @@ fun Application.main() {
 
 
         get("/headers") {
-            call.sendHttpbinResponse {
+            call.sendHttpBinResponse {
                 clear()
                 headers = call.request.headers
             }
         }
 
         get("/ip") {
-            call.sendHttpbinResponse {
+            call.sendHttpBinResponse {
                 clear()
                 origin = call.request.origin.remoteHost
             }
@@ -201,13 +206,13 @@ fun Application.main() {
 
         /* install(Compression) */
         get("/gzip") {
-            call.sendHttpbinResponse {
+            call.sendHttpBinResponse {
                 gzipped = true
             }
         }
         get("/deflate") {
             // Send header "Accept-Encoding: deflate"
-            call.sendHttpbinResponse {
+            call.sendHttpBinResponse {
                 deflated = true
             }
         }
@@ -218,7 +223,7 @@ fun Application.main() {
             call.withLastModified(date) {
                 call.withETag(etag, putHeader = true) {
                     call.response.lastModified(date)
-                    call.sendHttpbinResponse()
+                    call.sendHttpBinResponse()
                 }
             }
         }
@@ -227,20 +232,19 @@ fun Application.main() {
             val n = call.parameters.get("n")!!.toInt()
             val cache = CacheControl.MaxAge(maxAgeSeconds = n, visibility = CacheControlVisibility.PUBLIC)
             call.response.cacheControl(cache)
-            call.sendHttpbinResponse()
+            call.sendHttpBinResponse()
         }
 
         get("/user-agent") {
-            call.sendHttpbinResponse {
+            call.sendHttpBinResponse {
                 clear()
                 `user-agent` = call.request.header("User-Agent")
             }
         }
 
         get("/status/{status}") {
-            val status = call.parameters.get("status")?.toInt() ?: 0
-            call.response.status(HttpStatusCode.fromValue(status) ?: HttpStatusCode.BadRequest)
-            call.respond("")
+            val status = call.parameters["status"]?.toInt() ?: 0
+            call.respond(HttpStatusCode.fromValue(status) ?: HttpStatusCode.BadRequest)
         }
 
         get("/links/{n}/{m?}") {
@@ -278,7 +282,7 @@ fun Application.main() {
         get("/redirect/{n}") {
             val n = call.parameters.get("n")!!.toInt()
             if (n == 0) {
-                call.sendHttpbinResponse()
+                call.sendHttpBinResponse()
             } else {
                 call.respondRedirect("/redirect/${n-1}")
             }
@@ -301,7 +305,7 @@ fun Application.main() {
 
         get("/cookies") {
             val rawCookies = call.request.cookies.parsedRawCookies
-            call.sendHttpbinResponse {
+            call.sendHttpBinResponse {
                 clear()
                 cookies = rawCookies
             }
@@ -313,7 +317,7 @@ fun Application.main() {
                 call.response.cookies.append(name = key, value = value, path = "/")
             }
             val rawCookies = call.request.cookies.parsedRawCookies
-            call.sendHttpbinResponse {
+            call.sendHttpBinResponse {
                 clear()
                 cookies = rawCookies + params.toMap()
             }
@@ -325,7 +329,7 @@ fun Application.main() {
             for (name in params) {
                 call.response.cookies.appendExpired(name, path = "/")
             }
-            call.sendHttpbinResponse {
+            call.sendHttpBinResponse {
                 clear()
                 cookies = rawCookies.filterKeys { key -> key !in params }
             }
@@ -336,7 +340,7 @@ fun Application.main() {
                 basicAuthentication("ktor-samples-httpbin") { hashedUserTable.authenticate(it) }
             }
             get {
-                call.sendHttpbinResponse()
+                call.sendHttpBinResponse()
             }
         }
 
@@ -348,7 +352,7 @@ fun Application.main() {
             if (userIdPrincipal == null) {
                 call.response.status(HttpStatusCode.Unauthorized)
             } else {
-                call.sendHttpbinResponse()
+                call.sendHttpBinResponse()
             }
         }
 
@@ -370,7 +374,7 @@ fun Application.main() {
             val n = call.parameters["n"]!!.toLong()
             require(n in 0..10) { "Expected a number of seconds between 0 and 10" }
             delay(n, TimeUnit.SECONDS)
-            call.sendHttpbinResponse()
+            call.sendHttpBinResponse()
         }
 
         get("/bytes/{n}") {
@@ -381,7 +385,6 @@ fun Application.main() {
         }
 
         val staticFilesMap = mapOf(
-            "/" to "httpbin.1.html",
             "/xml" to "sample.xml",
             "/encoding/utf8" to "UTF-8-demo.html",
             "/html" to "moby.html",
@@ -404,7 +407,7 @@ fun Application.main() {
 
         route("{...}") {
             handle {
-                val error = HttpbinError(code = HttpStatusCode.NotFound, request = call.request, message = "NOT FOUND")
+                val error = HttpBinError(code = HttpStatusCode.NotFound, request = call.request, message = "NOT FOUND")
                 call.response.status(HttpStatusCode.NotFound)
                 call.respond(error)
             }
@@ -419,10 +422,9 @@ fun Route.handleRequestWithBodyFor(method: HttpMethod): Unit {
     requestContentType(ContentType.MultiPart.FormData) {
         method(method) {
             handle {
-                val content = call.request.content
-                val listFiles = content.get<MultiPartData>().parts.filterIsInstance<PartData.FileItem>().toList()
-                call.sendHttpbinResponse {
-                    form = content.get<ValuesMap>()
+                val listFiles = call.request.receive<MultiPartData>().parts.filterIsInstance<PartData.FileItem>().toList()
+                call.sendHttpBinResponse {
+                    form = call.request.receive<ValuesMap>()
                     files = listFiles.associateBy { part -> part.partName ?: "a" }
                 }
             }
@@ -431,8 +433,8 @@ fun Route.handleRequestWithBodyFor(method: HttpMethod): Unit {
     requestContentType(ContentType.Application.FormUrlEncoded) {
         method(method) {
             handle {
-                call.sendHttpbinResponse {
-                    form = call.request.content.get<ValuesMap>()
+                call.sendHttpBinResponse {
+                    form = call.request.receive<ValuesMap>()
                 }
             }
         }
@@ -440,8 +442,8 @@ fun Route.handleRequestWithBodyFor(method: HttpMethod): Unit {
     requestContentType(ContentType.Application.Json) {
         method(method) {
             handle {
-                val content = call.request.content.get<String>()
-                val response = HttpbinResponse(
+                val content = call.request.receive<String>()
+                val response = HttpBinResponse(
                     data = content,
                     json = Moshi.parseJsonAsMap(content),
                     args = call.request.queryParameters,
@@ -453,10 +455,9 @@ fun Route.handleRequestWithBodyFor(method: HttpMethod): Unit {
     }
     method(method) {
         handle {
-            call.sendHttpbinResponse {
-                data = call.request.content.get<String>()
+            call.sendHttpBinResponse {
+                data = call.request.receive<String>()
             }
         }
     }
 }
-

@@ -20,7 +20,9 @@ $(document).ready(function () {
 });
 
 function linkMethod(id, method, url) {
-    $("#" + id).click(function () {
+    var link = $("#" + id);
+    link.href = "#";
+    link.click(function () {
 
         $.ajax({
             url: base + url,
@@ -35,8 +37,9 @@ function linkMethod(id, method, url) {
 }
 
 function link(id, url) {
-
-    $("#" + id).click(function () {
+    var link = $("#" + id);
+    link.href = "#";
+    link.click(function () {
         $.getJSON(base + url, null, show);
     });
 }

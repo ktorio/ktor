@@ -34,8 +34,12 @@
         <dependency>
             <groupId>org.jetbrains.ktor</groupId>
             <artifactId>ktor-auth</artifactId>
-            <version>0.3.1-SNAPSHOT</version>
+            <version>${project.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.jetbrains.ktor</groupId>
+            <artifactId>ktor-freemarker</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 </project>

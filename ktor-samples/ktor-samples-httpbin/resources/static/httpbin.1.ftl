@@ -14,7 +14,7 @@
 
     <h2>DESCRIPTION</h2>
 
-    <p>Ktor implementation of <a href="https://httpbin.org/">httpbin(1)</a>: HTTP Request & Response Service</p>
+    <p><a href="https://github.com/Kotlin/ktor">Ktor</a> implementation of <a href="https://httpbin.org/">httpbin(1)</a>: HTTP Request & Response Service</p>
 
     <p>
         A good way to play with the endpoint is to install <a href="https://www.getpostman.com/">Postman</a>
