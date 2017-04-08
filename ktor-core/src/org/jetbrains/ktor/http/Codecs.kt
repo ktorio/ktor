@@ -14,37 +14,43 @@ fun encodeURLPart(s: String): String {
             .replace("%7E", "~")
 }
 
-fun decodeURLQueryComponent(s: String): String = decodeScan(s, true, Charsets.UTF_8)
-fun decodeURLPart(s: String): String = decodeScan(s, false, Charsets.UTF_8)
-
-private fun decodeScan(s: String, plusIsSpace: Boolean, charset: Charset): String {
-    for (index in 0..s.length - 1) {
-        val ch = s[index]
-        if (ch == '%' || (plusIsSpace && ch == '+')) {
-            return decodeImpl(s, index, plusIsSpace, charset)
-        }
-    }
-
-    return s
+fun decodeURLQueryComponent(text: String, start: Int = 0, end: Int = text.length): String {
+    return decodeScan(text, start, end, true, Charsets.UTF_8)
 }
 
-private fun decodeImpl(s: String, prefixLength: Int, plusIsSpace: Boolean, charset: Charset): String {
-    val length = s.length
+fun decodeURLPart(text: String, start: Int = 0, end: Int = text.length): String {
+    return decodeScan(text, start, end, false, Charsets.UTF_8)
+}
+
+private fun decodeScan(text: String, start: Int, end: Int, plusIsSpace: Boolean, charset: Charset): String {
+    for (index in start..end - 1) {
+        val ch = text[index]
+        if (ch == '%' || (plusIsSpace && ch == '+')) {
+            return decodeImpl(text, start, end, index, plusIsSpace, charset)
+        }
+    }
+    if (start == 0 && end == text.length)
+        return text
+    return text.substring(start, end)
+}
+
+private fun decodeImpl(text: String, start: Int, end: Int, prefixEnd: Int, plusIsSpace: Boolean, charset: Charset): String {
+    val length = end - start
     // if length is big, it probably means it is encoded
     val sbSize = if (length > 255) length / 3 else length
     val sb = StringBuilder(sbSize)
 
-    if (prefixLength > 0) {
-        sb.append(s, 0, prefixLength)
+    if (prefixEnd > start) {
+        sb.append(text, start, prefixEnd)
     }
 
-    var index = prefixLength
+    var index = prefixEnd
 
     // reuse ByteArray for hex decoding stripes
     var bytes: ByteArray? = null
 
-    while (index < length) {
-        val c = s[index]
+    while (index < end) {
+        val c = text[index]
         when {
             plusIsSpace && c == '+' -> {
                 sb.append(' ')
@@ -53,19 +59,19 @@ private fun decodeImpl(s: String, prefixLength: Int, plusIsSpace: Boolean, chars
             c == '%' -> {
                 // if ByteArray was not needed before, create it with an estimate of remaining string be all hex
                 if (bytes == null)
-                    bytes = ByteArray((length - index) / 3)
+                    bytes = ByteArray((end - index) / 3)
 
                 // fill ByteArray with all the bytes, so Charset can decode text
                 var count = 0
-                while (index < length && s[index] == '%') {
-                    if (index + 2 >= length) {
-                        throw URISyntaxException(s, "Incomplete trailing HEX escape: ${s.substring(index)}", index)
+                while (index < end && text[index] == '%') {
+                    if (index + 2 >= end) {
+                        throw URISyntaxException(text, "Incomplete trailing HEX escape: ${text.substring(index)}", index)
                     }
 
-                    val digit1 = charToHexDigit(s[index + 1])
-                    val digit2 = charToHexDigit(s[index + 2])
+                    val digit1 = charToHexDigit(text[index + 1])
+                    val digit2 = charToHexDigit(text[index + 2])
                     if (digit1 == -1 || digit2 == -1) {
-                        throw URISyntaxException(s, "Wrong HEX escape: %${s[index + 1]}${s[index + 2]}", index)
+                        throw URISyntaxException(text, "Wrong HEX escape: %${text[index + 1]}${text[index + 2]}", index)
                     }
 
                     bytes[count++] = (digit1 * 16 + digit2).toByte()
