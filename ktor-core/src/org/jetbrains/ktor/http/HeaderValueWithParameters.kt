@@ -6,7 +6,18 @@ abstract class HeaderValueWithParameters(protected val content: String, val para
 
     override fun toString(): String = when {
         parameters.isEmpty() -> content
-        else -> parameters.joinToString("; ", prefix = "$content; ") { "${it.name}=${it.value.escapeIfNeeded()}" }
+        else -> {
+            val size = content.length + parameters.sumBy { it.name.length + it.value.length + 3 }
+            StringBuilder(size).apply {
+                append(content)
+                for ((name, value) in parameters) {
+                    append("; ")
+                    append(name)
+                    append("=")
+                    append(value.escapeIfNeeded())
+                }
+            }.toString()
+        }
     }
 
     companion object {
