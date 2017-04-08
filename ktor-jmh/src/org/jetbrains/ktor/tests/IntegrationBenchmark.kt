@@ -135,13 +135,13 @@ open class JettyIntegrationBenchmark : IntegrationBenchmark() {
 
 /*
 Benchmark                                        Mode  Cnt   Score   Error   Units
-JettyIntegrationBenchmark.jarfile               thrpt   20  15.726 ± 1.270  ops/ms
-JettyIntegrationBenchmark.largeFile             thrpt   20   2.513 ± 0.077  ops/ms
-JettyIntegrationBenchmark.largeFileSync         thrpt   20   2.098 ± 0.054  ops/ms
-JettyIntegrationBenchmark.regularClasspathFile  thrpt   20  24.709 ± 2.472  ops/ms
-JettyIntegrationBenchmark.sayOK                 thrpt   20  41.559 ± 3.185  ops/ms
-JettyIntegrationBenchmark.smallFile             thrpt   20  30.363 ± 3.297  ops/ms
-JettyIntegrationBenchmark.smallFileSync         thrpt   20  28.536 ± 2.719  ops/ms
+JettyIntegrationBenchmark.jarfile               thrpt   20  15.788 ± 0.705  ops/ms
+JettyIntegrationBenchmark.largeFile             thrpt   20   2.583 ± 0.058  ops/ms
+JettyIntegrationBenchmark.largeFileSync         thrpt   20   2.245 ± 0.050  ops/ms
+JettyIntegrationBenchmark.regularClasspathFile  thrpt   20  27.681 ± 0.420  ops/ms
+JettyIntegrationBenchmark.sayOK                 thrpt   20  52.410 ± 1.254  ops/ms
+JettyIntegrationBenchmark.smallFile             thrpt   20  32.153 ± 1.782  ops/ms
+JettyIntegrationBenchmark.smallFileSync         thrpt   20  35.807 ± 1.854  ops/ms
 
 NettyIntegrationBenchmark.jarfile               thrpt   20  12.377 ± 0.605  ops/ms
 NettyIntegrationBenchmark.largeFile             thrpt   20   2.286 ± 0.061  ops/ms
