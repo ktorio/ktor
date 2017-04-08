@@ -499,4 +499,33 @@ class RoutingResolveTest {
         }
 
     }
+
+    @Test fun `decoding routing`() {
+        val routing = routing()
+        val spaceEntry = routing.createRoute("/a%20b").apply { handle {} }
+        val plusEntry = routing.createRoute("/a+b").apply { handle {} }
+
+        on("resolving /a%20b") {
+            val resolveResult = resolve(routing, "/a%20b")
+
+            it("should successfully resolve") {
+                assertTrue(resolveResult.succeeded)
+            }
+            it("should resolve to varargEntry") {
+                assertEquals(spaceEntry, resolveResult.entry)
+            }
+        }
+
+        on("resolving /a+b") {
+            val resolveResult = resolve(routing, "/a+b")
+
+            it("should successfully resolve") {
+                assertTrue(resolveResult.succeeded)
+            }
+            it("should resolve to varargEntry") {
+                assertEquals(plusEntry, resolveResult.entry)
+            }
+        }
+    }
+
 }
