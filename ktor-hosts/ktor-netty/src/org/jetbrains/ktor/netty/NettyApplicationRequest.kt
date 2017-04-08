@@ -11,6 +11,7 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import java.util.*
 import java.util.concurrent.atomic.*
+import kotlin.collections.LinkedHashSet
 
 internal class NettyApplicationRequest(
         override val call: NettyApplicationCall,
@@ -18,15 +19,24 @@ internal class NettyApplicationRequest(
         override val local: NettyConnectionPoint,
         val contentQueue: NettyContentQueue) : BaseApplicationRequest(), Closeable {
 
-    override val headers by lazy {
-        ValuesMap.build(caseInsensitiveKey = true) {
-            // Netty headers are stored as CharSequences, getting normal iterator() causes extra allocations
-            // Calling toString() here per value saves on wrapping an iterator and each StringEntry for each item
-            val iterator = request.headers().iteratorCharSequence()
-            for (it in iterator) {
-                append(it.key.toString(), it.value.toString())
+    override val headers: ValuesMap = NettyHeadersValuesMap(request)
+
+    class NettyHeadersValuesMap(request: HttpRequest) : ValuesMap {
+        private val headers: HttpHeaders = request.headers()
+        override fun getAll(name: String): List<String> = headers.getAll(name)
+        override fun entries(): Set<Map.Entry<String, List<String>>> {
+            val names = headers.names()
+            return names.mapTo(LinkedHashSet(names.size)) {
+                object : Map.Entry<String, List<String>> {
+                    override val key: String get() = it
+                    override val value: List<String> get() = headers.getAll(it)
+                }
             }
         }
+
+        override fun isEmpty(): Boolean = headers.isEmpty
+        override val caseInsensitiveKey: Boolean get() = true
+        override fun names(): Set<String> = headers.names()
     }
 
     override val queryParameters by lazy {
@@ -64,14 +74,9 @@ internal class NettyApplicationRequest(
     override val cookies: RequestCookies = NettyRequestCookies(this)
 
     override fun close() {
-/*
-        context.executeInLoop {
-            if (multipart.isInitialized()) {
-                multipart.value.destroy()
-                context.pipeline().remove(multipart.value)
-            }
+        if (multipart.isInitialized()) {
+            multipart.value.destroy()
         }
-*/
 
         if (contentChannel.isInitialized()) {
             contentChannel.value.close()

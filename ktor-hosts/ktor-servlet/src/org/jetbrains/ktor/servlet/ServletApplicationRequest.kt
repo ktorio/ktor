@@ -18,22 +18,27 @@ class ServletApplicationRequest(override val call: ServletApplicationCall,
         servletRequest.queryString?.let { parseQueryString(it) } ?: ValuesMap.Empty
     }
 
-    override val headers: ValuesMap by lazy {
-        object : ValuesMap {
-            override fun getAll(name: String): List<String> = servletRequest.getHeaders(name)?.toList() ?: emptyList()
-            override fun entries(): Set<Map.Entry<String, List<String>>> {
-                return servletRequest.headerNames.asSequence().map {
-                    object : Map.Entry<String, List<String>> {
-                        override val key: String get() = it
-                        override val value: List<String> get() = getAll(it)
-                    }
-                }.toSet()
-            }
+    override val headers: ValuesMap = ServletHeadersValuesMap(servletRequest)
 
-            override fun isEmpty(): Boolean = servletRequest.headerNames.asSequence().none()
-            override val caseInsensitiveKey: Boolean get() = true
-            override fun names(): Set<String> = servletRequest.headerNames.asSequence().toSet()
+    class ServletHeadersValuesMap(val servletRequest: HttpServletRequest) : ValuesMap {
+        override fun getAll(name: String): List<String> = servletRequest.getHeaders(name)?.toList() ?: emptyList()
+        override fun entries(): Set<Map.Entry<String, List<String>>> {
+            val names = servletRequest.headerNames
+            val set = LinkedHashSet<Map.Entry<String, List<String>>>()
+            while (names.hasMoreElements()) {
+                val name = names.nextElement()
+                val entry = object : Map.Entry<String, List<String>> {
+                    override val key: String get() = name
+                    override val value: List<String> get() = getAll(name)
+                }
+                set.add(entry)
+            }
+            return set
         }
+
+        override fun isEmpty(): Boolean = servletRequest.headerNames.asSequence().none()
+        override val caseInsensitiveKey: Boolean get() = true
+        override fun names(): Set<String> = servletRequest.headerNames.asSequence().toSet()
     }
 
     private val servletReadChannel = lazy {
