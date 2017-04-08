@@ -7,19 +7,27 @@ import java.lang.reflect.*
 import java.util.concurrent.*
 import kotlin.concurrent.*
 
-val iterations = 10000
+val numberOfOperations = 10000
 val jmhOptions = OptionsBuilder()
         .mode(Mode.Throughput)
         .timeUnit(TimeUnit.MILLISECONDS)
-        .warmupIterations(20)
-        .measurementIterations(20)
-        .warmupTime(TimeValue.milliseconds(500))
-        .measurementTime(TimeValue.milliseconds(500))
         .forks(1)
 
 class BenchmarkSettings {
-    var threads = 1
+    var threads = 32
+    val profilers = mutableListOf<String>()
+    var iterations = 20
+    var iterationTime = 1000L
     val benchmarks = mutableListOf<BenchmarkDescriptor>()
+
+    fun profile(name: String) {
+        profilers.add(name)
+    }
+
+    inline fun <reified T : Any> run(method: String? = null) {
+        add(T::class.java, method)
+    }
+
     fun add(clazz: Class<*>, method: String? = null) {
         benchmarks.add(BenchmarkDescriptor(clazz, method))
     }
@@ -72,10 +80,10 @@ fun runProfiler(settings: BenchmarkSettings) {
         benchmarks.forEach { it.invoke(instance) }
 
         if (settings.threads == 1) {
-            println("Running $iterations iterations…")
-            instance.executeBenchmarks(benchmarks, iterations)
+            println("Running $numberOfOperations iterations…")
+            instance.executeBenchmarks(benchmarks, numberOfOperations)
         } else {
-            val iterationsPerThread = iterations / settings.threads
+            val iterationsPerThread = numberOfOperations / settings.threads
             println("Running ${settings.threads} threads with $iterationsPerThread iterations per thread…")
             val threads = (1..settings.threads).map { index ->
                 thread(name = "Test Thread $index") {
@@ -110,6 +118,14 @@ private fun Any?.executeBenchmarks(benchmarks: List<Method>, iterations: Int) {
 
 fun runJMH(settings: BenchmarkSettings) {
     val options = jmhOptions.apply {
+        settings.profilers.forEach {
+            addProfiler(it)
+        }
+        measurementIterations(settings.iterations)
+        warmupIterations(settings.iterations)
+        warmupTime(TimeValue.milliseconds(settings.iterationTime))
+        measurementTime(TimeValue.milliseconds(settings.iterationTime))
+
         threads(settings.threads)
         settings.benchmarks.forEach { (clazz, method) ->
             val regexp = clazz.name + (method?.let { ".$it" } ?: "")
@@ -117,10 +133,6 @@ fun runJMH(settings: BenchmarkSettings) {
         }
     }
     Runner(options.build()).run()
-}
-
-inline fun <reified T : Any> BenchmarkSettings.run(method: String? = null) {
-    add(T::class.java, method)
 }
 
 fun main(args: Array<String>) {
