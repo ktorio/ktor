@@ -13,6 +13,9 @@ data class RouteSelectorEvaluation(val succeeded: Boolean,
         val Missing = RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityMissing)
         val Constant = RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant)
 
+        val ConstantPath = RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant, segmentIncrement = 1)
+        val WildcardPath = RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityWildcard, segmentIncrement = 1)
+
         val qualityConstant = 1.0
         val qualityParameter = 0.8
         val qualityWildcard = 0.5
@@ -59,7 +62,7 @@ data class OptionalParameterRouteSelector(val name: String) : RouteSelector {
 data class UriPartConstantRouteSelector(val name: String) : RouteSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         if (index < context.path.size && context.path[index] == name)
-            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityConstant, segmentIncrement = 1)
+            return RouteSelectorEvaluation.ConstantPath
         return RouteSelectorEvaluation.Failed
     }
 
@@ -126,9 +129,8 @@ data class UriPartOptionalParameterRouteSelector(val name: String, val prefix: S
 
 object UriPartWildcardRouteSelector : RouteSelector {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
-        if (index < context.path.size) {
-            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityWildcard, segmentIncrement = 1)
-        }
+        if (index < context.path.size)
+            return RouteSelectorEvaluation.WildcardPath
         return RouteSelectorEvaluation.Failed
     }
 
