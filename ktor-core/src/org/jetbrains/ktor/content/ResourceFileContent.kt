@@ -7,10 +7,10 @@ import java.io.*
 import java.nio.file.*
 import java.util.jar.*
 
-class ResourceFileContent(val zipFile: File, val resourcePath: String, val classLoader: ClassLoader, override val contentType: ContentType = defaultContentType(resourcePath.extension())) : Resource, FinalContent.ReadChannelContent() {
+class ResourceFileContent(val zipFile: File, val resourcePath: String, val classLoader: ClassLoader, override val contentType: ContentType = defaultFileContentType(resourcePath.extension())) : Resource, FinalContent.ReadChannelContent() {
     private val normalized = Paths.get(resourcePath).normalize().toString().replace(File.separatorChar, '/')
 
-    constructor(zipFilePath: Path, resourcePath: String, classLoader: ClassLoader, contentType: ContentType = defaultContentType(resourcePath.extension())) : this(zipFilePath.toFile(), resourcePath, classLoader, contentType)
+    constructor(zipFilePath: Path, resourcePath: String, classLoader: ClassLoader, contentType: ContentType = defaultFileContentType(resourcePath.extension())) : this(zipFilePath.toFile(), resourcePath, classLoader, contentType)
 
     init {
         require(!normalized.startsWith("..")) { "Bad resource relative path $resourcePath" }

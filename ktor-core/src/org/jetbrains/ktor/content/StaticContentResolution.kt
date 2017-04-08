@@ -15,7 +15,7 @@ import java.nio.file.*
  *
  * @return [LocalFileContent] or `null` if the file is out of the [baseDir] or doesn't exist
  */
-fun ApplicationCall.resolveLocalFile(contextPath: String, baseDir: File, mimeResolve: (String) -> ContentType = { defaultContentType(it) }): LocalFileContent? {
+fun ApplicationCall.resolveLocalFile(contextPath: String, baseDir: File, mimeResolve: (String) -> ContentType = { defaultFileContentType(it) }): LocalFileContent? {
     val path = request.path()
     if (!path.startsWith(contextPath)) {
         return null
@@ -50,11 +50,11 @@ private val defaultClassLoader = ApplicationCall::class.java.classLoader
  *
  * @return [LocalFileContent] or [ResourceFileContent] or `null`
  */
-fun ApplicationCall.resolveClasspathWithPath(basePackage: String, path: String, mimeResolve: (String) -> ContentType = { defaultContentType(it) }): Resource? {
+fun ApplicationCall.resolveClasspathWithPath(basePackage: String, path: String, mimeResolve: (String) -> ContentType = { defaultFileContentType(it) }): Resource? {
     return resolveClasspathWithPath(basePackage, path, defaultClassLoader, mimeResolve)
 }
 
-private fun resolveClasspathWithPath(basePackage: String, path: String, classLoader: ClassLoader = defaultClassLoader, mimeResolve: (String) -> ContentType = { defaultContentType(it) }): Resource? {
+private fun resolveClasspathWithPath(basePackage: String, path: String, classLoader: ClassLoader = defaultClassLoader, mimeResolve: (String) -> ContentType = { defaultFileContentType(it) }): Resource? {
     val packagePath = basePackage.replace('.', '/').appendPathPart(path)
     val normalizedPath = Paths.get(packagePath).normalizeAndRelativize()
     val normalizedResource = normalizedPath.toString().replace(File.separatorChar, '/')
@@ -80,7 +80,7 @@ private fun resolveClasspathWithPath(basePackage: String, path: String, classLoa
  *
  * @return [LocalFileContent] or [ResourceFileContent] or `null`
  */
-fun ApplicationCall.resolveClasspathResource(contextPath: String, basePackage: String, mimeResolve: (String) -> ContentType = { defaultContentType(it) }): Resource? {
+fun ApplicationCall.resolveClasspathResource(contextPath: String, basePackage: String, mimeResolve: (String) -> ContentType = { defaultFileContentType(it) }): Resource? {
     val path = request.path()
     if (!path.startsWith(contextPath)) {
         return null

@@ -32,4 +32,10 @@ fun Route.serveFileSystem(baseDir: File) {
     }
 }
 
-internal fun defaultContentType(extension: String) = ContentTypeByExtension.lookupByExtension(extension).firstOrNull() ?: ContentType.Application.OctetStream
+fun defaultFileContentType(extension: String): ContentType {
+    val contentType = ContentTypeByExtension.lookupByExtension(extension).firstOrNull() ?: ContentType.Application.OctetStream
+    if (contentType.contentType == "text" && contentType.charset() == null) {
+        return contentType.withCharset(Charsets.UTF_8)
+    }
+    return contentType
+}
