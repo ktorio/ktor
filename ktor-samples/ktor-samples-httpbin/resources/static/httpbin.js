@@ -1,4 +1,4 @@
-var base = "http://localhost:8080";
+var base = "http://localhost:8080/";
 $(document).ready(function () {
     link("view_ip", "/ip");
     link("view_user_agent", "/user-agent");
@@ -21,7 +21,6 @@ $(document).ready(function () {
 
 function linkMethod(id, method, url) {
     var link = $("#" + id);
-    link.href = "#";
     link.click(function () {
 
         $.ajax({
@@ -46,3 +45,22 @@ function link(id, url) {
 function show(json) {
     alert(JSON.stringify(json, null, 2));
 }
+
+$(document).ready(function () {
+    var codes = $('.fetch');
+    codes.each(function () {
+        var code = $(this);
+        var url = code.attr('url');
+        console.info(url);
+        $.ajax({
+            url: base + url,
+            contentType: "application/json",
+            dataType: "json"
+        }).done(function (msg) {
+            var string = JSON.stringify(msg, null, 2)
+            console.info(string);
+            code.text(string);
+        });
+
+    });
+});
