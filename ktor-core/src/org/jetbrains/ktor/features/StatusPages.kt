@@ -86,7 +86,7 @@ class StatusPages(config: Configuration) {
 fun StatusPages.Configuration.statusFile(vararg status: HttpStatusCode, filePattern: String) {
     status(*status) { status ->
         val path = filePattern.replace("#", status.value.toString())
-        val message = call.resolveClasspathWithPath("", path)
+        val message = call.resolveResource(path)
         if (message == null) {
             call.respond(HttpStatusCode.InternalServerError)
         } else {

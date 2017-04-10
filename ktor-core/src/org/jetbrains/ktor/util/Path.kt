@@ -4,23 +4,25 @@ import java.io.*
 import java.nio.file.*
 
 fun Path.extension() = fileName.toString().substringAfter(".")
-fun String.extension() = Math.max(lastIndexOf("/"), lastIndexOf("\\")).let { if (it == -1) this else substring(it + 1) }
-fun File.safeAppend(relativePath: Path): File {
+
+fun File.combineSafe(relativePath: String): File = combineSafe(Paths.get(relativePath))
+
+fun File.combineSafe(relativePath: Path): File {
     val normalized = relativePath.normalizeAndRelativize()
     if (normalized.startsWith("..")) {
-        throw IllegalArgumentException("Bad relative path $relativePath")
+        throw InvalidPathException(relativePath.toString(), "Bad relative path")
     }
 
     return File(this, normalized.toString())
 }
 
-fun Path.safeAppend(relativePath: Path): Path {
+fun Path.combineSafe(relativePath: Path): File {
     val normalized = relativePath.normalizeAndRelativize()
     if (normalized.startsWith("..")) {
-        throw IllegalArgumentException("Bad relative path $relativePath")
+        throw InvalidPathException(relativePath.toString(), "Bad relative path")
     }
 
-    return resolve(normalized)
+    return resolve(normalized).toFile()
 }
 
-fun Path.normalizeAndRelativize() = root?.relativize(this)?.normalize() ?: normalize()!!
+fun Path.normalizeAndRelativize(): Path = root?.relativize(this)?.normalize() ?: normalize()

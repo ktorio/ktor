@@ -3,7 +3,6 @@ package you.kube
 import kotlinx.html.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.routing.*
@@ -85,7 +84,7 @@ fun Route.videos(database: Database) {
         if (video == null) {
             call.respond(HttpStatusCode.NotFound)
         } else {
-            val type = ContentTypeByExtension.lookupByPath(video.videoFileName).first { it.contentType == "video" }
+            val type = ContentType.fromFilePath(video.videoFileName).first { it.contentType == "video" }
             call.respond(LocalFileContent(File(video.videoFileName), contentType = type))
         }
     }

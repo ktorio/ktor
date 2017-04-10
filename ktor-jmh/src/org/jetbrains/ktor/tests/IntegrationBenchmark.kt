@@ -4,6 +4,7 @@ import ch.qos.logback.classic.Level
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.jetty.*
 import org.jetbrains.ktor.netty.*
 import org.jetbrains.ktor.response.*
@@ -34,26 +35,24 @@ abstract class IntegrationBenchmark {
     @Setup
     fun configureServer() {
         val root = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
+        val okContent = TextContent("OK", ContentType.Text.Plain, HttpStatusCode.OK)
         root.level = Level.ERROR
         server = createServer(port) {
             routing {
                 get("/sayOK") {
+                    call.respond(okContent)
+                }
+                get("/thinkOK") {
                     call.respondText("OK")
                 }
-                get("/jarfile") {
-                    call.respond(call.resolveClasspathWithPath("java/lang/", "String.class")!!)
-                }
-                get("/regularClasspathFile") {
-                    call.respond(call.resolveClasspathWithPath(packageName, classFileName)!!)
-                }
-                get("/smallFile") {
-                    call.respond(LocalFileContent(smallFile))
+                static {
+                    resource("jarfile", "String.class", "java.lang")
+                    resource("regularClasspathFile", classFileName, packageName)
+                    file("smallFile", smallFile)
+                    file("largeFile", largeFile)
                 }
                 get("/smallFileSync") {
                     call.respond(smallFile.readBytes())
-                }
-                get("/largeFile") {
-                    call.respond(LocalFileContent(largeFile))
                 }
                 get("/largeFileSync") {
                     call.respond(largeFile.readBytes())
@@ -88,6 +87,11 @@ abstract class IntegrationBenchmark {
     @Benchmark
     fun sayOK() {
         load("http://localhost:$port/sayOK")
+    }
+
+    @Benchmark
+    fun thinkOK() {
+        load("http://localhost:$port/thinkOK")
     }
 
     @Benchmark
@@ -150,7 +154,7 @@ NettyIntegrationBenchmark.regularClasspathFile  thrpt   20  18.381 ± 0.997  ops
 NettyIntegrationBenchmark.sayOK                 thrpt   20  54.329 ± 1.887  ops/ms
 NettyIntegrationBenchmark.smallFile             thrpt   20  27.238 ± 0.757  ops/ms
 NettyIntegrationBenchmark.smallFileSync         thrpt   20  39.414 ± 1.668  ops/ms
- */
+*/
 
 fun main(args: Array<String>) {
     benchmark(args) {

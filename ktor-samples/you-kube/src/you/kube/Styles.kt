@@ -10,6 +10,6 @@ class MainCss()
 
 fun Route.styles() {
     get<MainCss> {
-        call.respond(call.resolveClasspathWithPath("", "blog.css")!!)
+        call.respond(call.resolveResource("blog.css")!!)
     }
 }

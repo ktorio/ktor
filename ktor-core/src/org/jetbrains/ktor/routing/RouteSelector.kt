@@ -147,6 +147,14 @@ data class UriPartTailcardRouteSelector(val name: String = "") : RouteSelector(R
     override fun toString(): String = "{...}"
 }
 
+object UnconditionalRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+    override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
+        return RouteSelectorEvaluation.Constant
+    }
+
+    override fun toString(): String = "{true}"
+}
+
 data class OrRouteSelector(val first: RouteSelector, val second: RouteSelector) : RouteSelector(first.quality * second.quality) {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         val result = first.evaluate(context, index)

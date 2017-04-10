@@ -224,8 +224,8 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     @Test
     fun testStaticServe() {
         createAndStartServer {
-            route("/files/") {
-                serveClasspathResources("org/jetbrains/ktor/testing")
+            static("/files/") {
+                resources("org/jetbrains/ktor/testing")
             }
         }
 
@@ -253,13 +253,13 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
 
     @Test
     fun testStaticServeFromDir() {
-        val targetClasses = listOf(File("target/classes"), File("ktor-core/target/classes")).first(File::exists)
+        val targetClasses = listOf(File("target/classes"), File("ktor-core/target/classes")).first { it.exists() }
         val file = targetClasses.walkBottomUp().filter { it.extension == "class" }.first()
         testLog.trace("test file is $file")
 
         createAndStartServer {
-            route("/files/") {
-                serveFileSystem(targetClasses)
+            static("/files") {
+                files(targetClasses.path)
             }
         }
 
@@ -376,7 +376,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     fun testJarFileContent() {
         createAndStartServer {
             handle {
-                call.respond(call.resolveClasspathWithPath("java/util", "/ArrayList.class")!!)
+                call.respond(call.resolveResource("/ArrayList.class", "java.util")!!)
             }
         }
 

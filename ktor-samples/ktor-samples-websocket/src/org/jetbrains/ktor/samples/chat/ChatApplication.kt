@@ -49,11 +49,10 @@ fun Application.main() {
             }
         }
 
-        get("/") {
-            call.respondRedirect("/index.html")
+        static {
+            defaultResource("index.html", "web")
+            resources("web")
         }
-
-        serveClasspathResources("web")
     }
 }
 
