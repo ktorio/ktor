@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.jetty
 
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.future.*
 import org.eclipse.jetty.alpn.server.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.*
@@ -93,12 +92,12 @@ class JettyApplicationHost(environment: ApplicationHostEnvironment,
         }
     }
 
-    private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
 
     private inner class Handler : AbstractHandler() {
-        override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-            response.characterEncoding = "UTF-8"
+        private val dispatcher by lazy { JettyCoroutinesDispatcher(server.threadPool) }
+        private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
 
+        override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
             val call = JettyApplicationCall(application, server, request, response, byteBufferPool, { call, block, next ->
                 if (baseRequest.httpChannel.httpTransport.isPushSupported) {
                     baseRequest.pushBuilder.apply {
@@ -118,7 +117,7 @@ class JettyApplicationHost(environment: ApplicationHostEnvironment,
 
             try {
                 val contentType = request.contentType
-                if (contentType != null && ContentType.parse(contentType).match(ContentType.MultiPart.Any)) {
+                if (contentType != null && contentType.startsWith("multipart/")) {
                     baseRequest.setAttribute(Request.__MULTIPART_CONFIG_ELEMENT, MULTI_PART_CONFIG)
                     // TODO someone reported auto-cleanup issues so we have to check it
                 }
@@ -127,7 +126,7 @@ class JettyApplicationHost(environment: ApplicationHostEnvironment,
                 request.asyncContext.timeout = 0 // Overwrite any default non-null timeout to prevent multiple dispatches
                 baseRequest.isHandled = true
 
-                future(server.threadPool.asCoroutineDispatcher()) {
+                launch(dispatcher) {
                     try {
                         pipeline.execute(call)
                     } finally {
@@ -137,7 +136,7 @@ class JettyApplicationHost(environment: ApplicationHostEnvironment,
             } catch(ex: Throwable) {
                 environment.log.error("Application ${application::class.java} cannot fulfill the request", ex)
 
-                future(server.threadPool.asCoroutineDispatcher()) {
+                launch(dispatcher) {
                     call.respond(HttpStatusCode.InternalServerError)
                 }
             }
