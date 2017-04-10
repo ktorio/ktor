@@ -10,8 +10,11 @@ import javax.servlet.annotation.*
 
 @MultipartConfig
 open class ServletApplicationHost : KtorServlet() {
-    private val environment: ApplicationHostEnvironmentReloading by lazy {
+    private val environment: ApplicationHostEnvironment by lazy {
         val servletContext = servletContext
+
+        servletContext.getAttribute(ApplicationHostEnvironmentAttributeKey)?.let { return@lazy it as ApplicationHostEnvironment }
+
         val parameterNames = servletContext.initParameterNames.toList().filter { it.startsWith("org.jetbrains.ktor") }
         val parameters = parameterNames.associateBy({ it.removePrefix("org.jetbrains.") }, { servletContext.getInitParameter(it) })
 
@@ -32,8 +35,7 @@ open class ServletApplicationHost : KtorServlet() {
             config = HoconApplicationConfig(combinedConfig)
             log = SLF4JApplicationLog(applicationId)
             classLoader = servletContext.classLoader
-        }
-        environment.apply {
+        }.apply {
             monitor.applicationStarting += {
                 it.install(ApplicationTransform).registerDefaultHandlers()
             }
@@ -41,7 +43,7 @@ open class ServletApplicationHost : KtorServlet() {
     }
 
     override val application: Application get() = environment.application
-    override val hostPipeline: HostPipeline = defaultHostPipeline(environment)
+    override val hostPipeline by lazy { defaultHostPipeline(environment) }
 
     override fun init() {
         environment.start()
@@ -51,5 +53,9 @@ open class ServletApplicationHost : KtorServlet() {
     override fun destroy() {
         super.destroy()
         environment.stop()
+    }
+
+    companion object {
+        val ApplicationHostEnvironmentAttributeKey = "_ktor_application_host_environment_instance"
     }
 }
