@@ -52,17 +52,22 @@ open class Locations(val conversionService: ConversionService, val routeService:
 
     private fun getOrCreateInfo(dataClass: KClass<*>): LocationInfo {
         return info.getOrPut(dataClass) {
-            val parentClass = dataClass.java.enclosingClass?.kotlin
-            val parent = parentClass?.let {
-                if (routeService.findRoute(parentClass) != null)
-                    getOrCreateInfo(parentClass)
+            val outerClass = dataClass.java.declaringClass?.kotlin
+            val parentInfo = outerClass?.let {
+                if (routeService.findRoute(outerClass) != null)
+                    getOrCreateInfo(outerClass)
                 else
                     null
             }
 
             val path = routeService.findRoute(dataClass) ?: ""
+            if (dataClass.objectInstance != null)
+                throw IllegalArgumentException("Expected class, but found object for '$dataClass'")
 
-            val constructor: KFunction<Any> = dataClass.primaryConstructor ?: dataClass.constructors.single()
+            val constructor: KFunction<Any> =
+                    dataClass.primaryConstructor
+                    ?: dataClass.constructors.singleOrNull()
+                    ?: throw IllegalArgumentException("Class $dataClass cannot be instantiated because the constructor is missing")
 
             val declaredProperties = constructor.parameters.map { parameter ->
                 val property = dataClass.declaredMemberProperties.singleOrNull { property -> property.name == parameter.name }
@@ -73,16 +78,16 @@ open class Locations(val conversionService: ConversionService, val routeService:
             }
 
             val parentParameter = declaredProperties.firstOrNull {
-                it.getter.returnType == parentClass?.defaultType
+                it.getter.returnType == outerClass?.defaultType
             }
 
-            if (parent != null && parentParameter == null) {
-                if (parent.parentParameter != null)
+            if (parentInfo != null && parentParameter == null) {
+                if (parentInfo.parentParameter != null)
                     throw InconsistentRoutingException("Nested location '$dataClass' should have parameter for parent location because it is chained to its parent")
-                if (parent.pathParameters.any { !it.isOptional })
-                    throw InconsistentRoutingException("Nested location '$dataClass' should have parameter for parent location because of non-optional path parameters ${parent.pathParameters.filter { !it.isOptional }}")
-                if (parent.queryParameters.any { !it.isOptional })
-                    throw InconsistentRoutingException("Nested location '$dataClass' should have parameter for parent location because of non-optional query parameters ${parent.queryParameters.filter { !it.isOptional }}")
+                if (parentInfo.pathParameters.any { !it.isOptional })
+                    throw InconsistentRoutingException("Nested location '$dataClass' should have parameter for parent location because of non-optional path parameters ${parentInfo.pathParameters.filter { !it.isOptional }}")
+                if (parentInfo.queryParameters.any { !it.isOptional })
+                    throw InconsistentRoutingException("Nested location '$dataClass' should have parameter for parent location because of non-optional query parameters ${parentInfo.queryParameters.filter { !it.isOptional }}")
             }
 
             val pathParameterNames = RoutingPath.parse(path).parts
@@ -97,7 +102,7 @@ open class Locations(val conversionService: ConversionService, val routeService:
 
             val pathParameters = declaredProperties.filter { it.name in pathParameterNames }
             val queryParameters = declaredProperties.filterNot { pathParameterNames.contains(it.name) || it == parentParameter }
-            LocationInfo(dataClass, parent, parentParameter, path, pathParameters, queryParameters)
+            LocationInfo(dataClass, parentInfo, parentParameter, path, pathParameters, queryParameters)
         }
     }
 

@@ -30,6 +30,23 @@ class LocationsTest {
         urlShouldBeUnhandled("/index")
     }
 
+    @Test fun `locationLocal`() {
+        // ^^^ do not add spaces to method name, inline breaks
+
+        @location("/") class indexLocal()
+        withLocationsApplication {
+            val href = application.feature(Locations).href(indexLocal())
+            assertEquals("/", href)
+            application.routing {
+                get<indexLocal> {
+                    call.respond(HttpStatusCode.OK)
+                }
+            }
+            urlShouldBeHandled(href)
+            urlShouldBeUnhandled("/index")
+        }
+    }
+
     @location("/about") class about()
 
     @Test fun `location with URL`() = withLocationsApplication {
