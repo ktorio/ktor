@@ -30,7 +30,7 @@ class Index()
 data class PostNew(val text: String = "", val date: Long = 0L, val code: String = "")
 
 @location("/kweet/{id}/delete")
-data class KweetDelete(val id: Int, val date: Long, val code: String)
+data class KweetDelete(val id: Int, val date: Long = 0L, val code: String = "")
 
 @location("/kweet/{id}")
 data class ViewKweet(val id: Int)
