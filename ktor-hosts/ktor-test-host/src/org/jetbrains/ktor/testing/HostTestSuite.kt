@@ -578,7 +578,6 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
 
             outputStream.bufferedWriter(Charsets.ISO_8859_1).let { out ->
                 out.apply {
-                    append("\r\n")
                     append("--***bbb***\r\n")
                     append("Content-Disposition: form-data; name=\"a story\"\r\n")
                     append("\r\n")
