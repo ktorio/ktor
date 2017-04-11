@@ -1,10 +1,8 @@
 package org.jetbrains.ktor.tests.session
 
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.sessions.*
 import org.junit.*
-import java.lang.ref.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.test.*
@@ -34,7 +32,7 @@ class CacheTest {
         val cache = BaseCache<Int, String> { if (it == 0) latch.await(); it.toString() }
 
         assertEquals("1", cache.getOrCompute(1))
-        val th = future {
+        val th = launch(context) {
             ref.set(cache.getOrCompute(0))
         }
 

@@ -6,6 +6,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.html.*
 import org.jetbrains.ktor.logging.*
+import org.jetbrains.ktor.pipeline.runAsync
 import org.jetbrains.ktor.routing.*
 import java.util.*
 
@@ -15,9 +16,9 @@ fun Application.main() {
     install(Routing) {
         get("/{...}") {
             val start = System.currentTimeMillis()
-            async(executor.asCoroutineDispatcher()) {
+            runAsync(executor) {
                 call.handleLongCalculation(start)
-            }.await()
+            }
         }
     }
 }

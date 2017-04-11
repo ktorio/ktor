@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.tests.nio
 
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.cio.*
 import org.junit.*
 import java.nio.*

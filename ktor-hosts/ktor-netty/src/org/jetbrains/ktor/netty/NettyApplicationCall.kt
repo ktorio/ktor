@@ -3,13 +3,13 @@ package org.jetbrains.ktor.netty
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.HttpHeaders
+import org.jetbrains.ktor.pipeline.launchAsync
+import org.jetbrains.ktor.pipeline.runAsync
 import org.jetbrains.ktor.response.*
 import java.io.*
 import java.util.concurrent.atomic.*
@@ -70,7 +70,7 @@ internal class NettyApplicationCall(application: Application,
     }
 
     override suspend fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
-        future(context.channel().eventLoop().asCoroutineDispatcher()) {
+        runAsync(context.channel().eventLoop()) {
             val upgradeContentQueue = RawContentQueue(context)
 
             context.channel().pipeline().replace(HttpContentQueue::class.java, "WebSocketReadQueue", upgradeContentQueue).queue.clear {
@@ -87,7 +87,7 @@ internal class NettyApplicationCall(application: Application,
             }
 
             response.sendResponseMessage(chunked = false)?.addListener {
-                future(context.channel().eventLoop().asCoroutineDispatcher()) {
+                launchAsync(context.channel().eventLoop()) {
                     context.channel().pipeline().remove(HttpServerCodec::class.java)
                     context.channel().pipeline().addFirst(NettyDirectEncoder())
 
@@ -98,7 +98,7 @@ internal class NettyApplicationCall(application: Application,
                     context.read()
                 }
             } ?: throw IllegalStateException("Response has been already sent")
-        }.await()
+        }
     }
 
     override fun responseChannel(): WriteChannel = response.responseChannel.value
