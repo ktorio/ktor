@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.servlet
 
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.host.*
@@ -31,7 +30,7 @@ abstract class KtorServlet : HttpServlet() {
                 tryPush(request, call, block, next)
             })
 
-            future(AsyncContextCoroutineDispatcher(asyncContext)) {
+            launch(AsyncContextCoroutineDispatcher(asyncContext)) {
                 try {
                     hostPipeline.execute(call)
                 } finally {

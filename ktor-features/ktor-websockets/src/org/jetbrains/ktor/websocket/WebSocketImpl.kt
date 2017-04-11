@@ -1,7 +1,5 @@
 package org.jetbrains.ktor.websocket
 
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.pipeline.*
@@ -23,7 +21,7 @@ internal class WebSocketImpl(call: ApplicationCall,
             { controlFrameHandler.currentReason })
 
     fun init() {
-        future(application.executor.asCoroutineDispatcher()) {
+        launchAsync(application.executor) {
             reader.readLoop()
         }
     }

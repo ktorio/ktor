@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.tests.pipeline
 
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.pipeline.*
 import org.junit.*
 import kotlin.test.*
@@ -321,10 +320,10 @@ class PipelineTest {
         val pipeline = pipeline()
         pipeline.intercept {
             events.add("intercept1 $subject")
-            future {
+            run(CommonPool) {
                 events.add("future1 $subject")
                 proceed()
-            }.await()
+            }
             events.add("success1 $subject")
         }
 
@@ -342,19 +341,19 @@ class PipelineTest {
         val pipeline = pipeline()
         pipeline.intercept {
             events.add("intercept1 $subject")
-            future {
+            run(CommonPool) {
                 events.add("future1 $subject")
                 proceed()
-            }.await()
+            }
             events.add("success1 $subject")
         }
 
         pipeline.intercept {
             val secondary = pipeline()
             secondary.intercept {
-                future {
+                run(CommonPool) {
                     events.add("intercept2 $subject")
-                }.await()
+                }
             }
             secondary.execute("another")
             proceed()
