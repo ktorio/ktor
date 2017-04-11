@@ -18,11 +18,4 @@
             </resource>
         </resources>
     </build>
-    <dependencies>
-        <dependency>
-            <groupId>org.jetbrains.ktor</groupId>
-            <artifactId>ktor-html-builder</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
 </project>
