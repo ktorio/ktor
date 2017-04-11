@@ -1,7 +1,5 @@
 package org.jetbrains.ktor.auth
 
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.http.*
@@ -64,10 +62,10 @@ suspend fun PipelineContext<ApplicationCall>.oauth(client: HttpClient, exec: Exe
 suspend fun PipelineContext<ApplicationCall>.oauthRespondRedirect(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String) {
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
-            future(exec.asCoroutineDispatcher()) {
+            runAsync(exec) {
                 val requestToken = simpleOAuth1aStep1(client, provider, callbackUrl)
                 call.redirectAuthenticateOAuth1a(provider, requestToken)
-            }.await()
+            }
         }
         is OAuthServerSettings.OAuth2ServerSettings -> {
             call.redirectAuthenticateOAuth2(provider, callbackUrl, nextNonce(), scopes = provider.defaultScopes)

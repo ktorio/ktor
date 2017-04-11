@@ -4,11 +4,10 @@ import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import io.netty.util.*
 import io.netty.util.collection.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.future.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.http2.*
+import org.jetbrains.ktor.pipeline.*
 
 @ChannelHandler.Sharable
 class NettyHostHttp2Handler(private val host: NettyApplicationHost, private val http2: Http2Connection?, private val hostPipeline: HostPipeline) : ChannelInboundHandlerAdapter() {
@@ -69,9 +68,7 @@ class NettyHostHttp2Handler(private val host: NettyApplicationHost, private val 
     }
 
     private fun ChannelHandlerContext.executeCall(call: ApplicationCall) {
-        val eventLoop = channel().eventLoop().parent()
-        val dispatcher = eventLoop.asCoroutineDispatcher()
-        future(dispatcher) {
+        launchAsync(channel().eventLoop().parent()) {
             hostPipeline.execute(call)
         }
     }

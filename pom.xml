@@ -64,7 +64,7 @@
         </dependency>
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
-            <artifactId>kotlinx-coroutines-jdk8</artifactId>
+            <artifactId>kotlinx-coroutines-core</artifactId>
             <version>${coroutines.version}</version>
         </dependency>
 
