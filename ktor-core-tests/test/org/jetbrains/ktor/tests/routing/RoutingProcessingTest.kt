@@ -84,6 +84,36 @@ class RoutingProcessingTest {
 
     }
 
+    @Test fun `verify most specific selected`() = withTestApplication {
+        var path = ""
+        application.routing {
+            get("{path...}") {
+                path = call.parameters.getAll("path")?.joinToString("/") ?: "/"
+            }
+            get("z/{path...}") {
+                path = "[Z] " + (call.parameters.getAll("path")?.joinToString("/") ?: "/")
+            }
+        }
+        on("making get request to /z/a/b/c") {
+            handleRequest {
+                uri = "/z/a/b/c"
+                method = HttpMethod.Get
+            }
+            it("should have handled by more specific rout") {
+                assertEquals("[Z] a/b/c", path)
+            }
+        }
+        on("making get request to /x/a/b/c") {
+            handleRequest {
+                uri = "/x/a/b/c"
+                method = HttpMethod.Get
+            }
+            it("should have handled by more specific rout") {
+                assertEquals("x/a/b/c", path)
+            }
+        }
+    }
+
     @Test fun `host with routing on GET -user-username with interceptors`() = withTestApplication {
 
         var userIntercepted = false
@@ -93,7 +123,7 @@ class RoutingProcessingTest {
 
         application.routing {
             route("user") {
-                intercept(ApplicationCallPipeline.Call) { 
+                intercept(ApplicationCallPipeline.Call) {
                     userIntercepted = true
                     wrappedWithInterceptor = true
                     proceed()

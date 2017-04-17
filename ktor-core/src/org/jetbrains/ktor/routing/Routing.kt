@@ -30,7 +30,7 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
         }
     }
 
-    private object RootRouteSelector : RouteSelector {
+    private object RootRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
         override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
             throw UnsupportedOperationException("Root selector should not be evaluated")
         }

@@ -8,7 +8,7 @@ import org.jetbrains.ktor.util.*
 import org.junit.*
 import kotlin.test.*
 
-private object RootRouteSelector : RouteSelector {
+private object RootRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         throw UnsupportedOperationException("Root selector should not be evaluated")
     }
