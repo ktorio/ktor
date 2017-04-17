@@ -78,7 +78,7 @@
             </snapshots>
             <id>bintray-kotlin-exposed</id>
             <name>bintray</name>
-            <url>http://dl.bintray.com/kotlin/exposed</url>
+            <url>https://dl.bintray.com/kotlin/exposed</url>
         </repository>
     </repositories>
 </project>

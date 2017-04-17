@@ -207,7 +207,7 @@
                     <sourceLinks>
                         <link>
                             <dir>${project.basedir}/src</dir>
-                            <url>http://github.com/Kotlin/ktor</url>
+                            <url>https://github.com/Kotlin/ktor</url>
                         </link>
                     </sourceLinks>
                 </configuration>
@@ -242,7 +242,7 @@
     <pluginRepositories>
         <pluginRepository>
             <id>jcenter</id>
-            <url>http://jcenter.bintray.com</url>
+            <url>https://jcenter.bintray.com</url>
         </pluginRepository>
         <pluginRepository>
             <id>devexperts-maven</id>
@@ -252,7 +252,7 @@
     <repositories>
         <repository>
             <id>jcenter</id>
-            <url>http://jcenter.bintray.com</url>
+            <url>https://jcenter.bintray.com</url>
         </repository>
         <repository>
             <snapshots>
@@ -260,7 +260,7 @@
             </snapshots>
             <id>bintray-kotlin-eap-1.1</id>
             <name>bintray</name>
-            <url>http://dl.bintray.com/kotlin/kotlin-eap-1.1</url>
+            <url>https://dl.bintray.com/kotlin/kotlin-eap-1.1</url>
         </repository>
     </repositories>
 </project>

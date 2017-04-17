@@ -79,7 +79,7 @@ Add a repository
     </snapshots>
     <id>bintray-kotlin-ktor</id>
     <name>bintray</name>
-    <url>http://dl.bintray.com/kotlin/ktor</url>
+    <url>https://dl.bintray.com/kotlin/ktor</url>
 </repository>
 ```
 
