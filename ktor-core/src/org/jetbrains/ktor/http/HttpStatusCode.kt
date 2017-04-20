@@ -68,7 +68,8 @@ data class HttpStatusCode(val value: Int, val description: String) {
                 .map { it.get(this) as HttpStatusCode }
 
         private val byValue by lazy { allStatusCodes.associateBy { it.value } }
-        fun fromValue(value: Int) = byValue[value]
+
+        fun fromValue(value: Int) = byValue[value] ?: HttpStatusCode(value, "Unknown Status Code")
     }
 }
 
