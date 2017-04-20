@@ -95,7 +95,7 @@ data class UriPartParameterRouteSelector(val name: String, val prefix: String? =
         return RouteSelectorEvaluation.Failed
     }
 
-    override fun toString(): String = "${prefix?:""}{$name}${suffix?:""}"
+    override fun toString(): String = "${prefix ?: ""}{$name}${suffix ?: ""}"
 }
 
 data class UriPartOptionalParameterRouteSelector(val name: String, val prefix: String? = null, val suffix: String? = null) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
@@ -203,4 +203,19 @@ data class HttpHeaderRouteSelector(val name: String, val value: String) : RouteS
     }
 
     override fun toString(): String = "(header:$name = $value)"
+}
+
+data class HttpAcceptRouteSelector(val contentType: ContentType) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+    override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
+        val headers = context.headers["Accept"]
+        val parsedHeaders = parseAndSortContentTypeHeader(headers)
+        if (parsedHeaders.isEmpty())
+            return RouteSelectorEvaluation.Missing
+        val header = parsedHeaders.firstOrNull { contentType.match(it.value) }
+        if (header != null)
+            return RouteSelectorEvaluation(true, header.quality)
+        return RouteSelectorEvaluation.Failed
+    }
+
+    override fun toString(): String = "(contentType:$contentType)"
 }

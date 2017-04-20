@@ -61,7 +61,8 @@ fun Route.header(name: String, value: String, build: Route.() -> Unit): Route {
  * Builds a route to match requests with specified [contentType]
  */
 fun Route.accept(contentType: ContentType, build: Route.() -> Unit): Route {
-    return header(HttpHeaders.Accept, "${contentType.contentType}/${contentType.contentSubtype}", build)
+    val selector = HttpAcceptRouteSelector(contentType)
+    return select(selector).apply(build)
 }
 
 @Deprecated("This function is checking Accept header, use 'accept' function instead.", ReplaceWith("this.accept(contentType, build)"), DeprecationLevel.ERROR)
