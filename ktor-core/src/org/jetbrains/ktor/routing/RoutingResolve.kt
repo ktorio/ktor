@@ -39,10 +39,6 @@ class RoutingResolveContext(val routing: Route,
         return segments
     }
 
-    private fun combineQuality(quality1: Double, quality2: Double): Double {
-        return quality1 * quality2
-    }
-
     fun resolve(): RoutingResolveResult {
         return resolve(routing, this, 0)
     }
@@ -57,11 +53,11 @@ class RoutingResolveContext(val routing: Route,
         // iterate using indices to avoid creating iterator
         for (childIndex in 0..entry.children.lastIndex) {
             val child = entry.children[childIndex]
-            val result = child.selector.evaluate(request, segmentIndex)
-            if (!result.succeeded)
+            val selectorResult = child.selector.evaluate(request, segmentIndex)
+            if (!selectorResult.succeeded)
                 continue // selector didn't match, skip entire subtree
 
-            val subtreeResult = resolve(child, request, segmentIndex + result.segmentIncrement)
+            val subtreeResult = resolve(child, request, segmentIndex + selectorResult.segmentIncrement)
             if (!subtreeResult.succeeded) {
                 // subtree didn't match, skip to next child, remember first failed entry
                 if (failEntry == null) {
@@ -71,7 +67,7 @@ class RoutingResolveContext(val routing: Route,
             }
 
             // calculate match quality of this selector match and subtree
-            val thisMatchQuality = combineQuality(subtreeResult.quality, result.quality)
+            val thisMatchQuality = selectorResult.quality
             val bestMatchQuality = bestResult?.quality ?: 0.0
             if (thisMatchQuality < bestMatchQuality)
                 continue
@@ -85,12 +81,12 @@ class RoutingResolveContext(val routing: Route,
             bestChild = child
 
             // only calculate values if match is better then previous one
-            if (result.values.isEmpty() && thisMatchQuality == subtreeResult.quality) {
+            if (selectorResult.values.isEmpty() && thisMatchQuality == subtreeResult.quality) {
                 // do not allocate new RoutingResolveResult if it will be the same as subtreeResult
                 // TODO: Evaluate if we can make RoutingResolveResult mutable altogether and avoid allocations
                 bestResult = subtreeResult
             } else {
-                val combinedValues = result.values + subtreeResult.values
+                val combinedValues = selectorResult.values + subtreeResult.values
                 bestResult = RoutingResolveResult(true, subtreeResult.entry, combinedValues, thisMatchQuality)
             }
         }
