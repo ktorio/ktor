@@ -95,7 +95,7 @@ data class UriPartParameterRouteSelector(val name: String, val prefix: String? =
         return RouteSelectorEvaluation.Failed
     }
 
-    override fun toString(): String = "$prefix{$name}$suffix"
+    override fun toString(): String = "${prefix?:""}{$name}${suffix?:""}"
 }
 
 data class UriPartOptionalParameterRouteSelector(val name: String, val prefix: String? = null, val suffix: String? = null) : RouteSelector(RouteSelectorEvaluation.qualityParameter) {
