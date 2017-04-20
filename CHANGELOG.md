@@ -3,6 +3,16 @@
 
 * Fix bug in byte array response that missed Content-Length header
 * Fix default encoding in FreeMarker to be UTF-8
+* Fix FreeMarker writer
+* Fix charset for text/* content types to be UTF-8 by default
+* Fix Kweet sample application in kweet deletion
+* Rework static content DSL to improve usability
+* Improve Accept header handling in routes
+* Support local class in locations, improve diagnostics
+* Add servlet host tests running in Jetty, but using servlet deployment model
+* Benchmarks can now measure GC performance (and any other JMH profiler)
+* Performance optimisations
+
 
 # 0.3.1
 > Published 7 Apr 2017
