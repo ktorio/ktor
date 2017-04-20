@@ -66,14 +66,13 @@ class RoutingResolveContext(val routing: Route,
                 continue
             }
 
-            // calculate match quality of this selector match and subtree
-            val thisMatchQuality = selectorResult.quality
+            val thisMatchQuality = Math.min(subtreeResult.quality, selectorResult.quality)
             val bestMatchQuality = bestResult?.quality ?: 0.0
             if (thisMatchQuality < bestMatchQuality)
                 continue
 
             if (thisMatchQuality == bestMatchQuality) {
-                // ambiguity, compare children directly
+                // ambiguity, compare immediate child quality
                 if (bestChild!!.selector.quality >= child.selector.quality)
                     continue
             }
@@ -101,6 +100,7 @@ class RoutingResolveContext(val routing: Route,
 
         return bestResult ?: RoutingResolveResult(false, failEntry ?: entry, ValuesMap.Empty, 0.0)
     }
+
 }
 
 
