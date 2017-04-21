@@ -2,7 +2,6 @@ package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.content.*
 import org.junit.*
-import java.net.*
 import kotlin.test.*
 
 class FindContainingZipFileTest {

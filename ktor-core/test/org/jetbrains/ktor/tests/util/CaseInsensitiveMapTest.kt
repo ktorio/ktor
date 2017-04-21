@@ -1,8 +1,8 @@
 package org.jetbrains.ktor.tests.util
 
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.util.*
 import org.junit.*
-import org.jetbrains.ktor.util.CaseInsensitiveMap
 import kotlin.test.*
 
 /**

@@ -8,7 +8,6 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
 import org.jetbrains.ktor.testing.*
-import org.jetbrains.ktor.tests.*
 import org.junit.*
 import kotlin.test.*
 

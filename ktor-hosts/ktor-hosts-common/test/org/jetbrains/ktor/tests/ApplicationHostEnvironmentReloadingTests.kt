@@ -4,7 +4,6 @@ import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
 import kotlin.reflect.*

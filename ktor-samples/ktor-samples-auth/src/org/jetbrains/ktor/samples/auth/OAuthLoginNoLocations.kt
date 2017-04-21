@@ -3,10 +3,8 @@ package org.jetbrains.ktor.samples.auth
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.client.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
-import org.jetbrains.ktor.util.*
 import java.util.concurrent.*
 
 /**

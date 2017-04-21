@@ -12,7 +12,6 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
-import org.jetbrains.ktor.tests.*
 import org.junit.*
 import org.junit.runner.*
 import java.net.*

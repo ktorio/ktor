@@ -1,7 +1,5 @@
 package org.jetbrains.ktor.application
 
-import java.util.concurrent.*
-
 /**
  * Represents configured and running web application, capable of handling requests
  */

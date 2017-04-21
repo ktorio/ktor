@@ -1,9 +1,7 @@
 package org.jetbrains.ktor.websocket
 
 import org.jetbrains.ktor.cio.*
-import org.jetbrains.ktor.util.*
 import java.nio.*
-import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
 internal class WebSocketWriter(parent: WebSocketImpl, val writeChannel: WriteChannel, val controlFrameHandler: ControlFrameHandler) {

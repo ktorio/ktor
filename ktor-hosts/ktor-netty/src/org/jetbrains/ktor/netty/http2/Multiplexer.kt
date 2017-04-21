@@ -4,7 +4,6 @@ import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import io.netty.util.*
 import io.netty.util.collection.*
-import org.jetbrains.ktor.netty.*
 import java.io.*
 import kotlin.properties.*
 
