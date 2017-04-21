@@ -44,7 +44,7 @@ class ChatServer {
     }
 
     suspend fun who(sender: String) {
-        members[sender]?.send(Frame.Text(memberNames.keys.joinToString(prefix = "[server::who] ")))
+        members[sender]?.send(Frame.Text(memberNames.values.joinToString(prefix = "[server::who] ")))
     }
 
     suspend fun help(sender: String) {
