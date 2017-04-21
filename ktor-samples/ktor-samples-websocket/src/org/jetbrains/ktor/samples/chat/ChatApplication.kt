@@ -36,16 +36,16 @@ fun Application.main() {
 
             pingInterval = Duration.ofMinutes(1)
 
-            server.memberJoin(session.id, this)
+            server.memberJoin(session.userId, this)
 
             handle { frame ->
                 if (frame is Frame.Text) {
-                    receivedMessage(session.id, frame.readText())
+                    receivedMessage(session.userId, frame.readText())
                 }
             }
 
             close {
-                server.memberLeft(session.id, this)
+                server.memberLeft(session.userId, this)
             }
         }
 
@@ -56,7 +56,7 @@ fun Application.main() {
     }
 }
 
-data class Session(val id: String)
+data class Session(val userId: String)
 
 private suspend fun receivedMessage(id: String, command: String) {
     when {
