@@ -9,26 +9,11 @@ import kotlin.properties.*
 class AuthenticationContext(val call: ApplicationCall) {
     var principal by Delegates.vetoable<Principal?>(null) { _, old, _ -> require(old == null); true }
     val errors = HashMap<Any, NotAuthenticatedCause>()
-
-    private val challengesCollector = mutableListOf<Pair<NotAuthenticatedCause, suspend PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>>()
-
-    val challenges: List<suspend PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>
-        get() = challengesCollector.filter { it.first !is NotAuthenticatedCause.Error }.sortedBy {
-            when (it.first) {
-                NotAuthenticatedCause.InvalidCredentials -> 1
-                NotAuthenticatedCause.NoCredentials -> 2
-                else -> throw NoWhenBranchMatchedException("${it.first}")
-            }
-        }.map { it.second }
-
-    val allChallenges: List<Pair<NotAuthenticatedCause, suspend PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>>
-        get() = challengesCollector.toList()
+    val challenge = AuthenticationProcedureChallenge()
 
     fun principal(principal: Principal) {
         this.principal = principal
     }
-
-    fun hasPrincipal() = principal != null
 
     inline fun <reified T : Principal> principal(): T? = principal as? T
 
@@ -36,9 +21,11 @@ class AuthenticationContext(val call: ApplicationCall) {
         errors[key] = cause
     }
 
-    suspend fun challenge(key: Any, cause: NotAuthenticatedCause, function: suspend PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit) {
+    suspend fun challenge(key: Any,
+                          cause: NotAuthenticatedCause,
+                          function: suspend PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit) {
         error(key, cause)
-        challengesCollector.add(cause to function)
+        challenge.register.add(cause to function)
     }
 
     override fun toString(): String {

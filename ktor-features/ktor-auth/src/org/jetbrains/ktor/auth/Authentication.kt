@@ -9,15 +9,17 @@ class Authentication(val pipeline: AuthenticationPipeline) {
         pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
             val principal = context.principal
             if (principal == null) {
-                val challenges = context.challenges
+                val challenges = context.challenge.challenges
                 if (challenges.isNotEmpty()) {
                     val challengePhase = PipelinePhase("Challenge")
                     val challengePipeline = Pipeline(challengePhase, challenges)
                     challengePipeline.intercept(challengePhase) { challenge ->
                         if (challenge.success)
-                            finish() // TODO: was finishAll
+                            finish()
                     }
-                    challengePipeline.execute(AuthenticationProcedureChallenge())
+                    val challenge = challengePipeline.execute(context.challenge)
+                    if (challenge.success)
+                        finish()
                 }
             }
         }
@@ -33,8 +35,10 @@ class Authentication(val pipeline: AuthenticationPipeline) {
             val feature = Authentication(authenticationPipeline)
             pipeline.phases.insertAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
             pipeline.intercept(authenticationPhase) {
-                val procedureContext = AuthenticationContext.from(call)
-                feature.pipeline.execute(procedureContext)
+                val authenticationContext = AuthenticationContext.from(call)
+                feature.pipeline.execute(authenticationContext)
+                if (authenticationContext.challenge.success)
+                    finish()
             }
             return feature
         }
@@ -55,6 +59,17 @@ fun ApplicationCallPipeline.authentication(procedure: AuthenticationPipeline.() 
 }
 
 class AuthenticationProcedureChallenge {
+    internal val register = mutableListOf<Pair<NotAuthenticatedCause, suspend PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>>()
+
+    val challenges: List<suspend PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>
+        get() = register.filter { it.first !is NotAuthenticatedCause.Error }.sortedBy {
+            when (it.first) {
+                NotAuthenticatedCause.InvalidCredentials -> 1
+                NotAuthenticatedCause.NoCredentials -> 2
+                else -> throw NoWhenBranchMatchedException("${it.first}")
+            }
+        }.map { it.second }
+
     @Volatile
     var success = false
         private set
