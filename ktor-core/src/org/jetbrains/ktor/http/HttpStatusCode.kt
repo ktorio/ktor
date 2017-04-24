@@ -63,7 +63,7 @@ data class HttpStatusCode(val value: Int, val description: String) {
         val VariantAlsoNegotiates = HttpStatusCode(506, "Variant Also Negotiates")
 
         val allStatusCodes = HttpStatusCode.Companion::class.memberProperties
-                .filter { it.returnType == HttpStatusCode::class.defaultType }
+                .filter { it.returnType.classifier == HttpStatusCode::class }
                 .map { it.get(this) as HttpStatusCode }
 
         private val byValue by lazy { allStatusCodes.associateBy { it.value } }
