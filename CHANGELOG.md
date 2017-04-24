@@ -1,11 +1,12 @@
 # 0.3.2
-> Not published
+> Published 24 Apr 2017
 
 * Fix bug in byte array response that missed Content-Length header
 * Fix default encoding in FreeMarker to be UTF-8
 * Fix FreeMarker writer
 * Fix charset for text/* content types to be UTF-8 by default
 * Fix Kweet sample application in kweet deletion
+* Fix form authentication to adhere to removal of post parameters from `parameters`
 * Rework static content DSL to improve usability
 * Improve Accept header handling in routes
 * Support local class in locations, improve diagnostics
