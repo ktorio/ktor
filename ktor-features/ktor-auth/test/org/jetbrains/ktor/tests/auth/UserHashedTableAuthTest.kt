@@ -34,32 +34,69 @@ class UserHashedTableAuthTest {
     fun testSingle(hashedUserTable: UserHashedTableAuth) {
         withTestApplication {
             application.routing {
-                authentication {
-                    formAuthentication { hashedUserTable.authenticate(it) }
+                route("/redirect") {
+                    authentication {
+                        formAuthentication(
+                                challenge = FormAuthChallenge.Redirect({ _, _ -> "/unauthorized" }),
+                                validate = { hashedUserTable.authenticate(it) }
+                        )
+                    }
+                    post {
+                        call.respondText("ok")
+                    }
                 }
-
-                get("/") {
-                    call.respondText("ok")
+                route("/deny") {
+                    authentication {
+                        formAuthentication(
+                                validate = { hashedUserTable.authenticate(it) }
+                        )
+                    }
+                    post {
+                        call.respondText("ok")
+                    }
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/").let { result ->
+            handlePost("/deny").let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
+                assertEquals(null, result.response.content)
             }
-            handleRequest(HttpMethod.Get, "/?user=test&password=bad-pass").let { result ->
+            handlePost("/redirect").let { result ->
+                assertTrue(result.requestHandled)
+                assertEquals(HttpStatusCode.Found, result.response.status())
+                assertEquals(null, result.response.content)
+            }
+            handlePost("/deny?user=test&pass=test").let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
+                assertEquals(null, result.response.content)
             }
-            handleRequest(HttpMethod.Get, "/?user=test&bad-user=bad-pass").let { result ->
+            handlePost("/deny", "test", "bad-pass").let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.Unauthorized, result.response.status())
+                assertEquals(null, result.response.content)
             }
-            handleRequest(HttpMethod.Get, "/?user=test&password=test").let { result ->
+            handlePost("/deny?bad-user=bad-pass", "test").let { result ->
+                assertTrue(result.requestHandled)
+                assertEquals(HttpStatusCode.Unauthorized, result.response.status())
+                assertEquals(null, result.response.content)
+            }
+            handlePost("/deny", "test", "test").let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.OK, result.response.status())
                 assertEquals("ok", result.response.content)
             }
+        }
+    }
+
+    fun TestApplicationHost.handlePost(uri: String, user: String? = null, password: String? = null): TestApplicationCall {
+        return handleRequest(HttpMethod.Post, uri) {
+            addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            body = ValuesMap.build {
+                if (user != null) append("user", user)
+                if (password != null) append("password", password)
+            }.formUrlEncode()
         }
     }
 }
