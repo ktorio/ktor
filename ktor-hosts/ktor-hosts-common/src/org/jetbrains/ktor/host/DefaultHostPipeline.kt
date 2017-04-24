@@ -6,24 +6,29 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.request.*
 
-fun defaultHostPipeline(environment: ApplicationEnvironment) = HostPipeline().apply {
+fun defaultHostPipeline(environment: ApplicationEnvironment): HostPipeline {
+    val pipeline = HostPipeline()
+
     environment.config.propertyOrNull("ktor.deployment.shutdown.url")?.getString()?.let { url ->
-        install(ShutDownUrl.HostFeature) {
+        pipeline.install(ShutDownUrl.HostFeature) {
             shutDownUrl = url
         }
     }
 
-    intercept(HostPipeline.Call) {
+    pipeline.intercept(HostPipeline.Call) {
         try {
             call.application.execute(call)
             if (call.response.status() == null) {
                 call.respond(HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${call.request.uri}"))
             }
         } catch (error: Throwable) {
-            environment.logFailure(call, error)
+            call.application.environment.logFailure(call, error)
             call.respond(HttpStatusContent(HttpStatusCode.InternalServerError, "${error::class.simpleName}: ${error.message}\n"))
         }
+
     }
+
+    return pipeline
 }
 
 private fun ApplicationEnvironment.logFailure(call: ApplicationCall, e: Throwable) {

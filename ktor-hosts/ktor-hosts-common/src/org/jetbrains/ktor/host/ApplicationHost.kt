@@ -11,11 +11,11 @@ interface ApplicationHost {
     fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit)
 }
 
-abstract class BaseApplicationHost(override final val environment: ApplicationHostEnvironment) : ApplicationHost {
-    val application: Application get() = environment.application
-    val pipeline = createHostPipeline()
+abstract class BaseApplicationHost(override final val environment: ApplicationHostEnvironment,
+                                   val pipeline: HostPipeline = defaultHostPipeline(environment)
+) : ApplicationHost {
 
-    protected open fun createHostPipeline() = defaultHostPipeline(environment)
+    val application: Application get() = environment.application
 
     init {
         environment.monitor.applicationStarting += {
