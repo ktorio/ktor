@@ -1,9 +1,5 @@
 package org.jetbrains.ktor.logging
 
-import org.slf4j.*
-import org.slf4j.Logger
-import java.util.logging.*
-
 /**
  * Provides unified interface to application logging.
  */

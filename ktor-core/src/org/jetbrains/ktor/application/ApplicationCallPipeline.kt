@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.application
 
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.util.*
 
 val PipelineContext<ApplicationCall>.call: ApplicationCall get() = subject
 

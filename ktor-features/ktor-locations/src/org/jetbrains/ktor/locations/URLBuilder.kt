@@ -1,8 +1,6 @@
 package org.jetbrains.ktor.locations
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
-import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 
 @Deprecated("Seems to be too risky as host/port are not initialized")

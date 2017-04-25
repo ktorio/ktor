@@ -13,13 +13,14 @@ fun Route.login(users: UserHashedTableAuth) {
     location<Login> {
         method(HttpMethod.Post) {
             authentication {
-                formAuthentication(Login::userName.name, Login::password.name, challenge = FormAuthChallenge.Redirect { call, c -> call.url(Login(c?.name ?: "")) }) {
-                    users.authenticate(it)
-                }
+                formAuthentication(Login::userName.name, Login::password.name,
+                        challenge = FormAuthChallenge.Redirect { call, c -> call.url(Login(c?.name ?: "")) },
+                        validate = { users.authenticate(it) })
             }
 
             handle {
-                call.session(Session(call.principal<UserIdPrincipal>()!!.name))
+                val principal = call.principal<UserIdPrincipal>()
+                call.session(Session(principal!!.name))
                 call.respondRedirect(Index())
             }
         }
@@ -28,19 +29,25 @@ fun Route.login(users: UserHashedTableAuth) {
             handle<Login> {
                 call.respondDefaultHtml(emptyList(), CacheControlVisibility.PUBLIC) {
                     h2 { +"Login" }
-//                    form(url(Login()), encType = FormEncType.applicationXWwwFormUrlEncoded, method = FormMethod.post) {
                     form(call.url(Login()) { parameters.clear() }, classes = "pure-form-stacked", encType = FormEncType.applicationXWwwFormUrlEncoded, method = FormMethod.post) {
                         acceptCharset = "utf-8"
 
                         label {
                             +"Username: "
-                            textInput { name = "userName"; value = it.userName }
+                            textInput {
+                                name = Login::userName.name
+                                value = it.userName
+                            }
                         }
                         label {
                             +"Password: "
-                            passwordInput { name = "password" }
+                            passwordInput {
+                                name = Login::password.name
+                            }
                         }
-                        submitInput(classes = "pure-button pure-button-primary") { value = "Login" }
+                        submitInput(classes = "pure-button pure-button-primary") {
+                            value = "Login"
+                        }
                     }
                 }
             }

@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.http
 
-import kotlin.reflect.*
 import kotlin.reflect.full.*
 
 @Suppress("unused")

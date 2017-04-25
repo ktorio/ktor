@@ -1,7 +1,5 @@
 package org.jetbrains.ktor.util
 
-import kotlin.text.*
-
 fun String.substringAfterMatch(mr: MatchResult) = drop(mr.range.endInclusive + if (mr.range.isEmpty()) 0 else 1)
 
 private val escapeRegex = "\\\\.".toRegex()

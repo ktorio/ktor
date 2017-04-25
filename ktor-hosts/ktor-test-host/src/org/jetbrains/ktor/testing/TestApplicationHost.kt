@@ -7,20 +7,18 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 import java.util.concurrent.*
 
-class TestApplicationHost(environment: ApplicationHostEnvironment = createTestEnvironment()) : BaseApplicationHost(environment) {
-
-    override fun createHostPipeline(): HostPipeline {
-        return HostPipeline().apply {
-            intercept(HostPipeline.Call) {
-                call.application.execute(call)
-            }
-            intercept(HostPipeline.Before) { call ->
-                call.response.pipeline.intercept(ApplicationResponsePipeline.Before) {
-                    proceed()
-                    (call as? TestApplicationCall)?.requestHandled = true
-                }
+class TestApplicationHost(environment: ApplicationHostEnvironment = createTestEnvironment()) : BaseApplicationHost(environment, HostPipeline()) {
+    init {
+        pipeline.intercept(HostPipeline.Call) {
+            call.application.execute(call)
+        }
+        pipeline.intercept(HostPipeline.Before) { call ->
+            call.response.pipeline.intercept(ApplicationResponsePipeline.Before) {
+                proceed()
+                (call as? TestApplicationCall)?.requestHandled = true
             }
         }
+
     }
 
     override fun start(wait: Boolean): ApplicationHost {

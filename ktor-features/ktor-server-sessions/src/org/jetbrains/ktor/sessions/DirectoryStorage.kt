@@ -2,7 +2,6 @@ package org.jetbrains.ktor.sessions
 
 import org.jetbrains.ktor.cio.*
 import java.io.*
-import java.util.concurrent.locks.*
 
 internal class DirectoryStorage(val dir: File) : SessionStorage, Closeable {
     init {

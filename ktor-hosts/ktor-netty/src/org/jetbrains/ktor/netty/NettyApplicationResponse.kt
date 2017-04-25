@@ -65,7 +65,6 @@ internal class NettyApplicationResponse(call: ApplicationCall, val context: Chan
         }
         if (response.status().code() != HttpStatusCode.SwitchingProtocols.value) {
             HttpUtil.setTransferEncodingChunked(response, true)
-            context.pipeline().addAfter("codec", "chunked", ChunkedWriteHandler())
         }
     }
 

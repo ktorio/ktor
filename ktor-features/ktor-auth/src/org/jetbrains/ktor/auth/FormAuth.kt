@@ -3,12 +3,17 @@ package org.jetbrains.ktor.auth
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
+import org.jetbrains.ktor.util.*
 
 val FormAuthKey: Any = "FormAuth"
-fun AuthenticationPipeline.formAuthentication(userParamName: String = "user", passwordParamName: String = "password", challenge: FormAuthChallenge = FormAuthChallenge.Unauthorized, validate: (UserPasswordCredential) -> Principal?) {
+fun AuthenticationPipeline.formAuthentication(userParamName: String = "user",
+                                              passwordParamName: String = "password",
+                                              challenge: FormAuthChallenge = FormAuthChallenge.Unauthorized,
+                                              validate: (UserPasswordCredential) -> Principal?) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val username = context.call.parameters[userParamName]
-        val password = context.call.parameters[passwordParamName]
+        val postParameters = context.call.request.receive<ValuesMap>()
+        val username = postParameters[userParamName]
+        val password = postParameters[passwordParamName]
 
         val credentials = if (username != null && password != null) UserPasswordCredential(username, password) else null
         val principal = credentials?.let(validate)

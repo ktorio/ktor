@@ -3,7 +3,6 @@ package org.jetbrains.ktor.netty.http2
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import io.netty.util.*
-import org.jetbrains.ktor.netty.*
 import java.net.*
 import java.util.*
 import java.util.concurrent.atomic.*

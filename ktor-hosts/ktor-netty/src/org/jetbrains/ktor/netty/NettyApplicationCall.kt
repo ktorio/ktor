@@ -43,7 +43,6 @@ internal class NettyApplicationCall(application: Application,
                     // TODO: change it to shareable context-agnostic concurrent map
                     try {
                         with (context.pipeline()) {
-                            get("chunked")?.let { remove(it) }
                             remove(HttpContentQueue::class.java)
                             remove(NettyApplicationCallHandler::class.java)
                         }
@@ -78,7 +77,6 @@ internal class NettyApplicationCall(application: Application,
             }
 
             with(context.channel().pipeline()) {
-                get("chunked")?.let { remove(it) }
                 remove(NettyHostHttp1Handler::class.java)
                 addFirst(NettyDirectDecoder())
             }
