@@ -30,7 +30,7 @@ abstract class KtorServlet : HttpServlet() {
                 tryPush(request, call, block, next)
             })
 
-            launch(AsyncContextCoroutineDispatcher(asyncContext)) {
+            launch(application.environment.executor.asCoroutineDispatcher()) {
                 try {
                     hostPipeline.execute(call)
                 } finally {

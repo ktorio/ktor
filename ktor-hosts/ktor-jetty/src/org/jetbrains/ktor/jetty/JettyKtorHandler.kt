@@ -14,7 +14,7 @@ import javax.servlet.http.*
 
 internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, server: Server, val pipeline: () -> HostPipeline) : AbstractHandler() {
 //    private val dispatcher by lazy { JettyCoroutinesDispatcher(server.threadPool) }
-    private val dispatcher by lazy { server.threadPool.asCoroutineDispatcher() }
+    private val dispatcher by lazy { environment.executor.asCoroutineDispatcher() }
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
 
     override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
