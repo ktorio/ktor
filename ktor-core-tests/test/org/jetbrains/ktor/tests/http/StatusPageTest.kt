@@ -213,4 +213,29 @@ class StatusPageTest {
             }
         }
     }
+
+    @Test
+    fun testErrorFromExceptionContent() {
+
+        class ValidationException(val code: String) : RuntimeException()
+
+        withTestApplication {
+            application.install(StatusPages) {
+                exception<ValidationException> { cause ->
+                    // Can access `cause.code` without casting
+                    call.respond(TextContent(cause.code, ContentType.Text.Plain.withCharset(Charsets.UTF_8), HttpStatusCode.InternalServerError))
+                }
+            }
+
+            application.routing {
+                get("/ve") {
+                    throw ValidationException("code")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/ve").let { call ->
+                assertEquals("code", call.response.content)
+            }
+        }
+    }
 }

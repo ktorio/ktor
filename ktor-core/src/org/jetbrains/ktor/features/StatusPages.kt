@@ -15,11 +15,12 @@ class StatusPages(config: Configuration) {
         val exceptions = mutableMapOf<Class<*>, suspend PipelineContext<ApplicationCall>.(Throwable) -> Unit>()
         val statuses = mutableMapOf<HttpStatusCode, suspend PipelineContext<ApplicationCall>.(HttpStatusCode) -> Unit>()
 
-        inline fun <reified T : Any> exception(noinline handler: suspend PipelineContext<ApplicationCall>.(Throwable) -> Unit) =
+        inline fun <reified T : Throwable> exception(noinline handler: suspend PipelineContext<ApplicationCall>.(T) -> Unit) =
                 exception(T::class.java, handler)
 
-        fun exception(klass: Class<*>, handler: suspend PipelineContext<ApplicationCall>.(Throwable) -> Unit) {
-            exceptions.put(klass, handler)
+        fun <T : Throwable> exception(klass: Class<T>, handler: suspend PipelineContext<ApplicationCall>.(T) -> Unit) {
+            @Suppress("UNCHECKED_CAST")
+            exceptions.put(klass, handler as suspend PipelineContext<ApplicationCall>.(Throwable) -> Unit)
         }
 
         fun status(vararg status: HttpStatusCode, handler: suspend PipelineContext<ApplicationCall>.(HttpStatusCode) -> Unit) {
