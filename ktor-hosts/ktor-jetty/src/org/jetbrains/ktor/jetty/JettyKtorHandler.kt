@@ -42,8 +42,9 @@ internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, ser
                 // TODO someone reported auto-cleanup issues so we have to check it
             }
 
-            request.startAsync()
-            request.asyncContext.timeout = 0 // Overwrite any default non-null timeout to prevent multiple dispatches
+            request.startAsync()?.apply {
+                timeout = 0 // Overwrite any default non-null timeout to prevent multiple dispatches
+            }
             baseRequest.isHandled = true
 
             launch(dispatcher) {
