@@ -10,7 +10,8 @@ import kotlin.coroutines.experimental.*
 import kotlin.coroutines.experimental.intrinsics.*
 
 internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream, val exec: ExecutorService) : WriteChannel {
-    private val listenerInstalled = AtomicBoolean(false)
+    @Volatile
+    private var listenerInstalled = 0
 
     @Volatile
     private var currentHandler: Continuation<Unit>? = null
@@ -20,6 +21,7 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream,
 
     companion object {
         const val MaxChunkWithoutSuspension = 100 * 1024 * 1024 // 100K
+        private val listenerInstalledUpdater = AtomicIntegerFieldUpdater.newUpdater(ServletWriteChannel::class.java, "listenerInstalled")
     }
 
     private val writeReadyListener = object : WriteListener {
@@ -41,7 +43,7 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream,
     }
 
     suspend override fun flush() {
-        if (listenerInstalled.get()) {
+        if (listenerInstalled != 0) {
             awaitForListenerInstalled()
             awaitForWriteReady()
             servletOutputStream.flush()
@@ -65,7 +67,7 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream,
     }
 
     private suspend fun awaitForListenerInstalled() {
-        if (!listenerInstalled.get() && listenerInstalled.compareAndSet(false, true)) {
+        if (listenerInstalled == 0 && listenerInstalledUpdater.compareAndSet(this, 0, 1)) {
             suspendCoroutine<Unit> { continuation ->
                 currentHandler = continuation
                 servletOutputStream.setWriteListener(writeReadyListener)
