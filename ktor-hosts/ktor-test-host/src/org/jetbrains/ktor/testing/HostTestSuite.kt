@@ -993,7 +993,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     }
 
     @Test
-    fun testBlockingDeadlock() {
+    open fun testBlockingDeadlock() {
         createAndStartServer {
             get("/") { call ->
                 call.respondWrite(Charsets.ISO_8859_1) {
