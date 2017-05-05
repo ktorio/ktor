@@ -8,8 +8,8 @@
     <artifactId>ktor</artifactId>
 
     <properties>
-        <kotlin.version>1.1.1</kotlin.version>
-        <coroutines.version>0.14</coroutines.version>
+        <kotlin.version>1.1.2</kotlin.version>
+        <coroutines.version>0.15</coroutines.version>
         <dokka.version>0.9.13</dokka.version>
         <jmh.version>1.17.5</jmh.version>
 
