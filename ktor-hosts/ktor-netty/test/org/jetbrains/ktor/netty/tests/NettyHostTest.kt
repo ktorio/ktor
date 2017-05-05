@@ -6,6 +6,7 @@ import org.junit.*
 
 class NettyHostTest : HostTestSuite<NettyApplicationHost>(Netty) {
 
+    @Test
     @Ignore // runs too long
     override fun testBlockingDeadlock() {
         super.testBlockingDeadlock()
