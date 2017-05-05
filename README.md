@@ -89,10 +89,39 @@ Add a dependency:
 <dependency>
     <groupId>org.jetbrains.ktor</groupId>
     <artifactId>ktor-core</artifactId>
-    <version>LATEST</version>
+    <version>${ktor.version}</version>
 </dependency>
+
+<!-- you also may need to include host implementation as well, for example
+
+<dependency>
+    <groupId>org.jetbrains.ktor</groupId>
+    <artifactId>ktor-jetty</artifactId>
+    <version>${ktor.version}</version>
+</dependency>
+
+-->
 ```
 
+## Gradle
+
+```
+repositories {
+    jcenter()
+    maven { url "https://dl.bintray.com/kotlin/kotlinx" }
+    maven { url "https://dl.bintray.com/kotlin/ktor" }
+}
+```
+
+dependency:
+
+```
+dependencies {
+    compile "org.jetbrains.ktor:ktor-core:$ktorVersion"
+    // you may also need to include host implementation as well, for example
+    // compile "org.jetbrains.ktor:ktor-host-jetty:$ktorVersion"
+}
+```
 
 ## Inspirations
 
