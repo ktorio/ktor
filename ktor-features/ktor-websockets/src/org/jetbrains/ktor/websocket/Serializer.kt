@@ -4,11 +4,13 @@ import org.jetbrains.ktor.util.*
 import java.nio.*
 import java.util.concurrent.*
 
-internal class Serializer(val masking: () -> Boolean) {
+internal class Serializer {
     private val q = ArrayBlockingQueue<Frame>(1024)
 
     private var frameBody: ByteBuffer? = null
     private var maskBuffer: ByteBuffer? = null
+
+    var masking = false
 
     val hasOutstandingBytes: Boolean
         get() = q.isNotEmpty() || frameBody != null
@@ -20,7 +22,7 @@ internal class Serializer(val masking: () -> Boolean) {
     fun serialize(buffer: ByteBuffer) {
         while (writeCurrentPayload(buffer)) {
             val frame = q.peek() ?: break
-            val mask = masking()
+            val mask = masking
             setMaskBuffer(mask)
 
             val headerSize = estimateFrameHeaderSize(frame, mask)
