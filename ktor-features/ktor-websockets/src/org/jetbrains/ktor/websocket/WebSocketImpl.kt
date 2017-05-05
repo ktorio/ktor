@@ -19,9 +19,11 @@ internal class WebSocketImpl(call: ApplicationCall,
         get() = outbound.masking
         set(value) { outbound.masking = value }
 
-    fun init() {
+    init {
         masking = false
+    }
 
+    fun start() {
         launchAsync(application.executor) {
             try {
                 reader.readLoop()

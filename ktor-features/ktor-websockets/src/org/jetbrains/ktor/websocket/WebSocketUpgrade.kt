@@ -31,7 +31,7 @@ class WebSocketUpgrade(call: ApplicationCall, val protocol: String? = null, val 
 
         configure(webSocket)
 
-        webSocket.init()
+        webSocket.start()
 
         return webSocket
     }
