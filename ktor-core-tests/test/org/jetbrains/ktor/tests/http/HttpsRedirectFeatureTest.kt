@@ -50,14 +50,16 @@ class HttpsRedirectFeatureTest {
     @Test
     fun testDirectPathAndQuery() {
         withTestApplication {
-            application.install(HttpsRedirect)
+            application.install(HttpsRedirect) {
+                 this.sslPort = 8443
+            }
             application.intercept(ApplicationCallPipeline.Fallback) { call ->
                 call.respond("ok")
             }
 
             handleRequest(HttpMethod.Get, "/some/path?q=1").let { call ->
                 assertEquals(HttpStatusCode.MovedPermanently, call.response.status())
-                assertEquals("https://localhost/some/path?q=1", call.response.headers[HttpHeaders.Location])
+                assertEquals("https://localhost:8443/some/path?q=1", call.response.headers[HttpHeaders.Location])
             }
         }
     }
