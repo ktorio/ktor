@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.websocket
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.pipeline.*
@@ -11,18 +12,30 @@ internal class WebSocketImpl(call: ApplicationCall,
                              val writeChannel: WriteChannel,
                              val channel: Closeable) : WebSocket(call) {
     private val controlFrameHandler = ControlFrameHandler(this, application.executor)
-    private val outbound = WebSocketWriter(this, writeChannel, controlFrameHandler)
-    private val reader = WebSocketReader(
-            { maxFrameSize },
-            { closeAsync(it) },
-            { send(Frame.Close(it)) },
-            readChannel,
-            { frameHandler(it) },
-            { controlFrameHandler.currentReason })
+    private val outbound = WebSocketWriter(writeChannel)
+    private val reader = WebSocketReader(readChannel, { maxFrameSize }, { frameHandler(it) })
 
-    fun init() {
+    override var masking: Boolean
+        get() = outbound.masking
+        set(value) { outbound.masking = value }
+
+    init {
+        masking = false
+    }
+
+    fun start() {
         launchAsync(application.executor) {
-            reader.readLoop()
+            try {
+                reader.readLoop()
+            } catch (tooBig: WebSocketReader.FrameTooBigException) {
+                errorHandler(tooBig)
+                close(CloseReason(CloseReason.Codes.TOO_BIG, tooBig.message))
+            } catch (t: Throwable) {
+                errorHandler(t)
+                close(CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, t.javaClass.name))
+            } finally {
+                terminateConnection(controlFrameHandler.currentReason)
+            }
         }
     }
 
@@ -53,15 +66,37 @@ internal class WebSocketImpl(call: ApplicationCall,
     }
 
     suspend override fun flush() {
-        outbound.flush()
+        try {
+            outbound.flush()
+        } catch (t: Throwable) {
+            try {
+                errorHandler(t)
+            } finally {
+                terminateConnection(controlFrameHandler.currentReason)
+                throw t
+            }
+        }
     }
 
     override suspend fun send(frame: Frame) {
         if (frame.frameType.controlFrame) {
-            controlFrameHandler.send(frame)
+            controlFrameHandler.sent(frame)
         }
 
-        outbound.send(frame)
+        try {
+            outbound.send(frame)
+        } catch (t: Throwable) {
+            try {
+                errorHandler(t)
+            } finally {
+                terminateConnection(controlFrameHandler.currentReason)
+                throw t
+            }
+        }
+
+        if (frame is Frame.Close) {
+            controlFrameHandler.closeSentAndWritten()
+        }
     }
 
     override fun close() {
@@ -84,9 +119,13 @@ internal class WebSocketImpl(call: ApplicationCall,
         } catch (t: Throwable) {
             application.log.debug("Failed to close write channel")
         }
+
+        runBlocking {
+            closeHandler(null)
+        }
     }
 
-    suspend fun closeAsync(reason: CloseReason?) {
+    suspend fun terminateConnection(reason: CloseReason?) {
         use {
             controlFrameHandler.stop()
             closeHandler(reason)

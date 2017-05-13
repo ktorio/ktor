@@ -7,7 +7,9 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.io.*
+import java.util.*
 import javax.servlet.http.*
+import kotlin.collections.ArrayList
 
 class ServletApplicationRequest(override val call: ServletApplicationCall,
                                 val servletRequest: HttpServletRequest,
@@ -21,7 +23,23 @@ class ServletApplicationRequest(override val call: ServletApplicationCall,
     override val headers: ValuesMap = ServletHeadersValuesMap(servletRequest)
 
     class ServletHeadersValuesMap(val servletRequest: HttpServletRequest) : ValuesMap {
-        override fun getAll(name: String): List<String> = servletRequest.getHeaders(name)?.toList() ?: emptyList()
+        override fun getAll(name: String): List<String> {
+            val headersEnumeration = servletRequest.getHeaders(name) ?: return emptyList()
+            if (!headersEnumeration.hasMoreElements()) return emptyList()
+
+            val first = headersEnumeration.nextElement()
+            if (!headersEnumeration.hasMoreElements()) return Collections.singletonList(first)
+
+            val result = ArrayList<String>(2)
+            result.add(first)
+
+            while (headersEnumeration.hasMoreElements()) {
+                result.add(headersEnumeration.nextElement())
+            }
+
+            return result
+        }
+
         override fun entries(): Set<Map.Entry<String, List<String>>> {
             val names = servletRequest.headerNames
             val set = LinkedHashSet<Map.Entry<String, List<String>>>()
@@ -36,7 +54,7 @@ class ServletApplicationRequest(override val call: ServletApplicationCall,
             return set
         }
 
-        override fun isEmpty(): Boolean = servletRequest.headerNames.asSequence().none()
+        override fun isEmpty(): Boolean = !servletRequest.headerNames.hasMoreElements()
         override val caseInsensitiveKey: Boolean get() = true
         override fun names(): Set<String> = servletRequest.headerNames.asSequence().toSet()
     }

@@ -8,6 +8,10 @@ import java.time.*
 
 class DefaultHeaders(config: Configuration) {
     val headers = config.headers.build()
+
+    private val UTC = ZoneId.of("UTC")!! // it is very important to get it like that
+    private val zoneUTCRules = UTC.rules
+
     private var cachedDateTimeStamp: Long = 0L
     @Volatile private var cachedDateText: String = ZonedDateTime.now(ZoneOffset.UTC).toHttpDateString()
 
@@ -21,13 +25,22 @@ class DefaultHeaders(config: Configuration) {
         headers.entries().forEach { entry -> entry.value.forEach { call.response.header(entry.key, it) } }
     }
 
+    // ZonedDateTime.now allocates too much so we reimplement it
+    private fun now(): ZonedDateTime {
+        // we shouldn't use ZoneOffset.UTC here otherwise we get to many allocations inside of Java Time implementation
+        val instant = Clock.system(UTC).instant()
+        val offset = zoneUTCRules.getOffset(instant)
+        val ldt = LocalDateTime.ofEpochSecond(instant.epochSecond, instant.nano, offset)
+
+        return ZonedDateTime.ofInstant(ldt, offset, UTC)
+    }
+
     private fun appendDateHeader(call: ApplicationCall) {
-        val now = ZonedDateTime.now(ZoneOffset.UTC)
         val captureCached = cachedDateTimeStamp
         val currentTimeStamp = System.currentTimeMillis()
         if (captureCached + 1000 < currentTimeStamp) {
             cachedDateTimeStamp = currentTimeStamp
-            cachedDateText = now.toHttpDateString()
+            cachedDateText = now().toHttpDateString()
         }
         call.response.header("Date", cachedDateText)
     }

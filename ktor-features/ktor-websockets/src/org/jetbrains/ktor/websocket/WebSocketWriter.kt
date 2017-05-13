@@ -4,24 +4,20 @@ import org.jetbrains.ktor.cio.*
 import java.nio.*
 import java.util.concurrent.atomic.*
 
-internal class WebSocketWriter(parent: WebSocketImpl, val writeChannel: WriteChannel, val controlFrameHandler: ControlFrameHandler) {
-    private val serializer = Serializer(parent::masking)
-    private val buffer = ByteBuffer.allocate(8192)
+internal class WebSocketWriter(val writeChannel: WriteChannel) {
+    private val serializer = Serializer()
+    private val buffer: ByteBuffer = ByteBuffer.allocate(8192)
 
     private val writeInProgress = AtomicBoolean()
-    private var closeSent = false
+
+    var masking: Boolean
+        get() = serializer.masking
+        set(newValue) { serializer.masking = newValue }
 
     /**
      * enqueue frame for future sending, may block if too many enqueued frames
      */
     fun enqueue(frame: Frame) {
-        if (closeSent) {
-            throw IllegalStateException("Outbound is already closed (close frame has been sent)")
-        }
-        if (frame.frameType == FrameType.CLOSE) {
-            closeSent = true
-        }
-
         serializer.enqueue(frame)
     }
 
@@ -48,17 +44,7 @@ internal class WebSocketWriter(parent: WebSocketImpl, val writeChannel: WriteCha
                 serializer.serialize(buffer)
                 buffer.flip()
                 while (buffer.hasRemaining()) {
-                    if (closeSent && !serializer.hasOutstandingBytes) {
-                        controlFrameHandler.closeAfterTimeout()
-                    }
-
                     writeChannel.write(buffer)
-
-                    if (closeSent && !serializer.hasOutstandingBytes) {
-                        writeChannel.flush()
-                        controlFrameHandler.closeSent()
-                        break
-                    }
 
                     buffer.compact()
                     serializer.serialize(buffer)
@@ -71,8 +57,6 @@ internal class WebSocketWriter(parent: WebSocketImpl, val writeChannel: WriteCha
                 writeInProgress.set(false)
             }
         }
-
-        // TODO try {} catch ( parent.closeAsync }
     }
 
 }

@@ -7,6 +7,7 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import java.time.*
 import java.util.*
+import java.util.concurrent.atomic.*
 
 abstract class WebSocket internal constructor(val call: ApplicationCall) : Closeable {
     val application: Application = call.application
@@ -15,12 +16,13 @@ abstract class WebSocket internal constructor(val call: ApplicationCall) : Close
     private val errorHandlers = ArrayList<(Throwable) -> Unit>()
     private val closeHandlers = ArrayList<suspend (CloseReason?) -> Unit>()
     private val closedLatch = AsyncCountDownLatch(1)
+    private val closedNotified = AtomicBoolean()
 
     /**
      * Enable or disable masking output messages by a random xor mask.
      * Please note that changing this flag on the fly could be applied to the messages already sent as the sending pipeline works asynchronously
      */
-    var masking = false
+    open var masking = false
 
     /**
      * Specifies frame size limit. Connection will be closed if violated
@@ -59,14 +61,28 @@ abstract class WebSocket internal constructor(val call: ApplicationCall) : Close
     }
 
     protected suspend open fun frameHandler(frame: Frame) {
-        handlers.forEach { it(frame) }
+        if (!closedNotified.get()) {
+            handlers.forEach { it(frame) }
+        }
+    }
+
+    protected suspend open fun errorHandler(t: Throwable) {
+        errorHandlers.forEach {
+            try {
+                it(t)
+            } catch (sub: Throwable) {
+                t.addSuppressed(sub)
+            }
+        }
     }
 
     protected suspend open fun closeHandler(reason: CloseReason?) {
-        try {
-            closeHandlers.forEach { it(reason) }
-        } finally {
-            closedLatch.countDown()
+        if (closedNotified.compareAndSet(false, true)) {
+            try {
+                closeHandlers.forEach { it(reason) }
+            } finally {
+                closedLatch.countDown()
+            }
         }
     }
 }

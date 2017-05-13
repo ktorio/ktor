@@ -14,6 +14,7 @@ import org.jetbrains.ktor.util.*
 import org.junit.*
 import org.junit.runners.model.*
 import java.io.*
+import java.net.*
 import java.security.*
 import java.util.*
 import java.util.concurrent.*
@@ -989,6 +990,68 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         withUrl("/file") {
             assertEquals(originalSha1, inputStream.sha1())
         }
+    }
+
+    @Test
+    open fun testBlockingDeadlock() {
+        createAndStartServer {
+            get("/") { call ->
+                call.respondWrite(Charsets.ISO_8859_1) {
+                    TimeUnit.SECONDS.sleep(1)
+                    this.write("Deadlock ?")
+                }
+            }
+        }
+
+        val e = Executors.newCachedThreadPool()
+        val q = LinkedBlockingQueue<String>()
+
+        val conns = (0..1000).map { number ->
+            e.submit(Callable<String> {
+                try {
+                    URL("http://localhost:$port/").openConnection().inputStream.bufferedReader().readLine().apply {
+                        //println("$number says $this")
+                    } ?: "<empty>"
+                } catch (t: Throwable) {
+                    "error: ${t.message}"
+                }.apply {
+                    q.add(this)
+                }
+            })
+        }
+
+        TimeUnit.SECONDS.sleep(5)
+        var attempts = 7
+
+        fun dump() {
+            val (valid, invalid) = conns.filter { it.isDone }.partition { it.get() == "Deadlock ?" }
+
+            println("Completed: ${valid.size} valid, ${invalid.size} invalid of ${conns.size} total [attempts $attempts]")
+        }
+
+        while (true) {
+            dump()
+
+            if (conns.all { it.isDone }) {
+                break
+            } else if (q.poll(5, TimeUnit.SECONDS) == null) {
+                if (attempts <= 0) {
+                    break
+                }
+                attempts--
+            } else {
+                attempts = 7
+            }
+        }
+
+        dump()
+
+        /* use for debugging */
+//        if (conns.any { !it.isDone }) {
+//             TimeUnit.SECONDS.sleep(500)
+//        }
+
+        assertTrue { conns.all { it.isDone } }
     }
 
     private fun String.urlPath() = replace("\\", "/")

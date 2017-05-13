@@ -27,7 +27,7 @@ internal class ControlFrameHandler (val parent: WebSocketImpl, val exec: Schedul
     var currentReason: CloseReason? = null
         private set
 
-    fun send(frame: Frame) {
+    fun sent(frame: Frame) {
         when (frame.frameType) {
             FrameType.CLOSE -> {
                 closeSent = true
@@ -37,9 +37,9 @@ internal class ControlFrameHandler (val parent: WebSocketImpl, val exec: Schedul
         }
     }
 
-    suspend fun closeSent() {
+    suspend fun closeSentAndWritten() {
         if (closeReceived) {
-            parent.closeAsync(currentReason)
+            parent.terminateConnection(currentReason)
         }
     }
 
@@ -50,10 +50,10 @@ internal class ControlFrameHandler (val parent: WebSocketImpl, val exec: Schedul
             is Frame.Close -> {
                 currentReason = frame.readReason()
 
+                closeReceived = true
                 if (closeSent) {
-                    parent.closeAsync(currentReason)
+                    parent.terminateConnection(currentReason)
                 } else {
-                    closeReceived = true
                     parent.send(frame.copy())
                     closeAfterTimeout()
                 }
@@ -119,7 +119,9 @@ internal class ControlFrameHandler (val parent: WebSocketImpl, val exec: Schedul
     }
 
     private fun handleTimeout() {
-        parent.close()
+        runBlocking(Unconfined) {
+            parent.terminateConnection(currentReason)
+        }
     }
 
     fun closeAfterTimeout() {

@@ -4,7 +4,7 @@ import org.jetbrains.ktor.cio.*
 import java.nio.*
 import java.util.concurrent.atomic.*
 
-internal class WebSocketReader(val maxFrameSize: () -> Long, val close: suspend (CloseReason?) -> Unit, val sendClose: suspend (CloseReason) -> Unit, val channel: ReadChannel, val frameHandler: suspend (Frame) -> Unit, val lastReason: () -> CloseReason?) {
+internal class WebSocketReader(val channel: ReadChannel, val maxFrameSize: () -> Long, val frameHandler: suspend (Frame) -> Unit) {
     private val state = AtomicReference(State.FRAME)
     private val buffer = ByteBuffer.allocate(8192).apply { flip() }
     private val frameParser = FrameParser()
@@ -15,7 +15,8 @@ internal class WebSocketReader(val maxFrameSize: () -> Long, val close: suspend 
         while (!suspended) {
             buffer.compact()
             if (channel.read(buffer) == -1) {
-                return close(lastReason())
+                state.set(State.END)
+                break
             }
             buffer.flip()
             parseLoop()
@@ -32,9 +33,8 @@ internal class WebSocketReader(val maxFrameSize: () -> Long, val close: suspend 
                     if (frameParser.bodyReady) {
                         state.set(State.BODY)
                         if (frameParser.length > Int.MAX_VALUE || frameParser.length > maxFrameSize()) {
-                            sendClose(CloseReason(CloseReason.Codes.TOO_BIG, "size is ${frameParser.length}"))
                             suspended = true
-                            return
+                            throw FrameTooBigException(frameParser.length)
                         }
 
                         collector.start(frameParser.length.toInt(), buffer)
@@ -48,6 +48,7 @@ internal class WebSocketReader(val maxFrameSize: () -> Long, val close: suspend 
 
                     handleFrameIfProduced()
                 }
+                State.END -> return
             }
         }
     }
@@ -60,8 +61,14 @@ internal class WebSocketReader(val maxFrameSize: () -> Long, val close: suspend 
         }
     }
 
+    class FrameTooBigException(val frameSize: Long) : Exception() {
+        override val message: String
+            get() = "Frame is too big: $frameSize"
+    }
+
     enum class State {
         FRAME,
-        BODY
+        BODY,
+        END
     }
 }
