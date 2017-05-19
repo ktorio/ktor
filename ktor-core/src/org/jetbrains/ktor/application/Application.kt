@@ -16,4 +16,3 @@ class Application(val environment: ApplicationEnvironment) : ApplicationCallPipe
  * Convenience property to access log from application
  */
 val Application.log get() = environment.log
-val Application.executor get() = environment.executor

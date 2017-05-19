@@ -1,15 +1,15 @@
 package org.jetbrains.ktor.servlet
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.cio.*
 import java.nio.*
 import java.nio.channels.*
-import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import javax.servlet.*
 import kotlin.coroutines.experimental.*
 import kotlin.coroutines.experimental.intrinsics.*
 
-internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream, val exec: ExecutorService) : WriteChannel {
+internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream) : WriteChannel {
     @Volatile
     private var listenerInstalled = 0
 
@@ -117,13 +117,8 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream,
      * always suspends and resumes later on a pool. Useful to make thread free for other jobs.
      */
     private suspend fun forceReschedule() {
-        suspendCoroutineOrReturn<Unit> {
-            bytesWrittenWithNoSuspend = 0L
-            exec.submit {
-                it.resume(Unit)
-            }
-            COROUTINE_SUSPENDED
-        }
+        bytesWrittenWithNoSuspend = 0L
+        yield()
     }
 
     override fun close() {

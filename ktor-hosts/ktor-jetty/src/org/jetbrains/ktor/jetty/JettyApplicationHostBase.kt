@@ -27,6 +27,7 @@ open class JettyApplicationHostBase(environment: ApplicationHostEnvironment,
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
         server.stopTimeout = timeUnit.toMillis(timeout)
         server.stop()
+        server.destroy()
         environment.stop()
     }
 

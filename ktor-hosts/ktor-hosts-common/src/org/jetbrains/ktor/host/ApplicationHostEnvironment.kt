@@ -3,8 +3,6 @@ package org.jetbrains.ktor.host
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.logging.*
-import java.util.concurrent.*
-import java.util.concurrent.atomic.*
 
 /**
  * Represents environment for a host
@@ -45,7 +43,6 @@ class ApplicationHostEnvironmentBuilder {
     var classLoader: ClassLoader = ApplicationHostEnvironment::class.java.classLoader
     var log: ApplicationLog = NullApplicationLog()
     var config: ApplicationConfig = MapApplicationConfig()
-    var executor: ScheduledExecutorService = DefaultExecutorServiceBuilder()
 
     val connectors = mutableListOf<HostConnectorConfig>()
     val modules = mutableListOf<Application.() -> Unit>()
@@ -56,17 +53,6 @@ class ApplicationHostEnvironmentBuilder {
 
     fun build(builder: ApplicationHostEnvironmentBuilder.() -> Unit): ApplicationHostEnvironment {
         builder(this)
-        return ApplicationHostEnvironmentReloading(classLoader, log, config, connectors, executor, modules, reloadPackages)
-    }
-
-    companion object {
-        private val poolCounter = AtomicInteger()
-        internal val DefaultExecutorServiceBuilder = {
-            val pool: Int = poolCounter.incrementAndGet()
-            val threadCounter = AtomicInteger()
-            Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 8, { r ->
-                Thread(r, "ktor-pool-$pool-thread-${threadCounter.incrementAndGet()}")
-            })
-        }
+        return ApplicationHostEnvironmentReloading(classLoader, log, config, connectors, modules, reloadPackages)
     }
 }

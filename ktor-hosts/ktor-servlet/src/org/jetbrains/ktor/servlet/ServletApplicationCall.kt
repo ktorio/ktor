@@ -44,7 +44,7 @@ open class ServletApplicationCall(application: Application,
     }
 
     private val responseChannel = lazy {
-        ServletWriteChannel(servletResponse.outputStream, application.executor)
+        ServletWriteChannel(servletResponse.outputStream)
     }
 
     override suspend fun responseChannel(): WriteChannel = responseChannelOverride ?: responseChannel.value
@@ -81,7 +81,7 @@ open class ServletApplicationCall(application: Application,
             val call = up.call
 
             val inputChannel = ServletReadChannel(wc.inputStream)
-            val outputChannel = ServletWriteChannel(wc.outputStream, call.application.executor)
+            val outputChannel = ServletWriteChannel(wc.outputStream)
 
             up.call.requestChannelOverride = inputChannel
             up.call.responseChannelOverride = outputChannel

@@ -3,28 +3,34 @@ package org.jetbrains.ktor.websocket
 import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
-import org.jetbrains.ktor.pipeline.*
 import java.io.*
 import java.time.*
+import java.util.concurrent.*
+
+private val executor by lazy { ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8) }
+private val dispatcher by lazy { executor.asCoroutineDispatcher() }
 
 internal class WebSocketImpl(call: ApplicationCall,
                              val readChannel: ReadChannel,
                              val writeChannel: WriteChannel,
                              val channel: Closeable) : WebSocket(call) {
-    private val controlFrameHandler = ControlFrameHandler(this, application.executor)
+
+    private val controlFrameHandler = ControlFrameHandler(this, executor)
     private val outbound = WebSocketWriter(writeChannel)
     private val reader = WebSocketReader(readChannel, { maxFrameSize }, { frameHandler(it) })
 
     override var masking: Boolean
         get() = outbound.masking
-        set(value) { outbound.masking = value }
+        set(value) {
+            outbound.masking = value
+        }
 
     init {
         masking = false
     }
 
     fun start() {
-        launchAsync(application.executor) {
+        launch(dispatcher) {
             try {
                 reader.readLoop()
             } catch (tooBig: WebSocketReader.FrameTooBigException) {

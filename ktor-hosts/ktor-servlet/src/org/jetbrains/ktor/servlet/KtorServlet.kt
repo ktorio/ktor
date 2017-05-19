@@ -5,14 +5,22 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.host.*
 import java.lang.reflect.*
+import java.util.concurrent.*
 import javax.servlet.*
 import javax.servlet.http.*
 import kotlin.coroutines.experimental.*
 
 abstract class KtorServlet : HttpServlet() {
+    private val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8)
+    private val dispatcher = executor.asCoroutineDispatcher()
 
     abstract val application: Application
-    abstract val hostPipeline : HostPipeline
+    abstract val hostPipeline: HostPipeline
+
+    override fun destroy() {
+        super.destroy()
+        executor.shutdownNow()
+    }
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         if (response.isCommitted) {
@@ -30,7 +38,7 @@ abstract class KtorServlet : HttpServlet() {
                 tryPush(request, call, block, next)
             })
 
-            launch(application.environment.executor.asCoroutineDispatcher()) {
+            launch(dispatcher) {
                 try {
                     hostPipeline.execute(call)
                 } finally {
@@ -71,9 +79,5 @@ abstract class KtorServlet : HttpServlet() {
         null
     } catch (ignore: LinkageError) {
         null
-    }
-
-    private class AsyncContextCoroutineDispatcher(val asyncContext: AsyncContext) : CoroutineDispatcher() {
-        override fun dispatch(context: CoroutineContext, block: Runnable) = asyncContext.start(block)
     }
 }

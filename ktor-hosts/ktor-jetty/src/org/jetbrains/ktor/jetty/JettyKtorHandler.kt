@@ -9,13 +9,19 @@ import org.jetbrains.ktor.cio.ByteBufferPool
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import java.nio.*
+import java.util.concurrent.*
 import javax.servlet.*
 import javax.servlet.http.*
 
-internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, server: Server, val pipeline: () -> HostPipeline) : AbstractHandler() {
-//    private val dispatcher by lazy { JettyCoroutinesDispatcher(server.threadPool) }
-    private val dispatcher by lazy { environment.executor.asCoroutineDispatcher() }
+internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, val pipeline: () -> HostPipeline) : AbstractHandler() {
+    private val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8)
+    private val dispatcher = executor.asCoroutineDispatcher()
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
+
+    override fun destroy() {
+        super.destroy()
+        executor.shutdownNow()
+    }
 
     override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
         val call = JettyApplicationCall(environment.application, server, request, response, byteBufferPool, { call, block, next ->

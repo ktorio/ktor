@@ -25,11 +25,6 @@ interface ApplicationEnvironment {
     val config: ApplicationConfig
 
     /**
-     * Environment-provided executor
-     */
-    val executor: ScheduledExecutorService
-
-    /**
      * Provides events on Application lifecycle
      */
     val monitor: ApplicationMonitor

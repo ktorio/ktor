@@ -7,6 +7,7 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.junit.*
+import java.util.concurrent.*
 import kotlin.test.*
 
 class RespondWriteTest {
@@ -45,10 +46,12 @@ class RespondWriteTest {
     @Test
     fun testSuspendInside() {
         withTestApplication {
+            val executor = Executors.newSingleThreadExecutor()
+            environment.monitor.applicationStopped += { executor.shutdown() }
             application.routing {
                 get("/") {
                     call.respondWrite {
-                        runAsync(application.executor) {
+                        runAsync(executor) {
                             write("OK")
                         }
                     }

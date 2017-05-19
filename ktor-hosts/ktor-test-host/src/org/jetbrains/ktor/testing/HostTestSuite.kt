@@ -959,11 +959,8 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
 
     @Test(timeout = 30000L)
     fun testBlockingConcurrency() {
-        //println()
         val completed = AtomicInteger(0)
-        val executor = Executors.newScheduledThreadPool(3)
-
-        createAndStartServer(executor = executor) {
+        createAndStartServer {
             get("/{index}") {
                 val index = call.parameters["index"]!!.toInt()
                 call.respondWrite {
@@ -1055,24 +1052,25 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         val e = Executors.newCachedThreadPool()
-        val q = LinkedBlockingQueue<String>()
+        try {
+            val q = LinkedBlockingQueue<String>()
 
-        val conns = (0..1000).map { number ->
-            e.submit(Callable<String> {
-                try {
-                    URL("http://localhost:$port/").openConnection().inputStream.bufferedReader().readLine().apply {
-                        //println("$number says $this")
-                    } ?: "<empty>"
-                } catch (t: Throwable) {
-                    "error: ${t.message}"
-                }.apply {
-                    q.add(this)
-                }
-            })
-        }
+            val conns = (0..1000).map {
+                e.submit(Callable<String> {
+                    try {
+                        URL("http://localhost:$port/").openConnection().inputStream.bufferedReader().readLine().apply {
+                            //println("$number says $this")
+                        } ?: "<empty>"
+                    } catch (t: Throwable) {
+                        "error: ${t.message}"
+                    }.apply {
+                        q.add(this)
+                    }
+                })
+            }
 
-        TimeUnit.SECONDS.sleep(5)
-        var attempts = 7
+            TimeUnit.SECONDS.sleep(5)
+            var attempts = 7
 
         fun dump() {
 //            val (valid, invalid) = conns.filter { it.isDone }.partition { it.get() == "Deadlock ?" }
@@ -1080,29 +1078,32 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
 //            println("Completed: ${valid.size} valid, ${invalid.size} invalid of ${conns.size} total [attempts $attempts]")
         }
 
-        while (true) {
+            while (true) {
+                dump()
+
+                if (conns.all { it.isDone }) {
+                    break
+                } else if (q.poll(5, TimeUnit.SECONDS) == null) {
+                    if (attempts <= 0) {
+                        break
+                    }
+                    attempts--
+                } else {
+                    attempts = 7
+                }
+            }
+
             dump()
 
-            if (conns.all { it.isDone }) {
-                break
-            } else if (q.poll(5, TimeUnit.SECONDS) == null) {
-                if (attempts <= 0) {
-                    break
-                }
-                attempts--
-            } else {
-                attempts = 7
-            }
-        }
-
-        dump()
-
-        /* use for debugging */
+            /* use for debugging */
 //        if (conns.any { !it.isDone }) {
 //             TimeUnit.SECONDS.sleep(500)
 //        }
 
-        assertTrue { conns.all { it.isDone } }
+            assertTrue { conns.all { it.isDone } }
+        } finally {
+            e.shutdownNow()
+        }
     }
 
     private fun String.urlPath() = replace("\\", "/")

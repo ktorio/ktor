@@ -32,11 +32,10 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
         (server as? ApplicationHost)?.stop(100, 5000, TimeUnit.MILLISECONDS)
     }
 
-    protected open fun createServer(log: ApplicationLog?, executor: ScheduledExecutorService?, module: Application.() -> Unit): THost {
+    protected open fun createServer(log: ApplicationLog?, module: Application.() -> Unit): THost {
         val _port = this.port
         val environment = applicationHostEnvironment {
             log?.let { this.log = it  }
-            executor?.let { this.executor = it  }
             connector { port = _port }
             sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
                 this.port = sslPort
@@ -48,10 +47,8 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
         return embeddedServer(applicationHostFactory, environment)
     }
 
-    protected fun createAndStartServer(log: ApplicationLog? = null,
-                                       executor: ScheduledExecutorService? = null,
-                                       block: Routing.() -> Unit): THost {
-        val server = createServer(log, executor) {
+    protected fun createAndStartServer(log: ApplicationLog? = null, block: Routing.() -> Unit): THost {
+        val server = createServer(log) {
             install(CallLogging)
             install(Routing, block)
         }

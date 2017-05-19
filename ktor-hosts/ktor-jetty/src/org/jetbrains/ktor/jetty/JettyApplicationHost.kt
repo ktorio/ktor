@@ -9,11 +9,8 @@ import org.jetbrains.ktor.host.*
 class JettyApplicationHost(environment: ApplicationHostEnvironment,
                            jettyServer: () -> Server = ::Server) : JettyApplicationHostBase(environment, jettyServer) {
 
-    init {
-        server.handler = JettyKtorHandler(environment, server, this::pipeline)
-    }
-
     override fun start(wait: Boolean) : JettyApplicationHost {
+        server.handler = JettyKtorHandler(environment, this::pipeline)
         super.start(wait)
         return this
     }

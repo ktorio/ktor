@@ -28,7 +28,6 @@ class ApplicationHostEnvironmentReloading(
         override val log: ApplicationLog,
         override val config: ApplicationConfig,
         override val connectors: List<HostConnectorConfig>,
-        override val executor: ScheduledExecutorService,
         val modules: List<Application.() -> Unit>,
         val reloadPackages: List<String> = emptyList()
 )

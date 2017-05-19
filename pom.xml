@@ -11,7 +11,7 @@
         <kotlin.version>1.1.2</kotlin.version>
         <coroutines.version>0.15</coroutines.version>
         <dokka.version>0.9.13</dokka.version>
-        <jmh.version>1.17.5</jmh.version>
+        <jmh.version>1.18</jmh.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -77,12 +77,12 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.24</version>
+            <version>1.7.25</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe</groupId>
             <artifactId>config</artifactId>
-            <version>1.2.1</version>
+            <version>1.3.1</version>
         </dependency>
     </dependencies>
 
