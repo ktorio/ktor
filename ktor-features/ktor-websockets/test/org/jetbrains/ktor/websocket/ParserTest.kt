@@ -4,11 +4,16 @@ import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
+import org.junit.rules.*
 import java.nio.*
 import java.time.*
+import java.util.concurrent.*
 import kotlin.test.*
 
 class ParserTest {
+    @get:Rule
+    val timeout = Timeout(30, TimeUnit.SECONDS)
+
     @Test
     fun testHello() {
         withTestApplication {
@@ -17,7 +22,8 @@ class ParserTest {
                     handle { frame ->
                         if (!frame.frameType.controlFrame) {
                             send(frame.copy())
-                            close()
+                            flush()
+                            terminate()
                         }
                     }
                 }
@@ -45,7 +51,8 @@ class ParserTest {
                         if (!frame.frameType.controlFrame) {
                             assertEquals("Hello", frame.buffer.copy().array().toString(Charsets.UTF_8))
                             send(frame.copy())
-                            close()
+                            flush()
+                            terminate()
                         }
                     }
                 }
@@ -59,6 +66,7 @@ class ParserTest {
                 call.awaitWebSocket(Duration.ofSeconds(10))
 
                 val bb = ByteBuffer.wrap(call.response.byteContent!!)
+                assertEquals(11, bb.remaining())
                 val parser = FrameParser()
                 parser.frame(bb)
 

@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.websocket
 
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.util.*
 import java.nio.*
 import java.util.concurrent.*
@@ -10,15 +11,25 @@ internal class Serializer {
     private var frameBody: ByteBuffer? = null
     private var maskBuffer: ByteBuffer? = null
 
+    @Deprecated("Not yet implemented")
+    fun serialize(f: Frame, to: WriteChannel, masking: Boolean): Unit = TODO()
+
+    @Deprecated("")
     var masking = false
 
+    @Deprecated("")
     val hasOutstandingBytes: Boolean
         get() = q.isNotEmpty() || frameBody != null
 
+    @Deprecated("")
+    val remainingCapacity: Int get() = q.remainingCapacity()
+
+    @Deprecated("use serialize() instead")
     fun enqueue(f: Frame) {
         q.put(f)
     }
 
+    @Deprecated("Will be rewritten to cio.ByteBufferWriteChannel")
     fun serialize(buffer: ByteBuffer) {
         while (writeCurrentPayload(buffer)) {
             val frame = q.peek() ?: break
@@ -32,7 +43,7 @@ internal class Serializer {
 
             serializeHeader(frame, buffer, mask)
             q.remove()
-            frameBody = frame.buffer.masked()
+            frameBody = frame.buffer.maskedIfNeeded()
         }
     }
 
@@ -83,7 +94,7 @@ internal class Serializer {
 
     private fun maskSize(mask: Boolean) = if (mask) 4 else 0
 
-    private fun ByteBuffer.masked() = maskBuffer?.let { mask -> copy().apply { xor(mask) } } ?: this
+    private fun ByteBuffer.maskedIfNeeded() = maskBuffer?.let { mask -> copy().apply { xor(mask) } } ?: this
 
     private fun setMaskBuffer(mask: Boolean) {
         if (mask) {

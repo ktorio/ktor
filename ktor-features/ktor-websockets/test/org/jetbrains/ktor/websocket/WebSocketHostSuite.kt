@@ -5,16 +5,21 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
+import org.junit.rules.*
 import java.io.*
 import java.net.*
 import java.nio.*
 import java.time.*
 import java.util.*
+import java.util.concurrent.*
 import kotlin.test.*
 
 abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: ApplicationHostFactory<THost>) : HostTestBase<THost>(hostFactory) {
-//    @Test
-    @Test(timeout = 5000L)
+
+    @get:Rule
+    val timeout = Timeout(10, TimeUnit.SECONDS)
+
+    @Test
     fun testWebSocketGenericSequence() {
         val collected = ArrayList<String>()
 
@@ -70,8 +75,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         assertEquals(listOf("Hello"), collected)
     }
 
-        @Test
-//    @Test(timeout = 5000L)
+    @Test
     fun testWebSocketPingPong() {
         createAndStartServer {
             webSocket("/") {
@@ -81,7 +85,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         }
 
         Socket("localhost", port).use { socket ->
-//            socket.soTimeout = 4000
+            socket.soTimeout = 4000
 
             // send upgrade request
             socket.outputStream.apply {
@@ -107,6 +111,16 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                 assertEquals(FrameType.PING, frame.frameType)
                 assertEquals(true, frame.fin)
                 assertTrue { frame.buffer.hasRemaining() }
+
+                Serializer().apply {
+                    enqueue(Frame.Pong(frame.buffer.copy()))
+                    val buffer = ByteArray(1024)
+                    val bb = ByteBuffer.wrap(buffer)
+                    serialize(bb)
+                    bb.flip()
+
+                    socket.getOutputStream().write(buffer, 0, bb.remaining())
+                }
             }
 
             socket.outputStream.apply {
@@ -118,6 +132,8 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
             socket.assertCloseFrame()
         }
     }
+
+
 
     private fun Socket.assertCloseFrame(closeCode: Short = CloseReason.Codes.NORMAL.code) {
         loop@
@@ -148,7 +164,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         val opcodeAndFin = readOrFail()
         val lenAndMask = readOrFail()
 
-        val frameType = FrameType.byOpcode[opcodeAndFin and 0x0f] ?: throw IllegalStateException("Wrong opcode ${opcodeAndFin and 0x0f}")
+        val frameType = FrameType[opcodeAndFin and 0x0f] ?: throw IllegalStateException("Wrong opcode ${opcodeAndFin and 0x0f}")
         val fin = (opcodeAndFin and 0x80) != 0
 
         val len1 = lenAndMask and 0x7f

@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.util
 
+import org.jetbrains.ktor.cio.*
 import java.nio.*
 import java.nio.charset.*
 
@@ -14,6 +15,8 @@ fun ByteBuffer.putTo(other: ByteBuffer, limit: Int = Int.MAX_VALUE): Int {
 fun ByteBuffer.getString(charset: Charset = Charsets.UTF_8) = charset.decode(this).toString()
 
 fun ByteBuffer.copy(newSize: Int = remaining()): ByteBuffer = ByteBuffer.allocate(newSize).apply { this@copy.slice().putTo(this@apply); clear() }
+
+fun ByteBuffer.copy(pool: ByteBufferPool, newSize: Int = remaining()): PoolTicket = pool.allocate(newSize).apply { buffer.clear(); this@copy.slice().putTo(buffer); flip() }
 
 fun buildByteBuffer(order: ByteOrder = ByteOrder.BIG_ENDIAN, block: ByteBufferBuilder.() -> Unit) = ByteBufferBuilder(order).apply { block() }.build()
 

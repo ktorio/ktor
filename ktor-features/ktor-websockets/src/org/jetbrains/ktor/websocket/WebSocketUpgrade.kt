@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.websocket
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
@@ -9,7 +10,7 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import java.security.*
 
-class WebSocketUpgrade(call: ApplicationCall, val protocol: String? = null, val configure: suspend WebSocket.() -> Unit) : FinalContent.ProtocolUpgrade() {
+class WebSocketUpgrade(call: ApplicationCall, val protocol: String? = null, val configure: suspend WebSocketSession.() -> Unit) : FinalContent.ProtocolUpgrade() {
     private val key = call.request.header(HttpHeaders.SecWebSocketKey) ?: throw IllegalArgumentException("It should be ${HttpHeaders.SecWebSocketKey} header")
 
     override val status: HttpStatusCode?
@@ -27,13 +28,23 @@ class WebSocketUpgrade(call: ApplicationCall, val protocol: String? = null, val 
         }
 
     override suspend fun upgrade(call: ApplicationCall, input: ReadChannel, output: WriteChannel, channel: Closeable): Closeable {
-        val webSocket = WebSocketImpl(call, input, output, channel)
+        val webSockets = call.application.feature(WebSockets)
+        val webSocket = WebSocketSessionImpl(call, input, output, channel, NoPool, webSockets)
+
+        webSocket.pingInterval = webSockets.pingInterval
+        webSocket.timeout = webSockets.timeout
+        webSocket.maxFrameSize = webSockets.maxFrameSize
+        webSocket.masking = webSockets.masking
 
         configure(webSocket)
 
         webSocket.start()
 
-        return webSocket
+        return Closeable {
+            runBlocking {
+                webSocket.terminateConnection(null)
+            }
+        }
     }
 
     private fun sha1(s: String) = MessageDigest.getInstance("SHA1").digest(s.toByteArray(Charsets.ISO_8859_1))

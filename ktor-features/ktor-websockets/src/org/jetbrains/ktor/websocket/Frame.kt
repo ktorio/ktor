@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.websocket
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.util.*
 import java.nio.*
 
@@ -11,11 +12,17 @@ enum class FrameType (val controlFrame: Boolean, val opcode: Int) {
     PONG(true, 0xa);
 
     companion object {
+        @Deprecated("Use get function instead")
         val byOpcode = values().associateBy { it.opcode }
+
+        private val maxOpcode = values().maxBy { it.opcode }!!.opcode
+        private val byOpcodeArray = Array(maxOpcode + 1) { op -> byOpcode[op] }
+
+        operator fun get(opcode: Int): FrameType? = if (opcode in 0..maxOpcode) byOpcodeArray[opcode] else null
     }
 }
 
-sealed class Frame(val fin: Boolean, val frameType: FrameType, val buffer: ByteBuffer) {
+sealed class Frame(val fin: Boolean, val frameType: FrameType, val buffer: ByteBuffer, val disposableHandle: DisposableHandle = NonDisposableHandle) {
     private val initialSize = buffer.remaining()
 
     class Binary(fin: Boolean, buffer: ByteBuffer) : Frame(fin, FrameType.BINARY, buffer)
@@ -28,15 +35,19 @@ sealed class Frame(val fin: Boolean, val frameType: FrameType, val buffer: ByteB
             putShort(reason.code)
             putString(reason.message, Charsets.UTF_8)
         })
-        constructor() : this(ByteBuffer.allocate(0))
+        constructor() : this(Empty)
     }
     class Ping(buffer: ByteBuffer) : Frame(true, FrameType.PING, buffer)
-    class Pong(buffer: ByteBuffer) : Frame(true, FrameType.PONG, buffer)
+    class Pong(buffer: ByteBuffer, disposableHandle: DisposableHandle) : Frame(true, FrameType.PONG, buffer, disposableHandle) {
+        constructor(buffer: ByteBuffer) : this(buffer, NonDisposableHandle)
+    }
 
     override fun toString() = "Frame $frameType (fin=$fin, buffer len = $initialSize)"
     fun copy() = byType(fin, frameType, ByteBuffer.allocate(buffer.remaining()).apply { buffer.slice().putTo(this); clear() })
 
     companion object {
+        private val Empty = ByteBuffer.allocate(0)
+
         fun byType(fin: Boolean, frameType: FrameType, buffer: ByteBuffer): Frame = when (frameType) {
             FrameType.BINARY -> Binary(fin, buffer)
             FrameType.TEXT -> Text(fin, buffer)

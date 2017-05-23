@@ -10,12 +10,12 @@ import java.util.concurrent.atomic.*
 class ChatServer {
     val usersCounter = AtomicInteger()
     val memberNames = ConcurrentHashMap<String, String>()
-    val members = ConcurrentHashMap<String, MutableList<WebSocket>>()
+    val members = ConcurrentHashMap<String, MutableList<WebSocketSession>>()
     val lastMessages = LinkedList<String>()
 
-    suspend fun memberJoin(member: String, socket: WebSocket) {
+    suspend fun memberJoin(member: String, socket: WebSocketSession) {
         val name = memberNames.computeIfAbsent(member) { "user${usersCounter.incrementAndGet()}" }
-        val list = members.computeIfAbsent(member) { CopyOnWriteArrayList<WebSocket>() }
+        val list = members.computeIfAbsent(member) { CopyOnWriteArrayList<WebSocketSession>() }
         list.add(socket)
 
         if (list.size == 1) {
@@ -33,7 +33,7 @@ class ChatServer {
         broadcast("server", "Member renamed from $oldName to $to")
     }
 
-    suspend fun memberLeft(member: String, socket: WebSocket) {
+    suspend fun memberLeft(member: String, socket: WebSocketSession) {
         val connections = members[member]
         connections?.remove(socket)
 
@@ -85,7 +85,7 @@ class ChatServer {
         }
     }
 
-    suspend fun List<WebSocket>.send(frame: Frame) {
+    suspend fun List<WebSocketSession>.send(frame: Frame) {
         forEach { it.send(frame.copy()) }
     }
 }

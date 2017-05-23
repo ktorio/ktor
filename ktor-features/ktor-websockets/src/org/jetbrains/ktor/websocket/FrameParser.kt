@@ -23,7 +23,7 @@ internal class FrameParser {
         private set
 
     val frameType: FrameType
-        get() = FrameType.byOpcode[opcode] ?: throw IllegalStateException("Unsupported opcode ${Integer.toHexString(opcode)}")
+        get() = FrameType[opcode] ?: throw IllegalStateException("Unsupported opcode ${Integer.toHexString(opcode)}")
 
     enum class State {
         HEADER0,
