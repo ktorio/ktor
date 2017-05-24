@@ -11,7 +11,7 @@ import org.jetbrains.ktor.util.*
 
 class FreeMarkerContent(val templateName: String,
                         val model: Any,
-                        val etag: String,
+                        val etag: String? = null,
                         val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8))
 
 class FreeMarker(val config: Configuration) {
@@ -32,7 +32,7 @@ class FreeMarker(val config: Configuration) {
 
     private class FreeMarkerTemplateResource(val template: freemarker.template.Template,
                                              val model: Any,
-                                             val etag: String,
+                                             val etag: String?,
                                              override val contentType: ContentType) : FinalContent.WriteChannelContent(), Resource {
         suspend override fun writeTo(channel: WriteChannel) {
             val writer = channel.toOutputStream().bufferedWriter(contentType.charset() ?: Charsets.UTF_8)
@@ -43,7 +43,11 @@ class FreeMarker(val config: Configuration) {
         }
 
         override val versions: List<Version>
-            get() = listOf(EntityTagVersion(etag))
+            get() = if (etag != null) {
+                listOf(EntityTagVersion(etag))
+            } else {
+                emptyList()
+            }
 
         override val expires = null
         override val cacheControl = null
