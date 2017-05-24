@@ -67,6 +67,32 @@ class FreeMarkerTest {
         }
     }
 
+    @Test
+    fun testWithoutEtag() {
+        withTestApplication {
+            application.setUpTestTemplates()
+
+            application.routing {
+                val model = mapOf("id" to 1, "title" to "Hello, World!")
+
+                get("/") {
+                    call.respond(FreeMarkerContent("test.ftl", model))
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/").response.let { response ->
+                assertNotNull(response.content)
+                @Suppress("DEPRECATION")
+                assert(response.content!!.lines()) {
+                    shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
+                }
+                val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
+                assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
+                assertEquals(null, response.headers[HttpHeaders.ETag])
+            }
+        }
+    }
+
     private fun Application.setUpTestTemplates() {
         val bax = "$"
 
