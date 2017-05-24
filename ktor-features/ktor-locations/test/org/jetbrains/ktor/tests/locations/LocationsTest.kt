@@ -92,6 +92,36 @@ class LocationsTest {
         urlShouldBeUnhandled("/user/123")
     }
 
+    @Test fun `location with exhaustive allowed chars should remain unescaped`() = withLocationsApplication {
+        //https://tools.ietf.org/html/rfc2396#appendix-A
+        val digit = (0..9).map { it.toString() }
+        val lowalpha = listOf("a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z")
+        val upalpha = listOf("A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z")
+        val alpha = listOf(lowalpha, upalpha).flatten()
+        val alphanum = listOf(alpha, digit).flatten()
+        val mark = listOf("-", "_", ".", "!", "~", "*", "'", "(", ")")
+//        val hex = (0..15).map { (it + '0'.toInt()).toString() }
+        val escaped =
+                emptyList<String>() // Do not include escape sequences as they should be escaped.
+//                hex.map { h1 -> hex.map { h2 -> "%$h1$h2" } }.flatten()
+        val unreserved = listOf(alphanum, mark).flatten()
+        val pchars = listOf(unreserved, escaped).flatten() + listOf(":", "@", "&", "=", "+", "$", ",")
+        val segment = pchars + listOf(";")
+
+        val allAllowedChars = segment.joinToString(separator = "", prefix = "", postfix = "")
+
+        val href = application.feature(Locations).href(named(123, allAllowedChars))
+        assertEquals("/user/123/$allAllowedChars", href)
+        application.routing {
+            get<named> { named ->
+                assertEquals(123, named.id)
+                assertEquals(allAllowedChars, named.name)
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+        urlShouldBeHandled(href)
+    }
+
     @location("/favorite") class favorite(val id: Int)
 
     @Test fun `location with query param`() = withLocationsApplication {
