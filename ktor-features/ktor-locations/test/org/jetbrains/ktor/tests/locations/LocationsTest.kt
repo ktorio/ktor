@@ -77,6 +77,19 @@ class LocationsTest {
 
     @location("/user/{id}/{name}") class named(val id: Int, val name: String)
 
+    @Test fun `location should roundtrip correctly with empty strings`() = withLocationsApplication {
+        val href = application.feature(Locations).href(named(123, ""))
+        assertEquals("/user/123/", href)
+        application.routing {
+            get<named> { named ->
+                assertEquals(123, named.id)
+                assertEquals("", named.name)
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+        urlShouldBeHandled(href)
+    }
+
     @Test fun `location with urlencoded path param`() = withLocationsApplication {
         val href = application.feature(Locations).href(named(123, "abc def"))
         assertEquals("/user/123/abc%20def", href)
