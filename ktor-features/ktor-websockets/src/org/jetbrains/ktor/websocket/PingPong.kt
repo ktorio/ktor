@@ -24,7 +24,7 @@ fun ponger(ctx: CoroutineContext, ws: WebSocketSession, pool: ByteBufferPool): A
     }
 }
 
-fun pinger(ctx: CoroutineContext, ws: WebSocketSession, period: Duration, timeout: Duration, pool: ByteBufferPool, closeSequence: SendChannel<CloseFrameEvent>): ActorJob<Frame.Pong> {
+fun pinger(ctx: CoroutineContext, ws: WebSocketSession, period: Duration, timeout: Duration, pool: ByteBufferPool, out: SendChannel<Frame>): ActorJob<Frame.Pong> {
     val periodMillis = period.toMillis()
     val timeoutMillis = timeout.toMillis()
     val encoder = Charsets.ISO_8859_1.newEncoder()
@@ -59,7 +59,7 @@ fun pinger(ctx: CoroutineContext, ws: WebSocketSession, period: Duration, timeou
                 // so we are triggering close sequence (if already started then the following close frame could be ignored)
 
                 val closeFrame = Frame.Close(CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, "Ping timeout"))
-                closeSequence.send(CloseFrameEvent.ToSend(closeFrame))
+                out.send(closeFrame)
                 break
             }
         }

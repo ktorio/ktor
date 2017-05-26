@@ -1,32 +1,43 @@
 package org.jetbrains.ktor.websocket
 
-import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import org.jetbrains.ktor.cio.*
 import java.nio.*
+import java.nio.channels.*
 import kotlin.coroutines.experimental.*
 
-internal class WebSocketReader(val channel: ReadChannel, val maxFrameSize: () -> Long, val destination: SendChannel<Frame>) {
+internal class WebSocketReader(val byteChannel: ReadChannel, val maxFrameSize: () -> Long, val ctx: CoroutineContext, pool: ByteBufferPool) {
     private var state = State.HEADER
     private val frameParser = FrameParser()
     private val collector = SimpleFrameCollector()
 
-    fun start(ctx: CoroutineContext, pool: ByteBufferPool): Job {
-        return launch(ctx) {
+    private val queue by lazy {
+        produce(ctx, capacity = 8) { // lazy - workaround for missing produce(start = false)
             val ticket = pool.allocate(DEFAULT_BUFFER_SIZE)
             try {
                 readLoop(ticket.buffer)
+            } catch (expected: ClosedChannelException) {
             } finally {
                 pool.release(ticket)
             }
         }
     }
 
-    private suspend fun readLoop(buffer: ByteBuffer) {
+    val incoming: ReceiveChannel<Frame> get() = queue
+
+    fun start(): ProducerJob<Frame> {
+        return queue.apply { start() }
+    }
+
+    fun cancel(t: Throwable? = null) {
+        queue.cancel(t)
+    }
+
+    private suspend fun ProducerScope<Frame>.readLoop(buffer: ByteBuffer) {
         buffer.clear()
 
-        while (true) {
-            if (channel.read(buffer) == -1) {
+        while (isActive) {
+            if (byteChannel.read(buffer) == -1) {
                 state = State.END
                 break
             }
@@ -37,7 +48,7 @@ internal class WebSocketReader(val channel: ReadChannel, val maxFrameSize: () ->
         }
     }
 
-    private suspend fun parseLoop(buffer: ByteBuffer) {
+    private suspend fun ProducerScope<Frame>.parseLoop(buffer: ByteBuffer) {
         while (buffer.hasRemaining()) {
             when (state) {
                 State.HEADER -> {
@@ -65,10 +76,10 @@ internal class WebSocketReader(val channel: ReadChannel, val maxFrameSize: () ->
         }
     }
 
-    private suspend fun handleFrameIfProduced() {
+    private suspend fun ProducerScope<Frame>.handleFrameIfProduced() {
         if (!collector.hasRemaining) {
             state = State.HEADER
-            destination.send(Frame.byType(frameParser.fin, frameParser.frameType, collector.take(frameParser.maskKey)))
+            send(Frame.byType(frameParser.fin, frameParser.frameType, collector.take(frameParser.maskKey)))
             frameParser.bodyComplete()
         }
     }

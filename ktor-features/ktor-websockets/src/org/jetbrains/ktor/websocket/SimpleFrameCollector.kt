@@ -16,7 +16,7 @@ internal class SimpleFrameCollector {
 
         remaining = length
         if (buffer == null || buffer!!.capacity() < length) {
-            buffer = ByteBuffer.allocate(length.toInt())
+            buffer = ByteBuffer.allocate(length)
         }
         buffer!!.clear()
 
@@ -40,6 +40,7 @@ internal class SimpleFrameCollector {
             view.xor(maskBuffer)
         }
 
+        buffer = null
         view.asReadOnlyBuffer()
     }
 }

@@ -6,9 +6,7 @@ import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.host.*
 import java.lang.reflect.*
 import java.util.concurrent.*
-import javax.servlet.*
 import javax.servlet.http.*
-import kotlin.coroutines.experimental.*
 
 abstract class KtorServlet : HttpServlet() {
     private val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8)
@@ -36,7 +34,7 @@ abstract class KtorServlet : HttpServlet() {
             }
             val call = ServletApplicationCall(application, request, response, NoPool, { call, block, next ->
                 tryPush(request, call, block, next)
-            })
+            }, CommonPool, userAppContext = dispatcher)
 
             launch(dispatcher) {
                 try {

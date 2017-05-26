@@ -9,8 +9,9 @@ import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import java.security.*
+import kotlin.coroutines.experimental.*
 
-class WebSocketUpgrade(call: ApplicationCall, val protocol: String? = null, val configure: suspend WebSocketSession.() -> Unit) : FinalContent.ProtocolUpgrade() {
+class WebSocketUpgrade(call: ApplicationCall, val protocol: String? = null, val handle: suspend WebSocketSession.(Dispatchers) -> Unit) : FinalContent.ProtocolUpgrade() {
     private val key = call.request.header(HttpHeaders.SecWebSocketKey) ?: throw IllegalArgumentException("It should be ${HttpHeaders.SecWebSocketKey} header")
 
     override val status: HttpStatusCode?
@@ -27,25 +28,23 @@ class WebSocketUpgrade(call: ApplicationCall, val protocol: String? = null, val 
             // TODO extensions
         }
 
-    override suspend fun upgrade(call: ApplicationCall, input: ReadChannel, output: WriteChannel, channel: Closeable): Closeable {
+    override suspend fun upgrade(call: ApplicationCall, input: ReadChannel, output: WriteChannel, channel: Closeable, hostContext: CoroutineContext, userAppContext: CoroutineContext): Closeable {
         val webSockets = call.application.feature(WebSockets)
-        val webSocket = WebSocketSessionImpl(call, input, output, channel, NoPool, webSockets)
+        val webSocket = RawWebSocketImpl(call, input, output, channel, NoPool, hostContext, userAppContext)
 
-        webSocket.pingInterval = webSockets.pingInterval
-        webSocket.timeout = webSockets.timeout
         webSocket.maxFrameSize = webSockets.maxFrameSize
         webSocket.masking = webSockets.masking
 
-        configure(webSocket)
-
-        webSocket.start()
+        webSocket.start(handle)
 
         return Closeable {
             runBlocking {
-                webSocket.terminateConnection(null)
+                webSocket.terminate()
             }
         }
     }
+
+    class Dispatchers(val hostContext: CoroutineContext, val userAppContext: CoroutineContext)
 
     private fun sha1(s: String) = MessageDigest.getInstance("SHA1").digest(s.toByteArray(Charsets.ISO_8859_1))
 }

@@ -9,12 +9,15 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import javax.servlet.http.*
+import kotlin.coroutines.experimental.*
 
 open class ServletApplicationCall(application: Application,
                                   protected val servletRequest: HttpServletRequest,
                                   protected val servletResponse: HttpServletResponse,
                                   override val bufferPool: ByteBufferPool,
-                                  pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit) : BaseApplicationCall(application) {
+                                  pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit,
+                                  val hostContext: CoroutineContext,
+                                  val userAppContext: CoroutineContext) : BaseApplicationCall(application) {
 
     override val request: ServletApplicationRequest = ServletApplicationRequest(this, servletRequest, { requestChannelOverride })
     override val response: ServletApplicationResponse = ServletApplicationResponse(this, servletResponse, pushImpl)
@@ -35,7 +38,7 @@ open class ServletApplicationCall(application: Application,
 
         servletResponse.flushBuffer()
         val handler = servletRequest.upgrade(ServletUpgradeHandler::class.java)
-        handler.up = UpgradeRequest(servletResponse, this@ServletApplicationCall, upgrade)
+        handler.up = UpgradeRequest(servletResponse, this@ServletApplicationCall, upgrade, hostContext, userAppContext)
 
 //        servletResponse.flushBuffer()
 
@@ -68,7 +71,11 @@ open class ServletApplicationCall(application: Application,
 
     // the following types need to be public as they are accessed through reflection
 
-    class UpgradeRequest(val response: HttpServletResponse, val call: ServletApplicationCall, val upgradeMessage: FinalContent.ProtocolUpgrade)
+    class UpgradeRequest(val response: HttpServletResponse,
+                         val call: ServletApplicationCall,
+                         val upgradeMessage: FinalContent.ProtocolUpgrade,
+                         val hostContext: CoroutineContext,
+                         val userAppContext: CoroutineContext)
 
     class ServletUpgradeHandler : HttpUpgradeHandler {
         @Volatile
@@ -89,7 +96,7 @@ open class ServletApplicationCall(application: Application,
             runBlocking {
                 up.upgradeMessage.upgrade(call, inputChannel, outputChannel, Closeable {
                     wc.close()
-                })
+                }, up.hostContext, up.userAppContext)
             }
         }
 

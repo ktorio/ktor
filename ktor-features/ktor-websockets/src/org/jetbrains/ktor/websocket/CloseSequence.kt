@@ -6,23 +6,22 @@ import java.time.*
 import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 
-internal fun closeSequence(ctx: CoroutineContext, w: WebSocketWriter, timeout: Duration, termination: suspend (reason: CloseReason?) -> Unit): ActorJob<CloseFrameEvent> {
+fun closeSequence(ctx: CoroutineContext, w: WebSocketSession, timeout: () -> Duration, populateCloseReason: (reason: CloseReason?) -> Unit): ActorJob<CloseFrameEvent> {
     return actor(ctx, start = CoroutineStart.LAZY) {
-        val timeoutMillis = timeout.toMillis()
         var reason: CloseReason? = null
 
         try {
-            withTimeoutOrNull(timeoutMillis, TimeUnit.MILLISECONDS) {
-                val firstCloseEvent = receive()
+            val firstCloseEvent = receiveOrNull() ?: return@actor
 
+            withTimeoutOrNull(timeout().toMillis(), TimeUnit.MILLISECONDS) {
                 reason = firstCloseEvent.frame.readReason()
                 when (firstCloseEvent) {
                     is CloseFrameEvent.ToSend -> {
                         w.send(firstCloseEvent.frame)
 
                         while (true) {
-                            val event = receive()
-                            if (event is CloseFrameEvent.Received) break
+                            val event = receiveOrNull() ?: break
+                            if (event !is CloseFrameEvent.ToSend) break
                         }
                     }
 
@@ -34,7 +33,7 @@ internal fun closeSequence(ctx: CoroutineContext, w: WebSocketWriter, timeout: D
             }
         } finally {
             // terminate connection in any case
-            termination(reason)
+            populateCloseReason(reason)
         }
     }
 }

@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.samples.chat
 
+import kotlinx.coroutines.experimental.channels.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
@@ -37,13 +38,13 @@ fun Application.main() {
 
             server.memberJoin(session.id, this)
 
-            handle { frame ->
-                if (frame is Frame.Text) {
-                    receivedMessage(session.id, frame.readText())
+            try {
+                incoming.consumeEach { frame ->
+                    if (frame is Frame.Text) {
+                        receivedMessage(session.id, frame.readText())
+                    }
                 }
-            }
-
-            close {
+            } finally {
                 server.memberLeft(session.id, this)
             }
         }

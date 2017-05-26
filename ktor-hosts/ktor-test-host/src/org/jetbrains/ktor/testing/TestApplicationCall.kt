@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.testing
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
@@ -26,7 +27,7 @@ class TestApplicationCall(application: Application) : BaseApplicationCall(applic
     override fun toString(): String = "TestApplicationCall(uri=${request.uri}) : handled = $requestHandled"
 
     suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
-        upgrade.upgrade(this@TestApplicationCall, request.receive<ReadChannel>(), response.realContent.value, Closeable { webSocketCompleted.countDown() })
+        upgrade.upgrade(this@TestApplicationCall, request.receive<ReadChannel>(), response.realContent.value, Closeable { webSocketCompleted.countDown() }, CommonPool, Unconfined)
     }
 
     override suspend fun responseChannel(): WriteChannel = response.realContent.value.apply {

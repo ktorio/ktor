@@ -13,7 +13,7 @@ import java.util.concurrent.*
 import javax.servlet.*
 import javax.servlet.http.*
 
-internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, val pipeline: () -> HostPipeline) : AbstractHandler() {
+internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, val pipeline: () -> HostPipeline, val hostDispatcher: CoroutineDispatcher) : AbstractHandler() {
     private val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8)
     private val dispatcher = executor.asCoroutineDispatcher()
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
@@ -39,7 +39,7 @@ internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, val
             } else {
                 next()
             }
-        })
+        }, hostContext = hostDispatcher, userAppContext = dispatcher)
 
         try {
             val contentType = request.contentType

@@ -1,5 +1,7 @@
 package org.jetbrains.ktor.websocket
 
+import kotlinx.coroutines.experimental.channels.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.util.*
@@ -17,9 +19,10 @@ class ParserTest {
     @Test
     fun testHello() {
         withTestApplication {
+            application.install(WebSockets)
             application.routing {
-                webSocket("/echo") {
-                    handle { frame ->
+                webSocketRaw("/echo") {
+                    incoming.consumeEach { frame ->
                         if (!frame.frameType.controlFrame) {
                             send(frame.copy())
                             flush()
@@ -43,11 +46,12 @@ class ParserTest {
     @Test
     fun testMasking() {
         withTestApplication {
+            application.install(WebSockets)
             application.routing {
-                webSocket("/echo") {
+                webSocketRaw("/echo") {
                     masking = true
 
-                    handle { frame ->
+                    incoming.consumeEach { frame ->
                         if (!frame.frameType.controlFrame) {
                             assertEquals("Hello", frame.buffer.copy().array().toString(Charsets.UTF_8))
                             send(frame.copy())
@@ -87,6 +91,8 @@ class ParserTest {
     @Test
     fun testSendClose() {
         withTestApplication {
+            application.install(WebSockets)
+
             application.routing {
                 webSocket("/echo") {
                 }

@@ -6,14 +6,17 @@ import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.servlet.*
 import javax.servlet.http.*
+import kotlin.coroutines.experimental.*
 
 class JettyApplicationCall(application: Application,
                            val server: Server,
                            servletRequest: HttpServletRequest,
                            servletResponse: HttpServletResponse,
                            pool: ByteBufferPool,
-                           pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit)
-: ServletApplicationCall(application, servletRequest, servletResponse, pool, pushImpl) {
+                           pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit,
+                           hostContext: CoroutineContext,
+                           userAppContext: CoroutineContext)
+: ServletApplicationCall(application, servletRequest, servletResponse, pool, pushImpl, hostContext, userAppContext) {
 
     suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
         // Jetty doesn't support Servlet API's upgrade so we have to implement our own
@@ -29,6 +32,6 @@ class JettyApplicationCall(application: Application,
 
         servletResponse.flushBuffer()
 
-        upgrade.upgrade(this@JettyApplicationCall, inputChannel, outputChannel, connection)
+        upgrade.upgrade(this@JettyApplicationCall, inputChannel, outputChannel, connection, hostContext, userAppContext)
     }
 }

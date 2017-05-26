@@ -3,6 +3,7 @@ package org.jetbrains.ktor.netty
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.*
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
@@ -10,11 +11,13 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.pipeline.*
 import java.io.*
 import java.util.concurrent.atomic.*
+import kotlin.coroutines.experimental.*
 
 internal class NettyApplicationCall(application: Application,
                                     val context: ChannelHandlerContext,
                                     val httpRequest: HttpRequest,
-                                    contentQueue: NettyContentQueue) : BaseApplicationCall(application) {
+                                    contentQueue: NettyContentQueue,
+                                    val userAppContext: CoroutineContext) : BaseApplicationCall(application) {
 
     var completed: Boolean = false
 
@@ -84,7 +87,7 @@ internal class NettyApplicationCall(application: Application,
                     upgrade.upgrade(this@NettyApplicationCall, HttpContentReadChannel(upgradeContentQueue.queue, buffered = false), responseChannel(), Closeable {
                         context.channel().close().get()
                         upgradeContentQueue.close()
-                    })
+                    }, context.channel().eventLoop().asCoroutineDispatcher(), userAppContext)
                     context.read()
                 }
             } ?: throw IllegalStateException("Response has been already sent")
