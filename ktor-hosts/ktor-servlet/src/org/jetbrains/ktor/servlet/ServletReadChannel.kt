@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.servlet
 
 import org.jetbrains.ktor.cio.*
+import java.io.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.atomic.*
@@ -45,19 +46,13 @@ class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChann
 
         return when (awaitState()) {
             State.End -> -1
-            State.Available -> servletInputStream.read(dst)
+            State.Available -> try { servletInputStream.read(dst) } catch (end: EOFException) { -1 }
         }
     }
 
     private suspend fun awaitState(): State {
         if (listenerInstalled.compareAndSet(false, true)) {
-            return suspendCoroutine {
-                if (!continuation.compareAndSet(null, it)) {
-                    listenerInstalled.set(false)
-                    it.resumeWithException(IllegalStateException("Async operation is already in progress"))
-                } else
-                    servletInputStream.setReadListener(readListener)
-            }
+            return awaitStateSlow()
         }
 
         if (servletInputStream.isFinished) return State.End
@@ -71,6 +66,19 @@ class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChann
                 State.Available
             } else COROUTINE_SUSPENDED
         }
+    }
+
+    private suspend fun awaitStateSlow(): State {
+        val installed = suspendCoroutine<State> {
+            if (!continuation.compareAndSet(null, it)) {
+                listenerInstalled.set(false)
+                it.resumeWithException(IllegalStateException("Async operation is already in progress"))
+            } else
+                servletInputStream.setReadListener(readListener)
+        }
+
+        if (installed != State.Available) return installed
+        return awaitState()
     }
 
     override fun close() {
