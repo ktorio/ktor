@@ -9,9 +9,9 @@ import javax.servlet.http.*
 @Suppress("unused")
 fun doPushInternal(request: HttpServletRequest, call: ApplicationCall, block: ResponsePushBuilder.() -> Unit, next: () -> Unit) {
     val pb = if (request is RequestFacade) {
-        request.pushBuilder
+        request.newPushBuilder()
     } else if (request is Request) {
-        request.pushBuilder
+        request.newPushBuilder()
     } else null
 
     pb?.apply {

@@ -11,7 +11,7 @@
 
     <properties>
         <!--<tomcat.version>8.5.4</tomcat.version>-->
-        <tomcat.version>9.0.0.M17</tomcat.version>
+        <tomcat.version>9.0.0.M21</tomcat.version>
     </properties>
 
     <dependencies>
