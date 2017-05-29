@@ -9,6 +9,9 @@ import java.util.concurrent.*
 import javax.servlet.http.*
 
 abstract class KtorServlet : HttpServlet() {
+    private val hostExecutor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors())
+    private val hostDispatcher = hostExecutor.asCoroutineDispatcher()
+
     private val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8)
     private val dispatcher = executor.asCoroutineDispatcher()
 
@@ -18,6 +21,10 @@ abstract class KtorServlet : HttpServlet() {
     override fun destroy() {
         super.destroy()
         executor.shutdownNow()
+        hostExecutor.shutdown()
+
+        executor.awaitTermination(1L, TimeUnit.SECONDS)
+        hostExecutor.awaitTermination(1L, TimeUnit.SECONDS)
     }
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
@@ -34,7 +41,7 @@ abstract class KtorServlet : HttpServlet() {
             }
             val call = ServletApplicationCall(application, request, response, NoPool, { call, block, next ->
                 tryPush(request, call, block, next)
-            }, CommonPool, userAppContext = dispatcher)
+            }, hostDispatcher, userAppContext = dispatcher)
 
             launch(dispatcher) {
                 try {
