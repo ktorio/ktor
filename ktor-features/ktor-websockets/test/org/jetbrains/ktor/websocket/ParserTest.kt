@@ -95,6 +95,7 @@ class ParserTest {
 
             application.routing {
                 webSocket("/echo") {
+                    incoming.consumeEach {  }
                 }
             }
 

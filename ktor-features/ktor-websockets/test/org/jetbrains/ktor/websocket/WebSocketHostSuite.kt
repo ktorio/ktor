@@ -14,7 +14,6 @@ import java.io.*
 import java.net.*
 import java.nio.*
 import java.time.*
-import java.util.*
 import java.util.concurrent.*
 import kotlin.test.*
 
@@ -25,7 +24,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
 
     @Test
     fun testWebSocketGenericSequence() {
-        val collected = ArrayList<String>()
+        val collected = LinkedBlockingQueue<String>()
 
         createAndStartServer {
             application.install(WebSockets)
@@ -77,7 +76,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
             socket.assertCloseFrame()
         }
 
-        assertEquals(listOf("Hello"), collected)
+        assertEquals(listOf("Hello"), collected.toList())
     }
 
     @Test
@@ -147,25 +146,148 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         }
     }
 
+    @Test
+    fun testReceiveMessages() {
+        val count = 125
+        val template = (1..count).map { (it and 0x0f).toString(16) }.joinToString("")
+        val bytes = template.toByteArray()
 
+        val collected = LinkedBlockingQueue<String>()
+
+        createAndStartServer {
+            application.install(WebSockets)
+
+            webSocket("/") {
+                incoming.consumeEach { frame ->
+                    if (frame is Frame.Text) {
+                        collected.add(frame.readText())
+                    }
+                }
+            }
+        }
+
+        Socket("localhost", port).use { socket ->
+            socket.soTimeout = 4000
+
+            // send upgrade request
+            socket.outputStream.apply {
+                write("""
+                GET / HTTP/1.1
+                Host: localhost:$port
+                Upgrade: websocket
+                Connection: Upgrade
+                Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+                Origin: http://localhost:$port
+                Sec-WebSocket-Protocol: chat
+                Sec-WebSocket-Version: 13
+                """.trimIndent().replace("\n", "\r\n").toByteArray())
+                write("\r\n\r\n".toByteArray())
+                flush()
+            }
+
+            val status = socket.inputStream.parseStatus()
+            assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
+
+            val headers = socket.inputStream.parseHeaders()
+            assertEquals("Upgrade", headers[HttpHeaders.Connection])
+            assertEquals("websocket", headers[HttpHeaders.Upgrade])
+
+            socket.outputStream.apply {
+                for (i in 1..count) {
+                    writeHex("0x81")
+                    write(i)
+                    write(bytes, 0, i)
+                    flush()
+                }
+
+                // close frame with code 1000
+                writeHex("0x88 0x02 0x03 0xe8")
+                flush()
+            }
+
+            socket.assertCloseFrame()
+        }
+
+        for (i in 1..count) {
+            val expected = template.substring(0, i)
+            assertEquals(expected, collected.poll())
+        }
+
+        assertNull(collected.poll())
+    }
+
+    @Test
+    fun testProduceMessages() {
+        val count = 125
+        val template = (1..count).map { (it and 0x0f).toString(16) }.joinToString("")
+
+        createAndStartServer {
+            application.install(WebSockets)
+
+            webSocket("/") {
+                for (i in 1..count) {
+                    send(Frame.Text(template.substring(0, i)))
+                }
+            }
+        }
+
+        Socket("localhost", port).use { socket ->
+            socket.soTimeout = 4000
+
+            // send upgrade request
+            socket.outputStream.apply {
+                write("""
+                GET / HTTP/1.1
+                Host: localhost:$port
+                Upgrade: websocket
+                Connection: Upgrade
+                Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+                Origin: http://localhost:$port
+                Sec-WebSocket-Protocol: chat
+                Sec-WebSocket-Version: 13
+                """.trimIndent().replace("\n", "\r\n").toByteArray())
+                write("\r\n\r\n".toByteArray())
+                flush()
+            }
+
+            val status = socket.inputStream.parseStatus()
+            assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
+
+            val headers = socket.inputStream.parseHeaders()
+            assertEquals("Upgrade", headers[HttpHeaders.Connection])
+            assertEquals("websocket", headers[HttpHeaders.Upgrade])
+
+            socket.getInputStream().apply {
+                for (i in 1..count) {
+                    val f = readFrame()
+                    assertEquals(FrameType.TEXT, f.frameType)
+                    assertEquals(template.substring(0, i), f.buffer.getString(Charsets.ISO_8859_1))
+                }
+            }
+
+            socket.outputStream.apply {
+                // close frame with code 1000
+                writeHex("0x88 0x02 0x03 0xe8")
+                flush()
+            }
+
+            socket.assertCloseFrame()
+        }
+    }
 
     private fun Socket.assertCloseFrame(closeCode: Short = CloseReason.Codes.NORMAL.code) {
         loop@
         while (true) {
-            try {
-                val frame = getInputStream().readFrame()
+            val frame = getInputStream().readFrame()
 
-                when (frame) {
-                    is Frame.Ping -> continue@loop
-                    is Frame.Close -> {
-                        assertEquals(closeCode, frame.readReason()?.code)
-                        close()
-                        break@loop
-                    }
-                    else -> fail("Unexpected frame $frame: \n${hex(frame.buffer.getAll())}")
+            when (frame) {
+                is Frame.Ping -> continue@loop
+                is Frame.Close -> {
+                    assertEquals(closeCode, frame.readReason()?.code)
+                    close()
+                    break@loop
                 }
-            } catch (expected: EOFException) {
-                break
+                else -> fail("Unexpected frame $frame: \n${hex(frame.buffer.getAll())}")
             }
         }
     }
