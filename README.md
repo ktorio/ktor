@@ -128,7 +128,7 @@ dependency:
 dependencies {
     compile "org.jetbrains.ktor:ktor-core:$ktorVersion"
     // you may also need to include host implementation as well, for example
-    // compile "org.jetbrains.ktor:ktor-host-jetty:$ktorVersion"
+    // compile "org.jetbrains.ktor:ktor-jetty:$ktorVersion"
 }
 ```
 
