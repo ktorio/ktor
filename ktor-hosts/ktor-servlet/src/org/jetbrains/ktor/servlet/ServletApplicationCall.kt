@@ -47,7 +47,7 @@ open class ServletApplicationCall(application: Application,
         ServletWriteChannel(servletResponse.outputStream, application.executor)
     }
 
-    override fun responseChannel(): WriteChannel = responseChannelOverride ?: responseChannel.value
+    override suspend fun responseChannel(): WriteChannel = responseChannelOverride ?: responseChannel.value
 
     suspend override fun respond(message: Any) {
         super.respond(message)

@@ -1,20 +1,34 @@
 package org.jetbrains.ktor.netty
 
-import io.netty.channel.*
-import kotlin.coroutines.experimental.*
+import io.netty.util.concurrent.*
+import kotlinx.coroutines.experimental.*
 
-suspend fun ChannelFuture.suspendAwait() {
-    if (isDone) return
+suspend fun <T> Future<T>.suspendAwait(): T {
+    if (isDone) return get()
 
-    suspendCoroutine<Unit> { continuation ->
-        addListener { f ->
-            try {
-                f.get()
-            } catch (t: Throwable) {
-                continuation.resumeWithException(t)
-                return@addListener
-            }
-            continuation.resume(Unit)
+    return suspendCancellableCoroutine { continuation ->
+        addListener(CoroutineListener(this, continuation))
+    }
+}
+
+private class CoroutineListener<T, F : Future<T>>(private val future: F, private val continuation: CancellableContinuation<T>) : GenericFutureListener<F>, DisposableHandle {
+    init {
+        continuation.disposeOnCompletion(this)
+    }
+
+    override fun operationComplete(future: F) {
+        val value = try {
+            future.get()
+        } catch (t: Throwable) {
+            continuation.resumeWithException(t)
+            return
         }
+
+        continuation.resume(value)
+    }
+
+    override fun dispose() {
+        future.removeListener(this)
+        if (continuation.isCancelled) future.cancel(false)
     }
 }

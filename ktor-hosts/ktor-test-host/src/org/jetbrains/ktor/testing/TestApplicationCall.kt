@@ -29,7 +29,7 @@ class TestApplicationCall(application: Application) : BaseApplicationCall(applic
         upgrade.upgrade(this@TestApplicationCall, request.receive<ReadChannel>(), response.realContent.value, Closeable { webSocketCompleted.countDown() })
     }
 
-    override fun responseChannel(): WriteChannel = response.realContent.value.apply {
+    override suspend fun responseChannel(): WriteChannel = response.realContent.value.apply {
         response.headers[HttpHeaders.ContentLength]?.let { contentLengthString ->
             val contentLength = contentLengthString.toLong()
             if (contentLength >= Int.MAX_VALUE) {

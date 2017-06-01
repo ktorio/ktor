@@ -84,7 +84,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     }
 
     protected abstract suspend fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade)
-    protected abstract fun responseChannel(): WriteChannel
+    protected abstract suspend fun responseChannel(): WriteChannel
     protected open val bufferPool: ByteBufferPool get() = NoPool
 
     override val parameters: ValuesMap get() = request.queryParameters

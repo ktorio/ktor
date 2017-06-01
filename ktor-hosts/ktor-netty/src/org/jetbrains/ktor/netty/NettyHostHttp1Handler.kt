@@ -4,6 +4,7 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.HttpResponseStatus.*
 import io.netty.handler.codec.http.HttpVersion.*
+import io.netty.util.*
 
 @ChannelHandler.Sharable
 internal class NettyHostHttp1Handler(private val host: NettyApplicationHost) : SimpleChannelInboundHandler<HttpRequest>(false) {
@@ -13,16 +14,48 @@ internal class NettyHostHttp1Handler(private val host: NettyApplicationHost) : S
         }
 
         context.channel().config().isAutoRead = false
-        val httpContentQueue = HttpContentQueue(context)
-        context.pipeline().addLast(httpContentQueue)
-        context.pipeline().addLast(host.callEventGroup, NettyApplicationCallHandler(host))
+        val httpContentQueue = context.pipeline().get(HttpContentQueue::class.java)
+        val queue = httpContentQueue.createNew()
 
         if (message is HttpContent) {
-            httpContentQueue.queue.push(message, message is LastHttpContent)
+            queue.push(message, message is LastHttpContent)
         }
 
-        val call = NettyApplicationCall(host.application, context, message, httpContentQueue.queue)
+        val call = NettyApplicationCall(host.application, context, message, queue)
+        context.channel().attr(ResponseQueueKey).get().started(call)
+
         context.fireChannelRead(call)
+    }
+
+    override fun channelActive(ctx: ChannelHandlerContext) {
+        val httpContentQueue = HttpContentQueue(ctx)
+        ctx.pipeline().apply {
+            addLast(httpContentQueue)
+            addLast(host.callEventGroup, NettyApplicationCallHandler(host))
+        }
+
+        ctx.channel().attr(ResponseQueueKey).set(NettyResponseQueue(ctx))
+
+        super.channelActive(ctx)
+    }
+
+    override fun channelInactive(ctx: ChannelHandlerContext) {
+        ctx.pipeline().apply {
+            remove(HttpContentQueue::class.java)
+            remove(NettyApplicationCallHandler::class.java)
+        }
+
+        ctx.channel().attr(ResponseQueueKey).getAndSet(null)?.cancel()
+
+        super.channelInactive(ctx)
+    }
+
+    override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
+        ctx.close()
+    }
+
+    companion object {
+        internal val ResponseQueueKey = AttributeKey.newInstance<NettyResponseQueue>("NettyResponseQueue")
     }
 }
 

@@ -15,6 +15,9 @@ internal class NettyApplicationResponse(call: ApplicationCall, val context: Chan
     @Volatile
     private var responseMessageSent = false
 
+    @Volatile
+    private var responseChannel0: HttpContentWriteChannel? = null
+
     override fun setStatus(statusCode: HttpStatusCode) {
         val cached = responseStatusCache[statusCode.value]
 
@@ -22,9 +25,14 @@ internal class NettyApplicationResponse(call: ApplicationCall, val context: Chan
                 ?: HttpResponseStatus(statusCode.value, statusCode.description)
     }
 
-    internal val responseChannel = lazy {
+    internal suspend fun responseChannel(): HttpContentWriteChannel {
         sendResponseMessage()
-        HttpContentWriteChannel(context)
+
+        return if (responseChannel0 == null) {
+            val ch = HttpContentWriteChannel(context)
+            responseChannel0 = ch
+            ch
+        } else responseChannel0!!
     }
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
@@ -38,10 +46,14 @@ internal class NettyApplicationResponse(call: ApplicationCall, val context: Chan
         override fun getHostHeaderValues(name: String): List<String> = response.headers().getAll(name) ?: emptyList()
     }
 
-    internal fun sendResponseMessage(chunked: Boolean = true, flush: Boolean = true): ChannelFuture? {
+    internal suspend fun sendResponseMessage(chunked: Boolean = true, flush: Boolean = true): ChannelFuture? {
         if (!responseMessageSent) {
             if (chunked)
                 setChunked()
+
+            context.channel().attr(NettyHostHttp1Handler.ResponseQueueKey).get()?.await(call)
+
+            // TODO await for response queue
             val f = if (flush) context.writeAndFlush(response) else context.write(response)
             responseMessageSent = true
             return f
@@ -50,11 +62,9 @@ internal class NettyApplicationResponse(call: ApplicationCall, val context: Chan
         return null
     }
 
-    fun close() {
+    suspend fun close() {
         sendResponseMessage()
-        if (responseChannel.isInitialized()) {
-            responseChannel.value.close()
-        }
+        responseChannel0?.close()
     }
 
     private fun setChunked() {

@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.testing
 
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
@@ -642,6 +643,56 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     }
 
     @Test
+    fun testRequestTwiceInOneBufferWithKeepAlive() {
+        createAndStartServer {
+            get("/") {
+                val d = call.request.queryParameters["d"]!!.toLong()
+                delay(d, TimeUnit.SECONDS)
+
+                call.response.header("D", d.toString())
+                call.respond(TextContent("Response for $d\n", ContentType.Text.Plain))
+            }
+        }
+
+        val s = Socket()
+        s.tcpNoDelay = true
+
+        val impudent = buildString {
+            append("GET /?d=2 HTTP/1.1\r\n")
+            append("Host: localhost\r\n")
+            append("Connection: keep-alive\r\n")
+            append("\r\n")
+
+            append("GET /?d=1 HTTP/1.1\r\n")
+            append("Host: localhost\r\n")
+            append("Connection: close\r\n")
+            append("\r\n")
+        }.toByteArray()
+
+        s.connect(InetSocketAddress(port))
+        s.use {
+            s.getOutputStream().apply {
+                write(impudent)
+                flush()
+            }
+
+            val responses = s.getInputStream().bufferedReader(Charsets.ISO_8859_1).lineSequence()
+                    .filterNot { it.startsWith("Date") || it.startsWith("Server") || it.startsWith("Content-") || it.toIntOrNull() != null || it.isBlank() || it.startsWith("Connection") }
+                    .map { it.trim() }
+                    .joinToString(separator = "\n").replace("200 OK", "200")
+
+            assertEquals("""
+                HTTP/1.1 200
+                D: 2
+                Response for 2
+                HTTP/1.1 200
+                D: 1
+                Response for 1
+                """.trimIndent().replace("\r\n", "\n"), responses)
+        }
+    }
+
+    @Test
     fun testRequestContentString() {
         createAndStartServer {
             post("/") {
@@ -1024,9 +1075,9 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         var attempts = 7
 
         fun dump() {
-            val (valid, invalid) = conns.filter { it.isDone }.partition { it.get() == "Deadlock ?" }
-
-            println("Completed: ${valid.size} valid, ${invalid.size} invalid of ${conns.size} total [attempts $attempts]")
+//            val (valid, invalid) = conns.filter { it.isDone }.partition { it.get() == "Deadlock ?" }
+//
+//            println("Completed: ${valid.size} valid, ${invalid.size} invalid of ${conns.size} total [attempts $attempts]")
         }
 
         while (true) {
