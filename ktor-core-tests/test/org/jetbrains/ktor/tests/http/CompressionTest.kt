@@ -145,6 +145,25 @@ class CompressionTest {
     }
 
     @Test
+    fun testStatusCode() {
+        withTestApplication {
+            application.install(Compression)
+            application.routing {
+                get("/") {
+                    call.respond(TextContent("text to be compressed", status = HttpStatusCode.NotFound))
+                }
+            }
+
+            val result = handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.AcceptEncoding, "*")
+            }
+            assertTrue(result.requestHandled)
+            assertEquals(HttpStatusCode.NotFound, result.response.status())
+            assertEquals("text to be compressed", result.response.byteContent!!.toString(Charsets.UTF_8))
+        }
+    }
+
+    @Test
     fun testMinSize() {
         withTestApplication {
             application.install(Compression) {
