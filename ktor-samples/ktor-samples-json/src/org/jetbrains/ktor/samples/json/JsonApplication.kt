@@ -37,6 +37,7 @@ fun Application.main() {
     }
 
     val model = Model("root", listOf(Item("A", "Apache"), Item("B", "Bing")))
+
     routing {
         get("/v1") {
             call.respond(JsonResponse(model))
