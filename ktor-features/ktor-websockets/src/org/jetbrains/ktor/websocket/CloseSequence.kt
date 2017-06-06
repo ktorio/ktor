@@ -7,7 +7,7 @@ import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 
 fun closeSequence(ctx: CoroutineContext, w: WebSocketSession, timeout: () -> Duration, populateCloseReason: (reason: CloseReason?) -> Unit): ActorJob<CloseFrameEvent> {
-    return actor(ctx, start = CoroutineStart.LAZY) {
+    return actor(ctx, capacity = 2, start = CoroutineStart.LAZY) {
         var reason: CloseReason? = null
 
         try {
