@@ -16,13 +16,13 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
 ) : DefaultWebSocketSession, WebSocketSession by raw {
 
     private val pinger = AtomicReference<ActorJob<Frame.Pong>?>(null)
-    private val closeReasonRef = AtomicReference<CloseReason?>()
+    private val closeReasonRef = ConflatedChannel<CloseReason>()
     private val filtered = Channel<Frame>(8)
 
     override val incoming: ReceiveChannel<Frame> get() = filtered
 
     override var timeout: Duration = Duration.ofSeconds(15)
-    override val closeReason: CloseReason? get() = closeReasonRef.get()
+    override val closeReason: CloseReason? get() = closeReasonRef.poll()
     override var pingInterval: Duration? by Delegates.observable<Duration?>(null, { _, _, _ ->
         runPinger()
     })
@@ -31,12 +31,8 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
         runPinger()
         val ponger = ponger(hostContext, this, NoPool)
         val closeSequence = closeSequence(hostContext, raw, { timeout }, { reason ->
-            closeReasonRef.compareAndSet(null, reason)
+            closeReasonRef.offer(reason ?: CloseReason(CloseReason.Codes.NORMAL, ""))
         })
-
-        closeSequence.invokeOnCompletion {
-            raw.terminate()
-        }
 
         launch(hostContext) {
             try {
@@ -52,6 +48,7 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
             } catch (t: Throwable) {
                 filtered.close(t)
             } finally {
+                ponger.close()
                 filtered.close()
                 closeSequence.close()
             }
@@ -78,15 +75,25 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
             } else {
                 closeSequence.close()
             }
-        }.join()
+        }
 
-        closeSequence.join()
+        try {
+            closeReasonRef.receive()
+            closeSequence.join()
+        } finally {
+            cancelPinger()
+            raw.terminate()
+        }
     }
 
     private fun runPinger() {
-        val newPinger = pingInterval?.let { interval -> pinger(hostContext, raw, interval, timeout, pool, raw.outgoing) }
-        pinger.getAndSet(newPinger)?.cancel()
-        newPinger?.start()
+        if (closeReasonRef.poll() == null) {
+            val newPinger = pingInterval?.let { interval -> pinger(hostContext, raw, interval, timeout, pool, raw.outgoing) }
+            pinger.getAndSet(newPinger)?.cancel()
+            newPinger?.start()
+        } else {
+            cancelPinger()
+        }
     }
 
     private fun cancelPinger() {

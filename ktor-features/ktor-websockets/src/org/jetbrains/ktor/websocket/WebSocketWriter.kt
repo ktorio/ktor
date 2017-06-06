@@ -8,6 +8,7 @@ import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
 
 internal class WebSocketWriter(val writeChannel: WriteChannel, ctx: CoroutineContext, val pool: ByteBufferPool) {
+    private val actorFakeJob = Job()
     private val queue = actor(ctx, capacity = 8) {
         val ticket = pool.allocate(DEFAULT_BUFFER_SIZE)
 
@@ -15,6 +16,7 @@ internal class WebSocketWriter(val writeChannel: WriteChannel, ctx: CoroutineCon
             writeLoop(ticket.buffer)
         } finally {
             pool.release(ticket)
+            actorFakeJob.cancel()
         }
     }
 
@@ -121,7 +123,7 @@ internal class WebSocketWriter(val writeChannel: WriteChannel, ctx: CoroutineCon
                 fr.setup(c)
             }
         } catch (ifClosed: ClosedSendChannelException) {
-            queue.join()
+            actorFakeJob.join()
         }
     }
 

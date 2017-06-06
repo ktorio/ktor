@@ -25,48 +25,47 @@ fun ponger(ctx: CoroutineContext, ws: WebSocketSession, pool: ByteBufferPool): A
 }
 
 fun pinger(ctx: CoroutineContext, ws: WebSocketSession, period: Duration, timeout: Duration, pool: ByteBufferPool, out: SendChannel<Frame>): ActorJob<Frame.Pong> {
-    val periodMillis = period.toMillis()
-    val timeoutMillis = timeout.toMillis()
-    val encoder = Charsets.ISO_8859_1.newEncoder()
-
-    val t = pool.allocate(128)
-
     val j = actor<Frame.Pong>(ctx, Channel.UNLIMITED, CoroutineStart.LAZY) {
-        while (!isClosedForReceive) {
-            // drop pongs during period delay as they are irrelevant
-            // here timeout is expected so ignore it
-            withTimeoutOrNull(periodMillis, TimeUnit.MILLISECONDS) {
-                while (true) {
-                    receive() // timeout causes loop to break on receive
+        val t = pool.allocate(128)
+        val periodMillis = period.toMillis()
+        val timeoutMillis = timeout.toMillis()
+        val encoder = Charsets.ISO_8859_1.newEncoder()
+
+        try {
+            while (!isClosedForReceive) {
+                // drop pongs during period delay as they are irrelevant
+                // here timeout is expected so ignore it
+                withTimeoutOrNull(periodMillis, TimeUnit.MILLISECONDS) {
+                    while (true) {
+                        receive() // timeout causes loop to break on receive
+                    }
+                }
+
+                val pingMessage = "[ping ${nextNonce()} ping]"
+
+                val rc = withTimeoutOrNull(timeoutMillis, TimeUnit.MILLISECONDS) {
+                    ws.sendPing(t.buffer, encoder, pingMessage)
+
+                    // wait for valid pong message
+                    while (true) {
+                        val msg = receive()
+                        if (msg.buffer.getString(Charsets.ISO_8859_1) == pingMessage) break
+                    }
+                }
+
+                if (rc == null) {
+                    // timeout
+                    // we were unable to send ping or hadn't get valid pong message in time
+                    // so we are triggering close sequence (if already started then the following close frame could be ignored)
+
+                    val closeFrame = Frame.Close(CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, "Ping timeout"))
+                    out.send(closeFrame)
+                    break
                 }
             }
-
-            val pingMessage = "[ping ${nextNonce()} ping]"
-
-            val rc = withTimeoutOrNull(timeoutMillis, TimeUnit.MILLISECONDS) {
-                ws.sendPing(t.buffer, encoder, pingMessage)
-
-                // wait for valid pong message
-                while (true) {
-                    val msg = receive()
-                    if (msg.buffer.getString(Charsets.ISO_8859_1) == pingMessage) break
-                }
-            }
-
-            if (rc == null) {
-                // timeout
-                // we were unable to send ping or hadn't get valid pong message in time
-                // so we are triggering close sequence (if already started then the following close frame could be ignored)
-
-                val closeFrame = Frame.Close(CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, "Ping timeout"))
-                out.send(closeFrame)
-                break
-            }
+        } finally {
+            pool.release(t)
         }
-    }
-
-    j.invokeOnCompletion {
-        pool.release(t)
     }
 
     return j

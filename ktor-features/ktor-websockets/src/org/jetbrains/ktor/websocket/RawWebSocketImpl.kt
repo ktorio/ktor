@@ -35,16 +35,17 @@ internal class RawWebSocketImpl(override val call: ApplicationCall,
         reader.start()
         writer.start()
 
-        val handlerJob = launch(hostContext) {
-            handler(WebSocketUpgrade.Dispatchers(hostContext, userAppContext))
-        }
+        launch(hostContext) {
+            var t: Throwable? = null
+            try {
+                handler(WebSocketUpgrade.Dispatchers(hostContext, userAppContext))
+            } catch (failed: Throwable) {
+                t = failed
+            } finally {
+                reader.cancel(t)
+                outgoing.close(t)
+                writer.close()
 
-        handlerJob.invokeOnCompletion { t ->
-            reader.cancel(t)
-            outgoing.close(t)
-            writer.close()
-
-            launch(hostContext) {
                 writer.flush()
                 terminate()
             }
