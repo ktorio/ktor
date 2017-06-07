@@ -16,6 +16,10 @@ private val server = ChatServer()
 fun Application.main() {
     install(DefaultHeaders)
     install(CallLogging)
+    install(WebSockets) {
+        pingPeriod = Duration.ofMinutes(1)
+    }
+
     install(Routing) {
         withSessions<Session> {
             withCookieByValue()
@@ -33,8 +37,6 @@ fun Application.main() {
                 close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "No session"))
                 return@webSocket
             }
-
-            pingInterval = Duration.ofMinutes(1)
 
             server.memberJoin(session.id, this)
 
