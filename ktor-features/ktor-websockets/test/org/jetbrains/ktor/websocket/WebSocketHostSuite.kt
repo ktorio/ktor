@@ -133,6 +133,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                     bb.flip()
 
                     socket.getOutputStream().write(buffer, 0, bb.remaining())
+                    socket.getOutputStream().flush()
                 }
             }
 
