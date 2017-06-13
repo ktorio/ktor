@@ -48,7 +48,17 @@ class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChann
 
         return when (awaitState()) {
             State.End -> -1
-            State.Available -> try { servletInputStream.read(dst) } catch (end: EOFException) { -1 }
+            State.Available -> {
+                if (servletInputStream.isReady) {
+                    try {
+                        servletInputStream.read(dst)
+                    } catch (end: EOFException) {
+                        -1
+                    }
+                } else {
+                    read(dst)
+                }
+            }
         }
     }
 
