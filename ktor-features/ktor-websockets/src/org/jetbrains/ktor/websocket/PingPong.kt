@@ -9,6 +9,7 @@ import java.nio.*
 import java.nio.charset.*
 import java.time.*
 import java.util.concurrent.*
+import java.util.concurrent.CancellationException
 import kotlin.coroutines.experimental.*
 
 fun ponger(ctx: CoroutineContext, ws: WebSocketSession, pool: ByteBufferPool): ActorJob<Frame.Ping> {
@@ -63,6 +64,7 @@ fun pinger(ctx: CoroutineContext, ws: WebSocketSession, period: Duration, timeou
                     break
                 }
             }
+        } catch (ignore: CancellationException) {
         } finally {
             pool.release(t)
         }
