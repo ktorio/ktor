@@ -3,6 +3,7 @@ package org.jetbrains.ktor.websocket
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.channels.Channel
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import java.time.*
 import java.util.concurrent.atomic.*
@@ -66,6 +67,10 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
                 null -> CloseReason(CloseReason.Codes.NORMAL, "OK")
                 is ClosedReceiveChannelException, is ClosedSendChannelException -> null
                 else -> CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, t.message ?: t.javaClass.name)
+            }
+
+            if (reason != null) {
+                application.log.error("Websocket handler failed", t)
             }
 
             cancelPinger()
