@@ -29,8 +29,7 @@ sealed class FinalContent {
     }
 
     abstract class ProtocolUpgrade : FinalContent() {
-        abstract suspend fun upgrade(call: ApplicationCall,
-                                     input: ReadChannel,
+        abstract suspend fun upgrade(input: ReadChannel,
                                      output: WriteChannel,
                                      channel: Closeable,
                                      hostContext: CoroutineContext,

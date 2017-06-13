@@ -94,7 +94,7 @@ open class ServletApplicationCall(application: Application,
             up.call.responseChannelOverride = outputChannel
 
             runBlocking {
-                up.upgradeMessage.upgrade(call, inputChannel, outputChannel, Closeable {
+                up.upgradeMessage.upgrade(inputChannel, outputChannel, Closeable {
                     wc.close()
                 }, up.hostContext, up.userAppContext)
             }

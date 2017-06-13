@@ -31,7 +31,6 @@ class JettyApplicationCall(application: Application,
         servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, inputChannel)
 
         servletResponse.flushBuffer()
-
-        upgrade.upgrade(this@JettyApplicationCall, inputChannel, outputChannel, connection, hostContext, userAppContext)
+        upgrade.upgrade(inputChannel, outputChannel, connection, hostContext, userAppContext)
     }
 }

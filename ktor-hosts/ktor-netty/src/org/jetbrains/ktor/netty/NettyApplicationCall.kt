@@ -84,7 +84,7 @@ internal class NettyApplicationCall(application: Application,
                     context.channel().pipeline().remove(HttpServerCodec::class.java)
                     context.channel().pipeline().addFirst(NettyDirectEncoder())
 
-                    upgrade.upgrade(this@NettyApplicationCall, HttpContentReadChannel(upgradeContentQueue.queue, buffered = false), responseChannel(), Closeable {
+                    upgrade.upgrade(HttpContentReadChannel(upgradeContentQueue.queue, buffered = false), responseChannel(), Closeable {
                         context.channel().close().get()
                         upgradeContentQueue.close()
                     }, context.channel().eventLoop().asCoroutineDispatcher(), userAppContext)
