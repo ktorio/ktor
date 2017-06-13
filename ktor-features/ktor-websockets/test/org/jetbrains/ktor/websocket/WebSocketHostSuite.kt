@@ -76,7 +76,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
             socket.assertCloseFrame()
         }
 
-        assertEquals(listOf("Hello"), collected.toList())
+        assertEquals("Hello", collected.take())
     }
 
     @Test
@@ -158,10 +158,14 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
             application.install(WebSockets)
 
             webSocket("/") {
-                incoming.consumeEach { frame ->
-                    if (frame is Frame.Text) {
-                        collected.add(frame.readText())
+                try {
+                    incoming.consumeEach { frame ->
+                        if (frame is Frame.Text) {
+                            collected.add(frame.readText())
+                        }
                     }
+                } catch (t: Throwable) {
+                    collected.put(t.toString())
                 }
             }
         }
@@ -210,7 +214,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
 
         for (i in 1..count) {
             val expected = template.substring(0, i)
-            assertEquals(expected, collected.poll())
+            assertEquals(expected, collected.take())
         }
 
         assertNull(collected.poll())
