@@ -1,3 +1,13 @@
+# 0.3.3
+> Pending
+
+* Execution model slightly changed to avoid global executors. ApplicationEnvironment doesn't provide `executor` anymore
+* Websockets refactored with channels instead of callback functions
+* Fixed bug with compression not preserving status code (thanks Diego Rocha)
+* Fixed performance issues with Netty host under heavy load and keep-alive connections
+* Optimisations in Servlet and Jetty hosts, fixes in edge cases
+* Fixes in chat sample
+
 # 0.3.2
 > Published 24 Apr 2017
 
