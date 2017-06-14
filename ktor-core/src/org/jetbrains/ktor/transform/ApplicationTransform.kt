@@ -5,8 +5,8 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import kotlin.reflect.*
 
-class ApplicationTransform<TContext : ApplicationCall>(private val parent: TransformTable<TContext>? = null) {
-    var table: TransformTable<TContext> = parent ?: TransformTable()
+class ApplicationTransform<TContext : ApplicationCall>(private val parent: ApplicationTransform<TContext>? = null) {
+    private var table: TransformTable<TContext> = parent?.table ?: TransformTable()
         private set
 
     inline fun <reified T : Any> register(noinline handler: suspend TContext.(T) -> Any) {
@@ -56,5 +56,5 @@ val Application.transform: ApplicationTransform<ApplicationCall>
     get() = feature(ApplicationTransform)
 
 val ApplicationCall.transform: ApplicationTransform<ApplicationCall>
-    get() = attributes.computeIfAbsent(ApplicationTransform.ApplicationCallTransform) { ApplicationTransform(application.transform.table) }
+    get() = attributes.computeIfAbsent(ApplicationTransform.ApplicationCallTransform) { ApplicationTransform(application.transform) }
 
