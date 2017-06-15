@@ -11,9 +11,9 @@ fun AuthenticationPipeline.formAuthentication(userParamName: String = "user",
                                               challenge: FormAuthChallenge = FormAuthChallenge.Unauthorized,
                                               validate: (UserPasswordCredential) -> Principal?) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val postParameters = context.call.request.receive<ValuesMap>()
-        val username = postParameters[userParamName]
-        val password = postParameters[passwordParamName]
+        val postParameters = context.call.request.tryReceive<ValuesMap>()
+        val username = postParameters?.get(userParamName)
+        val password = postParameters?.get(passwordParamName)
 
         val credentials = if (username != null && password != null) UserPasswordCredential(username, password) else null
         val principal = credentials?.let(validate)

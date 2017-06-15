@@ -27,7 +27,10 @@ class AuthBuildersTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/?user=$username&password=p")
+            handleRequest(HttpMethod.Post, "/") {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+                body = "user=$username&password=p"
+            }
         }
     }
 }

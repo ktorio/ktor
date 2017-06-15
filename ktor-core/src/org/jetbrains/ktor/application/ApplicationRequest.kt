@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.application
 
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import kotlin.reflect.*
@@ -13,6 +14,11 @@ interface ApplicationRequest {
      * [ApplicationCall] instance this ApplicationRequest is attached to
      */
     val call: ApplicationCall
+
+    /**
+     * Pipeline for transforming request content into receive objects
+     */
+    val pipeline: ApplicationReceivePipeline
 
     /**
      * Parameters provided in an URL
@@ -38,10 +44,26 @@ interface ApplicationRequest {
     /**
      * Receive content for this request
      */
-    suspend fun <T : Any> receive(type: KClass<T>): T
+    suspend fun <T : Any> tryReceive(type: KClass<T>): T?
 }
 
-inline suspend fun <reified T : Any> ApplicationRequest.receive(): T = receive(T::class)
+inline suspend fun <reified T : Any> ApplicationRequest.tryReceive(): T? = tryReceive(T::class)
+inline suspend fun <reified T : Any> ApplicationRequest.receive(): T {
+    val type = T::class
+    return tryReceive(type) ?: throw Exception("Cannot transform this request's content into $type")
+}
 
 @Deprecated("Replace 'content.get<>()' with 'receive<>'", level = DeprecationLevel.ERROR)
 val ApplicationRequest.content: Any get() = TODO()
+
+open class ApplicationReceivePipeline : Pipeline<ApplicationReceiveRequest>(Before, Transform, After) {
+    companion object RespondPhase {
+        val Before = PipelinePhase("Before")
+
+        val Transform = PipelinePhase("Transform")
+
+        val After = PipelinePhase("After")
+    }
+}
+
+class ApplicationReceiveRequest(val call: ApplicationCall, val type: KClass<*>, val value: Any)

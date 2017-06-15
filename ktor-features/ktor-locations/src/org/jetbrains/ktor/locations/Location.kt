@@ -27,7 +27,7 @@ inline fun <reified T : Any> Route.post(noinline body: suspend PipelineContext<A
     return location(T::class) {
         method(HttpMethod.Post) {
             handle {
-                val formPostData = call.request.receive<ValuesMap>()
+                val formPostData = call.request.tryReceive<ValuesMap>() ?: ValuesMap.Empty
                 body(this, locations().resolve(T::class, call.parameters + formPostData))
             }
         }

@@ -107,13 +107,18 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     fun testRequestContentFormData() {
         createAndStartServer {
             handle {
-                call.respond(call.request.receive<ValuesMap>().formUrlEncode())
+                val valuesMap = call.request.tryReceive<ValuesMap>()
+                if (valuesMap != null)
+                    call.respond(valuesMap.formUrlEncode())
+                else
+                    call.respond(HttpStatusCode.UnsupportedMediaType)
             }
         }
 
         withUrl("/") {
             doOutput = true
             requestMethod = "POST"
+            setRequestProperty(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
 
             outputStream.bufferedWriter().use {
                 valuesOf("a" to listOf("1")).formUrlEncodeTo(it)
@@ -127,8 +132,8 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             doOutput = false
             requestMethod = "GET"
 
-            assertEquals(200, responseCode)
-            assertEquals("", inputStream.reader().use { it.readText() })
+            assertEquals(HttpStatusCode.UnsupportedMediaType, HttpStatusCode.fromValue(responseCode))
+            assertFailsWith<IOException> { inputStream.reader().use { it.readText() } }
         }
     }
 
@@ -1072,11 +1077,11 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             TimeUnit.SECONDS.sleep(5)
             var attempts = 7
 
-        fun dump() {
+            fun dump() {
 //            val (valid, invalid) = conns.filter { it.isDone }.partition { it.get() == "Deadlock ?" }
 //
 //            println("Completed: ${valid.size} valid, ${invalid.size} invalid of ${conns.size} total [attempts $attempts]")
-        }
+            }
 
             while (true) {
                 dump()

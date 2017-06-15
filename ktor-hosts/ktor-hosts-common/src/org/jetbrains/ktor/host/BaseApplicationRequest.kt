@@ -9,39 +9,56 @@ import java.io.*
 import kotlin.reflect.*
 
 abstract class BaseApplicationRequest() : ApplicationRequest {
-    private val contentAsString by lazy { getReadChannel().toInputStream().reader(contentCharset() ?: Charsets.ISO_8859_1).readText() }
-
-    private val computedValuesMap: ValuesMap by lazy {
-        when {
-            contentType().match(ContentType.Application.FormUrlEncoded) -> {
-                parseQueryString(contentAsString)
-            }
-            contentType().match(ContentType.MultiPart.FormData) -> {
-                ValuesMap.build {
-                    getMultiPartData().parts.filterIsInstance<PartData.FormItem>().forEach { part ->
-                        part.partName?.let { name ->
-                            append(name, part.value)
+    override val pipeline = ApplicationReceivePipeline().apply {
+        intercept(ApplicationReceivePipeline.Transform) { query ->
+            val value = query.value as? ApplicationRequest ?: return@intercept
+            val transformed: Any? = when (query.type) {
+                ReadChannel::class -> getReadChannel()
+                InputStream::class -> getInputStream()
+                MultiPartData::class -> getMultiPartData()
+                String::class -> getReadChannel().readText()
+                ValuesMap::class -> when {
+                    contentType().match(ContentType.Application.FormUrlEncoded) -> {
+                        val string = getReadChannel().readText()
+                        parseQueryString(string)
+                    }
+                    contentType().match(ContentType.MultiPart.FormData) -> {
+                        val items = getMultiPartData().parts.filterIsInstance<PartData.FormItem>()
+                        ValuesMap.build {
+                            items.forEach {
+                                it.partName?.let { name -> append(name, it.value) }
+                            }
                         }
                     }
+                    else -> null // Respond UnsupportedMediaType? but what if someone else later would like to do it?
                 }
+                else -> null
             }
-            else -> ValuesMap.Empty
+            if (transformed != null)
+                proceedWith(ApplicationReceiveRequest(query.call, query.type, transformed))
         }
+    }
+
+    suspend fun ReadChannel.readText(): String {
+        val buffer = ByteBufferWriteChannel()
+        headers[HttpHeaders.ContentLength]?.toInt()?.let { contentLength ->
+            buffer.ensureCapacity(contentLength)
+        }
+
+        copyTo(buffer) // TODO provide buffer pool to copyTo function
+        return buffer.toByteArray().toString(contentCharset() ?: Charsets.ISO_8859_1)
     }
 
     protected abstract fun getReadChannel(): ReadChannel
     protected abstract fun getMultiPartData(): MultiPartData
     protected open fun getInputStream(): InputStream = getReadChannel().toInputStream()
 
-    suspend override fun <T : Any> receive(type: KClass<T>): T {
-        @Suppress("IMPLICIT_CAST_TO_ANY", "UNCHECKED_CAST")
-        return when (type) {
-            ReadChannel::class -> getReadChannel()
-            InputStream::class -> getInputStream()
-            String::class -> contentAsString
-            ValuesMap::class -> computedValuesMap
-            MultiPartData::class -> getMultiPartData()
-            else -> throw UnknownContentAccessorRequest("Requested content accessor '$type' cannot be provided")
-        } as T
+    suspend override fun <T : Any> tryReceive(type: KClass<T>): T? {
+        val transformed = pipeline.execute(ApplicationReceiveRequest(call, type, this)).value
+        if (transformed is ApplicationRequest)
+            return null
+
+        @Suppress("UNCHECKED_CAST")
+        return transformed as? T
     }
 }
