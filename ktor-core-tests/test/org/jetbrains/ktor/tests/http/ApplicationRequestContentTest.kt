@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.util.*
@@ -60,12 +61,11 @@ class ApplicationRequestContentTest {
             application.intercept(ApplicationCallPipeline.Infrastructure) {
                 call.request.pipeline.intercept(ApplicationReceivePipeline.Transform) { query ->
                     if (query.type != IntList::class) return@intercept
+                    val message = query.value as? IncomingContent ?: return@intercept
 
-                    val string = call.request.pipeline.execute(ApplicationReceiveRequest(query.call, String::class, query.value)).value as? String
-                    if (string != null) {
-                        val transformed = IntList.parse(string)
-                        proceedWith(ApplicationReceiveRequest(query.call, query.type, transformed))
-                    }
+                    val string = message.readText()
+                    val transformed = IntList.parse(string)
+                    proceedWith(ApplicationReceiveRequest(query.call, query.type, transformed))
                 }
             }
 
@@ -79,22 +79,20 @@ class ApplicationRequestContentTest {
         }
     }
 
-
     @Test
     fun testFormUrlEncodedContent() {
+        val values = valuesOf(
+                "one" to listOf("1"),
+                "two_space_three_and_four" to listOf("2 3 & 4")
+        )
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) { call ->
-                val parameters = call.request.receive<ValuesMap>()
-                assertEquals("1", parameters["one"])
-                assertEquals("2 3 & 4", parameters["two_space_three_and_four"])
+                assertEquals(values, call.request.receive<ValuesMap>())
             }
 
-            handleRequest(HttpMethod.Get, "") {
+            handleRequest(HttpMethod.Post, "") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                body = valuesOf(
-                        "one" to listOf("1"),
-                        "two_space_three_and_four" to listOf("2 3 & 4")
-                ).formUrlEncode()
+                body = values.formUrlEncode()
             }
         }
     }

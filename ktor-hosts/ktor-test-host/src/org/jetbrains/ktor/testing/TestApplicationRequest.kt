@@ -2,6 +2,7 @@ package org.jetbrains.ktor.testing
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
@@ -63,16 +64,20 @@ class TestApplicationRequest(
         valuesOf(map, caseInsensitiveKey = true)
     }
 
-    override fun getReadChannel() = bodyBytes.toReadChannel()
-    override fun getInputStream(): InputStream = ByteArrayInputStream(bodyBytes)
-
-    override fun getMultiPartData(): MultiPartData = object : MultiPartData {
-        override val parts: Sequence<PartData>
-            get() = when {
-                isMultipart() -> multiPartEntries.asSequence()
-                else -> throw IOException("The request content is not multipart encoded")
-            }
-    }
-
     override val cookies = RequestCookies(this)
+
+    override fun receiveContent() = TestIncomingContent(this)
+
+    class TestIncomingContent(override val request: TestApplicationRequest) : IncomingContent {
+        override fun readChannel() = request.bodyBytes.toReadChannel()
+        override fun inputStream(): InputStream = ByteArrayInputStream(request.bodyBytes)
+
+        override fun multiPartData(): MultiPartData = object : MultiPartData {
+            override val parts: Sequence<PartData>
+                get() = when {
+                    request.isMultipart() -> request.multiPartEntries.asSequence()
+                    else -> throw IOException("The request content is not multipart encoded")
+                }
+        }
+    }
 }
