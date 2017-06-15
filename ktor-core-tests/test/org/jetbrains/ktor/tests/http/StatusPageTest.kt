@@ -7,7 +7,6 @@ import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
-import org.jetbrains.ktor.transform.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
 import kotlin.test.*
@@ -91,7 +90,7 @@ class StatusPageTest {
     }
 
     @Test
-    fun testStatus404WithTransform() {
+    fun testStatus404WithInterceptor() {
         class O
 
         withTestApplication {
@@ -105,7 +104,13 @@ class StatusPageTest {
                 }
             }
 
-            application.transform.register<O> { HttpStatusCode.NotFound }
+            application.intercept(ApplicationCallPipeline.Infrastructure) {
+                call.response.pipeline.intercept(ApplicationResponsePipeline.Transform) {
+                    if (subject is O)
+                        proceedWith(HttpStatusCode.NotFound)
+                }
+            }
+
             application.routing {
                 get("/") {
                     call.respond(O())
@@ -147,12 +152,15 @@ class StatusPageTest {
     }
 
     @Test
-    fun testFailPageDuringTransform() {
+    fun testFailPageDuringInterceptor() {
         class O
 
         withTestApplication {
-            application.transform.register<O> {
-                throw IllegalStateException()
+            application.intercept(ApplicationCallPipeline.Infrastructure) {
+                call.response.pipeline.intercept(ApplicationResponsePipeline.Transform) {
+                    if (subject is O)
+                        throw IllegalStateException()
+                }
             }
 
             application.install(StatusPages) {

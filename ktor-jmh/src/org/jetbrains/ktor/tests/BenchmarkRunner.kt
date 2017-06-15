@@ -142,7 +142,6 @@ fun main(args: Array<String>) {
         run<IntegrationBenchmark>()
         run<PipelineBenchmark>()
         run<RoutingBenchmark>()
-        run<TransformBenchmark>()
         run<ValuesMapBenchmark>()
     }
 }

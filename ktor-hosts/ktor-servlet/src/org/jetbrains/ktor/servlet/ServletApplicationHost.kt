@@ -5,7 +5,6 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.logging.*
-import org.jetbrains.ktor.transform.*
 import javax.servlet.annotation.*
 
 @MultipartConfig
@@ -37,7 +36,12 @@ open class ServletApplicationHost : KtorServlet() {
             classLoader = servletContext.classLoader
         }.apply {
             monitor.applicationStarting += {
-                it.install(ApplicationTransform).registerDefaultHandlers()
+                it.intercept(ApplicationCallPipeline.Infrastructure) {
+                    call.response.pipeline.intercept(ApplicationResponsePipeline.Render) {
+                        val content = defaultHandlers(call)
+                        content?.let { proceedWith(it) }
+                    }
+                }
             }
         }
     }

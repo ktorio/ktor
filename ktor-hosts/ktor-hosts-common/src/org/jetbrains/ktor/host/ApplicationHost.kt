@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.host
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.transform.*
 import java.util.concurrent.*
 
 interface ApplicationHost {
@@ -19,7 +18,12 @@ abstract class BaseApplicationHost(override final val environment: ApplicationHo
 
     init {
         environment.monitor.applicationStarting += {
-            it.install(ApplicationTransform).registerDefaultHandlers()
+            it.intercept(ApplicationCallPipeline.Infrastructure) {
+                call.response.pipeline.intercept(ApplicationResponsePipeline.Render) {
+                    val content = defaultHandlers(call)
+                    content?.let { proceedWith(it) }
+                }
+            }
         }
     }
 
