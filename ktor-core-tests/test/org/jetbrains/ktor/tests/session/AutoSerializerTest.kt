@@ -45,8 +45,20 @@ class AutoSerializerTest {
         // TODO randomize values
     }
 
+    @Test
+    fun testEnum() {
+        assertSerializeDeserialize(EnumTypeSession(), autoSerializerOf())
+    }
+
+    @Test
+    fun testEnumInCollection() {
+        assertSerializeDeserialize(EnumCollectionSession(), autoSerializerOf())
+    }
+
     private fun <T: Any> assertSerializeDeserialize(session: T, serializer: SessionSerializer<T>) {
-        assertEquals(session, serializer.deserialize(serializer.serialize(session)))
+        val serialized = serializer.serialize(session)
+        val deserialized = serializer.deserialize(serialized)
+        assertEquals(session, deserialized)
     }
 }
 
@@ -90,3 +102,9 @@ data class AdditionalTypesSession(
         var bd: BigDecimal = BigDecimal.ZERO,
         var bi: BigInteger = BigInteger.TEN
 )
+
+enum class TestEnum { A, B, C }
+data class EnumTypeSession(val e: TestEnum = TestEnum.B)
+data class EnumCollectionSession(val ll: List<TestEnum> = listOf(TestEnum.B),
+                                 val ss: Set<TestEnum> = setOf(TestEnum.A),
+                                 val mm: Map<TestEnum, TestEnum> = mapOf(TestEnum.A to TestEnum.B))

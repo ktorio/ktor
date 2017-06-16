@@ -26,7 +26,8 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
             val encodedValue = bundle[p.name]
             if (encodedValue != null) {
                 val value = deserializeValue(encodedValue)
-                assignValue(instance, p, value)
+                val coerced = coerceType(p.returnType, value)
+                assignValue(instance, p, coerced)
             }
         }
 
@@ -100,12 +101,14 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
                     value !is List<*> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
 
                     else -> {
+                        val contentType = type.arguments.single().type ?: throw IllegalArgumentException("Star projections are not supported for list element: ${type.arguments[0]}")
+
                         listOf(type.toJavaClass().kotlin, ArrayList::class)
                                 .toTypedList<MutableList<*>>()
                                 .filterAssignable(type)
                                 .firstHasNoArgConstructor()
                                 ?.callNoArgConstructor()
-                                ?.withUnsafe { addAll(value); this }
+                                ?.withUnsafe { addAll(value.map { coerceType(contentType, it) }); this }
                                 ?: throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                     }
                 }
@@ -114,12 +117,14 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
                     value !is Set<*> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
 
                     else -> {
+                        val contentType = type.arguments.single().type ?: throw IllegalArgumentException("Star projections are not supported for set element: ${type.arguments[0]}")
+
                         listOf(type.toJavaClass().kotlin, LinkedHashSet::class, HashSet::class, TreeSet::class)
                                 .toTypedList<MutableSet<*>>()
                                 .filterAssignable(type)
                                 .firstHasNoArgConstructor()
                                 ?.callNoArgConstructor()
-                                ?.withUnsafe { addAll(value); this }
+                                ?.withUnsafe { addAll(value.map { coerceType(contentType, it) }); this }
                                 ?: throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                     }
                 }
@@ -127,14 +132,20 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
                     value !is Map<*, *> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
 
                     else -> {
+                        val keyType = type.arguments[0].type ?: throw IllegalArgumentException("Star projections are not supported for map key: ${type.arguments[0]}")
+                        val valueType = type.arguments[1].type ?: throw IllegalArgumentException("Star projections are not supported for map valye ${type.arguments[1]}")
+
                         listOf(type.toJavaClass().kotlin, LinkedHashMap::class, HashMap::class, TreeMap::class, ConcurrentHashMap::class)
                                 .toTypedList<MutableMap<*, *>>()
                                 .filterAssignable(type)
                                 .firstHasNoArgConstructor()
                                 ?.callNoArgConstructor()
-                                ?.withUnsafe { putAll(value); this }
+                                ?.withUnsafe { putAll(value.mapKeys { coerceType(keyType, it.key) }.mapValues { coerceType(valueType, it.value) }); this }
                                 ?: throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                     }
+                }
+                isEnumType(type) -> {
+                    type.javaType.toJavaClass().enumConstants.first { (it as? Enum<*>)?.name == value }
                 }
                 type.toJavaClass() == Float::class.java && value is Number -> value.toFloat()
                 else -> value
@@ -231,6 +242,7 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
                 is List<*> -> "#cl${serializeCollection(value)}"
                 is Set<*> -> "#cs${serializeCollection(value)}"
                 is Map<*, *> -> "#m${serializeMap(value)}"
+                is Enum<*> -> "#s${value.name}"
                 else -> throw IllegalArgumentException("Unsupported value type ${value::class.java.name}")
             }
 
@@ -251,6 +263,11 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
     private fun isSetType(type: KType): Boolean {
         return getRawType(type)?.let { java.util.Set::class.java.isAssignableFrom(it) } ?: false
+    }
+
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    private fun isEnumType(type: KType): Boolean {
+        return getRawType(type)?.let { java.lang.Enum::class.java.isAssignableFrom(it) } ?: false
     }
 
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
