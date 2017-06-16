@@ -38,6 +38,9 @@ class ServerSessionTest {
 
                         call.respondText("ok")
                     }
+                    get("/3") {
+                        call.respondText(call.sessionOrNull<TestUserSession>()?.userId ?: "no session")
+                    }
                 }
 
                 handleRequest(HttpMethod.Get, "/0").let { response ->
@@ -59,6 +62,12 @@ class ServerSessionTest {
 
                 handleRequest(HttpMethod.Get, "/2") {
                     addHeader(HttpHeaders.Cookie, "SESSION_ID=$sessionId")
+                }
+
+                handleRequest(HttpMethod.Get, "/3") {
+                    addHeader(HttpHeaders.Cookie, "SESSION_ID=bad$sessionId")
+                }.let { call ->
+                    assertEquals("no session", call.response.content)
                 }
             }
         }

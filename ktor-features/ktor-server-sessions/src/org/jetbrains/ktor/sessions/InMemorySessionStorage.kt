@@ -13,7 +13,7 @@ internal class InMemorySessionStorage : SessionStorage {
     }
 
     override suspend fun <R> read(id: String, consumer: suspend (ReadChannel) -> R): R {
-        return sessions[id]?.let { bytes -> consumer(bytes.toReadChannel()) } ?: throw IllegalArgumentException("Session $id not found")
+        return sessions[id]?.let { bytes -> consumer(bytes.toReadChannel()) } ?: throw NoSuchElementException("Session $id not found")
     }
 
     override suspend fun invalidate(id: String) {

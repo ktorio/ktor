@@ -54,10 +54,14 @@ internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val 
         }
 
         call.attributes.put(SessionIdKey, sessionId)
-        storage.read(sessionId) { channel ->
-            val text = channel.toInputStream().bufferedReader().readText()
-            val session = serializer.deserialize(text)
-            processSession(session)
+        try {
+            storage.read(sessionId) { channel ->
+                val text = channel.toInputStream().bufferedReader().readText()
+                val session = serializer.deserialize(text)
+                processSession(session)
+            }
+        } catch (notFound: NoSuchElementException) {
+            call.application.log.debug("Failed to lookup session: $notFound")
         }
     }
 
