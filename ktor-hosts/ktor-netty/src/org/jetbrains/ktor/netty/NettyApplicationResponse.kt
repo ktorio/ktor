@@ -2,7 +2,6 @@ package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
-import io.netty.handler.stream.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
@@ -63,8 +62,8 @@ internal class NettyApplicationResponse(call: ApplicationCall, val context: Chan
     }
 
     suspend fun close() {
-        sendResponseMessage()
-        responseChannel0?.close()
+        sendResponseMessage() // we don't need to suspendAwait() here as it handled in NettyApplicationCall
+        responseChannel0?.close() // while close only does flush() and doesn't terminate connection
     }
 
     private fun setChunked() {

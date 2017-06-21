@@ -4,6 +4,7 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.*
 import org.jetbrains.ktor.pipeline.*
+import java.nio.channels.*
 
 class NettyContentQueue(val context: ChannelHandlerContext) : SuspendQueue<HttpContent>(2) {
     fun dispose(t: Throwable? = null) {
@@ -35,8 +36,12 @@ internal class RawContentQueue(val context: ChannelHandlerContext) : ChannelInbo
 
 internal open class HttpContentQueue(val context: ChannelHandlerContext) : SimpleChannelInboundHandler<HttpContent>(false) {
     private val _queuesStack = ArrayList<NettyContentQueue>(2)
+    @Volatile
+    private var closeCause: Throwable? = null
 
     fun createNew(): NettyContentQueue {
+        closeCause?.let { throw it }
+
         val q = NettyContentQueue(context)
         _queuesStack.add(q)
         return q
@@ -57,12 +62,18 @@ internal open class HttpContentQueue(val context: ChannelHandlerContext) : Simpl
 
     override fun channelRead0(context: ChannelHandlerContext, msg: HttpContent) {
         val last = msg is LastHttpContent
-        val q = _queuesStack.firstOrNull() ?: throw IllegalStateException("No stacked queue")
+        closeCause?.let { t -> msg.release(); throw t }
+        val q = _queuesStack.firstOrNull() ?: run { msg.release();  throw IllegalStateException("No stacked queue") }
 
         q.push(msg, last)
         if (last) {
             _queuesStack.remove(q)
         }
+    }
+
+    override fun handlerRemoved(ctx: ChannelHandlerContext?) {
+        close(null)
+        super.handlerRemoved(ctx)
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext?) {
@@ -76,10 +87,10 @@ internal open class HttpContentQueue(val context: ChannelHandlerContext) : Simpl
     }
 
     private fun close(cause: Throwable?) {
+        closeCause = closeCause ?: cause ?: ClosedChannelException()
+
         while (_queuesStack.isNotEmpty()) {
-            pop().apply {
-                dispose(cause)
-            }
+            pop().dispose(cause)
         }
     }
 }

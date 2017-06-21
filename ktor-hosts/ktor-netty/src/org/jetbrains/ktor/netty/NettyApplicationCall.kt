@@ -28,13 +28,27 @@ internal class NettyApplicationCall(application: Application,
     override val bufferPool = NettyByteBufferPool(context)
 
     suspend override fun respond(message: Any) {
-        super.respond(message)
+        try {
+            super.respond(message)
+        } finally {
+            completed = true
 
-        completed = true
-        response.close()
-        request.close()
+            try {
+                response.close()
+            } finally {
+                try {
+                    request.close()
+                } finally {
+                    if (closed.compareAndSet(false, true)) {
+                        finalizeConnection()
+                    }
+                }
+            }
+        }
+    }
 
-        if (closed.compareAndSet(false, true)) {
+    private fun finalizeConnection() {
+        try {
             val finishContent = context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
             if (!HttpUtil.isKeepAlive(httpRequest)) {
                 // close channel if keep-alive was not requested
@@ -49,6 +63,7 @@ internal class NettyApplicationCall(application: Application,
                     // resume next sendResponseMessage if queued
                 }
             }
+        } finally {
             ReferenceCountUtil.release(httpRequest)
         }
     }
