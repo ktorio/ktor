@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.pipeline
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.util.*
 
 open class Pipeline<TSubject : Any>(vararg phase: PipelinePhase) {
@@ -18,8 +19,10 @@ open class Pipeline<TSubject : Any>(vararg phase: PipelinePhase) {
         phases.intercept(phase, block)
     }
 
-    suspend fun execute(subject: TSubject): TSubject = PipelineContext(phases.interceptors(), subject).proceed()
+    suspend fun execute(call: ApplicationCall, subject: TSubject): TSubject = PipelineContext(call, phases.interceptors(), subject).proceed()
 }
+
+suspend fun Pipeline<Unit>.execute(call: ApplicationCall) = execute(call, Unit)
 
 typealias PipelineInterceptor<TSubject> = suspend PipelineContext<TSubject>.(TSubject) -> Unit
 

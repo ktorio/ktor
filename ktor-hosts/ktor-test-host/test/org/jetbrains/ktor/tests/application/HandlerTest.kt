@@ -3,6 +3,7 @@ package org.jetbrains.ktor.tests.application
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.tests.*
 import org.junit.*
@@ -30,7 +31,7 @@ class HandlerTest {
     }
 
     @Test fun `application with handler returning true`() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) { call -> call.respond(HttpStatusCode.OK) }
+        application.intercept(ApplicationCallPipeline.Call) { call.respond(HttpStatusCode.OK) }
         on("making a request") {
             val request = handleRequest { }
             it("should be handled") {
@@ -40,7 +41,7 @@ class HandlerTest {
     }
 
     @Test fun `application with handler that checks body on POST method`() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) { call ->
+        application.intercept(ApplicationCallPipeline.Call) {
             if (call.request.httpMethod == HttpMethod.Post) {
                 assertEquals(call.request.receive<String>(), "Body")
                 call.respond(HttpStatusCode.OK)
@@ -54,7 +55,7 @@ class HandlerTest {
     }
 
     @Test fun `application with handler that returns true on POST method`() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) { call ->
+        application.intercept(ApplicationCallPipeline.Call) {
             if (call.request.httpMethod == HttpMethod.Post) {
                 call.respond(HttpStatusCode.OK)
             }

@@ -52,14 +52,14 @@ object OAuthGrandTypes {
     val Password = "password"
 }
 
-suspend fun PipelineContext<ApplicationCall>.oauth(client: HttpClient, exec: ExecutorService,
+suspend fun PipelineContext<Unit>.oauth(client: HttpClient, exec: ExecutorService,
                                                    providerLookup: ApplicationCall.() -> OAuthServerSettings?,
                                                    urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     oauth1a(client, exec, providerLookup, urlProvider)
     oauth2(client, exec, providerLookup, urlProvider)
 }
 
-suspend fun PipelineContext<ApplicationCall>.oauthRespondRedirect(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String) {
+suspend fun PipelineContext<Unit>.oauthRespondRedirect(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String) {
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
             runAsync(exec) {
@@ -73,7 +73,7 @@ suspend fun PipelineContext<ApplicationCall>.oauthRespondRedirect(client: HttpCl
     }
 }
 
-suspend fun PipelineContext<ApplicationCall>.oauthHandleCallback(client: HttpClient,
+suspend fun PipelineContext<Unit>.oauthHandleCallback(client: HttpClient,
                                                                  exec: ExecutorService,
                                                                  provider: OAuthServerSettings,
                                                                  callbackUrl: String,

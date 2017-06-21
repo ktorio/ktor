@@ -13,14 +13,13 @@ class CookieValueSessionTracker<S : Any>(val cookieSettings: SessionCookiesSetti
         call.response.cookies.append(cookie)
     }
 
-    suspend override fun lookup(context: PipelineContext<ApplicationCall>, processSession: (S) -> Unit) {
+    suspend override fun lookup(context: PipelineContext<Unit>, processSession: (S) -> Unit) {
         val cookie = context.call.request.cookies[cookieName]
         val value = cookieSettings.fromCookie(cookie)
         if (value != null) {
             val deserialize = serializer.deserialize(value)
             processSession(deserialize)
         }
-        context.proceed()
     }
 
     override suspend fun unassign(call: ApplicationCall) {

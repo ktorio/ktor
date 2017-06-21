@@ -3,6 +3,7 @@ package org.jetbrains.ktor.websocket
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 
 fun Route.webSocketRaw(path: String, protocol: String? = null, handler: suspend WebSocketSession.(WebSocketUpgrade.Dispatchers) -> Unit) {

@@ -35,12 +35,12 @@ internal class NettyHttp2ReadChannel(val streamId: Int, val context: ChannelHand
             }
         }
 
-        fun handleRequest(ctx: ChannelHandlerContext, msg: Http2Frame) {
-            when (msg) {
+        fun handleRequest(ctx: ChannelHandlerContext, call: Http2Frame) {
+            when (call) {
                 is Http2DataFrame -> {
-                    if (msg.streamId() == streamId) {
-                        sourceBuffers.add(msg.content().retain())
-                        eof = msg.isEndStream
+                    if (call.streamId() == streamId) {
+                        sourceBuffers.add(call.content().retain())
+                        eof = call.isEndStream
 
                         if (sourceBuffers.size == 1) {
                             meet.acknowledge()

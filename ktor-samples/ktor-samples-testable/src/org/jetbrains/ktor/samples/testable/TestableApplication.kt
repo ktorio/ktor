@@ -5,7 +5,7 @@ import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 
 fun Application.testableApplication() {
-    intercept(ApplicationCallPipeline.Call) { call ->
+    intercept(ApplicationCallPipeline.Call) {
         if (call.request.uri == "/")
             call.respondText("Test String")
     }

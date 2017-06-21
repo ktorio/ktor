@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.sessions
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import kotlin.reflect.*
 
@@ -37,27 +37,27 @@ fun <S : Any> ApplicationCall.sessionOrNull(sessionType: KClass<S>): S? {
 }
 
 
-inline fun <reified S : Any> Pipeline<ApplicationCall>.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) =
+inline fun <reified S : Any> ApplicationCallPipeline.withSessions(noinline block: SessionConfigBuilder<S>.() -> Unit) =
         withSessions(S::class, block)
 
-inline fun <S : Any> Pipeline<ApplicationCall>.withSessions(type: KClass<S>, block: SessionConfigBuilder<S>.() -> Unit) {
+inline fun <S : Any> ApplicationCallPipeline.withSessions(type: KClass<S>, block: SessionConfigBuilder<S>.() -> Unit) {
     withSessions(SessionConfigBuilder(type).apply(block).build())
 }
 
-fun <S : Any> Pipeline<ApplicationCall>.withSessions(sessionConfig: SessionConfig<S>) {
-    intercept(ApplicationCallPipeline.Infrastructure) { call ->
-        call.response.pipeline.intercept(ApplicationResponsePipeline.Before) {
-            if (call.attributes.contains(SessionKey)) {
-                val session = call.sessionOrNull(sessionConfig.sessionType)
-                if (session != null) {
-                    sessionConfig.sessionTracker.assign(call, session)
-                }
-            }
-        }
-
+fun <S : Any> ApplicationCallPipeline.withSessions(sessionConfig: SessionConfig<S>) {
+    intercept(ApplicationCallPipeline.Infrastructure) {
         call.attributes.put(SessionConfigKey, sessionConfig)
         sessionConfig.sessionTracker.lookup(this) {
             call.attributes.put(SessionKey, it)
+        }
+    }
+
+    sendPipeline.intercept(ApplicationSendPipeline.Before) {
+        if (call.attributes.contains(SessionKey)) {
+            val session = call.sessionOrNull(sessionConfig.sessionType)
+            if (session != null) {
+                sessionConfig.sessionTracker.assign(call, session)
+            }
         }
     }
 }

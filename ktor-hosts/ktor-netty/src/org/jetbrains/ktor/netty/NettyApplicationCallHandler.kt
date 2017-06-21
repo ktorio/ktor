@@ -2,6 +2,7 @@ package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
 import kotlinx.coroutines.experimental.*
+import org.jetbrains.ktor.pipeline.*
 import kotlin.coroutines.experimental.*
 
 internal class NettyApplicationCallHandler(private val host: NettyApplicationHost) : ChannelInboundHandlerAdapter() {
@@ -13,9 +14,9 @@ internal class NettyApplicationCallHandler(private val host: NettyApplicationHos
         }
     }
 
-    fun handleRequest(context: ChannelHandlerContext, msg: NettyApplicationCall) {
+    fun handleRequest(context: ChannelHandlerContext, call: NettyApplicationCall) {
         launch(Dispatcher + CurrentContext(context)) {
-            host.pipeline.execute(msg)
+            host.pipeline.execute(call)
         }
     }
 

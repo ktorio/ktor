@@ -4,6 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import java.util.*
 
@@ -12,29 +13,28 @@ class StatusPages(config: Configuration) {
     val statuses = HashMap(config.statuses)
 
     class Configuration {
-        val exceptions = mutableMapOf<Class<*>, suspend PipelineContext<ApplicationCall>.(Throwable) -> Unit>()
-        val statuses = mutableMapOf<HttpStatusCode, suspend PipelineContext<ApplicationCall>.(HttpStatusCode) -> Unit>()
+        val exceptions = mutableMapOf<Class<*>, suspend PipelineContext<Unit>.(Throwable) -> Unit>()
+        val statuses = mutableMapOf<HttpStatusCode, suspend PipelineContext<Unit>.(HttpStatusCode) -> Unit>()
 
-        inline fun <reified T : Throwable> exception(noinline handler: suspend PipelineContext<ApplicationCall>.(T) -> Unit) =
+        inline fun <reified T : Throwable> exception(noinline handler: suspend PipelineContext<Unit>.(T) -> Unit) =
                 exception(T::class.java, handler)
 
-        fun <T : Throwable> exception(klass: Class<T>, handler: suspend PipelineContext<ApplicationCall>.(T) -> Unit) {
+        fun <T : Throwable> exception(klass: Class<T>, handler: suspend PipelineContext<Unit>.(T) -> Unit) {
             @Suppress("UNCHECKED_CAST")
-            exceptions.put(klass, handler as suspend PipelineContext<ApplicationCall>.(Throwable) -> Unit)
+            exceptions.put(klass, handler as suspend PipelineContext<Unit>.(Throwable) -> Unit)
         }
 
-        fun status(vararg status: HttpStatusCode, handler: suspend PipelineContext<ApplicationCall>.(HttpStatusCode) -> Unit) {
+        fun status(vararg status: HttpStatusCode, handler: suspend PipelineContext<Unit>.(HttpStatusCode) -> Unit) {
             status.forEach {
                 statuses.put(it, handler)
             }
         }
     }
 
-    suspend private fun intercept(context: PipelineContext<ApplicationCall>) {
+    suspend private fun intercept(context: PipelineContext<Unit>) {
         var statusHandled = false
-        context.call.response.pipeline.intercept(ApplicationResponsePipeline.After) {
+        context.call.sendPipeline.intercept(ApplicationSendPipeline.After) { message ->
             if (!statusHandled) {
-                val message = subject
                 val status = when (message) {
                     is FinalContent -> message.status
                     is HttpStatusCode -> message
@@ -44,6 +44,7 @@ class StatusPages(config: Configuration) {
                 if (handler != null) {
                     statusHandled = true
                     context.handler(status!!)
+                    context.finish() // TODO: Should we always finish? Handler could skip responding…
                 }
             }
         }
@@ -61,7 +62,7 @@ class StatusPages(config: Configuration) {
         }
     }
 
-    private fun findHandlerByType(clazz: Class<*>): (suspend PipelineContext<ApplicationCall>.(Throwable) -> Unit)? {
+    private fun findHandlerByType(clazz: Class<*>): (suspend PipelineContext<Unit>.(Throwable) -> Unit)? {
         exceptions[clazz]?.let { return it }
         clazz.superclass?.let {
             findHandlerByType(it)?.let { return it }
@@ -84,8 +85,8 @@ class StatusPages(config: Configuration) {
     }
 }
 
-fun StatusPages.Configuration.statusFile(vararg status: HttpStatusCode, filePattern: String) {
-    status(*status) { status ->
+fun StatusPages.Configuration.statusFile(vararg code: HttpStatusCode, filePattern: String) {
+    status(*code) { status ->
         val path = filePattern.replace("#", status.value.toString())
         val message = call.resolveResource(path)
         if (message == null) {
@@ -93,5 +94,6 @@ fun StatusPages.Configuration.statusFile(vararg status: HttpStatusCode, filePatt
         } else {
             call.respond(message)
         }
+        finish()
     }
 }

@@ -4,6 +4,7 @@ package org.jetbrains.ktor.servlet.v4
 import org.apache.catalina.connector.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.response.*
 import javax.servlet.http.*
 
 @Suppress("unused")

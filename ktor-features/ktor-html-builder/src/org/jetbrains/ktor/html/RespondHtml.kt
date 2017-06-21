@@ -6,6 +6,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.response.*
 
 suspend fun ApplicationCall.respondHtml(status: HttpStatusCode = HttpStatusCode.OK, block: HTML.() -> Unit) {
     respond(HtmlContent(status, builder = block))

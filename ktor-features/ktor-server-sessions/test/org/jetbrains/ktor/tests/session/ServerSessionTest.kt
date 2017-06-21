@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.tests.session
 
 import kotlinx.coroutines.experimental.*
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*

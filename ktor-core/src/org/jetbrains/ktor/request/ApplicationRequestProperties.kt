@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.request
 
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
@@ -31,3 +30,10 @@ fun ApplicationRequest.cacheControl(): String? = header(HttpHeaders.CacheControl
 fun ApplicationRequest.host(): String? = header(HttpHeaders.Host)?.substringBefore(':')
 fun ApplicationRequest.port(): Int = header(HttpHeaders.Host)?.substringAfter(':', "80")?.toInt() ?: 80
 
+val ApplicationRequest.uri: String get() = origin.uri
+
+/**
+ * Returns request HTTP method possibly overridden via header X-Http-Method-Override
+ */
+val ApplicationRequest.httpMethod: HttpMethod get() = origin.method
+val ApplicationRequest.httpVersion: String get() = origin.version

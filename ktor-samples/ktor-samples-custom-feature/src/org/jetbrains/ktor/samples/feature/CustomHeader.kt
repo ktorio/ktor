@@ -18,7 +18,7 @@ class CustomHeader(configuration: Configuration) {
     }
 
     // Body of the feature
-    private suspend fun intercept(context: PipelineContext<ApplicationCall>) {
+    private suspend fun intercept(context: PipelineContext<Unit>) {
         // Add custom header to the response
         context.call.response.header(name, value)
     }

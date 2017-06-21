@@ -6,6 +6,7 @@ import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import java.io.*
 import javax.servlet.http.*
@@ -52,19 +53,19 @@ open class ServletApplicationCall(application: Application,
 
     override suspend fun responseChannel(): WriteChannel = responseChannelOverride ?: responseChannel.value
 
-    suspend override fun respond(message: Any) {
-        super.respond(message)
-
-        if (!completed) {
-            completed = true
-            request.close()
-            if (responseChannel.isInitialized()) {
-                responseChannel.value.apply {
-                    flush()
-                    close()
+    init {
+        sendPipeline.intercept(ApplicationSendPipeline.Host) {
+            if (!completed) {
+                completed = true
+                request.close()
+                if (responseChannel.isInitialized()) {
+                    responseChannel.value.apply {
+                        flush()
+                        close()
+                    }
+                } else {
+                    servletResponse.flushBuffer()
                 }
-            } else {
-                servletResponse.flushBuffer()
             }
         }
     }

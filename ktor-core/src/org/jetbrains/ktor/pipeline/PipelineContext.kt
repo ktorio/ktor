@@ -1,8 +1,10 @@
 package org.jetbrains.ktor.pipeline
 
-class PipelineContext<TSubject : Any>(private val interceptors: List<PipelineInterceptor<TSubject>>, subject: TSubject) {
+import org.jetbrains.ktor.application.*
+
+class PipelineContext<TSubject : Any>(val call: ApplicationCall, private val interceptors: List<PipelineInterceptor<TSubject>>, subject: TSubject) {
     var subject: TSubject = subject
-        internal set
+        private set
 
     private var index = 0
 

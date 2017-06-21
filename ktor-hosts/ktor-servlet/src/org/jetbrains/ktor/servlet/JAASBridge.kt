@@ -1,6 +1,6 @@
 package org.jetbrains.ktor.servlet
 
-import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.request.*
 import java.security.*
 
 val ApplicationRequest.javaSecurityPrincipal: Principal?

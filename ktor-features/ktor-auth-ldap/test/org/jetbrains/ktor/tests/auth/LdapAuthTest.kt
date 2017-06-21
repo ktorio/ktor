@@ -5,7 +5,6 @@ import org.apache.directory.server.annotations.*
 import org.apache.directory.server.core.integ.*
 import org.apache.directory.server.core.integ.IntegrationUtils.*
 import org.apache.directory.server.ldap.*
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.auth.*
 import org.jetbrains.ktor.auth.ldap.*
 import org.jetbrains.ktor.http.*

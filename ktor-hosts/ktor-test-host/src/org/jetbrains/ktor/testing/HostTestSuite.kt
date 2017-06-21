@@ -1035,7 +1035,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         val originalSha1 = file.inputStream().use { it.sha1() }
 
         createAndStartServer {
-            get("/file") { call ->
+            get("/file") {
                 call.respond(LocalFileContent(file))
             }
         }
@@ -1048,7 +1048,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     @Test
     open fun testBlockingDeadlock() {
         createAndStartServer {
-            get("/") { call ->
+            get("/") {
                 call.respondWrite(Charsets.ISO_8859_1) {
                     TimeUnit.SECONDS.sleep(1)
                     this.write("Deadlock ?")

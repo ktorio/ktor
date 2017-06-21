@@ -37,7 +37,7 @@ class CallLogging(val log: ApplicationLog, val monitor: ApplicationMonitor) {
             Configuration().apply(configure)
             val feature = CallLogging(pipeline.log, pipeline.environment.monitor)
             pipeline.phases.insertBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
-            pipeline.intercept(loggingPhase) { call ->
+            pipeline.intercept(loggingPhase) {
                 proceed()
                 feature.logSuccess(call)
             }

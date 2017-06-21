@@ -11,7 +11,7 @@ import java.io.*
 import java.net.*
 import java.util.concurrent.*
 
-suspend internal fun PipelineContext<ApplicationCall>.oauth2(client: HttpClient, exec: ExecutorService,
+suspend internal fun PipelineContext<Unit>.oauth2(client: HttpClient, exec: ExecutorService,
                                                              providerLookup: ApplicationCall.() -> OAuthServerSettings?,
                                                              urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     val provider = call.providerLookup()

@@ -6,7 +6,7 @@ import org.jetbrains.ktor.util.*
 import java.util.*
 import kotlin.properties.*
 
-class AuthenticationContext(val call: ApplicationCall) {
+class AuthenticationContext {
     var principal by Delegates.vetoable<Principal?>(null) { _, old, _ -> require(old == null); true }
     val errors = HashMap<Any, NotAuthenticatedCause>()
     val challenge = AuthenticationProcedureChallenge()
@@ -28,14 +28,9 @@ class AuthenticationContext(val call: ApplicationCall) {
         challenge.register.add(cause to function)
     }
 
-    override fun toString(): String {
-        return "AuthenticationProcedureContext(call=$call)"
-    }
-
-
     companion object {
         val AttributeKey = AttributeKey<AuthenticationContext>("AuthContext")
 
-        internal fun from(call: ApplicationCall) = call.attributes.computeIfAbsent(AttributeKey) { AuthenticationContext(call) }
+        internal fun from(call: ApplicationCall) = call.attributes.computeIfAbsent(AttributeKey) { AuthenticationContext() }
     }
 }

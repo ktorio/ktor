@@ -9,7 +9,7 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
 
     @Volatile var cachedPipeline: ApplicationCallPipeline? = null
 
-    internal val handlers = ArrayList<PipelineInterceptor<ApplicationCall>>()
+    internal val handlers = ArrayList<PipelineInterceptor<Unit>>()
 
     fun select(selector: RouteSelector): Route {
         val existingEntry = children.firstOrNull { it.selector == selector }
@@ -23,14 +23,14 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
 
     fun invoke(body: Route.() -> Unit) = apply(body)
 
-    fun handle(handler: PipelineInterceptor<ApplicationCall>) {
+    fun handle(handler: PipelineInterceptor<Unit>) {
         handlers.add(handler)
 
         // Adding a handler invalidates only pipeline for this entry
         cachedPipeline = null
     }
 
-    override fun intercept(phase: PipelinePhase, block: PipelineInterceptor<ApplicationCall>) {
+    override fun intercept(phase: PipelinePhase, block: PipelineInterceptor<Unit>) {
         super.intercept(phase, block)
 
         // Adding an interceptor invalidates pipelines for all children
@@ -48,14 +48,17 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
         return cachedPipeline ?: run {
             var current: Route? = this
             val pipeline = ApplicationCallPipeline()
-            val entryPipelines = mutableListOf<ApplicationCallPipeline>()
+            val routePipelines = mutableListOf<ApplicationCallPipeline>()
             while (current != null) {
-                entryPipelines.add(current)
+                routePipelines.add(current)
                 current = current.parent
             }
 
-            for (index in entryPipelines.lastIndex downTo 0) {
-                pipeline.phases.merge(entryPipelines[index].phases)
+            for (index in routePipelines.lastIndex downTo 0) {
+                val routePipeline = routePipelines[index]
+                pipeline.phases.merge(routePipeline.phases)
+                pipeline.receivePipeline.phases.merge(routePipeline.receivePipeline.phases)
+                pipeline.sendPipeline.phases.merge(routePipeline.sendPipeline.phases)
             }
 
             val handlers = handlers

@@ -1,7 +1,6 @@
 package kweet
 
 import kweet.dao.*
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.locations.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*

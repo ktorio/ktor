@@ -4,7 +4,9 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 
 /**
@@ -49,7 +51,9 @@ class Compression(compression: Configuration) {
     private val options = compression.build()
     private val comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>({ it.second.quality }, { it.first.priority }).reversed()
 
-    private suspend fun interceptor(call: ApplicationCall) {
+    private suspend fun interceptor(context: PipelineContext<Any>) {
+        val call = context.call
+        val message = context.subject
         val acceptEncodingRaw = call.request.acceptEncoding()
         if (acceptEncodingRaw == null || call.isCompressionSuppressed())
             return
@@ -68,34 +72,34 @@ class Compression(compression: Configuration) {
         if (!encoders.isNotEmpty())
             return
 
-        call.response.pipeline.intercept(ApplicationResponsePipeline.ContentEncoding) {
-            val message = subject
-            if (message is FinalContent
-                    && message !is CompressedResponse
-                    && options.conditions.all { it(call, message) }
-                    && !call.isCompressionSuppressed()
-                    && message.headers[HttpHeaders.ContentEncoding].let { it == null || it == "identity" }
-                    ) {
+        if (message is FinalContent
+                && message !is CompressedResponse
+                && options.conditions.all { it(call, message) }
+                && !call.isCompressionSuppressed()
+                && message.headers[HttpHeaders.ContentEncoding].let { it == null || it == "identity" }
+                ) {
 
-                val encoderOptions = encoders.firstOrNull { it.conditions.all { it(call, message) } }
+            val encoderOptions = encoders.firstOrNull { it.conditions.all { it(call, message) } }
 
-                val channel: () -> ReadChannel = when (message) {
-                    is FinalContent.ReadChannelContent -> ({ message.readFrom() })
-                    is FinalContent.WriteChannelContent -> {
-                        if (encoderOptions != null) {
-                            proceedWith(CompressedWriteResponse(message, message.status, encoderOptions.name, encoderOptions.encoder))
-                        }
-                        return@intercept
+            val channel: () -> ReadChannel = when (message) {
+                is FinalContent.ReadChannelContent -> ({ message.readFrom() })
+                is FinalContent.WriteChannelContent -> {
+                    if (encoderOptions != null) {
+                        val response = CompressedWriteResponse(message, message.status, encoderOptions.name, encoderOptions.encoder)
+                        context.proceedWith(response)
                     }
-                    is FinalContent.NoContent -> return@intercept
-                    is FinalContent.ByteArrayContent -> ({ message.bytes().toReadChannel() })
-                    is FinalContent.ProtocolUpgrade -> return@intercept
+                    return
                 }
-
-                if (encoderOptions != null) {
-                    proceedWith(CompressedResponse(channel, message.headers, message.status, encoderOptions.name, encoderOptions.encoder))
-                }
+                is FinalContent.NoContent -> return
+                is FinalContent.ByteArrayContent -> ({ message.bytes().toReadChannel() })
+                is FinalContent.ProtocolUpgrade -> return
             }
+
+            if (encoderOptions != null) {
+                val response = CompressedResponse(channel, message.headers, message.status, encoderOptions.name, encoderOptions.encoder)
+                context.proceedWith(response)
+            }
+
         }
     }
 
@@ -135,7 +139,9 @@ class Compression(compression: Configuration) {
                 config.default()
 
             val feature = Compression(config)
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { feature.interceptor(call) }
+            pipeline.sendPipeline.intercept(ApplicationSendPipeline.ContentEncoding) {
+                feature.interceptor(this)
+            }
             return feature
         }
     }

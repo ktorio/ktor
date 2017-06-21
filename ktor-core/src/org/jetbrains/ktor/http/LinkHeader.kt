@@ -1,6 +1,6 @@
 package org.jetbrains.ktor.http
 
-import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.response.*
 
 // RFC 5988
 class LinkHeader(uri: String, params: List<HeaderValueParam>) : HeaderValueWithParameters("<$uri>", params) {

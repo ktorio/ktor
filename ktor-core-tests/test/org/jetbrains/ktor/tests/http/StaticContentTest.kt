@@ -153,7 +153,7 @@ class StaticContentTest {
 
     @Test
     fun testSendLocalFile() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) { call ->
+        application.intercept(ApplicationCallPipeline.Call) {
             call.respond(LocalFileContent(basedir, "/http/StaticContentTest.kt".replaceSeparators()))
         }
 
@@ -165,7 +165,7 @@ class StaticContentTest {
 
     @Test
     fun testSendLocalFilePaths() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) { call ->
+        application.intercept(ApplicationCallPipeline.Call) {
             call.respond(LocalFileContent(basedir.toPath(), Paths.get("/http/StaticContentTest.kt".replaceSeparators())))
         }
 
@@ -177,7 +177,7 @@ class StaticContentTest {
 
     @Test
     fun testSendLocalFileBadRelative() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) { call ->
+        application.intercept(ApplicationCallPipeline.Call) {
             assertFailsWithSuspended<IllegalArgumentException> {
                 call.respond(LocalFileContent(basedir, "/../../../../../../../../../../../../../etc/passwd"))
             }
@@ -199,7 +199,7 @@ class StaticContentTest {
 
     @Test
     fun testSendLocalFileBadRelativePaths() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) { call ->
+        application.intercept(ApplicationCallPipeline.Call) {
             assertFailsWithSuspended<IllegalArgumentException> {
                 call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../../../../../../../../../../../../../etc/passwd")))
             }
@@ -221,14 +221,14 @@ class StaticContentTest {
 
     @Test
     fun testInterceptCacheControl() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
+        application.intercept(ApplicationCallPipeline.Infrastructure) {
             if (call.request.httpMethod == HttpMethod.Get ||
                     call.request.httpMethod == HttpMethod.Head) {
                 call.response.cacheControl(CacheControl.MaxAge(300))
             }
         }
 
-        application.intercept(ApplicationCallPipeline.Call) { call ->
+        application.intercept(ApplicationCallPipeline.Call) {
             call.respond(LocalFileContent(File(basedir, "http/StaticContentTest.kt")))
         }
 

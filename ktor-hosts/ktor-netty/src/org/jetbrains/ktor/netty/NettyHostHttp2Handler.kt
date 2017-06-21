@@ -8,6 +8,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.http2.*
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.response.*
 
 @ChannelHandler.Sharable
 class NettyHostHttp2Handler(private val host: NettyApplicationHost, private val http2: Http2Connection?, private val hostPipeline: HostPipeline) : ChannelInboundHandlerAdapter() {

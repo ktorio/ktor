@@ -34,7 +34,7 @@ class BasicAuthTest {
             val user = "user1"
             val p = "user1"
 
-            application.intercept(ApplicationCallPipeline.Infrastructure) { call ->
+            application.intercept(ApplicationCallPipeline.Infrastructure) {
                 val authInfo = call.request.basicAuthenticationCredentials()
                 assertNotNull(authInfo)
                 assertEquals(authInfo, call.basicAuthenticationCredentials())

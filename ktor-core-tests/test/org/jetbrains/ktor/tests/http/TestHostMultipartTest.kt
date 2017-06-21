@@ -93,7 +93,7 @@ class TestHostMultipartTest {
     @Test
     fun testMultiPartShouldFail() {
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Call) { call ->
+            application.intercept(ApplicationCallPipeline.Call) {
                 try {
                     call.request.receive<MultiPartData>().parts.toList()
                 } catch (error: Throwable) {
@@ -109,7 +109,7 @@ class TestHostMultipartTest {
 
     fun testMultiParts(asserts: (MultiPartData?) -> Unit, setup: TestApplicationRequest.() -> Unit) {
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Call) { call ->
+            application.intercept(ApplicationCallPipeline.Call) {
                 if (call.request.isMultipart()) {
                     asserts(call.request.receive<MultiPartData>())
                 } else {

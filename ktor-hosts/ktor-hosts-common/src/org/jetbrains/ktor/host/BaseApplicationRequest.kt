@@ -1,32 +1,15 @@
 package org.jetbrains.ktor.host
 
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.io.*
-import kotlin.reflect.*
 
-abstract class BaseApplicationRequest() : ApplicationRequest {
-    override val pipeline = ApplicationReceivePipeline().apply {
-        installDefaultTransformations()
-    }
+abstract class BaseApplicationRequest : ApplicationRequest
 
-    abstract fun receiveContent(): IncomingContent
-
-    suspend override fun <T : Any> tryReceive(type: KClass<T>): T? {
-        val transformed = pipeline.execute(ApplicationReceiveRequest(call, type, receiveContent())).value
-        if (transformed is IncomingContent)
-            return null
-
-        @Suppress("UNCHECKED_CAST")
-        return transformed as? T
-    }
-}
-
-private fun ApplicationReceivePipeline.installDefaultTransformations() {
+fun ApplicationReceivePipeline.installDefaultTransformations() {
     intercept(ApplicationReceivePipeline.Transform) { query ->
         val value = query.value as? IncomingContent ?: return@intercept
         val transformed: Any? = when (query.type) {
@@ -55,6 +38,6 @@ private fun ApplicationReceivePipeline.installDefaultTransformations() {
             else -> null
         }
         if (transformed != null)
-            proceedWith(ApplicationReceiveRequest(query.call, query.type, transformed))
+            proceedWith(ApplicationReceiveRequest(query.type, transformed))
     }
 }

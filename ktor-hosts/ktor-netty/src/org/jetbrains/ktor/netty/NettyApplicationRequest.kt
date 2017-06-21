@@ -3,7 +3,6 @@ package org.jetbrains.ktor.netty
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.cookie.*
 import io.netty.handler.codec.http.multipart.*
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*

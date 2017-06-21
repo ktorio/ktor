@@ -3,6 +3,7 @@ package org.jetbrains.ktor.tests.http
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.junit.*
@@ -51,7 +52,7 @@ class HttpsRedirectFeatureTest {
     fun testDirectPathAndQuery() {
         withTestApplication {
             application.install(HttpsRedirect)
-            application.intercept(ApplicationCallPipeline.Fallback) { call ->
+            application.intercept(ApplicationCallPipeline.Fallback) {
                 call.respond("ok")
             }
 

@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.http
 
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.request.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 
 fun ApplicationResponse.push(pathAndQuery: String) {

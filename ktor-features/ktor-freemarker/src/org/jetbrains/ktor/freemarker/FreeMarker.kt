@@ -6,6 +6,7 @@ import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.content.Version
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 
 class FreeMarkerContent(val templateName: String,
@@ -20,10 +21,10 @@ class FreeMarker(val config: Configuration) {
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): FreeMarker {
             val config = Configuration(Configuration.DEFAULT_INCOMPATIBLE_IMPROVEMENTS).apply(configure)
             val feature = FreeMarker(config)
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
-                call.response.pipeline.intercept(ApplicationResponsePipeline.Transform) { value ->
-                    if (value is FreeMarkerContent)
-                        proceedWith(feature.process(value))
+            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) { value ->
+                if (value is FreeMarkerContent) {
+                    val response = feature.process(value)
+                    proceedWith(response)
                 }
             }
             return feature

@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.response
 
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import java.time.*
 import java.time.temporal.*

@@ -10,25 +10,25 @@ import java.util.concurrent.*
 val OAuthKey: Any = "OAuth"
 
 fun AuthenticationPipeline.oauth(client: HttpClient, exec: ExecutorService,
-                                                providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                                urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+                                 providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                 urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     oauth1a(client, exec, providerLookup, urlProvider)
     oauth2(client, exec, providerLookup, urlProvider)
 }
 
 internal fun AuthenticationPipeline.oauth2(client: HttpClient, exec: ExecutorService,
-                                                          providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                                          urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+                                           providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                           urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val provider = context.call.providerLookup()
+        val provider = call.providerLookup()
         when (provider) {
             is OAuthServerSettings.OAuth2ServerSettings -> {
-                val token = context.call.oauth2HandleCallback()
-                val callbackRedirectUrl = context.call.urlProvider(provider)
+                val token = call.oauth2HandleCallback()
+                val callbackRedirectUrl = call.urlProvider(provider)
                 if (token == null) {
                     context.challenge(OAuthKey, NotAuthenticatedCause.NoCredentials) {
                         it.success()
-                        context.call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, nextNonce(), scopes = provider.defaultScopes)
+                        call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, nextNonce(), scopes = provider.defaultScopes)
                     }
                 } else {
                     runAsyncWithError(exec, context) {
@@ -42,18 +42,18 @@ internal fun AuthenticationPipeline.oauth2(client: HttpClient, exec: ExecutorSer
 }
 
 internal fun AuthenticationPipeline.oauth1a(client: HttpClient, exec: ExecutorService,
-                                                           providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                                           urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+                                            providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                            urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val provider = context.call.providerLookup()
+        val provider = call.providerLookup()
         if (provider is OAuthServerSettings.OAuth1aServerSettings) {
-            val token = context.call.oauth1aHandleCallback()
+            val token = call.oauth1aHandleCallback()
             if (token == null) {
                 context.challenge(OAuthKey, NotAuthenticatedCause.NoCredentials) { ch ->
                     runAsyncWithError(exec, context) {
-                        val t = simpleOAuth1aStep1(client, provider, context.call.urlProvider(provider))
+                        val t = simpleOAuth1aStep1(client, provider, call.urlProvider(provider))
                         ch.success()
-                        context.call.redirectAuthenticateOAuth1a(provider, t)
+                        call.redirectAuthenticateOAuth1a(provider, t)
                     }
                 }
             } else {

@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.http
 
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.response.*
 
 fun contentRangeHeaderValue(range: LongRange?, fullLength: Long? = null, unit: RangeUnits = RangeUnits.Bytes) =

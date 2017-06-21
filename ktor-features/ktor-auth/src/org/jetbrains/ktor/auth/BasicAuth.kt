@@ -1,6 +1,8 @@
 package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.request.*
+import org.jetbrains.ktor.response.*
 import java.util.*
 
 fun ApplicationCall.basicAuthenticationCredentials(): UserPasswordCredential? = request.basicAuthenticationCredentials()
@@ -29,7 +31,7 @@ fun ApplicationRequest.basicAuthenticationCredentials(): UserPasswordCredential?
 val BasicAuthKey: Any = "BasicAuth"
 fun AuthenticationPipeline.basicAuthentication(realm: String, validate: suspend (UserPasswordCredential) -> Principal?) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val credentials = context.call.request.basicAuthenticationCredentials()
+        val credentials = call.request.basicAuthenticationCredentials()
         val principal = credentials?.let { validate(it) }
 
         val cause = when {
@@ -41,7 +43,7 @@ fun AuthenticationPipeline.basicAuthentication(realm: String, validate: suspend 
         if (cause != null) {
             context.challenge(BasicAuthKey, cause) {
                 it.success()
-                context.call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge(realm)))
+                call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge(realm)))
             }
         }
         if (principal != null) {

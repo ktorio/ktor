@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.request
 
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import java.util.*
 import java.util.concurrent.*

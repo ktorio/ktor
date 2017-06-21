@@ -3,6 +3,7 @@ package org.jetbrains.ktor.tests.http
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
@@ -13,7 +14,7 @@ class ApplicationRequestContentTest {
     @Test
     fun testSimpleStringContent() {
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Call) { call ->
+            application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals("bodyContent", call.request.receive<String>())
             }
 
@@ -28,7 +29,7 @@ class ApplicationRequestContentTest {
         withTestApplication {
             val values = valuesOf("a" to listOf("1"))
 
-            application.intercept(ApplicationCallPipeline.Call) { call ->
+            application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals(values, call.request.receive<ValuesMap>())
             }
 
@@ -43,7 +44,7 @@ class ApplicationRequestContentTest {
     @Test
     fun testInputStreamContent() {
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Call) { call ->
+            application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals("bodyContent", call.request.receive<InputStream>().reader(Charsets.UTF_8).readText())
             }
 
@@ -58,18 +59,16 @@ class ApplicationRequestContentTest {
         withTestApplication {
             val value = IntList(listOf(1, 2, 3, 4))
 
-            application.intercept(ApplicationCallPipeline.Infrastructure) {
-                call.request.pipeline.intercept(ApplicationReceivePipeline.Transform) { query ->
-                    if (query.type != IntList::class) return@intercept
-                    val message = query.value as? IncomingContent ?: return@intercept
+            application.receivePipeline.intercept(ApplicationReceivePipeline.Transform) { query ->
+                if (query.type != IntList::class) return@intercept
+                val message = query.value as? IncomingContent ?: return@intercept
 
-                    val string = message.readText()
-                    val transformed = IntList.parse(string)
-                    proceedWith(ApplicationReceiveRequest(query.call, query.type, transformed))
-                }
+                val string = message.readText()
+                val transformed = IntList.parse(string)
+                proceedWith(ApplicationReceiveRequest(query.type, transformed))
             }
 
-            application.intercept(ApplicationCallPipeline.Call) { call ->
+            application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals(value, call.request.receive<IntList>())
             }
 
@@ -86,7 +85,7 @@ class ApplicationRequestContentTest {
                 "two_space_three_and_four" to listOf("2 3 & 4")
         )
         withTestApplication {
-            application.intercept(ApplicationCallPipeline.Call) { call ->
+            application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals(values, call.request.receive<ValuesMap>())
             }
 

@@ -45,7 +45,7 @@ internal class CookieByIdSessionTracker<S : Any>(val exec: ExecutorService, val 
         call.response.cookies.append(settings.toCookie(cookieName, sessionId))
     }
 
-    override suspend fun lookup(context: PipelineContext<ApplicationCall>, processSession: (S) -> Unit) {
+    override suspend fun lookup(context: PipelineContext<Unit>, processSession: (S) -> Unit) {
         val call = context.call
         val cookie = call.request.cookies[cookieName]
         val sessionId = if (cookie != null) cookie else {

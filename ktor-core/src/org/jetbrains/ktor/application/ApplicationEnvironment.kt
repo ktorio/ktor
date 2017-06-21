@@ -2,7 +2,6 @@ package org.jetbrains.ktor.application
 
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.logging.*
-import java.util.concurrent.*
 
 /**
  * Represents an environment in which [Application] runs

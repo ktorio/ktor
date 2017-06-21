@@ -2,6 +2,7 @@ package org.jetbrains.ktor.features
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
@@ -25,50 +26,51 @@ class CORS(configuration: Configuration) {
     private val exposedHeaders = if (configuration.exposedHeaders.isNotEmpty()) configuration.exposedHeaders.sorted().joinToString(", ") else null
     private val hostsNormalized = HashSet<String>(configuration.hosts.map { normalizeOrigin(it) })
 
-    suspend fun intercept(call: ApplicationCall) {
+    suspend fun intercept(context: PipelineContext<Unit>) {
+        val call = context.call
         val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
                 ?.takeIf(this::isValidOrigin)
                 ?: return
 
-        if (isValidOrigin(origin)) {
-            if (!call.corsCheckOrigins(origin)) {
-                call.respondCorsFailed()
-                return
-            }
+        if (!call.corsCheckOrigins(origin)) {
+            context.respondCorsFailed()
+            return
+        }
 
+        if (call.request.httpMethod == HttpMethod.Options) {
+            call.respondPreflight(origin)
+            // TODO: it shouldn't be here, because something else can respond to OPTIONS
+            // But if noone else responds, we should respond with OK
+            context.finish()
+            return
+        }
 
-            if (call.request.httpMethod == HttpMethod.Options) {
-                call.respondPreflight(origin)
-                return
-            }
+        if (!call.corsCheckCurrentMethod()) {
+            context.respondCorsFailed()
+            return
+        }
 
-            if (!call.corsCheckCurrentMethod()) {
-                call.respondCorsFailed()
-                return
-            }
+        call.accessControlAllowOrigin(origin)
+        call.accessControlAllowCredentials()
 
-            call.accessControlAllowOrigin(origin)
-            call.accessControlAllowCredentials()
-
-            if (exposedHeaders != null) {
-                call.response.header(HttpHeaders.AccessControlExposeHeaders, exposedHeaders)
-            }
+        if (exposedHeaders != null) {
+            call.response.header(HttpHeaders.AccessControlExposeHeaders, exposedHeaders)
         }
     }
 
     suspend private fun ApplicationCall.respondPreflight(origin: String) {
         if (!corsCheckRequestMethod() || !corsCheckRequestHeaders()) {
-            respondCorsFailed()
+            respond(HttpStatusCode.Forbidden)
             return
         }
 
         accessControlAllowOrigin(origin)
+        accessControlAllowCredentials()
         response.header(HttpHeaders.AccessControlAllowMethods, methodsListHeaderValue)
         response.header(HttpHeaders.AccessControlAllowHeaders, headersListHeaderValue)
-        accessControlAllowCredentials()
         accessControlMaxAge()
-
         respond(HttpStatusCode.OK)
+
     }
 
     private fun ApplicationCall.accessControlAllowOrigin(origin: String) {
@@ -120,7 +122,10 @@ class CORS(configuration: Configuration) {
         return requestMethod != null && !(requestMethod !in methods)
     }
 
-    suspend private fun ApplicationCall.respondCorsFailed() = respond(HttpStatusCode.Forbidden)
+    suspend private fun PipelineContext<Unit>.respondCorsFailed() {
+        call.respond(HttpStatusCode.Forbidden)
+        finish()
+    }
 
     private fun isValidOrigin(origin: String): Boolean {
         if (origin.isEmpty()) {
@@ -238,7 +243,7 @@ class CORS(configuration: Configuration) {
         override val key = AttributeKey<CORS>("CORS")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): CORS {
             val cors = CORS(Configuration().apply(configure))
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { cors.intercept(it) }
+            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { cors.intercept(this) }
             return cors
         }
     }

@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.tests
 
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.util.*
 import org.openjdk.jmh.annotations.*
 
@@ -24,11 +25,15 @@ open class BaselinePipeline {
 
 @State(Scope.Benchmark)
 abstract class PipelineBenchmark {
+    val environment = createTestEnvironment()
+    val host = TestApplicationHost(environment).apply { start() }
+    val call = TestApplicationCall(host.application)
+
     val callPhase = PipelinePhase("Call")
     fun pipeline(): Pipeline<String> = Pipeline(callPhase)
     fun Pipeline<String>.intercept(block: suspend PipelineContext<String>.(String) -> Unit) = phases.intercept(callPhase, block)
 
-    fun <T : Any> Pipeline<T>.executeBlocking(subject: T) = runSync { execute(subject) }
+    fun <T : Any> Pipeline<T>.executeBlocking(subject: T) = runSync { execute(call, subject) }
 
     lateinit var pipeline: Pipeline<String>
 
@@ -51,7 +56,7 @@ open class PipelineFork : PipelineBenchmark() {
         val another = pipeline()
         another.intercept { proceed() }
         pipeline.intercept {
-            another.execute("another")
+            another.execute(call, "another")
             proceed()
         }
     }
@@ -63,11 +68,11 @@ open class PipelineFork2 : PipelineBenchmark() {
         val double = pipeline()
         double.intercept { proceed() }
         another.intercept {
-            double.execute("double")
+            double.execute(call, "double")
             proceed()
         }
         pipeline.intercept {
-            another.execute("another")
+            another.execute(call, "another")
             proceed()
         }
     }
@@ -78,8 +83,8 @@ open class PipelineFork2Implicit : PipelineBenchmark() {
         val another = pipeline()
         val double = pipeline()
         double.intercept { }
-        another.intercept { double.execute("double") }
-        pipeline.intercept { another.execute("another") }
+        another.intercept { double.execute(call, "double") }
+        pipeline.intercept { another.execute(call, "another") }
     }
 }
 

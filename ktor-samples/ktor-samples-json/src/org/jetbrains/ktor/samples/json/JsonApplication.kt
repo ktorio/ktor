@@ -7,9 +7,9 @@ import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.request.*
+import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 
-class JsonResponse(val data: Any)
 data class Model(val name: String, val items: List<Item>)
 data class Item(val key: String, val value: String)
 
@@ -27,10 +27,10 @@ fun Application.main() {
     install(CallLogging)
 
     val gson = GsonBuilder().create()
-    intercept(ApplicationCallPipeline.Infrastructure) { call ->
+    intercept(ApplicationCallPipeline.Infrastructure) {
         if (call.request.acceptItems().any { it.value == "application/json" }) {
-            call.response.pipeline.intercept(ApplicationResponsePipeline.Transform) {
-                TextContent(gson.toJson(subject), ContentType.Application.Json)
+            call.sendPipeline.intercept(ApplicationSendPipeline.Transform) { message ->
+                TextContent(gson.toJson(message), ContentType.Application.Json)
             }
         }
     }
@@ -38,10 +38,10 @@ fun Application.main() {
     val model = Model("root", listOf(Item("A", "Apache"), Item("B", "Bing")))
     routing {
         get("/v1") {
-            call.respond(JsonResponse(model))
+            call.respond(model)
         }
         get("/v1/item/{key}") {
-            call.respond(JsonResponse(model.items.first { it.key == call.parameters["key"] }))
+            call.respond(model.items.first { it.key == call.parameters["key"] })
         }
     }
 }

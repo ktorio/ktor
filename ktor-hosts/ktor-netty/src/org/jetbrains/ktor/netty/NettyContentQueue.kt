@@ -74,12 +74,12 @@ internal open class HttpContentQueue(val context: ChannelHandlerContext) : Chann
         }
     }
 
-    fun handleRequest(context: ChannelHandlerContext, msg: HttpContent) {
-        val last = msg is LastHttpContent
-        closeCause?.let { t -> msg.release(); throw t }
-        val q = _queuesStack.firstOrNull() ?: run { msg.release(); throw IllegalStateException("No stacked queue") }
+    fun handleRequest(context: ChannelHandlerContext, call: HttpContent) {
+        val last = call is LastHttpContent
+        closeCause?.let { t -> call.release(); throw t }
+        val q = _queuesStack.firstOrNull() ?: run { call.release(); throw IllegalStateException("No stacked queue") }
 
-        q.push(msg, last)
+        q.push(call, last)
         if (last) {
             _queuesStack.remove(q)
         }

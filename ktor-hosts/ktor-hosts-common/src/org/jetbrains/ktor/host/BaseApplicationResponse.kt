@@ -7,7 +7,6 @@ import org.jetbrains.ktor.response.*
 
 abstract class BaseApplicationResponse(override val call: ApplicationCall) : ApplicationResponse {
     private var _status: HttpStatusCode? = null
-    override val pipeline = ApplicationResponsePipeline()
 
     override val cookies by lazy { ResponseCookies(this, call.request.origin.scheme == "https") }
 

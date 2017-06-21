@@ -12,43 +12,6 @@ import java.util.*
  * Feature to check modified/match conditional headers and avoid sending contents if it was not changed
  */
 class ConditionalHeaders {
-    private val headers = listOf(
-            HttpHeaders.IfModifiedSince,
-            HttpHeaders.IfUnmodifiedSince,
-            HttpHeaders.IfMatch,
-            HttpHeaders.IfNoneMatch
-    )
-
-    private fun intercept(call: ApplicationCall) {
-        // Check if any conditional header is present
-        if (!headers.any { it in call.request.headers })
-            return
-
-        // Intercept response pipeline and after the content is ready to be served
-        // check if it needs to be served according to conditions
-        call.response.pipeline.intercept(ApplicationResponsePipeline.After) {
-            val message = subject
-            val status = when (message) {
-                is Resource -> checkVersions(call, message.versions)
-                is FinalContent -> checkVersions(call, message.lastModifiedAndEtagVersions())
-                else -> VersionCheckResult.OK
-            }
-            if (status != VersionCheckResult.OK) {
-                proceedWith(HttpStatusCodeContent(status.statusCode))
-            }
-        }
-    }
-
-    private suspend fun checkVersions(call: ApplicationCall, versions: List<Version>): VersionCheckResult {
-        for (version in versions) {
-            val result = version.check(call)
-            if (result != VersionCheckResult.OK) {
-                return result
-            }
-        }
-        return VersionCheckResult.OK
-    }
-
     /**
      * `ApplicationFeature` implementation for [ConditionalHeaders]
      */
@@ -57,8 +20,42 @@ class ConditionalHeaders {
         override fun install(pipeline: ApplicationCallPipeline, configure: Unit.() -> Unit): ConditionalHeaders {
             configure(Unit)
             val feature = ConditionalHeaders()
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { feature.intercept(call) }
+            // Intercept response pipeline and after the content is ready to be served
+            // check if it needs to be served according to conditions
+            pipeline.sendPipeline.intercept(ApplicationSendPipeline.After) { message ->
+                // Check if any conditional header is present
+                if (!headers.any { it in call.request.headers })
+                    return@intercept
+
+                val status = when (message) {
+                    is Resource -> checkVersions(call, message.versions)
+                    is FinalContent -> checkVersions(call, message.lastModifiedAndEtagVersions())
+                    else -> VersionCheckResult.OK
+                }
+                if (status != VersionCheckResult.OK) {
+                    val response = HttpStatusCodeContent(status.statusCode)
+                    proceedWith(response)
+                }
+            }
+
             return feature
+        }
+
+        private val headers = listOf(
+                HttpHeaders.IfModifiedSince,
+                HttpHeaders.IfUnmodifiedSince,
+                HttpHeaders.IfMatch,
+                HttpHeaders.IfNoneMatch
+        )
+
+        private suspend fun checkVersions(call: ApplicationCall, versions: List<Version>): VersionCheckResult {
+            for (version in versions) {
+                val result = version.check(call)
+                if (result != VersionCheckResult.OK) {
+                    return result
+                }
+            }
+            return VersionCheckResult.OK
         }
     }
 }

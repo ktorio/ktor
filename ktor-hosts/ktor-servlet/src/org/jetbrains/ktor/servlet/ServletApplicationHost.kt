@@ -36,12 +36,8 @@ open class ServletApplicationHost : KtorServlet() {
             classLoader = servletContext.classLoader
         }.apply {
             monitor.applicationStarting += {
-                it.intercept(ApplicationCallPipeline.Infrastructure) {
-                    call.response.pipeline.intercept(ApplicationResponsePipeline.Render) {
-                        val content = defaultHandlers(call)
-                        content?.let { proceedWith(it) }
-                    }
-                }
+                it.receivePipeline.installDefaultTransformations()
+                it.sendPipeline.installDefaultTransformations()
             }
         }
     }

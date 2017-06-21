@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.servlet
 
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*

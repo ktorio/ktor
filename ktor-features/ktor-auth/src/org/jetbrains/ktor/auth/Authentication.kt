@@ -17,7 +17,7 @@ class Authentication(val pipeline: AuthenticationPipeline) {
                         if (challenge.success)
                             finish()
                     }
-                    val challenge = challengePipeline.execute(context.challenge)
+                    val challenge = challengePipeline.execute(call, context.challenge)
                     if (challenge.success)
                         finish()
                 }
@@ -36,7 +36,7 @@ class Authentication(val pipeline: AuthenticationPipeline) {
             pipeline.phases.insertAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
             pipeline.intercept(authenticationPhase) {
                 val authenticationContext = AuthenticationContext.from(call)
-                feature.pipeline.execute(authenticationContext)
+                feature.pipeline.execute(call, authenticationContext)
                 if (authenticationContext.challenge.success)
                     finish()
             }
@@ -46,7 +46,7 @@ class Authentication(val pipeline: AuthenticationPipeline) {
 
 }
 
-class AuthenticationPipeline() : org.jetbrains.ktor.pipeline.Pipeline<AuthenticationContext>(CheckAuthentication, RequestAuthentication) {
+class AuthenticationPipeline() : Pipeline<AuthenticationContext>(CheckAuthentication, RequestAuthentication) {
     companion object {
         val CheckAuthentication = PipelinePhase("CheckAuthentication")
         val RequestAuthentication = PipelinePhase("RequestAuthentication")

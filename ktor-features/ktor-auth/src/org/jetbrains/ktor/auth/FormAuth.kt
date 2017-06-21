@@ -2,6 +2,7 @@ package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 
@@ -11,7 +12,7 @@ fun AuthenticationPipeline.formAuthentication(userParamName: String = "user",
                                               challenge: FormAuthChallenge = FormAuthChallenge.Unauthorized,
                                               validate: (UserPasswordCredential) -> Principal?) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val postParameters = context.call.request.tryReceive<ValuesMap>()
+        val postParameters = call.request.tryReceive<ValuesMap>()
         val username = postParameters?.get(userParamName)
         val password = postParameters?.get(passwordParamName)
 
@@ -25,8 +26,8 @@ fun AuthenticationPipeline.formAuthentication(userParamName: String = "user",
                 it.success()
 
                 when (challenge) {
-                    FormAuthChallenge.Unauthorized -> context.call.respond(HttpStatusCode.Unauthorized)
-                    is FormAuthChallenge.Redirect -> context.call.respondRedirect(challenge.url(context.call, credentials))
+                    FormAuthChallenge.Unauthorized -> call.respond(HttpStatusCode.Unauthorized)
+                    is FormAuthChallenge.Redirect -> call.respondRedirect(challenge.url(call, credentials))
                 }
             }
         }

@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.tests.session
 
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
@@ -101,7 +100,7 @@ class SessionTest {
             }
 
             handleRequest(HttpMethod.Get, "/2") {
-//                addHeader(HttpHeaders.Cookie, "SESSION=$sessionId")
+                //                addHeader(HttpHeaders.Cookie, "SESSION=$sessionId")
             }.let { response ->
                 assertEquals("ok, null", response.response.content)
             }
@@ -175,7 +174,7 @@ class SessionTest {
                     }
 
                     get("/0") {
-                        call.respondText("It should be no session started")
+                        call.respondText("No session")
                     }
                     get("/1") {
                         var session: TestUserSession? = call.sessionOrNull()
@@ -202,22 +201,24 @@ class SessionTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/0").let { response ->
-                assertNull(response.response.cookies["SESSION"], "It should be no session set by default")
+            handleRequest(HttpMethod.Get, "/0").let { call ->
+                assertNull(call.response.cookies["SESSION"], "There should be no session set by default")
+                assertEquals("No session", call.response.content)
             }
 
             var sessionParam: String = ""
-            handleRequest(HttpMethod.Get, "/1").let { response ->
-                val sessionCookie = response.response.cookies["SESSION"]
+            handleRequest(HttpMethod.Get, "/1").let { call ->
+                val sessionCookie = call.response.cookies["SESSION"]
                 assertNotNull(sessionCookie, "No session cookie found")
                 sessionParam = sessionCookie!!.value
 
                 assertEquals(TestUserSession("id1", emptyList()), autoSerializerOf<TestUserSession>().deserialize(sessionParam))
+                assertEquals("ok", call.response.content)
             }
             handleRequest(HttpMethod.Get, "/2") {
                 addHeader(HttpHeaders.Cookie, "SESSION=${encodeURLQueryComponent(sessionParam)}")
-            }.let { response ->
-                assertEquals("ok, id1", response.response.content)
+            }.let { call ->
+                assertEquals("ok, id1", call.response.content)
             }
         }
     }
