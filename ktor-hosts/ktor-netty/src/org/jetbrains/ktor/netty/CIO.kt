@@ -6,7 +6,7 @@ import kotlinx.coroutines.experimental.*
 import java.util.concurrent.*
 
 suspend fun <T> Future<T>.suspendAwait(): T {
-    if (isDone) return get()
+    if (isDone) return try { get() } catch (t: Throwable) { throw t.unwrap() }
 
     return suspendCancellableCoroutine { continuation ->
         addListener(CoroutineListener(this, continuation))
@@ -20,13 +20,9 @@ private class CoroutineListener<T, F : Future<T>>(private val future: F, private
 
     override fun operationComplete(future: F) {
         val value = try {
-            try {
-                future.get()
-            } catch (e: ExecutionException) {
-                throw e.cause ?: e
-            }
+            future.get()
         } catch (t: Throwable) {
-            continuation.resumeWithException(t)
+            continuation.resumeWithException(t.unwrap())
             return
         }
 
@@ -38,3 +34,5 @@ private class CoroutineListener<T, F : Future<T>>(private val future: F, private
         if (continuation.isCancelled) future.cancel(false)
     }
 }
+
+private tailrec fun Throwable.unwrap(): Throwable = if (this is ExecutionException && cause != null) cause!!.unwrap() else this
