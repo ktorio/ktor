@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.samples.chat
 
+import kotlinx.coroutines.experimental.channels.*
 import org.jetbrains.ktor.util.*
 import org.jetbrains.ktor.websocket.*
 import java.nio.*
@@ -86,6 +87,16 @@ class ChatServer {
     }
 
     suspend fun List<WebSocketSession>.send(frame: Frame) {
-        forEach { it.send(frame.copy()) }
+        forEach {
+            try {
+                it.send(frame.copy())
+            } catch (t: Throwable) {
+                try {
+                    it.close(CloseReason(CloseReason.Codes.PROTOCOL_ERROR, ""))
+                } catch (ignore: ClosedSendChannelException) {
+                    // at some point it will get closed
+                }
+            }
+        }
     }
 }
