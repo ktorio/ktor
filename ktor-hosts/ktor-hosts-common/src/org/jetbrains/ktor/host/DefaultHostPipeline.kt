@@ -5,6 +5,8 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.request.*
+import java.nio.channels.*
+import java.util.concurrent.*
 
 fun defaultHostPipeline(environment: ApplicationEnvironment): HostPipeline {
     val pipeline = HostPipeline()
@@ -34,7 +36,11 @@ fun defaultHostPipeline(environment: ApplicationEnvironment): HostPipeline {
 private fun ApplicationEnvironment.logFailure(call: ApplicationCall, e: Throwable) {
     try {
         val status = call.response.status() ?: "Unhandled"
-        log.error("$status: ${call.request.logInfo()}", e)
+        if (e is CancellationException || e is ClosedChannelException) {
+            log.error("$status: ${call.request.logInfo()}, cancelled")
+        } else {
+            log.error("$status: ${call.request.logInfo()}", e)
+        }
     } catch (oom: OutOfMemoryError) {
         try {
             log.error(e)
