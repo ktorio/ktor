@@ -19,8 +19,10 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
     private val pinger = AtomicReference<ActorJob<Frame.Pong>?>(null)
     private val closeReasonRef = ConflatedChannel<CloseReason>()
     private val filtered = Channel<Frame>(8)
+    private val outgoingToBeProcessed = Channel<Frame>(8)
 
     override val incoming: ReceiveChannel<Frame> get() = filtered
+    override val outgoing: SendChannel<Frame> get() = outgoingToBeProcessed
 
     override var timeout: Duration = Duration.ofSeconds(15)
     override val closeReason: CloseReason? get() = closeReasonRef.poll()
@@ -35,7 +37,7 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
             closeReasonRef.offer(reason ?: CloseReason(CloseReason.Codes.NORMAL, ""))
         })
 
-        launch(hostContext) {
+        launch(Unconfined) {
             try {
                 raw.incoming.consumeEach { frame ->
                     when (frame) {
@@ -55,6 +57,24 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
             }
         }
 
+        launch(Unconfined) {
+            try {
+                outgoingToBeProcessed.consumeEach { frame ->
+                    when (frame) {
+                        is Frame.Close -> closeSequence.send(CloseFrameEvent.ToSend(frame))
+                        else -> raw.outgoing.send(frame)
+                    }
+                }
+            } catch (ignore: ClosedSendChannelException) {
+            } catch (ignore: ClosedReceiveChannelException) {
+            } catch (ignore: CancellationException) {
+            } catch (t: Throwable) {
+                raw.outgoing.close(t)
+            } finally {
+                raw.outgoing.close()
+            }
+        }
+
         launch(userAppContext) {
             val t = try {
                 handler()
@@ -69,7 +89,7 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
                 else -> CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, t.message ?: t.javaClass.name)
             }
 
-            if (reason != null) {
+            if (t != null) {
                 application.log.error("Websocket handler failed", t)
             }
 
