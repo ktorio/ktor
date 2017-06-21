@@ -1,7 +1,9 @@
 package org.jetbrains.ktor.netty
 
 import io.netty.util.concurrent.*
+import io.netty.util.concurrent.Future
 import kotlinx.coroutines.experimental.*
+import java.util.concurrent.*
 
 suspend fun <T> Future<T>.suspendAwait(): T {
     if (isDone) return get()
@@ -18,7 +20,11 @@ private class CoroutineListener<T, F : Future<T>>(private val future: F, private
 
     override fun operationComplete(future: F) {
         val value = try {
-            future.get()
+            try {
+                future.get()
+            } catch (e: ExecutionException) {
+                throw e.cause ?: e
+            }
         } catch (t: Throwable) {
             continuation.resumeWithException(t)
             return
