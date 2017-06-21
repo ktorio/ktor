@@ -5,9 +5,11 @@ import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import java.util.concurrent.*
 import java.util.concurrent.CancellationException
+import java.util.concurrent.atomic.*
 
 internal class NettyResponseQueue(val context: ChannelHandlerContext) {
     private val q = LinkedBlockingQueue<CallElement>()
+    @Volatile
     private var cancellation: Throwable? = null
 
     fun started(call: ApplicationCall) {
@@ -17,25 +19,33 @@ internal class NettyResponseQueue(val context: ChannelHandlerContext) {
     fun completed(call: ApplicationCall) {
         val s = q.poll()
         if (s?.call !== call) throw IllegalStateException("Wrong call in the queue")
-        s.continuation = null
+        s.continuation()
 
-        q.peek()?.continuation?.resume(Unit)
+        q.peek()?.continuation()?.resume(Unit)
     }
 
     suspend fun await(call: ApplicationCall) {
+        cancellation?.let { throw it }
+
         if (q.peek()?.call === call) {
             return
         }
 
         suspendCancellableCoroutine<Unit> { c ->
-            val s = q.firstOrNull { it.call === call } ?: throw IllegalStateException()
-            s.continuation = c
+            val s = q.firstOrNull { it.call === call }
+            if (s == null) {
+                throw cancellation ?: IllegalStateException()
+            }
+            s.suspended(c)
+
             c.invokeOnCompletion {
-                s.continuation = null
+                s.continuation()
             }
 
             if (q.peek() === s) {
-                c.resume(Unit)
+                s.continuation()?.resume(Unit)
+            } else if (cancellation != null) {
+                cancellation?.let { s.continuation()?.resumeWithException(it) }
             }
         }
     }
@@ -46,12 +56,23 @@ internal class NettyResponseQueue(val context: ChannelHandlerContext) {
 
         do {
             val s = q.poll() ?: break
-            s.continuation?.resumeWithException(t)
+            s.continuation()?.resumeWithException(t)
         } while (true)
     }
 
     private class CallElement(val call: ApplicationCall) {
         @Volatile
-        var continuation: CancellableContinuation<Unit>? = null
+        private var _continuation: CancellableContinuation<Unit>? = null
+
+        fun suspended(c: CancellableContinuation<Unit>) {
+            if (!Continuation.compareAndSet(this, null, c)) throw IllegalStateException("Already on await()")
+        }
+
+        @Suppress("UNCHECKED_CAST")
+        fun continuation(): CancellableContinuation<Unit>? = Continuation.getAndSet(this, null) as CancellableContinuation<Unit>?
+
+        companion object {
+            private val Continuation = AtomicReferenceFieldUpdater.newUpdater(CallElement::class.java, CancellableContinuation::class.java, CallElement::_continuation.name)
+        }
     }
 }
