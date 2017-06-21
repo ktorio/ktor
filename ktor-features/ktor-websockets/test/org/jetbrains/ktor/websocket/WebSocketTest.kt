@@ -9,6 +9,7 @@ import org.junit.*
 import org.junit.rules.*
 import java.nio.*
 import java.time.*
+import java.util.*
 import java.util.concurrent.*
 import kotlin.test.*
 
@@ -134,6 +135,56 @@ class WebSocketTest {
                 bb.get(bytes)
 
                 assertEquals("aaa", bytes.toString(Charsets.ISO_8859_1))
+            }
+        }
+    }
+
+    @Test
+    fun testBigFrame() {
+        val content = ByteArray(20 * 1024 * 1024)
+        Random().nextBytes(content)
+
+        val sendBuffer = ByteBuffer.allocate(content.size + 100)
+
+        Serializer().apply {
+            enqueue(Frame.Binary(true, ByteBuffer.wrap(content)))
+            enqueue(Frame.Close())
+            serialize(sendBuffer)
+
+            sendBuffer.flip()
+        }
+
+        withTestApplication {
+            application.install(WebSockets)
+
+            application.routing {
+                webSocket("/") {
+                    val f = incoming.receive()
+
+                    val copied = f.copy()
+                    outgoing.send(copied)
+
+                    flush()
+                }
+            }
+
+            handleWebSocket("/") {
+                bodyBytes = sendBuffer.array()
+            }.let { call ->
+                call.awaitWebSocket(Duration.ofSeconds(10))
+
+                val p = FrameParser()
+                val bb = ByteBuffer.wrap(call.response.byteContent)
+                p.frame(bb)
+
+                assertEquals(FrameType.BINARY, p.frameType)
+                assertTrue { p.bodyReady }
+                assertEquals(content.size.toLong(), p.length)
+
+                val bytes = ByteArray(p.length.toInt())
+                bb.get(bytes)
+
+                assertTrue { bytes.contentEquals(content) }
             }
         }
     }

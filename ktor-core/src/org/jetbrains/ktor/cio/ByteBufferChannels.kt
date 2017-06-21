@@ -69,7 +69,13 @@ class ByteBufferWriteChannel : WriteChannel {
 
     fun ensureCapacity(size: Int) {
         if (buf.size < size) {
-            val newBuffer = ByteArray(size)
+            var newSize = buf.size.coerceAtLeast(16)
+            while (newSize < size && newSize > 0) {
+                newSize = newSize shl 1
+            }
+            if (newSize < 0) newSize = size
+
+            val newBuffer = ByteArray(newSize)
             if (count > 0) {
                 System.arraycopy(buf, 0, newBuffer, 0, count)
             }
