@@ -32,6 +32,12 @@ internal class RawContentQueue(val context: ChannelHandlerContext) : ChannelInbo
         else if (msg is ReferenceCounted)
             msg.release()
     }
+
+    override fun channelInactive(ctx: ChannelHandlerContext?) {
+        queue.push(LastHttpContent.EMPTY_LAST_CONTENT, true)
+        closed = true
+        super.channelInactive(ctx)
+    }
 }
 
 internal open class HttpContentQueue(val context: ChannelHandlerContext) : SimpleChannelInboundHandler<HttpContent>(false) {
