@@ -49,5 +49,8 @@ internal class HttpContentReadChannel(val queue: NettyContentQueue, val buffered
 
     override fun close() {
         lastContent?.release()
+        lastContent = null
+
+        queue.dispose()
     }
 }
