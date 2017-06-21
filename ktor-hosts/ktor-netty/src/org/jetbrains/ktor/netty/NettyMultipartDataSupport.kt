@@ -33,7 +33,12 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
                 fetched = true
                 return
             }
-            processItem(item)
+
+            try {
+                processItem(item)
+            } finally {
+                item.release()
+            }
         }
 
     }
@@ -53,6 +58,7 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
         if (!destroyed) {
             destroyed = true
             decoder.destroy()
+            queue.dispose()
         }
     }
 
