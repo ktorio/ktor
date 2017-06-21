@@ -65,6 +65,8 @@ fun pinger(ctx: CoroutineContext, ws: WebSocketSession, period: Duration, timeou
                 }
             }
         } catch (ignore: CancellationException) {
+        } catch (ignore: ClosedReceiveChannelException) {
+        } catch (ignore: ClosedSendChannelException) {
         } finally {
             pool.release(t)
         }
