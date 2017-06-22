@@ -3,7 +3,7 @@
     <parent>
         <artifactId>ktor</artifactId>
         <groupId>org.jetbrains.ktor</groupId>
-        <version>0.3.3</version>
+        <version>0.3.4-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
