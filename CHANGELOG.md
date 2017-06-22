@@ -1,5 +1,5 @@
 # 0.3.3
-> Pending
+> Published 22 Jun 2017
 
 * Execution model slightly changed to avoid global executors. ApplicationEnvironment doesn't provide `executor` anymore
 * Websockets refactored with channels instead of callback functions
