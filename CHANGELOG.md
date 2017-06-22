@@ -4,7 +4,8 @@
 * Execution model slightly changed to avoid global executors. ApplicationEnvironment doesn't provide `executor` anymore
 * Websockets refactored with channels instead of callback functions
 * Fixed bug with compression not preserving status code (thanks Diego Rocha)
-* Fixed performance issues with Netty host under heavy load and keep-alive connections
+* Fixes in Netty support: performance issues under heavy load and keep-alive connections, cancellation, closed sockets
+* Fixes in session serialization, enums support
 * Optimisations in Servlet and Jetty hosts, fixes in edge cases
 * Fixes in chat sample
 
