@@ -31,19 +31,13 @@ class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChann
         }
 
         override fun onDataAvailable() {
-            if (servletInputStream.isReady) {
-                continuation.getAndSet(null)?.resume(State.Available)
-            }
+            continuation.getAndSet(null)?.resume(State.Available)
         }
     }
 
     suspend override fun read(dst: ByteBuffer): Int {
         if (!dst.hasRemaining()) {
             return 0
-        }
-
-        if (closed) {
-            return -1
         }
 
         return when (awaitState()) {
@@ -54,6 +48,8 @@ class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChann
                         servletInputStream.read(dst)
                     } catch (end: EOFException) {
                         -1
+                    } catch (end: ClosedChannelException) {
+                        -1
                     }
                 } else {
                     read(dst)
@@ -63,32 +59,33 @@ class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChann
     }
 
     private suspend fun awaitState(): State {
-        return when {
-            listenerInstalled.compareAndSet(false, true) -> awaitStateInstall()
-            servletInputStream.isFinished -> return State.End
-            servletInputStream.isReady -> return State.Available
-            else -> {
-                suspendCoroutineOrReturn<State> { c ->
-                    when {
-                        !this.continuation.compareAndSet(null, c) -> throw IllegalStateException("Async operation is already in progress")
-                        servletInputStream.isFinished -> {
-                            this.continuation.set(null)
-                            State.End
-                        }
-                        servletInputStream.isReady -> {
-                            this.continuation.set(null)
-                            State.Available
-                        }
-                        else -> COROUTINE_SUSPENDED
-                    }
-                }
-            }
+        if (closed) return State.End
+        if (listenerInstalled.compareAndSet(false, true)) {
+            return awaitStateInstall()
         }
 
+        return suspendCoroutineOrReturn { c ->
+            when {
+                !this.continuation.compareAndSet(null, c) -> throw IllegalStateException("Async operation is already in progress")
+                servletInputStream.isFinished -> {
+                    if (this.continuation.compareAndSet(c, null))
+                        State.End
+                    else
+                        COROUTINE_SUSPENDED
+                }
+                servletInputStream.isReady -> {
+                    if (this.continuation.compareAndSet(c, null))
+                        State.Available
+                    else
+                        COROUTINE_SUSPENDED
+                }
+                else -> COROUTINE_SUSPENDED
+            }
+        }
     }
 
     private suspend fun awaitStateInstall(): State {
-        return suspendCoroutineOrReturn<State> { c ->
+        return suspendCoroutineOrReturn { c ->
             if (!this.continuation.compareAndSet(null, c)) {
                 throw IllegalStateException("Listener installation failed: already in progress")
             }
