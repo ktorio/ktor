@@ -14,6 +14,7 @@ import java.io.*
 import java.net.*
 import java.nio.*
 import java.time.*
+import java.util.*
 import java.util.concurrent.*
 import kotlin.test.*
 
@@ -280,6 +281,94 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         }
     }
 
+    @Test
+    fun testBigFrame() {
+        val content = ByteArray(20 * 1024 * 1024)
+        Random().nextBytes(content)
+
+        val sendBuffer = ByteBuffer.allocate(content.size + 100)
+
+        Serializer().apply {
+            enqueue(Frame.Binary(true, ByteBuffer.wrap(content)))
+            serialize(sendBuffer)
+
+            sendBuffer.flip()
+        }
+
+        createAndStartServer {
+            application.install(WebSockets)
+
+            application.routing {
+                webSocket("/") {
+                    val f = incoming.receive()
+
+                    val copied = f.copy()
+                    outgoing.send(copied)
+
+                    flush()
+                }
+            }
+        }
+
+        Socket("localhost", port).use { socket ->
+            socket.soTimeout = 4000
+
+            // send upgrade request
+            socket.outputStream.apply {
+                write("""
+                GET / HTTP/1.1
+                Host: localhost:$port
+                Upgrade: websocket
+                Connection: Upgrade
+                Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+                Origin: http://localhost:$port
+                Sec-WebSocket-Protocol: chat
+                Sec-WebSocket-Version: 13
+                """.trimIndent().replace("\n", "\r\n").toByteArray())
+                write("\r\n\r\n".toByteArray())
+                flush()
+            }
+
+            val status = socket.inputStream.parseStatus()
+            assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
+
+            val headers = socket.inputStream.parseHeaders()
+            assertEquals("Upgrade", headers[HttpHeaders.Connection])
+            assertEquals("websocket", headers[HttpHeaders.Upgrade])
+
+            socket.getOutputStream().apply {
+                write(sendBuffer.array(), 0, sendBuffer.remaining())
+                flush()
+            }
+
+            socket.getInputStream().apply {
+                val frame = readFrame()
+
+                assertEquals(FrameType.BINARY, frame.frameType)
+                assertEquals(content.size, frame.buffer.remaining())
+
+                val bytes = ByteArray(content.size)
+                frame.buffer.get(bytes)
+
+                assertTrue { bytes.contentEquals(content) }
+            }
+
+            socket.getOutputStream().apply {
+                Serializer().apply {
+                    enqueue(Frame.Close())
+                    sendBuffer.clear()
+                    serialize(sendBuffer)
+                    sendBuffer.flip()
+                }
+
+                write(sendBuffer.array(), 0, sendBuffer.remaining())
+                flush()
+            }
+
+            socket.assertCloseFrame()
+        }
+    }
+
     private fun Socket.assertCloseFrame(closeCode: Short = CloseReason.Codes.NORMAL.code) {
         loop@
         while (true) {
@@ -374,7 +463,15 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         return rc
     }
     private fun InputStream.readShortBE() = (readOrFail() shl 8) or readOrFail()
-    private fun InputStream.readLongBE() = (readOrFail().toLong() shl 24) or (readOrFail().toLong() shl 16) or (readOrFail().toLong() shl 8) or readOrFail().toLong()
+    private fun InputStream.readLongBE() = (readOrFail().toLong() shl 56) or
+            (readOrFail().toLong() shl 48) or
+            (readOrFail().toLong() shl 40) or
+            (readOrFail().toLong() shl 32) or
+            (readOrFail().toLong() shl 24) or
+            (readOrFail().toLong() shl 16) or
+            (readOrFail().toLong() shl 8) or
+            readOrFail().toLong()
+
     private fun InputStream.readFully(size: Int): ByteArray {
         val array = ByteArray(size)
         var wasRead = 0
