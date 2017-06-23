@@ -81,6 +81,19 @@ class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
     }
 
     fun merge(from: PipelinePhases<TSubject>) {
+        if (from._phases.isEmpty())
+            return
+        if (_phases.isEmpty()) {
+            val fromPhases = from._phases
+            @Suppress("LoopToCallChain")
+            for (index in 0..fromPhases.lastIndex) {
+                val fromContent = fromPhases[index]
+                _phases.add(PhaseContent(fromContent.phase, fromContent.relation, fromContent.interceptors.toMutableList()))
+            }
+            interceptors = null
+            return
+        }
+
         val fromPhases = from._phases
         for (index in 0..fromPhases.lastIndex) {
             val fromContent = fromPhases[index]
