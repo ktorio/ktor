@@ -4,8 +4,16 @@ import io.netty.channel.*
 import kotlinx.coroutines.experimental.*
 import kotlin.coroutines.experimental.*
 
-internal class NettyApplicationCallHandler(private val host: NettyApplicationHost) : SimpleChannelInboundHandler<NettyApplicationCall>() {
-    override fun channelRead0(context: ChannelHandlerContext, msg: NettyApplicationCall) {
+internal class NettyApplicationCallHandler(private val host: NettyApplicationHost) : ChannelInboundHandlerAdapter() {
+    override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+        if (msg is NettyApplicationCall) {
+            handleRequest(ctx, msg)
+        } else {
+            ctx.fireChannelRead(msg)
+        }
+    }
+
+    fun handleRequest(context: ChannelHandlerContext, msg: NettyApplicationCall) {
         launch(Dispatcher + CurrentContext(context)) {
             host.pipeline.execute(msg)
         }

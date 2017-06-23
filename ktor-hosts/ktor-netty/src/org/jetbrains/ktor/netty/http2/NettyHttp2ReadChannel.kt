@@ -26,8 +26,16 @@ internal class NettyHttp2ReadChannel(val streamId: Int, val context: ChannelHand
         meet()
     }
 
-    val listener = object : SimpleChannelInboundHandler<Http2Frame>() {
-        override fun channelRead0(ctx: ChannelHandlerContext, msg: Http2Frame) {
+    val listener = object : ChannelInboundHandlerAdapter() {
+        override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+            if (msg is Http2Frame) {
+                handleRequest(ctx, msg)
+            } else {
+                ctx.fireChannelRead(msg)
+            }
+        }
+
+        fun handleRequest(ctx: ChannelHandlerContext, msg: Http2Frame) {
             when (msg) {
                 is Http2DataFrame -> {
                     if (msg.streamId() == streamId) {

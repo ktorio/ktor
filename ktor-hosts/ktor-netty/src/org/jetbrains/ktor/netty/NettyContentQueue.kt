@@ -40,7 +40,15 @@ internal class RawContentQueue(val context: ChannelHandlerContext) : ChannelInbo
     }
 }
 
-internal open class HttpContentQueue(val context: ChannelHandlerContext) : SimpleChannelInboundHandler<HttpContent>(false) {
+internal open class HttpContentQueue(val context: ChannelHandlerContext) : ChannelInboundHandlerAdapter() {
+    override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+        if (msg is HttpContent) {
+            handleRequest(ctx, msg)
+        } else {
+            ctx.fireChannelRead(msg)
+        }
+    }
+
     private val _queuesStack = ArrayList<NettyContentQueue>(2)
     @Volatile
     private var closeCause: Throwable? = null
@@ -66,10 +74,10 @@ internal open class HttpContentQueue(val context: ChannelHandlerContext) : Simpl
         }
     }
 
-    override fun channelRead0(context: ChannelHandlerContext, msg: HttpContent) {
+    fun handleRequest(context: ChannelHandlerContext, msg: HttpContent) {
         val last = msg is LastHttpContent
         closeCause?.let { t -> msg.release(); throw t }
-        val q = _queuesStack.firstOrNull() ?: run { msg.release();  throw IllegalStateException("No stacked queue") }
+        val q = _queuesStack.firstOrNull() ?: run { msg.release(); throw IllegalStateException("No stacked queue") }
 
         q.push(msg, last)
         if (last) {

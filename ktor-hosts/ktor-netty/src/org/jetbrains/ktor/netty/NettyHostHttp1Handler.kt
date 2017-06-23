@@ -8,8 +8,16 @@ import kotlinx.coroutines.experimental.*
 import io.netty.util.*
 
 @ChannelHandler.Sharable
-internal class NettyHostHttp1Handler(private val host: NettyApplicationHost) : SimpleChannelInboundHandler<HttpRequest>(false) {
-    override fun channelRead0(context: ChannelHandlerContext, message: HttpRequest) {
+internal class NettyHostHttp1Handler(private val host: NettyApplicationHost) : ChannelInboundHandlerAdapter() {
+    override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+        if (msg is HttpRequest) {
+            handleRequest(ctx, msg)
+        } else {
+            ctx.fireChannelRead(msg)
+        }
+    }
+
+    fun handleRequest(context: ChannelHandlerContext, message: HttpRequest) {
         if (HttpUtil.is100ContinueExpected(message)) {
             context.write(DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
         }
