@@ -36,7 +36,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
 
     protected fun commitHeaders(o: FinalContent) {
         o.status?.let { response.status(it) } ?: response.status() ?: response.status(HttpStatusCode.OK)
-        for ((name, values) in o.headers.entries()) {
+        o.headers.forEach { name, values ->
             for (value in values) {
                 response.header(name, value)
             }

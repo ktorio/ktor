@@ -9,15 +9,19 @@ interface ValuesMap {
         inline fun build(caseInsensitiveKey: Boolean = false, body: ValuesMapBuilder.() -> Unit): ValuesMap = ValuesMapBuilder(caseInsensitiveKey).apply(body).build()
     }
 
+    val caseInsensitiveKey: Boolean
+
     operator fun get(name: String): String? = getAll(name)?.firstOrNull()
     fun getAll(name: String): List<String>?
-    fun entries(): Set<Map.Entry<String, List<String>>>
-    fun isEmpty(): Boolean
-    val caseInsensitiveKey: Boolean
+
+
     fun names(): Set<String>
+    fun entries(): Set<Map.Entry<String, List<String>>>
 
     operator fun contains(name: String): Boolean = getAll(name) != null
     fun contains(name: String, value: String): Boolean = getAll(name)?.contains(value) ?: false
+    fun forEach(body: (String, List<String>) -> Unit) = entries().forEach { (k, v) -> body(k, v) }
+    fun isEmpty(): Boolean
 }
 
 private class ValuesMapSingleImpl(override val caseInsensitiveKey: Boolean, val name: String, val values: List<String>) : ValuesMap {
@@ -39,6 +43,10 @@ private class ValuesMapSingleImpl(override val caseInsensitiveKey: Boolean, val 
         return entriesEquals(entries(), other.entries())
     }
 
+    override fun forEach(body: (String, List<String>) -> Unit) = body(name, values)
+    override fun get(name: String): String? = if (name.equals(this.name, caseInsensitiveKey)) values.firstOrNull() else null
+    override fun contains(name: String): Boolean = name.equals(this.name, caseInsensitiveKey)
+    override fun contains(name: String, value: String): Boolean = name.equals(this.name, caseInsensitiveKey) && values.contains(value)
     override fun hashCode() = entriesHashCode(entries(), 31 * caseInsensitiveKey.hashCode())
 }
 
@@ -52,6 +60,7 @@ private class ValuesMapImpl(override val caseInsensitiveKey: Boolean = false, pr
     override fun names(): Set<String> = Collections.unmodifiableSet(values.keys)
     override fun isEmpty() = values.isEmpty()
     override fun entries(): Set<Map.Entry<String, List<String>>> = Collections.unmodifiableSet(values.entries)
+    override fun forEach(body: (String, List<String>) -> Unit) = values.forEach(body)
 
     private fun listForKey(key: String): List<String>? = values[key]
     override fun toString() = "ValuesMap(case=${!caseInsensitiveKey}) ${entries()}"
@@ -90,13 +99,15 @@ class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
     }
 
     fun appendAll(valuesMap: ValuesMap) {
-        for ((key, values) in valuesMap.entries())
-            appendAll(key, values)
+        valuesMap.forEach { name, values ->
+            appendAll(name, values)
+        }
     }
 
     fun appendMissing(valuesMap: ValuesMap) {
-        for ((key, values) in valuesMap.entries())
-            appendMissing(key, values)
+        valuesMap.forEach { name, values ->
+            appendMissing(name, values)
+        }
     }
 
     fun appendAll(key: String, values: Iterable<String>) {
@@ -202,10 +213,10 @@ fun ValuesMap.filter(keepEmpty: Boolean = false, predicate: (String, String) -> 
 }
 
 fun ValuesMapBuilder.appendFiltered(source: ValuesMap, keepEmpty: Boolean = false, predicate: (String, String) -> Boolean) {
-    source.entries().forEach { entry ->
-        val list = entry.value.filterTo(ArrayList(entry.value.size)) { predicate(entry.key, it) }
+    source.forEach { name, value ->
+        val list = value.filterTo(ArrayList(value.size)) { predicate(name, it) }
         if (keepEmpty || list.isNotEmpty())
-            appendAll(entry.key, list)
+            appendAll(name, list)
     }
 }
 

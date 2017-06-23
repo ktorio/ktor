@@ -22,7 +22,7 @@ class DefaultHeaders(config: Configuration) {
 
     private fun intercept(call: ApplicationCall) {
         appendDateHeader(call)
-        headers.entries().forEach { entry -> entry.value.forEach { call.response.header(entry.key, it) } }
+        headers.forEach { name, value -> value.forEach { call.response.header(name, it) } }
     }
 
     // ZonedDateTime.now allocates too much so we reimplement it

@@ -40,6 +40,20 @@ class ServletApplicationRequest(override val call: ServletApplicationCall,
             return result
         }
 
+        override fun get(name: String): String? = servletRequest.getHeader(name)
+
+        override fun contains(name: String): Boolean = servletRequest.getHeader(name) != null
+
+        override fun forEach(body: (String, List<String>) -> Unit) {
+            val namesEnumeration = servletRequest.headerNames ?: return
+            while (namesEnumeration.hasMoreElements()) {
+                val name = namesEnumeration.nextElement()
+                val headersEnumeration = servletRequest.getHeaders(name) ?: continue
+                val values = headersEnumeration.asSequence().toList()
+                body(name, values)
+            }
+        }
+
         override fun entries(): Set<Map.Entry<String, List<String>>> {
             val names = servletRequest.headerNames
             val set = LinkedHashSet<Map.Entry<String, List<String>>>()
