@@ -6,17 +6,36 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 
-class CallLogging(val log: ApplicationLog) {
+class CallLogging(val log: ApplicationLog, val monitor: ApplicationMonitor) {
 
     class Configuration
+
+    val starting: (Application) -> Unit = { it.log.trace("Application starting: $it") }
+    val started: (Application) -> Unit = { it.log.trace("Application started: $it") }
+    val stopping: (Application) -> Unit = { it.log.trace("Application stopping: $it") }
+    var stopped: (Application) -> Unit = {}
+
+    init {
+        stopped = {
+            it.log.trace("Application stopped: $it")
+            monitor.applicationStarting -= starting
+            monitor.applicationStarted -= started
+            monitor.applicationStopping -= stopping
+            monitor.applicationStopped -= stopped
+        }
+
+        monitor.applicationStarting += starting
+        monitor.applicationStarted += started
+        monitor.applicationStopping += stopping
+        monitor.applicationStopped += stopped
+    }
 
     companion object Feature : ApplicationFeature<Application, CallLogging.Configuration, CallLogging> {
         override val key: AttributeKey<CallLogging> = AttributeKey("Call Logging")
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
-            pipeline.environment.monitor.logEvents()
             val loggingPhase = PipelinePhase("Logging")
             Configuration().apply(configure)
-            val feature = CallLogging(pipeline.log)
+            val feature = CallLogging(pipeline.log, pipeline.environment.monitor)
             pipeline.phases.insertBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
             pipeline.intercept(loggingPhase) { call ->
                 proceed()
@@ -25,12 +44,6 @@ class CallLogging(val log: ApplicationLog) {
             return feature
         }
 
-        fun ApplicationMonitor.logEvents() {
-            applicationStarted += { it.log.trace("Application started: $it") }
-            applicationStopped += { it.log.trace("Application stopped: $it") }
-            applicationStarting += { it.log.trace("Application starting: $it") }
-            applicationStopping += { it.log.trace("Application stopping: $it") }
-        }
     }
 
 
