@@ -40,11 +40,13 @@ class StatusPages(config: Configuration) {
                     is HttpStatusCode -> message
                     else -> null
                 }
-                val handler = statuses[status]
-                if (handler != null) {
-                    statusHandled = true
-                    context.handler(status!!)
-                    context.finish() // TODO: Should we always finish? Handler could skip responding…
+                if (status != null) {
+                    val handler = statuses[status]
+                    if (handler != null) {
+                        statusHandled = true
+                        context.handler(status)
+                        context.finish() // TODO: Should we always finish? Handler could skip responding…
+                    }
                 }
             }
         }
