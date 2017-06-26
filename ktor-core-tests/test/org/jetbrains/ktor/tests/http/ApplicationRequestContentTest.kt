@@ -15,7 +15,7 @@ class ApplicationRequestContentTest {
     fun testSimpleStringContent() {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
-                assertEquals("bodyContent", call.request.receive<String>())
+                assertEquals("bodyContent", call.receive<String>())
             }
 
             handleRequest(HttpMethod.Get, "") {
@@ -30,7 +30,7 @@ class ApplicationRequestContentTest {
             val values = valuesOf("a" to listOf("1"))
 
             application.intercept(ApplicationCallPipeline.Call) {
-                assertEquals(values, call.request.receive<ValuesMap>())
+                assertEquals(values, call.receive<ValuesMap>())
             }
 
             handleRequest(HttpMethod.Get, "") {
@@ -45,7 +45,7 @@ class ApplicationRequestContentTest {
     fun testInputStreamContent() {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
-                assertEquals("bodyContent", call.request.receive<InputStream>().reader(Charsets.UTF_8).readText())
+                assertEquals("bodyContent", call.receive<InputStream>().reader(Charsets.UTF_8).readText())
             }
 
             handleRequest(HttpMethod.Get, "") {
@@ -69,7 +69,7 @@ class ApplicationRequestContentTest {
             }
 
             application.intercept(ApplicationCallPipeline.Call) {
-                assertEquals(value, call.request.receive<IntList>())
+                assertEquals(value, call.receive<IntList>())
             }
 
             handleRequest(HttpMethod.Get, "") {
@@ -86,7 +86,7 @@ class ApplicationRequestContentTest {
         )
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
-                assertEquals(values, call.request.receive<ValuesMap>())
+                assertEquals(values, call.receive<ValuesMap>())
             }
 
             handleRequest(HttpMethod.Post, "") {

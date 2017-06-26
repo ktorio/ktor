@@ -95,7 +95,7 @@ class TestHostMultipartTest {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
                 try {
-                    call.request.receive<MultiPartData>().parts.toList()
+                    call.receive<MultiPartData>().parts.toList()
                 } catch (error: Throwable) {
                     fail("This pipeline shouldn't finish successfully")
                 }
@@ -111,7 +111,7 @@ class TestHostMultipartTest {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
                 if (call.request.isMultipart()) {
-                    asserts(call.request.receive<MultiPartData>())
+                    asserts(call.receive<MultiPartData>())
                 } else {
                     asserts(null)
                 }
