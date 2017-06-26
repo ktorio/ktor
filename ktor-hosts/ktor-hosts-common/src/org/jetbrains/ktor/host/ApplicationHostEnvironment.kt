@@ -39,7 +39,7 @@ fun applicationHostEnvironment(builder: ApplicationHostEnvironmentBuilder.() -> 
 }
 
 class ApplicationHostEnvironmentBuilder {
-    var reloadPackages = emptyList<String>()
+    var watchPaths = emptyList<String>()
     var classLoader: ClassLoader = ApplicationHostEnvironment::class.java.classLoader
     var log: ApplicationLog = NullApplicationLog()
     var config: ApplicationConfig = MapApplicationConfig()
@@ -53,6 +53,6 @@ class ApplicationHostEnvironmentBuilder {
 
     fun build(builder: ApplicationHostEnvironmentBuilder.() -> Unit): ApplicationHostEnvironment {
         builder(this)
-        return ApplicationHostEnvironmentReloading(classLoader, log, config, connectors, modules, reloadPackages)
+        return ApplicationHostEnvironmentReloading(classLoader, log, config, connectors, modules, watchPaths)
     }
 }

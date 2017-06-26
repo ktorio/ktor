@@ -1,11 +1,12 @@
 package org.jetbrains.ktor.host
 
+import java.io.*
 import java.net.*
 
 /**
  * A parent-last classloader that will try the child classloader first and then the parent.
  */
-internal class OverridingClassLoader(classpath: List<URL>, parentClassLoader: ClassLoader?) : ClassLoader(parentClassLoader) {
+internal class OverridingClassLoader(classpath: List<URL>, parentClassLoader: ClassLoader?) : ClassLoader(parentClassLoader), Closeable {
     private val childClassLoader = ChildURLClassLoader(classpath.toTypedArray(), parent)
 
     @Synchronized
@@ -17,6 +18,10 @@ internal class OverridingClassLoader(classpath: List<URL>, parentClassLoader: Cl
             // didn't find it, try the parent
             return super.loadClass(name, resolve)
         }
+    }
+
+    override fun close() {
+        childClassLoader.close()
     }
 
     /**

@@ -19,7 +19,7 @@ fun commandLineEnvironment(args: Array<String>): ApplicationHostEnvironment {
 
     val hostConfigPath = "ktor.deployment.host"
     val hostPortPath = "ktor.deployment.port"
-    val hostReload = "ktor.deployment.autoreload"
+    val hostWatchPaths = "ktor.deployment.watch"
 
     val hostSslPortPath = "ktor.deployment.sslPort"
     val hostSslKeyStore = "ktor.security.ssl.keyStore"
@@ -66,31 +66,41 @@ fun commandLineEnvironment(args: Array<String>): ApplicationHostEnvironment {
                 throw IllegalArgumentException("SSL requires certificate password: use $hostSslPrivateKeyPassword config")
             }
 
-            val keyStoreFile = File(sslKeyStorePath).let { file -> if (file.exists() || file.isAbsolute) file else File(".", sslKeyStorePath).absoluteFile }
+            val keyStoreFile = File(sslKeyStorePath).let { file ->
+                if (file.exists() || file.isAbsolute)
+                    file
+                else
+                    File(".", sslKeyStorePath).absoluteFile
+            }
             val keyStore = KeyStore.getInstance("JKS").apply {
                 FileInputStream(keyStoreFile).use {
                     load(it, sslKeyStorePassword.toCharArray())
                 }
 
-                requireNotNull(getKey(sslKeyAlias, sslPrivateKeyPassword.toCharArray()) == null) { "The specified key $sslKeyAlias doesn't exist in the key store $sslKeyStorePath" }
+                requireNotNull(getKey(sslKeyAlias, sslPrivateKeyPassword.toCharArray()) == null) {
+                    "The specified key $sslKeyAlias doesn't exist in the key store $sslKeyStorePath"
+                }
             }
 
-            sslConnector(keyStore, sslKeyAlias, { sslKeyStorePassword.toCharArray() }, { sslPrivateKeyPassword.toCharArray() }) {
+            sslConnector(keyStore, sslKeyAlias,
+                    { sslKeyStorePassword.toCharArray() },
+                    { sslPrivateKeyPassword.toCharArray() }) {
                 this.host = host
                 this.port = sslPort.toInt()
                 this.keyStorePath = keyStoreFile
             }
         }
 
-        (argsMap["-reload"] ?: combinedConfig.tryGetString(hostReload))?.let {
-            reloadPackages = it.split(",")
+        (argsMap["-watch"]?.split(",") ?: combinedConfig.tryGetStringList(hostWatchPaths))?.let {
+            watchPaths = it
         }
     }
 
     return environment
 }
 
-fun Config.tryGetString(path: String): String? = if (hasPath(path)) getString(path) else null
+fun Config.tryGetString(path: String) = if (hasPath(path)) getString(path) else null
+fun Config.tryGetStringList(path: String) = if (hasPath(path)) getStringList(path) else null
 
 private fun String.splitPair(ch: Char): Pair<String, String>? = indexOf(ch).let { idx ->
     when (idx) {

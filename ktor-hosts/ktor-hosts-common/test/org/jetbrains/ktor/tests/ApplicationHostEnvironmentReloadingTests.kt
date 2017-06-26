@@ -28,6 +28,43 @@ class ApplicationHostEnvironmentReloadingTests {
         environment.stop()
     }
 
+    @Test fun `top level extension function as module function reloading stress`() {
+        val environment = applicationHostEnvironment {
+            config = HoconApplicationConfig(ConfigFactory.parseMap(
+                    mapOf(
+                            "ktor.deployment.environment" to "test",
+                            "ktor.deployment.watch" to listOf("ktor-hosts-common"),
+                            "ktor.application.modules" to listOf(Application::topLevelExtensionFunction.fqName)
+                    )))
+        }
+
+/*
+        fun collectGC() {
+            System.gc()
+            Thread.sleep(500)
+            System.gc()
+        }
+
+        collectGC()
+        val memoryBefore = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
+        println("Before: ${memoryBefore / 1024} Kb")
+*/
+
+        environment.start()
+        repeat(100) {
+            (environment as ApplicationHostEnvironmentReloading).reload()
+        }
+        environment.stop()
+
+/*
+        collectGC()
+        val memoryAfter = Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()
+        println("After: ${memoryAfter / 1024} Kb")
+        println("Diff: ${(memoryAfter - memoryBefore) / 1024} Kb")
+*/
+    }
+
+
     @Test fun `top level non-extension function as module function`() {
         val environment = applicationHostEnvironment {
             config = HoconApplicationConfig(ConfigFactory.parseMap(
@@ -63,7 +100,6 @@ class ApplicationHostEnvironmentReloadingTests {
             config = HoconApplicationConfig(ConfigFactory.parseMap(
                     mapOf(
                             "ktor.deployment.environment" to "test",
-                            //                "ktor.application.class" to Companion::companionObjectFunction.fqName
                             "ktor.application.modules" to listOf(Companion::class.functionFqName("companionObjectFunction"))
                     )))
         }
@@ -94,7 +130,6 @@ class ApplicationHostEnvironmentReloadingTests {
             config = HoconApplicationConfig(ConfigFactory.parseMap(
                     mapOf(
                             "ktor.deployment.environment" to "test",
-                            //                "ktor.application.class" to Companion::companionObjectFunction.fqName
                             "ktor.application.modules" to listOf(Companion::class.functionFqName("companionObjectJvmStaticFunction"))
                     )))
         }
@@ -125,7 +160,6 @@ class ApplicationHostEnvironmentReloadingTests {
             config = HoconApplicationConfig(ConfigFactory.parseMap(
                     mapOf(
                             "ktor.deployment.environment" to "test",
-                            //                "ktor.application.class" to ObjectModuleFunctionHolder::objectFunction.fqName
                             "ktor.application.modules" to listOf(ObjectModuleFunctionHolder::class.functionFqName("objectFunction"))
                     )))
         }
@@ -171,7 +205,6 @@ class ApplicationHostEnvironmentReloadingTests {
             config = HoconApplicationConfig(ConfigFactory.parseMap(
                     mapOf(
                             "ktor.deployment.environment" to "test",
-                            //                "ktor.application.class" to NoArgModuleFunction::main.fqName
                             "ktor.application.modules" to listOf(NoArgModuleFunction::class.functionFqName("main"))
                     )))
 

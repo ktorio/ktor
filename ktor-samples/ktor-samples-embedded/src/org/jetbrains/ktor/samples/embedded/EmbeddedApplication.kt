@@ -21,5 +21,5 @@ fun Application.module() {
 }
 
 fun main(args: Array<String>) {
-    embeddedServer(Jetty, 8080, reloadPackages = listOf("ktor-samples-embedded"), module = Application::module).start()
+    embeddedServer(Jetty, 8080, watchPaths = listOf("ktor-samples-embedded"), module = Application::module).start()
 }

@@ -11,7 +11,6 @@ import java.nio.file.*
 import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.attribute.*
 import java.util.*
-import java.util.concurrent.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 import kotlin.reflect.*
@@ -21,23 +20,24 @@ import kotlin.reflect.jvm.*
 /**
  * Implements [ApplicationHostEnvironment] by loading an [Application] from a folder or jar.
  *
- * When [reloadPackages] is `true`, it watches changes in folder/jar and implements hot reloading
+ * [watchPaths] specifies substrings to match against class path entries to monitor changes in folder/jar and implements hot reloading
  */
 class ApplicationHostEnvironmentReloading(
         override val classLoader: ClassLoader,
         override val log: ApplicationLog,
         override val config: ApplicationConfig,
         override val connectors: List<HostConnectorConfig>,
-        val modules: List<Application.() -> Unit>,
-        val reloadPackages: List<String> = emptyList()
+        private val modules: List<Application.() -> Unit>,
+        private val watchPaths: List<String> = emptyList()
 )
     : ApplicationHostEnvironment {
 
     private var _applicationInstance: Application? = null
+    private var _applicationClassLoader: ClassLoader? = null
     private val applicationInstanceLock = ReentrantReadWriteLock()
     private var packageWatchKeys = emptyList<WatchKey>()
 
-    private val watchPatterns: List<String> = (config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()) + reloadPackages
+    private val watchPatterns: List<String> = (config.propertyOrNull("ktor.deployment.watch")?.getList() ?: listOf()) + watchPaths
 
     private val moduleFunctionNames: List<String>? = run {
         val configModules = config.propertyOrNull("ktor.application.modules")?.getList()
@@ -64,6 +64,14 @@ class ApplicationHostEnvironmentReloading(
     override val application: Application
         get() = currentApplication()
 
+    fun reload() {
+        applicationInstanceLock.write {
+            destroyApplication()
+            val (application, classLoader) = createApplication()
+            _applicationInstance = application
+            _applicationClassLoader = classLoader
+        }
+    }
 
     private fun currentApplication(): Application = applicationInstanceLock.read {
         if (watchPatterns.isNotEmpty()) {
@@ -84,7 +92,9 @@ class ApplicationHostEnvironmentReloading(
                 changes.take(5).forEach { log.debug("...  ${it.context()}") }
                 applicationInstanceLock.write {
                     destroyApplication()
-                    _applicationInstance = createApplication()
+                    val (application, classLoader) = createApplication()
+                    _applicationInstance = application
+                    _applicationClassLoader = classLoader
                 }
             }
         }
@@ -92,23 +102,22 @@ class ApplicationHostEnvironmentReloading(
         _applicationInstance ?: throw IllegalStateException("ApplicationHostEnvironment was not started")
     }
 
-    fun ClassLoader.allURLs(): List<URL> {
-        val parentUrls = parent?.allURLs() ?: emptyList()
+    fun ClassLoader.allURLs(): Set<URL> {
+        val parentUrls = parent?.allURLs() ?: emptySet()
         if (this is URLClassLoader) {
-            val urls = urLs.filterNotNull()
-            log.debug("ClassLoader $this: $urls")
+            val urls = urLs.filterNotNull().toSet()
             return urls + parentUrls
         }
         return parentUrls
     }
 
-    private fun createApplication(): Application {
+    private fun createApplication(): Pair<Application, ClassLoader> {
         val classLoader = createClassLoader()
         val currentThread = Thread.currentThread()
         val oldThreadClassLoader = currentThread.contextClassLoader
         currentThread.contextClassLoader = classLoader
         try {
-            return instantiateAndConfigureApplication(classLoader)
+            return instantiateAndConfigureApplication(classLoader) to classLoader
         } finally {
             currentThread.contextClassLoader = oldThreadClassLoader
         }
@@ -116,15 +125,17 @@ class ApplicationHostEnvironmentReloading(
 
     private fun createClassLoader(): ClassLoader {
         val baseClassLoader = classLoader
-        if (watchPatterns.isEmpty())
-            return baseClassLoader
-
-        val allUrls = baseClassLoader.allURLs()
         val watchPatterns = watchPatterns
         if (watchPatterns.isEmpty()) {
-            log.warning("No ktor.deployment.watch patterns specified, hot reload is disabled")
+            log.info("No ktor.deployment.watch patterns specified, automatic reload is not active")
             return baseClassLoader
         }
+
+        val allUrls = baseClassLoader.allURLs()
+        val jre = File(System.getProperty("java.home")).parent
+        val debugUrls = allUrls.map { it.file }
+        log.debug("Java Home: $jre")
+        log.debug("Class Loader: $baseClassLoader: ${debugUrls.filter { !it.toString().startsWith(jre) }}")
 
         // we shouldn't watch URL for ktor-core classes, even if they match patterns,
         // because otherwise it loads two ApplicationEnvironment (and other) types which do not match
@@ -135,7 +146,7 @@ class ApplicationHostEnvironmentReloading(
         }
 
         if (watchUrls.isEmpty()) {
-            log.warning("No ktor.deployment.watch patterns match classpath entries, hot reload is disabled")
+            log.info("No ktor.deployment.watch patterns match classpath entries, automatic reload is not active")
             return baseClassLoader
         }
 
@@ -153,17 +164,20 @@ class ApplicationHostEnvironmentReloading(
 
     fun destroyApplication() {
         val currentApplication = _applicationInstance
+        val applicationClassLoader = _applicationClassLoader
+        _applicationInstance = null
+        _applicationClassLoader = null
         if (currentApplication != null) {
             safeRiseEvent(monitor.applicationStopping, currentApplication)
             try {
                 currentApplication.dispose()
+                (applicationClassLoader as? OverridingClassLoader)?.close()
             } catch(e: Throwable) {
                 log.error("Failed to destroy application instance.", e)
             }
 
             safeRiseEvent(monitor.applicationStopped, currentApplication)
         }
-        _applicationInstance = null
         packageWatchKeys.forEach { it.cancel() }
         packageWatchKeys = mutableListOf()
     }
@@ -202,7 +216,9 @@ class ApplicationHostEnvironmentReloading(
 
     override fun start() {
         applicationInstanceLock.write {
-            _applicationInstance = createApplication()
+            val (application, classLoader) = createApplication()
+            _applicationInstance = application
+            _applicationClassLoader = classLoader
         }
     }
 
