@@ -11,7 +11,7 @@ import kotlin.test.*
 class UrlEncodedTest {
     fun ApplicationRequest.parseUrlEncodedParameters(limit: Int = 1000): ValuesMap {
         return runBlocking {
-            call.receive<String>().parseUrlEncodedParameters(contentCharset() ?: Charsets.UTF_8, limit)
+            call.receiveText().parseUrlEncodedParameters(contentCharset() ?: Charsets.UTF_8, limit)
         }
     }
 

@@ -1,8 +1,11 @@
 package org.jetbrains.ktor.request
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.pipeline.*
+import org.jetbrains.ktor.util.*
+import java.io.*
 import kotlin.reflect.*
 
 class ApplicationReceiveRequest(val type: KClass<*>, val value: Any)
@@ -26,7 +29,8 @@ inline suspend fun <reified T : Any> ApplicationCall.receive(): T {
  * Receive content for this request
  */
 suspend fun <T : Any> ApplicationCall.tryReceive(type: KClass<T>): T? {
-    val transformed = receivePipeline.execute(this, ApplicationReceiveRequest(type, request.receiveContent())).value
+    val incomingContent = request.receiveContent()
+    val transformed = receivePipeline.execute(this, ApplicationReceiveRequest(type, incomingContent)).value
     if (transformed is IncomingContent)
         return null
 
@@ -34,4 +38,11 @@ suspend fun <T : Any> ApplicationCall.tryReceive(type: KClass<T>): T? {
     return transformed as? T
 }
 
+@Deprecated("receive function has been moved onto ApplicationCall, use 'call.receive()' instead of 'call.request.receive()'")
+inline suspend fun <reified T : Any> ApplicationRequest.receive(): T = call.receive()
 
+inline suspend fun ApplicationCall.receiveText(): String = receive()
+inline suspend fun ApplicationCall.receiveChannel(): ReadChannel = receive()
+inline suspend fun ApplicationCall.receiveStream(): InputStream = receive()
+inline suspend fun ApplicationCall.receiveMultipart(): MultiPartData = receive()
+inline suspend fun ApplicationCall.receiveParameters(): ValuesMap = receive()

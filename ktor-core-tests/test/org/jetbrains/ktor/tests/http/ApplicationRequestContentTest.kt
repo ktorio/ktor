@@ -7,7 +7,6 @@ import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
-import java.io.*
 import kotlin.test.*
 
 class ApplicationRequestContentTest {
@@ -15,7 +14,7 @@ class ApplicationRequestContentTest {
     fun testSimpleStringContent() {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
-                assertEquals("bodyContent", call.receive<String>())
+                assertEquals("bodyContent", call.receiveText())
             }
 
             handleRequest(HttpMethod.Get, "") {
@@ -30,7 +29,7 @@ class ApplicationRequestContentTest {
             val values = valuesOf("a" to listOf("1"))
 
             application.intercept(ApplicationCallPipeline.Call) {
-                assertEquals(values, call.receive<ValuesMap>())
+                assertEquals(values, call.receiveParameters())
             }
 
             handleRequest(HttpMethod.Get, "") {
@@ -45,7 +44,7 @@ class ApplicationRequestContentTest {
     fun testInputStreamContent() {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
-                assertEquals("bodyContent", call.receive<InputStream>().reader(Charsets.UTF_8).readText())
+                assertEquals("bodyContent", call.receiveStream().reader(Charsets.UTF_8).readText())
             }
 
             handleRequest(HttpMethod.Get, "") {
@@ -86,7 +85,7 @@ class ApplicationRequestContentTest {
         )
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
-                assertEquals(values, call.receive<ValuesMap>())
+                assertEquals(values, call.receiveParameters())
             }
 
             handleRequest(HttpMethod.Post, "") {

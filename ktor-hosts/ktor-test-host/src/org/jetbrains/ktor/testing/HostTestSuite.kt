@@ -473,7 +473,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     fun testFormUrlEncoded() {
         createAndStartServer {
             post("/") {
-                call.respondText("${call.parameters["urlp"]},${call.receive<ValuesMap>()["formp"]}")
+                call.respondText("${call.parameters["urlp"]},${call.receiveParameters()["formp"]}")
             }
         }
 
@@ -501,7 +501,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             route("/echo") {
                 handle {
                     val buffer = ByteBufferWriteChannel()
-                    call.receive<ReadChannel>().copyTo(buffer)
+                    call.receiveChannel().copyTo(buffer)
 
                     call.respond(object : FinalContent.ReadChannelContent() {
                         override val headers: ValuesMap get() = ValuesMap.Empty
@@ -534,7 +534,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     fun testEchoBlocking() {
         createAndStartServer {
             post("/") {
-                val text = call.receive<ReadChannel>().toInputStream().bufferedReader().readText()
+                val text = call.receiveStream().bufferedReader().readText()
                 call.response.status(HttpStatusCode.OK)
                 call.respond(text)
             }
@@ -564,7 +564,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             post("/") {
                 val response = StringBuilder()
 
-                call.receive<MultiPartData>().parts.sortedBy { it.partName }.forEach { part ->
+                call.receiveMultipart().parts.sortedBy { it.partName }.forEach { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.partName}=${part.value}\n")
                         is PartData.FileItem -> response.append("file:${part.partName},${part.originalFileName},${part.streamProvider().bufferedReader().readText()}\n")
@@ -701,7 +701,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     fun testRequestContentString() {
         createAndStartServer {
             post("/") {
-                call.respond(call.receive<String>())
+                call.respond(call.receiveText())
             }
         }
 
@@ -739,7 +739,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     fun testRequestContentInputStream() {
         createAndStartServer {
             post("/") {
-                call.respond(call.receive<InputStream>().reader().readText())
+                call.respond(call.receiveStream().reader().readText())
             }
         }
 

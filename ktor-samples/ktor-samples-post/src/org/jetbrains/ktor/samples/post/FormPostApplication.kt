@@ -46,7 +46,7 @@ fun Application.main() {
         }
 
         post<post> {
-            val multipart = call.receive<MultiPartData>()
+            val multipart = call.receiveMultipart()
 
             call.response.contentType(ContentType.Text.Plain.withCharset(Charsets.UTF_8))
             call.respondWrite {
