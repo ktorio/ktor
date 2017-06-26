@@ -9,7 +9,7 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 
 fun ApplicationSendPipeline.installDefaultTransformations() {
-    intercept(ApplicationSendPipeline.Transform) { value ->
+    intercept(ApplicationSendPipeline.Render) { value ->
         val transformed = when (value) {
             is String -> {
                 val responseContentType = call.response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
