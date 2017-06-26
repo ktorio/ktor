@@ -6,6 +6,10 @@ data class CloseReason(val code: Short, val message: String) {
     val knownReason: Codes?
         get() = Codes.byCode(code)
 
+    override fun toString(): String {
+        return "CloseReason(reason=${knownReason ?: code}, message=$message)"
+    }
+
     // see https://tools.ietf.org/html/rfc6455#section-7.4
     enum class Codes(val code: Short) {
         NORMAL(1000),

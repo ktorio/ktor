@@ -1,9 +1,10 @@
 package org.jetbrains.ktor.websocket
 
+import kotlinx.coroutines.experimental.*
 import java.time.*
 
 interface DefaultWebSocketSession : WebSocketSession {
     var pingInterval: Duration?
     var timeout: Duration
-    val closeReason: CloseReason?
+    val closeReason: Deferred<CloseReason?>
 }

@@ -17,7 +17,7 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
 ) : DefaultWebSocketSession, WebSocketSession by raw {
 
     private val pinger = AtomicReference<ActorJob<Frame.Pong>?>(null)
-    private val closeReasonRef = ConflatedChannel<CloseReason>()
+    private val closeReasonRef = CompletableDeferred<CloseReason>()
     private val filtered = Channel<Frame>(8)
     private val outgoingToBeProcessed = Channel<Frame>(8)
 
@@ -25,7 +25,7 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
     override val outgoing: SendChannel<Frame> get() = outgoingToBeProcessed
 
     override var timeout: Duration = Duration.ofSeconds(15)
-    override val closeReason: CloseReason? get() = closeReasonRef.poll()
+    override val closeReason = closeReasonRef
     override var pingInterval: Duration? by Delegates.observable<Duration?>(null, { _, _, _ ->
         runPinger()
     })
@@ -34,7 +34,7 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
         runPinger()
         val ponger = ponger(hostContext, this, NoPool)
         val closeSequence = closeSequence(hostContext, raw, { timeout }, { reason ->
-            closeReasonRef.offer(reason ?: CloseReason(CloseReason.Codes.NORMAL, ""))
+            closeReasonRef.complete(reason ?: CloseReason(CloseReason.Codes.NORMAL, ""))
         })
 
         launch(Unconfined) {
@@ -117,7 +117,7 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
         }
 
         try {
-            closeReasonRef.receive()
+            closeReasonRef.await()
             closeSequence.join()
         } finally {
             cancelPinger()
@@ -126,7 +126,7 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
     }
 
     private fun runPinger() {
-        if (closeReasonRef.poll() == null) {
+        if (!closeReasonRef.isCompleted) {
             val newPinger = pingInterval?.let { interval -> pinger(hostContext, raw, interval, timeout, pool, raw.outgoing) }
             pinger.getAndSet(newPinger)?.cancel()
             newPinger?.start()
