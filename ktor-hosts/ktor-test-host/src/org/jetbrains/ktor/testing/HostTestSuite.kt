@@ -931,7 +931,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         val message = "expected, ${nextNonce()}"
         val collected = CopyOnWriteArrayList<Throwable>()
 
-        val log = object : ApplicationLog by SLF4JApplicationLog("embedded") {
+        val log = object : ApplicationLog by SLF4JApplicationLog("ktor.test") {
             override val name = "DummyLogger"
             override fun fork(name: String) = this
             override fun error(message: String, exception: Throwable?) {
