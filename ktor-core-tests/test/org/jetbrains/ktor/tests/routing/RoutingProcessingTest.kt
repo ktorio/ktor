@@ -261,4 +261,48 @@ class RoutingProcessingTest {
             assertEquals(userName, "john", "should have processed get handler on /user/username node")
         }
     }
+
+    @Test fun `verify accept header processing`() = withTestApplication {
+        application.routing {
+            route("/") {
+                accept(ContentType.Text.Plain) {
+                    handle {
+                        call.respond("OK")
+                    }
+                }
+                accept(ContentType.Application.Json) {
+                    handle {
+                        call.response.contentType(ContentType.Application.Json)
+                        call.respond("{\"status\": \"OK\"}")
+                    }
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(HttpHeaders.Accept, "text/plain")
+        }.let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals("OK", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(HttpHeaders.Accept, "application/json")
+        }.let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals("{\"status\": \"OK\"}", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+        }.let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals("OK", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(HttpHeaders.Accept, "text/html")
+        }.let { call ->
+            assertFalse { call.requestHandled }
+        }
+    }
 }
