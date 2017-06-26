@@ -45,6 +45,26 @@ class WebSocketTest {
     }
 
     @Test
+    fun testFrameSize() {
+        withTestApplication {
+            application.install(WebSockets)
+            application.routing {
+                webSocketRaw("/echo") {
+                    outgoing.send(Frame.Text("+".repeat(0xc123)))
+                    outgoing.send(Frame.Close())
+                }
+            }
+
+            handleWebSocket("/echo") {
+                bodyBytes = byteArrayOf()
+            }.let { call ->
+                call.awaitWebSocket(Duration.ofSeconds(10))
+                assertEquals("817ec123", hex(call.response.byteContent!!.take(4).toByteArray()))
+            }
+        }
+    }
+
+    @Test
     fun testMasking() {
         withTestApplication {
             application.install(WebSockets)

@@ -51,7 +51,7 @@ internal class Serializer {
         val size = f.buffer.remaining()
         val length1 = when {
             size < 126 -> size
-            size <= Short.MAX_VALUE -> 126
+            size <= 0xffff -> 126
             else -> 127
         }
 
