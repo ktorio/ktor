@@ -311,7 +311,14 @@ class ApplicationHostEnvironmentReloading(
                         p.kind == KParameter.Kind.INSTANCE -> instance
                         isApplicationEnvironment(p) -> this
                         isApplication(p) -> application
-                        else -> throw RuntimeException("Parameter type ${p.type} of parameter ${p.name} is not supported")
+                        else -> {
+                            if (p.type.toString().contains("Application")) {
+                                // It is possible that type is okay, but classloader is not
+                                val classLoader = (p.type.javaType as? Class<*>)?.classLoader
+                                throw IllegalArgumentException("Parameter type ${p.type}:{$classLoader} is not supported. Application is loaded as $ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}")
+                            }
+                            throw IllegalArgumentException("Parameter type '${p.type}' of parameter '${p.name ?: "<receiver>"}' is not supported")
+                        }
                     }
                 }))
     }

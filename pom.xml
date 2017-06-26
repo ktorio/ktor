@@ -119,6 +119,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>2.19.1</version>
                 <configuration>
+                    <useSystemClassLoader>false</useSystemClassLoader>
                     <includes>
                         <include>**/Test*.*</include>
                         <include>**/*Test.*</include>
