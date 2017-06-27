@@ -1,109 +1,112 @@
 package org.jetbrains.ktor.servlet
 
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.channels.*
 import org.jetbrains.ktor.cio.*
 import java.io.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.atomic.*
 import javax.servlet.*
-import kotlin.coroutines.experimental.*
-import kotlin.coroutines.experimental.intrinsics.*
 
-class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChannel {
-    private val listenerInstalled = AtomicBoolean()
-    private val continuation = AtomicReference<Continuation<State>?>()
+class ServletReadChannel(private val servletInputStream: ServletInputStream) : ReadChannel {
+    @Volatile
+    private var listenerInstalled = 0
 
     @Volatile
-    private var closed = false
+    private var readInProgress = 0
 
-    private enum class State {
-        End,
-        Available
-    }
+    private val callbackState = ConflatedChannel<Unit>()
 
     private val readListener = object : ReadListener {
         override fun onAllDataRead() {
-            continuation.getAndSet(null)?.resume(State.End)
+            callbackState.close()
         }
 
         override fun onError(t: Throwable) {
-            continuation.getAndSet(null)?.resumeWithException(t)
+            callbackState.close(t)
         }
 
         override fun onDataAvailable() {
-            continuation.getAndSet(null)?.resume(State.Available)
+            callbackState.offer(Unit)
         }
     }
 
     suspend override fun read(dst: ByteBuffer): Int {
-        if (!dst.hasRemaining()) {
-            return 0
+        startReading()
+
+        try {
+            if (callbackState.poll() == null && callbackState.isClosedForReceive)
+                return -1
+        } catch (t: Throwable) {
+            endReading()
+            throw t
         }
 
-        return when (awaitState()) {
-            State.End -> -1
-            State.Available -> {
-                if (servletInputStream.isReady) {
-                    try {
-                        servletInputStream.read(dst)
-                    } catch (end: EOFException) {
-                        -1
-                    } catch (end: ClosedChannelException) {
-                        -1
-                    }
-                } else {
-                    read(dst)
-                }
+        if (listenerInstalled == 0 && ListenerInstalled.compareAndSet(this, 0, 1)) {
+            return installAndRead(dst)
+        }
+
+        return if (servletInputStream.isFinished) finish()
+        else if (servletInputStream.isReady) {
+            doRead(dst)
+        } else {
+            run(Unconfined) {
+                readSuspend(dst)
             }
         }
     }
 
-    private suspend fun awaitState(): State {
-        if (closed) return State.End
-        if (listenerInstalled.compareAndSet(false, true)) {
-            return awaitStateInstall()
+    private suspend fun installAndRead(dst: ByteBuffer): Int {
+        servletInputStream.setReadListener(readListener)
+        return run(Unconfined) { readSuspend(dst) }
+    }
+
+    private tailrec suspend fun readSuspend(dst: ByteBuffer): Int {
+        try {
+            if (callbackState.receiveOrNull() == null) return -1
+        } catch (t: Throwable) {
+            endReading()
+            throw t
         }
 
-        return suspendCoroutineOrReturn { c ->
-            when {
-                !this.continuation.compareAndSet(null, c) -> throw IllegalStateException("Async operation is already in progress")
-                servletInputStream.isFinished -> {
-                    if (this.continuation.compareAndSet(c, null))
-                        State.End
-                    else
-                        COROUTINE_SUSPENDED
-                }
-                servletInputStream.isReady -> {
-                    if (this.continuation.compareAndSet(c, null))
-                        State.Available
-                    else
-                        COROUTINE_SUSPENDED
-                }
-                else -> COROUTINE_SUSPENDED
-            }
+        return when {
+            servletInputStream.isFinished -> finish()
+            servletInputStream.isReady -> doRead(dst)
+            else -> readSuspend(dst)
         }
     }
 
-    private suspend fun awaitStateInstall(): State {
-        return suspendCoroutineOrReturn { c ->
-            if (!this.continuation.compareAndSet(null, c)) {
-                throw IllegalStateException("Listener installation failed: already in progress")
-            }
+    private fun startReading() {
+        if (!ReadInProgress.compareAndSet(this, 0, 1)) throw IllegalStateException("read() is already in progress")
+    }
 
-            servletInputStream.setReadListener(readListener)
-            COROUTINE_SUSPENDED
-        }
+    private fun endReading() {
+        readInProgress = 0
+    }
+
+    private fun finish(): Int {
+        callbackState.close()
+        endReading()
+
+        return -1
     }
 
     override fun close() {
         try {
-            listenerInstalled.set(true)
-            closed = true
-            servletInputStream.close()
+            callbackState.close(ClosedChannelException())
         } finally {
-            closed = true
+            servletInputStream.close()
+        }
+    }
 
-            continuation.getAndSet(null)?.resumeWithException(ClosedChannelException())
+    private fun doRead(buffer: ByteBuffer): Int {
+        try {
+            return servletInputStream.read(buffer)
+        } catch (e: EOFException) {
+            return finish()
+        } finally {
+            endReading()
         }
     }
 
@@ -122,5 +125,11 @@ class ServletReadChannel(val servletInputStream: ServletInputStream) : ReadChann
             }
             return size
         }
+    }
+
+    companion object {
+        private val ReadInProgress = AtomicIntegerFieldUpdater.newUpdater(ServletReadChannel::class.java, ServletReadChannel::readInProgress.name)!!
+
+        private val ListenerInstalled = AtomicIntegerFieldUpdater.newUpdater(ServletReadChannel::class.java, ServletReadChannel::listenerInstalled.name)
     }
 }
