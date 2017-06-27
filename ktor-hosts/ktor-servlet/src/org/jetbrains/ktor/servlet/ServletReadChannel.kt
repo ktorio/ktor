@@ -36,8 +36,10 @@ class ServletReadChannel(private val servletInputStream: ServletInputStream) : R
         startReading()
 
         try {
-            if (callbackState.poll() == null && callbackState.isClosedForReceive)
+            if (callbackState.poll() == null && callbackState.isClosedForReceive) {
+                endReading()
                 return -1
+            }
         } catch (t: Throwable) {
             endReading()
             throw t
@@ -64,7 +66,10 @@ class ServletReadChannel(private val servletInputStream: ServletInputStream) : R
 
     private tailrec suspend fun readSuspend(dst: ByteBuffer): Int {
         try {
-            if (callbackState.receiveOrNull() == null) return -1
+            if (callbackState.receiveOrNull() == null) {
+                endReading()
+                return -1
+            }
         } catch (t: Throwable) {
             endReading()
             throw t
