@@ -359,9 +359,9 @@ fun Route.handleRequestWithBodyFor(method: HttpMethod): Unit {
     requestContentType(ContentType.MultiPart.FormData) {
         method(method) {
             handle {
-                val listFiles = call.request.receive<MultiPartData>().parts.filterIsInstance<PartData.FileItem>().toList()
+                val listFiles = call.receive<MultiPartData>().parts.filterIsInstance<PartData.FileItem>().toList()
                 call.sendHttpBinResponse {
-                    form = call.request.receive<ValuesMap>()
+                    form = call.receive<ValuesMap>()
                     files = listFiles.associateBy { part -> part.partName ?: "a" }
                 }
             }
@@ -371,7 +371,7 @@ fun Route.handleRequestWithBodyFor(method: HttpMethod): Unit {
         method(method) {
             handle {
                 call.sendHttpBinResponse {
-                    form = call.request.receive<ValuesMap>()
+                    form = call.receive<ValuesMap>()
                 }
             }
         }
@@ -380,7 +380,7 @@ fun Route.handleRequestWithBodyFor(method: HttpMethod): Unit {
         method(method) {
             handle {
                 val type = object : TypeToken<Map<String, Any>>() {}.type
-                val content = call.request.receive<String>()
+                val content = call.receive<String>()
                 val response = HttpBinResponse(
                         data = content,
                         json = gson.fromJson(content, type),
@@ -394,7 +394,7 @@ fun Route.handleRequestWithBodyFor(method: HttpMethod): Unit {
     method(method) {
         handle {
             call.sendHttpBinResponse {
-                data = call.request.receive<String>()
+                data = call.receive<String>()
             }
         }
     }
