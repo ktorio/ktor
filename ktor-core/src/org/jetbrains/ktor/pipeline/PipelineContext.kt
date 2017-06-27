@@ -2,6 +2,7 @@ package org.jetbrains.ktor.pipeline
 
 import org.jetbrains.ktor.application.*
 
+@ContextDsl
 class PipelineContext<TSubject : Any>(val call: ApplicationCall, private val interceptors: List<PipelineInterceptor<TSubject>>, subject: TSubject) {
     var subject: TSubject = subject
         private set
@@ -30,3 +31,5 @@ class PipelineContext<TSubject : Any>(val call: ApplicationCall, private val int
         return subject
     }
 }
+
+val PipelineContext<*>.application get() = call.application

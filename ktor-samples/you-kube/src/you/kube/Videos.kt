@@ -37,7 +37,7 @@ fun Route.videos(database: Database) {
                     section("post") {
                         header("post-header") {
                             h3("post-title") {
-                                a(href = application.feature(Locations).href(VideoPage(it.id))) { +it.title }
+                                a(href = locations().href(VideoPage(it.id))) { +it.title }
                             }
                             p("post-meta") {
                                 +"by ${it.authorId}"
@@ -60,7 +60,7 @@ fun Route.videos(database: Database) {
                 section("post") {
                     header("post-header") {
                         h3("post-title") {
-                            a(href = application.feature(Locations).href(VideoPage(it.id))) { +video.title }
+                            a(href = locations().href(VideoPage(it.id))) { +video.title }
                         }
                         p("post-meta") {
                             +"by ${video.authorId}"

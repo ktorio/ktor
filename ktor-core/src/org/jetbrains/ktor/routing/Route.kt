@@ -4,6 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.pipeline.*
 import java.util.*
 
+@ContextDsl
 open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationCallPipeline() {
     val children: MutableList<Route> = ArrayList()
 

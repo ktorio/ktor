@@ -10,7 +10,7 @@ import kotlin.reflect.*
 
 annotation class location(val path: String)
 
-fun Route.locations() = application.feature(Locations)
+fun PipelineContext<Unit>.locations() = call.application.feature(Locations)
 
 inline fun <reified T : Any> Route.location(noinline body: Route.() -> Unit): Route {
     return location(T::class, body)
@@ -36,7 +36,7 @@ inline fun <reified T : Any> Route.post(noinline body: suspend PipelineContext<U
 }
 
 fun <T : Any> Route.location(data: KClass<T>, body: Route.() -> Unit): Route {
-    val entry = locations().createEntry(this, data)
+    val entry = application.feature(Locations).createEntry(this, data)
     return entry.apply(body)
 }
 
