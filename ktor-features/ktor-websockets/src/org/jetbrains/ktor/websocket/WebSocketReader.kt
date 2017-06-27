@@ -4,6 +4,7 @@ import kotlinx.coroutines.experimental.channels.*
 import org.jetbrains.ktor.cio.*
 import java.nio.*
 import java.nio.channels.*
+import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 
 internal class WebSocketReader(val byteChannel: ReadChannel, val maxFrameSize: () -> Long, val ctx: CoroutineContext, pool: ByteBufferPool) {
@@ -17,6 +18,7 @@ internal class WebSocketReader(val byteChannel: ReadChannel, val maxFrameSize: (
             try {
                 readLoop(ticket.buffer)
             } catch (expected: ClosedChannelException) {
+            } catch (expected: CancellationException) {
             } finally {
                 pool.release(ticket)
             }
