@@ -35,15 +35,7 @@ class ServletReadChannel(private val servletInputStream: ServletInputStream) : R
     suspend override fun read(dst: ByteBuffer): Int {
         startReading()
 
-        try {
-            if (callbackState.poll() == null && callbackState.isClosedForReceive) {
-                endReading()
-                return -1
-            }
-        } catch (t: Throwable) {
-            endReading()
-            throw t
-        }
+        if (tryPollState()) return -1
 
         if (listenerInstalled == 0 && ListenerInstalled.compareAndSet(this, 0, 1)) {
             return installAndRead(dst)
@@ -53,33 +45,55 @@ class ServletReadChannel(private val servletInputStream: ServletInputStream) : R
         else if (servletInputStream.isReady) {
             doRead(dst)
         } else {
-            run(Unconfined) {
-                readSuspend(dst)
-            }
+            readSuspendUnconfined(dst)
         }
     }
 
     private suspend fun installAndRead(dst: ByteBuffer): Int {
         servletInputStream.setReadListener(readListener)
+        return readSuspendUnconfined(dst)
+    }
+
+    private suspend fun readSuspendUnconfined(dst: ByteBuffer): Int {
         return run(Unconfined) { readSuspend(dst) }
     }
 
     private tailrec suspend fun readSuspend(dst: ByteBuffer): Int {
-        try {
-            if (callbackState.receiveOrNull() == null) {
-                endReading()
-                return -1
-            }
-        } catch (t: Throwable) {
-            endReading()
-            throw t
-        }
+        if (receiveState()) return -1
 
         return when {
             servletInputStream.isFinished -> finish()
             servletInputStream.isReady -> doRead(dst)
             else -> readSuspend(dst)
         }
+    }
+
+    private suspend fun receiveState(): Boolean {
+        try {
+            if (callbackState.receiveOrNull() == null) {
+                endReading()
+                return true
+            }
+        } catch (t: Throwable) {
+            endReading()
+            throw t
+        }
+
+        return false
+    }
+
+    private fun tryPollState(): Boolean {
+        try {
+            if (callbackState.poll() == null && callbackState.isClosedForReceive) {
+                endReading()
+                return true
+            }
+        } catch (t: Throwable) {
+            endReading()
+            throw t
+        }
+
+        return false
     }
 
     private fun startReading() {
