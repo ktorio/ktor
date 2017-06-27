@@ -41,8 +41,13 @@ suspend fun <T : Any> ApplicationCall.tryReceive(type: KClass<T>): T? {
 @Deprecated("receive function has been moved onto ApplicationCall, use 'call.receive()' instead of 'call.request.receive()'")
 inline suspend fun <reified T : Any> ApplicationRequest.receive(): T = call.receive()
 
+@Suppress("NOTHING_TO_INLINE")
 inline suspend fun ApplicationCall.receiveText(): String = receive()
+@Suppress("NOTHING_TO_INLINE")
 inline suspend fun ApplicationCall.receiveChannel(): ReadChannel = receive()
+@Suppress("NOTHING_TO_INLINE")
 inline suspend fun ApplicationCall.receiveStream(): InputStream = receive()
+@Suppress("NOTHING_TO_INLINE")
 inline suspend fun ApplicationCall.receiveMultipart(): MultiPartData = receive()
+@Suppress("NOTHING_TO_INLINE")
 inline suspend fun ApplicationCall.receiveParameters(): ValuesMap = receive()
