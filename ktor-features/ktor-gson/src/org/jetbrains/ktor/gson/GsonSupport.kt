@@ -15,9 +15,9 @@ class GsonSupport(val gson: Gson) {
         override fun install(pipeline: ApplicationCallPipeline, configure: GsonBuilder.() -> Unit): GsonSupport {
             val gson = GsonBuilder().apply(configure).create()
             val feature = GsonSupport(gson)
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) {
-                if (call.request.acceptItems().any { ContentType.Application.Json.match(it.value) }) {
-                    proceedWith(feature.transform(it))
+            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) {
+                if (it !is FinalContent && call.request.acceptItems().any { ContentType.Application.Json.match(it.value) }) {
+                    proceedWith(feature.renderJsonContent(it))
                 }
             }
             pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
@@ -32,13 +32,13 @@ class GsonSupport(val gson: Gson) {
         }
     }
 
-    private fun transform(model: Any): JsonContent {
+    private fun renderJsonContent(model: Any): JsonContent {
         val json = gson.toJson(model)
         return JsonContent(json, HttpStatusCode.OK)
     }
 }
 
-class JsonContent(val text: String, override val status: HttpStatusCode? = null) : FinalContent.ByteArrayContent() {
+private class JsonContent(val text: String, override val status: HttpStatusCode? = null) : FinalContent.ByteArrayContent() {
     private val bytes by lazy { text.toByteArray(Charsets.UTF_8) }
 
     override val headers by lazy {
