@@ -9,7 +9,7 @@ import org.jetbrains.ktor.sessions.*
 
 fun Route.viewKweet(dao: DAOFacade, hashFunction: (String) -> String) {
     get<ViewKweet> {
-        val user = call.sessionOrNull<Session>()?.let { dao.user(it.userId) }
+        val user = call.currentSessionOf<KweetSession>()?.let { dao.user(it.userId) }
         val date = System.currentTimeMillis()
         val code = if (user != null) call.securityCode(date, user, hashFunction) else null
 

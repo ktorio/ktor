@@ -1,7 +1,6 @@
 package you.kube
 
 import kotlinx.html.*
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.locations.*
@@ -12,7 +11,7 @@ import java.io.*
 
 fun Route.videos(database: Database) {
     get<Index> {
-        val session = call.sessionOrNull<Session>()
+        val session = call.currentSessionOf<YouKubeSession>()
         val topVideos = database.top()
         val etag = topVideos.joinToString { "${it.id},${it.title}" }.hashCode().toString() + "-" + session?.userId?.hashCode()
         val visibility = if (session == null) CacheControlVisibility.PUBLIC else CacheControlVisibility.PRIVATE

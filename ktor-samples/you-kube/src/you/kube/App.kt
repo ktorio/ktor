@@ -27,7 +27,7 @@ class Upload()
 @location("/")
 class Index()
 
-data class Session(val userId: String)
+data class YouKubeSession(val userId: String)
 
 fun Application.youKubeApplication() {
     install(DefaultHeaders)
@@ -55,12 +55,9 @@ fun Application.youKubeApplication() {
             "root" to UserHashedTableAuth(table = emptyMap()).digester("root")
     ))
 
-    withSessions<Session> {
-        withCookieByValue {
-            settings = SessionCookiesSettings(transformers = listOf(
-                    SessionCookieTransformerMessageAuthentication(sessionkey)
-            ))
-        }
+    install(Sessions) {
+        transformers.add(SessionCookieTransformerMessageAuthentication(sessionkey))
+        cookieByValue(YouKubeSession::class)
     }
 
     install(Routing) {

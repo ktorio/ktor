@@ -9,7 +9,7 @@ import org.jetbrains.ktor.sessions.*
 
 fun Route.index(dao: DAOFacade) {
     get<Index> {
-        val user = call.sessionOrNull<Session>()?.let { dao.user(it.userId) }
+        val user = call.currentSessionOf<KweetSession>()?.let { dao.user(it.userId) }
         val top = dao.top(10).map { dao.getKweet(it) }
         val latest = dao.latest(10).map { dao.getKweet(it) }
         val etagString = user?.userId + "," + top.joinToString { it.id.toString() } + latest.joinToString { it.id.toString() }

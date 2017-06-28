@@ -12,18 +12,21 @@ import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
 
-inline fun <reified T: Any> autoSerializerOf(): SessionSerializer<T> = autoSerializerOf(T::class)
-fun <T: Any> autoSerializerOf(type: KClass<T>): SessionSerializer<T> = ReflectionSessionSerializer(type)
+inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflection<T> = autoSerializerOf(T::class)
+fun <T : Any> autoSerializerOf(type: KClass<T>): SessionSerializerReflection<T> = SessionSerializerReflection(type)
 
-private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : SessionSerializer<T> {
+class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSerializer {
     val properties by lazy { type.memberProperties.sortedBy { it.name } }
 
-    override fun deserialize(s: String): T {
-        val bundle = parseQueryString(s)
-        val instance = newInstance(bundle)
+    override fun deserialize(text: String): T {
+        val values = parseQueryString(text)
+        if (type == ValuesMap::class)
+            return values as T
+
+        val instance = newInstance(values)
 
         for (p in properties) {
-            val encodedValue = bundle[p.name]
+            val encodedValue = values[p.name]
             if (encodedValue != null) {
                 val value = deserializeValue(encodedValue)
                 val coerced = coerceType(p.returnType, value)
@@ -34,7 +37,12 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
         return instance
     }
 
-    override fun serialize(session: T): String = properties.map { it.name to serializeValue(it.get(session)) }.formUrlEncode()
+    override fun serialize(session: Any): String {
+        if (type == ValuesMap::class)
+            return (session as ValuesMap).formUrlEncode()
+        val typed = session.cast(type)
+        return properties.map { it.name to serializeValue(it.get(typed)) }.formUrlEncode()
+    }
 
     private fun newInstance(bundle: ValuesMap): T {
         val constructor = findConstructor(bundle)
@@ -89,7 +97,8 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
                 value == null && !p.returnType.isMarkedNullable -> throw IllegalArgumentException("Couldn't inject null to property ${p.name}")
                 else -> p.setter.call(instance, coerceType(p.returnType, value))
             }
-            else -> {}
+            else -> {
+            }
         }
     }
 
@@ -128,9 +137,8 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
                                 ?: throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                     }
                 }
-                isMapType(type) -> when {
-                    value !is Map<*, *> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
-
+                isMapType(type) -> when (value) {
+                    !is Map<*, *> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                     else -> {
                         val keyType = type.arguments[0].type ?: throw IllegalArgumentException("Star projections are not supported for map key: ${type.arguments[0]}")
                         val valueType = type.arguments[1].type ?: throw IllegalArgumentException("Star projections are not supported for map valye ${type.arguments[1]}")
@@ -170,7 +178,7 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun <T: Any> List<KClass<*>>.toTypedList() = this as List<KClass<T>>
+    private fun <T : Any> List<KClass<*>>.toTypedList() = this as List<KClass<T>>
 
     private fun KType.toJavaClass() = javaType.toJavaClass()
 
@@ -181,13 +189,13 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
                 else -> throw IllegalArgumentException("Bad type $this")
             }
 
-    private fun <T: Any> List<KClass<T>>.filterAssignable(type: KType): List<KClass<T>> =
+    private fun <T : Any> List<KClass<T>>.filterAssignable(type: KType): List<KClass<T>> =
             filter { type.toJavaClass().isAssignableFrom(it.java) }
 
-    private fun <T: Any> List<KClass<T>>.firstHasNoArgConstructor() =
+    private fun <T : Any> List<KClass<T>>.firstHasNoArgConstructor() =
             firstOrNull { it.constructors.any { it.parameters.isEmpty() } }
 
-    private fun <T: Any> KClass<T>.callNoArgConstructor() = constructors.first { it.parameters.isEmpty() }.call()
+    private fun <T : Any> KClass<T>.callNoArgConstructor() = constructors.first { it.parameters.isEmpty() }.call()
 
     @Suppress("IMPLICIT_CAST_TO_ANY")
     private fun deserializeValue(value: String): Any? =
@@ -253,6 +261,7 @@ private class ReflectionSessionSerializer<T : Any>(val type: KClass<T>) : Sessio
             { deserializeValue(decodeURLQueryComponent(it.substringBefore('='))) },
             { deserializeValue(decodeURLQueryComponent(it.substringAfter('='))) }
     )
+
     private fun serializeMap(value: Map<*, *>): String = encodeURLQueryComponent(value.map { encodeURLQueryComponent(serializeValue(it.key)) + "=" + encodeURLQueryComponent(serializeValue(it.value)) }.joinToString("&"))
 
     @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")

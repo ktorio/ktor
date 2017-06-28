@@ -13,6 +13,7 @@ open class RoutingApplicationCall(call: ApplicationCall,
                                   override val sendPipeline: ApplicationSendPipeline,
                                   val route: Route,
                                   private val resolvedValues: ValuesMap) : ApplicationCall by call {
+
     override val parameters: ValuesMap by lazy {
         ValuesMap.build {
             appendAll(call.parameters)

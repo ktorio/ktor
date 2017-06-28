@@ -12,7 +12,7 @@ import org.jetbrains.ktor.sessions.*
 
 fun Route.register(dao: DAOFacade, hashFunction: (String) -> String) {
     post<Register> {
-        val user = call.sessionOrNull<Session>()?.let { dao.user(it.userId) }
+        val user = call.currentSessionOf<KweetSession>()?.let { dao.user(it.userId) }
         if (user != null) {
             call.redirect(UserPage(user.userId))
         } else {
@@ -41,13 +41,13 @@ fun Route.register(dao: DAOFacade, hashFunction: (String) -> String) {
                     }
                 }
 
-                call.session(Session(newUser.userId))
+                call.setSession(KweetSession(newUser.userId))
                 call.redirect(UserPage(newUser.userId))
             }
         }
     }
     get<Register> {
-        val user = call.sessionOrNull<Session>()?.let { dao.user(it.userId) }
+        val user = call.currentSessionOf<KweetSession>()?.let { dao.user(it.userId) }
         if (user != null) {
             call.redirect(UserPage(user.userId))
         } else {

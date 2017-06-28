@@ -11,7 +11,7 @@ import org.jetbrains.ktor.sessions.*
 suspend fun ApplicationCall.respondDefaultHtml(versions: List<Version>, visibility: CacheControlVisibility, title: String = "You Kube", block: DIV.() -> Unit) {
     val cacheControl = CacheControl.MaxAge(3600 * 24 * 7, mustRevalidate = true, visibility = visibility, proxyMaxAgeSeconds = null, proxyRevalidate = false)
     respondHtml(HttpStatusCode.OK, versions, cacheControl) {
-        val session = sessionOrNull<Session>()
+        val session = currentSessionOf<YouKubeSession>()
         head {
             title { +title }
             styleLink("http://yui.yahooapis.com/pure/0.6.0/pure-min.css")

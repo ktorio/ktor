@@ -20,5 +20,3 @@ internal class InMemorySessionStorage : SessionStorage {
         sessions.remove(id)
     }
 }
-
-fun inMemorySessionStorage(): SessionStorage = InMemorySessionStorage()

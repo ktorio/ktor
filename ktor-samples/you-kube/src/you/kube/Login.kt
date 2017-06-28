@@ -19,7 +19,7 @@ fun Route.login(users: UserHashedTableAuth) {
 
             handle {
                 val principal = call.principal<UserIdPrincipal>()
-                call.session(Session(principal!!.name))
+                call.setSession(YouKubeSession(principal!!.name))
                 call.respondRedirect(Index())
             }
         }

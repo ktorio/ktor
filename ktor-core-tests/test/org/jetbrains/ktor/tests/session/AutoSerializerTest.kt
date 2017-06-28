@@ -55,7 +55,7 @@ class AutoSerializerTest {
         assertSerializeDeserialize(EnumCollectionSession(), autoSerializerOf())
     }
 
-    private fun <T: Any> assertSerializeDeserialize(session: T, serializer: SessionSerializer<T>) {
+    private fun <T: Any> assertSerializeDeserialize(session: T, serializer: SessionSerializerReflection<T>) {
         val serialized = serializer.serialize(session)
         val deserialized = serializer.deserialize(serialized)
         assertEquals(session, deserialized)

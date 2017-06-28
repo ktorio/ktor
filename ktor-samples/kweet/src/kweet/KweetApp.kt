@@ -47,7 +47,7 @@ data class Login(val userId: String = "", val password: String = "", val error: 
 @location("/logout")
 class Logout()
 
-data class Session(val userId: String)
+data class KweetSession(val userId: String)
 
 class KweetApp {
 
@@ -76,10 +76,9 @@ class KweetApp {
             templateLoader = ClassTemplateLoader(KweetApp::class.java.classLoader, "templates")
         }
 
-        withSessions<Session> {
-            withCookieByValue {
-                settings = SessionCookiesSettings(transformers = listOf(SessionCookieTransformerMessageAuthentication(hashKey)))
-            }
+        install(Sessions) {
+            transformers.add(SessionCookieTransformerMessageAuthentication(hashKey))
+            cookieByValue(KweetSession::class)
         }
 
         val hashFunction = { s: String -> hash(s) }

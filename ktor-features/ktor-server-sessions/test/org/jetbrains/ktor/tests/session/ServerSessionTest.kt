@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.tests.session
 
 import kotlinx.coroutines.experimental.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
@@ -15,11 +16,11 @@ class ServerSessionTest {
     @Test
     fun testSessionById() {
         runBlocking {
-            val sessionStorage = inMemorySessionStorage()
+            val sessionStorage = InMemorySessionStorage()
 
             withTestApplication {
-                application.withSessions<TestUserSession> {
-                    withCookieBySessionId(sessionStorage)
+                application.install(Sessions) {
+                    cookieById(TestUserSession::class, sessionStorage)
                 }
 
                 application.routing {
@@ -27,18 +28,18 @@ class ServerSessionTest {
                         call.respondText("It should be no session started")
                     }
                     get("/1") {
-                        call.session(TestUserSession("id2", listOf("item1")))
+                        call.setSession(TestUserSession("id2", listOf("item1")))
                         call.respondText("ok")
                     }
                     get("/2") {
-                        val session = call.session<TestUserSession>()
-                        assertEquals("id2", session.userId)
-                        assertEquals(listOf("item1"), session.cart)
+                        val session = call.currentSessionOf<TestUserSession>()
+                        assertEquals("id2", session?.userId)
+                        assertEquals(listOf("item1"), session?.cart)
 
                         call.respondText("ok")
                     }
                     get("/3") {
-                        call.respondText(call.sessionOrNull<TestUserSession>()?.userId ?: "no session")
+                        call.respondText(call.currentSessionOf<TestUserSession>()?.userId ?: "no session")
                     }
                 }
 

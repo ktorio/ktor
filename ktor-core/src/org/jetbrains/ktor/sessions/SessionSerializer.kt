@@ -1,6 +1,9 @@
 package org.jetbrains.ktor.sessions
 
-interface SessionSerializer<T : Any> {
-    fun serialize(session: T): String
-    fun deserialize(s: String): T
+/**
+ * Serializes session from and to [String]
+ */
+interface SessionSerializer {
+    fun serialize(session: Any): String
+    fun deserialize(text: String): Any
 }

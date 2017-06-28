@@ -5,9 +5,9 @@ import java.time.*
 import java.time.temporal.*
 
 class SessionCookiesSettings(
-        private val duration: TemporalAmount = Duration.ofDays(7),
-        private val requireHttps: Boolean = false,
-        private val transformers: List<SessionCookieTransformer> = emptyList()
+        private val duration: TemporalAmount,
+        private val requireHttps: Boolean,
+        private val transformers: List<SessionCookieTransformer>
 ) {
 
     fun fromCookie(cookieValue: String?): String? {
@@ -23,7 +23,7 @@ class SessionCookiesSettings(
 
     fun toCookie(name: String, value: String): Cookie {
         val cookie = Cookie(name,
-                value = transformers.fold(value) { value, t -> t.transformWrite(value) },
+                value = transformers.fold(value) { it, transformer -> transformer.transformWrite(it) },
                 httpOnly = true,
                 secure = requireHttps,
                 path = "/",
@@ -31,5 +31,4 @@ class SessionCookiesSettings(
         return cookie
     }
 }
-
 

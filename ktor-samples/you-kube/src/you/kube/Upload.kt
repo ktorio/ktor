@@ -12,7 +12,7 @@ import java.io.*
 
 fun Route.upload(database: Database, uploadDir: File) {
     get<Upload> {
-        val session = call.sessionOrNull<Session>()
+        val session = call.currentSessionOf<YouKubeSession>()
         if (session == null) {
             call.respondRedirect(Login())
         } else {
@@ -38,7 +38,7 @@ fun Route.upload(database: Database, uploadDir: File) {
     }
 
     post<Upload> {
-        val session = call.sessionOrNull<Session>()
+        val session = call.currentSessionOf<YouKubeSession>()
         if (session == null) {
             call.respond(HttpStatusCode.Forbidden.description("Not logged in"))
         } else {

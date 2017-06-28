@@ -21,18 +21,18 @@ fun Application.main() {
     }
 
     install(Routing) {
-        withSessions<Session> {
-            withCookieByValue()
+        install(Sessions) {
+            cookieByValue(ChatSession::class)
         }
 
         intercept(ApplicationCallPipeline.Infrastructure) {
-            if (call.sessionOrNull<Session>() == null) {
-                call.session(Session(nextNonce()))
+            if (call.currentSessionOf<ChatSession>() == null) {
+                call.setSession(ChatSession(nextNonce()))
             }
         }
 
         webSocket("/ws") {
-            val session = call.sessionOrNull<Session>()
+            val session = call.currentSessionOf<ChatSession>()
             if (session == null) {
                 close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "No session"))
                 return@webSocket
@@ -58,7 +58,7 @@ fun Application.main() {
     }
 }
 
-data class Session(val id: String)
+data class ChatSession(val id: String)
 
 private suspend fun receivedMessage(id: String, command: String) {
     when {
