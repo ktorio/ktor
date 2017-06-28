@@ -139,21 +139,23 @@ open class JettyIntegrationBenchmark : IntegrationBenchmark() {
 
 /*
 Benchmark                                        Mode  Cnt   Score   Error   Units
-JettyIntegrationBenchmark.jarfile               thrpt   20  15.788 ± 0.705  ops/ms
-JettyIntegrationBenchmark.largeFile             thrpt   20   2.583 ± 0.058  ops/ms
-JettyIntegrationBenchmark.largeFileSync         thrpt   20   2.245 ± 0.050  ops/ms
-JettyIntegrationBenchmark.regularClasspathFile  thrpt   20  27.681 ± 0.420  ops/ms
-JettyIntegrationBenchmark.sayOK                 thrpt   20  52.410 ± 1.254  ops/ms
-JettyIntegrationBenchmark.smallFile             thrpt   20  32.153 ± 1.782  ops/ms
-JettyIntegrationBenchmark.smallFileSync         thrpt   20  35.807 ± 1.854  ops/ms
+JettyIntegrationBenchmark.jarfile               thrpt   20  13.894 ± 0.595  ops/ms
+JettyIntegrationBenchmark.largeFile             thrpt   20   2.577 ± 0.099  ops/ms
+JettyIntegrationBenchmark.largeFileSync         thrpt   20   2.143 ± 0.057  ops/ms
+JettyIntegrationBenchmark.regularClasspathFile  thrpt   20  22.593 ± 0.930  ops/ms
+JettyIntegrationBenchmark.sayOK                 thrpt   20  36.612 ± 1.555  ops/ms
+JettyIntegrationBenchmark.smallFile             thrpt   20  29.359 ± 0.890  ops/ms
+JettyIntegrationBenchmark.smallFileSync         thrpt   20  27.205 ± 1.367  ops/ms
+JettyIntegrationBenchmark.thinkOK               thrpt   20  37.203 ± 1.837  ops/ms
 
-NettyIntegrationBenchmark.jarfile               thrpt   20  12.377 ± 0.605  ops/ms
-NettyIntegrationBenchmark.largeFile             thrpt   20   2.286 ± 0.061  ops/ms
-NettyIntegrationBenchmark.largeFileSync         thrpt   20   2.656 ± 0.047  ops/ms
-NettyIntegrationBenchmark.regularClasspathFile  thrpt   20  18.381 ± 0.997  ops/ms
-NettyIntegrationBenchmark.sayOK                 thrpt   20  54.329 ± 1.887  ops/ms
-NettyIntegrationBenchmark.smallFile             thrpt   20  27.238 ± 0.757  ops/ms
-NettyIntegrationBenchmark.smallFileSync         thrpt   20  39.414 ± 1.668  ops/ms
+NettyIntegrationBenchmark.jarfile               thrpt   20  11.845 ± 0.724  ops/ms
+NettyIntegrationBenchmark.largeFile             thrpt   20   2.210 ± 0.032  ops/ms
+NettyIntegrationBenchmark.largeFileSync         thrpt   20   2.369 ± 0.034  ops/ms
+NettyIntegrationBenchmark.regularClasspathFile  thrpt   20  17.456 ± 0.512  ops/ms
+NettyIntegrationBenchmark.sayOK                 thrpt   20  52.326 ± 1.057  ops/ms
+NettyIntegrationBenchmark.smallFile             thrpt   20  24.794 ± 0.548  ops/ms
+NettyIntegrationBenchmark.smallFileSync         thrpt   20  35.710 ± 0.781  ops/ms
+NettyIntegrationBenchmark.thinkOK               thrpt   20  52.501 ± 0.699  ops/ms
 */
 
 fun main(args: Array<String>) {
