@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.servlet
 
-import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import org.jetbrains.ktor.cio.*
 import java.io.*
@@ -8,6 +7,8 @@ import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.atomic.*
 import javax.servlet.*
+import kotlin.coroutines.experimental.*
+import kotlin.coroutines.experimental.intrinsics.*
 
 class ServletReadChannel(private val servletInputStream: ServletInputStream) : ReadChannel {
     @Volatile
@@ -55,7 +56,25 @@ class ServletReadChannel(private val servletInputStream: ServletInputStream) : R
     }
 
     private suspend fun readSuspendUnconfined(dst: ByteBuffer): Int {
-        return run(Unconfined) { readSuspend(dst) }
+        return suspendCoroutineOrReturn { cont ->
+            val completion = object : Continuation<Int> by cont {
+                override val context: CoroutineContext get() = EmptyCoroutineContext
+            }
+
+            bufferForLambda = dst
+            readSuspendFunction.startCoroutineUninterceptedOrReturn(completion)
+        }
+
+        // ~= return run(Unconfined) { readSuspend(dst) }
+    }
+
+    private fun <T> suspend(block: suspend () -> T): suspend () -> T = block
+
+    @Volatile
+    private var bufferForLambda: ByteBuffer = Empty
+
+    private val readSuspendFunction = suspend {
+        readSuspend(bufferForLambda).also { bufferForLambda = Empty }
     }
 
     private tailrec suspend fun readSuspend(dst: ByteBuffer): Int {
@@ -147,6 +166,8 @@ class ServletReadChannel(private val servletInputStream: ServletInputStream) : R
     }
 
     companion object {
+        private val Empty: ByteBuffer = ByteBuffer.allocate(0)
+
         private val ReadInProgress = AtomicIntegerFieldUpdater.newUpdater(ServletReadChannel::class.java, ServletReadChannel::readInProgress.name)!!
 
         private val ListenerInstalled = AtomicIntegerFieldUpdater.newUpdater(ServletReadChannel::class.java, ServletReadChannel::listenerInstalled.name)
