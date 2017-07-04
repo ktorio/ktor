@@ -7,7 +7,6 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
-import sun.plugin.dom.exception.*
 import java.nio.*
 
 abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
@@ -24,7 +23,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         phases.merge(application.sendPipeline.phases)
         intercept(ApplicationSendPipeline.Host) {
             if (responded)
-                throw InvalidStateException("Response is already sent")
+                throw IllegalStateException("Response is already sent")
             responded = true
             val response = subject
             if (response is FinalContent) {
