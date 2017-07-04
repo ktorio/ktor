@@ -22,7 +22,7 @@ fun Application.main() {
 
     install(Routing) {
         install(Sessions) {
-            cookieByValue(ChatSession::class)
+            cookie<ChatSession>("SESSION")
         }
 
         intercept(ApplicationCallPipeline.Infrastructure) {

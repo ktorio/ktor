@@ -9,9 +9,11 @@ import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
 import org.jetbrains.ktor.testing.*
 import org.junit.*
+import java.util.*
 import kotlin.test.*
 
 class ServerSessionTest {
+    val cookieName = "_S" + Random().nextInt(100)
 
     @Test
     fun testSessionById() {
@@ -20,7 +22,7 @@ class ServerSessionTest {
 
             withTestApplication {
                 application.install(Sessions) {
-                    cookieById(TestUserSession::class, sessionStorage)
+                    cookie<TestUserSession>(cookieName, sessionStorage)
                 }
 
                 application.routing {
@@ -44,12 +46,12 @@ class ServerSessionTest {
                 }
 
                 handleRequest(HttpMethod.Get, "/0").let { response ->
-                    assertNull(response.response.cookies["SESSION_ID"], "It should be no session set by default")
+                    assertNull(response.response.cookies[cookieName], "It should be no session set by default")
                 }
 
                 var sessionId = ""
                 handleRequest(HttpMethod.Get, "/1").let { response ->
-                    val sessionCookie = response.response.cookies["SESSION_ID"]
+                    val sessionCookie = response.response.cookies[cookieName]
                     assertNotNull(sessionCookie, "No session id cookie found")
                     sessionId = sessionCookie!!.value
                     assertTrue { sessionId.matches("[A-Za-z0-9]+".toRegex()) }
@@ -61,11 +63,11 @@ class ServerSessionTest {
                 assertEquals("id2", autoSerializerOf<TestUserSession>().deserialize(serializedSession).userId)
 
                 handleRequest(HttpMethod.Get, "/2") {
-                    addHeader(HttpHeaders.Cookie, "SESSION_ID=$sessionId")
+                    addHeader(HttpHeaders.Cookie, "$cookieName=$sessionId")
                 }
 
                 handleRequest(HttpMethod.Get, "/3") {
-                    addHeader(HttpHeaders.Cookie, "SESSION_ID=bad$sessionId")
+                    addHeader(HttpHeaders.Cookie, "$cookieName=bad$sessionId")
                 }.let { call ->
                     assertEquals("no session", call.response.content)
                 }

@@ -24,7 +24,7 @@ class Sessions(val tracker: SessionTracker, val settings: SessionCookiesSettings
         var requireHttps: Boolean = false
         val transformers: MutableList<SessionCookieTransformer> = mutableListOf()
 
-        var tracker: SessionTracker = SessionTrackerCookieValue(ValuesMap::class, "SESSION", autoSerializerOf<ValuesMap>())
+        var tracker: SessionTracker? = null
     }
 
     companion object : ApplicationFeature<ApplicationCallPipeline, Sessions.Configuration, Sessions> {
@@ -32,7 +32,9 @@ class Sessions(val tracker: SessionTracker, val settings: SessionCookiesSettings
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Sessions {
             val configuration = Sessions.Configuration().apply(configure)
             val settings = SessionCookiesSettings(configuration.duration, configuration.requireHttps, configuration.transformers)
-            val sessions = Sessions(configuration.tracker, settings)
+            val tracker = configuration.tracker ?: throw IllegalStateException("Sessions feature should be configured with a provider")
+
+            val sessions = Sessions(tracker, settings)
 
             pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
                 // lookup current session in the tracker and store it in the call attributes

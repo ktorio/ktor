@@ -6,17 +6,27 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import kotlin.reflect.*
 
+fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>, storage: SessionStorage) {
+    cookie(name, sessionType, storage, {})
+}
 
-fun <S : Any> Sessions.Configuration.cookieById(sessionType: KClass<S>, storage: SessionStorage, block: CookieByIdSessionTrackerBuilder<S>.() -> Unit = {}) {
-    CookieByIdSessionTrackerBuilder(sessionType, storage).apply {
+inline fun <reified S : Any> Sessions.Configuration.cookie(name: String, storage: SessionStorage): Unit {
+    cookie<S>(name, storage, {})
+}
+
+inline fun <reified S : Any> Sessions.Configuration.cookie(name: String, storage: SessionStorage, block: CookieByIdSessionTrackerBuilder<S>.() -> Unit) {
+    cookie(name, S::class, storage, block)
+}
+
+inline fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>, storage: SessionStorage, block: CookieByIdSessionTrackerBuilder<S>.() -> Unit) {
+    CookieByIdSessionTrackerBuilder(name, sessionType, storage).apply {
         block()
         tracker = build()
     }
 }
 
-class CookieByIdSessionTrackerBuilder<S : Any>(val type: KClass<S>, val storage: SessionStorage) {
+class CookieByIdSessionTrackerBuilder<S : Any>(val cookieName: String = "SESSION_ID", val type: KClass<S>, val storage: SessionStorage) {
     var sessionIdProvider = { nextNonce() }
-    var cookieName: String = "SESSION_ID"
     var serializer: SessionSerializer = autoSerializerOf(type)
 
     fun build(): SessionTracker = SessionTrackerCookieById(type, sessionIdProvider, cookieName, serializer, storage)
