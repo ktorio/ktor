@@ -12,8 +12,7 @@ import java.nio.*
 abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
     final override val attributes = Attributes()
 
-    var responded = false
-        private set
+    private var responded = false
 
     override val receivePipeline = ApplicationReceivePipeline().apply {
         phases.merge(application.receivePipeline.phases)
@@ -26,7 +25,6 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
                 throw IllegalStateException("Response has already been sent")
             val response = subject
             if (response is FinalContent) {
-                responded = true
                 respondFinalContent(response)
             } else {
                 throw IllegalArgumentException("Response pipeline couldn't transform '${response.javaClass}' to the FinalContent")
@@ -35,6 +33,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
     }
 
     protected fun commitHeaders(o: FinalContent) {
+        responded = true
         o.status?.let { response.status(it) } ?: response.status() ?: response.status(HttpStatusCode.OK)
         o.headers.forEach { name, values ->
             for (value in values) {
@@ -51,23 +50,43 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         }
     }
 
-    protected open suspend fun respondFinalContent(content: FinalContent) {
-        commitHeaders(content)
-        return when (content) {
-            is FinalContent.ProtocolUpgrade -> respondUpgrade(content)
+    protected open suspend fun respondFinalContent(content: FinalContent) = when (content) {
+        is FinalContent.ProtocolUpgrade -> {
+            commitHeaders(content)
+            respondUpgrade(content)
+        }
 
-        // ByteArrayContent is most efficient
-            is FinalContent.ByteArrayContent -> respondFromBytes(content.bytes())
+    // ByteArrayContent is most efficient
+        is FinalContent.ByteArrayContent -> {
+            // First call user code to acquire bytes, because it could fail
+            val bytes = content.bytes()
+            // If bytes are fine, commit headers and send data
+            commitHeaders(content)
+            respondFromBytes(bytes)
+        }
 
-        // WriteChannelContent is more efficient than ReadChannelContent
-            is FinalContent.WriteChannelContent -> content.writeTo(responseChannel())
+    // WriteChannelContent is more efficient than ReadChannelContent
+        is FinalContent.WriteChannelContent -> {
+            // First set headers
+            commitHeaders(content)
+            // Retrieve response channel, that might send out headers, so it should go after commitHeaders
+            val responseChannel = responseChannel()
+            // Call user code to send data
+            content.writeTo(responseChannel)
+        }
 
-        // Pipe is least efficient
-            is FinalContent.ReadChannelContent -> respondFromChannel(content.readFrom())
+    // Pipe is least efficient
+        is FinalContent.ReadChannelContent -> {
+            // First call user code to acquire read channel, because it could fail
+            val readChannel = content.readFrom()
+            // If channel is fine, commit headers and pipe data
+            commitHeaders(content)
+            respondFromChannel(readChannel)
+        }
 
-        // Do nothing, but maintain `when` exhaustiveness
-            is FinalContent.NoContent -> { /* no-op */
-            }
+    // Do nothing, but maintain `when` exhaustiveness
+        is FinalContent.NoContent -> { /* no-op */
+            commitHeaders(content)
         }
     }
 
