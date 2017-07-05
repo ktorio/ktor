@@ -23,13 +23,13 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         phases.merge(application.sendPipeline.phases)
         intercept(ApplicationSendPipeline.Host) {
             if (responded)
-                throw IllegalStateException("Response is already sent")
-            responded = true
+                throw IllegalStateException("Response has already been sent")
             val response = subject
             if (response is FinalContent) {
+                responded = true
                 respondFinalContent(response)
             } else {
-                application.log.warning("Response pipeline didn't finish with the FinalContent, but ended with $response")
+                throw IllegalArgumentException("Response pipeline couldn't transform '${response.javaClass}' to the FinalContent")
             }
         }
     }
