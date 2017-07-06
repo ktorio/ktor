@@ -5,35 +5,6 @@ import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.util.*
 import kotlin.reflect.*
 
-fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>, storage: SessionStorage) {
-    cookie(name, sessionType, storage, {})
-}
-
-inline fun <reified S : Any> Sessions.Configuration.cookie(name: String, storage: SessionStorage): Unit {
-    cookie<S>(name, storage, {})
-}
-
-inline fun <reified S : Any> Sessions.Configuration.cookie(name: String, storage: SessionStorage, block: CookieIdSessionBuilder<S>.() -> Unit) {
-    cookie(name, S::class, storage, block)
-}
-
-inline fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>, storage: SessionStorage, block: CookieIdSessionBuilder<S>.() -> Unit) {
-    val builder = CookieIdSessionBuilder(sessionType, storage).apply(block)
-    val transport = SessionTransportCookie(name, transformers = builder.transformers)
-    val tracker = SessionTrackerById(sessionType, builder.serializer, storage, builder.sessionIdProvider)
-    val registration = SessionProvider(name, sessionType, transport, tracker)
-    register(registration)
-}
-
-class CookieIdSessionBuilder<S : Any>(val type: KClass<S>, val storage: SessionStorage) {
-    var sessionIdProvider = { nextNonce() }
-    var serializer: SessionSerializer = autoSerializerOf(type)
-    val transformers = mutableListOf<SessionTransportTransformer>()
-    fun transform(transformer: SessionTransportTransformer) {
-        transformers.add(transformer)
-    }
-}
-
 class SessionTrackerById(val type: KClass<*>, val serializer: SessionSerializer, val storage: SessionStorage, val sessionIdProvider: () -> String) : SessionTracker {
     private val SessionIdKey = AttributeKey<String>("SessionId")
 
