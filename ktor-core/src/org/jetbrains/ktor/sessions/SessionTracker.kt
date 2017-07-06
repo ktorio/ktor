@@ -5,26 +5,30 @@ import org.jetbrains.ktor.pipeline.*
 
 /**
  * SessionTracker provides ability to track and extract session from the call context.
- * For example it could track it by cookie with session id or by IP address (could be good enough for corporate applications)
  */
 interface SessionTracker {
     /**
-     * Lookup session using the [context]
+     * Load session value from [transport] string for the specified [call]
      *
      * It is recommended to perform lookup asynchronously if there is an external session store
      * @return session instance or null if session was not found
      */
-    suspend fun lookup(context: PipelineContext<Unit>, cookieSettings: SessionCookiesSettings): Any?
+    suspend fun load(call: ApplicationCall, transport: String?): Any?
 
     /**
-     * Assign session using the context. Override if there is existing session. Could be blocking.
+     * Store session [value] and return respective transport string for the specified [call].
+     *
+     * Override if there is existing session.
      */
-    suspend fun assign(call: ApplicationCall, session: Any, cookieSettings: SessionCookiesSettings)
+    suspend fun store(call: ApplicationCall, value: Any): String
 
     /**
-     * Unassign session if present. Does nothing if no session assigned.
+     * Clear session information
      */
-    suspend fun unassign(call: ApplicationCall)
+    suspend fun clear(call: ApplicationCall)
 
+    /**
+     * Validate session information
+     */
     fun validate(value: Any)
 }

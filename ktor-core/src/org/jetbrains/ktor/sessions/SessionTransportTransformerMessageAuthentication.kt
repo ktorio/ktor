@@ -4,18 +4,18 @@ import org.jetbrains.ktor.util.*
 import javax.crypto.*
 import javax.crypto.spec.*
 
-class SessionCookieTransformerMessageAuthentication(val keySpec: SecretKeySpec, val algorithm: String = "HmacSHA1") : SessionCookieTransformer {
+class SessionTransportTransformerMessageAuthentication(val keySpec: SecretKeySpec, val algorithm: String = "HmacSHA1") : SessionTransportTransformer {
     constructor(key: ByteArray, algorithm: String = "HmacSHA1") : this(SecretKeySpec(key, algorithm), algorithm)
 
-    override fun transformRead(sessionCookieValue: String): String? {
-        val expectedSignature = sessionCookieValue.substringAfterLast('/', "")
-        val value = sessionCookieValue.substringBeforeLast('/')
+    override fun transformRead(transportValue: String): String? {
+        val expectedSignature = transportValue.substringAfterLast('/', "")
+        val value = transportValue.substringBeforeLast('/')
         if (mac(value) == expectedSignature)
             return value
         return null
     }
 
-    override fun transformWrite(sessionCookieValue: String): String = "$sessionCookieValue/${mac(sessionCookieValue)}"
+    override fun transformWrite(transportValue: String): String = "$transportValue/${mac(transportValue)}"
 
     private fun mac(value: String): String {
         val mac = Mac.getInstance(algorithm)

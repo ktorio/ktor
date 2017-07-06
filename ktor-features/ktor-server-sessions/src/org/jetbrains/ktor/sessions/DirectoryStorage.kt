@@ -11,7 +11,7 @@ internal class DirectoryStorage(val dir: File) : SessionStorage, Closeable {
     override fun close() {
     }
 
-    override suspend fun save(id: String, provider: suspend (WriteChannel) -> Unit) {
+    override suspend fun write(id: String, provider: suspend (WriteChannel) -> Unit) {
         requireId(id)
         val file = fileOf(id)
 

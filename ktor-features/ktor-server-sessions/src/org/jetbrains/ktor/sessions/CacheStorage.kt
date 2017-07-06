@@ -13,9 +13,9 @@ class CacheStorage(val delegate: SessionStorage, val idleTimeout: Long) : Sessio
         return consumer(readChannel)
     }
 
-    override suspend fun save(id: String, provider: suspend (WriteChannel) -> Unit) {
+    override suspend fun write(id: String, provider: suspend (WriteChannel) -> Unit) {
         cache.invalidate(id)
-        return delegate.save(id, provider)
+        return delegate.write(id, provider)
     }
 
     override suspend fun invalidate(id: String) {

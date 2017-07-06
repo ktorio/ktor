@@ -3,62 +3,63 @@ package org.jetbrains.ktor.sessions
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
-import java.time.*
-import java.time.temporal.*
 import kotlin.reflect.*
 
-
-// If SessionData is present in attributes of a call, then session was either create or retrieved
-// if value is null, session will be cleared
-private data class SessionData(val value: Any?, val state: SessionState, val sessions: Sessions)
-
-enum class SessionState {
-    None, Incoming, Modified, Deleted
-}
-
-private val SessionKey = AttributeKey<SessionData>("SessionKey")
-
-class Sessions(val tracker: SessionTracker, val settings: SessionCookiesSettings) {
+class Sessions(val providers: List<SessionProvider>) {
     class Configuration {
-        var duration: TemporalAmount = Duration.ofDays(7)
-        var requireHttps: Boolean = false
-        val transformers: MutableList<SessionCookieTransformer> = mutableListOf()
+        val providers = mutableListOf<SessionProvider>()
 
-        var tracker: SessionTracker? = null
+        fun register(provider: SessionProvider) {
+            // todo: check that type & name is unique
+            providers.add(provider)
+        }
     }
 
     companion object : ApplicationFeature<ApplicationCallPipeline, Sessions.Configuration, Sessions> {
         override val key = AttributeKey<Sessions>("Sessions")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Sessions {
             val configuration = Sessions.Configuration().apply(configure)
-            val settings = SessionCookiesSettings(configuration.duration, configuration.requireHttps, configuration.transformers)
-            val tracker = configuration.tracker ?: throw IllegalStateException("Sessions feature should be configured with a provider")
+            val sessions = Sessions(configuration.providers)
 
-            val sessions = Sessions(tracker, settings)
-
+            // For each call, call each provider and retrieve session data if needed.
+            // Capture data in the attribute's value
             pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
-                // lookup current session in the tracker and store it in the call attributes
-                val session = sessions.tracker.lookup(this, sessions.settings)
-                val state = if (session != null) SessionState.Incoming else SessionState.None
-                val sessionData = SessionData(session, state, sessions)
+                val providerData = sessions.providers.associateBy({ it.name }) {
+                    val receivedValue = it.transport.receive(call)
+                    val unwrapped = it.tracker.load(call, receivedValue)
+                    val state = if (unwrapped != null) SessionValueState.Provided else SessionValueState.None
+                    SessionProviderData(unwrapped, state, it)
+                }
+                val sessionData = SessionData(sessions, providerData)
                 call.attributes.put(SessionKey, sessionData)
             }
 
+            // When response is being sent, call each provider to update/remove session data
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Before) {
-                val data = call.attributes.getOrNull(SessionKey) ?: throw IllegalStateException("Sessions feature is installed inconsistently")
-                when (data.state) {
-                    SessionState.None -> {
-                        /* do nothing */
-                    }
-                    SessionState.Incoming -> {
-                        /* do nothing */
-                    }
-                    SessionState.Modified -> {
-                        data.value ?: throw IllegalStateException("Session data shouldn't be null in Modified state")
-                        sessions.tracker.assign(call, data.value, sessions.settings)
-                    }
-                    SessionState.Deleted -> {
-                        sessions.tracker.unassign(call)
+                val sessionData = call.attributes.getOrNull(SessionKey) ?: throw IllegalStateException("Sessions feature is installed inconsistently")
+                sessionData.providerData.forEach { (_, data) ->
+                    when (data.state) {
+                        SessionValueState.None -> {
+                            val value = data.value
+                            if (value != null)
+                                throw IllegalStateException("Session data shouldn be null in None state")
+                            /* if value is None, there were neither incoming nor outgoing session */
+                        }
+                        SessionValueState.Provided -> {
+                            /* Incoming or new or modified session should be sent back */
+                            val value = data.value
+                            value ?: throw IllegalStateException("Session data shouldn't be null in Modified state")
+                            val wrapped = data.provider.tracker.store(call, value)
+                            data.provider.transport.send(call, wrapped)
+                        }
+                        SessionValueState.Deleted -> {
+                            /* Deleted session should be cleared off */
+                            val value = data.value
+                            if (value != null)
+                                throw IllegalStateException("Session data shouldn be null in Deleted state")
+                            data.provider.transport.clear(call)
+                            data.provider.tracker.clear(call)
+                        }
                     }
                 }
             }
@@ -68,30 +69,59 @@ class Sessions(val tracker: SessionTracker, val settings: SessionCookiesSettings
     }
 }
 
-fun ApplicationCall.setSession(value: Any?) {
-    val data = attributes.getOrNull(SessionKey) ?: throw IllegalStateException("Sessions feature should be installed to use sessions")
-    val state = when {
-        value != null -> {
-            data.sessions.tracker.validate(value)
-            SessionState.Modified
+val ApplicationCall.sessions: CurrentSession
+    get() = attributes.getOrNull(SessionKey) ?: throw IllegalStateException("Sessions feature should be installed to use sessions")
+
+interface CurrentSession {
+    fun set(name: String, value: Any?)
+    fun get(name: String): Any?
+    fun clear(name: String)
+    fun findName(type: KClass<*>): String
+}
+
+inline fun <reified T> CurrentSession.set(value: T?) = set(findName(T::class), value)
+inline fun <reified T> CurrentSession.get(): T? = get(findName(T::class)) as T?
+inline fun <reified T> CurrentSession.clear() = clear(findName(T::class))
+
+private data class SessionData(val sessions: Sessions,
+                               val providerData: Map<String, SessionProviderData>) : CurrentSession {
+
+    override fun findName(type: KClass<*>): String {
+        val entry = providerData.entries.firstOrNull { it.value.provider.type == type } ?:
+                throw IllegalArgumentException("Session data for type `$type` was not registered")
+        return entry.value.provider.name
+    }
+
+    override fun set(name: String, value: Any?) {
+        val providerData = providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
+        val state = when {
+            value != null -> {
+                providerData.provider.tracker.validate(value)
+                SessionValueState.Provided
+            }
+            providerData.state == SessionValueState.None -> SessionValueState.None
+            else -> SessionValueState.Deleted
         }
-        data.state == SessionState.None -> SessionState.None
-        else -> SessionState.Deleted
+        providerData.value = value
+        providerData.state = state
     }
-    attributes.put(SessionKey, data.copy(value = value, state = state))
-}
 
-fun ApplicationCall.clearSession() = setSession(null)
+    override fun get(name: String): Any? {
+        val providerData = providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
+        return providerData.value
+    }
 
-fun ApplicationCall.currentSession(): Any? {
-    val data = attributes.getOrNull(SessionKey) ?: throw IllegalStateException("Sessions feature should be installed to use sessions")
-    return data.value
-}
-
-inline fun <reified S : Any> ApplicationCall.currentSessionOf(): S? = currentSessionOf(S::class)
-fun <S : Any> ApplicationCall.currentSessionOf(sessionType: KClass<S>): S? {
-    return currentSession()?.let {
-        require(sessionType.java.isInstance(it)) { "Session instance '${it.javaClass} is not an instance of $sessionType" }
-        it.cast(sessionType)
+    override fun clear(name: String) {
+        val providerData = providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
+        val state = if (providerData.state == SessionValueState.None) SessionValueState.None else SessionValueState.Deleted
+        providerData.value = null
+        providerData.state = state
     }
 }
+
+private data class SessionProviderData(var value: Any?, var state: SessionValueState, val provider: SessionProvider)
+
+private enum class SessionValueState { None, Provided, Deleted }
+
+private val SessionKey = AttributeKey<SessionData>("SessionKey")
+

@@ -10,7 +10,7 @@ import org.jetbrains.ktor.sessions.*
 
 fun Route.userPage(dao: DAOFacade) {
     get<UserPage> {
-        val user = call.currentSessionOf<KweetSession>()?.let { dao.user(it.userId) }
+        val user = call.sessions.get<KweetSession>()?.let { dao.user(it.userId) }
         val pageUser = dao.user(it.user)
 
         if (pageUser == null) {

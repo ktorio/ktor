@@ -30,7 +30,7 @@ class DirectorySessionStorageTest {
 
     @Test
     fun testSaveSimple() = runBlocking {
-        storage.save("id1") { it.toOutputStream().writer().use { it.write("test1") } }
+        storage.write("id1") { it.toOutputStream().writer().use { it.write("test1") } }
         assertEquals("test1", storage.read("id1") { it.toInputStream().reader().use { it.readText() } })
     }
 

@@ -11,7 +11,7 @@ import java.io.*
 
 fun Route.videos(database: Database) {
     get<Index> {
-        val session = call.currentSessionOf<YouKubeSession>()
+        val session = call.sessions.get<YouKubeSession>()
         val topVideos = database.top()
         val etag = topVideos.joinToString { "${it.id},${it.title}" }.hashCode().toString() + "-" + session?.userId?.hashCode()
         val visibility = if (session == null) CacheControlVisibility.PUBLIC else CacheControlVisibility.PRIVATE

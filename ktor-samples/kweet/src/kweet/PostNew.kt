@@ -9,7 +9,7 @@ import org.jetbrains.ktor.sessions.*
 
 fun Route.postNew(dao: DAOFacade, hashFunction: (String) -> String) {
     get<PostNew> {
-        val user = call.currentSessionOf<KweetSession>()?.let { dao.user(it.userId) }
+        val user = call.sessions.get<KweetSession>()?.let { dao.user(it.userId) }
 
         if (user == null) {
             call.redirect(Login())
@@ -21,7 +21,7 @@ fun Route.postNew(dao: DAOFacade, hashFunction: (String) -> String) {
         }
     }
     post<PostNew> {
-        val user = call.currentSessionOf<KweetSession>()?.let { dao.user(it.userId) }
+        val user = call.sessions.get<KweetSession>()?.let { dao.user(it.userId) }
         if (user == null || !call.verifyCode(it.date, user, it.code, hashFunction)) {
             call.redirect(Login())
         } else {

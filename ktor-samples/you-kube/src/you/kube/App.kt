@@ -56,8 +56,9 @@ fun Application.youKubeApplication() {
     ))
 
     install(Sessions) {
-        transformers.add(SessionCookieTransformerMessageAuthentication(sessionkey))
-        cookie<YouKubeSession>("SESSION")
+        cookie<YouKubeSession>("SESSION") {
+            transform(SessionTransportTransformerMessageAuthentication(sessionkey))
+        }
     }
 
     install(Routing) {

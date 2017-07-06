@@ -3,10 +3,10 @@ package org.jetbrains.ktor.sessions
 import org.jetbrains.ktor.cio.*
 import java.util.concurrent.*
 
-internal class InMemorySessionStorage : SessionStorage {
+class SessionStorageMemory : SessionStorage {
     private val sessions = ConcurrentHashMap<String, ByteArray>()
 
-    override suspend fun save(id: String, provider: suspend (WriteChannel) -> Unit) {
+    override suspend fun write(id: String, provider: suspend (WriteChannel) -> Unit) {
         val writeChannel = ByteBufferWriteChannel()
         provider(writeChannel)
         sessions[id] = writeChannel.toByteArray()

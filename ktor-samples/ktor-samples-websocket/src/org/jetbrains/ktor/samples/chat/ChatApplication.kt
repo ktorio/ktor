@@ -26,13 +26,13 @@ fun Application.main() {
         }
 
         intercept(ApplicationCallPipeline.Infrastructure) {
-            if (call.currentSessionOf<ChatSession>() == null) {
-                call.setSession(ChatSession(nextNonce()))
+            if (call.sessions.get<ChatSession>() == null) {
+                call.sessions.set(ChatSession(nextNonce()))
             }
         }
 
         webSocket("/ws") {
-            val session = call.currentSessionOf<ChatSession>()
+            val session = call.sessions.get<ChatSession>()
             if (session == null) {
                 close(CloseReason(CloseReason.Codes.VIOLATED_POLICY, "No session"))
                 return@webSocket

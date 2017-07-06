@@ -9,7 +9,7 @@ import org.jetbrains.ktor.sessions.*
 
 fun Route.login(dao: DAOFacade, hash: (String) -> String) {
     get<Login> {
-        val user = call.currentSessionOf<KweetSession>()?.let { dao.user(it.userId) }
+        val user = call.sessions.get<KweetSession>()?.let { dao.user(it.userId) }
 
         if (user != null) {
             call.redirect(UserPage(user.userId))
@@ -28,12 +28,12 @@ fun Route.login(dao: DAOFacade, hash: (String) -> String) {
         if (login == null) {
             call.redirect(it.copy(password = "", error = "Invalid username or password"))
         } else {
-            call.setSession(KweetSession(login.userId))
+            call.sessions.set(KweetSession(login.userId))
             call.redirect(UserPage(login.userId))
         }
     }
     get<Logout> {
-        call.clearSession()
+        call.sessions.clear<KweetSession>()
         call.redirect(Index())
     }
 }

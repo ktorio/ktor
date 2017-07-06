@@ -77,8 +77,9 @@ class KweetApp {
         }
 
         install(Sessions) {
-            transformers.add(SessionCookieTransformerMessageAuthentication(hashKey))
-            cookie<KweetSession>("SESSION")
+            cookie<KweetSession>("SESSION") {
+                transform(SessionTransportTransformerMessageAuthentication(hashKey))
+            }
         }
 
         val hashFunction = { s: String -> hash(s) }
