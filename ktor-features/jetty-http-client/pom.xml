@@ -10,7 +10,7 @@
     <artifactId>jetty-http-client</artifactId>
 
     <properties>
-        <jetty.client.version>9.4.2.v20170220</jetty.client.version>
+        <jetty.client.version>9.4.6.v20170531</jetty.client.version>
     </properties>
 
     <dependencies>

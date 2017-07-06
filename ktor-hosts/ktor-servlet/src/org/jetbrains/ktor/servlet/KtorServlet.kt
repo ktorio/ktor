@@ -59,10 +59,7 @@ abstract class KtorServlet : HttpServlet() {
     }
 
     private fun tryPush(request: HttpServletRequest, call: ApplicationCall, block: ResponsePushBuilder.() -> Unit, next: () -> Unit) {
-        listOf(
-                "org.jetbrains.ktor.servlet.v4.PushKt.doPush",
-                "org.jetbrains.ktor.servlet.v4.TomcatInternalPushKt.doPushInternal"
-        ).mapNotNull { tryFind(it) }
+        listOf("org.jetbrains.ktor.servlet.v4.PushKt.doPush").mapNotNull { tryFind(it) }
                 .firstOrNull { function ->
                     tryInvoke(function, request, call, block, next)
                 } ?: next()

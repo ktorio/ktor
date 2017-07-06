@@ -8,9 +8,9 @@
     <artifactId>ktor</artifactId>
 
     <properties>
-        <kotlin.version>1.1.3</kotlin.version>
+        <kotlin.version>1.1.3-2</kotlin.version>
         <coroutines.version>0.16</coroutines.version>
-        <dokka.version>0.9.14</dokka.version>
+        <dokka.version>0.9.15</dokka.version>
         <jmh.version>1.19</jmh.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

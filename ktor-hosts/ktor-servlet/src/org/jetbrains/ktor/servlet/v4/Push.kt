@@ -7,11 +7,7 @@ import javax.servlet.http.*
 
 @Suppress("unused")
 fun doPush(request: HttpServletRequest, call: ApplicationCall, block: ResponsePushBuilder.() -> Unit, next: () -> Unit) {
-    request.pushBuilder.apply {
-        if (this is HttpServletRequest.NoOpPushBuilder) {
-            return next()
-        }
-
+    request.newPushBuilder()?.apply {
         val builder = DefaultResponsePushBuilder(call)
         builder.block()
 
@@ -20,5 +16,5 @@ fun doPush(request: HttpServletRequest, call: ApplicationCall, block: ResponsePu
         this.queryString(builder.url.build().substringAfter('?', ""))
 
         push()
-    }
+    } ?: next()
 }
