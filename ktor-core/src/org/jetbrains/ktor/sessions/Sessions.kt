@@ -27,8 +27,7 @@ class Sessions(val providers: List<SessionProvider>) {
                 val providerData = sessions.providers.associateBy({ it.name }) {
                     val receivedValue = it.transport.receive(call)
                     val unwrapped = it.tracker.load(call, receivedValue)
-                    val state = if (unwrapped != null) SessionValueState.Provided else SessionValueState.None
-                    SessionProviderData(unwrapped, state, it)
+                    SessionProviderData(unwrapped, unwrapped != null, it)
                 }
                 val sessionData = SessionData(sessions, providerData)
                 call.attributes.put(SessionKey, sessionData)
@@ -38,25 +37,15 @@ class Sessions(val providers: List<SessionProvider>) {
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Before) {
                 val sessionData = call.attributes.getOrNull(SessionKey) ?: throw IllegalStateException("Sessions feature is installed inconsistently")
                 sessionData.providerData.forEach { (_, data) ->
-                    when (data.state) {
-                        SessionValueState.None -> {
-                            val value = data.value
-                            if (value != null)
-                                throw IllegalStateException("Session data shouldn be null in None state")
-                            /* if value is None, there were neither incoming nor outgoing session */
-                        }
-                        SessionValueState.Provided -> {
-                            /* Incoming or new or modified session should be sent back */
+                    when {
+                        data.value != null -> {
                             val value = data.value
                             value ?: throw IllegalStateException("Session data shouldn't be null in Modified state")
                             val wrapped = data.provider.tracker.store(call, value)
                             data.provider.transport.send(call, wrapped)
                         }
-                        SessionValueState.Deleted -> {
+                        data.incoming && data.value == null -> {
                             /* Deleted session should be cleared off */
-                            val value = data.value
-                            if (value != null)
-                                throw IllegalStateException("Session data shouldn be null in Deleted state")
                             data.provider.transport.clear(call)
                             data.provider.tracker.clear(call)
                         }
@@ -94,16 +83,9 @@ private data class SessionData(val sessions: Sessions,
 
     override fun set(name: String, value: Any?) {
         val providerData = providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
-        val state = when {
-            value != null -> {
-                providerData.provider.tracker.validate(value)
-                SessionValueState.Provided
-            }
-            providerData.state == SessionValueState.None -> SessionValueState.None
-            else -> SessionValueState.Deleted
-        }
+        if (value != null)
+            providerData.provider.tracker.validate(value)
         providerData.value = value
-        providerData.state = state
     }
 
     override fun get(name: String): Any? {
@@ -113,15 +95,11 @@ private data class SessionData(val sessions: Sessions,
 
     override fun clear(name: String) {
         val providerData = providerData[name] ?: throw IllegalStateException("Session data for `$name` was not registered")
-        val state = if (providerData.state == SessionValueState.None) SessionValueState.None else SessionValueState.Deleted
         providerData.value = null
-        providerData.state = state
     }
 }
 
-private data class SessionProviderData(var value: Any?, var state: SessionValueState, val provider: SessionProvider)
-
-private enum class SessionValueState { None, Provided, Deleted }
+private data class SessionProviderData(var value: Any?, val incoming: Boolean, val provider: SessionProvider)
 
 private val SessionKey = AttributeKey<SessionData>("SessionKey")
 

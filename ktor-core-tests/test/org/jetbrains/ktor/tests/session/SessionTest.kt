@@ -18,6 +18,26 @@ class SessionTest {
     val cookieName = "_S" + Random().nextInt(100)
 
     @Test
+    fun testSessionCreateDelete() {
+        withTestApplication {
+            application.install(Sessions) {
+                cookie<TestUserSession>(cookieName)
+            }
+
+            application.routing {
+                get("/0") {
+                    call.sessions.set(TestUserSession("a", emptyList()))
+                    call.sessions.clear<TestUserSession>()
+                    call.respondText("No session")
+                }
+            }
+            handleRequest(HttpMethod.Get, "/0").let { call ->
+                assertNull(call.response.cookies[cookieName], "There should be no session data after setting and clearing")
+            }
+        }
+    }
+
+    @Test
     fun testSessionByValue() {
         withTestApplication {
             application.install(Sessions) {
