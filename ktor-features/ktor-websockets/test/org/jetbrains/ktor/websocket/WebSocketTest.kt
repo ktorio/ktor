@@ -209,5 +209,46 @@ class WebSocketTest {
         }
     }
 
+    @Test
+    fun testFragmentation() {
+        val sendBuffer = ByteBuffer.allocate(1024)
+
+        Serializer().apply {
+            enqueue(Frame.Text(false, ByteBuffer.wrap("ABC".toByteArray())))
+            enqueue(Frame.Ping(ByteBuffer.wrap("ping".toByteArray()))) // ping could be interleaved
+            enqueue(Frame.Text(false, ByteBuffer.wrap("12".toByteArray())))
+            enqueue(Frame.Text(true, ByteBuffer.wrap("3".toByteArray())))
+            enqueue(Frame.Close())
+            serialize(sendBuffer)
+
+            sendBuffer.flip()
+        }
+
+        withTestApplication {
+            application.install(WebSockets)
+
+            var receivedText: String? = null
+            application.routing {
+                webSocket("/") {
+                    val f = incoming.receive()
+
+                    if (f is Frame.Text) {
+                        receivedText = f.readText()
+                    } else {
+                        fail()
+                    }
+                }
+            }
+
+            handleWebSocket("/") {
+                bodyBytes = sendBuffer.array()
+            }.let { call ->
+                call.awaitWebSocket(Duration.ofSeconds(10))
+
+                assertEquals("ABC123", receivedText)
+            }
+        }
+    }
+
     private fun String.trimHex() = replace("\\s+".toRegex(), "").replace("0x", "")
 }

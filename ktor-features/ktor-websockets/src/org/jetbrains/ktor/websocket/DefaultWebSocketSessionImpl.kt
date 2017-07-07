@@ -5,6 +5,7 @@ import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.channels.Channel
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
+import org.jetbrains.ktor.util.*
 import java.time.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
@@ -39,12 +40,26 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
 
         launch(Unconfined) {
             try {
+                var last: ByteBufferBuilder? = null
+
                 raw.incoming.consumeEach { frame ->
                     when (frame) {
                         is Frame.Close -> closeSequence.send(CloseFrameEvent.Received(frame))
                         is Frame.Pong -> pinger.get()?.send(frame)
                         is Frame.Ping -> ponger.send(frame)
-                        else -> filtered.send(frame)
+                        else -> {
+                            if (frame.fin) {
+                                last?.let { builder ->
+                                    builder.put(frame.buffer)
+                                    filtered.send(Frame.byType(true, frame.frameType, builder.build()))
+                                    last = null
+                                } ?: run {
+                                    filtered.send(frame)
+                                }
+                            } else {
+                                (last ?: ByteBufferBuilder().also { last = it }).put(frame.buffer)
+                            }
+                        }
                     }
                 }
             } catch (ignore: ClosedSendChannelException) {

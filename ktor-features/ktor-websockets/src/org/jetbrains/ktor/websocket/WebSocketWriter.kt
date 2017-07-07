@@ -27,7 +27,7 @@ internal class WebSocketWriter(val writeChannel: WriteChannel, ctx: CoroutineCon
         return queue.apply { start() }
     }
 
-    suspend fun ActorScope<Any>.writeLoop(buffer: ByteBuffer) {
+    private suspend fun ActorScope<Any>.writeLoop(buffer: ByteBuffer) {
         val serializer = Serializer()
         buffer.clear()
 
