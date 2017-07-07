@@ -6,8 +6,7 @@ import java.time.*
 import java.time.temporal.*
 
 class SessionTransportCookie(val name: String,
-                             val duration: TemporalAmount,
-                             val requireHttps: Boolean,
+                             val configuration: CookieConfiguration,
                              val transformers: List<SessionTransportTransformer>
 ) : SessionTransport {
 
@@ -16,12 +15,20 @@ class SessionTransportCookie(val name: String,
     }
 
     override fun send(call: ApplicationCall, value: String) {
+        val now = LocalDateTime.now()
+        val expires = now.plus(configuration.duration)
+        val maxAge = configuration.duration[ChronoUnit.SECONDS].toInt()
         val cookie = Cookie(name,
-                value = transformers.transformWrite(value),
-                httpOnly = true,
-                secure = requireHttps,
-                path = "/",
-                expires = LocalDateTime.now().plus(duration))
+                transformers.transformWrite(value),
+                configuration.encoding,
+                maxAge,
+                expires,
+                configuration.domain,
+                configuration.path,
+                configuration.secure,
+                configuration.httpOnly,
+                configuration.extensions
+        )
 
         call.response.cookies.append(cookie)
     }
@@ -31,3 +38,12 @@ class SessionTransportCookie(val name: String,
     }
 }
 
+class CookieConfiguration {
+    var duration: TemporalAmount = Duration.ofDays(7)
+    var encoding: CookieEncoding = CookieEncoding.URI_ENCODING
+    var domain: String? = null
+    var path: String? = null
+    var secure: Boolean = false
+    var httpOnly: Boolean = false
+    val extensions: MutableMap<String, String?> = mutableMapOf()
+}

@@ -10,6 +10,7 @@ import org.jetbrains.ktor.sessions.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
+import java.time.*
 import java.util.*
 import kotlin.test.*
 
@@ -20,7 +21,10 @@ class SessionTest {
     fun testSessionByValue() {
         withTestApplication {
             application.install(Sessions) {
-                cookie<TestUserSession>(cookieName)
+                cookie<TestUserSession>(cookieName) {
+                    cookie.domain = "foo.bar"
+                    cookie.duration = Duration.ofHours(1)
+                }
             }
 
             application.routing {
@@ -58,9 +62,12 @@ class SessionTest {
                 val sessionCookie = call.response.cookies[cookieName]
                 assertNotNull(sessionCookie, "No session cookie found")
                 sessionParam = sessionCookie!!.value
+                assertEquals("foo.bar", sessionCookie.domain)
+                assertEquals(3600, sessionCookie.maxAge)
 
                 assertEquals(TestUserSession("id1", emptyList()), autoSerializerOf<TestUserSession>().deserialize(sessionParam))
             }
+
             handleRequest(HttpMethod.Get, "/2") {
                 addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(sessionParam)}")
             }.let { call ->
