@@ -1,3 +1,19 @@
+# 0.4.0
+
+* Convert sessions to proper feature, support multiple sessions, improve DSL 
+* Replace ApplicationTransform with receive pipeline
+* Introduce send/receive pipelines for all call pipelines
+* Gson application feature for JSON transformation of incoming & outgoing data objects
+* Added HttpBin sample (thanks to @jmfayard)
+* Employ `DslMarker` annotation to prevent accidental use of route functions in get/post handlers 
+* Improve diagnostics for untransformed content
+* Ensure missing file (`FileNotFoundException`) can be handled properly with `StatusPages` feature 
+* Websocket fixes for large frames
+* Support for specifying config file with command line
+* Improvements in Servlet-based hosts
+* Memory allocation and performance optimisations
+* Add Apache 2 LICENSE file
+
 # 0.3.3
 > Published 22 Jun 2017
 
