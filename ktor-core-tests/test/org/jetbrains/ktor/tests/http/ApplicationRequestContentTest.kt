@@ -32,9 +32,24 @@ class ApplicationRequestContentTest {
                 assertEquals(values, call.receiveParameters())
             }
 
-            handleRequest(HttpMethod.Get, "") {
-                method = HttpMethod.Post
+            handleRequest(HttpMethod.Post, "") {
                 addHeader(HttpHeaders.ContentType, "application/x-www-form-urlencoded")
+                body = values.formUrlEncode()
+            }
+        }
+    }
+
+    @Test
+    fun testValuesMapWithCharset() {
+        withTestApplication {
+            val values = valuesOf("a" to listOf("1"))
+
+            application.intercept(ApplicationCallPipeline.Call) {
+                assertEquals(values, call.receiveParameters())
+            }
+
+            handleRequest(HttpMethod.Post, "") {
+                addHeader(HttpHeaders.ContentType, "application/x-www-form-urlencoded; charset=UTF-8")
                 body = values.formUrlEncode()
             }
         }
