@@ -3,7 +3,7 @@ package org.jetbrains.ktor.logging
 /**
  * Provides unified interface to application logging.
  */
-public interface ApplicationLog {
+interface ApplicationLog {
     /**
      * Name of the log
      */

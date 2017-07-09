@@ -5,8 +5,8 @@ import org.slf4j.*
 /**
  * Implements [ApplicationLog] by delegating to SLF4J [Logger]
  */
-public class SLF4JApplicationLog(override val name: String) : ApplicationLog {
-    private val logger: Logger = LoggerFactory.getLogger("$name")
+class SLF4JApplicationLog(override val name: String) : ApplicationLog {
+    private val logger: Logger = LoggerFactory.getLogger(name)
 
     override fun info(message: String) = logger.info(message)
     override fun debug(message: String) = logger.debug(message)

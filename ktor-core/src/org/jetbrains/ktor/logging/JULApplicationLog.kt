@@ -5,7 +5,7 @@ import java.util.logging.*
 /**
  * Implements [ApplicationLog] by delegating to [java.util.logging.Logger]
  */
-public class JULApplicationLog(override val name: String) : ApplicationLog {
+class JULApplicationLog(override val name: String) : ApplicationLog {
     private val logger = Logger.getLogger(name)
 
     override fun info(message: String) = logger.log(Level.INFO, message)
