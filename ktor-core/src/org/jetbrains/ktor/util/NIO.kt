@@ -27,6 +27,12 @@ class ByteBufferBuilder(order: ByteOrder = ByteOrder.BIG_ENDIAN) {
         bb.order(order)
     }
 
+    fun put(bb: ByteBuffer) {
+        ensureBufferSize(bb.remaining())
+
+        this.bb.put(bb)
+    }
+
     fun put(b: Byte) {
         ensureBufferSize(1)
 
