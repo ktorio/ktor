@@ -7,7 +7,7 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.*
 
-internal class NettyHttp2ApplicationCall(override val application: Application,
+internal class NettyHttp2ApplicationCall(application: Application,
                                          val context: ChannelHandlerContext,
                                          streamId: Int,
                                          val headers: Http2Headers,

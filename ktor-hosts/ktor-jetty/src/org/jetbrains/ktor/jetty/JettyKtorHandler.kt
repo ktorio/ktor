@@ -27,7 +27,7 @@ internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, val
 
     override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
         val call = JettyApplicationCall(environment.application, server, request, response, byteBufferPool, { call, block, next ->
-            if (baseRequest.httpChannel.httpTransport.isPushSupported) {
+            if (baseRequest.isPushSupported) {
                 baseRequest.pushBuilder.apply {
                     val builder = DefaultResponsePushBuilder(call)
                     builder.block()

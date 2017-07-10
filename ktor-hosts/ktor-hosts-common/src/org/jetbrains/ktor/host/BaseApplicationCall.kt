@@ -12,7 +12,7 @@ import java.nio.*
 /**
  * Base class for implementing an [ApplicationCall]
  */
-abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
+abstract class BaseApplicationCall(final override val application: Application) : ApplicationCall {
     final override val attributes = Attributes()
 
     private var responded = false
@@ -102,7 +102,7 @@ abstract class BaseApplicationCall(override val application: Application) : Appl
         val writeChannel = responseChannel()
         readChannel.copyTo(writeChannel, bufferPool, 65536)
         readChannel.close()
-        writeChannel.close()
+//        writeChannel.close()
     }
 
     protected abstract suspend fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade)
