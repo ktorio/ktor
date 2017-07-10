@@ -34,7 +34,10 @@ internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, val
 
                     this.method(builder.method.value)
                     this.path(builder.url.encodedPath)
-                    this.queryString(builder.url.build().substringAfter('?', ""))
+                    val query = builder.url.build().substringAfter('?', "").takeIf { it.isNotEmpty() }
+                    if (query != null) {
+                        queryString(query)
+                    }
 
                     push()
                 }

@@ -5,10 +5,8 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 
 fun ApplicationResponse.push(pathAndQuery: String) {
-    push {
-        val (path, query) = pathAndQuery.chomp("?") { pathAndQuery to "" }
-        push(path, parseQueryString(query))
-    }
+    val (path, query) = pathAndQuery.chomp("?") { pathAndQuery to "" }
+    push(path, parseQueryString(query))
 }
 
 fun ApplicationResponse.push(encodedPath: String, parameters: ValuesMap) {
