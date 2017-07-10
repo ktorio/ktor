@@ -13,6 +13,10 @@ fun Application.main() {
     install(DefaultHeaders)
     install(CallLogging)
     install(Routing) {
+        // Tabbed browsers can wait for first request to complete in one tab before making a request in another tab.
+        // Presumably they assume second request will hit 304 Not Modified and save on data transfer.
+        // If you want to verify simultaneous connections, either use "curl" or use different URLs in different tabs
+        // Like localhost:8080/1, localhost:8080/2, localhost:8080/3, etc
         get("/{...}") {
             val start = System.currentTimeMillis()
             run(CommonPool) {
