@@ -15,7 +15,7 @@ fun Application.main() {
     install(Routing) {
         get("/{...}") {
             val start = System.currentTimeMillis()
-            launch(CommonPool) {
+            run(CommonPool) {
                 call.handleLongCalculation(start)
             }
         }
