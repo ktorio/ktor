@@ -30,6 +30,11 @@
             <activation>
                 <activeByDefault>true</activeByDefault>
             </activation>
+
+            <properties>
+                <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
+            </properties>
+
             <modules>
                 <module>ktor-samples</module>
                 <module>ktor-jmh</module>
@@ -37,6 +42,32 @@
         </profile>
         <profile>
             <id>bintray</id>
+        </profile>
+        <profile>
+            <id>kotlin-snapshot</id>
+            <activation>
+                <property>
+                    <name>use.kotlin.snapshot</name>
+                    <value>true</value>
+                </property>
+            </activation>
+
+            <properties>
+                <kotlin.version>1.1-SNAPSHOT</kotlin.version>
+            </properties>
+
+            <pluginRepositories>
+                <pluginRepository>
+                    <id>oss-p</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </pluginRepository>
+            </pluginRepositories>
+            <repositories>
+                <repository>
+                    <id>oss</id>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                </repository>
+            </repositories>
         </profile>
     </profiles>
 
