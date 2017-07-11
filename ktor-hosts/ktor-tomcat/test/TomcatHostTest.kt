@@ -10,5 +10,6 @@ class TomcatHostTest : HostTestSuite<TomcatApplicationHost>(Tomcat) {
         listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
             Logger.getLogger(it).apply { level = Level.WARNING }
         }
+        enableHttp2 = false
     }
 }

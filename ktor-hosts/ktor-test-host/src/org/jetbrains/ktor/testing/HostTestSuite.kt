@@ -34,6 +34,8 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
+            assertEquals(200, responseCode)
+
             val fields = headerFields.toMutableMap()
             fields.remove(null) // Remove response line HTTP/1.1 200 OK since it's not a header
             fields.remove("Date") // Do not check for Date field since it's unstable
@@ -49,11 +51,11 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
                     "Connection" to listOf("keep-alive"),
                     "Content-Length" to listOf("4")), fields)
 
-            assertEquals(200, responseCode)
             assertEquals("test", inputStream.reader().use { it.readText() })
         }
+
         withUrlHttp2("/") {
-            //            assertEquals("test", contentAsString)
+            assertEquals("test", contentAsString)
         }
     }
 

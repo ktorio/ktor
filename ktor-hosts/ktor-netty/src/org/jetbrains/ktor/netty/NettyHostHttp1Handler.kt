@@ -37,12 +37,12 @@ internal class NettyHostHttp1Handler(private val host: NettyApplicationHost) : C
 
     override fun channelActive(ctx: ChannelHandlerContext) {
         val httpContentQueue = HttpContentQueue(ctx)
+        ctx.channel().attr(ResponseQueueKey).set(NettyResponseQueue(ctx))
+
         ctx.pipeline().apply {
             addLast(httpContentQueue)
             addLast(host.callEventGroup, NettyApplicationCallHandler(host))
         }
-
-        ctx.channel().attr(ResponseQueueKey).set(NettyResponseQueue(ctx))
 
         super.channelActive(ctx)
     }

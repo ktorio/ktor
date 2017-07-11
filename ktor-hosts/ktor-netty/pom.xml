@@ -11,6 +11,7 @@
 
     <properties>
         <netty.version>4.1.12.Final</netty.version>
+        <tcnative.version>2.0.5.Final</tcnative.version>
     </properties>
 
     <dependencies>
@@ -43,10 +44,64 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
+
+        <!-- Netty Tomcat Native port -->
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative</artifactId>
+            <version>${tcnative.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/io.netty/netty-tcnative-boringssl-static -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <version>${tcnative.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- https://mvnrepository.com/artifact/io.netty/netty-tcnative-boringssl-static -->
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-tcnative-boringssl-static</artifactId>
+            <version>${tcnative.version}</version>
+            <classifier>${tc.native.classifier}</classifier>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
+            <plugin>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-jetty-alpn</id>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <phase>compile</phase>
+                        <configuration>
+                            <includeArtifactIds>alpn-boot</includeArtifactIds>
+                            <stripVersion>true</stripVersion>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>unpack-tcnative</id>
+                        <goals>
+                            <goal>unpack-dependencies</goal>
+                        </goals>
+                        <phase>compile</phase>
+                        <configuration>
+                            <outputDirectory>${build.directory}/dependency</outputDirectory>
+                            <includeArtifactIds>netty-tcnative,netty-tcnative-boringssl-static</includeArtifactIds>
+                            <stripVersion>true</stripVersion>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -55,7 +110,79 @@
                     <!--<argLine>-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${build.directory}/oom.hprof</argLine>-->
                     <argLine>-Xmx1g -Dio.netty.leakDetectionLevel=PARANOID</argLine>
                 </configuration>
+
+                <executions>
+                    <execution>
+                        <id>default-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+
+                        <configuration>
+                            <systemProperties>
+                                <enable.http2>false</enable.http2>
+                            </systemProperties>
+
+                            <classpathDependencyExcludes>
+                                <exclude>io.netty:netty-tcnative-boringssl-static</exclude>
+                                <exclude>io.netty:netty-tcnative</exclude>
+                            </classpathDependencyExcludes>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>run-with-http2</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>test</goal>
+                        </goals>
+
+                        <configuration>
+                            <systemProperties>
+                                <enable.http2>true</enable.http2>
+                            </systemProperties>
+                            <argLine>-Xmx1g -Xbootclasspath/p:${build.directory}/dependency/alpn-boot.jar</argLine>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>tcnative-linux</id>
+            <activation>
+                <os>
+                    <name>linux</name>
+                </os>
+            </activation>
+            <properties>
+                <tc.native.classifier>linux-x86_64</tc.native.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>tcnative-osx</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <properties>
+                <tc.native.classifier>osx-x86_64</tc.native.classifier>
+            </properties>
+        </profile>
+        <profile>
+            <id>tcnative-windows</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <tc.native.classifier>windows-x86_64</tc.native.classifier>
+            </properties>
+        </profile>
+    </profiles>
 </project>

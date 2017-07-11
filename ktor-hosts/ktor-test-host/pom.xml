@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <artifactId>ktor-hosts</artifactId>
         <groupId>org.jetbrains.ktor</groupId>
@@ -8,6 +9,10 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>ktor-test-host</artifactId>
+
+    <properties>
+        <jetty.version>9.4.6.v20170531</jetty.version>
+    </properties>
 
     <dependencies>
         <dependency>
@@ -37,5 +42,132 @@
             <artifactId>logback-classic</artifactId>
             <version>1.2.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.mortbay.jetty.alpn</groupId>
+            <artifactId>alpn-boot</artifactId>
+            <version>${alpn.boot.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.eclipse.jetty.http2</groupId>
+            <artifactId>http2-client</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty</groupId>
+            <artifactId>jetty-client</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.eclipse.jetty.http2</groupId>
+            <artifactId>http2-http-client-transport</artifactId>
+            <version>${jetty.version}</version>
+        </dependency>
+
+
     </dependencies>
+
+    <profiles>
+        <!-- see http://www.eclipse.org/jetty/documentation/9.4.x/alpn-chapter.html#alpn-versions -->
+
+        <profile>
+            <id>jdk8-jb-152</id>
+
+            <activation>
+                <property>
+                    <name>java.version</name>
+                    <value>1.8.0_152-release</value> <!-- hack for IDEA's java -->
+                </property>
+            </activation>
+
+            <properties>
+                <alpn.boot.version>8.1.11.v20170118</alpn.boot.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>jdk8u131</id>
+            <activation>
+                <property>
+                    <name>java.version</name>
+                    <value>1.8.0_131</value>
+                </property>
+            </activation>
+
+            <properties>
+                <alpn.boot.version>8.1.11.v20170118</alpn.boot.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>jdk8u121</id>
+            <activation>
+                <property>
+                    <name>java.version</name>
+                    <value>1.8.0_121</value>
+                </property>
+            </activation>
+
+            <properties>
+                <alpn.boot.version>8.1.11.v20170118</alpn.boot.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>jdk8u112</id>
+            <activation>
+                <property>
+                    <name>java.version</name>
+                    <value>1.8.0_112</value>
+                </property>
+            </activation>
+
+            <properties>
+                <alpn.boot.version>8.1.10.v20161026</alpn.boot.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>jdk8u111</id>
+            <activation>
+                <property>
+                    <name>java.version</name>
+                    <value>1.8.0_111</value>
+                </property>
+            </activation>
+
+            <properties>
+                <alpn.boot.version>8.1.9.v20160720</alpn.boot.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>jdk8u102</id>
+            <activation>
+                <property>
+                    <name>java.version</name>
+                    <value>1.8.0_102</value>
+                </property>
+            </activation>
+
+            <properties>
+                <alpn.boot.version>8.1.9.v20160720</alpn.boot.version>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>jdk8u101</id>
+            <activation>
+                <property>
+                    <name>java.version</name>
+                    <value>1.8.0_101</value>
+                </property>
+            </activation>
+
+            <properties>
+                <alpn.boot.version>8.1.9.v20160720</alpn.boot.version>
+            </properties>
+        </profile>
+    </profiles>
 </project>

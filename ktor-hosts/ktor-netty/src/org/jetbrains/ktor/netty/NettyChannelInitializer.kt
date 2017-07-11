@@ -78,11 +78,15 @@ class NettyChannelInitializer(val host: NettyApplicationHost, val connector: Hos
                 pipeline.addLast(Multiplexer(pipeline.channel(), NettyHostHttp2Handler(host, connection, host.pipeline)))
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
+                val handler = NettyHostHttp1Handler(host)
+
                 with(pipeline) {
                     addLast("codec", HttpServerCodec())
                     addLast("timeout", WriteTimeoutHandler(10))
-                    addLast("http1", NettyHostHttp1Handler(host))
+                    addLast("http1", handler)
                 }
+
+                pipeline.context("codec").fireChannelActive()
             }
             else -> {
                 host.application.log.error("Unsupported protocol $protocol")
