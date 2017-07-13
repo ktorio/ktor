@@ -96,7 +96,7 @@ internal class FrameParser {
     private fun parseLength(bb: ByteBuffer): Boolean {
         if (bb.remaining() >= lengthLength) {
             length = when (lengthLength) {
-                2 -> bb.getShort().toLong()
+                2 -> bb.getShort().toLong() and 0xffff
                 8 -> bb.getLong()
                 else -> throw IllegalStateException()
             }

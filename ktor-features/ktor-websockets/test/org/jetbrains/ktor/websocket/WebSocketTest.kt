@@ -53,6 +53,13 @@ class WebSocketTest {
                     outgoing.send(Frame.Text("+".repeat(0xc123)))
                     outgoing.send(Frame.Close())
                 }
+                webSocketRaw("/receiveSize") {
+                    val frame = incoming.receive()
+                    val bytes = buildByteBuffer(ByteOrder.BIG_ENDIAN) { putInt(frame.buffer.remaining()) }
+
+                    outgoing.send(Frame.Binary(true, bytes))
+                    outgoing.send(Frame.Close())
+                }
             }
 
             handleWebSocket("/echo") {
@@ -60,6 +67,13 @@ class WebSocketTest {
             }.let { call ->
                 call.awaitWebSocket(Duration.ofSeconds(10))
                 assertEquals("817ec123", hex(call.response.byteContent!!.take(4).toByteArray()))
+            }
+
+            handleWebSocket("/receiveSize") {
+                bodyBytes = hex("0x81 0x7e 0xcd 0xef".trimHex()) + "+".repeat(0xcdef).toByteArray()
+            }.let { call ->
+                call.awaitWebSocket(Duration.ofSeconds(10))
+                assertEquals("82040000cdef", hex(call.response.byteContent!!.take(6).toByteArray()))
             }
         }
     }
