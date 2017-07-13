@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
-import io.netty.channel.socket.*
+import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
 import io.netty.handler.ssl.*
@@ -9,6 +9,7 @@ import io.netty.handler.timeout.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.http2.*
+import java.nio.channels.*
 import java.security.*
 import java.security.cert.*
 
@@ -97,6 +98,15 @@ class NettyChannelInitializer(val host: NettyApplicationHost, val connector: Hos
 
     inner class NegotiatedPipelineInitializer : ApplicationProtocolNegotiationHandler(ApplicationProtocolNames.HTTP_1_1) {
         override fun configurePipeline(ctx: ChannelHandlerContext, protocol: String) = configurePipeline(ctx.pipeline(), protocol)
+
+        override fun handshakeFailure(ctx: ChannelHandlerContext, cause: Throwable?) {
+            if (cause is ClosedChannelException) {
+                // connection closed during TLS handshake: there is no need to log it
+                ctx.close()
+            } else {
+                super.handshakeFailure(ctx, cause)
+            }
+        }
     }
 
     companion object {
