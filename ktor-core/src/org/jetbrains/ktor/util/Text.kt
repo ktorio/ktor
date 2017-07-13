@@ -8,21 +8,10 @@ fun String.unescapeIfQuoted() = when {
     else -> this
 }
 
-fun String.tryParseFloat(): Float {
-    try {
-        return toFloat()
-    } catch(e: NumberFormatException) {
-        return 0f
-    }
-}
+fun String.tryParseFloat() = toFloatOrNull() ?: 0f
 
-fun String.tryParseDouble(): Double {
-    try {
-        return toDouble()
-    } catch(e: NumberFormatException) {
-        return 0.0
-    }
-}
+fun String.tryParseDouble() = toDoubleOrNull() ?: 0.0
+
 
 fun String.escapeHTML(): String {
     if (isEmpty()) {
