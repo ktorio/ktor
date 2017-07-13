@@ -102,7 +102,6 @@ abstract class BaseApplicationCall(final override val application: Application) 
         val writeChannel = responseChannel()
         readChannel.copyTo(writeChannel, bufferPool, 65536)
         readChannel.close()
-//        writeChannel.close()
     }
 
     protected abstract suspend fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade)
