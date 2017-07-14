@@ -30,11 +30,8 @@ fun main(args: Array<String>) {
 
 ## Documentation
 
-Please visit our [Documentation Wiki](https://github.com/Kotlin/ktor/wiki) for quick start, detailed explanations of
+Please visit our [Documentation Site](https://ktorio.github.io/index.html) for quick start, detailed explanations of
 features, usage and machinery. 
-
-If you want to contribute to Documentation please clone [Documentation Repository](https://github.com/Kotlin/ktor-wiki),
-edit it and send us a Pull Request. We will sync wiki in this project and that repository periodically as needed.
 
 ## Principles
 
