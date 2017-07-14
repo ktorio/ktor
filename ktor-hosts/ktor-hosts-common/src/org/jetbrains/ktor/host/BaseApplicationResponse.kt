@@ -5,6 +5,9 @@ import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
 
+/**
+ * Base class for implementing an [ApplicationResponse]
+ */
 abstract class BaseApplicationResponse(override val call: ApplicationCall) : ApplicationResponse {
     private var _status: HttpStatusCode? = null
 

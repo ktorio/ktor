@@ -3,7 +3,7 @@ package org.jetbrains.ktor.config
 import com.typesafe.config.*
 
 /**
- * Implements [ApplicationEnvironment] by loading configuration from HOCON data structures
+ * Implements [ApplicationConfig] by loading configuration from HOCON data structures
  */
 open class HoconApplicationConfig(private val config: Config) : ApplicationConfig {
     override fun property(path: String): ApplicationConfigValue {
@@ -30,3 +30,5 @@ open class HoconApplicationConfig(private val config: Config) : ApplicationConfi
     }
 }
 
+fun Config.tryGetString(path: String) = if (hasPath(path)) getString(path) else null
+fun Config.tryGetStringList(path: String) = if (hasPath(path)) getStringList(path) else null

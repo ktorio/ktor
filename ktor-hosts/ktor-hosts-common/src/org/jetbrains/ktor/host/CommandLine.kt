@@ -8,6 +8,9 @@ import java.io.*
 import java.net.*
 import java.security.*
 
+/**
+ * Creates an [ApplicationHostEnvironment] instance from command line arguments
+ */
 fun commandLineEnvironment(args: Array<String>): ApplicationHostEnvironment {
     val argsMap = args.mapNotNull { it.splitPair('=') }.toMap()
 
@@ -108,9 +111,6 @@ fun commandLineEnvironment(args: Array<String>): ApplicationHostEnvironment {
 
     return environment
 }
-
-fun Config.tryGetString(path: String) = if (hasPath(path)) getString(path) else null
-fun Config.tryGetStringList(path: String) = if (hasPath(path)) getStringList(path) else null
 
 private fun String.splitPair(ch: Char): Pair<String, String>? = indexOf(ch).let { idx ->
     when (idx) {

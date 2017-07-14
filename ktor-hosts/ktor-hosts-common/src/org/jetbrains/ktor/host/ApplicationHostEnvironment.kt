@@ -5,7 +5,7 @@ import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.logging.*
 
 /**
- * Represents environment for a host
+ * Represents an environment in which host runs
  */
 interface ApplicationHostEnvironment : ApplicationEnvironment {
     /**

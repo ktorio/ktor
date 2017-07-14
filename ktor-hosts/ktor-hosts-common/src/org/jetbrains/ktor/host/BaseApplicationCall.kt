@@ -9,6 +9,9 @@ import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import java.nio.*
 
+/**
+ * Base class for implementing an [ApplicationCall]
+ */
 abstract class BaseApplicationCall(override val application: Application) : ApplicationCall {
     final override val attributes = Attributes()
 
