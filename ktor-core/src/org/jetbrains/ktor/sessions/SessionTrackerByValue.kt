@@ -1,15 +1,14 @@
 package org.jetbrains.ktor.sessions
 
-import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.pipeline.*
-import kotlin.reflect.*
+import org.jetbrains.ktor.application.ApplicationCall
+import kotlin.reflect.KClass
 
 class SessionTrackerByValue(val type: KClass<*>, val serializer: SessionSerializer) : SessionTracker {
     suspend override fun load(call: ApplicationCall, transport: String?): Any? {
         return transport?.let { serializer.deserialize(it) }
     }
 
-    override suspend fun store(call: ApplicationCall, value: Any): String {
+    suspend override fun store(call: ApplicationCall, value: Any): String {
         val serialized = serializer.serialize(value)
         return serialized
     }

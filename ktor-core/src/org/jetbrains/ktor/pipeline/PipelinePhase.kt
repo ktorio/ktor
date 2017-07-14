@@ -14,7 +14,7 @@ class PipelinePhases<TSubject : Any>(vararg phases: PipelinePhase) {
         override fun toString(): String = "Phase `${phase.name}`, ${interceptors.size} handlers"
     }
 
-    sealed class PipelinePhaseRelation() {
+    sealed class PipelinePhaseRelation {
         class After(val relativeTo: PipelinePhase) : PipelinePhaseRelation()
         class Before(val relativeTo: PipelinePhase) : PipelinePhaseRelation()
         object Last : PipelinePhaseRelation()

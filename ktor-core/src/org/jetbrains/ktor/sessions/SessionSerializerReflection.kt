@@ -1,15 +1,20 @@
 package org.jetbrains.ktor.sessions
 
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.request.*
-import org.jetbrains.ktor.util.*
-import java.lang.reflect.*
-import java.math.*
+import org.jetbrains.ktor.http.decodeURLQueryComponent
+import org.jetbrains.ktor.http.encodeURLQueryComponent
+import org.jetbrains.ktor.http.formUrlEncode
+import org.jetbrains.ktor.request.parseQueryString
+import org.jetbrains.ktor.util.ValuesMap
+import org.jetbrains.ktor.util.cast
+import java.lang.reflect.ParameterizedType
+import java.lang.reflect.Type
+import java.math.BigDecimal
+import java.math.BigInteger
 import java.util.*
-import java.util.concurrent.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.reflect.*
-import kotlin.reflect.full.*
-import kotlin.reflect.jvm.*
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.jvm.javaType
 
 
 inline fun <reified T : Any> autoSerializerOf(): SessionSerializerReflection<T> = autoSerializerOf(T::class)
@@ -288,8 +293,6 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
             type.javaType.let { javaType ->
                 if (javaType is ParameterizedType) {
                     javaType.rawType as? Class<*>
-                } else if (javaType is Class<*>) {
-                    javaType
-                } else null
+                } else javaType as? Class<*>
             }
 }
