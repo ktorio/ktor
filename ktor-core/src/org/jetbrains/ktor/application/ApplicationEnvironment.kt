@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.application
 
 import org.jetbrains.ktor.config.*
-import org.jetbrains.ktor.logging.*
+import org.slf4j.*
 
 /**
  * Represents an environment in which [Application] runs
@@ -14,9 +14,9 @@ interface ApplicationEnvironment {
     val classLoader: ClassLoader
 
     /**
-     * Instance of [ApplicationLog] to be used for logging.
+     * Instance of [Logger] to be used for logging.
      */
-    val log: ApplicationLog
+    val log: Logger
 
     /**
      * Configuration for [Application]

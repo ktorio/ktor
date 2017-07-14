@@ -2,7 +2,7 @@ package org.jetbrains.ktor.host
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
-import org.jetbrains.ktor.logging.*
+import org.slf4j.*
 
 /**
  * Represents an environment in which host runs
@@ -41,7 +41,7 @@ fun applicationHostEnvironment(builder: ApplicationHostEnvironmentBuilder.() -> 
 class ApplicationHostEnvironmentBuilder {
     var watchPaths = emptyList<String>()
     var classLoader: ClassLoader = ApplicationHostEnvironment::class.java.classLoader
-    var log: ApplicationLog = NullApplicationLog()
+    var log: Logger = LoggerFactory.getLogger("Application")
     var config: ApplicationConfig = MapApplicationConfig()
 
     val connectors = mutableListOf<HostConnectorConfig>()

@@ -3,7 +3,7 @@ package org.jetbrains.ktor.host
 import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
-import org.jetbrains.ktor.logging.*
+import org.slf4j.*
 import java.io.*
 import java.net.*
 import java.security.*
@@ -36,10 +36,10 @@ fun commandLineEnvironment(args: Array<String>): ApplicationHostEnvironment {
     val hostSslPrivateKeyPassword = "ktor.security.ssl.privateKeyPassword"
 
     val applicationId = combinedConfig.tryGetString(applicationIdPath) ?: "Application"
-    val appLog = SLF4JApplicationLog(applicationId)
+    val appLog = LoggerFactory.getLogger(applicationId)
     if (configFile != null && !configFile.exists()) {
         appLog.error("Configuration file '$configFile' specified as command line argument was not found")
-        appLog.warning("Will attempt to start without loading configuration…")
+        appLog.warn("Will attempt to start without loading configuration…")
     }
 
     val environment = applicationHostEnvironment {

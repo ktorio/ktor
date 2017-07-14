@@ -8,13 +8,13 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
 import org.junit.runners.model.*
+import org.slf4j.*
 import java.io.*
 import java.net.*
 import java.security.*
@@ -97,29 +97,29 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     }
 
     @Test
-    fun testInternalServerErrorWithoutCallLog() {
-        createAndStartServer {
-            application.uninstall(CallLogging)
-            handle {
-                throw Exception("Boom!")
+    fun testLoggerOnError() {
+        val message = "expected, ${nextNonce()}"
+        val collected = CopyOnWriteArrayList<Throwable>()
+
+        val log = object : Logger by LoggerFactory.getLogger("ktor.test") {
+            override fun error(message: String, exception: Throwable?) {
+                if (exception != null) {
+                    collected.add(exception)
+                }
+            }
+        }
+
+        createAndStartServer(log) {
+            get("/") {
+                throw ExpectedException(message)
             }
         }
 
         withUrl("/") {
             assertEquals(HttpStatusCode.InternalServerError.value, status.value)
-        }
-    }
 
-    @Test
-    fun testInternalServerError() {
-        createAndStartServer {
-            handle {
-                throw Exception("Boom!")
-            }
-        }
-
-        withUrl("/") {
-            assertEquals(HttpStatusCode.InternalServerError.value, status.value)
+            assertEquals(message, collected.single { it is ExpectedException }.message)
+            collected.clear()
         }
     }
 
@@ -925,35 +925,6 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
         withUrl("/missing") {
             assertEquals("null", readText())
-        }
-    }
-
-    @Test
-    fun testCallLoggerOnError() {
-        val message = "expected, ${nextNonce()}"
-        val collected = CopyOnWriteArrayList<Throwable>()
-
-        val log = object : ApplicationLog by SLF4JApplicationLog("ktor.test") {
-            override val name = "DummyLogger"
-            override fun fork(name: String) = this
-            override fun error(message: String, exception: Throwable?) {
-                if (exception != null) {
-                    collected.add(exception)
-                }
-            }
-        }
-
-        createAndStartServer(log) {
-            get("/") {
-                throw ExpectedException(message)
-            }
-        }
-
-        withUrl("/") {
-            assertEquals(HttpStatusCode.InternalServerError.value, status.value)
-
-            assertEquals(message, collected.single { it is ExpectedException }.message)
-            collected.clear()
         }
     }
 

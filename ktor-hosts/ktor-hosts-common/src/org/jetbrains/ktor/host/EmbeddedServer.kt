@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.host
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.logging.*
+import org.slf4j.*
 
 interface ApplicationHostFactory<out THost : ApplicationHost> {
     fun create(environment: ApplicationHostEnvironment): THost
@@ -13,7 +13,7 @@ fun <THost : ApplicationHost> embeddedServer(factory: ApplicationHostFactory<THo
                                              watchPaths: List<String> = emptyList(),
                                              module: Application.() -> Unit): THost {
     val environment = applicationHostEnvironment {
-        this.log = SLF4JApplicationLog("ktor.application")
+        this.log = LoggerFactory.getLogger("ktor.application")
         this.watchPaths = watchPaths
         this.module(module)
 

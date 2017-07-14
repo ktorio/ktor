@@ -4,7 +4,6 @@ import kotlinx.html.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.html.*
-import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 
 fun Application.main() {

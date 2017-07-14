@@ -4,7 +4,7 @@ import com.typesafe.config.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.logging.*
+import org.slf4j.*
 import javax.servlet.annotation.*
 
 @MultipartConfig
@@ -32,7 +32,7 @@ open class ServletApplicationHost : KtorServlet() {
 
         applicationHostEnvironment {
             config = HoconApplicationConfig(combinedConfig)
-            log = SLF4JApplicationLog(applicationId)
+            log = LoggerFactory.getLogger(applicationId)
             classLoader = servletContext.classLoader
         }.apply {
             monitor.applicationStarting += {

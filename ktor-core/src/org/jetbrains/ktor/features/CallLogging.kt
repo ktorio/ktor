@@ -1,12 +1,13 @@
-package org.jetbrains.ktor.logging
+package org.jetbrains.ktor.features
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
+import org.slf4j.*
 
-class CallLogging(val log: ApplicationLog, val monitor: ApplicationMonitor) {
+class CallLogging(val log: Logger, val monitor: ApplicationMonitor) {
 
     class Configuration
 
@@ -30,7 +31,7 @@ class CallLogging(val log: ApplicationLog, val monitor: ApplicationMonitor) {
         monitor.applicationStopped += stopped
     }
 
-    companion object Feature : ApplicationFeature<Application, CallLogging.Configuration, CallLogging> {
+    companion object Feature : ApplicationFeature<Application, Configuration, CallLogging> {
         override val key: AttributeKey<CallLogging> = AttributeKey("Call Logging")
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
             val loggingPhase = PipelinePhase("Logging")

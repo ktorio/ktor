@@ -1,16 +1,15 @@
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.jetty.*
-import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.servlet.*
 import org.junit.*
+import org.slf4j.*
 import java.net.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.test.*
-
 
 class MultipleDispatchOnTimeout {
 
@@ -27,7 +26,7 @@ class MultipleDispatchOnTimeout {
         val port = findFreePort()
         val environment = applicationHostEnvironment {
             connector { this.port = port }
-            log = SLF4JApplicationLog("ktor.test")
+            log = LoggerFactory.getLogger("ktor.test")
             module {
                 install(Routing) {
                     get("/foo") {

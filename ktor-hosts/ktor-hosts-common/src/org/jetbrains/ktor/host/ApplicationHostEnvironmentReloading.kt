@@ -2,8 +2,8 @@ package org.jetbrains.ktor.host
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
-import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.util.*
+import org.slf4j.*
 import java.io.*
 import java.lang.reflect.*
 import java.net.*
@@ -24,7 +24,7 @@ import kotlin.reflect.jvm.*
  */
 class ApplicationHostEnvironmentReloading(
         override val classLoader: ClassLoader,
-        override val log: ApplicationLog,
+        override val log: Logger,
         override val config: ApplicationConfig,
         override val connectors: List<HostConnectorConfig>,
         private val modules: List<Application.() -> Unit>,
