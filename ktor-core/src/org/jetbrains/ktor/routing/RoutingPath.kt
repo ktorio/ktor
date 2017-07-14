@@ -1,6 +1,6 @@
 package org.jetbrains.ktor.routing
 
-import org.jetbrains.ktor.http.decodeURLPart
+import org.jetbrains.ktor.http.*
 
 class RoutingPath private constructor(val parts: List<RoutingPathSegment>) {
     companion object {

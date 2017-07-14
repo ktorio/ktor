@@ -5,7 +5,7 @@ import java.util.*
 
 data class HeaderValueParam(val name: String, val value: String)
 data class HeaderValue(val value: String, val params: List<HeaderValueParam> = listOf()) {
-    val quality: Double = params.firstOrNull { it.name == "q" }?.value?.tryParseDouble() ?: 1.0
+    val quality: Double = params.firstOrNull { it.name == "q" }?.value?.toDoubleOrNull() ?: 1.0
 }
 
 fun parseAndSortHeader(header: String?): List<HeaderValue> = parseHeaderValue(header).sortedByDescending { it.quality }
