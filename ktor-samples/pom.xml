@@ -26,6 +26,7 @@
         <module>ktor-samples-websocket</module>
         <module>ktor-samples-ssl-http2</module>
         <module>ktor-samples-custom-feature</module>
+        <module>ktor-samples-static-content</module>
     </modules>
 
     <dependencies>
