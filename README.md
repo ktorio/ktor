@@ -1,4 +1,4 @@
-<img src="https://github.com/Kotlin/ktor/wiki/resources/ktor.png" alt="Ktor" width="600" style="max-width:100%;">
+<img src="http://ktor.io/images/docs/ktor.png" alt="Ktor" width="600" style="max-width:100%;">
 
 [ ![Download](https://api.bintray.com/packages/kotlin/ktor/ktor/images/download.svg) ](https://bintray.com/kotlin/ktor/ktor/_latestVersion)
 [![TeamCity (simple build status)](https://img.shields.io/teamcity/http/teamcity.jetbrains.com/s/KotlinTools_Ktor_Build.svg)](https://teamcity.jetbrains.com/viewType.html?buildTypeId=KotlinTools_Ktor_Build&branch_KotlinTools_Ktor=%3Cdefault%3E&tab=buildTypeStatusDiv)
@@ -30,7 +30,7 @@ fun main(args: Array<String>) {
 
 ## Documentation
 
-Please visit our [Documentation Site](https://ktorio.github.io/index.html) for quick start, detailed explanations of
+Please visit [Ktor.io](http://ktor.io) for Quick Start and detailed explanations of
 features, usage and machinery. 
 
 ## Principles
