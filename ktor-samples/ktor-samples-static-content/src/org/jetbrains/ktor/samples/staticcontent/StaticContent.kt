@@ -1,10 +1,10 @@
 package org.jetbrains.ktor.samples.staticcontent
 
 import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.host.embeddedServer
-import org.jetbrains.ktor.netty.Netty
-import org.jetbrains.ktor.routing.routing
-import java.io.File
+import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.netty.*
+import org.jetbrains.ktor.routing.*
+import java.io.*
 
 
 fun main(args: Array<String>) {
