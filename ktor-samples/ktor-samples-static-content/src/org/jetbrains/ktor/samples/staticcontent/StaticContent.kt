@@ -21,6 +21,9 @@ fun main(args: Array<String>) {
             static("custom") {
                 staticRootFolder = File("/tmp") // Establishes a root folder
                 files("public") // For this to work, make sure you have /tmp/public on your system
+                static("themes") { // services /custom/themes
+                    files("data")
+                }
             }
         }
     }.start()
