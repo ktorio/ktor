@@ -4,6 +4,7 @@ import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
 import java.net.*
+import javax.net.ssl.*
 
 object DefaultHttpClient : HttpClient() {
     override suspend fun openConnection(host: String, port: Int, secure: Boolean): HttpConnection {
@@ -21,9 +22,14 @@ object DefaultHttpClient : HttpClient() {
             connection.requestMethod = builder.method.value.toUpperCase()
             connection.connectTimeout = 15000
             connection.readTimeout = 15000
+            connection.instanceFollowRedirects = builder.followRedirects
 
             builder.headers().forEach {
                 connection.setRequestProperty(it.first, it.second)
+            }
+
+            if (builder.sslSocketFactory != null && connection is HttpsURLConnection) {
+                connection.sslSocketFactory = builder.sslSocketFactory
             }
 
             builder.body?.let { body ->
@@ -45,10 +51,10 @@ object DefaultHttpClient : HttpClient() {
 
     private class DefaultHttpResponse(override val connection: HttpConnection, val javaNetConnection: HttpURLConnection) : HttpResponse {
         override val headers: ValuesMap
-            get() = valuesOf(javaNetConnection.headerFields.mapKeys { it.key ?: "" }, true)
+            get() = valuesOf(javaNetConnection.headerFields.mapKeys { it.key ?: "" }.filterKeys { it.isNotEmpty() }, true)
 
         override val status: HttpStatusCode
-            get() = HttpStatusCode(javaNetConnection.responseCode, javaNetConnection.responseMessage)
+            get() = HttpStatusCode(javaNetConnection.responseCode, javaNetConnection.responseMessage ?: "")
 
         override val channel: ReadChannel
             get() = try {
