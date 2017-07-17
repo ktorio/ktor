@@ -20,6 +20,7 @@
     <modules>
         <module>ktor-core</module>
         <module>ktor-core-tests</module>
+        <module>jetty-http2-client</module>
         <module>ktor-features</module>
         <module>ktor-hosts</module>
     </modules>
