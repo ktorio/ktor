@@ -92,7 +92,7 @@ class StaticContentTest {
     @Test
     fun testStaticContent() = withTestApplication {
         application.install(PartialContentSupport)
-        application.install(HeadRequestSupport)
+        application.install(AutoHeadResponse)
 
         application.routing {
             static {

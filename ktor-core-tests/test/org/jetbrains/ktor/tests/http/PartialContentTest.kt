@@ -19,7 +19,7 @@ class PartialContentTest {
 
     fun withRangeApplication(test: TestApplicationHost.(File) -> Unit) = withTestApplication {
         application.install(PartialContentSupport)
-        application.install(HeadRequestSupport)
+        application.install(AutoHeadResponse)
         application.routing {
             route(localPath) {
                 handle {

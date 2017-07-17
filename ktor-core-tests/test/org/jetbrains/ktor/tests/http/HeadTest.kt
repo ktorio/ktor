@@ -117,7 +117,7 @@ class HeadTest {
 
     private fun withHeadApplication(block: TestApplicationHost.() -> Unit) {
         withTestApplication {
-            application.install(HeadRequestSupport)
+            application.install(AutoHeadResponse)
 
             block()
         }

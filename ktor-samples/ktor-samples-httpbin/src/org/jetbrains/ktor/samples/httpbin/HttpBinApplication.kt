@@ -80,7 +80,7 @@ fun Application.main() {
     install(CallLogging)
     install(ConditionalHeaders)
     install(PartialContentSupport)
-    install(HeadRequestSupport)
+    install(AutoHeadResponse)
     install(GsonSupport) {
         setPrettyPrinting()
     }
