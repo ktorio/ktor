@@ -3,6 +3,7 @@ package org.jetbrains.ktor.testing
 import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
+import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
@@ -34,10 +35,9 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(200, responseCode)
+            assertEquals(200, status.value)
 
-            val fields = headerFields.toMutableMap()
-            fields.remove(null) // Remove response line HTTP/1.1 200 OK since it's not a header
+            val fields = headers.toMap().toMutableMap()
             fields.remove("Date") // Do not check for Date field since it's unstable
 
             // Check content type manually because spacing and case can be different per host
@@ -51,12 +51,31 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
                     "Connection" to listOf("keep-alive"),
                     "Content-Length" to listOf("4")), fields)
 
-            assertEquals("test", inputStream.reader().use { it.readText() })
+            assertEquals("test", readText())
         }
 
         withUrlHttp2("/") {
-            assertEquals("test", contentAsString)
+            assertEquals("test", this.channel.toInputStream().reader().readText())
         }
+    }
+
+    @Test
+    @Http2Only
+    fun testServerPush() {
+        createAndStartServer {
+            get("/child") {
+                call.respondText("child")
+            }
+
+            get("/") {
+                call.response.push("/child")
+                call.respondText("test")
+            }
+        }
+
+//        withUrlHttp2("/") {
+//            assertEquals("test", contentAsString)
+//        }
     }
 
     @Test
@@ -73,8 +92,8 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(200, responseCode)
-            assertEquals("ABC123", inputStream.reader().use { it.readText() })
+            assertEquals(200, status.value)
+            assertEquals("ABC123", readText())
         }
     }
 
@@ -88,7 +107,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(HttpStatusCode.InternalServerError.value, responseCode)
+            assertEquals(HttpStatusCode.InternalServerError.value, status.value)
         }
     }
 
@@ -101,7 +120,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(HttpStatusCode.InternalServerError.value, responseCode)
+            assertEquals(HttpStatusCode.InternalServerError.value, status.value)
         }
     }
 
@@ -117,25 +136,21 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             }
         }
 
-        withUrl("/") {
-            doOutput = true
-            requestMethod = "POST"
-            setRequestProperty(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-
-            outputStream.bufferedWriter().use {
-                valuesOf("a" to listOf("1")).formUrlEncodeTo(it)
+        withUrl("/", {
+            method = HttpMethod.Post
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            body = {
+                it.bufferedWriter().use {
+                    valuesOf("a" to listOf("1")).formUrlEncodeTo(it)
+                }
             }
-
-            assertEquals(200, responseCode)
-            assertEquals("a=1", inputStream.reader().use { it.readText() })
+        }) {
+            assertEquals(200, status.value)
+            assertEquals("a=1", readText())
         }
 
         withUrl("/") {
-            doOutput = false
-            requestMethod = "GET"
-
-            assertEquals(HttpStatusCode.UnsupportedMediaType, HttpStatusCode.fromValue(responseCode))
-            assertFailsWith<IOException> { inputStream.reader().use { it.readText() } }
+            assertEquals(HttpStatusCode.UnsupportedMediaType.value, status.value)
         }
     }
 
@@ -151,8 +166,8 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(200, responseCode)
-            assertEquals("ABC123", inputStream.reader().use { it.readText() })
+            assertEquals(200, status.value)
+            assertEquals("ABC123", readText())
         }
     }
 
@@ -165,9 +180,9 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(200, responseCode)
-            assertEquals("Hello", inputStream.reader().use { it.readText() })
-            assertTrue(ContentType.parse(getHeaderField(HttpHeaders.ContentType)).match(ContentType.Text.Plain))
+            assertEquals(200, status.value)
+            assertEquals("Hello", readText())
+            assertTrue(ContentType.parse(headers[HttpHeaders.ContentType]!!).match(ContentType.Text.Plain))
         }
     }
 
@@ -180,7 +195,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(HttpStatusCode.MovedPermanently.value, responseCode)
+            assertEquals(HttpStatusCode.MovedPermanently.value, status.value)
         }
     }
 
@@ -194,9 +209,9 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/1/") {
-            assertEquals(HttpStatusCode.MovedPermanently.value, responseCode)
+            assertEquals(HttpStatusCode.MovedPermanently.value, status.value)
 
-            assertEquals("/2", getHeaderField(HttpHeaders.Location))
+            assertEquals("/2", headers[HttpHeaders.Location])
         }
     }
 
@@ -210,8 +225,8 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(200, responseCode)
-            assertEquals("test-etag", getHeaderField(HttpHeaders.ETag))
+            assertEquals(200, status.value)
+            assertEquals("test-etag", headers[HttpHeaders.ETag])
         }
     }
 
@@ -225,8 +240,8 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(200, responseCode)
-            assertEquals("k1=v1; \$x-enc=URI_ENCODING", getHeaderField(HttpHeaders.SetCookie))
+            assertEquals(200, status.value)
+            assertEquals("k1=v1; \$x-enc=URI_ENCODING", headers[HttpHeaders.SetCookie])
         }
     }
 
@@ -239,7 +254,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/files/${HostTestSuite::class.simpleName}.class") {
-            val bytes = inputStream.readBytes(8192)
+            val bytes = readBytes(8192)
             assertNotEquals(0, bytes.size)
 
             // class file signature
@@ -248,15 +263,11 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             assertEquals(0xba, bytes[2].toInt() and 0xff)
             assertEquals(0xbe, bytes[3].toInt() and 0xff)
         }
-        assertFailsWith(FileNotFoundException::class) {
-            withUrl("/files/${HostTestSuite::class.simpleName}.class2") {
-                inputStream.readBytes()
-            }
+        withUrl("/files/${HostTestSuite::class.simpleName}.class2") {
+            assertEquals(HttpStatusCode.NotFound.value, status.value)
         }
-        assertFailsWith(FileNotFoundException::class) {
-            withUrl("/wefwefwefw") {
-                inputStream.readBytes()
-            }
+        withUrl("/wefwefwefw") {
+            assertEquals(HttpStatusCode.NotFound.value, status.value)
         }
     }
 
@@ -273,7 +284,9 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/files/${file.toRelativeString(targetClasses).urlPath()}") {
-            val bytes = inputStream.readBytes(8192)
+            assertEquals(200, status.value)
+
+            val bytes = readBytes(100)
             assertNotEquals(0, bytes.size)
 
             // class file signature
@@ -282,15 +295,12 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             assertEquals(0xba, bytes[2].toInt() and 0xff)
             assertEquals(0xbe, bytes[3].toInt() and 0xff)
         }
-        assertFailsWith(FileNotFoundException::class) {
-            withUrl("/files/${file.toRelativeString(targetClasses).urlPath()}2") {
-                inputStream.readBytes()
-            }
+
+        withUrl("/files/${file.toRelativeString(targetClasses).urlPath()}2") {
+            assertEquals(404, status.value)
         }
-        assertFailsWith(FileNotFoundException::class) {
-            withUrl("/wefwefwefw") {
-                inputStream.readBytes()
-            }
+        withUrl("/wefwefwefw") {
+            assertEquals(404, status.value)
         }
     }
 
@@ -306,8 +316,8 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(200, responseCode)
-            assertEquals(file.readText(), inputStream.reader().use { it.readText() })
+            assertEquals(200, status.value)
+            assertEquals(file.readText(), readText())
         }
     }
 
@@ -323,12 +333,12 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             }
         }
 
-        withUrl("/") {
-            addRequestProperty(HttpHeaders.AcceptEncoding, "gzip")
-
-            assertEquals(200, responseCode)
-            assertEquals(file.readText(), GZIPInputStream(inputStream).reader().use { it.readText() })
-            assertEquals("gzip", getHeaderField(HttpHeaders.ContentEncoding))
+        withUrl("/", {
+            header(HttpHeaders.AcceptEncoding, "gzip")
+        }) {
+            assertEquals(200, status.value)
+            assertEquals(file.readText(), GZIPInputStream(channel.toInputStream()).reader().use { it.readText() })
+            assertEquals("gzip", headers[HttpHeaders.ContentEncoding])
         }
     }
 
@@ -344,17 +354,17 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             }
         }
 
-        withUrl("/") {
-            setRequestProperty(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
-
-            assertEquals(HttpStatusCode.PartialContent.value, responseCode)
-            assertEquals("p", inputStream.reader().use { it.readText() })
+        withUrl("/", {
+            header(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
+        }) {
+            assertEquals(HttpStatusCode.PartialContent.value, status.value)
+            assertEquals("p", readText())
         }
-        withUrl("/") {
-            setRequestProperty(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(1, 2))).toString())
-
-            assertEquals(HttpStatusCode.PartialContent.value, responseCode)
-            assertEquals("ac", inputStream.reader().use { it.readText() })
+        withUrl("/", {
+            header(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(1, 2))).toString())
+        }) {
+            assertEquals(HttpStatusCode.PartialContent.value, status.value)
+            assertEquals("ac", readText())
         }
     }
 
@@ -372,12 +382,12 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             }
         }
 
-        withUrl("/") {
-            addRequestProperty(HttpHeaders.AcceptEncoding, "gzip")
-            setRequestProperty(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
-
-            assertEquals(HttpStatusCode.PartialContent.value, responseCode)
-            assertEquals("p", inputStream.reader().use { it.readText() }) // it should be no compression if range requested
+        withUrl("/", {
+            header(HttpHeaders.AcceptEncoding, "gzip")
+            header(HttpHeaders.Range, RangesSpecifier(RangeUnits.Bytes, listOf(ContentRange.Bounded(0, 0))).toString())
+        }) {
+            assertEquals(HttpStatusCode.PartialContent.value, status.value)
+            assertEquals("p", readText()) // it should be no compression if range requested
         }
     }
 
@@ -390,8 +400,8 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(200, responseCode)
-            inputStream.buffered().use { it.readBytes() }.let { bytes ->
+            assertEquals(200, status.value)
+            readBytes().let { bytes ->
                 assertNotEquals(0, bytes.size)
 
                 // class file signature
@@ -412,8 +422,8 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(200, responseCode)
-            inputStream.buffered().use { it.readBytes() }.let { bytes ->
+            assertEquals(200, status.value)
+            readBytes().let { bytes ->
                 assertNotEquals(0, bytes.size)
 
                 // class file signature
@@ -437,8 +447,8 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(200, responseCode)
-            inputStream.buffered().use { it.readBytes() }.let { bytes ->
+            assertEquals(200, status.value)
+            readBytes().let { bytes ->
                 assertNotEquals(0, bytes.size)
 
                 // class file signature
@@ -462,12 +472,12 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/a%20b") {
-            assertEquals(200, responseCode)
-            assertEquals("space", inputStream.bufferedReader().use { it.readText() })
+            assertEquals(200, status.value)
+            assertEquals("space", readText())
         }
         withUrl("/a+b") {
-            assertEquals(200, responseCode)
-            assertEquals("plus", inputStream.bufferedReader().use { it.readText() })
+            assertEquals(200, status.value)
+            assertEquals("plus", readText())
         }
     }
 
@@ -479,21 +489,15 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             }
         }
 
-        withUrl("/?urlp=1") {
-            requestMethod = "POST"
-            doInput = true
-            doOutput = true
-            setRequestProperty(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-
-            outputStream.use { out ->
-                out.writer().apply {
-                    append("formp=2")
-                    flush()
-                }
+        withUrl("/?urlp=1", {
+            method = HttpMethod.Post
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            body = {
+                it.write("formp=2".toByteArray())
             }
-
-            assertEquals(HttpStatusCode.OK.value, responseCode)
-            assertEquals("1,2", inputStream.bufferedReader().use { it.readText() })
+        }) {
+            assertEquals(HttpStatusCode.OK.value, status.value)
+            assertEquals("1,2", readText())
         }
     }
 
@@ -513,22 +517,19 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             }
         }
 
-        withUrl("/echo") {
-            requestMethod = "POST"
-            doInput = true
-            doOutput = true
-            setRequestProperty(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-
-            outputStream.use { out ->
-                out.writer().apply {
-                    append("POST test\n")
-                    append("Another line")
-                    flush()
+        withUrl("/echo", {
+            method = HttpMethod.Post
+            header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
+            body = {
+                it.bufferedWriter().use { out ->
+                    out.append("POST test\n")
+                    out.append("Another line")
+                    out.flush()
                 }
             }
-
-            assertEquals(200, responseCode)
-            assertEquals("POST test\nAnother line", inputStream.bufferedReader().use { it.readText() })
+        }) {
+            assertEquals(200, status.value)
+            assertEquals("POST test\nAnother line", readText())
         }
     }
 
@@ -542,21 +543,17 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             }
         }
 
-        withUrl("/") {
-            requestMethod = "POST"
-            doInput = true
-            doOutput = true
-            setRequestProperty(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-
-            outputStream.use { out ->
-                out.writer().apply {
-                    append("POST content")
-                    flush()
+        withUrl("/", {
+            method = HttpMethod.Post
+            header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
+            body = {
+                it.bufferedWriter().use {
+                    it.append("POST content")
                 }
             }
-
-            assertEquals(200, responseCode)
-            assertEquals("POST content", inputStream.bufferedReader().use { it.readText() })
+        }) {
+            assertEquals(200, status.value)
+            assertEquals("POST content", readText())
         }
     }
 
@@ -579,30 +576,30 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             }
         }
 
-        withUrl("/") {
-            requestMethod = "POST"
-            doInput = true
-            doOutput = true
-            setRequestProperty(HttpHeaders.ContentType, ContentType.MultiPart.FormData.withParameter("boundary", "***bbb***").toString())
+        withUrl("/", {
+            method = HttpMethod.Post
+            header(HttpHeaders.ContentType, ContentType.MultiPart.FormData.withParameter("boundary", "***bbb***").toString())
 
-            outputStream.bufferedWriter(Charsets.ISO_8859_1).let { out ->
-                out.apply {
-                    append("--***bbb***\r\n")
-                    append("Content-Disposition: form-data; name=\"a story\"\r\n")
-                    append("\r\n")
-                    append("Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\r\n")
-                    append("--***bbb***\r\n")
-                    append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\r\n")
-                    append("Content-Type: text/plain\r\n")
-                    append("\r\n")
-                    append("File content goes here\r\n")
-                    append("--***bbb***--\r\n")
-                    flush()
+            body = {
+                it.bufferedWriter(Charsets.ISO_8859_1).use { out ->
+                    out.apply {
+                        append("--***bbb***\r\n")
+                        append("Content-Disposition: form-data; name=\"a story\"\r\n")
+                        append("\r\n")
+                        append("Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\r\n")
+                        append("--***bbb***\r\n")
+                        append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\r\n")
+                        append("Content-Type: text/plain\r\n")
+                        append("\r\n")
+                        append("File content goes here\r\n")
+                        append("--***bbb***--\r\n")
+                        flush()
+                    }
                 }
             }
-
-            assertEquals(200, responseCode)
-            assertEquals("a story=Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\nfile:attachment,original.txt,File content goes here\n", inputStream.bufferedReader().use { it.readText() })
+        }) {
+            assertEquals(200, status.value)
+            assertEquals("a story=Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\nfile:attachment,original.txt,File content goes here\n", readText())
         }
     }
 
@@ -614,14 +611,16 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             }
         }
 
-        withUrl("/") {
-            setRequestProperty(HttpHeaders.Connection, "close")
-            assertEquals("Text", inputStream.bufferedReader().use { it.readText() })
+        withUrl("/", {
+            header(HttpHeaders.Connection, "close")
+        }) {
+            assertEquals("Text", readText())
         }
 
-        withUrl("/") {
-            setRequestProperty(HttpHeaders.Connection, "close")
-            assertEquals("Text", inputStream.bufferedReader().use { it.readText() })
+        withUrl("/", {
+            header(HttpHeaders.Connection, "close")
+        }) {
+            assertEquals("Text", readText())
         }
     }
 
@@ -634,18 +633,18 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
 
-        withUrl("/") {
-            setRequestProperty(HttpHeaders.Connection, "keep-alive")
-
-            assertEquals(200, responseCode)
-            assertEquals("Text", inputStream.bufferedReader().use { it.readText() })
+        withUrl("/", {
+            header(HttpHeaders.Connection, "keep-alive")
+        }) {
+            assertEquals(200, status.value)
+            assertEquals("Text", readText())
         }
 
-        withUrl("/") {
-            setRequestProperty(HttpHeaders.Connection, "keep-alive")
-
-            assertEquals(200, responseCode)
-            assertEquals("Text", inputStream.bufferedReader().use { it.readText() })
+        withUrl("/", {
+            header(HttpHeaders.Connection, "keep-alive")
+        }) {
+            assertEquals(200, status.value)
+            assertEquals("Text", readText())
         }
     }
 
@@ -707,17 +706,15 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             }
         }
 
-        withUrl("/") {
-            requestMethod = "POST"
-            doOutput = true
-            setRequestProperty(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-
-            outputStream.use {
+        withUrl("/", {
+            method = HttpMethod.Post
+            header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
+            body = {
                 it.write("Hello".toByteArray())
             }
-
-            assertEquals(200, responseCode)
-            assertEquals("Hello", inputStream.reader().use { it.readText() })
+        }) {
+            assertEquals(200, status.value)
+            assertEquals("Hello", readText())
         }
     }
 
@@ -731,8 +728,8 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
 
         for (i in 1..100) {
             withUrl("/?i=$i") {
-                assertEquals(200, responseCode)
-                assertEquals("OK $i", inputStream.reader().use { it.readText() })
+                assertEquals(200, status.value)
+                assertEquals("OK $i", readText())
             }
         }
     }
@@ -745,17 +742,15 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             }
         }
 
-        withUrl("/") {
-            requestMethod = "POST"
-            doOutput = true
-            setRequestProperty(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-
-            outputStream.use {
+        withUrl("/", {
+            method = HttpMethod.Post
+            header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
+            body = {
                 it.write("Hello".toByteArray())
             }
-
-            assertEquals(200, responseCode)
-            assertEquals("Hello", inputStream.reader().use { it.readText() })
+        }) {
+            assertEquals(200, status.value)
+            assertEquals("Hello", readText())
         }
     }
 
@@ -769,8 +764,8 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(HttpStatusCode.Found.value, responseCode)
-            assertEquals("Hello", inputStream.reader().use { it.readText() })
+            assertEquals(HttpStatusCode.Found.value, status.value)
+            assertEquals("Hello", readText())
         }
     }
 
@@ -784,7 +779,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(HttpStatusCode.Found.value, responseCode)
+            assertEquals(HttpStatusCode.Found.value, status.value)
             completed = true
         }
         assertTrue(completed)
@@ -799,7 +794,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(HttpStatusCode.Found.value, responseCode)
+            assertEquals(HttpStatusCode.Found.value, status.value)
         }
     }
 
@@ -809,11 +804,11 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertEquals(HttpStatusCode.NotFound.value, responseCode)
+            assertEquals(HttpStatusCode.NotFound.value, status.value)
         }
 
         withUrl("/aaaa") {
-            assertEquals(HttpStatusCode.NotFound.value, responseCode)
+            assertEquals(HttpStatusCode.NotFound.value, status.value)
         }
     }
 
@@ -826,35 +821,34 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             }
         }
 
-        withUrl("/") { port ->
-            setRequestProperty(HttpHeaders.XForwardedHost, "my-host:90")
-
+        withUrl("/", {
+            header(HttpHeaders.XForwardedHost, "my-host:90")
+        }) { port ->
             val expectedProto = if (port == sslPort) "https" else "http"
-            assertEquals("$expectedProto://my-host:90/", inputStream.reader().use { it.readText() })
+            assertEquals("$expectedProto://my-host:90/", readText())
         }
 
-        withUrl("/") { port ->
-            setRequestProperty(HttpHeaders.XForwardedHost, "my-host")
-
+        withUrl("/", {
+            header(HttpHeaders.XForwardedHost, "my-host")
+        }) { port ->
             val expectedProto = if (port == sslPort) "https" else "http"
-            assertEquals("$expectedProto://my-host/", inputStream.reader().use { it.readText() })
+            assertEquals("$expectedProto://my-host/", readText())
         }
 
-        withUrl("/") {
-            setRequestProperty(HttpHeaders.XForwardedHost, "my-host:90")
-            setRequestProperty(HttpHeaders.XForwardedProto, "https")
-
-            assertEquals("https://my-host:90/", inputStream.reader().use { it.readText() })
+        withUrl("/", {
+            header(HttpHeaders.XForwardedHost, "my-host:90")
+            header(HttpHeaders.XForwardedProto, "https")
+        }) {
+            assertEquals("https://my-host:90/", readText())
         }
 
-        withUrl("/") {
-            setRequestProperty(HttpHeaders.XForwardedHost, "my-host")
-            setRequestProperty(HttpHeaders.XForwardedProto, "https")
-
-            assertEquals("https://my-host/", inputStream.reader().use { it.readText() })
+        withUrl("/", {
+            header(HttpHeaders.XForwardedHost, "my-host")
+            header(HttpHeaders.XForwardedProto, "https")
+        }) {
+            assertEquals("https://my-host/", readText())
         }
     }
-
 
     @Test
     fun testHostRequestParts() {
@@ -874,43 +868,43 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/path/1?p=v") {
-            assertEquals("/path/1", inputStream.reader().use { it.readText() })
+            assertEquals("/path/1", readText())
         }
         withUrl("/path/1?") {
-            assertEquals("/path/1", inputStream.reader().use { it.readText() })
+            assertEquals("/path/1", readText())
         }
         withUrl("/path/1") {
-            assertEquals("/path/1", inputStream.reader().use { it.readText() })
+            assertEquals("/path/1", readText())
         }
 
         withUrl("/document/1?p=v") {
-            assertEquals("1", inputStream.reader().use { it.readText() })
+            assertEquals("1", readText())
         }
         withUrl("/document/1?") {
-            assertEquals("1", inputStream.reader().use { it.readText() })
+            assertEquals("1", readText())
         }
         withUrl("/document/1") {
-            assertEquals("1", inputStream.reader().use { it.readText() })
+            assertEquals("1", readText())
         }
 
         withUrl("/queryString/1?p=v") {
-            assertEquals("p=v", inputStream.reader().use { it.readText() })
+            assertEquals("p=v", readText())
         }
         withUrl("/queryString/1?") {
-            assertEquals("", inputStream.reader().use { it.readText() })
+            assertEquals("", readText())
         }
         withUrl("/queryString/1") {
-            assertEquals("", inputStream.reader().use { it.readText() })
+            assertEquals("", readText())
         }
 
         withUrl("/uri/1?p=v") {
-            assertEquals("/uri/1?p=v", inputStream.reader().use { it.readText() })
+            assertEquals("/uri/1?p=v", readText())
         }
         withUrl("/uri/1?") {
-            assertEquals("/uri/1?", inputStream.reader().use { it.readText() })
+            assertEquals("/uri/1?", readText())
         }
         withUrl("/uri/1") {
-            assertEquals("/uri/1", inputStream.reader().use { it.readText() })
+            assertEquals("/uri/1", readText())
         }
     }
 
@@ -923,13 +917,13 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/single?single=value") {
-            assertEquals("[value]", inputStream.reader().use { it.readText() })
+            assertEquals("[value]", readText())
         }
         withUrl("/multiple?multiple=value1&multiple=value2") {
-            assertEquals("[value1, value2]", inputStream.reader().use { it.readText() })
+            assertEquals("[value1, value2]", readText())
         }
         withUrl("/missing") {
-            assertEquals("null", inputStream.reader().use { it.readText() })
+            assertEquals("null", readText())
         }
     }
 
@@ -955,9 +949,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/") {
-            assertFailsWith<IOException> {
-                inputStream.reader().use { it.readText() }
-            }
+            assertEquals(HttpStatusCode.InternalServerError.value, status.value)
 
             assertEquals(message, collected.single { it is ExpectedException }.message)
             collected.clear()
@@ -991,7 +983,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
                 try {
                     withUrl("/$i") {
                         //setRequestProperty("Connection", "close")
-                        inputStream.reader().use { reader ->
+                        channel.toInputStream().reader().use { reader ->
                             val firstByte = reader.read()
                             if (firstByte == -1) {
                                 //println("Premature end of response stream at iteration $i")
@@ -1043,7 +1035,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/file") {
-            assertEquals(originalSha1, inputStream.sha1())
+            assertEquals(originalSha1, channel.toInputStream().sha1())
         }
     }
 

@@ -1,16 +1,15 @@
 package org.jetbrains.ktor.testing
 
-import org.eclipse.jetty.client.*
-import org.eclipse.jetty.client.api.*
-import org.eclipse.jetty.http2.client.*
-import org.eclipse.jetty.http2.client.http.*
-import org.eclipse.jetty.util.ssl.*
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.client.*
+import org.jetbrains.ktor.client.http2.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.logging.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
+import org.junit.rules.*
 import org.slf4j.*
 import java.io.*
 import java.net.*
@@ -18,7 +17,6 @@ import java.security.*
 import java.util.concurrent.*
 import javax.net.ssl.*
 import kotlin.concurrent.*
-import kotlin.test.*
 
 
 abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory: ApplicationHostFactory<THost>) {
@@ -26,16 +24,29 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     protected val sslPort = findFreePort()
     protected var server: THost? = null
     protected var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
+    private val allConnections = CopyOnWriteArrayList<HttpURLConnection>()
 
     val testLog: Logger = LoggerFactory.getLogger("HostTestBase")
 
+    @Target(AnnotationTarget.FUNCTION)
+    @Retention
+    protected annotation class Http2Only
+
+    @get:Rule
+    val test = TestName()
+
     @Before
     fun setUpBase() {
+        if (this.javaClass.getMethod(test.methodName)?.isAnnotationPresent(Http2Only::class.java) ?: false) {
+            Assume.assumeTrue("http2 is not enabled", enableHttp2)
+        }
+
         testLog.trace("Starting server on port $port (SSL $sslPort)")
     }
 
     @After
     fun tearDownBase() {
+        allConnections.forEach { it.disconnect() }
         testLog.trace("Disposing server on port $port (SSL $sslPort)")
         (server as? ApplicationHost)?.stop(100, 5000, TimeUnit.MILLISECONDS)
     }
@@ -80,12 +91,12 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     }
 
     protected fun findFreePort() = ServerSocket(0).use { it.localPort }
-    protected fun withUrl(path: String, block: HttpURLConnection.(Int) -> Unit) {
-        withUrl(URL("http://127.0.0.1:$port$path"), port, block)
-        withUrl(URL("https://127.0.0.1:$sslPort$path"), sslPort, block)
+    protected fun withUrl(path: String, builder: RequestBuilder.() -> Unit = {}, block: suspend HttpResponse.(Int) -> Unit) {
+        withUrl(URL("http://127.0.0.1:$port$path"), port, builder, block)
+        withUrl(URL("https://127.0.0.1:$sslPort$path"), sslPort, builder, block)
     }
 
-    protected fun withUrlHttp2(path: String, block: ContentResponse.(Int) -> Unit) {
+    protected fun withUrlHttp2(path: String, block: suspend HttpResponse.(Int) -> Unit) {
         if (enableHttp2) {
             Class.forName("sun.security.ssl.ALPNExtension", true, null)
 
@@ -94,32 +105,22 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
         }
     }
 
-    private fun withUrl(url: URL, port: Int, block: HttpURLConnection.(Int) -> Unit) {
-        val connection = url.openConnection() as HttpURLConnection
-        if (connection is HttpsURLConnection) {
-            connection.sslSocketFactory = sslSocketFactory
+    private fun withUrl(url: URL, port: Int, builder: RequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit) {
+        runBlocking {
+            DefaultHttpClient.request(url, {
+                this.sslSocketFactory = Companion.sslSocketFactory
+                builder()
+            }).use { response ->
+                block(response, port)
+            }
         }
-        connection.connectTimeout = 10000
-        connection.readTimeout = 30000
-        connection.instanceFollowRedirects = false
-        connection.block(port)
     }
 
-    private fun withHttp2(url: URL, port: Int, block: ContentResponse.(Int) -> Unit) {
-        val transport = HTTP2Client()
-        val client = HttpClient(HttpClientTransportOverHTTP2(transport), SslContextFactory(true))
-
-        transport.start()
-        client.start()
-
-        try {
-            client.GET(url.toURI()).apply {
-                assertEquals("HTTP/2.0", version.asString())
-                block(port)
+    private fun withHttp2(url: URL, port: Int, block: suspend HttpResponse.(Int) -> Unit) {
+        runBlocking {
+            Http2Client.request(url).use { response ->
+                block(response, port)
             }
-        } finally {
-            client.stop()
-            transport.stop()
         }
     }
 

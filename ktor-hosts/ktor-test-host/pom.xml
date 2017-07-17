@@ -44,6 +44,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.jetbrains.ktor</groupId>
+            <artifactId>jetty-http2-client</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.mortbay.jetty.alpn</groupId>
             <artifactId>alpn-boot</artifactId>
             <version>${alpn.boot.version}</version>
