@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.client.http2
 
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.future.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.*
@@ -14,16 +14,18 @@ import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
+import java.io.*
 import java.net.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.*
+import java.util.concurrent.locks.*
+import kotlin.concurrent.*
 import kotlin.coroutines.experimental.*
 
 object Http2Client : HttpClient() {
-    suspend override fun openConnection(host: String, port: Int, secure: Boolean): HttpConnection {
-        return Http2Connection(host, port, secure).connect()
-    }
+    suspend override fun openConnection(host: String, port: Int, secure: Boolean): HttpConnection =
+            Http2Connection(host, port, secure).connect()
 }
 
 private class Http2Connection(val host: String, val port: Int, val secure: Boolean) : HttpConnection {
@@ -47,19 +49,99 @@ private class Http2Connection(val host: String, val port: Int, val secure: Boole
     }
 
     suspend override fun request(configure: RequestBuilder.() -> Unit): HttpResponse {
-        val rr = stream(RequestBuilder().apply(configure))
+        val builder = RequestBuilder()
+        configure(builder)
+
+        val rr = stream(builder)
+        sendBody(rr.stream, rr, builder)
+
         rr.awaitStatus()
 
         return rr
     }
 
     override fun close() {
-        runBlocking {
-            withCallback<Unit> {
-                session.close(0, null, it)
+        try {
+            runBlocking {
+                withCallback<Unit> {
+                    session.close(0, null, it)
+                }
+
+            }
+        } finally {
+            jettyClient.stop()
+        }
+    }
+
+    private suspend fun sendBody(stream: Stream, rr: RequestResponse, rb: RequestBuilder) {
+        rb.body?.let { body ->
+            val failures = ArrayBlockingQueue<Throwable>(1)
+            var outstanding = 0
+            val l = ReentrantLock()
+
+            val sent = l.newCondition()!!
+            val empty = l.newCondition()!!
+
+            val os = object : OutputStream(), Callback {
+                override fun succeeded() {
+                    resume(false)
+                }
+
+                override fun failed(x: Throwable) {
+                    failures.offer(x)
+                    resume(true)
+                }
+
+                private fun resume(all: Boolean) {
+                    l.withLock {
+                        outstanding--
+                        sent.signalAll()
+
+                        if (all || outstanding == 0) {
+                            empty.signalAll()
+                        }
+                    }
+                }
+
+                override fun write(b: Int) {
+                    writeEnter()
+
+                    val f = DataFrame(stream.id, ByteBuffer.wrap(byteArrayOf(b.toByte()), 0, 1), false)
+                    stream.data(f, this)
+                }
+
+                override fun write(b: ByteArray, off: Int, len: Int) {
+                    writeEnter()
+
+                    val f = DataFrame(stream.id, ByteBuffer.wrap(b, off, len), false)
+                    stream.data(f, this)
+                }
+
+                private fun writeEnter() {
+                    l.withLock {
+                        while (outstanding == 5) {
+                            sent.await()
+                        }
+
+                        outstanding++
+                    }
+                }
+
+                override fun flush() {
+                    l.withLock {
+                        while (true) {
+                            failures.peek()?.let { throw it }
+                            if (outstanding == 0) break
+                            empty.await()
+                        }
+                    }
+                }
             }
 
-            jettyClient.stop()
+            body(os)
+            os.flush()
+
+            stream.data(DataFrame(stream.id, ByteBuffer.allocate(0), true), Callback.NOOP)
         }
     }
 
@@ -72,7 +154,7 @@ private class Http2Connection(val host: String, val port: Int, val secure: Boole
 
         val meta = MetaData.Request(builder.method.value, if (secure) "https" else "http", hostPort, builder.path, HttpVersion.HTTP_2, headers, Long.MIN_VALUE)
 
-        val headersFrame = HeadersFrame(meta, null, true)
+        val headersFrame = HeadersFrame(meta, null, builder.body == null)
 
         val rr = RequestResponse(this)
         val stream = withPromise<Stream> { session.newStream(headersFrame, it, rr.Listener) }
@@ -93,20 +175,24 @@ private class RequestResponse(override val connection: HttpConnection) : org.jet
     lateinit var stream: Stream
 
     private val headersBuilder = ValuesMapBuilder(caseInsensitiveKey = true)
-    private val data = ArrayChannel<Pair<DataFrame, Callback>>(1)
-    private val cf = CompletableFuture<Unit>()
+    private val data = Channel<Pair<ByteBuffer, Callback>>(Channel.UNLIMITED)
+    private var current: Pair<ByteBuffer, Callback>? = null
+    private val cf = CompletableFuture<HttpStatusCode?>()
 
-    override val headers: ValuesMap
-        get() = headersBuilder.build()
+    override val version: String
+        get() = "HTTP/2"
+
+    override val headers: ValuesMap by lazy { headersBuilder.build() }
 
     override val status: HttpStatusCode
-        get() = headers.get(":status").let { HttpStatusCode.fromValue(it!!.toInt()) }
+        get() = cf.getNow(null) ?: throw IllegalStateException("No response yet")
 
     override val channel: ReadChannel
         get() = this
 
-    suspend fun awaitStatus() {
+    suspend fun awaitStatus(): HttpStatusCode {
         cf.await()
+        return cf.get() ?: throw IOException("Connection reset")
     }
 
     val Listener = object : Stream.Listener {
@@ -116,16 +202,28 @@ private class RequestResponse(override val connection: HttpConnection) : org.jet
         }
 
         override fun onReset(stream: Stream, frame: ResetFrame) {
-            println("onReset")
             if (frame.error == 0) data.close()
-            else data.close(ClosedChannelException())
+            else if (frame.error == ErrorCode.CANCEL_STREAM_ERROR.code) data.close(ClosedChannelException())
+            else {
+                val code = ErrorCode.from(frame.error)
 
-            cf.complete(Unit)
+                data.close(IOException("Connection reset ${code?.name ?: "with unknown error code ${frame.error}"}") )
+            }
+
+            cf.complete(null)
         }
 
         override fun onData(stream: Stream, frame: DataFrame, callback: Callback) {
             try {
-                if (!data.offer(Pair(frame, callback))) IllegalStateException("data.offer() failed")
+                if (frame.data.remaining() > 0) {
+                    if (!data.offer(Pair(frame.data.copy(), callback))) {
+                        throw IllegalStateException("data.offer() failed")
+                    }
+                }
+
+                if (frame.isEndStream) {
+                    data.close()
+                }
             } catch (t: Throwable) {
                 callback.failed(t)
             }
@@ -140,12 +238,14 @@ private class RequestResponse(override val connection: HttpConnection) : org.jet
                 data.close()
             }
 
-            cf.complete(Unit)
+            cf.complete((frame.metaData as? MetaData.Response)?.let {
+                HttpStatusCode(it.status, it.reason ?: "")
+            })
         }
     }
 
     suspend override fun read(dst: ByteBuffer): Int {
-        val frame = data.poll()
+        val frame = current ?: data.poll()
 
         return if (frame != null) {
             readImpl(frame, dst)
@@ -159,17 +259,15 @@ private class RequestResponse(override val connection: HttpConnection) : org.jet
         return readImpl(framePair, dst)
     }
 
-    private fun readImpl(framePair: Pair<DataFrame, Callback>, dst: ByteBuffer): Int {
-        val buffer = framePair.first.data
+    private fun readImpl(framePair: Pair<ByteBuffer, Callback>, dst: ByteBuffer): Int {
+        val buffer = framePair.first
+
         val rc = buffer.putTo(dst)
 
         if (buffer.hasRemaining()) {
-            data.offer(framePair)
+            current = framePair
         } else {
-            if (framePair.first.isEndStream) {
-                data.close()
-            }
-
+            current = null
             framePair.second.succeeded()
         }
 
@@ -177,9 +275,30 @@ private class RequestResponse(override val connection: HttpConnection) : org.jet
     }
 
     override fun close() {
+        var t: Throwable? = null
+        val l = CountDownLatch(1)
+
         if (data.close()) {
-            stream.reset(ResetFrame(stream.id, 0), Callback.NOOP)
+
+            stream.reset(ResetFrame(stream.id, 0), object : Callback {
+                override fun succeeded() {
+                    l.countDown()
+                }
+
+                override fun failed(x: Throwable?) {
+                    t = x
+                    l.countDown()
+                }
+            })
+
+        } else {
+            l.countDown()
         }
+
+        l.await()
+
+        connection.close()
+        t?.let { throw it }
     }
 
     companion object {

@@ -33,6 +33,7 @@ interface HttpConnection : Closeable {
 interface HttpResponse : Closeable {
     val connection: HttpConnection
 
+    val version: String
     val headers: ValuesMap
     val status: HttpStatusCode
 

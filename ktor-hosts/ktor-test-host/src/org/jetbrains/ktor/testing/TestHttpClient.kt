@@ -39,6 +39,9 @@ class TestingHttpClient(private val applicationHost: TestApplicationHost) : Http
 
         private class TestingHttpResponse(override val connection: HttpConnection, val call: TestApplicationCall) : HttpResponse {
 
+            override val version: String
+                get() = "HTTP/1.1"
+
             override val channel: ReadChannel
                 get() = call.response.byteContent?.toReadChannel() ?: EmptyReadChannel
 

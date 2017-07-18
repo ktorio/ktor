@@ -50,6 +50,9 @@ object DefaultHttpClient : HttpClient() {
     }
 
     private class DefaultHttpResponse(override val connection: HttpConnection, val javaNetConnection: HttpURLConnection) : HttpResponse {
+        override val version: String
+            get() = javaNetConnection.getHeaderField(null)?.substringBefore(' ', "")?.takeIf { it.isNotEmpty() } !!
+
         override val headers: ValuesMap
             get() = valuesOf(javaNetConnection.headerFields.mapKeys { it.key ?: "" }.filterKeys { it.isNotEmpty() }, true)
 
