@@ -16,7 +16,8 @@ enum class FrameType (val controlFrame: Boolean, val opcode: Int) {
         val byOpcode = values().associateBy { it.opcode }
 
         private val maxOpcode = values().maxBy { it.opcode }!!.opcode
-        private val byOpcodeArray = Array(maxOpcode + 1) { op -> byOpcode[op] }
+
+        private val byOpcodeArray = Array(maxOpcode + 1) { op -> values().singleOrNull { it.opcode == op } }
 
         operator fun get(opcode: Int): FrameType? = if (opcode in 0..maxOpcode) byOpcodeArray[opcode] else null
     }
