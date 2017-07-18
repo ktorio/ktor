@@ -37,25 +37,29 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         withUrl("/") {
             assertEquals(200, status.value)
 
-            val fields = headers.toMap().toMutableMap()
-            fields.remove("Date") // Do not check for Date field since it's unstable
+            val fields = ValuesMapBuilder(true)
+            fields.appendAll(headers)
+
+            fields.remove(HttpHeaders.Date) // Do not check for Date field since it's unstable
 
             // Check content type manually because spacing and case can be different per host
-            val contentType = fields.remove("Content-Type")?.single()
+            val contentType = fields.getAll(HttpHeaders.ContentType)?.single()
+            fields.remove(HttpHeaders.ContentType)
             assertNotNull(contentType) // Content-Type should be present
             val parsedContentType = ContentType.parse(contentType!!) // It should parse
             assertEquals(ContentType.Text.Plain, parsedContentType.withoutParameters())
             assertEquals(Charsets.UTF_8, parsedContentType.charset())
 
-            assertEquals(mapOf(
-                    "Connection" to listOf("keep-alive"),
-                    "Content-Length" to listOf("4")), fields)
+            if (version == "HTTP/2") {
+                assertEquals(mapOf(
+                        "content-length" to listOf("4")), fields.build().toMap())
+            } else {
+                assertEquals(mapOf(
+                        "Connection" to listOf("keep-alive"),
+                        "Content-Length" to listOf("4")), fields.build().toMap())
+            }
 
             assertEquals("test", readText())
-        }
-
-        withUrlHttp2("/") {
-            assertEquals("test", this.channel.toInputStream().reader().readText())
         }
     }
 
@@ -72,10 +76,6 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
                 call.respondText("test")
             }
         }
-
-//        withUrlHttp2("/") {
-//            assertEquals("test", contentAsString)
-//        }
     }
 
     @Test
@@ -254,6 +254,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
 
         withUrl("/files/${HostTestSuite::class.simpleName}.class") {
+            assertEquals(200, status.value)
             val bytes = readBytes(8192)
             assertNotEquals(0, bytes.size)
 
@@ -558,6 +559,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     }
 
     @Test
+    @NoHttp2
     fun testMultipartFileUpload() {
         createAndStartServer {
             post("/") {
@@ -738,7 +740,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     fun testRequestContentInputStream() {
         createAndStartServer {
             post("/") {
-                call.respond(call.receiveStream().reader().readText())
+                    call.respond(call.receiveStream().reader().readText())
             }
         }
 
@@ -956,7 +958,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
     }
 
-    @Test(timeout = 30000L)
+    @Test
     fun testBlockingConcurrency() {
         val completed = AtomicInteger(0)
         createAndStartServer {
@@ -986,11 +988,11 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
                         channel.toInputStream().reader().use { reader ->
                             val firstByte = reader.read()
                             if (firstByte == -1) {
-                                //println("Premature end of response stream at iteration $i")
-                                fail("Premature end of response stream at iteration $i")
-                            } else {
+                            //println("Premature end of response stream at iteration $i")
+                            fail("Premature end of response stream at iteration $i")
+                        } else {
                                 assertEquals('O', firstByte.toChar())
-                                Thread.sleep(random.nextInt(1000).toLong())
+                            Thread.sleep(random.nextInt(1000).toLong())
                                 assertEquals("K:$i\n", reader.readText())
                             }
                         }
@@ -1009,7 +1011,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             throw MultipleFailureException(errors)
         }
 
-        assertEquals(count * 2, completed.get())
+        assertEquals(count * if (enableHttp2) 3 else 2, completed.get())
     }
 
     @Test

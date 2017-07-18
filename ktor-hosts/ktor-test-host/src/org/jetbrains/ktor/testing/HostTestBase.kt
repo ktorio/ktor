@@ -17,9 +17,11 @@ import java.security.*
 import java.util.concurrent.*
 import javax.net.ssl.*
 import kotlin.concurrent.*
+import kotlin.test.*
 
 
 abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory: ApplicationHostFactory<THost>) {
+    protected val isUnderDebugger = java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.orEmpty().any { "-agentlib:jdwp" in it }
     protected val port = findFreePort()
     protected val sslPort = findFreePort()
     protected var server: THost? = null
@@ -32,13 +34,29 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     @Retention
     protected annotation class Http2Only
 
+    @Target(AnnotationTarget.FUNCTION)
+    @Retention
+    protected annotation class NoHttp2
+
     @get:Rule
     val test = TestName()
 
+    @get:Rule
+    val timeout = PublishedTimeout(if (isUnderDebugger) 1000000L else 60L)
+
     @Before
     fun setUpBase() {
-        if (this.javaClass.getMethod(test.methodName)?.isAnnotationPresent(Http2Only::class.java) ?: false) {
+        val method = this.javaClass.getMethod(test.methodName) ?: fail("Method ${test.methodName} not found")
+
+        if (method.isAnnotationPresent(Http2Only::class.java)) {
             Assume.assumeTrue("http2 is not enabled", enableHttp2)
+        }
+        if (method.isAnnotationPresent(NoHttp2::class.java)) {
+            enableHttp2 = false
+        }
+
+        if (enableHttp2) {
+            Class.forName("sun.security.ssl.ALPNExtension", true, null)
         }
 
         testLog.trace("Starting server on port $port (SSL $sslPort)")
@@ -48,7 +66,7 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     fun tearDownBase() {
         allConnections.forEach { it.disconnect() }
         testLog.trace("Disposing server on port $port (SSL $sslPort)")
-        (server as? ApplicationHost)?.stop(100, 5000, TimeUnit.MILLISECONDS)
+        (server as? ApplicationHost)?.stop(200, 5000, TimeUnit.MILLISECONDS)
     }
 
     protected open fun createServer(log: ApplicationLog?, module: Application.() -> Unit): THost {
@@ -94,35 +112,36 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     protected fun withUrl(path: String, builder: RequestBuilder.() -> Unit = {}, block: suspend HttpResponse.(Int) -> Unit) {
         withUrl(URL("http://127.0.0.1:$port$path"), port, builder, block)
         withUrl(URL("https://127.0.0.1:$sslPort$path"), sslPort, builder, block)
-    }
 
-    protected fun withUrlHttp2(path: String, block: suspend HttpResponse.(Int) -> Unit) {
         if (enableHttp2) {
-            Class.forName("sun.security.ssl.ALPNExtension", true, null)
-
-//            withHttp2(URL("http://127.0.0.1:$port$path"), port, block)
-            withHttp2(URL("https://127.0.0.1:$sslPort$path"), sslPort, block)
+            withHttp2(URL("https://127.0.0.1:$sslPort$path"), sslPort, builder, block)
         }
     }
 
     private fun withUrl(url: URL, port: Int, builder: RequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit) {
         runBlocking {
-            DefaultHttpClient.request(url, {
-                this.sslSocketFactory = Companion.sslSocketFactory
-                builder()
-            }).use { response ->
-                block(response, port)
+            withTimeout(timeout.seconds, TimeUnit.SECONDS) {
+                DefaultHttpClient.request(url, {
+                    this.sslSocketFactory = Companion.sslSocketFactory
+                    builder()
+                }).use { response ->
+                    block(response, port)
+                }
             }
         }
     }
 
-    private fun withHttp2(url: URL, port: Int, block: suspend HttpResponse.(Int) -> Unit) {
+    private fun withHttp2(url: URL, port: Int, builder: RequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit) {
         runBlocking {
-            Http2Client.request(url).use { response ->
-                block(response, port)
+            withTimeout(timeout.seconds, TimeUnit.SECONDS) {
+                Http2Client.request(url, builder).use { response ->
+                    block(response, port)
+                }
             }
         }
     }
+
+    class PublishedTimeout(val seconds: Long) : Timeout(seconds, TimeUnit.SECONDS)
 
     companion object {
         val keyStoreFile = File("target/temp.jks")
