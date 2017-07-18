@@ -19,10 +19,6 @@ import java.util.concurrent.*
 import kotlin.test.*
 
 abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: ApplicationHostFactory<THost>) : HostTestBase<THost>(hostFactory) {
-
-    @get:Rule
-    val timeout = Timeout(10, TimeUnit.SECONDS)
-
     @Test
     fun testWebSocketGenericSequence() {
         val collected = LinkedBlockingQueue<String>()
