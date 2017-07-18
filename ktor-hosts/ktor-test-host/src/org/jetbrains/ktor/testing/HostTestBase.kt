@@ -42,7 +42,7 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     val test = TestName()
 
     @get:Rule
-    val timeout = PublishedTimeout(if (isUnderDebugger) 1000000L else 60L)
+    val timeout = PublishedTimeout(if (isUnderDebugger) 1000000L else 120L)
 
     @Before
     fun setUpBase() {
