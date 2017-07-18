@@ -4,108 +4,54 @@ import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import org.jetbrains.ktor.cio.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.util.*
 import java.nio.*
+import java.nio.channels.*
 import java.util.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
 
-internal class NettyHttp2ReadChannel(val streamId: Int, val context: ChannelHandlerContext) : ReadChannel {
-    private val sourceBuffers = LinkedList<ByteBuf>()
-
-    private var destinationBuffer: ByteBuffer? = null
-    private val currentHandler = AtomicReference<Continuation<Int>?>()
-
-    @Volatile
-    private var eof: Boolean = false
-
-    @Volatile
-    private var total: Long = 0L
-
-    private val meet = Meeting(2) {
-        meet()
-    }
-
-    val listener = object : ChannelInboundHandlerAdapter() {
-        override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
-            if (msg is Http2Frame) {
-                handleRequest(ctx, msg)
-            } else {
-                ctx.fireChannelRead(msg)
-            }
-        }
-
-        fun handleRequest(ctx: ChannelHandlerContext, call: Http2Frame) {
-            when (call) {
-                is Http2DataFrame -> {
-                    if (call.streamId() == streamId) {
-                        sourceBuffers.add(call.content().retain())
-                        eof = call.isEndStream
-
-                        if (sourceBuffers.size == 1) {
-                            meet.acknowledge()
-                        }
-                    }
-                }
-            }
-        }
-    }
+internal class NettyHttp2ReadChannel(val queue: SuspendQueue<Http2DataFrame>) : ReadChannel {
+    private var last: Http2DataFrame? = null
+    private var eof = false
 
     override suspend fun read(dst: ByteBuffer): Int {
-        if (!dst.hasRemaining()) return 0
-
-        return suspendCoroutine { continuation ->
-            if (!currentHandler.compareAndSet(null, continuation)) {
-                throw IllegalStateException("Read operation is already in progress")
-            }
-
-            if (eof && sourceBuffers.isEmpty()) {
-                currentHandler.set(null)
-                continuation.resume(-1)
-            } else {
-                destinationBuffer = dst
-                meet.acknowledge()
-            }
+        return when {
+            eof -> -1
+            last != null -> readImpl(last!!, dst)
+            else -> readSuspend(dst)
         }
     }
 
-    private fun meet() {
-        val continuation = currentHandler.getAndSet(null)!!
-        val dst = destinationBuffer!!
-        destinationBuffer = null
+    private suspend fun readSuspend(dst: ByteBuffer): Int {
+        val frame = queue.pull() ?: return -1
+        return readImpl(frame, dst)
+    }
 
-        var total = 0
-
-        while (sourceBuffers.isNotEmpty()) {
-            val src = sourceBuffers.first()
-
-            total += src.safeReadTo(dst)
-
-            if (src.isReadable) {
-                break
-            } else {
-                src.release()
-                sourceBuffers.removeFirst()
-            }
+    private fun readImpl(frame: Http2DataFrame, dst: ByteBuffer): Int {
+        if (!frame.content().isReadable) {
+            last = null
+            eof = true
+            frame.release()
+            return -1
         }
 
-        meet.reset()
-        if (sourceBuffers.isNotEmpty()) {
-            meet.acknowledge() // increment available
-        }
+        val copied = frame.content().safeReadTo(dst)
 
-        context.writeAndFlush(DefaultHttp2WindowUpdateFrame(Math.max(9, total))) // TODO not precise enough
-        this.total += total
-
-        if (total == 0 && sourceBuffers.isEmpty() && eof) {
-            continuation.resume(-1)
+        if (!frame.content().isReadable) {
+            last = null
+            if (frame.isEndStream) eof = true
+            frame.release()
         } else {
-            continuation.resume(total)
+            last = frame
         }
+
+        return copied
     }
 
     override fun close() {
-        // TODO close
+        queue.cancel(ClosedChannelException())
     }
 
     private fun ByteBuf.safeReadTo(dst: ByteBuffer, count: Int = Math.min(readableBytes(), dst.remaining())): Int {

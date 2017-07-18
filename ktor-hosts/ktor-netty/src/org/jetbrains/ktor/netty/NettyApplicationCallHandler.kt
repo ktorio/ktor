@@ -2,19 +2,20 @@ package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
 import kotlinx.coroutines.experimental.*
+import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.netty.http2.*
 import org.jetbrains.ktor.pipeline.*
 import kotlin.coroutines.experimental.*
 
 internal class NettyApplicationCallHandler(private val host: NettyApplicationHost) : ChannelInboundHandlerAdapter() {
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
-        if (msg is NettyApplicationCall) {
-            handleRequest(ctx, msg)
-        } else {
-            ctx.fireChannelRead(msg)
+        when (msg) {
+            is ApplicationCall -> handleRequest(ctx, msg)
+            else -> ctx.fireChannelRead(msg)
         }
     }
 
-    fun handleRequest(context: ChannelHandlerContext, call: NettyApplicationCall) {
+    private fun handleRequest(context: ChannelHandlerContext, call: ApplicationCall) {
         launch(Dispatcher + CurrentContext(context)) {
             host.pipeline.execute(call)
         }

@@ -149,6 +149,7 @@ internal abstract class Http2StreamChannel(parent: Channel, val streamId: Int, v
         }
 
         allocHandle.incMessagesRead(1)
+
         pipeline().fireChannelRead(message)
 
         return true

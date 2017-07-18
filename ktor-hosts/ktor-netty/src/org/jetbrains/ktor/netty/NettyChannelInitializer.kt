@@ -76,7 +76,7 @@ class NettyChannelInitializer(val host: NettyApplicationHost, val connector: Hos
                 val decoder = DefaultHttp2ConnectionDecoder(connection, encoder, reader)
 
                 pipeline.addLast(HostHttp2Handler(encoder, decoder, Http2Settings()))
-                pipeline.addLast(Multiplexer(pipeline.channel(), NettyHostHttp2Handler(host, connection, host.pipeline)))
+                pipeline.addLast(Multiplexer(pipeline.channel(), NettyHostHttp2Handler(host, connection)))
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
                 val handler = NettyHostHttp1Handler(host)

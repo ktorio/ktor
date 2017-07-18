@@ -15,6 +15,8 @@ internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
                                              val context: ChannelHandlerContext,
                                              val connection: Http2Connection) : BaseApplicationResponse(call) {
 
+    private var sent = false
+
     private val responseHeaders = DefaultHttp2Headers().apply {
         status(HttpStatusCode.OK.value.toString())
     }
@@ -23,15 +25,20 @@ internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
         responseHeaders.status(statusCode.value.toString())
     }
 
-    internal val channelLazy: Lazy<WriteChannel> = lazy {
-//        context.executeInLoop {
-            context.writeAndFlush(DefaultHttp2HeadersFrame(responseHeaders, false))
-//        }
+    private fun ensureMessageSent(forceLast: Boolean) {
+        if (!sent) {
+            sent = true
+            context.writeAndFlush(DefaultHttp2HeadersFrame(responseHeaders, forceLast))
+        }
+    }
 
+    internal val channelLazy: Lazy<WriteChannel> = lazy {
+        ensureMessageSent(false)
         NettyHttp2WriteChannel(context)
     }
 
     fun ensureChannelClosed() {
+        ensureMessageSent(true)
         if (channelLazy.isInitialized()) {
             channelLazy.value.close()
         }

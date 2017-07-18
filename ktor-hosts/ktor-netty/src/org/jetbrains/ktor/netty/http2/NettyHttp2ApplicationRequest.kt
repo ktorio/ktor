@@ -53,7 +53,8 @@ internal class NettyHttp2ApplicationRequest(
 
     override fun receiveContent() = NettyHttp2IncomingContent(this)
 
-    private val contentChannel: NettyHttp2ReadChannel = NettyHttp2ReadChannel(streamId, context)
+    private val contentChannel: NettyHttp2ReadChannel = NettyHttp2ReadChannel(call.contentQueue)
+
     class NettyHttp2IncomingContent internal constructor(override val request: NettyHttp2ApplicationRequest) : IncomingContent {
         override fun readChannel(): ReadChannel = request.contentChannel
         override fun multiPartData(): MultiPartData {

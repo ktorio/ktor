@@ -76,8 +76,6 @@ internal class Multiplexer(val parent: Channel, val handler: ChannelHandler) : C
             handleRead(msg) // TODO should we check it before for unsafe.continue ... ? should we put it on the queue instead?
             fireChildReadComplete() // TODO when should we call it?
         }
-
-//        release(msg) // TODO most likely we shouldn't release it here
     }
 
     private fun release(o: Any) {
@@ -86,9 +84,15 @@ internal class Multiplexer(val parent: Channel, val handler: ChannelHandler) : C
 
     private inner class Http2StreamChannelImpl(streamId: Int) : Http2StreamChannel(parent, streamId, context) {
         override fun writeFromStreamChannel(msg: Http2StreamFrame, flush: Boolean) {
-            write(context, msg, context.newPromise())
+            val p = context.newPromise()
+            write(context, msg, p)
+
             if (flush) {
                 flush(context)
+            }
+
+            p.addListener {
+                release(msg)
             }
         }
     }

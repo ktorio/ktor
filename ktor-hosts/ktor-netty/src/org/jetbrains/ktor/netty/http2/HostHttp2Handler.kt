@@ -4,6 +4,7 @@ import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.*
 import io.netty.handler.codec.http2.*
+import io.netty.util.*
 
 internal class HostHttp2Handler(val encoder: Http2ConnectionEncoder, decoder: Http2ConnectionDecoder, settings: Http2Settings) : Http2ConnectionHandler(decoder, encoder, settings) {
     private var ctx: ChannelHandlerContext? = null
@@ -54,6 +55,9 @@ internal class HostHttp2Handler(val encoder: Http2ConnectionEncoder, decoder: Ht
         }
 
         override fun onGoAwayReceived(lastStreamId: Int, errorCode: Long, debugData: ByteBuf?) {
+            if (debugData != null) {
+                ReferenceCountUtil.retain(debugData)
+            }
             ctx?.fireChannelRead(DefaultHttp2GoAwayFrame(errorCode, debugData)) // TODO lastStreamId
         }
     }

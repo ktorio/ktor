@@ -20,8 +20,6 @@ internal class NettyApplicationCall(application: Application,
                                     contentQueue: NettyContentQueue,
                                     val userAppContext: CoroutineContext) : BaseApplicationCall(application) {
 
-    var completed: Boolean = false
-
     private val closed = AtomicBoolean(false)
 
     override val request = NettyApplicationRequest(this, httpRequest, NettyConnectionPoint(httpRequest, context), contentQueue)
@@ -31,19 +29,13 @@ internal class NettyApplicationCall(application: Application,
     init {
         sendPipeline.intercept(ApplicationSendPipeline.Host) {
             try {
-
+                response.close()
             } finally {
-                completed = true
-
                 try {
-                    response.close()
+                    request.close()
                 } finally {
-                    try {
-                        request.close()
-                    } finally {
-                        if (closed.compareAndSet(false, true)) {
-                            finalizeConnection()
-                        }
+                    if (closed.compareAndSet(false, true)) {
+                        finalizeConnection()
                     }
                 }
             }
