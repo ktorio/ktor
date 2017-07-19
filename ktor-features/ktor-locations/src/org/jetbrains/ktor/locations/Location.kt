@@ -24,13 +24,42 @@ inline fun <reified T : Any> Route.get(noinline body: suspend PipelineContext<Un
     }
 }
 
+inline fun <reified T : Any> Route.options(noinline body: suspend PipelineContext<Unit>.(T) -> Unit): Route {
+    return location(T::class) {
+        method(HttpMethod.Options) {
+            handle(body)
+        }
+    }
+}
+
+inline fun <reified T : Any> Route.head(noinline body: suspend PipelineContext<Unit>.(T) -> Unit): Route {
+    return location(T::class) {
+        method(HttpMethod.Head) {
+            handle(body)
+        }
+    }
+}
+
 inline fun <reified T : Any> Route.post(noinline body: suspend PipelineContext<Unit>.(T) -> Unit): Route {
     return location(T::class) {
         method(HttpMethod.Post) {
-            handle {
-                val formPostData = call.tryReceive<ValuesMap>() ?: ValuesMap.Empty
-                body(this, locations().resolve(T::class, call.parameters + formPostData))
-            }
+            handle(body)
+        }
+    }
+}
+
+inline fun <reified T : Any> Route.put(noinline body: suspend PipelineContext<Unit>.(T) -> Unit): Route {
+    return location(T::class) {
+        method(HttpMethod.Put) {
+            handle(body)
+        }
+    }
+}
+
+inline fun <reified T : Any> Route.patch(noinline body: suspend PipelineContext<Unit>.(T) -> Unit): Route {
+    return location(T::class) {
+        method(HttpMethod.Patch) {
+            handle(body)
         }
     }
 }
