@@ -78,7 +78,6 @@ open class CookieSessionBuilder<S : Any>(val type: KClass<S>) {
     }
 
     val cookie = CookieConfiguration()
-    var requireHttps: Boolean = false
 }
 
 open class HeaderSessionBuilder<S : Any>(val type: KClass<S>) {
