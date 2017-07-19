@@ -5,6 +5,7 @@ data class HttpMethod(val value: String) {
         val Get = HttpMethod("GET")
         val Post = HttpMethod("POST")
         val Put = HttpMethod("PUT")
+        val Patch = HttpMethod("PATCH") // https://tools.ietf.org/html/rfc5789
         val Delete = HttpMethod("DELETE")
         val Head = HttpMethod("HEAD")
         val Options = HttpMethod("OPTIONS")
@@ -14,6 +15,7 @@ data class HttpMethod(val value: String) {
                 Get.value -> Get
                 Post.value -> Post
                 Put.value -> Put
+                Patch.value -> Patch
                 Delete.value -> Delete
                 Head.value -> Head
                 Options.value -> Options
