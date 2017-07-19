@@ -1,6 +1,9 @@
 # 0.4.0
 
+* Fixes, improvements and integration tests for HTTP/2 support
+* Add HttpMethod.Patch and respective builder functions 
 * Convert sessions to proper feature, support multiple sessions, improve DSL 
+* HeadRequestSupport feature is renamed to AutoHeadResponse (with deprecated typealias)
 * Replace ApplicationTransform with receive pipeline
 * Introduce send/receive pipelines for all call pipelines
 * Gson application feature for JSON transformation of incoming & outgoing data objects
@@ -8,11 +11,14 @@
 * Employ `DslMarker` annotation to prevent accidental use of route functions in get/post handlers 
 * Improve diagnostics for untransformed content
 * Ensure missing file (`FileNotFoundException`) can be handled properly with `StatusPages` feature 
-* Websocket fixes for large frames
+* Websocket fixes for large frames, fragmentation and more
 * Support for specifying config file with command line
 * Improvements in Servlet-based hosts
 * Memory allocation and performance optimisations
 * Add Apache 2 LICENSE file
+* Add documentation to some types
+* New sample for static content
+* Bump versions of dependencies
 
 # 0.3.3
 > Published 22 Jun 2017
