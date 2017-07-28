@@ -35,7 +35,7 @@ class OAuth2Test {
             if (clientSecret != "clientSecret1") {
                 throw IllegalArgumentException("Wrong client secret $clientSecret")
             }
-            if (grantType == OAuthGrandTypes.AuthorizationCode) {
+            if (grantType == OAuthGrantTypes.AuthorizationCode) {
                 if (state != "state1") {
                     throw IllegalArgumentException("Wrong state $state")
                 }
@@ -47,7 +47,7 @@ class OAuth2Test {
                 }
 
                 return OAuthAccessTokenResponse.OAuth2("accessToken1", "type", Long.MAX_VALUE, null)
-            } else if (grantType == OAuthGrandTypes.Password) {
+            } else if (grantType == OAuthGrantTypes.Password) {
                 if (userName != "user1") {
                     throw IllegalArgumentException("Wrong username $userName")
                 }
@@ -57,7 +57,7 @@ class OAuth2Test {
 
                 return OAuthAccessTokenResponse.OAuth2("accessToken1", "type", Long.MAX_VALUE, null)
             } else {
-                throw IllegalArgumentException("Wrong grand type $grantType")
+                throw IllegalArgumentException("Wrong grant type $grantType")
             }
         }
     })

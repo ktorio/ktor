@@ -47,7 +47,7 @@ sealed class OAuthAccessTokenResponse : Principal {
     data class OAuth2(val accessToken: String, val tokenType: String, val expiresIn: Long, val refreshToken: String?, val extraParameters: ValuesMap = ValuesMap.Empty) : OAuthAccessTokenResponse()
 }
 
-object OAuthGrandTypes {
+object OAuthGrantTypes {
     val AuthorizationCode = "authorization_code"
     val Password = "password"
 }

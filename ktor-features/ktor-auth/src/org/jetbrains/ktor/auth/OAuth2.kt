@@ -96,7 +96,7 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
                                       extraParameters: Map<String, String> = emptyMap(),
                                       configure: RequestBuilder.() -> Unit = {},
                                       useBasicAuth: Boolean = false,
-                                      grantType: String = OAuthGrandTypes.AuthorizationCode): OAuthAccessTokenResponse.OAuth2 {
+                                      grantType: String = OAuthGrantTypes.AuthorizationCode): OAuthAccessTokenResponse.OAuth2 {
     val urlParameters =
             (listOf(
                     OAuth2RequestParameters.ClientId to clientId,
@@ -200,7 +200,7 @@ suspend fun verifyWithOAuth2(c: UserPasswordCredential, client: HttpClient, sett
                     OAuth2RequestParameters.Password to c.password
             ),
             useBasicAuth = true,
-            grantType = OAuthGrandTypes.Password
+            grantType = OAuthGrantTypes.Password
     )
 }
 
