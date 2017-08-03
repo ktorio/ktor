@@ -12,8 +12,7 @@ import javax.servlet.http.*
 import kotlin.collections.ArrayList
 
 class ServletApplicationRequest(call: ServletApplicationCall,
-                                val servletRequest: HttpServletRequest,
-                                requestChannelOverride: () -> ReadChannel?) : BaseApplicationRequest(call) {
+                                val servletRequest: HttpServletRequest) : BaseApplicationRequest(call) {
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 
     override val queryParameters by lazy {
@@ -73,11 +72,7 @@ class ServletApplicationRequest(call: ServletApplicationCall,
         override fun names(): Set<String> = servletRequest.headerNames.asSequence().toSet()
     }
 
-    private val servletReadChannel = lazy {
-        requestChannelOverride() ?: run {
-            ServletReadChannel(servletRequest.inputStream)
-        }
-    }
+    private val servletReadChannel = lazy { ServletReadChannel(servletRequest.inputStream) }
 
     override fun receiveContent() = ServletIncomingContent(this)
 

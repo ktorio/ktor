@@ -3,7 +3,6 @@ package org.jetbrains.ktor.jetty
 import org.eclipse.jetty.server.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
-import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.servlet.*
 import javax.servlet.http.*
@@ -17,21 +16,8 @@ class JettyApplicationCall(application: Application,
                            pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit,
                            hostContext: CoroutineContext,
                            userAppContext: CoroutineContext)
-: ServletApplicationCall(application, servletRequest, servletResponse, pool, pushImpl, hostContext, userAppContext) {
+    : ServletApplicationCall(application, servletRequest, servletResponse, pool, pushImpl, hostContext, userAppContext) {
 
-    suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
-        // Jetty doesn't support Servlet API's upgrade so we have to implement our own
+    override val response: ServletApplicationResponse = JettyApplicationResponse(this, servletRequest, servletResponse, hostContext, userAppContext, pushImpl, server)
 
-        val connection = servletRequest.getAttribute("org.eclipse.jetty.server.HttpConnection") as HttpConnection
-        val inputChannel = EndPointReadChannel(connection.endPoint, server.threadPool)
-        val outputChannel = EndPointWriteChannel(connection.endPoint)
-
-        requestChannelOverride = inputChannel
-        responseChannelOverride = outputChannel
-
-        servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, inputChannel)
-
-        servletResponse.flushBuffer()
-        upgrade.upgrade(inputChannel, outputChannel, connection, hostContext, userAppContext)
-    }
 }

@@ -15,11 +15,11 @@ import kotlin.collections.LinkedHashSet
 
 internal class NettyApplicationRequest(
         call: NettyApplicationCall,
-        private val request: HttpRequest,
         override val local: NettyConnectionPoint,
-        val contentQueue: NettyContentQueue) : BaseApplicationRequest(call), Closeable {
+        private val httpRequest: HttpRequest,
+        private val contentQueue: NettyContentQueue) : BaseApplicationRequest(call), Closeable {
 
-    override val headers: ValuesMap = NettyHeadersValuesMap(request)
+    override val headers: ValuesMap = NettyHeadersValuesMap(httpRequest)
 
     class NettyHeadersValuesMap(request: HttpRequest) : ValuesMap {
         private val headers: HttpHeaders = request.headers()
@@ -48,7 +48,7 @@ internal class NettyApplicationRequest(
     }
 
     override val queryParameters by lazy {
-        parseQueryString(request.uri().substringAfter("?", ""))
+        parseQueryString(httpRequest.uri().substringAfter("?", ""))
     }
 
     override fun receiveContent() = NettyHttpIncomingContent(this)
@@ -58,7 +58,7 @@ internal class NettyApplicationRequest(
     private val multipart = lazy {
         if (!isMultipart())
             throw IOException("The request content is not multipart encoded")
-        val decoder = HttpPostMultipartRequestDecoder(request)
+        val decoder = HttpPostMultipartRequestDecoder(httpRequest)
         NettyMultiPartData(decoder, contentQueue)
     }
 

@@ -13,6 +13,11 @@ interface ApplicationResponse {
     val call: ApplicationCall
 
     /**
+     * Pipeline for sending content
+     */
+    val pipeline: ApplicationSendPipeline
+
+    /**
      * Headers for this response
      */
     val headers: ResponseHeaders

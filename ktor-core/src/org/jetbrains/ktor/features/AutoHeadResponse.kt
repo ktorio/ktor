@@ -20,8 +20,8 @@ object AutoHeadResponse : ApplicationFeature<ApplicationCallPipeline, Unit, Unit
 
         pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
             if (call.request.local.method == HttpMethod.Head) {
-                call.sendPipeline.phases.insertBefore(ApplicationSendPipeline.TransferEncoding, HeadPhase)
-                call.sendPipeline.intercept(HeadPhase) { message ->
+                call.response.pipeline.phases.insertBefore(ApplicationSendPipeline.TransferEncoding, HeadPhase)
+                call.response.pipeline.intercept(HeadPhase) { message ->
                     if (message is FinalContent && message !is FinalContent.NoContent) {
                         proceedWith(HeadResponse(message))
                     }

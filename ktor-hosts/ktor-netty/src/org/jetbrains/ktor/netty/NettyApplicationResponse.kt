@@ -2,13 +2,23 @@ package org.jetbrains.ktor.netty
 
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
-import org.jetbrains.ktor.application.*
+import io.netty.util.*
+import kotlinx.coroutines.experimental.*
+import org.jetbrains.ktor.cio.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.response.*
+import java.io.Closeable
+import java.util.concurrent.atomic.*
+import kotlin.coroutines.experimental.*
 
-internal class NettyApplicationResponse(call: ApplicationCall, val context: ChannelHandlerContext) : BaseApplicationResponse(call) {
+internal class NettyApplicationResponse(call: NettyApplicationCall,
+                                        private val httpRequest: HttpRequest,
+                                        private val context: ChannelHandlerContext,
+                                        private val hostCoroutineContext: CoroutineContext,
+                                        private val userCoroutineContext: CoroutineContext) : BaseApplicationResponse(call) {
     val response = DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.OK)
 
     @Volatile
@@ -17,6 +27,89 @@ internal class NettyApplicationResponse(call: ApplicationCall, val context: Chan
     @Volatile
     private var responseChannel0: HttpContentWriteChannel? = null
 
+    private val closed = AtomicBoolean(false)
+    init {
+        pipeline.intercept(ApplicationSendPipeline.Host) {
+            try {
+                close()
+            } finally {
+                try {
+                    call.request.close()
+                } finally {
+                    if (closed.compareAndSet(false, true)) {
+                        finalizeConnection()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun finalizeConnection() {
+        try {
+            val finishContent = context.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
+            if (!HttpUtil.isKeepAlive(httpRequest)) {
+                // close channel if keep-alive was not requested
+                finishContent.addListener(ChannelFutureListener.CLOSE)
+            } else {
+                // reenable read operations on a channel if keep-alive was requested
+                finishContent.addListener {
+                    context.channel().config().isAutoRead = true
+                    context.read()
+
+                    context.channel().attr(NettyHostHttp1Handler.ResponseQueueKey).get()?.completed(call)
+                    // resume next sendResponseMessage if queued
+                }
+            }
+        } finally {
+            ReferenceCountUtil.release(httpRequest)
+        }
+    }
+
+    suspend override fun respondFromBytes(bytes: ByteArray) {
+        // Note that it shouldn't set HttpHeaders.ContentLength even if we know it here,
+        // because it should've been set by commitHeaders earlier
+        sendResponseMessage(flush = false, chunked = false)
+        val buf = context.alloc().ioBuffer(bytes.size).writeBytes(bytes)
+        context.writeAndFlush(buf).suspendAwait()
+    }
+
+    override suspend fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
+        val nettyContext = context
+        val nettyChannel = nettyContext.channel()
+        val userAppContext = userCoroutineContext + NettyDispatcher.CurrentContext(nettyContext)
+
+        run(hostCoroutineContext) {
+            val upgradeContentQueue = RawContentQueue(nettyContext)
+
+            nettyChannel.pipeline().replace(HttpContentQueue::class.java, "WebSocketReadQueue", upgradeContentQueue).popAndForEach {
+                it.clear {
+                    if (it is LastHttpContent)
+                        it.release()
+                    else
+                        upgradeContentQueue.queue.push(it, false)
+                }
+            }
+
+            with(nettyChannel.pipeline()) {
+                remove(NettyHostHttp1Handler::class.java)
+                addFirst(NettyDirectDecoder())
+            }
+
+            sendResponseMessage(chunked = false)?.addListener {
+                launch(userAppContext) {
+                    nettyChannel.pipeline().remove(HttpServerCodec::class.java)
+                    nettyChannel.pipeline().addFirst(NettyDirectEncoder())
+
+                    upgrade.upgrade(HttpContentReadChannel(upgradeContentQueue.queue, buffered = false), responseChannel(), Closeable {
+                        nettyChannel.close().get()
+                        upgradeContentQueue.close()
+                    }, hostCoroutineContext, userAppContext)
+                    nettyContext.read()
+                }
+            } ?: throw IllegalStateException("Response has been already sent")
+        }
+    }
+
     override fun setStatus(statusCode: HttpStatusCode) {
         val cached = responseStatusCache[statusCode.value]
 
@@ -24,7 +117,7 @@ internal class NettyApplicationResponse(call: ApplicationCall, val context: Chan
                 ?: HttpResponseStatus(statusCode.value, statusCode.description)
     }
 
-    internal suspend fun responseChannel(): HttpContentWriteChannel {
+    override suspend fun responseChannel(): WriteChannel {
         sendResponseMessage()
 
         return if (responseChannel0 == null) {

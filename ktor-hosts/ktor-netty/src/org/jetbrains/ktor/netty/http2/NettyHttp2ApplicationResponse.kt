@@ -5,6 +5,7 @@ import io.netty.handler.codec.http2.*
 import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.netty.*
@@ -32,15 +33,25 @@ internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
         }
     }
 
-    internal val channelLazy: Lazy<WriteChannel> = lazy {
+    suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
+        throw UnsupportedOperationException("HTTP/2 doesn't support upgrade")
+    }
+
+    private val channelLazy: Lazy<WriteChannel> = lazy {
         ensureMessageSent(false)
         NettyHttp2WriteChannel(context)
     }
 
-    fun ensureChannelClosed() {
-        ensureMessageSent(true)
-        if (channelLazy.isInitialized()) {
-            channelLazy.value.close()
+    override suspend fun responseChannel() = channelLazy.value
+
+    suspend override fun respondFinalContent(content: FinalContent) {
+        try {
+            super.respondFinalContent(content)
+        } finally {
+            ensureMessageSent(true)
+            if (channelLazy.isInitialized()) {
+                channelLazy.value.close()
+            }
         }
     }
 

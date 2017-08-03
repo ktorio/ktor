@@ -32,10 +32,5 @@ interface ApplicationCall {
      * Parameters associated with this call
      */
     val parameters: ValuesMap
-
-    /**
-     * Pipeline for sending content
-     */
-    val sendPipeline: ApplicationSendPipeline
 }
 

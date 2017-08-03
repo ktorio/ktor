@@ -9,7 +9,7 @@ import java.io.*
  * Sends a [message] as a response
  */
 suspend fun ApplicationCall.respond(message: Any) {
-    sendPipeline.execute(this, message)
+    response.pipeline.execute(this, message)
 }
 
 suspend fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false) {

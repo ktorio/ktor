@@ -1,20 +1,25 @@
 package org.jetbrains.ktor.testing
 
-import org.jetbrains.ktor.application.*
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.cio.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
+import java.io.Closeable
+import java.time.*
+import java.util.concurrent.*
 
-class TestApplicationResponse(call: ApplicationCall) : BaseApplicationResponse(call) {
-    internal val realContent = lazy { ByteBufferWriteChannel() }
+class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationResponse(call) {
+    private val realContent = lazy { ByteBufferWriteChannel() }
 
     @Volatile
     private var closed = false
+    private val webSocketCompleted = CountDownLatch(1)
 
-    override fun setStatus(statusCode: HttpStatusCode) {
-    }
+    override fun setStatus(statusCode: HttpStatusCode) {}
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         private val headersMap = ValuesMapBuilder(true)
@@ -30,6 +35,27 @@ class TestApplicationResponse(call: ApplicationCall) : BaseApplicationResponse(c
         override fun getHostHeaderValues(name: String): List<String> = headers.getAll(name).orEmpty()
     }
 
+    init {
+        pipeline.intercept(ApplicationSendPipeline.Host) {
+            call.requestHandled = true
+            close()
+        }
+    }
+
+    suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
+        upgrade.upgrade(call.receiveChannel(), realContent.value, Closeable { webSocketCompleted.countDown() }, CommonPool, Unconfined)
+    }
+
+    override suspend fun responseChannel(): WriteChannel = realContent.value.apply {
+        headers[HttpHeaders.ContentLength]?.let { contentLengthString ->
+            val contentLength = contentLengthString.toLong()
+            if (contentLength >= Int.MAX_VALUE) {
+                throw IllegalStateException("Content length is too big for test host")
+            }
+
+            ensureCapacity(contentLength.toInt())
+        }
+    }
 
     val content: String?
         get() = if (realContent.isInitialized()) {
@@ -48,4 +74,10 @@ class TestApplicationResponse(call: ApplicationCall) : BaseApplicationResponse(c
     fun close() {
         closed = true
     }
+
+    fun awaitWebSocket(duration: Duration) {
+        if (!webSocketCompleted.await(duration.toMillis(), TimeUnit.MILLISECONDS))
+            throw TimeoutException()
+    }
+
 }

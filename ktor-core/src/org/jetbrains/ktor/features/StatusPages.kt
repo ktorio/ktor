@@ -33,7 +33,7 @@ class StatusPages(config: Configuration) {
 
     suspend private fun intercept(context: PipelineContext<Unit>) {
         var statusHandled = false
-        context.call.sendPipeline.intercept(ApplicationSendPipeline.After) { message ->
+        context.call.response.pipeline.intercept(ApplicationSendPipeline.After) { message ->
             if (!statusHandled) {
                 val status = when (message) {
                     is FinalContent -> message.status

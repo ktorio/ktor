@@ -16,18 +16,4 @@ internal class NettyHttp2ApplicationCall(application: Application,
     override val bufferPool = NettyByteBufferPool(context)
     override val request = NettyHttp2ApplicationRequest(this, context, headers)
     override val response = NettyHttp2ApplicationResponse(this, handler, context, connection)
-
-    suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
-        throw UnsupportedOperationException("HTTP/2 doesn't support upgrade")
-    }
-
-    override suspend fun responseChannel() = response.channelLazy.value
-
-    suspend override fun respondFinalContent(content: FinalContent) {
-        try {
-            super.respondFinalContent(content)
-        } finally {
-            response.ensureChannelClosed()
-        }
-    }
 }

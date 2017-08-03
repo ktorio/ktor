@@ -23,10 +23,10 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
             phases.merge(routingCallPipeline.receivePipeline.phases)
         }
         val responsePipeline = ApplicationSendPipeline().apply {
-            phases.merge(context.call.sendPipeline.phases)
+            phases.merge(context.call.response.pipeline.phases)
             phases.merge(routingCallPipeline.sendPipeline.phases)
         }
-        val routingCall = RoutingApplicationCall(context.call, receivePipeline, responsePipeline, route, parameters)
+        val routingCall = RoutingApplicationCall(context.call, route, receivePipeline, responsePipeline, parameters)
         routingCallPipeline.execute(routingCall)
     }
 

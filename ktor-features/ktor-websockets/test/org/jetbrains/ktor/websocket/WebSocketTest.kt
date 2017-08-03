@@ -38,7 +38,7 @@ class WebSocketTest {
                     0x81 0x05 0x48 0x65 0x6c 0x6c 0x6f
                 """.trimHex())
             }.let { call ->
-                call.awaitWebSocket(Duration.ofSeconds(10))
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
                 assertEquals("810548656c6c6f", hex(call.response.byteContent!!))
             }
         }
@@ -65,14 +65,14 @@ class WebSocketTest {
             handleWebSocket("/echo") {
                 bodyBytes = byteArrayOf()
             }.let { call ->
-                call.awaitWebSocket(Duration.ofSeconds(10))
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
                 assertEquals("817ec123", hex(call.response.byteContent!!.take(4).toByteArray()))
             }
 
             handleWebSocket("/receiveSize") {
                 bodyBytes = hex("0x81 0x7e 0xcd 0xef".trimHex()) + "+".repeat(0xcdef).toByteArray()
             }.let { call ->
-                call.awaitWebSocket(Duration.ofSeconds(10))
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
                 assertEquals("82040000cdef", hex(call.response.byteContent!!.take(6).toByteArray()))
             }
         }
@@ -102,7 +102,7 @@ class WebSocketTest {
                     0x81 0x85 0x37 0xfa 0x21 0x3d 0x7f 0x9f 0x4d 0x51 0x58
                 """.trimHex())
             }.let { call ->
-                call.awaitWebSocket(Duration.ofSeconds(10))
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
 
                 val bb = ByteBuffer.wrap(call.response.byteContent!!)
                 assertEquals(11, bb.remaining())
@@ -139,7 +139,7 @@ class WebSocketTest {
                     0x88 0x02 0xe8 0x03
                 """.trimHex())
             }.let { call ->
-                call.awaitWebSocket(Duration.ofSeconds(10))
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
                 assertEquals("0x88 0x02 0xe8 0x03".trimHex(), hex(call.response.byteContent!!))
             }
         }
@@ -157,7 +157,7 @@ class WebSocketTest {
             }
 
             handleWebSocket("/aaa") {}.let { call ->
-                call.awaitWebSocket(Duration.ofSeconds(10))
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
                 val p = FrameParser()
                 val bb = ByteBuffer.wrap(call.response.byteContent)
                 p.frame(bb)
@@ -205,7 +205,7 @@ class WebSocketTest {
             handleWebSocket("/") {
                 bodyBytes = sendBuffer.array()
             }.let { call ->
-                call.awaitWebSocket(Duration.ofSeconds(10))
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
 
                 val p = FrameParser()
                 val bb = ByteBuffer.wrap(call.response.byteContent)
@@ -257,7 +257,7 @@ class WebSocketTest {
             handleWebSocket("/") {
                 bodyBytes = sendBuffer.array()
             }.let { call ->
-                call.awaitWebSocket(Duration.ofSeconds(10))
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
 
                 assertEquals("ABC123", receivedText)
             }
