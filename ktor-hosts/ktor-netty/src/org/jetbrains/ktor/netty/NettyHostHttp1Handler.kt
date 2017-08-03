@@ -5,9 +5,17 @@ import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.HttpResponseStatus.*
 import io.netty.handler.codec.http.HttpVersion.*
 import io.netty.util.*
+import io.netty.util.concurrent.*
+import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.host.*
+import kotlin.coroutines.experimental.*
 
 @ChannelHandler.Sharable
-internal class NettyHostHttp1Handler(private val host: NettyApplicationHost) : ChannelInboundHandlerAdapter() {
+internal class NettyHostHttp1Handler(private val hostPipeline: HostPipeline,
+                                     private val application: Application,
+                                     private val callEventGroup: EventExecutorGroup,
+                                     private val hostCoroutineContext: CoroutineContext,
+                                     private val userCoroutineContext: CoroutineContext) : ChannelInboundHandlerAdapter() {
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         if (msg is HttpRequest) {
             handleRequest(ctx, msg)
@@ -18,7 +26,7 @@ internal class NettyHostHttp1Handler(private val host: NettyApplicationHost) : C
 
     private fun handleRequest(context: ChannelHandlerContext, message: HttpRequest) {
         if (HttpUtil.is100ContinueExpected(message)) {
-            context.write(DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
+            context.write(DefaultFullHttpResponse(HTTP_1_1, CONTINUE))
         }
 
         context.channel().config().isAutoRead = false
@@ -29,7 +37,7 @@ internal class NettyHostHttp1Handler(private val host: NettyApplicationHost) : C
             queue.push(message, message is LastHttpContent)
         }
 
-        val call = NettyApplicationCall(host, host.application, context, message, queue)
+        val call = NettyApplicationCall(application, context, message, queue, hostCoroutineContext, userCoroutineContext)
         context.channel().attr(ResponseQueueKey).get().started(call)
         context.fireChannelRead(call)
     }
@@ -40,7 +48,7 @@ internal class NettyHostHttp1Handler(private val host: NettyApplicationHost) : C
 
         ctx.pipeline().apply {
             addLast(httpContentQueue)
-            addLast(host.callEventGroup, NettyApplicationCallHandler(host))
+            addLast(callEventGroup, NettyApplicationCallHandler(userCoroutineContext, hostPipeline))
         }
 
         super.channelActive(ctx)

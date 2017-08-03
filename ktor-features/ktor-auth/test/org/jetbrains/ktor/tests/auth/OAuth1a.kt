@@ -68,7 +68,7 @@ class OAuth1aFlowTest {
                 return TestOAuthTokenResponse(callback == "http://localhost/login?redirected=true", "token1", "tokenSecret1")
             }
 
-            override suspend fun authorize(call: ApplicationCall, oauthToken: String): Unit {
+            override suspend fun authorize(call: ApplicationCall, oauthToken: String) {
                 if (oauthToken != "token1") {
                     call.respondRedirect("http://localhost/login?redirected=true&error=Wrong+token+$oauthToken")
                 }
@@ -109,9 +109,9 @@ class OAuth1aFlowTest {
         testClient = null
     }
 
-    val exec = Executors.newSingleThreadExecutor()
+    private val exec = Executors.newSingleThreadExecutor()
 
-    val settings = OAuthServerSettings.OAuth1aServerSettings(
+    private val settings = OAuthServerSettings.OAuth1aServerSettings(
             name = "oauth1a",
             requestTokenUrl = "https://login-server-com/oauth/request_token",
             authorizeUrl = "https://login-server-com/oauth/authorize",
@@ -295,7 +295,7 @@ class OAuth1aFlowTest {
 
 private interface TestingOAuthServer {
     fun requestToken(ctx: ApplicationCall, callback: String?, consumerKey: String, nonce: String, signature: String, signatureMethod: String, timestamp: Long): TestOAuthTokenResponse
-    suspend fun authorize(call: ApplicationCall, oauthToken: String): Unit
+    suspend fun authorize(call: ApplicationCall, oauthToken: String)
     fun accessToken(ctx: ApplicationCall, consumerKey: String, nonce: String, signature: String, signatureMethod: String,
                     timestamp: Long, token: String, verifier: String): OAuthAccessTokenResponse.OAuth1a
 }
@@ -392,7 +392,6 @@ private fun createOAuthServer(server: TestingOAuthServer): TestingHttpClient {
 
 suspend private fun ApplicationCall.fail(text: String?) {
     val message = text ?: "Auth failed"
-    application.log.error(message)
     response.status(HttpStatusCode.InternalServerError)
     respondText(message)
 }

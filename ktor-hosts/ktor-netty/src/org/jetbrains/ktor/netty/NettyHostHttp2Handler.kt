@@ -4,14 +4,20 @@ import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import io.netty.util.*
 import io.netty.util.collection.*
+import io.netty.util.concurrent.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.http2.*
 import org.jetbrains.ktor.response.*
 import java.nio.channels.*
+import kotlin.coroutines.experimental.*
 
 @ChannelHandler.Sharable
-class NettyHostHttp2Handler(private val host: NettyApplicationHost, private val http2: Http2Connection) : ChannelInboundHandlerAdapter() {
+class NettyHostHttp2Handler(private val hostPipeline: HostPipeline,
+                            private val application: Application,
+                            private val callEventGroup: EventExecutorGroup,
+                            private val userCoroutineContext: CoroutineContext,
+                            private val http2: Http2Connection) : ChannelInboundHandlerAdapter() {
     override fun channelRead(context: ChannelHandlerContext, message: Any?) {
         when (message) {
             is Http2HeadersFrame -> {
@@ -29,7 +35,7 @@ class NettyHostHttp2Handler(private val host: NettyApplicationHost, private val 
 
     override fun channelActive(ctx: ChannelHandlerContext) {
         ctx.pipeline().apply {
-            addLast(host.callEventGroup, NettyApplicationCallHandler(host))
+            addLast(callEventGroup, NettyApplicationCallHandler(userCoroutineContext, hostPipeline))
         }
 
         super.channelActive(ctx)
@@ -48,7 +54,7 @@ class NettyHostHttp2Handler(private val host: NettyApplicationHost, private val 
     }
 
     private fun startHttp2(context: ChannelHandlerContext, streamId: Int, headers: Http2Headers, http2: Http2Connection) {
-        val call = NettyHttp2ApplicationCall(host.application, context, streamId, headers, this, http2)
+        val call = NettyHttp2ApplicationCall(application, context, streamId, headers, this, http2)
         context.callByStreamId[streamId] = call
 
         context.fireChannelRead(call)

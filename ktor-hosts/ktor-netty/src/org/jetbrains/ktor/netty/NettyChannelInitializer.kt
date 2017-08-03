@@ -6,14 +6,21 @@ import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
 import io.netty.handler.ssl.*
 import io.netty.handler.timeout.*
+import io.netty.util.concurrent.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.http2.*
 import java.nio.channels.*
 import java.security.*
 import java.security.cert.*
+import kotlin.coroutines.experimental.*
 
-class NettyChannelInitializer(val host: NettyApplicationHost, val connector: HostConnectorConfig) : ChannelInitializer<SocketChannel>() {
+internal class NettyChannelInitializer(private val hostPipeline: HostPipeline,
+                                       private val environment: ApplicationHostEnvironment,
+                                       private val callEventGroup: EventExecutorGroup,
+                                       private val hostCoroutineContext: CoroutineContext,
+                                       private val userCoroutineContext: CoroutineContext,
+                                       private val connector: HostConnectorConfig) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
 
     init {
@@ -76,10 +83,10 @@ class NettyChannelInitializer(val host: NettyApplicationHost, val connector: Hos
                 val decoder = DefaultHttp2ConnectionDecoder(connection, encoder, reader)
 
                 pipeline.addLast(HostHttp2Handler(encoder, decoder, Http2Settings()))
-                pipeline.addLast(Multiplexer(pipeline.channel(), NettyHostHttp2Handler(host, connection)))
+                pipeline.addLast(Multiplexer(pipeline.channel(), NettyHostHttp2Handler(hostPipeline, environment.application, callEventGroup, userCoroutineContext, connection)))
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
-                val handler = NettyHostHttp1Handler(host)
+                val handler = NettyHostHttp1Handler(hostPipeline, environment.application, callEventGroup, hostCoroutineContext, userCoroutineContext)
 
                 with(pipeline) {
                     addLast("codec", HttpServerCodec())
@@ -90,7 +97,7 @@ class NettyChannelInitializer(val host: NettyApplicationHost, val connector: Hos
                 pipeline.context("codec").fireChannelActive()
             }
             else -> {
-                host.application.log.error("Unsupported protocol $protocol")
+                environment.application.log.error("Unsupported protocol $protocol")
                 pipeline.close()
             }
         }

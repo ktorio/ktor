@@ -11,12 +11,14 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.response.*
 import java.io.*
 import java.util.concurrent.atomic.*
+import kotlin.coroutines.experimental.*
 
-internal class NettyApplicationCall(val host: NettyApplicationHost,
-                                    application: Application,
-                                    val context: ChannelHandlerContext,
-                                    val httpRequest: HttpRequest,
-                                    contentQueue: NettyContentQueue) : BaseApplicationCall(application) {
+internal class NettyApplicationCall(application: Application,
+                                    private val context: ChannelHandlerContext,
+                                    private val httpRequest: HttpRequest,
+                                    contentQueue: NettyContentQueue,
+                                    private val hostCoroutineContext: CoroutineContext,
+                                    private val userCoroutineContext: CoroutineContext) : BaseApplicationCall(application) {
 
     private val closed = AtomicBoolean(false)
 
@@ -71,12 +73,13 @@ internal class NettyApplicationCall(val host: NettyApplicationHost,
 
     override suspend fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
         val nettyContext = context
-        val userAppContext = host.dispatcherWithShutdown + NettyDispatcher.CurrentContext(nettyContext)
+        val nettyChannel = nettyContext.channel()
+        val userAppContext = userCoroutineContext + NettyDispatcher.CurrentContext(nettyContext)
 
-        run(host.hostDispatcherWithShutdown) {
+        run(hostCoroutineContext) {
             val upgradeContentQueue = RawContentQueue(nettyContext)
 
-            nettyContext.channel().pipeline().replace(HttpContentQueue::class.java, "WebSocketReadQueue", upgradeContentQueue).popAndForEach {
+            nettyChannel.pipeline().replace(HttpContentQueue::class.java, "WebSocketReadQueue", upgradeContentQueue).popAndForEach {
                 it.clear {
                     if (it is LastHttpContent)
                         it.release()
@@ -85,20 +88,20 @@ internal class NettyApplicationCall(val host: NettyApplicationHost,
                 }
             }
 
-            with(nettyContext.channel().pipeline()) {
+            with(nettyChannel.pipeline()) {
                 remove(NettyHostHttp1Handler::class.java)
                 addFirst(NettyDirectDecoder())
             }
 
             response.sendResponseMessage(chunked = false)?.addListener {
                 launch(userAppContext) {
-                    nettyContext.channel().pipeline().remove(HttpServerCodec::class.java)
-                    nettyContext.channel().pipeline().addFirst(NettyDirectEncoder())
+                    nettyChannel.pipeline().remove(HttpServerCodec::class.java)
+                    nettyChannel.pipeline().addFirst(NettyDirectEncoder())
 
                     upgrade.upgrade(HttpContentReadChannel(upgradeContentQueue.queue, buffered = false), responseChannel(), Closeable {
-                        nettyContext.channel().close().get()
+                        nettyChannel.close().get()
                         upgradeContentQueue.close()
-                    }, host.hostDispatcherWithShutdown, userAppContext)
+                    }, hostCoroutineContext, userAppContext)
                     nettyContext.read()
                 }
             } ?: throw IllegalStateException("Response has been already sent")

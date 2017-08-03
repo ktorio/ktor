@@ -16,18 +16,18 @@ class NettyApplicationHost(environment: ApplicationHostEnvironment) : BaseApplic
 
     private val parallelism = Runtime.getRuntime().availableProcessors() / 3 + 1
     private val connectionEventGroup = NettyConnectionPool(parallelism) // accepts connections
-    internal val workerEventGroup = NettyWorkerPool(parallelism) // processes socket data and parse HTTP
-    internal val callEventGroup = NettyCallPool(parallelism) // processes calls
+    private val workerEventGroup = NettyWorkerPool(parallelism) // processes socket data and parse HTTP
+    private val callEventGroup = NettyCallPool(parallelism) // processes calls
 
-    internal val dispatcherWithShutdown = DispatcherWithShutdown(NettyDispatcher)
-    internal val hostDispatcherWithShutdown = DispatcherWithShutdown(workerEventGroup.asCoroutineDispatcher())
+    private val dispatcherWithShutdown = DispatcherWithShutdown(NettyDispatcher)
+    private val hostDispatcherWithShutdown = DispatcherWithShutdown(workerEventGroup.asCoroutineDispatcher())
 
     private var channels: List<Channel>? = null
     private val bootstraps = environment.connectors.map { connector ->
         ServerBootstrap().apply {
             group(connectionEventGroup, workerEventGroup)
             channel(NioServerSocketChannel::class.java)
-            childHandler(NettyChannelInitializer(this@NettyApplicationHost, connector))
+            childHandler(NettyChannelInitializer(pipeline, environment, callEventGroup, hostDispatcherWithShutdown, dispatcherWithShutdown, connector))
         }
     }
 
