@@ -66,7 +66,7 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     fun tearDownBase() {
         allConnections.forEach { it.disconnect() }
         testLog.trace("Disposing server on port $port (SSL $sslPort)")
-        (server as? ApplicationHost)?.stop(200, 5000, TimeUnit.MILLISECONDS)
+        (server as? ApplicationHost)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
     }
 
     protected open fun createServer(log: ApplicationLog?, module: Application.() -> Unit): THost {
