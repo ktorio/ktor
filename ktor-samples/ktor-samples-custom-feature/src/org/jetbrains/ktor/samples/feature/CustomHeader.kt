@@ -24,7 +24,7 @@ class CustomHeader(configuration: Configuration) {
     }
 
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, CustomHeader.Configuration, CustomHeader> {
-        override val key = AttributeKey<CustomHeader>("CustomFeature")
+        override val key = AttributeKey<CustomHeader>("CustomHeader")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): CustomHeader {
             // Call user code to configure a feature
             val configuration = Configuration().apply(configure)
