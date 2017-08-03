@@ -1,8 +1,8 @@
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.jetty.*
 import org.jetbrains.ktor.response.*
-import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.servlet.*
 import org.junit.*
 import org.slf4j.*
@@ -28,15 +28,14 @@ class MultipleDispatchOnTimeout {
             connector { this.port = port }
             log = LoggerFactory.getLogger("ktor.test")
             module {
-                install(Routing) {
-                    get("/foo") {
+                intercept(ApplicationCallPipeline.Call) {
                         callCount.incrementAndGet()
                         val timeout = Math.max((call.request as ServletApplicationRequest).servletRequest.asyncContext.timeout, 0)
-                        // println("Timeout is: $timeout")
+        //                    println("Timeout is: $timeout")
                         Thread.sleep(timeout + 1000)
                         call.respondWrite {
                             write("A ok!")
-                        }
+
                     }
                 }
             }
@@ -48,11 +47,11 @@ class MultipleDispatchOnTimeout {
 
             Thread.sleep(1000)
 
-            val result = URL("http://localhost:$port/foo").openConnection().inputStream.bufferedReader().readLine().let {
+            val result = URL("http://localhost:$port/").openConnection().inputStream.bufferedReader().readLine().let {
                 it
             } ?: "<empty>"
 
-//            println("Got result: $result" )
+            // println("Got result: $result" )
 
             assertEquals(1, callCount.get())
             assertEquals("A ok!", result)

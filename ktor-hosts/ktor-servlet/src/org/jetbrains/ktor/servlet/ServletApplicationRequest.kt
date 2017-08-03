@@ -11,9 +11,9 @@ import java.util.*
 import javax.servlet.http.*
 import kotlin.collections.ArrayList
 
-class ServletApplicationRequest(override val call: ServletApplicationCall,
+class ServletApplicationRequest(call: ServletApplicationCall,
                                 val servletRequest: HttpServletRequest,
-                                requestChannelOverride: () -> ReadChannel?) : BaseApplicationRequest() {
+                                requestChannelOverride: () -> ReadChannel?) : BaseApplicationRequest(call) {
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 
     override val queryParameters by lazy {

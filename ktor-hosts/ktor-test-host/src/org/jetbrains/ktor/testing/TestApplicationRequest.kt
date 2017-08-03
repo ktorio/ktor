@@ -10,11 +10,11 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 
 class TestApplicationRequest(
-        override val call: ApplicationCall,
+        call: ApplicationCall,
         var method: HttpMethod = HttpMethod.Get,
         var uri: String = "/",
         var version: String = "HTTP/1.1"
-) : BaseApplicationRequest() {
+) : BaseApplicationRequest(call) {
 
     var protocol: String = "http"
 

@@ -30,7 +30,8 @@ inline suspend fun <reified T : Any> ApplicationCall.receive(): T {
  */
 suspend fun <T : Any> ApplicationCall.tryReceive(type: KClass<T>): T? {
     val incomingContent = request.receiveContent()
-    val transformed = receivePipeline.execute(this, ApplicationReceiveRequest(type, incomingContent)).value
+    val receiveRequest = ApplicationReceiveRequest(type, incomingContent)
+    val transformed = request.pipeline.execute(this, receiveRequest).value
     if (transformed is IncomingContent)
         return null
 

@@ -2,6 +2,7 @@ package org.jetbrains.ktor.tests.routing
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
@@ -260,6 +261,48 @@ class RoutingProcessingTest {
             assertTrue(rootIntercepted, "should have processed root interceptor")
             assertEquals(userName, "john", "should have processed get handler on /user/username node")
         }
+    }
+
+    class Foo
+    @Test fun `intercept receive pipeline`() = withTestApplication {
+
+        var userIntercepted = false
+        var wrappedWithInterceptor = false
+        var rootIntercepted = false
+        var instance : Foo? = null
+        var routingInterceptorWrapped = false
+
+        application.routing {
+            receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
+                wrappedWithInterceptor = true
+                rootIntercepted = true
+                proceed()
+                wrappedWithInterceptor = false
+            }
+
+            route("user") {
+                receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
+                    userIntercepted = true
+                    routingInterceptorWrapped = wrappedWithInterceptor
+                    proceedWith(ApplicationReceiveRequest(it.type, Foo()))
+                }
+                get("{username}") {
+                    instance = call.receive<Foo>()
+                }
+            }
+        }
+
+        on("handling GET /user/john") {
+            handleRequest {
+                uri = "/user/john"
+                method = HttpMethod.Get
+            }
+            assertTrue(userIntercepted, "should have processed interceptor on /user node")
+            assertTrue(routingInterceptorWrapped, "should have processed nested routing interceptor in an after phase")
+            assertTrue(rootIntercepted, "should have processed root interceptor")
+            assertNotNull(instance)
+        }
+
     }
 
     @Test fun `verify accept header processing`() = withTestApplication {

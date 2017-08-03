@@ -19,7 +19,7 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
     suspend private fun executeResult(context: PipelineContext<Unit>, route: Route, parameters: ValuesMap) {
         val routingCallPipeline = route.buildPipeline()
         val receivePipeline = ApplicationReceivePipeline().apply {
-            phases.merge(context.call.receivePipeline.phases)
+            phases.merge(context.call.request.pipeline.phases)
             phases.merge(routingCallPipeline.receivePipeline.phases)
         }
         val responsePipeline = ApplicationSendPipeline().apply {

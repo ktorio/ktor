@@ -13,9 +13,9 @@ import org.jetbrains.ktor.util.*
 import java.net.*
 
 internal class NettyHttp2ApplicationRequest(
-        override val call: ApplicationCall,
+        call: ApplicationCall,
         val context: ChannelHandlerContext,
-        val nettyHeaders: Http2Headers) : BaseApplicationRequest() {
+        val nettyHeaders: Http2Headers) : BaseApplicationRequest(call) {
 
     override val headers: ValuesMap by lazy { ValuesMap.build(caseInsensitiveKey = true) { nettyHeaders.forEach { append(it.key.toString(), it.value.toString()) } } }
 

@@ -34,11 +34,6 @@ interface ApplicationCall {
     val parameters: ValuesMap
 
     /**
-     * Pipeline for receiving content
-     */
-    val receivePipeline: ApplicationReceivePipeline
-
-    /**
      * Pipeline for sending content
      */
     val sendPipeline: ApplicationSendPipeline

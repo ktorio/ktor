@@ -15,6 +15,11 @@ interface ApplicationRequest {
     val call: ApplicationCall
 
     /**
+     * Pipeline for receiving content
+     */
+    val pipeline: ApplicationReceivePipeline
+
+    /**
      * Parameters provided in an URL
      */
     val queryParameters: ValuesMap

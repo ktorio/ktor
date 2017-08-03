@@ -17,10 +17,6 @@ abstract class BaseApplicationCall(final override val application: Application) 
 
     private var responded = false
 
-    override val receivePipeline = ApplicationReceivePipeline().apply {
-        phases.merge(application.receivePipeline.phases)
-    }
-
     override final val sendPipeline = ApplicationSendPipeline().apply {
         phases.merge(application.sendPipeline.phases)
         intercept(ApplicationSendPipeline.Host) {

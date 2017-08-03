@@ -14,10 +14,10 @@ import java.util.concurrent.atomic.*
 import kotlin.collections.LinkedHashSet
 
 internal class NettyApplicationRequest(
-        override val call: NettyApplicationCall,
+        call: NettyApplicationCall,
         private val request: HttpRequest,
         override val local: NettyConnectionPoint,
-        val contentQueue: NettyContentQueue) : BaseApplicationRequest(), Closeable {
+        val contentQueue: NettyContentQueue) : BaseApplicationRequest(call), Closeable {
 
     override val headers: ValuesMap = NettyHeadersValuesMap(request)
 
