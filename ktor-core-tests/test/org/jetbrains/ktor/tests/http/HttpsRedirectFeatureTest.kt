@@ -62,4 +62,21 @@ class HttpsRedirectFeatureTest {
             }
         }
     }
+
+    @Test
+    fun testDirectPathAndQueryWithCustomPort() {
+        withTestApplication {
+            application.install(HttpsRedirect) {
+                sslPort = 8443
+            }
+            application.intercept(ApplicationCallPipeline.Fallback) {
+                call.respond("ok")
+            }
+
+            handleRequest(HttpMethod.Get, "/some/path?q=1").let { call ->
+                assertEquals(HttpStatusCode.MovedPermanently, call.response.status())
+                assertEquals("https://localhost:8443/some/path?q=1", call.response.headers[HttpHeaders.Location])
+            }
+        }
+    }
 }
