@@ -93,6 +93,8 @@ class ServletReadChannel(private val servletInputStream: ServletInputStream) : R
                 endReading()
                 return true
             }
+        } catch (eof: EOFException) {
+            return false
         } catch (t: Throwable) {
             endReading()
             throw t
@@ -107,6 +109,8 @@ class ServletReadChannel(private val servletInputStream: ServletInputStream) : R
                 endReading()
                 return true
             }
+        } catch (eof: EOFException) {
+            return false
         } catch (t: Throwable) {
             endReading()
             throw t
