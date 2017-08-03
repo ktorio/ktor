@@ -24,10 +24,10 @@ class NettyHostHttp2Handler(private val hostPipeline: HostPipeline,
                 startHttp2(context, message.streamId(), message.headers(), http2)
             }
             is Http2DataFrame -> {
-                context.callByStreamId[message.streamId()]?.contentQueue?.push(message, message.isEndStream)
+                context.callByStreamId[message.streamId()]?.request?.contentQueue?.push(message, message.isEndStream)
             }
             is Http2ResetFrame -> {
-                context.callByStreamId[message.streamId()]?.contentQueue?.cancel(if (message.errorCode() == 0L) null else ClosedChannelException())
+                context.callByStreamId[message.streamId()]?.request?.contentQueue?.cancel(if (message.errorCode() == 0L) null else ClosedChannelException())
             }
             else -> context.fireChannelRead(message)
         }
@@ -54,16 +54,13 @@ class NettyHostHttp2Handler(private val hostPipeline: HostPipeline,
     }
 
     private fun startHttp2(context: ChannelHandlerContext, streamId: Int, headers: Http2Headers, http2: Http2Connection) {
-        val call = NettyHttp2ApplicationCall(application, context, streamId, headers, this, http2)
+        val call = NettyHttp2ApplicationCall(application, context, headers, this, http2)
         context.callByStreamId[streamId] = call
 
         context.fireChannelRead(call)
     }
 
-    fun startHttp2PushPromise(call: ApplicationCall, block: ResponsePushBuilder.() -> Unit, connection: Http2Connection, context: ChannelHandlerContext) {
-        val builder = DefaultResponsePushBuilder(call)
-        block(builder)
-
+    internal fun startHttp2PushPromise(connection: Http2Connection, context: ChannelHandlerContext, builder: ResponsePushBuilder) {
         val streamId = connection.local().incrementAndGetNextStreamId()
         val pushPromiseFrame = Http2PushPromiseFrame()
         pushPromiseFrame.promisedStreamId = streamId

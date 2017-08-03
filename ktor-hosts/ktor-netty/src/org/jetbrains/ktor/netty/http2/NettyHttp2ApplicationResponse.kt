@@ -56,7 +56,9 @@ internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
 
     override fun push(block: ResponsePushBuilder.() -> Unit) {
         launch(context.executor().asCoroutineDispatcher()) {
-            handler.startHttp2PushPromise(call, block, connection, this@NettyHttp2ApplicationResponse.context)
+            val builder = DefaultResponsePushBuilder(call)
+            block(builder)
+            handler.startHttp2PushPromise(connection, this@NettyHttp2ApplicationResponse.context, builder)
         }
     }
 }

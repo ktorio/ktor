@@ -2,21 +2,25 @@ package org.jetbrains.ktor.netty.http2
 
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.net.*
 
 internal class NettyHttp2ApplicationRequest(
-        override val call: NettyHttp2ApplicationCall,
+        override val call: ApplicationCall,
         val context: ChannelHandlerContext,
-        streamId: Int,
         val nettyHeaders: Http2Headers) : BaseApplicationRequest() {
 
     override val headers: ValuesMap by lazy { ValuesMap.build(caseInsensitiveKey = true) { nettyHeaders.forEach { append(it.key.toString(), it.value.toString()) } } }
+
+    val contentQueue = SuspendQueue<Http2DataFrame>(10)
+    private val contentChannel: NettyHttp2ReadChannel = NettyHttp2ReadChannel(contentQueue)
 
     override val queryParameters: ValuesMap by lazy {
         header(":path")?.let { path ->
@@ -52,8 +56,6 @@ internal class NettyHttp2ApplicationRequest(
         get() = throw UnsupportedOperationException()
 
     override fun receiveContent() = NettyHttp2IncomingContent(this)
-
-    private val contentChannel: NettyHttp2ReadChannel = NettyHttp2ReadChannel(call.contentQueue)
 
     class NettyHttp2IncomingContent internal constructor(override val request: NettyHttp2ApplicationRequest) : IncomingContent {
         override fun readChannel(): ReadChannel = request.contentChannel

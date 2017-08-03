@@ -6,19 +6,15 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.*
-import org.jetbrains.ktor.pipeline.*
 
 internal class NettyHttp2ApplicationCall(application: Application,
                                          val context: ChannelHandlerContext,
-                                         streamId: Int,
                                          val headers: Http2Headers,
                                          handler: NettyHostHttp2Handler,
                                          connection: Http2Connection
 ) : BaseApplicationCall(application) {
-    val contentQueue = SuspendQueue<Http2DataFrame>(10)
-
     override val bufferPool = NettyByteBufferPool(context)
-    override val request = NettyHttp2ApplicationRequest(this, context, streamId, headers)
+    override val request = NettyHttp2ApplicationRequest(this, context, headers)
     override val response = NettyHttp2ApplicationResponse(this, handler, context, connection)
 
     suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
