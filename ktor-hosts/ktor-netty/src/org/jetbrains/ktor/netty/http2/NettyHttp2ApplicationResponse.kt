@@ -2,7 +2,6 @@ package org.jetbrains.ktor.netty.http2
 
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
-import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
@@ -65,10 +64,8 @@ internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
         override fun getHostHeaderValues(name: String): List<String> = responseHeaders.getAll(name).map { it.toString() }
     }
 
-    override fun push(block: ResponsePushBuilder.() -> Unit) {
-        launch(context.executor().asCoroutineDispatcher()) {
-            val builder = DefaultResponsePushBuilder(call)
-            block(builder)
+    override fun push(builder: ResponsePushBuilder) {
+        context.executor().execute {
             handler.startHttp2PushPromise(connection, this@NettyHttp2ApplicationResponse.context, builder)
         }
     }

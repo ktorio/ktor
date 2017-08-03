@@ -13,7 +13,7 @@ class JettyApplicationCall(application: Application,
                            servletRequest: HttpServletRequest,
                            servletResponse: HttpServletResponse,
                            pool: ByteBufferPool,
-                           pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit,
+                           pushImpl: (ResponsePushBuilder) -> Boolean,
                            hostContext: CoroutineContext,
                            userAppContext: CoroutineContext)
     : ServletApplicationCall(application, servletRequest, servletResponse, pool, pushImpl, hostContext, userAppContext) {

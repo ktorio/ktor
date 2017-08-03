@@ -50,8 +50,8 @@ abstract class KtorServlet : HttpServlet() {
             val asyncContext = request.startAsync().apply {
                 timeout = 0L
             }
-            val call = ServletApplicationCall(application, request, response, NoPool, { call, block, next ->
-                tryPush(request, call, block, next)
+            val call = ServletApplicationCall(application, request, response, NoPool, { builder ->
+                tryPush(request, builder)
             }, hostDispatcher, userAppContext = dispatcher)
 
             launch(dispatcher) {
@@ -67,16 +67,16 @@ abstract class KtorServlet : HttpServlet() {
         }
     }
 
-    private fun tryPush(request: HttpServletRequest, call: ApplicationCall, block: ResponsePushBuilder.() -> Unit, next: () -> Unit) {
-        listOf("org.jetbrains.ktor.servlet.v4.PushKt.doPush").mapNotNull { tryFind(it) }
-                .firstOrNull { function ->
-                    tryInvoke(function, request, call, block, next)
-                } ?: next()
+    private fun tryPush(request: HttpServletRequest, builder: ResponsePushBuilder): Boolean {
+        return listOf("org.jetbrains.ktor.servlet.v4.PushKt.doPush")
+                .mapNotNull { tryFind(it) }
+                .any { function ->
+                    tryInvoke(function, request, builder)
+                }
     }
 
-    private fun tryInvoke(function: Method, request: HttpServletRequest, call: ApplicationCall, block: ResponsePushBuilder.() -> Unit, next: () -> Unit) = try {
-        function.invoke(null, request, call, block, next)
-        true
+    private fun tryInvoke(function: Method, request: HttpServletRequest, builder: ResponsePushBuilder) = try {
+        function.invoke(null, request, builder) as Boolean
     } catch (ignore: ReflectiveOperationException) {
         false
     } catch (ignore: LinkageError) {

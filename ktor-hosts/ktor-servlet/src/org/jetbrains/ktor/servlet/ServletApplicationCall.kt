@@ -11,7 +11,7 @@ open class ServletApplicationCall(application: Application,
                                   val servletRequest: HttpServletRequest,
                                   val servletResponse: HttpServletResponse,
                                   override val bufferPool: ByteBufferPool,
-                                  pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit,
+                                  pushImpl: (ResponsePushBuilder) -> Boolean,
                                   hostContext: CoroutineContext,
                                   userAppContext: CoroutineContext) : BaseApplicationCall(application) {
 

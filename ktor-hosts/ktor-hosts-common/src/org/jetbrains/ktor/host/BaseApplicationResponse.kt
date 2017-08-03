@@ -112,18 +112,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
 
     protected abstract fun setStatus(statusCode: HttpStatusCode)
 
-    override fun push(block: ResponsePushBuilder.() -> Unit) {
-        if (isPrefetchLinkEnabled()) {
-            val builder = DefaultResponsePushBuilder(call)
-
-            block(builder)
-
-            link(builder.url.build(), LinkHeader.Rel.Prefetch)
-        } else {
-            super.push(block)
-        }
+    override fun push(builder: ResponsePushBuilder) {
+        link(builder.url.build(), LinkHeader.Rel.Prefetch)
     }
-
-    open fun isPrefetchLinkEnabled() = true
-
 }

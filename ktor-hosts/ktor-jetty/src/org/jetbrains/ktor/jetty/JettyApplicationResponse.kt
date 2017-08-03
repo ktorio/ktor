@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.jetty
 
 import org.eclipse.jetty.server.*
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.servlet.*
@@ -13,7 +12,7 @@ class JettyApplicationResponse(call: ServletApplicationCall,
                                servletResponse: HttpServletResponse,
                                hostCoroutineContext: CoroutineContext,
                                userCoroutineContext: CoroutineContext,
-                               pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit,
+                               pushImpl: (ResponsePushBuilder) -> Boolean,
                                private val server: Server)
     : ServletApplicationResponse(call, servletRequest, servletResponse,
         hostCoroutineContext, userCoroutineContext, pushImpl) {

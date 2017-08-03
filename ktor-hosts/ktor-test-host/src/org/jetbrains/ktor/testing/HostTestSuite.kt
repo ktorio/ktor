@@ -71,7 +71,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             }
 
             get("/") {
-                call.response.push("/child")
+                call.push("/child")
                 call.respondText("test")
             }
         }

@@ -16,7 +16,7 @@ import java.util.concurrent.*
 import javax.servlet.*
 import javax.servlet.http.*
 
-internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, val pipeline: () -> HostPipeline, val hostDispatcher: CoroutineDispatcher) : AbstractHandler() {
+internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, private val pipeline: () -> HostPipeline, private val hostDispatcher: CoroutineDispatcher) : AbstractHandler() {
     private val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8)
     private val dispatcher = DispatcherWithShutdown(executor.asCoroutineDispatcher())
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
@@ -32,12 +32,9 @@ internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, val
     }
 
     override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-        val call = JettyApplicationCall(environment.application, server, request, response, byteBufferPool, { call, block, next ->
+        val call = JettyApplicationCall(environment.application, server, request, response, byteBufferPool, { builder ->
             if (baseRequest.isPushSupported) {
                 baseRequest.pushBuilder.apply {
-                    val builder = DefaultResponsePushBuilder(call)
-                    builder.block()
-
                     this.method(builder.method.value)
                     this.path(builder.url.encodedPath)
                     val query = builder.url.build().substringAfter('?', "").takeIf { it.isNotEmpty() }
@@ -47,8 +44,10 @@ internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, val
 
                     push()
                 }
+
+                true
             } else {
-                next()
+                false
             }
         }, hostContext = hostDispatcher, userAppContext = dispatcher)
 
