@@ -123,7 +123,7 @@
                             <systemProperties>
                                 <enable.http2>true</enable.http2>
                             </systemProperties>
-                            <argLine>-Xbootclasspath/p:${build.directory}/dependency/alpn-boot.jar</argLine>
+                            <argLine>-Xbootclasspath/p:${project.build.directory}/dependency/alpn-boot.jar</argLine>
                         </configuration>
                     </execution>
                 </executions>
