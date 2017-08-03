@@ -2,7 +2,20 @@ package org.jetbrains.ktor.http
 
 import java.util.*
 
-data class HeaderValueParam(val name: String, val value: String)
+data class HeaderValueParam(val name: String, val value: String) {
+    override fun equals(other: Any?): Boolean {
+        return other is HeaderValueParam
+                && other.name.equals(name, ignoreCase = true)
+                && other.value.equals(value, ignoreCase = true)
+    }
+
+    override fun hashCode(): Int {
+        var result = name.toLowerCase().hashCode()
+        result += 31 * result + value.toLowerCase().hashCode()
+        return result
+    }
+}
+
 data class HeaderValue(val value: String, val params: List<HeaderValueParam> = listOf()) {
     val quality: Double = params.firstOrNull { it.name == "q" }?.value?.toDoubleOrNull() ?: 1.0
 }

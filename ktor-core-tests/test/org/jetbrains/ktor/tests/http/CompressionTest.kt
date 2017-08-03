@@ -150,7 +150,7 @@ class CompressionTest {
             application.install(Compression)
             application.routing {
                 get("/") {
-                    call.respond(TextContent("text to be compressed", status = HttpStatusCode.NotFound))
+                    call.respondText("text to be compressed", status = HttpStatusCode.NotFound)
                 }
             }
 
@@ -406,7 +406,7 @@ class CompressionTest {
             application.install(Compression)
             application.routing {
                 get("/") {
-                    call.respondText(content, ContentType.Text.Plain)
+                    call.respondText(content)
                 }
             }
 

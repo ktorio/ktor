@@ -2,9 +2,9 @@ package org.jetbrains.ktor.content
 
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.util.*
+import org.slf4j.*
 import java.io.*
 import java.nio.file.*
-import java.util.logging.*
 
 fun ContentType.Companion.defaultForFileExtension(extension: String) = ContentType.fromFileExtension(extension).selectDefault()
 fun ContentType.Companion.defaultForFilePath(path: String) = ContentType.fromFilePath(path).selectDefault()
@@ -40,51 +40,48 @@ fun ContentType.Companion.fromFileExtension(ext: String): List<ContentType> {
     return emptyList()
 }
 
-fun ContentType.fileExtensions() =
-        extensionsByContentType[this]
-                ?: extensionsByContentType[this.withoutParameters()]
-                ?: emptyList<String>()
+fun ContentType.fileExtensions() = extensionsByContentType[this]
+        ?: extensionsByContentType[this.withoutParameters()]
+        ?: emptyList()
 
 private val contentTypesFileName = "mimelist.csv"
 
 private val contentTypesByExtensions: Map<String, List<ContentType>> by lazy(LazyThreadSafetyMode.PUBLICATION) {
-    processRecords { ext, contentType -> ext to contentType }.let { records -> CaseInsensitiveMap<List<ContentType>>(records.size).apply { putAll(records) } }
+    val records = processRecords { ext, contentType -> ext to contentType }
+    CaseInsensitiveMap<List<ContentType>>(records.size).apply { putAll(records) }
 }
 
 private val extensionsByContentType: Map<ContentType, List<String>> by lazy {
     processRecords { ext, contentType -> contentType to ext }
 }
 
-private fun <A, B> processRecords(operation: (String, ContentType) -> Pair<A, B>) =
-        ContentType::class.java.classLoader.getResourceAsStream(contentTypesFileName)?.bufferedReader()?.useLines { lines ->
-            lines.map { it.trim() }.filter { it.isNotEmpty() }.map { line ->
-                val (ext, mime) = line.splitCSVPair()
-
-                operation(ext.removePrefix(".").toLowerCase(), mime.asContentType())
-            }.groupByPairs()
-        } ?: logErrorAndReturnEmpty<A, List<B>>()
-
+private fun <A, B> processRecords(operation: (String, ContentType) -> Pair<A, B>): Map<A, List<B>> {
+    val stream = ContentType::class.java.classLoader.getResourceAsStream(contentTypesFileName) ?: return logErrorAndReturnEmpty()
+    return stream.bufferedReader().useLines { lines ->
+        lines.mapNotNull {
+            val line = it.trim()
+            if (!line.isEmpty()) {
+                val index = line.indexOf(',')
+                val extension = line.substring(0, index)
+                val mime = line.substring(index + 1)
+                operation(extension.removePrefix(".").toLowerCase(), mime.toContentType())
+            } else
+                null
+        }.groupByPairs()
+    }
+}
 
 private var logged = false
 private fun <A, B> logErrorAndReturnEmpty(): Map<A, B> {
-    // TODO logging
     if (!logged) {
-        Logger.getLogger(ContentType::class.qualifiedName).severe { "Resource $contentTypesFileName is missing" }
+        LoggerFactory.getLogger(ContentType::class.qualifiedName).error("Resource $contentTypesFileName is missing")
         logged = true
     }
     return emptyMap()
 }
 
-/**
- * splits line of CSV file, doesn't respect CSV escaping
- */
-private fun String.splitCSVPair(): Pair<String, String> {
-    val index = indexOf(',')
-    return substring(0, index) to substring(index + 1)
-}
-
 private fun <A, B> Sequence<Pair<A, B>>.groupByPairs() = groupBy { it.first }.mapValues { it.value.map { it.second } }
-private fun String.asContentType() =
+private fun String.toContentType() =
         try {
             ContentType.parse(this)
         } catch (e: Throwable) {

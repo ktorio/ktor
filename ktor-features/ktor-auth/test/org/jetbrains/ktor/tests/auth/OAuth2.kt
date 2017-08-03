@@ -71,7 +71,7 @@ class OAuth2Test {
                 }
 
                 handle {
-                    call.respondText("Hej, ${call.authentication.principal}", ContentType.Text.Plain)
+                    call.respondText("Hej, ${call.authentication.principal}")
                 }
             }
             route("/resource") {

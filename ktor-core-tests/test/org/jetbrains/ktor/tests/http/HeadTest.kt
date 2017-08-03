@@ -43,20 +43,20 @@ class HeadTest {
         withHeadApplication {
             application.routing {
                 get("/") {
-                    call.respond(TextContent("Hello", ContentType.Text.Plain))
+                    call.respondText("Hello")
                 }
             }
 
             handleRequest(HttpMethod.Get, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("Hello", call.response.content)
-                assertEquals("text/plain", call.response.headers[HttpHeaders.ContentType])
+                assertEquals("text/plain; charset=UTF-8", call.response.headers[HttpHeaders.ContentType])
             }
 
             handleRequest(HttpMethod.Head, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertNull(call.response.content)
-                assertEquals("text/plain", call.response.headers[HttpHeaders.ContentType])
+                assertEquals("text/plain; charset=UTF-8", call.response.headers[HttpHeaders.ContentType])
             }
         }
     }

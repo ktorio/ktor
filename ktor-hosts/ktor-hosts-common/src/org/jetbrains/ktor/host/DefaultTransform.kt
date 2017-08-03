@@ -12,17 +12,15 @@ fun ApplicationSendPipeline.installDefaultTransformations() {
     intercept(ApplicationSendPipeline.Render) { value ->
         val transformed = when (value) {
             is String -> {
-                val responseContentType = call.response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
-                val contentType = responseContentType ?: ContentType.Text.Plain.withCharset(Charsets.UTF_8)
+                val contentType = call.defaultTextContentType(null)
                 TextContent(value, contentType, null)
             }
             is ByteArray -> {
                 ByteArrayContent(value)
             }
             is HttpStatusContent -> {
-                TextContent("<H1>${value.code}</H1><P>${value.message.escapeHTML()}</P>",
-                        ContentType.Text.Html.withCharset(Charsets.UTF_8),
-                        value.code)
+                val contentType = call.defaultTextContentType(null)
+                TextContent("<H1>${value.code}</H1><P>${value.message.escapeHTML()}</P>", contentType, value.code)
             }
             is HttpStatusCode -> {
                 HttpStatusCodeContent(value)

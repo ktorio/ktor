@@ -2,7 +2,7 @@ package org.jetbrains.ktor.http
 
 abstract class HeaderValueWithParameters(protected val content: String, val parameters: List<HeaderValueParam> = emptyList()) {
 
-    fun parameter(name: String) = parameters.firstOrNull { it.name == name }?.value
+    fun parameter(name: String) = parameters.firstOrNull { it.name.equals(name, ignoreCase = true) }?.value
 
     override fun toString(): String = when {
         parameters.isEmpty() -> content

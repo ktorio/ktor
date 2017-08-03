@@ -37,6 +37,26 @@ class ContentTypeTest {
         }
     }
 
+    @Test fun `text-plain charset in quotes`() {
+        val ct1 = ContentType.parse("text/plain; charset=us-ascii")
+        val ct2 = ContentType.parse("text/plain; charset=\"us-ascii\"")
+        on("parsing parts") {
+            it("parameters in quotes are equivalent to those without") {
+                assertEquals(ct1, ct2)
+            }
+        }
+    }
+
+    @Test fun `text-plain charset case insensitive`() {
+        val ct1 = ContentType.parse("Text/plain; charset=UTF-8")
+        val ct2 = ContentType.parse("text/Plain; CHARSET=utf-8")
+        on("parsing parts") {
+            it("parameters in quotes are equivalent to those without") {
+                assertEquals(ct1, ct2)
+            }
+        }
+    }
+
     @Test fun `text-plain charset is utf-8`() {
         val ct = ContentType.parse("text/plain ; charset = utf-8")
         on("parsing content") {
@@ -62,7 +82,7 @@ class ContentTypeTest {
         }
         on("comparing to content type with parameters") {
             it("should be equal") {
-                assertTrue(ContentType.Text.Plain.withParameter("charset", "utf-8") == ct)
+                assertEquals(ContentType.Text.Plain.withParameter("charset", "utf-8"), ct)
             }
         }
     }

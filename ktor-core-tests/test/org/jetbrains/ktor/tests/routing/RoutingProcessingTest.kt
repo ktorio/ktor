@@ -272,8 +272,7 @@ class RoutingProcessingTest {
                 }
                 accept(ContentType.Application.Json) {
                     handle {
-                        call.response.contentType(ContentType.Application.Json)
-                        call.respond("{\"status\": \"OK\"}")
+                        call.respondText("{\"status\": \"OK\"}", ContentType.Application.Json)
                     }
                 }
             }

@@ -28,14 +28,14 @@ fun Application.OAuthLoginNoLocationApplication() {
     }
 
     intercept(ApplicationCallPipeline.Infrastructure) {
-        call.response.status(HttpStatusCode.OK)
-        call.response.contentType(ContentType.Text.Html.withCharset(Charsets.UTF_8))
-        call.respondText("""
+        call.respondText(ContentType.Text.Html, HttpStatusCode.OK) {
+            """
             <html>
                 <body>
                     <a href="?authStep=1">login</a>
                 </body>
             </html>
-            """.trimIndent())
+            """.trimIndent()
+        }
     }
 }

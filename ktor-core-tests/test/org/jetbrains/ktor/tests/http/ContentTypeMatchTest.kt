@@ -9,8 +9,10 @@ public class ContentTypeMatchTest {
     fun testTypeAndSubtype() {
         assertTrue { ContentType.parse("text/plain").match("*/*") }
         assertTrue { ContentType.parse("text/plain").match("*/plain") }
+        assertTrue { ContentType.parse("text/PLAIN").match("*/plain") }
         assertTrue { ContentType.parse("text/plain").match("text/*") }
         assertTrue { ContentType.parse("text/plain").match("text/plain") }
+        assertTrue { ContentType.parse("text/plain").match("TEXT/plain") }
 
         assertFalse(ContentType.parse("text/plain").match("image/plain"))
         assertFalse(ContentType.parse("text/plain").match("text/xml"))
@@ -19,13 +21,16 @@ public class ContentTypeMatchTest {
     @Test
     fun testParametersConstants() {
         assertTrue { ContentType.parse("a/b; a=1").match("*/*; a=1") }
+        assertTrue { ContentType.parse("a/b; A=1").match("*/*; a=1") }
         assertFalse(ContentType.parse("a/b").match("*/*; a=2"))
         assertFalse(ContentType.parse("a/b; a=1").match("*/*; a=2"))
+        assertFalse(ContentType.parse("a/b; A=1").match("*/*; a=2"))
     }
 
     @Test
     fun testParametersWithSubtype() {
         assertTrue { ContentType.parse("a/b; a=1").match("a/b") }
+        assertTrue { ContentType.parse("a/b; a=xyz").match("a/b; a=XYZ") }
     }
 
     @Test
@@ -37,7 +42,9 @@ public class ContentTypeMatchTest {
     @Test
     fun testParametersNameWildcard() {
         assertTrue(ContentType.parse("a/b; a=1").match("*/*; *=1"))
+        assertTrue(ContentType.parse("a/b; a=X").match("*/*; *=x"))
         assertFalse(ContentType.parse("a/b; a=2").match("*/*; *=1"))
+        assertFalse(ContentType.parse("a/b; a=y").match("*/*; *=x"))
     }
 
     @Test

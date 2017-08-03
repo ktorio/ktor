@@ -30,7 +30,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     fun testTextContent() {
         createAndStartServer {
             handle {
-                call.respond(TextContent("test", ContentType.Text.Plain.withCharset(Charsets.UTF_8)))
+                call.respondText("test")
             }
         }
 
@@ -47,8 +47,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             fields.remove(HttpHeaders.ContentType)
             assertNotNull(contentType) // Content-Type should be present
             val parsedContentType = ContentType.parse(contentType!!) // It should parse
-            assertEquals(ContentType.Text.Plain, parsedContentType.withoutParameters())
-            assertEquals(Charsets.UTF_8, parsedContentType.charset())
+            assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), parsedContentType)
 
             if (version == "HTTP/2") {
                 assertEquals(mapOf(
@@ -175,7 +174,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     fun testSendTextWithContentType() {
         createAndStartServer {
             handle {
-                call.respondText("Hello", ContentType.Text.Plain)
+                call.respondText("Hello")
             }
         }
 
@@ -220,7 +219,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         createAndStartServer {
             handle {
                 call.response.headers.append(HttpHeaders.ETag, "test-etag")
-                call.respondText("Hello", ContentType.Text.Plain)
+                call.respondText("Hello")
             }
         }
 
@@ -235,7 +234,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         createAndStartServer {
             handle {
                 call.response.cookies.append("k1", "v1")
-                call.respondText("Hello", ContentType.Text.Plain)
+                call.respondText("Hello")
             }
         }
 
@@ -609,7 +608,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     fun testRequestTwiceNoKeepAlive() {
         createAndStartServer {
             get("/") {
-                call.respond(TextContent("Text", ContentType.Text.Plain))
+                call.respondText("Text")
             }
         }
 
@@ -630,7 +629,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     fun testRequestTwiceWithKeepAlive() {
         createAndStartServer {
             get("/") {
-                call.respond(TextContent("Text", ContentType.Text.Plain))
+                call.respondText("Text")
             }
         }
 
@@ -658,7 +657,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
                 delay(d, TimeUnit.SECONDS)
 
                 call.response.header("D", d.toString())
-                call.respond(TextContent("Response for $d\n", ContentType.Text.Plain))
+                call.respondText("Response for $d\n")
             }
         }
 
@@ -740,7 +739,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     fun testRequestContentInputStream() {
         createAndStartServer {
             post("/") {
-                    call.respond(call.receiveStream().reader().readText())
+                call.respond(call.receiveStream().reader().readText())
             }
         }
 
@@ -988,11 +987,11 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
                         channel.toInputStream().reader().use { reader ->
                             val firstByte = reader.read()
                             if (firstByte == -1) {
-                            //println("Premature end of response stream at iteration $i")
-                            fail("Premature end of response stream at iteration $i")
-                        } else {
+                                //println("Premature end of response stream at iteration $i")
+                                fail("Premature end of response stream at iteration $i")
+                            } else {
                                 assertEquals('O', firstByte.toChar())
-                            Thread.sleep(random.nextInt(1000).toLong())
+                                Thread.sleep(random.nextInt(1000).toLong())
                                 assertEquals("K:$i\n", reader.readText())
                             }
                         }

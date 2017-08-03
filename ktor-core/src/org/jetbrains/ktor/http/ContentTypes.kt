@@ -4,28 +4,56 @@ import java.nio.charset.*
 
 class ContentType(val contentType: String, val contentSubtype: String, parameters: List<HeaderValueParam> = emptyList()) : HeaderValueWithParameters("$contentType/$contentSubtype", parameters) {
     fun withParameter(name: String, value: String): ContentType {
-        return ContentType(contentType, contentSubtype, parameters + HeaderValueParam(name, value))
+        val existing = parameters.indexOfFirst {
+            it.name.equals(name, ignoreCase = true) && it.value.equals(value, ignoreCase = true)
+        }
+        val newParameters = if (existing == -1)
+            parameters + HeaderValueParam(name, value)
+        else
+            parameters
+        return ContentType(contentType, contentSubtype, newParameters)
     }
+
     fun withoutParameters() = ContentType(contentType, contentSubtype)
 
-    fun match(other: ContentType): Boolean =
-            (other.contentType == "*" || other.contentType == contentType)
-            && (other.contentSubtype == "*" || other.contentSubtype == contentSubtype)
-            && (other.parameters.filter { it.name != "*" && it.value != "*" }.all { parameter(it.name) == it.value })
-            && (other.parameters.filter { it.name != "*" && it.value == "*" }.all { parameter(it.name) != null })
-            && (other.parameters.filter { it.name == "*" && it.value != "*" }.all { this.parameters.any { p -> p.value == it.value } })
+    fun match(pattern: ContentType): Boolean {
+        if (pattern.contentType != "*" && !pattern.contentType.equals(contentType, ignoreCase = true))
+            return false
+        if (pattern.contentSubtype != "*" && !pattern.contentSubtype.equals(contentSubtype, ignoreCase = true))
+            return false
+        for ((patternName, patternValue) in pattern.parameters) {
+            val matches = when (patternName) {
+                "*" -> {
+                    when (patternValue) {
+                        "*" -> true
+                        else -> parameters.any { p -> p.value.equals(patternValue, ignoreCase = true) }
+                    }
+                }
+                else -> {
+                    val value = parameter(patternName)
+                    when (patternValue) {
+                        "*" -> value != null
+                        else -> value.equals(patternValue, ignoreCase = true)
+                    }
+                }
+            }
+            if (!matches)
+                return false
+        }
+        return true
+    }
 
     fun match(pattern: String): Boolean = match(ContentType.parse(pattern))
 
     override fun equals(other: Any?): Boolean =
-        other is ContentType &&
-        contentType == other.contentType &&
-        contentSubtype == other.contentSubtype &&
-        parameters == other.parameters
+            other is ContentType &&
+                    contentType.equals(other.contentType, ignoreCase = true) &&
+                    contentSubtype.equals(other.contentSubtype, ignoreCase = true) &&
+                    parameters == other.parameters
 
-    override fun hashCode(): Int{
-        var result = contentType.hashCode()
-        result += 31 * result + contentSubtype.hashCode()
+    override fun hashCode(): Int {
+        var result = contentType.toLowerCase().hashCode()
+        result += 31 * result + contentSubtype.toLowerCase().hashCode()
         result += 31 * parameters.hashCode()
         return result
     }

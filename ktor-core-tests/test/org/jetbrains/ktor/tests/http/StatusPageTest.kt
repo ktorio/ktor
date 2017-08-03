@@ -37,7 +37,7 @@ class StatusPageTest {
 
             application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) {
-                    call.respond(TextContent("${it.value} ${it.description}", ContentType.Text.Plain.withCharset(Charsets.UTF_8), it))
+                    call.respondText("${it.value} ${it.description}", status = it)
                 }
             }
 
@@ -69,7 +69,7 @@ class StatusPageTest {
         withTestApplication {
             application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) {
-                    call.respond(TextContent("${it.value} ${it.description}", ContentType.Text.Plain.withCharset(Charsets.UTF_8), it))
+                    call.respondText("${it.value} ${it.description}", status = it)
                 }
             }
 
@@ -101,7 +101,7 @@ class StatusPageTest {
 
             application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) {
-                    call.respond(TextContent("${it.value} ${it.description}", ContentType.Text.Plain.withCharset(Charsets.UTF_8), it))
+                    call.respondText("${it.value} ${it.description}", status = it)
                 }
             }
 
@@ -129,7 +129,7 @@ class StatusPageTest {
         withTestApplication {
             application.install(StatusPages) {
                 exception<Throwable> { cause ->
-                    call.respond(TextContent(cause::class.java.simpleName, ContentType.Text.Plain.withCharset(Charsets.UTF_8), HttpStatusCode.InternalServerError))
+                    call.respondText(cause::class.java.simpleName, status = HttpStatusCode.InternalServerError)
                 }
             }
 
@@ -166,7 +166,7 @@ class StatusPageTest {
 
             application.install(StatusPages) {
                 exception<IllegalStateException> { cause ->
-                    call.respond(TextContent(cause::class.java.simpleName, ContentType.Text.Plain.withCharset(Charsets.UTF_8), HttpStatusCode.InternalServerError))
+                    call.respondText(cause::class.java.simpleName, status = HttpStatusCode.InternalServerError)
                 }
             }
 
@@ -190,7 +190,7 @@ class StatusPageTest {
                     throw IllegalStateException("")
                 }
                 exception<Throwable> { cause ->
-                    call.respond(TextContent(cause::class.java.simpleName, ContentType.Text.Plain.withCharset(Charsets.UTF_8), HttpStatusCode.InternalServerError))
+                    call.respondText(cause::class.java.simpleName, status = HttpStatusCode.InternalServerError)
                 }
             }
 
@@ -232,7 +232,7 @@ class StatusPageTest {
             application.install(StatusPages) {
                 exception<ValidationException> { cause ->
                     // Can access `cause.code` without casting
-                    call.respond(TextContent(cause.code, ContentType.Text.Plain.withCharset(Charsets.UTF_8), HttpStatusCode.InternalServerError))
+                    call.respondText(cause.code, status = HttpStatusCode.InternalServerError)
                 }
             }
 

@@ -6,9 +6,11 @@ import org.junit.*
 import kotlin.test.*
 
 class ContentTypeLookupTest {
+    private val plainText = listOf(ContentType.Text.Plain)
+
     @Test
     fun testExtensionSingle() {
-        assertEquals(listOf(ContentType.Text.Plain), ContentType.fromFileExtension(".txt"))
+        assertEquals(plainText, ContentType.fromFileExtension(".txt"))
     }
 
     @Test
@@ -18,58 +20,58 @@ class ContentTypeLookupTest {
 
     @Test
     fun testMissing() {
-        assertEquals(emptyList<ContentType>(), ContentType.fromFileExtension(".werfewrfgewrf"))
+        assertEquals(emptyList(), ContentType.fromFileExtension(".werfewrfgewrf"))
     }
 
     @Test
     fun testEmpty() {
-        assertEquals(emptyList<ContentType>(), ContentType.fromFileExtension("."))
-        assertEquals(emptyList<ContentType>(), ContentType.fromFileExtension(""))
+        assertEquals(emptyList(), ContentType.fromFileExtension("."))
+        assertEquals(emptyList(), ContentType.fromFileExtension(""))
     }
 
     @Test
     fun testWrongCharacterCase() {
-        assertEquals(listOf(ContentType.Text.Plain), ContentType.fromFileExtension(".Txt"))
+        assertEquals(plainText, ContentType.fromFileExtension(".Txt"))
     }
 
     @Test
     fun testMissingDot() {
-        assertEquals(listOf(ContentType.Text.Plain), ContentType.fromFileExtension("txt"))
+        assertEquals(plainText, ContentType.fromFileExtension("txt"))
     }
 
     @Test
     fun testByPathNoPath() {
-        assertEquals(listOf(ContentType.Text.Plain), ContentType.fromFilePath("aa.txt"))
+        assertEquals(plainText, ContentType.fromFilePath("aa.txt"))
     }
 
     @Test
     fun testByPathNoExtNoReg() {
-        assertEquals(emptyList<ContentType>(), ContentType.fromFilePath("aa"))
+        assertEquals(emptyList(), ContentType.fromFilePath("aa"))
     }
 
     @Test
     fun testByPathNoExt() {
-        assertEquals(emptyList<ContentType>(), ContentType.fromFilePath("txt"))
+        assertEquals(emptyList(), ContentType.fromFilePath("txt"))
     }
 
     @Test
     fun testByPathWithPath() {
-        assertEquals(listOf(ContentType.Text.Plain), ContentType.fromFilePath("/path/to/file/aa.txt"))
+        assertEquals(plainText, ContentType.fromFilePath("/path/to/file/aa.txt"))
     }
 
     @Test
     fun testByPathWithPathWindows() {
-        assertEquals(listOf(ContentType.Text.Plain), ContentType.fromFilePath("C:\\path\\to\\file\\aa.txt"))
+        assertEquals(plainText, ContentType.fromFilePath("C:\\path\\to\\file\\aa.txt"))
     }
 
     @Test
     fun testByPathWithPathStartsWithDot() {
-        assertEquals(listOf(ContentType.Text.Plain), ContentType.fromFilePath("/path/to/file/.txt"))
+        assertEquals(plainText, ContentType.fromFilePath("/path/to/file/.txt"))
     }
 
     @Test
     fun testByPathNoPathStartsWithDot() {
-        assertEquals(listOf(ContentType.Text.Plain), ContentType.fromFilePath(".txt"))
+        assertEquals(plainText, ContentType.fromFilePath(".txt"))
     }
 
     @Test
