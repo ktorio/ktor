@@ -6,27 +6,36 @@ import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.response.*
+import org.jetbrains.ktor.util.*
 import java.lang.reflect.*
 import java.util.concurrent.*
 import javax.servlet.http.*
 
 abstract class KtorServlet : HttpServlet() {
     private val hostExecutor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors())
-    private val hostDispatcher = hostExecutor.asCoroutineDispatcher()
+    private val hostDispatcher = DispatcherWithShutdown(hostExecutor.asCoroutineDispatcher())
 
     private val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8)
-    private val dispatcher = executor.asCoroutineDispatcher()
+    private val dispatcher = DispatcherWithShutdown(executor.asCoroutineDispatcher())
 
     abstract val application: Application
     abstract val hostPipeline: HostPipeline
 
     override fun destroy() {
-        super.destroy()
-        executor.shutdownNow()
-        hostExecutor.shutdown()
+        hostDispatcher.prepareShutdown()
+        dispatcher.prepareShutdown()
+        try {
+            super.destroy()
+            executor.shutdownNow()
+            hostExecutor.shutdown()
 
-        executor.awaitTermination(1L, TimeUnit.SECONDS)
-        hostExecutor.awaitTermination(1L, TimeUnit.SECONDS)
+            executor.awaitTermination(1L, TimeUnit.SECONDS)
+            hostExecutor.awaitTermination(1L, TimeUnit.SECONDS)
+        } finally {
+            hostDispatcher.completeShutdown()
+            dispatcher.completeShutdown()
+        }
+
     }
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {

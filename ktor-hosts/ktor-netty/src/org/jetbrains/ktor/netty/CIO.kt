@@ -1,9 +1,11 @@
 package org.jetbrains.ktor.netty
 
+import io.netty.channel.*
 import io.netty.util.concurrent.*
 import io.netty.util.concurrent.Future
 import kotlinx.coroutines.experimental.*
 import java.util.concurrent.*
+import kotlin.coroutines.experimental.*
 
 suspend fun <T> Future<T>.suspendAwait(): T {
     if (isDone) return try { get() } catch (t: Throwable) { throw t.unwrap() }
@@ -11,6 +13,20 @@ suspend fun <T> Future<T>.suspendAwait(): T {
     return suspendCancellableCoroutine { continuation ->
         addListener(CoroutineListener(this, continuation))
     }
+}
+
+internal object NettyDispatcher : CoroutineDispatcher() {
+    override fun isDispatchNeeded(context: CoroutineContext): Boolean {
+        return !context[CurrentContextKey]!!.context.executor().inEventLoop()
+    }
+
+    override fun dispatch(context: CoroutineContext, block: Runnable) {
+        val nettyContext = context[CurrentContextKey]!!.context
+        nettyContext.executor().execute(block)
+    }
+
+    class CurrentContext(val context: ChannelHandlerContext) : AbstractCoroutineContextElement(CurrentContextKey)
+    object CurrentContextKey : CoroutineContext.Key<CurrentContext>
 }
 
 private class CoroutineListener<T, F : Future<T>>(private val future: F, private val continuation: CancellableContinuation<T>) : GenericFutureListener<F>, DisposableHandle {

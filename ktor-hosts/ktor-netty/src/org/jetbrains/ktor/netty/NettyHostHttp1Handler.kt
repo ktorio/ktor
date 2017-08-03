@@ -5,7 +5,6 @@ import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.HttpResponseStatus.*
 import io.netty.handler.codec.http.HttpVersion.*
 import io.netty.util.*
-import kotlinx.coroutines.experimental.*
 
 @ChannelHandler.Sharable
 internal class NettyHostHttp1Handler(private val host: NettyApplicationHost) : ChannelInboundHandlerAdapter() {
@@ -17,7 +16,7 @@ internal class NettyHostHttp1Handler(private val host: NettyApplicationHost) : C
         }
     }
 
-    fun handleRequest(context: ChannelHandlerContext, message: HttpRequest) {
+    private fun handleRequest(context: ChannelHandlerContext, message: HttpRequest) {
         if (HttpUtil.is100ContinueExpected(message)) {
             context.write(DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
         }
@@ -30,7 +29,7 @@ internal class NettyHostHttp1Handler(private val host: NettyApplicationHost) : C
             queue.push(message, message is LastHttpContent)
         }
 
-        val call = NettyApplicationCall(host.application, context, message, queue, context.executor().asCoroutineDispatcher())
+        val call = NettyApplicationCall(host, host.application, context, message, queue)
         context.channel().attr(ResponseQueueKey).get().started(call)
         context.fireChannelRead(call)
     }

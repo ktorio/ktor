@@ -10,6 +10,7 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.response.*
+import org.jetbrains.ktor.util.*
 import java.nio.*
 import java.util.concurrent.*
 import javax.servlet.*
@@ -17,12 +18,17 @@ import javax.servlet.http.*
 
 internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, val pipeline: () -> HostPipeline, val hostDispatcher: CoroutineDispatcher) : AbstractHandler() {
     private val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8)
-    private val dispatcher = executor.asCoroutineDispatcher()
+    private val dispatcher = DispatcherWithShutdown(executor.asCoroutineDispatcher())
     private val MULTI_PART_CONFIG = MultipartConfigElement(System.getProperty("java.io.tmpdir"))
 
     override fun destroy() {
-        super.destroy()
-        executor.shutdownNow()
+        dispatcher.prepareShutdown()
+        try {
+            super.destroy()
+            executor.shutdownNow()
+        } finally {
+            dispatcher.completeShutdown()
+        }
     }
 
     override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {

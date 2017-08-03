@@ -4,7 +4,9 @@ import io.netty.bootstrap.*
 import io.netty.channel.*
 import io.netty.channel.nio.*
 import io.netty.channel.socket.nio.*
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.util.*
 import java.util.concurrent.*
 
 /**
@@ -16,6 +18,9 @@ class NettyApplicationHost(environment: ApplicationHostEnvironment) : BaseApplic
     private val connectionEventGroup = NettyConnectionPool(parallelism) // accepts connections
     internal val workerEventGroup = NettyWorkerPool(parallelism) // processes socket data and parse HTTP
     internal val callEventGroup = NettyCallPool(parallelism) // processes calls
+
+    internal val dispatcherWithShutdown = DispatcherWithShutdown(NettyDispatcher)
+    internal val hostDispatcherWithShutdown = DispatcherWithShutdown(workerEventGroup.asCoroutineDispatcher())
 
     private var channels: List<Channel>? = null
     private val bootstraps = environment.connectors.map { connector ->
@@ -41,14 +46,24 @@ class NettyApplicationHost(environment: ApplicationHostEnvironment) : BaseApplic
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
         channels?.forEach { it.close().sync() }
-        val shutdownConnections = connectionEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
-        val shutdownWorkers = workerEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
-        val shutdownCall = callEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
-        shutdownConnections.await()
-        shutdownWorkers.await()
-        shutdownCall.await()
 
-        environment.stop()
+        dispatcherWithShutdown.prepareShutdown()
+        hostDispatcherWithShutdown.prepareShutdown()
+        try {
+
+            val shutdownConnections = connectionEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
+            val shutdownWorkers = workerEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
+            val shutdownCall = callEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
+
+            shutdownConnections.await()
+            shutdownWorkers.await()
+            shutdownCall.await()
+
+            environment.stop()
+        } finally {
+            dispatcherWithShutdown.completeShutdown()
+            hostDispatcherWithShutdown.completeShutdown()
+        }
     }
 
     override fun toString(): String {

@@ -8,17 +8,15 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.response.*
 import java.io.*
 import java.util.concurrent.atomic.*
-import kotlin.coroutines.experimental.*
 
-internal class NettyApplicationCall(application: Application,
+internal class NettyApplicationCall(val host: NettyApplicationHost,
+                                    application: Application,
                                     val context: ChannelHandlerContext,
                                     val httpRequest: HttpRequest,
-                                    contentQueue: NettyContentQueue,
-                                    val userAppContext: CoroutineContext) : BaseApplicationCall(application) {
+                                    contentQueue: NettyContentQueue) : BaseApplicationCall(application) {
 
     private val closed = AtomicBoolean(false)
 
@@ -72,10 +70,13 @@ internal class NettyApplicationCall(application: Application,
     }
 
     override suspend fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
-        runAsync(context.channel().eventLoop()) {
-            val upgradeContentQueue = RawContentQueue(context)
+        val nettyContext = context
+        val userAppContext = host.dispatcherWithShutdown + NettyDispatcher.CurrentContext(nettyContext)
 
-            context.channel().pipeline().replace(HttpContentQueue::class.java, "WebSocketReadQueue", upgradeContentQueue).popAndForEach {
+        run(host.hostDispatcherWithShutdown) {
+            val upgradeContentQueue = RawContentQueue(nettyContext)
+
+            nettyContext.channel().pipeline().replace(HttpContentQueue::class.java, "WebSocketReadQueue", upgradeContentQueue).popAndForEach {
                 it.clear {
                     if (it is LastHttpContent)
                         it.release()
@@ -84,21 +85,21 @@ internal class NettyApplicationCall(application: Application,
                 }
             }
 
-            with(context.channel().pipeline()) {
+            with(nettyContext.channel().pipeline()) {
                 remove(NettyHostHttp1Handler::class.java)
                 addFirst(NettyDirectDecoder())
             }
 
             response.sendResponseMessage(chunked = false)?.addListener {
-                launchAsync(context.channel().eventLoop()) {
-                    context.channel().pipeline().remove(HttpServerCodec::class.java)
-                    context.channel().pipeline().addFirst(NettyDirectEncoder())
+                launch(userAppContext) {
+                    nettyContext.channel().pipeline().remove(HttpServerCodec::class.java)
+                    nettyContext.channel().pipeline().addFirst(NettyDirectEncoder())
 
                     upgrade.upgrade(HttpContentReadChannel(upgradeContentQueue.queue, buffered = false), responseChannel(), Closeable {
-                        context.channel().close().get()
+                        nettyContext.channel().close().get()
                         upgradeContentQueue.close()
-                    }, context.channel().eventLoop().asCoroutineDispatcher(), userAppContext)
-                    context.read()
+                    }, host.hostDispatcherWithShutdown, userAppContext)
+                    nettyContext.read()
                 }
             } ?: throw IllegalStateException("Response has been already sent")
         }

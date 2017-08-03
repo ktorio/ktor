@@ -7,4 +7,3 @@ import java.util.concurrent.*
 
 suspend fun runAsync(executor: Executor, body: suspend () -> Unit) = run(executor.asCoroutineDispatcher(), block = body)
 
-fun launchAsync(executor: Executor, body: suspend () -> Unit) = launch(executor.asCoroutineDispatcher()) { body() }
