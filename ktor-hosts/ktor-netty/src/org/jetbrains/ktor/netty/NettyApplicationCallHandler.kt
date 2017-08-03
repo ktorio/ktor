@@ -3,7 +3,6 @@ package org.jetbrains.ktor.netty
 import io.netty.channel.*
 import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.netty.http2.*
 import org.jetbrains.ktor.pipeline.*
 import kotlin.coroutines.experimental.*
 

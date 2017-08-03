@@ -9,7 +9,6 @@ import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
-import org.junit.rules.*
 import java.io.*
 import java.net.*
 import java.nio.*

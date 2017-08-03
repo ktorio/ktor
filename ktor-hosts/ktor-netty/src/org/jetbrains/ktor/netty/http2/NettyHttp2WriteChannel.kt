@@ -1,15 +1,11 @@
 package org.jetbrains.ktor.netty.http2
 
-import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
-import io.netty.util.concurrent.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.netty.*
 import java.nio.*
-import java.nio.channels.*
 import java.util.concurrent.atomic.*
-import kotlin.coroutines.experimental.*
 
 internal class NettyHttp2WriteChannel(val context: ChannelHandlerContext) : WriteChannel {
     private val closed = AtomicBoolean()

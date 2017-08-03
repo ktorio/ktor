@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.http
 
-import org.jetbrains.ktor.util.*
 import java.util.*
 
 data class HeaderValueParam(val name: String, val value: String)

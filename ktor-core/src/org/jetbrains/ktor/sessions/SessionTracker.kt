@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.sessions
 
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.pipeline.*
 
 /**
  * SessionTracker provides ability to track and extract session from the call context.
