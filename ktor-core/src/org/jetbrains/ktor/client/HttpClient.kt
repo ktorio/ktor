@@ -6,6 +6,7 @@ import org.jetbrains.ktor.util.*
 import java.io.*
 import java.net.*
 import java.nio.*
+import java.nio.charset.*
 import javax.net.ssl.*
 
 abstract class HttpClient {
@@ -47,7 +48,10 @@ interface HttpResponse : Closeable {
 val HttpResponse.stream: InputStream
     get() = channel.toInputStream()
 
-fun HttpResponse.readText(): String = channel.toInputStream().reader(headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }?.charset() ?: Charsets.ISO_8859_1).use { it.readText() }
+fun HttpResponse.readText(defaultCharset: Charset = Charsets.ISO_8859_1): String {
+    val charset = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }?.charset() ?: defaultCharset
+    return channel.toInputStream().reader(charset).use { it.readText() }
+}
 
 suspend fun HttpResponse.readBytes(size: Int): ByteArray {
     val result = ByteArray(size)
@@ -79,7 +83,8 @@ suspend fun HttpResponse.readBytes(): ByteArray {
 }
 
 @Deprecated("", ReplaceWith("status.value"))
-val HttpResponse.responseCode: Int get() = status.value
+val HttpResponse.responseCode: Int
+    get() = status.value
 
 class RequestBuilder {
     private val headersBuilder = ValuesMapBuilder()

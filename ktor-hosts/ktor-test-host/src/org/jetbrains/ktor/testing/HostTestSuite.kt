@@ -317,7 +317,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
 
         withUrl("/") {
             assertEquals(200, status.value)
-            assertEquals(file.readText(), readText())
+            assertEquals(file.readText(), readText(Charsets.UTF_8))
         }
     }
 
