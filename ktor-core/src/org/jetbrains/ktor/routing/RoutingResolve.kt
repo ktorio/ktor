@@ -21,7 +21,8 @@ class RoutingResolveContext(val routing: Route,
         val length = path.length
         var beginSegment = 0
         var nextSegment = 0
-        val segments = ArrayList<String>(path.count { it == '/' })
+        val segmentCount = path.count { it == '/' }
+        val segments = ArrayList<String>(segmentCount)
         while (nextSegment < length) {
             nextSegment = path.indexOf('/', beginSegment)
             if (nextSegment == -1) {
