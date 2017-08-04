@@ -1,6 +1,8 @@
 # 0.4.0
 
 * Fixes, improvements and integration tests for HTTP/2 support
+* Update `ContentType` to treat all parts case insensitively
+* Remove `ApplicationLog` and use SLF4J `Logger` directly
 * Add HttpMethod.Patch and respective builder functions 
 * Convert sessions to proper feature, support multiple sessions, improve DSL 
 * HeadRequestSupport feature is renamed to AutoHeadResponse (with deprecated typealias)
