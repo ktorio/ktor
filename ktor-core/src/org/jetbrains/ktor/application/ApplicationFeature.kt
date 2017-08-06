@@ -14,22 +14,29 @@ interface ApplicationFeature<in TPipeline : Pipeline<*>, out TBuilder : Any, TFe
      * Feature installation script
      */
     fun install(pipeline: TPipeline, configure: TBuilder.() -> Unit): TFeature
+}
 
-    companion object {
-        val registry = AttributeKey<Attributes>("ApplicationRegistry")
-    }
+private val featureRegistryKey = AttributeKey<Attributes>("ApplicationFeatureRegistry")
+
+/**
+ * Gets feature instance for this pipeline
+ */
+fun <A : Pipeline<*>, B : Any, F : Any> A.feature(feature: ApplicationFeature<A, B, F>): F {
+    return attributes[featureRegistryKey][feature.key]
 }
 
 /**
- * Gets feature instance for this pipeline, if any
+ * Returns feature instance for this pipeline, or null if feature is not installed
  */
-fun <A : Pipeline<*>, B : Any, F : Any> A.feature(feature: ApplicationFeature<A, B, F>): F = attributes[ApplicationFeature.registry][feature.key]
+fun <A : Pipeline<*>, B : Any, F : Any> A.featureOrNull(feature: ApplicationFeature<A, B, F>): F? {
+    return attributes.getOrNull(featureRegistryKey)?.getOrNull(feature.key)
+}
 
 /**
  * Installs [feature] into this pipeline, if it is not yet installed
  */
 fun <P : Pipeline<*>, B : Any, F : Any> P.install(feature: ApplicationFeature<P, B, F>, configure: B.() -> Unit = {}): F {
-    val registry = attributes.computeIfAbsent(ApplicationFeature.registry) { Attributes() }
+    val registry = attributes.computeIfAbsent(featureRegistryKey) { Attributes() }
     val installedFeature = registry.getOrNull(feature.key)
     when (installedFeature) {
         null -> {
@@ -58,7 +65,7 @@ fun <P : Pipeline<*>, B : Any, F : Any> P.install(feature: ApplicationFeature<P,
  * Uninstalls all features from the pipeline
  */
 fun <A : Pipeline<*>> A.uninstallAllFeatures() {
-    val registry = attributes.computeIfAbsent(ApplicationFeature.registry) { Attributes() }
+    val registry = attributes.computeIfAbsent(featureRegistryKey) { Attributes() }
     registry.allKeys.forEach {
         @Suppress("UNCHECKED_CAST")
         uninstallFeature(it as AttributeKey<Any>)
@@ -74,7 +81,7 @@ fun <A : Pipeline<*>, B : Any, F : Any> A.uninstall(feature: ApplicationFeature<
  * Uninstalls feature specified by [key] from the pipeline
  */
 fun <A : Pipeline<*>, F : Any> A.uninstallFeature(key: AttributeKey<F>) {
-    val registry = attributes.getOrNull(ApplicationFeature.registry) ?: return
+    val registry = attributes.getOrNull(featureRegistryKey) ?: return
     val instance = registry.getOrNull(key) ?: return
     if (instance is AutoCloseable)
         instance.close()
