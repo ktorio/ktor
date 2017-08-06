@@ -13,6 +13,7 @@
     <modules>
         <module>ktor-freemarker</module>
         <module>ktor-gson</module>
+        <module>ktor-metrics</module>
         <module>ktor-server-sessions</module>
         <module>ktor-locations</module>
         <module>ktor-websockets</module>

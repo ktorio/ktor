@@ -27,10 +27,19 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
             merge(routingCallPipeline.sendPipeline)
         }
         val routingCall = RoutingApplicationCall(context.call, route, receivePipeline, responsePipeline, parameters)
-        return routingCallPipeline.execute(routingCall)
+        application.environment.monitor.raise(RoutingCallStarted, routingCall)
+        try {
+            routingCallPipeline.execute(routingCall)
+        } finally {
+            application.environment.monitor.raise(RoutingCallFinished, routingCall)
+        }
     }
 
     companion object Feature : ApplicationFeature<Application, Routing, Routing> {
+
+        val RoutingCallStarted = EventDefinition<RoutingApplicationCall>()
+        val RoutingCallFinished = EventDefinition<RoutingApplicationCall>()
+
         override val key: AttributeKey<Routing> = AttributeKey("Routing")
 
         override fun install(pipeline: Application, configure: Routing.() -> Unit): Routing {
@@ -49,10 +58,11 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
     }
 }
 
-val Route.application: Application get() = when {
-    this is Routing -> application
-    else -> parent?.application ?: throw UnsupportedOperationException("Cannot retrieve application from unattached routing entry")
-}
+val Route.application: Application
+    get() = when {
+        this is Routing -> application
+        else -> parent?.application ?: throw UnsupportedOperationException("Cannot retrieve application from unattached routing entry")
+    }
 
 fun Application.routing(configure: Routing.() -> Unit) = featureOrNull(Routing)?.apply(configure) ?: install(Routing, configure)
 

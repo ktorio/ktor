@@ -64,7 +64,7 @@ class KweetApp {
 
     fun Application.install() {
         dao.init()
-        environment.monitor.applicationStopped += { pool.close() }
+        environment.monitor.subscribe(ApplicationStopped) { pool.close() }
 
         install(DefaultHeaders)
         install(CallLogging)

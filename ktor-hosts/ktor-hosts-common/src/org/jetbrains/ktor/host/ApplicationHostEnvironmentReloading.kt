@@ -2,7 +2,6 @@ package org.jetbrains.ktor.host
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.config.*
-import org.jetbrains.ktor.util.*
 import org.slf4j.*
 import java.io.*
 import java.lang.reflect.*
@@ -29,8 +28,7 @@ class ApplicationHostEnvironmentReloading(
         override val connectors: List<HostConnectorConfig>,
         private val modules: List<Application.() -> Unit>,
         private val watchPaths: List<String> = emptyList()
-)
-    : ApplicationHostEnvironment {
+) : ApplicationHostEnvironment {
 
     private var _applicationInstance: Application? = null
     private var _applicationClassLoader: ClassLoader? = null
@@ -58,7 +56,7 @@ class ApplicationHostEnvironmentReloading(
 
     private val watcher by lazy { FileSystems.getDefault().newWatchService() }
 
-    override val monitor = ApplicationMonitor()
+    override val monitor = ApplicationEvents()
 
     @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
     override val application: Application
@@ -154,10 +152,10 @@ class ApplicationHostEnvironmentReloading(
         return OverridingClassLoader(watchUrls, baseClassLoader)
     }
 
-    fun safeRiseEvent(event: Event<Application>, application: Application) {
+    fun safeRiseEvent(event: EventDefinition<Application>, application: Application) {
         try {
-            event(application)
-        } catch(e: Throwable) {
+            monitor.raise(event, application)
+        } catch (e: Throwable) {
             log.error("One or more of the handlers thrown an exception", e)
         }
     }
@@ -168,15 +166,15 @@ class ApplicationHostEnvironmentReloading(
         _applicationInstance = null
         _applicationClassLoader = null
         if (currentApplication != null) {
-            safeRiseEvent(monitor.applicationStopping, currentApplication)
+            safeRiseEvent(ApplicationStopping, currentApplication)
             try {
                 currentApplication.dispose()
                 (applicationClassLoader as? OverridingClassLoader)?.close()
-            } catch(e: Throwable) {
+            } catch (e: Throwable) {
                 log.error("Failed to destroy application instance.", e)
             }
 
-            safeRiseEvent(monitor.applicationStopped, currentApplication)
+            safeRiseEvent(ApplicationStopped, currentApplication)
         }
         packageWatchKeys.forEach { it.cancel() }
         packageWatchKeys = mutableListOf()
@@ -233,7 +231,7 @@ class ApplicationHostEnvironmentReloading(
 
     private fun instantiateAndConfigureApplication(classLoader: ClassLoader): Application {
         val application = Application(this)
-        safeRiseEvent(monitor.applicationStarting, application)
+        safeRiseEvent(ApplicationStarting, application)
 
         moduleFunctionNames?.forEach { fqName ->
             executeModuleFunction(classLoader, fqName, application)
@@ -243,7 +241,7 @@ class ApplicationHostEnvironmentReloading(
             modules.forEach { it(application) }
         }
 
-        safeRiseEvent(monitor.applicationStarted, application)
+        safeRiseEvent(ApplicationStarted, application)
         return application
     }
 

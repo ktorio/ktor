@@ -7,7 +7,7 @@ import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import org.slf4j.*
 
-class CallLogging(private val log: Logger, private val monitor: ApplicationMonitor) {
+class CallLogging(private val log: Logger, private val monitor: ApplicationEvents) {
 
     class Configuration
 
@@ -19,16 +19,16 @@ class CallLogging(private val log: Logger, private val monitor: ApplicationMonit
     init {
         stopped = {
             it.log.trace("Application stopped: $it")
-            monitor.applicationStarting -= starting
-            monitor.applicationStarted -= started
-            monitor.applicationStopping -= stopping
-            monitor.applicationStopped -= stopped
+            monitor.unsubscribe(ApplicationStarting, starting)
+            monitor.unsubscribe(ApplicationStarted, started)
+            monitor.unsubscribe(ApplicationStopping, stopping)
+            monitor.unsubscribe(ApplicationStopped, stopped)
         }
 
-        monitor.applicationStarting += starting
-        monitor.applicationStarted += started
-        monitor.applicationStopping += stopping
-        monitor.applicationStopped += stopped
+        monitor.subscribe(ApplicationStarting, starting)
+        monitor.subscribe(ApplicationStarted, started)
+        monitor.subscribe(ApplicationStopping, stopping)
+        monitor.subscribe(ApplicationStopped, stopped)
     }
 
     companion object Feature : ApplicationFeature<Application, Configuration, CallLogging> {

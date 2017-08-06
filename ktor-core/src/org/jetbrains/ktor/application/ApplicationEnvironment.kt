@@ -26,6 +26,10 @@ interface ApplicationEnvironment {
     /**
      * Provides events on Application lifecycle
      */
-    val monitor: ApplicationMonitor
+    val monitor: ApplicationEvents
 }
 
+val ApplicationStarting = EventDefinition<Application>()
+val ApplicationStarted = EventDefinition<Application>()
+val ApplicationStopping = EventDefinition<Application>()
+val ApplicationStopped = EventDefinition<Application>()
