@@ -27,6 +27,14 @@ class Attributes {
         map.remove(key)
     }
 
+    fun <T : Any> take(key: AttributeKey<T>): T {
+        return get(key).also { map.remove(key) }
+    }
+
+    fun <T : Any> takeOrNull(key: AttributeKey<T>): T? {
+        return getOrNull(key).also { map.remove(key) }
+    }
+
     @Suppress("UNCHECKED_CAST")
     fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T {
         return map.computeIfAbsent(key) { block() } as T

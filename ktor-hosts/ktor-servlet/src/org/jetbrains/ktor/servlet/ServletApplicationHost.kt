@@ -35,7 +35,7 @@ open class ServletApplicationHost : KtorServlet() {
             log = LoggerFactory.getLogger(applicationId)
             classLoader = servletContext.classLoader
         }.apply {
-            monitor.applicationStarting += {
+            monitor.subscribe(ApplicationStarting)  {
                 it.receivePipeline.installDefaultTransformations()
                 it.sendPipeline.installDefaultTransformations()
             }

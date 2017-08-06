@@ -38,9 +38,8 @@ class SessionTrackerById(val type: KClass<*>, val serializer: SessionSerializer,
     }
 
     override suspend fun clear(call: ApplicationCall) {
-        val sessionId = call.attributes.getOrNull(SessionIdKey)
+        val sessionId = call.attributes.takeOrNull(SessionIdKey)
         if (sessionId != null) {
-            call.attributes.remove(SessionIdKey)
             storage.invalidate(sessionId)
         }
     }

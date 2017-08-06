@@ -1,7 +1,7 @@
 package org.jetbrains.ktor.tests.http
 
 import kotlinx.coroutines.experimental.*
-import org.jetbrains.ktor.content.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.response.*
@@ -48,7 +48,7 @@ class RespondWriteTest {
     fun testSuspendInside() {
         withTestApplication {
             val executor = Executors.newSingleThreadExecutor()
-            environment.monitor.applicationStopped += { executor.shutdown() }
+            environment.monitor.subscribe(ApplicationStopped) { executor.shutdown() }
             application.routing {
                 get("/") {
                     call.respondWrite {
