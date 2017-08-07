@@ -1,5 +1,6 @@
 # 0.4.0
 
+* Refactored receive/response pipelines and moved them into respective ApplicationRequest & ApplicationResponse classes 
 * Fixes, improvements and integration tests for HTTP/2 support
 * Update `ContentType` to treat all parts case insensitively
 * Remove `ApplicationLog` and use SLF4J `Logger` directly
