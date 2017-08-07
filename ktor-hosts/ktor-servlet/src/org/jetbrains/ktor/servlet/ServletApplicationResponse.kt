@@ -32,7 +32,7 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
     }
 
     @Volatile
-    var completed: Boolean = false
+    private var completed: Boolean = false
 
     suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
         servletResponse.status = upgrade.status?.value ?: HttpStatusCode.SwitchingProtocols.value
