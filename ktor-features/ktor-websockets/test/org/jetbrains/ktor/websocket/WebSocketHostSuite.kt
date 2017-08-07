@@ -9,6 +9,7 @@ import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
+import org.junit.rules.*
 import java.io.*
 import java.net.*
 import java.nio.*
@@ -18,6 +19,9 @@ import java.util.concurrent.*
 import kotlin.test.*
 
 abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: ApplicationHostFactory<THost>) : HostTestBase<THost>(hostFactory) {
+    @get:Rule
+    val errors = ErrorCollector()
+
     @Test
     fun testWebSocketGenericSequence() {
         val collected = LinkedBlockingQueue<String>()
@@ -25,10 +29,14 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         createAndStartServer {
             application.install(WebSockets)
             webSocket("/") {
-                incoming.consumeEach { frame ->
-                    if (frame is Frame.Text) {
-                        collected.add(frame.readText())
+                try {
+                    incoming.consumeEach { frame ->
+                        if (frame is Frame.Text) {
+                            collected.add(frame.readText())
+                        }
                     }
+                } catch (t: Throwable) {
+                    errors.addError(t)
                 }
             }
         }
@@ -86,7 +94,11 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                     timeout = Duration.ofSeconds(120)
                     pingInterval = Duration.ofMillis(50)
 
-                    incoming.consumeEach {
+                    try {
+                        incoming.consumeEach {
+                        }
+                    } catch (t: Throwable) {
+                        errors.addError(t)
                     }
                 }
             }
@@ -162,6 +174,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                         }
                     }
                 } catch (t: Throwable) {
+                    errors.addError(t)
                     collected.put(t.toString())
                 }
             }
@@ -349,6 +362,90 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
             }
 
             socket.getOutputStream().apply {
+                Serializer().apply {
+                    enqueue(Frame.Close())
+                    sendBuffer.clear()
+                    serialize(sendBuffer)
+                    sendBuffer.flip()
+                }
+
+                write(sendBuffer.array(), 0, sendBuffer.remaining())
+                flush()
+            }
+
+            socket.assertCloseFrame()
+        }
+    }
+
+    @Test
+    fun testALotOfFrames() {
+        val expectedCount = 100000L
+
+        createAndStartServer {
+            application.install(WebSockets)
+
+            application.routing {
+                webSocket("/") {
+                    try {
+                        var counter = 1L
+                        incoming.consumeEach { frame ->
+                            if (frame is Frame.Text) {
+                                val numberRead = frame.readText().toLong()
+                                assertEquals(counter, numberRead, "Wrong packet received")
+
+                                counter++
+                            }
+                        }
+
+                        assertEquals(expectedCount, counter - 1, "Not all frames received")
+                    } catch (t: Throwable) {
+                        errors.addError(t)
+                    }
+                }
+            }
+        }
+
+        Socket("localhost", port).use { socket ->
+            socket.soTimeout = 4000
+
+            // send upgrade request
+            socket.outputStream.apply {
+                write("""
+                GET / HTTP/1.1
+                Host: localhost:$port
+                Upgrade: websocket
+                Connection: Upgrade
+                Sec-WebSocket-Key: dGhlIHNhbXBsZSBub25jZQ==
+                Origin: http://localhost:$port
+                Sec-WebSocket-Protocol: chat
+                Sec-WebSocket-Version: 13
+                """.trimIndent().replace("\n", "\r\n").toByteArray())
+                write("\r\n\r\n".toByteArray())
+                flush()
+            }
+
+            val status = socket.inputStream.parseStatus()
+            assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
+
+            val headers = socket.inputStream.parseHeaders()
+            assertEquals("Upgrade", headers[HttpHeaders.Connection])
+            assertEquals("websocket", headers[HttpHeaders.Upgrade])
+
+            val sendBuffer = ByteBuffer.allocate(64)
+            socket.getOutputStream().apply {
+                for (i in 1L..expectedCount) {
+                    sendBuffer.clear()
+                    Serializer().apply {
+                        enqueue(Frame.Text(true, ByteBuffer.wrap(i.toString().toByteArray())))
+                        serialize(sendBuffer)
+
+                        sendBuffer.flip()
+                    }
+
+                    write(sendBuffer.array(), 0, sendBuffer.remaining())
+                }
+
+                sendBuffer.clear()
                 Serializer().apply {
                     enqueue(Frame.Close())
                     sendBuffer.clear()
