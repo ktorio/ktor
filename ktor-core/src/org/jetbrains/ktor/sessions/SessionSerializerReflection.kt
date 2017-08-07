@@ -141,7 +141,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
                     !is Map<*, *> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
                     else -> {
                         val keyType = type.arguments[0].type ?: throw IllegalArgumentException("Star projections are not supported for map key: ${type.arguments[0]}")
-                        val valueType = type.arguments[1].type ?: throw IllegalArgumentException("Star projections are not supported for map valye ${type.arguments[1]}")
+                        val valueType = type.arguments[1].type ?: throw IllegalArgumentException("Star projections are not supported for map value ${type.arguments[1]}")
 
                         listOf(type.toJavaClass().kotlin, LinkedHashMap::class, HashMap::class, TreeMap::class, ConcurrentHashMap::class)
                                 .toTypedList<MutableMap<*, *>>()

@@ -165,8 +165,8 @@ private class Http2Connection(val host: String, val port: Int, val secure: Boole
     }
 
     private suspend fun connect(host: String, port: Int): Session {
-        return withPromise { promoise ->
-            jettyClient.connect(sslContextFactory, InetSocketAddress(host, port), Session.Listener.Adapter(), promoise)
+        return withPromise { promise ->
+            jettyClient.connect(sslContextFactory, InetSocketAddress(host, port), Session.Listener.Adapter(), promise)
         }
     }
 }

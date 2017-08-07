@@ -52,8 +52,8 @@ class ChatServer {
         members[sender]?.send(Frame.Text("[server::help] Possible commands are: /user, /help and /who"))
     }
 
-    suspend fun sendTo(receipient: String, sender: String, message: String) {
-        members[receipient]?.send(Frame.Text("[$sender] $message"))
+    suspend fun sendTo(recipient: String, sender: String, message: String) {
+        members[recipient]?.send(Frame.Text("[$sender] $message"))
     }
 
     suspend fun message(sender: String, message: String) {

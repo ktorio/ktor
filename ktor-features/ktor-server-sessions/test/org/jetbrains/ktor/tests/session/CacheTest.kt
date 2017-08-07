@@ -63,7 +63,7 @@ class CacheTest {
         assertEquals("1", cache.getOrCompute(1))
         assertEquals(2, counter.get())
 
-        cache.invalidate(1, "shouldnt invalidate here")
+        cache.invalidate(1, "shouldn't invalidate here")
         assertEquals("1", cache.getOrCompute(1))
         assertEquals(2, counter.get())
 

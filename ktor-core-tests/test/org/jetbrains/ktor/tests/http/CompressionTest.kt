@@ -449,7 +449,7 @@ class CompressionTest {
                 else -> fail("unknown encoding $expectedContent")
             }
         } else {
-            assertNull(result.response.headers[HttpHeaders.ContentEncoding], "content shoudln't be compressed")
+            assertNull(result.response.headers[HttpHeaders.ContentEncoding], "content shouldn't be compressed")
             assertEquals(expectedContent, result.response.content)
         }
 

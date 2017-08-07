@@ -88,7 +88,7 @@ class OAuth1aFlowTest {
                     throw IllegalArgumentException("timestamp is too old: $timestamp (now $now)")
                 }
                 // NOTE real server should test it but as we don't test the whole workflow in one test we can't do it
-                //            if (nonce !in knownNonces) {
+                //            if (nonce !in knownNonceSet) {
                 //                throw IllegalArgumentException("Bad nonce specified: $nonce")
                 //            }
                 if (token != "token1") {
