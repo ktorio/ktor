@@ -18,15 +18,6 @@ data class RangesSpecifier(val unit: String = RangeUnits.Bytes.unitToken, val ra
         }
     }
 
-    @Deprecated("")
-    fun merge(length: Long, mergeToSingle: Boolean): List<LongRange> {
-        return if (mergeToSingle) {
-            mergeToSingle(length).toList()
-        } else {
-            merge(length)
-        }
-    }
-
     // TODO rangeMergeMaxGap
     fun merge(length: Long, maxRangeCount: Int = 50): List<LongRange> {
         if (ranges.size > maxRangeCount) {

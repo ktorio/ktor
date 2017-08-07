@@ -154,7 +154,7 @@ class RangesTest {
                 ContentRange.Bounded(0, 0),
                 ContentRange.Bounded(1, 90),
                 ContentRange.TailFrom(90)
-        )).merge(100, false))
+        )).merge(100))
     }
 
     @Test
