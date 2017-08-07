@@ -5,9 +5,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
-import java.lang.reflect.*
 import java.util.concurrent.*
 import javax.servlet.http.*
 
@@ -50,9 +48,7 @@ abstract class KtorServlet : HttpServlet() {
             val asyncContext = request.startAsync().apply {
                 timeout = 0L
             }
-            val call = ServletApplicationCall(application, request, response, NoPool, { builder ->
-                tryPush(request, builder)
-            }, hostDispatcher, userAppContext = dispatcher)
+            val call = ServletApplicationCall(application, request, response, NoPool, hostDispatcher, userAppContext = dispatcher)
 
             launch(dispatcher) {
                 try {
@@ -65,32 +61,5 @@ abstract class KtorServlet : HttpServlet() {
             application.log.error("ServletApplicationHost cannot service the request", ex)
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.message)
         }
-    }
-
-    private fun tryPush(request: HttpServletRequest, builder: ResponsePushBuilder): Boolean {
-        return listOf("org.jetbrains.ktor.servlet.v4.PushKt.doPush")
-                .mapNotNull { tryFind(it) }
-                .any { function ->
-                    tryInvoke(function, request, builder)
-                }
-    }
-
-    private fun tryInvoke(function: Method, request: HttpServletRequest, builder: ResponsePushBuilder) = try {
-        function.invoke(null, request, builder) as Boolean
-    } catch (ignore: ReflectiveOperationException) {
-        false
-    } catch (ignore: LinkageError) {
-        false
-    }
-
-    private fun tryFind(spec: String): Method? = try {
-        require("." in spec)
-        val methodName = spec.substringAfterLast(".")
-
-        Class.forName(spec.substringBeforeLast(".")).methods.singleOrNull { it.name == methodName }
-    } catch (ignore: ReflectiveOperationException) {
-        null
-    } catch (ignore: LinkageError) {
-        null
     }
 }

@@ -32,24 +32,7 @@ internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, pri
     }
 
     override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-        val call = JettyApplicationCall(environment.application, server, request, response, byteBufferPool, { builder ->
-            if (baseRequest.isPushSupported) {
-                baseRequest.pushBuilder.apply {
-                    this.method(builder.method.value)
-                    this.path(builder.url.encodedPath)
-                    val query = builder.url.build().substringAfter('?', "").takeIf { it.isNotEmpty() }
-                    if (query != null) {
-                        queryString(query)
-                    }
-
-                    push()
-                }
-
-                true
-            } else {
-                false
-            }
-        }, hostContext = hostDispatcher, userAppContext = dispatcher)
+        val call = JettyApplicationCall(environment.application, server.threadPool, baseRequest, request, response, byteBufferPool, hostContext = hostDispatcher, userAppContext = dispatcher)
 
         try {
             val contentType = request.contentType

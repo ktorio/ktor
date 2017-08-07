@@ -24,7 +24,7 @@ class TomcatApplicationHost(environment: ApplicationHostEnvironment) : BaseAppli
             get() = this@TomcatApplicationHost.application
     }
 
-    val server = Tomcat().apply {
+    private val server = Tomcat().apply {
         service.apply {
             findConnectors().forEach { existing ->
                 removeConnector(existing)

@@ -8,6 +8,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import java.io.*
+import java.lang.reflect.*
 import javax.servlet.http.*
 import kotlin.coroutines.experimental.*
 
@@ -15,8 +16,7 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
                                       protected val servletRequest: HttpServletRequest,
                                       protected val servletResponse: HttpServletResponse,
                                       protected val hostCoroutineContext: CoroutineContext,
-                                      protected val userCoroutineContext: CoroutineContext,
-                                      private val pushImpl: (ResponsePushBuilder) -> Boolean
+                                      protected val userCoroutineContext: CoroutineContext
 ) : BaseApplicationResponse(call) {
     override fun setStatus(statusCode: HttpStatusCode) {
         servletResponse.status = statusCode.value
@@ -73,6 +73,18 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
         }
     }
 
+    override fun push(builder: ResponsePushBuilder) {
+        if (!tryPush(servletRequest, builder)) {
+            super.push(builder)
+        }
+    }
+
+    private fun tryPush(request: HttpServletRequest, builder: ResponsePushBuilder): Boolean {
+        return foundPushImpls.any { function ->
+            tryInvoke(function, request, builder)
+        }
+    }
+
     // the following types need to be public as they are accessed through reflection
 
     class UpgradeRequest(val response: HttpServletResponse,
@@ -101,9 +113,28 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
         }
     }
 
-    override fun push(builder: ResponsePushBuilder) {
-        if (!pushImpl(builder)) {
-            super.push(builder)
+    companion object {
+        private val foundPushImpls by lazy {
+            listOf("org.jetbrains.ktor.servlet.v4.PushKt.doPush").mapNotNull { tryFind(it) }
+        }
+
+        private fun tryFind(spec: String): Method? = try {
+            require("." in spec)
+            val methodName = spec.substringAfterLast(".")
+
+            Class.forName(spec.substringBeforeLast(".")).methods.singleOrNull { it.name == methodName }
+        } catch (ignore: ReflectiveOperationException) {
+            null
+        } catch (ignore: LinkageError) {
+            null
+        }
+
+        private fun tryInvoke(function: Method, request: HttpServletRequest, builder: ResponsePushBuilder) = try {
+            function.invoke(null, request, builder) as Boolean
+        } catch (ignore: ReflectiveOperationException) {
+            false
+        } catch (ignore: LinkageError) {
+            false
         }
     }
 }
