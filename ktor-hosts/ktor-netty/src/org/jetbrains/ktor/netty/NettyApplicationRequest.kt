@@ -1,74 +1,43 @@
 package org.jetbrains.ktor.netty
 
+import io.netty.channel.*
 import io.netty.handler.codec.http.*
-import io.netty.handler.codec.http.cookie.*
 import io.netty.handler.codec.http.multipart.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import java.io.*
-import java.util.*
 import java.util.concurrent.atomic.*
-import kotlin.collections.LinkedHashSet
 
 internal class NettyApplicationRequest(
-        call: NettyApplicationCall,
-        override val local: NettyConnectionPoint,
+        call: ApplicationCall,
         private val httpRequest: HttpRequest,
-        private val contentQueue: NettyContentQueue) : BaseApplicationRequest(call), Closeable {
+        context: ChannelHandlerContext,
+        private val contentQueue: NettyContentQueue) : BaseApplicationRequest(call) {
 
-    override val headers: ValuesMap = NettyHeadersValuesMap(httpRequest)
-
-    class NettyHeadersValuesMap(request: HttpRequest) : ValuesMap {
-        private val headers: HttpHeaders = request.headers()
-        override fun get(name: String): String? = headers.get(name)
-        override fun contains(name: String): Boolean = headers.contains(name)
-        override fun contains(name: String, value: String): Boolean = headers.contains(name, value, true)
-        override fun getAll(name: String): List<String> = headers.getAll(name)
-        override fun forEach(body: (String, List<String>) -> Unit) {
-            val names = headers.names()
-            names.forEach { body(it, headers.getAll(it)) }
-        }
-
-        override fun entries(): Set<Map.Entry<String, List<String>>> {
-            val names = headers.names()
-            return names.mapTo(LinkedHashSet(names.size)) {
-                object : Map.Entry<String, List<String>> {
-                    override val key: String get() = it
-                    override val value: List<String> get() = headers.getAll(it)
-                }
-            }
-        }
-
-        override fun isEmpty(): Boolean = headers.isEmpty
-        override val caseInsensitiveKey: Boolean get() = true
-        override fun names(): Set<String> = headers.names()
-    }
-
-    override val queryParameters by lazy {
-        parseQueryString(httpRequest.uri().substringAfter("?", ""))
-    }
+    override val local = NettyConnectionPoint(httpRequest, context)
+    override val queryParameters by lazy { parseQueryString(httpRequest.uri().substringAfter("?", "")) }
+    override val headers: ValuesMap = NettyApplicationRequestHeaders(httpRequest)
+    override val cookies: RequestCookies = NettyApplicationRequestCookies(this)
 
     override fun receiveContent() = NettyHttpIncomingContent(this)
 
-    private val contentChannelState = AtomicReference<ReadChannelState>(ReadChannelState.NEUTRAL)
 
-    private val multipart = lazy {
+    private val contentChannelState = AtomicReference<ReadChannelState>(ReadChannelState.NEUTRAL)
+    private val contentChannel = lazy { HttpContentReadChannel(contentQueue) }
+    private val contentMultipart = lazy {
         if (!isMultipart())
             throw IOException("The request content is not multipart encoded")
         val decoder = HttpPostMultipartRequestDecoder(httpRequest)
         NettyMultiPartData(decoder, contentQueue)
     }
 
-    private val contentChannel = lazy { HttpContentReadChannel(contentQueue) }
-
-    override val cookies: RequestCookies = NettyRequestCookies(this)
-
-    override fun close() {
-        if (multipart.isInitialized()) {
-            multipart.value.destroy()
+    fun close() {
+        if (contentMultipart.isInitialized()) {
+            contentMultipart.value.destroy()
         }
 
         if (contentChannel.isInitialized()) {
@@ -76,8 +45,7 @@ internal class NettyApplicationRequest(
         }
     }
 
-
-    internal enum class ReadChannelState {
+    private enum class ReadChannelState {
         NEUTRAL,
         RAW_CHANNEL,
         MULTIPART_HANDLER
@@ -97,7 +65,7 @@ internal class NettyApplicationRequest(
 
         override fun multiPartData(): MultiPartData {
             if (request.contentChannelState.switchTo(NettyApplicationRequest.ReadChannelState.MULTIPART_HANDLER)) {
-                return request.multipart.value
+                return request.contentMultipart.value
             }
 
             throw IllegalStateException("Couldn't get multipart, most likely a raw channel already acquired, state is ${request.contentChannelState.get()}")
@@ -105,12 +73,3 @@ internal class NettyApplicationRequest(
     }
 }
 
-private class NettyRequestCookies(val owner: ApplicationRequest) : RequestCookies(owner) {
-    override val parsedRawCookies: Map<String, String> by lazy {
-        owner.headers.getAll("Cookie")?.fold(HashMap<String, String>()) { acc, e ->
-            val cookieHeader = owner.header("Cookie") ?: ""
-            acc.putAll(ServerCookieDecoder.LAX.decode(cookieHeader).associateBy({ it.name() }, { it.value() }))
-            acc
-        } ?: emptyMap<String, String>()
-    }
-}

@@ -254,7 +254,7 @@ fun Application.main() {
         }
 
         get("/cookies") {
-            val rawCookies = call.request.cookies.parsedRawCookies
+            val rawCookies = call.request.cookies.rawCookies
             call.sendHttpBinResponse {
                 clear()
                 cookies = rawCookies
@@ -266,7 +266,7 @@ fun Application.main() {
             for ((key, value) in params) {
                 call.response.cookies.append(name = key, value = value, path = "/")
             }
-            val rawCookies = call.request.cookies.parsedRawCookies
+            val rawCookies = call.request.cookies.rawCookies
             call.sendHttpBinResponse {
                 clear()
                 cookies = rawCookies + params.toMap()
@@ -275,7 +275,7 @@ fun Application.main() {
 
         get("/cookies/delete") {
             val params = call.request.queryParameters.names()
-            val rawCookies = call.request.cookies.parsedRawCookies
+            val rawCookies = call.request.cookies.rawCookies
             for (name in params) {
                 call.response.cookies.appendExpired(name, path = "/")
             }

@@ -8,8 +8,8 @@ import javax.servlet.http.*
 import kotlin.coroutines.experimental.*
 
 open class ServletApplicationCall(application: Application,
-                                  protected val servletRequest: HttpServletRequest,
-                                  protected val servletResponse: HttpServletResponse,
+                                  val servletRequest: HttpServletRequest,
+                                  val servletResponse: HttpServletResponse,
                                   override val bufferPool: ByteBufferPool,
                                   pushImpl: (ApplicationCall, ResponsePushBuilder.() -> Unit, () -> Unit) -> Unit,
                                   hostContext: CoroutineContext,

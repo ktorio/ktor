@@ -4,16 +4,22 @@ import org.jetbrains.ktor.http.*
 import java.util.*
 import java.util.concurrent.*
 
-open class RequestCookies(private val request: ApplicationRequest) {
+open class RequestCookies(val request: ApplicationRequest) {
     private val map = ConcurrentHashMap<Pair<CookieEncoding, String>, String>()
+    val rawCookies: Map<String, String> by lazy { fetchCookies() }
 
     operator fun get(name: String, encoding: CookieEncoding = CookieEncoding.URI_ENCODING): String? {
-        val rawValue = parsedRawCookies[name] ?: return null
+        val rawValue = rawCookies[name] ?: return null
         return map.computeIfAbsent(encoding to name) { decodeCookieValue(rawValue, encoding) }
     }
 
-    open val parsedRawCookies: Map<String, String> by lazy {
-        request.headers.getAll("Cookie")?.fold(HashMap<String, String>()) { acc, e -> acc.putAll(parseClientCookiesHeader(e)); acc }
-                ?: emptyMap<String, String>()
+    open fun fetchCookies(): Map<String, String> {
+        val cookieHeaders = request.headers.getAll("Cookie") ?: return emptyMap()
+        val map = HashMap<String, String>(cookieHeaders.size)
+        for (cookieHeader in cookieHeaders) {
+            val cookies = parseClientCookiesHeader(cookieHeader)
+            map.putAll(cookies)
+        }
+        return map
     }
 }
