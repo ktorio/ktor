@@ -50,12 +50,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.mortbay.jetty.alpn</groupId>
-            <artifactId>alpn-boot</artifactId>
-            <version>${alpn.boot.version}</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.eclipse.jetty.http2</groupId>
             <artifactId>http2-client</artifactId>
             <version>${jetty.version}</version>
@@ -87,9 +81,13 @@
                 </property>
             </activation>
 
-            <properties>
-                <alpn.boot.version>8.1.11.v20170118</alpn.boot.version>
-            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.mortbay.jetty.alpn</groupId>
+                    <artifactId>alpn-boot</artifactId>
+                    <version>8.1.11.v20170118</version>
+                </dependency>
+            </dependencies>
         </profile>
 
         <profile>
@@ -101,9 +99,13 @@
                 </property>
             </activation>
 
-            <properties>
-                <alpn.boot.version>8.1.11.v20170118</alpn.boot.version>
-            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.mortbay.jetty.alpn</groupId>
+                    <artifactId>alpn-boot</artifactId>
+                    <version>8.1.11.v20170118</version>
+                </dependency>
+            </dependencies>
         </profile>
 
         <profile>
@@ -115,9 +117,13 @@
                 </property>
             </activation>
 
-            <properties>
-                <alpn.boot.version>8.1.11.v20170118</alpn.boot.version>
-            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.mortbay.jetty.alpn</groupId>
+                    <artifactId>alpn-boot</artifactId>
+                    <version>8.1.11.v20170118</version>
+                </dependency>
+            </dependencies>
         </profile>
 
         <profile>
@@ -129,9 +135,13 @@
                 </property>
             </activation>
 
-            <properties>
-                <alpn.boot.version>8.1.10.v20161026</alpn.boot.version>
-            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.mortbay.jetty.alpn</groupId>
+                    <artifactId>alpn-boot</artifactId>
+                    <version>8.1.10.v20161026</version>
+                </dependency>
+            </dependencies>
         </profile>
 
         <profile>
@@ -143,9 +153,13 @@
                 </property>
             </activation>
 
-            <properties>
-                <alpn.boot.version>8.1.9.v20160720</alpn.boot.version>
-            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.mortbay.jetty.alpn</groupId>
+                    <artifactId>alpn-boot</artifactId>
+                    <version>8.1.9.v20160720</version>
+                </dependency>
+            </dependencies>
         </profile>
 
         <profile>
@@ -157,9 +171,13 @@
                 </property>
             </activation>
 
-            <properties>
-                <alpn.boot.version>8.1.9.v20160720</alpn.boot.version>
-            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.mortbay.jetty.alpn</groupId>
+                    <artifactId>alpn-boot</artifactId>
+                    <version>8.1.9.v20160720</version>
+                </dependency>
+            </dependencies>
         </profile>
 
         <profile>
@@ -171,9 +189,13 @@
                 </property>
             </activation>
 
-            <properties>
-                <alpn.boot.version>8.1.9.v20160720</alpn.boot.version>
-            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>org.mortbay.jetty.alpn</groupId>
+                    <artifactId>alpn-boot</artifactId>
+                    <version>8.1.9.v20160720</version>
+                </dependency>
+            </dependencies>
         </profile>
     </profiles>
 </project>
