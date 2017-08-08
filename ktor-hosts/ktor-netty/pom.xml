@@ -61,14 +61,6 @@
             <version>${tcnative.version}</version>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/io.netty/netty-tcnative-boringssl-static -->
-        <dependency>
-            <groupId>io.netty</groupId>
-            <artifactId>netty-tcnative-boringssl-static</artifactId>
-            <version>${tcnative.version}</version>
-            <classifier>${tc.native.classifier}</classifier>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
 
     <build>
@@ -158,9 +150,17 @@
                     <name>linux</name>
                 </os>
             </activation>
-            <properties>
-                <tc.native.classifier>linux-x86_64</tc.native.classifier>
-            </properties>
+
+            <dependencies>
+                <!-- https://mvnrepository.com/artifact/io.netty/netty-tcnative-boringssl-static -->
+                <dependency>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-tcnative-boringssl-static</artifactId>
+                    <version>${tcnative.version}</version>
+                    <classifier>linux-x86_64</classifier>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
         </profile>
         <profile>
             <id>tcnative-osx</id>
@@ -169,9 +169,16 @@
                     <family>mac</family>
                 </os>
             </activation>
-            <properties>
-                <tc.native.classifier>osx-x86_64</tc.native.classifier>
-            </properties>
+            <dependencies>
+                <!-- https://mvnrepository.com/artifact/io.netty/netty-tcnative-boringssl-static -->
+                <dependency>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-tcnative-boringssl-static</artifactId>
+                    <version>${tcnative.version}</version>
+                    <classifier>osx-x86_64</classifier>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
         </profile>
         <profile>
             <id>tcnative-windows</id>
@@ -180,9 +187,16 @@
                     <family>windows</family>
                 </os>
             </activation>
-            <properties>
-                <tc.native.classifier>windows-x86_64</tc.native.classifier>
-            </properties>
+            <dependencies>
+                <!-- https://mvnrepository.com/artifact/io.netty/netty-tcnative-boringssl-static -->
+                <dependency>
+                    <groupId>io.netty</groupId>
+                    <artifactId>netty-tcnative-boringssl-static</artifactId>
+                    <version>${tcnative.version}</version>
+                    <classifier>windows-x86_64</classifier>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
         </profile>
     </profiles>
 </project>
