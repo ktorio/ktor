@@ -19,6 +19,7 @@
 package org.jetbrains.ktor.org.apache.commons.collections4.map;
 
 import java.util.*;
+import java.util.function.BiConsumer;
 
 /**
  * An abstract implementation of a hash-based map that links entries to create an
@@ -157,7 +158,13 @@ public abstract class AbstractLinkedMap<K, V> extends AbstractHashedMap<K, V> {
         header.before = header.after = header;
     }
 
-    //-----------------------------------------------------------------------
+    public void forEach(BiConsumer<? super K, ? super V> action) {
+        for (LinkEntry<K, V> entry = header.after; entry != header; entry = entry.after) {
+            action.accept(entry.getKey(), entry.getValue());
+        }
+    }
+
+//-----------------------------------------------------------------------
     /**
      * Gets the first key in the map, which is the first inserted.
      *
