@@ -22,6 +22,8 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
     @get:Rule
     val errors = ErrorCollector()
 
+    private val socketReadTimeout = timeout.seconds.toInt() * 1000
+
     @Test
     fun testWebSocketGenericSequence() {
         val collected = LinkedBlockingQueue<String>()
@@ -42,7 +44,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         }
 
         Socket("localhost", port).use { socket ->
-            socket.soTimeout = 4000
+            socket.soTimeout = socketReadTimeout
 
             // send upgrade request
             socket.outputStream.apply {
@@ -106,7 +108,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         startServer(s)
 
         Socket("localhost", port).use { socket ->
-            socket.soTimeout = 4000
+            socket.soTimeout = socketReadTimeout
 
             // send upgrade request
             socket.outputStream.apply {
@@ -181,7 +183,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         }
 
         Socket("localhost", port).use { socket ->
-            socket.soTimeout = 4000
+            socket.soTimeout = socketReadTimeout
 
             // send upgrade request
             socket.outputStream.apply {
@@ -246,7 +248,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         }
 
         Socket("localhost", port).use { socket ->
-            socket.soTimeout = 4000
+            socket.soTimeout = socketReadTimeout
 
             // send upgrade request
             socket.outputStream.apply {
@@ -319,7 +321,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         }
 
         Socket("localhost", port).use { socket ->
-            socket.soTimeout = 4000
+            socket.soTimeout = socketReadTimeout
 
             // send upgrade request
             socket.outputStream.apply {
@@ -406,7 +408,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         }
 
         Socket("localhost", port).use { socket ->
-            socket.soTimeout = 4000
+            socket.soTimeout = socketReadTimeout
 
             // send upgrade request
             socket.outputStream.apply {
