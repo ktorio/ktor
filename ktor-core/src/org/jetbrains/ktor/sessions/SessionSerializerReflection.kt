@@ -156,6 +156,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
                     type.javaType.toJavaClass().enumConstants.first { (it as? Enum<*>)?.name == value }
                 }
                 type.toJavaClass() == Float::class.java && value is Number -> value.toFloat()
+                type.toJavaClass() == UUID::class.java && value is String -> UUID.fromString(value)
                 else -> value
             }
 
@@ -251,6 +252,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
                 is Set<*> -> "#cs${serializeCollection(value)}"
                 is Map<*, *> -> "#m${serializeMap(value)}"
                 is Enum<*> -> "#s${value.name}"
+                is UUID -> "#s$value"
                 else -> throw IllegalArgumentException("Unsupported value type ${value::class.java.name}")
             }
 
