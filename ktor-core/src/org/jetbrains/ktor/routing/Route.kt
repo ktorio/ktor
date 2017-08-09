@@ -57,9 +57,9 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
 
             for (index in routePipelines.lastIndex downTo 0) {
                 val routePipeline = routePipelines[index]
-                pipeline.phases.merge(routePipeline.phases)
-                pipeline.receivePipeline.phases.merge(routePipeline.receivePipeline.phases)
-                pipeline.sendPipeline.phases.merge(routePipeline.sendPipeline.phases)
+                pipeline.merge(routePipeline)
+                pipeline.receivePipeline.merge(routePipeline.receivePipeline)
+                pipeline.sendPipeline.merge(routePipeline.sendPipeline)
             }
 
             val handlers = handlers

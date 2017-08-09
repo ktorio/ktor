@@ -12,7 +12,7 @@ class PipelineTest {
     val call = TestApplicationCall(host.application)
     val callPhase = PipelinePhase("Call")
     fun pipeline(): Pipeline<String> = Pipeline(callPhase)
-    fun Pipeline<String>.intercept(block: PipelineInterceptor<String>) = phases.intercept(callPhase, block)
+    fun Pipeline<String>.intercept(block: PipelineInterceptor<String>) = intercept(callPhase, block)
     fun <T : Any> Pipeline<T>.executeBlocking(subject: T) = runBlocking { execute(call, subject) }
 
     @Test
@@ -405,8 +405,8 @@ class PipelineTest {
         val pipeline = Pipeline<String>()
         val before = PipelinePhase("before")
         val after = PipelinePhase("after")
-        pipeline.phases.add(after)
-        pipeline.phases.insertBefore(after, before)
+        pipeline.addPhase(after)
+        pipeline.insertPhaseBefore(after, before)
         checkBeforeAfterPipeline(after, before, pipeline)
     }
 
@@ -415,8 +415,8 @@ class PipelineTest {
         val pipeline = Pipeline<String>()
         val before = PipelinePhase("before")
         val after = PipelinePhase("after")
-        pipeline.phases.add(before)
-        pipeline.phases.insertAfter(before, after)
+        pipeline.addPhase(before)
+        pipeline.insertPhaseAfter(before, after)
         checkBeforeAfterPipeline(after, before, pipeline)
     }
 }

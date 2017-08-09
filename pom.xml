@@ -294,6 +294,11 @@
             <id>devexperts-maven</id>
             <url>https://dl.bintray.com/devexperts/Maven</url>
         </pluginRepository>
+        <pluginRepository>
+            <id>bintray-kotlin-eap-1.1</id>
+            <name>bintray</name>
+            <url>https://dl.bintray.com/kotlin/kotlin-eap-1.1</url>
+        </pluginRepository>
     </pluginRepositories>
     <repositories>
         <repository>
@@ -301,9 +306,6 @@
             <url>https://jcenter.bintray.com</url>
         </repository>
         <repository>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
             <id>bintray-kotlin-eap-1.1</id>
             <name>bintray</name>
             <url>https://dl.bintray.com/kotlin/kotlin-eap-1.1</url>

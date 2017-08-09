@@ -24,7 +24,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
 
     private var responded = false
     override final val pipeline = ApplicationSendPipeline().apply {
-        phases.merge(call.application.sendPipeline.phases)
+        merge(call.application.sendPipeline)
         intercept(ApplicationSendPipeline.Host) {
             if (responded)
                 throw IllegalStateException("Response has already been sent")

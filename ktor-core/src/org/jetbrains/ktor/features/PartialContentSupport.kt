@@ -56,7 +56,7 @@ class PartialContentSupport(val maxRangeCount: Int) {
     }
 
     private fun ApplicationSendPipeline.registerPhase() {
-        phases.insertAfter(ApplicationSendPipeline.ContentEncoding, PartialContentPhase)
+        insertPhaseAfter(ApplicationSendPipeline.ContentEncoding, PartialContentPhase)
     }
 
     suspend private fun PipelineContext<Any>.tryProcessRange(obj: FinalContent.ReadChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long) {

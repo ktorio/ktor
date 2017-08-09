@@ -19,12 +19,12 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
     suspend private fun executeResult(context: PipelineContext<Unit>, route: Route, parameters: ValuesMap) {
         val routingCallPipeline = route.buildPipeline()
         val receivePipeline = ApplicationReceivePipeline().apply {
-            phases.merge(context.call.request.pipeline.phases)
-            phases.merge(routingCallPipeline.receivePipeline.phases)
+            merge(context.call.request.pipeline)
+            merge(routingCallPipeline.receivePipeline)
         }
         val responsePipeline = ApplicationSendPipeline().apply {
-            phases.merge(context.call.response.pipeline.phases)
-            phases.merge(routingCallPipeline.sendPipeline.phases)
+            merge(context.call.response.pipeline)
+            merge(routingCallPipeline.sendPipeline)
         }
         val routingCall = RoutingApplicationCall(context.call, route, receivePipeline, responsePipeline, parameters)
         routingCallPipeline.execute(routingCall)
@@ -54,5 +54,5 @@ val Route.application: Application get() = when {
     else -> parent?.application ?: throw UnsupportedOperationException("Cannot retrieve application from unattached routing entry")
 }
 
-fun Application.routing(configure: Routing.() -> Unit) = install(Routing, configure)
+fun Application.routing(configure: Routing.() -> Unit) = featureOrNull(Routing)?.apply(configure) ?: install(Routing, configure)
 
