@@ -33,7 +33,7 @@ class Authentication(val pipeline: AuthenticationPipeline) {
         override fun install(pipeline: ApplicationCallPipeline, configure: AuthenticationPipeline.() -> Unit): Authentication {
             val authenticationPipeline = AuthenticationPipeline().apply(configure)
             val feature = Authentication(authenticationPipeline)
-            pipeline.phases.insertAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
+            pipeline.insertPhaseAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
             pipeline.intercept(authenticationPhase) {
                 val authenticationContext = AuthenticationContext.from(call)
                 feature.pipeline.execute(call, authenticationContext)
@@ -59,9 +59,9 @@ fun ApplicationCallPipeline.authentication(procedure: AuthenticationPipeline.() 
 }
 
 class AuthenticationProcedureChallenge {
-    internal val register = mutableListOf<Pair<NotAuthenticatedCause, suspend PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>>()
+    internal val register = mutableListOf<Pair<NotAuthenticatedCause, PipelineInterceptor<AuthenticationProcedureChallenge>>>()
 
-    val challenges: List<suspend PipelineContext<AuthenticationProcedureChallenge>.(AuthenticationProcedureChallenge) -> Unit>
+    val challenges: List<PipelineInterceptor<AuthenticationProcedureChallenge>>
         get() = register.filter { it.first !is NotAuthenticatedCause.Error }.sortedBy {
             when (it.first) {
                 NotAuthenticatedCause.InvalidCredentials -> 1

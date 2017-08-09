@@ -31,7 +31,7 @@ abstract class PipelineBenchmark {
 
     val callPhase = PipelinePhase("Call")
     fun pipeline(): Pipeline<String> = Pipeline(callPhase)
-    fun Pipeline<String>.intercept(block: suspend PipelineContext<String>.(String) -> Unit) = phases.intercept(callPhase, block)
+    fun Pipeline<String>.intercept(block: PipelineInterceptor<String>) = intercept(callPhase, block)
 
     fun <T : Any> Pipeline<T>.executeBlocking(subject: T) = runSync { execute(call, subject) }
 
