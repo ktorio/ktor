@@ -54,5 +54,5 @@ val Route.application: Application get() = when {
     else -> parent?.application ?: throw UnsupportedOperationException("Cannot retrieve application from unattached routing entry")
 }
 
-fun Application.routing(configure: Routing.() -> Unit) = install(Routing, configure)
+fun Application.routing(configure: Routing.() -> Unit) = featureOrNull(Routing)?.apply(configure) ?: install(Routing, configure)
 
