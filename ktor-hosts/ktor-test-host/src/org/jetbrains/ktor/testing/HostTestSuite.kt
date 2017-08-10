@@ -994,7 +994,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         val rnd = Random()
 
         file.bufferedWriter().use { out ->
-            for (line in 1..3000000) {
+            for (line in 1..30000) {
                 for (col in 1..(30 + rnd.nextInt(40))) {
                     out.append('a' + rnd.nextInt(25))
                 }
