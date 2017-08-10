@@ -6,7 +6,6 @@ import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.client.http2.*
 import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
@@ -143,73 +142,6 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     }
 
     class PublishedTimeout(val seconds: Long) : Timeout(seconds, TimeUnit.SECONDS)
-
-    protected final fun withUpgrade(block: (Socket, headers: ValuesMap) -> Unit) {
-        Socket("localhost", port).use { socket ->
-            socket.tcpNoDelay = true
-
-            // send upgrade request
-            socket.outputStream.apply {
-                write("""
-                GET / HTTP/1.1
-                Host: localhost:$port
-                Upgrade: custom
-                Connection: Upgrade
-                Origin: http://localhost:$port
-                """.trimIndent().replace("\n", "\r\n").toByteArray())
-                write("\r\n\r\n".toByteArray())
-                flush()
-            }
-
-            val status = socket.inputStream.parseStatus()
-            assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
-
-            val headers = socket.inputStream.parseHeaders()
-            assertEquals("Upgrade", headers[HttpHeaders.Connection])
-
-            block(socket, headers)
-        }
-    }
-
-    protected final fun InputStream.parseStatus(): HttpStatusCode {
-        val line = readLineISOCrLf()
-
-        assertTrue(line.startsWith("HTTP/1.1"), "status line should start with HTTP version, actual content: $line")
-
-        val statusCodeAndMessage = line.removePrefix("HTTP/1.1").trimStart()
-        val statusCodeString = statusCodeAndMessage.takeWhile(Char::isDigit)
-        val message = statusCodeAndMessage.removePrefix(statusCodeString).trimStart()
-
-        return HttpStatusCode(statusCodeString.toInt(), message)
-    }
-
-    protected final fun InputStream.parseHeaders(): ValuesMap {
-        val builder = ValuesMapBuilder(caseInsensitiveKey = true)
-
-        while (true) {
-            val line = readLineISOCrLf()
-            if (line.isEmpty()) {
-                return builder.build()
-            }
-
-            val (name, value) = line.split(":").map(String::trim)
-            builder.append(name, value)
-        }
-    }
-
-    protected final fun InputStream.readLineISOCrLf(): String {
-        val sb = StringBuilder(256)
-
-        while (true) {
-            val rc = read()
-            if (rc == -1 || rc == 0x0a) {
-                return sb.toString()
-            } else if (rc == 0x0d) {
-            } else {
-                sb.append(rc.toChar())
-            }
-        }
-    }
 
     companion object {
         val keyStoreFile = File("target/temp.jks")

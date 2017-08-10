@@ -17,16 +17,12 @@ import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
 import java.net.*
-import java.nio.*
-import java.nio.channels.*
 import java.security.*
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import java.util.zip.*
 import kotlin.concurrent.*
-import kotlin.coroutines.experimental.*
-import kotlin.system.*
 import kotlin.test.*
 
 abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHostFactory<THost>) : HostTestBase<THost>(hostFactory) {
@@ -1019,7 +1015,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     open fun testBlockingDeadlock() {
         createAndStartServer {
             get("/") {
-                call.respondWrite(ContentType.Text.Plain.withCharset(Charsets.ISO_8859_1)) {
+                call.respondWrite(Charsets.ISO_8859_1) {
                     TimeUnit.SECONDS.sleep(1)
                     this.write("Deadlock ?")
                 }
@@ -1081,285 +1077,6 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         }
     }
 
-    @Test
-    fun testWriteChannel() {
-        val size = 64.Mb
-
-        val expectedDigester = MessageDigest.getInstance("MD5")
-        createAndStartServer {
-            get("/") {
-                call.respond(object : FinalContent.WriteChannelContent() {
-                    suspend override fun writeTo(channel: WriteChannel) {
-                        val bb = ByteBuffer.allocate(4096)
-                        var written = 0L
-
-                        while (written < size) {
-                            bb.clear()
-                            while (bb.hasRemaining()) {
-                                bb.putLong(written)
-                                written += 8
-                            }
-                            bb.flip()
-
-                            expectedDigester.update(bb)
-                            bb.clear()
-
-                            while (bb.hasRemaining()) {
-                                channel.write(bb)
-                            }
-                        }
-
-                        channel.flush()
-                    }
-                })
-            }
-        }
-
-        withUrl("/") {
-            val md5 = MessageDigest.getInstance("MD5")
-            val bb = ByteBuffer.allocate(4096)
-
-            while (true) {
-                bb.clear()
-                val rc = channel.read(bb)
-                if (rc == -1) break
-                bb.flip()
-                md5.update(bb)
-            }
-
-            val actualMd5 = hex(md5.digest())
-            val expected = hex(expectedDigester.digest())
-
-            assertEquals(expected, actualMd5)
-        }
-    }
-
-    @Test
-    fun testReadChannel() {
-        val size = 128.Mb
-
-        createAndStartServer {
-            post("/") {
-                val bb = ByteBuffer.allocate(4096)
-                val ch = call.receive<ReadChannel>()
-
-                val md5 = MessageDigest.getInstance("MD5")
-
-                while (true) {
-                    bb.clear()
-                    val rc = ch.read(bb)
-                    if (rc == -1) break
-                    bb.flip()
-                    md5.update(bb)
-                }
-
-                call.respondText(hex(md5.digest()))
-            }
-        }
-
-        val expectedDigester = MessageDigest.getInstance("MD5")
-        withUrl("/", builder = {
-            method = HttpMethod.Post
-            body = { os ->
-                val bb = ByteBuffer.allocate(4096)
-                var written = 0L
-
-                while (written < size) {
-                    bb.clear()
-                    while (bb.hasRemaining()) {
-                        bb.putLong(written)
-                        written += 8
-                    }
-                    bb.flip()
-
-                    expectedDigester.update(bb)
-                    bb.clear()
-
-                    os.write(bb.array())
-                    os.flush()
-                }
-
-                os.close()
-            }
-        }) {
-            val actualMd5 = readText()
-            val expected = hex(expectedDigester.digest())
-
-            assertEquals(expected, actualMd5)
-        }
-    }
-
-    @Test
-    open fun testUpgradedWriteChannel() {
-        val size = 128.Mb
-        val Poison = 0x7fff0000L
-
-        val expectedDigester = MessageDigest.getInstance("MD5")
-        var written = 0L
-
-        createAndStartServer {
-            get("/") {
-                call.respond(object : FinalContent.ProtocolUpgrade() {
-
-                    override val status: HttpStatusCode?
-                        get() = HttpStatusCode.SwitchingProtocols
-
-                    override val headers: ValuesMap
-                        get() = ValuesMap.build(true) {
-                            append(HttpHeaders.Upgrade, "custom")
-                            append(HttpHeaders.Connection, "Upgrade")
-                        }
-
-                    suspend override fun upgrade(input: ReadChannel, output: WriteChannel, channel: Closeable, hostContext: CoroutineContext, userAppContext: CoroutineContext): Closeable {
-
-                        launch(CommonPool) {
-                            val bb = ByteBuffer.allocate(4096)
-
-                            while (written < size) {
-                                bb.clear()
-                                while (bb.hasRemaining()) {
-                                    bb.putLong(written)
-                                    written += 8
-                                }
-                                bb.flip()
-
-                                expectedDigester.update(bb)
-                                bb.clear()
-
-                                while (bb.hasRemaining()) {
-                                    output.write(bb)
-                                }
-                            }
-
-                            bb.clear()
-                            bb.putLong(Poison)
-                            bb.flip()
-
-                            expectedDigester.update(bb.duplicate())
-
-                            while (bb.hasRemaining()) {
-                                output.write(bb)
-                            }
-
-                            output.flush()
-
-                            output.close()
-                            input.close()
-                            channel.close()
-                        }
-
-                        return Closeable {
-                            output.close()
-                            input.close()
-                            channel.close()
-                        }
-                    }
-                })
-            }
-        }
-
-        withUpgrade { socket, _ ->
-            val md5 = MessageDigest.getInstance("MD5")
-            val bb = ByteBuffer.allocate(4096)
-            val ch = Channels.newChannel(socket.getInputStream())
-            var total = 0L
-
-            while (true) {
-                bb.clear()
-                val rc = ch.read(bb)
-                if (rc == -1) break
-                total += rc
-                bb.flip()
-
-                if (bb.remaining() > 0) {
-                    val i = bb.getLong(bb.limit() - 8)
-                    md5.update(bb)
-
-                    if (i == Poison) break
-                }
-            }
-
-            val actualMd5 = hex(md5.digest())
-            val expected = hex(expectedDigester.digest())
-
-            assertEquals(expected, actualMd5)
-            assertTrue { written >= size }
-        }
-    }
-
-    @Test
-    open fun testUpgradedReadChannel() {
-        val size = 128.Mb
-        val l = CountDownLatch(1)
-
-        val actualMd5 = MessageDigest.getInstance("MD5")
-        createAndStartServer {
-            get("/") {
-                call.respond(object : FinalContent.ProtocolUpgrade() {
-
-                    override val status: HttpStatusCode?
-                        get() = HttpStatusCode.SwitchingProtocols
-
-                    override val headers: ValuesMap
-                        get() = ValuesMap.build(true) {
-                            append(HttpHeaders.Upgrade, "custom")
-                            append(HttpHeaders.Connection, "Upgrade")
-                        }
-
-                    suspend override fun upgrade(input: ReadChannel, output: WriteChannel, channel: Closeable, hostContext: CoroutineContext, userAppContext: CoroutineContext): Closeable {
-                        launch(CommonPool) {
-                            val bb = ByteBuffer.allocate(4096)
-
-                            while (true) {
-                                bb.clear()
-                                val rc = input.read(bb)
-                                if (rc == -1) break
-                                bb.flip()
-                                actualMd5.update(bb)
-                            }
-
-                            l.countDown()
-                        }
-
-                        return EmptyReadChannel
-                    }
-                })
-            }
-        }
-
-        val expectedDigester = MessageDigest.getInstance("MD5")
-        withUpgrade { socket, _ ->
-            val os = socket.getOutputStream()
-
-            val bb = ByteBuffer.allocate(4096)
-            var written = 0L
-
-            while (written < size) {
-                bb.clear()
-                while (bb.hasRemaining()) {
-                    bb.putLong(written)
-                    written += 8
-                }
-                bb.flip()
-
-                expectedDigester.update(bb)
-                bb.clear()
-
-                os.write(bb.array())
-                os.flush()
-            }
-
-            os.close()
-        }
-
-        l.await()
-
-        val actual = hex(actualMd5.digest())
-        val expected = hex(expectedDigester.digest())
-
-        assertEquals(expected, actual)
-    }
-
     private fun String.urlPath() = replace("\\", "/")
     private class ExpectedException(message: String) : RuntimeException(message)
 
@@ -1377,8 +1094,4 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
 
         return hex(md.digest())
     }
-
-    private inline val Int.Kb get() = this * 1024L
-    private inline val Int.Mb get() = Kb * 1024L
-    private inline val Int.Gb get() = Mb * 1024L
 }

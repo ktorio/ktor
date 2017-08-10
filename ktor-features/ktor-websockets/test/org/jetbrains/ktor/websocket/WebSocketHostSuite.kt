@@ -409,7 +409,6 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
 
         Socket("localhost", port).use { socket ->
             socket.soTimeout = socketReadTimeout
-            socket.tcpNoDelay = true
 
             // send upgrade request
             socket.outputStream.apply {
@@ -508,6 +507,46 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
 
         val bytes = readFully(length.toInt())
         return Frame.byType(fin, frameType, ByteBuffer.wrap(bytes))
+    }
+
+    private fun InputStream.parseStatus(): HttpStatusCode {
+        val line = readLineISOCrLf()
+
+        assertTrue(line.startsWith("HTTP/1.1"), "status line should start with HTTP version, actual content: $line")
+
+        val statusCodeAndMessage = line.removePrefix("HTTP/1.1").trimStart()
+        val statusCodeString = statusCodeAndMessage.takeWhile(Char::isDigit)
+        val message = statusCodeAndMessage.removePrefix(statusCodeString).trimStart()
+
+        return HttpStatusCode(statusCodeString.toInt(), message)
+    }
+
+    private fun InputStream.parseHeaders(): ValuesMap {
+        val builder = ValuesMapBuilder(caseInsensitiveKey = true)
+
+        while (true) {
+            val line = readLineISOCrLf()
+            if (line.isEmpty()) {
+                return builder.build()
+            }
+
+            val (name, value) = line.split(":").map(String::trim)
+            builder.append(name, value)
+        }
+    }
+
+    private fun InputStream.readLineISOCrLf(): String {
+        val sb = StringBuilder(256)
+
+        while (true) {
+            val rc = read()
+            if (rc == -1 || rc == 0x0a) {
+                return sb.toString()
+            } else if (rc == 0x0d) {
+            } else {
+                sb.append(rc.toChar())
+            }
+        }
     }
 
     private fun InputStream.readOrFail(): Int {

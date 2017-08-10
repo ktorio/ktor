@@ -6,22 +6,9 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.jetty.*
 import org.jetbrains.ktor.servlet.*
 import org.jetbrains.ktor.testing.*
-import org.junit.*
 import javax.servlet.*
 
-class JettyServletContainerHostTest : HostTestSuite<JettyServletApplicationHost>(ServletHostFactory) {
-    @Test
-    @Ignore
-    override fun testUpgradedWriteChannel() {
-        super.testUpgradedWriteChannel()
-    }
-
-    @Test
-    @Ignore
-    override fun testUpgradedReadChannel() {
-        super.testUpgradedReadChannel()
-    }
-}
+class JettyServletContainerHostTest : HostTestSuite<JettyServletApplicationHost>(ServletHostFactory)
 
 // the factory and host are only suitable for testing
 // you shouldn't use it for production code
