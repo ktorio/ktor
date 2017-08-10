@@ -1,7 +1,6 @@
 package org.jetbrains.ktor.servlet
 
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
 import org.jetbrains.ktor.cio.*
 import java.nio.*
 import java.nio.channels.*
@@ -14,108 +13,82 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
     @Volatile
     private var listenerInstalled = 0
 
-    private val state = ConflatedChannel<Unit>()
+    @Volatile
+    private var currentHandler: Continuation<Unit>? = null
 
     private var bytesWrittenWithNoSuspend = 0L
     private var heapBuffer: ByteBuffer? = null
 
     companion object {
-        private val Empty: ByteBuffer = ByteBuffer.allocate(0)
         const val MaxChunkWithoutSuspension = 100 * 1024 * 1024 // 100K
         private val listenerInstalledUpdater = AtomicIntegerFieldUpdater.newUpdater(ServletWriteChannel::class.java, "listenerInstalled")
     }
 
     private val writeReadyListener = object : WriteListener {
         override fun onWritePossible() {
-            if (servletOutputStream.isReady) {
-                state.offer(Unit)
+            currentHandler?.let { continuation ->
+                if (servletOutputStream.isReady) {
+                    currentHandler = null
+                    continuation.resume(Unit)
+                }
             }
         }
 
         override fun onError(t: Throwable?) {
-            state.close(t)
+            currentHandler?.let { continuation ->
+                currentHandler = null
+                continuation.resumeWithException(t ?: RuntimeException("ServletWriteChannel.onError(null)"))
+            }
         }
     }
 
     suspend override fun flush() {
         if (listenerInstalled != 0) {
-            if (servletOutputStream.isReady) {
-                servletOutputStream.flush()
-            } else {
-                flushSuspend()
-            }
+            awaitForListenerInstalled()
+            awaitForWriteReady()
+            servletOutputStream.flush()
         }
     }
 
-    private suspend fun flushSuspend() {
+    private suspend fun awaitForWriteReady() {
         while (!servletOutputStream.isReady) {
-            state.receive()
-        }
+            suspendCoroutineOrReturn<Unit> { continuation ->
+                currentHandler = continuation
 
-        servletOutputStream.flush()
-    }
-
-    private suspend fun installAndWrite(src: ByteBuffer) {
-        servletOutputStream.setWriteListener(writeReadyListener)
-        return writeSuspendUnconfined(src)
-    }
-
-    private suspend fun writeSuspendUnconfined(src: ByteBuffer) {
-        return suspendCoroutineOrReturn { cont ->
-            val completion = object : Continuation<Unit> by cont {
-                override val context: CoroutineContext get() = EmptyCoroutineContext
+                if (servletOutputStream.isReady) {
+                    currentHandler = null
+                    Unit
+                } else {
+                    bytesWrittenWithNoSuspend = 0L
+                    COROUTINE_SUSPENDED
+                }
             }
-
-            bufferForLambda = src
-            writeSuspendFunction.startCoroutineUninterceptedOrReturn(completion)
         }
-
-        // ~= return run(Unconfined) { readSuspend(dst) }
     }
 
-
-    private fun <T> suspend(block: suspend () -> T): suspend () -> T = block
-
-    @Volatile
-    private var bufferForLambda: ByteBuffer = Empty
-
-    private val writeSuspendFunction = suspend {
-        writeSuspend(bufferForLambda).also { bufferForLambda = Empty }
-    }
-
-    private tailrec suspend fun writeSuspend(src: ByteBuffer) {
-        state.receive()
-
-        return when {
-            servletOutputStream.isReady -> {
-                servletOutputStream.doWrite(src)
-                Unit
+    private suspend fun awaitForListenerInstalled() {
+        if (listenerInstalled == 0 && listenerInstalledUpdater.compareAndSet(this, 0, 1)) {
+            suspendCoroutine<Unit> { continuation ->
+                currentHandler = continuation
+                servletOutputStream.setWriteListener(writeReadyListener)
             }
-            else -> writeSuspend(src)
         }
     }
 
     override suspend fun write(src: ByteBuffer) {
-        // startWriting()
+        awaitForListenerInstalled()
+        awaitForWriteReady()
 
-        if (state.poll() == null && state.isClosedForReceive) throw ClosedChannelException()
-        if (listenerInstalled == 0 && listenerInstalledUpdater.compareAndSet(this, 0, 1)) {
-            return installAndWrite(src)
-        }
+        val size = servletOutputStream.doWrite(src)
+        bytesWrittenWithNoSuspend += size
+        awaitForWriteReady()
+        // it is very important here to wait for isReady again otherwise the buffer we have provided is still in use
+        // by the container so we shouldn't use it before (otherwise the content could be corrupted or duplicated)
+        // notice that in most cases isReady = true after write as there is already buffer inside of the output
+        // so we actually don't need double-buffering here
 
-        if (servletOutputStream.isReady) {
-            servletOutputStream.doWrite(src)
-            // endWriting
-
-            // it is very important here to wait for isReady again otherwise the buffer we have provided is still in use
-            // by the container so we shouldn't use it before (otherwise the content could be corrupted or duplicated)
-            // notice that in most cases isReady = true after write as there is already buffer inside of the output
-            // so we actually don't need double-buffering here
-            if (!servletOutputStream.isReady) {
-                state.receive()
-            }
-        } else {
-            return writeSuspendUnconfined(src)
+        if (bytesWrittenWithNoSuspend > MaxChunkWithoutSuspension) {
+            forceReschedule()
         }
     }
 
@@ -149,7 +122,13 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
     }
 
     override fun close() {
-        state.close()
-        servletOutputStream.close()
+        try {
+            servletOutputStream.close()
+        } finally {
+            currentHandler?.let { continuation ->
+                currentHandler = null
+                continuation.resumeWithException(ClosedChannelException())
+            }
+        }
     }
 }
