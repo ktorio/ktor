@@ -495,6 +495,34 @@ class SessionTest {
         }
     }
 
+    @Test
+    fun testSessionByInvalidId() {
+        withTestApplication {
+            application.install(Sessions) {
+                cookie<TestUserSession>(cookieName, SessionStorageMemory())
+            }
+
+            application.routing {
+                get("/1") {
+                    call.sessions.set(TestUserSession("id2", listOf("item1")))
+                    call.respondText("ok")
+                }
+            }
+
+            val call = handleRequest {
+                uri = "/1"
+                addHeader(HttpHeaders.Cookie, "$cookieName=invalid")
+            }
+            val sessionId = call.response.cookies[cookieName]!!.value
+
+            val nextCall = handleRequest {
+                uri = "/1"
+                addHeader(HttpHeaders.Cookie, "$cookieName=$sessionId")
+            }
+            assertEquals(sessionId, nextCall.response.cookies[cookieName]!!.value)
+        }
+    }
+
     private fun flipLastHexDigit(sessionId: String) = sessionId.mapIndexed { index, letter ->
         when {
             index != sessionId.lastIndex -> letter
