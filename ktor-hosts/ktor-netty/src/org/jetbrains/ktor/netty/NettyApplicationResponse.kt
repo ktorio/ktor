@@ -23,7 +23,7 @@ internal class NettyApplicationResponse(call: NettyApplicationCall,
     private var responseMessageSent = false
 
     @Volatile
-    private var responseChannel0: HttpContentWriteChannel? = null
+    private var responseChannel0: NettyHttp1WriteChannel? = null
 
     suspend override fun respondFromBytes(bytes: ByteArray) {
         // Note that it shouldn't set HttpHeaders.ContentLength even if we know it here,
@@ -60,7 +60,7 @@ internal class NettyApplicationResponse(call: NettyApplicationCall,
                     nettyChannel.pipeline().remove(HttpServerCodec::class.java)
                     nettyChannel.pipeline().addFirst(NettyDirectEncoder())
 
-                    upgrade.upgrade(HttpContentReadChannel(upgradeContentQueue.queue, buffered = false), responseChannel(), Closeable {
+                    upgrade.upgrade(NettyHttp1ReadChannel(upgradeContentQueue.queue, buffered = false), responseChannel(), Closeable {
                         nettyChannel.close().get()
                         upgradeContentQueue.close()
                     }, hostCoroutineContext, userAppContext)
@@ -81,7 +81,7 @@ internal class NettyApplicationResponse(call: NettyApplicationCall,
         sendResponseMessage()
 
         return if (responseChannel0 == null) {
-            val ch = HttpContentWriteChannel(context)
+            val ch = NettyHttp1WriteChannel(context)
             responseChannel0 = ch
             ch
         } else responseChannel0!!

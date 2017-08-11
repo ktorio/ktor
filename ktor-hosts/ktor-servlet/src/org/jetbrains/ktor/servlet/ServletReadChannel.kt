@@ -147,6 +147,8 @@ class ServletReadChannel(private val servletInputStream: ServletInputStream) : R
             return servletInputStream.read(buffer)
         } catch (e: EOFException) {
             return finish()
+        } catch (exception: IOException) {
+            throw ChannelReadException(exception = exception)
         } finally {
             endReading()
         }

@@ -27,7 +27,7 @@ internal class NettyApplicationRequest(
 
 
     private val contentChannelState = AtomicReference<ReadChannelState>(ReadChannelState.NEUTRAL)
-    private val contentChannel = lazy { HttpContentReadChannel(contentQueue) }
+    private val contentChannel = lazy { NettyHttp1ReadChannel(contentQueue) }
     private val contentMultipart = lazy {
         if (!isMultipart())
             throw IOException("The request content is not multipart encoded")

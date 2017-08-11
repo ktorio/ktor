@@ -37,3 +37,6 @@ suspend fun ReadChannel.copyTo(out: WriteChannel, bufferPool: ByteBufferPool = N
     return bytes + 1 // compensate for -1 as EOF
 }
 
+open class ChannelIOException(message: String, exception: Exception) : Exception(message, exception)
+class ChannelWriteException(message: String = "Cannot write to a channel", exception: Exception) : ChannelIOException(message, exception)
+class ChannelReadException(message: String = "Cannot read from a channel", exception: Exception) : ChannelIOException(message, exception)

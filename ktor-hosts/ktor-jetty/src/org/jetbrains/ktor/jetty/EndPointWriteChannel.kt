@@ -3,10 +3,11 @@ package org.jetbrains.ktor.jetty
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.util.*
 import org.jetbrains.ktor.cio.*
+import java.io.*
 import java.nio.*
 import kotlin.coroutines.experimental.*
 
-internal class EndPointWriteChannel(val endPoint: EndPoint) : WriteChannel {
+internal class EndPointWriteChannel(private val endPoint: EndPoint) : WriteChannel {
     @Volatile
     private var handler: Continuation<Unit>? = null
 
@@ -29,7 +30,11 @@ internal class EndPointWriteChannel(val endPoint: EndPoint) : WriteChannel {
 
         return suspendCoroutine { continuation ->
             this.handler = continuation
-            endPoint.write(callback, src)
+            try {
+                endPoint.write(callback, src)
+            } catch (exception: IOException) {
+                throw ChannelWriteException(exception = exception)
+            }
         }
     }
 

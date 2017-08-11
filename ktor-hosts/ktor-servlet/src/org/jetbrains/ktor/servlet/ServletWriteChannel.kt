@@ -3,6 +3,7 @@ package org.jetbrains.ktor.servlet
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import org.jetbrains.ktor.cio.*
+import java.io.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.atomic.*
@@ -154,13 +155,16 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
 
             write0(copy, size)
         }
-
         return size
     }
 
     private fun ServletOutputStream.write0(src: ByteBuffer, size: Int) {
-        write(src.array(), src.arrayOffset() + src.position(), size)
-        src.position(src.position() + size)
+        try {
+            write(src.array(), src.arrayOffset() + src.position(), size)
+            src.position(src.position() + size)
+        } catch (exception: IOException) {
+            throw ChannelWriteException(exception = exception)
+        }
     }
 
     override fun close() {

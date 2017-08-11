@@ -171,7 +171,7 @@ private class Http2Connection(val host: String, val port: Int, val secure: Boole
     }
 }
 
-private class RequestResponse(override val connection: HttpConnection) : org.jetbrains.ktor.cio.ReadChannel, HttpResponse {
+private class RequestResponse(override val connection: HttpConnection) : ReadChannel, HttpResponse {
     lateinit var stream: Stream
 
     private val headersBuilder = ValuesMapBuilder(caseInsensitiveKey = true)
