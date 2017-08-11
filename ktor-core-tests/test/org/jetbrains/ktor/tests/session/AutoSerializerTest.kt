@@ -100,7 +100,8 @@ data class AdditionalTypesSession(
         val optionalEmpty: Optional<String> = Optional.empty(),
         val optionWithContent: Optional<String> = Optional.of("a"),
         var bd: BigDecimal = BigDecimal.ZERO,
-        var bi: BigInteger = BigInteger.TEN
+        var bi: BigInteger = BigInteger.TEN,
+        var uuid : UUID = UUID.randomUUID()
 )
 
 enum class TestEnum { A, B, C }
