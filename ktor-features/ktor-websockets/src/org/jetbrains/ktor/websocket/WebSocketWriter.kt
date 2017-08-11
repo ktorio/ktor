@@ -147,8 +147,9 @@ internal class WebSocketWriter(val writeChannel: WriteChannel, ctx: CoroutineCon
             } else {
                 if (!continuation.compareAndSet(null, c)) throw IllegalStateException()
                 if (flushed.get()) {
-                    continuation.compareAndSet(c, null)
-                    c.resume(Unit)
+                    if (continuation.compareAndSet(c, null)) {
+                        c.resume(Unit)
+                    }
                 }
             }
         }
