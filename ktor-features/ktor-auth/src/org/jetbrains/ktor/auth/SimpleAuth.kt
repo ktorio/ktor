@@ -2,14 +2,16 @@ package org.jetbrains.ktor.auth
 
 import org.jetbrains.ktor.config.*
 import org.jetbrains.ktor.util.*
-import java.util.*
+import java.security.MessageDigest
 
 data class UserIdPrincipal(val name: String) : Principal
 data class UserPasswordCredential(val name: String, val password: String) : Credential
 
-class UserHashedTableAuth(val digester: (String) -> ByteArray = getDigestFunction("SHA-256", "ktor"), val table: Map<String, ByteArray>) {
+class UserHashedTableAuth(val digester: (String) -> ByteArray, val table: Map<String, ByteArray>) {
 
-    // TODO: Use ApplicationConfig instead of HOCON
+    // shortcut for tests
+    constructor(table: Map<String, ByteArray>) : this(getDigestFunction("SHA-256", "ktor"), table)
+
     constructor(config: ApplicationConfig) : this(getDigestFunction(
             config.property("hashAlgorithm").getString(),
             config.property("salt").getString()), config.parseUsers())
@@ -22,7 +24,7 @@ class UserHashedTableAuth(val digester: (String) -> ByteArray = getDigestFunctio
 
     fun authenticate(credential: UserPasswordCredential): UserIdPrincipal? {
         val userPasswordHash = table[credential.name]
-        if (userPasswordHash != null && Arrays.equals(digester(credential.password), userPasswordHash)) {
+        if (userPasswordHash != null && MessageDigest.isEqual(digester(credential.password), userPasswordHash)) {
             return UserIdPrincipal(credential.name)
         }
 
