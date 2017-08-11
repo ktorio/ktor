@@ -87,19 +87,24 @@ fun HttpAuthHeader.Parameterized.toDigestCredential() = DigestCredential(
 fun DigestCredential.verify(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: (String, String) -> ByteArray): Boolean {
     val validDigest = expectedDigest(method, digester, userNameRealmPasswordDigest(userName, realm))
 
-    return response == validDigest
+    val incoming: ByteArray = try {
+        hex(response)
+    } catch(e: NumberFormatException) {
+        return false
+    }
+    return MessageDigest.isEqual(incoming, validDigest)
 }
 
-fun DigestCredential.expectedDigest(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: ByteArray): String {
-    fun digest(data: String): String {
+fun DigestCredential.expectedDigest(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: ByteArray): ByteArray {
+    fun digest(data: String): ByteArray {
         digester.reset()
         digester.update(data.toByteArray(Charsets.ISO_8859_1))
-        return hex(digester.digest())
+        return digester.digest()
     }
 
     val start = hex(userNameRealmPasswordDigest)
-    val end = digest("${method.value.toUpperCase()}:$digestUri")
+    val end = hex(digest("${method.value.toUpperCase()}:$digestUri"))
 
-    val a = listOf(start, nonce, nonceCount, cnonce, qop, end).map { it ?: "" }.joinToString(":")
+    val a = listOf<String?>(start, nonce, nonceCount, cnonce, qop, end).map { it ?: "" }.joinToString(":")
     return digest(a)
 }

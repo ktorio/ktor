@@ -135,7 +135,7 @@ class SessionTest {
             }
 
             handleRequest(HttpMethod.Get, "/2") {
-                val brokenSession = sessionId.mapIndexed { i, c -> if (i == sessionId.lastIndex) 'x' else c }.joinToString("")
+                val brokenSession = flipLastHexDigit(sessionId)
                 addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(brokenSession)}")
             }.let { call ->
                 assertEquals("ok, null", call.response.content)
@@ -183,11 +183,19 @@ class SessionTest {
             }
 
             handleRequest(HttpMethod.Get, "/2") {
-                val brokenSession = sessionId.mapIndexed { i, c -> if (i == sessionId.lastIndex) 'x' else c }.joinToString("")
+                val brokenSession = flipLastHexDigit(sessionId)
                 addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(brokenSession)}")
             }.let { call ->
                 assertEquals("ok, null", call.response.content)
             }
+
+            handleRequest(HttpMethod.Get, "/2") {
+                val invalidHex = sessionId.mapIndexed { i, c -> if (i == sessionId.lastIndex) 'x' else c }.joinToString("")
+                addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(invalidHex)}")
+            }.let { call ->
+                assertEquals("ok, null", call.response.content)
+            }
+
         }
     }
 
@@ -417,7 +425,7 @@ class SessionTest {
             }
 
             handleRequest(HttpMethod.Get, "/2") {
-                val brokenSession = sessionId.mapIndexed { i, c -> if (i == sessionId.lastIndex) 'x' else c }.joinToString("")
+                val brokenSession = flipLastHexDigit(sessionId)
                 addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(brokenSession)}")
             }.let { call ->
                 assertEquals("ok, null", call.response.content)
@@ -479,13 +487,21 @@ class SessionTest {
             }
 
             handleRequest(HttpMethod.Get, "/2") {
-                val brokenSession = sessionId.mapIndexed { i, c -> if (i == sessionId.lastIndex) 'x' else c }.joinToString("")
+                val brokenSession = flipLastHexDigit(sessionId)
                 addHeader(cookieName, brokenSession)
             }.let { call ->
                 assertEquals("ok, null, false", call.response.content)
             }
         }
     }
+
+    private fun flipLastHexDigit(sessionId: String) = sessionId.mapIndexed { index, letter ->
+        when {
+            index != sessionId.lastIndex -> letter
+            letter == '0' -> '1'
+            else -> '0'
+        }
+    }.joinToString("")
 }
 
 class EmptySession

@@ -6,6 +6,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
+import org.jetbrains.ktor.util.hex
 import org.junit.*
 import java.security.*
 import kotlin.test.*
@@ -43,7 +44,7 @@ class DigestTest {
             application.routing {
                 route("/") {
                     authentication {
-                        intercept(AuthenticationPipeline.RequestAuthentication) { authentication ->
+                        intercept(AuthenticationPipeline.RequestAuthentication) {
                             call.extractDigest()?.let { digest ->
                                 foundDigests.add(digest)
                             }
@@ -100,7 +101,7 @@ class DigestTest {
         val userNameRealmPassword = "${digest.userName}:${digest.realm}:$p"
         val digester = MessageDigest.getInstance(digest.algorithm ?: "MD5")
 
-        assertEquals(digest.response, digest.expectedDigest(HttpMethod.Get, digester, digest(digester, userNameRealmPassword)))
+        assertEquals(digest.response, hex(digest.expectedDigest(HttpMethod.Get, digester, digest(digester, userNameRealmPassword))))
         assertTrue(digest.verify(HttpMethod.Get, digester) { user, realm -> digest(digester, "$user:$realm:$p") })
     }
 
