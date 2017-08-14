@@ -20,5 +20,5 @@ suspend fun IncomingContent.readText(): String {
     }
 
     readChannel().copyTo(buffer) // TODO provide buffer pool to copyTo function
-    return buffer.toByteArray().toString(request.contentCharset() ?: Charsets.ISO_8859_1)
+    return buffer.toByteArray().toString(request.contentCharset() ?: Charsets.UTF_8)
 }
