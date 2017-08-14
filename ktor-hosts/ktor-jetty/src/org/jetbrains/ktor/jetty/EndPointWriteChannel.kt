@@ -5,6 +5,8 @@ import org.eclipse.jetty.util.*
 import org.jetbrains.ktor.cio.*
 import java.io.*
 import java.nio.*
+import java.nio.channels.*
+import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
 
 internal class EndPointWriteChannel(private val endPoint: EndPoint) : WriteChannel {
@@ -13,15 +15,13 @@ internal class EndPointWriteChannel(private val endPoint: EndPoint) : WriteChann
 
     private val callback = object : Callback {
         override fun succeeded() {
-            val h = handler
-
-            handler = null
-
-            h?.resume(Unit)
+            Handler.getAndSet(this@EndPointWriteChannel, null)?.resume(Unit)
         }
 
         override fun failed(x: Throwable?) {
-            handler?.resumeWithException(x ?: Exception())
+            Handler.getAndSet(this@EndPointWriteChannel, null)?.let { continuation ->
+                continuation.resumeWithException(if (x is IOException) ChannelWriteException("EndPoint write() failed", x) else (x ?: Exception("EndPoint write() failed without exception")))
+            }
         }
     }
 
@@ -29,7 +29,8 @@ internal class EndPointWriteChannel(private val endPoint: EndPoint) : WriteChann
         if (!src.hasRemaining()) return
 
         return suspendCoroutine { continuation ->
-            this.handler = continuation
+            if (!Handler.compareAndSet(this, null, continuation)) throw IllegalStateException("Write operation is already pending")
+
             try {
                 endPoint.write(callback, src)
             } catch (exception: IOException) {
@@ -43,5 +44,14 @@ internal class EndPointWriteChannel(private val endPoint: EndPoint) : WriteChann
 
     override fun close() {
         endPoint.close()
+        Handler.getAndSet(this, null)?.resumeWithException(ChannelWriteException("Channel closed via close()", ClosedChannelException()))
+    }
+
+    companion object {
+        @Suppress("UNCHECKED_CAST")
+        private val Handler: AtomicReferenceFieldUpdater<EndPointWriteChannel, Continuation<Unit>?> =
+                AtomicReferenceFieldUpdater.newUpdater(EndPointWriteChannel::class.java,
+                        Continuation::class.java,
+                        EndPointWriteChannel::handler.name) as AtomicReferenceFieldUpdater<EndPointWriteChannel, Continuation<Unit>?>
     }
 }
