@@ -136,7 +136,7 @@ class ServletReadChannel(private val servletInputStream: ServletInputStream) : R
 
     override fun close() {
         try {
-            callbackState.close(ClosedChannelException())
+            callbackState.close(ChannelReadException("Channel has been closed via close() call", ClosedChannelException()))
         } finally {
             servletInputStream.close()
         }
