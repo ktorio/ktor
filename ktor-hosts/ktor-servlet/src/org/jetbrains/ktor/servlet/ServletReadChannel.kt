@@ -25,7 +25,7 @@ class ServletReadChannel(private val servletInputStream: ServletInputStream) : R
         }
 
         override fun onError(t: Throwable) {
-            callbackState.close(t)
+            callbackState.close(if (t is IOException && t !is EOFException) ChannelReadException("Servlet ReadListener.onError($t)", t) else t)
         }
 
         override fun onDataAvailable() {
