@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.servlet
 
-import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import org.jetbrains.ktor.cio.*
 import java.io.*
@@ -39,34 +38,47 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
         }
 
         override fun onError(t: Throwable?) {
-            state.close(t)
+            state.close(t?.let { writeException("WriteListener.onError($t)", t) } ?: IllegalStateException("WriteListener.onError(null)"))
         }
     }
 
     suspend override fun flush() {
         if (listenerInstalled != 0) {
-            if (servletOutputStream.isReady) {
-                servletOutputStream.flush()
-            } else {
-                flushSuspend()
+            try {
+                if (servletOutputStream.isReady) {
+                    servletOutputStream.flush()
+                    return
+                }
+            } catch (t: Throwable) {
+                throw writeException("flush() failed", t)
             }
+
+            return flushSuspend()
         }
     }
 
     private suspend fun flushSuspend() {
-        while (!servletOutputStream.isReady) {
-            state.receiveOrNull()
-        }
+        try {
+            while (!servletOutputStream.isReady) {
+                state.receiveOrNull() ?: return
+            }
 
-        servletOutputStream.flush()
+            servletOutputStream.flush()
+        } catch (t: Throwable) {
+            throw writeException("flushSuspend() failed", t)
+        }
     }
 
     private suspend fun installAndWrite(src: ByteBuffer) {
         servletOutputStream.setWriteListener(writeReadyListener)
 
         // workaround for a tomcat bug
-        if (enableSetWriteListenerHack && servletOutputStream.isReady) {
-            state.offer(Unit)
+        try {
+            if (enableSetWriteListenerHack && servletOutputStream.isReady) {
+                state.offer(Unit)
+            }
+        } catch (t: Throwable) {
+            throw writeException("isReady failed", t)
         }
         // end of workaround
 
@@ -93,10 +105,17 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
         try {
             tryReceive()
 
-            if (servletOutputStream.isReady) {
-                servletOutputStream.doWrite(src)
-                ensureWritten()
-            } else writeSuspend(src)
+            val written = try {
+                if (servletOutputStream.isReady) {
+                    servletOutputStream.doWrite(src)
+                    true
+                } else false
+            } catch (t: Throwable) {
+                throw writeException("writeSuspend() failed", t)
+            }
+
+            if (written) ensureWritten()
+            else writeSuspend(src)
         } finally {
             endWriting()
         }
@@ -105,23 +124,28 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
     override suspend fun write(src: ByteBuffer) {
          startWriting()
 
-        if (state.poll() == null && state.isClosedForReceive) throw ClosedChannelException()
+        if (state.poll() == null && state.isClosedForReceive) throw closedException()
         if (listenerInstalled == 0 && listenerInstalledUpdater.compareAndSet(this, 0, 1)) {
             return installAndWrite(src)
         }
 
-        if (servletOutputStream.isReady) {
-            servletOutputStream.doWrite(src)
-            endWriting()
-
-            ensureWritten()
-        } else {
-            return writeSuspendUnconfined(src)
+        val written = try {
+            if (servletOutputStream.isReady) {
+                servletOutputStream.doWrite(src)
+                endWriting()
+                true
+            } else false
+        } catch (t: Throwable) {
+            throw writeException("Failed to write", t)
         }
+
+        return if (written) {
+            ensureWritten()
+        } else writeSuspendUnconfined(src)
     }
 
     private suspend fun tryReceive() {
-        state.receiveOrNull() ?: throw ClosedChannelException()
+        state.receiveOrNull() ?: throw closedException()
     }
 
     private suspend fun ensureWritten() {
@@ -130,9 +154,13 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
         // notice that in most cases isReady = true after write as there is already buffer inside of the output
         // so we actually don't need double-buffering here
 
-        if (!servletOutputStream.isReady) {
-            tryReceive()
+        val notReady = try {
+            !servletOutputStream.isReady
+        } catch (t: Throwable) {
+            throw writeException("isReady failed", t)
         }
+
+        if (notReady) tryReceive()
     }
 
     private fun startWriting() {
@@ -142,6 +170,12 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
     private fun endWriting() {
         writeInProgress = 0
     }
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun writeException(message: String, t: Throwable) = if (t is IOException && t !is ChannelWriteException) ChannelWriteException(message, t) else t
+
+    @Suppress("NOTHING_TO_INLINE")
+    private inline fun closedException() = ChannelWriteException("Write failed because the channel has been closed", ClosedChannelException())
 
     private fun ServletOutputStream.doWrite(src: ByteBuffer): Int {
         val size = src.remaining()
@@ -169,7 +203,11 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
 
     override fun close() {
         state.close()
-        servletOutputStream.close()
+        try {
+            servletOutputStream.close()
+        } catch (t: Throwable) {
+            throw writeException("closed() failed", t)
+        }
     }
 
     private class EmptyContextContinuationDelegate<T>(cont: Continuation<T>) : Continuation<T> by cont {

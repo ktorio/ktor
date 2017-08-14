@@ -1,6 +1,8 @@
 package org.jetbrains.ktor.servlet.tests
 
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.channels.Channel
+import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.servlet.*
 import org.junit.*
 import org.junit.rules.*
@@ -249,7 +251,7 @@ class ServletWriteChannelTest {
             try {
                 ch.write(ByteBuffer.allocate(1))
                 fail("Shouldn't reach here")
-            } catch (expected: ClosedChannelException) {
+            } catch (expected: ChannelWriteException) {
             }
 
             assertCheckpoint(3)
