@@ -30,7 +30,7 @@ internal class NettyApplicationResponse(call: NettyApplicationCall,
         // because it should've been set by commitHeaders earlier
         sendResponseMessage(flush = false, chunked = false)
         val buf = context.alloc().ioBuffer(bytes.size).writeBytes(bytes)
-        context.writeAndFlush(buf).suspendAwait()
+        context.writeAndFlush(buf).suspendWriteAwait()
     }
 
     override suspend fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {

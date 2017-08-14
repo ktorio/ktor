@@ -9,14 +9,10 @@ internal class NettyHttp1WriteChannel(val context: ChannelHandlerContext) : Writ
     private val allocator = context.alloc()
 
     override suspend fun write(src: ByteBuffer) {
-        try {
-            while (src.hasRemaining()) {
-                val buffer = allocator.ioBuffer(src.remaining())
-                buffer.writeBytes(src)
-                context.writeAndFlush(buffer).suspendAwait()
-            }
-        } catch (exception: IOException) {
-            throw ChannelWriteException(exception = exception)
+        while (src.hasRemaining()) {
+            val buffer = allocator.ioBuffer(src.remaining())
+            buffer.writeBytes(src)
+            context.writeAndFlush(buffer).suspendWriteAwait()
         }
     }
 

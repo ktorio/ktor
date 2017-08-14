@@ -4,14 +4,29 @@ import io.netty.channel.*
 import io.netty.util.concurrent.*
 import io.netty.util.concurrent.Future
 import kotlinx.coroutines.experimental.*
+import org.jetbrains.ktor.cio.*
+import java.io.*
 import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 
 suspend fun <T> Future<T>.suspendAwait(): T {
+    return suspendAwait { t, c ->
+        c.resumeWithException(t)
+    }
+}
+
+suspend fun <T> Future<T>.suspendWriteAwait(): T {
+    return suspendAwait { t, c ->
+        if (t is IOException) c.resumeWithException(ChannelWriteException("Write future failed", t))
+        else c.resumeWithException(t)
+    }
+}
+
+suspend fun <T> Future<T>.suspendAwait(exception: (Throwable, Continuation<T>) -> Unit): T {
     if (isDone) return try { get() } catch (t: Throwable) { throw t.unwrap() }
 
     return suspendCancellableCoroutine { continuation ->
-        addListener(CoroutineListener(this, continuation))
+        addListener(CoroutineListener(this, continuation, exception))
     }
 }
 
@@ -29,7 +44,10 @@ internal object NettyDispatcher : CoroutineDispatcher() {
     object CurrentContextKey : CoroutineContext.Key<CurrentContext>
 }
 
-private class CoroutineListener<T, F : Future<T>>(private val future: F, private val continuation: CancellableContinuation<T>) : GenericFutureListener<F>, DisposableHandle {
+private class CoroutineListener<T, F : Future<T>>(private val future: F,
+                                                  private val continuation: CancellableContinuation<T>,
+                                                  private val exception: (Throwable, Continuation<T>) -> Unit
+) : GenericFutureListener<F>, DisposableHandle {
     init {
         continuation.disposeOnCompletion(this)
     }
@@ -38,7 +56,7 @@ private class CoroutineListener<T, F : Future<T>>(private val future: F, private
         val value = try {
             future.get()
         } catch (t: Throwable) {
-            continuation.resumeWithException(t.unwrap())
+            exception(t.unwrap(), continuation)
             return
         }
 

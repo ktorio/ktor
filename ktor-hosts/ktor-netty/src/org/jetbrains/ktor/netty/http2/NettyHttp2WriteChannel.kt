@@ -13,16 +13,11 @@ internal class NettyHttp2WriteChannel(val context: ChannelHandlerContext) : Writ
     private val alloc = context.alloc()!!
 
     suspend override fun write(src: ByteBuffer) {
-        try {
-            val buf = alloc.ioBuffer(src.remaining())
-            buf.writeBytes(src)
-            val frame = DefaultHttp2DataFrame(buf, false)
+        val buf = alloc.ioBuffer(src.remaining())
+        buf.writeBytes(src)
+        val frame = DefaultHttp2DataFrame(buf, false)
 
-            context.writeAndFlush(frame).suspendAwait()
-        } catch (exception: IOException) {
-            throw ChannelWriteException(exception = exception)
-        }
-
+        context.writeAndFlush(frame).suspendWriteAwait()
     }
 
     suspend override fun flush() {
