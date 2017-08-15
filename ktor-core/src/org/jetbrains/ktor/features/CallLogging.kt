@@ -7,14 +7,14 @@ import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import org.slf4j.*
 
-class CallLogging(val log: Logger, val monitor: ApplicationMonitor) {
+class CallLogging(private val log: Logger, private val monitor: ApplicationMonitor) {
 
     class Configuration
 
-    val starting: (Application) -> Unit = { it.log.trace("Application starting: $it") }
-    val started: (Application) -> Unit = { it.log.trace("Application started: $it") }
-    val stopping: (Application) -> Unit = { it.log.trace("Application stopping: $it") }
-    var stopped: (Application) -> Unit = {}
+    private val starting: (Application) -> Unit = { it.log.trace("Application starting: $it") }
+    private val started: (Application) -> Unit = { it.log.trace("Application started: $it") }
+    private val stopping: (Application) -> Unit = { it.log.trace("Application stopping: $it") }
+    private var stopped: (Application) -> Unit = {}
 
     init {
         stopped = {
