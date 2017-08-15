@@ -91,6 +91,42 @@
         </profile>
 
         <profile>
+            <id>jdk8u144</id>
+            <activation>
+                <property>
+                    <name>java.version</name>
+                    <value>1.8.0_144</value>
+                </property>
+            </activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.mortbay.jetty.alpn</groupId>
+                    <artifactId>alpn-boot</artifactId>
+                    <version>8.1.11.v20170118</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>jdk8u141</id>
+            <activation>
+                <property>
+                    <name>java.version</name>
+                    <value>1.8.0_141</value>
+                </property>
+            </activation>
+
+            <dependencies>
+                <dependency>
+                    <groupId>org.mortbay.jetty.alpn</groupId>
+                    <artifactId>alpn-boot</artifactId>
+                    <version>8.1.11.v20170118</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
             <id>jdk8u131</id>
             <activation>
                 <property>
