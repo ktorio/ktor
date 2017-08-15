@@ -24,7 +24,7 @@ internal class NettyHttp2WriteChannel(val context: ChannelHandlerContext) : Writ
         try {
             context.flush()
         } catch (exception: IOException) {
-            throw ChannelWriteException(exception = exception)
+            throw ChannelWriteException("Failed to flush netty outbound context", exception)
         }
     }
 
@@ -33,7 +33,7 @@ internal class NettyHttp2WriteChannel(val context: ChannelHandlerContext) : Writ
             try {
                 context.writeAndFlush(DefaultHttp2DataFrame(true)).await()
             } catch (exception: IOException) {
-                throw ChannelWriteException(exception = exception)
+                throw ChannelWriteException("Failed to send End-Of-Stream data frame to netty outbound context",exception)
             }
         }
     }

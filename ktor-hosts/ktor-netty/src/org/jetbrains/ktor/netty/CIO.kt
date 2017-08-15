@@ -9,17 +9,21 @@ import java.io.*
 import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 
+private val identityErrorHandler = { t: Throwable, c: Continuation<*> ->
+    c.resumeWithException(t)
+}
+
 suspend fun <T> Future<T>.suspendAwait(): T {
-    return suspendAwait { t, c ->
-        c.resumeWithException(t)
-    }
+    return suspendAwait(identityErrorHandler)
+}
+
+private val wrappingErrorHandler = { t: Throwable, c: Continuation<*> ->
+    if (t is IOException) c.resumeWithException(ChannelWriteException("Write operation future failed", t))
+    else c.resumeWithException(t)
 }
 
 suspend fun <T> Future<T>.suspendWriteAwait(): T {
-    return suspendAwait { t, c ->
-        if (t is IOException) c.resumeWithException(ChannelWriteException("Write future failed", t))
-        else c.resumeWithException(t)
-    }
+    return suspendAwait(wrappingErrorHandler)
 }
 
 suspend fun <T> Future<T>.suspendAwait(exception: (Throwable, Continuation<T>) -> Unit): T {

@@ -20,7 +20,7 @@ internal class EndPointWriteChannel(private val endPoint: EndPoint) : WriteChann
 
         override fun failed(x: Throwable?) {
             Handler.getAndSet(this@EndPointWriteChannel, null)?.let { continuation ->
-                continuation.resumeWithException(if (x is IOException) ChannelWriteException("EndPoint write() failed", x) else (x ?: Exception("EndPoint write() failed without exception")))
+                continuation.resumeWithException(if (x is IOException) ChannelWriteException("Failed to write to endpoint", x) else (x ?: ChannelWriteException("Failed to write to endpoint (no exception provided)", IOException())))
             }
         }
     }
@@ -34,7 +34,12 @@ internal class EndPointWriteChannel(private val endPoint: EndPoint) : WriteChann
             try {
                 endPoint.write(callback, src)
             } catch (exception: IOException) {
-                throw ChannelWriteException(exception = exception)
+                val wrappedException = ChannelWriteException("Failed to write to endpoint", exception)
+
+                if (Handler.compareAndSet(this, continuation, null))
+                    continuation.resumeWithException(wrappedException)
+                else
+                    throw wrappedException
             }
         }
     }
@@ -44,7 +49,7 @@ internal class EndPointWriteChannel(private val endPoint: EndPoint) : WriteChann
 
     override fun close() {
         endPoint.close()
-        Handler.getAndSet(this, null)?.resumeWithException(ChannelWriteException("Channel closed via close()", ClosedChannelException()))
+        Handler.getAndSet(this, null)?.resumeWithException(ChannelWriteException("Write channel has been closed via close()", ClosedChannelException()))
     }
 
     companion object {

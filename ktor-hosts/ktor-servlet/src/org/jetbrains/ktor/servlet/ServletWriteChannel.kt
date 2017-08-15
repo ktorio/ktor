@@ -25,7 +25,6 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
 
     companion object {
         private val Empty: ByteBuffer = ByteBuffer.allocate(0)
-        const val MaxChunkWithoutSuspension = 100 * 1024 * 1024 // 100K
         private val listenerInstalledUpdater = AtomicIntegerFieldUpdater.newUpdater(ServletWriteChannel::class.java, ServletWriteChannel::listenerInstalled.name)
         private val writeInProgressUpdater = AtomicIntegerFieldUpdater.newUpdater(ServletWriteChannel::class.java, ServletWriteChannel::writeInProgress.name)
     }
@@ -38,7 +37,7 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
         }
 
         override fun onError(t: Throwable?) {
-            state.close(t?.let { writeException("WriteListener.onError($t)", t) } ?: IllegalStateException("WriteListener.onError(null)"))
+            state.close(t?.let { writeException("Failed to write to output stream", t) } ?: ChannelWriteException("Failed to write to output stream", IOException()))
         }
     }
 
@@ -50,7 +49,7 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
                     return
                 }
             } catch (t: Throwable) {
-                throw writeException("flush() failed", t)
+                throw writeException("Failed to flush output stream", t)
             }
 
             return flushSuspend()
@@ -65,7 +64,7 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
 
             servletOutputStream.flush()
         } catch (t: Throwable) {
-            throw writeException("flushSuspend() failed", t)
+            throw writeException("Failed to flush output stream", t)
         }
     }
 
@@ -78,7 +77,7 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
                 state.offer(Unit)
             }
         } catch (t: Throwable) {
-            throw writeException("isReady failed", t)
+            throw writeException("Failed to apply workaround for Tomcat's bug", t)
         }
         // end of workaround
 
@@ -111,7 +110,7 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
                     true
                 } else false
             } catch (t: Throwable) {
-                throw writeException("writeSuspend() failed", t)
+                throw writeException("Failed to write to output stream", t)
             }
 
             if (written) ensureWritten()
@@ -136,7 +135,7 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
                 true
             } else false
         } catch (t: Throwable) {
-            throw writeException("Failed to write", t)
+            throw writeException("Failed to write to output stream", t)
         }
 
         return if (written) {
@@ -157,14 +156,14 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
         val notReady = try {
             !servletOutputStream.isReady
         } catch (t: Throwable) {
-            throw writeException("isReady failed", t)
+            throw writeException("Failed to write to output stream", t)
         }
 
         if (notReady) tryReceive()
     }
 
     private fun startWriting() {
-        if (!writeInProgressUpdater.compareAndSet(this, 0, 1)) throw IllegalStateException("Write operation pending")
+        if (!writeInProgressUpdater.compareAndSet(this, 0, 1)) throw IllegalStateException("Write operation is already in progress")
     }
 
     private fun endWriting() {
@@ -193,12 +192,8 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
     }
 
     private fun ServletOutputStream.write0(src: ByteBuffer, size: Int) {
-        try {
-            write(src.array(), src.arrayOffset() + src.position(), size)
-            src.position(src.position() + size)
-        } catch (exception: IOException) {
-            throw ChannelWriteException(exception = exception)
-        }
+        write(src.array(), src.arrayOffset() + src.position(), size)
+        src.position(src.position() + size)
     }
 
     override fun close() {
@@ -206,7 +201,7 @@ internal class ServletWriteChannel(val servletOutputStream: ServletOutputStream)
         try {
             servletOutputStream.close()
         } catch (t: Throwable) {
-            throw writeException("closed() failed", t)
+            throw writeException("Failed to close output stream", t)
         }
     }
 

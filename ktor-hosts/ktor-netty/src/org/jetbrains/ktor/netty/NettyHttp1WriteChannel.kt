@@ -17,10 +17,11 @@ internal class NettyHttp1WriteChannel(val context: ChannelHandlerContext) : Writ
     }
 
     suspend override fun flush() {
+            // TODO: does it really completes flush once it returns? seems to be it doesn't
         try {
-            context.flush() // TODO: does it really completes flush once it returns? seems to be it doesn't
+            context.flush()
         } catch (exception: IOException) {
-            throw ChannelWriteException(exception = exception)
+            throw ChannelWriteException("Failed to flush netty outbound context", exception)
         }
     }
 
@@ -28,7 +29,7 @@ internal class NettyHttp1WriteChannel(val context: ChannelHandlerContext) : Writ
         try {
             context.flush()
         } catch (exception: IOException) {
-            throw ChannelWriteException(exception = exception)
+            throw ChannelWriteException("Failed to flush netty outbound context", exception)
         }
     }
 }
