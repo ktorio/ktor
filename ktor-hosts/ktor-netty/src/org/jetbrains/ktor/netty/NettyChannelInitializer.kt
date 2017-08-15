@@ -7,7 +7,6 @@ import io.netty.handler.codec.http2.*
 import io.netty.handler.ssl.*
 import io.netty.handler.timeout.*
 import io.netty.util.concurrent.*
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.http2.*
 import java.nio.channels.*
@@ -86,7 +85,7 @@ internal class NettyChannelInitializer(private val hostPipeline: HostPipeline,
                 pipeline.addLast(Multiplexer(pipeline.channel(), NettyHostHttp2Handler(hostPipeline, environment.application, callEventGroup, userCoroutineContext, connection)))
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
-                val handler = NettyHostHttp1Handler(hostPipeline, environment.application, callEventGroup, hostCoroutineContext, userCoroutineContext)
+                val handler = NettyHostHttp1Handler(hostPipeline, environment, callEventGroup, hostCoroutineContext, userCoroutineContext)
 
                 with(pipeline) {
                     addLast("codec", HttpServerCodec())
@@ -97,7 +96,7 @@ internal class NettyChannelInitializer(private val hostPipeline: HostPipeline,
                 pipeline.context("codec").fireChannelActive()
             }
             else -> {
-                environment.application.log.error("Unsupported protocol $protocol")
+                environment.log.error("Unsupported protocol $protocol")
                 pipeline.close()
             }
         }

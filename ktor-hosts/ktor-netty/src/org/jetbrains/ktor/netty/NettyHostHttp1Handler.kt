@@ -6,13 +6,12 @@ import io.netty.handler.codec.http.HttpResponseStatus.*
 import io.netty.handler.codec.http.HttpVersion.*
 import io.netty.util.*
 import io.netty.util.concurrent.*
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import kotlin.coroutines.experimental.*
 
 @ChannelHandler.Sharable
 internal class NettyHostHttp1Handler(private val hostPipeline: HostPipeline,
-                                     private val application: Application,
+                                     private val environment: ApplicationHostEnvironment,
                                      private val callEventGroup: EventExecutorGroup,
                                      private val hostCoroutineContext: CoroutineContext,
                                      private val userCoroutineContext: CoroutineContext) : ChannelInboundHandlerAdapter() {
@@ -37,7 +36,7 @@ internal class NettyHostHttp1Handler(private val hostPipeline: HostPipeline,
             queue.push(message, message is LastHttpContent)
         }
 
-        val call = NettyApplicationCall(application, context, message, queue, hostCoroutineContext, userCoroutineContext)
+        val call = NettyApplicationCall(environment.application, context, message, queue, hostCoroutineContext, userCoroutineContext)
         context.channel().attr(ResponseQueueKey).get().started(call)
         context.fireChannelRead(call)
     }
