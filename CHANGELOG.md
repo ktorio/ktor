@@ -1,10 +1,12 @@
 # 0.4.0
 
+* Built with Kotlin 1.1.4
 * Refactored receive/response pipelines and moved them into respective ApplicationRequest & ApplicationResponse classes 
 * Fixes, improvements and integration tests for HTTP/2 support
 * Update `ContentType` to treat all parts case insensitively
 * Remove `ApplicationLog` and use SLF4J `Logger` directly
 * Add HttpMethod.Patch and respective builder functions 
+* `routing` function will now install `Routing` feature or use existing installed feature for easier modules 
 * Convert sessions to proper feature, support multiple sessions, improve DSL 
 * HeadRequestSupport feature is renamed to AutoHeadResponse (with deprecated typealias)
 * Replace ApplicationTransform with receive pipeline
