@@ -196,7 +196,7 @@ data class HttpHeaderRouteSelector(val name: String, val value: String) : RouteS
     override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
         val headers = context.headers[name]
         val parsedHeaders = parseAndSortHeader(headers)
-        val header = parsedHeaders.firstOrNull { it.value == value }
+        val header = parsedHeaders.firstOrNull { it.value.equals(value, ignoreCase = true) }
         if (header != null)
             return RouteSelectorEvaluation(true, header.quality)
         return RouteSelectorEvaluation.Failed
