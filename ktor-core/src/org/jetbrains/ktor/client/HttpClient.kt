@@ -82,10 +82,6 @@ suspend fun HttpResponse.readBytes(): ByteArray {
     return result.toByteArray()
 }
 
-@Deprecated("", ReplaceWith("status.value"))
-val HttpResponse.responseCode: Int
-    get() = status.value
-
 class RequestBuilder {
     private val headersBuilder = ValuesMapBuilder()
     var body: ((OutputStream) -> Unit)? = null

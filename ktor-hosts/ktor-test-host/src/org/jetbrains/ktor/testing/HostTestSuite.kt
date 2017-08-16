@@ -1015,7 +1015,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     open fun testBlockingDeadlock() {
         createAndStartServer {
             get("/") {
-                call.respondWrite(Charsets.ISO_8859_1) {
+                call.respondWrite(ContentType.Text.Plain.withCharset(Charsets.ISO_8859_1)) {
                     TimeUnit.SECONDS.sleep(1)
                     this.write("Deadlock ?")
                 }

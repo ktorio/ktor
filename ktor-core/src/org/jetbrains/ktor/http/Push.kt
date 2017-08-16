@@ -18,16 +18,11 @@ fun ApplicationCall.push(encodedPath: String, parameters: ValuesMap) {
     }
 }
 
+/**
+ * Produces HTTP/2 push from server to client or sets HTTP/1.x hint header
+ * or does nothing (may call or not call [block]).
+ * Exact behaviour is up to host implementation.
+ */
 fun ApplicationCall.push(block: ResponsePushBuilder.() -> Unit) {
     response.push(DefaultResponsePushBuilder(this).apply(block))
-}
-
-@Deprecated("Use call.push() instead")
-fun ApplicationResponse.push(encodedPath: String, parameters: ValuesMap) {
-    call.push(encodedPath, parameters)
-}
-
-@Deprecated("Use call.push() instead")
-fun ApplicationResponse.push(pathAndQuery: String) {
-    call.push(pathAndQuery)
 }

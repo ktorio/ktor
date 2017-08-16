@@ -7,11 +7,8 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 
-@Deprecated("HeadRequestSupport is now called AutoHeadResponse", ReplaceWith("AutoHeadResponse"), DeprecationLevel.WARNING)
-typealias HeadRequestSupport = AutoHeadResponse
-
 object AutoHeadResponse : ApplicationFeature<ApplicationCallPipeline, Unit, Unit> {
-    val HeadPhase = PipelinePhase("HEAD")
+    private val HeadPhase = PipelinePhase("HEAD")
 
     override val key = AttributeKey<Unit>("Automatic Head Response")
 

@@ -1,6 +1,5 @@
 package org.jetbrains.ktor.websocket
 
-import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import org.jetbrains.ktor.application.*
 
@@ -49,28 +48,6 @@ interface WebSocketSession {
      * Initiate connection termination immediately. Termination may complete asynchronously.
      */
     fun terminate()
-
-    // compatibility helpers, need to be member functions
-
-    @Deprecated("Use incoming channel to handle frames", ReplaceWith("incoming.consumeEach(block)", "kotlinx.coroutines.experimental.channels.consumeEach"), level = DeprecationLevel.ERROR)
-    fun handle(block: suspend WebSocketSession.(Frame) -> Unit): Unit = TODO()
-
-    @Deprecated("Wrap your handler with try/finally and handle close accordingly", level = DeprecationLevel.ERROR)
-    fun close(block: suspend WebSocketSession.(CloseReason?) -> Unit): Unit = TODO()
-}
-
-@Deprecated("Use WebSocketSession instead", ReplaceWith("WebSocketSession"))
-typealias WebSocket = WebSocketSession
-
-@Deprecated("Use send instead", ReplaceWith("send(frame)"))
-fun WebSocketSession.enqueue(frame: Frame) {
-    if (frame.frameType.controlFrame) {
-        throw IllegalArgumentException("You should never enqueue control frames as they are delivery-time sensitive, use send() instead")
-    }
-
-    runBlocking {
-        send(frame)
-    }
 }
 
 suspend fun WebSocketSession.close(reason: CloseReason) {

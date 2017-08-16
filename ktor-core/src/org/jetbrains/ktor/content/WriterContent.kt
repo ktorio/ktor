@@ -1,15 +1,10 @@
 package org.jetbrains.ktor.content
 
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
 import java.io.*
-import java.nio.charset.*
-
-@Deprecated("Use WriterContent constructor with contentType parameter instead")
-fun WriterContent(body: suspend Writer.() -> Unit, charset: Charset) = WriterContent(body, ContentType.Text.Plain.withCharset(charset))
 
 class WriterContent(private val body: suspend Writer.() -> Unit, private val contentType: ContentType, override val status: HttpStatusCode? = null) : FinalContent.WriteChannelContent() {
     override val headers: ValuesMap
@@ -24,11 +19,6 @@ class WriterContent(private val body: suspend Writer.() -> Unit, private val con
         channel.close()
     }
 }
-
-
-@Deprecated("Use respondWrite function with contentType parameter instead")
-suspend fun ApplicationCall.respondWrite(charset: Charset, writer: suspend Writer.() -> Unit) =
-        respond(WriterContent(writer, charset))
 
 
 

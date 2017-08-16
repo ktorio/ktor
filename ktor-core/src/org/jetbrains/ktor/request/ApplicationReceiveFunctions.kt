@@ -39,9 +39,6 @@ suspend fun <T : Any> ApplicationCall.tryReceive(type: KClass<T>): T? {
     return transformed as? T
 }
 
-@Deprecated("receive function has been moved onto ApplicationCall, use 'call.receive()' instead of 'call.request.receive()'")
-inline suspend fun <reified T : Any> ApplicationRequest.receive(): T = call.receive()
-
 @Suppress("NOTHING_TO_INLINE")
 inline suspend fun ApplicationCall.receiveText(): String = receive()
 @Suppress("NOTHING_TO_INLINE")

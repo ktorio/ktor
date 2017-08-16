@@ -12,9 +12,6 @@ enum class FrameType (val controlFrame: Boolean, val opcode: Int) {
     PONG(true, 0xa);
 
     companion object {
-        @Deprecated("Use get function instead")
-        val byOpcode = values().associateBy { it.opcode }
-
         private val maxOpcode = values().maxBy { it.opcode }!!.opcode
 
         private val byOpcodeArray = Array(maxOpcode + 1) { op -> values().singleOrNull { it.opcode == op } }

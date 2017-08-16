@@ -64,13 +64,13 @@ fun Route.accept(contentType: ContentType, build: Route.() -> Unit): Route {
     return select(selector).apply(build)
 }
 
-@Deprecated("This function is checking Accept header, use 'accept' function instead.", ReplaceWith("this.accept(contentType, build)"), DeprecationLevel.ERROR)
 fun Route.contentType(contentType: ContentType, build: Route.() -> Unit): Route {
-    return header(HttpHeaders.Accept, "${contentType.contentType}/${contentType.contentSubtype}", build)
+    return header(HttpHeaders.ContentType, "${contentType.contentType}/${contentType.contentSubtype}", build)
 }
 
+@Deprecated("Use contentType function instead.", ReplaceWith("this.contentType(contentType, build)"), DeprecationLevel.WARNING)
 fun Route.requestContentType(contentType: ContentType, build: Route.() -> Unit): Route {
-    return header(HttpHeaders.ContentType, "${contentType.contentType}/${contentType.contentSubtype}", build)
+    return contentType(contentType, build)
 }
 
 /**
