@@ -1,4 +1,5 @@
 # 0.4.0
+> Published 16 Aug 2017
 
 * Built with Kotlin 1.1.4
 * Refactored receive/response pipelines and moved them into respective ApplicationRequest & ApplicationResponse classes 
