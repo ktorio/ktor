@@ -1,6 +1,8 @@
 package org.jetbrains.ktor.testing
 
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.future.*
+import kotlinx.coroutines.experimental.selects.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.client.*
@@ -10,6 +12,7 @@ import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 import org.junit.*
 import org.junit.rules.*
+import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
 import java.net.*
@@ -22,8 +25,8 @@ import kotlin.test.*
 
 abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory: ApplicationHostFactory<THost>) {
     protected val isUnderDebugger = java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.orEmpty().any { "-agentlib:jdwp" in it }
-    protected val port = findFreePort()
-    protected val sslPort = findFreePort()
+    protected var port = findFreePort()
+    protected var sslPort = findFreePort()
     protected var server: THost? = null
     protected var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
     private val allConnections = CopyOnWriteArrayList<HttpURLConnection>()
@@ -84,28 +87,65 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
         return embeddedServer(applicationHostFactory, environment)
     }
 
-    protected fun createAndStartServer(log: Logger? = null, block: Routing.() -> Unit): THost {
-        val server = createServer(log) {
-            install(CallLogging)
-            install(Routing, block)
-        }
-        startServer(server)
-
-        return server
+    protected open fun features(application: Application, routingConfigurer: Routing.() -> Unit) {
+        application.install(CallLogging)
+        application.install(Routing, routingConfigurer)
     }
 
-    protected fun startServer(server: THost) {
+    protected fun createAndStartServer(log: Logger? = null, routingConfigurer: Routing.() -> Unit): THost {
+        var lastFailures = emptyList<Throwable>()
+        for (attempt in 1..5) {
+            val server = createServer(log) {
+                features(this, routingConfigurer)
+            }
+
+            val failures = startServer(server)
+            if (failures.isEmpty()) {
+                return server
+            } else if (failures.any { it is BindException }) {
+                port = findFreePort()
+                sslPort = findFreePort()
+                server.stop(1L, 1L, TimeUnit.SECONDS)
+                lastFailures = failures
+            } else {
+                server.stop(1L, 1L, TimeUnit.SECONDS)
+                throw MultipleFailureException(failures)
+            }
+        }
+
+        throw MultipleFailureException(lastFailures)
+    }
+
+    private fun startServer(server: THost): List<Throwable> {
         this.server = server
+
         val l = CountDownLatch(1)
-        thread {
+        val failures = CopyOnWriteArrayList<Throwable>()
+
+        val starting = launch(CommonPool + CoroutineExceptionHandler { _, _ -> }) {
             l.countDown()
-            (server as? ApplicationHost)?.start()
+            server.start()
         }
         l.await()
 
-        server.environment.connectors.forEach { connector ->
-            waitForPort(connector.port)
+        val waitForPorts = launch(CommonPool) {
+            server.environment.connectors.forEach { connector ->
+                waitForPort(connector.port)
+            }
         }
+
+        starting.invokeOnCompletion { t ->
+            if (t != null) {
+                failures.add(t)
+                waitForPorts.cancel()
+            }
+        }
+
+        runBlocking {
+            waitForPorts.join()
+        }
+
+        return failures
     }
 
     protected fun findFreePort() = ServerSocket(0).use { it.localPort }
@@ -159,15 +199,15 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
             sslSocketFactory = ctx.socketFactory
         }
 
-        private fun waitForPort(port: Int) {
+        private suspend fun CoroutineScope.waitForPort(port: Int) {
             do {
-                Thread.sleep(50)
+                delay(50)
                 try {
                     Socket("localhost", port).close()
                     break
                 } catch (expected: IOException) {
                 }
-            } while (true)
+            } while (isActive)
         }
     }
 }

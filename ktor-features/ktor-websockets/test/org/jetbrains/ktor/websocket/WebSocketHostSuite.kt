@@ -24,12 +24,16 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
 
     private val socketReadTimeout = timeout.seconds.toInt() * 1000
 
+    override fun features(application: Application, routingConfigurer: Routing.() -> Unit) {
+        application.install(WebSockets)
+        super.features(application, routingConfigurer)
+    }
+
     @Test
     fun testWebSocketGenericSequence() {
         val collected = LinkedBlockingQueue<String>()
 
         createAndStartServer {
-            application.install(WebSockets)
             webSocket("/") {
                 try {
                     incoming.consumeEach { frame ->
@@ -87,25 +91,19 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
 
     @Test
     fun testWebSocketPingPong() {
-        val s = createServer(null) {
-            install(CallLogging)
-            install(WebSockets)
+        createAndStartServer {
+            webSocket("/") {
+                timeout = Duration.ofSeconds(120)
+                pingInterval = Duration.ofMillis(50)
 
-            routing {
-                webSocket("/") {
-                    timeout = Duration.ofSeconds(120)
-                    pingInterval = Duration.ofMillis(50)
-
-                    try {
-                        incoming.consumeEach {
-                        }
-                    } catch (t: Throwable) {
-                        errors.addError(t)
+                try {
+                    incoming.consumeEach {
                     }
+                } catch (t: Throwable) {
+                    errors.addError(t)
                 }
             }
         }
-        startServer(s)
 
         Socket("localhost", port).use { socket ->
             socket.soTimeout = socketReadTimeout
@@ -166,8 +164,6 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         val collected = LinkedBlockingQueue<String>()
 
         createAndStartServer {
-            application.install(WebSockets)
-
             webSocket("/") {
                 try {
                     incoming.consumeEach { frame ->
@@ -238,8 +234,6 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         val template = (1..count).map { (it and 0x0f).toString(16) }.joinToString("")
 
         createAndStartServer {
-            application.install(WebSockets)
-
             webSocket("/") {
                 for (i in 1..count) {
                     send(Frame.Text(template.substring(0, i)))
@@ -306,17 +300,13 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         }
 
         createAndStartServer {
-            application.install(WebSockets)
+            webSocket("/") {
+                val f = incoming.receive()
 
-            application.routing {
-                webSocket("/") {
-                    val f = incoming.receive()
+                val copied = f.copy()
+                outgoing.send(copied)
 
-                    val copied = f.copy()
-                    outgoing.send(copied)
-
-                    flush()
-                }
+                flush()
             }
         }
 
@@ -384,25 +374,21 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         val expectedCount = 100000L
 
         createAndStartServer {
-            application.install(WebSockets)
+            webSocket("/") {
+                try {
+                    var counter = 1L
+                    incoming.consumeEach { frame ->
+                        if (frame is Frame.Text) {
+                            val numberRead = frame.readText().toLong()
+                            assertEquals(counter, numberRead, "Wrong packet received")
 
-            application.routing {
-                webSocket("/") {
-                    try {
-                        var counter = 1L
-                        incoming.consumeEach { frame ->
-                            if (frame is Frame.Text) {
-                                val numberRead = frame.readText().toLong()
-                                assertEquals(counter, numberRead, "Wrong packet received")
-
-                                counter++
-                            }
+                            counter++
                         }
-
-                        assertEquals(expectedCount, counter - 1, "Not all frames received")
-                    } catch (t: Throwable) {
-                        errors.addError(t)
                     }
+
+                    assertEquals(expectedCount, counter - 1, "Not all frames received")
+                } catch (t: Throwable) {
+                    errors.addError(t)
                 }
             }
         }
@@ -556,6 +542,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
         }
         return rc
     }
+
     private fun InputStream.readShortBE() = (readOrFail() shl 8) or readOrFail()
     private fun InputStream.readLongBE() = (readOrFail().toLong() shl 56) or
             (readOrFail().toLong() shl 48) or
