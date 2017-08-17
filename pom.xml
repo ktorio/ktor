@@ -206,6 +206,7 @@
                 <version>2.5.3</version>
                 <configuration>
                     <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <arguments>-DskipTests=true</arguments>
                 </configuration>
             </plugin>
             <plugin>
