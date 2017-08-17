@@ -28,6 +28,7 @@ import io.ktor.util.*
  */
 @Deprecated("GsonSupport is deprecated in favor of generic ContentNegotiation Feature")
 class GsonSupport(val gson: Gson) {
+    @Suppress("DEPRECATION")
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, GsonBuilder, GsonSupport> {
         override val key = AttributeKey<GsonSupport>("gson")
 
@@ -40,7 +41,8 @@ class GsonSupport(val gson: Gson) {
                 }
             }
             pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
-                if (call.request.contentType().match(ContentType.Application.Json)) {
+                val contentType = call.request.contentType()
+                if (contentType.match(ContentType.Application.Json)) {
                     val message = it.value as? IncomingContent ?: return@intercept
                     val json = message.readText()
                     val value = gson.fromJson(json, it.type.javaObjectType)

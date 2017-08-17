@@ -3,7 +3,6 @@ package io.ktor.websocket
 import io.ktor.application.*
 import io.ktor.cio.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
@@ -24,7 +23,7 @@ fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSocketSessi
 fun Route.webSocketRaw(path: String, protocol: String? = null, handler: suspend WebSocketSession.(WebSocketUpgrade.Dispatchers) -> Unit) {
     application.feature(WebSockets) // early require
 
-    route(HttpMethod.Get, path) {
+    route(path, HttpMethod.Get) {
         webSocketRaw(protocol, handler)
     }
 }
@@ -63,13 +62,13 @@ private fun Route.webSocketProtocol(protocol: String?, block: Route.() -> Unit) 
     if (protocol == null) {
         block()
     } else {
-        select(WebSocketProtocolsSelector(protocol)).block()
+        createChild(WebSocketProtocolsSelector(protocol)).block()
     }
 }
 
 private class WebSocketProtocolsSelector(val requiredProtocol: String) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
-    override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
-        val protocols = context.headers[HttpHeaders.SecWebSocketProtocol] ?: return RouteSelectorEvaluation.Failed
+    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+        val protocols = context.call.request.headers[HttpHeaders.SecWebSocketProtocol] ?: return RouteSelectorEvaluation.Failed
         if (requiredProtocol in parseHeaderValue(protocols).map { it.value }) {
             return RouteSelectorEvaluation.Constant
         }

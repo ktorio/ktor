@@ -7,14 +7,14 @@ import io.ktor.pipeline.*
 /**
  * Builds a route to match specified [path]
  */
-fun Route.route(path: String, build: Route.() -> Unit) = createRoute(path).apply(build)
+fun Route.route(path: String, build: Route.() -> Unit) = createRouteFromPath(path).apply(build)
 
 /**
  * Builds a route to match specified [method] and [path]
  */
-fun Route.route(method: HttpMethod, path: String, build: Route.() -> Unit): Route {
+fun Route.route(path: String, method: HttpMethod, build: Route.() -> Unit): Route {
     val selector = HttpMethodRouteSelector(method)
-    return select(selector).route(path, build)
+    return createRouteFromPath(path).createChild(selector).apply(build)
 }
 
 /**
@@ -22,7 +22,7 @@ fun Route.route(method: HttpMethod, path: String, build: Route.() -> Unit): Rout
  */
 fun Route.method(method: HttpMethod, body: Route.() -> Unit): Route {
     val selector = HttpMethodRouteSelector(method)
-    return select(selector).apply(body)
+    return createChild(selector).apply(body)
 }
 
 /**
@@ -30,7 +30,7 @@ fun Route.method(method: HttpMethod, body: Route.() -> Unit): Route {
  */
 fun Route.param(name: String, value: String, build: Route.() -> Unit): Route {
     val selector = ConstantParameterRouteSelector(name, value)
-    return select(selector).apply(build)
+    return createChild(selector).apply(build)
 }
 
 /**
@@ -38,7 +38,7 @@ fun Route.param(name: String, value: String, build: Route.() -> Unit): Route {
  */
 fun Route.param(name: String, build: Route.() -> Unit): Route {
     val selector = ParameterRouteSelector(name)
-    return select(selector).apply(build)
+    return createChild(selector).apply(build)
 }
 
 /**
@@ -46,7 +46,7 @@ fun Route.param(name: String, build: Route.() -> Unit): Route {
  */
 fun Route.optionalParam(name: String, build: Route.() -> Unit): Route {
     val selector = OptionalParameterRouteSelector(name)
-    return select(selector).apply(build)
+    return createChild(selector).apply(build)
 }
 
 /**
@@ -54,31 +54,29 @@ fun Route.optionalParam(name: String, build: Route.() -> Unit): Route {
  */
 fun Route.header(name: String, value: String, build: Route.() -> Unit): Route {
     val selector = HttpHeaderRouteSelector(name, value)
-    return select(selector).apply(build)
+    return createChild(selector).apply(build)
 }
 
 /**
- * Builds a route to match requests with specified [contentType]
+ * Builds a route to match requests with [HttpHeaders.Accept] header matching specified [contentType]
  */
 fun Route.accept(contentType: ContentType, build: Route.() -> Unit): Route {
     val selector = HttpAcceptRouteSelector(contentType)
-    return select(selector).apply(build)
+    return createChild(selector).apply(build)
 }
 
+/**
+ * Builds a route to match requests with [HttpHeaders.ContentType] header matching specified [contentType]
+ */
 fun Route.contentType(contentType: ContentType, build: Route.() -> Unit): Route {
     return header(HttpHeaders.ContentType, "${contentType.contentType}/${contentType.contentSubtype}", build)
-}
-
-@Deprecated("Use contentType function instead.", ReplaceWith("this.contentType(contentType, build)"), DeprecationLevel.WARNING)
-fun Route.requestContentType(contentType: ContentType, build: Route.() -> Unit): Route {
-    return contentType(contentType, build)
 }
 
 /**
  * Builds a route to match `GET` requests with specified [path]
  */
 fun Route.get(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
-    return route(HttpMethod.Get, path) { handle(body) }
+    return route(path, HttpMethod.Get) { handle(body) }
 }
 
 /**
@@ -92,7 +90,7 @@ fun Route.get(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
  * Builds a route to match `POST` requests with specified [path]
  */
 fun Route.post(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
-    return route(HttpMethod.Post, path) { handle(body) }
+    return route(path, HttpMethod.Post) { handle(body) }
 }
 
 /**
@@ -106,7 +104,7 @@ fun Route.post(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
  * Builds a route to match `HEAD` requests with specified [path]
  */
 fun Route.head(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
-    return route(HttpMethod.Head, path) { handle(body) }
+    return route(path, HttpMethod.Head) { handle(body) }
 }
 
 /**
@@ -120,7 +118,7 @@ fun Route.head(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
  * Builds a route to match `PUT` requests with specified [path]
  */
 fun Route.put(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
-    return route(HttpMethod.Put, path) { handle(body) }
+    return route(path, HttpMethod.Put) { handle(body) }
 }
 
 /**
@@ -134,7 +132,7 @@ fun Route.put(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
  * Builds a route to match `PATCH` requests with specified [path]
  */
 fun Route.patch(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
-    return route(HttpMethod.Patch, path) { handle(body) }
+    return route(path, HttpMethod.Patch) { handle(body) }
 }
 
 /**
@@ -148,7 +146,7 @@ fun Route.patch(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
  * Builds a route to match `DELETE` requests with specified [path]
  */
 fun Route.delete(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
-    return route(HttpMethod.Delete, path) { handle(body) }
+    return route(path, HttpMethod.Delete) { handle(body) }
 }
 
 /**
@@ -162,7 +160,7 @@ fun Route.delete(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
  * Builds a route to match `OPTIONS` requests with specified [path]
  */
 fun Route.options(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
-    return route(HttpMethod.Options, path) { handle(body) }
+    return route(path, HttpMethod.Options) { handle(body) }
 }
 
 /**
@@ -175,22 +173,28 @@ fun Route.options(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
 /**
  * Create a routing entry for specified path
  */
-fun Route.createRoute(path: String): Route {
+fun Route.createRouteFromPath(path: String): Route {
     val parts = RoutingPath.parse(path).parts
     var current: Route = this
     for ((value, kind) in parts) {
         val selector = when (kind) {
-            RoutingPathSegmentKind.Parameter -> UriPartParameterBuilder.parse(value)
-            RoutingPathSegmentKind.Constant -> UriPartConstantBuilder.parse(value)
+            RoutingPathSegmentKind.Parameter -> PathSegmentSelectorBuilder.parseParameter(value)
+            RoutingPathSegmentKind.Constant -> PathSegmentSelectorBuilder.parseConstant(value)
         }
         // there may already be entry with same selector, so join them
-        current = current.select(selector)
+        current = current.createChild(selector)
     }
     return current
 }
 
-object UriPartParameterBuilder {
-    fun parse(value: String): RouteSelector {
+/**
+ * Helper object for building instances of [RouteSelector] from path segments
+ */
+object PathSegmentSelectorBuilder {
+    /**
+     * Builds a [RouteSelector] to match a path segment parameter with prefix/suffix and a name
+     */
+    fun parseParameter(value: String): RouteSelector {
         val prefixIndex = value.indexOf('{')
         val suffixIndex = value.lastIndexOf('}')
 
@@ -199,12 +203,23 @@ object UriPartParameterBuilder {
 
         val signature = value.substring(prefixIndex + 1, suffixIndex)
         return when {
-            signature.endsWith("?") -> UriPartOptionalParameterRouteSelector(signature.dropLast(1), prefix, suffix)
-            signature.endsWith("...") -> UriPartTailcardRouteSelector(signature.dropLast(3))
-            else -> UriPartParameterRouteSelector(signature, prefix, suffix)
+            signature.endsWith("?") -> PathSegmentOptionalParameterRouteSelector(signature.dropLast(1), prefix, suffix)
+            signature.endsWith("...") -> PathSegmentTailcardRouteSelector(signature.dropLast(3))
+            else -> PathSegmentParameterRouteSelector(signature, prefix, suffix)
         }
     }
 
+    /**
+     * Builds a [RouteSelector] to match a constant or wildcard segment parameter
+     */
+    fun parseConstant(value: String): RouteSelector = when (value) {
+        "*" -> PathSegmentWildcardRouteSelector
+        else -> PathSegmentConstantRouteSelector(value)
+    }
+
+    /**
+     * Parses a name out of segment specification
+     */
     fun parseName(value: String): String {
         val prefix = value.substringBefore('{', "")
         val suffix = value.substringAfterLast('}', "")
@@ -214,12 +229,5 @@ object UriPartParameterBuilder {
             signature.endsWith("...") -> signature.dropLast(3)
             else -> signature
         }
-    }
-}
-
-object UriPartConstantBuilder {
-    fun parse(value: String): RouteSelector = when (value) {
-        "*" -> UriPartWildcardRouteSelector
-        else -> UriPartConstantRouteSelector(value)
     }
 }

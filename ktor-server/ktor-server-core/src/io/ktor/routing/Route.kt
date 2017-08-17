@@ -4,26 +4,47 @@ import io.ktor.application.*
 import io.ktor.pipeline.*
 import java.util.*
 
+/**
+ * Describes a node in a routing tree
+ *
+ * @param parent is a parent node in the tree, or null for root node
+ * @param selector is an instance of [RouteSelector] for this node
+ */
 @ContextDsl
 open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationCallPipeline() {
-    val children: MutableList<Route> = ArrayList()
 
-    @Volatile var cachedPipeline: ApplicationCallPipeline? = null
+    /**
+     * List of child routes for this node
+     */
+    val children: List<Route> get() = childList
+
+    private val childList: MutableList<Route> = ArrayList()
+
+    @Volatile private var cachedPipeline: ApplicationCallPipeline? = null
 
     internal val handlers = ArrayList<PipelineInterceptor<Unit, ApplicationCall>>()
 
-    fun select(selector: RouteSelector): Route {
-        val existingEntry = children.firstOrNull { it.selector == selector }
+    /**
+     * Creates a child node in this node with a given [selector] or returns an existing one with the same selector
+     */
+    fun createChild(selector: RouteSelector): Route {
+        val existingEntry = childList.firstOrNull { it.selector == selector }
         if (existingEntry == null) {
             val entry = Route(this, selector)
-            children.add(entry)
+            childList.add(entry)
             return entry
         }
         return existingEntry
     }
 
-    fun invoke(body: Route.() -> Unit) = apply(body)
+    /**
+     * Allows using route instance for building additional routes
+     */
+    operator fun invoke(body: Route.() -> Unit) = body()
 
+    /**
+     * Installs a handler into this route which will be called when the route is selected for a call
+     */
     fun handle(handler: PipelineInterceptor<Unit, ApplicationCall>) {
         handlers.add(handler)
 
@@ -31,6 +52,9 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
         cachedPipeline = null
     }
 
+    /**
+     * Installs an interceptor into this route which will be called when this or a child route is selected for a call
+     */
     override fun intercept(phase: PipelinePhase, block: PipelineInterceptor<Unit, ApplicationCall>) {
         super.intercept(phase, block)
 
@@ -42,7 +66,7 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
 
     private fun invalidateCachesRecursively() {
         cachedPipeline = null
-        children.forEach { it.invalidateCachesRecursively() }
+        childList.forEach { it.invalidateCachesRecursively() }
     }
 
     internal fun buildPipeline(): ApplicationCallPipeline {

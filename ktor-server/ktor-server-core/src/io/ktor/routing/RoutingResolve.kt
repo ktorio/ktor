@@ -5,16 +5,29 @@ import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.util.*
 
+/**
+ * Represents a result of routing resolution
+ *
+ * @param succeeded indicates if resolution succeeded
+ * @param route specifies a routing node for successful resolution, or nearest one for failed
+ * @param values holds all captured values from selectors
+ * @param quality represents quality value for resolution result
+ */
 data class RoutingResolveResult(val succeeded: Boolean,
-                                val entry: Route,
+                                val route: Route,
                                 val values: ValuesMap,
                                 val quality: Double)
 
-class RoutingResolveContext(val routing: Route,
-                            val call: ApplicationCall,
-                            val parameters: ValuesMap = ValuesMap.Empty, // TODO don't pass parameters and headers, use call instead
-                            val headers: ValuesMap = ValuesMap.Empty) {
-    val path = parse(call.request.path())
+/**
+ * Represents a context in which routing resolution is being performed
+ * @param routing root node for resolution to start at
+ * @param call instance of [ApplicationCall] to use during resolution
+ */
+class RoutingResolveContext(val routing: Route, val call: ApplicationCall) {
+    /**
+     * List of path segments parsed out of a [call]
+     */
+    val segments: List<String> = parse(call.request.path())
 
     private fun parse(path: String): List<String> {
         if (path.isEmpty() || path == "/") return listOf()
@@ -40,6 +53,9 @@ class RoutingResolveContext(val routing: Route,
         return segments
     }
 
+    /**
+     * Executes resolution procedure in this context and returns [RoutingResolveResult]
+     */
     fun resolve(): RoutingResolveResult {
         return resolve(routing, this, 0)
     }
@@ -62,17 +78,18 @@ class RoutingResolveContext(val routing: Route,
             if (!subtreeResult.succeeded) {
                 // subtree didn't match, skip to next child, remember first failed entry
                 if (failEntry == null) {
-                    failEntry = subtreeResult.entry
+                    failEntry = subtreeResult.route
                 }
                 continue
             }
 
-            val thisMatchQuality = Math.min(subtreeResult.quality, selectorResult.quality)
             val bestMatchQuality = bestResult?.quality ?: 0.0
-            if (thisMatchQuality < bestMatchQuality)
+            val immediateSelectQuality = selectorResult.quality
+
+            if (immediateSelectQuality < bestMatchQuality)
                 continue
 
-            if (thisMatchQuality == bestMatchQuality) {
+            if (immediateSelectQuality == bestMatchQuality) {
                 // ambiguity, compare immediate child quality
                 if (bestChild!!.selector.quality >= child.selector.quality)
                     continue
@@ -81,18 +98,18 @@ class RoutingResolveContext(val routing: Route,
             bestChild = child
 
             // only calculate values if match is better then previous one
-            if (selectorResult.values.isEmpty() && thisMatchQuality == subtreeResult.quality) {
+            if (selectorResult.values.isEmpty() && immediateSelectQuality == subtreeResult.quality) {
                 // do not allocate new RoutingResolveResult if it will be the same as subtreeResult
                 // TODO: Evaluate if we can make RoutingResolveResult mutable altogether and avoid allocations
                 bestResult = subtreeResult
             } else {
                 val combinedValues = selectorResult.values + subtreeResult.values
-                bestResult = RoutingResolveResult(true, subtreeResult.entry, combinedValues, thisMatchQuality)
+                bestResult = RoutingResolveResult(true, subtreeResult.route, combinedValues, immediateSelectQuality)
             }
         }
 
         // no child matched, match is either current entry if path is done & there is a handler, or failure
-        if (segmentIndex == request.path.size && entry.handlers.isNotEmpty()) {
+        if (segmentIndex == request.segments.size && entry.handlers.isNotEmpty()) {
             if (bestResult != null && bestResult.quality > RouteSelectorEvaluation.qualityMissing)
                 return bestResult
 
@@ -104,4 +121,8 @@ class RoutingResolveContext(val routing: Route,
 
 }
 
+/**
+ * Exception indicating a failure in a routing resolution process
+ */
+class RoutingResolutionException(message: String) : Exception(message)
 

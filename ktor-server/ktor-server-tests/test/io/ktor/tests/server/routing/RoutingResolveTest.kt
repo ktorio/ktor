@@ -8,36 +8,34 @@ import org.junit.*
 import kotlin.test.*
 
 private object RootRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
-    override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
+    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         throw UnsupportedOperationException("Root selector should not be evaluated")
     }
+
     override fun toString(): String = ""
 }
 
 fun routing() = Route(parent = null, selector = RootRouteSelector)
-fun resolve(routing: Route, path: String, parameters: ValuesMap = ValuesMap.Empty): RoutingResolveResult {
-    return withTestApplication {
-        RoutingResolveContext(routing, TestApplicationCall(application).apply {
-            request.method = HttpMethod.Get
-            request.uri = path
-        }, parameters).resolve()
-    }
-}
-
 fun resolve(routing: Route, path: String, parameters: ValuesMap = ValuesMap.Empty, headers: ValuesMap = ValuesMap.Empty): RoutingResolveResult {
     return withTestApplication {
         RoutingResolveContext(routing, TestApplicationCall(application).apply {
             request.method = HttpMethod.Get
-            request.uri = path
+            request.uri = path + buildString {
+                if (!parameters.isEmpty()) {
+                    append("?")
+                    parameters.formUrlEncodeTo(this)
+                }
+            }
             headers.flattenEntries().forEach { request.addHeader(it.first, it.second) }
-        }, parameters, headers).resolve()
+        }).resolve()
     }
 }
 
-fun Route.selectHandle(selector: RouteSelector) = select(selector).apply { handle {} }
+fun Route.handle(selector: RouteSelector) = createChild(selector).apply { handle {} }
 
 class RoutingResolveTest {
-    @Test fun `empty routing`() {
+    @Test
+    fun `empty routing`() {
         val root = routing()
         val result = resolve(root, "/foo/bar")
         on("resolving any request") {
@@ -45,14 +43,15 @@ class RoutingResolveTest {
                 assertFalse(result.succeeded)
             }
             it("should have root as fail entry") {
-                assertEquals(root, result.entry)
+                assertEquals(root, result.route)
             }
         }
     }
 
-    @Test fun `routing with foo`() {
+    @Test
+    fun `routing with foo`() {
         val root = routing()
-        val fooEntry = root.selectHandle(UriPartConstantRouteSelector("foo"))
+        val fooEntry = root.handle(PathSegmentConstantRouteSelector("foo"))
 
         on("resolving /foo") {
             val result = resolve(root, "/foo")
@@ -60,7 +59,7 @@ class RoutingResolveTest {
                 assertTrue(result.succeeded)
             }
             it("should have fooEntry as success entry") {
-                assertEquals(fooEntry, result.entry)
+                assertEquals(fooEntry, result.route)
             }
         }
         on("resolving /foo/bar") {
@@ -69,15 +68,16 @@ class RoutingResolveTest {
                 assertFalse(result.succeeded)
             }
             it("should have fooEntry as fail entry") {
-                assertEquals(fooEntry, result.entry)
+                assertEquals(fooEntry, result.route)
             }
         }
     }
 
-    @Test fun `routing with foo-bar`() {
+    @Test
+    fun `routing with foo-bar`() {
         val root = routing()
-        val fooEntry = root.selectHandle(UriPartConstantRouteSelector("foo"))
-        val barEntry = fooEntry.selectHandle(UriPartConstantRouteSelector("bar"))
+        val fooEntry = root.handle(PathSegmentConstantRouteSelector("foo"))
+        val barEntry = fooEntry.handle(PathSegmentConstantRouteSelector("bar"))
 
         on("resolving /foo") {
             val result = resolve(root, "/foo")
@@ -85,7 +85,7 @@ class RoutingResolveTest {
                 assertTrue(result.succeeded)
             }
             it("should have fooEntry as success entry") {
-                assertEquals(fooEntry, result.entry)
+                assertEquals(fooEntry, result.route)
             }
         }
 
@@ -95,7 +95,7 @@ class RoutingResolveTest {
                 assertTrue(result.succeeded)
             }
             it("should have barEntry as success entry") {
-                assertEquals(barEntry, result.entry)
+                assertEquals(barEntry, result.route)
             }
         }
 
@@ -105,15 +105,16 @@ class RoutingResolveTest {
                 assertFalse(result.succeeded)
             }
             it("should have root as fail entry") {
-                assertEquals(root, result.entry)
+                assertEquals(root, result.route)
             }
         }
     }
 
-    @Test fun `routing foo with parameter`() {
+    @Test
+    fun `routing foo with parameter`() {
         val root = routing()
-        val paramEntry = root.selectHandle(UriPartConstantRouteSelector("foo"))
-                .selectHandle(UriPartParameterRouteSelector("param"))
+        val paramEntry = root.handle(PathSegmentConstantRouteSelector("foo"))
+                .handle(PathSegmentParameterRouteSelector("param"))
 
         on("resolving /foo/value") {
             val resolveResult = resolve(root, "/foo/value")
@@ -122,7 +123,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value equal to 'value'") {
                 assertEquals("value", resolveResult.values["param"])
@@ -130,10 +131,11 @@ class RoutingResolveTest {
         }
     }
 
-    @Test fun `routing foo with surrounded parameter`() {
+    @Test
+    fun `routing foo with surrounded parameter`() {
         val root = routing()
-        val paramEntry = root.selectHandle(UriPartConstantRouteSelector("foo"))
-                .selectHandle(UriPartParameterRouteSelector("param", "a", "b"))
+        val paramEntry = root.handle(PathSegmentConstantRouteSelector("foo"))
+                .handle(PathSegmentParameterRouteSelector("param", "a", "b"))
 
         on("resolving /foo/value") {
             val resolveResult = resolve(root, "/foo/avalueb")
@@ -142,7 +144,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value equal to 'value'") {
                 assertEquals("value", resolveResult.values["param"])
@@ -150,11 +152,12 @@ class RoutingResolveTest {
         }
     }
 
-    @Test fun `routing foo with multiply parameters`() {
+    @Test
+    fun `routing foo with multiply parameters`() {
         val root = routing()
-        root.selectHandle(UriPartConstantRouteSelector("foo"))
-                .selectHandle(UriPartParameterRouteSelector("param1"))
-                .selectHandle(UriPartParameterRouteSelector("param2"))
+        root.handle(PathSegmentConstantRouteSelector("foo"))
+                .handle(PathSegmentParameterRouteSelector("param1"))
+                .handle(PathSegmentParameterRouteSelector("param2"))
 
         on("resolving /foo/value1/value2") {
             val resolveResult = resolve(root, "/foo/value1/value2")
@@ -169,11 +172,12 @@ class RoutingResolveTest {
         }
     }
 
-    @Test fun `routing foo with multivalue parameter`() {
+    @Test
+    fun `routing foo with multivalue parameter`() {
         val root = routing()
-        root.selectHandle(UriPartConstantRouteSelector("foo"))
-                .selectHandle(UriPartParameterRouteSelector("param"))
-                .selectHandle(UriPartParameterRouteSelector("param"))
+        root.handle(PathSegmentConstantRouteSelector("foo"))
+                .handle(PathSegmentParameterRouteSelector("param"))
+                .handle(PathSegmentParameterRouteSelector("param"))
 
         on("resolving /foo/value1/value2") {
             val resolveResult = resolve(root, "/foo/value1/value2")
@@ -187,10 +191,11 @@ class RoutingResolveTest {
         }
     }
 
-    @Test fun `routing foo with optional parameter`() {
+    @Test
+    fun `routing foo with optional parameter`() {
         val root = routing()
-        val paramEntry = root.select(UriPartConstantRouteSelector("foo"))
-                .selectHandle(UriPartOptionalParameterRouteSelector("param"))
+        val paramEntry = root.createChild(PathSegmentConstantRouteSelector("foo"))
+                .handle(PathSegmentOptionalParameterRouteSelector("param"))
 
         on("resolving /foo/value") {
             val resolveResult = resolve(root, "/foo/value")
@@ -199,7 +204,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value equal to 'value'") {
                 assertEquals("value", resolveResult.values["param"])
@@ -213,7 +218,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.route)
             }
             it("should not have parameter value") {
                 assertNull(resolveResult.values["param"])
@@ -221,10 +226,11 @@ class RoutingResolveTest {
         }
     }
 
-    @Test fun `routing foo with wildcard`() {
+    @Test
+    fun `routing foo with wildcard`() {
         val root = routing()
-        val fooEntry = root.selectHandle(UriPartConstantRouteSelector("foo"))
-        val paramEntry = fooEntry.selectHandle(UriPartWildcardRouteSelector)
+        val fooEntry = root.handle(PathSegmentConstantRouteSelector("foo"))
+        val paramEntry = fooEntry.handle(PathSegmentWildcardRouteSelector)
 
         on("resolving /foo/value") {
             val resolveResult = resolve(root, "/foo/value")
@@ -233,7 +239,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.route)
             }
         }
 
@@ -244,15 +250,16 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to fooEntry") {
-                assertEquals(fooEntry, resolveResult.entry)
+                assertEquals(fooEntry, resolveResult.route)
             }
         }
     }
 
-    @Test fun `routing foo with anonymous tailcard`() {
+    @Test
+    fun `routing foo with anonymous tailcard`() {
         val root = routing()
-        val paramEntry = root.select(UriPartConstantRouteSelector("foo"))
-                .selectHandle(UriPartTailcardRouteSelector())
+        val paramEntry = root.createChild(PathSegmentConstantRouteSelector("foo"))
+                .handle(PathSegmentTailcardRouteSelector())
 
         on("resolving /foo/value") {
             val resolveResult = resolve(root, "/foo/value")
@@ -261,7 +268,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.route)
             }
         }
 
@@ -272,7 +279,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.route)
             }
         }
 
@@ -283,15 +290,16 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.route)
             }
         }
     }
 
-    @Test fun `routing foo with named tailcard`() {
+    @Test
+    fun `routing foo with named tailcard`() {
         val root = routing()
-        val paramEntry = root.select(UriPartConstantRouteSelector("foo"))
-                .selectHandle(UriPartTailcardRouteSelector("items"))
+        val paramEntry = root.createChild(PathSegmentConstantRouteSelector("foo"))
+                .handle(PathSegmentTailcardRouteSelector("items"))
 
         on("resolving /foo/value") {
             val resolveResult = resolve(root, "/foo/value")
@@ -300,7 +308,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value") {
                 assertEquals("value", resolveResult.values["items"])
@@ -314,7 +322,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to fooEntry") {
-                assertEquals(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.route)
             }
             it("should have empty parameter") {
                 assertNull(resolveResult.values["items"])
@@ -328,7 +336,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value") {
                 assertEquals(listOf("bar", "baz", "blah"), resolveResult.values.getAll("items"))
@@ -336,10 +344,11 @@ class RoutingResolveTest {
         }
     }
 
-    @Test fun `routing foo with parameter entry`() {
+    @Test
+    fun `routing foo with parameter entry`() {
         val root = routing()
-        val fooEntry = root.selectHandle(UriPartConstantRouteSelector("foo"))
-        val paramEntry = fooEntry.selectHandle(ParameterRouteSelector("name"))
+        val fooEntry = root.handle(PathSegmentConstantRouteSelector("foo"))
+        val paramEntry = fooEntry.handle(ParameterRouteSelector("name"))
 
         on("resolving /foo with query string name=value") {
             val resolveResult = resolve(root, "/foo", valuesOf("name" to listOf("value")))
@@ -348,7 +357,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value") {
                 assertEquals(listOf("value"), resolveResult.values.getAll("name"))
@@ -362,7 +371,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to fooEntry") {
-                assertEquals(fooEntry, resolveResult.entry)
+                assertEquals(fooEntry, resolveResult.route)
             }
             it("should have no parameter") {
                 assertNull(resolveResult.values["name"])
@@ -376,7 +385,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value") {
                 assertEquals(listOf("value1", "value2"), resolveResult.values.getAll("name"))
@@ -384,11 +393,12 @@ class RoutingResolveTest {
         }
     }
 
-    @Test fun `routing foo with quality`() {
+    @Test
+    fun `routing foo with quality`() {
         val root = routing()
-        val fooEntry = root.select(UriPartConstantRouteSelector("foo"))
-        val paramEntry = fooEntry.selectHandle(UriPartParameterRouteSelector("name"))
-        val constantEntry = fooEntry.selectHandle(UriPartConstantRouteSelector("admin"))
+        val fooEntry = root.createChild(PathSegmentConstantRouteSelector("foo"))
+        val paramEntry = fooEntry.handle(PathSegmentParameterRouteSelector("name"))
+        val constantEntry = fooEntry.handle(PathSegmentConstantRouteSelector("admin"))
 
         on("resolving /foo/value") {
             val resolveResult = resolve(root, "/foo/value")
@@ -397,7 +407,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.entry)
+                assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value equal to 'value'") {
                 assertEquals("value", resolveResult.values["name"])
@@ -411,7 +421,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to constantEntry") {
-                assertEquals(constantEntry, resolveResult.entry)
+                assertEquals(constantEntry, resolveResult.route)
             }
             it("should not have parameter value") {
                 assertNull(resolveResult.values["name"])
@@ -420,11 +430,12 @@ class RoutingResolveTest {
 
     }
 
-    @Test fun `routing foo with quality and headers`() {
+    @Test
+    fun `routing foo with quality and headers`() {
         val root = routing()
-        val fooEntry = root.selectHandle(UriPartConstantRouteSelector("foo"))
-        val plainEntry = fooEntry.selectHandle(HttpHeaderRouteSelector("Accept", "text/plain"))
-        val htmlEntry = fooEntry.selectHandle(HttpHeaderRouteSelector("Accept", "text/html"))
+        val fooEntry = root.handle(PathSegmentConstantRouteSelector("foo"))
+        val plainEntry = fooEntry.handle(HttpHeaderRouteSelector("Accept", "text/plain"))
+        val htmlEntry = fooEntry.handle(HttpHeaderRouteSelector("Accept", "text/html"))
 
         on("resolving /foo with more specific") {
             val resolveResult = resolve(root, "/foo", headers = valuesOf("Accept" to listOf("text/*, text/html, */*")))
@@ -433,7 +444,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to htmlEntry") {
-                assertEquals(htmlEntry, resolveResult.entry)
+                assertEquals(htmlEntry, resolveResult.route)
             }
         }
 
@@ -444,7 +455,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to plainEntry") {
-                assertEquals(plainEntry, resolveResult.entry)
+                assertEquals(plainEntry, resolveResult.route)
             }
         }
 
@@ -455,7 +466,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to plainEntry") {
-                assertEquals(plainEntry, resolveResult.entry)
+                assertEquals(plainEntry, resolveResult.route)
             }
         }
 
@@ -466,15 +477,16 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to htmlEntry") {
-                assertEquals(htmlEntry, resolveResult.entry)
+                assertEquals(htmlEntry, resolveResult.route)
             }
         }
     }
 
-    @Test fun `select most specific route with root`() {
+    @Test
+    fun `select most specific route with root`() {
         val routing = routing()
-        val rootEntry = routing.createRoute("/").apply { handle {} }
-        val varargEntry = routing.createRoute("/{...}").apply { handle {} }
+        val rootEntry = routing.createRouteFromPath("/").apply { handle {} }
+        val varargEntry = routing.createRouteFromPath("/{...}").apply { handle {} }
 
         on("resolving /") {
             val resolveResult = resolve(routing, "/")
@@ -483,7 +495,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to rootEntry") {
-                assertEquals(rootEntry, resolveResult.entry)
+                assertEquals(rootEntry, resolveResult.route)
             }
         }
         on("resolving /path") {
@@ -493,16 +505,56 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to varargEntry") {
-                assertEquals(varargEntry, resolveResult.entry)
+                assertEquals(varargEntry, resolveResult.route)
             }
         }
 
     }
 
-    @Test fun `decoding routing`() {
+    @Test
+    fun `select most specific route with optional param`() {
         val routing = routing()
-        val spaceEntry = routing.createRoute("/a%20b").apply { handle {} }
-        val plusEntry = routing.createRoute("/a+b").apply { handle {} }
+        val dateEntry = routing.createRouteFromPath("/sessions/{date}").apply { handle {} }
+        val currentEntry = routing.createRouteFromPath("/sessions/current/{date?}").apply { handle {} }
+
+        on("resolving date") {
+            val resolveResult = resolve(routing, "/sessions/2017-11-02")
+
+            it("should successfully resolve") {
+                assertTrue(resolveResult.succeeded)
+            }
+            it("should resolve to rootEntry") {
+                assertEquals(dateEntry, resolveResult.route)
+            }
+        }
+        on("resolving current") {
+            val resolveResult = resolve(routing, "/sessions/current/2017-11-02T10:00")
+
+            it("should successfully resolve") {
+                assertTrue(resolveResult.succeeded)
+            }
+            it("should resolve to varargEntry") {
+                assertEquals(currentEntry, resolveResult.route)
+            }
+        }
+        on("resolving optional current") {
+            val resolveResult = resolve(routing, "/sessions/current/")
+
+            it("should successfully resolve") {
+                assertTrue(resolveResult.succeeded)
+            }
+            it("should resolve to varargEntry") {
+                assertEquals(currentEntry, resolveResult.route)
+            }
+        }
+
+    }
+
+    @Test
+    fun `decoding routing`() {
+        val routing = routing()
+        val spaceEntry = routing.createRouteFromPath("/a%20b").apply { handle {} }
+        val plusEntry = routing.createRouteFromPath("/a+b").apply { handle {} }
 
         on("resolving /a%20b") {
             val resolveResult = resolve(routing, "/a%20b")
@@ -511,7 +563,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to varargEntry") {
-                assertEquals(spaceEntry, resolveResult.entry)
+                assertEquals(spaceEntry, resolveResult.route)
             }
         }
 
@@ -522,7 +574,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should resolve to varargEntry") {
-                assertEquals(plusEntry, resolveResult.entry)
+                assertEquals(plusEntry, resolveResult.route)
             }
         }
     }

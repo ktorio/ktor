@@ -270,7 +270,7 @@ class OAuth1aFlowTest {
 
     private fun Application.configureServer(redirectUrl: String = "http://localhost/login?redirected=true", mutateSettings: OAuthServerSettings.OAuth1aServerSettings.() -> OAuthServerSettings.OAuth1aServerSettings = { this }) {
         routing {
-            route(HttpMethod.Get, "/login") {
+            route("/login", HttpMethod.Get) {
                 authentication {
                     oauth(testClient!!, dispatcher, { settings.mutateSettings() }, { redirectUrl })
                 }

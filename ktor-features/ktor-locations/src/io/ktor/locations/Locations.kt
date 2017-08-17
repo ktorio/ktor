@@ -34,7 +34,7 @@ open class Locations(private val application: Application, private val routeServ
         val arguments = parameters.map { parameter ->
             val parameterType = parameter.type
             val parameterName = parameter.name ?: getParameterNameFromAnnotation(parameter)
-            val value: Any? = if (parent != null && parameterType == parent.klass.defaultType) {
+            val value: Any? = if (parent != null && parameterType == parent.klass.starProjectedType) {
                 parent.create(allParameters)
             } else {
                 createFromParameters(allParameters, parameterName, parameterType.javaType, parameter.isOptional)
@@ -93,7 +93,7 @@ open class Locations(private val application: Application, private val routeServ
             }
 
             val parentParameter = declaredProperties.firstOrNull {
-                it.getter.returnType == outerClass?.defaultType
+                it.getter.returnType == outerClass?.starProjectedType
             }
 
             if (parentInfo != null && parentParameter == null) {
@@ -107,7 +107,7 @@ open class Locations(private val application: Application, private val routeServ
 
             val pathParameterNames = RoutingPath.parse(path).parts
                     .filter { it.kind == RoutingPathSegmentKind.Parameter }
-                    .map { UriPartParameterBuilder.parseName(it.value) }
+                    .map { PathSegmentSelectorBuilder.parseName(it.value) }
 
             val declaredParameterNames = declaredProperties.map { it.name }.toSet()
             val invalidParameters = pathParameterNames.filter { it !in declaredParameterNames }
@@ -148,7 +148,7 @@ open class Locations(private val application: Application, private val routeServ
                 RoutingPathSegmentKind.Parameter -> {
                     if (info.klass.objectInstance != null)
                         throw IllegalArgumentException("There is no place to bind ${it.value} in object for '${info.klass}'")
-                    propertyValue(location, UriPartParameterBuilder.parseName(it.value))
+                    propertyValue(location, PathSegmentSelectorBuilder.parseName(it.value))
                 }
             }
         }
@@ -191,20 +191,21 @@ open class Locations(private val application: Application, private val routeServ
 
     private fun createEntry(parent: Route, info: LocationInfo): Route {
         val hierarchyEntry = info.parent?.let { createEntry(parent, it) } ?: parent
-        val pathEntry = hierarchyEntry.createRoute(info.path)
+        val pathEntry = hierarchyEntry.createRouteFromPath(info.path)
+        return pathEntry
+    }
 
-        val queryEntry = info.queryParameters.fold(pathEntry) { entry, query ->
+    fun createEntry(parent: Route, dataClass: KClass<*>): Route {
+        val info = getOrCreateInfo(dataClass)
+        val pathRoute = createEntry(parent, info)
+
+        return info.queryParameters.fold(pathRoute) { entry, query ->
             val selector = if (query.isOptional)
                 OptionalParameterRouteSelector(query.name)
             else
                 ParameterRouteSelector(query.name)
-            entry.select(selector)
+            entry.createChild(selector)
         }
-        return queryEntry
-    }
-
-    fun createEntry(parent: Route, dataClass: KClass<*>): Route {
-        return createEntry(parent, getOrCreateInfo(dataClass))
     }
 
     companion object Feature : ApplicationFeature<Application, Locations, Locations> {

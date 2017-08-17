@@ -6,13 +6,16 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
 
+/**
+ * Root routing node for an [Application]
+ * @param application is an instance of [Application] for this routing
+ */
 class Routing(val application: Application) : Route(parent = null, selector = RootRouteSelector) {
     private suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
-        val call = context.call
-        val resolveContext = RoutingResolveContext(this, call, call.parameters, call.request.headers)
+        val resolveContext = RoutingResolveContext(this, context.call)
         val resolveResult = resolveContext.resolve()
         if (resolveResult.succeeded) {
-            executeResult(context, resolveResult.entry, resolveResult.values)
+            executeResult(context, resolveResult.route, resolveResult.values)
         }
     }
 
@@ -35,9 +38,18 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
         }
     }
 
+    /**
+     * Installable feature for [Routing]
+     */
     companion object Feature : ApplicationFeature<Application, Routing, Routing> {
 
+        /**
+         * Event definition for when a routing-based call processing starts
+         */
         val RoutingCallStarted = EventDefinition<RoutingApplicationCall>()
+        /**
+         * Event definition for when a routing-based call processing finished
+         */
         val RoutingCallFinished = EventDefinition<RoutingApplicationCall>()
 
         override val key: AttributeKey<Routing> = AttributeKey("Routing")
@@ -50,7 +62,7 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
     }
 
     private object RootRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
-        override fun evaluate(context: RoutingResolveContext, index: Int): RouteSelectorEvaluation {
+        override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
             throw UnsupportedOperationException("Root selector should not be evaluated")
         }
 
@@ -58,11 +70,17 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
     }
 }
 
+/**
+ * Gets an [Application] for this [Route] by scanning the hierarchy to the root
+ */
 val Route.application: Application
     get() = when {
         this is Routing -> application
         else -> parent?.application ?: throw UnsupportedOperationException("Cannot retrieve application from unattached routing entry")
     }
 
-fun Application.routing(configure: Routing.() -> Unit) = featureOrNull(Routing)?.apply(configure) ?: install(Routing, configure)
+/**
+ * Gets or installs a [Routing] feature for the this [Application] and runs a [configuration] script on it
+ */
+fun Application.routing(configuration: Routing.() -> Unit) = featureOrNull(Routing)?.apply(configuration) ?: install(Routing, configuration)
 

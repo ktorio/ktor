@@ -15,26 +15,26 @@ class RoutingBuildTest {
                 assertEquals(entry, entry.children[0].parent)
             }
             it("should have child of type UriPartConstantRoutingSelector") {
-                assertTrue(entry.children[0].selector is UriPartConstantRouteSelector)
+                assertTrue(entry.children[0].selector is PathSegmentConstantRouteSelector)
             }
             it("should have child with name 'foo'") {
-                assertEquals("foo", (entry.children[0].selector as UriPartConstantRouteSelector).name)
+                assertEquals("foo", (entry.children[0].selector as PathSegmentConstantRouteSelector).value)
             }
             it("should have single child at second level") {
                 assertEquals(1, entry.children[0].children.size)
             }
             it("should have second level child of type UriPartOptionalParameterRoutingSelector") {
-                assertTrue(entry.children[0].children[0].selector is UriPartOptionalParameterRouteSelector)
+                assertTrue(entry.children[0].children[0].selector is PathSegmentOptionalParameterRouteSelector)
             }
             it("should have second level child with name 'new'") {
-                assertEquals("new", (entry.children[0].children[0].selector as UriPartOptionalParameterRouteSelector).name)
+                assertEquals("new", (entry.children[0].children[0].selector as PathSegmentOptionalParameterRouteSelector).name)
             }
         }
 
         on("adding routing rules manually") {
             val entry = routing()
-            entry.select(UriPartConstantRouteSelector("foo"))
-                    .select(UriPartOptionalParameterRouteSelector("new"))
+            entry.createChild(PathSegmentConstantRouteSelector("foo"))
+                    .createChild(PathSegmentOptionalParameterRouteSelector("new"))
             itShouldHaveSpecificStructure(entry)
         }
         on("adding routing from string") {
@@ -61,10 +61,10 @@ class RoutingBuildTest {
             val entry = routing()
             entry.route("/foo/{new}") { }
             it("should have second level child of type UriPartParameterRoutingSelector") {
-                assertTrue(entry.children[0].children[0].selector is UriPartParameterRouteSelector)
+                assertTrue(entry.children[0].children[0].selector is PathSegmentParameterRouteSelector)
             }
             it("should have second level child with name 'new'") {
-                assertEquals("new", (entry.children[0].children[0].selector as UriPartParameterRouteSelector).name)
+                assertEquals("new", (entry.children[0].children[0].selector as PathSegmentParameterRouteSelector).name)
             }
         }
 
@@ -72,7 +72,7 @@ class RoutingBuildTest {
             val entry = routing()
             entry.route("/foo/a{new}b") { }
             it("should have second level child of type UriPartParameterRoutingSelector") {
-                val selector = entry.children[0].children[0].selector as? UriPartParameterRouteSelector
+                val selector = entry.children[0].children[0].selector as? PathSegmentParameterRouteSelector
                 assertNotNull(selector)
                 assertEquals("new", selector?.name)
                 assertEquals("a", selector?.prefix)
@@ -84,14 +84,14 @@ class RoutingBuildTest {
             val entry = routing()
             entry.route("/foo/*") { }
             it("should have second level child of type UriPartWildcardRoutingSelector") {
-                assertTrue(entry.children[0].children[0].selector is UriPartWildcardRouteSelector)
+                assertTrue(entry.children[0].children[0].selector is PathSegmentWildcardRouteSelector)
             }
         }
         on("creating route with tailcard") {
             val entry = routing()
             entry.route("/foo/{...}") { }
             it("should have second level child of type UriPartTailcardRoutingSelector") {
-                assertTrue(entry.children[0].children[0].selector is UriPartTailcardRouteSelector)
+                assertTrue(entry.children[0].children[0].selector is PathSegmentTailcardRouteSelector)
             }
         }
 
