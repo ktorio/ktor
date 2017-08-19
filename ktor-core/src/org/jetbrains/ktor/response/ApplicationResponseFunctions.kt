@@ -8,21 +8,23 @@ import java.io.*
 /**
  * Sends a [message] as a response
  */
-suspend fun ApplicationCall.respond(message: Any) {
+inline suspend fun ApplicationCall.respond(message: Any) {
     response.pipeline.execute(this, message)
 }
 
 suspend fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false) {
     response.headers.append(HttpHeaders.Location, url)
-    respond(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
+    return respond(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
 }
 
 suspend fun ApplicationCall.respondText(text: String, contentType: ContentType? = null, status: HttpStatusCode? = null) {
-    respond(TextContent(text, defaultTextContentType(contentType), status))
+    val message = TextContent(text, defaultTextContentType(contentType), status)
+    return respond(message)
 }
 
 suspend fun ApplicationCall.respondText(contentType: ContentType? = null, status: HttpStatusCode? = null, provider: suspend () -> String) {
-    respond(TextContent(provider(), defaultTextContentType(contentType), status))
+    val message = TextContent(provider(), defaultTextContentType(contentType), status)
+    return respond(message)
 }
 
 /**
@@ -31,7 +33,8 @@ suspend fun ApplicationCall.respondText(contentType: ContentType? = null, status
  * The [writer] parameter will be called later when host is ready to produce content. You don't need to close it.
  */
 suspend fun ApplicationCall.respondWrite(contentType: ContentType? = null, status: HttpStatusCode? = null, writer: suspend Writer.() -> Unit) {
-    respond(WriterContent(writer, defaultTextContentType(contentType), status))
+    val message = WriterContent(writer, defaultTextContentType(contentType), status)
+    return respond(message)
 }
 
 fun ApplicationCall.defaultTextContentType(contentType: ContentType?): ContentType {

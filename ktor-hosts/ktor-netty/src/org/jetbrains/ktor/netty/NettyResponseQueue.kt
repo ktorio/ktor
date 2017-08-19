@@ -31,11 +31,8 @@ internal class NettyResponseQueue(val context: ChannelHandlerContext) {
             return
         }
 
-        suspendCancellableCoroutine<Unit> { c ->
-            val s = q.firstOrNull { it.call === call }
-            if (s == null) {
-                throw cancellation ?: IllegalStateException()
-            }
+        return suspendCancellableCoroutine { c ->
+            val s = q.firstOrNull { it.call === call } ?: throw cancellation ?: IllegalStateException()
             s.suspended(c)
 
             c.invokeOnCompletion {

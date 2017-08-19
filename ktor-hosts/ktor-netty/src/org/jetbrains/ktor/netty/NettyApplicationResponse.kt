@@ -9,7 +9,7 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.response.*
-import java.io.Closeable
+import java.io.*
 import kotlin.coroutines.experimental.*
 
 internal class NettyApplicationResponse(call: NettyApplicationCall,
@@ -38,7 +38,7 @@ internal class NettyApplicationResponse(call: NettyApplicationCall,
         val nettyChannel = nettyContext.channel()
         val userAppContext = userCoroutineContext + NettyDispatcher.CurrentContext(nettyContext)
 
-        run(hostCoroutineContext) {
+        return run(hostCoroutineContext) {
             val upgradeContentQueue = RawContentQueue(nettyContext)
 
             nettyChannel.pipeline().replace(HttpContentQueue::class.java, "WebSocketReadQueue", upgradeContentQueue).popAndForEach {
@@ -67,6 +67,7 @@ internal class NettyApplicationResponse(call: NettyApplicationCall,
                     nettyContext.read()
                 }
             } ?: throw IllegalStateException("Response has been already sent")
+            Unit
         }
     }
 

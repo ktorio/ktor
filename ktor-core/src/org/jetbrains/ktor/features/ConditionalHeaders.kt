@@ -68,7 +68,7 @@ class ConditionalHeaders {
  * It never handles If-None-Match: *  as it is related to non-etag logic (for example, Last modified checks).
  * See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.26 for more details
  */
-suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block: suspend () -> Unit): Unit {
+suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, block: suspend () -> Unit) {
     val version = EntityTagVersion(etag)
     val result = version.check(this)
     if (putHeader) {
@@ -82,11 +82,11 @@ suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, bl
     }
 }
 
-suspend fun ApplicationCall.withLastModified(lastModified: Date, putHeader: Boolean = true, block: suspend () -> Unit): Unit {
+suspend fun ApplicationCall.withLastModified(lastModified: Date, putHeader: Boolean = true, block: suspend () -> Unit) {
     withLastModified(LocalDateTime.ofInstant(lastModified.toInstant(), ZoneId.systemDefault()), putHeader, block)
 }
 
-suspend fun ApplicationCall.withLastModified(lastModified: ZonedDateTime, putHeader: Boolean = true, block: suspend () -> Unit): Unit {
+suspend fun ApplicationCall.withLastModified(lastModified: ZonedDateTime, putHeader: Boolean = true, block: suspend () -> Unit) {
     withLastModified(lastModified.toLocalDateTime(), putHeader, block)
 }
 
@@ -103,7 +103,7 @@ suspend fun ApplicationCall.withLastModified(lastModified: ZonedDateTime, putHea
  * See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.28 and
  *  https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.25
  */
-suspend fun ApplicationCall.withLastModified(lastModified: LocalDateTime, putHeader: Boolean = true, block: suspend () -> Unit): Unit {
+suspend fun ApplicationCall.withLastModified(lastModified: LocalDateTime, putHeader: Boolean = true, block: suspend () -> Unit) {
     val version = LastModifiedVersion(lastModified)
     val result = version.check(this)
 

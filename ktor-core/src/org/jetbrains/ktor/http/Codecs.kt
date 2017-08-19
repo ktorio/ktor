@@ -23,7 +23,7 @@ fun decodeURLPart(text: String, start: Int = 0, end: Int = text.length): String 
 }
 
 private fun decodeScan(text: String, start: Int, end: Int, plusIsSpace: Boolean, charset: Charset): String {
-    for (index in start..end - 1) {
+    for (index in start until end) {
         val ch = text[index]
         if (ch == '%' || (plusIsSpace && ch == '+')) {
             return decodeImpl(text, start, end, index, plusIsSpace, charset)

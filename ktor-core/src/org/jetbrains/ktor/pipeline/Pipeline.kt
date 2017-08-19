@@ -142,7 +142,7 @@ open class Pipeline<TSubject : Any>(vararg phases: PipelinePhase) {
     }
 }
 
-suspend fun Pipeline<Unit>.execute(call: ApplicationCall) = execute(call, Unit)
+inline suspend fun Pipeline<Unit>.execute(call: ApplicationCall) = execute(call, Unit)
 
 typealias PipelineInterceptor<TSubject> = suspend PipelineContext<TSubject>.(TSubject) -> Unit
 

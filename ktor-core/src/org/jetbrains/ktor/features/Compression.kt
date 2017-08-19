@@ -122,7 +122,7 @@ class Compression(compression: Configuration) {
         }
 
         override suspend fun writeTo(channel: WriteChannel) {
-            delegate.writeTo(encoder.compress(channel))
+            return delegate.writeTo(encoder.compress(channel))
         }
     }
 
