@@ -38,21 +38,20 @@ class GsonSupport(val gson: Gson) {
     }
 }
 
-private class JsonContent(val text: String, override val status: HttpStatusCode? = null) : FinalContent.ByteArrayContent() {
-    private val bytes by lazy { text.toByteArray(Charsets.UTF_8) }
+private class JsonContent(text: String, override val status: HttpStatusCode? = null) : FinalContent.ByteArrayContent() {
+    private val bytes = text.toByteArray(Charsets.UTF_8)
 
-    override val headers by lazy {
-        ValuesMap.build(true) {
-            contentType(contentType)
-            contentLength(bytes.size.toLong())
-        }
+    override val headers = ValuesMap.build(true) {
+        set(HttpHeaders.ContentType, contentType)
+        set(HttpHeaders.ContentLength, bytes.size.toString())
     }
 
+
     override fun bytes(): ByteArray = bytes
-    override fun toString() = "JsonContent \"${text.take(30)}\""
+    override fun toString() = "JsonContent \"${bytes.toString(Charsets.UTF_8).take(30)}\""
 
     companion object {
-        private val contentType = ContentType.Application.Json.withCharset(Charsets.UTF_8)
+        private val contentType = ContentType.Application.Json.withCharset(Charsets.UTF_8).toString()
     }
 }
 
