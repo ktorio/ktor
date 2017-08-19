@@ -79,8 +79,8 @@ class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
     private val values: MutableMap<String, MutableList<String>> = if (caseInsensitiveKey) CaseInsensitiveMap(size) else LinkedHashMap(size)
     private var built = false
 
-    fun getAll(name: String): List<String>? = listForKey(name)
-    fun contains(name: String, value: String) = listForKey(name)?.contains(value) ?: false
+    fun getAll(name: String): List<String>? = values[name]
+    fun contains(name: String, value: String) = values[name]?.contains(value) ?: false
 
     fun names() = values.keys
     fun isEmpty() = values.isEmpty()
@@ -115,7 +115,7 @@ class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
     }
 
     fun appendMissing(key: String, values: Iterable<String>) {
-        val existing = listForKey(key)?.toSet() ?: emptySet()
+        val existing = this.values[key]?.toSet() ?: emptySet()
 
         appendAll(key, values.filter { it !in existing })
     }
@@ -130,33 +130,21 @@ class ValuesMapBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
         }
     }
 
-    fun remove(name: String, value: String) = listForKey(name)?.remove(value) ?: false
+    fun remove(name: String, value: String) = values[name]?.remove(value) ?: false
 
     fun clear() {
         values.clear()
     }
 
     fun build(): ValuesMap {
-        require(!built) { "ValueMapBuilder can only build single ValueMap" }
+        require(!built) { "ValueMapBuilder can only build a single ValueMap" }
         built = true
         return ValuesMapImpl(caseInsensitiveKey, values)
     }
 
     private fun ensureListForKey(key: String, size: Int): MutableList<String> {
-        val existing = listForKey(key)
-        if (existing != null) {
-            return existing
-        }
-
-        appendNewKey(key, size)
-        return ensureListForKey(key, size)
+        return values[key] ?: ArrayList<String>(size).also { values[key] = it }
     }
-
-    private fun appendNewKey(key: String, size: Int) {
-        values[key] = ArrayList(size)
-    }
-
-    private fun listForKey(key: String): MutableList<String>? = values[key]
 }
 
 fun valuesOf(vararg pairs: Pair<String, List<String>>, caseInsensitiveKey: Boolean = false): ValuesMap {
