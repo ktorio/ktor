@@ -19,7 +19,16 @@ internal class NettyApplicationRequest(
         private val contentQueue: NettyContentQueue) : BaseApplicationRequest(call) {
 
     override val local = NettyConnectionPoint(httpRequest, context)
-    override val queryParameters by lazy { parseQueryString(httpRequest.uri().substringAfter("?", "")) }
+
+    override val queryParameters = object : ValuesMap {
+        private val decoder = QueryStringDecoder(httpRequest.uri())
+        override val caseInsensitiveKey: Boolean get() = true
+        override fun getAll(name: String) = decoder.parameters()[name]
+        override fun names() = decoder.parameters().keys
+        override fun entries() = decoder.parameters().entries
+        override fun isEmpty() = decoder.parameters().isEmpty()
+    }
+
     override val headers: ValuesMap = NettyApplicationRequestHeaders(httpRequest)
     override val cookies: RequestCookies = NettyApplicationRequestCookies(this)
 
