@@ -39,7 +39,7 @@ fun parseHeaderValue(text: String?, parametersOnly: Boolean = false): List<Heade
         return emptyList()
 
     var pos = 0
-    val items = lazy { arrayListOf<HeaderValue>() }
+    val items = lazy(LazyThreadSafetyMode.NONE) { arrayListOf<HeaderValue>() }
     while (pos <= text.lastIndex) {
         pos = parseHeaderValueItem(text, pos, items, parametersOnly)
     }
@@ -55,7 +55,7 @@ private fun String.subtrim(start: Int, end: Int): String {
 
 private fun parseHeaderValueItem(text: String, start: Int, items: Lazy<ArrayList<HeaderValue>>, parametersOnly: Boolean): Int {
     var pos = start
-    val parameters = lazy { arrayListOf<HeaderValueParam>() }
+    val parameters = lazy(LazyThreadSafetyMode.NONE) { arrayListOf<HeaderValueParam>() }
     var valueEnd: Int? = if (parametersOnly) pos else null
     while (pos <= text.lastIndex) {
         when (text[pos]) {
