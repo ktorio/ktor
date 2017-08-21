@@ -15,7 +15,7 @@ class Sessions(val providers: List<SessionProvider>) {
         }
     }
 
-    companion object : ApplicationFeature<ApplicationCallPipeline, Sessions.Configuration, Sessions> {
+    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Sessions.Configuration, Sessions> {
         override val key = AttributeKey<Sessions>("Sessions")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): Sessions {
             val configuration = Sessions.Configuration().apply(configure)
@@ -35,7 +35,14 @@ class Sessions(val providers: List<SessionProvider>) {
 
             // When response is being sent, call each provider to update/remove session data
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Before) {
-                val sessionData = call.attributes.getOrNull(SessionKey) ?: throw IllegalStateException("Sessions feature is installed inconsistently")
+                val sessionData = call.attributes.getOrNull(SessionKey)
+                if (sessionData == null) {
+                    // If sessionData is not available it means response happened before Session feature got a
+                    // chance to deserialize the data. We should ignore this call in this case.
+                    // An example would be CORS feature responding with 403 Forbidden
+                    return@intercept
+                }
+
                 sessionData.providerData.forEach { (_, data) ->
                     when {
                         data.value != null -> {
