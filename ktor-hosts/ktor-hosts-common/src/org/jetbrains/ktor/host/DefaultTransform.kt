@@ -19,7 +19,8 @@ fun ApplicationSendPipeline.installDefaultTransformations() {
                 ByteArrayContent(value)
             }
             is HttpStatusContent -> {
-                TextContent("<H1>${value.code}</H1><P>${value.message.escapeHTML()}</P>", ContentType.Text.Html, value.code)
+                TextContent("<H1>${value.code}</H1><P>${value.message.escapeHTML()}</P>",
+                        ContentType.Text.Html.withCharset(Charsets.UTF_8), value.code)
             }
             is HttpStatusCode -> {
                 HttpStatusCodeContent(value)
