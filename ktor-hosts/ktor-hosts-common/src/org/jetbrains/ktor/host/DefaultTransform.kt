@@ -19,8 +19,7 @@ fun ApplicationSendPipeline.installDefaultTransformations() {
                 ByteArrayContent(value)
             }
             is HttpStatusContent -> {
-                val contentType = call.defaultTextContentType(null)
-                TextContent("<H1>${value.code}</H1><P>${value.message.escapeHTML()}</P>", contentType, value.code)
+                TextContent("<H1>${value.code}</H1><P>${value.message.escapeHTML()}</P>", ContentType.Text.Html, value.code)
             }
             is HttpStatusCode -> {
                 HttpStatusCodeContent(value)
