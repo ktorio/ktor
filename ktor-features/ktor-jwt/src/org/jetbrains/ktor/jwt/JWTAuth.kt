@@ -13,6 +13,7 @@ import org.jetbrains.ktor.auth.AuthenticationPipeline
 import org.jetbrains.ktor.auth.Credential
 import org.jetbrains.ktor.auth.NotAuthenticatedCause
 import org.jetbrains.ktor.auth.Principal
+import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.http.HttpStatusCode
 import org.jetbrains.ktor.response.respond
 import java.security.interfaces.ECPublicKey
@@ -71,7 +72,7 @@ fun AuthenticationPipeline.jwtAuthentication(jwkProvider: JwkProvider, issuer: S
 
 private fun ApplicationCall.getAuthToken(): String {
     val headers = request.headers
-    val authHeader = requireNotNull(headers["Authorization"])
+    val authHeader = requireNotNull(headers[HttpHeaders.Authorization])
     val token = authHeader.removePrefix("Bearer ")
     return token
 }
