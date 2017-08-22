@@ -69,14 +69,14 @@ fun AuthenticationPipeline.jwtAuthentication(jwkProvider: JwkProvider, issuer: S
     }
 }
 
-fun ApplicationCall.getAuthToken(): String {
+private fun ApplicationCall.getAuthToken(): String {
     val headers = request.headers
     val authHeader = requireNotNull(headers["Authorization"])
     val token = authHeader.removePrefix("Bearer ")
     return token
 }
 
-fun Jwk.makeAlgorithm(): Algorithm {
+private fun Jwk.makeAlgorithm(): Algorithm {
     return when(algorithm) {
         "RS256" -> Algorithm.RSA256(publicKey as RSAPublicKey, null)
         "RS384" -> Algorithm.RSA384(publicKey as RSAPublicKey, null)
@@ -88,7 +88,7 @@ fun Jwk.makeAlgorithm(): Algorithm {
     }
 }
 
-fun DecodedJWT.parsePayload(): Payload {
+private fun DecodedJWT.parsePayload(): Payload {
     val payloadString = String(Base64.getUrlDecoder().decode(payload))
     val parsedPayload = JWTParser().parsePayload(payloadString)
     return parsedPayload
