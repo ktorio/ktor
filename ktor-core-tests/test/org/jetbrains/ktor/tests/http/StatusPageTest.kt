@@ -23,7 +23,9 @@ class StatusPageTest {
                 call.respond(HttpStatusCode.NotFound)
             }
             handleRequest(HttpMethod.Get, "/foo").let { call ->
+                assertEquals(HttpStatusCode.NotFound, call.response.status(), "Actual status must be kept")
                 assertEquals("<html><body>error 404</body></html>", call.response.content)
+                assertEquals(ContentType.Text.Html, call.response.contentType)
             }
         }
     }
@@ -51,15 +53,20 @@ class StatusPageTest {
             }
 
             handleRequest(HttpMethod.Get, "/").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("ok", call.response.content)
             }
 
             handleRequest(HttpMethod.Get, "/missing").let { call ->
+                assertEquals(HttpStatusCode.NotFound, call.response.status())
                 assertEquals("404 ${HttpStatusCode.NotFound.description}", call.response.content)
+                assertEquals(ContentType.Text.Plain, call.response.contentType)
             }
 
             handleRequest(HttpMethod.Get, "/notFound").let { call ->
+                assertEquals(HttpStatusCode.NotFound, call.response.status())
                 assertEquals("404 ${HttpStatusCode.NotFound.description}", call.response.content)
+                assertEquals(ContentType.Text.Plain, call.response.contentType)
             }
         }
     }
@@ -85,7 +92,9 @@ class StatusPageTest {
             }
 
             handleRequest(HttpMethod.Get, "/missing").let { call ->
+                assertEquals(HttpStatusCode.NotFound, call.response.status())
                 assertEquals("404 ${HttpStatusCode.NotFound.description}", call.response.content)
+                assertEquals(ContentType.Text.Plain, call.response.contentType)
             }
         }
     }
@@ -119,6 +128,7 @@ class StatusPageTest {
             }
 
             handleRequest(HttpMethod.Get, "/").let { call ->
+                assertEquals(HttpStatusCode.NotFound, call.response.status())
                 assertEquals("404 ${HttpStatusCode.NotFound.description}", call.response.content)
             }
         }
@@ -143,10 +153,12 @@ class StatusPageTest {
             }
 
             handleRequest(HttpMethod.Get, "/iae").let { call ->
+                assertEquals(HttpStatusCode.InternalServerError, call.response.status())
                 assertEquals("IllegalArgumentException", call.response.content)
             }
 
             handleRequest(HttpMethod.Get, "/npe").let { call ->
+                assertEquals(HttpStatusCode.InternalServerError, call.response.status())
                 assertEquals("NullPointerException", call.response.content)
             }
         }
@@ -177,6 +189,7 @@ class StatusPageTest {
             }
 
             handleRequest(HttpMethod.Get, "/").let { call ->
+                assertEquals(HttpStatusCode.InternalServerError, call.response.status())
                 assertEquals("IllegalStateException", call.response.content)
             }
         }
@@ -199,6 +212,7 @@ class StatusPageTest {
             }
 
             handleRequest(HttpMethod.Get, "/").let { call ->
+                assertEquals(HttpStatusCode.InternalServerError, call.response.status())
                 assertEquals("IllegalStateException", call.response.content)
             }
         }
@@ -243,8 +257,15 @@ class StatusPageTest {
             }
 
             handleRequest(HttpMethod.Get, "/ve").let { call ->
+                assertEquals(HttpStatusCode.InternalServerError, call.response.status())
                 assertEquals("code", call.response.content)
             }
         }
     }
+
+    private val TestApplicationResponse.contentType: ContentType
+        get() =
+            ContentType.parse(
+                    headers[HttpHeaders.ContentType] ?: fail("Response content type is not set")
+            ).withoutParameters()
 }
