@@ -8,7 +8,7 @@ import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.util.*
-import java.io.Closeable
+import java.io.*
 import java.time.*
 import java.util.concurrent.*
 
@@ -79,5 +79,9 @@ class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationRespon
         if (!webSocketCompleted.await(duration.toMillis(), TimeUnit.MILLISECONDS))
             throw TimeoutException()
     }
+}
 
+fun TestApplicationResponse.contentType(): ContentType {
+    val contentTypeHeader = requireNotNull(headers[HttpHeaders.ContentType])
+    return ContentType.parse(contentTypeHeader)
 }

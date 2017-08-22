@@ -13,6 +13,9 @@ import org.junit.*
 import kotlin.test.*
 
 class StatusPageTest {
+    private val textPlainUtf8 = ContentType.Text.Plain.withCharset(Charsets.UTF_8)
+    private val textHtmlUtf8 = ContentType.Text.Html.withCharset(Charsets.UTF_8)
+
     @Test
     fun testStatusMapping() {
         withTestApplication {
@@ -23,7 +26,9 @@ class StatusPageTest {
                 call.respond(HttpStatusCode.NotFound)
             }
             handleRequest(HttpMethod.Get, "/foo").let { call ->
+                assertEquals(HttpStatusCode.NotFound, call.response.status(), "Actual status must be kept")
                 assertEquals("<html><body>error 404</body></html>", call.response.content)
+                assertEquals(textHtmlUtf8, call.response.contentType())
             }
         }
     }
@@ -31,7 +36,7 @@ class StatusPageTest {
     @Test
     fun testStatusMappingWithRoutes() {
         withTestApplication {
-            application.routing{
+            application.routing {
                 route("/foo") {
                     route("/wee") {
                         handle {
@@ -82,15 +87,20 @@ class StatusPageTest {
             }
 
             handleRequest(HttpMethod.Get, "/").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("ok", call.response.content)
             }
 
             handleRequest(HttpMethod.Get, "/missing").let { call ->
+                assertEquals(HttpStatusCode.NotFound, call.response.status())
                 assertEquals("404 ${HttpStatusCode.NotFound.description}", call.response.content)
+                assertEquals(textPlainUtf8, call.response.contentType())
             }
 
             handleRequest(HttpMethod.Get, "/notFound").let { call ->
+                assertEquals(HttpStatusCode.NotFound, call.response.status())
                 assertEquals("404 ${HttpStatusCode.NotFound.description}", call.response.content)
+                assertEquals(textPlainUtf8, call.response.contentType())
             }
         }
     }
@@ -116,7 +126,9 @@ class StatusPageTest {
             }
 
             handleRequest(HttpMethod.Get, "/missing").let { call ->
+                assertEquals(HttpStatusCode.NotFound, call.response.status())
                 assertEquals("404 ${HttpStatusCode.NotFound.description}", call.response.content)
+                assertEquals(textPlainUtf8, call.response.contentType())
             }
         }
     }
@@ -150,6 +162,7 @@ class StatusPageTest {
             }
 
             handleRequest(HttpMethod.Get, "/").let { call ->
+                assertEquals(HttpStatusCode.NotFound, call.response.status())
                 assertEquals("404 ${HttpStatusCode.NotFound.description}", call.response.content)
             }
         }
@@ -174,10 +187,12 @@ class StatusPageTest {
             }
 
             handleRequest(HttpMethod.Get, "/iae").let { call ->
+                assertEquals(HttpStatusCode.InternalServerError, call.response.status())
                 assertEquals("IllegalArgumentException", call.response.content)
             }
 
             handleRequest(HttpMethod.Get, "/npe").let { call ->
+                assertEquals(HttpStatusCode.InternalServerError, call.response.status())
                 assertEquals("NullPointerException", call.response.content)
             }
         }
@@ -208,6 +223,7 @@ class StatusPageTest {
             }
 
             handleRequest(HttpMethod.Get, "/").let { call ->
+                assertEquals(HttpStatusCode.InternalServerError, call.response.status())
                 assertEquals("IllegalStateException", call.response.content)
             }
         }
@@ -230,6 +246,7 @@ class StatusPageTest {
             }
 
             handleRequest(HttpMethod.Get, "/").let { call ->
+                assertEquals(HttpStatusCode.InternalServerError, call.response.status())
                 assertEquals("IllegalStateException", call.response.content)
             }
         }
@@ -256,7 +273,6 @@ class StatusPageTest {
 
     @Test
     fun testErrorFromExceptionContent() {
-
         class ValidationException(val code: String) : RuntimeException()
 
         withTestApplication {
@@ -274,6 +290,7 @@ class StatusPageTest {
             }
 
             handleRequest(HttpMethod.Get, "/ve").let { call ->
+                assertEquals(HttpStatusCode.InternalServerError, call.response.status())
                 assertEquals("code", call.response.content)
             }
         }
