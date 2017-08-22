@@ -7,13 +7,28 @@
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>ktor-auth</artifactId>
+    <artifactId>ktor-jwt</artifactId>
 
     <dependencies>
+        <dependency>
+            <groupId>org.jetbrains.ktor</groupId>
+            <artifactId>ktor-auth</artifactId>
+            <version>${project.version}</version>
+        </dependency>
         <dependency>
             <groupId>com.googlecode.json-simple</groupId>
             <artifactId>json-simple</artifactId>
             <version>1.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>3.2.0</version>
+        </dependency>
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>jwks-rsa</artifactId>
+            <version>0.2.0</version>
         </dependency>
     </dependencies>
 

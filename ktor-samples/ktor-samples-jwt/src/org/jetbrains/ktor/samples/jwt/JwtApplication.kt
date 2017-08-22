@@ -1,12 +1,12 @@
-package org.jetbrains.ktor.samples.auth
+package org.jetbrains.ktor.samples.jwt
 
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import org.jetbrains.ktor.application.Application
 import org.jetbrains.ktor.application.install
-import org.jetbrains.ktor.auth.JWTPrincipal
+import org.jetbrains.ktor.jwt.JWTPrincipal
 import org.jetbrains.ktor.auth.authentication
-import org.jetbrains.ktor.auth.jwtAuthentication
+import org.jetbrains.ktor.jwt.jwtAuthentication
 import org.jetbrains.ktor.features.CallLogging
 import org.jetbrains.ktor.features.DefaultHeaders
 import org.jetbrains.ktor.gson.GsonSupport
@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
 
 data class Who(val name: String, val planet: String)
 
-fun Application.JWTAuthApplication() {
+fun Application.JwtApplication() {
     val issuer = environment.config.property("jwt.domain").getString()
     val audience = environment.config.property("jwt.audience").getString()
     install(DefaultHeaders)

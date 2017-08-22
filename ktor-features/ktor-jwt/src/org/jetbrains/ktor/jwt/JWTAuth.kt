@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.auth
+package org.jetbrains.ktor.jwt
 
 import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
@@ -9,6 +9,10 @@ import com.auth0.jwt.impl.JWTParser
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.Payload
 import org.jetbrains.ktor.application.ApplicationCall
+import org.jetbrains.ktor.auth.AuthenticationPipeline
+import org.jetbrains.ktor.auth.Credential
+import org.jetbrains.ktor.auth.NotAuthenticatedCause
+import org.jetbrains.ktor.auth.Principal
 import org.jetbrains.ktor.http.HttpStatusCode
 import org.jetbrains.ktor.response.respond
 import java.security.interfaces.ECPublicKey
@@ -28,11 +32,11 @@ fun AuthenticationPipeline.jwtAuthentication(verifier: JWTVerifier, validate: (J
             val jwt = verifier.verify(token)
             val payload = jwt.parsePayload()
 
-            val credentials = JWTCredential(payload)
+            val credentials = org.jetbrains.ktor.jwt.JWTCredential(payload)
             val principal = requireNotNull(credentials.let(validate))
             context.principal(principal)
         } catch(e: Exception) {
-            context.challenge(JWTAuthKey, NotAuthenticatedCause.InvalidCredentials) {
+            context.challenge(org.jetbrains.ktor.jwt.JWTAuthKey, NotAuthenticatedCause.InvalidCredentials) {
                 it.success()
                 call.respond(HttpStatusCode.Unauthorized)
             }
@@ -53,11 +57,11 @@ fun AuthenticationPipeline.jwtAuthentication(jwkProvider: JwkProvider, issuer: S
             val jwt = verifier.verify(token)
             val payload = jwt.parsePayload()
 
-            val credentials = JWTCredential(payload)
+            val credentials = org.jetbrains.ktor.jwt.JWTCredential(payload)
             val principal = requireNotNull(credentials.let(validate))
             context.principal(principal)
         } catch(e: Exception) {
-            context.challenge(JWTAuthKey, NotAuthenticatedCause.InvalidCredentials) {
+            context.challenge(org.jetbrains.ktor.jwt.JWTAuthKey, NotAuthenticatedCause.InvalidCredentials) {
                 it.success()
                 call.respond(HttpStatusCode.Unauthorized)
             }
