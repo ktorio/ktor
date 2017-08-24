@@ -11,29 +11,7 @@ import java.io.*
 
 fun ApplicationSendPipeline.installDefaultTransformations() {
     intercept(ApplicationSendPipeline.Render) { value ->
-        val transformed = when (value) {
-            is String -> {
-                val contentType = call.defaultTextContentType(null)
-                TextContent(value, contentType, null)
-            }
-            is ByteArray -> {
-                ByteArrayContent(value)
-            }
-            is HttpStatusContent -> {
-                TextContent("<H1>${value.code}</H1><P>${value.message.escapeHTML()}</P>",
-                        ContentType.Text.Html.withCharset(Charsets.UTF_8), value.code)
-            }
-            is HttpStatusCode -> {
-                HttpStatusCodeContent(value)
-            }
-            is URIFileContent -> {
-                if (value.uri.scheme == "file")
-                    LocalFileContent(File(value.uri))
-                else
-                    null
-            }
-            else -> null
-        }
+        val transformed = transformDefaultContent(value)
         if (transformed != null)
             proceedWith(transformed)
     }

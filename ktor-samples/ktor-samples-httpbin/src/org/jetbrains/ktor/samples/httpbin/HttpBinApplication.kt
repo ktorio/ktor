@@ -81,8 +81,8 @@ fun Application.main() {
     install(ConditionalHeaders)
     install(PartialContentSupport)
     install(AutoHeadResponse)
-    install(GsonSupport) {
-        setPrettyPrinting()
+    install(ContentNegotiation) {
+        register(ContentType.Application.Json, GsonConverter())
     }
     install(CORS) {
         anyHost()

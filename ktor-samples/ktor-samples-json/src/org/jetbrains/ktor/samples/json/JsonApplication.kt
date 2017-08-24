@@ -23,8 +23,8 @@ fun Application.main() {
     install(DefaultHeaders)
     install(Compression)
     install(CallLogging)
-    install(GsonSupport) {
-        setPrettyPrinting()
+    install(ContentNegotiation) {
+        register(ContentType.Application.Json, GsonConverter())
     }
 
     val model = Model("root", listOf(Item("A", "Apache"), Item("B", "Bing")))

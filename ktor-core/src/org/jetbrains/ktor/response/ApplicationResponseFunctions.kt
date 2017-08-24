@@ -12,6 +12,14 @@ inline suspend fun ApplicationCall.respond(message: Any) {
     response.pipeline.execute(this, message)
 }
 
+/**
+ * Sets [status] and sends a [message] as a response
+ */
+inline suspend fun ApplicationCall.respond(status: HttpStatusCode, message: Any) {
+    response.status(status)
+    response.pipeline.execute(this, message)
+}
+
 suspend fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false) {
     response.headers.append(HttpHeaders.Location, url)
     return respond(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)

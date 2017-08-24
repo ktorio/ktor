@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.gson.tests
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.gson.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
@@ -14,7 +15,9 @@ import kotlin.test.*
 class GsonTest {
     @Test
     fun testMap() = withTestApplication {
-        application.install(GsonSupport)
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, GsonConverter())
+        }
         application.routing {
             val model = mapOf("id" to 1, "title" to "Hello, World!")
             get("/") {
@@ -30,6 +33,7 @@ class GsonTest {
         handleRequest(HttpMethod.Get, "/") {
             addHeader("Accept", "application/json")
         }.response.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
             assertEquals(listOf("""{"id":1,"title":"Hello, World!"}"""), response.content!!.lines())
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
@@ -37,9 +41,11 @@ class GsonTest {
         }
 
         handleRequest(HttpMethod.Post, "/") {
+            addHeader("Accept", "text/plain")
             addHeader("Content-Type", "application/json")
             body = """{"id":1,"title":"Hello, World!"}"""
         }.response.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
             assertEquals(listOf("""id=1.0, title=Hello, World!"""), response.content!!.lines())
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
@@ -49,9 +55,10 @@ class GsonTest {
 
     @Test
     fun testEntity() = withTestApplication {
-        application.install(GsonSupport) {
-
+        application.install(ContentNegotiation) {
+            register(ContentType.Application.Json, GsonConverter())
         }
+
         application.routing {
             val model = MyEntity(777, "Cargo", listOf(ChildEntity("Qube", 1), ChildEntity("Sphere", 2)))
 
@@ -68,6 +75,7 @@ class GsonTest {
         handleRequest(HttpMethod.Get, "/") {
             addHeader("Accept", "application/json")
         }.response.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
             assertEquals(listOf("""{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},{"item":"Sphere","quantity":2}]}"""), response.content!!.lines())
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
@@ -78,6 +86,7 @@ class GsonTest {
             addHeader("Content-Type", "application/json")
             body = """{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},{"item":"Sphere","quantity":2}]}"""
         }.response.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
             assertEquals(listOf("""MyEntity(id=777, name=Cargo, children=[ChildEntity(item=Qube, quantity=1), ChildEntity(item=Sphere, quantity=2)])"""), response.content!!.lines())
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
