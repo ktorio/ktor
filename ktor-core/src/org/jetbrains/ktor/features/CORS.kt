@@ -58,7 +58,7 @@ class CORS(configuration: Configuration) {
         }
     }
 
-    suspend private fun ApplicationCall.respondPreflight(origin: String) {
+    private suspend fun ApplicationCall.respondPreflight(origin: String) {
         if (!corsCheckRequestMethod() || !corsCheckRequestHeaders()) {
             respond(HttpStatusCode.Forbidden)
             return
@@ -122,7 +122,7 @@ class CORS(configuration: Configuration) {
         return requestMethod != null && !(requestMethod !in methods)
     }
 
-    suspend private fun PipelineContext<Unit>.respondCorsFailed() {
+    private suspend fun PipelineContext<Unit>.respondCorsFailed() {
         call.respond(HttpStatusCode.Forbidden)
         finish()
     }

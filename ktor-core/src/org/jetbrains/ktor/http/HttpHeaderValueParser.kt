@@ -30,9 +30,7 @@ fun parseAndSortContentTypeHeader(header: String?): List<HeaderValue> = parseHea
             if (contentType.contentSubtype == "*")
                 asterisks++
             asterisks
-        }.thenByDescending {
-            it.params.size
-        })
+        }.thenByDescending { it.params.size })
 
 fun parseHeaderValue(text: String?, parametersOnly: Boolean = false): List<HeaderValue> {
     if (text == null)

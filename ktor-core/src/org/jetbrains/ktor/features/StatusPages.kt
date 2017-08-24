@@ -9,8 +9,8 @@ import org.jetbrains.ktor.util.*
 import java.util.*
 
 class StatusPages(config: Configuration) {
-    val exceptions = HashMap(config.exceptions)
-    val statuses = HashMap(config.statuses)
+    private val exceptions = HashMap(config.exceptions)
+    private val statuses = HashMap(config.statuses)
 
     class Configuration {
         val exceptions = mutableMapOf<Class<*>, suspend PipelineContext<Unit>.(Throwable) -> Unit>()
@@ -31,7 +31,7 @@ class StatusPages(config: Configuration) {
         }
     }
 
-    suspend private fun intercept(context: PipelineContext<Unit>) {
+    private suspend fun intercept(context: PipelineContext<Unit>) {
         var statusHandled = false
         context.call.response.pipeline.intercept(ApplicationSendPipeline.After) { message ->
             if (!statusHandled) {
@@ -53,7 +53,7 @@ class StatusPages(config: Configuration) {
 
         try {
             context.proceed()
-        } catch(exception: Throwable) {
+        } catch (exception: Throwable) {
             if (context.call.response.status() == null) {
                 val handler = findHandlerByType(exception.javaClass)
                 if (handler != null) {
