@@ -3,9 +3,11 @@ package kweet
 import kweet.dao.*
 import org.jetbrains.ktor.freemarker.*
 import org.jetbrains.ktor.locations.*
+import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.sessions.*
+import org.jetbrains.ktor.util.*
 
 fun Route.login(dao: DAOFacade, hash: (String) -> String) {
     get<Login> {
@@ -18,15 +20,21 @@ fun Route.login(dao: DAOFacade, hash: (String) -> String) {
         }
     }
     post<Login> {
+        val post = call.receive<ValuesMap>()
+        val userId = post["userId"] ?: return@post call.redirect(it)
+        val password = post["password"] ?: return@post call.redirect(it)
+
+        val error = Login(userId)
+
         val login = when {
-            it.userId.length < 4 -> null
-            it.password.length < 6 -> null
+            userId.length < 4 -> null
+            password.length < 6 -> null
             !userNameValid(it.userId) -> null
-            else -> dao.user(it.userId, hash(it.password))
+            else -> dao.user(it.userId, hash(password))
         }
 
         if (login == null) {
-            call.redirect(it.copy(password = "", error = "Invalid username or password"))
+            call.redirect(error.copy(error = "Invalid username or password"))
         } else {
             call.sessions.set(KweetSession(login.userId))
             call.redirect(UserPage(login.userId))
