@@ -341,5 +341,82 @@ class LocationsTest {
 
         urlShouldBeHandled("/", "http://localhost/container?id=1&optional=ok")
     }
+
+    @location("/")
+    object root
+
+    @Test
+    fun `location root by object`() = withLocationsApplication {
+        val href = application.feature(Locations).href(root)
+        assertEquals("/", href)
+        application.routing {
+            get<root> {
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+        urlShouldBeHandled(href)
+        urlShouldBeUnhandled("/index")
+    }
+
+    @location("/help")
+    object help
+
+    @Test
+    fun `location by object`() = withLocationsApplication {
+        val href = application.feature(Locations).href(help)
+        assertEquals("/help", href)
+        application.routing {
+            get<help> {
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+        urlShouldBeHandled(href)
+        urlShouldBeUnhandled("/help/123")
+    }
+
+    @location("/users")
+    object users {
+        @location("/me")
+        object me
+
+        @location("/{id}")
+        class user(val id: Int)
+    }
+
+    @Test
+    fun `location by object in object`() = withLocationsApplication {
+        val href = application.feature(Locations).href(users.me)
+        assertEquals("/users/me", href)
+        application.routing {
+            get<users.me> {
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+        urlShouldBeHandled(href)
+        urlShouldBeUnhandled("/users/123")
+    }
+
+    @Test
+    fun `location by class in object`() = withLocationsApplication {
+        val href = application.feature(Locations).href(users.user(123))
+        assertEquals("/users/123", href)
+        application.routing {
+            get<users.user> { user ->
+                assertEquals(123, user.id)
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+        urlShouldBeHandled(href)
+        urlShouldBeUnhandled("/users/me")
+    }
+
+    @location("/items/{id}")
+    object items
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `location by object has bind argument`() = withLocationsApplication {
+        application.feature(Locations).href(items)
+    }
+
 }
 
