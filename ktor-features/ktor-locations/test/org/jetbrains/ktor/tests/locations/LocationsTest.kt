@@ -410,5 +410,13 @@ class LocationsTest {
         urlShouldBeUnhandled("/users/me")
     }
 
+    @location("/items/{id}")
+    object items
+
+    @Test(expected = IllegalArgumentException::class)
+    fun `location by object has bind argument`() = withLocationsApplication {
+        application.feature(Locations).href(items)
+    }
+
 }
 

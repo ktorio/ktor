@@ -133,7 +133,11 @@ open class Locations(val conversionService: ConversionService, val routeService:
         val substituteParts = RoutingPath.parse(info.path).parts.flatMap { it ->
             when (it.kind) {
                 RoutingPathSegmentKind.Constant -> listOf(it.value)
-                RoutingPathSegmentKind.Parameter -> propertyValue(location, UriPartParameterBuilder.parseName(it.value))
+                RoutingPathSegmentKind.Parameter -> {
+                    if (info.klass.objectInstance != null)
+                        throw IllegalArgumentException("There is no place to bind ${it.value} in object for '${info.klass}'")
+                    propertyValue(location, UriPartParameterBuilder.parseName(it.value))
+                }
             }
         }
 
