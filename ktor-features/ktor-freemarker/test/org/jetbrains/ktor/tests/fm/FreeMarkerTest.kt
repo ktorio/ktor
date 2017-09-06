@@ -94,6 +94,32 @@ class FreeMarkerTest {
         }
     }
 
+    @Test
+    fun canRespondAppropriately() {
+        withTestApplication {
+            application.setUpTestTemplates()
+
+            application.routing {
+                val model = mapOf("id" to 1, "title" to "Bonjour le monde!")
+
+                get("/") {
+                    call.respondTemplate("test.ftl", model)
+                }
+            }
+            
+            val call = handleRequest(HttpMethod.Get, "/")
+            
+            with(call.response) {
+                assertNotNull(content)
+                
+                val lines = content!!.lines()
+                
+                assertEquals(lines[0], "<p>Hello, 1</p>")
+                assertEquals(lines[1], "<h1>Bonjour le monde!</h1>")
+            }
+        }
+    }
+
     private fun Application.setUpTestTemplates() {
         val bax = "$"
 
