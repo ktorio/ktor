@@ -6,19 +6,22 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.util.*
 import org.slf4j.*
+import org.slf4j.event.*
 
-class CallLogging(private val log: Logger, private val monitor: ApplicationMonitor) {
+class CallLogging(private val log: Logger, private val monitor: ApplicationMonitor, private val configuration: Configuration) {
 
-    class Configuration
+    class Configuration {
+        var level: Level = Level.TRACE
+    }
 
-    private val starting: (Application) -> Unit = { it.log.trace("Application starting: $it") }
-    private val started: (Application) -> Unit = { it.log.trace("Application started: $it") }
-    private val stopping: (Application) -> Unit = { it.log.trace("Application stopping: $it") }
+    private val starting: (Application) -> Unit = { log("Application starting: $it") }
+    private val started: (Application) -> Unit = { log("Application started: $it") }
+    private val stopping: (Application) -> Unit = { log("Application stopping: $it") }
     private var stopped: (Application) -> Unit = {}
 
     init {
         stopped = {
-            it.log.trace("Application stopped: $it")
+            log("Application stopped: $it")
             monitor.applicationStarting -= starting
             monitor.applicationStarted -= started
             monitor.applicationStopping -= stopping
@@ -35,8 +38,9 @@ class CallLogging(private val log: Logger, private val monitor: ApplicationMonit
         override val key: AttributeKey<CallLogging> = AttributeKey("Call Logging")
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
             val loggingPhase = PipelinePhase("Logging")
-            Configuration().apply(configure)
-            val feature = CallLogging(pipeline.log, pipeline.environment.monitor)
+            val configuration = Configuration()
+            configuration.apply(configure)
+            val feature = CallLogging(pipeline.log, pipeline.environment.monitor, configuration)
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
             pipeline.intercept(loggingPhase) {
                 proceed()
@@ -47,12 +51,21 @@ class CallLogging(private val log: Logger, private val monitor: ApplicationMonit
 
     }
 
+    private fun log(message: String) {
+        when (configuration.level) {
+            Level.ERROR -> if (log.isErrorEnabled) log.error(message)
+            Level.WARN -> if (log.isWarnEnabled) log.warn(message)
+            Level.INFO -> if (log.isInfoEnabled) log.info(message)
+            Level.DEBUG -> if (log.isDebugEnabled) log.debug(message)
+            Level.TRACE -> if (log.isTraceEnabled) log.trace(message)
+        }
+    }
 
     private fun logSuccess(call: ApplicationCall) {
         val status = call.response.status() ?: "Unhandled"
         when (status) {
-            HttpStatusCode.Found -> log.trace("$status: ${call.request.logInfo()} -> ${call.response.headers[HttpHeaders.Location]}")
-            else -> log.trace("$status: ${call.request.logInfo()}")
+            HttpStatusCode.Found -> log("$status: ${call.request.logInfo()} -> ${call.response.headers[HttpHeaders.Location]}")
+            else -> log("$status: ${call.request.logInfo()}")
         }
     }
 }
