@@ -94,7 +94,7 @@ fun StatusPages.Configuration.statusFile(vararg code: HttpStatusCode, filePatter
         if (message == null) {
             call.respond(HttpStatusCode.InternalServerError)
         } else {
-            call.response.status(status)
+            call.response.status(status) // preserve original http status
             call.respond(message)
         }
         finish()
