@@ -59,7 +59,7 @@ class PartialContentSupport(val maxRangeCount: Int) {
         insertPhaseAfter(ApplicationSendPipeline.ContentEncoding, PartialContentPhase)
     }
 
-    suspend private fun PipelineContext<Any>.tryProcessRange(obj: FinalContent.ReadChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long) {
+    private suspend fun PipelineContext<Any>.tryProcessRange(obj: FinalContent.ReadChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long) {
         if (checkIfRangeHeader(obj, call)) {
             processRange(obj, rangesSpecifier, length)
         } else {
@@ -83,7 +83,7 @@ class PartialContentSupport(val maxRangeCount: Int) {
     }
 
 
-    suspend private fun PipelineContext<Any>.processRange(obj: FinalContent.ReadChannelContent, rangesSpecifier: RangesSpecifier, length: Long) {
+    private suspend fun PipelineContext<Any>.processRange(obj: FinalContent.ReadChannelContent, rangesSpecifier: RangesSpecifier, length: Long) {
         require(length >= 0L)
         val merged = rangesSpecifier.merge(length, maxRangeCount)
         if (merged.isEmpty()) {
@@ -110,11 +110,11 @@ class PartialContentSupport(val maxRangeCount: Int) {
         channel.close()
     }
 
-    suspend private fun PipelineContext<Any>.processSingleRange(obj: FinalContent.ReadChannelContent, channel: ReadChannel, range: LongRange, length: Long) {
+    private suspend fun PipelineContext<Any>.processSingleRange(obj: FinalContent.ReadChannelContent, channel: ReadChannel, range: LongRange, length: Long) {
         proceedWith(RangeChannelProvider.Single(call.isGet(), obj.headers, channel, range, length))
     }
 
-    suspend private fun PipelineContext<Any>.processMultiRange(obj: FinalContent.ReadChannelContent, channel: ReadChannel, ranges: List<LongRange>, length: Long) {
+    private suspend fun PipelineContext<Any>.processMultiRange(obj: FinalContent.ReadChannelContent, channel: ReadChannel, ranges: List<LongRange>, length: Long) {
         val boundary = "ktor-boundary-" + nextNonce()
 
         call.attributes.put(Compression.SuppressionAttribute, true) // multirange with compression is not supported yet

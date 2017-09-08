@@ -26,10 +26,10 @@ import javax.crypto.spec.*
 class Index()
 
 @location("/post-new")
-data class PostNew(val text: String = "", val date: Long = 0L, val code: String = "")
+class PostNew()
 
 @location("/kweet/{id}/delete")
-data class KweetDelete(val id: Int, val date: Long = 0L, val code: String = "")
+class KweetDelete(val id: Int)
 
 @location("/kweet/{id}")
 data class ViewKweet(val id: Int)
@@ -38,10 +38,10 @@ data class ViewKweet(val id: Int)
 data class UserPage(val user: String)
 
 @location("/register")
-data class Register(val userId: String = "", val displayName: String = "", val email: String = "", val password: String = "", val error: String = "")
+data class Register(val userId: String = "", val displayName: String = "", val email: String = "", val error: String = "")
 
 @location("/login")
-data class Login(val userId: String = "", val password: String = "", val error: String = "")
+data class Login(val userId: String = "", val error: String = "")
 
 @location("/logout")
 class Logout()

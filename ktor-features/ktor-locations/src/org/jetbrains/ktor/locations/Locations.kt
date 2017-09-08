@@ -25,6 +25,9 @@ open class Locations(val conversionService: ConversionService, val routeService:
                                     val queryParameters: List<LocationInfoProperty>)
 
     private fun LocationInfo.create(allParameters: ValuesMap): Any {
+        val objectInstance = klass.objectInstance
+        if (objectInstance != null) return objectInstance
+
         val constructor: KFunction<Any> = klass.primaryConstructor ?: klass.constructors.single()
         val parameters = constructor.parameters
         val arguments = parameters.map { parameter ->
@@ -62,7 +65,7 @@ open class Locations(val conversionService: ConversionService, val routeService:
 
             val path = routeService.findRoute(dataClass) ?: ""
             if (dataClass.objectInstance != null)
-                throw IllegalArgumentException("Expected class, but found object for '$dataClass'")
+                return@getOrPut LocationInfo(dataClass, parentInfo, null, path, emptyList(), emptyList())
 
             val constructor: KFunction<Any> =
                     dataClass.primaryConstructor
@@ -130,7 +133,11 @@ open class Locations(val conversionService: ConversionService, val routeService:
         val substituteParts = RoutingPath.parse(info.path).parts.flatMap { it ->
             when (it.kind) {
                 RoutingPathSegmentKind.Constant -> listOf(it.value)
-                RoutingPathSegmentKind.Parameter -> propertyValue(location, UriPartParameterBuilder.parseName(it.value))
+                RoutingPathSegmentKind.Parameter -> {
+                    if (info.klass.objectInstance != null)
+                        throw IllegalArgumentException("There is no place to bind ${it.value} in object for '${info.klass}'")
+                    propertyValue(location, UriPartParameterBuilder.parseName(it.value))
+                }
             }
         }
 

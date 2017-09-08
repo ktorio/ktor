@@ -31,6 +31,37 @@ class StatusPageTest {
     }
 
     @Test
+    fun testStatusMappingWithRoutes() {
+        withTestApplication {
+            application.routing{
+                route("/foo") {
+                    route("/wee") {
+                        handle {
+                            call.respond(HttpStatusCode.InternalServerError)
+                        }
+                    }
+                    install(StatusPages) {
+                        statusFile(HttpStatusCode.NotFound, filePattern = "error#.html")
+                    }
+                    route("{...}") {
+                        handle {
+                            call.respond(HttpStatusCode.NotFound)
+                        }
+                    }
+                }
+            }
+            handleRequest(HttpMethod.Get, "/foo").let { call ->
+                assertEquals(HttpStatusCode.NotFound, call.response.status())
+                assertEquals("<html><body>error 404</body></html>", call.response.content)
+            }
+            handleRequest(HttpMethod.Get, "/foo/wee").let { call ->
+                assertEquals(HttpStatusCode.InternalServerError, call.response.status())
+                assertEquals(null, call.response.content)
+            }
+        }
+    }
+
+    @Test
     fun testStatus404() {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Fallback) {

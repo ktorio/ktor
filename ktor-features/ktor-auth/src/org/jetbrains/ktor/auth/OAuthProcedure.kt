@@ -66,8 +66,8 @@ internal fun AuthenticationPipeline.oauth1a(client: HttpClient, exec: ExecutorSe
     }
 }
 
-suspend private fun PipelineContext<*>.runAsyncWithError(exec: ExecutorService, context: AuthenticationContext, block: suspend () -> Unit) {
-    runAsync(exec) {
+private suspend fun PipelineContext<*>.runAsyncWithError(exec: ExecutorService, context: AuthenticationContext, block: suspend () -> Unit) {
+    return runAsync(exec) {
         try {
             block()
         } catch (ioe: IOException) {
