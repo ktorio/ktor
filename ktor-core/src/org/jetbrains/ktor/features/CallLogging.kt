@@ -54,7 +54,7 @@ class CallLogging(private val log: Logger, private val monitor: ApplicationMonit
             level == Level.INFO && log.isInfoEnabled -> log.info(message)
             level == Level.DEBUG && log.isDebugEnabled -> log.debug(message)
             level == Level.TRACE && log.isTraceEnabled -> log.trace(message)
-            else -> throw IllegalArgumentException("Call logging is not supported for levels higher than INFO.")
+            else -> throw IllegalArgumentException("Call logging is not supported for the $level log level.")
         }
     }
 
