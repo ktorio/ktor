@@ -8,9 +8,7 @@ import org.jetbrains.ktor.util.*
 import org.slf4j.*
 import org.slf4j.event.*
 
-class CallLogging(private val log: Logger, private val monitor: ApplicationMonitor, configuration: Configuration) {
-    private val level = configuration.level
-    
+class CallLogging(private val log: Logger, private val monitor: ApplicationMonitor, private val level: Level) {
     class Configuration {
         var level: Level = Level.TRACE
     }
@@ -40,7 +38,7 @@ class CallLogging(private val log: Logger, private val monitor: ApplicationMonit
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
             val loggingPhase = PipelinePhase("Logging")
             val configuration = Configuration().apply(configure)
-            val feature = CallLogging(pipeline.log, pipeline.environment.monitor, configuration)
+            val feature = CallLogging(pipeline.log, pipeline.environment.monitor, configuration.level)
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
             pipeline.intercept(loggingPhase) {
                 proceed()
