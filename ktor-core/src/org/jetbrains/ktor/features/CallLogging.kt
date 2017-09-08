@@ -39,9 +39,10 @@ class CallLogging(private val log: Logger, private val monitor: ApplicationMonit
             val loggingPhase = PipelinePhase("Logging")
             val configuration = Configuration().apply(configure)
             val level = when {
+                configuration.level == Level.TRACE && pipeline.log.isTraceEnabled -> Level.TRACE
                 configuration.level == Level.DEBUG && pipeline.log.isDebugEnabled -> Level.DEBUG
                 configuration.level == Level.INFO && pipeline.log.isInfoEnabled -> Level.INFO
-                else -> Level.TRACE
+                else -> throw IllegalArgumentException("The ${configuration.level} log level is not supported.")
             }
             val feature = CallLogging(pipeline.log, pipeline.environment.monitor, level)
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
