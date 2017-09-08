@@ -38,7 +38,12 @@ class CallLogging(private val log: Logger, private val monitor: ApplicationMonit
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
             val loggingPhase = PipelinePhase("Logging")
             val configuration = Configuration().apply(configure)
-            val feature = CallLogging(pipeline.log, pipeline.environment.monitor, configuration.level)
+            val level = when {
+                configuration.level == Level.DEBUG && pipeline.log.isDebugEnabled -> Level.DEBUG
+                configuration.level == Level.INFO && pipeline.log.isInfoEnabled -> Level.INFO
+                else -> Level.TRACE
+            }
+            val feature = CallLogging(pipeline.log, pipeline.environment.monitor, level)
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
             pipeline.intercept(loggingPhase) {
                 proceed()
@@ -46,16 +51,12 @@ class CallLogging(private val log: Logger, private val monitor: ApplicationMonit
             }
             return feature
         }
-
     }
 
     private fun log(message: String) {
-        when {
-            level == Level.INFO && log.isInfoEnabled -> log.info(message)
-            level == Level.DEBUG && log.isDebugEnabled -> log.debug(message)
-            level == Level.TRACE && log.isTraceEnabled -> log.trace(message)
-            else -> throw IllegalArgumentException("Call logging is not supported for the $level log level.")
-        }
+        if (level == Level.INFO) log.info(message)
+        if (level == Level.DEBUG) log.debug(message)
+        if (level == Level.TRACE) log.trace(message)
     }
 
     private fun logSuccess(call: ApplicationCall) {
