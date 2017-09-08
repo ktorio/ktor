@@ -38,8 +38,7 @@ class CallLogging(private val log: Logger, private val monitor: ApplicationMonit
         override val key: AttributeKey<CallLogging> = AttributeKey("Call Logging")
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
             val loggingPhase = PipelinePhase("Logging")
-            val configuration = Configuration()
-            configuration.apply(configure)
+            val configuration = Configuration().apply(configure)
             val feature = CallLogging(pipeline.log, pipeline.environment.monitor, configuration)
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
             pipeline.intercept(loggingPhase) {
