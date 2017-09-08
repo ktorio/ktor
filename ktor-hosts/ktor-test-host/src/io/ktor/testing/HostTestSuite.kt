@@ -982,7 +982,11 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             throw MultipleFailureException(errors)
         }
 
-        assertEquals(count * if (enableHttp2) 3 else 2, completed.get())
+        var multiplier = 1
+        if (enableHttp2) multiplier++
+        if (enableSsl) multiplier++
+
+        assertEquals(count * multiplier, completed.get())
     }
 
     @Test
@@ -990,12 +994,14 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         val file = File("target/large-file.dat")
         val rnd = Random()
 
-        file.bufferedWriter().use { out ->
-            for (line in 1..9000000) {
-                for (col in 1..(30 + rnd.nextInt(40))) {
-                    out.append('a' + rnd.nextInt(25))
+        if (!file.exists()) {
+            file.bufferedWriter().use { out ->
+                for (line in 1..9000000) {
+                    for (col in 1..(30 + rnd.nextInt(40))) {
+                        out.append('a' + rnd.nextInt(25))
+                    }
+                    out.append('\n')
                 }
-                out.append('\n')
             }
         }
 

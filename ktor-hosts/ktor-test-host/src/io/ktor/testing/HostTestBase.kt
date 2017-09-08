@@ -27,6 +27,8 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     protected var server: THost? = null
     protected val exceptions = ArrayList<Throwable>()
     protected var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
+    protected var enableSsl: Boolean = System.getProperty("enable.ssl") == "true"
+
     private val allConnections = CopyOnWriteArrayList<HttpURLConnection>()
 
     val testLog: Logger = LoggerFactory.getLogger("HostTestBase")
@@ -84,9 +86,11 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
             }
 
             connector { port = _port }
-            sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
-                this.port = sslPort
-                this.keyStorePath = keyStoreFile.absoluteFile
+            if (enableSsl) {
+                sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
+                    this.port = sslPort
+                    this.keyStorePath = keyStoreFile.absoluteFile
+                }
             }
 
             module(module)
@@ -158,7 +162,10 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     protected fun findFreePort() = ServerSocket(0).use { it.localPort }
     protected fun withUrl(path: String, builder: RequestBuilder.() -> Unit = {}, block: suspend HttpResponse.(Int) -> Unit) {
         withUrl(URL("http://127.0.0.1:$port$path"), port, builder, block)
-        withUrl(URL("https://127.0.0.1:$sslPort$path"), sslPort, builder, block)
+
+        if (enableSsl) {
+            withUrl(URL("https://127.0.0.1:$sslPort$path"), sslPort, builder, block)
+        }
 
         if (enableHttp2) {
             withHttp2(URL("https://127.0.0.1:$sslPort$path"), sslPort, builder, block)
