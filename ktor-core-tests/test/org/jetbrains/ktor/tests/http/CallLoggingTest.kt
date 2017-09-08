@@ -1,19 +1,12 @@
 package org.jetbrains.ktor.tests.http
 
-import org.jetbrains.ktor.application.install
-import org.jetbrains.ktor.features.CallLogging
-import org.jetbrains.ktor.http.HttpMethod
-import org.jetbrains.ktor.http.HttpStatusCode
-import org.jetbrains.ktor.testing.createTestEnvironment
-import org.jetbrains.ktor.testing.handleRequest
-import org.jetbrains.ktor.testing.withApplication
-import org.junit.Before
-import org.junit.Test
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import java.util.concurrent.CopyOnWriteArrayList
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
+import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.testing.*
+import org.junit.*
+import org.slf4j.*
+import kotlin.test.*
 
 class CallLoggingTest {
     private val environment = createTestEnvironment {
@@ -40,7 +33,7 @@ class CallLoggingTest {
 
     @Before
     fun setup() {
-        messages = CopyOnWriteArrayList()
+        messages = ArrayList()
     }
 
     @Test
