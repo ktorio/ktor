@@ -52,14 +52,11 @@ class CallLogging(private val log: Logger, private val monitor: ApplicationMonit
     }
 
     private fun log(message: String) {
-        if (level == Level.INFO && log.isInfoEnabled) {
-            log.info(message)
-        }
-        else if (level == Level.DEBUG && log.isDebugEnabled) {
-            log.debug(message)
-        }
-        else if (level == Level.TRACE && log.isTraceEnabled) {
-            log.trace(message)
+        when {
+            level == Level.INFO && log.isInfoEnabled -> log.info(message)
+            level == Level.DEBUG && log.isDebugEnabled -> log.debug(message)
+            level == Level.TRACE && log.isTraceEnabled -> log.trace(message)
+            else -> throw IllegalArgumentException("Call logging is not supported for levels higher than INFO.")
         }
     }
 
