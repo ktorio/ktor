@@ -18,6 +18,7 @@
         <module>ktor-jetty</module>
         <module>ktor-netty</module>
         <module>ktor-tomcat</module>
+        <module>ktor-coroutines-http-host</module>
     </modules>
 
     <dependencies>

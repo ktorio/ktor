@@ -104,6 +104,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
     protected open suspend fun respondFromChannel(readChannel: ReadChannel) {
         val writeChannel = responseChannel()
         readChannel.copyTo(writeChannel, bufferPool, 65536)
+        writeChannel.flush()
         readChannel.close()
     }
 
