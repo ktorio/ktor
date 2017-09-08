@@ -51,12 +51,14 @@ class CallLogging(private val log: Logger, private val monitor: ApplicationMonit
     }
 
     private fun log(message: String) {
-        when (configuration.level) {
-            Level.ERROR -> if (log.isErrorEnabled) log.error(message)
-            Level.WARN -> if (log.isWarnEnabled) log.warn(message)
-            Level.INFO -> if (log.isInfoEnabled) log.info(message)
-            Level.DEBUG -> if (log.isDebugEnabled) log.debug(message)
-            Level.TRACE -> if (log.isTraceEnabled) log.trace(message)
+        if (configuration.level == Level.INFO && log.isInfoEnabled) {
+            log.info(message)
+        }
+        else if (configuration.level == Level.DEBUG && log.isDebugEnabled) {
+            log.debug(message)
+        }
+        else if (configuration.level == Level.TRACE && log.isTraceEnabled) {
+            log.trace(message)
         }
     }
 
