@@ -2,43 +2,89 @@ package org.jetbrains.ktor.tests.http
 
 import org.jetbrains.ktor.application.install
 import org.jetbrains.ktor.features.CallLogging
+import org.jetbrains.ktor.http.HttpMethod
+import org.jetbrains.ktor.http.HttpStatusCode
 import org.jetbrains.ktor.testing.createTestEnvironment
+import org.jetbrains.ktor.testing.handleRequest
 import org.jetbrains.ktor.testing.withApplication
+import org.junit.Before
 import org.junit.Test
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.concurrent.CopyOnWriteArrayList
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class CallLoggingTest {
-    @Test
-    fun `can log application lifecycle events`() {
-        val messages = CopyOnWriteArrayList<String>()
-        val environment = createTestEnvironment {
-            module {
-                install(CallLogging)
-            }
-            
-            log = object : Logger by LoggerFactory.getLogger("ktor.test") {
-                override fun trace(message: String?) = add(message)
+    private val environment = createTestEnvironment {
+        module {
+            install(CallLogging)
+        }
 
-                override fun debug(message: String?) = add(message)
+        log = object : Logger by LoggerFactory.getLogger("ktor.test") {
+            override fun trace(message: String?) = add(message)
 
-                override fun info(message: String?) = add(message)
-                
-                private fun add(message: String?) {
-                    if (message != null) {
-                        messages += message
-                    }
+            override fun debug(message: String?) = add(message)
+
+            override fun info(message: String?) = add(message)
+
+            private fun add(message: String?) {
+                if (message != null) {
+                    messages.add(message)
                 }
             }
         }
-        
-        withApplication(environment) {}
+    }
 
-        assertTrue("Application starting" in messages[1])
-        assertTrue("Application started" in messages[2])
-        assertTrue("Application stopping" in messages[3])
-        assertTrue("Application stopped" in messages[4])
+    private lateinit var messages: MutableList<String>
+
+    @Before
+    fun setup() {
+        messages = CopyOnWriteArrayList()
+    }
+
+    @Test
+    fun `can log application lifecycle events`() {
+        var hash: String? = null
+        
+        withApplication(environment) {
+            hash = application.toString()
+        }
+
+        assertEquals("Application starting: $hash", messages[1])
+        assertEquals("Application started: $hash", messages[2])
+        assertEquals("Application stopping: $hash", messages[3])
+        assertEquals("Application stopped: $hash", messages[4])
+    }
+
+    @Test
+    fun `can log an unhandled get request`() {
+        withApplication(environment) {
+            handleRequest(HttpMethod.Get, "/")
+        }
+        
+        assertTrue("Unhandled: GET - /" in messages)
+    }
+
+    @Test
+    fun `can log a successful get request`() {
+        withApplication(environment) { 
+            handleRequest(HttpMethod.Get, "/") {
+                call.response.status(HttpStatusCode.OK)
+            }
+        }
+        
+        assertTrue("200 OK: GET - /" in messages)
+    }
+
+    @Test
+    fun `can log a failed get request`() {
+        withApplication(environment) {
+            handleRequest(HttpMethod.Get, "/") {
+                call.response.status(HttpStatusCode.NotFound)
+            }
+        }
+
+        assertTrue("404 Not Found: GET - /" in messages)
     }
 }
