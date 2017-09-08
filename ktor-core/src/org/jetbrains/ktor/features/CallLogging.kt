@@ -8,8 +8,9 @@ import org.jetbrains.ktor.util.*
 import org.slf4j.*
 import org.slf4j.event.*
 
-class CallLogging(private val log: Logger, private val monitor: ApplicationMonitor, private val configuration: Configuration) {
-
+class CallLogging(private val log: Logger, private val monitor: ApplicationMonitor, configuration: Configuration) {
+    private val level = configuration.level
+    
     class Configuration {
         var level: Level = Level.TRACE
     }
@@ -51,13 +52,13 @@ class CallLogging(private val log: Logger, private val monitor: ApplicationMonit
     }
 
     private fun log(message: String) {
-        if (configuration.level == Level.INFO && log.isInfoEnabled) {
+        if (level == Level.INFO && log.isInfoEnabled) {
             log.info(message)
         }
-        else if (configuration.level == Level.DEBUG && log.isDebugEnabled) {
+        else if (level == Level.DEBUG && log.isDebugEnabled) {
             log.debug(message)
         }
-        else if (configuration.level == Level.TRACE && log.isTraceEnabled) {
+        else if (level == Level.TRACE && log.isTraceEnabled) {
             log.trace(message)
         }
     }
