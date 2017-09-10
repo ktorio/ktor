@@ -1,19 +1,15 @@
 package org.jetbrains.ktor.samples.jwt
 
-import com.auth0.jwk.JwkProvider
-import com.auth0.jwk.JwkProviderBuilder
-import org.jetbrains.ktor.application.Application
-import org.jetbrains.ktor.application.install
-import org.jetbrains.ktor.jwt.JWTPrincipal
-import org.jetbrains.ktor.auth.authentication
-import org.jetbrains.ktor.jwt.jwtAuthentication
-import org.jetbrains.ktor.features.CallLogging
-import org.jetbrains.ktor.features.DefaultHeaders
-import org.jetbrains.ktor.gson.GsonSupport
-import org.jetbrains.ktor.response.respond
-import org.jetbrains.ktor.routing.Routing
-import org.jetbrains.ktor.routing.route
-import java.util.concurrent.TimeUnit
+import com.auth0.jwk.*
+import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.jwt.*
+import org.jetbrains.ktor.auth.*
+import org.jetbrains.ktor.jwt.*
+import org.jetbrains.ktor.features.*
+import org.jetbrains.ktor.gson.*
+import org.jetbrains.ktor.response.*
+import org.jetbrains.ktor.routing.*
+import java.util.concurrent.*
 
 data class Who(val name: String, val planet: String)
 
