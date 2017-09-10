@@ -1,23 +1,15 @@
 package org.jetbrains.ktor.jwt
 
-import com.auth0.jwk.Jwk
-import com.auth0.jwk.JwkProvider
-import com.auth0.jwt.JWT
-import com.auth0.jwt.JWTVerifier
-import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.impl.JWTParser
-import com.auth0.jwt.interfaces.DecodedJWT
-import com.auth0.jwt.interfaces.Payload
-import org.jetbrains.ktor.application.ApplicationCall
-import org.jetbrains.ktor.auth.AuthenticationPipeline
-import org.jetbrains.ktor.auth.Credential
-import org.jetbrains.ktor.auth.NotAuthenticatedCause
-import org.jetbrains.ktor.auth.Principal
-import org.jetbrains.ktor.http.HttpHeaders
-import org.jetbrains.ktor.http.HttpStatusCode
+import com.auth0.jwk.*
+import com.auth0.jwt.*
+import com.auth0.jwt.algorithms.*
+import com.auth0.jwt.impl.*
+import com.auth0.jwt.interfaces.*
+import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.auth.*
+import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.respond
-import java.security.interfaces.ECPublicKey
-import java.security.interfaces.RSAPublicKey
+import java.security.interfaces.*
 import java.util.*
 
 val JWTAuthKey: Any = "JWTAuth"
@@ -33,11 +25,11 @@ fun AuthenticationPipeline.jwtAuthentication(verifier: JWTVerifier, validate: (J
             val jwt = verifier.verify(token)
             val payload = jwt.parsePayload()
 
-            val credentials = org.jetbrains.ktor.jwt.JWTCredential(payload)
+            val credentials = JWTCredential(payload)
             val principal = requireNotNull(credentials.let(validate))
             context.principal(principal)
         } catch(e: Exception) {
-            context.challenge(org.jetbrains.ktor.jwt.JWTAuthKey, NotAuthenticatedCause.InvalidCredentials) {
+            context.challenge(JWTAuthKey, NotAuthenticatedCause.InvalidCredentials) {
                 it.success()
                 call.respond(HttpStatusCode.Unauthorized)
             }
@@ -58,11 +50,11 @@ fun AuthenticationPipeline.jwtAuthentication(jwkProvider: JwkProvider, issuer: S
             val jwt = verifier.verify(token)
             val payload = jwt.parsePayload()
 
-            val credentials = org.jetbrains.ktor.jwt.JWTCredential(payload)
+            val credentials = JWTCredential(payload)
             val principal = requireNotNull(credentials.let(validate))
             context.principal(principal)
         } catch(e: Exception) {
-            context.challenge(org.jetbrains.ktor.jwt.JWTAuthKey, NotAuthenticatedCause.InvalidCredentials) {
+            context.challenge(JWTAuthKey, NotAuthenticatedCause.InvalidCredentials) {
                 it.success()
                 call.respond(HttpStatusCode.Unauthorized)
             }
