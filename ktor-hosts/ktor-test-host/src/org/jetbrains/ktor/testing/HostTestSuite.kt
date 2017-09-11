@@ -1012,6 +1012,24 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     }
 
     @Test
+    fun testStatusPages404() {
+        createAndStartServer {
+            application.install(StatusPages) {
+                status(HttpStatusCode.NotFound) {
+                    call.respondWrite(ContentType.parse("text/html"), HttpStatusCode.NotFound) {
+                        write("Error string")
+                    }
+                }
+            }
+        }
+
+        withUrl("/non-existent") {
+            assertEquals(HttpStatusCode.NotFound.value, status.value)
+            assertEquals("Error string", readText())
+        }
+    }
+
+    @Test
     open fun testBlockingDeadlock() {
         createAndStartServer {
             get("/") {

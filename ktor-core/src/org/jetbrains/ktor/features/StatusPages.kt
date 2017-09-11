@@ -45,7 +45,7 @@ class StatusPages(config: Configuration) {
                     if (handler != null) {
                         statusHandled = true
                         context.handler(status)
-                        context.finish() // TODO: Should we always finish? Handler could skip responding…
+                        finish() // TODO: Should we always finish? Handler could skip responding…
                     }
                 }
             }
