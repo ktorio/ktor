@@ -11,6 +11,7 @@ import io.ktor.util.*
 import java.io.*
 import java.time.*
 import java.util.concurrent.*
+import java.util.concurrent.TimeoutException
 
 class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationResponse(call) {
     private val realContent = lazy { ByteBufferWriteChannel() }
