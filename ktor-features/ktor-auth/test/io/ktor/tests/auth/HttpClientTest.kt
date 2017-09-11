@@ -18,7 +18,7 @@ class HttpClientTest {
         val receivedContentSync = ArrayBlockingQueue<String>(1)
 
         val th = thread {
-            ServerSocket(0, -50, InetAddress.getByAddress(byteArrayOf(127, 0, 0, 1))).use { server ->
+            ServerSocket(0, 50, InetAddress.getByAddress(byteArrayOf(127, 0, 0, 1))).use { server ->
                 portSync.add(server.localPort)
 
                 server.accept()!!.use { client ->
