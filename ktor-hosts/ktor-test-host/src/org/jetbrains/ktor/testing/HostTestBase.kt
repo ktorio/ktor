@@ -1,12 +1,10 @@
 package org.jetbrains.ktor.testing
 
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.future.*
-import kotlinx.coroutines.experimental.selects.*
 import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.client.*
 import org.jetbrains.ktor.client.http2.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
@@ -19,7 +17,6 @@ import java.net.*
 import java.security.*
 import java.util.concurrent.*
 import javax.net.ssl.*
-import kotlin.concurrent.*
 import kotlin.test.*
 
 
@@ -28,6 +25,7 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     protected var port = findFreePort()
     protected var sslPort = findFreePort()
     protected var server: THost? = null
+    protected val exceptions = ArrayList<Throwable>()
     protected var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
     private val allConnections = CopyOnWriteArrayList<HttpURLConnection>()
 
@@ -63,6 +61,7 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
         }
 
         testLog.trace("Starting server on port $port (SSL $sslPort)")
+        exceptions.clear()
     }
 
     @After
@@ -70,12 +69,20 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
         allConnections.forEach { it.disconnect() }
         testLog.trace("Disposing server on port $port (SSL $sslPort)")
         (server as? ApplicationHost)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+        if (exceptions.isNotEmpty()) {
+            fail("Server exceptions logged, consult log output for more information")
+        }
     }
 
     protected open fun createServer(log: Logger?, module: Application.() -> Unit): THost {
         val _port = this.port
         val environment = applicationHostEnvironment {
-            this.log = log ?: LoggerFactory.getLogger("ktor.test")
+            this.log = log ?: object : Logger by LoggerFactory.getLogger("ktor.test") {
+                override fun error(msg: String?, t: Throwable?) {
+                    t?.let { exceptions.add(it) }
+                }
+            }
+
             connector { port = _port }
             sslConnector(keyStore, "mykey", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
                 this.port = sslPort
