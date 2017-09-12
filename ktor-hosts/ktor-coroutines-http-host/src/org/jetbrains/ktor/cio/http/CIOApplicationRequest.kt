@@ -13,10 +13,9 @@ import org.jetbrains.ktor.util.*
 
 class CIOApplicationRequest(call: ApplicationCall,
                             private val input: ByteReadChannel,
-                            private val multipart: ReceiveChannel<MultipartEvent>,
                             private val request: Request) : BaseApplicationRequest(call) {
     override val cookies: RequestCookies by lazy { RequestCookies(this) }
-    override fun receiveContent() = CIOIncomingContent(input, multipart, this)
+    override fun receiveContent() = CIOIncomingContent(input, request.headers, this)
     override val headers: ValuesMap = CIOHeaders(request.headers)
 
     override val queryParameters: ValuesMap by lazy {

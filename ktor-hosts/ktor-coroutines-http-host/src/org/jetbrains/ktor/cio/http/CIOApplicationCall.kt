@@ -13,11 +13,10 @@ class CIOApplicationCall(application: Application,
                          private val _request: Request,
                          private val input: ByteReadChannel,
                          private val output: ByteWriteChannel,
-                         private val multipart: ReceiveChannel<MultipartEvent>,
                          private val hostDispatcher: CoroutineContext,
                          private val appDispatcher: CoroutineContext) : BaseApplicationCall(application) {
 
-    override val request = CIOApplicationRequest(this, input, multipart, _request)
+    override val request = CIOApplicationRequest(this, input, _request)
     override val response = CIOApplicationResponse(this, output, input, hostDispatcher, appDispatcher)
 
 }

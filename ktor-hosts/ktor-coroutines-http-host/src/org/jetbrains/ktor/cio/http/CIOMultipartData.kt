@@ -11,9 +11,13 @@ import java.nio.channels.*
 import java.nio.file.*
 import kotlin.coroutines.experimental.*
 
-class CIOMultipartData(private val events: ReceiveChannel<MultipartEvent>,
+class CIOMultipartData(private val channel: ByteReadChannel,
+                       private val headers: kotlinx.http.HttpHeaders,
                        private val formFieldLimit: Int = 65536,
                        private val inMemoryFileUploadLimit: Int = formFieldLimit) : MultiPartData {
+
+    private val events = parseMultipart(channel, headers)
+
     override val parts: Sequence<PartData> = buildSequence {
         while (!events.isClosedForReceive) {
             val transformed = ArrayList<PartData>()
