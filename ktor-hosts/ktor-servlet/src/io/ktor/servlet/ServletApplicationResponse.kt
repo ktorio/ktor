@@ -50,8 +50,12 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
 //        servletRequest.asyncContext?.complete() // causes pipeline execution break however it is required for websocket
     }
 
+    private val responseByteChannel = lazy {
+        servletWriter(servletResponse.outputStream)
+    }
+
     private val responseChannel = lazy {
-        ServletWriteChannel(servletResponse.outputStream)
+        CIOWriteChannelAdapter(responseByteChannel.value.channel)
     }
 
     override suspend fun responseChannel(): WriteChannel = responseChannel.value
@@ -60,11 +64,10 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
         pipeline.intercept(ApplicationSendPipeline.Host) {
             if (!completed) {
                 completed = true
-                //request.close()
-                if (responseChannel.isInitialized()) {
-                    responseChannel.value.apply {
-                        flush()
-                        close()
+                if (responseByteChannel.isInitialized()) {
+                    responseByteChannel.value.apply {
+                        channel.close()
+                        join()
                     }
                 } else {
                     servletResponse.flushBuffer()
@@ -101,11 +104,26 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
                 throw IllegalArgumentException("Upgrade processing requires WebConnection instance")
             }
 
-            val inputChannel = ServletReadChannel(webConnection.inputStream)
-            val outputChannel = ServletWriteChannel(webConnection.outputStream)
+            val servletReader = servletReader(webConnection.inputStream)
+            val servletWriter = servletWriter(webConnection.outputStream)
+
+            val inputChannel = CIOReadChannelAdapter(servletReader.channel)
+            val outputChannel = CIOWriteChannelAdapter(servletWriter.channel)
+
+            val closeable = Closeable {
+                servletWriter.channel.close()
+
+                runBlocking {
+                    servletReader.cancel()
+                    servletWriter.join()
+                    servletReader.join()
+                }
+
+                webConnection.close()
+            }
 
             runBlocking {
-                up.upgradeMessage.upgrade(inputChannel, outputChannel, Closeable { webConnection.close() }, up.hostContext, up.userAppContext)
+                up.upgradeMessage.upgrade(inputChannel, outputChannel, closeable, up.hostContext, up.userAppContext)
             }
         }
 

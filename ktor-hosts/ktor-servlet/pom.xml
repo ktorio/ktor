@@ -21,6 +21,14 @@
             <version>4.0.0-b07</version>
             <scope>provided</scope>
         </dependency>
+
+        <dependency>
+            <groupId>com.github.cy6erGn0m.kotlinx-sockets</groupId>
+            <artifactId>kotlin-sockets</artifactId>
+            <version>298df234c9</version>
+        </dependency>
+
+
     </dependencies>
 
 </project>
