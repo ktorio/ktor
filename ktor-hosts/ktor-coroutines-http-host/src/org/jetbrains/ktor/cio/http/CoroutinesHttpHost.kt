@@ -65,13 +65,13 @@ class CoroutinesHttpHost(environment: ApplicationHostEnvironment) : BaseApplicat
     }
 
     private fun run(port: Int) {
-        val (j, s) = httpServer(port, appCtx) { request, input, output, multipart ->
+        val (j, s) = httpServer(port, appCtx) { request, input, output ->
             if (shutdown) {
                 respondServiceUnavailable(request.version, output)
                 return@httpServer
             }
 
-            val call = CIOApplicationCall(application, request, input, output, multipart, hostCtx, appCtx)
+            val call = CIOApplicationCall(application, request, input, output, hostCtx, appCtx)
 
             try {
                 pipeline.execute(call)

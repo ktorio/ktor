@@ -8,17 +8,12 @@ import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.request.*
 import java.nio.ByteBuffer
 
-class CIOIncomingContent(private val channel: ByteReadChannel, private val multipart: ReceiveChannel<MultipartEvent>, override val request: CIOApplicationRequest) : IncomingContent {
-    override fun readChannel(): ReadChannel {
-        return object : ReadChannel {
-            suspend override fun read(dst: ByteBuffer) = channel.readAvailable(dst)
-
-            override fun close() {
-            }
-        }
-    }
+class CIOIncomingContent(private val channel: ByteReadChannel,
+                         private val headers: HttpHeaders,
+                         override val request: CIOApplicationRequest) : IncomingContent {
+    override fun readChannel(): ReadChannel = ReadChannelAdapter(channel)
 
     override fun multiPartData(): MultiPartData {
-        return CIOMultipartData(multipart)
+        return CIOMultipartData(channel, headers)
     }
 }
