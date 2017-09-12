@@ -3,7 +3,6 @@ package org.jetbrains.ktor.cio.http
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.http.*
-import kotlinx.sockets.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
@@ -11,7 +10,6 @@ import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.response.*
 import java.io.Closeable
-import java.nio.ByteBuffer
 import kotlin.coroutines.experimental.*
 
 class CIOApplicationResponse(call: ApplicationCall,
@@ -47,28 +45,19 @@ class CIOApplicationResponse(call: ApplicationCall,
     suspend override fun responseChannel(): WriteChannel {
         sendResponseMessage(true)
 
-        val chunked = ByteChannel()
-        val j = launch(ioCoroutineDispatcher) {
-            try {
-                encodeChunked(chunked, output)
-            } catch (t: Throwable) {
-                output.close(t)
-                chunked.close(t)
-            } finally {
-                output.close()
-            }
-        }
+        val j = encodeChunked(output)
+        val chunked = j.channel
 
         chunkedChannel = chunked
         chunkedJob = j
 
-        return WriteChannelAdapter(chunked)
+        return CIOWriteChannelAdapter(chunked)
     }
 
     suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
         sendResponseMessage(false)
 
-        upgrade.upgrade(ReadChannelAdapter(input), WriteChannelAdapter(output), Closeable {
+        upgrade.upgrade(CIOReadChannelAdapter(input), CIOWriteChannelAdapter(output), Closeable {
             output.close()
         }, hostDispatcher, appDispatcher)
     }
