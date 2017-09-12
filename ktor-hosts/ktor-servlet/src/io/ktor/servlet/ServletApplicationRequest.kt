@@ -1,5 +1,6 @@
 package io.ktor.servlet
 
+import kotlinx.coroutines.experimental.*
 import io.ktor.application.*
 import io.ktor.cio.*
 import io.ktor.content.*
@@ -8,6 +9,7 @@ import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.util.*
 import java.io.*
+import java.nio.*
 import javax.servlet.http.*
 
 class ServletApplicationRequest(call: ApplicationCall,
@@ -22,20 +24,27 @@ class ServletApplicationRequest(call: ApplicationCall,
     override val headers: ValuesMap = ServletApplicationRequestHeaders(servletRequest)
     override val cookies: RequestCookies = ServletApplicationRequestCookies(servletRequest, this)
 
-    private val servletReadChannel = lazy { ServletReadChannel(servletRequest.inputStream) }
-
     override fun receiveContent() = ServletIncomingContent(this)
 
     class ServletIncomingContent(override val request: ServletApplicationRequest) : IncomingContent {
-        override fun readChannel(): ReadChannel = request.servletReadChannel.value
+        private val copyJob by lazy { servletReader(request.servletRequest.inputStream) }
+        private fun byteChannel() = copyJob.channel
+
+        override fun readChannel(): ReadChannel = object: ReadChannel {
+            suspend override fun read(dst: ByteBuffer): Int {
+                return copyJob.channel.readAvailable(dst)
+            }
+
+            override fun close() {
+                runBlocking {
+                    copyJob.cancel()
+                    copyJob.join()
+                }
+            }
+        }
+
         override fun multiPartData(): MultiPartData = ServletMultiPartData(request, request.servletRequest)
         override fun inputStream(): InputStream = request.servletRequest.inputStream
-    }
-
-    fun close() {
-        if (servletReadChannel.isInitialized()) {
-            servletReadChannel.value.close()
-        }
     }
 }
 
