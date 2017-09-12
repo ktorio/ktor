@@ -9,7 +9,7 @@
 
     <properties>
         <kotlin.version>1.1.50</kotlin.version>
-        <coroutines.version>0.17</coroutines.version>
+        <coroutines.version>0.19-alpha-6</coroutines.version>
         <dokka.version>0.9.15</dokka.version>
         <jmh.version>1.19</jmh.version>
 
@@ -102,6 +102,11 @@
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-jdk8</artifactId>
+            <version>${coroutines.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-io</artifactId>
             <version>${coroutines.version}</version>
         </dependency>
 
