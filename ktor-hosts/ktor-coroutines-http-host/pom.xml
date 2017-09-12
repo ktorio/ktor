@@ -30,17 +30,19 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>org.jetbrains.kotlinx</groupId>
-            <artifactId>kotlinx-http</artifactId>
-            <version>0.0.11-SNAPSHOT</version>
-        </dependency>
-    </dependencies>
 
-    <repositories>
-        <repository>
-            <id>jitpack.io</id>
-            <url>https://jitpack.io</url>
-        </repository>
-    </repositories>
+        <!--<dependency>-->
+            <!--<groupId>org.jetbrains.kotlinx</groupId>-->
+            <!--<artifactId>kotlinx-http</artifactId>-->
+            <!--<version>0.0.11-SNAPSHOT</version>-->
+        <!--</dependency>-->
+
+        <dependency>
+            <groupId>com.github.cy6erGn0m.kotlinx~sockets</groupId>
+            <artifactId>kotlinx-http</artifactId>
+            <version>298df234c9</version>
+        </dependency>
+
+
+    </dependencies>
 </project>

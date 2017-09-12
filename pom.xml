@@ -316,5 +316,10 @@
             <name>bintray</name>
             <url>https://dl.bintray.com/kotlin/kotlin-eap-1.1</url>
         </repository>
+
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
 </project>

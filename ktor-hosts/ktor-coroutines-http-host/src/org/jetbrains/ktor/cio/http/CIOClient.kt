@@ -68,7 +68,7 @@ private class CIOHttpConnection(val socket: Socket, val defaultHost: String) : H
                 if (bodySize != null) {
                     bodyWriter(OutputStreamAdapter(output, suppressClose = true))
                 } else {
-                    val encoder = launchChunkedEncoder(output)
+                    val encoder = encodeChunked(output)
                     bodyWriter(OutputStreamAdapter(encoder.channel, suppressClose = false))
                     encoder.join()
                 }
@@ -86,7 +86,7 @@ private class CIOHttpConnection(val socket: Socket, val defaultHost: String) : H
             override val headers: ValuesMap = CIOHeaders(response.headers)
 
             override val status: HttpStatusCode = HttpStatusCode.fromValue(response.status)
-            override val channel: ReadChannel = ReadChannelAdapter(responseBodyParser.channel)
+            override val channel: ReadChannel = CIOReadChannelAdapter(responseBodyParser.channel)
 
             override fun close() {
                 responseBodyParser.cancel()
