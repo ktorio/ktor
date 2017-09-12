@@ -10,6 +10,7 @@ import java.io.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.*
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.*
 import javax.servlet.*
 import kotlin.test.*
