@@ -355,7 +355,7 @@ fun Application.main() {
 
 
 fun Route.handleRequestWithBodyFor(method: HttpMethod): Unit {
-    requestContentType(ContentType.MultiPart.FormData) {
+    contentType(ContentType.MultiPart.FormData) {
         method(method) {
             handle {
                 val listFiles = call.receive<MultiPartData>().parts.filterIsInstance<PartData.FileItem>().toList()
@@ -366,7 +366,7 @@ fun Route.handleRequestWithBodyFor(method: HttpMethod): Unit {
             }
         }
     }
-    requestContentType(ContentType.Application.FormUrlEncoded) {
+    contentType(ContentType.Application.FormUrlEncoded) {
         method(method) {
             handle {
                 call.sendHttpBinResponse {
@@ -375,7 +375,7 @@ fun Route.handleRequestWithBodyFor(method: HttpMethod): Unit {
             }
         }
     }
-    requestContentType(ContentType.Application.Json) {
+    contentType(ContentType.Application.Json) {
         method(method) {
             handle {
                 val type = object : TypeToken<Map<String, Any>>() {}.type
