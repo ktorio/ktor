@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.tests.http
+package org.jetbrains.ktor.tests.features
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
@@ -26,7 +26,7 @@ class StaticContentTest {
             }
             static("selected") {
                 staticRootFolder = basedir
-                files("http")
+                files("features")
                 file("routing/RoutingBuildTest.kt")
                 route("virtual") {
                     default("http/CodecTest.kt")
@@ -40,7 +40,7 @@ class StaticContentTest {
         }
 
         // get file from nested folder
-        handleRequest(HttpMethod.Get, "/files/http/StaticContentTest.kt").let { result ->
+        handleRequest(HttpMethod.Get, "/files/features/StaticContentTest.kt").let { result ->
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
@@ -51,7 +51,7 @@ class StaticContentTest {
         }
         // can't get up to containing folder
         assertFailsWith<InvalidPathException> {
-            handleRequest(HttpMethod.Get, "/selected/../http/StaticContentTest.kt").let { result ->
+            handleRequest(HttpMethod.Get, "/selected/../features/StaticContentTest.kt").let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.OK, result.response.status())
             }
@@ -96,7 +96,7 @@ class StaticContentTest {
 
         application.routing {
             static {
-                resources("org.jetbrains.ktor.tests.http")
+                resources("org.jetbrains.ktor.tests.features")
                 resources("java.util")
                 route("z") {
                     staticBasePackage = "java.util"
@@ -122,13 +122,13 @@ class StaticContentTest {
         handleRequest(HttpMethod.Get, "/ArrayList.class2").let { result ->
             assertFalse(result.requestHandled)
         }
-        handleRequest(HttpMethod.Get, "/http/StaticContentTest.kt").let { result ->
+        handleRequest(HttpMethod.Get, "/features/StaticContentTest.kt").let { result ->
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals(RangeUnits.Bytes.unitToken, result.response.headers[HttpHeaders.AcceptRanges])
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
         }
-        handleRequest(HttpMethod.Get, "/f/http/StaticContentTest.kt").let { result ->
+        handleRequest(HttpMethod.Get, "/f/features/StaticContentTest.kt").let { result ->
             assertTrue(result.requestHandled)
         }
     }
@@ -154,24 +154,24 @@ class StaticContentTest {
     @Test
     fun testSendLocalFile() = withTestApplication {
         application.intercept(ApplicationCallPipeline.Call) {
-            call.respond(LocalFileContent(basedir, "/http/StaticContentTest.kt".replaceSeparators()))
+            call.respond(LocalFileContent(basedir, "/features/StaticContentTest.kt".replaceSeparators()))
         }
 
         handleRequest(HttpMethod.Get, "/").let { result ->
             assertTrue(result.requestHandled)
-            assertEquals(File(basedir, "http/StaticContentTest.kt".replaceSeparators()).readText(), result.response.content)
+            assertEquals(File(basedir, "features/StaticContentTest.kt".replaceSeparators()).readText(), result.response.content)
         }
     }
 
     @Test
     fun testSendLocalFilePaths() = withTestApplication {
         application.intercept(ApplicationCallPipeline.Call) {
-            call.respond(LocalFileContent(basedir.toPath(), Paths.get("/http/StaticContentTest.kt".replaceSeparators())))
+            call.respond(LocalFileContent(basedir.toPath(), Paths.get("/features/StaticContentTest.kt".replaceSeparators())))
         }
 
         handleRequest(HttpMethod.Get, "/").let { result ->
             assertTrue(result.requestHandled)
-            assertEquals(File(basedir, "http/StaticContentTest.kt".replaceSeparators()).readText(), result.response.content)
+            assertEquals(File(basedir, "features/StaticContentTest.kt".replaceSeparators()).readText(), result.response.content)
         }
     }
 
@@ -180,28 +180,6 @@ class StaticContentTest {
         application.intercept(ApplicationCallPipeline.Call) {
             assertFailsWithSuspended<IllegalArgumentException> {
                 call.respond(LocalFileContent(basedir, "/../../../../../../../../../../../../../etc/passwd"))
-            }
-            assertFailsWithSuspended<IllegalArgumentException> {
-                call.respond(LocalFileContent(basedir, "../pom.xml"))
-            }
-            assertFailsWithSuspended<IllegalArgumentException> {
-                call.respond(LocalFileContent(basedir, "../../pom.xml"))
-            }
-            assertFailsWithSuspended<IllegalArgumentException> {
-                call.respond(LocalFileContent(basedir, "/../pom.xml"))
-            }
-        }
-
-        handleRequest(HttpMethod.Get, "/").let { result ->
-            assertFalse(result.requestHandled)
-        }
-    }
-
-    @Test
-    fun testSendLocalFileBadRelativePaths() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Call) {
-            assertFailsWithSuspended<IllegalArgumentException> {
-                call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../../../../../../../../../../../../../etc/passwd")))
             }
             assertFailsWithSuspended<IllegalArgumentException> {
                 call.respond(LocalFileContent(basedir.toPath(), Paths.get("../pom.xml")))
@@ -220,6 +198,28 @@ class StaticContentTest {
     }
 
     @Test
+    fun testSendLocalFileBadRelativePaths() = withTestApplication {
+        application.intercept(ApplicationCallPipeline.Call) {
+            assertFailsWithSuspended<IllegalArgumentException> {
+                call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../../../../../../../../../../../../../etc/passwd")))
+            }
+            assertFailsWithSuspended<IllegalArgumentException> {
+                call.respond(LocalFileContent(basedir, "../pom.xml"))
+            }
+            assertFailsWithSuspended<IllegalArgumentException> {
+                call.respond(LocalFileContent(basedir, "../../pom.xml"))
+            }
+            assertFailsWithSuspended<IllegalArgumentException> {
+                call.respond(LocalFileContent(basedir, "/../pom.xml"))
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/").let { result ->
+            assertFalse(result.requestHandled)
+        }
+    }
+
+    @Test
     fun testInterceptCacheControl() = withTestApplication {
         application.intercept(ApplicationCallPipeline.Infrastructure) {
             if (call.request.httpMethod == HttpMethod.Get ||
@@ -229,12 +229,12 @@ class StaticContentTest {
         }
 
         application.intercept(ApplicationCallPipeline.Call) {
-            call.respond(LocalFileContent(File(basedir, "http/StaticContentTest.kt")))
+            call.respond(LocalFileContent(File(basedir, "features/StaticContentTest.kt")))
         }
 
         handleRequest(HttpMethod.Get, "/").let { result ->
             assertTrue(result.requestHandled)
-            assertEquals(File(basedir, "http/StaticContentTest.kt".replaceSeparators()).readText(), result.response.content)
+            assertEquals(File(basedir, "features/StaticContentTest.kt".replaceSeparators()).readText(), result.response.content)
             assertEquals(listOf("max-age=300"), result.response.headers.values(HttpHeaders.CacheControl))
         }
     }

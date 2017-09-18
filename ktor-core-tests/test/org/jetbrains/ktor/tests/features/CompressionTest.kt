@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.tests.http
+package org.jetbrains.ktor.tests.features
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*

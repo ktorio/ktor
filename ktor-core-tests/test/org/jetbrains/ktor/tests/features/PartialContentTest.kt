@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.tests.http
+package org.jetbrains.ktor.tests.features
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
@@ -15,7 +15,7 @@ import kotlin.test.*
 
 class PartialContentTest {
     val basedir = listOf(File("test"), File("ktor-core-tests/test")).map { File(it, "org/jetbrains/ktor/tests") }.first(File::exists)
-    val localPath = "http/StaticContentTest.kt"
+    val localPath = "features/StaticContentTest.kt"
 
     fun withRangeApplication(test: TestApplicationHost.(File) -> Unit) = withTestApplication {
         application.install(PartialContentSupport)
