@@ -35,8 +35,12 @@ internal class NettyResponseQueue(val context: ChannelHandlerContext) {
             val s = q.firstOrNull { it.call === call } ?: throw cancellation ?: IllegalStateException()
             s.suspended(c)
 
-            c.invokeOnCompletion {
-                s.continuation()
+            c.invokeOnCompletion { t ->
+                if (t != null) {
+                    s.continuation()?.resumeWithException(t)
+                } else {
+                    s.continuation()?.resume(Unit)
+                }
             }
 
             if (q.peek() === s) {

@@ -32,8 +32,20 @@ internal class RawWebSocketImpl(override val call: ApplicationCall,
         }
 
     fun start(handler: suspend WebSocketSession.(WebSocketUpgrade.Dispatchers) -> Unit) {
-        reader.start()
-        writer.start()
+        val readerJob = reader.start()
+        val writerJob = writer.start()
+
+        readerJob.invokeOnCompletion {
+            if (it != null) {
+                writerJob.cancel(it)
+            }
+        }
+
+        writerJob.invokeOnCompletion {
+            if (it != null) {
+                readerJob.cancel(it)
+            }
+        }
 
         launch(hostContext) {
             var t: Throwable? = null
@@ -46,7 +58,11 @@ internal class RawWebSocketImpl(override val call: ApplicationCall,
                 outgoing.close(t)
                 writer.close()
 
-                writer.flush()
+                try {
+                    writer.flush()
+                } catch (ignore: Throwable) { // always ignore it as it is already handled
+                }
+
                 terminate()
             }
         }
