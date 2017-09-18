@@ -1,16 +1,17 @@
 package org.jetbrains.ktor.locations
 
 import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
+import java.lang.reflect.*
 import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
-class InconsistentRoutingException(message: String) : Exception(message)
-
-open class Locations(val conversionService: ConversionService, val routeService: LocationRouteService) {
+open class Locations(private val application: Application, private val routeService: LocationRouteService) {
+    private val conversionService: ConversionService get() = application.conversionService
     private val rootUri = ResolvedUriInfo("", emptyList())
     private val info = hashMapOf<KClass<*>, LocationInfo>()
 
@@ -36,12 +37,23 @@ open class Locations(val conversionService: ConversionService, val routeService:
             val value: Any? = if (parent != null && parameterType == parent.klass.defaultType) {
                 parent.create(allParameters)
             } else {
-                conversionService.fromValuesMap(allParameters, parameterName, parameterType.javaType, parameter.isOptional)
+                createFromParameters(allParameters, parameterName, parameterType.javaType, parameter.isOptional)
             }
             parameter to value
         }.filterNot { it.first.isOptional && it.second == null }.toMap()
 
         return constructor.callBy(arguments)
+    }
+
+    private fun createFromParameters(parameters: ValuesMap, name: String, type: Type, optional: Boolean): Any? {
+        val values = parameters.getAll(name)
+        return when (values) {
+            null -> when {
+                !optional -> throw DataConversionException("Parameter '$name' was not found in the map")
+                else -> null
+            }
+            else -> conversionService.fromValues(values, type)
+        }
     }
 
     @Suppress("UNUSED_PARAMETER")
@@ -69,13 +81,13 @@ open class Locations(val conversionService: ConversionService, val routeService:
 
             val constructor: KFunction<Any> =
                     dataClass.primaryConstructor
-                    ?: dataClass.constructors.singleOrNull()
-                    ?: throw IllegalArgumentException("Class $dataClass cannot be instantiated because the constructor is missing")
+                            ?: dataClass.constructors.singleOrNull()
+                            ?: throw IllegalArgumentException("Class $dataClass cannot be instantiated because the constructor is missing")
 
             val declaredProperties = constructor.parameters.map { parameter ->
                 val property = dataClass.declaredMemberProperties.singleOrNull { property -> property.name == parameter.name }
                 if (property == null) {
-                    throw InconsistentRoutingException("Parameter ${parameter.name} of constructor for class ${dataClass.qualifiedName} should have corresponding property")
+                    throw RoutingException("Parameter ${parameter.name} of constructor for class ${dataClass.qualifiedName} should have corresponding property")
                 }
                 LocationInfoProperty(parameter.name ?: "<unnamed>", (property as KProperty1<out Any?, *>).getter, parameter.isOptional)
             }
@@ -86,11 +98,11 @@ open class Locations(val conversionService: ConversionService, val routeService:
 
             if (parentInfo != null && parentParameter == null) {
                 if (parentInfo.parentParameter != null)
-                    throw InconsistentRoutingException("Nested location '$dataClass' should have parameter for parent location because it is chained to its parent")
+                    throw RoutingException("Nested location '$dataClass' should have parameter for parent location because it is chained to its parent")
                 if (parentInfo.pathParameters.any { !it.isOptional })
-                    throw InconsistentRoutingException("Nested location '$dataClass' should have parameter for parent location because of non-optional path parameters ${parentInfo.pathParameters.filter { !it.isOptional }}")
+                    throw RoutingException("Nested location '$dataClass' should have parameter for parent location because of non-optional path parameters ${parentInfo.pathParameters.filter { !it.isOptional }}")
                 if (parentInfo.queryParameters.any { !it.isOptional })
-                    throw InconsistentRoutingException("Nested location '$dataClass' should have parameter for parent location because of non-optional query parameters ${parentInfo.queryParameters.filter { !it.isOptional }}")
+                    throw RoutingException("Nested location '$dataClass' should have parameter for parent location because of non-optional query parameters ${parentInfo.queryParameters.filter { !it.isOptional }}")
             }
 
             val pathParameterNames = RoutingPath.parse(path).parts
@@ -100,7 +112,7 @@ open class Locations(val conversionService: ConversionService, val routeService:
             val declaredParameterNames = declaredProperties.map { it.name }.toSet()
             val invalidParameters = pathParameterNames.filter { it !in declaredParameterNames }
             if (invalidParameters.any()) {
-                throw InconsistentRoutingException("Path parameters '$invalidParameters' are not bound to '$dataClass' properties")
+                throw RoutingException("Path parameters '$invalidParameters' are not bound to '$dataClass' properties")
             }
 
             val pathParameters = declaredProperties.filter { it.name in pathParameterNames }
@@ -127,7 +139,7 @@ open class Locations(val conversionService: ConversionService, val routeService:
             // TODO: Cache properties by name in info
             val property = info.pathParameters.single { it.name == name }
             val value = property.getter.call(instance)
-            return conversionService.toURI(value, name, property.getter.returnType.isMarkedNullable)
+            return conversionService.toValues(value)
         }
 
         val substituteParts = RoutingPath.parse(info.path).parts.flatMap { it ->
@@ -141,7 +153,7 @@ open class Locations(val conversionService: ConversionService, val routeService:
             }
         }
 
-        val relativePath = substituteParts.filterNotNull().filterNot { it.isEmpty() }.map { encodeURLPart(it) }.joinToString("/")
+        val relativePath = substituteParts.filterNot { it.isEmpty() }.joinToString("/") { encodeURLPart(it) }
 
         val parentInfo = if (info.parent == null)
             rootUri
@@ -155,7 +167,7 @@ open class Locations(val conversionService: ConversionService, val routeService:
         val queryValues = info.queryParameters
                 .flatMap { property ->
                     val value = property.getter.call(location)
-                    conversionService.toURI(value, property.name, property.isOptional).map { property.name to it }
+                    conversionService.toValues(value).map { property.name to it }
                 }
 
         return parentInfo.combine(relativePath, queryValues)
@@ -199,7 +211,8 @@ open class Locations(val conversionService: ConversionService, val routeService:
         override val key: AttributeKey<Locations> = AttributeKey("Locations")
 
         override fun install(pipeline: Application, configure: Locations.() -> Unit): Locations {
-            return Locations(DefaultConversionService(), LocationAttributeRouteService()).apply(configure)
+            val routeService = LocationAttributeRouteService()
+            return Locations(pipeline, routeService).apply(configure)
         }
     }
 }
@@ -217,3 +230,5 @@ class LocationAttributeRouteService : LocationRouteService {
         return klass.annotation<location>()?.path
     }
 }
+
+class RoutingException(message: String) : Exception(message)
