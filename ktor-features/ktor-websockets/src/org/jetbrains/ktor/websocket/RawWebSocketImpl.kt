@@ -63,6 +63,9 @@ internal class RawWebSocketImpl(override val call: ApplicationCall,
                 } catch (ignore: Throwable) { // always ignore it as it is already handled
                 }
 
+                readerJob.join()
+                writerJob.join()
+
                 terminate()
             }
         }

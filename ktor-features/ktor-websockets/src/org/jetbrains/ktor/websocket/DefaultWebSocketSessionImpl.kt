@@ -121,7 +121,6 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
             closeSequence.join()
         } finally {
             cancelPinger()
-            raw.terminate()
         }
     }
 
