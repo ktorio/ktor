@@ -30,7 +30,7 @@ fun Application.main() {
                         (0..5).forEach {
                             li {
                                 val number = number(rnd.nextInt(1000))
-                                a(href = feature(Locations).href(number)) {
+                                a(href = locations.href(number)) {
                                     +"Number #${number.value}"
                                 }
                             }

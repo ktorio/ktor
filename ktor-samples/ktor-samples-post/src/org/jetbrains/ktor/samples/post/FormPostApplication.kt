@@ -33,7 +33,7 @@ fun Application.main() {
                     p {
                         +"File upload example"
                     }
-                    form(feature(Locations).href(post()), encType = FormEncType.multipartFormData, method = FormMethod.post) {
+                    form(locations.href(post()), encType = FormEncType.multipartFormData, method = FormMethod.post) {
                         acceptCharset = "utf-8"
                         textInput { name = "field1" }
                         fileInput { name = "file1" }

@@ -109,7 +109,7 @@ suspend fun ApplicationCall.redirect(location: Any) {
     val portSpec = request.port().let { if (it == 80) "" else ":$it" }
     val address = host + portSpec
 
-    respondRedirect("http://$address${application.feature(Locations).href(location)}")
+    respondRedirect("http://$address${application.locations.href(location)}")
 }
 
 fun ApplicationCall.securityCode(date: Long, user: User, hashFunction: (String) -> String) =

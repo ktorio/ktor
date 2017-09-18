@@ -19,7 +19,7 @@ fun <T : Any> AuthenticationPipeline.oauthWithType(type: KClass<T>,
                                                    urlProvider: ApplicationCall.(T, OAuthServerSettings) -> String) {
 
     fun ApplicationCall.resolve(): T {
-        return application.feature(Locations).resolve<T>(type, this)
+        return application.locations.resolve<T>(type, this)
     }
 
     fun ApplicationCall.providerLookupLocal(): OAuthServerSettings? = providerLookup(resolve())

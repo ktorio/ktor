@@ -98,7 +98,7 @@ fun Application.OAuthLoginApplication() {
                         +"Try to login"
                     }
                     p {
-                        a(href = feature(Locations).href(login())) {
+                        a(href = locations.href(login())) {
                             +"Login"
                         }
                     }
@@ -137,7 +137,7 @@ private fun <T : Any> ApplicationCall.redirectUrl(t: T, secure: Boolean = true):
         secure -> "https"
         else -> "http"
     }
-    return "$protocol://$hostPort${application.feature(Locations).href(t)}"
+    return "$protocol://$hostPort${application.locations.href(t)}"
 }
 
 private suspend fun ApplicationCall.loginPage() {
@@ -152,7 +152,7 @@ private suspend fun ApplicationCall.loginPage() {
 
             for (p in loginProviders) {
                 p {
-                    a(href = application.feature(Locations).href(login(p.key))) {
+                    a(href = application.locations.href(login(p.key))) {
                         +p.key
                     }
                 }

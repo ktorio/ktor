@@ -5,7 +5,7 @@ import org.jetbrains.ktor.util.*
 
 fun ApplicationCall.url(location: Any, block: URLBuilder.() -> Unit = {}): String = url {
     parameters.clear()
-    application.feature(Locations).href(location, this)
+    application.locations.href(location, this)
     block()
 }
 

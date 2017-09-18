@@ -33,13 +33,13 @@ suspend fun ApplicationCall.respondDefaultHtml(versions: List<Version>, visibili
                             ul("nav-list") {
                                 li("nav-item") {
                                     if (session == null) {
-                                        a(classes = "pure-button", href = application.feature(Locations).href(Login())) { +"Login" }
+                                        a(classes = "pure-button", href = locations.href(Login())) { +"Login" }
                                     } else {
-                                        a(classes = "pure-button", href = application.feature(Locations).href(Upload())) { +"Upload" }
+                                        a(classes = "pure-button", href = locations.href(Upload())) { +"Upload" }
                                     }
                                 }
                                 li("nav-item") {
-                                    a(classes = "pure-button", href = application.feature(Locations).href(Index())) { +"Watch" }
+                                    a(classes = "pure-button", href = locations.href(Index())) { +"Watch" }
                                 }
                             }
                         }

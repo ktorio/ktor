@@ -18,7 +18,7 @@ class LocationsTest {
     @location("/") class index()
 
     @Test fun `location without URL`() = withLocationsApplication {
-        val href = application.feature(Locations).href(index())
+        val href = application.locations.href(index())
         assertEquals("/", href)
         application.routing {
             get<index> {
@@ -34,7 +34,7 @@ class LocationsTest {
 
         @location("/") class indexLocal()
         withLocationsApplication {
-            val href = application.feature(Locations).href(indexLocal())
+            val href = application.locations.href(indexLocal())
             assertEquals("/", href)
             application.routing {
                 get<indexLocal> {
@@ -49,7 +49,7 @@ class LocationsTest {
     @location("/about") class about()
 
     @Test fun `location with URL`() = withLocationsApplication {
-        val href = application.feature(Locations).href(about())
+        val href = application.locations.href(about())
         assertEquals("/about", href)
         application.routing {
             get<about> {
@@ -63,7 +63,7 @@ class LocationsTest {
     @location("/user/{id}") class user(val id: Int)
 
     @Test fun `location with path param`() = withLocationsApplication {
-        val href = application.feature(Locations).href(user(123))
+        val href = application.locations.href(user(123))
         assertEquals("/user/123", href)
         application.routing {
             get<user> { user ->
@@ -78,7 +78,7 @@ class LocationsTest {
     @location("/user/{id}/{name}") class named(val id: Int, val name: String)
 
     @Test fun `location with urlencoded path param`() = withLocationsApplication {
-        val href = application.feature(Locations).href(named(123, "abc def"))
+        val href = application.locations.href(named(123, "abc def"))
         assertEquals("/user/123/abc%20def", href)
         application.routing {
             get<named> { named ->
@@ -95,7 +95,7 @@ class LocationsTest {
     @location("/favorite") class favorite(val id: Int)
 
     @Test fun `location with query param`() = withLocationsApplication {
-        val href = application.feature(Locations).href(favorite(123))
+        val href = application.locations.href(favorite(123))
         assertEquals("/favorite?id=123", href)
         application.routing {
             get<favorite> { favorite ->
@@ -115,14 +115,14 @@ class LocationsTest {
 
     @Test fun `location with path parameter and nested data`() = withLocationsApplication {
         val c = pathContainer(123)
-        val href = application.feature(Locations).href(pathContainer.items(c))
+        val href = application.locations.href(pathContainer.items(c))
         assertEquals("/container/123/items", href)
         application.routing {
             get<pathContainer.items> { items ->
                 assertEquals(123, items.container.id)
                 call.respond(HttpStatusCode.OK)
             }
-            assertFailsWith(InconsistentRoutingException::class) {
+            assertFailsWith(RoutingException::class) {
                 get<pathContainer.badItems> { }
             }
         }
@@ -138,14 +138,14 @@ class LocationsTest {
 
     @Test fun `location with query parameter and nested data`() = withLocationsApplication {
         val c = queryContainer(123)
-        val href = application.feature(Locations).href(queryContainer.items(c))
+        val href = application.locations.href(queryContainer.items(c))
         assertEquals("/container/items?id=123", href)
         application.routing {
             get<queryContainer.items> { items ->
                 assertEquals(123, items.container.id)
                 call.respond(HttpStatusCode.OK)
             }
-            assertFailsWith(InconsistentRoutingException::class) {
+            assertFailsWith(RoutingException::class) {
                 get<queryContainer.badItems> { }
             }
         }
@@ -157,7 +157,7 @@ class LocationsTest {
     @location("/container") class optionalName(val id: Int, val optional: String? = null)
 
     @Test fun `location with missing optional String parameter`() = withLocationsApplication {
-        val href = application.feature(Locations).href(optionalName(123))
+        val href = application.locations.href(optionalName(123))
         assertEquals("/container?id=123", href)
         application.routing {
             get<optionalName> {
@@ -175,7 +175,7 @@ class LocationsTest {
     @location("/container") class optionalIndex(val id: Int, val optional: Int = 42)
 
     @Test fun `location with missing optional Int parameter`() = withLocationsApplication {
-        val href = application.feature(Locations).href(optionalIndex(123))
+        val href = application.locations.href(optionalIndex(123))
         assertEquals("/container?id=123&optional=42", href)
         application.routing {
             get<optionalIndex> {
@@ -190,7 +190,7 @@ class LocationsTest {
     }
 
     @Test fun `location with specified optional query parameter`() = withLocationsApplication {
-        val href = application.feature(Locations).href(optionalName(123, "text"))
+        val href = application.locations.href(optionalName(123, "text"))
         assertEquals("/container?id=123&optional=text", href)
         application.routing {
             get<optionalName> {
@@ -209,7 +209,7 @@ class LocationsTest {
     }
 
     @Test fun `location with optional path and query parameter`() = withLocationsApplication {
-        val href = application.feature(Locations).href(optionalContainer())
+        val href = application.locations.href(optionalContainer())
         assertEquals("/container", href)
         application.routing {
             get<optionalContainer> {
@@ -232,7 +232,7 @@ class LocationsTest {
     }
 
     @Test fun `location with simple path container and items`() = withLocationsApplication {
-        val href = application.feature(Locations).href(simpleContainer.items())
+        val href = application.locations.href(simpleContainer.items())
         assertEquals("/container/items", href)
         application.routing {
             get<simpleContainer.items> {
@@ -250,7 +250,7 @@ class LocationsTest {
     @location("/container/{path...}") class tailCard(val path: List<String>)
 
     @Test fun `location with tailcard`() = withLocationsApplication {
-        val href = application.feature(Locations).href(tailCard(emptyList()))
+        val href = application.locations.href(tailCard(emptyList()))
         assertEquals("/container", href)
         application.routing {
             get<tailCard> {
@@ -267,7 +267,7 @@ class LocationsTest {
     @location("/") class multiquery2(val name: List<String>)
 
     @Test fun `location with multiple query values`() = withLocationsApplication {
-        val href = application.feature(Locations).href(multiquery(listOf(1, 2, 3)))
+        val href = application.locations.href(multiquery(listOf(1, 2, 3)))
         assertEquals("/?value=1&value=2&value=3", href)
         application.routing {
             get<multiquery> {
@@ -279,7 +279,7 @@ class LocationsTest {
     }
 
     @Test fun `location with multiple query values can select by query params`() = withLocationsApplication {
-        val href = application.feature(Locations).href(multiquery(listOf(1)))
+        val href = application.locations.href(multiquery(listOf(1)))
         assertEquals("/?value=1", href)
         application.routing {
             get<multiquery> {
@@ -294,7 +294,7 @@ class LocationsTest {
     }
 
     @Test fun `location with multiple query values can select by query params2`() = withLocationsApplication {
-        val href = application.feature(Locations).href(multiquery2(listOf("john, mary")))
+        val href = application.locations.href(multiquery2(listOf("john, mary")))
         assertEquals("/?name=john%2C+mary", href)
         application.routing {
             get<multiquery> {
@@ -311,7 +311,7 @@ class LocationsTest {
     @location("/") class multiqueryWithDefault(val value: List<Int> = emptyList())
 
     @Test fun `location with multiple query values and default`() = withLocationsApplication {
-        val href = application.feature(Locations).href(multiqueryWithDefault(listOf()))
+        val href = application.locations.href(multiqueryWithDefault(listOf()))
         assertEquals("/", href)
         application.routing {
             get<multiqueryWithDefault> {
@@ -347,7 +347,7 @@ class LocationsTest {
 
     @Test
     fun `location root by object`() = withLocationsApplication {
-        val href = application.feature(Locations).href(root)
+        val href = application.locations.href(root)
         assertEquals("/", href)
         application.routing {
             get<root> {
@@ -363,7 +363,7 @@ class LocationsTest {
 
     @Test
     fun `location by object`() = withLocationsApplication {
-        val href = application.feature(Locations).href(help)
+        val href = application.locations.href(help)
         assertEquals("/help", href)
         application.routing {
             get<help> {
@@ -385,7 +385,7 @@ class LocationsTest {
 
     @Test
     fun `location by object in object`() = withLocationsApplication {
-        val href = application.feature(Locations).href(users.me)
+        val href = application.locations.href(users.me)
         assertEquals("/users/me", href)
         application.routing {
             get<users.me> {
@@ -398,7 +398,7 @@ class LocationsTest {
 
     @Test
     fun `location by class in object`() = withLocationsApplication {
-        val href = application.feature(Locations).href(users.user(123))
+        val href = application.locations.href(users.user(123))
         assertEquals("/users/123", href)
         application.routing {
             get<users.user> { user ->
@@ -415,7 +415,7 @@ class LocationsTest {
 
     @Test(expected = IllegalArgumentException::class)
     fun `location by object has bind argument`() = withLocationsApplication {
-        application.feature(Locations).href(items)
+        application.locations.href(items)
     }
 
 }
