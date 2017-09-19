@@ -15,17 +15,15 @@ suspend internal fun PipelineContext<Unit>.oauth2(client: HttpClient, exec: Exec
                                                              providerLookup: ApplicationCall.() -> OAuthServerSettings?,
                                                              urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     val provider = call.providerLookup()
-    when (provider) {
-        is OAuthServerSettings.OAuth2ServerSettings -> {
-            val token = call.oauth2HandleCallback()
-            val callbackRedirectUrl = call.urlProvider(provider)
-            if (token == null) {
-                call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, nextNonce(), scopes = provider.defaultScopes)
-            } else {
-                runAsync(exec) {
-                    val accessToken = simpleOAuth2Step2(client, provider, callbackRedirectUrl, token)
-                    call.authentication.principal(accessToken)
-                }
+    if (provider is OAuthServerSettings.OAuth2ServerSettings) {
+        val token = call.oauth2HandleCallback()
+        val callbackRedirectUrl = call.urlProvider(provider)
+        if (token == null) {
+            call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, nextNonce(), scopes = provider.defaultScopes)
+        } else {
+            runAsync(exec) {
+                val accessToken = simpleOAuth2Step2(client, provider, callbackRedirectUrl, token)
+                call.authentication.principal(accessToken)
             }
         }
     }

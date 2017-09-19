@@ -43,7 +43,7 @@ internal class RawContentQueue(val context: ChannelHandlerContext) : ChannelInbo
 internal open class HttpContentQueue(val context: ChannelHandlerContext) : ChannelInboundHandlerAdapter() {
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         if (msg is HttpContent) {
-            handleRequest(ctx, msg)
+            handleRequest(msg)
         } else {
             ctx.fireChannelRead(msg)
         }
@@ -74,7 +74,7 @@ internal open class HttpContentQueue(val context: ChannelHandlerContext) : Chann
         }
     }
 
-    fun handleRequest(context: ChannelHandlerContext, call: HttpContent) {
+    fun handleRequest(call: HttpContent) {
         val last = call is LastHttpContent
         closeCause?.let { t -> call.release(); throw t }
         val q = _queuesStack.firstOrNull() ?: run { call.release(); throw IllegalStateException("No stacked queue") }
@@ -95,6 +95,7 @@ internal open class HttpContentQueue(val context: ChannelHandlerContext) : Chann
         super.channelInactive(ctx)
     }
 
+    @Suppress("deprecation")
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         close(cause)
         super.exceptionCaught(ctx, cause)

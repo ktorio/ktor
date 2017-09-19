@@ -21,20 +21,18 @@ internal fun AuthenticationPipeline.oauth2(client: HttpClient, exec: ExecutorSer
                                            urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val provider = call.providerLookup()
-        when (provider) {
-            is OAuthServerSettings.OAuth2ServerSettings -> {
-                val token = call.oauth2HandleCallback()
-                val callbackRedirectUrl = call.urlProvider(provider)
-                if (token == null) {
-                    context.challenge(OAuthKey, NotAuthenticatedCause.NoCredentials) {
-                        it.success()
-                        call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, nextNonce(), scopes = provider.defaultScopes)
-                    }
-                } else {
-                    runAsyncWithError(exec, context) {
-                        val accessToken = simpleOAuth2Step2(client, provider, callbackRedirectUrl, token)
-                        context.principal(accessToken)
-                    }
+        if (provider is OAuthServerSettings.OAuth2ServerSettings) {
+            val token = call.oauth2HandleCallback()
+            val callbackRedirectUrl = call.urlProvider(provider)
+            if (token == null) {
+                context.challenge(OAuthKey, NotAuthenticatedCause.NoCredentials) {
+                    it.success()
+                    call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, nextNonce(), scopes = provider.defaultScopes)
+                }
+            } else {
+                runAsyncWithError(exec, context) {
+                    val accessToken = simpleOAuth2Step2(client, provider, callbackRedirectUrl, token)
+                    context.principal(accessToken)
                 }
             }
         }

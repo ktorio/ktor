@@ -20,6 +20,8 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
 
     override fun deserialize(text: String): T {
         val values = parseQueryString(text)
+
+        @Suppress("UNCHECKED_CAST")
         if (type == ValuesMap::class)
             return values as T
 
