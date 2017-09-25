@@ -2,6 +2,7 @@ package org.jetbrains.ktor.cio
 
 import java.io.*
 import java.nio.*
+import java.nio.charset.*
 
 interface Channel : Closeable
 
@@ -40,3 +41,9 @@ suspend fun ReadChannel.copyTo(out: WriteChannel, bufferPool: ByteBufferPool = N
 open class ChannelIOException(message: String, exception: Exception) : IOException(message, exception)
 class ChannelWriteException(message: String = "Cannot write to a channel", exception: Exception) : ChannelIOException(message, exception)
 class ChannelReadException(message: String = "Cannot read from a channel", exception: Exception) : ChannelIOException(message, exception)
+
+suspend fun ReadChannel.readText(charset: Charset = Charsets.UTF_8): String {
+    val buffer = ByteBufferWriteChannel()
+    copyTo(buffer)
+    return buffer.toByteArray().toString(charset)
+}

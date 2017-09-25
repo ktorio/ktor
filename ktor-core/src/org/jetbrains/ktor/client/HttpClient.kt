@@ -48,9 +48,9 @@ interface HttpResponse : Closeable {
 val HttpResponse.stream: InputStream
     get() = channel.toInputStream()
 
-fun HttpResponse.readText(defaultCharset: Charset = Charsets.ISO_8859_1): String {
+suspend fun HttpResponse.readText(defaultCharset: Charset = Charsets.ISO_8859_1): String {
     val charset = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }?.charset() ?: defaultCharset
-    return channel.toInputStream().reader(charset).use { it.readText() }
+    return channel.use { it.readText(charset) }
 }
 
 suspend fun HttpResponse.readBytes(size: Int): ByteArray {
