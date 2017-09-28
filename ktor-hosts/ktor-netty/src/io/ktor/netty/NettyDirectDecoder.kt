@@ -7,7 +7,8 @@ import io.netty.handler.codec.http.*
 
 internal class NettyDirectDecoder : ByteToMessageDecoder() {
     override fun decode(ctx: ChannelHandlerContext, buf: ByteBuf, out: MutableList<Any>) {
-        val message = DefaultHttpContent(buf.readBytes(buf.readableBytes()))
-        out.add(message)
+        val content = ctx.alloc().buffer(buf.readableBytes())
+        buf.readBytes(content)
+        out.add(DefaultHttpContent(content))
     }
 }

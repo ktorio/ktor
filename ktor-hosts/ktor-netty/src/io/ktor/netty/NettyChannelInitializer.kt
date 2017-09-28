@@ -8,6 +8,7 @@ import io.netty.handler.ssl.*
 import io.netty.handler.timeout.*
 import io.netty.util.concurrent.*
 import io.ktor.host.*
+import io.ktor.netty.http1.*
 import io.ktor.netty.http2.*
 import java.nio.channels.*
 import java.security.*

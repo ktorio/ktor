@@ -1,4 +1,4 @@
-package io.ktor.netty
+package org.jetbrains.ktor.netty.http1
 
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
@@ -6,7 +6,9 @@ import io.netty.handler.codec.http.HttpResponseStatus.*
 import io.netty.handler.codec.http.HttpVersion.*
 import io.netty.util.*
 import io.netty.util.concurrent.*
-import io.ktor.host.*
+import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.netty.*
+import org.jetbrains.ktor.netty.cio.*
 import kotlin.coroutines.experimental.*
 
 @ChannelHandler.Sharable
@@ -15,6 +17,8 @@ internal class NettyHostHttp1Handler(private val hostPipeline: HostPipeline,
                                      private val callEventGroup: EventExecutorGroup,
                                      private val hostCoroutineContext: CoroutineContext,
                                      private val userCoroutineContext: CoroutineContext) : ChannelInboundHandlerAdapter() {
+    private var configured = false
+
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         if (msg is HttpRequest) {
             handleRequest(ctx, msg)
@@ -29,47 +33,56 @@ internal class NettyHostHttp1Handler(private val hostPipeline: HostPipeline,
         }
 
         context.channel().config().isAutoRead = false
-        val httpContentQueue = context.pipeline().get(HttpContentQueue::class.java)
-        val queue = httpContentQueue.createNew()
+        val bodyHandler = context.pipeline().get(RequestBodyHandler::class.java)
+        val requestBodyChannel = bodyHandler.newChannel()
 
         if (message is HttpContent) {
-            queue.push(message, message is LastHttpContent)
+            bodyHandler.channelRead(context, message)
         }
 
-        val call = NettyApplicationCall(environment.application, context, message, queue, hostCoroutineContext, userCoroutineContext)
-        context.channel().attr(ResponseQueueKey).get().started(call)
+        val call = NettyHttp1ApplicationCall(environment.application, context, message, requestBodyChannel, hostCoroutineContext, userCoroutineContext)
+        context.channel().attr(ResponseWriterKey).get().send(call)
+
         context.fireChannelRead(call)
     }
 
     override fun channelActive(ctx: ChannelHandlerContext) {
-        val httpContentQueue = HttpContentQueue(ctx)
-        ctx.channel().attr(ResponseQueueKey).set(NettyResponseQueue(ctx))
+        if (!configured) {
+            configured = true
+            val requestBodyHandler = RequestBodyHandler(ctx)
+            val responseWriter = NettyResponsePipeline(ctx, WriterEncapsulation.Http1)
 
-        ctx.pipeline().apply {
-            addLast(httpContentQueue)
-            addLast(callEventGroup, NettyApplicationCallHandler(userCoroutineContext, hostPipeline))
+            ctx.channel().attr(ResponseWriterKey).set(responseWriter)
+
+            ctx.pipeline().apply {
+                addLast(requestBodyHandler)
+                addLast(callEventGroup, NettyApplicationCallHandler(userCoroutineContext, hostPipeline))
+            }
         }
 
         super.channelActive(ctx)
     }
 
     override fun channelInactive(ctx: ChannelHandlerContext) {
-        ctx.pipeline().apply {
-            remove(HttpContentQueue::class.java)
-            remove(NettyApplicationCallHandler::class.java)
+        if (configured) {
+            configured = false
+            ctx.pipeline().apply {
+//                remove(RequestBodyHandler::class.java)
+                remove(NettyApplicationCallHandler::class.java)
+            }
+
+            ctx.channel().attr(ResponseWriterKey).getAndSet(null)?.close()
         }
-
-        ctx.channel().attr(ResponseQueueKey).getAndSet(null)?.cancel()
-
         super.channelInactive(ctx)
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         ctx.close()
+        ctx.channel().attr(ResponseWriterKey).getAndSet(null)?.job?.cancel(cause)
     }
 
     companion object {
-        internal val ResponseQueueKey = AttributeKey.newInstance<NettyResponseQueue>("NettyResponseQueue")
+        internal val ResponseWriterKey = AttributeKey.newInstance<NettyResponsePipeline>("NettyResponsePipeline")
     }
 }
 

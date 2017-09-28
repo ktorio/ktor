@@ -9,13 +9,16 @@ import io.ktor.host.*
 import io.ktor.http.*
 import io.ktor.netty.*
 import io.ktor.response.*
+import kotlin.coroutines.experimental.*
 
-internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
+internal class NettyHttp2ApplicationResponse(call: NettyApplicationCall,
                                              val handler: NettyHostHttp2Handler,
-                                             val context: ChannelHandlerContext,
-                                             val connection: Http2Connection) : BaseApplicationResponse(call) {
-
-    private var sent = false
+                                             context: ChannelHandlerContext,
+                                             val connection: Http2Connection,
+                                             hostCoroutineContext: CoroutineContext,
+                                             userCoroutineContext: CoroutineContext
+                                             )
+    : NettyApplicationResponse(call, context, hostCoroutineContext, userCoroutineContext) {
 
     private val responseHeaders = DefaultHttp2Headers().apply {
         status(HttpStatusCode.OK.value.toString())
@@ -25,33 +28,12 @@ internal class NettyHttp2ApplicationResponse(call: ApplicationCall,
         responseHeaders.status(statusCode.value.toString())
     }
 
-    private fun ensureMessageSent(forceLast: Boolean) {
-        if (!sent) {
-            sent = true
-            context.writeAndFlush(DefaultHttp2HeadersFrame(responseHeaders, forceLast))
-        }
+    override fun responseMessage(chunked: Boolean, last: Boolean): Any {
+        return DefaultHttp2HeadersFrame(responseHeaders, false)
     }
 
     suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
         throw UnsupportedOperationException("HTTP/2 doesn't support upgrade")
-    }
-
-    private val channelLazy: Lazy<WriteChannel> = lazy {
-        ensureMessageSent(false)
-        NettyHttp2WriteChannel(context)
-    }
-
-    override suspend fun responseChannel() = channelLazy.value
-
-    suspend override fun respondFinalContent(content: FinalContent) {
-        try {
-            super.respondFinalContent(content)
-        } finally {
-            ensureMessageSent(true)
-            if (channelLazy.isInitialized()) {
-                channelLazy.value.close()
-            }
-        }
     }
 
     override val headers = object : ResponseHeaders() {
