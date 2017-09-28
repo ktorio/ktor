@@ -17,22 +17,23 @@ internal fun servletReader(input: ServletInputStream): WriterJob {
 private class Reader(val input: ServletInputStream) : ReadListener {
     val channel = ByteChannel()
     private val events = Channel<Unit>(2)
-    private val buffer = ByteArray(8192)
 
     suspend fun run() {
+        val buffer = ArrayPool.borrow()
         try {
             input.setReadListener(this)
             events.receiveOrNull() ?: return
-            loop()
+            loop(buffer)
         } catch (t: Throwable) {
             onError(t)
         } finally {
             channel.close()
             input.close()
+            ArrayPool.recycle(buffer)
         }
     }
 
-    private suspend fun loop() {
+    private suspend fun loop(buffer: ByteArray) {
         while (true) {
             if (input.isReady) {
                 val rc = input.read(buffer)

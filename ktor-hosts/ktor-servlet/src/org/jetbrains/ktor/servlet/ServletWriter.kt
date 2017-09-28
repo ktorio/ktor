@@ -4,6 +4,7 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.sockets.*
+import kotlinx.sockets.impl.*
 import javax.servlet.*
 
 internal fun servletWriter(output: ServletOutputStream): ReaderJob {
@@ -13,33 +14,48 @@ internal fun servletWriter(output: ServletOutputStream): ReaderJob {
     }
 }
 
+internal val ArrayPool = object : ObjectPoolImpl<ByteArray>(1024) {
+    override fun produceInstance() = ByteArray(4096)
+    override fun validateInstance(instance: ByteArray) {
+        if (instance.size != 4096) throw IllegalArgumentException("Tried to recycle wrong ByteArray instance: most likely it hasn't been borrowed from this pool")
+    }
+}
+
 private class ServletWriter(val output: ServletOutputStream) : WriteListener {
     val channel = ByteChannel()
 
     private val events = Channel<Unit>(2)
-    private val buffer = ByteArray(8192)
 
     suspend fun run() {
+        val buffer = ArrayPool.borrow()
         try {
             output.setWriteListener(this)
             events.receive()
-            loop()
+            loop(buffer)
+
+            finish()
         } catch (t: Throwable) {
             onError(t)
         } finally {
             output.close()
+            ArrayPool.recycle(buffer)
         }
     }
 
-    private suspend fun loop() {
+    private suspend fun finish() {
+        output.flush()
+        awaitReady()
+    }
+
+    private suspend fun loop(buffer: ByteArray) {
         while (true) {
             val rc = channel.readAvailable(buffer)
             if (rc == -1) break
-            copyLoop(rc)
+            copyLoop(buffer, rc)
         }
     }
 
-    private suspend fun copyLoop(n: Int) {
+    private suspend fun copyLoop(buffer: ByteArray, n: Int) {
         awaitReady()
         output.write(buffer, 0, n)
         awaitReady()
