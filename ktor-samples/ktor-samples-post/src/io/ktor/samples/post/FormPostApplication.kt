@@ -50,7 +50,8 @@ fun Application.main() {
                 if (!call.request.isMultipart()) {
                     appendln("Not a multipart request")
                 } else {
-                    multipart.parts.forEach { part ->
+                    while (true) {
+                        val part = multipart.readPart() ?: break
                         when (part) {
                             is PartData.FormItem -> appendln("Form field: ${part.partName} = ${part.value}")
                             is PartData.FileItem -> appendln("File field: ${part.partName} -> ${part.originalFileName} of ${part.contentType}")

@@ -47,7 +47,7 @@ fun Route.upload(database: Database, uploadDir: File) {
             var title = ""
             var videoFile: File? = null
 
-            multipart.parts.forEach {
+            multipart.forEachPart {
                 if (it is PartData.FormItem) {
                     if (it.partName == "title") {
                         title = it.value

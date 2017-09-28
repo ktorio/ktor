@@ -3,7 +3,6 @@ package io.ktor.netty
 import io.netty.buffer.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.multipart.*
-import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
@@ -14,51 +13,61 @@ import java.util.*
 
 internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestDecoder, val alloc: ByteBufAllocator, private val channel: ByteReadChannel) : MultiPartData {
     // netty's decoder doesn't provide us headers so we have to parse it or try to reconstruct
-    // TODO original headers
 
     private val all = ArrayList<PartData>()
+
+    private var processed = false
     private var destroyed = false
 
-    override val parts: Sequence<PartData> by lazy {
-        runBlocking(Unconfined) {
-            processQueue()
+    suspend tailrec override fun readPart(): PartData? {
+        if (processed || destroyed) return null
+
+        val data = decoder.next()
+        if (data != null) {
+            val part = convert(data)
+            if (part == null) {
+                data.release()
+                return readPart()
+            }
+            all.add(part)
+            return part
+        } else if (channel.isClosedForRead) {
+            processed = true
+            return null
         }
-        all.asSequence()
+
+        return readNextSuspend()
     }
 
-    private suspend fun processQueue() {
+    private suspend fun readNextSuspend(): PartData? {
+        do {
+            if (!doDecode() || decoder.hasNext()) {
+                return readPart()
+            }
+        } while (true)
+    }
+
+    private suspend fun doDecode(): Boolean {
         val channel = this.channel
-        val alloc = this.alloc
+        if (channel.isClosedForRead) {
+            decoder.offer(DefaultLastHttpContent.EMPTY_LAST_CONTENT)
+            return false
+        }
 
-        while (!channel.isClosedForRead) {
-            val buf = alloc.buffer(channel.availableForRead.coerceIn(256, 4096))
-            val bb = buf.nioBuffer(buf.writerIndex(), buf.writableBytes())
-            val rc = channel.readAvailable(bb)
+        val buf = alloc.buffer(channel.availableForRead.coerceIn(256, 4096))
+        val bb = buf.nioBuffer(buf.writerIndex(), buf.writableBytes())
+        val rc = channel.readAvailable(bb)
 
-            if (rc == -1) {
-                buf.release()
-                decoder.offer(DefaultLastHttpContent.EMPTY_LAST_CONTENT)
-                break
-            }
-
-            buf.writerIndex(rc)
-            decoder.offer(DefaultHttpContent(buf))
+        if (rc == -1) {
             buf.release()
-
-            processItems()
+            decoder.offer(DefaultLastHttpContent.EMPTY_LAST_CONTENT)
+            return false
         }
 
-        processItems()
-    }
-
-    private fun processItems() {
-        while (true) {
-            val hostPart = decoder.next() ?: break
-            val part = convert(hostPart)
-            if (part != null) {
-                all.add(part)
-            }
-        }
+        buf.writerIndex(rc)
+        decoder.offer(DefaultHttpContent(buf))
+        buf.release()
+        return true
     }
 
     internal fun destroy() {

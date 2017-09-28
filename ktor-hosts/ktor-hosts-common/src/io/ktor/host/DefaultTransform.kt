@@ -7,6 +7,7 @@ import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
+import sun.security.krb5.internal.*
 import java.io.*
 
 fun ApplicationSendPipeline.installDefaultTransformations() {
@@ -33,10 +34,15 @@ fun ApplicationReceivePipeline.installDefaultTransformations() {
                         parseQueryString(string)
                     }
                     contentType.match(ContentType.MultiPart.FormData) -> {
-                        val items = value.multiPartData().parts.filterIsInstance<PartData.FormItem>()
                         ValuesMap.build {
-                            items.forEach {
-                                it.partName?.let { name -> append(name, it.value) }
+                            val multipart = value.multiPartData()
+                            while (true) {
+                                val it = multipart.readPart() ?: break
+                                if (it is PartData.FormItem) {
+                                    it.partName?.let { name -> append(name, it.value) }
+                                } else {
+                                    it.dispose()
+                                }
                             }
                         }
                     }

@@ -73,11 +73,19 @@ class TestApplicationRequest(
         override fun inputStream(): InputStream = ByteArrayInputStream(request.bodyBytes)
 
         override fun multiPartData(): MultiPartData = object : MultiPartData {
+            private val items by lazy { request.multiPartEntries.iterator() }
+
             override val parts: Sequence<PartData>
                 get() = when {
                     request.isMultipart() -> request.multiPartEntries.asSequence()
                     else -> throw IOException("The request content is not multipart encoded")
                 }
+
+            suspend override fun readPart() = when {
+                !request.isMultipart() -> throw IOException("The request content is not multipart encoded")
+                items.hasNext() -> items.next()
+                else -> null
+            }
         }
     }
 }
