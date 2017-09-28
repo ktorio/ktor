@@ -34,6 +34,16 @@ class CIOMultipartData(private val channel: ByteReadChannel,
         }
     }
 
+    suspend override fun readPart(): PartData? {
+        while (true) {
+            val event = events.receiveOrNull() ?: return null
+            val part = eventToData(event)
+            if (part != null) {
+                return part
+            }
+        }
+    }
+
     private suspend fun eventToData(evt: MultipartEvent): PartData? {
         return try {
             when (evt) {

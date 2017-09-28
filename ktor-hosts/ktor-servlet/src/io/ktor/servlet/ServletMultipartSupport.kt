@@ -8,28 +8,36 @@ import java.nio.charset.*
 import javax.servlet.http.*
 
 internal class ServletMultiPartData(val request: ApplicationRequest, val servletRequest: HttpServletRequest) : MultiPartData {
+    private val partsIter by lazy { servletRequest.parts.iterator() }
+
     override val parts: Sequence<PartData>
         get() = when {
             request.contentType().match(ContentType.MultiPart.FormData) -> servletRequest.parts.asSequence().map {
-                when {
-                    it.isFormField -> {
-                        val charset = it.charset ?: servletRequest.charset()?: Charsets.UTF_8
-                        PartData.FormItem(
-                                value = it.inputStream.reader(charset).use { it.readText() },
-                                dispose = { it.delete() },
-                                partHeaders = it.toHeadersMap()
-                        )
-                    }
-                    else -> PartData.FileItem(
-                            streamProvider = { it.inputStream!! },
-                            dispose = { it.delete() },
-                            partHeaders = it.toHeadersMap()
-                    )
-                }
+                transformPart(it)
             }
             request.contentType().match(ContentType.MultiPart.Any) -> throw UnsupportedOperationException("Multipart encoding ${request.contentType()} is not supported by Servlet's implementation")
             else -> throw IOException("The request content is not multipart encoded")
         }
+
+    suspend override fun readPart() = if (partsIter.hasNext()) transformPart(partsIter.next()) else null
+
+    private fun transformPart(servletPart: Part): PartData {
+        return when {
+            servletPart.isFormField -> {
+                val charset = servletPart.charset ?: servletRequest.charset()?: Charsets.UTF_8
+                PartData.FormItem(
+                        value = servletPart.inputStream.reader(charset).use { it.readText() },
+                        dispose = { servletPart.delete() },
+                        partHeaders = servletPart.toHeadersMap()
+                )
+            }
+            else -> PartData.FileItem(
+                    streamProvider = { servletPart.inputStream!! },
+                    dispose = { servletPart.delete() },
+                    partHeaders = servletPart.toHeadersMap()
+            )
+        }
+    }
 
     private val Part.isFormField: Boolean
         get() = submittedFileName == null
