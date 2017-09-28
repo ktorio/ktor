@@ -1,8 +1,10 @@
 package io.ktor.netty
 
+import io.netty.buffer.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.multipart.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.io.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
 import io.ktor.request.*
@@ -10,41 +12,46 @@ import io.ktor.http.response.*
 import io.ktor.util.*
 import java.util.*
 
-internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestDecoder, private val queue: NettyContentQueue) : MultiPartData {
+internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestDecoder, val alloc: ByteBufAllocator, private val channel: ByteReadChannel) : MultiPartData {
     // netty's decoder doesn't provide us headers so we have to parse it or try to reconstruct
     // TODO original headers
 
     private val all = ArrayList<PartData>()
-    private var fetched = false
     private var destroyed = false
 
-    override val parts: Sequence<PartData>
-        get() = runBlocking(Unconfined) { parts() }
-
-    suspend fun parts(): Sequence<PartData> {
-        if (!fetched)
+    override val parts: Sequence<PartData> by lazy {
+        runBlocking(Unconfined) {
             processQueue()
-        return all.asSequence()
+        }
+        all.asSequence()
     }
 
-    suspend fun processQueue() {
-        while (true) {
-            val item = queue.pull() ?: run {
-                fetched = true
-                return
+    private suspend fun processQueue() {
+        val channel = this.channel
+        val alloc = this.alloc
+
+        while (!channel.isClosedForRead) {
+            val buf = alloc.buffer(channel.availableForRead.coerceIn(256, 4096))
+            val bb = buf.nioBuffer(buf.writerIndex(), buf.writableBytes())
+            val rc = channel.readAvailable(bb)
+
+            if (rc == -1) {
+                buf.release()
+                decoder.offer(DefaultLastHttpContent.EMPTY_LAST_CONTENT)
+                break
             }
 
-            try {
-                processItem(item)
-            } finally {
-                item.release()
-            }
+            buf.writerIndex(rc)
+            decoder.offer(DefaultHttpContent(buf))
+            buf.release()
+
+            processItems()
         }
 
+        processItems()
     }
 
-    fun processItem(content: HttpContent) {
-        decoder.offer(content)
+    private fun processItems() {
         while (true) {
             val hostPart = decoder.next() ?: break
             val part = convert(hostPart)
@@ -58,7 +65,9 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
         if (!destroyed) {
             destroyed = true
             decoder.destroy()
-            queue.dispose()
+            all.forEach {
+                it.dispose()
+            }
         }
     }
 

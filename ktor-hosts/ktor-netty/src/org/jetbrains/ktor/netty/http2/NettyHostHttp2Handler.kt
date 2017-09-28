@@ -1,14 +1,15 @@
-package io.ktor.netty
+package org.jetbrains.ktor.netty.http2
 
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import io.netty.util.*
 import io.netty.util.collection.*
 import io.netty.util.concurrent.*
-import io.ktor.application.*
-import io.ktor.host.*
-import io.ktor.netty.http2.*
-import io.ktor.response.*
+import kotlinx.coroutines.experimental.*
+import org.jetbrains.ktor.application.*
+import org.jetbrains.ktor.host.*
+import org.jetbrains.ktor.netty.*
+import org.jetbrains.ktor.response.*
 import java.nio.channels.*
 import kotlin.coroutines.experimental.*
 
@@ -24,10 +25,19 @@ class NettyHostHttp2Handler(private val hostPipeline: HostPipeline,
                 startHttp2(context, message.streamId(), message.headers(), http2)
             }
             is Http2DataFrame -> {
-                context.callByStreamId[message.streamId()]?.request?.contentQueue?.push(message, message.isEndStream)
+                context.callByStreamId[message.streamId()]?.request?.apply {
+                    val eof = message.isEndStream
+                    contentActor.offer(message)
+                    if (eof) {
+                        contentActor.close()
+                    }
+                } ?: message.release()
             }
             is Http2ResetFrame -> {
-                context.callByStreamId[message.streamId()]?.request?.contentQueue?.cancel(if (message.errorCode() == 0L) null else ClosedChannelException())
+                context.callByStreamId[message.streamId()]?.request?.let { r ->
+                    val e = if (message.errorCode() == 0L) null else Http2ClosedChannelException(message.errorCode())
+                    r.contentActor.close(e)
+                }
             }
             else -> context.fireChannelRead(message)
         }
@@ -54,7 +64,7 @@ class NettyHostHttp2Handler(private val hostPipeline: HostPipeline,
     }
 
     private fun startHttp2(context: ChannelHandlerContext, streamId: Int, headers: Http2Headers, http2: Http2Connection) {
-        val call = NettyHttp2ApplicationCall(application, context, headers, this, http2)
+        val call = NettyHttp2ApplicationCall(application, context, headers, this, http2, Unconfined, userCoroutineContext)
         context.callByStreamId[streamId] = call
 
         context.fireChannelRead(call)
@@ -84,6 +94,11 @@ class NettyHostHttp2Handler(private val hostPipeline: HostPipeline,
         context.writeAndFlush(pushPromiseFrame)
 
         startHttp2(context, streamId, pushPromiseFrame.headers, connection)
+    }
+
+    private class Http2ClosedChannelException(val errorCode: Long) : ClosedChannelException() {
+        override val message: String
+            get() = "Got close frame with code $errorCode"
     }
 
     companion object {

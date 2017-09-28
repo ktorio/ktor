@@ -23,4 +23,9 @@ sealed class PartData(val dispose: () -> Unit, val partHeaders: ValuesMap) {
 interface MultiPartData {
     val parts: Sequence<PartData>
     // TODO think of possible async methods
+
+    object Empty : MultiPartData {
+        override val parts: Sequence<PartData>
+            get() = emptySequence()
+    }
 }
