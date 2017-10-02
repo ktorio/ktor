@@ -25,7 +25,7 @@
         <dependency>
             <groupId>com.github.cy6erGn0m.kotlinx-sockets</groupId>
             <artifactId>kotlin-sockets</artifactId>
-            <version>298df234c9</version>
+            <version>${sockets.version}</version>
         </dependency>
 
 
