@@ -6,7 +6,7 @@ import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.http.HttpHeaders
 import org.jetbrains.ktor.request.*
-import org.jetbrains.ktor.response.*
+import org.jetbrains.ktor.http.response.*
 import org.jetbrains.ktor.util.*
 import java.util.*
 

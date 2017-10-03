@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.util
+package org.jetbrains.ktor.http.util
 
 data class URLProtocol(val name: String, val defaultPort: Int) {
     init {

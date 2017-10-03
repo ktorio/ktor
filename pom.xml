@@ -23,6 +23,8 @@
         <module>jetty-http2-client</module>
         <module>ktor-features</module>
         <module>ktor-hosts</module>
+        <module>http-core</module>
+        <module>ktor-utils</module>
     </modules>
 
     <profiles>

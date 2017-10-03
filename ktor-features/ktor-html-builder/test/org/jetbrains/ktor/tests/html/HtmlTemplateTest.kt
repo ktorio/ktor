@@ -3,6 +3,7 @@ package org.jetbrains.ktor.tests.html
 import kotlinx.html.*
 import org.jetbrains.ktor.html.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.testing.*
 import org.junit.*

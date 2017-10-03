@@ -3,6 +3,7 @@ package org.jetbrains.ktor.tests.http
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.util.*

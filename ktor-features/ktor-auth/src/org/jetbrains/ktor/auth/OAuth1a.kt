@@ -14,9 +14,10 @@ import java.util.concurrent.*
 import javax.crypto.*
 import javax.crypto.spec.*
 
-suspend internal fun PipelineContext<Unit>.oauth1a(client: HttpClient, exec: ExecutorService,
-                                                              providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                                              urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+suspend internal fun PipelineContext<Unit, ApplicationCall>.oauth1a(
+        client: HttpClient, exec: ExecutorService,
+        providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+        urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     val provider = call.providerLookup()
     if (provider is OAuthServerSettings.OAuth1aServerSettings) {
         val token = call.oauth1aHandleCallback()

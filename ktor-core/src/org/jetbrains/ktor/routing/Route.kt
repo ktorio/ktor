@@ -10,7 +10,7 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
 
     @Volatile var cachedPipeline: ApplicationCallPipeline? = null
 
-    internal val handlers = ArrayList<PipelineInterceptor<Unit>>()
+    internal val handlers = ArrayList<PipelineInterceptor<Unit, ApplicationCall>>()
 
     fun select(selector: RouteSelector): Route {
         val existingEntry = children.firstOrNull { it.selector == selector }
@@ -24,14 +24,14 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
 
     fun invoke(body: Route.() -> Unit) = apply(body)
 
-    fun handle(handler: PipelineInterceptor<Unit>) {
+    fun handle(handler: PipelineInterceptor<Unit, ApplicationCall>) {
         handlers.add(handler)
 
         // Adding a handler invalidates only pipeline for this entry
         cachedPipeline = null
     }
 
-    override fun intercept(phase: PipelinePhase, block: PipelineInterceptor<Unit>) {
+    override fun intercept(phase: PipelinePhase, block: PipelineInterceptor<Unit, ApplicationCall>) {
         super.intercept(phase, block)
 
         // Adding an interceptor invalidates pipelines for all children

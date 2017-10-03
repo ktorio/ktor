@@ -1,6 +1,6 @@
 package org.jetbrains.ktor.content
 
-import org.jetbrains.ktor.response.*
+import org.jetbrains.ktor.http.response.*
 import org.jetbrains.ktor.util.*
 
 class ByteArrayContent(private val bytes: ByteArray) : FinalContent.ByteArrayContent() {

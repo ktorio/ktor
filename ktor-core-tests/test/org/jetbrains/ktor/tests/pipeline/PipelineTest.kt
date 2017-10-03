@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.tests.pipeline
 
 import kotlinx.coroutines.experimental.*
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.testing.*
 import org.junit.*
@@ -11,9 +12,9 @@ class PipelineTest {
     val host = TestApplicationHost(environment).apply { start() }
     val call = TestApplicationCall(host.application)
     val callPhase = PipelinePhase("Call")
-    fun pipeline(): Pipeline<String> = Pipeline(callPhase)
-    fun Pipeline<String>.intercept(block: PipelineInterceptor<String>) = intercept(callPhase, block)
-    fun <T : Any> Pipeline<T>.executeBlocking(subject: T) = runBlocking { execute(call, subject) }
+    fun pipeline(): Pipeline<String, ApplicationCall> = Pipeline(callPhase)
+    fun Pipeline<String, ApplicationCall>.intercept(block: PipelineInterceptor<String, ApplicationCall>) = intercept(callPhase, block)
+    fun <T : Any> Pipeline<T, ApplicationCall>.executeBlocking(subject: T) = runBlocking { execute(call, subject) }
 
     @Test
     fun emptyPipeline() {
@@ -368,7 +369,7 @@ class PipelineTest {
         assertEquals(listOf("intercept1 some", "future1 some", "intercept2 another", "success1 some"), events)
     }
 
-    private fun checkBeforeAfterPipeline(after: PipelinePhase, before: PipelinePhase, pipeline: Pipeline<String>) {
+    private fun checkBeforeAfterPipeline(after: PipelinePhase, before: PipelinePhase, pipeline: Pipeline<String, ApplicationCall>) {
         var value = false
         pipeline.intercept(after) {
             value = true
@@ -386,7 +387,7 @@ class PipelineTest {
     fun phased() {
         val before = PipelinePhase("before")
         val after = PipelinePhase("after")
-        val pipeline = Pipeline<String>(before, after)
+        val pipeline = Pipeline<String, ApplicationCall>(before, after)
         checkBeforeAfterPipeline(after, before, pipeline)
     }
 
@@ -394,7 +395,7 @@ class PipelineTest {
     fun phasedNotRegistered() {
         val before = PipelinePhase("before")
         val after = PipelinePhase("after")
-        val pipeline = Pipeline<String>(before)
+        val pipeline = Pipeline<String, ApplicationCall>(before)
         assertFailsWith<InvalidPhaseException> {
             pipeline.intercept(after) {}
         }
@@ -402,7 +403,7 @@ class PipelineTest {
 
     @Test
     fun phasedBefore() {
-        val pipeline = Pipeline<String>()
+        val pipeline = Pipeline<String, ApplicationCall>()
         val before = PipelinePhase("before")
         val after = PipelinePhase("after")
         pipeline.addPhase(after)
@@ -412,7 +413,7 @@ class PipelineTest {
 
     @Test
     fun phasedAfter() {
-        val pipeline = Pipeline<String>()
+        val pipeline = Pipeline<String, ApplicationCall>()
         val before = PipelinePhase("before")
         val after = PipelinePhase("after")
         pipeline.addPhase(before)

@@ -11,9 +11,11 @@ import java.io.*
 import java.net.*
 import java.util.concurrent.*
 
-suspend internal fun PipelineContext<Unit>.oauth2(client: HttpClient, exec: ExecutorService,
-                                                             providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                                             urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+suspend internal fun PipelineContext<Unit, ApplicationCall>.oauth2(
+        client: HttpClient, exec: ExecutorService,
+        providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+        urlProvider: ApplicationCall.(OAuthServerSettings) -> String
+) {
     val provider = call.providerLookup()
     if (provider is OAuthServerSettings.OAuth2ServerSettings) {
         val token = call.oauth2HandleCallback()

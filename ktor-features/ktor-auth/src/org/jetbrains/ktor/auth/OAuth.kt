@@ -52,14 +52,16 @@ object OAuthGrantTypes {
     val Password = "password"
 }
 
-suspend fun PipelineContext<Unit>.oauth(client: HttpClient, exec: ExecutorService,
-                                                   providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                                   urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+suspend fun PipelineContext<Unit, ApplicationCall>.oauth(
+        client: HttpClient, exec: ExecutorService,
+        providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+        urlProvider: ApplicationCall.(OAuthServerSettings) -> String
+) {
     oauth1a(client, exec, providerLookup, urlProvider)
     oauth2(client, exec, providerLookup, urlProvider)
 }
 
-suspend fun PipelineContext<Unit>.oauthRespondRedirect(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String) {
+suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String) {
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
             runAsync(exec) {
@@ -73,13 +75,15 @@ suspend fun PipelineContext<Unit>.oauthRespondRedirect(client: HttpClient, exec:
     }
 }
 
-suspend fun PipelineContext<Unit>.oauthHandleCallback(client: HttpClient,
-                                                                 exec: ExecutorService,
-                                                                 provider: OAuthServerSettings,
-                                                                 callbackUrl: String,
-                                                                 loginPageUrl: String,
-                                                                 configure: RequestBuilder.() -> Unit = {},
-                                                                 block: suspend (OAuthAccessTokenResponse) -> Unit) {
+suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
+        client: HttpClient,
+        exec: ExecutorService,
+        provider: OAuthServerSettings,
+        callbackUrl: String,
+        loginPageUrl: String,
+        configure: RequestBuilder.() -> Unit = {},
+        block: suspend (OAuthAccessTokenResponse) -> Unit
+) {
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
             val tokens = call.oauth1aHandleCallback()

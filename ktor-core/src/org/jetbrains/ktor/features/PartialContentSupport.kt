@@ -4,6 +4,7 @@ import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.cio.*
 import org.jetbrains.ktor.content.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.http.response.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
@@ -28,7 +29,7 @@ class PartialContentSupport(val maxRangeCount: Int) {
         }
     }
 
-    suspend fun intercept(context: PipelineContext<Unit>) {
+    suspend fun intercept(context: PipelineContext<Unit, ApplicationCall>) {
         val call = context.call
         val rangeSpecifier = call.request.ranges()
         if (rangeSpecifier != null) {
@@ -59,7 +60,7 @@ class PartialContentSupport(val maxRangeCount: Int) {
         insertPhaseAfter(ApplicationSendPipeline.ContentEncoding, PartialContentPhase)
     }
 
-    private suspend fun PipelineContext<Any>.tryProcessRange(obj: FinalContent.ReadChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long) {
+    private suspend fun PipelineContext<Any, ApplicationCall>.tryProcessRange(obj: FinalContent.ReadChannelContent, call: ApplicationCall, rangesSpecifier: RangesSpecifier, length: Long) {
         if (checkIfRangeHeader(obj, call)) {
             processRange(obj, rangesSpecifier, length)
         } else {
@@ -83,7 +84,7 @@ class PartialContentSupport(val maxRangeCount: Int) {
     }
 
 
-    private suspend fun PipelineContext<Any>.processRange(obj: FinalContent.ReadChannelContent, rangesSpecifier: RangesSpecifier, length: Long) {
+    private suspend fun PipelineContext<Any, ApplicationCall>.processRange(obj: FinalContent.ReadChannelContent, rangesSpecifier: RangesSpecifier, length: Long) {
         require(length >= 0L)
         val merged = rangesSpecifier.merge(length, maxRangeCount)
         if (merged.isEmpty()) {
@@ -110,11 +111,11 @@ class PartialContentSupport(val maxRangeCount: Int) {
         channel.close()
     }
 
-    private suspend fun PipelineContext<Any>.processSingleRange(obj: FinalContent.ReadChannelContent, channel: ReadChannel, range: LongRange, length: Long) {
+    private suspend fun PipelineContext<Any, ApplicationCall>.processSingleRange(obj: FinalContent.ReadChannelContent, channel: ReadChannel, range: LongRange, length: Long) {
         proceedWith(RangeChannelProvider.Single(call.isGet(), obj.headers, channel, range, length))
     }
 
-    private suspend fun PipelineContext<Any>.processMultiRange(obj: FinalContent.ReadChannelContent, channel: ReadChannel, ranges: List<LongRange>, length: Long) {
+    private suspend fun PipelineContext<Any, ApplicationCall>.processMultiRange(obj: FinalContent.ReadChannelContent, channel: ReadChannel, ranges: List<LongRange>, length: Long) {
         val boundary = "ktor-boundary-" + nextNonce()
 
         call.attributes.put(Compression.SuppressionAttribute, true) // multirange with compression is not supported yet

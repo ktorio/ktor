@@ -51,7 +51,7 @@ class Compression(compression: Configuration) {
     private val options = compression.build()
     private val comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>({ it.second.quality }, { it.first.priority }).reversed()
 
-    private suspend fun interceptor(context: PipelineContext<Any>) {
+    private suspend fun interceptor(context: PipelineContext<Any, ApplicationCall>) {
         val call = context.call
         val message = context.subject
         val acceptEncodingRaw = call.request.acceptEncoding()
