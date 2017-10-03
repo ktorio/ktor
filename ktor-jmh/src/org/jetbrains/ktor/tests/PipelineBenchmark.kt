@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.tests
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.testing.*
 import org.jetbrains.ktor.util.*
@@ -30,12 +31,12 @@ abstract class PipelineBenchmark {
     val call = TestApplicationCall(host.application)
 
     val callPhase = PipelinePhase("Call")
-    fun pipeline(): Pipeline<String> = Pipeline(callPhase)
-    fun Pipeline<String>.intercept(block: PipelineInterceptor<String>) = intercept(callPhase, block)
+    fun pipeline(): Pipeline<String, ApplicationCall> = Pipeline(callPhase)
+    fun Pipeline<String, ApplicationCall>.intercept(block: PipelineInterceptor<String, ApplicationCall>) = intercept(callPhase, block)
 
-    fun <T : Any> Pipeline<T>.executeBlocking(subject: T) = runSync { execute(call, subject) }
+    fun <T : Any> Pipeline<T, ApplicationCall>.executeBlocking(subject: T) = runSync { execute(call, subject) }
 
-    lateinit var pipeline: Pipeline<String>
+    lateinit var pipeline: Pipeline<String, ApplicationCall>
 
     @Setup(Level.Iteration)
     fun createPipeline() {
@@ -43,7 +44,7 @@ abstract class PipelineBenchmark {
         pipeline.configure()
     }
 
-    abstract fun Pipeline<String>.configure()
+    abstract fun Pipeline<String, ApplicationCall>.configure()
 
     @Benchmark
     fun execute() {
@@ -52,7 +53,7 @@ abstract class PipelineBenchmark {
 }
 
 open class PipelineFork : PipelineBenchmark() {
-    override fun Pipeline<String>.configure() {
+    override fun Pipeline<String, ApplicationCall>.configure() {
         val another = pipeline()
         another.intercept { proceed() }
         pipeline.intercept {
@@ -63,7 +64,7 @@ open class PipelineFork : PipelineBenchmark() {
 }
 
 open class PipelineFork2 : PipelineBenchmark() {
-    override fun Pipeline<String>.configure() {
+    override fun Pipeline<String, ApplicationCall>.configure() {
         val another = pipeline()
         val double = pipeline()
         double.intercept { proceed() }
@@ -79,7 +80,7 @@ open class PipelineFork2 : PipelineBenchmark() {
 }
 
 open class PipelineFork2Implicit : PipelineBenchmark() {
-    override fun Pipeline<String>.configure() {
+    override fun Pipeline<String, ApplicationCall>.configure() {
         val another = pipeline()
         val double = pipeline()
         double.intercept { }
@@ -89,20 +90,20 @@ open class PipelineFork2Implicit : PipelineBenchmark() {
 }
 
 open class PipelineAction : PipelineBenchmark() {
-    override fun Pipeline<String>.configure() {
+    override fun Pipeline<String, ApplicationCall>.configure() {
         pipeline.intercept { proceed() }
     }
 }
 
 open class PipelineAction2 : PipelineBenchmark() {
-    override fun Pipeline<String>.configure() {
+    override fun Pipeline<String, ApplicationCall>.configure() {
         pipeline.intercept { proceed() }
         pipeline.intercept { proceed() }
     }
 }
 
 open class PipelineAction3 : PipelineBenchmark() {
-    override fun Pipeline<String>.configure() {
+    override fun Pipeline<String, ApplicationCall>.configure() {
         pipeline.intercept { proceed() }
         pipeline.intercept { proceed() }
         pipeline.intercept { proceed() }
@@ -110,7 +111,7 @@ open class PipelineAction3 : PipelineBenchmark() {
 }
 
 open class PipelineAction3Implicit : PipelineBenchmark() {
-    override fun Pipeline<String>.configure() {
+    override fun Pipeline<String, ApplicationCall>.configure() {
         pipeline.intercept { }
         pipeline.intercept { }
         pipeline.intercept { }

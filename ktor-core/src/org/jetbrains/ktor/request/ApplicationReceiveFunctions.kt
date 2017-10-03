@@ -9,7 +9,7 @@ import java.io.*
 import kotlin.reflect.*
 
 class ApplicationReceiveRequest(val type: KClass<*>, val value: Any)
-open class ApplicationReceivePipeline : Pipeline<ApplicationReceiveRequest>(Before, Transform, After) {
+open class ApplicationReceivePipeline : Pipeline<ApplicationReceiveRequest, ApplicationCall>(Before, Transform, After) {
     companion object Phases {
         val Before = PipelinePhase("Before")
 

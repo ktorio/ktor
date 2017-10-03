@@ -1,5 +1,6 @@
 package org.jetbrains.ktor.routing
 
+import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.http.*
 import org.jetbrains.ktor.pipeline.*
 
@@ -76,98 +77,98 @@ fun Route.requestContentType(contentType: ContentType, build: Route.() -> Unit):
 /**
  * Builds a route to match `GET` requests with specified [path]
  */
-fun Route.get(path: String, body: PipelineInterceptor<Unit>): Route {
+fun Route.get(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return route(HttpMethod.Get, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `GET` requests
  */
-fun Route.get(body: PipelineInterceptor<Unit>): Route {
+fun Route.get(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod.Get) { handle(body) }
 }
 
 /**
  * Builds a route to match `POST` requests with specified [path]
  */
-fun Route.post(path: String, body: PipelineInterceptor<Unit>): Route {
+fun Route.post(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return route(HttpMethod.Post, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `POST` requests
  */
-fun Route.post(body: PipelineInterceptor<Unit>): Route {
+fun Route.post(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod.Post) { handle(body) }
 }
 
 /**
  * Builds a route to match `HEAD` requests with specified [path]
  */
-fun Route.head(path: String, body: PipelineInterceptor<Unit>): Route {
+fun Route.head(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return route(HttpMethod.Head, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `HEAD` requests
  */
-fun Route.head(body: PipelineInterceptor<Unit>): Route {
+fun Route.head(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod.Head) { handle(body) }
 }
 
 /**
  * Builds a route to match `PUT` requests with specified [path]
  */
-fun Route.put(path: String, body: PipelineInterceptor<Unit>): Route {
+fun Route.put(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return route(HttpMethod.Put, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `PUT` requests
  */
-fun Route.put(body: PipelineInterceptor<Unit>): Route {
+fun Route.put(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod.Put) { handle(body) }
 }
 
 /**
  * Builds a route to match `PATCH` requests with specified [path]
  */
-fun Route.patch(path: String, body: PipelineInterceptor<Unit>): Route {
+fun Route.patch(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return route(HttpMethod.Patch, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `PATCH` requests
  */
-fun Route.patch(body: PipelineInterceptor<Unit>): Route {
+fun Route.patch(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod.Patch) { handle(body) }
 }
 
 /**
  * Builds a route to match `DELETE` requests with specified [path]
  */
-fun Route.delete(path: String, body: PipelineInterceptor<Unit>): Route {
+fun Route.delete(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return route(HttpMethod.Delete, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `DELETE` requests
  */
-fun Route.delete(body: PipelineInterceptor<Unit>): Route {
+fun Route.delete(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod.Delete) { handle(body) }
 }
 
 /**
  * Builds a route to match `OPTIONS` requests with specified [path]
  */
-fun Route.options(path: String, body: PipelineInterceptor<Unit>): Route {
+fun Route.options(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return route(HttpMethod.Options, path) { handle(body) }
 }
 
 /**
  * Builds a route to match `OPTIONS` requests
  */
-fun Route.options(body: PipelineInterceptor<Unit>): Route {
+fun Route.options(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return method(HttpMethod.Options) { handle(body) }
 }
 

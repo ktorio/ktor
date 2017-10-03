@@ -3,6 +3,7 @@ package org.jetbrains.ktor.locations
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.http.util.*
 import org.jetbrains.ktor.routing.*
 import org.jetbrains.ktor.util.*
 import java.lang.reflect.*

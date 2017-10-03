@@ -4,7 +4,7 @@ import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 
-open class ApplicationCallPipeline : Pipeline<Unit>(Infrastructure, Call, Fallback) {
+open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(Infrastructure, Call, Fallback) {
     /**
      * Pipeline for receiving content
      */

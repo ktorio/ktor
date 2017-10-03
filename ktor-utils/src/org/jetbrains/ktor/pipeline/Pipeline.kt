@@ -1,24 +1,25 @@
 package org.jetbrains.ktor.pipeline
 
-import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.util.*
 import java.util.*
 
-open class Pipeline<TSubject : Any>(vararg phases: PipelinePhase) {
+open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase) {
     /**
      * Provides common place to store pipeline attributes
      */
     val attributes = Attributes()
 
-    constructor(phase: PipelinePhase, interceptors: List<PipelineInterceptor<TSubject>>) : this(phase) {
+    constructor(phase: PipelinePhase, interceptors: List<PipelineInterceptor<TSubject, TContext>>) : this(phase) {
         interceptors.forEach { intercept(phase, it) }
     }
 
-    suspend fun execute(call: ApplicationCall, subject: TSubject): TSubject = PipelineContext(call, interceptors(), subject).proceed()
+    suspend fun execute(context: TContext, subject: TSubject): TSubject = PipelineContext(context, interceptors(), subject).proceed()
 
-    private class PhaseContent<TSubject : Any>(val phase: PipelinePhase,
-                                               val relation: PipelinePhaseRelation,
-                                               val interceptors: ArrayList<PipelineInterceptor<TSubject>>) {
+    private class PhaseContent<TSubject : Any, Call: Any>(
+            val phase: PipelinePhase,
+            val relation: PipelinePhaseRelation,
+            val interceptors: ArrayList<PipelineInterceptor<TSubject, Call>>
+    ) {
         override fun toString(): String = "Phase `${phase.name}`, ${interceptors.size} handlers"
     }
 
@@ -28,13 +29,13 @@ open class Pipeline<TSubject : Any>(vararg phases: PipelinePhase) {
         object Last : PipelinePhaseRelation()
     }
 
-    private val phases = phases.mapTo(ArrayList<PhaseContent<TSubject>>(phases.size)) {
+    private val phases = phases.mapTo(ArrayList<PhaseContent<TSubject, TContext>>(phases.size)) {
         PhaseContent(it, PipelinePhaseRelation.Last, arrayListOf())
     }
 
     private var interceptorsQuantity = 0
     @Volatile
-    private var interceptors: ArrayList<PipelineInterceptor<TSubject>>? = null
+    private var interceptors: ArrayList<PipelineInterceptor<TSubject, TContext>>? = null
 
     val items: List<PipelinePhase> get() = phases.map { it.phase }
 
@@ -62,12 +63,12 @@ open class Pipeline<TSubject : Any>(vararg phases: PipelinePhase) {
         interceptors = null
     }
 
-    private fun interceptors(): ArrayList<PipelineInterceptor<TSubject>> {
+    private fun interceptors(): ArrayList<PipelineInterceptor<TSubject, TContext>> {
         return interceptors ?: cacheInterceptors()
     }
 
-    private fun cacheInterceptors(): ArrayList<PipelineInterceptor<TSubject>> {
-        val destination = ArrayList<PipelineInterceptor<TSubject>>(interceptorsQuantity)
+    private fun cacheInterceptors(): ArrayList<PipelineInterceptor<TSubject, TContext>> {
+        val destination = ArrayList<PipelineInterceptor<TSubject, TContext>>(interceptorsQuantity)
         for (phaseIndex in 0..phases.lastIndex) {
             val elements = phases[phaseIndex].interceptors
             for (elementIndex in 0..elements.lastIndex) {
@@ -78,7 +79,7 @@ open class Pipeline<TSubject : Any>(vararg phases: PipelinePhase) {
         return destination
     }
 
-    open fun intercept(phase: PipelinePhase, block: PipelineInterceptor<TSubject>) {
+    open fun intercept(phase: PipelinePhase, block: PipelineInterceptor<TSubject, TContext>) {
         val phaseContent = phases.firstOrNull { it.phase == phase }
                 ?: throw InvalidPhaseException("Phase $phase was not registered for this pipeline")
 
@@ -97,7 +98,7 @@ open class Pipeline<TSubject : Any>(vararg phases: PipelinePhase) {
         }
 
         @JvmStatic
-        private fun <TSubject : Any> ArrayList<PhaseContent<TSubject>>.findPhase(phase: PipelinePhase): PhaseContent<TSubject>? {
+        private fun <TSubject : Any, Call : Any> ArrayList<PhaseContent<TSubject, Call>>.findPhase(phase: PipelinePhase): PhaseContent<TSubject, Call>? {
             for (index in 0..lastIndex) {
                 val localPhase = get(index)
                 if (localPhase.phase == phase)
@@ -107,7 +108,7 @@ open class Pipeline<TSubject : Any>(vararg phases: PipelinePhase) {
         }
     }
 
-    fun merge(from: Pipeline<TSubject>) {
+    fun merge(from: Pipeline<TSubject, TContext>) {
         if (from.phases.isEmpty())
             return
         if (phases.isEmpty()) {
@@ -115,7 +116,7 @@ open class Pipeline<TSubject : Any>(vararg phases: PipelinePhase) {
             @Suppress("LoopToCallChain")
             for (index in 0..fromPhases.lastIndex) {
                 val fromContent = fromPhases[index]
-                val interceptors = ArrayList<PipelineInterceptor<TSubject>>(fromContent.interceptors.size)
+                val interceptors = ArrayList<PipelineInterceptor<TSubject, TContext>>(fromContent.interceptors.size)
                 interceptors.fastAddAll(fromContent.interceptors)
                 phases.add(PhaseContent(fromContent.phase, fromContent.relation, interceptors))
             }
@@ -142,7 +143,7 @@ open class Pipeline<TSubject : Any>(vararg phases: PipelinePhase) {
     }
 }
 
-inline suspend fun Pipeline<Unit>.execute(call: ApplicationCall) = execute(call, Unit)
+inline suspend fun <TContext : Any> Pipeline<Unit, TContext>.execute(context: TContext) = execute(context, Unit)
 
-typealias PipelineInterceptor<TSubject> = suspend PipelineContext<TSubject>.(TSubject) -> Unit
+typealias PipelineInterceptor<TSubject, TContext> = suspend PipelineContext<TSubject, TContext>.(TSubject) -> Unit
 

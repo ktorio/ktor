@@ -3,6 +3,7 @@ package org.jetbrains.ktor.gson.tests
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.gson.*
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*

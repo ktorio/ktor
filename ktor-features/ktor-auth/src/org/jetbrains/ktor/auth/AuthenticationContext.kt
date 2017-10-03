@@ -23,7 +23,7 @@ class AuthenticationContext {
 
     suspend fun challenge(key: Any,
                           cause: NotAuthenticatedCause,
-                          function: PipelineInterceptor<AuthenticationProcedureChallenge>) {
+                          function: PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>) {
         error(key, cause)
         challenge.register.add(cause to function)
     }

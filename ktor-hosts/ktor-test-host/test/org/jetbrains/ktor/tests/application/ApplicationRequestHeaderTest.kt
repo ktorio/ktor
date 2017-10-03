@@ -1,6 +1,7 @@
 package org.jetbrains.ktor.tests.application
 
 import org.jetbrains.ktor.http.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.request.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*

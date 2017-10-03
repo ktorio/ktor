@@ -2,6 +2,7 @@ package org.jetbrains.ktor.samples.hello
 
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.features.*
+import org.jetbrains.ktor.pipeline.*
 import org.jetbrains.ktor.response.*
 import org.jetbrains.ktor.routing.*
 

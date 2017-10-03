@@ -9,6 +9,13 @@
 
     <artifactId>ktor-core</artifactId>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.jetbrains.ktor</groupId>
+            <artifactId>http-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
 
     <build>
         <plugins>

@@ -1,8 +1,9 @@
 package org.jetbrains.ktor.response
 
+import org.jetbrains.ktor.application.ApplicationCall
 import org.jetbrains.ktor.pipeline.*
 
-open class ApplicationSendPipeline : Pipeline<Any>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Host) {
+open class ApplicationSendPipeline : Pipeline<Any, ApplicationCall>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Host) {
     companion object Phases {
         /**
          * The earliest phase that happens before any other

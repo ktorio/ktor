@@ -46,7 +46,7 @@ class Authentication(val pipeline: AuthenticationPipeline) {
 
 }
 
-class AuthenticationPipeline() : Pipeline<AuthenticationContext>(CheckAuthentication, RequestAuthentication) {
+class AuthenticationPipeline() : Pipeline<AuthenticationContext, ApplicationCall>(CheckAuthentication, RequestAuthentication) {
     companion object {
         val CheckAuthentication = PipelinePhase("CheckAuthentication")
         val RequestAuthentication = PipelinePhase("RequestAuthentication")
@@ -59,9 +59,9 @@ fun ApplicationCallPipeline.authentication(procedure: AuthenticationPipeline.() 
 }
 
 class AuthenticationProcedureChallenge {
-    internal val register = mutableListOf<Pair<NotAuthenticatedCause, PipelineInterceptor<AuthenticationProcedureChallenge>>>()
+    internal val register = mutableListOf<Pair<NotAuthenticatedCause, PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>>>()
 
-    val challenges: List<PipelineInterceptor<AuthenticationProcedureChallenge>>
+    val challenges: List<PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>>
         get() = register.filter { it.first !is NotAuthenticatedCause.Error }.sortedBy {
             when (it.first) {
                 NotAuthenticatedCause.InvalidCredentials -> 1
