@@ -53,7 +53,7 @@ private class Http2Connection(val host: String, val port: Int, val secure: Boole
         configure(builder)
 
         val rr = stream(builder)
-        sendBody(rr.stream, rr, builder)
+        sendBody(rr.stream, builder)
 
         rr.awaitStatus()
 
@@ -66,14 +66,13 @@ private class Http2Connection(val host: String, val port: Int, val secure: Boole
                 withCallback<Unit> {
                     session.close(0, null, it)
                 }
-
             }
         } finally {
             jettyClient.stop()
         }
     }
 
-    private suspend fun sendBody(stream: Stream, rr: RequestResponse, rb: RequestBuilder) {
+    private suspend fun sendBody(stream: Stream, rb: RequestBuilder) {
         rb.body?.let { body ->
             val failures = ArrayBlockingQueue<Throwable>(1)
             var outstanding = 0
@@ -119,8 +118,11 @@ private class Http2Connection(val host: String, val port: Int, val secure: Boole
 
                 private fun writeEnter() {
                     l.withLock {
+                        checkFailures()
+
                         while (outstanding == 5) {
                             sent.await()
+                            checkFailures()
                         }
 
                         outstanding++
@@ -130,11 +132,15 @@ private class Http2Connection(val host: String, val port: Int, val secure: Boole
                 override fun flush() {
                     l.withLock {
                         while (true) {
-                            failures.peek()?.let { throw it }
+                            checkFailures()
                             if (outstanding == 0) break
                             empty.await()
                         }
                     }
+                }
+
+                private fun checkFailures() {
+                    failures.peek()?.let { throw it }
                 }
             }
 
@@ -171,7 +177,7 @@ private class Http2Connection(val host: String, val port: Int, val secure: Boole
     }
 }
 
-private class RequestResponse(override val connection: HttpConnection) : ReadChannel, HttpResponse {
+private class RequestResponse(override val connection: Http2Connection) : ReadChannel, HttpResponse {
     lateinit var stream: Stream
 
     private val headersBuilder = ValuesMapBuilder(caseInsensitiveKey = true)
@@ -249,6 +255,8 @@ private class RequestResponse(override val connection: HttpConnection) : ReadCha
 
         return if (frame != null) {
             readImpl(frame, dst)
+        } else if (data.isClosedForReceive) {
+            -1
         } else {
             readSuspend(dst)
         }
@@ -275,30 +283,8 @@ private class RequestResponse(override val connection: HttpConnection) : ReadCha
     }
 
     override fun close() {
-        var t: Throwable? = null
-        val l = CountDownLatch(1)
-
-        if (data.close()) {
-
-            stream.reset(ResetFrame(stream.id, 0), object : Callback {
-                override fun succeeded() {
-                    l.countDown()
-                }
-
-                override fun failed(x: Throwable?) {
-                    t = x
-                    l.countDown()
-                }
-            })
-
-        } else {
-            l.countDown()
-        }
-
-        l.await()
-
+        data.close()
         connection.close()
-        t?.let { throw it }
     }
 
     companion object {
