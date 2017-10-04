@@ -4,6 +4,7 @@ import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
+import io.netty.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.channels.Channel
@@ -71,6 +72,10 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext, ini
         }
 
         dst.close()
+    }
+
+    companion object {
+        internal val ContextKey = AttributeKey.newInstance<NettyResponsePipeline>("NettyResponsePipeline")
     }
 }
 

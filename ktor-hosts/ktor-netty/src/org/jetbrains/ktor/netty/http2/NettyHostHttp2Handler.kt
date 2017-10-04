@@ -9,6 +9,9 @@ import kotlinx.coroutines.experimental.*
 import org.jetbrains.ktor.application.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.*
+import org.jetbrains.ktor.netty.cio.*
+import org.jetbrains.ktor.netty.cio.NettyResponsePipeline.*
+import org.jetbrains.ktor.netty.http1.*
 import org.jetbrains.ktor.response.*
 import java.nio.channels.*
 import kotlin.coroutines.experimental.*
@@ -48,6 +51,10 @@ class NettyHostHttp2Handler(private val hostPipeline: HostPipeline,
             addLast(callEventGroup, NettyApplicationCallHandler(userCoroutineContext, hostPipeline))
         }
 
+        val responseWriter = NettyResponsePipeline(ctx, WriterEncapsulation.Http2)
+
+        ctx.channel().attr(NettyResponsePipeline.ContextKey).set(responseWriter)
+
         super.channelActive(ctx)
     }
 
@@ -66,6 +73,7 @@ class NettyHostHttp2Handler(private val hostPipeline: HostPipeline,
     private fun startHttp2(context: ChannelHandlerContext, streamId: Int, headers: Http2Headers, http2: Http2Connection) {
         val call = NettyHttp2ApplicationCall(application, context, headers, this, http2, Unconfined, userCoroutineContext)
         context.callByStreamId[streamId] = call
+        context.channel().attr(NettyResponsePipeline.ContextKey).get().send(call)
 
         context.fireChannelRead(call)
     }

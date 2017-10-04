@@ -4,11 +4,11 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.HttpResponseStatus.*
 import io.netty.handler.codec.http.HttpVersion.*
-import io.netty.util.*
 import io.netty.util.concurrent.*
 import org.jetbrains.ktor.host.*
 import org.jetbrains.ktor.netty.*
 import org.jetbrains.ktor.netty.cio.*
+import org.jetbrains.ktor.netty.cio.NettyResponsePipeline.*
 import kotlin.coroutines.experimental.*
 
 @ChannelHandler.Sharable
@@ -41,7 +41,7 @@ internal class NettyHostHttp1Handler(private val hostPipeline: HostPipeline,
         }
 
         val call = NettyHttp1ApplicationCall(environment.application, context, message, requestBodyChannel, hostCoroutineContext, userCoroutineContext)
-        context.channel().attr(ResponseWriterKey).get().send(call)
+        context.channel().attr(NettyResponsePipeline.ContextKey).get().send(call)
 
         context.fireChannelRead(call)
     }
@@ -52,7 +52,7 @@ internal class NettyHostHttp1Handler(private val hostPipeline: HostPipeline,
             val requestBodyHandler = RequestBodyHandler(ctx)
             val responseWriter = NettyResponsePipeline(ctx, WriterEncapsulation.Http1)
 
-            ctx.channel().attr(ResponseWriterKey).set(responseWriter)
+            ctx.channel().attr(NettyResponsePipeline.ContextKey).set(responseWriter)
 
             ctx.pipeline().apply {
                 addLast(requestBodyHandler)
@@ -71,18 +71,14 @@ internal class NettyHostHttp1Handler(private val hostPipeline: HostPipeline,
                 remove(NettyApplicationCallHandler::class.java)
             }
 
-            ctx.channel().attr(ResponseWriterKey).getAndSet(null)?.close()
+            ctx.channel().attr(NettyResponsePipeline.ContextKey).getAndSet(null)?.close()
         }
         super.channelInactive(ctx)
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         ctx.close()
-        ctx.channel().attr(ResponseWriterKey).getAndSet(null)?.job?.cancel(cause)
-    }
-
-    companion object {
-        internal val ResponseWriterKey = AttributeKey.newInstance<NettyResponsePipeline>("NettyResponsePipeline")
+        ctx.channel().attr(NettyResponsePipeline.ContextKey).getAndSet(null)?.job?.cancel(cause)
     }
 }
 
