@@ -82,6 +82,16 @@ suspend fun HttpResponse.readBytes(): ByteArray {
     return result.toByteArray()
 }
 
+suspend fun HttpResponse.discardRemaining() {
+    val rch = channel
+    val bb = ByteBuffer.allocate(8192)
+
+    while (true) {
+        bb.clear()
+        if (rch.read(bb) == -1) break
+    }
+}
+
 class RequestBuilder {
     private val headersBuilder = ValuesMapBuilder()
     var body: ((OutputStream) -> Unit)? = null
