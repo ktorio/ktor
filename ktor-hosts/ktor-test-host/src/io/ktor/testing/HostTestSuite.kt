@@ -263,12 +263,16 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
             assertEquals(0xfe, bytes[1].toInt() and 0xff)
             assertEquals(0xba, bytes[2].toInt() and 0xff)
             assertEquals(0xbe, bytes[3].toInt() and 0xff)
+
+            discardRemaining()
         }
         withUrl("/files/${HostTestSuite::class.simpleName}.class2") {
             assertEquals(HttpStatusCode.NotFound.value, status.value)
+            discardRemaining()
         }
         withUrl("/wefwefwefw") {
             assertEquals(HttpStatusCode.NotFound.value, status.value)
+            discardRemaining()
         }
     }
 
