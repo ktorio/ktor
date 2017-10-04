@@ -27,7 +27,7 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     protected var server: THost? = null
     protected val exceptions = ArrayList<Throwable>()
     protected var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
-    protected var enableSsl: Boolean = System.getProperty("enable.ssl") == "true"
+    protected var enableSsl: Boolean = System.getProperty("enable.ssl") != "false"
 
     private val allConnections = CopyOnWriteArrayList<HttpURLConnection>()
 
@@ -167,7 +167,7 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
             withUrl(URL("https://127.0.0.1:$sslPort$path"), sslPort, builder, block)
         }
 
-        if (enableHttp2) {
+        if (enableHttp2 && enableSsl) {
             withHttp2(URL("https://127.0.0.1:$sslPort$path"), sslPort, builder, block)
         }
     }
