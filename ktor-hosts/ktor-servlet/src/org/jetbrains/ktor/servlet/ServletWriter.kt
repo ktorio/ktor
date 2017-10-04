@@ -2,14 +2,17 @@ package org.jetbrains.ktor.servlet
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.sockets.*
 import kotlinx.sockets.impl.*
+import org.jetbrains.ktor.cio.*
+import java.io.*
 import javax.servlet.*
 
 internal fun servletWriter(output: ServletOutputStream): ReaderJob {
     val writer = ServletWriter(output)
-    return reader(ioCoroutineDispatcher, writer.channel) {
+    return reader(Unconfined, writer.channel) {
         writer.run()
     }
 }
@@ -34,15 +37,22 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
             loop(buffer)
 
             finish()
+
+            // we shouldn't recycle it in finally
+            // because in case of error the buffer could be still hold by servlet container
+            // so we simply drop it as buffer leak has only limited performance impact
+            // (buffer will be collected by GC and pool will produce another one)
+            ArrayPool.recycle(buffer)
         } catch (t: Throwable) {
             onError(t)
         } finally {
+            events.close()
             output.close()
-            ArrayPool.recycle(buffer)
         }
     }
 
     private suspend fun finish() {
+        awaitReady()
         output.flush()
         awaitReady()
     }
@@ -78,6 +88,12 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
 
     override fun onError(t: Throwable) {
         events.close(t)
-        channel.close(t)
+        channel.close(wrapException(t))
+    }
+
+    private fun wrapException(t: Throwable): Throwable {
+        return if (t is IOException) {
+            ChannelWriteException(exception = t)
+        } else t
     }
 }
