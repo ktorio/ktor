@@ -28,7 +28,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         merge(call.application.sendPipeline)
         intercept(ApplicationSendPipeline.Host) {
             if (responded)
-                throw ResponseAlreadySendException()
+                throw ResponseAlreadySentException()
             val response = subject
             if (response is FinalContent) {
                 respondFinalContent(response)
@@ -118,5 +118,5 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         link(builder.url.build(), LinkHeader.Rel.Prefetch)
     }
 
-    class ResponseAlreadySendException : IllegalStateException("Response has already been sent")
+    class ResponseAlreadySentException : IllegalStateException("Response has already been sent")
 }
