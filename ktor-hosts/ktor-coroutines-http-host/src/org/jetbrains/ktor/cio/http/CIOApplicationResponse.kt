@@ -65,7 +65,6 @@ class CIOApplicationResponse(call: ApplicationCall,
     suspend override fun respondFromBytes(bytes: ByteArray) {
         sendResponseMessage(false)
         output.writeFully(bytes)
-        output.flush()
         output.close()
     }
 
