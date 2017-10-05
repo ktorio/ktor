@@ -4,7 +4,7 @@
 
     <parent>
         <artifactId>ktor-samples</artifactId>
-        <groupId>org.jetbrains.ktor</groupId>
+        <groupId>io.ktor</groupId>
         <version>0.4.1-SNAPSHOT</version>
     </parent>
 
@@ -20,22 +20,22 @@
     </build>
     <dependencies>
         <dependency>
-            <groupId>org.jetbrains.ktor</groupId>
+            <groupId>io.ktor</groupId>
             <artifactId>ktor-locations</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jetbrains.ktor</groupId>
+            <groupId>io.ktor</groupId>
             <artifactId>ktor-html-builder</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jetbrains.ktor</groupId>
+            <groupId>io.ktor</groupId>
             <artifactId>ktor-auth-ldap</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.jetbrains.ktor</groupId>
+            <groupId>io.ktor</groupId>
             <artifactId>ktor-auth</artifactId>
             <version>${project.version}</version>
         </dependency>

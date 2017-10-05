@@ -2,15 +2,15 @@ package kweet
 
 import kweet.dao.*
 import kweet.model.*
-import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.freemarker.*
-import org.jetbrains.ktor.locations.*
-import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.request.*
-import org.jetbrains.ktor.response.*
-import org.jetbrains.ktor.routing.*
-import org.jetbrains.ktor.sessions.*
-import org.jetbrains.ktor.util.*
+import io.ktor.application.*
+import io.ktor.freemarker.*
+import io.ktor.locations.*
+import io.ktor.pipeline.*
+import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.sessions.*
+import io.ktor.util.*
 
 fun Route.register(dao: DAOFacade, hashFunction: (String) -> String) {
     post<Register> {

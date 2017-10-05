@@ -1,0 +1,123 @@
+package io.ktor.tomcat
+
+import org.apache.catalina.connector.*
+import org.apache.catalina.startup.Tomcat
+import org.apache.coyote.http2.*
+import org.apache.tomcat.jni.*
+import org.apache.tomcat.util.net.*
+import org.apache.tomcat.util.net.jsse.*
+import org.apache.tomcat.util.net.openssl.*
+import io.ktor.application.*
+import io.ktor.host.*
+import io.ktor.servlet.*
+import java.nio.file.*
+import java.util.concurrent.*
+import javax.servlet.*
+
+class TomcatApplicationHost(environment: ApplicationHostEnvironment) : BaseApplicationHost(environment) {
+    private val tempDirectory by lazy { Files.createTempDirectory("ktor-tomcat-") }
+
+    private val ktorServlet = object : KtorServlet() {
+        override val hostPipeline: HostPipeline
+            get() = this@TomcatApplicationHost.pipeline
+        override val application: Application
+            get() = this@TomcatApplicationHost.application
+    }
+
+    private val server = Tomcat().apply {
+        service.apply {
+            findConnectors().forEach { existing ->
+                removeConnector(existing)
+            }
+
+            environment.connectors.forEach { ktorConnector ->
+                addConnector(Connector().apply {
+                    port = ktorConnector.port
+
+                    if (ktorConnector is HostSSLConnectorConfig) {
+                        secure = true
+                        scheme = "https"
+
+                        if (ktorConnector.keyStorePath == null) {
+                            throw IllegalArgumentException("Tomcat requires keyStorePath")
+                        }
+
+                        setAttribute("keyAlias", ktorConnector.keyAlias)
+                        setAttribute("keystorePass", String(ktorConnector.keyStorePassword()))
+                        setAttribute("keyPass", String(ktorConnector.privateKeyPassword()))
+                        setAttribute("keystoreFile", ktorConnector.keyStorePath!!.absolutePath)
+                        setAttribute("clientAuth", false)
+                        setAttribute("sslProtocol", "TLS")
+                        setAttribute("SSLEnabled", true)
+
+                        val sslImpl = chooseSSLImplementation()
+
+                        setAttribute("sslImplementationName", sslImpl.name)
+
+                        if (sslImpl.simpleName == "OpenSSLImplementation") {
+                            addUpgradeProtocol(Http2Protocol())
+                        }
+                    } else {
+                        scheme = "http"
+                    }
+                })
+            }
+        }
+
+        if (connector == null) {
+            connector = service.findConnectors()?.firstOrNull() ?: Connector().apply { port = 80 }
+        }
+        setBaseDir(tempDirectory.toString())
+
+        val ctx = addContext("", tempDirectory.toString())
+
+        Tomcat.addServlet(ctx, "ktor-servlet", ktorServlet).apply {
+            addMapping("/*")
+            isAsyncSupported = true
+            multipartConfigElement = MultipartConfigElement("")
+        }
+    }
+
+    override fun start(wait: Boolean): TomcatApplicationHost {
+        environment.start()
+        server.start()
+        if (wait) {
+            server.server.await()
+            stop(1, 5, TimeUnit.SECONDS)
+        }
+        return this
+    }
+
+    override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+        server.stop()
+        environment.stop()
+        tempDirectory.toFile().deleteRecursively()
+    }
+
+    companion object {
+        private val nativeNames = listOf("netty-tcnative", "libnetty-tcnative", "netty-tcnative-1", "libnetty-tcnative-1", "tcnative-1", "libtcnative-1", "netty-tcnative-windows-x86_64")
+
+        private fun chooseSSLImplementation(): Class<out SSLImplementation> {
+            return try {
+                val nativeName = nativeNames.firstOrNull { tryLoadLibrary(it) }
+                if (nativeName != null) {
+                    Library.initialize(nativeName)
+                    SSL.initialize(null)
+                    SSL.freeSSL(SSL.newSSL(SSL.SSL_PROTOCOL_ALL.toLong(), true))
+                    OpenSSLImplementation::class.java
+                } else {
+                    JSSEImplementation::class.java
+                }
+            } catch (t: Throwable) {
+                JSSEImplementation::class.java
+            }
+        }
+
+        private fun tryLoadLibrary(libraryName: String): Boolean = try {
+            System.loadLibrary(libraryName)
+            true
+        } catch(t: Throwable) {
+            false
+        }
+    }
+}

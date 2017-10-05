@@ -1,11 +1,11 @@
-package org.jetbrains.ktor.tests.jetty
+package io.ktor.tests.jetty
 
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.servlet.*
-import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.jetty.*
-import org.jetbrains.ktor.servlet.*
-import org.jetbrains.ktor.testing.*
+import io.ktor.host.*
+import io.ktor.jetty.*
+import io.ktor.servlet.*
+import io.ktor.testing.*
 import javax.servlet.*
 
 class JettyServletContainerHostTest : HostTestSuite<JettyServletApplicationHost>(ServletHostFactory)

@@ -3,7 +3,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <artifactId>ktor</artifactId>
-        <groupId>org.jetbrains.ktor</groupId>
+        <groupId>io.ktor</groupId>
         <version>0.4.1-SNAPSHOT</version>
     </parent>
 

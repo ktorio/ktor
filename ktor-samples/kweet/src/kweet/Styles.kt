@@ -1,10 +1,10 @@
 package kweet
 
-import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.locations.*
-import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.response.*
-import org.jetbrains.ktor.routing.*
+import io.ktor.content.*
+import io.ktor.locations.*
+import io.ktor.pipeline.*
+import io.ktor.response.*
+import io.ktor.routing.*
 
 @location("/styles/main.css")
 class MainCss()

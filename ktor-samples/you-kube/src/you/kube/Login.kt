@@ -1,13 +1,13 @@
 package you.kube
 
 import kotlinx.html.*
-import org.jetbrains.ktor.auth.*
-import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.locations.*
-import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.routing.*
-import org.jetbrains.ktor.sessions.*
+import io.ktor.auth.*
+import io.ktor.content.*
+import io.ktor.http.*
+import io.ktor.locations.*
+import io.ktor.pipeline.*
+import io.ktor.routing.*
+import io.ktor.sessions.*
 
 fun Route.login(users: UserHashedTableAuth) {
     location<Login> {

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>ktor-hosts</artifactId>
-        <groupId>org.jetbrains.ktor</groupId>
+        <groupId>io.ktor</groupId>
         <version>0.4.1-SNAPSHOT</version>
     </parent>
 
@@ -11,7 +11,7 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.jetbrains.ktor</groupId>
+            <groupId>io.ktor</groupId>
             <artifactId>ktor-hosts-common</artifactId>
             <version>${project.version}</version>
         </dependency>

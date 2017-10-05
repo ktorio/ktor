@@ -1,10 +1,10 @@
-import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.jetty.*
-import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.response.*
-import org.jetbrains.ktor.servlet.*
+import io.ktor.application.*
+import io.ktor.content.*
+import io.ktor.host.*
+import io.ktor.jetty.*
+import io.ktor.pipeline.*
+import io.ktor.response.*
+import io.ktor.servlet.*
 import org.junit.*
 import org.slf4j.*
 import java.net.*
