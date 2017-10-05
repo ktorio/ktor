@@ -19,16 +19,19 @@ open class ApplicationReceivePipeline : Pipeline<ApplicationReceiveRequest, Appl
     }
 }
 
-inline suspend fun <reified T : Any> ApplicationCall.tryReceive(): T? = tryReceive(T::class)
+@Deprecated("Use receiveOrNull instead", ReplaceWith("receiveOrNull()"))
+inline suspend fun <reified T : Any> ApplicationCall.tryReceive(): T? = receiveOrNull()
+
+inline suspend fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(T::class)
 inline suspend fun <reified T : Any> ApplicationCall.receive(): T {
     val type = T::class
-    return tryReceive(type) ?: throw Exception("Cannot transform this request's content into $type")
+    return receiveOrNull(type) ?: throw ContentTransformationException("Cannot transform this request's content to $type")
 }
 
 /**
  * Receive content for this request
  */
-suspend fun <T : Any> ApplicationCall.tryReceive(type: KClass<T>): T? {
+suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? {
     val incomingContent = request.receiveContent()
     val receiveRequest = ApplicationReceiveRequest(type, incomingContent)
     val transformed = request.pipeline.execute(this, receiveRequest).value
@@ -41,11 +44,17 @@ suspend fun <T : Any> ApplicationCall.tryReceive(type: KClass<T>): T? {
 
 @Suppress("NOTHING_TO_INLINE")
 inline suspend fun ApplicationCall.receiveText(): String = receive()
+
 @Suppress("NOTHING_TO_INLINE")
 inline suspend fun ApplicationCall.receiveChannel(): ReadChannel = receive()
+
 @Suppress("NOTHING_TO_INLINE")
 inline suspend fun ApplicationCall.receiveStream(): InputStream = receive()
+
 @Suppress("NOTHING_TO_INLINE")
 inline suspend fun ApplicationCall.receiveMultipart(): MultiPartData = receive()
+
 @Suppress("NOTHING_TO_INLINE")
 inline suspend fun ApplicationCall.receiveParameters(): ValuesMap = receive()
+
+class ContentTransformationException(message: String) : Exception(message)
