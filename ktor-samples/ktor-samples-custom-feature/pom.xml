@@ -4,7 +4,7 @@
 
     <parent>
         <artifactId>ktor-samples</artifactId>
-        <groupId>org.jetbrains.ktor</groupId>
+        <groupId>io.ktor</groupId>
         <version>0.4.1-SNAPSHOT</version>
     </parent>
 

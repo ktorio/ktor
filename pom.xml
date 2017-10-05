@@ -2,7 +2,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>org.jetbrains.ktor</groupId>
+    <groupId>io.ktor</groupId>
     <version>0.4.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <artifactId>ktor</artifactId>
@@ -18,12 +18,11 @@
     </properties>
 
     <modules>
-        <module>ktor-core</module>
-        <module>ktor-core-tests</module>
-        <module>jetty-http2-client</module>
+        <module>ktor-server</module>
+        <module>ktor-client</module>
         <module>ktor-features</module>
         <module>ktor-hosts</module>
-        <module>http-core</module>
+        <module>ktor-http</module>
         <module>ktor-utils</module>
     </modules>
 
@@ -40,7 +39,6 @@
 
             <modules>
                 <module>ktor-samples</module>
-                <module>ktor-jmh</module>
             </modules>
         </profile>
         <profile>

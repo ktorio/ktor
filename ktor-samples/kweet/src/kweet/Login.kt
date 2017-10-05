@@ -1,14 +1,14 @@
 package kweet
 
 import kweet.dao.*
-import org.jetbrains.ktor.freemarker.*
-import org.jetbrains.ktor.locations.*
-import org.jetbrains.ktor.request.*
-import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.response.*
-import org.jetbrains.ktor.routing.*
-import org.jetbrains.ktor.sessions.*
-import org.jetbrains.ktor.util.*
+import io.ktor.freemarker.*
+import io.ktor.locations.*
+import io.ktor.request.*
+import io.ktor.pipeline.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.sessions.*
+import io.ktor.util.*
 
 fun Route.login(dao: DAOFacade, hash: (String) -> String) {
     get<Login> {

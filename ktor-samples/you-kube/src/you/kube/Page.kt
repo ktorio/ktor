@@ -1,12 +1,12 @@
 package you.kube
 
 import kotlinx.html.*
-import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.html.*
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.locations.*
-import org.jetbrains.ktor.sessions.*
+import io.ktor.application.*
+import io.ktor.content.*
+import io.ktor.html.*
+import io.ktor.http.*
+import io.ktor.locations.*
+import io.ktor.sessions.*
 
 suspend fun ApplicationCall.respondDefaultHtml(versions: List<Version>, visibility: CacheControlVisibility, title: String = "You Kube", block: DIV.() -> Unit) {
     val cacheControl = CacheControl.MaxAge(3600 * 24 * 7, mustRevalidate = true, visibility = visibility, proxyMaxAgeSeconds = null, proxyRevalidate = false)

@@ -1,6 +1,6 @@
-package org.jetbrains.ktor.tests.jetty
+package io.ktor.tests.jetty
 
-import org.jetbrains.ktor.jetty.*
-import org.jetbrains.ktor.testing.*
+import io.ktor.jetty.*
+import io.ktor.testing.*
 
 class JettyHostTest : HostTestSuite<JettyApplicationHost>(Jetty)

@@ -1,7 +1,7 @@
-package org.jetbrains.ktor.tests.tomcat
+package io.ktor.tests.tomcat
 
-import org.jetbrains.ktor.testing.*
-import org.jetbrains.ktor.tomcat.*
+import io.ktor.testing.*
+import io.ktor.tomcat.*
 import java.util.logging.*
 
 class TomcatHostTest : HostTestSuite<TomcatApplicationHost>(Tomcat) {

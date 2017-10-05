@@ -1,0 +1,268 @@
+package io.ktor.websocket
+
+import kotlinx.coroutines.experimental.channels.*
+import io.ktor.application.*
+import io.ktor.routing.*
+import io.ktor.testing.*
+import io.ktor.util.*
+import org.junit.*
+import org.junit.rules.*
+import java.nio.*
+import java.time.*
+import java.util.*
+import java.util.concurrent.*
+import kotlin.test.*
+
+class WebSocketTest {
+    @get:Rule
+    val timeout = Timeout(30, TimeUnit.SECONDS)
+
+    @Test
+    fun testHello() {
+        withTestApplication {
+            application.install(WebSockets)
+            application.routing {
+                webSocketRaw("/echo") {
+                    incoming.consumeEach { frame ->
+                        if (!frame.frameType.controlFrame) {
+                            send(frame.copy())
+                            flush()
+                            terminate()
+                        }
+                    }
+                }
+            }
+
+            handleWebSocket("/echo") {
+                bodyBytes = hex("""
+                    0x81 0x05 0x48 0x65 0x6c 0x6c 0x6f
+                """.trimHex())
+            }.let { call ->
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
+                assertEquals("810548656c6c6f", hex(call.response.byteContent!!))
+            }
+        }
+    }
+
+    @Test
+    fun testFrameSize() {
+        withTestApplication {
+            application.install(WebSockets)
+            application.routing {
+                webSocketRaw("/echo") {
+                    outgoing.send(Frame.Text("+".repeat(0xc123)))
+                    outgoing.send(Frame.Close())
+                }
+                webSocketRaw("/receiveSize") {
+                    val frame = incoming.receive()
+                    val bytes = buildByteBuffer(ByteOrder.BIG_ENDIAN) { putInt(frame.buffer.remaining()) }
+
+                    outgoing.send(Frame.Binary(true, bytes))
+                    outgoing.send(Frame.Close())
+                }
+            }
+
+            handleWebSocket("/echo") {
+                bodyBytes = byteArrayOf()
+            }.let { call ->
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
+                assertEquals("817ec123", hex(call.response.byteContent!!.take(4).toByteArray()))
+            }
+
+            handleWebSocket("/receiveSize") {
+                bodyBytes = hex("0x81 0x7e 0xcd 0xef".trimHex()) + "+".repeat(0xcdef).toByteArray()
+            }.let { call ->
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
+                assertEquals("82040000cdef", hex(call.response.byteContent!!.take(6).toByteArray()))
+            }
+        }
+    }
+
+    @Test
+    fun testMasking() {
+        withTestApplication {
+            application.install(WebSockets)
+            application.routing {
+                webSocketRaw("/echo") {
+                    masking = true
+
+                    incoming.consumeEach { frame ->
+                        if (!frame.frameType.controlFrame) {
+                            assertEquals("Hello", frame.buffer.copy().array().toString(Charsets.UTF_8))
+                            send(frame.copy())
+                            flush()
+                            terminate()
+                        }
+                    }
+                }
+            }
+
+            handleWebSocket("/echo") {
+                bodyBytes = hex("""
+                    0x81 0x85 0x37 0xfa 0x21 0x3d 0x7f 0x9f 0x4d 0x51 0x58
+                """.trimHex())
+            }.let { call ->
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
+
+                val bb = ByteBuffer.wrap(call.response.byteContent!!)
+                assertEquals(11, bb.remaining())
+                val parser = FrameParser()
+                parser.frame(bb)
+
+                assertTrue { parser.bodyReady }
+                assertTrue { parser.mask }
+                val key = parser.maskKey!!
+
+                val collector = SimpleFrameCollector()
+                collector.start(parser.length.toInt(), bb)
+
+                assertFalse { collector.hasRemaining }
+
+                assertEquals("Hello", collector.take(key).copy().array().toString(Charsets.UTF_8))
+            }
+        }
+    }
+
+    @Test
+    fun testSendClose() {
+        withTestApplication {
+            application.install(WebSockets)
+
+            application.routing {
+                webSocket("/echo") {
+                    incoming.consumeEach {  }
+                }
+            }
+
+            handleWebSocket("/echo") {
+                bodyBytes = hex("""
+                    0x88 0x02 0xe8 0x03
+                """.trimHex())
+            }.let { call ->
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
+                assertEquals("0x88 0x02 0xe8 0x03".trimHex(), hex(call.response.byteContent!!))
+            }
+        }
+    }
+
+    @Test
+    fun testParameters() {
+        withTestApplication {
+            application.install(WebSockets)
+
+            application.routing {
+                webSocket("/{p}") {
+                    outgoing.send(Frame.Text(call.parameters["p"] ?: "null"))
+                }
+            }
+
+            handleWebSocket("/aaa") {}.let { call ->
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
+                val p = FrameParser()
+                val bb = ByteBuffer.wrap(call.response.byteContent)
+                p.frame(bb)
+
+                assertEquals(FrameType.TEXT, p.frameType)
+                assertTrue { p.bodyReady }
+
+                val bytes = ByteArray(p.length.toInt())
+                bb.get(bytes)
+
+                assertEquals("aaa", bytes.toString(Charsets.ISO_8859_1))
+            }
+        }
+    }
+
+    @Test
+    fun testBigFrame() {
+        val content = ByteArray(20 * 1024 * 1024)
+        Random().nextBytes(content)
+
+        val sendBuffer = ByteBuffer.allocate(content.size + 100)
+
+        Serializer().apply {
+            enqueue(Frame.Binary(true, ByteBuffer.wrap(content)))
+            enqueue(Frame.Close())
+            serialize(sendBuffer)
+
+            sendBuffer.flip()
+        }
+
+        withTestApplication {
+            application.install(WebSockets)
+
+            application.routing {
+                webSocket("/") {
+                    val f = incoming.receive()
+
+                    val copied = f.copy()
+                    outgoing.send(copied)
+
+                    flush()
+                }
+            }
+
+            handleWebSocket("/") {
+                bodyBytes = sendBuffer.array()
+            }.let { call ->
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
+
+                val p = FrameParser()
+                val bb = ByteBuffer.wrap(call.response.byteContent)
+                p.frame(bb)
+
+                assertEquals(FrameType.BINARY, p.frameType)
+                assertTrue { p.bodyReady }
+                assertEquals(content.size.toLong(), p.length)
+
+                val bytes = ByteArray(p.length.toInt())
+                bb.get(bytes)
+
+                assertTrue { bytes.contentEquals(content) }
+            }
+        }
+    }
+
+    @Test
+    fun testFragmentation() {
+        val sendBuffer = ByteBuffer.allocate(1024)
+
+        Serializer().apply {
+            enqueue(Frame.Text(false, ByteBuffer.wrap("ABC".toByteArray())))
+            enqueue(Frame.Ping(ByteBuffer.wrap("ping".toByteArray()))) // ping could be interleaved
+            enqueue(Frame.Text(false, ByteBuffer.wrap("12".toByteArray())))
+            enqueue(Frame.Text(true, ByteBuffer.wrap("3".toByteArray())))
+            enqueue(Frame.Close())
+            serialize(sendBuffer)
+
+            sendBuffer.flip()
+        }
+
+        withTestApplication {
+            application.install(WebSockets)
+
+            var receivedText: String? = null
+            application.routing {
+                webSocket("/") {
+                    val f = incoming.receive()
+
+                    if (f is Frame.Text) {
+                        receivedText = f.readText()
+                    } else {
+                        fail()
+                    }
+                }
+            }
+
+            handleWebSocket("/") {
+                bodyBytes = sendBuffer.array()
+            }.let { call ->
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
+
+                assertEquals("ABC123", receivedText)
+            }
+        }
+    }
+
+    private fun String.trimHex() = replace("\\s+".toRegex(), "").replace("0x", "")
+}
