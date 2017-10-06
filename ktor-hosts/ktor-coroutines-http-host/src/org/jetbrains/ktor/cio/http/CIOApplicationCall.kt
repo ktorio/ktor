@@ -1,12 +1,12 @@
-package org.jetbrains.ktor.cio.http
+package io.ktor.cio.http
 
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.http.*
-import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.request.*
-import org.jetbrains.ktor.response.*
+import io.ktor.application.*
+import io.ktor.host.*
+import io.ktor.request.*
+import io.ktor.response.*
 import kotlin.coroutines.experimental.*
 
 class CIOApplicationCall(application: Application,

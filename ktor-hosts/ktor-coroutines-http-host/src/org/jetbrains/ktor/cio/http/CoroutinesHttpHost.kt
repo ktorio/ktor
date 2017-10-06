@@ -1,12 +1,12 @@
-package org.jetbrains.ktor.cio.http
+package io.ktor.cio.http
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.http.*
 import kotlinx.sockets.*
-import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.pipeline.*
-import org.jetbrains.ktor.util.*
+import io.ktor.host.*
+import io.ktor.pipeline.*
+import io.ktor.util.*
 import java.util.concurrent.*
 
 class CoroutinesHttpHost(environment: ApplicationHostEnvironment) : BaseApplicationHost(environment) {

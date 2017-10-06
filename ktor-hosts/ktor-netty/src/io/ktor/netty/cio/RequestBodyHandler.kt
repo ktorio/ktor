@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.netty.cio
+package io.ktor.netty.cio
 
 import io.netty.buffer.*
 import io.netty.channel.*

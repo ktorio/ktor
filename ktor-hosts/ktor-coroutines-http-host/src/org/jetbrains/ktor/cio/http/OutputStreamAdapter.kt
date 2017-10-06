@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.cio.http
+package io.ktor.cio.http
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*

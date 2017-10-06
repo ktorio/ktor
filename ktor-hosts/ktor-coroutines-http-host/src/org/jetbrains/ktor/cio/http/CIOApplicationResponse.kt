@@ -1,14 +1,14 @@
-package org.jetbrains.ktor.cio.http
+package io.ktor.cio.http
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.http.*
-import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.cio.*
-import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.response.*
+import io.ktor.application.*
+import io.ktor.cio.*
+import io.ktor.content.*
+import io.ktor.host.*
+import io.ktor.http.*
+import io.ktor.response.*
 import java.io.Closeable
 import kotlin.coroutines.experimental.*
 

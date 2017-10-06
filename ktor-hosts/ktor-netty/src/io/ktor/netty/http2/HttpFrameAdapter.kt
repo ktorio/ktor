@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.netty.http2
+package io.ktor.netty.http2
 
 import io.netty.buffer.*
 import io.netty.handler.codec.http2.*

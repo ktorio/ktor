@@ -1,14 +1,14 @@
-package org.jetbrains.ktor.netty.http1
+package io.ktor.netty.http1
 
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.HttpResponseStatus.*
 import io.netty.handler.codec.http.HttpVersion.*
 import io.netty.util.concurrent.*
-import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.netty.*
-import org.jetbrains.ktor.netty.cio.*
-import org.jetbrains.ktor.netty.cio.NettyResponsePipeline.*
+import io.ktor.host.*
+import io.ktor.netty.*
+import io.ktor.netty.cio.*
+import io.ktor.netty.cio.NettyResponsePipeline.*
 import kotlin.coroutines.experimental.*
 
 @ChannelHandler.Sharable

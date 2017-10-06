@@ -12,9 +12,11 @@ import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.host.*
 import io.ktor.http.*
+import io.ktor.netty.*
 import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.util.*
+import io.netty.handler.codec.http.HttpMethod
 import java.net.*
 
 internal class NettyHttp2ApplicationRequest(

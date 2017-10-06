@@ -1,8 +1,8 @@
-package org.jetbrains.ktor.netty
+package io.ktor.netty
 
-import org.jetbrains.ktor.cio.*
-import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.request.*
+import io.ktor.cio.*
+import io.ktor.content.*
+import io.ktor.request.*
 import java.util.concurrent.atomic.*
 
 internal class NettyHttpIncomingContent internal constructor(override val request: NettyApplicationRequest) : IncomingContent {

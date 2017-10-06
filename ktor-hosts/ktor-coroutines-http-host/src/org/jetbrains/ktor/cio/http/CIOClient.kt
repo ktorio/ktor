@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.cio.http
+package io.ktor.cio.http
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
@@ -6,10 +6,10 @@ import kotlinx.http.*
 import kotlinx.http.HttpMethod
 import kotlinx.sockets.*
 import kotlinx.sockets.Socket
-import org.jetbrains.ktor.cio.*
-import org.jetbrains.ktor.client.*
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.util.*
+import io.ktor.cio.*
+import io.ktor.client.*
+import io.ktor.http.*
+import io.ktor.util.*
 import java.io.*
 import java.net.*
 import java.util.TreeSet

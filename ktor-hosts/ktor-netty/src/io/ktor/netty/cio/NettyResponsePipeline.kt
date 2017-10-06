@@ -1,5 +1,7 @@
-package org.jetbrains.ktor.netty.cio
+package io.ktor.netty.cio
 
+import io.ktor.http.*
+import io.ktor.netty.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
@@ -8,8 +10,7 @@ import io.netty.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.channels.Channel
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.netty.*
+import io.ktor.netty.*
 
 internal class NettyResponsePipeline(private val dst: ChannelHandlerContext, initialEncapsulation: WriterEncapsulation) {
     private val responses = actor<NettyApplicationCall>(Unconfined, capacity = Channel.UNLIMITED, start = CoroutineStart.LAZY) {

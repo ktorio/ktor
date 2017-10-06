@@ -1,11 +1,11 @@
-package org.jetbrains.ktor.cio.http
+package io.ktor.cio.http
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.http.*
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.request.*
+import io.ktor.http.*
+import io.ktor.request.*
 import java.io.*
 import java.nio.channels.*
 import java.nio.file.*

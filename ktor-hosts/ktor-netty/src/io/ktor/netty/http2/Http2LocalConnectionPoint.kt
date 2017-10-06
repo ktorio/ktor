@@ -1,7 +1,7 @@
-package org.jetbrains.ktor.netty.http2
+package io.ktor.netty.http2
 
 import io.netty.handler.codec.http2.*
-import org.jetbrains.ktor.http.*
+import io.ktor.http.*
 import java.net.*
 
 internal class Http2LocalConnectionPoint(private val nettyHeaders: Http2Headers, private val address: InetSocketAddress?) : RequestConnectionPoint {

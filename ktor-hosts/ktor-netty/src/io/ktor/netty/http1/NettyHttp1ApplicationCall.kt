@@ -1,10 +1,10 @@
-package org.jetbrains.ktor.netty.http1
+package io.ktor.netty.http1
 
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlinx.coroutines.experimental.io.*
-import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.netty.*
+import io.ktor.application.*
+import io.ktor.netty.*
 import kotlin.coroutines.experimental.*
 
 internal class NettyHttp1ApplicationCall(
