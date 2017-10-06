@@ -22,5 +22,7 @@ data class HttpMethod(val value: String) {
                 else -> HttpMethod(method)
             }
         }
+
+        val DefaultMethods = listOf(Get, Post, Put, Patch,Delete, Head, Options)
     }
 }

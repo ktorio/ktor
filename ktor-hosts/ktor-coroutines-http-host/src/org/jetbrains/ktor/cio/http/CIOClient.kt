@@ -1,6 +1,5 @@
 package io.ktor.cio.http
 
-import com.sun.deploy.net.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.http.*
