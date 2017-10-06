@@ -25,6 +25,7 @@
         <module>ktor-hosts</module>
         <module>ktor-http</module>
         <module>ktor-utils</module>
+        <module>ktor-http-cio</module>
     </modules>
 
     <profiles>
