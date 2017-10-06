@@ -1,9 +1,9 @@
-package org.jetbrains.ktor.cio.http.tests
+package io.ktor.cio.http.tests
 
+import io.ktor.cio.http.*
+import io.ktor.client.*
+import io.ktor.http.*
 import kotlinx.coroutines.experimental.*
-import org.jetbrains.ktor.cio.http.*
-import org.jetbrains.ktor.client.*
-import org.jetbrains.ktor.http.*
 import org.junit.*
 import java.io.*
 import java.net.*

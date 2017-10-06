@@ -1,7 +1,7 @@
-package org.jetbrains.ktor.cio.http
+package io.ktor.cio.http
 
 import kotlinx.http.*
-import org.jetbrains.ktor.util.*
+import io.ktor.util.*
 
 class CIOHeaders(private val headers: HttpHeaders) : ValuesMap {
     private val names: Set<String> by lazy {

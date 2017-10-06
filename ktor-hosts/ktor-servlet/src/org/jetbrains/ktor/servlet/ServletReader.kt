@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.servlet
+package io.ktor.servlet
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*

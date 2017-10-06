@@ -1,15 +1,15 @@
-package org.jetbrains.ktor.cio.http
+package io.ktor.cio.http
 
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.http.*
-import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.http.HttpMethod
-import org.jetbrains.ktor.request.*
-import org.jetbrains.ktor.util.*
+import io.ktor.application.*
+import io.ktor.content.*
+import io.ktor.host.*
+import io.ktor.http.*
+import io.ktor.http.HttpMethod
+import io.ktor.request.*
+import io.ktor.util.*
 
 class CIOApplicationRequest(call: ApplicationCall,
                             private val input: ByteReadChannel,

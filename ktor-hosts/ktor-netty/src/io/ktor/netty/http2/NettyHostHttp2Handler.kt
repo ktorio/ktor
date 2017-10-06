@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.netty.http2
+package io.ktor.netty.http2
 
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
@@ -6,13 +6,13 @@ import io.netty.util.*
 import io.netty.util.collection.*
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.experimental.*
-import org.jetbrains.ktor.application.*
-import org.jetbrains.ktor.host.*
-import org.jetbrains.ktor.netty.*
-import org.jetbrains.ktor.netty.cio.*
-import org.jetbrains.ktor.netty.cio.NettyResponsePipeline.*
-import org.jetbrains.ktor.netty.http1.*
-import org.jetbrains.ktor.response.*
+import io.ktor.application.*
+import io.ktor.host.*
+import io.ktor.netty.*
+import io.ktor.netty.cio.*
+import io.ktor.netty.cio.NettyResponsePipeline.*
+import io.ktor.netty.http1.*
+import io.ktor.response.*
 import java.nio.channels.*
 import kotlin.coroutines.experimental.*
 

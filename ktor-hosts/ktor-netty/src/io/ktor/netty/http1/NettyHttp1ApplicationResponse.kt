@@ -1,15 +1,15 @@
-package org.jetbrains.ktor.netty.http1
+package io.ktor.netty.http1
 
+import io.ktor.cio.*
+import io.ktor.content.*
+import io.ktor.http.*
+import io.ktor.netty.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import org.jetbrains.ktor.cio.*
-import org.jetbrains.ktor.content.*
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.netty.*
-import org.jetbrains.ktor.netty.cio.*
-import org.jetbrains.ktor.response.*
+import io.ktor.netty.cio.*
+import io.ktor.response.*
 import java.io.*
 import kotlin.coroutines.experimental.*
 

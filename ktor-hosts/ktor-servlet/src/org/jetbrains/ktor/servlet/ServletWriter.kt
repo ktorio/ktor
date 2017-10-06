@@ -1,4 +1,4 @@
-package org.jetbrains.ktor.servlet
+package io.ktor.servlet
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
@@ -6,7 +6,7 @@ import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.sockets.*
 import kotlinx.sockets.impl.*
-import org.jetbrains.ktor.cio.*
+import io.ktor.cio.*
 import java.io.*
 import javax.servlet.*
 

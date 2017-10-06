@@ -1,10 +1,11 @@
-package org.jetbrains.ktor.netty.http1
+package io.ktor.netty.http1
 
+import io.ktor.http.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
-import org.jetbrains.ktor.http.*
-import org.jetbrains.ktor.http.HttpHeaders
-import org.jetbrains.ktor.http.HttpMethod
+import io.ktor.http.*
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
 import java.net.*
 
 internal class NettyConnectionPoint(val request: HttpRequest, val context: ChannelHandlerContext) : RequestConnectionPoint {

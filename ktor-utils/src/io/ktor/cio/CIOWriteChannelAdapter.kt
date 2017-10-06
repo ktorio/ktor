@@ -1,7 +1,7 @@
-package org.jetbrains.ktor.cio
+package io.ktor.cio
 
 import kotlinx.coroutines.experimental.io.*
-import org.jetbrains.ktor.cio.*
+import io.ktor.cio.*
 import java.nio.ByteBuffer
 
 class CIOWriteChannelAdapter(private val output: ByteWriteChannel,
