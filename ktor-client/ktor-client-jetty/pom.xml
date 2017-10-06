@@ -17,7 +17,7 @@
     <dependencies>
         <dependency>
             <groupId>io.ktor</groupId>
-            <artifactId>ktor-server-core</artifactId>
+            <artifactId>ktor-client-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
