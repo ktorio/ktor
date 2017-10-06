@@ -19,7 +19,7 @@ open class ApplicationReceivePipeline : Pipeline<ApplicationReceiveRequest, Appl
     }
 }
 
-@Deprecated("Use receiveOrNull instead", ReplaceWith("receiveOrNull()"))
+@Deprecated("Use receiveOrNull instead", ReplaceWith("this.receiveOrNull()"))
 inline suspend fun <reified T : Any> ApplicationCall.tryReceive(): T? = receiveOrNull()
 
 inline suspend fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(T::class)
