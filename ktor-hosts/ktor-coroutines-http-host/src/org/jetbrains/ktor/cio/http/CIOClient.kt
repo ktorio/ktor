@@ -1,5 +1,6 @@
 package io.ktor.cio.http
 
+import com.sun.deploy.net.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.http.*
@@ -8,6 +9,7 @@ import kotlinx.sockets.*
 import kotlinx.sockets.Socket
 import io.ktor.cio.*
 import io.ktor.client.*
+import io.ktor.client.HttpResponse
 import io.ktor.http.*
 import io.ktor.util.*
 import java.io.*

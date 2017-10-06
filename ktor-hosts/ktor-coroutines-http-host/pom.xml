@@ -30,6 +30,11 @@
             <type>test-jar</type>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-client-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
         <!--<dependency>-->
             <!--<groupId>org.jetbrains.kotlinx</groupId>-->
