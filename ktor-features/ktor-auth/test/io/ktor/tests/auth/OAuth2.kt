@@ -322,7 +322,7 @@ private fun createOAuth2Server(server: OAuth2Server): TestingHttpClient {
             routing {
                 route("/oauth/access_token") {
                     handle {
-                        val formData = call.tryReceive<ValuesMap>() ?: ValuesMap.Empty
+                        val formData = call.receiveOrNull() ?: ValuesMap.Empty
                         val values = call.parameters + formData
 
                         val clientId = values.requireParameter(OAuth2RequestParameters.ClientId)
