@@ -6,7 +6,10 @@ import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.ByteBuffer
 import kotlinx.coroutines.experimental.io.packet.*
+import kotlinx.coroutines.experimental.io.packet.ByteReadPacket
+import kotlinx.io.core.*
 import java.io.*
+import java.io.EOFException
 import java.nio.*
 import kotlin.coroutines.experimental.*
 
@@ -39,7 +42,7 @@ suspend fun copyMultipart(headers: HttpHeaders, input: ByteReadChannel, out: Byt
     input.copyTo(out, length)
 }
 
-suspend fun parsePreamble(boundaryPrefixed: ByteBuffer, input: ByteReadChannel, output: ByteWritePacket, limit: Long = Long.MAX_VALUE): Long {
+suspend fun parsePreamble(boundaryPrefixed: ByteBuffer, input: ByteReadChannel, output: BytePacketBuilder, limit: Long = Long.MAX_VALUE): Long {
     return copyUntilBoundary("preamble/prologue", boundaryPrefixed, input, { output.writeFully(it) }, limit)
 }
 

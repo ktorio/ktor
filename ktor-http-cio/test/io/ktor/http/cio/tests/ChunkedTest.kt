@@ -3,8 +3,10 @@ package io.ktor.http.cio.tests
 import io.ktor.http.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.io.core.*
 import org.junit.*
 import java.io.*
+import java.io.EOFException
 import kotlin.test.*
 
 class ChunkedTest {
