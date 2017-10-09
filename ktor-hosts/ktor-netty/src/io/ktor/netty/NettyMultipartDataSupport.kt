@@ -9,6 +9,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.request.*
 import io.ktor.http.response.*
 import io.ktor.util.*
+import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.*
 import java.util.*
 
 internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestDecoder, val alloc: ByteBufAllocator, private val channel: ByteReadChannel) : MultiPartData {
@@ -22,7 +23,7 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
     suspend tailrec override fun readPart(): PartData? {
         if (processed || destroyed) return null
 
-        val data = decoder.next()
+        val data = decodeNextOrNull()
         if (data != null) {
             val part = convert(data)
             if (part == null) {
@@ -41,11 +42,17 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
 
     private suspend fun readNextSuspend(): PartData? {
         do {
-            if (!doDecode() || decoder.hasNext()) {
+            if (!doDecode() || hasNextToDecode()) {
                 return readPart()
             }
         } while (true)
     }
+
+    private fun decodeNextOrNull(): InterfaceHttpData? {
+        return try { decoder.next() } catch (t: EndOfDataDecoderException) { null }
+    }
+
+    private fun hasNextToDecode() = try { decoder.hasNext() } catch (t: EndOfDataDecoderException) { false }
 
     private suspend fun doDecode(): Boolean {
         val channel = this.channel
