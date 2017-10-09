@@ -100,7 +100,8 @@
                 <version>2.19.1</version>
                 <configuration>
                     <!--<argLine>-XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=${project.build.directory}/oom.hprof</argLine>-->
-                    <argLine>-Xmx1g -Dio.netty.leakDetectionLevel=PARANOID -Dhost.test.timeout.seconds=1200</argLine>
+                    <!--<argLine>-Xmx1g -Dio.netty.leakDetectionLevel=PARANOID -Dhost.test.timeout.seconds=1200</argLine>-->
+                    <argLine>-Xmx1g</argLine>
                 </configuration>
 
                 <executions>
