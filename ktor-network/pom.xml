@@ -11,11 +11,4 @@
 
     <artifactId>ktor-network</artifactId>
 
-    <dependencies>
-        <dependency>
-            <groupId>org.jetbrains.kotlinx</groupId>
-            <artifactId>kotlinx-coroutines-io</artifactId>
-            <version>${coroutines.version}</version>
-        </dependency>
-    </dependencies>
 </project>
