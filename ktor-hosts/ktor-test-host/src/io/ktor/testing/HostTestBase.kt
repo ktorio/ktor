@@ -79,9 +79,11 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     protected open fun createServer(log: Logger?, module: Application.() -> Unit): THost {
         val _port = this.port
         val environment = applicationHostEnvironment {
-            this.log = log ?: object : Logger by LoggerFactory.getLogger("ktor.test") {
+            val delegate = LoggerFactory.getLogger("ktor.test")
+            this.log = log ?: object : Logger by delegate {
                 override fun error(msg: String?, t: Throwable?) {
                     t?.let { exceptions.add(it) }
+                    delegate.error(msg, t)
                 }
             }
 
