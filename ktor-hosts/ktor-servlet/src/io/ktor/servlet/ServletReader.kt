@@ -3,6 +3,7 @@ package io.ktor.servlet
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
+import java.io.*
 import javax.servlet.*
 
 internal fun servletReader(input: ServletInputStream): WriterJob {
@@ -23,6 +24,7 @@ private class Reader(val input: ServletInputStream) : ReadListener {
             input.setReadListener(this)
             events.receiveOrNull() ?: return
             loop(buffer)
+        } catch (eof: EOFException) {
         } catch (t: Throwable) {
             onError(t)
         } finally {
