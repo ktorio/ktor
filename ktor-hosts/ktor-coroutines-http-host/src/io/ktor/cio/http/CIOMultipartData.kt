@@ -3,8 +3,10 @@ package io.ktor.cio.http
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.http.*
 import io.ktor.http.*
+import io.ktor.http.cio.*
+import io.ktor.http.cio.HttpHeaders
+import io.ktor.network.util.*
 import io.ktor.request.*
 import java.io.*
 import java.nio.channels.*
@@ -12,11 +14,11 @@ import java.nio.file.*
 import kotlin.coroutines.experimental.*
 
 class CIOMultipartData(private val channel: ByteReadChannel,
-                       private val headers: kotlinx.http.HttpHeaders,
+                       private val headers: HttpHeaders,
                        private val formFieldLimit: Int = 65536,
                        private val inMemoryFileUploadLimit: Int = formFieldLimit) : MultiPartData {
 
-    private val events = parseMultipart(channel, headers)
+    private val events = parseMultipart(ioCoroutineDispatcher, channel, headers)
 
     override val parts: Sequence<PartData> = buildSequence {
         while (!events.isClosedForReceive) {

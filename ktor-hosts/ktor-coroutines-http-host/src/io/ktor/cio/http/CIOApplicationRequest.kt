@@ -2,12 +2,12 @@ package io.ktor.cio.http
 
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.http.*
 import io.ktor.application.*
 import io.ktor.content.*
 import io.ktor.host.*
 import io.ktor.http.*
 import io.ktor.http.HttpMethod
+import io.ktor.http.cio.*
 import io.ktor.request.*
 import io.ktor.util.*
 
@@ -43,7 +43,7 @@ class CIOApplicationRequest(call: ApplicationCall,
             get() = request.headers["Host"]?.toString()?.substringAfter(":", "80")?.toInt() ?: 80
 
         override val method: HttpMethod
-            get() = HttpMethod.parse(request.method.name.toString())
+            get() = HttpMethod.parse(request.method.value.toString())
 
         override val remoteHost: String
             get() = "unknown" // TODO

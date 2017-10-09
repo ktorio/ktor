@@ -4,7 +4,6 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.http.*
 import org.junit.*
 import kotlin.test.*
 

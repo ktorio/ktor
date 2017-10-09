@@ -1,6 +1,6 @@
 package io.ktor.cio.http
 
-import kotlinx.http.*
+import io.ktor.http.cio.*
 import io.ktor.util.*
 
 class CIOHeaders(private val headers: HttpHeaders) : ValuesMap {

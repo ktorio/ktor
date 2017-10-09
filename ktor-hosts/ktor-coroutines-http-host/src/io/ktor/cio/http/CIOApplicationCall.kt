@@ -1,12 +1,9 @@
 package io.ktor.cio.http
 
-import kotlinx.coroutines.experimental.channels.*
-import kotlinx.coroutines.experimental.io.*
-import kotlinx.http.*
 import io.ktor.application.*
 import io.ktor.host.*
-import io.ktor.request.*
-import io.ktor.response.*
+import io.ktor.http.cio.*
+import kotlinx.coroutines.experimental.io.*
 import kotlin.coroutines.experimental.*
 
 class CIOApplicationCall(application: Application,

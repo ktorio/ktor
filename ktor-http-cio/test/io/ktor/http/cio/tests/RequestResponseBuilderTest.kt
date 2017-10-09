@@ -2,8 +2,8 @@ package kotlinx.http.tests
 
 import io.ktor.http.*
 import io.ktor.http.cio.*
-import kotlinx.http.*
 import kotlinx.io.core.*
+import kotlinx.io.streams.*
 import org.junit.*
 import kotlin.test.*
 

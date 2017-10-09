@@ -36,18 +36,16 @@
             <version>${project.version}</version>
         </dependency>
 
-        <!--<dependency>-->
-            <!--<groupId>org.jetbrains.kotlinx</groupId>-->
-            <!--<artifactId>kotlinx-http</artifactId>-->
-            <!--<version>0.0.11-SNAPSHOT</version>-->
-        <!--</dependency>-->
-
         <dependency>
-            <groupId>com.github.cy6erGn0m.kotlinx-sockets</groupId>
-            <artifactId>kotlinx-http</artifactId>
-            <version>${sockets.version}</version>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-http-cio</artifactId>
+            <version>${project.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>io.ktor</groupId>
+            <artifactId>ktor-network</artifactId>
+            <version>${project.version}</version>
+        </dependency>
 
     </dependencies>
 </project>

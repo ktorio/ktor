@@ -2,12 +2,13 @@ package io.ktor.cio.http
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.http.*
 import io.ktor.application.*
 import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.host.*
 import io.ktor.http.*
+import io.ktor.http.cio.*
+import io.ktor.network.util.*
 import io.ktor.response.*
 import java.io.Closeable
 import kotlin.coroutines.experimental.*
@@ -45,7 +46,7 @@ class CIOApplicationResponse(call: ApplicationCall,
     suspend override fun responseChannel(): WriteChannel {
         sendResponseMessage(true)
 
-        val j = encodeChunked(output)
+        val j = encodeChunked(output, hostDispatcher)
         val chunked = j.channel
 
         chunkedChannel = chunked
@@ -97,7 +98,7 @@ class CIOApplicationResponse(call: ApplicationCall,
                 }
             }
             builder.emptyLine()
-            builder.writeTo(output)
+            output.writePacket(builder.build())
             output.flush()
         } finally {
             builder.release()

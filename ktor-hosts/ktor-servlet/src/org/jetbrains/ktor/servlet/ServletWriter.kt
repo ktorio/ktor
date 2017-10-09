@@ -1,12 +1,10 @@
 package io.ktor.servlet
 
+import io.ktor.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
-import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.sockets.*
-import kotlinx.sockets.impl.*
-import io.ktor.cio.*
+import kotlinx.io.pool.*
 import java.io.*
 import javax.servlet.*
 
@@ -17,7 +15,7 @@ internal fun servletWriter(output: ServletOutputStream): ReaderJob {
     }
 }
 
-internal val ArrayPool = object : ObjectPoolImpl<ByteArray>(1024) {
+internal val ArrayPool = object : DefaultPool<ByteArray>(1024) {
     override fun produceInstance() = ByteArray(4096)
     override fun validateInstance(instance: ByteArray) {
         if (instance.size != 4096) throw IllegalArgumentException("Tried to recycle wrong ByteArray instance: most likely it hasn't been borrowed from this pool")

@@ -1,12 +1,13 @@
 package io.ktor.cio.http
 
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.io.*
-import kotlinx.http.*
-import kotlinx.sockets.*
 import io.ktor.host.*
+import io.ktor.http.cio.*
+import io.ktor.network.sockets.*
+import io.ktor.network.util.*
 import io.ktor.pipeline.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.io.*
 import java.util.concurrent.*
 
 class CoroutinesHttpHost(environment: ApplicationHostEnvironment) : BaseApplicationHost(environment) {
@@ -95,7 +96,7 @@ class CoroutinesHttpHost(environment: ApplicationHostEnvironment) : BaseApplicat
                 emptyLine()
                 bytes(su.toByteArray())
 
-                writeTo(output)
+                output.writePacket(build())
             } finally {
                 release()
             }

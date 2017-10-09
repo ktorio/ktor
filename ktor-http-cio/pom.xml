@@ -14,8 +14,8 @@
     <dependencies>
         <dependency>
             <groupId>org.jetbrains.kotlinx</groupId>
-            <artifactId>kotlinx-io-jvm</artifactId>
-            <version>0.0.2</version>
+            <artifactId>kotlinx-coroutines-io</artifactId>
+            <version>${coroutines.version}</version>
         </dependency>
         <dependency>
             <groupId>io.ktor</groupId>
