@@ -3,13 +3,12 @@ package io.ktor.servlet
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.sockets.*
 import javax.servlet.*
 
 internal fun servletReader(input: ServletInputStream): WriterJob {
     val reader = Reader(input)
 
-    return writer(ioCoroutineDispatcher, reader.channel) {
+    return writer(Unconfined, reader.channel) {
         reader.run()
     }
 }

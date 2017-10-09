@@ -5,7 +5,6 @@ import io.ktor.http.cio.*
 import io.ktor.http.cio.tests.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.http.*
 import org.junit.*
 import java.net.*
 import java.nio.channels.*

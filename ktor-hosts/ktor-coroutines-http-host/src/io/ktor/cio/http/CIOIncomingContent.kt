@@ -1,10 +1,10 @@
 package io.ktor.cio.http
 
-import kotlinx.coroutines.experimental.io.*
-import kotlinx.http.*
 import io.ktor.cio.*
 import io.ktor.content.*
+import io.ktor.http.cio.*
 import io.ktor.request.*
+import kotlinx.coroutines.experimental.io.*
 
 class CIOIncomingContent(private val channel: ByteReadChannel,
                          private val headers: HttpHeaders,

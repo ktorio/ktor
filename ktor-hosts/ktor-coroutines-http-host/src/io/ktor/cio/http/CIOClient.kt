@@ -2,14 +2,14 @@ package io.ktor.cio.http
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.http.*
-import kotlinx.http.HttpMethod
-import kotlinx.sockets.*
-import kotlinx.sockets.Socket
 import io.ktor.cio.*
 import io.ktor.client.*
 import io.ktor.client.HttpResponse
 import io.ktor.http.*
+import io.ktor.http.cio.*
+import io.ktor.network.sockets.*
+import io.ktor.network.sockets.Socket
+import io.ktor.network.util.*
 import io.ktor.util.*
 import java.io.*
 import java.net.*
@@ -58,7 +58,7 @@ private class CIOHttpConnection(val socket: Socket, val defaultHost: String) : H
             }
 
             builder.emptyLine()
-            builder.writeTo(output)
+            output.writePacket(builder.build())
             output.flush()
         } finally {
             builder.release()
@@ -69,7 +69,7 @@ private class CIOHttpConnection(val socket: Socket, val defaultHost: String) : H
                 if (bodySize != null) {
                     bodyWriter(OutputStreamAdapter(output, suppressClose = true))
                 } else {
-                    val encoder = encodeChunked(output)
+                    val encoder = encodeChunked(output, ioCoroutineDispatcher)
                     bodyWriter(OutputStreamAdapter(encoder.channel, suppressClose = false))
                     encoder.join()
                 }

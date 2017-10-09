@@ -4,6 +4,7 @@ import io.ktor.http.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.core.*
+import kotlinx.io.streams.*
 import org.junit.*
 import java.io.*
 import java.io.EOFException
