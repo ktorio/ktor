@@ -110,6 +110,12 @@
             <groupId>org.jetbrains.kotlinx</groupId>
             <artifactId>kotlinx-coroutines-io</artifactId>
             <version>${coroutines.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-stdlib</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>

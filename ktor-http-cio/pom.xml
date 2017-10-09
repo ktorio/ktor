@@ -13,11 +13,6 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.jetbrains.kotlinx</groupId>
-            <artifactId>kotlinx-coroutines-io</artifactId>
-            <version>${coroutines.version}</version>
-        </dependency>
-        <dependency>
             <groupId>io.ktor</groupId>
             <artifactId>ktor-http</artifactId>
             <version>${project.version}</version>
