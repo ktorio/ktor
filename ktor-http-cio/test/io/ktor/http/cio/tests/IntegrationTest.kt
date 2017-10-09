@@ -1,8 +1,7 @@
-package kotlinx.http.tests
+package io.ktor.http.cio.tests
 
 import io.ktor.http.*
 import io.ktor.http.cio.*
-import io.ktor.http.cio.tests.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import org.junit.*
@@ -49,7 +48,7 @@ class IntegrationTest {
     @After
     fun tearDown() {
         server.invokeOnCompletion { t ->
-            if (t != null) {
+            if (t == null) {
                 server.getCompleted().close()
             }
         }
