@@ -20,12 +20,4 @@
         <module>ktor-tomcat</module>
         <module>ktor-coroutines-http-host</module>
     </modules>
-
-    <dependencies>
-        <dependency>
-            <groupId>io.ktor</groupId>
-            <artifactId>ktor-server-core</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-    </dependencies>
 </project>
