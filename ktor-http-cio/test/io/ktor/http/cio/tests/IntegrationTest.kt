@@ -7,9 +7,12 @@ import kotlinx.coroutines.experimental.io.*
 import org.junit.*
 import java.net.*
 import java.nio.channels.*
+import java.util.concurrent.*
 import kotlin.test.*
 
 class IntegrationTest {
+    private val pool = ForkJoinPool(4)
+
     private var port = 0
     private val server = CompletableDeferred<ServerSocketChannel>()
     private var handler: suspend (Request, ByteReadChannel, ByteWriteChannel) -> Unit = { r, _, o ->
@@ -19,7 +22,8 @@ class IntegrationTest {
 
     @Before
     fun setUp() {
-        val (j, s) = testHttpServer(0, CommonPool, CommonPool) { request, input, output ->
+        val dispatcher = pool.asCoroutineDispatcher()
+        val (j, s) = testHttpServer(0, dispatcher, dispatcher) { request, input, output ->
             if (request.uri.toString() == "/do" && request.method == HttpMethod.Post) {
                 handler(request, input, output)
             } else {
@@ -50,6 +54,9 @@ class IntegrationTest {
         server.invokeOnCompletion { t ->
             if (t == null) {
                 server.getCompleted().close()
+                pool.shutdown()
+            } else {
+                pool.shutdown()
             }
         }
     }
