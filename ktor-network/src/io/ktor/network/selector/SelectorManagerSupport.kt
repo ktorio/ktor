@@ -15,6 +15,8 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         require(selectable.interestedOps and interest.flag != 0)
 
         suspendCancellableCoroutine<Unit> { c ->
+//            val c = base.tracked()  // useful for debugging
+
             selectable.suspensions.addSuspension(interest, c)
             c.disposeOnCancel(selectable)
 
@@ -114,10 +116,12 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         }
     }
 
-    protected fun cancelAllSuspensions(selector: Selector) {
+    protected fun cancelAllSuspensions(selector: Selector, t: Throwable?) {
+        val cause = t ?: ClosedSelectorException()
+
         selector.keys().forEach { k ->
             k.cancel()
-            (k.attachment() as? Selectable)?.let { cancelAllSuspensions(it, ClosedSelectorException()) }
+            (k.attachment() as? Selectable)?.let { cancelAllSuspensions(it, cause) }
         }
     }
 
