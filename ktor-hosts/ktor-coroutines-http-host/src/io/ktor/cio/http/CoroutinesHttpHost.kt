@@ -11,7 +11,9 @@ import kotlinx.coroutines.experimental.io.*
 import java.util.concurrent.*
 
 class CoroutinesHttpHost(environment: ApplicationHostEnvironment) : BaseApplicationHost(environment) {
-    private val exec = Executors.newFixedThreadPool(100)
+    private val exec = Executors.newFixedThreadPool(100) { r ->
+        Thread(r, "host-thread")
+    }
 
     private val hostCtx = ioCoroutineDispatcher
     private val appCtx = DispatcherWithShutdown(exec.asCoroutineDispatcher())
@@ -61,7 +63,12 @@ class CoroutinesHttpHost(environment: ApplicationHostEnvironment) : BaseApplicat
                 }
             }
         } finally {
-            environment.stop()
+            try {
+                environment.stop()
+            } finally {
+                appCtx.completeShutdown()
+                exec.shutdown()
+            }
         }
     }
 
