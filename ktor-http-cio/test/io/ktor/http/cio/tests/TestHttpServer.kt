@@ -7,6 +7,7 @@ import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.net.*
 import java.nio.channels.*
+import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 
 // this is only suitable for tests, do not use in production
@@ -20,14 +21,22 @@ internal fun testHttpServer(port: Int = 9096, ioCoroutineContext: CoroutineConte
         server.bind(InetSocketAddress(port))
         deferred.complete(server)
 
+        val live = ConcurrentHashMap<SocketChannel, Unit>()
+
         try {
             while (true) {
                 val client = server.accept() ?: break
+                live.put(client, Unit)
                 client(client, ioCoroutineContext, callDispatcher, handler)
             }
         } catch (expected: ClosedChannelException) {
         } finally {
             server.close()
+            val clients = live.keys.toList()
+            live.keys.clear()
+            clients.forEach {
+                it.close()
+            }
         }
     }
 
