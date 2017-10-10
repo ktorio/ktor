@@ -6,7 +6,7 @@ import java.io.*
 import java.nio.channels.*
 import java.util.concurrent.atomic.*
 
-class ActorSelectorManager(private val dispatcher: CoroutineDispatcher) : SelectorManagerSupport(), Closeable {
+class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSupport(), Closeable {
     @Volatile
     private var selectorRef: Selector? = null
 
@@ -20,9 +20,12 @@ class ActorSelectorManager(private val dispatcher: CoroutineDispatcher) : Select
             selectorRef = selector
             try {
                 process(channel, selector)
+            } catch (t: Throwable) {
+                channel.close()
+                cancelAllSuspensions(selector, t)
             } finally {
                 channel.close()
-                cancelAllSuspensions(selector)
+                cancelAllSuspensions(selector, null)
                 selectorRef = null
             }
 
