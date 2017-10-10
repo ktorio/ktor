@@ -9,7 +9,7 @@
 
     <properties>
         <kotlin.version>1.1.51</kotlin.version>
-        <coroutines.version>0.20-alpha-3</coroutines.version>
+        <coroutines.version>0.20-alpha-5</coroutines.version>
         <dokka.version>0.9.15</dokka.version>
         <jmh.version>1.19</jmh.version>
 
