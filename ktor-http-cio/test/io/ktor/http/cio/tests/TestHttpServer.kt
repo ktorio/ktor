@@ -7,7 +7,6 @@ import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.net.*
 import java.nio.channels.*
-import java.nio.channels.spi.*
 import kotlin.coroutines.experimental.*
 
 // this is only suitable for tests, do not use in production
@@ -29,6 +28,14 @@ internal fun testHttpServer(port: Int = 9096, ioCoroutineContext: CoroutineConte
         } catch (expected: ClosedChannelException) {
         } finally {
             server.close()
+        }
+    }
+
+    j.invokeOnCompletion {
+        deferred.invokeOnCompletion { t ->
+            if (t == null) {
+                deferred.getCompleted().close()
+            }
         }
     }
 
@@ -74,6 +81,7 @@ private suspend fun client(socket: SocketChannel, ioCoroutineContext: CoroutineC
             incoming.close(t)
         } finally {
             incoming.close()
+            outgoing.close()
             DefaultByteBufferPool.recycle(buffer)
         }
     }
@@ -87,8 +95,4 @@ private suspend fun client(socket: SocketChannel, ioCoroutineContext: CoroutineC
             outgoing.close()
         }
     }
-}
-
-private enum class Event {
-    READ, WRITE
 }
