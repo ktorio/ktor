@@ -22,6 +22,7 @@ interface ASocket : Closeable, DisposableHandle {
 }
 
 val ASocket.isClosed: Boolean get() = closed.isCompleted
+suspend fun ASocket.awaitClosed() = closed.await()
 
 interface AConnectedSocket : AWritable {
     /**
