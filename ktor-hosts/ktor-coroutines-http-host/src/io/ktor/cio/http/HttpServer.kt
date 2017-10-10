@@ -50,13 +50,14 @@ fun httpServer(port: Int = 9096, callDispatcher: CoroutineContext = ioCoroutineD
                 } finally {
                     server.close()
                     server.awaitClosed()
-                    val clients = liveConnections.keys.toList()
-                    liveConnections.clear()
-                    clients.forEach {
+                    liveConnections.keys.forEach {
                         it.close()
                     }
-                    clients.forEach {
-                        it.awaitClosed()
+                    while (liveConnections.isNotEmpty()) {
+                        liveConnections.keys.forEach {
+                            it.close()
+                            it.awaitClosed()
+                        }
                     }
                 }
             }
