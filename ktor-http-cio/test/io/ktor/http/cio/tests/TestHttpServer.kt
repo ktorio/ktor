@@ -16,7 +16,7 @@ internal fun testHttpServer(port: Int = 9096, ioCoroutineContext: CoroutineConte
     val j = Job()
 
     // blocking acceptor
-    launch(CommonPool) {
+    launch(ioCoroutineContext) {
         val server = ServerSocketChannel.open()!!
         server.bind(InetSocketAddress(port))
         deferred.complete(server)
