@@ -44,7 +44,12 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
             val requestBody = if (expectedHttpBody) ByteChannel() else EmptyByteReadChannel
 
             val response = ByteChannel()
-            outputsActor.send(response)
+            try {
+                outputsActor.send(response)
+            } catch (t: Throwable) {
+                request.release()
+                throw t
+            }
 
             launch(callDispatcher) {
                 try {
