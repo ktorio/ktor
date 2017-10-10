@@ -14,6 +14,13 @@
     <modules>
         <module>ktor-server-core</module>
         <module>ktor-server-tests</module>
+        <module>ktor-server-host-common</module>
+        <module>ktor-server-test-host</module>
+        <module>ktor-server-jetty</module>
+        <module>ktor-server-servlet</module>
+        <module>ktor-server-tomcat</module>
+        <module>ktor-server-netty</module>
+        <module>ktor-server-cio</module>
     </modules>
 
     <profiles>

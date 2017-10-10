@@ -33,7 +33,7 @@ class ApplicationHostEnvironmentReloadingTests {
             config = HoconApplicationConfig(ConfigFactory.parseMap(
                     mapOf(
                             "ktor.deployment.environment" to "test",
-                            "ktor.deployment.watch" to listOf("ktor-hosts-common"),
+                            "ktor.deployment.watch" to listOf("ktor-server-host-common"),
                             "ktor.application.modules" to listOf(Application::topLevelExtensionFunction.fqName)
                     )))
         }

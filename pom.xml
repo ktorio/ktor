@@ -21,7 +21,6 @@
         <module>ktor-server</module>
         <module>ktor-client</module>
         <module>ktor-features</module>
-        <module>ktor-hosts</module>
         <module>ktor-http</module>
         <module>ktor-utils</module>
         <module>ktor-http-cio</module>

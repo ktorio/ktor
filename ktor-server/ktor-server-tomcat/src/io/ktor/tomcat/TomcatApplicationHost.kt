@@ -15,7 +15,7 @@ import java.util.concurrent.*
 import javax.servlet.*
 
 class TomcatApplicationHost(environment: ApplicationHostEnvironment) : BaseApplicationHost(environment) {
-    private val tempDirectory by lazy { Files.createTempDirectory("ktor-tomcat-") }
+    private val tempDirectory by lazy { Files.createTempDirectory("ktor-server-tomcat-") }
 
     private val ktorServlet = object : KtorServlet() {
         override val hostPipeline: HostPipeline
