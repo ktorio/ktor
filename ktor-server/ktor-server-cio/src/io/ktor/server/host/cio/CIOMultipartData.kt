@@ -1,4 +1,4 @@
-package io.ktor.cio.http
+package io.ktor.server.host.cio
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*

@@ -1,6 +1,6 @@
-package io.ktor.cio.http.tests
+package io.ktor.server.host.cio.tests
 
-import io.ktor.cio.http.*
+import io.ktor.server.host.cio.*
 import io.ktor.testing.*
 
 class CIOHostTest : HostTestSuite<CoroutinesHttpHost>(CIO) {

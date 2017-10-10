@@ -1,8 +1,8 @@
-package io.ktor.cio.http.tests
+package io.ktor.server.host.cio.tests
 
-import io.ktor.cio.http.*
 import io.ktor.client.*
 import io.ktor.http.*
+import io.ktor.server.host.cio.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
 import java.io.*
