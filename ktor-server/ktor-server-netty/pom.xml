@@ -2,12 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>ktor-hosts</artifactId>
+        <artifactId>ktor-server</artifactId>
         <groupId>io.ktor</groupId>
         <version>0.5.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>ktor-netty</artifactId>
+    <artifactId>ktor-server-netty</artifactId>
 
     <properties>
         <netty.version>4.1.12.Final</netty.version>
@@ -17,13 +17,13 @@
     <dependencies>
         <dependency>
             <groupId>io.ktor</groupId>
-            <artifactId>ktor-test-host</artifactId>
+            <artifactId>ktor-server-test-host</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>io.ktor</groupId>
-            <artifactId>ktor-hosts-common</artifactId>
+            <artifactId>ktor-server-host-common</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

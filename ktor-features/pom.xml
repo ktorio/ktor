@@ -30,7 +30,7 @@
         </dependency>
         <dependency>
             <groupId>io.ktor</groupId>
-            <artifactId>ktor-test-host</artifactId>
+            <artifactId>ktor-server-test-host</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>

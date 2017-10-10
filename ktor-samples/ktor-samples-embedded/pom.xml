@@ -13,12 +13,12 @@
     <dependencies>
         <dependency>
             <groupId>io.ktor</groupId>
-            <artifactId>ktor-netty</artifactId>
+            <artifactId>ktor-server-netty</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.ktor</groupId>
-            <artifactId>ktor-jetty</artifactId>
+            <artifactId>ktor-server-jetty</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

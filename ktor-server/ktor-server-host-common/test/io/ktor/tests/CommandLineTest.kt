@@ -88,7 +88,7 @@ class CommandLineTest {
 
         private fun withIsolatedClassLoader(block: (ClassLoader) -> Unit) {
             val classLoader = IsolatedResourcesClassLoader(
-                    File("ktor-hosts/ktor-hosts-common/test-resources").absoluteFile,
+                    File("ktor-server/ktor-server-host-common/test-resources").absoluteFile,
                     block::class.java.classLoader)
 
             val oldClassLoader = Thread.currentThread().contextClassLoader
