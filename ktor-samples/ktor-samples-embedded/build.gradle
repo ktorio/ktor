@@ -1,2 +1,8 @@
 
 description = ''
+
+dependencies {
+    compile project(":ktor-server:ktor-server-jetty")
+}
+
+mainClassName = 'io.ktor.samples.embedded.EmbeddedApplicationKt'
