@@ -2,7 +2,6 @@ package io.ktor.tests.locations
 
 import io.ktor.http.*
 import io.ktor.testing.*
-import io.ktor.tests.*
 import kotlin.test.*
 
 fun TestApplicationHost.urlShouldBeHandled(url: String, content: String? = null) {
@@ -15,7 +14,7 @@ fun TestApplicationHost.urlShouldBeHandled(url: String, content: String? = null)
             assertTrue(result.requestHandled)
         }
         it("should have a response with OK status") {
-            assertEquals(HttpStatusCode.Companion.OK, result.response.status())
+            assertEquals(HttpStatusCode.OK, result.response.status())
         }
         if (content != null) {
             it("should have a response with content '$content'") {

@@ -1,7 +1,7 @@
 package io.ktor.tests.routing
 
 import io.ktor.routing.*
-import io.ktor.tests.*
+import io.ktor.testing.*
 import org.junit.*
 import kotlin.test.*
 
