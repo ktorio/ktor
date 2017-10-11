@@ -6,7 +6,6 @@ import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.testing.*
-import io.ktor.tests.*
 import org.junit.*
 import kotlin.test.*
 

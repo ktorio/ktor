@@ -3,7 +3,6 @@ package io.ktor.tests.routing
 import io.ktor.http.*
 import io.ktor.routing.*
 import io.ktor.testing.*
-import io.ktor.tests.*
 import io.ktor.util.*
 import org.junit.*
 import kotlin.test.*
