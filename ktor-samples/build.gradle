@@ -1,9 +1,27 @@
+def host;
+
+def hostServerProp = project.hasProperty('hostServer') ? project.hostServer : null
+
+switch (hostServerProp) {
+    case 'jetty': host = 'jetty'; break
+    case 'netty': host = 'netty'; break
+    case 'tomcat': host = 'tomcat'; break
+    case null:
+    case '':
+        host = 'netty'; break
+
+    default: throw new InvalidUserDataException("Invalid host ${project.hostServer}")
+}
+
 subprojects {
+    apply plugin: 'application'
+
     dependencies {
         compile project(":ktor-server:ktor-server-core")
         compile "org.slf4j:jul-to-slf4j:1.7.12"
 
-        compile project(":ktor-server:ktor-server-jetty")
-        compile project(":ktor-server:ktor-server-netty")
+        compile project(":ktor-server:ktor-server-$host")
     }
+
+    mainClassName = "io.ktor.${host}.DevelopmentHost"
 }
