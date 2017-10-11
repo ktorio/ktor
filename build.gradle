@@ -9,6 +9,10 @@ allprojects  {
   group = 'io.ktor'
   version = '0.5.0-SNAPSHOT'
 
+    configurations {
+        testOutput.extendsFrom (testCompile)
+    }
+
   sourceSets {
     main {
         java {
@@ -36,6 +40,11 @@ allprojects  {
         coroutines 'enable'
     }
   }
+
+    task jarTest (type: Jar, dependsOn: testClasses) {
+        from sourceSets.test.output
+        classifier = 'test'
+    }
 
 test {
     ignoreFailures = true

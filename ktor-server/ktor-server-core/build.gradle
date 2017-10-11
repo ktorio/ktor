@@ -5,8 +5,7 @@ dependencies {
   compile project(':ktor-http')
 }
 
-task packageTests(type: Jar) {
-  from sourceSets.test.output
-  classifier = 'tests'
+artifacts {
+  testOutput jarTest
 }
-artifacts.archives packageTests
+
