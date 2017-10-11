@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Ktor :: Http2 + SSL/TLS (Jetty)" type="Application" factoryName="Application">
     <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
-    <option name="MAIN_CLASS_NAME" value="org.jetbrains.ktor.jetty.DevelopmentHost" />
+    <option name="MAIN_CLASS_NAME" value="io.ktor.jetty.DevelopmentHost" />
     <option name="VM_PARAMETERS" value="-ea -Xbootclasspath/p:ktor-samples/ktor-samples-ssl-http2/target/dependency/alpn-boot.jar" />
     <option name="PROGRAM_PARAMETERS" value="" />
     <option name="WORKING_DIRECTORY" value="file://$PROJECT_DIR$" />
