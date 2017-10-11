@@ -1,0 +1,8 @@
+
+description = ''
+dependencies {
+    compile group: 'io.netty', name: 'netty-tcnative', version:'2.0.5.Final'
+    compile group: 'io.netty', name: 'netty-tcnative-boringssl-static', version:'2.0.5.Final'
+    compile group: 'io.netty', name: 'netty-tcnative-boringssl-static', version:'2.0.5.Final', classifier:'linux-x86_64'
+    testCompile group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version:'8.1.11.v20170118'
+}

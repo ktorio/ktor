@@ -1,0 +1,6 @@
+
+description = ''
+dependencies {
+  compile project(':ktor-client:ktor-client-core')
+    compile group: 'org.eclipse.jetty.http2', name: 'http2-client', version:'9.4.6.v20170531'
+}

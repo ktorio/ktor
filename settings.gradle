@@ -1,0 +1,96 @@
+rootProject.name = 'ktor'
+include ':ktor-server:ktor-server-core'
+include ':ktor-server:ktor-server-tests'
+include ':ktor-server:ktor-server-host-common'
+include ':ktor-server:ktor-server-test-host'
+include ':ktor-server:ktor-server-jetty'
+include ':ktor-server:ktor-server-servlet'
+include ':ktor-server:ktor-server-tomcat'
+include ':ktor-server:ktor-server-netty'
+include ':ktor-server:ktor-server-cio'
+include ':ktor-server:ktor-server-benchmarks'
+include ':ktor-server'
+include ':ktor-client:ktor-client-core'
+include ':ktor-client:ktor-client-jetty'
+include ':ktor-client'
+include ':ktor-features:ktor-freemarker'
+include ':ktor-features:ktor-gson'
+include ':ktor-features:ktor-metrics'
+include ':ktor-features:ktor-server-sessions'
+include ':ktor-features:ktor-locations'
+include ':ktor-features:ktor-websockets'
+include ':ktor-features:ktor-html-builder'
+include ':ktor-features:ktor-auth'
+include ':ktor-features:ktor-auth-ldap'
+include ':ktor-features'
+include ':ktor-http'
+include ':ktor-utils'
+include ':ktor-http-cio'
+include ':ktor-network'
+include ':ktor-samples:ktor-samples-hello'
+include ':ktor-samples:ktor-samples-html'
+include ':ktor-samples:ktor-samples-locations'
+include ':ktor-samples:ktor-samples-auth'
+include ':ktor-samples:ktor-samples-async'
+include ':ktor-samples:ktor-samples-testable'
+include ':ktor-samples:ktor-samples-json'
+include ':ktor-samples:ktor-samples-post'
+include ':ktor-samples:ktor-samples-embedded'
+include ':ktor-samples:ktor-samples-httpbin'
+include ':ktor-samples:ktor-samples-metrics'
+include ':ktor-samples:ktor-samples-guice'
+include ':ktor-samples:you-kube'
+include ':ktor-samples:kweet'
+include ':ktor-samples:ktor-samples-websocket'
+include ':ktor-samples:ktor-samples-ssl-http2'
+include ':ktor-samples:ktor-samples-custom-feature'
+include ':ktor-samples:ktor-samples-static-content'
+include ':ktor-samples'
+
+project(':ktor-server:ktor-server-core').projectDir = "$rootDir/ktor-server/ktor-server-core" as File
+project(':ktor-server:ktor-server-tests').projectDir = "$rootDir/ktor-server/ktor-server-tests" as File
+project(':ktor-server:ktor-server-host-common').projectDir = "$rootDir/ktor-server/ktor-server-host-common" as File
+project(':ktor-server:ktor-server-test-host').projectDir = "$rootDir/ktor-server/ktor-server-test-host" as File
+project(':ktor-server:ktor-server-jetty').projectDir = "$rootDir/ktor-server/ktor-server-jetty" as File
+project(':ktor-server:ktor-server-servlet').projectDir = "$rootDir/ktor-server/ktor-server-servlet" as File
+project(':ktor-server:ktor-server-tomcat').projectDir = "$rootDir/ktor-server/ktor-server-tomcat" as File
+project(':ktor-server:ktor-server-netty').projectDir = "$rootDir/ktor-server/ktor-server-netty" as File
+project(':ktor-server:ktor-server-cio').projectDir = "$rootDir/ktor-server/ktor-server-cio" as File
+project(':ktor-server:ktor-server-benchmarks').projectDir = "$rootDir/ktor-server/ktor-server-benchmarks" as File
+project(':ktor-server').projectDir = "$rootDir/ktor-server" as File
+project(':ktor-client:ktor-client-core').projectDir = "$rootDir/ktor-client/ktor-client-core" as File
+project(':ktor-client:ktor-client-jetty').projectDir = "$rootDir/ktor-client/ktor-client-jetty" as File
+project(':ktor-client').projectDir = "$rootDir/ktor-client" as File
+project(':ktor-features:ktor-freemarker').projectDir = "$rootDir/ktor-features/ktor-freemarker" as File
+project(':ktor-features:ktor-gson').projectDir = "$rootDir/ktor-features/ktor-gson" as File
+project(':ktor-features:ktor-metrics').projectDir = "$rootDir/ktor-features/ktor-metrics" as File
+project(':ktor-features:ktor-server-sessions').projectDir = "$rootDir/ktor-features/ktor-server-sessions" as File
+project(':ktor-features:ktor-locations').projectDir = "$rootDir/ktor-features/ktor-locations" as File
+project(':ktor-features:ktor-websockets').projectDir = "$rootDir/ktor-features/ktor-websockets" as File
+project(':ktor-features:ktor-html-builder').projectDir = "$rootDir/ktor-features/ktor-html-builder" as File
+project(':ktor-features:ktor-auth').projectDir = "$rootDir/ktor-features/ktor-auth" as File
+project(':ktor-features:ktor-auth-ldap').projectDir = "$rootDir/ktor-features/ktor-auth-ldap" as File
+project(':ktor-features').projectDir = "$rootDir/ktor-features" as File
+project(':ktor-http').projectDir = "$rootDir/ktor-http" as File
+project(':ktor-utils').projectDir = "$rootDir/ktor-utils" as File
+project(':ktor-http-cio').projectDir = "$rootDir/ktor-http-cio" as File
+project(':ktor-network').projectDir = "$rootDir/ktor-network" as File
+project(':ktor-samples:ktor-samples-hello').projectDir = "$rootDir/ktor-samples/ktor-samples-hello" as File
+project(':ktor-samples:ktor-samples-html').projectDir = "$rootDir/ktor-samples/ktor-samples-html" as File
+project(':ktor-samples:ktor-samples-locations').projectDir = "$rootDir/ktor-samples/ktor-samples-locations" as File
+project(':ktor-samples:ktor-samples-auth').projectDir = "$rootDir/ktor-samples/ktor-samples-auth" as File
+project(':ktor-samples:ktor-samples-async').projectDir = "$rootDir/ktor-samples/ktor-samples-async" as File
+project(':ktor-samples:ktor-samples-testable').projectDir = "$rootDir/ktor-samples/ktor-samples-testable" as File
+project(':ktor-samples:ktor-samples-json').projectDir = "$rootDir/ktor-samples/ktor-samples-json" as File
+project(':ktor-samples:ktor-samples-post').projectDir = "$rootDir/ktor-samples/ktor-samples-post" as File
+project(':ktor-samples:ktor-samples-embedded').projectDir = "$rootDir/ktor-samples/ktor-samples-embedded" as File
+project(':ktor-samples:ktor-samples-httpbin').projectDir = "$rootDir/ktor-samples/ktor-samples-httpbin" as File
+project(':ktor-samples:ktor-samples-metrics').projectDir = "$rootDir/ktor-samples/ktor-samples-metrics" as File
+project(':ktor-samples:ktor-samples-guice').projectDir = "$rootDir/ktor-samples/ktor-samples-guice" as File
+project(':ktor-samples:you-kube').projectDir = "$rootDir/ktor-samples/you-kube" as File
+project(':ktor-samples:kweet').projectDir = "$rootDir/ktor-samples/kweet" as File
+project(':ktor-samples:ktor-samples-websocket').projectDir = "$rootDir/ktor-samples/ktor-samples-websocket" as File
+project(':ktor-samples:ktor-samples-ssl-http2').projectDir = "$rootDir/ktor-samples/ktor-samples-ssl-http2" as File
+project(':ktor-samples:ktor-samples-custom-feature').projectDir = "$rootDir/ktor-samples/ktor-samples-custom-feature" as File
+project(':ktor-samples:ktor-samples-static-content').projectDir = "$rootDir/ktor-samples/ktor-samples-static-content" as File
+project(':ktor-samples').projectDir = "$rootDir/ktor-samples" as File

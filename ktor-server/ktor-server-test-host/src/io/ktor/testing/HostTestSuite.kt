@@ -278,7 +278,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
 
     @Test
     fun testStaticServeFromDir() {
-        val targetClasses = listOf(File("target/classes"), File("ktor-server/ktor-server-core/target/classes")).first { it.exists() }
+        val targetClasses = listOf(File(classesDir), File(coreClassesDir)).first { it.exists() }
         val file = targetClasses.walkBottomUp().filter { it.extension == "class" }.first()
         testLog.trace("test file is $file")
 
@@ -442,7 +442,8 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
 
     @Test
     fun testURIContentLocalFile() {
-        val file = listOf(File("target/classes"), File("ktor-server/ktor-server-core/target/classes")).first { it.exists() }.walkBottomUp().filter { it.extension == "class" }.first()
+        val buildDir = "ktor-server/ktor-server-core/build/classes/kotlin/main"
+        val file = listOf(File("build/classes/kotlin/main"), File(buildDir)).first { it.exists() }.walkBottomUp().filter { it.extension == "class" }.first()
         testLog.trace("test file is $file")
 
         createAndStartServer {
@@ -995,7 +996,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
 
     @Test
     fun testBigFile() {
-        val file = File("target/large-file.dat")
+        val file = File("build/large-file.dat")
         val rnd = Random()
 
         if (!file.exists()) {
@@ -1122,5 +1123,10 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
         } while (true)
 
         return hex(md.digest())
+    }
+
+    companion object {
+        val classesDir = "build/classes/kotlin/main"
+        val coreClassesDir = "ktor-server/ktor-server-core/$classesDir"
     }
 }

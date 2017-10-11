@@ -1,4 +1,6 @@
 target
+build
+.gradle
 .idea/*
 !.idea/runConfigurations
 !.idea/runConfigurations/*

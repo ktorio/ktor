@@ -1,0 +1,13 @@
+
+description = ''
+dependencies {
+  compile project(':ktor-server:ktor-server-core')
+  compile project(':ktor-server:ktor-server-test-host')
+  compile project(':ktor-server:ktor-server-netty')
+  compile project(':ktor-server:ktor-server-jetty')
+    compile group: 'org.openjdk.jmh', name: 'jmh-core', version:'1.19'
+    compile group: 'org.openjdk.jmh', name: 'jmh-generator-annprocess', version:'1.19'
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version:'4.5.2'
+    compile group: 'com.squareup.okhttp3', name: 'okhttp', version:'3.6.0'
+    compile group: 'ch.qos.logback', name: 'logback-classic', version:'1.2.1'
+}
