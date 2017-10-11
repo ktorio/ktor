@@ -207,7 +207,10 @@ class ApplicationHostEnvironmentReloading(
                     return FileVisitResult.CONTINUE
                 }
             }
-            Files.walkFileTree(folder, visitor)
+
+            if (Files.isDirectory(folder)) {
+                Files.walkFileTree(folder, visitor)
+            }
         }
 
         paths.forEach { path ->

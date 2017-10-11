@@ -1,0 +1,7 @@
+
+description = ''
+dependencies {
+  compile project(':ktor-server:ktor-server-core')
+  compile project(':ktor-server:ktor-server-test-host')
+  testCompile project(':ktor-server:ktor-server-core')
+}

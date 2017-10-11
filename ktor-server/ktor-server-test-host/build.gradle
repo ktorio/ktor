@@ -1,0 +1,15 @@
+
+description = ''
+dependencies {
+  compile project(':ktor-server:ktor-server-host-common')
+    compile group: 'ch.qos.logback', name: 'logback-classic', version:'1.2.1'
+  compile project(':ktor-client:ktor-client-jetty')
+    compile group: 'org.eclipse.jetty.http2', name: 'http2-client', version:'9.4.6.v20170531'
+    compile group: 'org.eclipse.jetty', name: 'jetty-client', version:'9.4.6.v20170531'
+    compile group: 'org.eclipse.jetty.http2', name: 'http2-http-client-transport', version:'9.4.6.v20170531'
+    compile group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version:'8.1.11.v20170118'
+  testCompile project(':ktor-server:ktor-server-core')
+    
+    compile group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version:'1.1.51'
+    compile group: 'junit', name: 'junit', version:'4.12'
+}

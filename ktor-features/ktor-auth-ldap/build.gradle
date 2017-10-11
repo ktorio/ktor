@@ -1,0 +1,7 @@
+
+description = ''
+dependencies {
+  compile project(':ktor-features:ktor-auth')
+    testCompile group: 'org.apache.directory.server', name: 'apacheds-server-integ', version:'2.0.0-M24'
+    testCompile group: 'org.apache.directory.server', name: 'apacheds-core-integ', version:'2.0.0-M24'
+}

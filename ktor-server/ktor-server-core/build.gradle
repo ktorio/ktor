@@ -1,0 +1,12 @@
+
+description = ''
+dependencies {
+  compile project(":ktor-utils")
+  compile project(':ktor-http')
+}
+
+task packageTests(type: Jar) {
+  from sourceSets.test.output
+  classifier = 'tests'
+}
+artifacts.archives packageTests
