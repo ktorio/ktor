@@ -6,7 +6,7 @@ import java.io.*
 import kotlin.test.*
 
 class FileChannelTest {
-    private val sandbox = File("target/files")
+    private val sandbox = File("build/files")
     private lateinit var temp: File
 
     @Before

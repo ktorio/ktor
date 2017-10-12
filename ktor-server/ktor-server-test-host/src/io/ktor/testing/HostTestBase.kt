@@ -200,7 +200,7 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     class PublishedTimeout(val seconds: Long) : Timeout(seconds, TimeUnit.SECONDS)
 
     companion object {
-        val keyStoreFile = File("target/temp.jks")
+        val keyStoreFile = File("build/temp.jks")
         lateinit var keyStore: KeyStore
         lateinit var sslSocketFactory: SSLSocketFactory
 

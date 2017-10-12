@@ -22,7 +22,7 @@ abstract class IntegrationBenchmark {
     private val packageName = IntegrationBenchmark::class.java.`package`.name
     private val classFileName = IntegrationBenchmark::class.simpleName!! + ".class"
     private val smallFile = File("pom.xml")
-    private val largeFile = File("ktor-server/ktor-server-core/target/").walkTopDown().maxDepth(1).filter {
+    private val largeFile = File("ktor-server/ktor-server-core/build/").walkTopDown().maxDepth(1).filter {
         it.name.startsWith("ktor-server-core") && it.name.endsWith("SNAPSHOT.jar")
     }.single()
 
