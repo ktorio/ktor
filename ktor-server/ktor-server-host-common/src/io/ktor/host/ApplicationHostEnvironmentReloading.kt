@@ -184,7 +184,13 @@ class ApplicationHostEnvironmentReloading(
         val paths = HashSet<Path>()
         for (url in urls) {
             val path = url.path ?: continue
-            val folder = Paths.get(URLDecoder.decode(path, "utf-8"))
+            val decodedPath = URLDecoder.decode(path, "utf-8")
+            val folder = File(decodedPath).toPath()
+
+            // TODO: investigate why the path gets trailing slash on Windows
+            // java.nio.file.InvalidPathException: Illegal char <:> at index 2: /Z:/buildAgent/work/7cfdbf2437628a0f/ktor-server/ktor-server-host-common/target/test-classes/
+            // val folder = Paths.get(URLDecoder.decode(path, "utf-8"))
+
             if (!Files.exists(folder))
                 continue
 
