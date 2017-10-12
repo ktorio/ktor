@@ -1,16 +1,17 @@
 plugins {
-    id "me.champeau.gradle.jmh" version "0.4.4"
-    id "org.jetbrains.kotlin.plugin.allopen" version "1.1.51"
+    id 'me.champeau.gradle.jmh' version '0.4.4'
 }
 
+apply plugin: 'kotlin-allopen'
+
 allOpen {
-    annotation("org.openjdk.jmh.annotations.State")
+    annotation('org.openjdk.jmh.annotations.State')
 }
 
 sourceSets {
     jmh {
         kotlin {
-            srcDir "src-jmh"
+            srcDir 'src-jmh'
         }
     }
 }

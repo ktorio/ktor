@@ -9,6 +9,6 @@ dependencies {
     compile group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: '8.1.11.v20170118'
     testCompile project(':ktor-server:ktor-server-core')
 
-    compile group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: '1.1.51'
+    compile group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
     compile group: 'junit', name: 'junit', version: '4.12'
 }
