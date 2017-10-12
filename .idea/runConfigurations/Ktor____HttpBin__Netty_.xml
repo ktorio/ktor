@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Ktor :: Hello (Netty)" type="GradleRunConfiguration" factoryName="Gradle" folderName="Samples" singleton="true">
+  <configuration default="false" name="Ktor :: HttpBin (Netty)" type="GradleRunConfiguration" factoryName="Gradle" folderName="Samples" singleton="true">
     <ExternalSystemSettings>
       <option name="executionName" />
-      <option name="externalProjectPath" value="$PROJECT_DIR$/ktor-samples/ktor-samples-hello" />
+      <option name="externalProjectPath" value="$PROJECT_DIR$/ktor-samples/ktor-samples-httpbin" />
       <option name="externalSystemIdString" value="GRADLE" />
       <option name="scriptParameters" value="-PhostServer=netty" />
       <option name="taskDescriptions">
