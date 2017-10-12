@@ -128,7 +128,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
     fun testRequestContentFormData() {
         createAndStartServer {
             handle {
-                val valuesMap = call.tryReceive<ValuesMap>()
+                val valuesMap = call.receiveOrNull<ValuesMap>()
                 if (valuesMap != null)
                     call.respond(valuesMap.formUrlEncode())
                 else
