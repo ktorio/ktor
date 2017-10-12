@@ -13,9 +13,6 @@ switch (hostServerProp) {
 
 subprojects {
     apply plugin: 'application'
-    configurations {
-        boot
-    }
 
     dependencies {
         compile project(":ktor-server:ktor-server-core")
