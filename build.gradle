@@ -20,6 +20,7 @@ allprojects {
 
     configurations {
         testOutput.extendsFrom(testCompile)
+        boot
     }
 
     sourceSets {
