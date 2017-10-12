@@ -29,7 +29,7 @@ subprojects {
                 compile group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: '2.0.5.Final'
                 compile group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: '2.0.5.Final', classifier: 'linux-x86_64'
             } else if (hostServerProp == 'jetty') {
-                boot group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version:'8.1.11.v20170118'
+                boot group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: '8.1.11.v20170118'
             }
         }
     }

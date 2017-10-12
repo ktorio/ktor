@@ -1,5 +1,4 @@
-
 description = ''
 dependencies {
-  compile project(':ktor-server:ktor-server-core')
+    compile project(':ktor-server:ktor-server-core')
 }
