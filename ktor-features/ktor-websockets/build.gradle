@@ -1,7 +1,6 @@
-
 description = ''
 dependencies {
-  testCompile project(':ktor-server:ktor-server-jetty')
-  testCompile project(':ktor-server:ktor-server-netty')
-  testCompile project(':ktor-server:ktor-server-tomcat')
+    testCompile project(':ktor-server:ktor-server-jetty')
+    testCompile project(':ktor-server:ktor-server-netty')
+    testCompile project(':ktor-server:ktor-server-tomcat')
 }

@@ -1,11 +1,10 @@
-
 description = ''
 dependencies {
-  compile project(":ktor-utils")
-  compile project(':ktor-http')
+    compile project(":ktor-utils")
+    compile project(':ktor-http')
 }
 
 artifacts {
-  testOutput jarTest
+    testOutput jarTest
 }
 

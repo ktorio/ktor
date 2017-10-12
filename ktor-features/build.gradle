@@ -1,8 +1,8 @@
 subprojects {
 
-dependencies {
-  compile project(':ktor-server:ktor-server-core')
-  testCompile project(":ktor-server:ktor-server-test-host")
-}
+    dependencies {
+        compile project(':ktor-server:ktor-server-core')
+        testCompile project(":ktor-server:ktor-server-test-host")
+    }
 
 }

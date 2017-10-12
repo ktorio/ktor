@@ -1,6 +1,5 @@
-
 description = ''
 dependencies {
-  compile project(':ktor-server:ktor-server-host-common')
-    compileOnly group: 'javax.servlet', name: 'javax.servlet-api', version:'4.0.0-b07'
+    compile project(':ktor-server:ktor-server-host-common')
+    compileOnly group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.0-b07'
 }

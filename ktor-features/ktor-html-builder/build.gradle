@@ -1,5 +1,4 @@
-
 description = ''
 dependencies {
-    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-html-jvm', version:'0.6.2'
+    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-html-jvm', version: '0.6.2'
 }

@@ -1,5 +1,4 @@
-
 description = ''
 dependencies {
-  compile project(':ktor-features:ktor-websockets')
+    compile project(':ktor-features:ktor-websockets')
 }

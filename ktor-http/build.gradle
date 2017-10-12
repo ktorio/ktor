@@ -1,5 +1,4 @@
-
 description = 'io.ktor http-core'
 dependencies {
-  compile project(':ktor-utils')
+    compile project(':ktor-utils')
 }

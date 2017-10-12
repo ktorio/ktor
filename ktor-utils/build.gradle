@@ -1,4 +1,3 @@
-
 apply plugin: 'java'
 
 description = ''
