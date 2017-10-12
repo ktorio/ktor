@@ -7,7 +7,7 @@ import io.ktor.util.*
 import org.openjdk.jmh.annotations.*
 
 @State(Scope.Benchmark)
-open class BaselinePipeline {
+class BaselinePipeline {
     val functions = listOf({ "1" }, { "2" }, { "3" })
     val suspendFunctions = listOf<suspend () -> String>({ "1" }, { "2" }, { "3" })
 

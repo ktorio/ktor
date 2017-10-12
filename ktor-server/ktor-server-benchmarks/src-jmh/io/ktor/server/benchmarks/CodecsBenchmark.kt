@@ -5,7 +5,7 @@ import org.openjdk.jmh.annotations.*
 import java.net.*
 
 @State(Scope.Benchmark)
-open class CodecsBenchmark {
+class CodecsBenchmark {
     @Benchmark
     fun decodeHex() = decodeURLPart("%2A~%21%40%23%24%25%5E%26%28%29+%7B%7D%22%5C%3B%3A%60%2C%2F%5B%5D")
 

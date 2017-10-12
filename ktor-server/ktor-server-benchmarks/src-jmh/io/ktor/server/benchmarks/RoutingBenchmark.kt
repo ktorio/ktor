@@ -9,7 +9,7 @@ import org.openjdk.jmh.annotations.*
 import java.util.concurrent.*
 
 @State(Scope.Benchmark)
-open class RoutingBenchmark {
+class RoutingBenchmark {
     private val testHost: TestApplicationHost = TestApplicationHost(createTestEnvironment())
 
     @Setup

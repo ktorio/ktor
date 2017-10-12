@@ -12,7 +12,7 @@ import java.util.concurrent.*
 
 
 @State(Scope.Benchmark)
-open class FullBenchmark {
+class FullBenchmark {
     private val testHost: TestApplicationHost = TestApplicationHost(createTestEnvironment())
     private val classSignature = listOf(0xca, 0xfe, 0xba, 0xbe).map(Int::toByte)
     private val packageName = FullBenchmark::class.java.`package`.name
