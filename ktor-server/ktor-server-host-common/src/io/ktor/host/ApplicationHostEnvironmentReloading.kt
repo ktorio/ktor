@@ -100,7 +100,7 @@ class ApplicationHostEnvironmentReloading(
         _applicationInstance ?: throw IllegalStateException("ApplicationHostEnvironment was not started")
     }
 
-    fun ClassLoader.allURLs(): Set<URL> {
+    private fun ClassLoader.allURLs(): Set<URL> {
         val parentUrls = parent?.allURLs() ?: emptySet()
         if (this is URLClassLoader) {
             val urls = urLs.filterNotNull().toSet()
@@ -152,7 +152,7 @@ class ApplicationHostEnvironmentReloading(
         return OverridingClassLoader(watchUrls, baseClassLoader)
     }
 
-    fun safeRiseEvent(event: EventDefinition<Application>, application: Application) {
+    private fun safeRiseEvent(event: EventDefinition<Application>, application: Application) {
         try {
             monitor.raise(event, application)
         } catch (e: Throwable) {
@@ -160,7 +160,7 @@ class ApplicationHostEnvironmentReloading(
         }
     }
 
-    fun destroyApplication() {
+    private fun destroyApplication() {
         val currentApplication = _applicationInstance
         val applicationClassLoader = _applicationClassLoader
         _applicationInstance = null
@@ -180,27 +180,28 @@ class ApplicationHostEnvironmentReloading(
         packageWatchKeys = mutableListOf()
     }
 
-    fun watchUrls(urls: List<URL>) {
+    private fun watchUrls(urls: List<URL>) {
         val paths = HashSet<Path>()
         for (url in urls) {
-            val path = url.path
-            if (path != null) {
-                val folder = File(URLDecoder.decode(path, "utf-8")).toPath()
-                val visitor = object : SimpleFileVisitor<Path>() {
-                    override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
-                        paths.add(dir)
-                        return FileVisitResult.CONTINUE
-                    }
+            val path = url.path ?: continue
+            val folder = Paths.get(URLDecoder.decode(path, "utf-8"))
+            if (!Files.exists(folder))
+                continue
 
-                    override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-                        val dir = file.parent
-                        if (dir != null)
-                            paths.add(dir)
-                        return FileVisitResult.CONTINUE
-                    }
+            val visitor = object : SimpleFileVisitor<Path>() {
+                override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
+                    paths.add(dir)
+                    return FileVisitResult.CONTINUE
                 }
-                Files.walkFileTree(folder, visitor)
+
+                override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
+                    val dir = file.parent
+                    if (dir != null)
+                        paths.add(dir)
+                    return FileVisitResult.CONTINUE
+                }
             }
+            Files.walkFileTree(folder, visitor)
         }
 
         paths.forEach { path ->
@@ -321,22 +322,19 @@ class ApplicationHostEnvironmentReloading(
                 }))
     }
 
-    private fun ClassLoader.loadClassOrNull(name: String): Class<*>? {
-        try {
-            return loadClass(name)
-        } catch (e: ClassNotFoundException) {
-            return null
-        }
+    private fun ClassLoader.loadClassOrNull(name: String): Class<*>? = try {
+        loadClass(name)
+    } catch (e: ClassNotFoundException) {
+        null
     }
 
-    private fun get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH(): WatchEvent.Modifier? {
-        try {
-            val c = Class.forName("com.sun.nio.file.SensitivityWatchEventModifier")
-            val f = c.getField("HIGH")
-            return f.get(c) as? WatchEvent.Modifier
-        } catch (e: Exception) {
-            return null
-        }
+    @Suppress("FunctionName")
+    private fun get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH() = try {
+        val c = Class.forName("com.sun.nio.file.SensitivityWatchEventModifier")
+        val f = c.getField("HIGH")
+        f.get(c) as? WatchEvent.Modifier
+    } catch (e: Exception) {
+        null
     }
 
     companion object {
