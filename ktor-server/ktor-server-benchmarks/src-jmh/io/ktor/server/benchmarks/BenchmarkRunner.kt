@@ -1,6 +1,7 @@
 package io.ktor.server.benchmarks
 
 import org.openjdk.jmh.annotations.*
+import org.openjdk.jmh.results.format.*
 import org.openjdk.jmh.runner.*
 import org.openjdk.jmh.runner.options.*
 import java.lang.reflect.*
@@ -11,6 +12,7 @@ val numberOfOperations = 10000
 val jmhOptions = OptionsBuilder()
         .mode(Mode.Throughput)
         .timeUnit(TimeUnit.MILLISECONDS)
+        .resultFormat(ResultFormatType.CSV)
         .forks(1)
 
 class BenchmarkSettings {
@@ -80,7 +82,7 @@ fun runProfiler(settings: BenchmarkSettings) {
         benchmarks.forEach { it.invoke(instance) }
 
         if (settings.threads == 1) {
-            println("Running ${numberOfOperations} iterations…")
+            println("Running $numberOfOperations iterations…")
             instance.executeBenchmarks(benchmarks, numberOfOperations)
         } else {
             val iterationsPerThread = numberOfOperations / settings.threads
@@ -130,6 +132,11 @@ fun runJMH(settings: BenchmarkSettings) {
         settings.benchmarks.forEach { (clazz, method) ->
             val regexp = clazz.name + (method?.let { ".$it" } ?: "")
             include(regexp.replace(".", "\\."))
+        }
+
+        System.getProperty("benchmarkClassFqName")?.let { fqName ->
+            val name = fqName.substringAfterLast('.').removeSuffix("Kt")
+            result("build/reports/benchmarks/$name.csv")
         }
     }
     Runner(options.build()).run()
