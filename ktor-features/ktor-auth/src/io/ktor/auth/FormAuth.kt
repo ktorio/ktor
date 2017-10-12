@@ -13,7 +13,7 @@ fun AuthenticationPipeline.formAuthentication(userParamName: String = "user",
                                               challenge: FormAuthChallenge = FormAuthChallenge.Unauthorized,
                                               validate: (UserPasswordCredential) -> Principal?) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val postParameters = call.tryReceive<ValuesMap>()
+        val postParameters = call.receiveOrNull<ValuesMap>()
         val username = postParameters?.get(userParamName)
         val password = postParameters?.get(passwordParamName)
 
