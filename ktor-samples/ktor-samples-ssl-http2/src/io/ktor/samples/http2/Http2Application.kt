@@ -22,7 +22,7 @@ class CertificateGenerator {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            val file = File("target/temporary.jks")
+            val file = File("build/temporary.jks")
 
             if (!file.exists()) {
                 file.parentFile.mkdirs()

@@ -51,7 +51,7 @@ data class KweetSession(val userId: String)
 class KweetApp {
 
     val hashKey = hex("6819b57a326945c1968f45236589")
-    val dir = File("target/db")
+    val dir = File("build/db")
     val pool = ComboPooledDataSource().apply {
         driverClass = Driver::class.java.name
         jdbcUrl = "jdbc:h2:file:${dir.canonicalFile.absolutePath}"
