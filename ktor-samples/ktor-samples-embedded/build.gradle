@@ -6,3 +6,4 @@ dependencies {
 }
 
 mainClassName = 'io.ktor.samples.embedded.EmbeddedApplicationKt'
+(getTasksByName("run", false).first() as JavaExec).args('-config=embedded.conf')
