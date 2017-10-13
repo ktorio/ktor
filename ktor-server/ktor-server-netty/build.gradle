@@ -7,5 +7,24 @@ dependencies {
     testCompile project(':ktor-server:ktor-server-core')
     testCompile group: 'io.netty', name: 'netty-tcnative', version: netty_tcnative_version
     testCompile group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: netty_tcnative_version
-    testCompile group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: netty_tcnative_version, classifier: 'linux-x86_64'
+}
+
+def enableAlpnProp = project.hasProperty('enableAlpn')
+if (enableAlpnProp) {
+    def nativeClassifier;
+    def osName = System.getProperty('os.name').toLowerCase()
+
+    if (osName.contains('win')) {
+        nativeClassifier = 'windows-x86_64'
+    } else if (osName.contains('linux')) {
+        nativeClassifier = 'linux-x86_64'
+    } else if (osName.contains('mac')) {
+        nativeClassifier = 'osx-x86_64'
+    } else {
+        throw new InvalidUserDataException("Unsupoprted os family $osName")
+    }
+
+    dependencies {
+        compile group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: netty_tcnative_version, classifier: nativeClassifier
+    }
 }
