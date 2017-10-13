@@ -155,8 +155,8 @@ subprojects {
         compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlin_version
         compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jre7', version: kotlin_version
         compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jre8', version: kotlin_version
-        compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-jdk8', version: '0.20-alpha-5'
-        compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io', version: '0.20-alpha-5') {
+        compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-jdk8', version: coroutines_version
+        compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io', version: coroutines_version) {
             exclude(module: 'kotlin-stdlib')
         }
         compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
