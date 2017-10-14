@@ -4,7 +4,6 @@ import io.ktor.http.*
 import io.ktor.http.HttpHeaders
 import io.ktor.http.cio.*
 import kotlinx.io.core.*
-import kotlinx.io.nio.*
 import java.net.*
 import java.nio.*
 import java.nio.ByteOrder
@@ -36,6 +35,11 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
         emptyLine()
     }.build()
 
+    private val requestByteBuffer = ByteBuffer.allocateDirect(request.remaining)!!.apply {
+        request.copy().readFully(this)
+        clear()
+    }
+
     private val count = AtomicLong(0)
     private val codeCounts = Array<AtomicLong>(1000) { AtomicLong(0) }
     private val readErrors = AtomicLong()
@@ -55,8 +59,8 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
         CODE
     }
 
-    private inner class ClientState(internal val channel: SocketChannel, private val request: ByteReadPacket) {
-        private var current = request.copy()
+    private inner class ClientState(internal val channel: SocketChannel) {
+        private val current = requestByteBuffer.duplicate()
         internal var remaining = 0
             private set
 
@@ -102,8 +106,8 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
             require(qty > 0)
             if (!shutdown) {
                 remaining += qty
-                if (current.isEmpty) {
-                    current = request.copy()
+                if (!current.hasRemaining()) {
+                    current.clear()
                 }
             }
         }
@@ -124,7 +128,8 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
             if (remaining == 0) return true
             val hp = highPressure
 
-            if (channel.writePacket(current)) {
+            channel.write(current)
+            if (!current.hasRemaining()) {
                 count.incrementAndGet()
                 return when {
                     shutdown -> {
@@ -132,11 +137,11 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
                         true
                     }
                     hp -> {
-                        current = request.copy()
+                        current.clear()
                         doWrite()
                     }
                     --remaining > 0 -> {
-                        current = request.copy()
+                        current.clear()
                         doWrite()
                     }
                     else -> true
@@ -183,47 +188,85 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
 //        }
 
         private fun findEol(bb: ByteBuffer) {
-            while (bb.hasRemaining()) {
-                if (bb.get() == N) {
+            val position = bb.position()
+            val limit = bb.limit()
+
+            for (idx in position until limit) {
+                if (bb[idx] == N) {
                     parseState = ParseState.HTTP
                     tokenSize = 0
-                    break
+                    bb.position(idx + 1)
+                    return
                 }
             }
+
+            bb.position(limit)
         }
 
         private fun findHttp(bb: ByteBuffer) {
-            while (bb.hasRemaining()) {
-                val b = bb.get()
-                if (b in HTTP1) {
-                    if (++tokenSize <= HTTP1_length) {
-                        continue
-                    }
-                } else if (b == S) {
+            val position = bb.position()
+            val limit = bb.limit()
+            val http = HTTP11
+            val initialTokenSize = tokenSize
+            val offset = initialTokenSize - position
+
+            if (initialTokenSize == 0 && limit - position >= 8) {
+                if (bb.getLong(position) == HTTP11Long) {
                     parseState = ParseState.SPACE
                     tokenSize = 0
-                    break
+                    bb.position(position + 8)
+                    return
+                } else {
+                    parseState = ParseState.EOL
+                    return
                 }
-
-                parseState = ParseState.EOL
-                break
             }
+
+            for (idx in position until limit) {
+                val b = bb[idx]
+
+                if (b == S) {
+                    parseState = ParseState.SPACE
+                    tokenSize = 0
+                    bb.position(idx + 1)
+                    return
+                }
+                if (b == http[idx + offset]) {
+                    if (++tokenSize > HTTP1_length) {
+                        parseState = ParseState.EOL
+                        bb.position(idx + 1)
+                        return
+                    }
+                } else {
+                    parseState = ParseState.EOL
+                    bb.position(idx)
+                    return
+                }
+            }
+
+            bb.position(limit)
         }
 
         private fun skipSpaces(bb: ByteBuffer) {
-            while (bb.hasRemaining()) {
-                val b = bb.get()
+            val position = bb.position()
+            val limit = bb.limit()
+
+            for (idx in position until limit) {
+                val b = bb[idx]
+
                 if (b == N) {
                     parseState = ParseState.HTTP
-                    break
+                    bb.position(idx + 1)
+                    return
                 }
                 if (b == S) {
                     if (++tokenSize > 10) {
                         parseState = ParseState.EOL
-                        break
+                        bb.position(idx + 1)
+                        return
+                    } else {
+                        continue
                     }
-
-                    continue
                 }
 
                 val n = b - 0x30
@@ -231,12 +274,16 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
                     parseState = ParseState.CODE
                     code = n
                     tokenSize = 1
-                } else {
-                    parseState = ParseState.EOL
+                    bb.position(idx + 1)
+                    return
                 }
 
-                break
+                parseState = ParseState.EOL
+                bb.position(idx + 1)
+                return
             }
+
+            bb.position(limit)
         }
 
         private fun parseCode(bb: ByteBuffer) {
@@ -327,7 +374,7 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
                     ch.configureBlocking(false)
 
                     try {
-                        val client = ClientState(ch, request)
+                        val client = ClientState(ch)
                         client.send(queueSize)
 
                         if (ch.connect(remote)) {
@@ -468,8 +515,10 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
     }
 
     companion object {
-        private const val HTTP1_length = "HTTP/1.1".length
-        private val HTTP1 = "HTP/1.".toByteArray()
+        private val HTTP11 = "HTTP/1.1".toByteArray()
+        private const val HTTP11Long = 0x485454502f312e31L
+        private const val HTTP1_length = 8
+
         private const val N = '\n'.toByte()
         private const val S = 0x20.toByte()
 
