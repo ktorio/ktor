@@ -2,6 +2,9 @@ description = ''
 dependencies {
     compile project(":ktor-utils")
     compile project(':ktor-http')
+
+    testCompile project(":ktor-http-cio")
+    testCompile project(":ktor-network")
 }
 
 artifacts {
