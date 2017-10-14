@@ -206,11 +206,8 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
         private fun findHttp(bb: ByteBuffer) {
             val position = bb.position()
             val limit = bb.limit()
-            val http = HTTP11
-            val initialTokenSize = tokenSize
-            val offset = initialTokenSize - position
 
-            if (initialTokenSize == 0 && limit - position >= 8) {
+            if (tokenSize == 0 && limit - position >= 8) {
                 if (bb.getLong(position) == HTTP11Long) {
                     parseState = ParseState.SPACE
                     tokenSize = 0
@@ -221,6 +218,13 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
                     return
                 }
             }
+
+            return findHttpSlow(bb, position, limit)
+        }
+
+        private fun findHttpSlow(bb: ByteBuffer, position: Int, limit: Int) {
+            val http = HTTP11
+            val offset = tokenSize - position
 
             for (idx in position until limit) {
                 val b = bb[idx]
@@ -251,6 +255,20 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
             val position = bb.position()
             val limit = bb.limit()
 
+            if (limit - position >= 4) {
+                val i = bb.getInt(position)
+                if (i == HTTP_200_SPACE_Int || i == HTTP_200_R_Int) {
+                    gotStatus(200)
+                    parseState = ParseState.EOL
+                    bb.position(position + 3)
+                    return
+                }
+            }
+
+            return skipSpacesSlow(bb, position, limit)
+        }
+
+        private fun skipSpacesSlow(bb: ByteBuffer, position: Int, limit: Int) {
             for (idx in position until limit) {
                 val b = bb[idx]
 
@@ -266,6 +284,15 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
                         return
                     } else {
                         continue
+                    }
+                }
+                if (b == 0x32.toByte() && limit - idx >= 4) {
+                    val i = bb.getInt(idx)
+                    if (i == HTTP_200_SPACE_Int || i == HTTP_200_R_Int) {
+                        gotStatus(200)
+                        parseState = ParseState.EOL
+                        bb.position(idx + 3)
+                        return
                     }
                 }
 
@@ -287,32 +314,40 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
         }
 
         private fun parseCode(bb: ByteBuffer) {
+            var code = code
+
             while (bb.hasRemaining()) {
                 val b = bb.get()
                 if (b == S || b == N) {
                     // found code
                     if (code in 100..999) {
-                        codeCounts[code].incrementAndGet()
-                        send(1)
+                        gotStatus(code)
                     }
 
                     parseState = ParseState.EOL
-                    break
+                    return
                 }
 
                 val n = b - 0x30
                 if (n < 0 || n > 9) {
                     parseState = ParseState.EOL
-                    break
+                    return
                 }
 
                 if (++tokenSize > 3) {
                     parseState = ParseState.EOL
-                    break
+                    return
                 }
 
                 code = code * 10 + n
             }
+
+            this.code = code
+        }
+
+        private fun gotStatus(code: Int) {
+            codeCounts[code].incrementAndGet()
+            send(1)
         }
 
         /*
@@ -518,6 +553,9 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
         private val HTTP11 = "HTTP/1.1".toByteArray()
         private const val HTTP11Long = 0x485454502f312e31L
         private const val HTTP1_length = 8
+
+        private const val HTTP_200_SPACE_Int = 0x32303020
+        private const val HTTP_200_R_Int = 0x3230300d
 
         private const val N = '\n'.toByte()
         private const val S = 0x20.toByte()
