@@ -1,13 +1,16 @@
-package io.ktor.client
+package io.ktor.client.jvm
 
-import io.ktor.cio.*
+import io.ktor.cio.ReadChannel
+import io.ktor.cio.readText
+import io.ktor.cio.toInputStream
 import io.ktor.http.*
-import io.ktor.util.*
+import io.ktor.util.ValuesMap
+import io.ktor.util.ValuesMapBuilder
 import java.io.*
-import java.net.*
-import java.nio.*
-import java.nio.charset.*
-import javax.net.ssl.*
+import java.net.URL
+import java.nio.ByteBuffer
+import java.nio.charset.Charset
+import javax.net.ssl.SSLSocketFactory
 
 abstract class HttpClient {
     protected abstract suspend fun openConnection(host: String, port: Int, secure: Boolean = false): HttpConnection

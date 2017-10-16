@@ -3,6 +3,7 @@ package io.ktor.tests.auth
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.http.*
+import io.ktor.http.request.parseQueryString
 import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*

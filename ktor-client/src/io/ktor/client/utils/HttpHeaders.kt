@@ -22,6 +22,8 @@ val HTTP_DATE_FORMAT: SimpleDateFormat = SimpleDateFormat("EEE, dd MMM yyyy HH:m
 fun HeadersBuilder.charset(): Charset? = get(HttpHeaders.ContentType)?.let { ContentType.parse(it).charset() }
 fun HeadersBuilder.userAgent(content: String) = set(HttpHeaders.UserAgent, content)
 
+fun HttpRequestBuilder.contentType(type: ContentType) = headers.set(HttpHeaders.ContentType, type.toString())
+
 fun HttpResponse.vary(): List<String>? = headers[HttpHeaders.Vary]?.split(",")?.map { it.trim() }
 
 fun HttpRequestBuilder.maxAge(): Int? = cacheControl.maxAge

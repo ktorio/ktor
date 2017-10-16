@@ -1,7 +1,7 @@
-package io.ktor.request
+package io.ktor.http.request
 
-import io.ktor.http.*
-import io.ktor.util.*
+import io.ktor.http.decodeURLQueryComponent
+import io.ktor.util.ValuesMap
 
 fun parseQueryString(query: String, limit: Int = 1000): ValuesMap {
     return if (query.isBlank()) {

@@ -2,7 +2,9 @@ description = ''
 dependencies {
     compile project(':ktor-server:ktor-server-host-common')
     compile group: 'ch.qos.logback', name: 'logback-classic', version: logback_version
+    compile project(':ktor-client')
     compile project(':ktor-client:ktor-client-jetty')
+    compile project(':ktor-client:ktor-client-jvm')
     compile group: 'org.eclipse.jetty.http2', name: 'http2-client', version: jetty_version
     compile group: 'org.eclipse.jetty', name: 'jetty-client', version: jetty_version
     compile group: 'org.eclipse.jetty.http2', name: 'http2-http-client-transport', version: jetty_version

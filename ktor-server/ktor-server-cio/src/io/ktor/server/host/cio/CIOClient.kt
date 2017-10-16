@@ -3,8 +3,7 @@ package io.ktor.server.host.cio
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import io.ktor.cio.*
-import io.ktor.client.*
-import io.ktor.client.HttpResponse
+import io.ktor.client.jvm.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.network.sockets.*
@@ -81,7 +80,7 @@ private class CIOHttpConnection(val socket: Socket, val defaultHost: String) : H
             parseHttpBody(response.headers, input, channel)
         }
 
-        return object: HttpResponse {
+        return object : HttpResponse {
             override val connection: HttpConnection get() = this@CIOHttpConnection
             override val version: String = response.version.toString()
             override val headers: ValuesMap = CIOHeaders(response.headers)

@@ -1,12 +1,16 @@
 package io.ktor.samples.auth
 
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.client.*
-import io.ktor.http.*
-import io.ktor.pipeline.*
-import io.ktor.response.*
-import java.util.concurrent.*
+import io.ktor.application.Application
+import io.ktor.application.ApplicationCallPipeline
+import io.ktor.auth.oauthHandleCallback
+import io.ktor.auth.oauthRespondRedirect
+import io.ktor.client.HttpClient
+import io.ktor.client.backend.jvm.ApacheBackend
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.pipeline.call
+import io.ktor.response.respondText
+import java.util.concurrent.Executors
 
 /**
  * This is special example demonstrates ability to use OAuth with no routes and locations.
@@ -20,8 +24,8 @@ fun Application.OAuthLoginNoLocationApplication() {
         // to do everything on lower level
 
         when (call.parameters["authStep"]) {
-            "1" -> oauthRespondRedirect(DefaultHttpClient, exec, loginProviders.values.first(), "/any?authStep=2")
-            "2" -> oauthHandleCallback(DefaultHttpClient, exec, loginProviders.values.first(), "/any?authStep=2", "/") {
+            "1" -> oauthRespondRedirect(HttpClient(ApacheBackend), exec, loginProviders.values.first(), "/any?authStep=2")
+            "2" -> oauthHandleCallback(HttpClient(ApacheBackend), exec, loginProviders.values.first(), "/any?authStep=2", "/") {
                 call.response.status(HttpStatusCode.OK)
                 call.respondText("success")
             }

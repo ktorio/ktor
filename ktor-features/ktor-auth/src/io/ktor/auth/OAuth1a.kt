@@ -1,18 +1,25 @@
 package io.ktor.auth
 
-import io.ktor.application.*
-import io.ktor.client.*
+import io.ktor.application.ApplicationCall
+import io.ktor.client.HttpClient
+import io.ktor.client.call.call
+import io.ktor.client.receiveText
+import io.ktor.client.request.header
+import io.ktor.client.utils.OutputStreamBody
 import io.ktor.http.*
-import io.ktor.pipeline.*
-import io.ktor.response.*
-import io.ktor.util.*
-import java.io.*
-import java.net.*
-import java.time.*
+import io.ktor.pipeline.PipelineContext
+import io.ktor.pipeline.call
+import io.ktor.pipeline.runAsync
+import io.ktor.response.respondRedirect
+import io.ktor.util.nextNonce
+import java.io.IOException
+import java.net.URL
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 import java.util.*
-import java.util.concurrent.*
-import javax.crypto.*
-import javax.crypto.spec.*
+import java.util.concurrent.ExecutorService
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
 
 suspend internal fun PipelineContext<Unit, ApplicationCall>.oauth1a(
         client: HttpClient, exec: ExecutorService,
@@ -67,23 +74,28 @@ private suspend fun simpleOAuth1aStep1(client: HttpClient, secretKey: String, ba
             nonce = nonce
     ).sign(HttpMethod.Post, baseUrl, secretKey, extraParameters)
 
-    val response = client.request(URL(baseUrl.appendUrlParameters(extraParameters.formUrlEncode()))) {
+    val container = client.call(URL(baseUrl.appendUrlParameters(extraParameters.formUrlEncode()))) {
         method = HttpMethod.Post
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
         header(HttpHeaders.Accept, ContentType.Any.toString())
-        body = {}
     }
+
+    val response = container.response
+    val body = container.receiveText()
+
     try {
-        if (response.status.value != HttpStatusCode.OK.value) {
-            throw IOException("Bad response: ${response.status}")
+        if (response.statusCode != HttpStatusCode.OK) {
+            throw IOException("Bad response: $response")
         }
 
-        val responseText = response.stream.reader().readText().parseUrlEncodedParameters()
-        require(responseText[HttpAuthHeader.Parameters.OAuthCallbackConfirmed] == "true") { "Response parameter oauth_callback_confirmed should be true" }
+        val parameters = body.parseUrlEncodedParameters()
+        require(parameters[HttpAuthHeader.Parameters.OAuthCallbackConfirmed] == "true") {
+            "Response parameter oauth_callback_confirmed should be true"
+        }
 
-        return OAuthCallback.TokenPair(responseText[HttpAuthHeader.Parameters.OAuthToken]!!, responseText[HttpAuthHeader.Parameters.OAuthTokenSecret]!!)
+        return OAuthCallback.TokenPair(parameters[HttpAuthHeader.Parameters.OAuthToken]!!, parameters[HttpAuthHeader.Parameters.OAuthTokenSecret]!!)
     } catch (e: Throwable) {
-        throw IOException("Failed to acquire request token due to ${response.stream.reader().readText()}", e)
+        throw IOException("Failed to acquire request token due to $body", e)
     } finally {
         response.close()
     }
@@ -117,27 +129,32 @@ private suspend fun simpleOAuth1aStep2(client: HttpClient, secretKey: String, ba
     ) + extraParameters.toList()
     val authHeader = upgradeRequestTokenHeader(consumerKey, token, nonce).sign(HttpMethod.Post, baseUrl, secretKey, params)
 
-    val response = client.request(URL(baseUrl)) {
+    val container = client.call(URL(baseUrl)) {
         method = HttpMethod.Post
 
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
         header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
         header(HttpHeaders.Accept, "*/*")
 
-        body = {
+        payload = OutputStreamBody {
             it.writer().use { writer ->
                 params.formUrlEncodeTo(writer)
             }
         }
     }
 
+    val responseText = container.receiveText()
     try {
-        val responseText = response.stream.reader().readText().parseUrlEncodedParameters()
-        return OAuthAccessTokenResponse.OAuth1a(responseText[HttpAuthHeader.Parameters.OAuthToken]!!, responseText[HttpAuthHeader.Parameters.OAuthTokenSecret]!!, responseText)
+        val parameters = responseText.parseUrlEncodedParameters()
+        return OAuthAccessTokenResponse.OAuth1a(
+                parameters[HttpAuthHeader.Parameters.OAuthToken]!!,
+                parameters[HttpAuthHeader.Parameters.OAuthTokenSecret]!!,
+                parameters
+        )
     } catch (e: Throwable) {
-        throw IOException("Failed to acquire request token due to ${response.stream.reader().readText()}", e)
+        throw IOException("Failed to acquire request token due to ${responseText}", e)
     } finally {
-        response.close()
+        container.response.close()
     }
 }
 

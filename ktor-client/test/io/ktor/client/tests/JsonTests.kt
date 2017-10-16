@@ -1,12 +1,12 @@
 package io.ktor.client.tests
 
 import com.google.gson.Gson
-import io.ktor.client.HttpClient
+import io.ktor.client.HttpClientFactory
 import io.ktor.client.backend.jvm.ApacheBackend
 import io.ktor.client.features.json.GsonSerializer
 import io.ktor.client.features.json.Json
 import io.ktor.client.get
-import io.ktor.client.pipeline.HttpClientScope
+import io.ktor.client.HttpClient
 import io.ktor.client.pipeline.config
 import io.ktor.client.tests.utils.TestWithKtor
 import io.ktor.host.ApplicationHost
@@ -64,7 +64,7 @@ class JsonTests : TestWithKtor() {
     }
 
 
-    private fun simpleTest(client: HttpClientScope) {
+    private fun simpleTest(client: HttpClient) {
         val request = Request(1)
         val response = runBlocking {
             client.get<Response>(port = 8080, payload = request.serialize())

@@ -1,14 +1,20 @@
 package io.ktor.tests.auth
 
-import kotlinx.coroutines.experimental.*
-import io.ktor.client.*
-import io.ktor.http.*
-import org.junit.*
-import java.net.*
-import java.time.*
-import java.util.concurrent.*
-import kotlin.concurrent.*
-import kotlin.test.*
+import io.ktor.client.jvm.DefaultHttpClient
+import io.ktor.client.jvm.stream
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.toHttpDateString
+import kotlinx.coroutines.experimental.runBlocking
+import org.junit.Test
+import java.net.InetAddress
+import java.net.ServerSocket
+import java.net.URL
+import java.time.LocalDateTime
+import java.util.concurrent.ArrayBlockingQueue
+import kotlin.concurrent.thread
+import kotlin.test.assertEquals
 
 class HttpClientTest {
     @Test

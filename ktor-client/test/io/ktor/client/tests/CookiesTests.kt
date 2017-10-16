@@ -6,7 +6,6 @@ import io.ktor.client.features.cookies.ConstantCookieStorage
 import io.ktor.client.features.cookies.HttpCookies
 import io.ktor.client.features.cookies.cookies
 import io.ktor.client.get
-import io.ktor.client.pipeline.HttpClientScope
 import io.ktor.client.pipeline.config
 import io.ktor.client.tests.utils.TestWithKtor
 import io.ktor.host.ApplicationHost
@@ -83,7 +82,7 @@ class CookiesTests : TestWithKtor() {
 
     @Test
     fun testConstant() {
-        val client = io.ktor.client.HttpClient(ApacheBackend).config {
+        val client = HttpClient(ApacheBackend).config {
             install(HttpCookies) {
                 storage = ConstantCookieStorage(Cookie("id", "1"))
             }
@@ -148,5 +147,5 @@ class CookiesTests : TestWithKtor() {
         client.close()
     }
 
-    private fun HttpClientScope.getId() = cookies("localhost")["id"]?.value?.toInt()!!
+    private fun HttpClient.getId() = cookies("localhost")["id"]?.value?.toInt()!!
 }

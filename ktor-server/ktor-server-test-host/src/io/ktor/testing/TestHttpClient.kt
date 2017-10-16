@@ -1,11 +1,16 @@
 package io.ktor.testing
 
-import io.ktor.cio.*
-import io.ktor.client.*
-import io.ktor.http.*
-import io.ktor.util.*
-import java.io.*
-import java.util.concurrent.*
+import io.ktor.cio.EmptyReadChannel
+import io.ktor.cio.ReadChannel
+import io.ktor.cio.toReadChannel
+import io.ktor.client.jvm.HttpClient
+import io.ktor.client.jvm.HttpConnection
+import io.ktor.client.jvm.HttpResponse
+import io.ktor.client.jvm.RequestBuilder
+import io.ktor.http.HttpStatusCode
+import io.ktor.util.ValuesMap
+import java.io.ByteArrayOutputStream
+import java.util.concurrent.TimeUnit
 
 class TestingHttpClient(private val applicationHost: TestApplicationHost) : HttpClient(), AutoCloseable {
     override suspend fun openConnection(host: String, port: Int, secure: Boolean): HttpConnection {

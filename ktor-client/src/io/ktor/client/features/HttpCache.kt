@@ -2,7 +2,7 @@ package io.ktor.client.features
 
 import io.ktor.client.call.HttpClientCall
 import io.ktor.client.call.call
-import io.ktor.client.pipeline.HttpClientScope
+import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequest
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.HttpRequestPipeline
@@ -70,7 +70,7 @@ class HttpCache(
     private suspend fun validate(
             cachedResponse: HttpResponse,
             builder: HttpRequestBuilder,
-            scope: HttpClientScope
+            scope: HttpClient
     ): HttpClientCall? {
         val request = HttpRequestBuilder(builder.build())
 
@@ -130,7 +130,7 @@ class HttpCache(
 
         override fun prepare(block: Config.() -> Unit): HttpCache = Config().apply(block).build()
 
-        override fun install(feature: HttpCache, scope: HttpClientScope) {
+        override fun install(feature: HttpCache, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Send) { builder ->
                 if (builder !is HttpRequestBuilder || builder.flags.contains(IGNORE_CACHE) || builder.method != HttpMethod.Get) {
                     return@intercept

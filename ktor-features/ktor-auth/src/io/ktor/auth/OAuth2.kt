@@ -1,15 +1,26 @@
 package io.ktor.auth
 
-import io.ktor.application.*
-import io.ktor.client.*
+import io.ktor.application.ApplicationCall
+import io.ktor.client.HttpClient
+import io.ktor.client.call.call
+import io.ktor.client.receiveText
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.header
+import io.ktor.client.utils.OutputStreamBody
+import io.ktor.client.utils.contentType
 import io.ktor.http.*
-import io.ktor.pipeline.*
-import io.ktor.response.*
-import io.ktor.util.*
-import org.json.simple.*
-import java.io.*
-import java.net.*
-import java.util.concurrent.*
+import io.ktor.pipeline.PipelineContext
+import io.ktor.pipeline.call
+import io.ktor.pipeline.runAsync
+import io.ktor.response.respondRedirect
+import io.ktor.util.ValuesMap
+import io.ktor.util.encodeBase64
+import io.ktor.util.nextNonce
+import org.json.simple.JSONObject
+import org.json.simple.JSONValue
+import java.io.IOException
+import java.net.URL
+import java.util.concurrent.ExecutorService
 
 suspend internal fun PipelineContext<Unit, ApplicationCall>.oauth2(
         client: HttpClient, exec: ExecutorService,
@@ -41,7 +52,7 @@ internal fun ApplicationCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? 
     }
 }
 
-suspend internal fun ApplicationCall.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList()){
+suspend internal fun ApplicationCall.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList()) {
     redirectAuthenticateOAuth2(authenticateUrl = settings.authorizeUrl,
             callbackRedirectUrl = callbackRedirectUrl,
             clientId = settings.clientId,
@@ -55,7 +66,7 @@ internal suspend fun simpleOAuth2Step2(client: HttpClient,
                                        usedRedirectUrl: String,
                                        callbackResponse: OAuthCallback.TokenSingle,
                                        extraParameters: Map<String, String> = emptyMap(),
-                                       configure: RequestBuilder.() -> Unit = {}): OAuthAccessTokenResponse.OAuth2 {
+                                       configure: HttpRequestBuilder.() -> Unit = {}): OAuthAccessTokenResponse.OAuth2 {
     return simpleOAuth2Step2(
             client,
             settings.requestMethod,
@@ -94,7 +105,7 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
                                       state: String?,
                                       code: String?,
                                       extraParameters: Map<String, String> = emptyMap(),
-                                      configure: RequestBuilder.() -> Unit = {},
+                                      configure: HttpRequestBuilder.() -> Unit = {},
                                       useBasicAuth: Boolean = false,
                                       grantType: String = OAuthGrantTypes.AuthorizationCode): OAuthAccessTokenResponse.OAuth2 {
     val urlParameters =
@@ -113,17 +124,21 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
         else -> throw UnsupportedOperationException()
     }
 
-    val response = client.request(URL(getUri)) {
+    val container = client.call(URL(getUri)) {
         this.method = method
         header(HttpHeaders.Accept, listOf(ContentType.Application.FormUrlEncoded, ContentType.Application.Json).joinToString(","))
         if (useBasicAuth) {
-            header(HttpHeaders.Authorization, HttpAuthHeader.Single(AuthScheme.Basic, encodeBase64("$clientId:$clientSecret".toByteArray(Charsets.ISO_8859_1))).render())
+            header(
+                    HttpHeaders.Authorization,
+                    HttpAuthHeader.Single(AuthScheme.Basic, encodeBase64("$clientId:$clientSecret".toByteArray(Charsets.ISO_8859_1))).render()
+            )
         }
+
         configure()
 
         if (method == HttpMethod.Post) {
             contentType(ContentType.Application.FormUrlEncoded)
-            body = {
+            payload = OutputStreamBody {
                 it.writer().use { out ->
                     out.write(urlParameters)
                 }
@@ -131,18 +146,20 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
         }
     }
 
+    val response = container.response
+    val responseText = container.receiveText()
+
     val (contentType, content) = try {
-        if (response.status == HttpStatusCode.NotFound) {
+        if (response.statusCode == HttpStatusCode.NotFound) {
             throw IOException("Not found 404 for the page $baseUrl")
         }
         val contentType = response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ContentType.Any
-        val content = response.stream.bufferedReader().readText()
 
-        Pair(contentType, content)
+        Pair(contentType, responseText)
     } catch (ioe: IOException) {
         throw ioe
     } catch (t: Throwable) {
-        throw IOException("Failed to acquire request token due to ${response.stream.reader().readText()}", t)
+        throw IOException("Failed to acquire request token due to $responseText", t)
     } finally {
         response.close()
     }
