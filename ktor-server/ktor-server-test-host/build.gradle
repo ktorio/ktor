@@ -7,8 +7,10 @@ dependencies {
     compile group: 'org.eclipse.jetty', name: 'jetty-client', version: jetty_version
     compile group: 'org.eclipse.jetty.http2', name: 'http2-http-client-transport', version: jetty_version
     compile group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: jetty_alpn_boot_version
-    testCompile project(':ktor-server:ktor-server-core')
 
     compile group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
     compile group: 'junit', name: 'junit', version: junit_version
+    compile project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
+
+    testCompile project(':ktor-server:ktor-server-core')
 }

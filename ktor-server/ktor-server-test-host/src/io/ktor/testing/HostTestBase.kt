@@ -45,7 +45,7 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     val test = TestName()
 
     @get:Rule
-    val timeout = PublishedTimeout(if (isUnderDebugger) 1000000L else (System.getProperty("host.test.timeout.seconds")?.toLong() ?: 120L))
+    open val timeout = PublishedTimeout(if (isUnderDebugger) 1000000L else (System.getProperty("host.test.timeout.seconds")?.toLong() ?: 120L))
 
     @Before
     fun setUpBase() {
