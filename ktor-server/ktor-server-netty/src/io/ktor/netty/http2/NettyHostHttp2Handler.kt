@@ -10,18 +10,17 @@ import io.ktor.application.*
 import io.ktor.host.*
 import io.ktor.netty.*
 import io.ktor.netty.cio.*
-import io.ktor.netty.cio.NettyResponsePipeline.*
-import io.ktor.netty.http1.*
 import io.ktor.response.*
 import java.nio.channels.*
 import kotlin.coroutines.experimental.*
 
 @ChannelHandler.Sharable
-class NettyHostHttp2Handler(private val hostPipeline: HostPipeline,
+internal class NettyHostHttp2Handler(private val hostPipeline: HostPipeline,
                             private val application: Application,
                             private val callEventGroup: EventExecutorGroup,
                             private val userCoroutineContext: CoroutineContext,
-                            private val http2: Http2Connection) : ChannelInboundHandlerAdapter() {
+                            private val http2: Http2Connection,
+                            private val requestQueue: NettyRequestQueue) : ChannelInboundHandlerAdapter() {
     override fun channelRead(context: ChannelHandlerContext, message: Any?) {
         when (message) {
             is Http2HeadersFrame -> {
@@ -51,9 +50,8 @@ class NettyHostHttp2Handler(private val hostPipeline: HostPipeline,
             addLast(callEventGroup, NettyApplicationCallHandler(userCoroutineContext, hostPipeline))
         }
 
-        val responseWriter = NettyResponsePipeline(ctx, WriterEncapsulation.Http2)
-
-        ctx.channel().attr(NettyResponsePipeline.ContextKey).set(responseWriter)
+        val responseWriter = NettyResponsePipeline(ctx, WriterEncapsulation.Http2, requestQueue)
+        responseWriter.ensureRunning()
 
         super.channelActive(ctx)
     }
@@ -63,19 +61,19 @@ class NettyHostHttp2Handler(private val hostPipeline: HostPipeline,
             remove(NettyApplicationCallHandler::class.java)
         }
 
+        requestQueue.cancel()
         super.channelInactive(ctx)
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
+        requestQueue.cancel()
         ctx.close()
     }
 
     private fun startHttp2(context: ChannelHandlerContext, streamId: Int, headers: Http2Headers, http2: Http2Connection) {
         val call = NettyHttp2ApplicationCall(application, context, headers, this, http2, Unconfined, userCoroutineContext)
         context.callByStreamId[streamId] = call
-        context.channel().attr(NettyResponsePipeline.ContextKey).get().send(call)
-
-        context.fireChannelRead(call)
+        requestQueue.schedule(call)
     }
 
     internal fun startHttp2PushPromise(connection: Http2Connection, context: ChannelHandlerContext, builder: ResponsePushBuilder) {

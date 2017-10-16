@@ -6,67 +6,51 @@ import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
-import io.netty.util.*
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
-import kotlinx.coroutines.experimental.channels.Channel
-import io.ktor.netty.*
 
-internal class NettyResponsePipeline(private val dst: ChannelHandlerContext, initialEncapsulation: WriterEncapsulation) {
-    private val responses = actor<NettyApplicationCall>(Unconfined, capacity = Channel.UNLIMITED, start = CoroutineStart.LAZY) {
+internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
+                                     initialEncapsulation: WriterEncapsulation,
+                                     private val requestQueue: NettyRequestQueue
+) {
+    @Volatile
+    private var cancellation: Throwable? = null
+    private val responses = launch(Unconfined, start = CoroutineStart.LAZY) {
         loop()
     }
 
     private var encapsulation: WriterEncapsulation = initialEncapsulation
-    val job: Job get() = responses
 
-    fun send(channel: NettyApplicationCall) {
-        if (!responses.offer(channel)) throw IllegalStateException()
+    fun ensureRunning() {
+        responses.start()
     }
 
     fun close() {
-        responses.close()
+        responses.cancel()
     }
 
-    private suspend fun ActorScope<NettyApplicationCall>.loop() {
-        consumeEach { call ->
+    fun cancel(cause: Throwable) {
+        cancellation = cause
+        responses.cancel()
+    }
+
+    private suspend fun loop() {
+        var cancellationReported = false
+        while (true) {
+            val call = requestQueue.receiveOrNull() ?: break
             try {
-                val response = call.response
-                val responseMessage = response.responseMessage.await()
-                val statusCode = response.status()
-                val close = !call.request.keepAlive
+                cancellation?.let { throw it }
 
-                dst.writeAndFlush(responseMessage).suspendAwait()
-
-                if (statusCode?.value == HttpStatusCode.SwitchingProtocols.value) {
-                    encapsulation.upgrade(dst)
-                    encapsulation = WriterEncapsulation.Raw
-                    responses.close()
-                }
-
-                val channel = response.responseChannel
-
-                while (true) {
-                    val buf = dst.alloc().buffer(channel.availableForRead.coerceIn(256, 4096))
-                    val bb = buf.nioBuffer(buf.writerIndex(), buf.writableBytes())
-                    val rc = channel.readAvailable(bb)
-                    if (rc == -1) {
-                        buf.release()
-                        break
-                    }
-                    buf.writerIndex(buf.writerIndex() + rc)
-                    dst.writeAndFlush(encapsulation.transform(buf)).suspendAwait()
-                }
-
-                encapsulation.endOfStream()?.let { dst.writeAndFlush(it).suspendAwait() }
-
-                if (close) {
-                    responses.close()
-                }
+                processCall(call)
             } catch (t: Throwable) {
-                dst.fireExceptionCaught(t)
+                call.dispose()
                 call.responseWriteJob.cancel(t)
-                throw t
+                cancel(t)
+                requestQueue.cancel()
+
+                if (!cancellationReported) {
+                    cancellationReported = true
+                    dst.fireExceptionCaught(t)
+                }
             } finally {
                 call.responseWriteJob.cancel()
             }
@@ -75,8 +59,39 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext, ini
         dst.close()
     }
 
-    companion object {
-        internal val ContextKey = AttributeKey.newInstance<NettyResponsePipeline>("NettyResponsePipeline")
+    private suspend fun processCall(call: NettyApplicationCall) {
+        val response = call.response
+        val responseMessage = response.responseMessage.await()
+        val statusCode = response.status()
+        val close = !call.request.keepAlive
+        dst.writeAndFlush(responseMessage)
+
+        if (statusCode?.value == HttpStatusCode.SwitchingProtocols.value) {
+            encapsulation.upgrade(dst)
+            encapsulation = WriterEncapsulation.Raw
+        }
+
+        val channel = response.responseChannel
+
+        while (true) {
+            val buf = dst.alloc().buffer(4096)
+            val bb = buf.nioBuffer(buf.writerIndex(), buf.writableBytes())
+            val rc = channel.readAvailable(bb)
+            if (rc == -1) {
+                buf.release()
+                break
+            }
+            buf.writerIndex(buf.writerIndex() + rc)
+            val message = encapsulation.transform(buf)
+
+            dst.writeAndFlush(message).suspendAwait()
+        }
+
+        encapsulation.endOfStream()?.let { dst.writeAndFlush(it).suspendAwait() }
+
+        if (close) {
+            requestQueue.cancel()
+        }
     }
 }
 

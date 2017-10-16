@@ -8,7 +8,8 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.io.*
 
-internal class RequestBodyHandler(val context: ChannelHandlerContext) : ChannelInboundHandlerAdapter() {
+internal class RequestBodyHandler(val context: ChannelHandlerContext,
+                                  private val requestQueue: NettyRequestQueue) : ChannelInboundHandlerAdapter() {
     private val queue = Channel<Any>(Channel.UNLIMITED)
 
     private val job = launch(Unconfined, start = CoroutineStart.LAZY) {
@@ -16,7 +17,6 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext) : ChannelI
         try {
             while (true) {
                 val event = queue.receiveOrNull() ?: break
-                requestMoreEvents()
 
                 if (event is ByteBufHolder) {
                     val channel = current ?: throw IllegalStateException("No current channel but received a byte buf")
@@ -66,6 +66,7 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext) : ChannelI
 
     private suspend fun processContent(current: ByteWriteChannel, event: ByteBufHolder) {
         try {
+            requestMoreEvents()
             val buf = event.content()
             copy(buf, current)
         } finally {
@@ -82,7 +83,9 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext) : ChannelI
     }
 
     private fun requestMoreEvents() {
-        context.read()
+        if (requestQueue.canRequestMoreEvents()) {
+            context.read()
+        }
     }
 
     private fun consumeAndReleaseQueue() {

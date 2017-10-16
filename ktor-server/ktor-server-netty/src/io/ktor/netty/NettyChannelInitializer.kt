@@ -8,6 +8,7 @@ import io.netty.handler.ssl.*
 import io.netty.handler.timeout.*
 import io.netty.util.concurrent.*
 import io.ktor.host.*
+import io.ktor.netty.cio.*
 import io.ktor.netty.http1.*
 import io.ktor.netty.http2.*
 import java.nio.channels.*
@@ -20,7 +21,8 @@ internal class NettyChannelInitializer(private val hostPipeline: HostPipeline,
                                        private val callEventGroup: EventExecutorGroup,
                                        private val hostCoroutineContext: CoroutineContext,
                                        private val userCoroutineContext: CoroutineContext,
-                                       private val connector: HostConnectorConfig) : ChannelInitializer<SocketChannel>() {
+                                       private val connector: HostConnectorConfig,
+                                       private val requestQueueLimit: Int) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
 
     init {
@@ -73,6 +75,8 @@ internal class NettyChannelInitializer(private val hostPipeline: HostPipeline,
     }
 
     fun configurePipeline(pipeline: ChannelPipeline, protocol: String) {
+        val requestQueue = NettyRequestQueue(requestQueueLimit)
+
         when (protocol) {
             ApplicationProtocolNames.HTTP_2 -> {
                 val connection = DefaultHttp2Connection(true)
@@ -83,10 +87,10 @@ internal class NettyChannelInitializer(private val hostPipeline: HostPipeline,
                 val decoder = DefaultHttp2ConnectionDecoder(connection, encoder, reader)
 
                 pipeline.addLast(HostHttp2Handler(encoder, decoder, Http2Settings()))
-                pipeline.addLast(Multiplexer(pipeline.channel(), NettyHostHttp2Handler(hostPipeline, environment.application, callEventGroup, userCoroutineContext, connection)))
+                pipeline.addLast(Multiplexer(pipeline.channel(), NettyHostHttp2Handler(hostPipeline, environment.application, callEventGroup, userCoroutineContext, connection, requestQueue)))
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
-                val handler = NettyHostHttp1Handler(hostPipeline, environment, callEventGroup, hostCoroutineContext, userCoroutineContext)
+                val handler = NettyHostHttp1Handler(hostPipeline, environment, callEventGroup, hostCoroutineContext, userCoroutineContext, requestQueue)
 
                 with(pipeline) {
                     addLast("codec", HttpServerCodec())
@@ -119,7 +123,7 @@ internal class NettyChannelInitializer(private val hostPipeline: HostPipeline,
     companion object {
         val alpnProvider by lazy { findAlpnProvider() }
 
-        fun findAlpnProvider(): SslProvider? {
+        private fun findAlpnProvider(): SslProvider? {
             try {
                 Class.forName("sun.security.ssl.ALPNExtension", true, null)
                 return SslProvider.JDK
