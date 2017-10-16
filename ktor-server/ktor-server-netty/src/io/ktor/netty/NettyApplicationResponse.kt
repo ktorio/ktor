@@ -57,7 +57,7 @@ internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
 
     protected abstract fun responseMessage(chunked: Boolean, last: Boolean): Any
 
-    protected final suspend fun sendResponse(chunked: Boolean = true, content: ByteReadChannel) {
+    protected final fun sendResponse(chunked: Boolean = true, content: ByteReadChannel) {
         if (!responseMessageSent) {
             responseChannel = content
             responseMessage.complete(responseMessage(chunked, content.isClosedForRead))
@@ -65,9 +65,17 @@ internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
         }
     }
 
-    suspend final fun close() {
+    final fun close() {
         sendResponse(content = EmptyByteReadChannel) // we don't need to suspendAwait() here as it handled in NettyApplicationCall
          // while close only does flush() and doesn't terminate connection
+    }
+
+    fun cancel() {
+        if (!responseMessageSent) {
+            responseChannel = EmptyByteReadChannel
+            responseMessage.cancel()
+            responseMessageSent = true
+        }
     }
 
     companion object {

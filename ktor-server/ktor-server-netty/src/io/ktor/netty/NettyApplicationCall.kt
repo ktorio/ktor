@@ -29,4 +29,10 @@ internal abstract class NettyApplicationCall(application: Application,
             ReferenceCountUtil.release(requestMessage)
         }
     }
+
+    internal fun dispose() {
+        response.close()
+        request.close()
+        ReferenceCountUtil.release(requestMessage)
+    }
 }

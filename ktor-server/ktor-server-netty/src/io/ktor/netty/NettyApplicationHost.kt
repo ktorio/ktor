@@ -22,12 +22,16 @@ class NettyApplicationHost(environment: ApplicationHostEnvironment) : BaseApplic
     private val dispatcherWithShutdown = DispatcherWithShutdown(NettyDispatcher)
     private val hostDispatcherWithShutdown = DispatcherWithShutdown(workerEventGroup.asCoroutineDispatcher())
 
+    private val requestQueueLimit: Int = 16 // should be configurable
+
     private var channels: List<Channel>? = null
     private val bootstraps = environment.connectors.map { connector ->
         ServerBootstrap().apply {
             group(connectionEventGroup, workerEventGroup)
             channel(NioServerSocketChannel::class.java)
-            childHandler(NettyChannelInitializer(pipeline, environment, callEventGroup, hostDispatcherWithShutdown, dispatcherWithShutdown, connector))
+            childHandler(NettyChannelInitializer(pipeline, environment,
+                    callEventGroup, hostDispatcherWithShutdown, dispatcherWithShutdown,
+                    connector, requestQueueLimit))
         }
     }
 

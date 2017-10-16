@@ -8,7 +8,7 @@ import io.netty.util.concurrent.*
 import io.ktor.host.*
 import io.ktor.netty.*
 import io.ktor.netty.cio.*
-import io.ktor.netty.cio.NettyResponsePipeline.*
+import kotlinx.coroutines.experimental.io.*
 import kotlin.coroutines.experimental.*
 
 @ChannelHandler.Sharable
@@ -16,7 +16,8 @@ internal class NettyHostHttp1Handler(private val hostPipeline: HostPipeline,
                                      private val environment: ApplicationHostEnvironment,
                                      private val callEventGroup: EventExecutorGroup,
                                      private val hostCoroutineContext: CoroutineContext,
-                                     private val userCoroutineContext: CoroutineContext) : ChannelInboundHandlerAdapter() {
+                                     private val userCoroutineContext: CoroutineContext,
+                                     private val requestQueue: NettyRequestQueue) : ChannelInboundHandlerAdapter() {
     private var configured = false
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
@@ -34,30 +35,31 @@ internal class NettyHostHttp1Handler(private val hostPipeline: HostPipeline,
 
         context.channel().config().isAutoRead = false
         val bodyHandler = context.pipeline().get(RequestBodyHandler::class.java)
-        val requestBodyChannel = bodyHandler.newChannel()
 
-        if (message is HttpContent) {
-            bodyHandler.channelRead(context, message)
+        val requestBodyChannel = if (message is LastHttpContent && !message.content().isReadable) {
+            EmptyByteReadChannel
+        } else if (message is HttpContent) {
+            bodyHandler.newChannel().also { bodyHandler.channelRead(context, message) }
+        } else {
+            bodyHandler.newChannel()
         }
 
         val call = NettyHttp1ApplicationCall(environment.application, context, message, requestBodyChannel, hostCoroutineContext, userCoroutineContext)
-        context.channel().attr(NettyResponsePipeline.ContextKey).get().send(call)
-
-        context.fireChannelRead(call)
+        requestQueue.schedule(call)
     }
 
     override fun channelActive(ctx: ChannelHandlerContext) {
         if (!configured) {
             configured = true
-            val requestBodyHandler = RequestBodyHandler(ctx)
-            val responseWriter = NettyResponsePipeline(ctx, WriterEncapsulation.Http1)
-
-            ctx.channel().attr(NettyResponsePipeline.ContextKey).set(responseWriter)
+            val requestBodyHandler = RequestBodyHandler(ctx, requestQueue)
+            val responseWriter = NettyResponsePipeline(ctx, WriterEncapsulation.Http1, requestQueue)
 
             ctx.pipeline().apply {
                 addLast(requestBodyHandler)
                 addLast(callEventGroup, NettyApplicationCallHandler(userCoroutineContext, hostPipeline))
             }
+
+            responseWriter.ensureRunning()
         }
 
         super.channelActive(ctx)
@@ -71,14 +73,14 @@ internal class NettyHostHttp1Handler(private val hostPipeline: HostPipeline,
                 remove(NettyApplicationCallHandler::class.java)
             }
 
-            ctx.channel().attr(NettyResponsePipeline.ContextKey).getAndSet(null)?.close()
+            requestQueue.cancel()
         }
         super.channelInactive(ctx)
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
+        requestQueue.cancel()
         ctx.close()
-        ctx.channel().attr(NettyResponsePipeline.ContextKey).getAndSet(null)?.job?.cancel(cause)
     }
 }
 
