@@ -1,10 +1,13 @@
 package io.ktor.client
 
-import io.ktor.cio.*
-import io.ktor.http.*
-import io.ktor.util.*
-import java.net.*
-import javax.net.ssl.*
+import io.ktor.cio.ReadChannel
+import io.ktor.cio.toReadChannel
+import io.ktor.http.HttpStatusCode
+import io.ktor.util.ValuesMap
+import io.ktor.util.valuesOf
+import java.net.HttpURLConnection
+import java.net.URL
+import javax.net.ssl.HttpsURLConnection
 
 object DefaultHttpClient : HttpClient() {
     override suspend fun openConnection(host: String, port: Int, secure: Boolean): HttpConnection {
