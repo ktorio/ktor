@@ -10,7 +10,7 @@ include ':ktor-server:ktor-server-netty'
 include ':ktor-server:ktor-server-cio'
 include ':ktor-server:ktor-server-benchmarks'
 include ':ktor-server'
-include ':ktor-client:ktor-client-core'
+include ':ktor-client:ktor-client-jvm'
 include ':ktor-client:ktor-client-jetty'
 include ':ktor-client'
 include ':ktor-features:ktor-freemarker'
@@ -58,7 +58,7 @@ project(':ktor-server:ktor-server-netty').projectDir = "$rootDir/ktor-server/kto
 project(':ktor-server:ktor-server-cio').projectDir = "$rootDir/ktor-server/ktor-server-cio" as File
 project(':ktor-server:ktor-server-benchmarks').projectDir = "$rootDir/ktor-server/ktor-server-benchmarks" as File
 project(':ktor-server').projectDir = "$rootDir/ktor-server" as File
-project(':ktor-client:ktor-client-core').projectDir = "$rootDir/ktor-client/ktor-client-core" as File
+project(':ktor-client:ktor-client-jvm').projectDir = "$rootDir/ktor-client/ktor-client-jvm" as File
 project(':ktor-client:ktor-client-jetty').projectDir = "$rootDir/ktor-client/ktor-client-jetty" as File
 project(':ktor-client').projectDir = "$rootDir/ktor-client" as File
 project(':ktor-features:ktor-freemarker').projectDir = "$rootDir/ktor-features/ktor-freemarker" as File
