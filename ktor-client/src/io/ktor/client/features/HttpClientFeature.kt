@@ -1,6 +1,6 @@
 package io.ktor.client.features
 
-import io.ktor.client.pipeline.HttpClientScope
+import io.ktor.client.HttpClient
 import io.ktor.util.AttributeKey
 import io.ktor.util.Attributes
 
@@ -12,8 +12,8 @@ interface HttpClientFeature<out TBuilder : Any, TFeature : Any> {
 
     fun prepare(block: TBuilder.() -> Unit): TFeature
 
-    fun install(feature: TFeature, scope: HttpClientScope)
+    fun install(feature: TFeature, scope: HttpClient)
 }
 
-fun <B : Any, F : Any> HttpClientScope.feature(feature: HttpClientFeature<B, F>): F? =
+fun <B : Any, F : Any> HttpClient.feature(feature: HttpClientFeature<B, F>): F? =
         attributes.getOrNull(FEATURE_INSTALLED_LIST)?.getOrNull(feature.key)

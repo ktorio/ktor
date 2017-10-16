@@ -1,4 +1,4 @@
-package io.ktor.client
+package io.ktor.client.jvm
 
 import io.ktor.cio.ReadChannel
 import io.ktor.cio.toReadChannel

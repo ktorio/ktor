@@ -3,7 +3,7 @@ package io.ktor.client.features.json
 import io.ktor.client.features.HttpClientFeature
 import io.ktor.client.features.HttpPlainText
 import io.ktor.client.features.feature
-import io.ktor.client.pipeline.HttpClientScope
+import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.HttpRequestPipeline
 import io.ktor.client.request.accept
@@ -25,7 +25,7 @@ class Json(val serializer: JsonSerializer) {
 
         override fun prepare(block: Config.() -> Unit): Json = Config().apply(block).let { Json(it.serializer) }
 
-        override fun install(feature: Json, scope: HttpClientScope) {
+        override fun install(feature: Json, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { request ->
                 val requestBuilder = request.safeAs<HttpRequestBuilder>() ?: return@intercept
                 requestBuilder.accept(ContentType.Application.Json)

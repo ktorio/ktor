@@ -1,13 +1,12 @@
 package io.ktor.server.host.cio
 
-import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
 import io.ktor.application.*
-import io.ktor.content.*
 import io.ktor.host.*
 import io.ktor.http.*
 import io.ktor.http.HttpMethod
 import io.ktor.http.cio.*
+import io.ktor.http.request.parseQueryString
 import io.ktor.request.*
 import io.ktor.util.*
 

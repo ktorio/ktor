@@ -1,17 +1,25 @@
 package io.ktor.samples.auth
 
-import kotlinx.html.*
-import io.ktor.application.*
-import io.ktor.auth.*
-import io.ktor.client.*
-import io.ktor.features.*
-import io.ktor.html.*
-import io.ktor.http.*
+import io.ktor.application.Application
+import io.ktor.application.ApplicationCall
+import io.ktor.application.install
+import io.ktor.auth.OAuthAccessTokenResponse
+import io.ktor.auth.OAuthServerSettings
+import io.ktor.auth.authentication
+import io.ktor.client.HttpClient
+import io.ktor.client.backend.jvm.ApacheBackend
+import io.ktor.features.CallLogging
+import io.ktor.features.DefaultHeaders
+import io.ktor.html.respondHtml
+import io.ktor.http.HttpMethod
 import io.ktor.locations.*
-import io.ktor.pipeline.*
-import io.ktor.request.*
-import io.ktor.routing.*
-import java.util.concurrent.*
+import io.ktor.pipeline.call
+import io.ktor.request.host
+import io.ktor.request.port
+import io.ktor.routing.Routing
+import io.ktor.routing.param
+import kotlinx.html.*
+import java.util.concurrent.Executors
 
 @location("/") class index()
 @location("/login/{type?}") class login(val type: String = "")
@@ -109,7 +117,7 @@ fun Application.OAuthLoginApplication() {
 
         location<login>() {
             authentication {
-                oauthAtLocation<login>(DefaultHttpClient, exec,
+                oauthAtLocation<login>(HttpClient(ApacheBackend), exec,
                         providerLookup = { loginProviders[it.type] },
                         urlProvider = { _, p -> redirectUrl(login(p.name), false) })
             }

@@ -1,29 +1,45 @@
 package io.ktor.testing
 
-import kotlinx.coroutines.experimental.*
-import io.ktor.application.*
-import io.ktor.cio.*
-import io.ktor.client.*
+import io.ktor.application.ApplicationCallPipeline
+import io.ktor.application.install
+import io.ktor.cio.ByteBufferWriteChannel
+import io.ktor.cio.copyTo
+import io.ktor.cio.toInputStream
+import io.ktor.cio.toReadChannel
+import io.ktor.client.jvm.discardRemaining
+import io.ktor.client.jvm.readBytes
+import io.ktor.client.jvm.readText
 import io.ktor.content.*
-import io.ktor.features.*
-import io.ktor.host.*
+import io.ktor.features.Compression
+import io.ktor.features.PartialContentSupport
+import io.ktor.features.StatusPages
+import io.ktor.features.XForwardedHeadersSupport
+import io.ktor.host.ApplicationHost
+import io.ktor.host.ApplicationHostFactory
 import io.ktor.http.*
-import io.ktor.pipeline.*
+import io.ktor.pipeline.call
 import io.ktor.request.*
 import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.routing.get
+import io.ktor.routing.post
+import io.ktor.routing.route
 import io.ktor.util.*
-import org.junit.*
-import org.junit.runners.model.*
-import org.slf4j.*
-import java.io.*
-import java.net.*
-import java.security.*
+import kotlinx.coroutines.experimental.delay
+import org.junit.Test
+import org.junit.runners.model.MultipleFailureException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.io.File
+import java.io.InputStream
+import java.net.InetSocketAddress
+import java.net.Socket
+import java.net.URL
+import java.security.MessageDigest
 import java.util.*
 import java.util.concurrent.*
-import java.util.concurrent.atomic.*
-import java.util.zip.*
-import kotlin.concurrent.*
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.zip.GZIPInputStream
+import kotlin.concurrent.thread
 import kotlin.test.*
 
 abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHostFactory<THost>) : HostTestBase<THost>(hostFactory) {
@@ -573,7 +589,6 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
                 call.receiveMultipart().readAllParts().sortedBy { it.partName }.forEach { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.partName}=${part.value}\n")
-                        is PartData.FileItem -> response.append("file:${part.partName},${part.originalFileName},${part.streamProvider().bufferedReader().readText()}\n")
                     }
 
                     part.dispose()

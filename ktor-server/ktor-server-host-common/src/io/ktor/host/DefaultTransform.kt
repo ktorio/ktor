@@ -3,6 +3,7 @@ package io.ktor.host
 import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
+import io.ktor.http.request.parseQueryString
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*

@@ -1,23 +1,33 @@
 package io.ktor.testing
 
-import kotlinx.coroutines.experimental.*
-import io.ktor.application.*
-import io.ktor.client.*
-import io.ktor.client.http2.*
-import io.ktor.features.*
+import io.ktor.application.Application
+import io.ktor.application.install
+import io.ktor.client.http2.Http2Client
+import io.ktor.client.jvm.DefaultHttpClient
+import io.ktor.client.jvm.HttpResponse
+import io.ktor.client.jvm.RequestBuilder
+import io.ktor.features.CallLogging
 import io.ktor.host.*
-import io.ktor.routing.*
-import io.ktor.util.*
+import io.ktor.routing.Routing
+import io.ktor.util.generateCertificate
+import kotlinx.coroutines.experimental.*
 import org.junit.*
-import org.junit.rules.*
-import org.junit.runners.model.*
-import org.slf4j.*
-import java.io.*
+import org.junit.rules.TestName
+import org.junit.rules.Timeout
+import org.junit.runners.model.MultipleFailureException
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.io.File
+import java.io.IOException
 import java.net.*
-import java.security.*
-import java.util.concurrent.*
-import javax.net.ssl.*
-import kotlin.test.*
+import java.security.KeyStore
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSocketFactory
+import javax.net.ssl.TrustManagerFactory
+import kotlin.test.fail
 
 
 abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory: ApplicationHostFactory<THost>) {

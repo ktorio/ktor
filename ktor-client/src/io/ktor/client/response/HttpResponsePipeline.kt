@@ -1,13 +1,13 @@
 package io.ktor.client.response
 
-import io.ktor.client.pipeline.HttpClientScope
+import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequest
 import io.ktor.pipeline.Pipeline
 import io.ktor.pipeline.PipelinePhase
 import kotlin.reflect.KClass
 
 
-class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClientScope>(Receive, Parse, Transform, State, After) {
+class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClient>(Receive, Parse, Transform, State, After) {
     companion object Phases {
         val Receive = PipelinePhase("Receive")
         val Parse = PipelinePhase("Parse")

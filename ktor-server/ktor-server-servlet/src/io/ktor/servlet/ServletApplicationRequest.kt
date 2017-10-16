@@ -1,16 +1,18 @@
 package io.ktor.servlet
 
-import kotlinx.coroutines.experimental.*
-import io.ktor.application.*
-import io.ktor.cio.*
-import io.ktor.content.*
-import io.ktor.host.*
-import io.ktor.http.*
-import io.ktor.request.*
-import io.ktor.util.*
-import java.io.*
-import java.nio.*
-import javax.servlet.http.*
+import io.ktor.application.ApplicationCall
+import io.ktor.cio.ReadChannel
+import io.ktor.content.IncomingContent
+import io.ktor.host.BaseApplicationRequest
+import io.ktor.http.RequestConnectionPoint
+import io.ktor.http.request.parseQueryString
+import io.ktor.request.MultiPartData
+import io.ktor.request.RequestCookies
+import io.ktor.util.ValuesMap
+import kotlinx.coroutines.experimental.runBlocking
+import java.io.InputStream
+import java.nio.ByteBuffer
+import javax.servlet.http.HttpServletRequest
 
 class ServletApplicationRequest(call: ApplicationCall,
                                 val servletRequest: HttpServletRequest) : BaseApplicationRequest(call) {

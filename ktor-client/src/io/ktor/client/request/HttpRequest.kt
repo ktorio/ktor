@@ -4,6 +4,7 @@ import io.ktor.client.utils.*
 import io.ktor.http.HttpMethod
 import io.ktor.util.Attributes
 import java.nio.charset.Charset
+import javax.net.ssl.SSLSocketFactory
 
 
 class HttpRequest(val url: Url, val method: HttpMethod, val headers: Headers, val payload: Any) {
@@ -11,21 +12,20 @@ class HttpRequest(val url: Url, val method: HttpMethod, val headers: Headers, va
 }
 
 class HttpRequestBuilder() {
+    var method = HttpMethod.Get
+    var payload: Any = Unit
+    var charset: Charset? = null
+    var sslSocketFactory: SSLSocketFactory? = null
+    val url = UrlBuilder()
+    val headers = HeadersBuilder()
+    val flags = Attributes()
+    val cacheControl: HttpRequestCacheControl get() = headers.computeRequestCacheControl()
+
     constructor(data: HttpRequest) : this() {
         method = data.method
         url.takeFrom(data.url)
         headers.appendAll(data.headers)
     }
-
-    var method = HttpMethod.Get
-    val url = UrlBuilder()
-    val headers = HeadersBuilder()
-    var payload: Any = Unit
-    var charset: Charset? = null
-
-    val flags = Attributes()
-
-    val cacheControl: HttpRequestCacheControl get() = headers.computeRequestCacheControl()
 
     fun headers(block: HeadersBuilder.() -> Unit) = headers.apply(block)
 

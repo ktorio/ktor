@@ -2,7 +2,6 @@ package io.ktor.client
 
 import io.ktor.client.call.call
 import io.ktor.client.call.receive
-import io.ktor.client.pipeline.HttpClientScope
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.utils.takeFrom
 import io.ktor.client.utils.url
@@ -10,18 +9,18 @@ import io.ktor.http.HttpMethod
 import java.net.URL
 
 
-suspend inline fun <reified T> HttpClientScope.request(builder: HttpRequestBuilder = HttpRequestBuilder()): T =
+suspend inline fun <reified T> HttpClient.request(builder: HttpRequestBuilder = HttpRequestBuilder()): T =
         call(builder).receive<T>()
 
-suspend inline fun <reified T> HttpClientScope.request(block: HttpRequestBuilder.() -> Unit): T =
+suspend inline fun <reified T> HttpClient.request(block: HttpRequestBuilder.() -> Unit): T =
         request(HttpRequestBuilder().apply(block))
 
-suspend inline fun <reified T> HttpClientScope.get(builder: HttpRequestBuilder): T {
+suspend inline fun <reified T> HttpClient.get(builder: HttpRequestBuilder): T {
     builder.method = HttpMethod.Get
     return request(builder)
 }
 
-suspend inline fun <reified T> HttpClientScope.get(
+suspend inline fun <reified T> HttpClient.get(
         scheme: String = "http", host: String = "localhost", port: Int = 80,
         path: String = "",
         payload: Any = Unit,
@@ -33,19 +32,19 @@ suspend inline fun <reified T> HttpClientScope.get(
     apply(block)
 }
 
-suspend inline fun <reified T> HttpClientScope.get(
+suspend inline fun <reified T> HttpClient.get(
         scheme: String = "http", host: String = "localhost", port: Int = 80,
         path: String = "",
         payload: Any = Unit
 ): T = get(scheme, host, port, path, payload, {})
 
-suspend inline fun <reified T> HttpClientScope.get(data: URL): T = get {
+suspend inline fun <reified T> HttpClient.get(data: URL): T = get {
     url.takeFrom(data)
 }
 
-suspend inline fun <reified T> HttpClientScope.get(url: String): T = get(URL(url))
+suspend inline fun <reified T> HttpClient.get(url: String): T = get(URL(url))
 
-suspend inline fun <reified T> HttpClientScope.post(
+suspend inline fun <reified T> HttpClient.post(
         scheme: String = "http", host: String = "localhost", port: Int = 80,
         path: String = "",
         payload: Any = Unit,
@@ -57,7 +56,7 @@ suspend inline fun <reified T> HttpClientScope.post(
     apply(block)
 }
 
-suspend inline fun <reified T> HttpClientScope.post(
+suspend inline fun <reified T> HttpClient.post(
         scheme: String = "http", host: String = "localhost", port: Int = 80,
         path: String = "",
         payload: Any = Unit

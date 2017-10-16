@@ -1,9 +1,6 @@
 package io.ktor.client.features
 
-import io.ktor.cio.ByteBufferWriteChannel
-import io.ktor.cio.toInputStream
-import io.ktor.cio.toReadChannel
-import io.ktor.client.pipeline.HttpClientScope
+import io.ktor.client.HttpClient
 import io.ktor.client.pipeline.intercept
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.HttpRequestPipeline
@@ -16,22 +13,24 @@ import io.ktor.http.response.contentType
 import io.ktor.http.withCharset
 import io.ktor.util.AttributeKey
 import io.ktor.util.safeAs
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
 import java.io.InputStreamReader
 import java.nio.charset.Charset
 
 
 class HttpPlainText(val defaultCharset: Charset) {
-
-    fun read(response: HttpResponseBuilder): String? {
+    suspend fun read(response: HttpResponseBuilder): String? {
         val payload = response.payload.safeAs<HttpMessageBody>() ?: return null
         val charset = response.headers.charset() ?: defaultCharset
 
         return when (payload) {
-            is WriteChannelBody -> {
-                val channel = ByteBufferWriteChannel().apply(payload.block)
-                channel.toString(charset)
+            is OutputStreamBody -> {
+                val stream = ByteArrayOutputStream()
+                payload.block(stream)
+                stream.toString(charset.name())
             }
-            is ReadChannelBody -> InputStreamReader(payload.channel.toInputStream(), charset).readText()
+            is InputStreamBody -> InputStreamReader(payload.stream, charset).readText()
             is EmptyBody -> ""
         }
     }
@@ -45,7 +44,7 @@ class HttpPlainText(val defaultCharset: Charset) {
             get(HttpHeaders.ContentType) ?: contentType(ContentType.Text.Plain.withCharset(charset))
         }
 
-        return ReadChannelBody(payload.toReadChannel())
+        return InputStreamBody(ByteArrayInputStream(payload))
     }
 
     class Configuration {
@@ -59,7 +58,7 @@ class HttpPlainText(val defaultCharset: Charset) {
 
         override fun prepare(block: Configuration.() -> Unit): HttpPlainText = Configuration().apply(block).build()
 
-        override fun install(feature: HttpPlainText, scope: HttpClientScope) {
+        override fun install(feature: HttpPlainText, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { builder: HttpRequestBuilder ->
                 builder.payload = feature.write(builder) ?: return@intercept
             }

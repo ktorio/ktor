@@ -1,6 +1,7 @@
 package io.ktor.client.utils
 
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.http.request.parseQueryString
 import java.net.URL
 
 
@@ -37,12 +38,13 @@ fun UrlBuilder.takeFrom(url: Url): UrlBuilder {
 }
 
 fun UrlBuilder.takeFrom(data: URL) {
-    scheme = data.protocol
-    host = data.host
-    path = data.path
-    port = data.port.takeIf { it > 0 } ?: if (scheme == "https") 443 else 80
+    val uri = data.toURI()
 
-    // TODO: parse query parameters
+    scheme = uri.scheme
+    host = uri.host
+    path = uri.path
+    port = uri.port.takeIf { it > 0 } ?: if (scheme == "https") 443 else 80
+    queryParameters.appendAll(parseQueryString(uri.query))
 }
 
 fun UrlBuilder.takeFrom(url: String) = takeFrom(URL(url))

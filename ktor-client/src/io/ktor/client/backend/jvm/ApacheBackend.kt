@@ -1,45 +1,39 @@
 package io.ktor.client.backend.jvm
 
-import io.ktor.cio.ByteBufferWriteChannel
-import io.ktor.cio.toInputStream
-import io.ktor.cio.toReadChannel
 import io.ktor.client.backend.HttpClientBackend
 import io.ktor.client.backend.HttpClientBackendFactory
 import io.ktor.client.request.HttpRequest
 import io.ktor.client.response.HttpResponseBuilder
 import io.ktor.client.utils.EmptyBody
 import io.ktor.client.utils.HttpProtocolVersion
-import io.ktor.client.utils.ReadChannelBody
-import io.ktor.client.utils.WriteChannelBody
+import io.ktor.client.utils.InputStreamBody
+import io.ktor.client.utils.OutputStreamBody
 import io.ktor.http.HttpStatusCode
 import io.ktor.util.flattenEntries
-import org.apache.http.HttpResponse
 import org.apache.http.client.config.CookieSpecs
 import org.apache.http.client.config.RequestConfig
+import org.apache.http.client.methods.CloseableHttpResponse
 import org.apache.http.client.methods.RequestBuilder
 import org.apache.http.client.utils.URIBuilder
-import org.apache.http.concurrent.FutureCallback
 import org.apache.http.entity.ByteArrayEntity
 import org.apache.http.entity.InputStreamEntity
-import org.apache.http.impl.nio.client.CloseableHttpAsyncClient
-import org.apache.http.impl.nio.client.HttpAsyncClients
-import java.lang.Exception
+import org.apache.http.impl.client.CloseableHttpClient
+import org.apache.http.impl.client.HttpClients
+import java.io.ByteArrayOutputStream
 import java.util.*
-import kotlin.coroutines.experimental.suspendCoroutine
 
 
 class ApacheBackend : HttpClientBackend {
-    private val backend: CloseableHttpAsyncClient
+    private val backend: CloseableHttpClient
 
     init {
         val config = RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES).build()
-        backend = HttpAsyncClients.custom().setDefaultRequestConfig(config).build()
-        backend.start()
+        backend = HttpClients.custom().setDefaultRequestConfig(config).build()
     }
 
-    suspend override fun makeRequest(data: HttpRequest): HttpResponseBuilder {
-        val apacheBuilder = RequestBuilder.create(data.method.value)
-        with(data) {
+    suspend override fun makeRequest(request: HttpRequest): HttpResponseBuilder {
+        val apacheBuilder = RequestBuilder.create(request.method.value)
+        with(request) {
             apacheBuilder.uri = URIBuilder().apply {
                 scheme = url.scheme
                 host = url.host
@@ -49,17 +43,17 @@ class ApacheBackend : HttpClientBackend {
             }.build()
         }
 
-        data.headers.entries().forEach { (name, values) ->
+        request.headers.entries().forEach { (name, values) ->
             values.forEach { value -> apacheBuilder.addHeader(name, value) }
         }
 
-        val requestPayload = data.payload
+        val requestPayload = request.payload
         when (requestPayload) {
-            is ReadChannelBody -> InputStreamEntity(requestPayload.channel.toInputStream())
-            is WriteChannelBody -> {
-                val channel = ByteBufferWriteChannel()
-                requestPayload.block(channel)
-                ByteArrayEntity(channel.toByteArray())
+            is InputStreamBody -> InputStreamEntity(requestPayload.stream)
+            is OutputStreamBody -> {
+                val stream = ByteArrayOutputStream()
+                requestPayload.block(stream)
+                ByteArrayEntity(stream.toByteArray())
             }
             else -> null
         }?.let { apacheBuilder.entity = it }
@@ -68,21 +62,8 @@ class ApacheBackend : HttpClientBackend {
 
         val startTime = Date()
 
-        // TODO: suspendCancelableCoroutine fix
-        val response = suspendCoroutine<HttpResponse> { continuation ->
-            backend.execute(apacheRequest, object : FutureCallback<HttpResponse> {
-                override fun cancelled() {
-                }
-
-                override fun completed(response: HttpResponse?) {
-                    continuation.resume(response!!)
-                }
-
-                override fun failed(exception: Exception?) {
-                    continuation.resumeWithException(exception!!)
-                }
-            })
-        }
+        // todo: revert async backend(close problem)
+        val response: CloseableHttpResponse = backend.execute(apacheRequest)
         val statusLine = response.statusLine
         val entity = response.entity
 
@@ -103,11 +84,10 @@ class ApacheBackend : HttpClientBackend {
                 version = HttpProtocolVersion(protocol, major, minor)
             }
 
-            payload = if (entity?.isStreaming == true) ReadChannelBody(entity.content.toReadChannel()) else EmptyBody
-
+            payload = if (entity?.isStreaming == true) InputStreamBody(entity.content) else EmptyBody
+            origin = response
         }
 
-//        response.close()
         return builder
     }
 
