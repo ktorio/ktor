@@ -7,7 +7,13 @@ import java.nio.charset.Charset
 import javax.net.ssl.SSLSocketFactory
 
 
-class HttpRequest(val url: Url, val method: HttpMethod, val headers: Headers, val payload: Any) {
+class HttpRequest(
+        val url: Url,
+        val method: HttpMethod,
+        val headers: Headers,
+        val payload: Any,
+        val charset: Charset?
+) {
     val cacheControl: HttpRequestCacheControl by lazy { headers.computeRequestCacheControl() }
 }
 
@@ -31,6 +37,16 @@ class HttpRequestBuilder() {
 
     fun url(block: UrlBuilder.() -> Unit) = url.block()
 
-    fun build(): HttpRequest = HttpRequest(url.build(), method, valuesOf(headers), payload)
+    fun build(): HttpRequest = HttpRequest(url.build(), method, headers.build(), payload, charset)
 }
 
+fun HttpRequestBuilder.takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
+    method = builder.method
+    payload = builder.payload
+    charset = builder.charset
+    sslSocketFactory = builder.sslSocketFactory
+    url.takeFrom(builder.url)
+    headers.appendAll(builder.headers)
+
+    return this
+}
