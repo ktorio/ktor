@@ -21,6 +21,7 @@ task testHttp2(type: Test, dependsOn: 'testClasses') {
     useJUnit()
 
     systemProperty 'enable.http2', 'true'
+    exclude("**/*StressTest*")
 
     def bootClasspath = configurations.boot.files
     jvmArgs(bootClasspath.collect { "-Xbootclasspath/p:${it.absolutePath}" })
