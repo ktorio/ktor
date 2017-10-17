@@ -49,7 +49,7 @@ class NettyApplicationHost(environment: ApplicationHostEnvironment) : BaseApplic
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
-        channels?.forEach { it.close().sync() }
+        val channelFutures = channels?.map { it.close() }.orEmpty()
 
         dispatcherWithShutdown.prepareShutdown()
         hostDispatcherWithShutdown.prepareShutdown()
@@ -67,6 +67,8 @@ class NettyApplicationHost(environment: ApplicationHostEnvironment) : BaseApplic
         } finally {
             dispatcherWithShutdown.completeShutdown()
             hostDispatcherWithShutdown.completeShutdown()
+
+            channelFutures.forEach { it.sync() }
         }
     }
 
