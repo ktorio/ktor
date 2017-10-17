@@ -4,6 +4,7 @@ import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.http.decodeURLPart
 import io.ktor.http.formUrlEncode
 import io.ktor.http.request.parseQueryString
+import java.net.URI
 import java.net.URL
 
 
@@ -39,9 +40,7 @@ fun UrlBuilder.takeFrom(url: Url): UrlBuilder {
     return this
 }
 
-fun UrlBuilder.takeFrom(data: URL) {
-    val uri = data.toURI()
-
+fun UrlBuilder.takeFrom(uri: URI) {
     scheme = uri.scheme
     host = uri.host
     path = uri.path
@@ -49,7 +48,9 @@ fun UrlBuilder.takeFrom(data: URL) {
     uri.query?.let { queryParameters.appendAll(parseQueryString(it)) }
 }
 
-fun UrlBuilder.takeFrom(url: String) = takeFrom(URL(url))
+fun UrlBuilder.takeFrom(url: URL) = takeFrom(url.toURI())
+
+fun UrlBuilder.takeFrom(url: String) = takeFrom(URI(url))
 
 fun UrlBuilder.takeFrom(url: UrlBuilder): UrlBuilder {
     scheme = url.scheme

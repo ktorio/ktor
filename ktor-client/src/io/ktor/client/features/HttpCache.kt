@@ -13,22 +13,28 @@ import io.ktor.client.response.HttpResponsePipeline
 import io.ktor.client.utils.*
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.response.etag
+import io.ktor.http.response.expires
 import io.ktor.util.AttributeKey
+import io.ktor.util.ValuesMapBuilder
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 
 
-fun Iterable<Boolean>.all(): Boolean = all { it }
-
 private val IGNORE_CACHE = AttributeKey<Boolean>("IgnoreCache")
 
+// consider about `match all` case
 private data class CacheEntity(
         val invariant: Map<String, Set<String>>,
         val cache: HttpResponse
 ) {
-    fun match(headers: HeadersBuilder): Boolean = invariant.entries.mapNotNull { (name, values) ->
-        headers.getAll(name)?.toSet()?.let { it == values }
-    }.all()
+    fun match(headers: HeadersBuilder): Boolean = invariant.entries.all { (name, values) ->
+        val requestValues = headers.getAll(name) ?: return false
+        if (requestValues.size != values.size) return false
+        if (values.size == 1) return values.first() == requestValues.first()
+
+        return requestValues.toSet() == values.toSet()
+    }
 }
 
 class HttpCache(
@@ -98,6 +104,8 @@ class HttpCache(
 
     private fun cacheResponse(request: HttpRequest, response: HttpResponseBuilder) {
         if (response.statusCode != HttpStatusCode.OK) return
+        if (response.expires()?.before(Date()) == true) return
+        if (response.payload is InputStreamBody || response.payload is OutputStreamBody) return
 
         with(request.cacheControl) {
             if (noCache || noStore) return
@@ -137,17 +145,17 @@ class HttpCache(
                     return@intercept
                 }
 
-                if (feature.maxAge != null && builder.maxAge() != null) {
+                if (feature.maxAge != null && builder.maxAge() == null) {
                     builder.maxAge(feature.maxAge)
                 }
 
-                val cache = feature.load(builder) ?: return@intercept
-                if (feature.isValid(cache, builder)) {
-                    proceedWith(HttpClientCall(builder.build(), cache, scope))
+                val cacheEntity = feature.load(builder) ?: return@intercept
+                if (feature.isValid(cacheEntity, builder)) {
+                    proceedWith(HttpClientCall(builder.build(), cacheEntity, scope))
                     return@intercept
                 }
 
-                feature.validate(cache, builder, scope)?.let { proceedWith(it) }
+                feature.validate(cacheEntity, builder, scope)?.let { proceedWith(it) }
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.After) { (_, request, response) ->

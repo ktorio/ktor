@@ -18,7 +18,7 @@ data class HttpClientCall(val request: HttpRequest, val response: HttpResponse, 
         val subject = HttpResponseContainer(expectedType, request, HttpResponseBuilder(response))
         val container = scope.responsePipeline.execute(scope, subject)
 
-        assert(container.response.payload::class == expectedType)
+        assert(container.response.payload::class === expectedType || HttpResponse::class === expectedType)
         return container
     }
 }
@@ -42,5 +42,10 @@ suspend fun HttpClient.call(url: URL, block: HttpRequestBuilder.() -> Unit = {})
 suspend fun HttpClient.call(url: String, block: HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
         call(URL(decodeURLPart(url)), block)
 
-suspend inline fun <reified T> HttpClientCall.receive(): T = receive(T::class).response.payload as T
+suspend inline fun <reified T> HttpClientCall.receive(): T {
+    val container = receive(T::class)
+    if (T::class === HttpResponse::class) return container.response.build() as T
+
+    return container.response.payload as T
+}
 

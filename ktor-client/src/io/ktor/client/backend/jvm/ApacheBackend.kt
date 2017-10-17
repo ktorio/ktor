@@ -24,12 +24,7 @@ import java.util.*
 
 
 class ApacheBackend : HttpClientBackend {
-    private val backend: CloseableHttpClient
-
-    init {
-        val config = RequestConfig.custom().setCookieSpec(CookieSpecs.IGNORE_COOKIES).build()
-        backend = HttpClients.custom().setDefaultRequestConfig(config).build()
-    }
+    private val backend: CloseableHttpClient = HttpClients.createDefault()
 
     suspend override fun makeRequest(request: HttpRequest): HttpResponseBuilder {
         val apacheBuilder = RequestBuilder.create(request.method.value)
@@ -58,8 +53,11 @@ class ApacheBackend : HttpClientBackend {
             else -> null
         }?.let { apacheBuilder.entity = it }
 
-        val apacheRequest = apacheBuilder.build()
+        apacheBuilder.config = RequestConfig.custom()
+                .setRedirectsEnabled(request.followRedirects)
+                .setCookieSpec(CookieSpecs.IGNORE_COOKIES).build()
 
+        val apacheRequest = apacheBuilder.build()
         val startTime = Date()
 
         // todo: revert async backend(close problem)
