@@ -1,8 +1,8 @@
 package io.ktor.client.features
 
-import io.ktor.client.HttpClient
-import io.ktor.client.response.HttpResponsePipeline
-import io.ktor.util.AttributeKey
+import io.ktor.client.*
+import io.ktor.client.response.*
+import io.ktor.util.*
 
 
 class HttpIgnoreBody {

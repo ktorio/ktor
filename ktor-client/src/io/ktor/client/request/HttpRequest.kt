@@ -1,10 +1,10 @@
 package io.ktor.client.request
 
 import io.ktor.client.utils.*
-import io.ktor.http.HttpMethod
-import io.ktor.util.Attributes
-import java.nio.charset.Charset
-import javax.net.ssl.SSLSocketFactory
+import io.ktor.http.*
+import io.ktor.util.*
+import java.nio.charset.*
+import javax.net.ssl.*
 
 
 class HttpRequest(

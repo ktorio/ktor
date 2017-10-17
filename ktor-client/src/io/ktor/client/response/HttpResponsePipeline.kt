@@ -1,10 +1,9 @@
 package io.ktor.client.response
 
-import io.ktor.client.HttpClient
-import io.ktor.client.request.HttpRequest
-import io.ktor.pipeline.Pipeline
-import io.ktor.pipeline.PipelinePhase
-import kotlin.reflect.KClass
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.pipeline.*
+import kotlin.reflect.*
 
 
 class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClient>(Receive, Parse, Transform, State, After) {

@@ -1,13 +1,10 @@
 package io.ktor.client
 
-import io.ktor.client.call.call
-import io.ktor.client.call.receive
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.utils.takeFrom
-import io.ktor.client.utils.url
-import io.ktor.http.HttpMethod
-import io.ktor.http.decodeURLPart
-import java.net.URL
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.client.utils.*
+import io.ktor.http.*
+import java.net.*
 
 
 suspend inline fun <reified T> HttpClient.request(builder: HttpRequestBuilder = HttpRequestBuilder()): T =

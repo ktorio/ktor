@@ -1,34 +1,19 @@
 package io.ktor.tests.auth
 
-import io.ktor.application.Application
-import io.ktor.application.ApplicationCall
+import io.ktor.application.*
 import io.ktor.auth.*
-import io.ktor.client.HttpClient
+import io.ktor.client.*
 import io.ktor.http.*
-import io.ktor.pipeline.call
-import io.ktor.request.contentType
-import io.ktor.request.receiveParameters
-import io.ktor.response.respondRedirect
-import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.post
-import io.ktor.routing.route
-import io.ktor.routing.routing
+import io.ktor.pipeline.*
+import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.routing.*
 import io.ktor.testing.*
-import io.ktor.util.ValuesMap
-import io.ktor.util.flattenEntries
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
-import java.time.LocalDateTime
-import java.time.ZoneOffset
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import io.ktor.util.*
+import org.junit.*
+import java.time.*
+import java.util.concurrent.*
+import kotlin.test.*
 
 class OAuth1aSignatureTest {
     @Test

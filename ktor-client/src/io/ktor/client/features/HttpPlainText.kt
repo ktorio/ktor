@@ -1,22 +1,15 @@
 package io.ktor.client.features
 
-import io.ktor.client.HttpClient
-import io.ktor.client.pipeline.intercept
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.HttpRequestPipeline
-import io.ktor.client.response.HttpResponseBuilder
-import io.ktor.client.response.HttpResponsePipeline
+import io.ktor.client.*
+import io.ktor.client.pipeline.*
+import io.ktor.client.request.*
+import io.ktor.client.response.*
 import io.ktor.client.utils.*
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.response.contentType
-import io.ktor.http.withCharset
-import io.ktor.util.AttributeKey
-import io.ktor.util.safeAs
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.InputStreamReader
-import java.nio.charset.Charset
+import io.ktor.http.*
+import io.ktor.http.response.*
+import io.ktor.util.*
+import java.io.*
+import java.nio.charset.*
 
 
 class HttpPlainText(val defaultCharset: Charset) {

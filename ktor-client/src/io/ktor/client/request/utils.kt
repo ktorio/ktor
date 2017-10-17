@@ -1,7 +1,6 @@
 package io.ktor.client.request
 
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
+import io.ktor.http.*
 
 
 val HttpRequest.host get() = url.host

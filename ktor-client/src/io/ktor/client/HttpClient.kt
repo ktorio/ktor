@@ -1,10 +1,10 @@
 package io.ktor.client
 
-import io.ktor.client.backend.HttpClientBackendFactory
-import io.ktor.client.request.HttpRequestPipeline
-import io.ktor.client.response.HttpResponsePipeline
-import io.ktor.util.Attributes
-import java.io.Closeable
+import io.ktor.client.backend.*
+import io.ktor.client.request.*
+import io.ktor.client.response.*
+import io.ktor.util.*
+import java.io.*
 
 
 sealed class HttpClient : Closeable {

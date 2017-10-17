@@ -1,19 +1,14 @@
 package io.ktor.testing
 
-import io.ktor.client.backend.HttpClientBackend
-import io.ktor.client.request.HttpRequest
-import io.ktor.client.response.HttpResponseBuilder
+import io.ktor.client.backend.*
+import io.ktor.client.request.*
+import io.ktor.client.response.*
 import io.ktor.client.utils.*
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.decodeURLPart
-import io.ktor.util.flattenEntries
-import io.ktor.util.unescapeIfQuoted
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
-import java.io.InputStreamReader
-import java.net.URL
+import io.ktor.http.*
+import io.ktor.util.*
+import java.io.*
 import java.util.*
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
 
 class TestHttpClientBackend(val app: TestApplicationHost) : HttpClientBackend {
     suspend override fun makeRequest(request: HttpRequest): HttpResponseBuilder = HttpResponseBuilder().apply {

@@ -1,8 +1,8 @@
 package io.ktor.client.features.cookies
 
-import io.ktor.http.Cookie
+import io.ktor.http.*
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.*
 
 
 interface CookiesStorage {

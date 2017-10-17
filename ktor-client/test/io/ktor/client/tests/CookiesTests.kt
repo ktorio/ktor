@@ -1,24 +1,17 @@
 package io.ktor.client.tests
 
-import io.ktor.client.HttpClient
-import io.ktor.client.backend.jvm.ApacheBackend
-import io.ktor.client.features.cookies.ConstantCookieStorage
-import io.ktor.client.features.cookies.HttpCookies
-import io.ktor.client.features.cookies.cookies
-import io.ktor.client.get
-import io.ktor.client.pipeline.config
-import io.ktor.client.tests.utils.TestWithKtor
-import io.ktor.host.ApplicationHost
-import io.ktor.host.embeddedServer
-import io.ktor.http.Cookie
-import io.ktor.http.HttpStatusCode
-import io.ktor.jetty.Jetty
-import io.ktor.response.respond
-import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.routing
-import kotlinx.coroutines.experimental.runBlocking
-import org.junit.Test
+import io.ktor.client.*
+import io.ktor.client.backend.jvm.*
+import io.ktor.client.features.cookies.*
+import io.ktor.client.pipeline.*
+import io.ktor.client.tests.utils.*
+import io.ktor.host.*
+import io.ktor.http.*
+import io.ktor.jetty.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import kotlinx.coroutines.experimental.*
+import org.junit.*
 
 
 class CookiesTests : TestWithKtor() {

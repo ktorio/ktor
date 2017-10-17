@@ -1,11 +1,9 @@
 package io.ktor.client.utils
 
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.http.decodeURLPart
-import io.ktor.http.formUrlEncode
-import io.ktor.http.request.parseQueryString
-import java.net.URI
-import java.net.URL
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.http.request.*
+import java.net.*
 
 
 fun HttpRequestBuilder.url(

@@ -1,26 +1,22 @@
 package io.ktor.client.tests
 
-import io.ktor.client.HttpClient
-import io.ktor.client.backend.jvm.ApacheBackend
-import io.ktor.client.features.HttpCache
-import io.ktor.client.get
-import io.ktor.client.pipeline.config
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.tests.utils.TestWithKtor
+import io.ktor.client.*
+import io.ktor.client.backend.jvm.*
+import io.ktor.client.features.*
+import io.ktor.client.pipeline.*
+import io.ktor.client.request.*
+import io.ktor.client.tests.utils.*
 import io.ktor.client.utils.url
 import io.ktor.content.CacheControl
-import io.ktor.features.withETag
-import io.ktor.host.ApplicationHost
-import io.ktor.host.embeddedServer
-import io.ktor.jetty.Jetty
-import io.ktor.pipeline.call
-import io.ktor.response.cacheControl
-import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.routing
-import kotlinx.coroutines.experimental.runBlocking
-import org.junit.Test
-import java.util.concurrent.atomic.AtomicInteger
+import io.ktor.features.*
+import io.ktor.host.*
+import io.ktor.jetty.*
+import io.ktor.pipeline.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import kotlinx.coroutines.experimental.*
+import org.junit.*
+import java.util.concurrent.atomic.*
 
 
 class CacheTests : TestWithKtor() {

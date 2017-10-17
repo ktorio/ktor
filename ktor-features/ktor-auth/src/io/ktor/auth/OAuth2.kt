@@ -1,26 +1,17 @@
 package io.ktor.auth
 
-import io.ktor.application.ApplicationCall
-import io.ktor.client.HttpClient
-import io.ktor.client.call.call
-import io.ktor.client.receiveText
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.header
-import io.ktor.client.utils.OutputStreamBody
-import io.ktor.client.utils.contentType
+import io.ktor.application.*
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
-import io.ktor.pipeline.PipelineContext
-import io.ktor.pipeline.call
-import io.ktor.pipeline.runAsync
-import io.ktor.response.respondRedirect
-import io.ktor.util.ValuesMap
-import io.ktor.util.encodeBase64
-import io.ktor.util.nextNonce
-import org.json.simple.JSONObject
-import org.json.simple.JSONValue
-import java.io.IOException
-import java.net.URL
-import java.util.concurrent.ExecutorService
+import io.ktor.pipeline.*
+import io.ktor.response.*
+import io.ktor.util.*
+import org.json.simple.*
+import java.io.*
+import java.util.concurrent.*
 
 suspend internal fun PipelineContext<Unit, ApplicationCall>.oauth2(
         client: HttpClient, exec: ExecutorService,

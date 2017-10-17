@@ -1,8 +1,7 @@
 package io.ktor.http.util
 
-import io.ktor.http.encodeURLPart
-import io.ktor.http.formUrlEncodeTo
-import io.ktor.util.ValuesMapBuilder
+import io.ktor.http.*
+import io.ktor.util.*
 
 
 class URLBuilder(

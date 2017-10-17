@@ -1,7 +1,6 @@
 package io.ktor.client.utils
 
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 
 
 sealed class HttpMessageBody

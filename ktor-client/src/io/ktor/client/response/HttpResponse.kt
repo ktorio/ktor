@@ -1,8 +1,8 @@
 package io.ktor.client.response
 
 import io.ktor.client.utils.*
-import io.ktor.http.HttpStatusCode
-import java.io.Closeable
+import io.ktor.http.*
+import java.io.*
 import java.util.*
 
 

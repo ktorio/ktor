@@ -1,17 +1,11 @@
 package io.ktor.client.features.json
 
-import io.ktor.client.features.HttpClientFeature
-import io.ktor.client.features.HttpPlainText
-import io.ktor.client.features.feature
-import io.ktor.client.HttpClient
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.HttpRequestPipeline
-import io.ktor.client.request.accept
-import io.ktor.client.response.HttpResponsePipeline
-import io.ktor.client.response.contentType
-import io.ktor.http.ContentType
-import io.ktor.util.AttributeKey
-import io.ktor.util.safeAs
+import io.ktor.client.*
+import io.ktor.client.features.*
+import io.ktor.client.request.*
+import io.ktor.client.response.*
+import io.ktor.http.*
+import io.ktor.util.*
 
 
 class Json(val serializer: JsonSerializer) {

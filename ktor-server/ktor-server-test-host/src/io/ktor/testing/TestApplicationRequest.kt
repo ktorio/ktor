@@ -1,18 +1,14 @@
 package io.ktor.testing
 
-import io.ktor.application.ApplicationCall
-import io.ktor.cio.toReadChannel
-import io.ktor.content.IncomingContent
-import io.ktor.host.BaseApplicationRequest
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.http.RequestConnectionPoint
-import io.ktor.http.request.parseQueryString
+import io.ktor.application.*
+import io.ktor.cio.*
+import io.ktor.content.*
+import io.ktor.host.*
+import io.ktor.http.*
+import io.ktor.http.request.*
 import io.ktor.request.*
-import io.ktor.util.valuesOf
-import java.io.ByteArrayInputStream
-import java.io.IOException
-import java.io.InputStream
+import io.ktor.util.*
+import java.io.*
 
 class TestApplicationRequest(
         call: ApplicationCall,

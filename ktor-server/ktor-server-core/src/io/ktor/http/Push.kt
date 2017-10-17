@@ -1,7 +1,7 @@
 package io.ktor.http
 
 import io.ktor.application.*
-import io.ktor.http.request.parseQueryString
+import io.ktor.http.request.*
 import io.ktor.response.*
 import io.ktor.util.*
 

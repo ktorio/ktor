@@ -1,9 +1,6 @@
 package io.ktor.client.response
 
-import io.ktor.http.ContentType
-import io.ktor.http.Cookie
-import io.ktor.http.HttpHeaders
-import io.ktor.http.parseServerSetCookieHeader
+import io.ktor.http.*
 
 
 fun HttpResponseBuilder.contentType(): ContentType? =
