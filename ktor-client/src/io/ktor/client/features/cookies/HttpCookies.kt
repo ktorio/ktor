@@ -1,19 +1,11 @@
 package io.ktor.client.features.cookies
 
-import io.ktor.client.features.HttpClientFeature
-import io.ktor.client.features.feature
-import io.ktor.client.HttpClient
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.HttpRequestPipeline
-import io.ktor.client.request.header
-import io.ktor.client.request.host
-import io.ktor.client.response.HttpResponsePipeline
-import io.ktor.client.response.cookies
-import io.ktor.http.Cookie
-import io.ktor.http.HttpHeaders
-import io.ktor.http.renderSetCookieHeader
-import io.ktor.util.AttributeKey
-import io.ktor.util.safeAs
+import io.ktor.client.*
+import io.ktor.client.features.*
+import io.ktor.client.request.*
+import io.ktor.client.response.*
+import io.ktor.http.*
+import io.ktor.util.*
 
 
 class HttpCookies(private val storage: CookiesStorage) {

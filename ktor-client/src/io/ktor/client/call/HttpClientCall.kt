@@ -1,16 +1,12 @@
 package io.ktor.client.call
 
-import io.ktor.client.HttpClient
-import io.ktor.client.request.HttpRequest
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.takeFrom
-import io.ktor.client.response.HttpResponse
-import io.ktor.client.response.HttpResponseBuilder
-import io.ktor.client.response.HttpResponseContainer
-import io.ktor.client.utils.takeFrom
-import io.ktor.http.decodeURLPart
-import java.net.URL
-import kotlin.reflect.KClass
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.response.*
+import io.ktor.client.utils.*
+import io.ktor.http.*
+import java.net.*
+import kotlin.reflect.*
 
 
 data class HttpClientCall(val request: HttpRequest, val response: HttpResponse, private val scope: HttpClient) {

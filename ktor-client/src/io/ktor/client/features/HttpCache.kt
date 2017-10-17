@@ -1,24 +1,26 @@
 package io.ktor.client.features
 
-import io.ktor.client.call.HttpClientCall
-import io.ktor.client.call.call
-import io.ktor.client.HttpClient
-import io.ktor.client.request.HttpRequest
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.HttpRequestPipeline
-import io.ktor.client.request.takeFrom
-import io.ktor.client.response.HttpResponse
-import io.ktor.client.response.HttpResponseBuilder
-import io.ktor.client.response.HttpResponsePipeline
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.client.response.*
 import io.ktor.client.utils.*
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.response.etag
-import io.ktor.http.response.expires
-import io.ktor.util.AttributeKey
-import io.ktor.util.ValuesMapBuilder
+import io.ktor.http.*
+import io.ktor.util.*
 import java.util.*
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.*
+import kotlin.collections.Map
+import kotlin.collections.Set
+import kotlin.collections.all
+import kotlin.collections.component1
+import kotlin.collections.component2
+import kotlin.collections.first
+import kotlin.collections.listOf
+import kotlin.collections.map
+import kotlin.collections.set
+import kotlin.collections.setOf
+import kotlin.collections.toMap
+import kotlin.collections.toSet
 
 
 private val IGNORE_CACHE = AttributeKey<Boolean>("IgnoreCache")

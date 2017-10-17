@@ -1,22 +1,16 @@
 package io.ktor.server.host.cio.tests
 
-import io.ktor.client.jvm.stream
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.toHttpDateString
-import io.ktor.server.host.cio.CIOClient
-import kotlinx.coroutines.experimental.CompletableDeferred
-import kotlinx.coroutines.experimental.runBlocking
-import org.junit.Test
-import java.io.EOFException
-import java.net.InetAddress
-import java.net.ServerSocket
-import java.net.URL
-import java.time.LocalDateTime
-import java.util.concurrent.ArrayBlockingQueue
-import kotlin.concurrent.thread
-import kotlin.test.assertEquals
+import io.ktor.client.jvm.*
+import io.ktor.http.*
+import io.ktor.server.host.cio.*
+import kotlinx.coroutines.experimental.*
+import org.junit.*
+import java.io.*
+import java.net.*
+import java.time.*
+import java.util.concurrent.*
+import kotlin.concurrent.*
+import kotlin.test.*
 
 class CIOHttpClientTest {
     @Test

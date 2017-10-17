@@ -1,22 +1,19 @@
 package io.ktor.client.tests
 
-import io.ktor.client.HttpClient
-import io.ktor.client.backend.jvm.ApacheBackend
-import io.ktor.client.post
-import io.ktor.client.tests.utils.TestWithKtor
-import io.ktor.content.readText
-import io.ktor.host.embeddedServer
-import io.ktor.http.ContentType
-import io.ktor.http.response.contentType
-import io.ktor.http.withCharset
-import io.ktor.jetty.Jetty
-import io.ktor.pipeline.call
-import io.ktor.response.respondText
-import io.ktor.routing.post
-import io.ktor.routing.routing
-import kotlinx.coroutines.experimental.runBlocking
-import org.junit.Test
-import java.nio.charset.Charset
+import io.ktor.client.*
+import io.ktor.client.backend.jvm.*
+import io.ktor.client.tests.utils.*
+import io.ktor.content.*
+import io.ktor.host.*
+import io.ktor.http.*
+import io.ktor.http.response.*
+import io.ktor.jetty.*
+import io.ktor.pipeline.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import kotlinx.coroutines.experimental.*
+import org.junit.*
+import java.nio.charset.*
 import java.util.*
 
 

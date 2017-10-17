@@ -1,13 +1,9 @@
 package io.ktor.client.pipeline
 
-import io.ktor.client.HttpCallScope
-import io.ktor.client.HttpClient
-import io.ktor.client.features.FEATURE_INSTALLED_LIST
-import io.ktor.client.features.HttpClientFeature
-import io.ktor.client.features.HttpIgnoreBody
-import io.ktor.client.features.HttpPlainText
-import io.ktor.util.AttributeKey
-import io.ktor.util.Attributes
+import io.ktor.client.*
+import io.ktor.client.features.*
+import io.ktor.util.*
+import kotlin.collections.set
 
 
 private val CLIENT_CONFIG_KEY = AttributeKey<ClientConfig>("ClientConfig")

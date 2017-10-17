@@ -1,26 +1,21 @@
 package io.ktor.client.tests
 
-import com.google.gson.Gson
-import io.ktor.client.HttpClientFactory
-import io.ktor.client.backend.jvm.ApacheBackend
-import io.ktor.client.features.json.GsonSerializer
-import io.ktor.client.features.json.Json
-import io.ktor.client.get
-import io.ktor.client.HttpClient
-import io.ktor.client.pipeline.config
-import io.ktor.client.tests.utils.TestWithKtor
-import io.ktor.host.ApplicationHost
-import io.ktor.host.embeddedServer
-import io.ktor.http.ContentType
-import io.ktor.jetty.Jetty
-import io.ktor.pipeline.call
-import io.ktor.request.receiveText
-import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.routing
-import kotlinx.coroutines.experimental.runBlocking
+import com.google.gson.*
+import io.ktor.client.*
+import io.ktor.client.backend.jvm.*
+import io.ktor.client.features.json.*
+import io.ktor.client.pipeline.*
+import io.ktor.client.tests.utils.*
+import io.ktor.host.*
+import io.ktor.http.*
+import io.ktor.jetty.*
+import io.ktor.pipeline.*
+import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import kotlinx.coroutines.experimental.*
+import org.junit.*
 import org.junit.Assert.assertEquals
-import org.junit.Test
 
 
 class JsonTests : TestWithKtor() {

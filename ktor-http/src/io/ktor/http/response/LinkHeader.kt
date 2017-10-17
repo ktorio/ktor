@@ -1,8 +1,6 @@
 package io.ktor.http.response
 
-import io.ktor.http.ContentType
-import io.ktor.http.HeaderValueParam
-import io.ktor.http.HeaderValueWithParameters
+import io.ktor.http.*
 
 // RFC 5988
 class LinkHeader(uri: String, params: List<HeaderValueParam>) : HeaderValueWithParameters("<$uri>", params) {

@@ -1,9 +1,7 @@
 package io.ktor.client.pipeline
 
-import io.ktor.pipeline.Pipeline
-import io.ktor.pipeline.PipelineContext
-import io.ktor.pipeline.PipelinePhase
-import io.ktor.util.safeAs
+import io.ktor.pipeline.*
+import io.ktor.util.*
 
 
 inline fun <reified NewSubject : Any, Context : Any> Pipeline<*, Context>.intercept(

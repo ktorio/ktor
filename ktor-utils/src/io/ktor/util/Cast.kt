@@ -1,6 +1,6 @@
 package io.ktor.util
 
-import kotlin.reflect.KClass
+import kotlin.reflect.*
 
 @Suppress("UNCHECKED_CAST")
 fun <T : Any> Any.cast(type: KClass<T>) = if (type.java.isInstance(this)) this as T else throw ClassCastException("${this::class} couldn't be cast to $type")

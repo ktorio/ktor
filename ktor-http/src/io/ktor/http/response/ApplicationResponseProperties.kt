@@ -1,11 +1,8 @@
 package io.ktor.http.response
 
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.toHttpDateString
-import io.ktor.util.ValuesMapBuilder
-import java.time.LocalDateTime
-import java.time.ZonedDateTime
+import io.ktor.http.*
+import io.ktor.util.*
+import java.time.*
 
 fun ValuesMapBuilder.contentType(contentType: ContentType) = set(HttpHeaders.ContentType, contentType.toString())
 fun ValuesMapBuilder.contentLength(length: Long) = set(HttpHeaders.ContentLength, length.toString())

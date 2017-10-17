@@ -1,13 +1,11 @@
 package io.ktor.client
 
-import io.ktor.client.backend.HttpClientBackendFactory
-import io.ktor.client.call.HttpClientCall
-import io.ktor.client.pipeline.config
-import io.ktor.client.pipeline.default
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.HttpRequestPipeline
-import io.ktor.client.response.HttpResponsePipeline
-import io.ktor.util.safeAs
+import io.ktor.client.backend.*
+import io.ktor.client.call.*
+import io.ktor.client.pipeline.*
+import io.ktor.client.request.*
+import io.ktor.client.response.*
+import io.ktor.util.*
 
 
 object HttpClientFactory {

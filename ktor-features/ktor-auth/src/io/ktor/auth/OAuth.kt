@@ -1,17 +1,14 @@
 package io.ktor.auth
 
-import io.ktor.application.ApplicationCall
-import io.ktor.client.HttpClient
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.http.HttpMethod
-import io.ktor.pipeline.PipelineContext
-import io.ktor.pipeline.call
-import io.ktor.pipeline.runAsync
-import io.ktor.response.respondRedirect
-import io.ktor.util.ValuesMap
-import io.ktor.util.nextNonce
-import java.io.IOException
-import java.util.concurrent.ExecutorService
+import io.ktor.application.*
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import io.ktor.pipeline.*
+import io.ktor.response.*
+import io.ktor.util.*
+import java.io.*
+import java.util.concurrent.*
 
 enum class OAuthVersion {
     V10a, V20

@@ -1,9 +1,8 @@
 package io.ktor.client.utils
 
-import io.ktor.http.formUrlEncode
-import io.ktor.util.ValuesMap
-import io.ktor.util.ValuesMapBuilder
-import java.net.URI
+import io.ktor.http.*
+import io.ktor.util.*
+import java.net.*
 
 
 typealias Parameters = ValuesMap

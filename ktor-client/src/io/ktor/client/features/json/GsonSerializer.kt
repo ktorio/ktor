@@ -1,7 +1,7 @@
 package io.ktor.client.features.json
 
-import com.google.gson.GsonBuilder
-import kotlin.reflect.KClass
+import com.google.gson.*
+import kotlin.reflect.*
 
 
 class GsonSerializer(block: GsonBuilder.() -> Unit = {}) : JsonSerializer {

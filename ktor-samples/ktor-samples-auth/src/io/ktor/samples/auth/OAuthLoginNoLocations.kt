@@ -1,16 +1,13 @@
 package io.ktor.samples.auth
 
-import io.ktor.application.Application
-import io.ktor.application.ApplicationCallPipeline
-import io.ktor.auth.oauthHandleCallback
-import io.ktor.auth.oauthRespondRedirect
-import io.ktor.client.HttpClient
-import io.ktor.client.backend.jvm.ApacheBackend
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.pipeline.call
-import io.ktor.response.respondText
-import java.util.concurrent.Executors
+import io.ktor.application.*
+import io.ktor.auth.*
+import io.ktor.client.*
+import io.ktor.client.backend.jvm.*
+import io.ktor.http.*
+import io.ktor.pipeline.*
+import io.ktor.response.*
+import java.util.concurrent.*
 
 /**
  * This is special example demonstrates ability to use OAuth with no routes and locations.

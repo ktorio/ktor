@@ -1,12 +1,11 @@
 package io.ktor.client.tests.utils
 
-import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.*
 import ch.qos.logback.classic.Logger
-import io.ktor.host.ApplicationHost
-import org.junit.After
-import org.junit.Before
-import org.slf4j.LoggerFactory
-import java.util.concurrent.TimeUnit
+import io.ktor.host.*
+import org.junit.*
+import org.slf4j.*
+import java.util.concurrent.*
 
 
 abstract class TestWithKtor {

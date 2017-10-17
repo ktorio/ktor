@@ -1,15 +1,11 @@
 package io.ktor.client.utils
 
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.response.HttpResponse
-import io.ktor.client.response.HttpResponseBuilder
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.charset
-import io.ktor.util.ValuesMap
-import io.ktor.util.ValuesMapBuilder
-import java.nio.charset.Charset
-import java.text.SimpleDateFormat
+import io.ktor.client.request.*
+import io.ktor.client.response.*
+import io.ktor.http.*
+import io.ktor.util.*
+import java.nio.charset.*
+import java.text.*
 import java.util.*
 
 typealias Headers = ValuesMap

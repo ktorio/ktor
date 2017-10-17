@@ -1,8 +1,8 @@
 package io.ktor.client.backend
 
-import io.ktor.client.request.HttpRequest
-import io.ktor.client.response.HttpResponseBuilder
-import java.io.Closeable
+import io.ktor.client.request.*
+import io.ktor.client.response.*
+import java.io.*
 
 
 interface HttpClientBackend : Closeable {

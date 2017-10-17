@@ -1,8 +1,7 @@
 package io.ktor.client.features
 
-import io.ktor.client.HttpClient
-import io.ktor.util.AttributeKey
-import io.ktor.util.Attributes
+import io.ktor.client.*
+import io.ktor.util.*
 
 
 internal val FEATURE_INSTALLED_LIST = AttributeKey<Attributes>("ApplicationFeatureRegistry")

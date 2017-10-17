@@ -1,22 +1,18 @@
 package io.ktor.client.tests
 
-import io.ktor.client.HttpClient
-import io.ktor.client.backend.jvm.ApacheBackend
-import io.ktor.client.call.call
-import io.ktor.client.receiveText
-import io.ktor.client.request
-import io.ktor.client.tests.utils.TestWithKtor
-import io.ktor.host.embeddedServer
-import io.ktor.http.HttpMethod
-import io.ktor.jetty.Jetty
-import io.ktor.pipeline.call
-import io.ktor.request.receive
-import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.post
-import io.ktor.routing.routing
-import kotlinx.coroutines.experimental.runBlocking
-import org.junit.Test
+import io.ktor.client.*
+import io.ktor.client.backend.jvm.*
+import io.ktor.client.call.*
+import io.ktor.client.tests.utils.*
+import io.ktor.host.*
+import io.ktor.http.*
+import io.ktor.jetty.*
+import io.ktor.pipeline.*
+import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import kotlinx.coroutines.experimental.*
+import org.junit.*
 
 
 class FullFormTests : TestWithKtor() {

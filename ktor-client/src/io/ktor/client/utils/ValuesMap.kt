@@ -1,7 +1,6 @@
 package io.ktor.client.utils
 
-import io.ktor.util.ValuesMap
-import io.ktor.util.ValuesMapBuilder
+import io.ktor.util.*
 
 
 fun ValuesMapBuilder.appendAll(valuesMap: ValuesMapBuilder): ValuesMapBuilder = apply {

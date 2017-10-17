@@ -1,6 +1,6 @@
 package io.ktor.client.utils
 
-import io.ktor.http.HttpHeaders
+import io.ktor.http.*
 
 
 abstract class HttpRequestCacheControl {

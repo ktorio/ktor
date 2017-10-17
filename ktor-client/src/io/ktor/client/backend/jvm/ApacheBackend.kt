@@ -1,25 +1,17 @@
 package io.ktor.client.backend.jvm
 
-import io.ktor.client.backend.HttpClientBackend
-import io.ktor.client.backend.HttpClientBackendFactory
-import io.ktor.client.request.HttpRequest
-import io.ktor.client.response.HttpResponseBuilder
-import io.ktor.client.utils.EmptyBody
-import io.ktor.client.utils.HttpProtocolVersion
-import io.ktor.client.utils.InputStreamBody
-import io.ktor.client.utils.OutputStreamBody
-import io.ktor.http.HttpStatusCode
-import io.ktor.util.flattenEntries
-import org.apache.http.client.config.CookieSpecs
-import org.apache.http.client.config.RequestConfig
-import org.apache.http.client.methods.CloseableHttpResponse
-import org.apache.http.client.methods.RequestBuilder
-import org.apache.http.client.utils.URIBuilder
-import org.apache.http.entity.ByteArrayEntity
-import org.apache.http.entity.InputStreamEntity
-import org.apache.http.impl.client.CloseableHttpClient
-import org.apache.http.impl.client.HttpClients
-import java.io.ByteArrayOutputStream
+import io.ktor.client.backend.*
+import io.ktor.client.request.*
+import io.ktor.client.response.*
+import io.ktor.client.utils.*
+import io.ktor.http.*
+import io.ktor.util.*
+import org.apache.http.client.config.*
+import org.apache.http.client.methods.*
+import org.apache.http.client.utils.*
+import org.apache.http.entity.*
+import org.apache.http.impl.client.*
+import java.io.*
 import java.util.*
 
 
