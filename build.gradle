@@ -81,6 +81,13 @@ allprojects {
     test {
         ignoreFailures = true
         maxHeapSize = "2g"
+        exclude("**/*StressTest*")
+    }
+
+    task stressTest(type: Test, dependsOn: testClasses) {
+        ignoreFailures = true
+        maxHeapSize = "2g"
+        include("**/*StressTest*")
     }
 
     dependencies {
