@@ -12,7 +12,8 @@ class HttpRequest(
         val method: HttpMethod,
         val headers: Headers,
         val payload: Any,
-        val charset: Charset?
+        val charset: Charset?,
+        val followRedirects: Boolean
 ) {
     val cacheControl: HttpRequestCacheControl by lazy { headers.computeRequestCacheControl() }
 }
@@ -22,6 +23,7 @@ class HttpRequestBuilder() {
     var payload: Any = Unit
     var charset: Charset? = null
     var sslSocketFactory: SSLSocketFactory? = null
+    var followRedirects: Boolean = false
     val url = UrlBuilder()
     val headers = HeadersBuilder()
     val flags = Attributes()
@@ -37,7 +39,7 @@ class HttpRequestBuilder() {
 
     fun url(block: UrlBuilder.() -> Unit) = url.block()
 
-    fun build(): HttpRequest = HttpRequest(url.build(), method, headers.build(), payload, charset)
+    fun build(): HttpRequest = HttpRequest(url.build(), method, headers.build(), payload, charset, followRedirects)
 }
 
 fun HttpRequestBuilder.takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
@@ -45,6 +47,7 @@ fun HttpRequestBuilder.takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder
     payload = builder.payload
     charset = builder.charset
     sslSocketFactory = builder.sslSocketFactory
+    followRedirects = builder.followRedirects
     url.takeFrom(builder.url)
     headers.appendAll(builder.headers)
 
