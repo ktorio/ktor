@@ -1,6 +1,8 @@
 package io.ktor.client.utils
 
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.http.decodeURLPart
+import io.ktor.http.formUrlEncode
 import io.ktor.http.request.parseQueryString
 import java.net.URL
 
@@ -44,7 +46,22 @@ fun UrlBuilder.takeFrom(data: URL) {
     host = uri.host
     path = uri.path
     port = uri.port.takeIf { it > 0 } ?: if (scheme == "https") 443 else 80
-    queryParameters.appendAll(parseQueryString(uri.query))
+    uri.query?.let { queryParameters.appendAll(parseQueryString(it)) }
 }
 
 fun UrlBuilder.takeFrom(url: String) = takeFrom(URL(url))
+
+fun UrlBuilder.takeFrom(url: UrlBuilder): UrlBuilder {
+    scheme = url.scheme
+    host = url.host
+    port = url.port
+    path = url.path
+    username = url.username
+    password = url.password
+    queryParameters = ParametersBuilder().appendAll(url.queryParameters)
+
+    return this
+}
+
+val Url.fullPath: String
+    get() = "$path${ if (queryParameters.isEmpty()) "" else "?${decodeURLPart(queryParameters.formUrlEncode())}" }"

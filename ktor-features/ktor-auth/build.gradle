@@ -1,5 +1,6 @@
 description = ''
 dependencies {
     compile project(':ktor-client')
+    compile project(':ktor-server:ktor-server-test-host')
     compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
 }

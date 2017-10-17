@@ -124,7 +124,7 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
         else -> throw UnsupportedOperationException()
     }
 
-    val container = client.call(URL(getUri)) {
+    val container = client.call(getUri) {
         this.method = method
         header(HttpHeaders.Accept, listOf(ContentType.Application.FormUrlEncoded, ContentType.Application.Json).joinToString(","))
         if (useBasicAuth) {

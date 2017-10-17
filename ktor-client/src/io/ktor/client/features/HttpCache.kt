@@ -6,6 +6,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.HttpRequest
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.HttpRequestPipeline
+import io.ktor.client.request.takeFrom
 import io.ktor.client.response.HttpResponse
 import io.ktor.client.response.HttpResponseBuilder
 import io.ktor.client.response.HttpResponsePipeline
@@ -37,7 +38,7 @@ class HttpCache(
 
     private fun load(builder: HttpRequestBuilder): HttpResponse? {
         val now = Date()
-        val url = builder.url.build()
+        val url = UrlBuilder().takeFrom(builder.url).build()
         return responseCache[url]?.takeIf { it.match(builder.headers) }?.cache
     }
 
@@ -72,7 +73,7 @@ class HttpCache(
             builder: HttpRequestBuilder,
             scope: HttpClient
     ): HttpClientCall? {
-        val request = HttpRequestBuilder(builder.build())
+        val request = HttpRequestBuilder().takeFrom(builder)
 
         val lastModified = cachedResponse.lastModified()
         val etag = cachedResponse.etag()

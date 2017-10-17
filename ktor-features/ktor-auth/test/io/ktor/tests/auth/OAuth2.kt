@@ -1,22 +1,35 @@
 package io.ktor.tests.auth
 
-import io.ktor.application.*
+import io.ktor.application.Application
+import io.ktor.application.ApplicationCall
 import io.ktor.auth.*
+import io.ktor.client.HttpClient
 import io.ktor.http.*
 import io.ktor.http.request.parseQueryString
-import io.ktor.pipeline.*
-import io.ktor.request.*
-import io.ktor.response.*
-import io.ktor.routing.*
+import io.ktor.pipeline.call
+import io.ktor.request.receiveOrNull
+import io.ktor.response.respondText
+import io.ktor.routing.get
+import io.ktor.routing.route
+import io.ktor.routing.routing
 import io.ktor.testing.*
-import io.ktor.util.*
-import org.json.simple.*
-import org.junit.*
-import java.io.*
-import java.net.*
+import io.ktor.util.ValuesMap
+import io.ktor.util.encodeBase64
+import io.ktor.util.flattenEntries
+import io.ktor.util.plus
+import org.json.simple.JSONObject
+import org.junit.After
+import org.junit.Test
+import java.io.IOException
+import java.net.URI
 import java.util.*
-import java.util.concurrent.*
-import kotlin.test.*
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
+import kotlin.test.fail
 
 class OAuth2Test {
     val exec = Executors.newSingleThreadExecutor()
@@ -245,7 +258,9 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient, exec, settings, "http://localhost/login", "/", { path += "&badContentType=true" }) { token ->
+                    oauthHandleCallback(testClient, exec, settings, "http://localhost/login", "/", {
+                        url.queryParameters["badContentType"] = "true"
+                    }) { token ->
                         call.respondText("Ho, $token")
                     }
                 }
@@ -317,7 +332,7 @@ private interface OAuth2Server {
     fun requestToken(clientId: String, clientSecret: String, grantType: String, state: String?, code: String?, redirectUri: String?, userName: String?, password: String?): OAuthAccessTokenResponse.OAuth2
 }
 
-private fun createOAuth2Server(server: OAuth2Server): TestingHttpClient {
+private fun createOAuth2Server(server: OAuth2Server): HttpClient {
     val environment = createTestEnvironment {
         module {
             routing {
@@ -369,7 +384,7 @@ private fun createOAuth2Server(server: OAuth2Server): TestingHttpClient {
     }
     val host = TestApplicationHost(environment)
     host.start()
-    return TestingHttpClient(host)
+    return HttpClient { TestHttpClientBackend(host) }
 }
 
 private fun ValuesMap.requireParameter(name: String) = get(name) ?: throw IllegalArgumentException("No parameter $name specified")

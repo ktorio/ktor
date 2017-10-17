@@ -589,6 +589,7 @@ abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHo
                 call.receiveMultipart().readAllParts().sortedBy { it.partName }.forEach { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.partName}=${part.value}\n")
+                        is PartData.FileItem -> response.append("file:${part.partName},${part.originalFileName},${part.streamProvider().bufferedReader().readText()}\n")
                     }
 
                     part.dispose()

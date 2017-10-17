@@ -6,6 +6,7 @@ import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.utils.takeFrom
 import io.ktor.client.utils.url
 import io.ktor.http.HttpMethod
+import io.ktor.http.decodeURLPart
 import java.net.URL
 
 
@@ -42,7 +43,7 @@ suspend inline fun <reified T> HttpClient.get(data: URL): T = get {
     url.takeFrom(data)
 }
 
-suspend inline fun <reified T> HttpClient.get(url: String): T = get(URL(url))
+suspend inline fun <reified T> HttpClient.get(url: String): T = get(URL(decodeURLPart(url)))
 
 suspend inline fun <reified T> HttpClient.post(
         scheme: String = "http", host: String = "localhost", port: Int = 80,
@@ -61,5 +62,11 @@ suspend inline fun <reified T> HttpClient.post(
         path: String = "",
         payload: Any = Unit
 ): T = post(scheme, host, port, path, payload, {})
+
+suspend inline fun <reified T> HttpClient.post(data: URL): T = post {
+    url.takeFrom(data)
+}
+
+suspend inline fun <reified T> HttpClient.post(url: String): T = post(URL(decodeURLPart(url)))
 
 fun request(block: HttpRequestBuilder.() -> Unit) = HttpRequestBuilder().apply(block)

@@ -9,6 +9,4 @@ interface HttpClientBackend : Closeable {
     suspend fun makeRequest(request: HttpRequest): HttpResponseBuilder
 }
 
-interface HttpClientBackendFactory {
-    operator fun invoke(): HttpClientBackend
-}
+typealias HttpClientBackendFactory = () -> HttpClientBackend

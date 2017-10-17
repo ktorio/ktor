@@ -1,7 +1,9 @@
 package io.ktor.client.utils
 
+import io.ktor.http.formUrlEncode
 import io.ktor.util.ValuesMap
 import io.ktor.util.ValuesMapBuilder
+import java.net.URI
 
 
 typealias Parameters = ValuesMap
@@ -16,7 +18,13 @@ data class Url(
         val queryParameters: Parameters,
         val username: String?,
         val password: String?
-)
+) {
+    override fun toString(): String = URI(
+            scheme, username, host, port, path,
+            if (queryParameters.isEmpty()) null else queryParameters.formUrlEncode(),
+            null
+    ).toString()
+}
 
 class UrlBuilder {
     var scheme: String = "http"
@@ -33,5 +41,5 @@ class UrlBuilder {
 
     var queryParameters = ParametersBuilder()
 
-    fun build(): Url = Url(scheme, host, port, path, valuesOf(queryParameters), username, password)
+    fun build(): Url = Url(scheme, host, port, path, queryParameters.build(), username, password)
 }
