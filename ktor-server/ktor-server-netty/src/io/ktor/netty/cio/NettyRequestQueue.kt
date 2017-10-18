@@ -54,11 +54,11 @@ internal class NettyRequestQueue(private val limit: Int) {
         }
     }
 
-    suspend fun receiveOrNull(): NettyApplicationCall? {
+    suspend tailrec fun receiveOrNull(): NettyApplicationCall? {
         val element = queue.removeFirstIfIsInstanceOf<CallElement>()
 
         if (element != null) {
-            return returnCall(element)
+            return returnCall(element) ?: return receiveOrNull()
         }
 
         if (closed != 0) {
@@ -74,7 +74,7 @@ internal class NettyRequestQueue(private val limit: Int) {
         val element = queue.removeFirstIfIsInstanceOf<CallElement>()
 
         if (element != null) {
-            return returnCall(element)
+            return returnCall(element) ?: return receiveOrNullSuspend()
         }
 
         if (closed != 0) {
@@ -103,15 +103,19 @@ internal class NettyRequestQueue(private val limit: Int) {
         Receiver.getAndSet(this, null)?.resume(Unit)
     }
 
-    private fun returnCall(element: CallElement): NettyApplicationCall {
+    private fun returnCall(element: CallElement): NettyApplicationCall? {
+        if (closed != 0) {
+            element.tryDispose()
+            return null
+        }
+
         val n = Counter.getAndDecrement(this)
         if (n == limit) {
             element.call.context.read()
             (queue.next as? CallElement)?.ensureRunning()
         }
 
-        element.ensureRunning()
-        return element.call
+        return if (element.ensureRunning()) element.call else null
     }
 
     private class CloseElement : LockFreeLinkedListNode()
@@ -119,10 +123,13 @@ internal class NettyRequestQueue(private val limit: Int) {
         @Volatile
         private var scheduled: Int = 0
 
-        fun ensureRunning() {
+        fun ensureRunning(): Boolean {
             if (Scheduled.compareAndSet(this, 0, 1)) {
                 call.context.fireChannelRead(call)
+                return true
             }
+
+            return scheduled == 1
         }
 
         fun tryDispose() {
