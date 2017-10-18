@@ -1,7 +1,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
-import io.ktor.client.backend.jvm.*
+import io.ktor.client.backend.*
 import io.ktor.client.call.*
 import io.ktor.client.tests.utils.*
 import io.ktor.host.*
@@ -15,7 +15,7 @@ import kotlinx.coroutines.experimental.*
 import org.junit.*
 
 
-class FullFormTests : TestWithKtor() {
+open class FullFormTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
     override val server = embeddedServer(Jetty, 8080) {
         routing {
             get("/hello") {
@@ -30,7 +30,7 @@ class FullFormTests : TestWithKtor() {
 
     @Test
     fun testGet() {
-        val client = HttpClient(ApacheBackend)
+        val client = createClient()
         runBlocking {
             val text = client.call {
                 url {
@@ -50,7 +50,7 @@ class FullFormTests : TestWithKtor() {
 
     @Test
     fun testRequest() {
-        val client = HttpClient(ApacheBackend)
+        val client = createClient()
 
         val requestBuilder = request {
             url {

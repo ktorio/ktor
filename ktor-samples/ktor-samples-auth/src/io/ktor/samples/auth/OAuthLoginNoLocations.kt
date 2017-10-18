@@ -3,7 +3,7 @@ package io.ktor.samples.auth
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.client.*
-import io.ktor.client.backend.jvm.*
+import io.ktor.client.backend.apache.*
 import io.ktor.http.*
 import io.ktor.pipeline.*
 import io.ktor.response.*

@@ -1,12 +1,12 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
-import io.ktor.client.backend.jvm.*
+import io.ktor.client.backend.*
 import io.ktor.client.features.*
 import io.ktor.client.pipeline.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
-import io.ktor.client.utils.url
+import io.ktor.client.utils.*
 import io.ktor.content.CacheControl
 import io.ktor.features.*
 import io.ktor.host.*
@@ -19,7 +19,7 @@ import org.junit.*
 import java.util.concurrent.atomic.*
 
 
-class CacheTests : TestWithKtor() {
+open class CacheTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
     var counter = AtomicInteger()
     override val server: ApplicationHost = embeddedServer(Jetty, 8080) {
         routing {
@@ -54,7 +54,7 @@ class CacheTests : TestWithKtor() {
 
     @Test
     fun testDisabled() {
-        val client = HttpClient(ApacheBackend).config {
+        val client = createClient().config {
             install(HttpCache)
         }
 
@@ -74,7 +74,7 @@ class CacheTests : TestWithKtor() {
 
     @Test
     fun maxAge() {
-        val client = HttpClient(ApacheBackend).config {
+        val client = createClient().config {
             install(HttpCache)
         }
 

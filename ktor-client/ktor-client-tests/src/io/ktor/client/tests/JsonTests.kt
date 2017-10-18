@@ -2,7 +2,7 @@ package io.ktor.client.tests
 
 import com.google.gson.*
 import io.ktor.client.*
-import io.ktor.client.backend.jvm.*
+import io.ktor.client.backend.*
 import io.ktor.client.features.json.*
 import io.ktor.client.pipeline.*
 import io.ktor.client.tests.utils.*
@@ -18,7 +18,7 @@ import org.junit.*
 import org.junit.Assert.assertEquals
 
 
-class JsonTests : TestWithKtor() {
+open class JsonTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
     override val server: ApplicationHost = embeddedServer(Jetty, 8080) {
         routing {
             get("/") {
@@ -38,7 +38,7 @@ class JsonTests : TestWithKtor() {
 
     @Test
     fun simpleJson() {
-        val client = HttpClient(ApacheBackend).config {
+        val client = createClient().config {
             install(Json)
         }
 
@@ -48,7 +48,7 @@ class JsonTests : TestWithKtor() {
 
     @Test
     fun simpleGson() {
-        val client = HttpClient(ApacheBackend).config {
+        val client = createClient().config {
             install(Json) {
                 serializer = GsonSerializer()
             }
