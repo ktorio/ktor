@@ -64,9 +64,10 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         val responseMessage = response.responseMessage.await()
         val statusCode = response.status()
         val close = !call.request.keepAlive
-        dst.writeAndFlush(responseMessage)
+        val responseMessageFuture = dst.writeAndFlush(responseMessage)
 
         if (statusCode?.value == HttpStatusCode.SwitchingProtocols.value) {
+            responseMessageFuture.suspendAwait()
             encapsulation.upgrade(dst)
             encapsulation = WriterEncapsulation.Raw
         }
