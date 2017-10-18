@@ -87,6 +87,7 @@ allprojects {
     task stressTest(type: Test, dependsOn: testClasses) {
         ignoreFailures = true
         maxHeapSize = "2g"
+        forkEvery = 1
         include("**/*StressTest*")
     }
 
