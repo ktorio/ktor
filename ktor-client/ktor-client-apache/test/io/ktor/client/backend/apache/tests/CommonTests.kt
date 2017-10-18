@@ -18,7 +18,5 @@ class ApacheClientTestSuite {
 
     class ApacheFullFormTests : FullFormTests(BACKEND_FACTORY)
 
-    class ApacheJsonTests : JsonTests(BACKEND_FACTORY)
-
     class ApachePostTests : PostTests(BACKEND_FACTORY)
 }
