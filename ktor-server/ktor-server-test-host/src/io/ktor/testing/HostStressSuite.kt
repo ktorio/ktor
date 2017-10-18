@@ -214,9 +214,9 @@ abstract class HostStressSuite<THost : ApplicationHost>(hostFactory: Application
         val queueSize = 10
 
         val generator = HighLoadHttpGenerator("/", "localhost", port, connectionsPerThread, queueSize, true)
+        println("Running...")
         val threads = (1..numberOfThreads).map {
             thread {
-                println("Running...")
                 generator.mainLoop()
             }
         }
