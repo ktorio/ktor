@@ -1,4 +1,4 @@
-package io.ktor.client.backend.jvm
+package io.ktor.client.backend.apache
 
 import io.ktor.client.backend.*
 import io.ktor.client.request.*

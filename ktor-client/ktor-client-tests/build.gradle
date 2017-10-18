@@ -1,0 +1,8 @@
+description = "Common tests for client"
+
+dependencies {
+    compile project(":ktor-client")
+    compile project(":ktor-server:ktor-server-jetty")
+
+    compile group: 'junit', name: 'junit', version: junit_version
+}

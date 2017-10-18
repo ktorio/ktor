@@ -1,7 +1,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
-import io.ktor.client.backend.jvm.*
+import io.ktor.client.backend.*
 import io.ktor.client.tests.utils.*
 import io.ktor.content.*
 import io.ktor.host.*
@@ -17,7 +17,7 @@ import java.nio.charset.*
 import java.util.*
 
 
-class PostTests : TestWithKtor() {
+open class PostTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
     val BODY_PREFIX = "Hello, post"
 
     override val server = embeddedServer(Jetty, 8080) {
@@ -49,7 +49,7 @@ class PostTests : TestWithKtor() {
     }
 
     private fun postHelper(text: String) {
-        val client = HttpClient(ApacheBackend)
+        val client = createClient()
 
         val response = runBlocking {
             client.post<String>(port = 8080, payload = text) {

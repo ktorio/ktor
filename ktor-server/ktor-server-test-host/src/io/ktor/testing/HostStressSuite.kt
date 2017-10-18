@@ -1,6 +1,6 @@
 package io.ktor.testing
 
-import io.ktor.client.*
+import io.ktor.client.jvm.*
 import io.ktor.host.*
 import io.ktor.pipeline.*
 import io.ktor.response.*

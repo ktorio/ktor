@@ -1,7 +1,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
-import io.ktor.client.backend.jvm.*
+import io.ktor.client.backend.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
 import io.ktor.host.*
@@ -13,7 +13,7 @@ import io.ktor.routing.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
 
-class FollowRedirectsTest : TestWithKtor() {
+open class FollowRedirectsTest(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
     override val server: ApplicationHost = embeddedServer(Jetty, 8080) {
         routing {
             get("/") {
@@ -27,7 +27,7 @@ class FollowRedirectsTest : TestWithKtor() {
 
     @Test
     fun simpleRedirect() {
-        val client = HttpClient(ApacheBackend)
+        val client = createClient()
 
         runBlocking {
             client.get<HttpResponse>("http://localhost:8080/").use {

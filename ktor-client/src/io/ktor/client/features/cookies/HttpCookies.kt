@@ -2,6 +2,7 @@ package io.ktor.client.features.cookies
 
 import io.ktor.client.*
 import io.ktor.client.features.*
+import io.ktor.client.pipeline.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
@@ -38,10 +39,9 @@ class HttpCookies(private val storage: CookiesStorage) {
 
         override fun install(feature: HttpCookies, scope: HttpClient) {
 
-            scope.requestPipeline.intercept(HttpRequestPipeline.State) { requestData ->
-                val request = requestData.safeAs<HttpRequestBuilder>() ?: return@intercept
-                feature.forEach(request.host) {
-                    request.header(HttpHeaders.Cookie, renderSetCookieHeader(it))
+            scope.requestPipeline.intercept(HttpRequestPipeline.State) { builder: HttpRequestBuilder ->
+                feature.forEach(builder.host) {
+                    builder.header(HttpHeaders.Cookie, renderSetCookieHeader(it))
                 }
             }
 

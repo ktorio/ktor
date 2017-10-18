@@ -1,7 +1,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
-import io.ktor.client.backend.jvm.*
+import io.ktor.client.backend.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.pipeline.*
 import io.ktor.client.tests.utils.*
@@ -14,7 +14,7 @@ import kotlinx.coroutines.experimental.*
 import org.junit.*
 
 
-class CookiesTests : TestWithKtor() {
+open class CookiesTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
     override val server: ApplicationHost = embeddedServer(Jetty, 8080) {
         routing {
             get("/") {
@@ -40,7 +40,7 @@ class CookiesTests : TestWithKtor() {
 
     @Test
     fun testAccept() {
-        val client = HttpClient(ApacheBackend).config {
+        val client = createClient().config {
             install(HttpCookies)
         }
 
@@ -56,7 +56,7 @@ class CookiesTests : TestWithKtor() {
 
     @Test
     fun testUpdate() {
-        val client = HttpClient(ApacheBackend).config {
+        val client = createClient().config {
             install(HttpCookies) {
                 default {
                     set("localhost", Cookie("id", "1"))
@@ -75,7 +75,7 @@ class CookiesTests : TestWithKtor() {
 
     @Test
     fun testConstant() {
-        val client = HttpClient(ApacheBackend).config {
+        val client = createClient().config {
             install(HttpCookies) {
                 storage = ConstantCookieStorage(Cookie("id", "1"))
             }
@@ -95,7 +95,7 @@ class CookiesTests : TestWithKtor() {
          * |    |
          * c    d
          */
-        val client = HttpClient(ApacheBackend)
+        val client = createClient()
         val a = client.config { install(HttpCookies) { default { set("localhost", Cookie("id", "1")) } } }
         val b = a.config { install(HttpCookies) { default { set("localhost", Cookie("id", "10")) } } }
         val c = a.config { }
