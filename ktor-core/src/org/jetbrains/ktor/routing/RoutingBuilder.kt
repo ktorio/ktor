@@ -130,14 +130,14 @@ fun Route.put(body: PipelineInterceptor<Unit>): Route {
 }
 
 /**
- * Builds a route to match `PUT` requests with specified [path]
+ * Builds a route to match `PATCH` requests with specified [path]
  */
 fun Route.patch(path: String, body: PipelineInterceptor<Unit>): Route {
     return route(HttpMethod.Patch, path) { handle(body) }
 }
 
 /**
- * Builds a route to match `PUT` requests
+ * Builds a route to match `PATCH` requests
  */
 fun Route.patch(body: PipelineInterceptor<Unit>): Route {
     return method(HttpMethod.Patch) { handle(body) }
