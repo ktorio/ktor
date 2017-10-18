@@ -66,11 +66,13 @@ allprojects {
     dokka {
         outputFormat = 'html'
         outputDirectory = "$buildDir/kdoc"
+        reportNotDocumented = false
     }
 
     task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
         outputFormat = 'javadoc'
         outputDirectory = "$buildDir/javadoc"
+        reportNotDocumented = false
     }
 
     task jarTest(type: Jar, dependsOn: testClasses) {
