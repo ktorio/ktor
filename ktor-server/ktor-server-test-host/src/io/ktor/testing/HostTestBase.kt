@@ -47,6 +47,8 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
     @get:Rule
     open val timeout = PublishedTimeout(if (isUnderDebugger) 1000000L else (System.getProperty("host.test.timeout.seconds")?.toLong() ?: 120L))
 
+    protected val socketReadTimeout by lazy { timeout.seconds.toInt() * 1000 }
+
     @Before
     fun setUpBase() {
         val method = this.javaClass.getMethod(test.methodName) ?: fail("Method ${test.methodName} not found")
@@ -171,6 +173,15 @@ abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory:
 
         if (enableHttp2 && enableSsl) {
             withHttp2(URL("https://127.0.0.1:$sslPort$path"), sslPort, builder, block)
+        }
+    }
+
+    protected fun socket(block: Socket.() -> Unit) {
+        Socket("localhost", port).use { socket ->
+            socket.tcpNoDelay = true
+            socket.soTimeout = socketReadTimeout
+
+            block(socket)
         }
     }
 
