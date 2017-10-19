@@ -1,6 +1,10 @@
 package io.ktor.tests.auth
 
-import io.ktor.client.jvm.*
+import io.ktor.client.*
+import io.ktor.client.backend.apache.*
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
@@ -54,21 +58,22 @@ class HttpClientTest {
         }
 
         val port = portSync.take()
-        val response = DefaultHttpClient.request(URL("http://127.0.0.1:$port/")) {
+        val container = HttpClient(ApacheBackend).call("http://127.0.0.1:$port/") {
             method = HttpMethod.Post
-            path = "/url"
+            url.path = "/url"
             header("header", "value")
-            body = { out ->
+            payload = OutputStreamBody { out ->
                 out.writer().use { w ->
                     w.write("request-body")
                 }
             }
         }
 
+        val response = container.response
         try {
-            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(HttpStatusCode.OK, response.statusCode)
             assertEquals("test", response.headers[HttpHeaders.Server])
-            assertEquals("ok", response.stream.reader().readText())
+            assertEquals("ok", container.receiveText())
 
             val receivedHeaders = headersSync.take()
             assertEquals("value", receivedHeaders["header"])
