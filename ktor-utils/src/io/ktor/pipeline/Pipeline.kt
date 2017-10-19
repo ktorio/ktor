@@ -15,7 +15,7 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
 
     suspend fun execute(context: TContext, subject: TSubject): TSubject = PipelineContext(context, interceptors(), subject).proceed()
 
-    private class PhaseContent<TSubject : Any, Call: Any>(
+    private class PhaseContent<TSubject : Any, Call : Any>(
             val phase: PipelinePhase,
             val relation: PipelinePhaseRelation,
             val interceptors: ArrayList<PipelineInterceptor<TSubject, Call>>
@@ -145,5 +145,14 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
 
 inline suspend fun <TContext : Any> Pipeline<Unit, TContext>.execute(context: TContext) = execute(context, Unit)
 
+inline fun <reified NewSubject : Any, Context : Any> Pipeline<*, Context>.intercept(
+        phase: PipelinePhase,
+        crossinline block: PipelineContext<NewSubject, Context>.(NewSubject) -> Unit
+) {
+    intercept(phase) interceptor@ { subject ->
+        subject as? NewSubject ?: return@interceptor
+        safeAs<PipelineContext<NewSubject, Context>>()?.block(subject)
+    }
+}
 typealias PipelineInterceptor<TSubject, TContext> = suspend PipelineContext<TSubject, TContext>.(TSubject) -> Unit
 

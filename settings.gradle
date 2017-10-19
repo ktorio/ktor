@@ -16,6 +16,8 @@ include ':ktor-client:ktor-client-tests'
 include ':ktor-client:ktor-client-apache'
 include ':ktor-client:ktor-client-jvm'
 include ':ktor-client:ktor-client-jetty'
+include ':ktor-client:ktor-client-features'
+include ':ktor-client:ktor-client-features:ktor-client-json'
 include ':ktor-features:ktor-freemarker'
 include ':ktor-features:ktor-gson'
 include ':ktor-features:ktor-jackson'
@@ -69,6 +71,8 @@ project(':ktor-client:ktor-client-tests').projectDir = "$rootDir/ktor-client/kto
 project(':ktor-client:ktor-client-apache').projectDir = "$rootDir/ktor-client/ktor-client-apache" as File
 project(':ktor-client:ktor-client-jvm').projectDir = "$rootDir/ktor-client/ktor-client-jvm" as File
 project(':ktor-client:ktor-client-jetty').projectDir = "$rootDir/ktor-client/ktor-client-jetty" as File
+project(':ktor-client:ktor-client-features').projectDir = "$rootDir/ktor-client/ktor-client-features" as File
+project(':ktor-client:ktor-client-features:ktor-client-json').projectDir = "$rootDir/ktor-client/ktor-client-features/ktor-client-json" as File
 project(':ktor-features:ktor-freemarker').projectDir = "$rootDir/ktor-features/ktor-freemarker" as File
 project(':ktor-features:ktor-gson').projectDir = "$rootDir/ktor-features/ktor-gson" as File
 project(':ktor-features:ktor-jackson').projectDir = "$rootDir/ktor-features/ktor-jackson" as File
