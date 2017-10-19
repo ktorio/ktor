@@ -22,8 +22,6 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
     @get:Rule
     val errors = ErrorCollector()
 
-    private val socketReadTimeout = timeout.seconds.toInt() * 1000
-
     override fun features(application: Application, routingConfigurer: Routing.() -> Unit) {
         application.install(WebSockets)
         super.features(application, routingConfigurer)
@@ -47,11 +45,9 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
             }
         }
 
-        Socket("localhost", port).use { socket ->
-            socket.soTimeout = socketReadTimeout
-
+        socket {
             // send upgrade request
-            socket.outputStream.apply {
+            outputStream.apply {
                 write("""
                 GET / HTTP/1.1
                 Host: localhost:$port
@@ -66,14 +62,14 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                 flush()
             }
 
-            val status = socket.inputStream.parseStatus()
+            val status = inputStream.parseStatus()
             assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
 
-            val headers = socket.inputStream.parseHeaders()
+            val headers = inputStream.parseHeaders()
             assertEquals("Upgrade", headers[HttpHeaders.Connection])
             assertEquals("websocket", headers[HttpHeaders.Upgrade])
 
-            socket.outputStream.apply {
+            outputStream.apply {
                 // text message with content "Hello"
                 writeHex("0x81 0x05 0x48 0x65 0x6c 0x6c 0x6f")
                 flush()
@@ -83,7 +79,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                 flush()
             }
 
-            socket.assertCloseFrame()
+            assertCloseFrame()
         }
 
         assertEquals("Hello", collected.take())
@@ -105,11 +101,9 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
             }
         }
 
-        Socket("localhost", port).use { socket ->
-            socket.soTimeout = socketReadTimeout
-
+        socket {
             // send upgrade request
-            socket.outputStream.apply {
+            outputStream.apply {
                 write("""
                 GET / HTTP/1.1
                 Host: localhost:$port
@@ -124,11 +118,11 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                 flush()
             }
 
-            socket.inputStream.parseStatus()
-            socket.inputStream.parseHeaders()
+            inputStream.parseStatus()
+            inputStream.parseHeaders()
 
             for (i in 1..5) {
-                val frame = socket.inputStream.readFrame()
+                val frame = inputStream.readFrame()
                 assertEquals(FrameType.PING, frame.frameType)
                 assertEquals(true, frame.fin)
                 assertTrue { frame.buffer.hasRemaining() }
@@ -140,18 +134,18 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                     serialize(bb)
                     bb.flip()
 
-                    socket.getOutputStream().write(buffer, 0, bb.remaining())
-                    socket.getOutputStream().flush()
+                    getOutputStream().write(buffer, 0, bb.remaining())
+                    getOutputStream().flush()
                 }
             }
 
-            socket.outputStream.apply {
+            outputStream.apply {
                 // close frame with code 1000
                 writeHex("0x88 0x02 0x03 0xe8")
                 flush()
             }
 
-            socket.assertCloseFrame()
+            assertCloseFrame()
         }
     }
 
@@ -178,11 +172,9 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
             }
         }
 
-        Socket("localhost", port).use { socket ->
-            socket.soTimeout = socketReadTimeout
-
+        socket {
             // send upgrade request
-            socket.outputStream.apply {
+            outputStream.apply {
                 write("""
                 GET / HTTP/1.1
                 Host: localhost:$port
@@ -197,14 +189,14 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                 flush()
             }
 
-            val status = socket.inputStream.parseStatus()
+            val status = inputStream.parseStatus()
             assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
 
-            val headers = socket.inputStream.parseHeaders()
+            val headers = inputStream.parseHeaders()
             assertEquals("Upgrade", headers[HttpHeaders.Connection])
             assertEquals("websocket", headers[HttpHeaders.Upgrade])
 
-            socket.outputStream.apply {
+            outputStream.apply {
                 for (i in 1..count) {
                     writeHex("0x81")
                     write(i)
@@ -217,7 +209,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                 flush()
             }
 
-            socket.assertCloseFrame()
+            assertCloseFrame()
         }
 
         for (i in 1..count) {
@@ -241,11 +233,9 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
             }
         }
 
-        Socket("localhost", port).use { socket ->
-            socket.soTimeout = socketReadTimeout
-
+        socket {
             // send upgrade request
-            socket.outputStream.apply {
+            outputStream.apply {
                 write("""
                 GET / HTTP/1.1
                 Host: localhost:$port
@@ -260,14 +250,14 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                 flush()
             }
 
-            val status = socket.inputStream.parseStatus()
+            val status = inputStream.parseStatus()
             assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
 
-            val headers = socket.inputStream.parseHeaders()
+            val headers = inputStream.parseHeaders()
             assertEquals("Upgrade", headers[HttpHeaders.Connection])
             assertEquals("websocket", headers[HttpHeaders.Upgrade])
 
-            socket.getInputStream().apply {
+            getInputStream().apply {
                 for (i in 1..count) {
                     val f = readFrame()
                     assertEquals(FrameType.TEXT, f.frameType)
@@ -275,13 +265,13 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                 }
             }
 
-            socket.outputStream.apply {
+            outputStream.apply {
                 // close frame with code 1000
                 writeHex("0x88 0x02 0x03 0xe8")
                 flush()
             }
 
-            socket.assertCloseFrame()
+            assertCloseFrame()
         }
     }
 
@@ -310,11 +300,9 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
             }
         }
 
-        Socket("localhost", port).use { socket ->
-            socket.soTimeout = socketReadTimeout
-
+        socket {
             // send upgrade request
-            socket.outputStream.apply {
+            outputStream.apply {
                 write("""
                 GET / HTTP/1.1
                 Host: localhost:$port
@@ -329,19 +317,19 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                 flush()
             }
 
-            val status = socket.inputStream.parseStatus()
+            val status = inputStream.parseStatus()
             assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
 
-            val headers = socket.inputStream.parseHeaders()
+            val headers = inputStream.parseHeaders()
             assertEquals("Upgrade", headers[HttpHeaders.Connection])
             assertEquals("websocket", headers[HttpHeaders.Upgrade])
 
-            socket.getOutputStream().apply {
+            getOutputStream().apply {
                 write(sendBuffer.array(), 0, sendBuffer.remaining())
                 flush()
             }
 
-            socket.getInputStream().apply {
+            getInputStream().apply {
                 val frame = readFrame()
 
                 assertEquals(FrameType.BINARY, frame.frameType)
@@ -353,7 +341,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                 assertTrue { bytes.contentEquals(content) }
             }
 
-            socket.getOutputStream().apply {
+            getOutputStream().apply {
                 Serializer().apply {
                     enqueue(Frame.Close())
                     sendBuffer.clear()
@@ -365,7 +353,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                 flush()
             }
 
-            socket.assertCloseFrame()
+            assertCloseFrame()
         }
     }
 
@@ -393,11 +381,9 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
             }
         }
 
-        Socket("localhost", port).use { socket ->
-            socket.soTimeout = socketReadTimeout
-
+        socket {
             // send upgrade request
-            socket.outputStream.apply {
+            outputStream.apply {
                 write("""
                 GET / HTTP/1.1
                 Host: localhost:$port
@@ -412,15 +398,15 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                 flush()
             }
 
-            val status = socket.inputStream.parseStatus()
+            val status = inputStream.parseStatus()
             assertEquals(HttpStatusCode.SwitchingProtocols.value, status.value)
 
-            val headers = socket.inputStream.parseHeaders()
+            val headers = inputStream.parseHeaders()
             assertEquals("Upgrade", headers[HttpHeaders.Connection])
             assertEquals("websocket", headers[HttpHeaders.Upgrade])
 
             val sendBuffer = ByteBuffer.allocate(64)
-            socket.getOutputStream().apply {
+            outputStream.apply {
                 for (i in 1L..expectedCount) {
                     sendBuffer.clear()
                     Serializer().apply {
@@ -445,7 +431,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: Applicat
                 flush()
             }
 
-            socket.assertCloseFrame()
+            assertCloseFrame()
         }
     }
 
