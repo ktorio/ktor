@@ -16,7 +16,7 @@ object HttpClientFactory {
                 requestPipeline.intercept(HttpRequestPipeline.Send) { builder ->
                     val request = (builder as? HttpRequestBuilder)?.build() ?: return@intercept
                     val response = backend.makeRequest(request)
-                    proceedWith(HttpClientCall(request, response.build(), context))
+                    proceedWith(HttpClientCall(request, response, context))
                 }
 
                 responsePipeline.intercept(HttpResponsePipeline.After) { container ->

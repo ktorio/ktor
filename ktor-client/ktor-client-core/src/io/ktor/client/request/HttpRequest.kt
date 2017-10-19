@@ -39,7 +39,8 @@ class HttpRequestBuilder() {
 
     fun url(block: UrlBuilder.() -> Unit) = url.block()
 
-    fun build(): HttpRequest = HttpRequest(url.build(), method, headers.build(), payload, charset, followRedirects)
+    fun build(): HttpRequest =
+            HttpRequest(url.build(), method, headers.build(), payload, charset, followRedirects)
 }
 
 fun HttpRequestBuilder.takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {

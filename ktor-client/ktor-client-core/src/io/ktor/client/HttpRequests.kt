@@ -8,7 +8,7 @@ import java.net.*
 
 
 suspend inline fun <reified T> HttpClient.request(builder: HttpRequestBuilder = HttpRequestBuilder()): T =
-        call(builder).receive<T>()
+        call(builder).receive()
 
 suspend inline fun <reified T> HttpClient.request(block: HttpRequestBuilder.() -> Unit): T =
         request(HttpRequestBuilder().apply(block))

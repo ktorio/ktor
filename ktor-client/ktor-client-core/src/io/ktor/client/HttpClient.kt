@@ -26,7 +26,7 @@ object EmptyScope : HttpClient() {
     override val responsePipeline: HttpResponsePipeline = HttpResponsePipeline()
 }
 
-open class HttpCallScope(val parent: HttpClient) : HttpClient() {
+open class HttpCallScope(private val parent: HttpClient) : HttpClient() {
 
     override fun close() {
         parent.close()

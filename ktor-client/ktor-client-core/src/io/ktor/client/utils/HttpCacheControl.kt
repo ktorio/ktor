@@ -25,7 +25,7 @@ abstract class HttpResponseCacheControl {
     abstract val sMaxAge: Int?
 }
 
-class HttpRequestCacheControlFromList(private val cacheControl: List<String>) : HttpRequestCacheControl() {
+class HttpRequestCacheControlFromList(cacheControl: List<String>) : HttpRequestCacheControl() {
     override val maxAge: Int? = cacheControl.intProperty(CacheControl.MAX_AGE)
 
     override val maxStale: Int? = cacheControl.intProperty(CacheControl.MAX_STALE)
@@ -41,7 +41,7 @@ class HttpRequestCacheControlFromList(private val cacheControl: List<String>) : 
     override val onlyIfCached: Boolean = cacheControl.booleanProperty(CacheControl.ONLY_IF_CACHED)
 }
 
-class HttpResponseCacheControlFromList(private val cacheControl: List<String>) : HttpResponseCacheControl() {
+class HttpResponseCacheControlFromList(cacheControl: List<String>) : HttpResponseCacheControl() {
     override val mustRevalidate: Boolean = cacheControl.booleanProperty(CacheControl.MUST_REVALIDATE)
 
     override val noCache: Boolean = cacheControl.booleanProperty(CacheControl.NO_CACHE)

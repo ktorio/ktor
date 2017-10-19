@@ -11,7 +11,7 @@ import java.io.*
 import java.nio.charset.*
 
 
-class HttpPlainText(val defaultCharset: Charset) {
+class HttpPlainText(private val defaultCharset: Charset) {
     suspend fun read(response: HttpResponseBuilder): String? {
         val payload = response.payload as? HttpMessageBody ?: return null
         val charset = response.headers.charset() ?: defaultCharset

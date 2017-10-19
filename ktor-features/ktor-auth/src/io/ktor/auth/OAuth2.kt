@@ -115,7 +115,7 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
         else -> throw UnsupportedOperationException()
     }
 
-    val container = client.call(getUri) {
+    val response = client.call(getUri) {
         this.method = method
         header(HttpHeaders.Accept, listOf(ContentType.Application.FormUrlEncoded, ContentType.Application.Json).joinToString(","))
         if (useBasicAuth) {
@@ -137,8 +137,7 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
         }
     }
 
-    val response = container.response
-    val responseText = container.receiveText()
+    val body = response.receiveText()
 
     val (contentType, content) = try {
         if (response.statusCode == HttpStatusCode.NotFound) {
@@ -146,11 +145,11 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
         }
         val contentType = response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ContentType.Any
 
-        Pair(contentType, responseText)
+        Pair(contentType, body)
     } catch (ioe: IOException) {
         throw ioe
     } catch (t: Throwable) {
-        throw IOException("Failed to acquire request token due to $responseText", t)
+        throw IOException("Failed to acquire request token due to $body", t)
     } finally {
         response.close()
     }

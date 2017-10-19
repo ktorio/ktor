@@ -9,7 +9,13 @@ import java.net.*
 import kotlin.reflect.*
 
 
-data class HttpClientCall(val request: HttpRequest, val response: HttpResponse, private val scope: HttpClient) {
+class HttpClientCall(
+        val request: HttpRequest,
+        responseBuilder: HttpResponseBuilder,
+        private val scope: HttpClient
+) {
+    val response: HttpResponse = responseBuilder.build(this)
+
     suspend fun receive(expectedType: KClass<*> = Unit::class): HttpResponseContainer {
         val subject = HttpResponseContainer(expectedType, request, HttpResponseBuilder(response))
         val container = scope.responsePipeline.execute(scope, subject)
@@ -21,13 +27,15 @@ data class HttpClientCall(val request: HttpRequest, val response: HttpResponse, 
 
 fun HttpClientCall.close() = response.close()
 
-suspend fun HttpClient.call(builder: HttpRequestBuilder): HttpClientCall =
-        requestPipeline.execute(this, HttpRequestBuilder().takeFrom(builder)) as HttpClientCall
+suspend fun HttpClient.call(builder: HttpRequestBuilder): HttpResponse {
+    val call = requestPipeline.execute(this, HttpRequestBuilder().takeFrom(builder))
+    return (call as? HttpClientCall)?.response ?: error("Http response invalid: $call")
+}
 
-suspend fun HttpClient.call(block: HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
+suspend fun HttpClient.call(block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
         call(HttpRequestBuilder().apply(block))
 
-suspend fun HttpClient.call(url: URL, block: HttpRequestBuilder.() -> Unit = {}): HttpClientCall {
+suspend fun HttpClient.call(url: URL, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse {
     val builder = HttpRequestBuilder()
     builder.url.takeFrom(url)
     builder.apply(block)
@@ -35,13 +43,14 @@ suspend fun HttpClient.call(url: URL, block: HttpRequestBuilder.() -> Unit = {})
     return call(builder)
 }
 
-suspend fun HttpClient.call(url: String, block: HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
+suspend fun HttpClient.call(url: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
         call(URL(decodeURLPart(url)), block)
 
-suspend inline fun <reified T> HttpClientCall.receive(): T {
-    val container = receive(T::class)
-    if (T::class === HttpResponse::class) return container.response.build() as T
+suspend inline fun <reified T> HttpResponse.receive(): T {
+    if (T::class == HttpResponse::class) return this as T
 
-    return container.response.payload as T
+    val container = call.receive(T::class)
+    return container.response.payload as? T
+            ?: error("Actual type: ${container.response.payload::class}, expected: ${T::class}")
 }
 

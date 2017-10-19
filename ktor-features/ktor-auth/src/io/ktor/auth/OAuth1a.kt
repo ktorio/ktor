@@ -70,14 +70,13 @@ private suspend fun simpleOAuth1aStep1(client: HttpClient, secretKey: String, ba
             nonce = nonce
     ).sign(HttpMethod.Post, baseUrl, secretKey, extraParameters)
 
-    val container = client.call(URL(baseUrl.appendUrlParameters(extraParameters.formUrlEncode()))) {
+    val response = client.call(URL(baseUrl.appendUrlParameters(extraParameters.formUrlEncode()))) {
         method = HttpMethod.Post
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
         header(HttpHeaders.Accept, ContentType.Any.toString())
     }
 
-    val response = container.response
-    val body = container.receiveText()
+    val body = response.receiveText()
 
     try {
         if (response.statusCode != HttpStatusCode.OK) {
@@ -125,7 +124,7 @@ private suspend fun simpleOAuth1aStep2(client: HttpClient, secretKey: String, ba
     ) + extraParameters.toList()
     val authHeader = upgradeRequestTokenHeader(consumerKey, token, nonce).sign(HttpMethod.Post, baseUrl, secretKey, params)
 
-    val container = client.call(URL(baseUrl)) {
+    val response = client.call(URL(baseUrl)) {
         method = HttpMethod.Post
 
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
@@ -139,18 +138,18 @@ private suspend fun simpleOAuth1aStep2(client: HttpClient, secretKey: String, ba
         }
     }
 
-    val responseText = container.receiveText()
+    val body = response.receiveText()
     try {
-        val parameters = responseText.parseUrlEncodedParameters()
+        val parameters = body.parseUrlEncodedParameters()
         return OAuthAccessTokenResponse.OAuth1a(
                 parameters[HttpAuthHeader.Parameters.OAuthToken]!!,
                 parameters[HttpAuthHeader.Parameters.OAuthTokenSecret]!!,
                 parameters
         )
     } catch (e: Throwable) {
-        throw IOException("Failed to acquire request token due to ${responseText}", e)
+        throw IOException("Failed to acquire request token due to $body", e)
     } finally {
-        container.response.close()
+        response.close()
     }
 }
 

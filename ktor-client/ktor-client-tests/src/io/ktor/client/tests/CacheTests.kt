@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.*
 
 
 open class CacheTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
-    var counter = AtomicInteger()
+    private var counter = AtomicInteger()
     override val server: ApplicationHost = embeddedServer(Jetty, 8080) {
         routing {
             get("/reset") {
@@ -45,7 +45,7 @@ open class CacheTests(factory: HttpClientBackendFactory) : TestWithKtor(factory)
             get("/etag") {
                 val etag = if (counter.get() < 2) "0" else "1"
                 counter.incrementAndGet()
-                call.withETag(etag.toString()) {
+                call.withETag(etag) {
                     call.respondText(counter.get().toString())
                 }
             }

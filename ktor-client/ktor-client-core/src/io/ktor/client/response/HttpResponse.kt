@@ -1,12 +1,13 @@
 package io.ktor.client.response
 
+import io.ktor.client.call.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import java.io.*
 import java.util.*
 
 
-data class HttpResponse(
+class HttpResponse(
         val statusCode: HttpStatusCode,
         val reason: String, // reason? is it statusCode.description?
         val version: HttpProtocolVersion,
@@ -14,6 +15,7 @@ data class HttpResponse(
         val payload: Any,
         val requestTime: Date,
         val responseTime: Date,
+        val call: HttpClientCall,
         private val origin: Closeable?
 ) : Closeable {
     val cacheControl: HttpResponseCacheControl by lazy { headers.computeResponseCacheControl() }
@@ -52,7 +54,8 @@ class HttpResponseBuilder() : Closeable {
         headers.apply(block)
     }
 
-    fun build(): HttpResponse = HttpResponse(statusCode, reason, version, valuesOf(headers), payload, requestTime, responseTime, origin)
+    fun build(call: HttpClientCall): HttpResponse =
+            HttpResponse(statusCode, reason, version, valuesOf(headers), payload, requestTime, responseTime, call, origin)
 
     override fun close() {
         origin?.close()

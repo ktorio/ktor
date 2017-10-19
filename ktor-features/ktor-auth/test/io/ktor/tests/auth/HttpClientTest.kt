@@ -58,7 +58,7 @@ class HttpClientTest {
         }
 
         val port = portSync.take()
-        val container = HttpClient(ApacheBackend).call("http://127.0.0.1:$port/") {
+        val response = HttpClient(ApacheBackend).call("http://127.0.0.1:$port/") {
             method = HttpMethod.Post
             url.path = "/url"
             header("header", "value")
@@ -69,11 +69,10 @@ class HttpClientTest {
             }
         }
 
-        val response = container.response
         try {
             assertEquals(HttpStatusCode.OK, response.statusCode)
             assertEquals("test", response.headers[HttpHeaders.Server])
-            assertEquals("ok", container.receiveText())
+            assertEquals("ok", response.receiveText())
 
             val receivedHeaders = headersSync.take()
             assertEquals("value", receivedHeaders["header"])
