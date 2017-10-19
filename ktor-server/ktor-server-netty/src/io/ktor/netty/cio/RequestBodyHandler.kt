@@ -41,6 +41,7 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext,
             current?.close()
             queue.close()
             consumeAndReleaseQueue()
+            requestQueue.cancel()
         }
     }
 
