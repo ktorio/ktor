@@ -1,16 +1,26 @@
 package io.ktor.testing
 
+import io.ktor.cio.*
 import io.ktor.client.jvm.*
+import io.ktor.content.*
 import io.ktor.host.*
+import io.ktor.http.*
+import io.ktor.http.HttpHeaders
+import io.ktor.http.cio.*
 import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.tests.http.*
+import kotlinx.coroutines.experimental.*
+import kotlinx.io.streams.*
 import org.junit.*
 import org.junit.runners.model.*
+import java.io.*
 import java.net.*
+import java.nio.*
 import java.util.concurrent.*
 import kotlin.concurrent.*
+import kotlin.coroutines.experimental.*
 import kotlin.test.*
 
 abstract class HostStressSuite<THost : ApplicationHost>(hostFactory: ApplicationHostFactory<THost>) : HostTestBase<THost>(hostFactory) {
@@ -26,6 +36,7 @@ abstract class HostStressSuite<THost : ApplicationHost>(hostFactory: Application
 
     private val endMarker = "<< END >>"
     private val endMarkerCrLf = endMarker + "\r\n"
+    private val endMarkerCrLfBytes = endMarkerCrLf.toByteArray()
 
     @get:Rule
     override val timeout = PublishedTimeout(TimeUnit.MILLISECONDS.toSeconds(timeMillis + gracefulMillis + shutdownMillis))
@@ -84,11 +95,9 @@ abstract class HostStressSuite<THost : ApplicationHost>(hostFactory: Application
             append("\r\n")
         }.toByteArray()
 
-        Socket("localhost", port).use { socket ->
-            socket.tcpNoDelay = true
-
-            val out = socket.getOutputStream()
-            val input = socket.getInputStream().bufferedReader(Charsets.ISO_8859_1)
+        socket {
+            val out = getOutputStream()
+            val input = getInputStream().bufferedReader(Charsets.ISO_8859_1)
             val start = System.currentTimeMillis()
             val sem = Semaphore(10)
             var writerFailure: Throwable? = null
@@ -125,7 +134,7 @@ abstract class HostStressSuite<THost : ApplicationHost>(hostFactory: Application
             } catch (t: Throwable) {
                 readerFailure = t
                 sender.interrupt()
-                socket.close()
+                close()
             }
 
             sender.join()
@@ -145,24 +154,7 @@ abstract class HostStressSuite<THost : ApplicationHost>(hostFactory: Application
             }
         }
 
-        val generator = HighLoadHttpGenerator("/", "localhost", port, 1, 10, true)
-        val t = thread {
-            println("Running...")
-            generator.mainLoop()
-        }
-
-        try {
-            Thread.sleep(timeMillis)
-            println("Shutting down...")
-            generator.shutdown()
-            t.join(gracefulMillis)
-        } finally {
-            println("Termination...")
-            generator.stop()
-            t.interrupt()
-            t.join()
-            println("Terminated.")
-        }
+        HighLoadHttpGenerator.doRun("/", "localhost", port, 1, 1, 10, true, gracefulMillis, timeMillis)
 
         withUrl("/") {
             assertEquals(endMarkerCrLf, readText())
@@ -177,24 +169,7 @@ abstract class HostStressSuite<THost : ApplicationHost>(hostFactory: Application
             }
         }
 
-        val generator = HighLoadHttpGenerator("/", "localhost", port, 100, 10, true)
-        val t = thread {
-            println("Running...")
-            generator.mainLoop()
-        }
-
-        try {
-            Thread.sleep(timeMillis)
-            println("Shutting down...")
-            generator.shutdown()
-            t.join(gracefulMillis)
-        } finally {
-            println("Termination...")
-            generator.stop()
-            t.interrupt()
-            t.join()
-            println("Terminated.")
-        }
+        HighLoadHttpGenerator.doRun("/", "localhost", port, 1, 100, 10, true, gracefulMillis, timeMillis)
 
         withUrl("/") {
             assertEquals(endMarkerCrLf, readText())
@@ -209,39 +184,96 @@ abstract class HostStressSuite<THost : ApplicationHost>(hostFactory: Application
             }
         }
 
-        val numberOfThreads = 8
-        val connectionsPerThread = 50
-        val queueSize = 10
-
-        val generator = HighLoadHttpGenerator("/", "localhost", port, connectionsPerThread, queueSize, true)
-        println("Running...")
-        val threads = (1..numberOfThreads).map {
-            thread {
-                generator.mainLoop()
-            }
-        }
-        val joiner = thread(start = false) {
-            threads.forEach {
-                it.join(gracefulMillis)
-            }
-        }
-
-        try {
-            Thread.sleep(timeMillis)
-            println("Shutting down...")
-            generator.shutdown()
-            joiner.start()
-            joiner.join(gracefulMillis)
-        } finally {
-            println("Termination...")
-            generator.stop()
-            threads.forEach { it.interrupt() }
-            joiner.join()
-            println("Terminated.")
-        }
+        HighLoadHttpGenerator.doRun("/", "localhost", port, 8, 50, 10, true, gracefulMillis, timeMillis)
 
         withUrl("/") {
             assertEquals(endMarkerCrLf, readText())
+        }
+    }
+
+    @Test
+    fun `test http upgrade`() {
+        createAndStartServer {
+            handle {
+                call.respond(object : FinalContent.ProtocolUpgrade() {
+                    suspend override fun upgrade(input: ReadChannel, output: WriteChannel, channel: Closeable, hostContext: CoroutineContext, userAppContext: CoroutineContext): Closeable {
+                        launch(hostContext) {
+                            try {
+                                output.write(ByteBuffer.wrap(endMarkerCrLfBytes))
+                                output.flush()
+                                delay(200)
+                            } finally {
+                                output.close()
+                                input.close()
+                                channel.close()
+                            }
+                        }
+
+                        return Closeable {
+                            channel.close()
+                        }
+                    }
+                })
+            }
+        }
+
+        HighLoadHttpGenerator.doRun("localhost", port, 1, 100, 10, true, gracefulMillis, timeMillis) {
+            requestLine(HttpMethod.Get, "/", "HTTP/1.1")
+            headerLine(HttpHeaders.Host, "localhost")
+            headerLine(HttpHeaders.Connection, "Upgrade")
+            headerLine(HttpHeaders.Upgrade, "test")
+            emptyLine()
+        }
+
+        socket {
+            val r = RequestResponseBuilder().apply {
+                requestLine(HttpMethod.Get, "/", "HTTP/1.1")
+                headerLine(HttpHeaders.Host, "localhost")
+                headerLine(HttpHeaders.Connection, "Upgrade")
+                headerLine(HttpHeaders.Upgrade, "test")
+                emptyLine()
+            }.build()
+
+            getOutputStream().apply {
+                writePacket(r)
+                flush()
+            }
+
+            getInputStream().bufferedReader().readLines()
+        }
+    }
+
+    @Test
+    fun `test respond write`() {
+        createAndStartServer {
+            get("/") {
+                call.respondWrite {
+                    append(endMarker)
+                    flush()
+                    append("\r\n")
+                }
+            }
+        }
+
+        HighLoadHttpGenerator.doRun("/", "localhost", port, 8, 50, 10, false, gracefulMillis, timeMillis)
+
+        withUrl("/") {
+            assertEquals(endMarkerCrLf, readText())
+        }
+    }
+
+    @Test
+    fun test404() {
+        createAndStartServer {
+            get("/") {
+                call.respondText("OK")
+            }
+        }
+
+        HighLoadHttpGenerator.doRun("/404", "localhost", port, 8, 50, 10, false, gracefulMillis, timeMillis)
+
+        withUrl("/") {
+            assertEquals("OK", readText())
         }
     }
 }

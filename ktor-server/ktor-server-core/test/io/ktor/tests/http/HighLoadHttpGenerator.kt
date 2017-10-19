@@ -26,14 +26,21 @@ import kotlin.concurrent.*
  * RPS is much higher (up to 10x higher) in this mode
  * but load generator provides absolutely no diagnostics.
  */
-class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, val numberConnections: Int, val queueSize: Int, val highPressure: Boolean) {
-    private val remote = InetSocketAddress(host, port)
-    private val request = RequestResponseBuilder().apply {
+class HighLoadHttpGenerator(val host: String, port: Int,
+                            val numberOfConnections: Int, val queueSize: Int, val highPressure: Boolean,
+                            builder: RequestResponseBuilder.() -> Unit) {
+
+    constructor(url: String, host: String, port: Int,
+                numberConnections: Int, queueSize: Int, highPressure: Boolean)
+            : this(host, port, numberConnections, queueSize, highPressure, {
         requestLine(HttpMethod.Get, url, "HTTP/1.1")
         headerLine(HttpHeaders.Host, "$host:$port")
         headerLine(HttpHeaders.Accept, "*/*")
         emptyLine()
-    }.build()
+    })
+
+    private val remote = InetSocketAddress(host, port)
+    private val request = RequestResponseBuilder().apply(builder).build()
 
     private val requestByteBuffer = ByteBuffer.allocateDirect(request.remaining)!!.apply {
         request.copy().readFully(this)
@@ -41,7 +48,7 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
     }
 
     private val count = AtomicLong(0)
-    private val codeCounts = Array<AtomicLong>(1000) { AtomicLong(0) }
+    private val codeCounts = Array(1000) { AtomicLong(0) }
     private val readErrors = AtomicLong()
     private val writeErrors = AtomicLong()
     private val connectErrors = AtomicLong()
@@ -396,15 +403,15 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
 
         selector.use {
             var connectionsCount = 0
-            var writeReady = ArrayList<ClientState>(numberConnections)
-            var writeReadyTmp = ArrayList<ClientState>(numberConnections)
-            val readReady = ArrayList<ClientState>(numberConnections)
-            val pending = ArrayList<ClientState>(numberConnections * 2)
+            var writeReady = ArrayList<ClientState>(numberOfConnections)
+            var writeReadyTmp = ArrayList<ClientState>(numberOfConnections)
+            val readReady = ArrayList<ClientState>(numberOfConnections)
+            val pending = ArrayList<ClientState>(numberOfConnections * 2)
             val bb = ByteBuffer.allocateDirect(65536)!!
             bb.order(ByteOrder.BIG_ENDIAN)
 
             while (!cancelled) {
-                if (connectionsCount < numberConnections) {
+                if (connectionsCount < numberOfConnections) {
                     val ch = provider.openSocketChannel()!!
                     ch.configureBlocking(false)
 
@@ -499,7 +506,7 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
                 val selectedCount = when {
                     cancelled -> 0
                     !hasKeys -> 0
-                    connectionsCount < numberConnections -> selector.selectNow()
+                    connectionsCount < numberOfConnections -> selector.selectNow()
                     writeReady.isNotEmpty() -> selector.selectNow()
                     readReady.isNotEmpty() -> selector.selectNow()
                     else -> selector.select(500)
@@ -559,6 +566,44 @@ class HighLoadHttpGenerator(val url: String, val host: String, val port: Int, va
 
         private const val N = '\n'.toByte()
         private const val S = 0x20.toByte()
+
+        fun doRun(url: String, host: String, port: Int, numberOfThreads: Int, connectionsPerThread: Int, queueSize: Int, highPressure: Boolean, gracefulMillis: Long, timeMillis: Long) {
+            val generator = HighLoadHttpGenerator(url, host, port, connectionsPerThread, queueSize, highPressure)
+            doRun(generator, numberOfThreads, gracefulMillis, timeMillis)
+        }
+
+        fun doRun(host: String, port: Int, numberOfThreads: Int, connectionsPerThread: Int, queueSize: Int, highPressure: Boolean, gracefulMillis: Long, timeMillis: Long, builder: RequestResponseBuilder.() -> Unit) {
+            val generator = HighLoadHttpGenerator(host, port, connectionsPerThread, queueSize, highPressure, builder)
+            doRun(generator, numberOfThreads, gracefulMillis, timeMillis)
+        }
+
+        private fun doRun(loadGenerator: HighLoadHttpGenerator, numberOfThreads: Int, gracefulMillis: Long, timeMillis: Long) {
+            println("Running...")
+            val threads = (1..numberOfThreads).map {
+                thread {
+                    loadGenerator.mainLoop()
+                }
+            }
+            val joiner = thread(start = false) {
+                threads.forEach {
+                    it.join(gracefulMillis)
+                }
+            }
+
+            try {
+                Thread.sleep(timeMillis)
+                println("Shutting down...")
+                loadGenerator.shutdown()
+                joiner.start()
+                joiner.join(gracefulMillis)
+            } finally {
+                println("Termination...")
+                loadGenerator.stop()
+                threads.forEach { it.interrupt() }
+                joiner.join()
+                println("Terminated.")
+            }
+        }
 
         @JvmStatic
         fun main(args: Array<String>) {
