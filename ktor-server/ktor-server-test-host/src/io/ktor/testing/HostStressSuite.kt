@@ -1,5 +1,6 @@
 package io.ktor.testing
 
+import io.ktor.application.*
 import io.ktor.cio.*
 import io.ktor.client.jvm.*
 import io.ktor.content.*
@@ -7,7 +8,6 @@ import io.ktor.host.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
 import io.ktor.http.cio.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.tests.http.*

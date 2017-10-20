@@ -1,7 +1,7 @@
 package io.ktor.server.benchmarks
 
+import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.testing.*

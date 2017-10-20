@@ -1,13 +1,13 @@
 package kweet
 
-import kweet.dao.*
+import io.ktor.application.*
 import io.ktor.freemarker.*
 import io.ktor.http.*
 import io.ktor.locations.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.sessions.*
+import kweet.dao.*
 
 fun Route.userPage(dao: DAOFacade) {
     get<UserPage> {

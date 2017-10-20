@@ -1,17 +1,17 @@
 package io.ktor.tests.auth.ldap
 
+import io.ktor.application.*
+import io.ktor.auth.*
+import io.ktor.auth.ldap.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.testing.*
 import org.apache.directory.api.ldap.util.*
 import org.apache.directory.server.annotations.*
 import org.apache.directory.server.core.integ.*
 import org.apache.directory.server.core.integ.IntegrationUtils.*
 import org.apache.directory.server.ldap.*
-import io.ktor.auth.*
-import io.ktor.auth.ldap.*
-import io.ktor.http.*
-import io.ktor.pipeline.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.testing.*
 import org.junit.*
 import org.junit.runner.*
 import java.net.*

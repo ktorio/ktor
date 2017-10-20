@@ -21,3 +21,6 @@ open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(Infrastruct
         val Fallback = PipelinePhase("Fallback")
     }
 }
+
+val PipelineContext<*, ApplicationCall>.call: ApplicationCall get() = context
+val PipelineContext<*, ApplicationCall>.application get() = call.application

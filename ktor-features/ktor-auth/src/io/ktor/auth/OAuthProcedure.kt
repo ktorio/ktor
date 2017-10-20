@@ -4,19 +4,19 @@ import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.pipeline.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import java.io.*
-import java.util.concurrent.*
 
 val OAuthKey: Any = "OAuth"
 
-fun AuthenticationPipeline.oauth(client: HttpClient, exec: ExecutorService,
+fun AuthenticationPipeline.oauth(client: HttpClient, dispatcher: CoroutineDispatcher,
                                  providerLookup: ApplicationCall.() -> OAuthServerSettings?,
                                  urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
-    oauth1a(client, exec, providerLookup, urlProvider)
-    oauth2(client, exec, providerLookup, urlProvider)
+    oauth1a(client, dispatcher, providerLookup, urlProvider)
+    oauth2(client, dispatcher, providerLookup, urlProvider)
 }
 
-internal fun AuthenticationPipeline.oauth2(client: HttpClient, exec: ExecutorService,
+internal fun AuthenticationPipeline.oauth2(client: HttpClient, dispatcher: CoroutineDispatcher,
                                            providerLookup: ApplicationCall.() -> OAuthServerSettings?,
                                            urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
@@ -30,7 +30,7 @@ internal fun AuthenticationPipeline.oauth2(client: HttpClient, exec: ExecutorSer
                     call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, nextNonce(), scopes = provider.defaultScopes)
                 }
             } else {
-                runAsyncWithError(exec, context) {
+                runAsyncWithError(dispatcher, context) {
                     val accessToken = simpleOAuth2Step2(client, provider, callbackRedirectUrl, token)
                     context.principal(accessToken)
                 }
@@ -39,7 +39,7 @@ internal fun AuthenticationPipeline.oauth2(client: HttpClient, exec: ExecutorSer
     }
 }
 
-internal fun AuthenticationPipeline.oauth1a(client: HttpClient, exec: ExecutorService,
+internal fun AuthenticationPipeline.oauth1a(client: HttpClient, dispatcher: CoroutineDispatcher,
                                             providerLookup: ApplicationCall.() -> OAuthServerSettings?,
                                             urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
@@ -48,14 +48,14 @@ internal fun AuthenticationPipeline.oauth1a(client: HttpClient, exec: ExecutorSe
             val token = call.oauth1aHandleCallback()
             if (token == null) {
                 context.challenge(OAuthKey, NotAuthenticatedCause.NoCredentials) { ch ->
-                    runAsyncWithError(exec, context) {
+                    runAsyncWithError(dispatcher, context) {
                         val t = simpleOAuth1aStep1(client, provider, call.urlProvider(provider))
                         ch.success()
                         call.redirectAuthenticateOAuth1a(provider, t)
                     }
                 }
             } else {
-                runAsyncWithError(exec, context) {
+                runAsyncWithError(dispatcher, context) {
                     val accessToken = simpleOAuth1aStep2(client, provider, token)
                     context.principal(accessToken)
                 }
@@ -64,8 +64,8 @@ internal fun AuthenticationPipeline.oauth1a(client: HttpClient, exec: ExecutorSe
     }
 }
 
-private suspend fun PipelineContext<*, ApplicationCall>.runAsyncWithError(exec: ExecutorService, context: AuthenticationContext, block: suspend () -> Unit) {
-    return runAsync(exec) {
+private suspend fun PipelineContext<*, ApplicationCall>.runAsyncWithError(dispatcher: CoroutineDispatcher, context: AuthenticationContext, block: suspend () -> Unit) {
+    return run(dispatcher) {
         try {
             block()
         } catch (ioe: IOException) {

@@ -9,12 +9,12 @@ import io.ktor.http.*
 import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import org.json.simple.*
 import java.io.*
-import java.util.concurrent.*
 
 suspend internal fun PipelineContext<Unit, ApplicationCall>.oauth2(
-        client: HttpClient, exec: ExecutorService,
+        client: HttpClient, dispatcher: CoroutineDispatcher,
         providerLookup: ApplicationCall.() -> OAuthServerSettings?,
         urlProvider: ApplicationCall.(OAuthServerSettings) -> String
 ) {
@@ -25,7 +25,7 @@ suspend internal fun PipelineContext<Unit, ApplicationCall>.oauth2(
         if (token == null) {
             call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, nextNonce(), scopes = provider.defaultScopes)
         } else {
-            runAsync(exec) {
+            run(dispatcher) {
                 val accessToken = simpleOAuth2Step2(client, provider, callbackRedirectUrl, token)
                 call.authentication.principal(accessToken)
             }

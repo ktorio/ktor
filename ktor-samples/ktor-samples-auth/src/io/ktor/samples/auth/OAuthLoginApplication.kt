@@ -11,6 +11,7 @@ import io.ktor.locations.*
 import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.routing.*
+import kotlinx.coroutines.experimental.*
 import kotlinx.html.*
 import java.util.concurrent.*
 
@@ -110,7 +111,7 @@ fun Application.OAuthLoginApplication() {
 
         location<login>() {
             authentication {
-                oauthAtLocation<login>(HttpClient(ApacheBackend), exec,
+                oauthAtLocation<login>(HttpClient(ApacheBackend), exec.asCoroutineDispatcher(),
                         providerLookup = { loginProviders[it.type] },
                         urlProvider = { _, p -> redirectUrl(login(p.name), false) })
             }

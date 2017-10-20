@@ -1,6 +1,6 @@
 package io.ktor.content
 
-import io.ktor.pipeline.*
+import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*

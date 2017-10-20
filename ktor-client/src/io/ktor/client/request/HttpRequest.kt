@@ -12,10 +12,10 @@ class HttpRequest(
         val method: HttpMethod,
         val headers: Headers,
         val payload: Any,
-        val charset: Charset?,
-        val followRedirects: Boolean
+        val charset: Charset?, // why not content type?
+        val followRedirects: Boolean // should it be here?
 ) {
-    val cacheControl: HttpRequestCacheControl by lazy { headers.computeRequestCacheControl() }
+    val cacheControl: HttpRequestCacheControl by lazy { headers.computeRequestCacheControl() } // and this?
 }
 
 class HttpRequestBuilder() {

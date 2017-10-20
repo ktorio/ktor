@@ -1,10 +1,11 @@
 package io.ktor.testing
 
-import kotlinx.coroutines.experimental.*
+import io.ktor.application.*
 import io.ktor.host.*
 import io.ktor.http.*
 import io.ktor.pipeline.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import java.util.concurrent.*
 
 class TestApplicationHost(environment: ApplicationHostEnvironment = createTestEnvironment()) : BaseApplicationHost(environment, HostPipeline()) {

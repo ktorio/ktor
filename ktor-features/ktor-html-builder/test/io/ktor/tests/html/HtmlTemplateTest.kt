@@ -1,11 +1,11 @@
 package io.ktor.tests.html
 
-import kotlinx.html.*
+import io.ktor.application.*
 import io.ktor.html.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
 import io.ktor.routing.*
 import io.ktor.testing.*
+import kotlinx.html.*
 import org.junit.*
 import kotlin.test.*
 
