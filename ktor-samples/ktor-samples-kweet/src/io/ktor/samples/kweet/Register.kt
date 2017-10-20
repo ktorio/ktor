@@ -1,14 +1,13 @@
-package kweet
+package io.ktor.samples.kweet
 
-import kweet.dao.*
-import kweet.model.*
 import io.ktor.application.*
 import io.ktor.freemarker.*
 import io.ktor.locations.*
-import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.samples.kweet.dao.*
+import io.ktor.samples.kweet.model.*
 import io.ktor.sessions.*
 import io.ktor.util.*
 

@@ -1,11 +1,7 @@
-package kweet
+package io.ktor.samples.kweet
 
 import com.mchange.v2.c3p0.*
 import freemarker.cache.*
-import kweet.dao.*
-import kweet.model.*
-import org.h2.*
-import org.jetbrains.exposed.sql.*
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.freemarker.*
@@ -14,8 +10,12 @@ import io.ktor.locations.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.samples.kweet.dao.*
+import io.ktor.samples.kweet.model.*
 import io.ktor.sessions.*
 import io.ktor.util.*
+import org.h2.*
+import org.jetbrains.exposed.sql.*
 import java.io.*
 import java.net.*
 import java.util.concurrent.*
@@ -28,10 +28,10 @@ class Index()
 @location("/post-new")
 class PostNew()
 
-@location("/kweet/{id}/delete")
+@location("/io/ktor/samples/kweet/{id}/delete")
 class KweetDelete(val id: Int)
 
-@location("/kweet/{id}")
+@location("/io/ktor/samples/kweet/{id}")
 data class ViewKweet(val id: Int)
 
 @location("/user/{user}")

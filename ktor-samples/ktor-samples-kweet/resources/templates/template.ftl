@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="user" type="kweet.model.User" -->
+<#-- @ftlvariable name="user" type="io.ktor.samples.kweet.model.User" -->
 
 <#macro mainLayout title="Welcome">
 <!DOCTYPE html>
@@ -44,7 +44,7 @@
 </html>
 </#macro>
 
-<#-- @ftlvariable name="kweet" type="java.util.List<kweet.model.Kweet>" -->
+<#-- @ftlvariable name="kweet" type="java.util.List<io.ktor.samples.kweet.model.Kweet>" -->
 <#macro kweet_li kweet>
 <section class="post">
     <header class="post-header">

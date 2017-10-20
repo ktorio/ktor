@@ -1,4 +1,4 @@
-package you.kube
+package io.ktor.samples.kweet
 
 import io.ktor.application.*
 import io.ktor.content.*

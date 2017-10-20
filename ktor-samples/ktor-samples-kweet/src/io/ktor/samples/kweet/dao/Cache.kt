@@ -1,6 +1,6 @@
-package kweet.dao
+package io.ktor.samples.kweet.dao
 
-import kweet.model.*
+import io.ktor.samples.kweet.model.*
 import org.ehcache.*
 import org.ehcache.config.*
 import org.ehcache.config.persistence.*

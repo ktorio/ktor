@@ -1,6 +1,6 @@
-package kweet.dao
+package io.ktor.samples.kweet.dao
 
-import kweet.model.*
+import io.ktor.samples.kweet.model.*
 import org.jetbrains.exposed.sql.*
 import org.joda.time.*
 import java.io.*
@@ -82,10 +82,10 @@ class DAOFacadeDatabase(val db: Database = Database.connect("jdbc:h2:mem:test", 
 
     override fun createUser(user: User) = db.transaction {
         Users.insert {
-            it[Users.id] = user.userId
-            it[Users.displayName] = user.displayName
-            it[Users.email] = user.email
-            it[Users.passwordHash] = user.passwordHash
+            it[id] = user.userId
+            it[displayName] = user.displayName
+            it[email] = user.email
+            it[passwordHash] = user.passwordHash
         }
         Unit
     }
