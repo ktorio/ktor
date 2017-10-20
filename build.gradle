@@ -105,6 +105,7 @@ allprojects {
         maxHeapSize = "2g"
         forkEvery = 1
         include("**/*StressTest*")
+        systemProperty "enable.stress.tests", "true"
     }
 
     dependencies {
