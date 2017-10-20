@@ -1,20 +1,16 @@
 package io.ktor.tests.jackson
 
-import io.ktor.application.install
-import io.ktor.features.ContentNegotiation
+import io.ktor.application.*
+import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.jackson.JacksonConverter
-import io.ktor.pipeline.call
-import io.ktor.request.receive
-import io.ktor.response.respond
-import io.ktor.routing.get
-import io.ktor.routing.post
-import io.ktor.routing.routing
-import io.ktor.testing.handleRequest
-import io.ktor.testing.withTestApplication
-import org.junit.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import io.ktor.jackson.*
+import io.ktor.pipeline.*
+import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.testing.*
+import org.junit.*
+import kotlin.test.*
 
 class JacksonTest {
     @Test

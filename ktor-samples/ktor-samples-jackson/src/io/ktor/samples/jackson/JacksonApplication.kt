@@ -1,20 +1,14 @@
 package io.ktor.samples.jackson
 
-import com.fasterxml.jackson.databind.SerializationFeature
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import io.ktor.application.Application
-import io.ktor.application.install
-import io.ktor.features.CallLogging
-import io.ktor.features.Compression
-import io.ktor.features.ContentNegotiation
-import io.ktor.features.DefaultHeaders
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.jackson.JacksonConverter
-import io.ktor.pipeline.call
-import io.ktor.response.respond
-import io.ktor.routing.get
-import io.ktor.routing.routing
+import com.fasterxml.jackson.databind.*
+import com.fasterxml.jackson.module.kotlin.*
+import io.ktor.application.*
+import io.ktor.features.*
+import io.ktor.http.*
+import io.ktor.jackson.*
+import io.ktor.pipeline.*
+import io.ktor.response.*
+import io.ktor.routing.*
 
 data class Model(val name: String, val items: List<Item>)
 data class Item(val key: String, val value: String)
