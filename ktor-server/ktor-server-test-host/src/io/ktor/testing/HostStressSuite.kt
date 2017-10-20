@@ -14,15 +14,18 @@ import io.ktor.tests.http.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.io.streams.*
 import org.junit.*
+import org.junit.runner.*
 import org.junit.runners.model.*
 import java.io.*
 import java.net.*
 import java.nio.*
+import java.util.*
 import java.util.concurrent.*
 import kotlin.concurrent.*
 import kotlin.coroutines.experimental.*
 import kotlin.test.*
 
+@RunWith(StressSuiteRunner::class)
 abstract class HostStressSuite<THost : ApplicationHost>(hostFactory: ApplicationHostFactory<THost>) : HostTestBase<THost>(hostFactory) {
     init {
         enableHttp2 = false
@@ -271,6 +274,38 @@ abstract class HostStressSuite<THost : ApplicationHost>(hostFactory: Application
         }
 
         HighLoadHttpGenerator.doRun("/404", "localhost", port, 8, 50, 10, false, gracefulMillis, timeMillis)
+
+        withUrl("/") {
+            assertEquals("OK", readText())
+        }
+    }
+
+    @Test
+    fun testLongResponse() {
+        createAndStartServer {
+            get("/ll") {
+                call.respond(object : FinalContent.WriteChannelContent() {
+                    suspend override fun writeTo(channel: WriteChannel) {
+                        val bb: ByteBuffer = ByteBuffer.allocate(1024)
+                        Random().nextBytes(bb.array())
+
+                        for (i in 1..1024 * 1024) {
+                            bb.clear()
+                            while (bb.hasRemaining()) {
+                                channel.write(bb)
+                            }
+                        }
+
+                        channel.close()
+                    }
+                })
+            }
+            get("/") {
+                call.respondText("OK")
+            }
+        }
+
+        HighLoadHttpGenerator.doRun("/ll", "localhost", port, 8, 50, 10, true, gracefulMillis, timeMillis)
 
         withUrl("/") {
             assertEquals("OK", readText())
