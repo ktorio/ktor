@@ -1,6 +1,6 @@
 package io.ktor.content
 
-import io.ktor.http.response.*
+import io.ktor.http.*
 import io.ktor.util.*
 
 class ByteArrayContent(private val bytes: ByteArray) : FinalContent.ByteArrayContent() {

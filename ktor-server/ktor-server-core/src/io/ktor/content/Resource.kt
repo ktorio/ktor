@@ -1,7 +1,6 @@
 package io.ktor.content
 
 import io.ktor.http.*
-import io.ktor.http.response.*
 import io.ktor.response.*
 import io.ktor.util.*
 import java.time.*

@@ -1,6 +1,5 @@
-package io.ktor.http.request
+package io.ktor.http
 
-import io.ktor.http.*
 import io.ktor.util.*
 
 fun parseQueryString(query: String, limit: Int = 1000): ValuesMap {

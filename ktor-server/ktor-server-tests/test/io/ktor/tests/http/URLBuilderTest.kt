@@ -3,8 +3,6 @@ package io.ktor.tests.http
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.http.util.*
-import io.ktor.pipeline.*
 import io.ktor.testing.*
 import io.ktor.util.*
 import org.junit.*

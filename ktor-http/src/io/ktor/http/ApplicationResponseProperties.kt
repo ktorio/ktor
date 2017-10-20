@@ -1,4 +1,4 @@
-package io.ktor.http.response
+package io.ktor.http
 
 import io.ktor.http.*
 import io.ktor.util.*

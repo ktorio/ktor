@@ -1,7 +1,6 @@
 package io.ktor.sessions
 
 import io.ktor.http.*
-import io.ktor.http.request.*
 import io.ktor.util.*
 import java.lang.reflect.*
 import java.math.*
