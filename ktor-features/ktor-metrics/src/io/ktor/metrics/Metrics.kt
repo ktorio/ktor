@@ -1,22 +1,12 @@
 package io.ktor.metrics
 
-import com.codahale.metrics.JvmAttributeGaugeSet
-import com.codahale.metrics.Meter
-import com.codahale.metrics.MetricRegistry
-import com.codahale.metrics.Timer
-import com.codahale.metrics.jvm.FileDescriptorRatioGauge
-import com.codahale.metrics.jvm.GarbageCollectorMetricSet
-import com.codahale.metrics.jvm.MemoryUsageGaugeSet
-import com.codahale.metrics.jvm.ThreadStatesGaugeSet
-import io.ktor.application.Application
-import io.ktor.application.ApplicationCall
-import io.ktor.application.ApplicationCallPipeline
-import io.ktor.application.ApplicationFeature
-import io.ktor.pipeline.PipelinePhase
-import io.ktor.pipeline.call
-import io.ktor.routing.Routing
-import io.ktor.util.AttributeKey
-import java.util.concurrent.ConcurrentHashMap
+import com.codahale.metrics.*
+import com.codahale.metrics.jvm.*
+import io.ktor.application.*
+import io.ktor.pipeline.*
+import io.ktor.routing.*
+import io.ktor.util.*
+import java.util.concurrent.*
 
 class Metrics(val registry: MetricRegistry) {
     val baseName = MetricRegistry.name("ktor.calls")
