@@ -1,5 +1,6 @@
 package io.ktor.client.tests
 
+import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.backend.*
 import io.ktor.client.features.*
@@ -11,7 +12,6 @@ import io.ktor.content.CacheControl
 import io.ktor.features.*
 import io.ktor.host.*
 import io.ktor.jetty.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import kotlinx.coroutines.experimental.*

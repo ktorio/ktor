@@ -1,12 +1,12 @@
 package kweet
 
-import kweet.dao.*
+import io.ktor.application.*
 import io.ktor.locations.*
-import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.routing.*
 import io.ktor.sessions.*
 import io.ktor.util.*
+import kweet.dao.*
 
 fun Route.delete(dao: DAOFacade, hashFunction: (String) -> String) {
     post<KweetDelete> {

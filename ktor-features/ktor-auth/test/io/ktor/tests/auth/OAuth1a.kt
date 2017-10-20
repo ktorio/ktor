@@ -4,12 +4,12 @@ import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.client.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.testing.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import org.junit.*
 import java.time.*
 import java.util.concurrent.*
@@ -111,7 +111,8 @@ class OAuth1aFlowTest {
         testClient = null
     }
 
-    private val exec = Executors.newSingleThreadExecutor()
+    val executor = Executors.newSingleThreadExecutor()
+    private val dispatcher = executor.asCoroutineDispatcher()
 
     private val settings = OAuthServerSettings.OAuth1aServerSettings(
             name = "oauth1a",
@@ -125,7 +126,7 @@ class OAuth1aFlowTest {
 
     @After
     fun tearDown() {
-        exec.shutdownNow()
+        executor.shutdownNow()
     }
 
     @Test
@@ -213,7 +214,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthRespondRedirect(testClient!!, exec, settings, "http://localhost/login?redirected=true")
+                    oauthRespondRedirect(testClient!!, dispatcher, settings, "http://localhost/login?redirected=true")
                 }
             }
 
@@ -232,7 +233,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient!!, exec, settings, "http://localhost/login?redirected=true", "/") { token ->
+                    oauthHandleCallback(testClient!!, dispatcher, settings, "http://localhost/login?redirected=true", "/") { token ->
                         call.respondText("Ho, $token")
                     }
                 }
@@ -254,7 +255,7 @@ class OAuth1aFlowTest {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient!!, exec, settings, "http://localhost/login?redirected=true", "/") { token ->
+                    oauthHandleCallback(testClient!!, dispatcher, settings, "http://localhost/login?redirected=true", "/") { token ->
                         call.respondText("Ho, $token")
                     }
                 }
@@ -271,7 +272,7 @@ class OAuth1aFlowTest {
         routing {
             route(HttpMethod.Get, "/login") {
                 authentication {
-                    oauth(testClient!!, exec, { settings.mutateSettings() }, { redirectUrl })
+                    oauth(testClient!!, dispatcher, { settings.mutateSettings() }, { redirectUrl })
                 }
 
                 handle {
@@ -283,7 +284,7 @@ class OAuth1aFlowTest {
 
     private fun waitExecutor() {
         val latch = CountDownLatch(1)
-        exec.submit {
+        executor.submit {
             latch.countDown()
         }
         latch.await(1L, TimeUnit.MINUTES)

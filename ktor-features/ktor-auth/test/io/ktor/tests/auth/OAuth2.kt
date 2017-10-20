@@ -5,12 +5,12 @@ import io.ktor.auth.*
 import io.ktor.client.*
 import io.ktor.http.*
 import io.ktor.http.request.*
-import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.testing.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import org.json.simple.*
 import org.junit.*
 import java.io.*
@@ -20,9 +20,10 @@ import java.util.concurrent.*
 import kotlin.test.*
 
 class OAuth2Test {
-    val exec = Executors.newSingleThreadExecutor()
+    private val executor = Executors.newSingleThreadExecutor()
+    private val dispatcher = executor.asCoroutineDispatcher()
 
-    val settings = OAuthServerSettings.OAuth2ServerSettings(
+    private val settings = OAuthServerSettings.OAuth2ServerSettings(
             name = "oauth2",
             authorizeUrl = "https://login-server-com/authorize",
             accessTokenUrl = "https://login-server-com/oauth/access_token",
@@ -70,7 +71,7 @@ class OAuth2Test {
         routing {
             route("/login") {
                 authentication {
-                    oauth(testClient, exec, { settings }, { "http://localhost/login" })
+                    oauth(testClient, dispatcher, { settings }, { "http://localhost/login" })
                 }
 
                 handle {
@@ -96,7 +97,7 @@ class OAuth2Test {
 
     @After
     fun tearDown() {
-        exec.shutdownNow()
+        executor.shutdownNow()
     }
 
     @Test
@@ -155,7 +156,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthRespondRedirect(testClient, exec, settings, "http://localhost/login")
+                    oauthRespondRedirect(testClient, dispatcher, settings, "http://localhost/login")
                 }
             }
 
@@ -180,7 +181,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient, exec, settings, "http://localhost/login", "/") { token ->
+                    oauthHandleCallback(testClient, dispatcher, settings, "http://localhost/login", "/") { token ->
                         call.respondText("Ho, $token")
                     }
                 }
@@ -205,7 +206,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient, exec, settings, "http://localhost/login", "/") { token ->
+                    oauthHandleCallback(testClient, dispatcher, settings, "http://localhost/login", "/") { token ->
                         call.respondText("Ho, $token")
                     }
                 }
@@ -228,7 +229,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient, exec, settings, "http://localhost/login", "/") { token ->
+                    oauthHandleCallback(testClient, dispatcher, settings, "http://localhost/login", "/") { token ->
                         call.respondText("Ho, $token")
                     }
                 }
@@ -246,7 +247,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient, exec, settings, "http://localhost/login", "/", {
+                    oauthHandleCallback(testClient, dispatcher, settings, "http://localhost/login", "/", {
                         url.queryParameters["badContentType"] = "true"
                     }) { token ->
                         call.respondText("Ho, $token")
@@ -286,7 +287,7 @@ class OAuth2Test {
 
     private fun waitExecutor() {
         val latch = CountDownLatch(1)
-        exec.submit {
+        executor.submit {
             latch.countDown()
         }
         latch.await(1L, TimeUnit.MINUTES)

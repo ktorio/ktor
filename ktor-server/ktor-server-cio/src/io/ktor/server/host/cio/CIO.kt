@@ -1,7 +1,7 @@
 package io.ktor.server.host.cio
 
+import io.ktor.application.*
 import io.ktor.host.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
 

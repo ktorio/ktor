@@ -1,5 +1,6 @@
 package io.ktor.client.tests
 
+import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.backend.*
 import io.ktor.client.tests.utils.*
@@ -8,14 +9,12 @@ import io.ktor.host.*
 import io.ktor.http.*
 import io.ktor.http.response.*
 import io.ktor.jetty.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
 import java.nio.charset.*
 import java.util.*
-
 
 open class PostTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
     val BODY_PREFIX = "Hello, post"

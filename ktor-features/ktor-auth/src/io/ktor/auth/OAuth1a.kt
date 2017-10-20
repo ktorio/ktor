@@ -9,22 +9,22 @@ import io.ktor.http.*
 import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import java.io.*
 import java.net.*
 import java.time.*
 import java.util.*
-import java.util.concurrent.*
 import javax.crypto.*
 import javax.crypto.spec.*
 
 suspend internal fun PipelineContext<Unit, ApplicationCall>.oauth1a(
-        client: HttpClient, exec: ExecutorService,
+        client: HttpClient, dispatcher: CoroutineDispatcher,
         providerLookup: ApplicationCall.() -> OAuthServerSettings?,
         urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     val provider = call.providerLookup()
     if (provider is OAuthServerSettings.OAuth1aServerSettings) {
         val token = call.oauth1aHandleCallback()
-        runAsync(exec) {
+        run(dispatcher) {
             val callbackRedirectUrl = call.urlProvider(provider)
             if (token == null) {
                 val t = simpleOAuth1aStep1(client, provider, callbackRedirectUrl)

@@ -8,7 +8,7 @@ import java.util.*
 
 data class HttpResponse(
         val statusCode: HttpStatusCode,
-        val reason: String,
+        val reason: String, // reason? is it statusCode.description?
         val version: HttpProtocolVersion,
         val headers: Headers,
         val payload: Any,

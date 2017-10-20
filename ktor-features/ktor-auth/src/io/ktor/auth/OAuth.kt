@@ -7,8 +7,8 @@ import io.ktor.http.*
 import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import java.io.*
-import java.util.concurrent.*
 
 enum class OAuthVersion {
     V10a, V20
@@ -54,18 +54,18 @@ object OAuthGrantTypes {
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.oauth(
-        client: HttpClient, exec: ExecutorService,
+        client: HttpClient, dispatcher: CoroutineDispatcher,
         providerLookup: ApplicationCall.() -> OAuthServerSettings?,
         urlProvider: ApplicationCall.(OAuthServerSettings) -> String
 ) {
-    oauth1a(client, exec, providerLookup, urlProvider)
-    oauth2(client, exec, providerLookup, urlProvider)
+    oauth1a(client, dispatcher, providerLookup, urlProvider)
+    oauth2(client, dispatcher, providerLookup, urlProvider)
 }
 
-suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(client: HttpClient, exec: ExecutorService, provider: OAuthServerSettings, callbackUrl: String) {
+suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(client: HttpClient, dispatcher: CoroutineDispatcher, provider: OAuthServerSettings, callbackUrl: String) {
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
-            runAsync(exec) {
+            run(dispatcher) {
                 val requestToken = simpleOAuth1aStep1(client, provider, callbackUrl)
                 call.redirectAuthenticateOAuth1a(provider, requestToken)
             }
@@ -78,7 +78,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(client: 
 
 suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
         client: HttpClient,
-        exec: ExecutorService,
+        dispatcher: CoroutineDispatcher,
         provider: OAuthServerSettings,
         callbackUrl: String,
         loginPageUrl: String,
@@ -91,7 +91,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
             if (tokens == null) {
                 call.respondRedirect(loginPageUrl)
             } else {
-                runAsync(exec) {
+                run(dispatcher) {
                     try {
                         val accessToken = simpleOAuth1aStep2(client, provider, tokens)
                         block(accessToken)
@@ -106,7 +106,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
             if (code == null) {
                 call.respondRedirect(loginPageUrl)
             } else {
-                runAsync(exec) {
+                run(dispatcher) {
                     try {
                         val accessToken = simpleOAuth2Step2(
                                 client,
