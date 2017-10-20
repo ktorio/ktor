@@ -2,7 +2,6 @@ package io.ktor.content
 
 import io.ktor.cio.*
 import io.ktor.http.*
-import io.ktor.http.response.*
 import io.ktor.util.*
 import java.io.*
 

@@ -2,7 +2,6 @@ package io.ktor.client.utils
 
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.http.request.*
 import java.net.*
 
 

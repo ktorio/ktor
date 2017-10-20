@@ -3,7 +3,6 @@ package io.ktor.content
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*
-import io.ktor.http.response.*
 import io.ktor.util.*
 import java.nio.file.attribute.*
 import java.time.*

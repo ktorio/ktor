@@ -1,4 +1,4 @@
-package io.ktor.http.util
+package io.ktor.http
 
 data class URLProtocol(val name: String, val defaultPort: Int) {
     init {

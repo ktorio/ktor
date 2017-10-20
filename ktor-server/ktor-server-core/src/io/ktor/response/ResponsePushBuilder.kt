@@ -2,7 +2,6 @@ package io.ktor.response
 
 import io.ktor.content.*
 import io.ktor.http.*
-import io.ktor.http.util.*
 import io.ktor.util.*
 
 interface ResponsePushBuilder {

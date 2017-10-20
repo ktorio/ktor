@@ -1,7 +1,6 @@
 package io.ktor.content
 
 import io.ktor.http.*
-import io.ktor.http.response.*
 import io.ktor.util.*
 
 class TextContent(val text: String, val contentType: ContentType, override val status: HttpStatusCode? = null) : FinalContent.ByteArrayContent() {

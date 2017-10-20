@@ -1,6 +1,5 @@
 package io.ktor.http
 
-import io.ktor.http.response.*
 import io.ktor.response.*
 
 

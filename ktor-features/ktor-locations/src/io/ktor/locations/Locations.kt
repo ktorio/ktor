@@ -3,7 +3,6 @@ package io.ktor.locations
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.http.util.*
 import io.ktor.routing.*
 import io.ktor.util.*
 import java.lang.reflect.*

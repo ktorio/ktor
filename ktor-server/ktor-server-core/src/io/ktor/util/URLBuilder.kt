@@ -2,7 +2,7 @@ package io.ktor.util
 
 import io.ktor.application.*
 import io.ktor.features.*
-import io.ktor.http.util.*
+import io.ktor.http.*
 import io.ktor.request.*
 
 

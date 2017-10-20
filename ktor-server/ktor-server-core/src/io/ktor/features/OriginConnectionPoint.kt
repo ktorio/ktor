@@ -2,8 +2,6 @@ package io.ktor.features
 
 import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.http.util.*
-import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.util.*
 import java.util.*
