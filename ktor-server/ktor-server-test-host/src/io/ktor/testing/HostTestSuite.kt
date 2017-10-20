@@ -26,7 +26,7 @@ import java.util.zip.*
 import kotlin.concurrent.*
 import kotlin.test.*
 
-abstract class HostTestSuite<THost : ApplicationHost>(hostFactory: ApplicationHostFactory<THost>) : HostTestBase<THost>(hostFactory) {
+abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : ApplicationHost.Configuration>(hostFactory: ApplicationHostFactory<THost, TConfiguration>) : HostTestBase<THost, TConfiguration>(hostFactory) {
     @Test
     fun testTextContent() {
         createAndStartServer {

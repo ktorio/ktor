@@ -1,26 +1,24 @@
 package io.ktor.tests.server.jetty
 
-import org.eclipse.jetty.server.*
-import org.eclipse.jetty.servlet.*
 import io.ktor.host.*
 import io.ktor.jetty.*
 import io.ktor.servlet.*
 import io.ktor.testing.*
+import org.eclipse.jetty.servlet.*
 import javax.servlet.*
 
-class JettyServletContainerHostTest : HostTestSuite<JettyServletApplicationHost>(ServletHostFactory)
+class JettyServletContainerHostTest : HostTestSuite<JettyApplicationHostBase, JettyApplicationHostBase.Configuration>(ServletHostFactory)
 
 // the factory and host are only suitable for testing
 // you shouldn't use it for production code
 
-object ServletHostFactory : ApplicationHostFactory<JettyServletApplicationHost> {
-    override fun create(environment: ApplicationHostEnvironment): JettyServletApplicationHost {
-        return JettyServletApplicationHost(environment)
+private object ServletHostFactory : ApplicationHostFactory<JettyServletApplicationHost, JettyApplicationHostBase.Configuration> {
+    override fun create(environment: ApplicationHostEnvironment, configure: JettyApplicationHostBase.Configuration.() -> Unit): JettyServletApplicationHost {
+        return JettyServletApplicationHost(environment, configure)
     }
 }
 
-class JettyServletApplicationHost(environment: ApplicationHostEnvironment,
-                                  jettyServer: () -> Server = ::Server) : JettyApplicationHostBase(environment, jettyServer) {
+private class JettyServletApplicationHost(environment: ApplicationHostEnvironment, configure: JettyApplicationHostBase.Configuration.() -> Unit) : JettyApplicationHostBase(environment, configure) {
     init {
         server.handler = ServletContextHandler().apply {
             classLoader = environment.classLoader

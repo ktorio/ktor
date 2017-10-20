@@ -6,6 +6,15 @@ import java.util.concurrent.*
  * Host which runs an application
  */
 interface ApplicationHost {
+
+    open class Configuration {
+        val parallelism = Runtime.getRuntime().availableProcessors()
+
+        var connectionGroupSize = parallelism / 2 + 1
+        var workerGroupSize = parallelism / 2 + 1
+        var callGroupSize = parallelism
+    }
+
     /**
      * Environment with which this host is running
      */

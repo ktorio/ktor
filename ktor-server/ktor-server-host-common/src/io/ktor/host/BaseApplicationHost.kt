@@ -15,6 +15,8 @@ abstract class BaseApplicationHost(override final val environment: ApplicationHo
                                    val pipeline: HostPipeline = defaultHostPipeline(environment)
 ) : ApplicationHost {
 
+    open class Configuration : ApplicationHost.Configuration()
+
     /**
      * Currently running application instance
      */

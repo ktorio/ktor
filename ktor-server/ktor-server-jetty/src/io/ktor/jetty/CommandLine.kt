@@ -6,5 +6,5 @@ import io.ktor.host.*
 
 fun main(args: Array<String>) {
     val applicationEnvironment = commandLineEnvironment(args)
-    JettyApplicationHost(applicationEnvironment).start()
+    JettyApplicationHost(applicationEnvironment, {}).start()
 }

@@ -10,8 +10,12 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.util.concurrent.*
 
-class CoroutinesHttpHost(environment: ApplicationHostEnvironment) : BaseApplicationHost(environment) {
-    private val exec = Executors.newFixedThreadPool(100) { r ->
+class CoroutinesHttpHost(environment: ApplicationHostEnvironment, configure: Configuration.() -> Unit) : BaseApplicationHost(environment) {
+    class Configuration : BaseApplicationHost.Configuration()
+
+    private val configuration = Configuration().apply(configure)
+
+    private val exec = Executors.newFixedThreadPool(configuration.callGroupSize) { r ->
         Thread(r, "host-thread")
     }
 

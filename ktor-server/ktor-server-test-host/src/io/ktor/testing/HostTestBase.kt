@@ -20,7 +20,7 @@ import javax.net.ssl.*
 import kotlin.test.*
 
 
-abstract class HostTestBase<THost : ApplicationHost>(val applicationHostFactory: ApplicationHostFactory<THost>) {
+abstract class HostTestBase<THost : ApplicationHost, TConfiguration : ApplicationHost.Configuration>(val applicationHostFactory: ApplicationHostFactory<THost, TConfiguration>) {
     protected val isUnderDebugger = java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.orEmpty().any { "-agentlib:jdwp" in it }
     protected var port = findFreePort()
     protected var sslPort = findFreePort()
