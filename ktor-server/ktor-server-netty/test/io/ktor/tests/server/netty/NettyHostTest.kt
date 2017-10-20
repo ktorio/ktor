@@ -4,7 +4,7 @@ import io.ktor.netty.*
 import io.ktor.testing.*
 import org.junit.*
 
-class NettyHostTest : HostTestSuite<NettyApplicationHost>(Netty) {
+class NettyHostTest : HostTestSuite<NettyApplicationHost, NettyApplicationHost.Configuration>(Netty) {
 
     @Test
     @Ignore // runs too long

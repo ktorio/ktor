@@ -1,5 +1,8 @@
 package io.ktor.tomcat
 
+import io.ktor.application.*
+import io.ktor.host.*
+import io.ktor.servlet.*
 import org.apache.catalina.connector.*
 import org.apache.catalina.startup.Tomcat
 import org.apache.coyote.http2.*
@@ -7,14 +10,17 @@ import org.apache.tomcat.jni.*
 import org.apache.tomcat.util.net.*
 import org.apache.tomcat.util.net.jsse.*
 import org.apache.tomcat.util.net.openssl.*
-import io.ktor.application.*
-import io.ktor.host.*
-import io.ktor.servlet.*
 import java.nio.file.*
 import java.util.concurrent.*
 import javax.servlet.*
 
-class TomcatApplicationHost(environment: ApplicationHostEnvironment) : BaseApplicationHost(environment) {
+class TomcatApplicationHost(environment: ApplicationHostEnvironment, configure: Configuration.() -> Unit) : BaseApplicationHost(environment) {
+    class Configuration : BaseApplicationHost.Configuration() {
+        var configureTomcat: Tomcat.() -> Unit = {}
+    }
+
+    private val configuration = Configuration().apply(configure)
+
     private val tempDirectory by lazy { Files.createTempDirectory("ktor-server-tomcat-") }
 
     private val ktorServlet = object : KtorServlet() {
@@ -25,6 +31,7 @@ class TomcatApplicationHost(environment: ApplicationHostEnvironment) : BaseAppli
     }
 
     private val server = Tomcat().apply {
+        configuration.configureTomcat(this)
         service.apply {
             findConnectors().forEach { existing ->
                 removeConnector(existing)
@@ -116,7 +123,7 @@ class TomcatApplicationHost(environment: ApplicationHostEnvironment) : BaseAppli
         private fun tryLoadLibrary(libraryName: String): Boolean = try {
             System.loadLibrary(libraryName)
             true
-        } catch(t: Throwable) {
+        } catch (t: Throwable) {
             false
         }
     }

@@ -3,15 +3,17 @@ package io.ktor.host
 import io.ktor.application.*
 import org.slf4j.*
 
-interface ApplicationHostFactory<out THost : ApplicationHost> {
-    fun create(environment: ApplicationHostEnvironment): THost
+interface ApplicationHostFactory<out THost : ApplicationHost, TConfiguration : ApplicationHost.Configuration> {
+    fun create(environment: ApplicationHostEnvironment, configure: TConfiguration.() -> Unit): THost
 }
 
-fun <THost : ApplicationHost> embeddedServer(factory: ApplicationHostFactory<THost>,
-                                             port: Int = 80,
-                                             host: String = "0.0.0.0",
-                                             watchPaths: List<String> = emptyList(),
-                                             module: Application.() -> Unit): THost {
+fun <THost : ApplicationHost, TConfiguration : ApplicationHost.Configuration>
+        embeddedServer(factory: ApplicationHostFactory<THost, TConfiguration>,
+                       port: Int = 80,
+                       host: String = "0.0.0.0",
+                       watchPaths: List<String> = emptyList(),
+                       configure: TConfiguration.() -> Unit = {},
+                       module: Application.() -> Unit): THost {
     val environment = applicationHostEnvironment {
         this.log = LoggerFactory.getLogger("ktor.application")
         this.watchPaths = watchPaths
@@ -23,10 +25,10 @@ fun <THost : ApplicationHost> embeddedServer(factory: ApplicationHostFactory<THo
         }
     }
 
-    return embeddedServer(factory, environment)
+    return embeddedServer(factory, environment, configure)
 }
 
-fun <THost : ApplicationHost> embeddedServer(factory: ApplicationHostFactory<THost>, environment: ApplicationHostEnvironment): THost {
-    return factory.create(environment)
+fun <THost : ApplicationHost, TConfiguration : ApplicationHost.Configuration> embeddedServer(factory: ApplicationHostFactory<THost, TConfiguration>, environment: ApplicationHostEnvironment, configure: TConfiguration.() -> Unit = {}): THost {
+    return factory.create(environment, configure)
 }
 

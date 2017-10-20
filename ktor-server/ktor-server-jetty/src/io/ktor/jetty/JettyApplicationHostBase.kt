@@ -1,20 +1,27 @@
 package io.ktor.jetty
 
-import org.eclipse.jetty.server.*
 import io.ktor.host.*
+import org.eclipse.jetty.server.*
 import java.util.concurrent.*
 
 /**
  * [ApplicationHost] implementation for running standalone Jetty Host
  */
 open class JettyApplicationHostBase(environment: ApplicationHostEnvironment,
-                                    jettyServer: () -> Server = ::Server) : BaseApplicationHost(environment) {
+                                    configure: Configuration.() -> Unit) : BaseApplicationHost(environment) {
 
-    protected val server: Server = jettyServer().apply {
+    class Configuration : BaseApplicationHost.Configuration() {
+        var configureServer: Server.() -> Unit = {}
+    }
+
+    private val configuration = Configuration().apply(configure)
+
+    protected val server: Server = Server().apply {
+        configuration.configureServer(this)
         initializeServer(environment)
     }
 
-    override fun start(wait: Boolean) : JettyApplicationHostBase {
+    override fun start(wait: Boolean): JettyApplicationHostBase {
         environment.start()
         server.start()
         if (wait) {

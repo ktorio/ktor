@@ -9,8 +9,7 @@ import java.util.concurrent.*
 /**
  * [ApplicationHost] implementation for running standalone Jetty Host
  */
-class JettyApplicationHost(environment: ApplicationHostEnvironment,
-                           jettyServer: () -> Server = ::Server) : JettyApplicationHostBase(environment, jettyServer) {
+class JettyApplicationHost(environment: ApplicationHostEnvironment, configure: Configuration.() -> Unit) : JettyApplicationHostBase(environment, configure) {
 
     private val dispatcher = DispatcherWithShutdown(server.threadPool.asCoroutineDispatcher())
 

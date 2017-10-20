@@ -6,5 +6,5 @@ import io.ktor.host.*
 
 fun main(args: Array<String>) {
     val applicationEnvironment = commandLineEnvironment(args)
-    TomcatApplicationHost(applicationEnvironment).start(true)
+    TomcatApplicationHost(applicationEnvironment, {}).start(true)
 }

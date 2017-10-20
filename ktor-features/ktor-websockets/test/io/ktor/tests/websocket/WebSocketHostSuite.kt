@@ -18,7 +18,7 @@ import java.util.*
 import java.util.concurrent.*
 import kotlin.test.*
 
-abstract class WebSocketHostSuite<THost : ApplicationHost>(hostFactory: ApplicationHostFactory<THost>) : HostTestBase<THost>(hostFactory) {
+abstract class WebSocketHostSuite<THost : ApplicationHost, TConfiguration : ApplicationHost.Configuration>(hostFactory: ApplicationHostFactory<THost, TConfiguration>) : HostTestBase<THost, TConfiguration>(hostFactory) {
     @get:Rule
     val errors = ErrorCollector()
 

@@ -1,37 +1,41 @@
 package io.ktor.netty
 
+import io.ktor.host.*
+import io.ktor.util.*
 import io.netty.bootstrap.*
 import io.netty.channel.*
 import io.netty.channel.nio.*
 import io.netty.channel.socket.nio.*
 import kotlinx.coroutines.experimental.*
-import io.ktor.host.*
-import io.ktor.util.*
 import java.util.concurrent.*
 
 /**
  * [ApplicationHost] implementation for running standalone Netty Host
  */
-class NettyApplicationHost(environment: ApplicationHostEnvironment) : BaseApplicationHost(environment) {
+class NettyApplicationHost(environment: ApplicationHostEnvironment, configure: Configuration.() -> Unit = {}) : BaseApplicationHost(environment) {
+    class Configuration : BaseApplicationHost.Configuration() {
+        var requestQueueLimit: Int = 16
+        var configureBootstrap: ServerBootstrap.() -> Unit = {}
+    }
 
-    private val parallelism = Runtime.getRuntime().availableProcessors() / 3 + 1
-    private val connectionEventGroup = NettyConnectionPool(parallelism) // accepts connections
-    private val workerEventGroup = NettyWorkerPool(parallelism) // processes socket data and parse HTTP
-    private val callEventGroup = NettyCallPool(parallelism) // processes calls
+    private val configuration = Configuration().apply(configure)
+    private val connectionEventGroup = NettyConnectionPool(configuration.connectionGroupSize) // accepts connections
+    private val workerEventGroup = NettyWorkerPool(configuration.workerGroupSize) // processes socket data and parse HTTP
+    private val callEventGroup = NettyCallPool(configuration.callGroupSize) // processes calls
 
     private val dispatcherWithShutdown = DispatcherWithShutdown(NettyDispatcher)
     private val hostDispatcherWithShutdown = DispatcherWithShutdown(workerEventGroup.asCoroutineDispatcher())
 
-    private val requestQueueLimit: Int = 16 // should be configurable
 
     private var channels: List<Channel>? = null
     private val bootstraps = environment.connectors.map { connector ->
         ServerBootstrap().apply {
+            configuration.configureBootstrap(this)
             group(connectionEventGroup, workerEventGroup)
             channel(NioServerSocketChannel::class.java)
             childHandler(NettyChannelInitializer(pipeline, environment,
                     callEventGroup, hostDispatcherWithShutdown, dispatcherWithShutdown,
-                    connector, requestQueueLimit))
+                    connector, configuration.requestQueueLimit))
         }
     }
 
