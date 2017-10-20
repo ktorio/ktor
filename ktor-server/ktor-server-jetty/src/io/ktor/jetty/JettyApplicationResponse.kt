@@ -1,9 +1,11 @@
 package io.ktor.jetty
 
+import io.ktor.cio.*
 import org.eclipse.jetty.server.*
 import io.ktor.content.*
 import io.ktor.response.*
 import io.ktor.servlet.*
+import java.io.*
 import java.util.concurrent.*
 import javax.servlet.http.*
 import kotlin.coroutines.experimental.*
@@ -26,7 +28,12 @@ class JettyApplicationResponse(call: ServletApplicationCall,
 
         servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, inputChannel)
 
-        servletResponse.flushBuffer()
+        try {
+            servletResponse.flushBuffer()
+        } catch (e: IOException) {
+            throw ChannelWriteException("Cannot write HTTP upgrade response", e)
+        }
+
         upgrade.upgrade(inputChannel, outputChannel, connection, hostCoroutineContext, userCoroutineContext)
     }
 
