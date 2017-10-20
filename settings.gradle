@@ -41,8 +41,8 @@ include ':ktor-samples:ktor-samples-embedded'
 include ':ktor-samples:ktor-samples-httpbin'
 include ':ktor-samples:ktor-samples-metrics'
 include ':ktor-samples:ktor-samples-guice'
-include ':ktor-samples:you-kube'
-include ':ktor-samples:kweet'
+include ':ktor-samples:ktor-samples-youkube'
+include ':ktor-samples:ktor-samples-kweet'
 include ':ktor-samples:ktor-samples-websocket'
 include ':ktor-samples:ktor-samples-ssl-http2'
 include ':ktor-samples:ktor-samples-custom-feature'
@@ -91,8 +91,8 @@ project(':ktor-samples:ktor-samples-embedded').projectDir = "$rootDir/ktor-sampl
 project(':ktor-samples:ktor-samples-httpbin').projectDir = "$rootDir/ktor-samples/ktor-samples-httpbin" as File
 project(':ktor-samples:ktor-samples-metrics').projectDir = "$rootDir/ktor-samples/ktor-samples-metrics" as File
 project(':ktor-samples:ktor-samples-guice').projectDir = "$rootDir/ktor-samples/ktor-samples-guice" as File
-project(':ktor-samples:you-kube').projectDir = "$rootDir/ktor-samples/you-kube" as File
-project(':ktor-samples:kweet').projectDir = "$rootDir/ktor-samples/kweet" as File
+project(':ktor-samples:ktor-samples-youkube').projectDir = "$rootDir/ktor-samples/ktor-samples-youkube" as File
+project(':ktor-samples:ktor-samples-kweet').projectDir = "$rootDir/ktor-samples/ktor-samples-kweet" as File
 project(':ktor-samples:ktor-samples-websocket').projectDir = "$rootDir/ktor-samples/ktor-samples-websocket" as File
 project(':ktor-samples:ktor-samples-ssl-http2').projectDir = "$rootDir/ktor-samples/ktor-samples-ssl-http2" as File
 project(':ktor-samples:ktor-samples-custom-feature').projectDir = "$rootDir/ktor-samples/ktor-samples-custom-feature" as File
