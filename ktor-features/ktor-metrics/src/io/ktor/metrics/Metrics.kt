@@ -71,7 +71,7 @@ class Metrics(val registry: MetricRegistry) {
 
             pipeline.environment.monitor.subscribe(Routing.RoutingCallFinished) { call ->
                 val routingMetrics = call.attributes.take(routingMetricsKey)
-                val status = call.response.status() ?: 0
+                val status = call.response.status()?.value ?: 0
                 val statusMeter = feature.registry.meter(MetricRegistry.name(routingMetrics.name, status.toString()))
                 statusMeter.mark()
                 routingMetrics.context.stop()
