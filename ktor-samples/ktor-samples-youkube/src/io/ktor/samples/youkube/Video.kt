@@ -1,4 +1,4 @@
-package you.kube
+package io.ktor.samples.youkube
 
 import java.io.*
 

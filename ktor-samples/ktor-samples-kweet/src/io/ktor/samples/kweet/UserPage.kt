@@ -1,4 +1,4 @@
-package kweet
+package io.ktor.samples.kweet
 
 import io.ktor.application.*
 import io.ktor.freemarker.*
@@ -6,8 +6,8 @@ import io.ktor.http.*
 import io.ktor.locations.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.samples.kweet.dao.*
 import io.ktor.sessions.*
-import kweet.dao.*
 
 fun Route.userPage(dao: DAOFacade) {
     get<UserPage> {

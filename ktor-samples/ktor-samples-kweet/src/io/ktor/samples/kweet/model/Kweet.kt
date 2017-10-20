@@ -1,4 +1,4 @@
-package kweet.model
+package io.ktor.samples.kweet.model
 
 import org.joda.time.*
 import java.io.*

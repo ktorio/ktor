@@ -1,5 +1,5 @@
-<#-- @ftlvariable name="pageUser" type="kweet.model.User" -->
-<#-- @ftlvariable name="kweets" type="java.util.List<kweet.model.Kweet>" -->
+<#-- @ftlvariable name="pageUser" type="io.ktor.samples.kweet.model.User" -->
+<#-- @ftlvariable name="kweets" type="java.util.List<io.ktor.samples.kweet.model.Kweet>" -->
 
 <#import "template.ftl" as layout />
 

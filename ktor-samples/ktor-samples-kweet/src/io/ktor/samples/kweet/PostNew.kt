@@ -1,4 +1,4 @@
-package kweet
+package io.ktor.samples.kweet
 
 import io.ktor.application.*
 import io.ktor.freemarker.*
@@ -6,9 +6,9 @@ import io.ktor.locations.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.samples.kweet.dao.*
 import io.ktor.sessions.*
 import io.ktor.util.*
-import kweet.dao.*
 
 fun Route.postNew(dao: DAOFacade, hashFunction: (String) -> String) {
     get<PostNew> {

@@ -1,4 +1,4 @@
-package you.kube
+package io.ktor.samples.youkube
 
 import kotlinx.html.*
 import io.ktor.application.*
