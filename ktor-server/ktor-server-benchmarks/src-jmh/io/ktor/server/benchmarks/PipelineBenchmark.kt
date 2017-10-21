@@ -1,9 +1,9 @@
 package io.ktor.server.benchmarks
 
 import io.ktor.application.*
+import io.ktor.cio.*
 import io.ktor.pipeline.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import org.openjdk.jmh.annotations.*
 
 @State(Scope.Benchmark)

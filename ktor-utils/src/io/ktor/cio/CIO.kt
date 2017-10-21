@@ -1,4 +1,4 @@
-package io.ktor.util
+package io.ktor.cio
 
 import kotlin.coroutines.experimental.*
 import kotlin.coroutines.experimental.intrinsics.*

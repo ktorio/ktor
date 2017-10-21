@@ -1,11 +1,12 @@
-package io.ktor.tests.server.nio
+package io.ktor.tests.utils
 
 import io.ktor.cio.*
+import kotlinx.coroutines.experimental.*
 import org.junit.*
 import java.nio.*
 import kotlin.test.*
 
-class AsyncSkipAndCutTest {
+class AsyncSeekAndCutTest {
     fun rangeChannel(source: ReadChannel, skip: Long, maxSize: Long): ReadChannel {
         // Hide RandomAccess capability of source channel
         return RangeReadChannel(CompositeReadChannel(sequenceOf({ source })), skip, maxSize)
@@ -30,7 +31,7 @@ class AsyncSkipAndCutTest {
     }
 
     @Test
-    fun testSkipOnly() {
+    fun testSeekOnly() {
         val source = { asyncOf("Hello, async!") }
 
         assertEquals("ello, async!", rangeChannel(source(), 1L, 1000).readText())
@@ -38,7 +39,7 @@ class AsyncSkipAndCutTest {
     }
 
     @Test
-    fun testSkipAndCut() {
+    fun testSeekAndCut() {
         val source = { asyncOf("Hello, async!") }
 
         assertEquals("ell", rangeChannel(source(), 1L, 3).readText())
@@ -46,17 +47,34 @@ class AsyncSkipAndCutTest {
     }
 
     @Test
-    fun testSkipForSkip() {
+    fun testSeekForSeek() {
         val source = { asyncOf("Hello, async!") }
 
         assertEquals(", ", rangeChannel(rangeChannel(source(), 4L, 5L), 1L, 2L).readText())
     }
 
     @Test
-    fun testSkipForSkipBytePerByte() {
+    fun testSeekForSeekBytePerByte() {
         val source = { asyncOf("Hello, async!", 1) }
 
         assertEquals(", ", rangeChannel(rangeChannel(source(), 4L, 5L), 1L, 2L).readText())
+    }
+
+    @Test
+    fun testMultipleSeekForSource() = runBlocking {
+        // TODO move to separate test
+        val source = { asyncOf("Hello, async!") }
+
+        val s1 = source()
+        s1.seek(3)
+
+        assertEquals("lo, async!", s1.readText())
+
+        val s2 = asyncOf("Hello, async!")
+        s2.seek(10L)
+        s2.seek(4)
+
+        assertEquals("o, async!", s2.readText())
     }
 
     private fun ReadChannel.readText() = toInputStream().reader().readText()

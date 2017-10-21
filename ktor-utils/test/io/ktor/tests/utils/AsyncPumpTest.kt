@@ -1,4 +1,4 @@
-package io.ktor.tests.server.nio
+package io.ktor.tests.utils
 
 import io.ktor.cio.*
 import io.ktor.util.*
