@@ -1,11 +1,10 @@
 package io.ktor.tests.server.jetty
 
 import io.ktor.application.*
-import io.ktor.host.*
-import io.ktor.jetty.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
-import io.ktor.servlet.*
+import io.ktor.server.host.*
+import io.ktor.server.jetty.*
+import io.ktor.server.servlet.*
 import org.junit.*
 import org.slf4j.*
 import java.net.*
@@ -31,12 +30,12 @@ class MultipleDispatchOnTimeout {
             log = LoggerFactory.getLogger("ktor.test")
             module {
                 intercept(ApplicationCallPipeline.Call) {
-                        callCount.incrementAndGet()
-                        val timeout = Math.max((call.request as ServletApplicationRequest).servletRequest.asyncContext.timeout, 0)
-        //                    println("Timeout is: $timeout")
-                        Thread.sleep(timeout + 1000)
-                        call.respondWrite {
-                            write("A ok!")
+                    callCount.incrementAndGet()
+                    val timeout = Math.max((call.request as ServletApplicationRequest).servletRequest.asyncContext.timeout, 0)
+                    //                    println("Timeout is: $timeout")
+                    Thread.sleep(timeout + 1000)
+                    call.respondWrite {
+                        write("A ok!")
 
                     }
                 }

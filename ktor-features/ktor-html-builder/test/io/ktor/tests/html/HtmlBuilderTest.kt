@@ -1,13 +1,12 @@
 package io.ktor.tests.html
 
-import kotlinx.html.*
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.html.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
 import io.ktor.routing.*
-import io.ktor.testing.*
+import io.ktor.server.testing.*
+import kotlinx.html.*
 import org.junit.*
 import kotlin.test.*
 
@@ -27,8 +26,8 @@ class HtmlBuilderTest {
             }
         }
 
-        handleRequest(io.ktor.http.HttpMethod.Companion.Get, "/?name=John").response.let { response ->
-            kotlin.test.assertNotNull(response.content)
+        handleRequest(HttpMethod.Get, "/?name=John").response.let { response ->
+            assertNotNull(response.content)
             val lines = response.content!!
             assertEquals("""<!DOCTYPE html>
 <html>
@@ -38,7 +37,7 @@ class HtmlBuilderTest {
 </html>
 """, lines)
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.Companion.parse(contentTypeText))
+            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
     }
 
@@ -63,7 +62,7 @@ class HtmlBuilderTest {
             }
         }
 
-        handleRequest(io.ktor.http.HttpMethod.Companion.Get, "/?name=John").response.let { response ->
+        handleRequest(HttpMethod.Get, "/?name=John").response.let { response ->
             assertNotNull(response.content)
             assertEquals(HttpStatusCode.NotImplemented, response.status())
             val lines = response.content!!
@@ -75,7 +74,7 @@ class HtmlBuilderTest {
 </html>
 """, lines)
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.Companion.parse(contentTypeText))
+            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
     }
 }

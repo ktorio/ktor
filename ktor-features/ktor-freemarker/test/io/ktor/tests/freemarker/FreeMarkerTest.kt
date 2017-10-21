@@ -5,10 +5,9 @@ import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.freemarker.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.testing.*
+import io.ktor.server.testing.*
 import org.junit.*
 import java.util.zip.*
 import kotlin.test.*
@@ -107,14 +106,14 @@ class FreeMarkerTest {
                     call.respondTemplate("test.ftl", model)
                 }
             }
-            
+
             val call = handleRequest(HttpMethod.Get, "/")
-            
+
             with(call.response) {
                 assertNotNull(content)
-                
+
                 val lines = content!!.lines()
-                
+
                 assertEquals(lines[0], "<p>Hello, 1</p>")
                 assertEquals(lines[1], "<h1>Bonjour le monde!</h1>")
             }

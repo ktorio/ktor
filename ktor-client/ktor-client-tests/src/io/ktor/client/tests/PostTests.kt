@@ -5,11 +5,11 @@ import io.ktor.client.*
 import io.ktor.client.backend.*
 import io.ktor.client.tests.utils.*
 import io.ktor.content.*
-import io.ktor.host.*
 import io.ktor.http.*
-import io.ktor.jetty.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.server.host.*
+import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
 import java.nio.charset.*

@@ -4,10 +4,9 @@ import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.locations.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.testing.*
+import io.ktor.server.testing.*
 import io.ktor.util.*
 import org.junit.*
 import kotlin.reflect.*

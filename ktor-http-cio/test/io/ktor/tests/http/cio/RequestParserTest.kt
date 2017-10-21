@@ -1,4 +1,4 @@
-package kotlinx.http.tests
+package io.ktor.tests.http.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.*

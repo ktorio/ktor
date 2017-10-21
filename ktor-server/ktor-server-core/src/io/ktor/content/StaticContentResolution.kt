@@ -11,7 +11,7 @@ import java.nio.file.*
  * @param resourcePackage is a base package the path to be appended to
  * @param mimeResolve is a function that resolves content type by file extension, optional
  *
- * @return [LocalFileContent] or [ResourceFileContent] or `null`
+ * @return [LocalFileContent] or [JarFileContent] or `null`
  */
 fun ApplicationCall.resolveResource(path: String, resourcePackage: String? = null, classLoader: ClassLoader = application.environment.classLoader, mimeResolve: (String) -> ContentType = { ContentType.defaultForFileExtension(it) }): Resource? {
     val packagePath = (resourcePackage?.replace('.', '/') ?: "").appendPathPart(path)
@@ -26,7 +26,7 @@ fun ApplicationCall.resolveResource(path: String, resourcePackage: String? = nul
             return if (file.exists()) LocalFileContent(file, mimeResolve(file.extension)) else null
         } else if (url.protocol == "jar") {
             val zipFile = findContainingZipFile(url.toString())
-            return ResourceFileContent(zipFile, normalizedResource, classLoader, mimeResolve(url.path.extension()))
+            return JarFileContent(zipFile, normalizedResource, classLoader, mimeResolve(url.path.extension()))
         }
     }
 

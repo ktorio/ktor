@@ -3,10 +3,9 @@ package io.ktor.tests.locations
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.locations.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.testing.*
+import io.ktor.server.testing.*
 import org.junit.*
 import kotlin.test.*
 

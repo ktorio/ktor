@@ -28,9 +28,9 @@ class WebSocketUpgrade(val call: ApplicationCall, val protocol: String? = null, 
             // TODO extensions
         }
 
-    override suspend fun upgrade(input: ReadChannel, output: WriteChannel, channel: Closeable, hostContext: CoroutineContext, userAppContext: CoroutineContext): Closeable {
+    override suspend fun upgrade(input: ReadChannel, output: WriteChannel, closeable: Closeable, hostContext: CoroutineContext, userAppContext: CoroutineContext): Closeable {
         val webSockets = call.application.feature(WebSockets)
-        val webSocket = RawWebSocketImpl(call, input, output, channel, NoPool, hostContext, userAppContext)
+        val webSocket = RawWebSocketImpl(call, input, output, closeable, NoPool, hostContext, userAppContext)
 
         webSocket.maxFrameSize = webSockets.maxFrameSize
         webSocket.masking = webSockets.masking

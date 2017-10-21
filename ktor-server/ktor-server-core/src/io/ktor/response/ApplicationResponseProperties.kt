@@ -20,6 +20,15 @@ fun ApplicationResponse.cacheControl(value: CacheControl) = header(HttpHeaders.C
 fun ApplicationResponse.expires(value: LocalDateTime) = header(HttpHeaders.Expires, value)
 
 fun ValuesMapBuilder.cacheControl(value: CacheControl) = set(HttpHeaders.CacheControl, value.toString())
+
 fun ValuesMapBuilder.contentRange(range: LongRange?, fullLength: Long? = null, unit: String = RangeUnits.Bytes.unitToken) {
     append(HttpHeaders.ContentRange, contentRangeHeaderValue(range, fullLength, unit))
 }
+fun ApplicationResponse.contentRange(range: LongRange?, fullLength: Long? = null, unit: RangeUnits) {
+    contentRange(range, fullLength, unit.unitToken)
+}
+
+fun ApplicationResponse.contentRange(range: LongRange?, fullLength: Long? = null, unit: String = RangeUnits.Bytes.unitToken) {
+    header(HttpHeaders.ContentRange, contentRangeHeaderValue(range, fullLength, unit))
+}
+

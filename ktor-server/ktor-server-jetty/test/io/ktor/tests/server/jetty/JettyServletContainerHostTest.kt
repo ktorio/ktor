@@ -1,9 +1,9 @@
 package io.ktor.tests.server.jetty
 
-import io.ktor.host.*
-import io.ktor.jetty.*
-import io.ktor.servlet.*
-import io.ktor.testing.*
+import io.ktor.server.host.*
+import io.ktor.server.jetty.*
+import io.ktor.server.servlet.*
+import io.ktor.server.testing.*
 import org.eclipse.jetty.servlet.*
 import javax.servlet.*
 

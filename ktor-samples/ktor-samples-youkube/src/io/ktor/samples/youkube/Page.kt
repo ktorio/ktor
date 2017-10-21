@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.locations.*
 import io.ktor.sessions.*
 
-suspend fun ApplicationCall.respondDefaultHtml(versions: List<Version>, visibility: CacheControlVisibility, title: String = "You Kube", block: DIV.() -> Unit) {
+suspend fun ApplicationCall.respondDefaultHtml(versions: List<Version>, visibility: CacheControl.Visibility, title: String = "You Kube", block: DIV.() -> Unit) {
     val cacheControl = CacheControl.MaxAge(3600 * 24 * 7, mustRevalidate = true, visibility = visibility, proxyMaxAgeSeconds = null, proxyRevalidate = false)
     respondHtml(HttpStatusCode.OK, versions, cacheControl) {
         val session = sessions.get<YouKubeSession>()

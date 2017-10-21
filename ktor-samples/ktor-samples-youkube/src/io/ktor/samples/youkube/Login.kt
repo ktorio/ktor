@@ -27,7 +27,7 @@ fun Route.login(users: UserHashedTableAuth) {
 
         method(HttpMethod.Get) {
             handle<Login> {
-                call.respondDefaultHtml(emptyList(), CacheControlVisibility.PUBLIC) {
+                call.respondDefaultHtml(emptyList(), CacheControl.Visibility.Public) {
                     h2 { +"Login" }
                     form(call.url(Login()) { parameters.clear() }, classes = "pure-form-stacked", encType = FormEncType.applicationXWwwFormUrlEncoded, method = FormMethod.post) {
                         acceptCharset = "utf-8"

@@ -1,6 +1,6 @@
 package io.ktor.response
 
-import io.ktor.application.ApplicationCall
+import io.ktor.application.*
 import io.ktor.pipeline.*
 
 open class ApplicationSendPipeline : Pipeline<Any, ApplicationCall>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Host) {

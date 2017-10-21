@@ -9,6 +9,7 @@ import org.slf4j.*
 interface ApplicationEnvironment {
     /**
      * [ClassLoader] used to load application.
+     *
      * Useful for various reflection-based services, like dependency injection.
      */
     val classLoader: ClassLoader
@@ -19,7 +20,7 @@ interface ApplicationEnvironment {
     val log: Logger
 
     /**
-     * Configuration for [Application]
+     * Configuration for the [Application]
      */
     val config: ApplicationConfig
 
@@ -29,7 +30,25 @@ interface ApplicationEnvironment {
     val monitor: ApplicationEvents
 }
 
+/**
+ * Even definition for Application Starting event
+ *
+ * Note, that application itself cannot receive this event because it fires before application is created
+ * It is meant to be used by hosts.
+ */
 val ApplicationStarting = EventDefinition<Application>()
+
+/**
+ * Even definition for Application Started event
+ */
 val ApplicationStarted = EventDefinition<Application>()
+
+/**
+ * Even definition for Application Stopping event
+ */
 val ApplicationStopping = EventDefinition<Application>()
+
+/**
+ * Even definition for Application Stopped event
+ */
 val ApplicationStopped = EventDefinition<Application>()

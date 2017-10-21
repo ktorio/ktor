@@ -2,8 +2,12 @@ package io.ktor.content
 
 import java.util.*
 
-sealed class CacheControl(val visibility: CacheControlVisibility?) {
-    class NoCache(visibility: CacheControlVisibility?) : CacheControl(visibility) {
+sealed class CacheControl(val visibility: Visibility?) {
+    enum class Visibility {
+        Public, Private
+    }
+
+    class NoCache(visibility: Visibility?) : CacheControl(visibility) {
         override fun toString() = if (visibility == null) {
             "no-cache"
         } else {
@@ -11,7 +15,7 @@ sealed class CacheControl(val visibility: CacheControlVisibility?) {
         }
     }
 
-    class NoStore(visibility: CacheControlVisibility?) : CacheControl(visibility) {
+    class NoStore(visibility: Visibility?) : CacheControl(visibility) {
         override fun toString() = if (visibility == null) {
             "no-store"
         } else {
@@ -19,7 +23,7 @@ sealed class CacheControl(val visibility: CacheControlVisibility?) {
         }
     }
 
-    class MaxAge(val maxAgeSeconds: Int, val proxyMaxAgeSeconds: Int? = null, val mustRevalidate: Boolean = false, val proxyRevalidate: Boolean = false, visibility: CacheControlVisibility? = null) : CacheControl(visibility) {
+    class MaxAge(val maxAgeSeconds: Int, val proxyMaxAgeSeconds: Int? = null, val mustRevalidate: Boolean = false, val proxyRevalidate: Boolean = false, visibility: Visibility? = null) : CacheControl(visibility) {
         override fun toString(): String {
             val parts = ArrayList<String>(5)
             parts.add("max-age=$maxAgeSeconds")
@@ -39,9 +43,4 @@ sealed class CacheControl(val visibility: CacheControlVisibility?) {
             return parts.joinToString(", ")
         }
     }
-}
-
-enum class CacheControlVisibility {
-    PUBLIC,
-    PRIVATE
 }

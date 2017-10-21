@@ -5,7 +5,7 @@ import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.testing.*
+import io.ktor.server.testing.*
 import org.openjdk.jmh.annotations.*
 import java.io.*
 import java.util.concurrent.*
