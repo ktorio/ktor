@@ -1,6 +1,7 @@
 package io.ktor.metrics
 
 import com.codahale.metrics.*
+import com.codahale.metrics.jvm.*
 import io.ktor.application.*
 import io.ktor.pipeline.*
 import io.ktor.routing.*
@@ -28,6 +29,13 @@ class Metrics(val registry: MetricRegistry) {
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): Metrics {
             val configuration = Configuration().apply(configure)
             val feature = Metrics(configuration.registry)
+
+            configuration.registry.register("jvm.memory", MemoryUsageGaugeSet())
+            configuration.registry.register("jvm.garbage", GarbageCollectorMetricSet())
+            configuration.registry.register("jvm.threads", ThreadStatesGaugeSet())
+            configuration.registry.register("jvm.files", FileDescriptorRatioGauge())
+            configuration.registry.register("jvm.atttributes", JvmAttributeGaugeSet())
+
             val phase = PipelinePhase("Metrics")
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Infrastructure, phase)
             pipeline.intercept(phase) {
@@ -53,7 +61,7 @@ class Metrics(val registry: MetricRegistry) {
 
             pipeline.environment.monitor.subscribe(Routing.RoutingCallFinished) { call ->
                 val routingMetrics = call.attributes.take(routingMetricsKey)
-                val status = call.response.status() ?: 0
+                val status = call.response.status()?.value ?: 0
                 val statusMeter = feature.registry.meter(MetricRegistry.name(routingMetrics.name, status.toString()))
                 statusMeter.mark()
                 routingMetrics.context.stop()
