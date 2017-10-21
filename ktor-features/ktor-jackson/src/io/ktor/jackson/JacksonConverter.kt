@@ -11,7 +11,16 @@ import io.ktor.request.*
 
 /**
  *    install(ContentNegotiation) {
- *       register(ContentType.Application.Json, jacksonObjectMapper())
+ *       register(ContentType.Application.Json, JacksonConverter())
+ *    }
+ *
+ *    to be able to modify the objectMapper (eg. using specific modules and/or serializers and/or
+ *    configuration options, you could use the following (as seen in the ktor-samples):
+ *
+ *    install(ContentNegotiation) {
+ *        val objectMapper = jacksonObjectMapper()
+ *        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true)
+ *        register(ContentType.Application.Json, JacksonConverter(objectMapper))
  *    }
  */
 class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) : ContentConverter {
