@@ -1,0 +1,4 @@
+description = ''
+dependencies {
+    compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.9.2'
+}

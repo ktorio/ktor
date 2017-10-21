@@ -18,6 +18,7 @@ include ':ktor-client:ktor-client-jvm'
 include ':ktor-client:ktor-client-jetty'
 include ':ktor-features:ktor-freemarker'
 include ':ktor-features:ktor-gson'
+include ':ktor-features:ktor-jackson'
 include ':ktor-features:ktor-metrics'
 include ':ktor-features:ktor-server-sessions'
 include ':ktor-features:ktor-locations'
@@ -37,6 +38,7 @@ include ':ktor-samples:ktor-samples-auth'
 include ':ktor-samples:ktor-samples-async'
 include ':ktor-samples:ktor-samples-testable'
 include ':ktor-samples:ktor-samples-json'
+include ':ktor-samples:ktor-samples-jackson'
 include ':ktor-samples:ktor-samples-post'
 include ':ktor-samples:ktor-samples-embedded'
 include ':ktor-samples:ktor-samples-httpbin'
@@ -69,6 +71,7 @@ project(':ktor-client:ktor-client-jvm').projectDir = "$rootDir/ktor-client/ktor-
 project(':ktor-client:ktor-client-jetty').projectDir = "$rootDir/ktor-client/ktor-client-jetty" as File
 project(':ktor-features:ktor-freemarker').projectDir = "$rootDir/ktor-features/ktor-freemarker" as File
 project(':ktor-features:ktor-gson').projectDir = "$rootDir/ktor-features/ktor-gson" as File
+project(':ktor-features:ktor-jackson').projectDir = "$rootDir/ktor-features/ktor-jackson" as File
 project(':ktor-features:ktor-metrics').projectDir = "$rootDir/ktor-features/ktor-metrics" as File
 project(':ktor-features:ktor-server-sessions').projectDir = "$rootDir/ktor-features/ktor-server-sessions" as File
 project(':ktor-features:ktor-locations').projectDir = "$rootDir/ktor-features/ktor-locations" as File
@@ -88,6 +91,7 @@ project(':ktor-samples:ktor-samples-auth').projectDir = "$rootDir/ktor-samples/k
 project(':ktor-samples:ktor-samples-async').projectDir = "$rootDir/ktor-samples/ktor-samples-async" as File
 project(':ktor-samples:ktor-samples-testable').projectDir = "$rootDir/ktor-samples/ktor-samples-testable" as File
 project(':ktor-samples:ktor-samples-json').projectDir = "$rootDir/ktor-samples/ktor-samples-json" as File
+project(':ktor-samples:ktor-samples-jackson').projectDir = "$rootDir/ktor-samples/ktor-samples-jackson" as File
 project(':ktor-samples:ktor-samples-post').projectDir = "$rootDir/ktor-samples/ktor-samples-post" as File
 project(':ktor-samples:ktor-samples-embedded').projectDir = "$rootDir/ktor-samples/ktor-samples-embedded" as File
 project(':ktor-samples:ktor-samples-httpbin').projectDir = "$rootDir/ktor-samples/ktor-samples-httpbin" as File
