@@ -1,4 +1,4 @@
-package io.ktor.tests.server.nio
+package io.ktor.tests.utils
 
 import io.ktor.cio.*
 import kotlinx.coroutines.experimental.*
@@ -12,8 +12,8 @@ class DeflaterReadChannelTest {
 
     @Test
     fun testWithRealFile() {
-        val file = listOf(File("test/io/ktor/tests/server/nio/DeflaterReadChannelTest.kt"),
-                File("ktor-server/ktor-server-tests/test/io/ktor/tests/server/nio/DeflaterReadChannelTest.kt")).first(File::exists)
+        val file = listOf(File("test/io/ktor/tests/utils/DeflaterReadChannelTest.kt"),
+                File("ktor-server/ktor-server-tests/test/io/ktor/tests/utils/DeflaterReadChannelTest.kt")).first(File::exists)
 
         file.readChannel().use {
             testReadChannel(file.readText(), it)
@@ -26,8 +26,8 @@ class DeflaterReadChannelTest {
 
     @Test
     fun testFileChannel() {
-        val file = listOf(File("test/io/ktor/tests/server/nio/DeflaterReadChannelTest.kt"),
-                File("ktor-server/ktor-server-tests/test/io/ktor/tests/server/nio/DeflaterReadChannelTest.kt")).first(File::exists)
+        val file = listOf(File("test/io/ktor/tests/utils/DeflaterReadChannelTest.kt"),
+                File("ktor-server/ktor-server-tests/test/io/ktor/tests/utils/DeflaterReadChannelTest.kt")).first(File::exists)
 
         val content = file.readText()
 

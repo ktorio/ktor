@@ -1,20 +1,15 @@
-package io.ktor.tests.server.pipeline
+package io.ktor.tests.utils
 
-import io.ktor.application.*
 import io.ktor.pipeline.*
-import io.ktor.server.testing.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
 import kotlin.test.*
 
 class PipelineTest {
-    val environment = createTestEnvironment()
-    val host = TestApplicationHost(environment).apply { start() }
-    val call = TestApplicationCall(host.application)
-    val callPhase = PipelinePhase("Call")
-    fun pipeline(): Pipeline<String, ApplicationCall> = Pipeline(callPhase)
-    fun Pipeline<String, ApplicationCall>.intercept(block: PipelineInterceptor<String, ApplicationCall>) = intercept(callPhase, block)
-    fun <T : Any> Pipeline<T, ApplicationCall>.executeBlocking(subject: T) = runBlocking { execute(call, subject) }
+    val phase = PipelinePhase("Phase")
+    fun pipeline(): Pipeline<String, Unit> = Pipeline(phase)
+    fun Pipeline<String, Unit>.intercept(block: PipelineInterceptor<String, Unit>) = intercept(phase, block)
+    fun <T : Any> Pipeline<T, Unit>.executeBlocking(subject: T) = runBlocking { execute(Unit, subject) }
 
     @Test
     fun emptyPipeline() {
@@ -105,12 +100,12 @@ class PipelineTest {
                         events.add("intercept-p3-2 $nested2")
                         proceed()
                     }
-                    p3.execute(call, "p3")
+                    p3.execute(Unit, "p3")
                     proceed()
                     events.add("success-p2-1 $nested")
                 }
 
-                p2.execute(call, "p2")
+                p2.execute(Unit, "p2")
                 proceed()
                 events.add("success-p1-1 $subject")
             } catch(t: Throwable) {
@@ -238,7 +233,7 @@ class PipelineTest {
                 events.add("intercept3 $nested")
                 proceed()
             }
-            secondary.execute(call, "another")
+            secondary.execute(Unit, "another")
             proceed()
         }
 
@@ -268,7 +263,7 @@ class PipelineTest {
             events.add("intercept2 $subject")
             pipeline().apply {
                 intercept { nested -> events.add("intercept3 $nested") }
-            }.execute(call, "another")
+            }.execute(Unit, "another")
             proceed()
         }
 
@@ -305,7 +300,7 @@ class PipelineTest {
                     events.add("intercept3 $nested")
                     throw UnsupportedOperationException()
                 }
-            }.execute(call, "another")
+            }.execute(Unit, "another")
             proceed()
         }
 
@@ -360,7 +355,7 @@ class PipelineTest {
                     events.add("intercept2 $subject")
                 }
             }
-            secondary.execute(call, "another")
+            secondary.execute(Unit, "another")
             proceed()
         }
 
@@ -369,7 +364,7 @@ class PipelineTest {
         assertEquals(listOf("intercept1 some", "future1 some", "intercept2 another", "success1 some"), events)
     }
 
-    private fun checkBeforeAfterPipeline(after: PipelinePhase, before: PipelinePhase, pipeline: Pipeline<String, ApplicationCall>) {
+    private fun checkBeforeAfterPipeline(after: PipelinePhase, before: PipelinePhase, pipeline: Pipeline<String, Unit>) {
         var value = false
         pipeline.intercept(after) {
             value = true
@@ -387,7 +382,7 @@ class PipelineTest {
     fun phased() {
         val before = PipelinePhase("before")
         val after = PipelinePhase("after")
-        val pipeline = Pipeline<String, ApplicationCall>(before, after)
+        val pipeline = Pipeline<String, Unit>(before, after)
         checkBeforeAfterPipeline(after, before, pipeline)
     }
 
@@ -395,7 +390,7 @@ class PipelineTest {
     fun phasedNotRegistered() {
         val before = PipelinePhase("before")
         val after = PipelinePhase("after")
-        val pipeline = Pipeline<String, ApplicationCall>(before)
+        val pipeline = Pipeline<String, Unit>(before)
         assertFailsWith<InvalidPhaseException> {
             pipeline.intercept(after) {}
         }
@@ -403,7 +398,7 @@ class PipelineTest {
 
     @Test
     fun phasedBefore() {
-        val pipeline = Pipeline<String, ApplicationCall>()
+        val pipeline = Pipeline<String, Unit>()
         val before = PipelinePhase("before")
         val after = PipelinePhase("after")
         pipeline.addPhase(after)
@@ -413,7 +408,7 @@ class PipelineTest {
 
     @Test
     fun phasedAfter() {
-        val pipeline = Pipeline<String, ApplicationCall>()
+        val pipeline = Pipeline<String, Unit>()
         val before = PipelinePhase("before")
         val after = PipelinePhase("after")
         pipeline.addPhase(before)

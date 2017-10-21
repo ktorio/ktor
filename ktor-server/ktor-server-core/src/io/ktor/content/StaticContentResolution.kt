@@ -25,7 +25,7 @@ fun ApplicationCall.resolveResource(path: String, resourcePackage: String? = nul
             val file = File(decodeURLPart(url.path))
             return if (file.exists()) LocalFileContent(file, mimeResolve(file.extension)) else null
         } else if (url.protocol == "jar") {
-            val zipFile = findContainingZipFile(url.toString())
+            val zipFile = findContainingJarFile(url.toString())
             return JarFileContent(zipFile, normalizedResource, classLoader, mimeResolve(url.path.extension()))
         }
     }
@@ -33,8 +33,7 @@ fun ApplicationCall.resolveResource(path: String, resourcePackage: String? = nul
     return null
 }
 
-
-internal fun findContainingZipFile(url: String): File {
+internal fun findContainingJarFile(url: String): File {
     if (url.startsWith("jar:file:")) {
         val jarPathSeparator = url.indexOf("!", startIndex = 9)
         require(jarPathSeparator != -1) { "Jar path requires !/ separator but it is: $url" }
