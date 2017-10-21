@@ -2,7 +2,7 @@ package io.ktor.server.benchmarks
 
 import io.ktor.application.*
 import io.ktor.pipeline.*
-import io.ktor.testing.*
+import io.ktor.server.testing.*
 import io.ktor.util.*
 import org.openjdk.jmh.annotations.*
 

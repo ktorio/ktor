@@ -3,10 +3,9 @@ package io.ktor.tests.auth
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.testing.*
+import io.ktor.server.testing.*
 import io.ktor.util.*
 import org.junit.*
 import kotlin.test.*

@@ -7,8 +7,6 @@ import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
-import kotlin.reflect.*
-import kotlin.reflect.full.*
 
 /**
  * https://tools.ietf.org/html/rfc7231#section-5.3

@@ -10,10 +10,10 @@ import io.ktor.client.tests.utils.*
 import io.ktor.client.utils.*
 import io.ktor.content.CacheControl
 import io.ktor.features.*
-import io.ktor.host.*
-import io.ktor.jetty.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.server.host.*
+import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
 import java.util.concurrent.atomic.*

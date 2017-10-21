@@ -1,7 +1,6 @@
 package io.ktor.sessions
 
 import io.ktor.application.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
 import kotlin.reflect.*

@@ -17,7 +17,7 @@ fun Route.upload(database: Database, uploadDir: File) {
         if (session == null) {
             call.respondRedirect(Login())
         } else {
-            call.respondDefaultHtml(emptyList(), CacheControlVisibility.PRIVATE) {
+            call.respondDefaultHtml(emptyList(), CacheControl.Visibility.Private) {
                 h2 { +"Upload video" }
 
                 form(call.url(Upload()), classes = "pure-form-stacked", encType = FormEncType.multipartFormData, method = FormMethod.post) {

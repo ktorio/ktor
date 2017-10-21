@@ -1,7 +1,7 @@
 package io.ktor.server.benchmarks
 
-import kotlinx.coroutines.experimental.*
 import io.ktor.cio.*
+import kotlinx.coroutines.experimental.*
 import org.openjdk.jmh.annotations.*
 import java.io.*
 import java.nio.*

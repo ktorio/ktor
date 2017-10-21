@@ -1,13 +1,13 @@
 package io.ktor.tests.websocket
 
-import kotlinx.coroutines.experimental.channels.*
 import io.ktor.application.*
-import io.ktor.host.*
 import io.ktor.http.*
 import io.ktor.routing.*
-import io.ktor.testing.*
+import io.ktor.server.host.*
+import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.experimental.channels.*
 import org.junit.*
 import org.junit.rules.*
 import java.io.*

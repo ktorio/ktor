@@ -1,6 +1,5 @@
 package io.ktor.tests.websocket
 
-import io.ktor.host.*
-import io.ktor.tomcat.*
+import io.ktor.server.tomcat.*
 
 class TomcatWebSocketTest : WebSocketHostSuite<TomcatApplicationHost, TomcatApplicationHost.Configuration>(Tomcat)

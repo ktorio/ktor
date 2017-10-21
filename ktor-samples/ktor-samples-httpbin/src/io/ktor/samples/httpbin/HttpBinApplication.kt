@@ -10,7 +10,6 @@ import io.ktor.features.*
 import io.ktor.gson.*
 import io.ktor.html.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -181,7 +180,7 @@ fun Application.main() {
 
         get("/cache/{n}") {
             val n = call.parameters["n"]!!.toInt()
-            val cache = CacheControl.MaxAge(maxAgeSeconds = n, visibility = CacheControlVisibility.PUBLIC)
+            val cache = CacheControl.MaxAge(maxAgeSeconds = n, visibility = CacheControl.Visibility.Public)
             call.response.cacheControl(cache)
             call.sendHttpBinResponse()
         }

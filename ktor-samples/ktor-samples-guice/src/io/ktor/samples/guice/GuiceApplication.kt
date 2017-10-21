@@ -3,12 +3,11 @@ package io.ktor.samples.guice
 import com.google.inject.*
 import com.google.inject.name.*
 import io.ktor.application.*
-import io.ktor.host.*
-import io.ktor.jetty.*
-import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.server.host.*
+import io.ktor.server.jetty.*
 import io.ktor.util.*
 
 fun Application.module() {

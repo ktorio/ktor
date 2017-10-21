@@ -1,9 +1,9 @@
 package io.ktor.samples.staticcontent
 
 import io.ktor.content.*
-import io.ktor.host.*
-import io.ktor.netty.*
 import io.ktor.routing.*
+import io.ktor.server.host.*
+import io.ktor.server.netty.*
 import java.io.*
 
 
@@ -21,7 +21,8 @@ fun main(args: Array<String>) {
             static("custom") {
                 staticRootFolder = File("/tmp") // Establishes a root folder
                 files("public") // For this to work, make sure you have /tmp/public on your system
-                static("themes") { // services /custom/themes
+                static("themes") {
+                    // services /custom/themes
                     files("data")
                 }
             }

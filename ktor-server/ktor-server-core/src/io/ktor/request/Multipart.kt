@@ -1,8 +1,8 @@
 package io.ktor.request
 
-import kotlinx.coroutines.experimental.*
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import java.io.*
 import kotlin.coroutines.experimental.*
 

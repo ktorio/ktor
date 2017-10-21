@@ -1,7 +1,7 @@
 package io.ktor.tests.hosts
 
 import com.typesafe.config.*
-import io.ktor.host.*
+import io.ktor.server.host.*
 import org.junit.*
 import org.junit.rules.*
 import org.junit.runner.*

@@ -11,6 +11,7 @@ include ':ktor-server:ktor-server-cio'
 include ':ktor-server:ktor-server-benchmarks'
 include ':ktor-server'
 include ':ktor-client'
+include ':ktor-client:ktor-client-core'
 include ':ktor-client:ktor-client-tests'
 include ':ktor-client:ktor-client-apache'
 include ':ktor-client:ktor-client-jvm'
@@ -61,6 +62,7 @@ project(':ktor-server:ktor-server-cio').projectDir = "$rootDir/ktor-server/ktor-
 project(':ktor-server:ktor-server-benchmarks').projectDir = "$rootDir/ktor-server/ktor-server-benchmarks" as File
 project(':ktor-server').projectDir = "$rootDir/ktor-server" as File
 project(':ktor-client').projectDir = "$rootDir/ktor-client" as File
+project(':ktor-client:ktor-client-core').projectDir = "$rootDir/ktor-client/ktor-client-core" as File
 project(':ktor-client:ktor-client-tests').projectDir = "$rootDir/ktor-client/ktor-client-tests" as File
 project(':ktor-client:ktor-client-apache').projectDir = "$rootDir/ktor-client/ktor-client-apache" as File
 project(':ktor-client:ktor-client-jvm').projectDir = "$rootDir/ktor-client/ktor-client-jvm" as File

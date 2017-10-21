@@ -4,7 +4,7 @@ import io.ktor.application.*
 import io.ktor.html.*
 import io.ktor.http.*
 import io.ktor.routing.*
-import io.ktor.testing.*
+import io.ktor.server.testing.*
 import kotlinx.html.*
 import org.junit.*
 import kotlin.test.*
@@ -104,7 +104,7 @@ class HtmlTemplateTest {
 </html>
 """, lines)
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
-            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.Companion.parse(contentTypeText))
+            assertEquals(ContentType.Text.Html.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
     }
 }

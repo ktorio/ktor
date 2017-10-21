@@ -6,7 +6,7 @@ import io.ktor.auth.ldap.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.testing.*
+import io.ktor.server.testing.*
 import org.apache.directory.api.ldap.util.*
 import org.apache.directory.server.annotations.*
 import org.apache.directory.server.core.integ.*

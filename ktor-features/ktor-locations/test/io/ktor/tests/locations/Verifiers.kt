@@ -1,7 +1,7 @@
 package io.ktor.tests.locations
 
 import io.ktor.http.*
-import io.ktor.testing.*
+import io.ktor.server.testing.*
 import kotlin.test.*
 
 fun TestApplicationHost.urlShouldBeHandled(url: String, content: String? = null) {

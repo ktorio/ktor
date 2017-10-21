@@ -3,8 +3,14 @@ package io.ktor.application
 import io.ktor.pipeline.*
 import io.ktor.util.*
 
+/**
+ * Defines an installable Application Feature
+ * @param TPipeline is the type of the pipeline this feature is compatible with
+ * @param TConfiguration is the type for the configuration object for this Feature
+ * @param TFeature is the type for the instance of the Feature object
+ */
 @Suppress("AddVarianceModifier")
-interface ApplicationFeature<in TPipeline : Pipeline<*, ApplicationCall>, out TBuilder : Any, TFeature : Any> {
+interface ApplicationFeature<in TPipeline : Pipeline<*, ApplicationCall>, out TConfiguration : Any, TFeature : Any> {
     /**
      * Unique key that identifies a feature
      */
@@ -13,7 +19,7 @@ interface ApplicationFeature<in TPipeline : Pipeline<*, ApplicationCall>, out TB
     /**
      * Feature installation script
      */
-    fun install(pipeline: TPipeline, configure: TBuilder.() -> Unit): TFeature
+    fun install(pipeline: TPipeline, configure: TConfiguration.() -> Unit): TFeature
 }
 
 private val featureRegistryKey = AttributeKey<Attributes>("ApplicationFeatureRegistry")
@@ -88,4 +94,7 @@ fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallFeature(key: Attribut
     registry.remove(key)
 }
 
+/**
+ * Thrown when Application Feature has been attempted to be installed with the same key as already installed Feature
+ */
 class DuplicateApplicationFeatureException(message: String) : Exception(message)

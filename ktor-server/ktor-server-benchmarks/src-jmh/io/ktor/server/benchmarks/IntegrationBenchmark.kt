@@ -3,13 +3,12 @@ package io.ktor.server.benchmarks
 import ch.qos.logback.classic.Level
 import io.ktor.application.*
 import io.ktor.content.*
-import io.ktor.host.*
 import io.ktor.http.*
-import io.ktor.jetty.*
-import io.ktor.netty.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import io.ktor.server.host.*
+import io.ktor.server.jetty.*
+import io.ktor.server.netty.*
 import org.openjdk.jmh.annotations.*
 import org.slf4j.*
 import org.slf4j.Logger

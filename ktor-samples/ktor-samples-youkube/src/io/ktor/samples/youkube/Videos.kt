@@ -15,7 +15,7 @@ fun Route.videos(database: Database) {
         val session = call.sessions.get<YouKubeSession>()
         val topVideos = database.top()
         val etag = topVideos.joinToString { "${it.id},${it.title}" }.hashCode().toString() + "-" + session?.userId?.hashCode()
-        val visibility = if (session == null) CacheControlVisibility.PUBLIC else CacheControlVisibility.PRIVATE
+        val visibility = if (session == null) CacheControl.Visibility.Public else CacheControl.Visibility.Private
 
         call.respondDefaultHtml(listOf(EntityTagVersion(etag)), visibility) {
             div("posts") {
@@ -55,7 +55,7 @@ fun Route.videos(database: Database) {
         if (video == null) {
             call.respond(HttpStatusCode.NotFound.description("Video ${it.id} doesn't exist"))
         } else {
-            call.respondDefaultHtml(listOf(EntityTagVersion(video.hashCode().toString())), CacheControlVisibility.PUBLIC) {
+            call.respondDefaultHtml(listOf(EntityTagVersion(video.hashCode().toString())), CacheControl.Visibility.Public) {
 
                 section("post") {
                     header("post-header") {

@@ -26,6 +26,7 @@ fun ApplicationRequest.userAgent(): String? = header(HttpHeaders.UserAgent)
 fun ApplicationRequest.cacheControl(): String? = header(HttpHeaders.CacheControl)
 fun ApplicationRequest.host(): String? = header(HttpHeaders.Host)?.substringBefore(':')
 fun ApplicationRequest.port(): Int = header(HttpHeaders.Host)?.substringAfter(':', "80")?.toInt() ?: 80
+fun ApplicationRequest.ranges() = header(HttpHeaders.Range)?.let { rangesSpec -> parseRangesSpecifier(rangesSpec) }
 
 val ApplicationRequest.uri: String get() = origin.uri
 
