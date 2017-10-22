@@ -14,6 +14,17 @@ import io.ktor.util.*
  *    install(ContentNegotiation) {
  *       register(ContentType.Application.Json, GsonConverter())
  *    }
+ *
+ *    to be able to modify the gsonBuilder (eg. using specific serializers and/or
+ *    configuration options, you could use the following (as seen in the ktor-samples):
+ *
+ *    install(ContentNegotiation) {
+ *        gson {
+ *            registerTypeAdapterFactory(GsonAdaptersMyDocument())
+ *            setDateFormat(DateFormat.LONG)
+ *            setPrettyPrinting()
+ *        }
+ *    }
  */
 @Deprecated("GsonSupport is deprecated in favor of generic ContentNegotiation Feature")
 class GsonSupport(val gson: Gson) {
@@ -60,4 +71,11 @@ class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         val type = request.type
         return gson.fromJson(value.readText(), type.javaObjectType)
     }
+}
+
+fun ContentNegotiation.Configuration.gson(block: GsonBuilder.() -> Unit) {
+    val builder = GsonBuilder()
+    builder.apply(block)
+    val converter = GsonConverter(builder.create())
+    register(ContentType.Application.Json, converter)
 }
