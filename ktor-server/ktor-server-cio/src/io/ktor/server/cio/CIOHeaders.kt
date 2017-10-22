@@ -12,7 +12,7 @@ class CIOHeaders(private val headers: HttpHeaders) : ValuesMap {
         }
     }
 
-    override val caseInsensitiveKey: Boolean get() = true
+    override val caseInsensitiveName: Boolean get() = true
 
     override fun names() = names
     override fun get(name: String): String? = headers.get(name)?.toString()

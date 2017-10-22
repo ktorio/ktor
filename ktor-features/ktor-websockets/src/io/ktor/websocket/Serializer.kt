@@ -59,7 +59,7 @@ internal class Serializer {
             buffer.putLong(f.buffer.remaining().toLong())
         }
 
-        maskBuffer?.duplicate()?.putTo(buffer)
+        maskBuffer?.duplicate()?.moveTo(buffer)
     }
 
     private fun estimateFrameHeaderSize(f: Frame, mask: Boolean): Int {
@@ -74,7 +74,7 @@ internal class Serializer {
 
     private fun writeCurrentPayload(buffer: ByteBuffer): Boolean {
         val frame = frameBody ?: return true
-        frame.putTo(buffer)
+        frame.moveTo(buffer)
         if (!frame.hasRemaining()) {
             frameBody = null
             return true

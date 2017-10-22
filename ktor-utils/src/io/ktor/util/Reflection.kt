@@ -2,6 +2,9 @@ package io.ktor.util
 
 import java.util.*
 
+/**
+ * Calculates a list of all superclasses for the given class
+ */
 fun Class<*>.findAllSupertypes(): List<Class<*>> {
     val result = LinkedHashSet<Class<*>>()
     findAllSupertypes(mutableListOf(Pair(this, supertypes())), mutableSetOf(this), result)

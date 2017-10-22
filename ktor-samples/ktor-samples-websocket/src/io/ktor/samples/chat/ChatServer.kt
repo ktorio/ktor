@@ -70,7 +70,7 @@ class ChatServer {
     }
 
     suspend fun broadcast(message: String) {
-        broadcast(buildByteBuffer {
+        broadcast(ByteBufferBuilder.build {
             putString(message, Charsets.UTF_8)
         })
     }

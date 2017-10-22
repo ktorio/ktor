@@ -2,6 +2,9 @@ package io.ktor.util
 
 import io.ktor.org.apache.commons.collections4.map.*
 
+/**
+ * A map with case insensitive [String] keys
+ */
 class CaseInsensitiveMap<V>(initialCapacity: Int = 16) : AbstractLinkedMap<String, V>(Math.max(2, initialCapacity)), MutableMap<String, V> {
     override fun hash(key: Any?): Int {
         if (key == null) return 0

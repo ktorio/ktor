@@ -177,3 +177,5 @@ class PartialContentSupport(val maxRangeCount: Int) {
     private fun ApplicationCall.isGetOrHead() = isGet() || request.local.method == HttpMethod.Head
     private fun String.parseMatchTag() = split("\\s*,\\s*".toRegex()).map { it.removePrefix("W/") }.filter { it.isNotEmpty() }.toSet()
 }
+
+private fun List<LongRange>.isAscending(): Boolean = fold(true to 0L) { acc, e -> (acc.first && acc.second <= e.start) to e.start }.first

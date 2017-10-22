@@ -270,7 +270,7 @@ private class RequestResponse(override val connection: Http2Connection) : ReadCh
     private fun readImpl(framePair: Pair<ByteBuffer, Callback>, dst: ByteBuffer): Int {
         val buffer = framePair.first
 
-        val rc = buffer.putTo(dst)
+        val rc = buffer.moveTo(dst)
 
         if (buffer.hasRemaining()) {
             current = framePair

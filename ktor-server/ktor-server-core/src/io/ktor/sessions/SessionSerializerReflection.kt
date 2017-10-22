@@ -296,3 +296,8 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
                 }
             }
 }
+
+
+@Suppress("UNCHECKED_CAST")
+private fun <T : Any> Any.cast(type: KClass<T>) = if (type.java.isInstance(this)) this as T else throw ClassCastException("${this::class} couldn't be cast to $type")
+

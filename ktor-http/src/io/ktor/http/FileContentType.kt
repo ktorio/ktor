@@ -8,7 +8,7 @@ import java.nio.file.*
 fun ContentType.Companion.defaultForFileExtension(extension: String) = ContentType.fromFileExtension(extension).selectDefault()
 fun ContentType.Companion.defaultForFilePath(path: String) = ContentType.fromFilePath(path).selectDefault()
 fun ContentType.Companion.defaultForFile(file: File) = ContentType.fromFileExtension(file.extension).selectDefault()
-fun ContentType.Companion.defaultForFile(file: Path) = ContentType.fromFileExtension(file.extension()).selectDefault()
+fun ContentType.Companion.defaultForFile(file: Path) = ContentType.fromFileExtension(file.extension).selectDefault()
 
 fun ContentType.Companion.fromFilePath(path: String): List<ContentType> {
     val slashIndex = path.lastIndexOfAny("/\\".toCharArray())

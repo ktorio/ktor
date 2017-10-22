@@ -37,7 +37,7 @@ private class DeflaterReadChannel(val source: ReadChannel, val gzip: Boolean = t
         fillCompressedBufferIfPossible()
 
         if (compressed.buffer.hasRemaining()) {
-            return compressed.buffer.putTo(dst)
+            return compressed.buffer.moveTo(dst)
         }
 
         while (true) {
@@ -58,7 +58,7 @@ private class DeflaterReadChannel(val source: ReadChannel, val gzip: Boolean = t
                 deflater.deflate(compressed.buffer)
                 compressed.buffer.flip()
 
-                counter += compressed.buffer.putTo(dst)
+                counter += compressed.buffer.moveTo(dst)
             }
 
             if (counter > 0 || !dst.hasRemaining())
@@ -71,7 +71,7 @@ private class DeflaterReadChannel(val source: ReadChannel, val gzip: Boolean = t
             finish()
         }
 
-        val size = compressed.buffer.putTo(dst) + if (compressed.buffer.hasRemaining()) 0 else trailing.putTo(dst)
+        val size = compressed.buffer.moveTo(dst) + if (compressed.buffer.hasRemaining()) 0 else trailing.moveTo(dst)
         if (size == 0) {
             return -1
         } else {
@@ -101,7 +101,7 @@ private class DeflaterReadChannel(val source: ReadChannel, val gzip: Boolean = t
 
         if (deflater.finished()) {
             prepareTrailer()
-            trailing.putTo(compressed.buffer)
+            trailing.moveTo(compressed.buffer)
         }
 
         compressed.buffer.flip()

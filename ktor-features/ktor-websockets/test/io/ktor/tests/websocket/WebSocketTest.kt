@@ -56,7 +56,7 @@ class WebSocketTest {
                 }
                 webSocketRaw("/receiveSize") {
                     val frame = incoming.receive()
-                    val bytes = buildByteBuffer(ByteOrder.BIG_ENDIAN) { putInt(frame.buffer.remaining()) }
+                    val bytes = ByteBufferBuilder.build(ByteOrder.BIG_ENDIAN) { putInt(frame.buffer.remaining()) }
 
                     outgoing.send(Frame.Binary(true, bytes))
                     outgoing.send(Frame.Close())

@@ -116,3 +116,10 @@ sealed class HttpAuthHeader(val authScheme: String) {
         val OAuthCallbackConfirmed = "oauth_callback_confirmed"
     }
 }
+
+private fun String.substringAfterMatch(mr: MatchResult) = drop(mr.range.endInclusive + if (mr.range.isEmpty()) 0 else 1)
+private val escapeRegex = "\\\\.".toRegex()
+private fun String.unescapeIfQuoted() = when {
+    startsWith('"') && endsWith('"') -> removeSurrounding("\"").replace(escapeRegex) { it.value.takeLast(1) }
+    else -> this
+}

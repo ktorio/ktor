@@ -1,14 +1,14 @@
 package io.ktor.client.pipeline
 
 import io.ktor.pipeline.*
-import io.ktor.util.*
 
-
-inline fun <reified NewSubject : Any, Context : Any> Pipeline<*, Context>.intercept(
+inline fun <reified TSubject : Any, TContext : Any> Pipeline<*, TContext>.intercept(
         phase: PipelinePhase,
-        crossinline block: PipelineContext<NewSubject, Context>.(NewSubject) -> Unit) {
+        crossinline block: PipelineContext<TSubject, TContext>.(TSubject) -> Unit) {
+
     intercept(phase) interceptor@ { subject ->
-        subject as? NewSubject ?: return@interceptor
-        safeAs<PipelineContext<NewSubject, Context>>()?.block(subject)
+        subject as? TSubject ?: return@interceptor
+        val reinterpret = this as? PipelineContext<TSubject, TContext>
+        reinterpret?.block(subject)
     }
 }

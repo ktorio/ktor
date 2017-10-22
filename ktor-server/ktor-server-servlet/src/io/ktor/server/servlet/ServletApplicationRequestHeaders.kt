@@ -51,6 +51,6 @@ class ServletApplicationRequestHeaders(val servletRequest: HttpServletRequest) :
     }
 
     override fun isEmpty(): Boolean = !servletRequest.headerNames.hasMoreElements()
-    override val caseInsensitiveKey: Boolean get() = true
+    override val caseInsensitiveName: Boolean get() = true
     override fun names(): Set<String> = servletRequest.headerNames.asSequence().toSet()
 }

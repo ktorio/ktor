@@ -33,7 +33,7 @@ class ByteBufferReadChannel(val source: ByteBuffer, val maxReadSize: Int = Int.M
             return -1
         }
 
-        return source.putTo(dst, maxReadSize)
+        return source.moveTo(dst, maxReadSize)
     }
 
     override fun close() {}

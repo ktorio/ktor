@@ -3,7 +3,12 @@ package io.ktor.util
 import java.io.*
 import java.nio.file.*
 
-fun Path.extension() = fileName.toString().substringAfter(".")
+/**
+ * Finds an extension of the given Path
+ *
+ * Extension is a substring of a [Path.fileName] after last dot
+ */
+val Path.extension get() = fileName.toString().substringAfterLast(".")
 
 fun File.combineSafe(relativePath: String): File = combineSafe(Paths.get(relativePath))
 

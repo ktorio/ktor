@@ -2,6 +2,8 @@ package io.ktor.application
 
 /**
  * Represents configured and running web application, capable of handling requests
+ *
+ * @param environment Instance of [ApplicationEnvironment] describing environment this application runs in
  */
 class Application(val environment: ApplicationEnvironment) : ApplicationCallPipeline() {
     /**

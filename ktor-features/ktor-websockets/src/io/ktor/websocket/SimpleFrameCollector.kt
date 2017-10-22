@@ -24,7 +24,7 @@ internal class SimpleFrameCollector {
     }
 
     fun handle(bb: ByteBuffer) {
-        remaining -= bb.putTo(buffer!!, remaining)
+        remaining -= bb.moveTo(buffer!!, remaining)
     }
 
     fun take(maskKey: Int?) = buffer!!.run {

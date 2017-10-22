@@ -4,11 +4,10 @@ import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.jackson.*
-import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.testing.*
+import io.ktor.server.testing.*
 import org.junit.*
 import kotlin.test.*
 
@@ -47,7 +46,7 @@ class JacksonTest {
         }.response.let { response ->
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
-            assertEquals(listOf("""id=1.0, title=Hello, World!"""), response.content!!.lines())
+            assertEquals(listOf("""id=1, title=Hello, World!"""), response.content!!.lines())
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }

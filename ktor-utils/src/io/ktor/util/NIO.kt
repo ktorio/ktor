@@ -4,58 +4,113 @@ import io.ktor.cio.*
 import java.nio.*
 import java.nio.charset.*
 
-fun ByteBuffer.putTo(other: ByteBuffer, limit: Int = Int.MAX_VALUE): Int {
-    val size = minOf(limit, remaining(), other.remaining())
+/**
+ * Moves bytes from `this` buffer to the [destination] buffer
+ *
+ * @param destination is the buffer to copy bytes to
+ * @param limit is an optional parameter specifying maximum number of bytes to be moved
+ * @return number of bytes moved
+ */
+fun ByteBuffer.moveTo(destination: ByteBuffer, limit: Int = Int.MAX_VALUE): Int {
+    val size = minOf(limit, remaining(), destination.remaining())
     for (i in 1..size) {
-        other.put(get())
+        destination.put(get())
     }
     return size
 }
 
-fun ByteBuffer.getString(charset: Charset = Charsets.UTF_8) = charset.decode(this).toString()
+/**
+ * Moves bytes from `this` buffer into newly created [ByteArray] and returns it
+ */
+fun ByteBuffer.moveToByteArray(): ByteArray {
+    val array = ByteArray(remaining())
+    get(array)
+    return array
+}
 
-fun ByteBuffer.copy(newSize: Int = remaining()): ByteBuffer = ByteBuffer.allocate(newSize).apply { this@copy.slice().putTo(this@apply); clear() }
+/**
+ * Decodes a string from `this` buffer with the specified [charset]
+ */
+fun ByteBuffer.decodeString(charset: Charset = Charsets.UTF_8): String {
+    return charset.decode(this).toString()
+}
 
-fun ByteBuffer.copy(pool: ByteBufferPool, newSize: Int = remaining()): PoolTicket = pool.allocate(newSize).apply { buffer.clear(); this@copy.slice().putTo(buffer); flip() }
+/**
+ * Moves all bytes in `this` buffer to a newly created buffer with the optionally specified [size]
+ */
+fun ByteBuffer.copy(size: Int = remaining()): ByteBuffer {
+    return ByteBuffer.allocate(size).apply {
+        this@copy.slice().moveTo(this@apply)
+        clear()
+    }
+}
 
-fun buildByteBuffer(order: ByteOrder = ByteOrder.BIG_ENDIAN, block: ByteBufferBuilder.() -> Unit) = ByteBufferBuilder(order).apply { block() }.build()
+/**
+ * Moves all bytes in `this` buffer to a newly created buffer with the optionally specified [size] by allocating it from the given [pool]
+ */
+fun ByteBuffer.copy(pool: ByteBufferPool, size: Int = remaining()): PoolTicket {
+    return pool.allocate(size).apply {
+        buffer.clear()
+        this@copy.slice().moveTo(buffer)
+        flip()
+    }
+}
 
+/**
+ * Helper class for building [ByteBuffer] with the specific content
+ */
 class ByteBufferBuilder(order: ByteOrder = ByteOrder.BIG_ENDIAN) {
-    private var bb: ByteBuffer = ByteBuffer.allocate(16)
-
-    init {
-        bb.order(order)
+    companion object {
+        inline fun build(order: ByteOrder = ByteOrder.BIG_ENDIAN, block: ByteBufferBuilder.() -> Unit): ByteBuffer {
+            return ByteBufferBuilder(order).apply(block).build()
+        }
     }
 
-    fun put(bb: ByteBuffer) {
-        ensureBufferSize(bb.remaining())
+    private var buffer: ByteBuffer = ByteBuffer.allocate(16).also { it.order(order) }
 
-        this.bb.put(bb)
+    /**
+     * Puts bytes from [other] [ByteBuffer] into this builder
+     */
+    fun put(other: ByteBuffer) {
+        ensureBufferSize(other.remaining())
+
+        buffer.put(other)
     }
 
-    fun put(b: Byte) {
+    /**
+     * Puts [byte] value into this builder
+     */
+    fun put(byte: Byte) {
         ensureBufferSize(1)
-
-        bb.put(b)
+        buffer.put(byte)
     }
 
-    fun putShort(s: Short) {
+    /**
+     * Puts [short] value into this builder
+     */
+    fun putShort(short: Short) {
         ensureBufferSize(2)
-        bb.putShort(s)
+        buffer.putShort(short)
     }
 
-    fun putInt(i: Int) {
+    /**
+     * Puts [integer] value into this builder
+     */
+    fun putInt(integer: Int) {
         ensureBufferSize(4)
-        bb.putInt(i)
+        buffer.putInt(integer)
     }
 
-    fun putString(s: String, charset: Charset) {
-        val cb = CharBuffer.wrap(s)
+    /**
+     * Puts [String] value into this builder using specified [charset]
+     */
+    fun putString(string: String, charset: Charset) {
+        val cb = CharBuffer.wrap(string)
         val encoder = charset.newEncoder()
 
         while (cb.hasRemaining()) {
             ensureBufferSize(cb.remaining())
-            val result = encoder.encode(cb, bb, false)
+            val result = encoder.encode(cb, buffer, false)
 
             when {
                 result.isError -> result.throwException()
@@ -63,8 +118,8 @@ class ByteBufferBuilder(order: ByteOrder = ByteOrder.BIG_ENDIAN) {
             }
         }
 
-        finish@do {
-            val result = encoder.encode(cb, bb, true)
+        finish@ do {
+            val result = encoder.encode(cb, buffer, true)
 
             when {
                 result.isError -> result.throwException()
@@ -74,12 +129,19 @@ class ByteBufferBuilder(order: ByteOrder = ByteOrder.BIG_ENDIAN) {
         } while (true)
     }
 
-    fun build() = bb.duplicate().let { src -> src.flip(); src.copy(bb.position()) }
+    /**
+     * Builds a [ByteBuffer] from the accumulated data
+     */
+    fun build(): ByteBuffer {
+        val src = buffer.duplicate()
+        src.flip()
+        return src.copy(buffer.position())
+    }
 
     private fun ensureBufferSize(size: Int) {
-        if (bb.remaining() < size) {
-            val used = bb.position()
-            var newSize = bb.capacity()
+        if (buffer.remaining() < size) {
+            val used = buffer.position()
+            var newSize = buffer.capacity()
 
             while (newSize != Int.MAX_VALUE && newSize - used < size) {
                 newSize = newSize shl 1
@@ -90,17 +152,12 @@ class ByteBufferBuilder(order: ByteOrder = ByteOrder.BIG_ENDIAN) {
     }
 
     private fun grow(newSize: Int) {
-        if (newSize != bb.capacity()) {
-            val oldPosition = bb.position()
-            bb.flip()
-            bb = bb.copy(newSize)
-            bb.position(oldPosition)
+        if (newSize != buffer.capacity()) {
+            val oldPosition = buffer.position()
+            buffer.flip()
+            buffer = buffer.copy(newSize)
+            buffer.position(oldPosition)
         }
     }
 }
 
-fun ByteBuffer.getAll(): ByteArray {
-    val array = ByteArray(remaining())
-    get(array)
-    return array
-}

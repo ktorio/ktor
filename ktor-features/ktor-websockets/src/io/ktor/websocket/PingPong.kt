@@ -50,7 +50,7 @@ fun pinger(ctx: CoroutineContext, ws: WebSocketSession, period: Duration, timeou
                     // wait for valid pong message
                     while (true) {
                         val msg = receive()
-                        if (msg.buffer.getString(Charsets.ISO_8859_1) == pingMessage) break
+                        if (msg.buffer.decodeString(Charsets.ISO_8859_1) == pingMessage) break
                     }
                 }
 

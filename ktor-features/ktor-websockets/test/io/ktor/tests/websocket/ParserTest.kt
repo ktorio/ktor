@@ -19,7 +19,7 @@ class ParserTest {
         assertEquals(5, parser.length)
         assertTrue { parser.bodyReady }
 
-        assertEquals("Hello", buffer.getString())
+        assertEquals("Hello", buffer.decodeString())
     }
 
     @Test

@@ -25,6 +25,6 @@ class NettyApplicationRequestHeaders(request: HttpRequest) : ValuesMap {
     }
 
     override fun isEmpty(): Boolean = headers.isEmpty
-    override val caseInsensitiveKey: Boolean get() = true
+    override val caseInsensitiveName: Boolean get() = true
     override fun names(): Set<String> = headers.names()
 }

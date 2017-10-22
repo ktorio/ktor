@@ -29,7 +29,7 @@ sealed class Frame(val fin: Boolean, val frameType: FrameType, val buffer: ByteB
     }
 
     class Close(buffer: ByteBuffer) : Frame(true, FrameType.CLOSE, buffer) {
-        constructor(reason: CloseReason) : this(buildByteBuffer() {
+        constructor(reason: CloseReason) : this(ByteBufferBuilder.build {
             putShort(reason.code)
             putString(reason.message, Charsets.UTF_8)
         })
@@ -41,7 +41,7 @@ sealed class Frame(val fin: Boolean, val frameType: FrameType, val buffer: ByteB
     }
 
     override fun toString() = "Frame $frameType (fin=$fin, buffer len = $initialSize)"
-    fun copy() = byType(fin, frameType, ByteBuffer.allocate(buffer.remaining()).apply { buffer.slice().putTo(this); clear() })
+    fun copy() = byType(fin, frameType, ByteBuffer.allocate(buffer.remaining()).apply { buffer.slice().moveTo(this); clear() })
 
     companion object {
         private val Empty = ByteBuffer.allocate(0)
@@ -68,7 +68,7 @@ fun Frame.Close.readReason(): CloseReason? {
 
     buffer.mark()
     val code = buffer.getShort()
-    val message = buffer.getString(Charsets.UTF_8)
+    val message = buffer.decodeString(Charsets.UTF_8)
 
     buffer.reset()
 

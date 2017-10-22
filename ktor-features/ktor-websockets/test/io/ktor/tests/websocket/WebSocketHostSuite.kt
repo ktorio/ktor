@@ -261,7 +261,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost, TConfiguration : Appl
                 for (i in 1..count) {
                     val f = readFrame()
                     assertEquals(FrameType.TEXT, f.frameType)
-                    assertEquals(template.substring(0, i), f.buffer.getString(Charsets.ISO_8859_1))
+                    assertEquals(template.substring(0, i), f.buffer.decodeString(Charsets.ISO_8859_1))
                 }
             }
 
@@ -447,7 +447,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost, TConfiguration : Appl
                     close()
                     break@loop
                 }
-                else -> fail("Unexpected frame $frame: \n${hex(frame.buffer.getAll())}")
+                else -> fail("Unexpected frame $frame: \n${hex(frame.buffer.moveToByteArray())}")
             }
         }
     }

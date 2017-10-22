@@ -1,36 +1,32 @@
 package io.ktor.util
 
-fun String.substringAfterMatch(mr: MatchResult) = drop(mr.range.endInclusive + if (mr.range.isEmpty()) 0 else 1)
-
-private val escapeRegex = "\\\\.".toRegex()
-fun String.unescapeIfQuoted() = when {
-    startsWith('"') && endsWith('"') -> removeSurrounding("\"").replace(escapeRegex) { it.value.takeLast(1) }
-    else -> this
-}
-
+/**
+ * Escapes the characters in a String using HTML entities
+ */
 fun String.escapeHTML(): String {
-    if (isEmpty()) {
-        return this
-    }
+    val text = this@escapeHTML
+    if (text.isEmpty()) return text
 
-    val sb = StringBuilder(length)
-
-    for (idx in 0 .. length - 1) {
-        val ch = this[idx]
-
-        when (ch) {
-            '\'' -> sb.append("&apos;")
-            '\"' -> sb.append("&quot")
-            '&' -> sb.append("&amp;")
-            '<' -> sb.append("&lt;")
-            '>' -> sb.append("&gt;")
-            else -> sb.append(ch)
+    return buildString(length) {
+        for (idx in 0 until text.length) {
+            val ch = text[idx]
+            when (ch) {
+                '\'' -> append("&apos;")
+                '\"' -> append("&quot")
+                '&' -> append("&amp;")
+                '<' -> append("&lt;")
+                '>' -> append("&gt;")
+                else -> append(ch)
+            }
         }
     }
-
-    return sb.toString()
 }
 
+/**
+ * Splits the given string into two parts before and after separator.
+ *
+ * Useful together with destructuring declarations
+ */
 inline fun String.chomp(separator: String, onMissingDelimiter: () -> Pair<String, String>): Pair<String, String> {
     val idx = indexOf(separator)
     return when (idx) {
