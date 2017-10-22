@@ -1,10 +1,9 @@
-package io.ktor.samples.json
+package io.ktor.samples.gson
 
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.gson.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
@@ -12,10 +11,10 @@ data class Model(val name: String, val items: List<Item>)
 data class Item(val key: String, val value: String)
 
 /*
-         > curl -v --compress --header "Accept: application/json" http://localhost:8080/v1
+         > curl -v --compress --header "Accept: application/gson" http://localhost:8080/v1
          {"name":"root","items":[{"key":"A","value":"Apache"},{"key":"B","value":"Bing"}]}
 
-         > curl -v --compress --header "Accept: application/json" http://localhost:8080/v1/item/A
+         > curl -v --compress --header "Accept: application/gson" http://localhost:8080/v1/item/A
          {"key":"A","value":"Apache"}
      */
 
