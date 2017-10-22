@@ -19,6 +19,7 @@
         <module>ktor-html-builder</module>
         <module>ktor-auth</module>
         <module>ktor-auth-ldap</module>
+        <module>ktor-auth-jwt</module>
     </modules>
 
     <dependencies>
