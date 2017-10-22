@@ -63,9 +63,9 @@ embedded web server are of course possible, too.
 
 Please visit [ktor.io](http://ktor.io) for Quick Start and detailed explanations of features, usage and machinery.
 
-* Getting started with [Gradle](http://ktor.io/getting-started-gradle) 
-* Getting started with [Maven](http://ktor.io/getting-started-maven) 
-* Getting started with [IDEA](http://ktor.io/getting-started-idea) 
+* Getting started with [Gradle](http://ktor.io/quickstart/gradle.html) 
+* Getting started with [Maven](http://ktor.io/quickstart/maven.html) 
+* Getting started with [IDEA](http://ktor.io/quickstart/intellij-idea.html) 
 
 ## Inspirations
 
