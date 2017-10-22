@@ -44,7 +44,7 @@ subprojects {
         }
     }
 
-    mainClassName = "io.ktor.${host}.DevelopmentHost"
+    mainClassName = "io.ktor.server.${host}.DevelopmentHost"
 
     afterEvaluate {
         def bootClasspath = configurations.boot.files

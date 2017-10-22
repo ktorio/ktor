@@ -37,3 +37,10 @@ class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMap
         return objectmapper.readValue(value.readText(), type.javaObjectType)
     }
 }
+
+fun ContentNegotiation.Configuration.jackson(block: ObjectMapper.() -> Unit) {
+    val mapper = jacksonObjectMapper()
+    mapper.apply(block)
+    val converter = JacksonConverter(mapper)
+    register(ContentType.Application.Json, converter)
+}
