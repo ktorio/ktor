@@ -25,6 +25,8 @@ abstract class HostTestBase<THost : ApplicationHost, TConfiguration : Applicatio
     protected var port = findFreePort()
     protected var sslPort = findFreePort()
     protected var server: THost? = null
+    protected var callGroupSize = -1
+        private set
     protected val exceptions = ArrayList<Throwable>()
     protected var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
     protected var enableSsl: Boolean = System.getProperty("enable.ssl") != "false"
@@ -99,7 +101,10 @@ abstract class HostTestBase<THost : ApplicationHost, TConfiguration : Applicatio
 
             module(module)
         }
-        return embeddedServer(applicationHostFactory, environment)
+
+        return embeddedServer(applicationHostFactory, environment) {
+            this@HostTestBase.callGroupSize = callGroupSize
+        }
     }
 
     protected open fun features(application: Application, routingConfigurer: Routing.() -> Unit) {

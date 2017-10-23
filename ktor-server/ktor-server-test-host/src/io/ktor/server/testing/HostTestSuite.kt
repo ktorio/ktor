@@ -1055,7 +1055,7 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
         try {
             val q = LinkedBlockingQueue<String>()
 
-            val conns = (0..1000).map {
+            val conns = (0..callGroupSize * 10).map {
                 e.submit(Callable<String> {
                     try {
                         URL("http://localhost:$port/").openConnection().inputStream.bufferedReader().readLine().apply {
