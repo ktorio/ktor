@@ -10,16 +10,16 @@ enum class RangeUnits {
     val unitToken = name.toLowerCase()
 }
 
-interface ContentRange {
-    data class Bounded(val from: Long, val to: Long) : ContentRange {
+sealed class ContentRange {
+    data class Bounded(val from: Long, val to: Long) : ContentRange() {
         override fun toString() = "$from-$to"
     }
 
-    data class TailFrom(val from: Long) : ContentRange {
+    data class TailFrom(val from: Long) : ContentRange() {
         override fun toString() = "$from-"
     }
 
-    data class Suffix(val lastCount: Long) : ContentRange {
+    data class Suffix(val lastCount: Long) : ContentRange() {
         override fun toString() = "-$lastCount"
     }
 }
@@ -55,7 +55,6 @@ internal fun List<ContentRange>.toLongRanges(contentLength: Long) = map {
         is ContentRange.Bounded -> it.from..it.to.coerceAtMost(contentLength - 1)
         is ContentRange.TailFrom -> it.from until contentLength
         is ContentRange.Suffix -> (contentLength - it.lastCount).coerceAtLeast(0L) until contentLength
-        else -> throw NoWhenBranchMatchedException("Unsupported ContentRange type ${it.javaClass}: $it")
     }
 }.filterNot { it.isEmpty() }
 

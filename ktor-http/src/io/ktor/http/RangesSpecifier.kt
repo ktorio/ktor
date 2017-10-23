@@ -14,7 +14,6 @@ data class RangesSpecifier(val unit: String = RangeUnits.Bytes.unitToken, val ra
             is ContentRange.Bounded -> it.from < 0 || it.to < it.from
             is ContentRange.TailFrom -> it.from < 0
             is ContentRange.Suffix -> it.lastCount < 0
-            else -> true
         }
     }
 
