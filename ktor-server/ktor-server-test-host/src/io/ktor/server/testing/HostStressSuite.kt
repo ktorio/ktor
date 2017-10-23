@@ -199,7 +199,7 @@ abstract class HostStressSuite<THost : ApplicationHost, TConfiguration : Applica
         createAndStartServer {
             handle {
                 call.respond(object : FinalContent.ProtocolUpgrade() {
-                    suspend override fun upgrade(input: ReadChannel, output: WriteChannel, closeable: Closeable, hostContext: CoroutineContext, userAppContext: CoroutineContext): Closeable {
+                    suspend override fun upgrade(input: ReadChannel, output: WriteChannel, closeable: Closeable, hostContext: CoroutineContext, userAppContext: CoroutineContext) {
                         launch(hostContext) {
                             try {
                                 output.write(ByteBuffer.wrap(endMarkerCrLfBytes))
@@ -210,10 +210,6 @@ abstract class HostStressSuite<THost : ApplicationHost, TConfiguration : Applica
                                 input.close()
                                 closeable.close()
                             }
-                        }
-
-                        return Closeable {
-                            closeable.close()
                         }
                     }
                 })

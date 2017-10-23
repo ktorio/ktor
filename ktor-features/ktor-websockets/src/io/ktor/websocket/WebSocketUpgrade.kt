@@ -28,7 +28,7 @@ class WebSocketUpgrade(val call: ApplicationCall, val protocol: String? = null, 
             // TODO extensions
         }
 
-    override suspend fun upgrade(input: ReadChannel, output: WriteChannel, closeable: Closeable, hostContext: CoroutineContext, userAppContext: CoroutineContext): Closeable {
+    override suspend fun upgrade(input: ReadChannel, output: WriteChannel, closeable: Closeable, hostContext: CoroutineContext, userAppContext: CoroutineContext) {
         val webSockets = call.application.feature(WebSockets)
         val webSocket = RawWebSocketImpl(call, input, output, closeable, NoPool, hostContext, userAppContext)
 
@@ -36,12 +36,6 @@ class WebSocketUpgrade(val call: ApplicationCall, val protocol: String? = null, 
         webSocket.masking = webSockets.masking
 
         webSocket.start(handle)
-
-        return Closeable {
-            runBlocking {
-                webSocket.terminate()
-            }
-        }
     }
 
     class Dispatchers(val hostContext: CoroutineContext, val userAppContext: CoroutineContext)

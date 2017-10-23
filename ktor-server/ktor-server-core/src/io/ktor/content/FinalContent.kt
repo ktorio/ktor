@@ -66,7 +66,9 @@ sealed class FinalContent {
          * Upgrades an HTTP connection
          * @param input is a [ReadChannel] for an upgraded connection
          * @param output is a [WriteChannel] for an upgraded connection
-         * @param closeable is a [Closeable] instance to call when upgraded connection terminates
+         * @param closeable is a [Closeable] instance to call when upgraded connection terminates.
+         * [closeable] is provided by particular host implementation and it is up to host what should be done
+         *  when this [closeable] is closed. For example for HTTP/1.x it may close socket connection.
          * @param hostContext is a [CoroutineContext] to execute non-blocking code, such as parsing or processing
          * @param userAppContext is a [CoroutineContext] to execute user-provided callbacks or code potentially blocking
          */
@@ -74,7 +76,7 @@ sealed class FinalContent {
                                      output: WriteChannel,
                                      closeable: Closeable,
                                      hostContext: CoroutineContext,
-                                     userAppContext: CoroutineContext): Closeable
+                                     userAppContext: CoroutineContext)
     }
 }
 
