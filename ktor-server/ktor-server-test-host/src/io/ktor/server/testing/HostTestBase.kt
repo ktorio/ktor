@@ -1,8 +1,12 @@
 package io.ktor.server.testing
 
 import io.ktor.application.*
-import io.ktor.client.http2.*
-import io.ktor.client.jvm.*
+import io.ktor.client.*
+import io.ktor.client.backend.apache.*
+import io.ktor.client.backend.jetty.*
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.client.response.*
 import io.ktor.features.*
 import io.ktor.routing.*
 import io.ktor.server.host.*
@@ -169,7 +173,7 @@ abstract class HostTestBase<THost : ApplicationHost, TConfiguration : Applicatio
     }
 
     protected fun findFreePort() = ServerSocket(0).use { it.localPort }
-    protected fun withUrl(path: String, builder: RequestBuilder.() -> Unit = {}, block: suspend HttpResponse.(Int) -> Unit) {
+    protected fun withUrl(path: String, builder: HttpRequestBuilder.() -> Unit = {}, block: suspend HttpResponse.(Int) -> Unit) {
         withUrl(URL("http://127.0.0.1:$port$path"), port, builder, block)
 
         if (enableSsl) {
@@ -190,11 +194,11 @@ abstract class HostTestBase<THost : ApplicationHost, TConfiguration : Applicatio
         }
     }
 
-    private fun withUrl(url: URL, port: Int, builder: RequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit) {
+    private fun withUrl(url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit) {
         runBlocking {
             withTimeout(timeout.seconds, TimeUnit.SECONDS) {
-                DefaultHttpClient.request(url, {
-                    this.sslSocketFactory = Companion.sslSocketFactory
+                HttpClient(ApacheBackend).call(url, {
+                    this.sslContext = Companion.sslContext
                     builder()
                 }).use { response ->
                     block(response, port)
@@ -203,10 +207,10 @@ abstract class HostTestBase<THost : ApplicationHost, TConfiguration : Applicatio
         }
     }
 
-    private fun withHttp2(url: URL, port: Int, builder: RequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit) {
+    private fun withHttp2(url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit) {
         runBlocking {
             withTimeout(timeout.seconds, TimeUnit.SECONDS) {
-                Http2Client.request(url, builder).use { response ->
+                HttpClient(JettyHttp2Backend).call(url, builder).use { response ->
                     block(response, port)
                 }
             }
@@ -218,7 +222,7 @@ abstract class HostTestBase<THost : ApplicationHost, TConfiguration : Applicatio
     companion object {
         val keyStoreFile = File("build/temp.jks")
         lateinit var keyStore: KeyStore
-        lateinit var sslSocketFactory: SSLSocketFactory
+        lateinit var sslContext: SSLContext
 
         @BeforeClass
         @JvmStatic
@@ -226,9 +230,8 @@ abstract class HostTestBase<THost : ApplicationHost, TConfiguration : Applicatio
             keyStore = generateCertificate(keyStoreFile)
             val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm())
             tmf.init(keyStore)
-            val ctx = SSLContext.getInstance("TLS")
-            ctx.init(null, tmf.trustManagers, null)
-            sslSocketFactory = ctx.socketFactory
+            sslContext = SSLContext.getInstance("TLS")
+            sslContext.init(null, tmf.trustManagers, null)
         }
 
         private suspend fun CoroutineScope.waitForPort(port: Int) {

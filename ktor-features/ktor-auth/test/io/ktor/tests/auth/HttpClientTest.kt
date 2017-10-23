@@ -62,7 +62,7 @@ class HttpClientTest {
             method = HttpMethod.Post
             url.path = "/url"
             header("header", "value")
-            payload = OutputStreamBody { out ->
+            body = OutputStreamBody { out ->
                 out.writer().use { w ->
                     w.write("request-body")
                 }
@@ -70,9 +70,9 @@ class HttpClientTest {
         }
 
         try {
-            assertEquals(HttpStatusCode.OK, response.statusCode)
+            assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("test", response.headers[HttpHeaders.Server])
-            assertEquals("ok", response.receiveText())
+            assertEquals("ok", response.readText())
 
             val receivedHeaders = headersSync.take()
             assertEquals("value", receivedHeaders["header"])

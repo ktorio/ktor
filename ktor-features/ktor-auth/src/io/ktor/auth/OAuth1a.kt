@@ -76,10 +76,10 @@ private suspend fun simpleOAuth1aStep1(client: HttpClient, secretKey: String, ba
         header(HttpHeaders.Accept, ContentType.Any.toString())
     }
 
-    val body = response.receiveText()
+    val body = response.readText()
 
     try {
-        if (response.statusCode != HttpStatusCode.OK) {
+        if (response.status != HttpStatusCode.OK) {
             throw IOException("Bad response: $response")
         }
 
@@ -131,14 +131,14 @@ private suspend fun simpleOAuth1aStep2(client: HttpClient, secretKey: String, ba
         header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
         header(HttpHeaders.Accept, "*/*")
 
-        payload = OutputStreamBody {
+        body = OutputStreamBody {
             it.writer().use { writer ->
                 params.formUrlEncodeTo(writer)
             }
         }
     }
 
-    val body = response.receiveText()
+    val body = response.readText()
     try {
         val parameters = body.parseUrlEncodedParameters()
         return OAuthAccessTokenResponse.OAuth1a(

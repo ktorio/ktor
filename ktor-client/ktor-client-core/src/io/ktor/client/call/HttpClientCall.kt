@@ -20,7 +20,7 @@ class HttpClientCall(
         val subject = HttpResponseContainer(expectedType, request, HttpResponseBuilder(response))
         val container = scope.responsePipeline.execute(scope, subject)
 
-        assert(container.response.payload::class === expectedType || HttpResponse::class === expectedType)
+        assert(container.response.body::class === expectedType || HttpResponse::class === expectedType)
         return container
     }
 }
@@ -50,7 +50,7 @@ suspend inline fun <reified T> HttpResponse.receive(): T {
     if (T::class == HttpResponse::class) return this as T
 
     val container = call.receive(T::class)
-    return container.response.payload as? T
-            ?: error("Actual type: ${container.response.payload::class}, expected: ${T::class}")
+    return container.response.body as? T
+            ?: error("Actual type: ${container.response.body::class}, expected: ${T::class}")
 }
 

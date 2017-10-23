@@ -10,6 +10,6 @@ fun ValuesMapBuilder.appendAll(valuesMap: ValuesMapBuilder): ValuesMapBuilder = 
 }
 
 fun valuesMapBuilderOf(builder: ValuesMapBuilder): ValuesMapBuilder =
-        ValuesMapBuilder().appendAll(builder)
+        ValuesMapBuilder(builder.caseInsensitiveKey).appendAll(builder)
 
 fun valuesOf(builder: ValuesMapBuilder): ValuesMap = valuesMapBuilderOf(builder).build()

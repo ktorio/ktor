@@ -2,7 +2,9 @@ package io.ktor.server.testing
 
 import io.ktor.application.*
 import io.ktor.cio.*
-import io.ktor.client.jvm.*
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.content.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -54,7 +56,7 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
             val parsedContentType = ContentType.parse(contentType!!) // It should parse
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), parsedContentType)
 
-            if (version == "HTTP/2") {
+            if (version == HttpProtocolVersion.HTTP_2_0) {
                 assertEquals(mapOf(
                         "content-length" to listOf("4")), fields.build().toMap())
             } else {
@@ -143,7 +145,7 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
         withUrl("/", {
             method = HttpMethod.Post
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-            body = {
+            body = OutputStreamBody {
                 it.bufferedWriter().use {
                     valuesOf("a" to listOf("1")).formUrlEncodeTo(it)
                 }
@@ -346,7 +348,7 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
             header(HttpHeaders.AcceptEncoding, "gzip")
         }) {
             assertEquals(200, status.value)
-            assertEquals(file.readText(), GZIPInputStream(channel.toInputStream()).reader().use { it.readText() })
+            assertEquals(file.readText(), GZIPInputStream(bodyStream).reader().use { it.readText() })
             assertEquals("gzip", headers[HttpHeaders.ContentEncoding])
         }
     }
@@ -502,7 +504,7 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
         withUrl("/?urlp=1", {
             method = HttpMethod.Post
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-            body = {
+            body = OutputStreamBody {
                 it.write("formp=2".toByteArray())
             }
         }) {
@@ -530,7 +532,7 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
         withUrl("/echo", {
             method = HttpMethod.Post
             header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-            body = {
+            body = OutputStreamBody {
                 it.bufferedWriter().use { out ->
                     out.append("POST test\n")
                     out.append("Another line")
@@ -556,7 +558,7 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
         withUrl("/", {
             method = HttpMethod.Post
             header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-            body = {
+            body = OutputStreamBody {
                 it.bufferedWriter().use {
                     it.append("POST content")
                 }
@@ -591,7 +593,7 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
             method = HttpMethod.Post
             header(HttpHeaders.ContentType, ContentType.MultiPart.FormData.withParameter("boundary", "***bbb***").toString())
 
-            body = {
+            body = OutputStreamBody {
                 it.bufferedWriter(Charsets.ISO_8859_1).use { out ->
                     out.apply {
                         append("--***bbb***\r\n")
@@ -720,7 +722,7 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
         withUrl("/", {
             method = HttpMethod.Post
             header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-            body = {
+            body = OutputStreamBody {
                 it.write("Hello".toByteArray())
             }
         }) {
@@ -756,7 +758,7 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
         withUrl("/", {
             method = HttpMethod.Post
             header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-            body = {
+            body = OutputStreamBody {
                 it.write("Hello".toByteArray())
             }
         }) {
@@ -965,7 +967,7 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
                 try {
                     withUrl("/$i") {
                         //setRequestProperty("Connection", "close")
-                        channel.toInputStream().reader().use { reader ->
+                        bodyStream.reader().use { reader ->
                             val firstByte = reader.read()
                             if (firstByte == -1) {
                                 //println("Premature end of response stream at iteration $i")
@@ -1023,7 +1025,7 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
         }
 
         withUrl("/file") {
-            assertEquals(originalSha1, channel.toInputStream().sha1())
+            assertEquals(originalSha1, bodyStream.sha1())
         }
     }
 

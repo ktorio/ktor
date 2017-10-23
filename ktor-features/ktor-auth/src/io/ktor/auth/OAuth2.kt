@@ -129,7 +129,7 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
 
         if (method == HttpMethod.Post) {
             contentType(ContentType.Application.FormUrlEncoded)
-            payload = OutputStreamBody {
+            body = OutputStreamBody {
                 it.writer().use { out ->
                     out.write(urlParameters)
                 }
@@ -137,10 +137,10 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
         }
     }
 
-    val body = response.receiveText()
+    val body = response.readText()
 
     val (contentType, content) = try {
-        if (response.statusCode == HttpStatusCode.NotFound) {
+        if (response.status == HttpStatusCode.NotFound) {
             throw IOException("Not found 404 for the page $baseUrl")
         }
         val contentType = response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ContentType.Any

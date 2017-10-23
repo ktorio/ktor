@@ -40,7 +40,7 @@ open class FullFormTests(factory: HttpClientBackendFactory) : TestWithKtor(facto
                     path = "hello"
                     method = HttpMethod.Get
                 }
-            }.receiveText()
+            }.readText()
 
             assert(text == "Hello, world")
         }

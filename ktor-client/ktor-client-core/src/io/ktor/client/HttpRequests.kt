@@ -21,20 +21,20 @@ suspend inline fun <reified T> HttpClient.get(builder: HttpRequestBuilder): T {
 suspend inline fun <reified T> HttpClient.get(
         scheme: String = "http", host: String = "localhost", port: Int = 80,
         path: String = "",
-        payload: Any = Unit,
+        body: Any = EmptyBody,
         block: HttpRequestBuilder.() -> Unit
 ): T = request {
     url(scheme, host, port, path)
     method = HttpMethod.Get
-    this.payload = payload
+    this.body = body
     apply(block)
 }
 
 suspend inline fun <reified T> HttpClient.get(
         scheme: String = "http", host: String = "localhost", port: Int = 80,
         path: String = "",
-        payload: Any = Unit
-): T = get(scheme, host, port, path, payload, {})
+        body: Any = EmptyBody
+): T = get(scheme, host, port, path, body, {})
 
 suspend inline fun <reified T> HttpClient.get(data: URL): T = get {
     url.takeFrom(data)
@@ -45,20 +45,20 @@ suspend inline fun <reified T> HttpClient.get(url: String): T = get(URL(decodeUR
 suspend inline fun <reified T> HttpClient.post(
         scheme: String = "http", host: String = "localhost", port: Int = 80,
         path: String = "",
-        payload: Any = Unit,
+        body: Any = EmptyBody,
         block: HttpRequestBuilder.() -> Unit
 ): T = request {
     url(scheme, host, port, path)
     method = HttpMethod.Post
-    this.payload = payload
+    this.body = body
     apply(block)
 }
 
 suspend inline fun <reified T> HttpClient.post(
         scheme: String = "http", host: String = "localhost", port: Int = 80,
         path: String = "",
-        payload: Any = Unit
-): T = post(scheme, host, port, path, payload, {})
+        body: Any = EmptyBody
+): T = post(scheme, host, port, path, body, {})
 
 suspend inline fun <reified T> HttpClient.post(data: URL): T = post {
     url.takeFrom(data)

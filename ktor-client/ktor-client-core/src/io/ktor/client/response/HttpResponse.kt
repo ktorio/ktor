@@ -8,11 +8,10 @@ import java.util.*
 
 
 class HttpResponse(
-        val statusCode: HttpStatusCode,
-        val reason: String, // reason? is it statusCode.description?
+        val status: HttpStatusCode,
         val version: HttpProtocolVersion,
         val headers: Headers,
-        val payload: Any,
+        val body: Any,
         val requestTime: Date,
         val responseTime: Date,
         val call: HttpClientCall,
@@ -26,24 +25,22 @@ class HttpResponse(
 }
 
 class HttpResponseBuilder() : Closeable {
-    lateinit var statusCode: HttpStatusCode
-    lateinit var reason: String
+    lateinit var status: HttpStatusCode
     lateinit var version: HttpProtocolVersion
-    lateinit var payload: Any
+    lateinit var body: Any
     lateinit var requestTime: Date
     lateinit var responseTime: Date
 
-    val headers = HeadersBuilder()
+    val headers = HeadersBuilder(caseInsensitiveKey = true)
     val cacheControl: HttpResponseCacheControl get() = headers.computeResponseCacheControl()
 
     var origin: Closeable? = null
 
     constructor(response: HttpResponse) : this() {
-        statusCode = response.statusCode
-        reason = response.reason
+        status= response.status
         version = response.version
         headers.appendAll(response.headers)
-        payload = response.payload
+        body = response.body
         responseTime = response.responseTime
         requestTime = response.requestTime
 
@@ -55,7 +52,7 @@ class HttpResponseBuilder() : Closeable {
     }
 
     fun build(call: HttpClientCall): HttpResponse =
-            HttpResponse(statusCode, reason, version, valuesOf(headers), payload, requestTime, responseTime, call, origin)
+            HttpResponse(status, version, headers.build(), body, requestTime, responseTime, call, origin)
 
     override fun close() {
         origin?.close()

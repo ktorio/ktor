@@ -4,6 +4,8 @@ import io.ktor.http.*
 
 
 val HttpRequest.host get() = url.host
+val HttpRequest.port get() = url.port
+
 val HttpRequestBuilder.host get() = url.host
 
 fun HttpRequestBuilder.header(key: String, value: String) = headers.append(key, value)

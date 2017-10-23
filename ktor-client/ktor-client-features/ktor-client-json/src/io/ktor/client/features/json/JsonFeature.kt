@@ -33,7 +33,7 @@ class JsonFeature(val serializer: JsonSerializer) {
                 val content = reader.read(response)
                         ?: error("Failed to read json text")
 
-                response.payload = feature.serializer.read(expectedType, content)
+                response.body = feature.serializer.read(expectedType, content)
             }
         }
     }

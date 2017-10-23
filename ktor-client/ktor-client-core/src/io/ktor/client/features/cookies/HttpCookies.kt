@@ -17,7 +17,7 @@ class HttpCookies(private val storage: CookiesStorage) {
 
     fun forEach(host: String, block: (Cookie) -> Unit) = storage.forEach(host, block)
 
-    class Configuration {
+    class Config {
         private val defaults = mutableListOf<CookiesStorage.() -> Unit>()
 
         var storage: CookiesStorage = AcceptAllCookiesStorage()
@@ -32,13 +32,12 @@ class HttpCookies(private val storage: CookiesStorage) {
         }
     }
 
-    companion object Feature : HttpClientFeature<Configuration, HttpCookies> {
-        override fun prepare(block: Configuration.() -> Unit): HttpCookies = Configuration().apply(block).build()
+    companion object Feature : HttpClientFeature<Config, HttpCookies> {
+        override fun prepare(block: Config.() -> Unit): HttpCookies = Config().apply(block).build()
 
         override val key: AttributeKey<HttpCookies> = AttributeKey("HttpCookies")
 
         override fun install(feature: HttpCookies, scope: HttpClient) {
-
             scope.requestPipeline.intercept(HttpRequestPipeline.State) { builder: HttpRequestBuilder ->
                 feature.forEach(builder.host) {
                     builder.header(HttpHeaders.Cookie, renderSetCookieHeader(it))

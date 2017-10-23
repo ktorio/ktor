@@ -12,14 +12,14 @@ import java.util.concurrent.*
 
 class TestHttpClientBackend(val app: TestApplicationHost) : HttpClientBackend {
     suspend override fun makeRequest(request: HttpRequest): HttpResponseBuilder = HttpResponseBuilder().apply {
-
-        val payload = request.payload
+        val requestBody = request.body
         val charset = request.charset ?: Charsets.UTF_8
-        val requestBody = when (payload) {
-            is InputStreamBody -> InputStreamReader(payload.stream, charset).readText()
+
+        val bodyStream = when (requestBody) {
+            is InputStreamBody -> InputStreamReader(requestBody.stream, charset).readText()
             is OutputStreamBody -> {
                 val stream = ByteArrayOutputStream()
-                payload.block(stream)
+                requestBody.block(stream)
                 stream.toString(charset.name())
             }
             else -> null
@@ -30,18 +30,17 @@ class TestHttpClientBackend(val app: TestApplicationHost) : HttpClientBackend {
                 addHeader(first, second)
             }
 
-            requestBody?.let { body = requestBody }
+            bodyStream?.let { body = bodyStream }
         }
 
-        statusCode = call.response.status() ?: HttpStatusCode.NotFound
-        version = HttpProtocolVersion("HTTP", 1, 1)
-        reason = ""
+        status = call.response.status() ?: HttpStatusCode.NotFound
+        version = HttpProtocolVersion.HTTP_1_1
 
         requestTime = Date()
         responseTime = Date()
 
         headers.appendAll(call.response.headers.allValues())
-        this.payload = call.response.byteContent?.let { InputStreamBody(ByteArrayInputStream(it)) } ?: EmptyBody
+        body = call.response.byteContent?.let { InputStreamBody(ByteArrayInputStream(it)) } ?: EmptyBody
     }
 
     override fun close() {

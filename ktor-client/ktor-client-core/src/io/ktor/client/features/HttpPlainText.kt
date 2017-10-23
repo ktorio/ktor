@@ -13,7 +13,7 @@ import java.nio.charset.*
 
 class HttpPlainText(private val defaultCharset: Charset) {
     suspend fun read(response: HttpResponseBuilder): String? {
-        val payload = response.payload as? HttpMessageBody ?: return null
+        val payload = response.body as? HttpMessageBody ?: return null
         val charset = response.headers.charset() ?: defaultCharset
 
         return when (payload) {
@@ -28,7 +28,7 @@ class HttpPlainText(private val defaultCharset: Charset) {
     }
 
     fun write(requestBuilder: HttpRequestBuilder): HttpMessageBody? {
-        val requestString = requestBuilder.payload as? String ?: return null
+        val requestString = requestBuilder.body as? String ?: return null
         val charset = requestBuilder.charset ?: defaultCharset
         val payload = requestString.toByteArray(charset)
 
@@ -39,28 +39,26 @@ class HttpPlainText(private val defaultCharset: Charset) {
         return InputStreamBody(ByteArrayInputStream(payload))
     }
 
-    class Configuration {
+    class Config {
         var defaultCharset: Charset = Charset.defaultCharset()
 
         fun build(): HttpPlainText = HttpPlainText(defaultCharset)
     }
 
-    companion object Feature : HttpClientFeature<Configuration, HttpPlainText> {
+    companion object Feature : HttpClientFeature<Config, HttpPlainText> {
         override val key = AttributeKey<HttpPlainText>("HttpPlainText")
 
-        override fun prepare(block: Configuration.() -> Unit): HttpPlainText = Configuration().apply(block).build()
+        override fun prepare(block: Config.() -> Unit): HttpPlainText = Config().apply(block).build()
 
         override fun install(feature: HttpPlainText, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { builder: HttpRequestBuilder ->
-                builder.payload = feature.write(builder) ?: return@intercept
+                builder.body = feature.write(builder) ?: return@intercept
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (expectedType, _, response) ->
-                if (expectedType != String::class) {
-                    return@intercept
-                }
+                if (expectedType != String::class) return@intercept
 
-                response.payload = feature.read(response) ?: return@intercept
+                response.body = feature.read(response) ?: return@intercept
             }
         }
     }

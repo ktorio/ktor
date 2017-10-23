@@ -14,14 +14,18 @@ data class Url(
         val host: String,
         val port: Int,
         val path: String,
-        val queryParameters: Parameters,
+        val queryParameters: Parameters?,
+        val fragment: String?,
         val username: String?,
         val password: String?
 ) {
     override fun toString(): String = URI(
             scheme, username, host, port, path,
-            if (queryParameters.isEmpty()) null else queryParameters.formUrlEncode(),
-            null
+            when (queryParameters) {
+                null -> null
+                else -> queryParameters.formUrlEncode()
+            },
+            fragment
     ).toString()
 }
 
@@ -38,11 +42,38 @@ class UrlBuilder {
 
     var path: String = ""
 
+    var queryParameters: ParametersBuilder? = null
+        private set
+
+    var fragment: String? = null
+
     var username: String? = null
 
     var password: String? = null
 
-    var queryParameters = ParametersBuilder()
+    fun addQueryParameter(name: String, value: String) {
+        initQueryParameters()
 
-    fun build(): Url = Url(scheme, host, port, path, queryParameters.build(), username, password)
+        queryParameters?.append(name, value)
+    }
+
+    fun addQueryParameters(parameters: ParametersBuilder) {
+        initQueryParameters()
+        queryParameters?.appendAll(parameters)
+    }
+
+    fun addQueryParameters(parameters: Parameters) {
+        initQueryParameters()
+        queryParameters?.appendAll(parameters)
+    }
+
+    fun build(): Url = Url(
+            scheme, host, port, path, queryParameters?.build(), fragment, username, password
+    )
+
+    private fun initQueryParameters() {
+        if (queryParameters == null) {
+            queryParameters = ParametersBuilder()
+        }
+    }
 }

@@ -85,7 +85,7 @@ class HttpCache(
         request.flags.put(IGNORE_CACHE, true)
 
         val response = scope.call(request)
-        return when (response.statusCode) {
+        return when (response.status) {
             HttpStatusCode.NotModified -> HttpClientCall(builder.build(), cachedResponse, scope)
             HttpStatusCode.OK -> {
                 cacheResponse(response.call.request, HttpResponseBuilder(response))
@@ -96,9 +96,9 @@ class HttpCache(
     }
 
     private fun cacheResponse(request: HttpRequest, response: HttpResponseBuilder) {
-        if (response.statusCode != HttpStatusCode.OK) return
+        if (response.status != HttpStatusCode.OK) return
         if (response.expires()?.before(Date()) == true) return
-        if (response.payload is InputStreamBody || response.payload is OutputStreamBody) return
+        if (response.body is InputStreamBody || response.body is OutputStreamBody) return
 
         with(request.cacheControl) {
             if (noCache || noStore) return

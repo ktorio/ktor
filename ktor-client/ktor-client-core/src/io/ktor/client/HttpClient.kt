@@ -27,7 +27,6 @@ object EmptyScope : HttpClient() {
 }
 
 open class HttpCallScope(private val parent: HttpClient) : HttpClient() {
-
     override fun close() {
         parent.close()
     }

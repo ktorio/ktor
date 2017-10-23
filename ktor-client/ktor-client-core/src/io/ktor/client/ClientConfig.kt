@@ -1,6 +1,5 @@
-package io.ktor.client.pipeline
+package io.ktor.client
 
-import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.util.*
 import kotlin.collections.set

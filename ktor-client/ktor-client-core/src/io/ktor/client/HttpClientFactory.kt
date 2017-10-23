@@ -2,9 +2,9 @@ package io.ktor.client
 
 import io.ktor.client.backend.*
 import io.ktor.client.call.*
-import io.ktor.client.pipeline.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
+import io.ktor.client.utils.*
 
 
 object HttpClientFactory {
@@ -15,6 +15,8 @@ object HttpClientFactory {
             install("backend") {
                 requestPipeline.intercept(HttpRequestPipeline.Send) { builder ->
                     val request = (builder as? HttpRequestBuilder)?.build() ?: return@intercept
+                    if (request.body !is HttpMessageBody) error("Body can't be processed: ${request.body}")
+
                     val response = backend.makeRequest(request)
                     proceedWith(HttpClientCall(request, response, context))
                 }

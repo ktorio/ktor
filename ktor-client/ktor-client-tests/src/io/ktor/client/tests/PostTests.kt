@@ -50,7 +50,7 @@ open class PostTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) 
         val client = createClient()
 
         val response = runBlocking {
-            client.post<String>(port = 8080, payload = text) {
+            client.post<String>(port = 8080, body = text) {
                 headers.contentType(ContentType.Text.Plain.withCharset(Charset.defaultCharset()))
             }
         }

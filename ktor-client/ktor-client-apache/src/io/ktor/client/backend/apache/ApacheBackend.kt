@@ -9,6 +9,7 @@ import io.ktor.util.*
 import org.apache.http.client.config.*
 import org.apache.http.client.methods.*
 import org.apache.http.client.utils.*
+import org.apache.http.conn.ssl.*
 import org.apache.http.entity.*
 import org.apache.http.impl.client.*
 import java.io.*
@@ -16,17 +17,35 @@ import java.util.*
 
 
 class ApacheBackend : HttpClientBackend {
-    private val backend: CloseableHttpClient = HttpClients.createDefault()
 
     suspend override fun makeRequest(request: HttpRequest): HttpResponseBuilder {
+        val clientBuilder = HttpClients.custom()
+        with(clientBuilder) {
+            disableAuthCaching()
+            disableAutomaticRetries()
+            disableConnectionState()
+            disableContentCompression()
+            disableCookieManagement()
+        }
+
+        request.sslContext?.let {
+            clientBuilder.setSSLContext(it)
+        }
+
+        val backend: CloseableHttpClient = clientBuilder.build()
+
         val apacheBuilder = RequestBuilder.create(request.method.value)
         with(request) {
+
             apacheBuilder.uri = URIBuilder().apply {
                 scheme = url.scheme
                 host = url.host
                 port = url.port
                 path = url.path
-                url.queryParameters.flattenEntries().forEach { (key, value) -> addParameter(key, value) }
+
+                // if we have `?` in tail of url we should initialise query parameters
+                if (request.url.queryParameters?.isEmpty() == true) setParameters(listOf())
+                url.queryParameters?.flattenEntries()?.forEach { (key, value) -> addParameter(key, value) }
             }.build()
         }
 
@@ -34,12 +53,12 @@ class ApacheBackend : HttpClientBackend {
             values.forEach { value -> apacheBuilder.addHeader(name, value) }
         }
 
-        val requestPayload = request.payload
-        when (requestPayload) {
-            is InputStreamBody -> InputStreamEntity(requestPayload.stream)
+        val requestBody = request.body
+        when (requestBody) {
+            is InputStreamBody -> InputStreamEntity(requestBody.stream)
             is OutputStreamBody -> {
                 val stream = ByteArrayOutputStream()
-                requestPayload.block(stream)
+                requestBody.block(stream)
                 ByteArrayEntity(stream.toByteArray())
             }
             else -> null
@@ -47,7 +66,7 @@ class ApacheBackend : HttpClientBackend {
 
         apacheBuilder.config = RequestConfig.custom()
                 .setRedirectsEnabled(request.followRedirects)
-                .setCookieSpec(CookieSpecs.IGNORE_COOKIES).build()
+                .build()
 
         val apacheRequest = apacheBuilder.build()
         val startTime = Date()
@@ -59,8 +78,12 @@ class ApacheBackend : HttpClientBackend {
 
         val builder = HttpResponseBuilder()
         builder.apply {
-            statusCode = HttpStatusCode.fromValue(statusLine.statusCode)
-            reason = statusLine.reasonPhrase
+            status = if (statusLine.reasonPhrase != null) {
+                HttpStatusCode(statusLine.statusCode, statusLine.reasonPhrase)
+            } else {
+                HttpStatusCode.fromValue(statusLine.statusCode)
+            }
+
             requestTime = startTime
             responseTime = Date()
 
@@ -74,16 +97,17 @@ class ApacheBackend : HttpClientBackend {
                 version = HttpProtocolVersion(protocol, major, minor)
             }
 
-            payload = if (entity?.isStreaming == true) InputStreamBody(entity.content) else EmptyBody
-            origin = response
+            body = if (entity?.isStreaming == true) InputStreamBody(entity.content) else EmptyBody
+            origin = Closeable {
+                response.close()
+                backend.close()
+            }
         }
 
         return builder
     }
 
-    override fun close() {
-        backend.close()
-    }
+    override fun close() {}
 
     companion object : HttpClientBackendFactory {
         override operator fun invoke(): HttpClientBackend = ApacheBackend()

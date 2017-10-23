@@ -10,7 +10,6 @@ private val BACKEND_FACTORY = { ApacheBackend() }
 
 @RunWith(Enclosed::class)
 class ApacheClientTestSuite {
-
     class ApacheCacheTest : CacheTests(BACKEND_FACTORY)
 
     class ApacheCookiesTest : CookiesTests(BACKEND_FACTORY)

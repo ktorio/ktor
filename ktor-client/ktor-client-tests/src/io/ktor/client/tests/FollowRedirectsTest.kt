@@ -31,13 +31,13 @@ open class FollowRedirectsTest(factory: HttpClientBackendFactory) : TestWithKtor
 
         runBlocking {
             client.get<HttpResponse>("http://localhost:8080/").use {
-                assert(it.statusCode == HttpStatusCode.Found)
+                assert(it.status == HttpStatusCode.Found, { "without redirect response: $it"})
             }
 
             client.get<HttpResponse>(port = 8080) {
                 followRedirects = true
             }.use {
-                assert(it.statusCode == HttpStatusCode.OK)
+                assert(it.status == HttpStatusCode.OK, { "with redirect response: $it"})
             }
         }
 

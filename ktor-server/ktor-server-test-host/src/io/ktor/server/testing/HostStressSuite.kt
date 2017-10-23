@@ -2,7 +2,7 @@ package io.ktor.server.testing
 
 import io.ktor.application.*
 import io.ktor.cio.*
-import io.ktor.client.jvm.*
+import io.ktor.client.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders

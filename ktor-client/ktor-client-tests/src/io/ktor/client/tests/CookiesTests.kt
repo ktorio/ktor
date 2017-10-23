@@ -3,7 +3,6 @@ package io.ktor.client.tests
 import io.ktor.client.*
 import io.ktor.client.backend.*
 import io.ktor.client.features.cookies.*
-import io.ktor.client.pipeline.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.response.*

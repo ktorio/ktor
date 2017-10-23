@@ -30,9 +30,7 @@ fun UrlBuilder.takeFrom(url: Url): UrlBuilder {
     path = url.path
     username = url.username
     password = url.password
-    queryParameters = ParametersBuilder().apply {
-        appendAll(url.queryParameters)
-    }
+    url.queryParameters?.let { addQueryParameters(it) }
 
     return this
 }
@@ -42,7 +40,7 @@ fun UrlBuilder.takeFrom(uri: URI) {
     host = uri.host
     path = uri.path
     port = uri.port.takeIf { it > 0 } ?: if (scheme == "https") 443 else 80
-    uri.query?.let { queryParameters.appendAll(parseQueryString(it)) }
+    uri.query?.let { addQueryParameters(parseQueryString(it)) }
 }
 
 fun UrlBuilder.takeFrom(url: URL) = takeFrom(url.toURI())
@@ -56,10 +54,18 @@ fun UrlBuilder.takeFrom(url: UrlBuilder): UrlBuilder {
     path = url.path
     username = url.username
     password = url.password
-    queryParameters = ParametersBuilder().appendAll(url.queryParameters)
+    url.queryParameters?.let { addQueryParameters(it) }
 
     return this
 }
 
 val Url.fullPath: String
-    get() = "$path${ if (queryParameters.isEmpty()) "" else "?${decodeURLPart(queryParameters.formUrlEncode())}" }"
+    get() {
+        val parameters = when {
+            queryParameters == null -> ""
+            queryParameters.isEmpty() -> "?"
+            else -> "?${decodeURLPart(queryParameters.formUrlEncode())}"
+        }
+
+        return "$path$parameters"
+    }
