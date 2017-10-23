@@ -7,7 +7,7 @@ import io.ktor.request.*
 import kotlinx.coroutines.experimental.io.*
 
 class CIOIncomingContent(private val channel: ByteReadChannel,
-                         private val headers: HttpHeaders,
+                         private val headers: HttpHeadersMap,
                          override val request: CIOApplicationRequest) : IncomingContent {
 
     private fun byteChannel(): ByteReadChannel = channel

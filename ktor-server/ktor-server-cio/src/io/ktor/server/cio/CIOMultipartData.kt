@@ -2,7 +2,7 @@ package io.ktor.server.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.*
-import io.ktor.http.cio.HttpHeaders
+import io.ktor.http.cio.HttpHeadersMap
 import io.ktor.network.util.*
 import io.ktor.request.*
 import kotlinx.coroutines.experimental.*
@@ -14,7 +14,7 @@ import java.nio.file.*
 import kotlin.coroutines.experimental.*
 
 class CIOMultipartData(private val channel: ByteReadChannel,
-                       private val headers: HttpHeaders,
+                       private val headers: HttpHeadersMap,
                        private val formFieldLimit: Int = 65536,
                        private val inMemoryFileUploadLimit: Int = formFieldLimit) : MultiPartData {
 

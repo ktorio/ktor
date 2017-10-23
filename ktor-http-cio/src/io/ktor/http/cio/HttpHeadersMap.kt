@@ -19,7 +19,7 @@ private const val EXPECTED_HEADERS_QTY = 32
 private const val HEADER_SIZE = 8
 private const val HEADER_ARRAY_POOL_SIZE = 1000
 
-class HttpHeaders internal constructor(private val builder: CharBufferBuilder) {
+class HttpHeadersMap internal constructor(private val builder: CharBufferBuilder) {
     var size = 0
         private set
 
@@ -87,7 +87,7 @@ class HttpHeaders internal constructor(private val builder: CharBufferBuilder) {
     }
 }
 
-fun HttpHeaders.dumpTo(indent: String, out: Appendable) {
+fun HttpHeadersMap.dumpTo(indent: String, out: Appendable) {
     for (i in 0 until size) {
         out.append(indent)
         out.append(nameAt(i))

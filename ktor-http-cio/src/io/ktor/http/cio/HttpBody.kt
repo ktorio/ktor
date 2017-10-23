@@ -37,7 +37,7 @@ fun expectHttpBody(request: Request): Boolean {
 }
 
 
-suspend fun parseHttpBody(headers: HttpHeaders, input: ByteReadChannel, out: ByteWriteChannel) {
+suspend fun parseHttpBody(headers: HttpHeadersMap, input: ByteReadChannel, out: ByteWriteChannel) {
     val lengthString = headers["Content-Length"]
     if (lengthString != null) {
         val length = lengthString.toString().toLong()

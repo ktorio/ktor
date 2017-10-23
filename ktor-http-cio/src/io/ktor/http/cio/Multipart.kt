@@ -20,7 +20,7 @@ sealed class MultipartEvent {
             body.release()
         }
     }
-    class MultipartPart(val headers: Deferred<HttpHeaders>, val body: ByteReadChannel) : MultipartEvent() {
+    class MultipartPart(val headers: Deferred<HttpHeadersMap>, val body: ByteReadChannel) : MultipartEvent() {
         override fun release() {
             headers.invokeOnCompletion { t ->
                 if (t != null) {
@@ -37,7 +37,7 @@ sealed class MultipartEvent {
     }
 }
 
-suspend fun copyMultipart(headers: HttpHeaders, input: ByteReadChannel, out: ByteWriteChannel) {
+suspend fun copyMultipart(headers: HttpHeadersMap, input: ByteReadChannel, out: ByteWriteChannel) {
     val length = headers["Content-Length"]?.parseDecLong() ?: Long.MAX_VALUE
     input.copyTo(out, length)
 }
@@ -46,7 +46,7 @@ suspend fun parsePreamble(boundaryPrefixed: ByteBuffer, input: ByteReadChannel, 
     return copyUntilBoundary("preamble/prologue", boundaryPrefixed, input, { output.writeFully(it) }, limit)
 }
 
-suspend fun parsePart(boundaryPrefixed: ByteBuffer, input: ByteReadChannel, output: ByteWriteChannel, limit: Long = Long.MAX_VALUE): Pair<HttpHeaders, Long> {
+suspend fun parsePart(boundaryPrefixed: ByteBuffer, input: ByteReadChannel, output: ByteWriteChannel, limit: Long = Long.MAX_VALUE): Pair<HttpHeadersMap, Long> {
     val headers = parsePartHeaders(input)
     try {
         val cl = headers["Content-Length"]?.parseDecLong()
@@ -91,13 +91,13 @@ suspend fun boundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Bool
     return result
 }
 
-fun expectMultipart(headers: HttpHeaders): Boolean {
+fun expectMultipart(headers: HttpHeadersMap): Boolean {
     return headers["Content-Type"]?.startsWith("multipart/") ?: false
 }
 
 private val headerParameterEndChars = charArrayOf(' ', ';', ',')
 
-fun parseMultipart(coroutineContext: CoroutineContext, input: ByteReadChannel, headers: HttpHeaders): ProducerJob<MultipartEvent> {
+fun parseMultipart(coroutineContext: CoroutineContext, input: ByteReadChannel, headers: HttpHeadersMap): ProducerJob<MultipartEvent> {
     val contentType = headers["Content-Type"] ?: throw IOException("Failed to parse multipart: no Content-Type header")
     if (!contentType.startsWith("multipart/")) throw IOException("Failed to parse multipart: Content-Type should be multipart/* but it is $contentType")
     val boundaryParameter = contentType.indexOf("boundary=") // TODO parse HTTP header properly instead
@@ -161,7 +161,7 @@ fun parseMultipart(coroutineContext: CoroutineContext, boundaryPrefixed: ByteBuf
             input.skipDelimiter(CrLf)
 
             val body = ByteChannel()
-            val headers = CompletableDeferred<HttpHeaders>()
+            val headers = CompletableDeferred<HttpHeadersMap>()
             val part = MultipartEvent.MultipartPart(headers, body)
             channel.send(part)
 
@@ -213,7 +213,7 @@ private suspend fun copyUntilBoundary(name: String, boundaryPrefixed: ByteBuffer
     }
 }
 
-private suspend fun parsePartHeaders(input: ByteReadChannel): HttpHeaders {
+private suspend fun parsePartHeaders(input: ByteReadChannel): HttpHeadersMap {
     val builder = CharBufferBuilder()
 
     try {
