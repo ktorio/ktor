@@ -1,16 +1,16 @@
 package io.ktor.samples.jackson
 
 import com.fasterxml.jackson.databind.*
-import com.fasterxml.jackson.module.kotlin.*
+import com.fasterxml.jackson.datatype.jsr310.*
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.jackson.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import java.time.*
 
-data class Model(val name: String, val items: List<Item>)
+data class Model(val name: String, val items: List<Item>, val yearMonth: Year = Year.now())
 data class Item(val key: String, val value: String)
 
 /*
@@ -29,9 +29,10 @@ fun Application.main() {
     install(Compression)
     install(CallLogging)
     install(ContentNegotiation) {
-      val objectMapper = jacksonObjectMapper()
-      objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true)
-      register(ContentType.Application.Json, JacksonConverter(objectMapper))
+      jackson {
+        configure(SerializationFeature.INDENT_OUTPUT, true)
+        registerModule(JavaTimeModule())
+      }
     }
 
     val model = Model("root", listOf(Item("A", "Apache"), Item("B", "Bing")))

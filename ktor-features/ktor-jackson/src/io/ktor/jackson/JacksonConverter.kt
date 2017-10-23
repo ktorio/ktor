@@ -18,9 +18,10 @@ import io.ktor.request.*
  *    configuration options, you could use the following (as seen in the ktor-samples):
  *
  *    install(ContentNegotiation) {
- *        val objectMapper = jacksonObjectMapper()
- *        objectMapper.configure(SerializationFeature.INDENT_OUTPUT, true)
- *        register(ContentType.Application.Json, JacksonConverter(objectMapper))
+ *        jackson {
+ *            configure(SerializationFeature.INDENT_OUTPUT, true)
+ *            registerModule(JavaTimeModule())
+ +        }
  *    }
  */
 class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) : ContentConverter {
@@ -36,4 +37,11 @@ class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMap
         val type = request.type
         return objectmapper.readValue(value.readText(), type.javaObjectType)
     }
+}
+
+fun ContentNegotiation.Configuration.jackson(block: ObjectMapper.() -> Unit) {
+    val mapper = jacksonObjectMapper()
+    mapper.apply(block)
+    val converter = JacksonConverter(mapper)
+    register(ContentType.Application.Json, converter)
 }
