@@ -15,13 +15,20 @@ import java.nio.channels.*
 import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 
-fun httpServer(port: Int = 9096, callDispatcher: CoroutineContext = ioCoroutineDispatcher, handler: suspend (request: Request, input: ByteReadChannel, output: ByteWriteChannel) -> Unit): Pair<Job, Deferred<ServerSocket>> {
-    val deferred = CompletableDeferred<ServerSocket>()
+class HttpServer(val rootServerJob: Job, val serverSocket: Deferred<ServerSocket>) {
+    companion object {
+        val CancelledServer = HttpServer(rootServerJob = Job().apply { cancel() },
+                serverSocket = CompletableDeferred<ServerSocket>().apply { completeExceptionally(java.util.concurrent.CancellationException()) })
+    }
+}
 
-    val j = launch(ioCoroutineDispatcher) {
+fun httpServer(port: Int = 9096, callDispatcher: CoroutineContext = ioCoroutineDispatcher, handler: suspend (request: Request, input: ByteReadChannel, output: ByteWriteChannel) -> Unit): HttpServer {
+    val socket = CompletableDeferred<ServerSocket>()
+
+    val serverJob = launch(ioCoroutineDispatcher) {
         ActorSelectorManager(ioCoroutineDispatcher).use { selector ->
             aSocket(selector).tcp().bind(InetSocketAddress(port)).use { server ->
-                deferred.complete(server)
+                socket.complete(server)
 
                 val liveConnections = ConcurrentHashMap<Socket, Unit>()
                 try {
@@ -64,5 +71,5 @@ fun httpServer(port: Int = 9096, callDispatcher: CoroutineContext = ioCoroutineD
         }
     }
 
-    return Pair(j, deferred)
+    return HttpServer(serverJob, socket)
 }

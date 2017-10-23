@@ -5,9 +5,9 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.host.*
 
-object CIO : ApplicationHostFactory<CoroutinesHttpHost, CoroutinesHttpHost.Configuration> {
-    override fun create(environment: ApplicationHostEnvironment, configure: CoroutinesHttpHost.Configuration.() -> Unit): CoroutinesHttpHost {
-        return CoroutinesHttpHost(environment, configure)
+object CIO : ApplicationHostFactory<CIOApplicationHost, CIOApplicationHost.Configuration> {
+    override fun create(environment: ApplicationHostEnvironment, configure: CIOApplicationHost.Configuration.() -> Unit): CIOApplicationHost {
+        return CIOApplicationHost(environment, configure)
     }
 
     @JvmStatic
