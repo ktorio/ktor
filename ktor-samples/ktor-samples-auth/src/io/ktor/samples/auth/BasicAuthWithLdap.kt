@@ -10,7 +10,7 @@ import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
-@location("/files") class Files()
+@Location("/files") class Files()
 
 fun Application.basicAuthWithLdap() {
     install(DefaultHeaders)

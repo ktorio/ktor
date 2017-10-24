@@ -22,28 +22,28 @@ import java.util.concurrent.*
 import javax.crypto.*
 import javax.crypto.spec.*
 
-@location("/")
+@Location("/")
 class Index()
 
-@location("/post-new")
+@Location("/post-new")
 class PostNew()
 
-@location("/io/ktor/samples/kweet/{id}/delete")
+@Location("/io/ktor/samples/kweet/{id}/delete")
 class KweetDelete(val id: Int)
 
-@location("/io/ktor/samples/kweet/{id}")
+@Location("/io/ktor/samples/kweet/{id}")
 data class ViewKweet(val id: Int)
 
-@location("/user/{user}")
+@Location("/user/{user}")
 data class UserPage(val user: String)
 
-@location("/register")
+@Location("/register")
 data class Register(val userId: String = "", val displayName: String = "", val email: String = "", val error: String = "")
 
-@location("/login")
+@Location("/login")
 data class Login(val userId: String = "", val error: String = "")
 
-@location("/logout")
+@Location("/logout")
 class Logout()
 
 data class KweetSession(val userId: String)

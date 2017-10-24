@@ -9,8 +9,8 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
 
-@location("/manual") class Manual
-@location("/userTable") class SimpleUserTable
+@Location("/manual") class Manual
+@Location("/userTable") class SimpleUserTable
 
 val hashedUserTable = UserHashedTableAuth(table = mapOf(
         "test" to decodeBase64("VltM4nfheqcJSyH887H+4NEOm2tDuKCl83p5axYXlF0=") // sha256 for "test"

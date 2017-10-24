@@ -9,8 +9,8 @@ import io.ktor.pipeline.*
 import io.ktor.routing.*
 import java.util.*
 
-@location("/") class index()
-@location("/number") class number(val value: Int)
+@Location("/") class index()
+@Location("/number") class number(val value: Int)
 
 fun Application.main() {
     install(DefaultHeaders)
