@@ -32,7 +32,7 @@ internal class JettyKtorHandler(val environment: ApplicationHostEnvironment, pri
     }
 
     override fun handle(target: String, baseRequest: Request, request: HttpServletRequest, response: HttpServletResponse) {
-        val call = JettyApplicationCall(environment.application, server.threadPool, baseRequest, request, response, byteBufferPool, hostContext = hostDispatcher, userAppContext = dispatcher)
+        val call = JettyApplicationCall(environment.application, baseRequest, request, response, byteBufferPool, hostContext = hostDispatcher, userAppContext = dispatcher)
 
         try {
             val contentType = request.contentType

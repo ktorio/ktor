@@ -28,6 +28,8 @@ class TomcatApplicationHost(environment: ApplicationHostEnvironment, configure: 
             get() = this@TomcatApplicationHost.pipeline
         override val application: Application
             get() = this@TomcatApplicationHost.application
+        override val upgrade: ServletUpgrade
+            get() = DefaultServletUpgrade
     }
 
     private val server = Tomcat().apply {

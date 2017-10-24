@@ -25,6 +25,7 @@ private class Reader(val input: ServletInputStream) : ReadListener {
             events.receiveOrNull() ?: return
             loop(buffer)
         } catch (eof: EOFException) {
+        } catch (cancelled: CancellationException) {
         } catch (t: Throwable) {
             onError(t)
         } finally {
@@ -61,10 +62,13 @@ private class Reader(val input: ServletInputStream) : ReadListener {
     }
 
     override fun onDataAvailable() {
-        if (!events.offer(Unit)) {
-            runBlocking(Unconfined) {
-                events.send(Unit)
+        try {
+            if (!events.offer(Unit)) {
+                runBlocking(Unconfined) {
+                    events.send(Unit)
+                }
             }
+        } catch (ignore: Throwable) {
         }
     }
 }

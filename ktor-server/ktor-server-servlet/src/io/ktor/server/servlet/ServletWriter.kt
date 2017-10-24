@@ -77,10 +77,13 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
     }
 
     override fun onWritePossible() {
-        if (!events.offer(Unit)) {
-            launch(Unconfined) {
-                events.send(Unit)
+        try {
+            if (!events.offer(Unit)) {
+                launch(Unconfined) {
+                    events.send(Unit)
+                }
             }
+        } catch (ignore: Throwable) {
         }
     }
 

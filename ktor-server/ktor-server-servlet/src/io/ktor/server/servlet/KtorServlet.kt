@@ -19,6 +19,8 @@ abstract class KtorServlet : HttpServlet() {
     abstract val application: Application
     abstract val hostPipeline: HostPipeline
 
+    abstract val upgrade: ServletUpgrade
+
     override fun destroy() {
         hostDispatcher.prepareShutdown()
         dispatcher.prepareShutdown()
@@ -48,7 +50,10 @@ abstract class KtorServlet : HttpServlet() {
             val asyncContext = request.startAsync().apply {
                 timeout = 0L
             }
-            val call = ServletApplicationCall(application, request, response, NoPool, hostDispatcher, userAppContext = dispatcher)
+
+            val call = ServletApplicationCall(application, request, response, NoPool,
+                    hostDispatcher, userAppContext = dispatcher,
+                    upgrade = upgrade)
 
             launch(dispatcher) {
                 try {

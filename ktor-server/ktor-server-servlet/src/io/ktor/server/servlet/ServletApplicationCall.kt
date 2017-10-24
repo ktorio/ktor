@@ -7,12 +7,15 @@ import javax.servlet.http.*
 import kotlin.coroutines.experimental.*
 
 open class ServletApplicationCall(application: Application,
-                                  val servletRequest: HttpServletRequest,
-                                  val servletResponse: HttpServletResponse,
+                                  servletRequest: HttpServletRequest,
+                                  servletResponse: HttpServletResponse,
                                   override val bufferPool: ByteBufferPool,
                                   hostContext: CoroutineContext,
-                                  userAppContext: CoroutineContext) : BaseApplicationCall(application) {
+                                  userAppContext: CoroutineContext,
+                                  upgrade: ServletUpgrade) : BaseApplicationCall(application) {
 
     override val request: ServletApplicationRequest = ServletApplicationRequest(this, servletRequest)
-    override val response: ServletApplicationResponse = ServletApplicationResponse(this, servletRequest, servletResponse, hostContext, userAppContext)
+
+    override val response: ServletApplicationResponse = ServletApplicationResponse(this,
+            servletRequest, servletResponse, hostContext, userAppContext, upgrade)
 }

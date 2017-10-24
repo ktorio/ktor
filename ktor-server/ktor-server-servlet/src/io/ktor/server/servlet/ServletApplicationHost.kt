@@ -44,6 +44,11 @@ open class ServletApplicationHost : KtorServlet() {
 
     override val application: Application get() = environment.application
     override val hostPipeline by lazy { defaultHostPipeline(environment) }
+    override val upgrade: ServletUpgrade by lazy {
+        if ("jetty" in servletContext.serverInfo?.toLowerCase() ?: "") {
+            jettyUpgrade ?: DefaultServletUpgrade
+        } else DefaultServletUpgrade
+    }
 
     override fun init() {
         environment.start()
@@ -57,5 +62,12 @@ open class ServletApplicationHost : KtorServlet() {
 
     companion object {
         val ApplicationHostEnvironmentAttributeKey = "_ktor_application_host_environment_instance"
+        private val jettyUpgrade by lazy {
+            try {
+                Class.forName("io.ktor.server.jetty.internal.JettyUpgradeImpl").kotlin.objectInstance as ServletUpgrade
+            } catch (t: Throwable) {
+                null
+            }
+        }
     }
 }

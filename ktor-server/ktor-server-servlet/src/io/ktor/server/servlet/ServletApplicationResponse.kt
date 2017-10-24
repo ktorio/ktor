@@ -6,7 +6,6 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.server.host.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
 import java.io.*
 import java.lang.reflect.*
 import javax.servlet.http.*
@@ -16,7 +15,8 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
                                       protected val servletRequest: HttpServletRequest,
                                       protected val servletResponse: HttpServletResponse,
                                       protected val hostCoroutineContext: CoroutineContext,
-                                      protected val userCoroutineContext: CoroutineContext
+                                      protected val userCoroutineContext: CoroutineContext,
+                                      private val servletUpgradeImpl: ServletUpgrade
 ) : BaseApplicationResponse(call) {
     override fun setStatus(statusCode: HttpStatusCode) {
         servletResponse.status = statusCode.value
@@ -34,20 +34,25 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
     @Volatile
     private var completed: Boolean = false
 
-    suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
+    suspend final override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
         servletResponse.status = upgrade.status?.value ?: HttpStatusCode.SwitchingProtocols.value
         upgrade.headers.flattenEntries().forEach { e ->
             servletResponse.addHeader(e.first, e.second)
         }
 
-        servletResponse.flushBuffer()
-        val handler = servletRequest.upgrade(ServletUpgradeHandler::class.java)
-        handler.up = UpgradeRequest(servletResponse, upgrade, hostCoroutineContext, userCoroutineContext)
-
-//        servletResponse.flushBuffer()
+        try {
+            servletResponse.flushBuffer()
+        } catch (e: IOException) {
+            throw ChannelWriteException("Cannot write HTTP upgrade response", e)
+        }
 
         completed = true
-//        servletRequest.asyncContext?.complete() // causes pipeline execution break however it is required for websocket
+
+        performUpgrade(upgrade)
+    }
+
+    private suspend fun performUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
+        servletUpgradeImpl.performUpgrade(upgrade, servletRequest, servletResponse, hostCoroutineContext, userCoroutineContext)
     }
 
     private val responseByteChannel = lazy {
@@ -85,49 +90,6 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
     private fun tryPush(request: HttpServletRequest, builder: ResponsePushBuilder): Boolean {
         return foundPushImpls.any { function ->
             tryInvoke(function, request, builder)
-        }
-    }
-
-    // the following types need to be public as they are accessed through reflection
-
-    class UpgradeRequest(val response: HttpServletResponse,
-                         val upgradeMessage: FinalContent.ProtocolUpgrade,
-                         val hostContext: CoroutineContext,
-                         val userAppContext: CoroutineContext)
-
-    class ServletUpgradeHandler : HttpUpgradeHandler {
-        @Volatile
-        lateinit var up: UpgradeRequest
-
-        override fun init(webConnection: WebConnection?) {
-            if (webConnection == null) {
-                throw IllegalArgumentException("Upgrade processing requires WebConnection instance")
-            }
-
-            val servletReader = servletReader(webConnection.inputStream)
-            val servletWriter = servletWriter(webConnection.outputStream)
-
-            val inputChannel = CIOReadChannelAdapter(servletReader.channel)
-            val outputChannel = CIOWriteChannelAdapter(servletWriter.channel)
-
-            val closeable = Closeable {
-                servletWriter.channel.close()
-
-                runBlocking {
-                    servletReader.cancel()
-                    servletWriter.join()
-                    servletReader.join()
-                }
-
-                webConnection.close()
-            }
-
-            runBlocking {
-                up.upgradeMessage.upgrade(inputChannel, outputChannel, closeable, up.hostContext, up.userAppContext)
-            }
-        }
-
-        override fun destroy() {
         }
     }
 
