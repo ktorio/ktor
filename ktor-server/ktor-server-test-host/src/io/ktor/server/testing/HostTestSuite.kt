@@ -1139,6 +1139,7 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
                         } finally {
                             output.close()
                             input.close()
+                            closeable.close()
                         }
                     }
                 })
@@ -1155,11 +1156,6 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
                     emptyLine()
                 }.build()
                 writePacket(p)
-                flush()
-
-                writePacket {
-                    writeLong(0x1122334455667788L)
-                }
                 flush()
             }
 
@@ -1196,7 +1192,15 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
                 assertEquals("Upgrade", response.headers[HttpHeaders.Connection]?.toString())
                 assertEquals("up", response.headers[HttpHeaders.Upgrade]?.toString())
 
+                outputStream.apply {
+                    writePacket {
+                        writeLong(0x1122334455667788L)
+                    }
+                    flush()
+                }
+
                 assertEquals(0x1122334455667788L, ch.readLong())
+
                 assertEquals(-1, ch.readAvailable(ByteArray(1)))
             }
         }
