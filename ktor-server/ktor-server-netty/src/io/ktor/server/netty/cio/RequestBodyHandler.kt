@@ -11,18 +11,21 @@ import kotlinx.coroutines.experimental.io.*
 internal class RequestBodyHandler(val context: ChannelHandlerContext,
                                   private val requestQueue: NettyRequestQueue) : ChannelInboundHandlerAdapter() {
     private val queue = Channel<Any>(Channel.UNLIMITED)
+    private object Upgrade
 
     private val job = launch(Unconfined, start = CoroutineStart.LAZY) {
         var current: ByteWriteChannel? = null
+        var upgraded = false
+
         try {
             while (true) {
-                val event = queue.receiveOrNull() ?: break
+                val event = queue.poll() ?: run { current?.flush(); queue.receiveOrNull() } ?: break
 
                 if (event is ByteBufHolder) {
                     val channel = current ?: throw IllegalStateException("No current channel but received a byte buf")
                     processContent(channel, event)
 
-                    if (event is LastHttpContent) {
+                    if (!upgraded && event is LastHttpContent) {
                         current.close()
                         current = null
                     }
@@ -32,11 +35,14 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext,
                 } else if (event is ByteWriteChannel) {
                     current?.close()
                     current = event
+                } else if (event is Upgrade) {
+                    upgraded = true
                 }
             }
         } catch (t: Throwable) {
             queue.close(t)
             current?.close(t)
+            this@RequestBodyHandler.context.fireExceptionCaught(t)
         } finally {
             current?.close()
             queue.close()
@@ -45,8 +51,14 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext,
         }
     }
 
+    fun upgrade(): ByteReadChannel {
+        queue.offer(Upgrade)
+        val channel = newChannel()
+        return channel
+    }
+
     fun newChannel(): ByteReadChannel {
-        val bc = ByteChannel(autoFlush = true)
+        val bc = ByteChannel()
         if (!queue.offer(bc)) throw IllegalStateException("Unable to start request processing: failed to offer byte channel to the queue")
         return bc
     }
@@ -56,7 +68,7 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext,
     }
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any?) {
-        if (msg is HttpContent) {
+        if (msg is ByteBufHolder) {
             handleBytesRead(msg)
         } else if (msg is ByteBuf) {
             handleBytesRead(msg)
@@ -77,6 +89,7 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext,
 
     private suspend fun processContent(current: ByteWriteChannel, buf: ByteBuf) {
         try {
+            requestMoreEvents()
             copy(buf, current)
         } finally {
             buf.release()

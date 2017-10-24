@@ -14,7 +14,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 ) {
     @Volatile
     private var cancellation: Throwable? = null
-    private val responses = launch(Unconfined, start = CoroutineStart.LAZY) {
+    private val responses = launch(dst.executor().asCoroutineDispatcher(), start = CoroutineStart.LAZY) {
         loop()
     }
 
@@ -62,14 +62,17 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
     private suspend fun processCall(call: NettyApplicationCall) {
         val response = call.response
         val responseMessage = response.responseMessage.await()
-        val statusCode = response.status()
         val close = !call.request.keepAlive
-        val responseMessageFuture = dst.writeAndFlush(responseMessage)
 
-        if (statusCode?.value == HttpStatusCode.SwitchingProtocols.value) {
-            responseMessageFuture.suspendAwait()
+        val upgradeResponse = response.status()?.value == HttpStatusCode.SwitchingProtocols.value
+
+        if (upgradeResponse) {
+            dst.write(responseMessage)
             encapsulation.upgrade(dst)
             encapsulation = WriterEncapsulation.Raw
+            dst.flush()
+        } else {
+            dst.writeAndFlush(responseMessage)
         }
 
         val channel = response.responseChannel
@@ -112,8 +115,7 @@ sealed class WriterEncapsulation {
 
         override fun upgrade(dst: ChannelHandlerContext) {
             dst.pipeline().apply {
-                remove(HttpServerCodec::class.java)
-                addFirst(NettyDirectEncoder())
+                replace(HttpServerCodec::class.java, "direct-encoder", NettyDirectEncoder())
             }
         }
     }

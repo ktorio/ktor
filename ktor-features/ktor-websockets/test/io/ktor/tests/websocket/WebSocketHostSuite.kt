@@ -125,6 +125,7 @@ abstract class WebSocketHostSuite<THost : ApplicationHost, TConfiguration : Appl
 
             for (i in 1..5) {
                 val frame = inputStream.readFrame()
+                println("Got frame $i")
                 assertEquals(FrameType.PING, frame.frameType)
                 assertEquals(true, frame.fin)
                 assertTrue { frame.buffer.hasRemaining() }

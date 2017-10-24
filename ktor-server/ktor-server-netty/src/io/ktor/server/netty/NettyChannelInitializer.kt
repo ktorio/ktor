@@ -8,6 +8,7 @@ import io.netty.channel.*
 import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
+import io.netty.handler.logging.*
 import io.netty.handler.ssl.*
 import io.netty.handler.timeout.*
 import io.netty.util.concurrent.*
@@ -93,9 +94,11 @@ internal class NettyChannelInitializer(private val hostPipeline: HostPipeline,
                 val handler = NettyHostHttp1Handler(hostPipeline, environment, callEventGroup, hostCoroutineContext, userCoroutineContext, requestQueue)
 
                 with(pipeline) {
+//                    addLast(LoggingHandler(LogLevel.WARN))
                     addLast("codec", HttpServerCodec())
                     addLast("timeout", WriteTimeoutHandler(10))
                     addLast("http1", handler)
+
                 }
 
                 pipeline.context("codec").fireChannelActive()

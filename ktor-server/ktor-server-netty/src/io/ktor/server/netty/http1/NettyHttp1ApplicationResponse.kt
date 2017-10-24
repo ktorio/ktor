@@ -55,23 +55,22 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
         val nettyChannel = nettyContext.channel()
         val userAppContext = userCoroutineContext + NettyDispatcher.CurrentContext(nettyContext)
 
-        run(hostCoroutineContext) {
-            val bodyHandler = context.pipeline().get(RequestBodyHandler::class.java)
-            val upgradedReadChannel = bodyHandler.newChannel()
-            val upgradedWriteChannel = ByteChannel()
+        val upgradedWriteChannel = ByteChannel()
+        sendResponse(chunked = false, content = upgradedWriteChannel)
 
-            with(nettyChannel.pipeline()) {
-                remove(NettyHostHttp1Handler::class.java)
-                addFirst(NettyDirectDecoder())
-            }
+        val bodyHandler = nettyContext.pipeline().get(RequestBodyHandler::class.java)
+        val upgradedReadChannel = bodyHandler.upgrade()
 
-            sendResponse(chunked = false, content = upgradedWriteChannel)
-            run(userAppContext) {
-                upgrade.upgrade(CIOReadChannelAdapter(upgradedReadChannel), CIOWriteChannelAdapter(upgradedWriteChannel), Close(upgradedWriteChannel, bodyHandler), hostCoroutineContext, userAppContext)
-            }
-
-            (call as NettyApplicationCall).responseWriteJob.join()
+        with(nettyChannel.pipeline()) {
+            remove(NettyHostHttp1Handler::class.java)
+            addFirst(NettyDirectDecoder())
         }
+
+        run(userAppContext) {
+            upgrade.upgrade(CIOReadChannelAdapter(upgradedReadChannel), CIOWriteChannelAdapter(upgradedWriteChannel), Close(upgradedWriteChannel, bodyHandler), hostCoroutineContext, userAppContext)
+        }
+
+        (call as NettyApplicationCall).responseWriteJob.join()
     }
 
     private class Close(private val bc: ByteWriteChannel, private val handler: RequestBodyHandler) : Closeable {
