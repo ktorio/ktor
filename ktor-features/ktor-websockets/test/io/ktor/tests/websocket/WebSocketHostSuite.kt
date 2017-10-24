@@ -118,8 +118,10 @@ abstract class WebSocketHostSuite<THost : ApplicationHost, TConfiguration : Appl
                 flush()
             }
 
-            inputStream.parseStatus()
-            inputStream.parseHeaders()
+            assertEquals(HttpStatusCode.SwitchingProtocols.value, inputStream.parseStatus().value)
+
+            val headers = inputStream.parseHeaders()
+            assertTrue { headers.contains(HttpHeaders.Upgrade) }
 
             for (i in 1..5) {
                 val frame = inputStream.readFrame()

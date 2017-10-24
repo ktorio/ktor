@@ -6,23 +6,28 @@ import io.ktor.client.jvm.*
 import io.ktor.content.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.cio.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.host.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.io.*
+import kotlinx.io.streams.*
 import org.junit.*
 import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
 import java.net.*
+import java.nio.ByteBuffer
 import java.security.*
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import java.util.zip.*
 import kotlin.concurrent.*
+import kotlin.coroutines.experimental.*
 import kotlin.test.*
 
 abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : ApplicationHost.Configuration>(hostFactory: ApplicationHostFactory<THost, TConfiguration>) : HostTestBase<THost, TConfiguration>(hostFactory) {
@@ -1103,6 +1108,97 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
             assertTrue { conns.all { it.isDone } }
         } finally {
             e.shutdownNow()
+        }
+    }
+
+    @Test
+    fun testUpgrade() {
+        createAndStartServer {
+            get("/up") {
+                call.respond(object : FinalContent.ProtocolUpgrade() {
+                    override val headers: ValuesMap
+                        get() = ValuesMap.build(true) {
+                            append(HttpHeaders.Upgrade, "up")
+                            append(HttpHeaders.Connection, "Upgrade")
+                        }
+
+                    suspend override fun upgrade(input: ReadChannel, output: WriteChannel, closeable: Closeable, hostContext: CoroutineContext, userAppContext: CoroutineContext) {
+                        try {
+                            val bb = ByteBuffer.allocate(8)
+                            while (bb.hasRemaining()) {
+                                if (input.read(bb) == -1) {
+                                    fail("Unexpected EOF")
+                                }
+                            }
+
+                            bb.flip()
+                            while (bb.hasRemaining()) {
+                                output.write(bb)
+                            }
+                            output.flush()
+                        } finally {
+                            output.close()
+                            input.close()
+                        }
+                    }
+                })
+            }
+        }
+
+        socket {
+            outputStream.apply {
+                val p = RequestResponseBuilder().apply {
+                    requestLine(HttpMethod.Get, "/up", "HTTP/1.1")
+                    headerLine(HttpHeaders.Host, "localhost:$port")
+                    headerLine(HttpHeaders.Upgrade, "up")
+                    headerLine(HttpHeaders.Connection, "upgrade")
+                    emptyLine()
+                }.build()
+                writePacket(p)
+                flush()
+
+                writePacket {
+                    writeLong(0x1122334455667788L)
+                }
+                flush()
+            }
+
+            val ch = ByteChannel(true)
+
+            runBlocking {
+                launch(coroutineContext) {
+                    val s = inputStream
+                    val bytes = ByteArray(512)
+                    try {
+                        while (true) {
+                            if (s.available() > 0) {
+                                val rc = s.read(bytes)
+                                ch.writeFully(bytes, 0, rc)
+                            } else {
+                                yield()
+                                val rc = s.read(bytes)
+                                if (rc == -1) break
+                                ch.writeFully(bytes, 0, rc)
+                            }
+
+                            yield()
+                        }
+                    } catch (t: Throwable) {
+                        ch.close(t)
+                    } finally {
+                        ch.close()
+                    }
+                }
+
+                val response = parseResponse(ch)!!
+
+                assertEquals(HttpStatusCode.SwitchingProtocols.value, response.status)
+                assertEquals("Upgrade", response.headers[HttpHeaders.Connection]?.toString())
+                assertEquals("up", response.headers[HttpHeaders.Upgrade]?.toString())
+
+                assertEquals(0x1122334455667788L, ch.readLong())
+                assertEquals(-1, ch.readAvailable(ByteArray(1)))
+            }
         }
     }
 

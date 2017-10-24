@@ -62,6 +62,9 @@ sealed class FinalContent {
      * Variant of a [FinalContent] for upgrading an HTTP connection
      */
     abstract class ProtocolUpgrade : FinalContent() {
+        final override val status: HttpStatusCode?
+            get() = HttpStatusCode.SwitchingProtocols
+
         /**
          * Upgrades an HTTP connection
          * @param input is a [ReadChannel] for an upgraded connection

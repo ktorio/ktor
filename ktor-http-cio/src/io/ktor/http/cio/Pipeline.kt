@@ -19,15 +19,20 @@ fun lastHttpRequest(request: Request): Boolean {
     }
 }
 
+typealias HttpRequestHandler = suspend (request: Request,
+                                        input: ByteReadChannel,
+                                        output: ByteWriteChannel,
+                                        upgraded: CompletableDeferred<Boolean>?) -> Unit
+
 suspend fun handleConnectionPipeline(input: ByteReadChannel,
                                      output: ByteWriteChannel,
                                      ioCoroutineContext: CoroutineContext,
                                      callDispatcher: CoroutineContext,
-                                     handler: suspend (request: Request, input: ByteReadChannel, output: ByteWriteChannel) -> Unit) {
+                                     handler: HttpRequestHandler) {
     val outputsActor = actor<ByteReadChannel>(ioCoroutineContext, capacity = 5) {
         try {
             consumeEach { child ->
-                child.copyTo(output)
+                val copied = child.copyTo(output)
                 output.flush()
             }
         } catch (t: Throwable) {
@@ -41,7 +46,8 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
         while (true) {
             val request = parseRequest(input) ?: break
             val expectedHttpBody = expectHttpBody(request)
-            val requestBody = if (expectedHttpBody) ByteChannel() else EmptyByteReadChannel
+            val expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request)
+            val requestBody = if (expectedHttpBody || expectedHttpUpgrade) ByteChannel(true) else EmptyByteReadChannel
 
             val response = ByteChannel()
             try {
@@ -51,13 +57,28 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
                 throw t
             }
 
+            val upgraded = if (expectedHttpUpgrade) CompletableDeferred<Boolean>() else null
+
             launch(callDispatcher) {
                 try {
-                    handler(request, requestBody, response)
+                    handler(request, requestBody, response, upgraded)
                 } catch (t: Throwable) {
                     response.close(t)
+                    upgraded?.completeExceptionally(t)
                 } finally {
                     response.close()
+                    upgraded?.complete(false)
+                }
+            }
+
+            if (upgraded != null) {
+                if (upgraded.await()) { // suspend pipeline until we know if upgrade performed?
+                    launch(Unconfined) {
+                        input.copyAndClose(requestBody as ByteChannel)
+                    }
+                    break
+                } else if (!expectedHttpBody && requestBody is ByteChannel) { // not upgraded, for example 404
+                    requestBody.close()
                 }
             }
 

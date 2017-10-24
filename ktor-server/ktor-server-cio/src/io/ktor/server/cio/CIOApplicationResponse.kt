@@ -16,7 +16,8 @@ class CIOApplicationResponse(call: ApplicationCall,
                              private val output: ByteWriteChannel,
                              private val input: ByteReadChannel,
                              private val hostDispatcher: CoroutineContext,
-                             private val appDispatcher: CoroutineContext) : BaseApplicationResponse(call) {
+                             private val appDispatcher: CoroutineContext,
+                             private val upgraded: CompletableDeferred<Boolean>?) : BaseApplicationResponse(call) {
     private var statusCode: HttpStatusCode = HttpStatusCode.OK
     private val headersNames = ArrayList<String>()
     private val headerValues = ArrayList<String>()
@@ -55,11 +56,17 @@ class CIOApplicationResponse(call: ApplicationCall,
     }
 
     suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
+        upgraded?.complete(true) ?: throw IllegalStateException("Unable to perform upgrade as it is not requested by the client: request should have Upgrade and Connection headers filled properly")
+
         sendResponseMessage(false)
 
+        val upgradedJob = Job()
         upgrade.upgrade(CIOReadChannelAdapter(input), CIOWriteChannelAdapter(output), Closeable {
             output.close()
+            upgradedJob.cancel()
         }, hostDispatcher, appDispatcher)
+
+        upgradedJob.join()
     }
 
     suspend override fun respondFromBytes(bytes: ByteArray) {

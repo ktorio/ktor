@@ -11,7 +11,7 @@ import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 
 // this is only suitable for tests, do not use in production
-internal fun testHttpServer(port: Int = 9096, ioCoroutineContext: CoroutineContext, callDispatcher: CoroutineContext, handler: suspend (request: Request, input: ByteReadChannel, output: ByteWriteChannel) -> Unit): Pair<Job, Deferred<ServerSocketChannel>> {
+internal fun testHttpServer(port: Int = 9096, ioCoroutineContext: CoroutineContext, callDispatcher: CoroutineContext, handler: HttpRequestHandler): Pair<Job, Deferred<ServerSocketChannel>> {
     val deferred = CompletableDeferred<ServerSocketChannel>()
     val j = Job()
 
@@ -51,7 +51,7 @@ internal fun testHttpServer(port: Int = 9096, ioCoroutineContext: CoroutineConte
     return Pair(j, deferred)
 }
 
-private suspend fun client(socket: SocketChannel, ioCoroutineContext: CoroutineContext, callDispatcher: CoroutineContext, handler: suspend (request: Request, input: ByteReadChannel, output: ByteWriteChannel) -> Unit) {
+private suspend fun client(socket: SocketChannel, ioCoroutineContext: CoroutineContext, callDispatcher: CoroutineContext, handler: HttpRequestHandler) {
     val incoming = ByteChannel(true)
     val outgoing = ByteChannel()
 

@@ -5,6 +5,14 @@ import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
 
+fun expectHttpUpgrade(request: Request): Boolean {
+    return request.method == HttpMethod.Get &&
+            request.headers[HttpHeaders.Upgrade] != null &&
+            request.headers[HttpHeaders.Connection].let { connection ->
+                connection != null && connection.contains("upgrade", ignoreCase = true)
+            }
+}
+
 fun expectHttpBody(request: Request): Boolean {
     val method = request.method
     if (method == HttpMethod.Get ||

@@ -8,7 +8,6 @@ import io.ktor.network.sockets.Socket
 import io.ktor.network.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.CancellationException
-import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.net.*
 import java.nio.channels.*
@@ -22,7 +21,7 @@ class HttpServer(val rootServerJob: Job, val serverSocket: Deferred<ServerSocket
     }
 }
 
-fun httpServer(port: Int = 9096, callDispatcher: CoroutineContext = ioCoroutineDispatcher, handler: suspend (request: Request, input: ByteReadChannel, output: ByteWriteChannel) -> Unit): HttpServer {
+fun httpServer(port: Int = 9096, callDispatcher: CoroutineContext = ioCoroutineDispatcher, handler: HttpRequestHandler): HttpServer {
     val socket = CompletableDeferred<ServerSocket>()
 
     val serverJob = launch(ioCoroutineDispatcher) {
@@ -42,7 +41,7 @@ fun httpServer(port: Int = 9096, callDispatcher: CoroutineContext = ioCoroutineD
                         try {
                             launch(ioCoroutineDispatcher) {
                                 try {
-                                    handleConnectionPipeline(client.openReadChannel(), client.openWriteChannel(), ioCoroutineDispatcher, callDispatcher, handler)
+                                    handleConnectionPipeline(client.openReadChannel(), client.openWriteChannel(true), ioCoroutineDispatcher, callDispatcher, handler)
                                 } catch (io: IOException) {
                                 } finally {
                                     client.close()

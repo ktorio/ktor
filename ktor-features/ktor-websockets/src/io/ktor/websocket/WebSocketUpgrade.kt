@@ -1,6 +1,5 @@
 package io.ktor.websocket
 
-import kotlinx.coroutines.experimental.*
 import io.ktor.application.*
 import io.ktor.cio.*
 import io.ktor.content.*
@@ -13,9 +12,6 @@ import kotlin.coroutines.experimental.*
 
 class WebSocketUpgrade(val call: ApplicationCall, val protocol: String? = null, val handle: suspend WebSocketSession.(Dispatchers) -> Unit) : FinalContent.ProtocolUpgrade() {
     private val key = call.request.header(HttpHeaders.SecWebSocketKey) ?: throw IllegalArgumentException("It should be ${HttpHeaders.SecWebSocketKey} header")
-
-    override val status: HttpStatusCode?
-        get() = HttpStatusCode.SwitchingProtocols
 
     override val headers: ValuesMap
         get() = ValuesMap.build(true) {

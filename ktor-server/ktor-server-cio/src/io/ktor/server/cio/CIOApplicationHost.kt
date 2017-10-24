@@ -38,7 +38,7 @@ class CIOApplicationHost(environment: ApplicationHostEnvironment, configure: Con
 
         try {
             environment.connectors.forEach { connectorSpec ->
-                if (connectorSpec.type == ConnectorType.HTTPS) throw UnsupportedOperationException("HTTP is not supported")
+                if (connectorSpec.type == ConnectorType.HTTPS) throw UnsupportedOperationException("HTTPS is not supported")
                 val connector = startConnector(connectorSpec.port)
 
                 connectors.add(connector)
@@ -142,13 +142,13 @@ class CIOApplicationHost(environment: ApplicationHostEnvironment, configure: Con
     private fun startConnector(port: Int): HttpServer {
         if (state.get() != State.STARTING) return HttpServer.CancelledServer
 
-        val server = httpServer(port, appCtx) { request, input, output ->
+        val server = httpServer(port, appCtx) { request, input, output, upgraded ->
             if (state.get() != State.RUNNING) {
                 respondServiceUnavailable(request.version, output)
                 return@httpServer
             }
 
-            val call = CIOApplicationCall(application, request, input, output, hostCtx, appCtx)
+            val call = CIOApplicationCall(application, request, input, output, hostCtx, appCtx, upgraded)
 
             try {
                 pipeline.execute(call)
