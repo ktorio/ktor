@@ -26,6 +26,7 @@ fun HeadersBuilder.charset(): Charset? = get(HttpHeaders.ContentType)?.let { Con
 fun HeadersBuilder.userAgent(content: String) = set(HttpHeaders.UserAgent, content)
 
 fun HttpRequestBuilder.contentType(type: ContentType) = headers.set(HttpHeaders.ContentType, type.toString())
+fun HttpRequestBuilder.contentType(): ContentType? = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
 fun HttpRequestBuilder.maxAge(): Int? = cacheControl.maxAge
 fun HttpRequestBuilder.ifModifiedSince(date: Date) =
         headers.set(HttpHeaders.IfModifiedSince, formatHttpDate(date))
