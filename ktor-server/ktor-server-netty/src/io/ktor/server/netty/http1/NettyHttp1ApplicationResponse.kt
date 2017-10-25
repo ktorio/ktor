@@ -55,11 +55,11 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
         val nettyChannel = nettyContext.channel()
         val userAppContext = userCoroutineContext + NettyDispatcher.CurrentContext(nettyContext)
 
-        val upgradedWriteChannel = ByteChannel()
-        sendResponse(chunked = false, content = upgradedWriteChannel)
-
         val bodyHandler = nettyContext.pipeline().get(RequestBodyHandler::class.java)
         val upgradedReadChannel = bodyHandler.upgrade()
+
+        val upgradedWriteChannel = ByteChannel()
+        sendResponse(chunked = false, content = upgradedWriteChannel)
 
         with(nettyChannel.pipeline()) {
             remove(NettyHostHttp1Handler::class.java)
