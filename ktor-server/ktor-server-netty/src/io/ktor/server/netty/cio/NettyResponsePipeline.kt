@@ -65,18 +65,20 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         val close = !call.request.keepAlive
 
         val upgradeResponse = response.status()?.value == HttpStatusCode.SwitchingProtocols.value
+        val channel = response.responseChannel
 
         if (upgradeResponse) {
             dst.write(responseMessage)
             encapsulation.upgrade(dst)
             encapsulation = WriterEncapsulation.Raw
             dst.flush()
+        } else if (channel.availableForRead > 0) {
+            dst.write(responseMessage)
         } else {
             dst.writeAndFlush(responseMessage)
         }
 
-        val channel = response.responseChannel
-
+        var unflushedBytes = 0
         while (true) {
             val buf = dst.alloc().buffer(4096)
             val bb = buf.nioBuffer(buf.writerIndex(), buf.writableBytes())
@@ -88,7 +90,13 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
             buf.writerIndex(buf.writerIndex() + rc)
             val message = encapsulation.transform(buf)
 
-            dst.writeAndFlush(message).suspendAwait()
+            unflushedBytes += rc
+            if (channel.availableForRead == 0 || unflushedBytes >= UnflushedLimit) {
+                dst.writeAndFlush(message).suspendAwait()
+                unflushedBytes = 0
+            } else {
+                dst.write(message)
+            }
         }
 
         encapsulation.endOfStream()?.let { dst.writeAndFlush(it).suspendAwait() }
@@ -98,6 +106,8 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         }
     }
 }
+
+private const val UnflushedLimit = 65536
 
 sealed class WriterEncapsulation {
     abstract fun transform(buf: ByteBuf): Any
