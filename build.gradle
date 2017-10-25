@@ -114,12 +114,12 @@ allprojects {
     }
 
     repositories {
-        mavenLocal()
+//        mavenLocal()
 
+        maven { url "http://repo.maven.apache.org/maven2" }
         maven { url "https://jcenter.bintray.com" }
         maven { url "https://dl.bintray.com/kotlin/kotlin-eap-1.1" }
         maven { url "https://jitpack.io" }
-        maven { url "http://repo.maven.apache.org/maven2" }
         maven { url "https://dl.bintray.com/kotlinx/kotlinx" }
         maven { url "https://dl.bintray.com/kotlin/kotlinx" }
         maven { url "https://dl.bintray.com/kotlin/exposed" }
