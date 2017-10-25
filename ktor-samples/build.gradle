@@ -7,6 +7,7 @@ switch (hostServerProp) {
     case 'jetty': host = 'jetty'; break
     case 'netty': host = 'netty'; break
     case 'tomcat': host = 'tomcat'; break
+    case 'cio': host = 'cio'; break
     default: throw new InvalidUserDataException("Invalid host ${project.hostServer}")
 }
 
