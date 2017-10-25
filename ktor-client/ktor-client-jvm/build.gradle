@@ -1,6 +1,0 @@
-description = ''
-
-dependencies {
-//  compile project(":ktor-utils")
-    compile project(":ktor-http")
-}
