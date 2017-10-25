@@ -2,6 +2,7 @@ package io.ktor.tests.server.tomcat
 
 import io.ktor.server.testing.*
 import io.ktor.server.tomcat.*
+import org.junit.*
 import java.util.logging.*
 
 class TomcatHostTest : HostTestSuite<TomcatApplicationHost, TomcatApplicationHost.Configuration>(Tomcat) {
@@ -11,5 +12,11 @@ class TomcatHostTest : HostTestSuite<TomcatApplicationHost, TomcatApplicationHos
             Logger.getLogger(it).apply { level = Level.WARNING }
         }
         enableHttp2 = false
+    }
+
+    @Ignore
+    @Test
+    override fun testUpgrade() {
+        super.testUpgrade()
     }
 }
