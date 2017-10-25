@@ -4,10 +4,17 @@ import io.ktor.cio.*
 import io.ktor.client.call.*
 import io.ktor.client.response.*
 import io.ktor.client.utils.*
+import kotlinx.io.pool.*
 import java.io.*
 import java.nio.*
 import java.nio.charset.*
 
+
+private val DEFAULT_RESPONSE_POOL_SIZE = 1000
+
+private val ResponsePool = object : DefaultPool<ByteBuffer>(DEFAULT_RESPONSE_POOL_SIZE) {
+    override fun produceInstance(): ByteBuffer = ByteBuffer.allocate(8192)!!
+}
 
 suspend fun HttpResponse.readText(): String = receive()
 
@@ -27,8 +34,8 @@ suspend fun HttpResponse.readBytes(count: Int): ByteArray {
 }
 
 suspend fun HttpResponse.readBytes(): ByteArray {
-    val result = ByteArrayOutputStream()
-    val buffer = ByteBuffer.allocate(8192)
+    val result = contentLength()?.let { ByteArrayOutputStream(it) } ?: ByteArrayOutputStream()
+    val buffer = ResponsePool.borrow()
     val channel = bodyChannel
 
     while (true) {
@@ -40,22 +47,32 @@ suspend fun HttpResponse.readBytes(): ByteArray {
         result.write(buffer.array(), buffer.arrayOffset() + buffer.position(), count)
     }
 
+    ResponsePool.recycle(buffer)
     return result.toByteArray()
 }
 
 suspend fun HttpResponse.discardRemaining() {
     val channel = bodyChannel
-    val buffer = ByteBuffer.allocate(8192)
+    val buffer = ResponsePool.borrow()
 
     while (true) {
         buffer.clear()
         if (channel.read(buffer) == -1) break
     }
+
+    ResponsePool.recycle(buffer)
 }
 
-val HttpResponse.bodyStream: InputStream get() {
-    if (body is InputStreamBody) return body.stream
-    error("Body has been already processed by some feature: $body")
+private object EmptyInputStream : InputStream() {
+    override fun read(): Int = -1
 }
+
+val HttpResponse.bodyStream: InputStream
+    get() = when (body) {
+        is EmptyBody -> EmptyInputStream
+        is InputStreamBody -> body.stream
+        is OutputStreamBody -> ByteArrayOutputStream().apply(body.block).toByteArray().inputStream()
+        else -> error("Body has been already processed by some feature: $body")
+    }
 
 val HttpResponse.bodyChannel: ReadChannel get() = bodyStream.toReadChannel()

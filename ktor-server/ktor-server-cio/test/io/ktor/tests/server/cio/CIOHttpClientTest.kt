@@ -1,8 +1,11 @@
 package io.ktor.tests.server.cio
 
-import io.ktor.client.jvm.*
+import io.ktor.client.*
+import io.ktor.client.backend.cio.*
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
-import io.ktor.server.cio.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
 import java.io.*
@@ -56,12 +59,12 @@ class CIOHttpClientTest {
         }
 
         val port = portSync.take()
-        val response = CIOClient.request(URL("http://127.0.0.1:$port/")) {
+        val response = HttpClient(CIOBackend).call(URL("http://127.0.0.1:$port/")) {
             method = HttpMethod.Post
-            path = "/url"
+            url.path = "/url"
             header("header", "value")
             header("Content-Length", "12")
-            body = { out ->
+            body = OutputStreamBody { out ->
                 out.writer().use { w ->
                     w.write("request-body")
                 }
@@ -71,7 +74,7 @@ class CIOHttpClientTest {
         try {
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("test", response.headers[HttpHeaders.Server])
-            assertEquals("ok", response.stream.reader().readText())
+            assertEquals("ok", response.readText())
 
             val receivedHeaders = headersSync.take()
             assertEquals("value", receivedHeaders["header"])
@@ -146,12 +149,12 @@ class CIOHttpClientTest {
 
         val port = portSync.await()
 
-        val response = CIOClient.request(URL("http://127.0.0.1:$port/")) {
+        val response = HttpClient(CIOBackend).call(URL("http://127.0.0.1:$port/")) {
             method = HttpMethod.Post
-            path = "/url"
+            url.path = "/url"
             header("header", "value")
             header("Transfer-Encoding", "chunked")
-            body = { out ->
+            body = OutputStreamBody { out ->
                 out.writer().use { w ->
                     w.write("request-body")
                 }
@@ -161,7 +164,7 @@ class CIOHttpClientTest {
         try {
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("test", response.headers[HttpHeaders.Server])
-            assertEquals("ok", response.stream.reader().readText())
+            assertEquals("ok", response.readText())
 
             val receivedHeaders = headersSync.await()
             assertEquals("value", receivedHeaders["header"])

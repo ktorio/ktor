@@ -1,11 +1,9 @@
 package io.ktor.network.sockets
 
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.net.*
-import java.nio.charset.*
 
 /**
  * Base type for all async sockets

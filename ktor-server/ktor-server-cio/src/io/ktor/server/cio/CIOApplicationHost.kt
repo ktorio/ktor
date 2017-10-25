@@ -1,7 +1,6 @@
 package io.ktor.server.cio
 
 import io.ktor.http.cio.*
-import io.ktor.network.sockets.*
 import io.ktor.network.util.*
 import io.ktor.pipeline.*
 import io.ktor.server.host.*

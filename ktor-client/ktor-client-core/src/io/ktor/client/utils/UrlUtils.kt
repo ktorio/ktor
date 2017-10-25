@@ -69,3 +69,5 @@ val Url.fullPath: String
 
         return "$path$parameters"
     }
+
+val Url.hostWithPort: String get() = "$host:$port"

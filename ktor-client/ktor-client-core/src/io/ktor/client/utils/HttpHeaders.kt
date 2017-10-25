@@ -38,6 +38,7 @@ fun HttpResponse.lastModified(): Date? = headers[HttpHeaders.LastModified]?.let 
 fun HttpResponse.etag(): String? = headers[HttpHeaders.ETag]
 fun HttpResponse.expires(): Date? = headers[HttpHeaders.Expires]?.let { parseHttpDate(it) }
 fun HttpResponse.vary(): List<String>? = headers[HttpHeaders.Vary]?.split(",")?.map { it.trim() }
+fun HttpResponse.contentLength(): Int? = headers[HttpHeaders.ContentLength]?.toInt()
 
 fun HttpResponseBuilder.lastModified(): Date? = headers[HttpHeaders.LastModified]?.let { parseHttpDate(it) }
 fun HttpResponseBuilder.etag(): String? = headers[HttpHeaders.ETag]

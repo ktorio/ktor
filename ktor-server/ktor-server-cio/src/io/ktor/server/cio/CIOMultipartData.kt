@@ -2,7 +2,6 @@ package io.ktor.server.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.*
-import io.ktor.http.cio.HttpHeadersMap
 import io.ktor.network.util.*
 import io.ktor.request.*
 import kotlinx.coroutines.experimental.*

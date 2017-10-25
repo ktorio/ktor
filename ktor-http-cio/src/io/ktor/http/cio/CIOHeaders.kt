@@ -1,6 +1,5 @@
-package io.ktor.server.cio
+package io.ktor.http.cio
 
-import io.ktor.http.cio.*
 import io.ktor.util.*
 
 class CIOHeaders(private val headers: HttpHeadersMap) : ValuesMap {

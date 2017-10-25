@@ -1,4 +1,4 @@
-package io.ktor.server.cio
+package io.ktor.client.backend.cio
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
@@ -22,3 +22,8 @@ internal class OutputStreamAdapter(private val output: ByteWriteChannel, private
         else output.close()
     }
 }
+
+internal suspend fun ByteWriteChannel.write(stream: InputStream, suppressClose: Boolean = false) {
+    stream.copyTo(OutputStreamAdapter(this, suppressClose))
+}
+
