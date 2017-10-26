@@ -15,11 +15,11 @@ import kotlin.coroutines.experimental.*
 
 internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
                                              context: ChannelHandlerContext,
-                                             hostCoroutineContext: CoroutineContext,
-                                             userCoroutineContext: CoroutineContext,
+                                             engineContext: CoroutineContext,
+                                             userContext: CoroutineContext,
                                              val protocol: HttpVersion)
 
-    : NettyApplicationResponse(call, context, hostCoroutineContext, userCoroutineContext) {
+    : NettyApplicationResponse(call, context, engineContext, userContext) {
 
     private var responseStatus: HttpResponseStatus = HttpResponseStatus.OK
     private val responseHeaders = io.netty.handler.codec.http.DefaultHttpHeaders()
@@ -32,14 +32,14 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
     }
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
-        override fun hostAppendHeader(name: String, value: String) {
+        override fun engineAppendHeader(name: String, value: String) {
             if (responseMessageSent)
                 throw UnsupportedOperationException("Headers can no longer be set because response was already completed")
             responseHeaders.add(name, value)
         }
 
-        override fun getHostHeaderNames(): List<String> = responseHeaders.map { it.key }
-        override fun getHostHeaderValues(name: String): List<String> = responseHeaders.getAll(name) ?: emptyList()
+        override fun getEngineHeaderNames(): List<String> = responseHeaders.map { it.key }
+        override fun getEngineHeaderValues(name: String): List<String> = responseHeaders.getAll(name) ?: emptyList()
     }
 
     override fun responseMessage(chunked: Boolean, last: Boolean): Any {
@@ -53,7 +53,7 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         val nettyContext = context
         val nettyChannel = nettyContext.channel()
-        val userAppContext = userCoroutineContext + NettyDispatcher.CurrentContext(nettyContext)
+        val userAppContext = userContext + NettyDispatcher.CurrentContext(nettyContext)
 
         val bodyHandler = nettyContext.pipeline().get(RequestBodyHandler::class.java)
         val upgradedReadChannel = bodyHandler.upgrade()
@@ -62,12 +62,12 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
         sendResponse(chunked = false, content = upgradedWriteChannel)
 
         with(nettyChannel.pipeline()) {
-            remove(NettyHostHttp1Handler::class.java)
+            remove(NettyHttp1Handler::class.java)
             addFirst(NettyDirectDecoder())
         }
 
         run(userAppContext) {
-            upgrade.upgrade(CIOReadChannelAdapter(upgradedReadChannel), CIOWriteChannelAdapter(upgradedWriteChannel), Close(upgradedWriteChannel, bodyHandler), hostCoroutineContext, userAppContext)
+            upgrade.upgrade(CIOReadChannelAdapter(upgradedReadChannel), CIOWriteChannelAdapter(upgradedWriteChannel), Close(upgradedWriteChannel, bodyHandler), engineContext, userAppContext)
         }
 
         (call as NettyApplicationCall).responseWriteJob.join()

@@ -1,7 +1,7 @@
 package io.ktor.server.testing
 
 import io.ktor.application.*
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 
 class TestApplicationCall(application: Application) : BaseApplicationCall(application) {
 

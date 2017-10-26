@@ -90,7 +90,7 @@ class UserHashedTableAuthTest {
         }
     }
 
-    fun TestApplicationHost.handlePost(uri: String, user: String? = null, password: String? = null): TestApplicationCall {
+    fun TestApplicationEngine.handlePost(uri: String, user: String? = null, password: String? = null): TestApplicationCall {
         return handleRequest(HttpMethod.Post, uri) {
             addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             body = ValuesMap.build {

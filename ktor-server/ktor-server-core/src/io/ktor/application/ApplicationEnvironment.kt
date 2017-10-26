@@ -34,7 +34,7 @@ interface ApplicationEnvironment {
  * Even definition for Application Starting event
  *
  * Note, that application itself cannot receive this event because it fires before application is created
- * It is meant to be used by hosts.
+ * It is meant to be used by engines.
  */
 val ApplicationStarting = EventDefinition<Application>()
 

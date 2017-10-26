@@ -388,10 +388,10 @@ private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
 
         }
     }
-    val host = TestApplicationHost(environment)
-    host.start()
+    val engine = TestApplicationEngine(environment)
+    engine.start()
     return HttpClient {
-        TestHttpClientBackend(host)
+        TestHttpClientBackend(engine)
     }
 }
 

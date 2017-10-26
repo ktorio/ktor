@@ -1,9 +1,9 @@
 package io.ktor.server.netty
 
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 
-object Netty : ApplicationHostFactory<NettyApplicationHost, NettyApplicationHost.Configuration> {
-    override fun create(environment: ApplicationHostEnvironment, configure: NettyApplicationHost.Configuration.() -> Unit): NettyApplicationHost {
-        return NettyApplicationHost(environment, configure)
+object Netty : ApplicationEngineFactory<NettyApplicationEngine, NettyApplicationEngine.Configuration> {
+    override fun create(environment: ApplicationEngineEnvironment, configure: NettyApplicationEngine.Configuration.() -> Unit): NettyApplicationEngine {
+        return NettyApplicationEngine(environment, configure)
     }
 }

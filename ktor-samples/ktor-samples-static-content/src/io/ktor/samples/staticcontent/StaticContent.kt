@@ -2,7 +2,7 @@ package io.ktor.samples.staticcontent
 
 import io.ktor.content.*
 import io.ktor.routing.*
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import java.io.*
 

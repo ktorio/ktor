@@ -1,14 +1,14 @@
 def host;
 
-def hostServerProp = project.hasProperty('hostServer') ? project.hostServer : 'netty'
+def serverEngineProp = project.hasProperty('serverEngine') ? project.hostServer : 'netty'
 def enableAlpnProp = project.hasProperty('enableAlpn')
 
-switch (hostServerProp) {
+switch (serverEngineProp) {
     case 'jetty': host = 'jetty'; break
     case 'netty': host = 'netty'; break
     case 'tomcat': host = 'tomcat'; break
     case 'cio': host = 'cio'; break
-    default: throw new InvalidUserDataException("Invalid host ${project.hostServer}")
+    default: throw new InvalidUserDataException("Unknown engine ${project.serverEngine}")
 }
 
 
@@ -22,7 +22,7 @@ subprojects {
         compile project(":ktor-server:ktor-server-$host")
 
         if (enableAlpnProp) {
-            if (hostServerProp == 'netty') {
+            if (serverEngineProp == 'netty') {
                 def nativeClassifier;
                 def osName = System.getProperty('os.name').toLowerCase()
 
@@ -39,13 +39,13 @@ subprojects {
                 compile group: 'io.netty', name: 'netty-tcnative', version: netty_tcnative_version
                 compile group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: netty_tcnative_version
                 compile group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: netty_tcnative_version, classifier: nativeClassifier
-            } else if (hostServerProp == 'jetty') {
+            } else if (serverEngineProp == 'jetty') {
                 boot group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: jetty_alpn_boot_version
             }
         }
     }
 
-    mainClassName = "io.ktor.server.${host}.DevelopmentHost"
+    mainClassName = "io.ktor.server.${host}.DevelopmentEngine"
 
     afterEvaluate {
         def bootClasspath = configurations.boot.files

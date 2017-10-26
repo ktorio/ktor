@@ -13,7 +13,7 @@ import java.util.concurrent.*
 
 @State(Scope.Benchmark)
 class FullBenchmark {
-    private val testHost: TestApplicationHost = TestApplicationHost(createTestEnvironment())
+    private val testHost: TestApplicationEngine = TestApplicationEngine(createTestEnvironment())
     private val classSignature = listOf(0xca, 0xfe, 0xba, 0xbe).map(Int::toByte)
     private val packageName = FullBenchmark::class.java.`package`.name
     private val classFileName = FullBenchmark::class.simpleName!! + ".class"

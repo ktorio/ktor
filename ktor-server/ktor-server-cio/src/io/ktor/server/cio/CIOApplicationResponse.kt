@@ -6,7 +6,7 @@ import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.response.*
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
@@ -15,8 +15,8 @@ import kotlin.coroutines.experimental.*
 class CIOApplicationResponse(call: ApplicationCall,
                              private val output: ByteWriteChannel,
                              private val input: ByteReadChannel,
-                             private val hostDispatcher: CoroutineContext,
-                             private val appDispatcher: CoroutineContext,
+                             private val engineDispatcher: CoroutineContext,
+                             private val userDispatcher: CoroutineContext,
                              private val upgraded: CompletableDeferred<Boolean>?) : BaseApplicationResponse(call) {
     private var statusCode: HttpStatusCode = HttpStatusCode.OK
     private val headersNames = ArrayList<String>()
@@ -29,16 +29,16 @@ class CIOApplicationResponse(call: ApplicationCall,
     private var chunkedJob: Job? = null
 
     override val headers = object : ResponseHeaders() {
-        override fun hostAppendHeader(name: String, value: String) {
+        override fun engineAppendHeader(name: String, value: String) {
             headersNames.add(name)
             headerValues.add(value)
         }
 
-        override fun getHostHeaderNames(): List<String> {
+        override fun getEngineHeaderNames(): List<String> {
             return headersNames
         }
 
-        override fun getHostHeaderValues(name: String): List<String> = headersNames.indices
+        override fun getEngineHeaderValues(name: String): List<String> = headersNames.indices
                 .filter { headersNames[it] == name }
                 .map { headerValues[it] }
     }
@@ -46,7 +46,7 @@ class CIOApplicationResponse(call: ApplicationCall,
     suspend override fun responseChannel(): WriteChannel {
         sendResponseMessage(true)
 
-        val j = encodeChunked(output, hostDispatcher)
+        val j = encodeChunked(output, engineDispatcher)
         val chunked = j.channel
 
         chunkedChannel = chunked
@@ -64,7 +64,7 @@ class CIOApplicationResponse(call: ApplicationCall,
         upgrade.upgrade(CIOReadChannelAdapter(input), CIOWriteChannelAdapter(output), Closeable {
             output.close()
             upgradedJob.cancel()
-        }, hostDispatcher, appDispatcher)
+        }, engineDispatcher, userDispatcher)
 
         upgradedJob.join()
     }

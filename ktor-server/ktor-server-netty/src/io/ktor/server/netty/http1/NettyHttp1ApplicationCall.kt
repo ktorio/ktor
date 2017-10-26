@@ -12,10 +12,10 @@ internal class NettyHttp1ApplicationCall(
         context: ChannelHandlerContext,
         httpRequest: HttpRequest,
         requestBodyChannel: ByteReadChannel,
-        hostCoroutineContext: CoroutineContext,
-        userCoroutineContext: CoroutineContext
+        engineContext: CoroutineContext,
+        userContext: CoroutineContext
 ) : NettyApplicationCall(application, context, httpRequest) {
 
     override val request = NettyHttp1ApplicationRequest(this, context, httpRequest, requestBodyChannel)
-    override val response = NettyHttp1ApplicationResponse(this, context, hostCoroutineContext, userCoroutineContext, httpRequest.protocolVersion())
+    override val response = NettyHttp1ApplicationResponse(this, context, engineContext, userContext, httpRequest.protocolVersion())
 }

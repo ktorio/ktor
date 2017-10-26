@@ -11,8 +11,8 @@ import kotlin.coroutines.experimental.*
 import kotlin.properties.*
 
 internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
-                                           val hostContext: CoroutineContext,
-                                           val userAppContext: CoroutineContext,
+                                           val engineContext: CoroutineContext,
+                                           val userContext: CoroutineContext,
                                            val pool: ByteBufferPool
 ) : DefaultWebSocketSession, WebSocketSession by raw {
 
@@ -32,8 +32,8 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
 
     suspend fun run(handler: suspend DefaultWebSocketSession.() -> Unit) {
         runPinger()
-        val ponger = ponger(hostContext, this, NoPool)
-        val closeSequence = closeSequence(hostContext, raw, { timeout }, { reason ->
+        val ponger = ponger(engineContext, this, NoPool)
+        val closeSequence = closeSequence(engineContext, raw, { timeout }, { reason ->
             closeReasonRef.complete(reason ?: CloseReason(CloseReason.Codes.NORMAL, ""))
         })
 
@@ -89,7 +89,7 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
             }
         }
 
-        launch(userAppContext) {
+        launch(userContext) {
             val t = try {
                 handler()
                 null
@@ -126,7 +126,7 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
 
     private fun runPinger() {
         if (!closeReasonRef.isCompleted) {
-            val newPinger = pingInterval?.let { interval -> pinger(hostContext, raw, interval, timeout, pool, raw.outgoing) }
+            val newPinger = pingInterval?.let { interval -> pinger(engineContext, raw, interval, timeout, pool, raw.outgoing) }
             pinger.getAndSet(newPinger)?.cancel()
             newPinger?.start()
         } else {

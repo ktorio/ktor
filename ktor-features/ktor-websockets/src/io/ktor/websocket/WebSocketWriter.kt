@@ -96,7 +96,7 @@ internal class WebSocketWriter(val writeChannel: WriteChannel, ctx: CoroutineCon
             if (closeSent) break
         }
 
-        // it is important here to flush the channel as some hosts could delay actual bytes transferring
+        // it is important here to flush the channel as some engines could delay actual bytes transferring
         // as we reached here then we don't have any outstanding messages so we can flush at idle
         writeChannel.flush()
 

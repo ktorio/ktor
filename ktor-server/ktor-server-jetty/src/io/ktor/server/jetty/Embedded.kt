@@ -1,9 +1,9 @@
 package io.ktor.server.jetty
 
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 
-object Jetty : ApplicationHostFactory<JettyApplicationHost, JettyApplicationHostBase.Configuration> {
-    override fun create(environment: ApplicationHostEnvironment, configure: JettyApplicationHostBase.Configuration.() -> Unit): JettyApplicationHost {
-        return JettyApplicationHost(environment, configure)
+object Jetty : ApplicationEngineFactory<JettyApplicationEngine, JettyApplicationEngineBase.Configuration> {
+    override fun create(environment: ApplicationEngineEnvironment, configure: JettyApplicationEngineBase.Configuration.() -> Unit): JettyApplicationEngine {
+        return JettyApplicationEngine(environment, configure)
     }
 }

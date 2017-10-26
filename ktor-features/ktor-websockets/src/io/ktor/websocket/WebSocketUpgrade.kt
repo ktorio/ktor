@@ -24,9 +24,9 @@ class WebSocketUpgrade(val call: ApplicationCall, val protocol: String? = null, 
             // TODO extensions
         }
 
-    override suspend fun upgrade(input: ReadChannel, output: WriteChannel, closeable: Closeable, hostContext: CoroutineContext, userAppContext: CoroutineContext) {
+    override suspend fun upgrade(input: ReadChannel, output: WriteChannel, closeable: Closeable, engineContext: CoroutineContext, userContext: CoroutineContext) {
         val webSockets = call.application.feature(WebSockets)
-        val webSocket = RawWebSocketImpl(call, input, output, closeable, NoPool, hostContext, userAppContext)
+        val webSocket = RawWebSocketImpl(call, input, output, closeable, NoPool, engineContext, userContext)
 
         webSocket.maxFrameSize = webSockets.maxFrameSize
         webSocket.masking = webSockets.masking
@@ -34,7 +34,7 @@ class WebSocketUpgrade(val call: ApplicationCall, val protocol: String? = null, 
         webSocket.start(handle)
     }
 
-    class Dispatchers(val hostContext: CoroutineContext, val userAppContext: CoroutineContext)
+    class Dispatchers(val engineContext: CoroutineContext, val userContext: CoroutineContext)
 
     private fun sha1(s: String) = MessageDigest.getInstance("SHA1").digest(s.toByteArray(Charsets.ISO_8859_1))
 }

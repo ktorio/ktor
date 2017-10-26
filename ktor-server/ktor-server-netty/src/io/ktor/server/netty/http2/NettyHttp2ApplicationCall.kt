@@ -9,12 +9,12 @@ import kotlin.coroutines.experimental.*
 internal class NettyHttp2ApplicationCall(application: Application,
                                          context: ChannelHandlerContext,
                                          val headers: Http2Headers,
-                                         handler: NettyHostHttp2Handler,
+                                         handler: NettyHttp2Handler,
                                          connection: Http2Connection,
-                                         hostCoroutineContext: CoroutineContext,
-                                         userCoroutineContext: CoroutineContext
+                                         engineContext: CoroutineContext,
+                                         userContext: CoroutineContext
 ) : NettyApplicationCall(application, context, headers) {
 
     override val request = NettyHttp2ApplicationRequest(this, context, headers)
-    override val response = NettyHttp2ApplicationResponse(this, handler, context, connection, hostCoroutineContext, userCoroutineContext)
+    override val response = NettyHttp2ApplicationResponse(this, handler, context, connection, engineContext, userContext)
 }

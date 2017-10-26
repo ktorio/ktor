@@ -1,6 +1,6 @@
 package io.ktor.server.jetty
 
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 import org.eclipse.jetty.alpn.server.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.*
@@ -8,7 +8,7 @@ import org.eclipse.jetty.http2.server.*
 import org.eclipse.jetty.server.*
 import org.eclipse.jetty.util.ssl.*
 
-internal fun Server.initializeServer(environment: ApplicationHostEnvironment) {
+internal fun Server.initializeServer(environment: ApplicationEngineEnvironment) {
     connectors = environment.connectors.map { ktorConnector ->
         val httpConfig = HttpConfiguration().apply {
             sendServerVersion = false
@@ -34,7 +34,7 @@ internal fun Server.initializeServer(environment: ApplicationHostEnvironment) {
                     isUseCipherSuitesOrder = true
                 }
 
-                keyStore = (ktorConnector as HostSSLConnectorConfig).keyStore
+                keyStore = (ktorConnector as EngineSSLConnectorConfig).keyStore
                 setKeyManagerPassword(String(ktorConnector.privateKeyPassword()))
                 setKeyStorePassword(String(ktorConnector.keyStorePassword()))
 
@@ -52,7 +52,7 @@ internal fun Server.initializeServer(environment: ApplicationHostEnvironment) {
                     } else null,
                     if (alpnAvailable) HTTP2ServerConnectionFactory(httpConfig) else HTTP2CServerConnectionFactory(httpConfig),
                     HttpConnectionFactory(httpConfig)).filterNotNull().toTypedArray()
-            else -> throw IllegalArgumentException("Connector type ${ktorConnector.type} is not supported by Jetty host implementation")
+            else -> throw IllegalArgumentException("Connector type ${ktorConnector.type} is not supported by Jetty engine implementation")
         }
 
         ServerConnector(this, *connectionFactories).apply {

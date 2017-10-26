@@ -9,7 +9,7 @@ import io.ktor.server.testing.*
 import org.junit.*
 import kotlin.test.*
 
-private fun withLocationsApplication(test: TestApplicationHost.() -> Unit) = withTestApplication {
+private fun withLocationsApplication(test: TestApplicationEngine.() -> Unit) = withTestApplication {
     application.install(Locations)
     test()
 }

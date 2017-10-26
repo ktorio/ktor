@@ -6,7 +6,7 @@ import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import io.ktor.server.netty.*
 import org.openjdk.jmh.annotations.*
@@ -25,12 +25,12 @@ abstract class IntegrationBenchmark {
         it.name.startsWith("ktor-server-core") && it.name.endsWith("SNAPSHOT.jar")
     }.single()
 
-    lateinit var server: ApplicationHost
+    lateinit var server: ApplicationEngine
     private val httpClient = OkHttpBenchmarkClient()
 
     private val port = 5678
 
-    abstract fun createServer(port: Int, main: Application.() -> Unit): ApplicationHost
+    abstract fun createServer(port: Int, main: Application.() -> Unit): ApplicationEngine
 
     @Setup
     fun configureServer() {
@@ -126,13 +126,13 @@ abstract class IntegrationBenchmark {
 }
 
 class NettyIntegrationBenchmark : IntegrationBenchmark() {
-    override fun createServer(port: Int, main: Application.() -> Unit): ApplicationHost {
+    override fun createServer(port: Int, main: Application.() -> Unit): ApplicationEngine {
         return embeddedServer(Netty, port, module = main)
     }
 }
 
 class JettyIntegrationBenchmark : IntegrationBenchmark() {
-    override fun createServer(port: Int, main: Application.() -> Unit): ApplicationHost {
+    override fun createServer(port: Int, main: Application.() -> Unit): ApplicationEngine {
         return embeddedServer(Jetty, port, module = main)
     }
 }

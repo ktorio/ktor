@@ -7,7 +7,7 @@ package io.ktor.application
  */
 class Application(val environment: ApplicationEnvironment) : ApplicationCallPipeline() {
     /**
-     * Called by host when [Application] is terminated
+     * Called by [ApplicationEngine] when [Application] is terminated
      */
     fun dispose() {
         uninstallAllFeatures()

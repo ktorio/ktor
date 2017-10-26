@@ -12,11 +12,11 @@ internal class RawWebSocketImpl(override val call: ApplicationCall,
                                 val writeChannel: WriteChannel,
                                 val channel: Closeable,
                                 pool: ByteBufferPool = NoPool,
-                                val hostContext: CoroutineContext,
-                                val userAppContext: CoroutineContext
+                                val engineContext: CoroutineContext,
+                                val userContext: CoroutineContext
 ) : WebSocketSession {
-    private val writer = WebSocketWriter(writeChannel, hostContext, pool)
-    private val reader = WebSocketReader(readChannel, this::maxFrameSize, hostContext, pool)
+    private val writer = WebSocketWriter(writeChannel, engineContext, pool)
+    private val reader = WebSocketReader(readChannel, this::maxFrameSize, engineContext, pool)
 
     override val application: Application get() = call.application
     override val incoming: ReceiveChannel<Frame> get() = reader.incoming
@@ -47,10 +47,10 @@ internal class RawWebSocketImpl(override val call: ApplicationCall,
             }
         }
 
-        launch(hostContext) {
+        launch(engineContext) {
             var t: Throwable? = null
             try {
-                handler(WebSocketUpgrade.Dispatchers(hostContext, userAppContext))
+                handler(WebSocketUpgrade.Dispatchers(engineContext, userContext))
             } catch (failed: Throwable) {
                 t = failed
             } finally {

@@ -299,7 +299,7 @@ class OAuth2Test {
     }
 }
 
-private fun TestApplicationHost.handleRequestWithBasic(url: String, user: String, pass: String) =
+private fun TestApplicationEngine.handleRequestWithBasic(url: String, user: String, pass: String) =
         handleRequest {
             uri = url
 
@@ -370,9 +370,9 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
             }
         }
     }
-    val host = TestApplicationHost(environment)
-    host.start()
-    return HttpClient { TestHttpClientBackend(host) }
+    val engine = TestApplicationEngine(environment)
+    engine.start()
+    return HttpClient { TestHttpClientBackend(engine) }
 }
 
 private fun ValuesMap.requireParameter(name: String) = get(name) ?: throw IllegalArgumentException("No parameter $name specified")

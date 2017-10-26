@@ -11,19 +11,19 @@ interface ServletUpgrade {
     suspend fun performUpgrade(upgrade: OutgoingContent.ProtocolUpgrade,
                                servletRequest: HttpServletRequest,
                                servletResponse: HttpServletResponse,
-                               hostCoroutineContext: CoroutineContext,
-                               userCoroutineContext: CoroutineContext)
+                               engineContext: CoroutineContext,
+                               userContext: CoroutineContext)
 }
 
 object DefaultServletUpgrade : ServletUpgrade {
     suspend override fun performUpgrade(upgrade: OutgoingContent.ProtocolUpgrade,
                                         servletRequest: HttpServletRequest,
                                         servletResponse: HttpServletResponse,
-                                        hostCoroutineContext: CoroutineContext,
-                                        userCoroutineContext: CoroutineContext) {
+                                        engineContext: CoroutineContext,
+                                        userContext: CoroutineContext) {
 
         val handler = servletRequest.upgrade(ServletUpgradeHandler::class.java)
-        handler.up = UpgradeRequest(servletResponse, upgrade, hostCoroutineContext, userCoroutineContext)
+        handler.up = UpgradeRequest(servletResponse, upgrade, engineContext, userContext)
     }
 }
 
@@ -31,8 +31,8 @@ object DefaultServletUpgrade : ServletUpgrade {
 
 class UpgradeRequest(val response: HttpServletResponse,
                      val upgradeMessage: OutgoingContent.ProtocolUpgrade,
-                     val hostContext: CoroutineContext,
-                     val userAppContext: CoroutineContext)
+                     val engineContext: CoroutineContext,
+                     val userContext: CoroutineContext)
 
 class ServletUpgradeHandler : HttpUpgradeHandler {
     @Volatile
@@ -61,8 +61,8 @@ class ServletUpgradeHandler : HttpUpgradeHandler {
             webConnection.close()
         }
 
-        launch(up.userAppContext, start = CoroutineStart.UNDISPATCHED) {
-            up.upgradeMessage.upgrade(inputChannel, outputChannel, closeable, up.hostContext, up.userAppContext)
+        launch(up.userContext, start = CoroutineStart.UNDISPATCHED) {
+            up.upgradeMessage.upgrade(inputChannel, outputChannel, closeable, up.engineContext, up.userContext)
         }
     }
 

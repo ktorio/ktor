@@ -27,7 +27,7 @@ class BaselinePipeline {
 @State(Scope.Benchmark)
 abstract class PipelineBenchmark {
     val environment = createTestEnvironment()
-    val host = TestApplicationHost(environment).apply { start() }
+    val host = TestApplicationEngine(environment).apply { start() }
     val call = TestApplicationCall(host.application)
 
     val callPhase = PipelinePhase("Call")

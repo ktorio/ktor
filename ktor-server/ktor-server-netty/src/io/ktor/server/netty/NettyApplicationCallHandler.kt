@@ -2,13 +2,13 @@ package io.ktor.server.netty
 
 import io.ktor.application.*
 import io.ktor.pipeline.*
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 import io.netty.channel.*
 import kotlinx.coroutines.experimental.*
 import kotlin.coroutines.experimental.*
 
 internal class NettyApplicationCallHandler(private val userCoroutineContext: CoroutineContext,
-                                           private val hostPipeline: HostPipeline) : ChannelInboundHandlerAdapter() {
+                                           private val enginePipeline: EnginePipeline) : ChannelInboundHandlerAdapter() {
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         when (msg) {
             is ApplicationCall -> handleRequest(ctx, msg)
@@ -18,7 +18,7 @@ internal class NettyApplicationCallHandler(private val userCoroutineContext: Cor
 
     private fun handleRequest(context: ChannelHandlerContext, call: ApplicationCall) {
         launch(userCoroutineContext + NettyDispatcher.CurrentContext(context)) {
-            hostPipeline.execute(call)
+            enginePipeline.execute(call)
         }
     }
 }

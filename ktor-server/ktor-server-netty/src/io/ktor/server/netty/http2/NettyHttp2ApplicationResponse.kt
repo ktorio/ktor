@@ -9,13 +9,13 @@ import io.netty.handler.codec.http2.*
 import kotlin.coroutines.experimental.*
 
 internal class NettyHttp2ApplicationResponse(call: NettyApplicationCall,
-                                             val handler: NettyHostHttp2Handler,
+                                             val handler: NettyHttp2Handler,
                                              context: ChannelHandlerContext,
                                              val connection: Http2Connection,
-                                             hostCoroutineContext: CoroutineContext,
-                                             userCoroutineContext: CoroutineContext
+                                             engineContext: CoroutineContext,
+                                             userContext: CoroutineContext
                                              )
-    : NettyApplicationResponse(call, context, hostCoroutineContext, userCoroutineContext) {
+    : NettyApplicationResponse(call, context, engineContext, userContext) {
 
     private val responseHeaders = DefaultHttp2Headers().apply {
         status(HttpStatusCode.OK.value.toString())
@@ -34,13 +34,13 @@ internal class NettyHttp2ApplicationResponse(call: NettyApplicationCall,
     }
 
     override val headers = object : ResponseHeaders() {
-        override fun hostAppendHeader(name: String, value: String) {
+        override fun engineAppendHeader(name: String, value: String) {
             responseHeaders.add(name.toLowerCase(), value)
         }
 
-        override fun getHostHeaderNames(): List<String> = responseHeaders.names().map { it.toString() }
+        override fun getEngineHeaderNames(): List<String> = responseHeaders.names().map { it.toString() }
 
-        override fun getHostHeaderValues(name: String): List<String> = responseHeaders.getAll(name).map { it.toString() }
+        override fun getEngineHeaderValues(name: String): List<String> = responseHeaders.getAll(name).map { it.toString() }
     }
 
     override fun push(builder: ResponsePushBuilder) {

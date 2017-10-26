@@ -4,7 +4,7 @@ import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.response.*
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 import io.ktor.util.*
 import java.io.*
 import java.lang.reflect.*
@@ -14,8 +14,8 @@ import kotlin.coroutines.experimental.*
 open class ServletApplicationResponse(call: ServletApplicationCall,
                                       protected val servletRequest: HttpServletRequest,
                                       protected val servletResponse: HttpServletResponse,
-                                      protected val hostCoroutineContext: CoroutineContext,
-                                      protected val userCoroutineContext: CoroutineContext,
+                                      protected val engineContext: CoroutineContext,
+                                      protected val userContext: CoroutineContext,
                                       private val servletUpgradeImpl: ServletUpgrade
 ) : BaseApplicationResponse(call) {
     override fun setStatus(statusCode: HttpStatusCode) {
@@ -23,12 +23,12 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
     }
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
-        override fun hostAppendHeader(name: String, value: String) {
+        override fun engineAppendHeader(name: String, value: String) {
             servletResponse.addHeader(name, value)
         }
 
-        override fun getHostHeaderNames(): List<String> = servletResponse.headerNames.toList()
-        override fun getHostHeaderValues(name: String): List<String> = servletResponse.getHeaders(name).toList()
+        override fun getEngineHeaderNames(): List<String> = servletResponse.headerNames.toList()
+        override fun getEngineHeaderValues(name: String): List<String> = servletResponse.getHeaders(name).toList()
     }
 
     @Volatile
@@ -52,7 +52,7 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
     }
 
     private suspend fun performUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
-        servletUpgradeImpl.performUpgrade(upgrade, servletRequest, servletResponse, hostCoroutineContext, userCoroutineContext)
+        servletUpgradeImpl.performUpgrade(upgrade, servletRequest, servletResponse, engineContext, userContext)
     }
 
     private val responseByteChannel = lazy {
@@ -66,7 +66,7 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
     override suspend fun responseChannel(): WriteChannel = responseChannel.value
 
     init {
-        pipeline.intercept(ApplicationSendPipeline.Host) {
+        pipeline.intercept(ApplicationSendPipeline.Engine) {
             if (!completed) {
                 completed = true
                 if (responseByteChannel.isInitialized()) {

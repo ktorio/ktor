@@ -8,13 +8,13 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
 
 open class FollowRedirectsTest(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
-    override val server: ApplicationHost = embeddedServer(Jetty, 8080) {
+    override val server: ApplicationEngine = embeddedServer(Jetty, 8080) {
         routing {
             get("/") {
                 call.respondRedirect("/get")

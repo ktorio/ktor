@@ -3,7 +3,7 @@ package io.ktor.response
 import io.ktor.application.*
 import io.ktor.pipeline.*
 
-open class ApplicationSendPipeline : Pipeline<Any, ApplicationCall>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Host) {
+open class ApplicationSendPipeline : Pipeline<Any, ApplicationCall>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Engine) {
     companion object Phases {
         /**
          * The earliest phase that happens before any other
@@ -28,20 +28,20 @@ open class ApplicationSendPipeline : Pipeline<Any, ApplicationCall>(Before, Tran
         val ContentEncoding = PipelinePhase("ContentEncoding")
 
         /**
-         * Phase for handling Transfer-Encoding, like if chunked encoding is being done manually and not by host
+         * Phase for handling Transfer-Encoding, like if chunked encoding is being done manually and not by engine
          */
         val TransferEncoding = PipelinePhase("TransferEncoding")
 
         /**
-         * The latest application phase that happens right before host will send the response
+         * The latest application phase that happens right before engine will send the response
          */
         val After = PipelinePhase("After")
 
         /**
-         * Phase for Host to send the response out to client.
+         * Phase for Engine to send the response out to client.
          *
          * TODO: this phase will be removed from here later
          */
-        val Host = PipelinePhase("Host")
+        val Engine = PipelinePhase("Engine")
     }
 }

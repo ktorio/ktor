@@ -4,7 +4,7 @@ import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.response.*
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlinx.coroutines.experimental.*
@@ -12,9 +12,9 @@ import kotlinx.coroutines.experimental.io.*
 import kotlin.coroutines.experimental.*
 
 internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
-                                        protected val context: ChannelHandlerContext,
-                                        protected val hostCoroutineContext: CoroutineContext,
-                                        protected val userCoroutineContext: CoroutineContext) : BaseApplicationResponse(call) {
+                                                 protected val context: ChannelHandlerContext,
+                                                 protected val engineContext: CoroutineContext,
+                                                 protected val userContext: CoroutineContext) : BaseApplicationResponse(call) {
 
     internal val responseMessage = CompletableDeferred<Any>()
 
@@ -24,7 +24,7 @@ internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
     internal var responseChannel: ByteReadChannel = EmptyByteReadChannel
 
     init {
-        pipeline.intercept(ApplicationSendPipeline.Host) {
+        pipeline.intercept(ApplicationSendPipeline.Engine) {
             call.finish()
         }
     }

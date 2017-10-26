@@ -51,7 +51,7 @@ private suspend fun WebSocketSession.proceedWebSocket(dispatchers: WebSocketUpgr
     val webSockets = application.feature(WebSockets)
 
     val raw = this
-    val ws = DefaultWebSocketSessionImpl(raw, dispatchers.hostContext, dispatchers.userAppContext, NoPool)
+    val ws = DefaultWebSocketSessionImpl(raw, dispatchers.engineContext, dispatchers.userContext, NoPool)
     ws.pingInterval = webSockets.pingInterval
     ws.timeout = webSockets.timeout
 

@@ -17,7 +17,7 @@ class PartialContentTest {
     val basedir = listOf(File("test"), File("ktor-server/ktor-server-tests/test")).map { File(it, "io/ktor/tests/server") }.first(File::exists)
     val localPath = "features/StaticContentTest.kt"
 
-    fun withRangeApplication(test: TestApplicationHost.(File) -> Unit) = withTestApplication {
+    fun withRangeApplication(test: TestApplicationEngine.(File) -> Unit) = withTestApplication {
         application.install(PartialContentSupport)
         application.install(AutoHeadResponse)
         application.routing {

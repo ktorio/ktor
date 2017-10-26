@@ -5,7 +5,7 @@ import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import java.io.*
@@ -26,18 +26,18 @@ class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationRespon
         private val headersMap = ValuesMapBuilder(true)
         private val headers: ValuesMap by lazy { headersMap.build() }
 
-        override fun hostAppendHeader(name: String, value: String) {
+        override fun engineAppendHeader(name: String, value: String) {
             if (closed)
                 throw UnsupportedOperationException("Headers can no longer be set because response was already completed")
             headersMap.append(name, value)
         }
 
-        override fun getHostHeaderNames(): List<String> = headers.names().toList()
-        override fun getHostHeaderValues(name: String): List<String> = headers.getAll(name).orEmpty()
+        override fun getEngineHeaderNames(): List<String> = headers.names().toList()
+        override fun getEngineHeaderValues(name: String): List<String> = headers.getAll(name).orEmpty()
     }
 
     init {
-        pipeline.intercept(ApplicationSendPipeline.Host) {
+        pipeline.intercept(ApplicationSendPipeline.Engine) {
             call.requestHandled = true
             close()
         }
@@ -51,7 +51,7 @@ class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationRespon
         headers[HttpHeaders.ContentLength]?.let { contentLengthString ->
             val contentLength = contentLengthString.toLong()
             if (contentLength >= Int.MAX_VALUE) {
-                throw IllegalStateException("Content length is too big for test host")
+                throw IllegalStateException("Content length is too big for test engine")
             }
 
             ensureCapacity(contentLength.toInt())

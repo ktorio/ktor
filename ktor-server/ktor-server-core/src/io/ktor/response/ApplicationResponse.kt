@@ -39,7 +39,7 @@ interface ApplicationResponse {
 
     /**
      * Produces HTTP/2 push from server to client or sets HTTP/1.x hint header
-     * or does nothing. Exact behaviour is up to host implementation.
+     * or does nothing. Exact behaviour is up to engine implementation.
      */
     fun push(builder: ResponsePushBuilder)
 }

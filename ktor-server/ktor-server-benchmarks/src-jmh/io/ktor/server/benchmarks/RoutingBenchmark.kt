@@ -10,7 +10,7 @@ import java.util.concurrent.*
 
 @State(Scope.Benchmark)
 class RoutingBenchmark {
-    private val testHost: TestApplicationHost = TestApplicationHost(createTestEnvironment())
+    private val testHost: TestApplicationEngine = TestApplicationEngine(createTestEnvironment())
 
     @Setup
     fun startServer() {

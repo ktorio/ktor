@@ -3,36 +3,36 @@ package io.ktor.server.servlet
 import io.ktor.application.*
 import io.ktor.cio.*
 import io.ktor.pipeline.*
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import java.util.concurrent.*
 import javax.servlet.http.*
 
 abstract class KtorServlet : HttpServlet() {
-    private val hostExecutor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors())
-    private val hostDispatcher = DispatcherWithShutdown(hostExecutor.asCoroutineDispatcher())
+    private val engineExecutor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors())
+    private val engineDispatcher = DispatcherWithShutdown(engineExecutor.asCoroutineDispatcher())
 
     private val executor = ScheduledThreadPoolExecutor(Runtime.getRuntime().availableProcessors() * 8)
     private val dispatcher = DispatcherWithShutdown(executor.asCoroutineDispatcher())
 
     abstract val application: Application
-    abstract val hostPipeline: HostPipeline
+    abstract val enginePipeline: EnginePipeline
 
     abstract val upgrade: ServletUpgrade
 
     override fun destroy() {
-        hostDispatcher.prepareShutdown()
+        engineDispatcher.prepareShutdown()
         dispatcher.prepareShutdown()
         try {
             super.destroy()
             executor.shutdownNow()
-            hostExecutor.shutdown()
+            engineExecutor.shutdown()
 
             executor.awaitTermination(1L, TimeUnit.SECONDS)
-            hostExecutor.awaitTermination(1L, TimeUnit.SECONDS)
+            engineExecutor.awaitTermination(1L, TimeUnit.SECONDS)
         } finally {
-            hostDispatcher.completeShutdown()
+            engineDispatcher.completeShutdown()
             dispatcher.completeShutdown()
         }
 
@@ -52,18 +52,18 @@ abstract class KtorServlet : HttpServlet() {
             }
 
             val call = ServletApplicationCall(application, request, response, NoPool,
-                    hostDispatcher, userAppContext = dispatcher,
+                    engineDispatcher, userContext = dispatcher,
                     upgrade = upgrade)
 
             launch(dispatcher) {
                 try {
-                    hostPipeline.execute(call)
+                    enginePipeline.execute(call)
                 } finally {
                     asyncContext?.complete()
                 }
             }
         } catch (ex: Throwable) {
-            application.log.error("ServletApplicationHost cannot service the request", ex)
+            application.log.error("ServletApplicationEngine cannot service the request", ex)
             response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.message)
         }
     }

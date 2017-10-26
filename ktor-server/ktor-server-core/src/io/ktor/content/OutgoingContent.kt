@@ -7,7 +7,7 @@ import java.io.*
 import kotlin.coroutines.experimental.*
 
 /**
- * Information about the content to be sent to the peer, recognized by an [ApplicationHost]
+ * Information about the content to be sent to the peer, recognized by an [ApplicationEngine]
  */
 sealed class OutgoingContent {
     /**
@@ -33,7 +33,7 @@ sealed class OutgoingContent {
      */
     abstract class ReadChannelContent : OutgoingContent() {
         /**
-         * Provides [ReadChannel] from which host will read the data and send it to peer
+         * Provides [ReadChannel] from which engine will read the data and send it to peer
          */
         abstract fun readFrom(): ReadChannel
     }
@@ -43,7 +43,7 @@ sealed class OutgoingContent {
      */
     abstract class WriteChannelContent : OutgoingContent() {
         /**
-         * Receives [channel] provided by the host and writes all data to it
+         * Receives [channel] provided by the engine and writes all data to it
          */
         abstract suspend fun writeTo(channel: WriteChannel)
     }
@@ -53,7 +53,7 @@ sealed class OutgoingContent {
      */
     abstract class ByteArrayContent : OutgoingContent() {
         /**
-         * Provides [ByteArray] which host will send to peer
+         * Provides [ByteArray] which engine will send to peer
          */
         abstract fun bytes(): ByteArray
     }
@@ -70,16 +70,16 @@ sealed class OutgoingContent {
          * @param input is a [ReadChannel] for an upgraded connection
          * @param output is a [WriteChannel] for an upgraded connection
          * @param closeable is a [Closeable] instance to call when upgraded connection terminates.
-         * [closeable] is provided by particular host implementation and it is up to host what should be done
+         * [closeable] is provided by particular engine implementation and it is up to host what should be done
          *  when this [closeable] is closed. For example for HTTP/1.x it may close socket connection.
-         * @param hostContext is a [CoroutineContext] to execute non-blocking code, such as parsing or processing
-         * @param userAppContext is a [CoroutineContext] to execute user-provided callbacks or code potentially blocking
+         * @param engineContext is a [CoroutineContext] to execute non-blocking code, such as parsing or processing
+         * @param userContext is a [CoroutineContext] to execute user-provided callbacks or code potentially blocking
          */
         abstract suspend fun upgrade(input: ReadChannel,
                                      output: WriteChannel,
                                      closeable: Closeable,
-                                     hostContext: CoroutineContext,
-                                     userAppContext: CoroutineContext)
+                                     engineContext: CoroutineContext,
+                                     userContext: CoroutineContext)
     }
 }
 

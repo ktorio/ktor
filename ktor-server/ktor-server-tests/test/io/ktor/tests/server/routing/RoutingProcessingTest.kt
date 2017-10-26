@@ -10,7 +10,7 @@ import org.junit.*
 import kotlin.test.*
 
 class RoutingProcessingTest {
-    @Test fun `host with routing on GET foo-bar`() = withTestApplication {
+    @Test fun `routing on GET foo-bar`() = withTestApplication {
         application.routing {
             get("/foo/bar") {
                 call.respond(HttpStatusCode.OK)
@@ -41,7 +41,7 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `host with routing on GET user with parameter`() = withTestApplication {
+    @Test fun `routing on GET user with parameter`() = withTestApplication {
         var username = ""
         application.routing {
             route("user") {
@@ -66,7 +66,7 @@ class RoutingProcessingTest {
 
     }
 
-    @Test fun `host with routing on GET user with surrounded parameter`() = withTestApplication {
+    @Test fun `routing on GET user with surrounded parameter`() = withTestApplication {
         var username = ""
         application.routing {
             get("/user-{name}-get") {
@@ -115,7 +115,7 @@ class RoutingProcessingTest {
         }
     }
 
-    @Test fun `host with routing on GET -user-username with interceptors`() = withTestApplication {
+    @Test fun `routing on GET -user-username with interceptors`() = withTestApplication {
 
         var userIntercepted = false
         var wrappedWithInterceptor = false

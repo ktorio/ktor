@@ -22,7 +22,7 @@ class LocalFileContent(val file: File,
     override val headers by lazy { super<Resource>.headers }
 
     // TODO: consider using WriteChannelContent to avoid piping
-    // Or even make it dual-content so host implementation can choose
+    // Or even make it dual-content so engine implementation can choose
     override fun readFrom() = file.readChannel()
 }
 

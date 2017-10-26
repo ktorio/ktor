@@ -1,22 +1,19 @@
 package io.ktor.server.jetty
 
-import io.ktor.content.*
 import io.ktor.response.*
 import io.ktor.server.jetty.internal.*
 import io.ktor.server.servlet.*
-import kotlinx.coroutines.experimental.*
 import org.eclipse.jetty.server.*
-import java.util.concurrent.*
 import javax.servlet.http.*
 import kotlin.coroutines.experimental.*
 
 class JettyApplicationResponse(call: ServletApplicationCall,
                                servletRequest: HttpServletRequest,
                                servletResponse: HttpServletResponse,
-                               hostCoroutineContext: CoroutineContext,
-                               userCoroutineContext: CoroutineContext,
+                               engineContext: CoroutineContext,
+                               userContext: CoroutineContext,
                                private val baseRequest: Request)
-    : ServletApplicationResponse(call, servletRequest, servletResponse, hostCoroutineContext, userCoroutineContext, JettyUpgradeImpl) {
+    : ServletApplicationResponse(call, servletRequest, servletResponse, engineContext, userContext, JettyUpgradeImpl) {
 
     override fun push(builder: ResponsePushBuilder) {
         if (baseRequest.isPushSupported) {

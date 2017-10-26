@@ -1,9 +1,9 @@
 package io.ktor.server.tomcat
 
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 
-object Tomcat : ApplicationHostFactory<TomcatApplicationHost, TomcatApplicationHost.Configuration> {
-    override fun create(environment: ApplicationHostEnvironment, configure: TomcatApplicationHost.Configuration.() -> Unit): TomcatApplicationHost {
-        return TomcatApplicationHost(environment, configure)
+object Tomcat : ApplicationEngineFactory<TomcatApplicationEngine, TomcatApplicationEngine.Configuration> {
+    override fun create(environment: ApplicationEngineEnvironment, configure: TomcatApplicationEngine.Configuration.() -> Unit): TomcatApplicationEngine {
+        return TomcatApplicationEngine(environment, configure)
     }
 }

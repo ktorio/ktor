@@ -3,11 +3,11 @@ package io.ktor.server.cio
 import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 
-object CIO : ApplicationHostFactory<CIOApplicationHost, CIOApplicationHost.Configuration> {
-    override fun create(environment: ApplicationHostEnvironment, configure: CIOApplicationHost.Configuration.() -> Unit): CIOApplicationHost {
-        return CIOApplicationHost(environment, configure)
+object CIO : ApplicationEngineFactory<CIOApplicationEngine, CIOApplicationEngine.Configuration> {
+    override fun create(environment: ApplicationEngineEnvironment, configure: CIOApplicationEngine.Configuration.() -> Unit): CIOApplicationEngine {
+        return CIOApplicationEngine(environment, configure)
     }
 
     @JvmStatic

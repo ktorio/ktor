@@ -117,7 +117,7 @@ class BasicAuthTest {
         }
     }
 
-    private fun TestApplicationHost.handleRequestWithBasic(url: String, user: String, pass: String) =
+    private fun TestApplicationEngine.handleRequestWithBasic(url: String, user: String, pass: String) =
             handleRequest {
                 uri = url
 

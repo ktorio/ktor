@@ -11,7 +11,7 @@ import io.ktor.content.CacheControl
 import io.ktor.features.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.*
 
 open class CacheTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
     private var counter = AtomicInteger()
-    override val server: ApplicationHost = embeddedServer(Jetty, 8080) {
+    override val server: ApplicationEngine = embeddedServer(Jetty, 8080) {
         routing {
             get("/reset") {
                 counter.set(0)

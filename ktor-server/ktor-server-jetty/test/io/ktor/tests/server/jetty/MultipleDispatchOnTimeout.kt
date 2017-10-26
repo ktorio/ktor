@@ -2,7 +2,7 @@ package io.ktor.tests.server.jetty
 
 import io.ktor.application.*
 import io.ktor.response.*
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import io.ktor.server.servlet.*
 import org.junit.*
@@ -25,7 +25,7 @@ class MultipleDispatchOnTimeout {
     fun `calls with duration longer than default timeout do not trigger a redispatch`() {
         val callCount = AtomicInteger(0)
         val port = findFreePort()
-        val environment = applicationHostEnvironment {
+        val environment = applicationEngineEnvironment {
             connector { this.port = port }
             log = LoggerFactory.getLogger("ktor.test")
             module {

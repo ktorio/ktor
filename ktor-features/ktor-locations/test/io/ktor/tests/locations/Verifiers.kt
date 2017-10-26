@@ -4,7 +4,7 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
-fun TestApplicationHost.urlShouldBeHandled(url: String, content: String? = null) {
+fun TestApplicationEngine.urlShouldBeHandled(url: String, content: String? = null) {
     on("making get request to $url") {
         val result = handleRequest {
             uri = url
@@ -24,7 +24,7 @@ fun TestApplicationHost.urlShouldBeHandled(url: String, content: String? = null)
     }
 }
 
-fun TestApplicationHost.urlShouldBeUnhandled(url: String) {
+fun TestApplicationEngine.urlShouldBeUnhandled(url: String) {
     on("making post request to $url") {
         val result = handleRequest {
             uri = url

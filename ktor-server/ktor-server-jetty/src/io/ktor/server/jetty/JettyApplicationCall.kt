@@ -13,17 +13,17 @@ class JettyApplicationCall(application: Application,
                            servletRequest: HttpServletRequest,
                            servletResponse: HttpServletResponse,
                            pool: ByteBufferPool,
-                           hostContext: CoroutineContext,
-                           userAppContext: CoroutineContext)
+                           engineContext: CoroutineContext,
+                           userContext: CoroutineContext)
     : ServletApplicationCall(application, servletRequest, servletResponse,
-        pool, hostContext, userAppContext, JettyUpgradeImpl) {
+        pool, engineContext, userContext, JettyUpgradeImpl) {
 
     override val response: JettyApplicationResponse =
             JettyApplicationResponse(this,
                     servletRequest,
                     servletResponse,
-                    hostContext,
-                    userAppContext,
+                    engineContext,
+                    userContext,
                     request)
 
 }

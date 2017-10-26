@@ -432,7 +432,7 @@ class CompressionTest {
         }
     }
 
-    private fun TestApplicationHost.handleAndAssert(url: String, acceptHeader: String?, expectedEncoding: String?, expectedContent: String): TestApplicationCall {
+    private fun TestApplicationEngine.handleAndAssert(url: String, acceptHeader: String?, expectedEncoding: String?, expectedContent: String): TestApplicationCall {
         val result = handleRequest(HttpMethod.Get, url) {
             if (acceptHeader != null) {
                 addHeader(HttpHeaders.AcceptEncoding, acceptHeader)

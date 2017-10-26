@@ -72,38 +72,5 @@ class HandlerTest {
             }
         }
     }
-
-    /*
-    TODO: This is fundamentally wrong since you shouldn't be setting ApplicationRequest "contentType" or "accept" since these are values passed in.
-        Test fun `application with handler that returns true on text/plain content type`() {
-            val testHost = createTestHost()
-            testHost.application.intercept { request, next ->
-                if (request.contentType() == ContentType.Text.Plain ) {
-                    request.response().status(HttpStatusCode.OK)
-                    true
-                }
-                else
-                    false
-            }
-            on("making a request for content type text/plain") {
-                val request = testHost.makeRequest { contentType = ContentType.Text.Plain }
-                it("should be handled") {
-                    assertTrue(request.handled)
-                }
-                it("should return response") {
-                    shouldNotBeNull(request.response)
-                }
-            }
-            on("making a request for content type any") {
-                val request = testHost.makeRequest { contentType = ContentType.Any }
-                it("should not be handled") {
-                    shouldBeFalse(request.handled)
-                }
-                it("should not return response") {
-                    shouldBeNull(request.response)
-                }
-            }
-        }
-    */
 }
 

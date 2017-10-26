@@ -10,7 +10,7 @@ import java.io.*
 import java.util.*
 import java.util.concurrent.*
 
-class TestHttpClientBackend(val app: TestApplicationHost) : HttpClientBackend {
+class TestHttpClientBackend(val app: TestApplicationEngine) : HttpClientBackend {
     suspend override fun makeRequest(request: HttpRequest): HttpResponseBuilder = HttpResponseBuilder().apply {
         val requestBody = request.body
         val charset = request.charset ?: Charsets.UTF_8

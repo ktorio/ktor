@@ -3,7 +3,7 @@ package io.ktor.server.netty
 import io.ktor.application.*
 import io.ktor.cio.*
 import io.ktor.request.*
-import io.ktor.server.host.*
+import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
