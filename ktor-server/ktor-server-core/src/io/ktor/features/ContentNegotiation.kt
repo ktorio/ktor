@@ -63,7 +63,8 @@ class ContentNegotiation(val converters: List<ContentConverterRegistration>) {
             }
 
             pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
-                val contentType = call.request.contentType()
+                if (subject.value !is IncomingContent) return@intercept
+                val contentType = call.request.contentType().withoutParameters()
                 val suitableConverter = feature.converters.firstOrNull { it.contentType.match(contentType) }
                         ?: throw UnsupportedMediaTypeException(contentType)
                 val converted = suitableConverter.converter.convertForReceive(this)
