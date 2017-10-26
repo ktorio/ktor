@@ -18,7 +18,7 @@ private val IGNORE_CACHE = AttributeKey<Boolean>("IgnoreCache")
 
 private data class CacheEntity(
         val invariant: Map<String, Set<String>>,
-        val cache: HttpResponseBuilder
+        val cache: HttpResponse
 ) {
     fun match(headers: HeadersBuilder): Boolean = invariant.entries.all { (name, values) ->
         val requestValues = headers.getAll(name) ?: return false
@@ -32,12 +32,12 @@ private data class CacheEntity(
 class HttpCache(val maxAge: Int?) {
     private val responseCache = ConcurrentHashMap<Url, CacheEntity>()
 
-    private fun load(builder: HttpRequestBuilder): HttpResponseBuilder? {
-        val url = UrlBuilder().takeFrom(builder.url).build()
-        return responseCache[url]?.takeIf { it.match(builder.headers) }?.cache
+    private fun load(request: HttpRequestBuilder): HttpResponse? {
+        val url = UrlBuilder().takeFrom(request.url).build()
+        return responseCache[url]?.takeIf { it.match(request.headers) }?.cache
     }
 
-    private fun isValid(response: HttpResponseBuilder, builder: HttpRequestBuilder): Boolean {
+    private fun isValid(response: HttpResponse, request: HttpRequestBuilder): Boolean {
         val now = Date().time
         val requestTime = response.requestTime.time
         var hasCacheMarker = false
@@ -50,7 +50,7 @@ class HttpCache(val maxAge: Int?) {
             if (mustRevalidate) return false
         }
 
-        builder.cacheControl.maxAge?.let {
+        request.cacheControl.maxAge?.let {
             if (requestTime + it * 1000 < now) return false
             hasCacheMarker = true
         }
@@ -64,50 +64,52 @@ class HttpCache(val maxAge: Int?) {
     }
 
     private suspend fun validate(
-            cachedResponse: HttpResponseBuilder,
-            builder: HttpRequestBuilder,
+            cachedResponse: HttpResponse,
+            request: HttpRequestBuilder,
             scope: HttpClient
     ): HttpClientCall? {
-        val request = HttpRequestBuilder().takeFrom(builder)
+        val validationRequest = HttpRequestBuilder().takeFrom(request)
 
         val lastModified = cachedResponse.lastModified()
         val etag = cachedResponse.etag()
 
         if (lastModified == null && etag == null) return null
 
-        etag?.let { request.ifNoneMatch(it) }
-        lastModified?.let { request.ifModifiedSince(it) }
+        etag?.let { validationRequest.ifNoneMatch(it) }
+        lastModified?.let { validationRequest.ifModifiedSince(it) }
 
-        request.flags.put(IGNORE_CACHE, true)
+        val response = scope.call {
+            takeFrom(validationRequest)
+            flags.put(IGNORE_CACHE, true)
+        }
 
-        val response = scope.call(request)
         return when (response.status) {
-            HttpStatusCode.NotModified -> HttpClientCall(builder.build(), cachedResponse, scope)
-            HttpStatusCode.OK -> {
-                cacheResponse(response.call.request, HttpResponseBuilder(response))
+            HttpStatusCode.NotModified ->
+                HttpClientCall(response.call.request, HttpResponseBuilder(cachedResponse), scope)
+            HttpStatusCode.OK ->
                 response.call
-            }
             else -> null
         }
     }
 
-    private fun cacheResponse(request: HttpRequest, response: HttpResponseBuilder) {
-        if (response.status != HttpStatusCode.OK) return
-        if (response.expires()?.before(Date()) == true) return
-        if (response.body is InputStreamBody || response.body is OutputStreamBody) return
+    private fun cacheResponse(request: HttpRequest, response: HttpResponse): Boolean {
+        if (response.status != HttpStatusCode.OK) return false
+        if (response.expires()?.before(Date()) == true) return false
+        if (response.body is InputStreamBody || response.body is OutputStreamBody) return false
 
         with(request.cacheControl) {
-            if (noCache || noStore) return
+            if (noCache || noStore) return false
         }
 
         with(response.cacheControl) {
-            if (noCache || noStore) return
+            if (noCache || noStore) return false
         }
 
         cache(request.url, request.headers, response)
+        return true
     }
 
-    private fun cache(url: Url, requestHeaders: Headers, response: HttpResponseBuilder) {
+    private fun cache(url: Url, requestHeaders: Headers, response: HttpResponse) {
         val varyHeaders = response.vary() ?: listOf()
         val invariant = varyHeaders.map { key -> key to (requestHeaders.getAll(key)?.toSet() ?: setOf()) }.toMap()
 
@@ -126,33 +128,36 @@ class HttpCache(val maxAge: Int?) {
         override fun prepare(block: Config.() -> Unit): HttpCache = Config().apply(block).build()
 
         override fun install(feature: HttpCache, scope: HttpClient) {
-            scope.requestPipeline.intercept(HttpRequestPipeline.Send) { builder ->
-                if (builder !is HttpRequestBuilder || builder.flags.contains(IGNORE_CACHE) || builder.method != HttpMethod.Get) {
+            scope.requestPipeline.intercept(HttpRequestPipeline.Send) { request ->
+                if (request !is HttpRequestBuilder || request.flags.contains(IGNORE_CACHE) || request.method != HttpMethod.Get) {
                     return@intercept
                 }
 
-                if (feature.maxAge != null && builder.cacheControl.maxAge == null) {
-                    builder.maxAge(feature.maxAge)
+                if (feature.maxAge != null && request.cacheControl.maxAge == null) {
+                    request.maxAge(feature.maxAge)
                 }
 
-                val onlyIfCached = builder.cacheControl.onlyIfCached
-                val cacheEntity = feature.load(builder) ?: run {
-                    if (onlyIfCached) throw NotFoundInCacheException(builder.build())
+                val onlyIfCached = request.cacheControl.onlyIfCached
+                val cachedResponse = feature.load(request) ?: run {
+                    if (onlyIfCached) throw NotFoundInCacheException(request.build())
                     return@intercept
                 }
 
-                if (feature.isValid(cacheEntity, builder)) {
-                    proceedWith(HttpClientCall(builder.build(), cacheEntity, scope))
+                if (feature.isValid(cachedResponse, request)) {
+                    proceedWith(HttpClientCall(request.build(), HttpResponseBuilder(cachedResponse), scope))
                     return@intercept
                 }
 
-                if (onlyIfCached) throw NotFoundInCacheException(builder.build())
-                feature.validate(cacheEntity, builder, scope)?.let { proceedWith(it) }
+                if (onlyIfCached) throw NotFoundInCacheException(request.build())
+                feature.validate(cachedResponse, request, scope)?.let { proceedWith(it) }
             }
 
-            scope.responsePipeline.intercept(HttpResponsePipeline.After) { (_, request, response) ->
+            scope.responsePipeline.intercept(HttpResponsePipeline.After) { (type, request, response) ->
                 if (request.method != HttpMethod.Get) return@intercept
-                feature.cacheResponse(request, response)
+                val cachedCall = HttpClientCall(request, response, scope)
+                if (feature.cacheResponse(request, cachedCall.response)) {
+                    proceedWith(HttpResponseContainer(type, request, HttpResponseBuilder(cachedCall.response)))
+                }
             }
         }
     }

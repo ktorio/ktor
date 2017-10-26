@@ -32,7 +32,7 @@ data class Url(
 class UrlBuilder {
     var scheme: String = "http"
         set(value) {
-            if (scheme == "file") error("URL scheme file is currently not supported")
+            if (value == "file") error("URL scheme file is currently not supported")
             field = value
         }
 

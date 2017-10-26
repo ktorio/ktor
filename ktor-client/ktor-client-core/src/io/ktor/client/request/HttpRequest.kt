@@ -54,3 +54,5 @@ fun HttpRequestBuilder.takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder
 
     return this
 }
+
+fun HttpRequestBuilder.clone(): HttpRequestBuilder = HttpRequestBuilder().takeFrom(this)
