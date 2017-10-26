@@ -30,10 +30,7 @@ private fun File?.combine(file: File) = when {
 /**
  * Create a block for static content
  */
-fun Route.static(configure: Route.() -> Unit): Route {
-    // need to create new Route to isolate its attributes
-    return createChild(UnconditionalRouteSelector).apply(configure)
-}
+fun Route.static(configure: Route.() -> Unit): Route = apply(configure)
 
 /**
  * Create a block for static content at specified [remotePath]

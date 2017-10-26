@@ -238,19 +238,6 @@ data class PathSegmentTailcardRouteSelector(val name: String = "") : RouteSelect
 }
 
 /**
- * Evaluates a route unconditionally
- *
- * Useful for creating a scope for interceptors
- */
-object UnconditionalRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        return RouteSelectorEvaluation.Constant
-    }
-
-    override fun toString(): String = "{true}"
-}
-
-/**
  * Evaluates a route as a result of the OR operation using two other selectors
  * @param first is a first selector
  * @param second is a second selector
