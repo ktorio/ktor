@@ -16,7 +16,6 @@ import kotlin.collections.set
 
 private val IGNORE_CACHE = AttributeKey<Boolean>("IgnoreCache")
 
-// consider about `match all` case
 private data class CacheEntity(
         val invariant: Map<String, Set<String>>,
         val cache: HttpResponseBuilder
@@ -30,13 +29,10 @@ private data class CacheEntity(
     }
 }
 
-class HttpCache(
-        val maxAge: Int?
-) {
+class HttpCache(val maxAge: Int?) {
     private val responseCache = ConcurrentHashMap<Url, CacheEntity>()
 
     private fun load(builder: HttpRequestBuilder): HttpResponseBuilder? {
-        val now = Date()
         val url = UrlBuilder().takeFrom(builder.url).build()
         return responseCache[url]?.takeIf { it.match(builder.headers) }?.cache
     }
@@ -113,16 +109,13 @@ class HttpCache(
 
     private fun cache(url: Url, requestHeaders: Headers, response: HttpResponseBuilder) {
         val varyHeaders = response.vary() ?: listOf()
-
-        val invariant = varyHeaders.map { key ->
-            key to (requestHeaders.getAll(key)?.toSet() ?: setOf())
-        }.toMap()
+        val invariant = varyHeaders.map { key -> key to (requestHeaders.getAll(key)?.toSet() ?: setOf()) }.toMap()
 
         responseCache[url] = CacheEntity(invariant, response)
     }
 
     class Config {
-        private var maxAge: Int? = null
+        var maxAge: Int? = null
 
         fun build(): HttpCache = HttpCache(maxAge)
     }
@@ -138,7 +131,7 @@ class HttpCache(
                     return@intercept
                 }
 
-                if (feature.maxAge != null && builder.maxAge() == null) {
+                if (feature.maxAge != null && builder.cacheControl.maxAge == null) {
                     builder.maxAge(feature.maxAge)
                 }
 

@@ -3,28 +3,25 @@ package io.ktor.client.request
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.util.*
-import java.nio.charset.*
 import javax.net.ssl.*
 
 
 class HttpRequest(
         val url: Url,
         val method: HttpMethod,
-        val headers: Headers,
+        override val headers: Headers,
         val body: Any,
-        val charset: Charset?, // why not content type?
         var sslContext: SSLContext?,
         val followRedirects: Boolean // should it be here?
-) {
+) : HttpMessage {
     val cacheControl: HttpRequestCacheControl by lazy { headers.computeRequestCacheControl() } // and this?
 }
 
-class HttpRequestBuilder() {
+class HttpRequestBuilder() : HttpMessageBuilder {
     val url = UrlBuilder()
     var method = HttpMethod.Get
-    val headers = HeadersBuilder(caseInsensitiveKey = true)
+    override val headers = HeadersBuilder(caseInsensitiveKey = true)
     var body: Any = EmptyBody
-    var charset: Charset? = null
     var sslContext: SSLContext? = null
     var followRedirects: Boolean = false
 
@@ -36,7 +33,6 @@ class HttpRequestBuilder() {
         method = data.method
         headers.appendAll(data.headers)
         body = data.body
-        charset = data.charset
         sslContext = data.sslContext
         followRedirects = data.followRedirects
     }
@@ -45,13 +41,12 @@ class HttpRequestBuilder() {
 
     fun url(block: UrlBuilder.() -> Unit) = url.block()
 
-    fun build(): HttpRequest = HttpRequest(url.build(), method, headers.build(), body, charset, sslContext, followRedirects)
+    fun build(): HttpRequest = HttpRequest(url.build(), method, headers.build(), body, sslContext, followRedirects)
 }
 
 fun HttpRequestBuilder.takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
     method = builder.method
     body = builder.body
-    charset = builder.charset
     sslContext = builder.sslContext
     followRedirects = builder.followRedirects
     url.takeFrom(builder.url)

@@ -19,6 +19,7 @@ open class AcceptAllCookiesStorage : CookiesStorage {
     override fun get(host: String): Map<String, Cookie>? = Collections.unmodifiableMap(data[host])
 
     override operator fun get(host: String, name: String): Cookie? = data[host]?.get(name)
+
     override operator fun set(host: String, cookie: Cookie) {
         init(host)
         data[host]?.set(cookie.name, cookie)

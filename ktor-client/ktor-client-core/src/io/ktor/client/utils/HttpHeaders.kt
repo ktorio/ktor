@@ -1,6 +1,5 @@
 package io.ktor.client.utils
 
-import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.util.*
@@ -22,25 +21,27 @@ private fun parseHttpDate(date: String): Date = HTTP_DATE_FORMAT.parse(date)
 
 private fun formatHttpDate(date: Date): String = HTTP_DATE_FORMAT.format(date)
 
-fun HeadersBuilder.charset(): Charset? = get(HttpHeaders.ContentType)?.let { ContentType.parse(it).charset() }
-fun HeadersBuilder.userAgent(content: String) = set(HttpHeaders.UserAgent, content)
+fun HttpMessageBuilder.contentType(type: ContentType) = headers.set(HttpHeaders.ContentType, type.toString())
+fun HttpMessageBuilder.charset(charset: Charset) = contentType()?.let { contentType(it.withCharset(charset)) }
+fun HttpMessageBuilder.maxAge(seconds: Int) = headers.append(HttpHeaders.CacheControl, "max-age:$seconds")
+fun HttpMessageBuilder.ifModifiedSince(date: Date) = headers.set(HttpHeaders.IfModifiedSince, formatHttpDate(date))
+fun HttpMessageBuilder.ifNoneMatch(value: String) = headers.set(HttpHeaders.IfNoneMatch, value)
+fun HttpMessageBuilder.userAgent(content: String) = headers.set(HttpHeaders.UserAgent, content)
 
-fun HttpRequestBuilder.contentType(type: ContentType) = headers.set(HttpHeaders.ContentType, type.toString())
-fun HttpRequestBuilder.contentType(): ContentType? = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
-fun HttpRequestBuilder.maxAge(): Int? = cacheControl.maxAge
-fun HttpRequestBuilder.ifModifiedSince(date: Date) =
-        headers.set(HttpHeaders.IfModifiedSince, formatHttpDate(date))
+fun HttpMessageBuilder.contentType(): ContentType? = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+fun HttpMessageBuilder.charset(): Charset? = contentType()?.charset()
+fun HttpMessageBuilder.lastModified(): Date? = headers[HttpHeaders.LastModified]?.let { parseHttpDate(it) }
+fun HttpMessageBuilder.etag(): String? = headers[HttpHeaders.ETag]
+fun HttpMessageBuilder.expires(): Date? = headers[HttpHeaders.Expires]?.let { parseHttpDate(it) }
+fun HttpMessageBuilder.vary(): List<String>? = headers[HttpHeaders.Vary]?.split(",")?.map { it.trim() }
 
-fun HttpRequestBuilder.ifNoneMatch(value: String) = headers.set(HttpHeaders.IfNoneMatch, value)
-fun HttpRequestBuilder.maxAge(seconds: Int) = headers.append(HttpHeaders.CacheControl, "max-age:$seconds")
+fun HttpMessage.contentType(): ContentType? = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+fun HttpMessage.charset(): Charset? = contentType()?.charset()
+fun HttpMessage.lastModified(): Date? = headers[HttpHeaders.LastModified]?.let { parseHttpDate(it) }
+fun HttpMessage.etag(): String? = headers[HttpHeaders.ETag]
+fun HttpMessage.expires(): Date? = headers[HttpHeaders.Expires]?.let { parseHttpDate(it) }
+fun HttpMessage.vary(): List<String>? = headers[HttpHeaders.Vary]?.split(",")?.map { it.trim() }
+fun HttpMessage.contentLength(): Int? = headers[HttpHeaders.ContentLength]?.toInt()
 
-fun HttpResponse.lastModified(): Date? = headers[HttpHeaders.LastModified]?.let { parseHttpDate(it) }
-fun HttpResponse.etag(): String? = headers[HttpHeaders.ETag]
-fun HttpResponse.expires(): Date? = headers[HttpHeaders.Expires]?.let { parseHttpDate(it) }
-fun HttpResponse.vary(): List<String>? = headers[HttpHeaders.Vary]?.split(",")?.map { it.trim() }
-fun HttpResponse.contentLength(): Int? = headers[HttpHeaders.ContentLength]?.toInt()
-
-fun HttpResponseBuilder.lastModified(): Date? = headers[HttpHeaders.LastModified]?.let { parseHttpDate(it) }
-fun HttpResponseBuilder.etag(): String? = headers[HttpHeaders.ETag]
-fun HttpResponseBuilder.expires(): Date? = headers[HttpHeaders.Expires]?.let { parseHttpDate(it) }
-fun HttpResponseBuilder.vary(): List<String>? = headers[HttpHeaders.Vary]?.split(",")?.map { it.trim() }
+fun HttpMessageBuilder.cookies(): List<Cookie> =
+        headers.getAll(HttpHeaders.SetCookie)?.map { parseServerSetCookieHeader(it) } ?: listOf()

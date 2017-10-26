@@ -29,8 +29,8 @@ open class CookiesTests(factory: HttpClientBackendFactory) : TestWithKtor(factor
                     return@get
                 }
 
-                val cookie = Cookie("id", (id + 1).toString())
-                context.response.cookies.append(cookie)
+                context.response.cookies.append(Cookie("id", (id + 1).toString()))
+                context.response.cookies.append(Cookie("user", "ktor"))
 
                 context.respond("Done")
             }
@@ -63,10 +63,11 @@ open class CookiesTests(factory: HttpClientBackendFactory) : TestWithKtor(factor
             }
         }
 
-        for (i in 1..10) {
+        for (i in 1..10){
             val before = client.getId()
             runBlocking { client.get<Unit>(path = "update-user-id", port = 8080) }
             assert(client.getId() == before + 1)
+            assert(client.cookies("localhost")["user"]?.value == "ktor")
         }
 
         client.close()
@@ -80,12 +81,16 @@ open class CookiesTests(factory: HttpClientBackendFactory) : TestWithKtor(factor
             }
         }
 
-        runBlocking {
-            client.get<Unit>(path = "update-user-id", port = 8080)
+        fun check() {
+            assert(client.getId() == 1)
+            assert(client.cookies("localhost")["user"]?.value == null)
         }
-        assert(client.getId() == 1)
+
         runBlocking { client.get<Unit>(path = "update-user-id", port = 8080) }
-        assert(client.getId() == 1)
+        check()
+
+        runBlocking { client.get<Unit>(path = "update-user-id", port = 8080) }
+        check()
     }
 
     @Test

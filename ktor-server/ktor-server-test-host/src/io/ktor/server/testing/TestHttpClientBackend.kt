@@ -13,7 +13,7 @@ import java.util.concurrent.*
 class TestHttpClientBackend(val app: TestApplicationEngine) : HttpClientBackend {
     suspend override fun makeRequest(request: HttpRequest): HttpResponseBuilder = HttpResponseBuilder().apply {
         val requestBody = request.body
-        val charset = request.charset ?: Charsets.UTF_8
+        val charset = request.charset() ?: Charsets.UTF_8
 
         val bodyStream = when (requestBody) {
             is InputStreamBody -> InputStreamReader(requestBody.stream, charset).readText()

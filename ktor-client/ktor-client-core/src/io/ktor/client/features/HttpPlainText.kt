@@ -14,7 +14,7 @@ import java.nio.charset.*
 class HttpPlainText(val defaultCharset: Charset) {
     suspend fun read(response: HttpResponseBuilder): String? {
         val body = response.body as? HttpMessageBody ?: return null
-        val charset = response.headers.charset() ?: defaultCharset
+        val charset = response.charset() ?: defaultCharset
 
         return when (body) {
             is OutputStreamBody -> {
@@ -29,7 +29,7 @@ class HttpPlainText(val defaultCharset: Charset) {
 
     fun write(requestBuilder: HttpRequestBuilder): HttpMessageBody? {
         val requestString = requestBuilder.body as? String ?: return null
-        val charset = requestBuilder.charset ?: defaultCharset
+        val charset = requestBuilder.charset() ?: defaultCharset
         val body = requestString.toByteArray(charset)
 
         with(requestBuilder.headers) {

@@ -18,7 +18,6 @@ private val ResponsePool = object : DefaultPool<ByteBuffer>(DEFAULT_RESPONSE_POO
 
 suspend fun HttpResponse.readText(): String = receive()
 
-// TODO: support charset
 suspend fun HttpResponse.readText(charset: Charset): String = receive()
 
 suspend fun HttpResponse.readBytes(count: Int): ByteArray {

@@ -10,13 +10,13 @@ import java.util.*
 class HttpResponse(
         val status: HttpStatusCode,
         val version: HttpProtocolVersion,
-        val headers: Headers,
+        override val headers: Headers,
         val body: Any,
         val requestTime: Date,
         val responseTime: Date,
         val call: HttpClientCall,
         private val origin: Closeable?
-) : Closeable {
+) : Closeable, HttpMessage {
     val cacheControl: HttpResponseCacheControl by lazy { headers.computeResponseCacheControl() }
 
     override fun close() {
@@ -24,14 +24,14 @@ class HttpResponse(
     }
 }
 
-class HttpResponseBuilder() : Closeable {
+class HttpResponseBuilder() : Closeable, HttpMessageBuilder {
     lateinit var status: HttpStatusCode
     lateinit var version: HttpProtocolVersion
     lateinit var body: Any
     lateinit var requestTime: Date
     lateinit var responseTime: Date
 
-    val headers = HeadersBuilder(caseInsensitiveKey = true)
+    override val headers = HeadersBuilder(caseInsensitiveKey = true)
     val cacheControl: HttpResponseCacheControl get() = headers.computeResponseCacheControl()
 
     var origin: Closeable? = null
