@@ -20,7 +20,7 @@ data class CompressionOptions(
         /**
          * Conditions for all encoders
          */
-        val conditions: List<ApplicationCall.(FinalContent) -> Boolean> = emptyList()
+        val conditions: List<ApplicationCall.(OutgoingContent) -> Boolean> = emptyList()
 )
 
 /**
@@ -38,7 +38,7 @@ data class CompressionEncoderConfig(
         /**
          * Conditions for the encoder
          */
-        val conditions: List<ApplicationCall.(FinalContent) -> Boolean>,
+        val conditions: List<ApplicationCall.(OutgoingContent) -> Boolean>,
         /**
          * Priority of the encoder
          */
@@ -72,7 +72,7 @@ class Compression(compression: Configuration) {
         if (!encoders.isNotEmpty())
             return
 
-        if (message is FinalContent
+        if (message is OutgoingContent
                 && message !is CompressedResponse
                 && options.conditions.all { it(call, message) }
                 && !call.isCompressionSuppressed()
@@ -82,17 +82,17 @@ class Compression(compression: Configuration) {
             val encoderOptions = encoders.firstOrNull { it.conditions.all { it(call, message) } }
 
             val channel: () -> ReadChannel = when (message) {
-                is FinalContent.ReadChannelContent -> ({ message.readFrom() })
-                is FinalContent.WriteChannelContent -> {
+                is OutgoingContent.ReadChannelContent -> ({ message.readFrom() })
+                is OutgoingContent.WriteChannelContent -> {
                     if (encoderOptions != null) {
                         val response = CompressedWriteResponse(message, message.status, encoderOptions.name, encoderOptions.encoder)
                         context.proceedWith(response)
                     }
                     return
                 }
-                is FinalContent.NoContent -> return
-                is FinalContent.ByteArrayContent -> ({ message.bytes().toReadChannel() })
-                is FinalContent.ProtocolUpgrade -> return
+                is OutgoingContent.NoContent -> return
+                is OutgoingContent.ByteArrayContent -> ({ message.bytes().toReadChannel() })
+                is OutgoingContent.ProtocolUpgrade -> return
             }
 
             if (encoderOptions != null) {
@@ -103,7 +103,7 @@ class Compression(compression: Configuration) {
         }
     }
 
-    private class CompressedResponse(val delegateChannel: () -> ReadChannel, val delegateHeaders: ValuesMap, override val status: HttpStatusCode?, val encoding: String, val encoder: CompressionEncoder) : FinalContent.ReadChannelContent() {
+    private class CompressedResponse(val delegateChannel: () -> ReadChannel, val delegateHeaders: ValuesMap, override val status: HttpStatusCode?, val encoding: String, val encoder: CompressionEncoder) : OutgoingContent.ReadChannelContent() {
         override fun readFrom() = encoder.compress(delegateChannel())
         override val headers by lazy {
             ValuesMap.build(true) {
@@ -113,7 +113,7 @@ class Compression(compression: Configuration) {
         }
     }
 
-    private class CompressedWriteResponse(val delegate: WriteChannelContent, override val status: HttpStatusCode?, val encoding: String, val encoder: CompressionEncoder) : FinalContent.WriteChannelContent() {
+    private class CompressedWriteResponse(val delegate: WriteChannelContent, override val status: HttpStatusCode?, val encoding: String, val encoder: CompressionEncoder) : OutgoingContent.WriteChannelContent() {
         override val headers by lazy {
             ValuesMap.build(true) {
                 appendFiltered(delegate.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
@@ -151,7 +151,7 @@ class Compression(compression: Configuration) {
      */
     class Configuration() : ConditionsHolderBuilder {
         val encoders = hashMapOf<String, CompressionEncoderBuilder>()
-        override val conditions = arrayListOf<ApplicationCall.(FinalContent) -> Boolean>()
+        override val conditions = arrayListOf<ApplicationCall.(OutgoingContent) -> Boolean>()
 
         /**
          * Appends an encoder to the configuration
@@ -230,7 +230,7 @@ object IdentityEncoder : CompressionEncoder {
  * Represents a builder for conditions
  */
 interface ConditionsHolderBuilder {
-    val conditions: MutableList<ApplicationCall.(FinalContent) -> Boolean>
+    val conditions: MutableList<ApplicationCall.(OutgoingContent) -> Boolean>
 }
 
 /**
@@ -240,7 +240,7 @@ class CompressionEncoderBuilder internal constructor(val name: String, val encod
     /**
      * List of conditions for this encoder
      */
-    override val conditions = arrayListOf<ApplicationCall.(FinalContent) -> Boolean>()
+    override val conditions = arrayListOf<ApplicationCall.(OutgoingContent) -> Boolean>()
 
     /**
      * Priority for this encoder
@@ -283,7 +283,7 @@ fun Compression.Configuration.identity(block: CompressionEncoderBuilder.() -> Un
 /**
  * Appends a custom condition to the encoder or Compression configuration
  */
-fun ConditionsHolderBuilder.condition(predicate: ApplicationCall.(FinalContent) -> Boolean) {
+fun ConditionsHolderBuilder.condition(predicate: ApplicationCall.(OutgoingContent) -> Boolean) {
     conditions.add(predicate)
 }
 

@@ -9,7 +9,7 @@ import kotlin.coroutines.experimental.*
 /**
  * Information about the content to be sent to the peer, recognized by an [ApplicationHost]
  */
-sealed class FinalContent {
+sealed class OutgoingContent {
     /**
      * Status code to set when sending this content
      */
@@ -23,15 +23,15 @@ sealed class FinalContent {
         get() = ValuesMap.Empty
 
     /**
-     * Variant of a [FinalContent] without payload
+     * Variant of a [OutgoingContent] without payload
      */
-    abstract class NoContent : FinalContent()
+    abstract class NoContent : OutgoingContent()
 
     /**
-     * Variant of a [FinalContent] with payload read from [ReadChannel]
+     * Variant of a [OutgoingContent] with payload read from [ReadChannel]
      *
      */
-    abstract class ReadChannelContent : FinalContent() {
+    abstract class ReadChannelContent : OutgoingContent() {
         /**
          * Provides [ReadChannel] from which host will read the data and send it to peer
          */
@@ -39,9 +39,9 @@ sealed class FinalContent {
     }
 
     /**
-     * Variant of a [FinalContent] with payload written to [WriteChannel]
+     * Variant of a [OutgoingContent] with payload written to [WriteChannel]
      */
-    abstract class WriteChannelContent : FinalContent() {
+    abstract class WriteChannelContent : OutgoingContent() {
         /**
          * Receives [channel] provided by the host and writes all data to it
          */
@@ -49,9 +49,9 @@ sealed class FinalContent {
     }
 
     /**
-     * Variant of a [FinalContent] with payload represented as [ByteArray]
+     * Variant of a [OutgoingContent] with payload represented as [ByteArray]
      */
-    abstract class ByteArrayContent : FinalContent() {
+    abstract class ByteArrayContent : OutgoingContent() {
         /**
          * Provides [ByteArray] which host will send to peer
          */
@@ -59,9 +59,9 @@ sealed class FinalContent {
     }
 
     /**
-     * Variant of a [FinalContent] for upgrading an HTTP connection
+     * Variant of a [OutgoingContent] for upgrading an HTTP connection
      */
-    abstract class ProtocolUpgrade : FinalContent() {
+    abstract class ProtocolUpgrade : OutgoingContent() {
         final override val status: HttpStatusCode?
             get() = HttpStatusCode.SwitchingProtocols
 
@@ -83,7 +83,7 @@ sealed class FinalContent {
     }
 }
 
-fun FinalContent.contentLength(): Long? {
+fun OutgoingContent.contentLength(): Long? {
     if (this is Resource) {
         return contentLength
     }
@@ -91,7 +91,7 @@ fun FinalContent.contentLength(): Long? {
     return headers[HttpHeaders.ContentLength]?.let(String::toLong)
 }
 
-fun FinalContent.contentType(): ContentType? {
+fun OutgoingContent.contentType(): ContentType? {
     if (this is Resource) {
         return contentType
     }

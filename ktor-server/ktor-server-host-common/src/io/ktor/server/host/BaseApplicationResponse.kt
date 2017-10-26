@@ -29,15 +29,15 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
             if (responded)
                 throw ResponseAlreadySentException()
             val response = subject
-            if (response is FinalContent) {
-                respondFinalContent(response)
+            if (response is OutgoingContent) {
+                respondOutgoingContent(response)
             } else {
-                throw IllegalArgumentException("Response pipeline couldn't transform '${response.javaClass}' to the FinalContent")
+                throw IllegalArgumentException("Response pipeline couldn't transform '${response.javaClass}' to the OutgoingContent")
             }
         }
     }
 
-    protected fun commitHeaders(o: FinalContent) {
+    protected fun commitHeaders(o: OutgoingContent) {
         responded = true
         o.status?.let { status(it) } ?: status() ?: status(HttpStatusCode.OK)
         o.headers.forEach { name, values ->
@@ -55,14 +55,14 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         }
     }
 
-    protected open suspend fun respondFinalContent(content: FinalContent) = when (content) {
-        is FinalContent.ProtocolUpgrade -> {
+    protected open suspend fun respondOutgoingContent(content: OutgoingContent) = when (content) {
+        is OutgoingContent.ProtocolUpgrade -> {
             commitHeaders(content)
             respondUpgrade(content)
         }
 
     // ByteArrayContent is most efficient
-        is FinalContent.ByteArrayContent -> {
+        is OutgoingContent.ByteArrayContent -> {
             // First call user code to acquire bytes, because it could fail
             val bytes = content.bytes()
             // If bytes are fine, commit headers and send data
@@ -71,7 +71,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         }
 
     // WriteChannelContent is more efficient than ReadChannelContent
-        is FinalContent.WriteChannelContent -> {
+        is OutgoingContent.WriteChannelContent -> {
             // First set headers
             commitHeaders(content)
             // Retrieve response channel, that might send out headers, so it should go after commitHeaders
@@ -81,7 +81,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         }
 
     // Pipe is least efficient
-        is FinalContent.ReadChannelContent -> {
+        is OutgoingContent.ReadChannelContent -> {
             // First call user code to acquire read channel, because it could fail
             val readChannel = content.readFrom()
             // If channel is fine, commit headers and pipe data
@@ -90,7 +90,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         }
 
     // Do nothing, but maintain `when` exhaustiveness
-        is FinalContent.NoContent -> { /* no-op */
+        is OutgoingContent.NoContent -> { /* no-op */
             commitHeaders(content)
         }
     }
@@ -107,7 +107,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         readChannel.close()
     }
 
-    protected abstract suspend fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade)
+    protected abstract suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade)
     protected abstract suspend fun responseChannel(): WriteChannel
     protected open val bufferPool: ByteBufferPool get() = NoPool
 

@@ -55,7 +55,7 @@ class CIOApplicationResponse(call: ApplicationCall,
         return CIOWriteChannelAdapter(chunked)
     }
 
-    suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
+    suspend override fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         upgraded?.complete(true) ?: throw IllegalStateException("Unable to perform upgrade as it is not requested by the client: request should have Upgrade and Connection headers filled properly")
 
         sendResponseMessage(false)
@@ -75,9 +75,9 @@ class CIOApplicationResponse(call: ApplicationCall,
         output.close()
     }
 
-    suspend override fun respondFinalContent(content: FinalContent) {
-        super.respondFinalContent(content)
-        if (content is FinalContent.NoContent) {
+    suspend override fun respondOutgoingContent(content: OutgoingContent) {
+        super.respondOutgoingContent(content)
+        if (content is OutgoingContent.NoContent) {
             sendResponseMessage(false)
             output.close()
             return

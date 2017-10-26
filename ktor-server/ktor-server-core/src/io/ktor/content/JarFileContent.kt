@@ -9,7 +9,7 @@ import java.util.jar.*
 class JarFileContent(val jarFile: File,
                      val resourcePath: String,
                      val classLoader: ClassLoader,
-                     override val contentType: ContentType) : Resource, FinalContent.ReadChannelContent() {
+                     override val contentType: ContentType) : Resource, OutgoingContent.ReadChannelContent() {
 
     private val normalized = Paths.get(resourcePath).normalize().toString().replace(File.separatorChar, '/')
 

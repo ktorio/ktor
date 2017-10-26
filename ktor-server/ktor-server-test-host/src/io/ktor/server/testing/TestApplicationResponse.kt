@@ -43,7 +43,7 @@ class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationRespon
         }
     }
 
-    suspend override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
+    suspend override fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         upgrade.upgrade(call.receiveChannel(), realContent.value, Closeable { webSocketCompleted.countDown() }, CommonPool, Unconfined)
     }
 

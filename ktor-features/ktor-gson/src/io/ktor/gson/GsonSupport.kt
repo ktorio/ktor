@@ -36,7 +36,7 @@ class GsonSupport(val gson: Gson) {
             val gson = GsonBuilder().apply(configure).create()
             val feature = GsonSupport(gson)
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) {
-                if (it !is FinalContent && call.request.acceptItems().any { ContentType.Application.Json.match(it.value) }) {
+                if (it !is OutgoingContent && call.request.acceptItems().any { ContentType.Application.Json.match(it.value) }) {
                     proceedWith(feature.renderJsonContent(it))
                 }
             }

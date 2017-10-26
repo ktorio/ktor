@@ -10,7 +10,7 @@ import java.time.*
 class LocalFileContent(val file: File,
                        override val contentType: ContentType = ContentType.defaultForFile(file),
                        override val expires: LocalDateTime? = null,
-                       override val cacheControl: CacheControl? = null) : FinalContent.ReadChannelContent(), Resource {
+                       override val cacheControl: CacheControl? = null) : OutgoingContent.ReadChannelContent(), Resource {
 
 
     override val contentLength: Long

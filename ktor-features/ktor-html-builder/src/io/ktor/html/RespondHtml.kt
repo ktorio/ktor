@@ -22,7 +22,7 @@ suspend fun ApplicationCall.respondHtml(status: HttpStatusCode = HttpStatusCode.
 class HtmlContent(override val status: HttpStatusCode? = null,
                   override val versions: List<Version> = emptyList(),
                   override val cacheControl: CacheControl? = null,
-                  val builder: HTML.() -> Unit) : Resource, FinalContent.WriteChannelContent() {
+                  val builder: HTML.() -> Unit) : Resource, OutgoingContent.WriteChannelContent() {
 
     override val contentType: ContentType
         get() = ContentType.Text.Html.withCharset(Charsets.UTF_8)

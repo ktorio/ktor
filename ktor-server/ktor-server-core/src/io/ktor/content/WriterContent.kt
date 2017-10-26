@@ -5,7 +5,7 @@ import io.ktor.http.*
 import io.ktor.util.*
 import java.io.*
 
-class WriterContent(private val body: suspend Writer.() -> Unit, private val contentType: ContentType, override val status: HttpStatusCode? = null) : FinalContent.WriteChannelContent() {
+class WriterContent(private val body: suspend Writer.() -> Unit, private val contentType: ContentType, override val status: HttpStatusCode? = null) : OutgoingContent.WriteChannelContent() {
     override val headers: ValuesMap
         get() = ValuesMap.build(true) { contentType(contentType) }
 

@@ -34,7 +34,7 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
     @Volatile
     private var completed: Boolean = false
 
-    suspend final override fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
+    suspend final override fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         servletResponse.status = upgrade.status?.value ?: HttpStatusCode.SwitchingProtocols.value
         upgrade.headers.flattenEntries().forEach { e ->
             servletResponse.addHeader(e.first, e.second)
@@ -51,7 +51,7 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
         performUpgrade(upgrade)
     }
 
-    private suspend fun performUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
+    private suspend fun performUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         servletUpgradeImpl.performUpgrade(upgrade, servletRequest, servletResponse, hostCoroutineContext, userCoroutineContext)
     }
 

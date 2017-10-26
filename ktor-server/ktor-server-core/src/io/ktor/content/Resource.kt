@@ -6,7 +6,7 @@ import io.ktor.util.*
 import java.time.*
 
 /**
- * Designates a resource that can be mixed into [FinalContent] to give more information about content
+ * Designates a resource that can be mixed into [OutgoingContent] to give more information about content
  */
 interface Resource {
     val contentType: ContentType

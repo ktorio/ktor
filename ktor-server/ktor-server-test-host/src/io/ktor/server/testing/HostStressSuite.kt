@@ -198,7 +198,7 @@ abstract class HostStressSuite<THost : ApplicationHost, TConfiguration : Applica
     fun `test http upgrade`() {
         createAndStartServer {
             handle {
-                call.respond(object : FinalContent.ProtocolUpgrade() {
+                call.respond(object : OutgoingContent.ProtocolUpgrade() {
                     suspend override fun upgrade(input: ReadChannel, output: WriteChannel, closeable: Closeable, hostContext: CoroutineContext, userAppContext: CoroutineContext) {
                         launch(hostContext) {
                             try {
@@ -280,7 +280,7 @@ abstract class HostStressSuite<THost : ApplicationHost, TConfiguration : Applica
     fun testLongResponse() {
         createAndStartServer {
             get("/ll") {
-                call.respond(object : FinalContent.WriteChannelContent() {
+                call.respond(object : OutgoingContent.WriteChannelContent() {
                     suspend override fun writeTo(channel: WriteChannel) {
                         val bb: ByteBuffer = ByteBuffer.allocate(1024)
                         Random().nextBytes(bb.array())

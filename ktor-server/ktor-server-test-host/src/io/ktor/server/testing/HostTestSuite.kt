@@ -521,7 +521,7 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
                     val buffer = ByteBufferWriteChannel()
                     call.receiveChannel().copyTo(buffer)
 
-                    call.respond(object : FinalContent.ReadChannelContent() {
+                    call.respond(object : OutgoingContent.ReadChannelContent() {
                         override val headers: ValuesMap get() = ValuesMap.Empty
                         override fun readFrom() = buffer.toByteArray().toReadChannel()
                     })
@@ -1117,7 +1117,7 @@ abstract class HostTestSuite<THost : ApplicationHost, TConfiguration : Applicati
     open fun testUpgrade() {
         createAndStartServer {
             get("/up") {
-                call.respond(object : FinalContent.ProtocolUpgrade() {
+                call.respond(object : OutgoingContent.ProtocolUpgrade() {
                     override val headers: ValuesMap
                         get() = ValuesMap.build(true) {
                             append(HttpHeaders.Upgrade, "up")

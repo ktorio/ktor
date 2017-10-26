@@ -10,7 +10,7 @@ import javax.servlet.http.*
 import kotlin.coroutines.experimental.*
 
 object JettyUpgradeImpl : ServletUpgrade {
-    suspend override fun performUpgrade(upgrade: FinalContent.ProtocolUpgrade, servletRequest: HttpServletRequest, servletResponse: HttpServletResponse, hostCoroutineContext: CoroutineContext, userCoroutineContext: CoroutineContext) {
+    suspend override fun performUpgrade(upgrade: OutgoingContent.ProtocolUpgrade, servletRequest: HttpServletRequest, servletResponse: HttpServletResponse, hostCoroutineContext: CoroutineContext, userCoroutineContext: CoroutineContext) {
         // Jetty doesn't support Servlet API's upgrade so we have to implement our own
 
         val connection = servletRequest.getAttribute(HttpConnection::class.qualifiedName) as HttpConnection

@@ -36,7 +36,7 @@ class StatusPages(config: Configuration) {
         context.call.response.pipeline.intercept(ApplicationSendPipeline.After) { message ->
             if (!statusHandled) {
                 val status = when (message) {
-                    is FinalContent -> message.status
+                    is OutgoingContent -> message.status
                     is HttpStatusCode -> message
                     else -> null
                 }

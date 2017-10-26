@@ -29,9 +29,9 @@ internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
         }
     }
 
-    suspend override fun respondFinalContent(content: FinalContent) {
+    suspend override fun respondOutgoingContent(content: OutgoingContent) {
         try {
-            super.respondFinalContent(content)
+            super.respondOutgoingContent(content)
         } catch (t: Throwable) {
             val out = responseChannel as? ByteWriteChannel
             if (out != null) out.close(t)

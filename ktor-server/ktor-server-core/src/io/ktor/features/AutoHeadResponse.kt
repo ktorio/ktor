@@ -19,7 +19,7 @@ object AutoHeadResponse : ApplicationFeature<ApplicationCallPipeline, Unit, Unit
             if (call.request.local.method == HttpMethod.Head) {
                 call.response.pipeline.insertPhaseBefore(ApplicationSendPipeline.TransferEncoding, HeadPhase)
                 call.response.pipeline.intercept(HeadPhase) { message ->
-                    if (message is FinalContent && message !is FinalContent.NoContent) {
+                    if (message is OutgoingContent && message !is OutgoingContent.NoContent) {
                         proceedWith(HeadResponse(message))
                     }
                 }
@@ -31,7 +31,7 @@ object AutoHeadResponse : ApplicationFeature<ApplicationCallPipeline, Unit, Unit
         }
     }
 
-    private class HeadResponse(val delegate: FinalContent) : FinalContent.NoContent() {
+    private class HeadResponse(val delegate: OutgoingContent) : OutgoingContent.NoContent() {
         override val headers by lazy { delegate.headers }
         override val status: HttpStatusCode? get() = delegate.status
     }

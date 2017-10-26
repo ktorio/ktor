@@ -10,7 +10,7 @@ import java.io.*
 import java.security.*
 import kotlin.coroutines.experimental.*
 
-class WebSocketUpgrade(val call: ApplicationCall, val protocol: String? = null, val handle: suspend WebSocketSession.(Dispatchers) -> Unit) : FinalContent.ProtocolUpgrade() {
+class WebSocketUpgrade(val call: ApplicationCall, val protocol: String? = null, val handle: suspend WebSocketSession.(Dispatchers) -> Unit) : OutgoingContent.ProtocolUpgrade() {
     private val key = call.request.header(HttpHeaders.SecWebSocketKey) ?: throw IllegalArgumentException("It should be ${HttpHeaders.SecWebSocketKey} header")
 
     override val headers: ValuesMap

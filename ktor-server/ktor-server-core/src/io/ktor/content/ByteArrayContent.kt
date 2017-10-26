@@ -4,9 +4,9 @@ import io.ktor.http.*
 import io.ktor.util.*
 
 /**
- * Implementation of the [FinalContent.ByteArrayContent] for sending array of bytes
+ * Implementation of the [OutgoingContent.ByteArrayContent] for sending array of bytes
  */
-class ByteArrayContent(private val bytes: ByteArray) : FinalContent.ByteArrayContent() {
+class ByteArrayContent(private val bytes: ByteArray) : OutgoingContent.ByteArrayContent() {
     override val headers by lazy {
         ValuesMap.build(true) {
             contentLength(bytes.size.toLong())

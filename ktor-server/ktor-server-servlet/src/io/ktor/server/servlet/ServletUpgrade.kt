@@ -8,7 +8,7 @@ import javax.servlet.http.*
 import kotlin.coroutines.experimental.*
 
 interface ServletUpgrade {
-    suspend fun performUpgrade(upgrade: FinalContent.ProtocolUpgrade,
+    suspend fun performUpgrade(upgrade: OutgoingContent.ProtocolUpgrade,
                                servletRequest: HttpServletRequest,
                                servletResponse: HttpServletResponse,
                                hostCoroutineContext: CoroutineContext,
@@ -16,7 +16,7 @@ interface ServletUpgrade {
 }
 
 object DefaultServletUpgrade : ServletUpgrade {
-    suspend override fun performUpgrade(upgrade: FinalContent.ProtocolUpgrade,
+    suspend override fun performUpgrade(upgrade: OutgoingContent.ProtocolUpgrade,
                                         servletRequest: HttpServletRequest,
                                         servletResponse: HttpServletResponse,
                                         hostCoroutineContext: CoroutineContext,
@@ -30,7 +30,7 @@ object DefaultServletUpgrade : ServletUpgrade {
 // the following types need to be public as they are accessed through reflection
 
 class UpgradeRequest(val response: HttpServletResponse,
-                     val upgradeMessage: FinalContent.ProtocolUpgrade,
+                     val upgradeMessage: OutgoingContent.ProtocolUpgrade,
                      val hostContext: CoroutineContext,
                      val userAppContext: CoroutineContext)
 

@@ -51,7 +51,7 @@ class ContentNegotiation(val converters: List<ContentConverterRegistration>) {
             }
 
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) {
-                if (subject is FinalContent) return@intercept
+                if (subject is OutgoingContent) return@intercept
 
                 val suitableConverters = acceptedTypes().mapNotNull { (contentType, _) ->
                     feature.converters.firstOrNull { it.contentType.match(contentType) }
@@ -91,7 +91,7 @@ interface ContentConverter {
     suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any?
 }
 
-class ConvertedContent(text: String, val contentType: ContentType) : FinalContent.ByteArrayContent() {
+class ConvertedContent(text: String, val contentType: ContentType) : OutgoingContent.ByteArrayContent() {
     private val bytes = text.toByteArray(Charsets.UTF_8)
     override fun bytes(): ByteArray = bytes
 

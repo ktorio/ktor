@@ -115,7 +115,7 @@ class StatusPageTest {
             }
 
             application.intercept(ApplicationCallPipeline.Call) {
-                call.respond(object : FinalContent.ReadChannelContent() {
+                call.respond(object : OutgoingContent.ReadChannelContent() {
                     override val status = HttpStatusCode.NotFound
 
                     override val headers: ValuesMap

@@ -4,7 +4,7 @@ import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.util.*
 
-class UnauthorizedResponse(vararg val challenges: HttpAuthHeader) : FinalContent.NoContent() {
+class UnauthorizedResponse(vararg val challenges: HttpAuthHeader) : OutgoingContent.NoContent() {
     override val status: HttpStatusCode?
         get() = HttpStatusCode.Unauthorized
 

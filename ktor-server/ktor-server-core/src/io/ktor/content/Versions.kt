@@ -115,7 +115,7 @@ data class EntityTagVersion(val etag: String) : Version {
     }
 }
 
-fun FinalContent.lastModifiedAndEtagVersions(): List<Version> {
+fun OutgoingContent.lastModifiedAndEtagVersions(): List<Version> {
     if (this is Resource) {
         return versions
     }

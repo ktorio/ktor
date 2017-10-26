@@ -85,11 +85,11 @@ class HeadTest {
     }
 
     @Test
-    fun testCustomFinalContent() {
+    fun testCustomOutgoingContent() {
         withHeadApplication {
             application.routing {
                 get("/") {
-                    call.respond(object : FinalContent.ReadChannelContent() {
+                    call.respond(object : OutgoingContent.ReadChannelContent() {
                         override fun readFrom() = "Hello".toByteArray().toReadChannel()
 
                         override val headers: ValuesMap

@@ -16,9 +16,9 @@ open class ApplicationSendPipeline : Pipeline<Any, ApplicationCall>(Before, Tran
         val Transform = PipelinePhase("Transform")
 
         /**
-         * Phase to render any current pipeline subject into [FinalContent]
+         * Phase to render any current pipeline subject into [OutgoingContent]
          *
-         * Beyond this phase only [FinalContent] should be produced by any interceptor
+         * Beyond this phase only [OutgoingContent] should be produced by any interceptor
          */
         val Render = PipelinePhase("Render")
 

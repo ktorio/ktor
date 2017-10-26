@@ -50,7 +50,7 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
         return responseMessage
     }
 
-    override suspend fun respondUpgrade(upgrade: FinalContent.ProtocolUpgrade) {
+    override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         val nettyContext = context
         val nettyChannel = nettyContext.channel()
         val userAppContext = userCoroutineContext + NettyDispatcher.CurrentContext(nettyContext)

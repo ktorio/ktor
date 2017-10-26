@@ -7,8 +7,8 @@ import io.ktor.response.*
 import io.ktor.util.*
 import java.io.*
 
-fun PipelineContext<Any, ApplicationCall>.transformDefaultContent(value: Any): FinalContent? = when (value) {
-    is FinalContent -> value
+fun PipelineContext<Any, ApplicationCall>.transformDefaultContent(value: Any): OutgoingContent? = when (value) {
+    is OutgoingContent -> value
     is String -> {
         val contentType = call.defaultTextContentType(null)
         TextContent(value, contentType, null)

@@ -29,7 +29,7 @@ class ConditionalHeaders {
 
                 val status = when (message) {
                     is Resource -> checkVersions(call, message.versions)
-                    is FinalContent -> checkVersions(call, message.lastModifiedAndEtagVersions())
+                    is OutgoingContent -> checkVersions(call, message.lastModifiedAndEtagVersions())
                     else -> VersionCheckResult.OK
                 }
                 if (status != VersionCheckResult.OK) {

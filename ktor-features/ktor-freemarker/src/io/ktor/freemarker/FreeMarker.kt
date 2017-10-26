@@ -38,7 +38,7 @@ class FreeMarker(val config: Configuration) {
     private class FreeMarkerTemplateResource(val template: freemarker.template.Template,
                                              val model: Any,
                                              val etag: String?,
-                                             override val contentType: ContentType) : FinalContent.WriteChannelContent(), Resource {
+                                             override val contentType: ContentType) : OutgoingContent.WriteChannelContent(), Resource {
         suspend override fun writeTo(channel: WriteChannel) {
             val writer = channel.toOutputStream().bufferedWriter(contentType.charset() ?: Charsets.UTF_8)
             writer.use {
