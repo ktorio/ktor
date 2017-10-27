@@ -52,5 +52,16 @@ subprojects {
         def runTask = getTasksByName("run", false).first() as JavaExec
 
         runTask.jvmArgs(bootClasspath.collect { "-Xbootclasspath/p:${it.absolutePath}" })
+        if (project.hasProperty("jmc")) {
+            runTask.jvmArgs("-XX:+UnlockCommercialFeatures", 
+                            "-XX:+FlightRecorder",
+                            "-XX:FlightRecorderOptions=stackdepth=512",
+                            "-XX:+UnlockDiagnosticVMOptions",
+                            "-XX:+DebugNonSafepoints")
+        }
+
+        if (project.hasProperty("heapSize")) {
+            runTask.maxHeapSize = project.heapSize
+        }
     }
 }
