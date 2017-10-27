@@ -10,6 +10,13 @@ import java.io.*
 import java.security.*
 import kotlin.coroutines.experimental.*
 
+/**
+ * An [OutgoingContent] response object that could be used to `respond()`: it will cause application engine to
+ * perform HTTP upgrade and start websocket RAW session
+ *
+ * Please note that you generally shouldn't use this object directly but use [WebSockets] feature with routing builders
+ * [webSocket] instead
+ */
 class WebSocketUpgrade(val call: ApplicationCall, val protocol: String? = null, val handle: suspend WebSocketSession.(Dispatchers) -> Unit) : OutgoingContent.ProtocolUpgrade() {
     private val key = call.request.header(HttpHeaders.SecWebSocketKey) ?: throw IllegalArgumentException("It should be ${HttpHeaders.SecWebSocketKey} header")
 

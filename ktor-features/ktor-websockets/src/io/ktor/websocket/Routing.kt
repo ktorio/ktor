@@ -6,6 +6,18 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
+/**
+ * Bind RAW websocket at the current route optionally checking for websocket [protocol] (ignored if `null`)
+ * Requires [WebSockets] feature to be installed first
+ *
+ * Unlike regular (default) [webSocket], a raw websocket is not handling any ping/pongs, timeouts or close frames.
+ * So [WebSocketSession]'s incoming channel will contain all low-level control frames and all fragmented frames need
+ * to be reassembled
+ *
+ * When a websocket session is created, a [handler] lambda will be called with websocket session instance on receiver.
+ * Once [handler] function returns, the websocket connection will be terminated immediately. For RAW websocket
+ * it is important to perform close sequence properly.
+ */
 fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSocketSession.(WebSocketUpgrade.Dispatchers) -> Unit) {
     application.feature(WebSockets) // early require
 
@@ -20,6 +32,18 @@ fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSocketSessi
     }
 }
 
+/**
+ * Bind RAW websocket at the current route + [path] optionally checking for websocket [protocol] (ignored if `null`)
+ * Requires [WebSockets] feature to be installed first
+ *
+ * Unlike regular (default) [webSocket], a raw websocket is not handling any ping/pongs, timeouts or close frames.
+ * So [WebSocketSession.incoming] channel will contain all low-level control frames and all fragmented frames need
+ * to be reassembled
+ *
+ * When a websocket session is created, a [handler] lambda will be called with websocket session instance on receiver.
+ * Once [handler] function returns, the websocket connection will be terminated immediately. For RAW websockets
+ * it is important to perform close sequence properly.
+ */
 fun Route.webSocketRaw(path: String, protocol: String? = null, handler: suspend WebSocketSession.(WebSocketUpgrade.Dispatchers) -> Unit) {
     application.feature(WebSockets) // early require
 
@@ -28,12 +52,36 @@ fun Route.webSocketRaw(path: String, protocol: String? = null, handler: suspend 
     }
 }
 
+/**
+ * Bind websocket at the current route optionally checking for websocket [protocol] (ignored if `null`)
+ * Requires [WebSockets] feature to be installed first
+ *
+ * [DefaultWebSocketSession.incoming] will never contain any control frames and no fragmented frames could be found.
+ * Default websocket implementation is handling ping/pongs, timeouts, close frames and reassembling fragmented frames
+ *
+ * When a websocket session is created, a [handler] lambda will be called with websocket session instance on receiver.
+ * Once [handler] function returns, the websocket termination sequence will be scheduled so you shouldn't use
+ * [DefaultWebSocketSession] anymore. However websocket could live for a while until close sequence completed or
+ * a timeout exceeds
+ */
 fun Route.webSocket(protocol: String? = null, handler: suspend DefaultWebSocketSession.() -> Unit) {
     webSocketRaw(protocol) { dispatchers ->
         proceedWebSocket(dispatchers, handler)
     }
 }
 
+/**
+ * Bind websocket at the current route + [path] optionally checking for websocket [protocol] (ignored if `null`)
+ * Requires [WebSockets] feature to be installed first
+ *
+ * [DefaultWebSocketSession.incoming] will never contain any control frames and no fragmented frames could be found.
+ * Default websocket implementation is handling ping/pongs, timeouts, close frames and reassembling fragmented frames
+ *
+ * When a websocket session is created, a [handler] lambda will be called with websocket session instance on receiver.
+ * Once [handler] function returns, the websocket termination sequence will be scheduled so you shouldn't use
+ * [DefaultWebSocketSession] anymore. However websocket could live for a while until close sequence completed or
+ * a timeout exceeds
+ */
 fun Route.webSocket(path: String, protocol: String? = null, handler: suspend DefaultWebSocketSession.() -> Unit) {
     webSocketRaw(path, protocol) { dispatchers ->
         proceedWebSocket(dispatchers, handler)

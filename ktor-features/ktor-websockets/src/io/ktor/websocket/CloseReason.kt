@@ -1,8 +1,15 @@
 package io.ktor.websocket
 
+/**
+ * Websocket close reason
+ * @property code - close reason code as per RFC 6455, recommended to be one of [CloseReason.Codes]
+ */
 data class CloseReason(val code: Short, val message: String) {
     constructor(code: Codes, message: String) : this(code.code, message)
 
+    /**
+     * A enum value for this [code]
+     */
     val knownReason: Codes?
         get() = Codes.byCode(code)
 
@@ -10,7 +17,11 @@ data class CloseReason(val code: Short, val message: String) {
         return "CloseReason(reason=${knownReason ?: code}, message=$message)"
     }
 
-    // see https://tools.ietf.org/html/rfc6455#section-7.4
+    /**
+     * Standard close reason codes
+     *
+     * see https://tools.ietf.org/html/rfc6455#section-7.4 for list of codes
+     */
     enum class Codes(val code: Short) {
         NORMAL(1000),
         GOING_AWAY(1001),
@@ -25,8 +36,12 @@ data class CloseReason(val code: Short, val message: String) {
         TRY_AGAIN_LATER(1013);
 
         companion object {
-            val byCodeMap = values().associateBy { it.code }
+            private val byCodeMap = values().associateBy { it.code }
 
+            /**
+             * Get enum value by close reason code
+             * @return enum instance or null if [code] is not in standard
+             */
             fun byCode(code: Short) = byCodeMap[code]
         }
     }

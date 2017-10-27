@@ -4,6 +4,19 @@ import io.ktor.application.*
 import io.ktor.util.*
 import java.time.*
 
+/**
+ * WebSockets support feature. It is required to be installed first before binding any websocket endpoints
+ *
+ * ```
+ * install(WebSockets)
+ *
+ * install(Routing) {
+ *     webSocket("/ws") {
+ *          incoming.consumeForEach { ... }
+ *     }
+ * }
+ * ```
+ */
 class WebSockets(
         val pingInterval: Duration?,
         val timeout: Duration,

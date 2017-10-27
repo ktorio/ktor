@@ -6,8 +6,19 @@ import java.time.*
 import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 
-fun closeSequence(ctx: CoroutineContext, w: WebSocketSession, timeout: () -> Duration, populateCloseReason: (reason: CloseReason?) -> Unit): ActorJob<CloseFrameEvent> {
-    return actor(ctx, capacity = 2, start = CoroutineStart.LAZY) {
+/**
+ * Starts websocket close sequence actor job on [coroutineContext] for websocket [session]
+ * A close sequence job is listening for close events. If a client initiates close then the job is replying to client's
+ * close and quits. If the [session] is terminating (e.g. the server is going down) then the job is sending close frame
+ * and waiting for client's reply (up to timeout provided by [timeout] function) and then quits.
+ *
+ * Just before do quit the job calls [populateCloseReason] with last known close reason however it may
+ * provide `null` reason it get cancelled.
+ *
+ * Once the job is completed, the connection could be terminated.
+ */
+fun closeSequence(coroutineContext: CoroutineContext, session: WebSocketSession, timeout: () -> Duration, populateCloseReason: (reason: CloseReason?) -> Unit): ActorJob<CloseFrameEvent> {
+    return actor(coroutineContext, capacity = 2, start = CoroutineStart.LAZY) {
         var reason: CloseReason? = null
 
         try {
@@ -17,7 +28,7 @@ fun closeSequence(ctx: CoroutineContext, w: WebSocketSession, timeout: () -> Dur
                 reason = firstCloseEvent.frame.readReason()
                 when (firstCloseEvent) {
                     is CloseFrameEvent.ToSend -> {
-                        w.send(firstCloseEvent.frame)
+                        session.send(firstCloseEvent.frame)
 
                         while (true) {
                             val event = receiveOrNull() ?: break
@@ -26,8 +37,8 @@ fun closeSequence(ctx: CoroutineContext, w: WebSocketSession, timeout: () -> Dur
                     }
 
                     is CloseFrameEvent.Received -> {
-                        w.send(Frame.Close(reason ?: CloseReason(CloseReason.Codes.NORMAL, "OK")))
-                        w.flush()
+                        session.send(Frame.Close(reason ?: CloseReason(CloseReason.Codes.NORMAL, "OK")))
+                        session.flush()
                     }
                 }
             }
@@ -38,6 +49,10 @@ fun closeSequence(ctx: CoroutineContext, w: WebSocketSession, timeout: () -> Dur
     }
 }
 
+/**
+ * A close event: a frame received or to be sent
+ * @see [closeSequence]
+ */
 sealed class CloseFrameEvent(val frame: Frame.Close) {
     class Received(frame: Frame.Close) : CloseFrameEvent(frame)
     class ToSend(frame: Frame.Close) : CloseFrameEvent(frame)

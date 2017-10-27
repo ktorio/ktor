@@ -20,6 +20,13 @@ enum class FrameType (val controlFrame: Boolean, val opcode: Int) {
     }
 }
 
+/**
+ * A frame received or ready to be sent
+ * @property fin is it final fragment, should be always `true` for control frames and if no fragmentation is used
+ * @property frameType enum value
+ * @property buffer - a frame content or fragment content
+ * @property disposableHandle could be invoked when the frame is processed
+ */
 sealed class Frame(val fin: Boolean, val frameType: FrameType, val buffer: ByteBuffer, val disposableHandle: DisposableHandle = NonDisposableHandle) {
     private val initialSize = buffer.remaining()
 
@@ -56,11 +63,17 @@ sealed class Frame(val fin: Boolean, val frameType: FrameType, val buffer: ByteB
     }
 }
 
+/**
+ * Read text content from text frame. Shouldn't be used for fragmented frames: such frames need to be reassembled first
+ */
 fun Frame.Text.readText(): String {
     require(fin) { "Text could be only extracted from non-fragmented frame" }
     return Charsets.UTF_8.decode(buffer.duplicate()).toString()
 }
 
+/**
+ * Read close reason from close frame or null if no close reason provided
+ */
 fun Frame.Close.readReason(): CloseReason? {
     if (buffer.remaining() < 2) {
         return null

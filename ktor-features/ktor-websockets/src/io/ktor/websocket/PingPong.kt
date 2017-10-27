@@ -12,11 +12,15 @@ import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.experimental.*
 
-fun ponger(ctx: CoroutineContext, ws: WebSocketSession, pool: ByteBufferPool): ActorJob<Frame.Ping> {
-    return actor(ctx, 5, CoroutineStart.LAZY) {
+/**
+ * Launch a ponger actor job on the [coroutineContext] for websocket [session].
+ * It is acting for every client's ping frame and replying with corresponding pong
+ */
+fun ponger(coroutineContext: CoroutineContext, session: WebSocketSession, pool: ByteBufferPool): ActorJob<Frame.Ping> {
+    return actor(coroutineContext, 5, CoroutineStart.LAZY) {
         consumeEach { frame ->
             val message = frame.buffer.copy(pool)
-            ws.send(Frame.Pong(message.buffer, object : DisposableHandle {
+            session.send(Frame.Pong(message.buffer, object : DisposableHandle {
                 override fun dispose() {
                     pool.release(message)
                 }
@@ -25,8 +29,13 @@ fun ponger(ctx: CoroutineContext, ws: WebSocketSession, pool: ByteBufferPool): A
     }
 }
 
-fun pinger(ctx: CoroutineContext, ws: WebSocketSession, period: Duration, timeout: Duration, pool: ByteBufferPool, out: SendChannel<Frame>): ActorJob<Frame.Pong> {
-    val j = actor<Frame.Pong>(ctx, Channel.UNLIMITED, CoroutineStart.LAZY) {
+/**
+ * Launch pinger coroutine on [coroutineContext] websocket for [session] that is sending ping every specified [period],
+ * waiting for and verifying client's pong frames. It is also handling [timeout] and sending timeout close frame
+ * to the dedicated [out] channel in case of failure
+ */
+fun pinger(coroutineContext: CoroutineContext, session: WebSocketSession, period: Duration, timeout: Duration, pool: ByteBufferPool, out: SendChannel<Frame>): ActorJob<Frame.Pong> {
+    val j = actor<Frame.Pong>(coroutineContext, Channel.UNLIMITED, CoroutineStart.LAZY) {
         val t = pool.allocate(128)
         val periodMillis = period.toMillis()
         val timeoutMillis = timeout.toMillis()
@@ -45,7 +54,7 @@ fun pinger(ctx: CoroutineContext, ws: WebSocketSession, period: Duration, timeou
                 val pingMessage = "[ping ${nextNonce()} ping]"
 
                 val rc = withTimeoutOrNull(timeoutMillis, TimeUnit.MILLISECONDS) {
-                    ws.sendPing(t.buffer, encoder, pingMessage)
+                    session.sendPing(t.buffer, encoder, pingMessage)
 
                     // wait for valid pong message
                     while (true) {
