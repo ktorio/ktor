@@ -1,0 +1,5 @@
+description = "Ktor client Basic Auth support"
+
+dependencies {
+    compile project(":ktor-client:ktor-client-core")
+}
