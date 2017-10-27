@@ -4,7 +4,6 @@ import kotlinx.coroutines.experimental.channels.*
 import io.ktor.application.*
 import io.ktor.content.*
 import io.ktor.features.*
-import io.ktor.pipeline.*
 import io.ktor.routing.*
 import io.ktor.sessions.*
 import io.ktor.util.*
