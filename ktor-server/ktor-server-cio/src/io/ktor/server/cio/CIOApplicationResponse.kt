@@ -39,12 +39,14 @@ class CIOApplicationResponse(call: ApplicationCall,
         }
 
         override fun getEngineHeaderValues(name: String): List<String> = headersNames.indices
-                .filter { headersNames[it] == name }
+                .filter { headersNames[it].equals(name, ignoreCase = true) }
                 .map { headerValues[it] }
     }
 
+    private fun hasHeader(name: String) = headersNames.any { it.equals(name, ignoreCase = true) }
+
     suspend override fun responseChannel(): WriteChannel {
-        sendResponseMessage(true)
+        sendResponseMessage(true, -1)
 
         val j = encodeChunked(output, engineDispatcher)
         val chunked = j.channel
@@ -58,7 +60,7 @@ class CIOApplicationResponse(call: ApplicationCall,
     suspend override fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         upgraded?.complete(true) ?: throw IllegalStateException("Unable to perform upgrade as it is not requested by the client: request should have Upgrade and Connection headers filled properly")
 
-        sendResponseMessage(false)
+        sendResponseMessage(false, -1)
 
         val upgradedJob = Job()
         upgrade.upgrade(CIOReadChannelAdapter(input), CIOWriteChannelAdapter(output), Closeable {
@@ -70,7 +72,7 @@ class CIOApplicationResponse(call: ApplicationCall,
     }
 
     suspend override fun respondFromBytes(bytes: ByteArray) {
-        sendResponseMessage(false)
+        sendResponseMessage(false, bytes.size)
         output.writeFully(bytes)
         output.close()
     }
@@ -78,7 +80,7 @@ class CIOApplicationResponse(call: ApplicationCall,
     suspend override fun respondOutgoingContent(content: OutgoingContent) {
         super.respondOutgoingContent(content)
         if (content is OutgoingContent.NoContent) {
-            sendResponseMessage(false)
+            sendResponseMessage(false, 0)
             output.close()
             return
         }
@@ -91,7 +93,7 @@ class CIOApplicationResponse(call: ApplicationCall,
         this.statusCode = statusCode
     }
 
-    private suspend fun sendResponseMessage(chunked: Boolean) {
+    private suspend fun sendResponseMessage(chunked: Boolean, contentLength: Int) {
         val builder = RequestResponseBuilder()
         try  {
             builder.responseLine("HTTP/1.1", statusCode.value, statusCode.description)
@@ -99,8 +101,13 @@ class CIOApplicationResponse(call: ApplicationCall,
                 builder.headerLine(headersNames[i], headerValues[i])
             }
             if (chunked) {
-                if ("Transfer-Encoding" !in headersNames) {
+                if (!hasHeader("Transfer-Encoding")) {
                     builder.headerLine("Transfer-Encoding", "chunked")
+                }
+            }
+            if (contentLength != -1) {
+                if (!hasHeader("Content-Length")) {
+                    builder.headerLine("Content-Length", contentLength.toString())
                 }
             }
             builder.emptyLine()
