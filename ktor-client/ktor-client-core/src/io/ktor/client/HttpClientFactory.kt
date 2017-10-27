@@ -11,7 +11,7 @@ object HttpClientFactory {
     fun create(backendFactory: HttpClientBackendFactory): HttpClient {
         val backend = backendFactory()
 
-        return HttpCallScope(EmptyScope).config {
+        return HttpCallScope(EmptyScope, backend).config {
             install("backend") {
                 requestPipeline.intercept(HttpRequestPipeline.Send) { builder ->
                     val request = (builder as? HttpRequestBuilder)?.build() ?: return@intercept

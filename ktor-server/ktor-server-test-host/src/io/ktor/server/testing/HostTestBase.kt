@@ -210,8 +210,10 @@ abstract class HostTestBase<THost : ApplicationHost, TConfiguration : Applicatio
     private fun withHttp2(url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit) {
         runBlocking {
             withTimeout(timeout.seconds, TimeUnit.SECONDS) {
-                HttpClient(JettyHttp2Backend).call(url, builder).use { response ->
-                    block(response, port)
+                HttpClient(JettyHttp2Backend).use { httpClient ->
+                    httpClient.call(url, builder).use { response ->
+                        block(response, port)
+                    }
                 }
             }
         }

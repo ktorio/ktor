@@ -2,6 +2,7 @@ package io.ktor.client
 
 import io.ktor.client.features.*
 import io.ktor.util.*
+import java.io.Closeable
 import kotlin.collections.set
 
 
@@ -30,7 +31,7 @@ class ClientConfig(private val parent: HttpClient) {
     }
 
     fun build(): HttpClient {
-        val scope = HttpCallScope(parent)
+        val scope = HttpCallScope(parent, Closeable {})
         scope.attributes.put(CLIENT_CONFIG_KEY, this)
 
         features.values.forEach { scope.apply(it) }
