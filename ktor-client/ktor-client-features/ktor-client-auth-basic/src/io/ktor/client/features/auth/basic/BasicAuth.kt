@@ -10,8 +10,8 @@ class BasicAuth(val username: String, val password: String) {
 
   class Configuration {
 
-    var username: String = ""
-    var password: String = ""
+    lateinit var username: String
+    lateinit var password: String
 
     fun build(): BasicAuth = BasicAuth(username, password)
   }
@@ -24,7 +24,7 @@ class BasicAuth(val username: String, val password: String) {
 
     override fun install(feature: BasicAuth, scope: HttpClient) {
 
-      scope.requestPipeline.intercept(HttpRequestPipeline.Send) { request ->
+      scope.requestPipeline.intercept(HttpRequestPipeline.State) { request ->
 
         if (request !is HttpRequestBuilder || request.headers.getAll(HttpHeaders.Authorization) != null) {
           return@intercept
@@ -36,10 +36,10 @@ class BasicAuth(val username: String, val password: String) {
     }
 
     fun constructBasicAuthValue(username: String, password: String): String {
-      val authString = username + ":" + password
+      val authString = "$username:$password"
       val authBuf = encodeBase64(authString.toByteArray(Charsets.ISO_8859_1))
 
-      return "Basic " + authBuf
+      return "Basic $authBuf"
     }
   }
 

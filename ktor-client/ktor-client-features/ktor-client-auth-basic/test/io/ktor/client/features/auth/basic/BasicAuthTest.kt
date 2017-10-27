@@ -18,7 +18,7 @@ class BasicAuthTest {
         )
 
         assertEquals(
-                "Basic Basic VW1sYXV0ZcOEw7zDtjphJlNlY3JldCUhMjM=",
+                "Basic VW1sYXV0ZcOEw7zDtjphJlNlY3JldCUhMjM=",
                 BasicAuth.constructBasicAuthValue("UmlauteÄüö", "a&Secret%!23")
         )
     }
