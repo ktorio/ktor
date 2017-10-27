@@ -31,7 +31,7 @@ class ClientConfig(private val parent: HttpClient) {
     }
 
     fun build(): HttpClient {
-        val scope = HttpCallScope(parent, Closeable {})
+        val scope = HttpCallScope(parent)
         scope.attributes.put(CLIENT_CONFIG_KEY, this)
 
         features.values.forEach { scope.apply(it) }

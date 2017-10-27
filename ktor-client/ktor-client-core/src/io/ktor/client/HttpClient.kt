@@ -9,31 +9,20 @@ import java.io.*
 
 sealed class HttpClient : Closeable {
     abstract val attributes: Attributes
-
     abstract val requestPipeline: HttpRequestPipeline
     abstract val responsePipeline: HttpResponsePipeline
-
-    override fun close() {}
 
     companion object {
         operator fun invoke(backendFactory: HttpClientBackendFactory) = HttpClientFactory.create(backendFactory)
     }
 }
 
-object EmptyScope : HttpClient() {
-    override val attributes: Attributes = Attributes()
-    override val requestPipeline: HttpRequestPipeline = HttpRequestPipeline()
-    override val responsePipeline: HttpResponsePipeline = HttpResponsePipeline()
-}
-
-open class HttpCallScope(private val parent: HttpClient, private val backend: Closeable) : HttpClient() {
-    override fun close() {
-        parent.close()
-        backend.close()
-    }
-
+class HttpCallScope(private val parent: Closeable) : HttpClient() {
     override val attributes = Attributes()
     override val requestPipeline: HttpRequestPipeline = HttpRequestPipeline()
-
     override val responsePipeline: HttpResponsePipeline = HttpResponsePipeline()
+
+    override fun close() {
+        parent.close()
+    }
 }
