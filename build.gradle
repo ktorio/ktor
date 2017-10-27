@@ -4,6 +4,19 @@ buildscript {
         maven {
             url 'https://plugins.gradle.org/m2/'
         }
+
+        if (kotlin_version.contains("-eap") || kotlin_version.contains("-rc")) {
+            if (kotlin_version.startsWith("1.1")) {
+                maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
+            } else if (kotlin_version.startsWith("1.2")) {
+                maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
+                maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+            }
+        } else if (kotlin_version.contains("-dev")) {
+            maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+        } else if (kotlin_version.endsWith("-SNAPSHOT")) {
+            maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        }
     }
 
     dependencies {
@@ -118,7 +131,20 @@ allprojects {
 
         maven { url "http://repo.maven.apache.org/maven2" }
         maven { url "https://jcenter.bintray.com" }
-        maven { url "https://dl.bintray.com/kotlin/kotlin-eap-1.1" }
+
+        if (kotlin_version.contains("-eap") || kotlin_version.contains("-rc")) {
+            if (kotlin_version.startsWith("1.1")) {
+                maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
+            } else if (kotlin_version.startsWith("1.2")) {
+                maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
+                maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+            }
+        } else if (kotlin_version.contains("-dev")) {
+            maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+        } else if (kotlin_version.endsWith("-SNAPSHOT")) {
+            maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        }
+
         maven { url "https://jitpack.io" }
         maven { url "https://dl.bintray.com/kotlinx/kotlinx" }
         maven { url "https://dl.bintray.com/kotlin/kotlinx" }
