@@ -17,7 +17,7 @@ internal class NettyApplicationCallHandler(private val userCoroutineContext: Cor
     }
 
     private fun handleRequest(context: ChannelHandlerContext, call: ApplicationCall) {
-        launch(userCoroutineContext + NettyDispatcher.CurrentContext(context)) {
+        launch(userCoroutineContext + NettyDispatcher.CurrentContext(context), start = CoroutineStart.UNDISPATCHED) {
             enginePipeline.execute(call)
         }
     }

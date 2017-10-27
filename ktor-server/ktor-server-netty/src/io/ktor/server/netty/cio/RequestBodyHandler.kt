@@ -13,7 +13,7 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext,
     private val queue = Channel<Any>(Channel.UNLIMITED)
     private object Upgrade
 
-    private val job = launch(Unconfined, start = CoroutineStart.LAZY) {
+    private val job = launch(context.executor().asCoroutineDispatcher(), start = CoroutineStart.LAZY) {
         var current: ByteWriteChannel? = null
         var upgraded = false
 
@@ -42,7 +42,6 @@ internal class RequestBodyHandler(val context: ChannelHandlerContext,
         } catch (t: Throwable) {
             queue.close(t)
             current?.close(t)
-            this@RequestBodyHandler.context.fireExceptionCaught(t)
         } finally {
             current?.close()
             queue.close()
