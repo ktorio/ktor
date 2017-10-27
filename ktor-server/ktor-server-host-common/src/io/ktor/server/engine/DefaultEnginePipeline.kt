@@ -25,13 +25,13 @@ fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
         try {
             call.application.execute(call)
             if (call.response.status() == null) {
-                call.respond(HttpStatusContent(HttpStatusCode.NotFound, "Cannot find resource with the requested URI: ${call.request.uri}"))
+                call.respond(HttpStatusCode.NotFound)
             }
         } catch (error: ChannelIOException) {
             call.application.environment.logFailure(call, error)
         } catch (error: Throwable) {
             call.application.environment.logFailure(call, error)
-            call.respond(HttpStatusContent(HttpStatusCode.InternalServerError, "${error::class.simpleName}: ${error.message}\n"))
+            call.respond(HttpStatusCode.InternalServerError)
         }
     }
 

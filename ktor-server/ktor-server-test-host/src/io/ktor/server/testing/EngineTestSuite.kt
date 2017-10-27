@@ -799,19 +799,6 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     }
 
     @Test
-    fun testStatusCodeViaResponseObject2() {
-        createAndStartServer {
-            get("/") {
-                call.respond(HttpStatusContent(HttpStatusCode.Found, "Hello"))
-            }
-        }
-
-        withUrl("/") {
-            assertEquals(HttpStatusCode.Found.value, status.value)
-        }
-    }
-
-    @Test
     fun test404() {
         createAndStartServer {
         }
