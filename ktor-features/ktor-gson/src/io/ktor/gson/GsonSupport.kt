@@ -53,18 +53,16 @@ class GsonSupport(val gson: Gson) {
         }
     }
 
-    private fun renderJsonContent(model: Any): ConvertedContent {
+    private fun renderJsonContent(model: Any): TextContent {
         val json = gson.toJson(model)
-        return ConvertedContent(json, ContentType.Application.Json.withCharset(Charsets.UTF_8))
+        return TextContent(json, ContentType.Application.Json.withCharset(Charsets.UTF_8))
     }
 }
 
 
 class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
-    private val contentType = ContentType.Application.Json.withCharset(Charsets.UTF_8)
-
-    override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, value: Any): Any? {
-        return ConvertedContent(gson.toJson(value), contentType)
+    override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
+        return TextContent(gson.toJson(value), contentType.withCharset(context.suitableCharset()))
     }
 
     override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {

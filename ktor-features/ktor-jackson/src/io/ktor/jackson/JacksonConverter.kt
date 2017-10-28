@@ -25,10 +25,8 @@ import io.ktor.request.*
  *    }
  */
 class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) : ContentConverter {
-    private val contentType = ContentType.Application.Json.withCharset(Charsets.UTF_8)
-
-    override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, value: Any): Any? {
-        return ConvertedContent(objectmapper.writeValueAsString(value), contentType)
+    override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
+        return TextContent(objectmapper.writeValueAsString(value), contentType.withCharset(context.suitableCharset()))
     }
 
     override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
