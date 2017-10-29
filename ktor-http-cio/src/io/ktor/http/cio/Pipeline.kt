@@ -28,11 +28,12 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
                                      output: ByteWriteChannel,
                                      ioCoroutineContext: CoroutineContext,
                                      callDispatcher: CoroutineContext,
+                                     timeouts: WeakTimeoutQueue,
                                      handler: HttpRequestHandler) {
     val outputsActor = actor<ByteReadChannel>(ioCoroutineContext, capacity = 5) {
         try {
             consumeEach { child ->
-                val copied = child.copyTo(output)
+                child.copyTo(output)
                 output.flush()
             }
         } catch (t: Throwable) {
@@ -43,8 +44,9 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
     }
 
     try {
+        val parseRequestBlock = suspendLambda<CoroutineScope, Request?> { parseRequest(input) }
         while (true) {
-            val request = parseRequest(input) ?: break
+            val request = timeouts.withTimeout(parseRequestBlock) ?: break
             val expectedHttpBody = expectHttpBody(request)
             val expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request)
             val requestBody = if (expectedHttpBody || expectedHttpUpgrade) ByteChannel(true) else EmptyByteReadChannel
@@ -100,3 +102,5 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
     }
 }
 
+@Suppress("NOTHING_TO_INLINE")
+private inline fun <S, R> suspendLambda(noinline block: suspend S.() -> R): suspend S.() -> R = block

@@ -7,6 +7,7 @@ import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.net.*
 import java.nio.channels.*
+import java.time.*
 import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 
@@ -95,9 +96,10 @@ private suspend fun client(socket: SocketChannel, ioCoroutineContext: CoroutineC
         }
     }
 
+    val timeouts = WeakTimeoutQueue(TimeUnit.HOURS.toMillis(1000))
     launch(ioCoroutineContext) {
         try {
-            handleConnectionPipeline(incoming, outgoing, ioCoroutineContext, callDispatcher, handler)
+            handleConnectionPipeline(incoming, outgoing, ioCoroutineContext, callDispatcher, timeouts, handler)
         } catch (io: IOException) {
         } finally {
             incoming.close()

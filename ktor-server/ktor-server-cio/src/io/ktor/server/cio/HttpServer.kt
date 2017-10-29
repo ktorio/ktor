@@ -1,6 +1,7 @@
 package io.ktor.server.cio
 
 import io.ktor.http.cio.*
+import io.ktor.http.cio.internals.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.ServerSocket
@@ -11,6 +12,7 @@ import kotlinx.coroutines.experimental.CancellationException
 import java.io.*
 import java.net.*
 import java.nio.channels.*
+import java.time.*
 import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 
@@ -30,6 +32,8 @@ fun httpServer(port: Int = 9096, callDispatcher: CoroutineContext = ioCoroutineD
                 socket.complete(server)
 
                 val liveConnections = ConcurrentHashMap<Socket, Unit>()
+                val timeout = WeakTimeoutQueue(TimeUnit.SECONDS.toMillis(45), Clock.systemUTC(), { TimeoutCancellationException("Connection IDLE") })
+
                 try {
                     while (true) {
                         val client = server.accept()
@@ -41,7 +45,7 @@ fun httpServer(port: Int = 9096, callDispatcher: CoroutineContext = ioCoroutineD
                         try {
                             launch(ioCoroutineDispatcher) {
                                 try {
-                                    handleConnectionPipeline(client.openReadChannel(), client.openWriteChannel(true), ioCoroutineDispatcher, callDispatcher, handler)
+                                    handleConnectionPipeline(client.openReadChannel(), client.openWriteChannel(true), ioCoroutineDispatcher, callDispatcher, timeout, handler)
                                 } catch (io: IOException) {
                                 } finally {
                                     client.close()
