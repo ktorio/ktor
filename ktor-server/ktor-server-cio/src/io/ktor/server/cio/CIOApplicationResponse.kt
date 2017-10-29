@@ -46,7 +46,7 @@ class CIOApplicationResponse(call: ApplicationCall,
     private fun hasHeader(name: String) = headersNames.any { it.equals(name, ignoreCase = true) }
 
     suspend override fun responseChannel(): WriteChannel {
-        sendResponseMessage(true, -1)
+        sendResponseMessage(true, -1, false)
 
         val j = encodeChunked(output, engineDispatcher)
         val chunked = j.channel
@@ -60,7 +60,7 @@ class CIOApplicationResponse(call: ApplicationCall,
     suspend override fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         upgraded?.complete(true) ?: throw IllegalStateException("Unable to perform upgrade as it is not requested by the client: request should have Upgrade and Connection headers filled properly")
 
-        sendResponseMessage(false, -1)
+        sendResponseMessage(false, -1, false)
 
         val upgradedJob = Job()
         upgrade.upgrade(CIOReadChannelAdapter(input), CIOWriteChannelAdapter(output), Closeable {
@@ -72,7 +72,7 @@ class CIOApplicationResponse(call: ApplicationCall,
     }
 
     suspend override fun respondFromBytes(bytes: ByteArray) {
-        sendResponseMessage(false, bytes.size)
+        sendResponseMessage(false, bytes.size, true)
         output.writeFully(bytes)
         output.close()
     }
@@ -80,7 +80,7 @@ class CIOApplicationResponse(call: ApplicationCall,
     suspend override fun respondOutgoingContent(content: OutgoingContent) {
         super.respondOutgoingContent(content)
         if (content is OutgoingContent.NoContent) {
-            sendResponseMessage(false, 0)
+            sendResponseMessage(false, 0, true)
             output.close()
             return
         }
@@ -93,7 +93,7 @@ class CIOApplicationResponse(call: ApplicationCall,
         this.statusCode = statusCode
     }
 
-    private suspend fun sendResponseMessage(chunked: Boolean, contentLength: Int) {
+    private suspend fun sendResponseMessage(chunked: Boolean, contentLength: Int, contentReady: Boolean) {
         val builder = RequestResponseBuilder()
         try  {
             builder.responseLine("HTTP/1.1", statusCode.value, statusCode.description)
@@ -112,7 +112,10 @@ class CIOApplicationResponse(call: ApplicationCall,
             }
             builder.emptyLine()
             output.writePacket(builder.build())
-            output.flush()
+
+            if (!contentReady) {
+                output.flush()
+            }
         } finally {
             builder.release()
         }
