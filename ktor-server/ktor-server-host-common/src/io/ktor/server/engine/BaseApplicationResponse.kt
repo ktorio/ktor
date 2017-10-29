@@ -55,44 +55,51 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         }
     }
 
-    protected open suspend fun respondOutgoingContent(content: OutgoingContent) = when (content) {
-        is OutgoingContent.ProtocolUpgrade -> {
-            commitHeaders(content)
-            respondUpgrade(content)
-        }
+    protected open suspend fun respondOutgoingContent(content: OutgoingContent) {
+        when (content) {
+            is OutgoingContent.ProtocolUpgrade -> {
+                commitHeaders(content)
+                return respondUpgrade(content)
+            }
 
-    // ByteArrayContent is most efficient
-        is OutgoingContent.ByteArrayContent -> {
-            // First call user code to acquire bytes, because it could fail
-            val bytes = content.bytes()
-            // If bytes are fine, commit headers and send data
-            commitHeaders(content)
-            respondFromBytes(bytes)
-        }
+        // ByteArrayContent is most efficient
+            is OutgoingContent.ByteArrayContent -> {
+                // First call user code to acquire bytes, because it could fail
+                val bytes = content.bytes()
+                // If bytes are fine, commit headers and send data
+                commitHeaders(content)
+                return respondFromBytes(bytes)
+            }
 
-    // WriteChannelContent is more efficient than ReadChannelContent
-        is OutgoingContent.WriteChannelContent -> {
-            // First set headers
-            commitHeaders(content)
-            // Retrieve response channel, that might send out headers, so it should go after commitHeaders
-            val responseChannel = responseChannel()
-            // Call user code to send data
-            content.writeTo(responseChannel)
-        }
+        // WriteChannelContent is more efficient than ReadChannelContent
+            is OutgoingContent.WriteChannelContent -> {
+                // First set headers
+                commitHeaders(content)
+                // need to be in external function to keep tail suspend call
+                return respondWriteChannelContent(content)
+            }
 
-    // Pipe is least efficient
-        is OutgoingContent.ReadChannelContent -> {
-            // First call user code to acquire read channel, because it could fail
-            val readChannel = content.readFrom()
-            // If channel is fine, commit headers and pipe data
-            commitHeaders(content)
-            respondFromChannel(readChannel)
-        }
+        // Pipe is least efficient
+            is OutgoingContent.ReadChannelContent -> {
+                // First call user code to acquire read channel, because it could fail
+                val readChannel = content.readFrom()
+                // If channel is fine, commit headers and pipe data
+                commitHeaders(content)
+                return respondFromChannel(readChannel)
+            }
 
-    // Do nothing, but maintain `when` exhaustiveness
-        is OutgoingContent.NoContent -> { /* no-op */
-            commitHeaders(content)
+        // Do nothing, but maintain `when` exhaustiveness
+            is OutgoingContent.NoContent -> { /* no-op */
+                commitHeaders(content)
+            }
         }
+    }
+
+    protected open suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
+        // Retrieve response channel, that might send out headers, so it should go after commitHeaders
+        val responseChannel = responseChannel()
+        // Call user code to send data
+        content.writeTo(responseChannel)
     }
 
     protected open suspend fun respondFromBytes(bytes: ByteArray) {
