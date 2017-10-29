@@ -1,6 +1,6 @@
 def host;
 
-def serverEngineProp = project.hasProperty('serverEngine') ? project.hostServer : 'netty'
+def serverEngineProp = project.hasProperty('serverEngine') ? project.serverEngine : 'netty'
 def enableAlpnProp = project.hasProperty('enableAlpn')
 
 switch (serverEngineProp) {
