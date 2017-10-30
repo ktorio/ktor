@@ -4,7 +4,7 @@
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$/ktor-samples/ktor-samples-async" />
       <option name="externalSystemIdString" value="GRADLE" />
-      <option name="scriptParameters" value="-PhostServer=netty" />
+      <option name="scriptParameters" value="-PserverEngine=netty" />
       <option name="taskDescriptions">
         <list />
       </option>
