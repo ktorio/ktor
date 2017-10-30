@@ -30,9 +30,11 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
                                      callDispatcher: CoroutineContext,
                                      timeouts: WeakTimeoutQueue,
                                      handler: HttpRequestHandler) {
-    val outputsActor = actor<ByteReadChannel>(ioCoroutineContext, capacity = 5) {
+    val outputsActor = actor<ByteReadChannel>(ioCoroutineContext, capacity = 5, start = CoroutineStart.UNDISPATCHED) {
         try {
-            consumeEach { child ->
+            val receiveChildOrNull = suspendLambda<CoroutineScope, ByteReadChannel?> { channel.receiveOrNull() }
+            while (true) {
+                val child = timeouts.withTimeout(receiveChildOrNull) ?: break
                 child.copyTo(output)
                 output.flush()
             }
@@ -44,9 +46,8 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
     }
 
     try {
-        val parseRequestBlock = suspendLambda<CoroutineScope, Request?> { parseRequest(input) }
         while (true) {
-            val request = timeouts.withTimeout(parseRequestBlock) ?: break
+            val request = parseRequest(input) ?: break
             val expectedHttpBody = expectHttpBody(request)
             val expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request)
             val requestBody = if (expectedHttpBody || expectedHttpUpgrade) ByteChannel(true) else EmptyByteReadChannel

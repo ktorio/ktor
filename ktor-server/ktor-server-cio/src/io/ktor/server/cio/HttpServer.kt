@@ -23,16 +23,22 @@ class HttpServer(val rootServerJob: Job, val serverSocket: Deferred<ServerSocket
     }
 }
 
-fun httpServer(port: Int = 9096, callDispatcher: CoroutineContext = ioCoroutineDispatcher, handler: HttpRequestHandler): HttpServer {
+data class HttpServerSettings(
+        val host: String = "0.0.0.0",
+        val port: Int = 8080,
+        val connectionIdleTimeoutSeconds: Long = 45
+)
+
+fun httpServer(settings: HttpServerSettings, callDispatcher: CoroutineContext = ioCoroutineDispatcher, handler: HttpRequestHandler): HttpServer {
     val socket = CompletableDeferred<ServerSocket>()
 
     val serverJob = launch(ioCoroutineDispatcher) {
         ActorSelectorManager(ioCoroutineDispatcher).use { selector ->
-            aSocket(selector).tcp().bind(InetSocketAddress(port)).use { server ->
+            aSocket(selector).tcp().bind(InetSocketAddress(settings.host, settings.port)).use { server ->
                 socket.complete(server)
 
                 val liveConnections = ConcurrentHashMap<Socket, Unit>()
-                val timeout = WeakTimeoutQueue(TimeUnit.SECONDS.toMillis(45), Clock.systemUTC(), { TimeoutCancellationException("Connection IDLE") })
+                val timeout = WeakTimeoutQueue(TimeUnit.SECONDS.toMillis(settings.connectionIdleTimeoutSeconds), Clock.systemUTC(), { TimeoutCancellationException("Connection IDLE") })
 
                 try {
                     while (true) {

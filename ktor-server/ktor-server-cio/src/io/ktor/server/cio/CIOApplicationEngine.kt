@@ -11,7 +11,9 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
 class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) : BaseApplicationEngine(environment) {
-    class Configuration : BaseApplicationEngine.Configuration()
+    class Configuration : BaseApplicationEngine.Configuration() {
+        var connectionIdleTimeoutSeconds: Int = 45
+    }
 
     private val configuration = Configuration().apply(configure)
 
@@ -141,7 +143,8 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
     private fun startConnector(port: Int): HttpServer {
         if (state.get() != State.STARTING) return HttpServer.CancelledServer
 
-        val server = httpServer(port, userDispatcher) { request, input, output, upgraded ->
+        val settings = HttpServerSettings(port = port, connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong())
+        val server = httpServer(settings, userDispatcher) { request, input, output, upgraded ->
             if (state.get() != State.RUNNING) {
                 respondServiceUnavailable(request.version, output)
                 return@httpServer
