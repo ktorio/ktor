@@ -12,6 +12,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
+import org.junit.Assert.assertEquals
 import java.nio.charset.*
 import java.util.*
 
@@ -54,8 +55,8 @@ open class PostTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) 
                 headers.contentType(ContentType.Text.Plain.withCharset(Charset.defaultCharset()))
             }
         }
-        assert(response == text)
 
+        assertEquals(text, response)
         client.close()
     }
 

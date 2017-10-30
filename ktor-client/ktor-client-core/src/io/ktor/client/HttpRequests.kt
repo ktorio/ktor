@@ -20,7 +20,7 @@ suspend inline fun <reified T> HttpClient.get(builder: HttpRequestBuilder): T {
 
 suspend inline fun <reified T> HttpClient.get(
         scheme: String = "http", host: String = "localhost", port: Int = 80,
-        path: String = "",
+        path: String = "/",
         body: Any = EmptyBody,
         block: HttpRequestBuilder.() -> Unit
 ): T = request {
@@ -32,7 +32,7 @@ suspend inline fun <reified T> HttpClient.get(
 
 suspend inline fun <reified T> HttpClient.get(
         scheme: String = "http", host: String = "localhost", port: Int = 80,
-        path: String = "",
+        path: String = "/",
         body: Any = EmptyBody
 ): T = get(scheme, host, port, path, body, {})
 
@@ -44,7 +44,7 @@ suspend inline fun <reified T> HttpClient.get(url: String): T = get(URL(decodeUR
 
 suspend inline fun <reified T> HttpClient.post(
         scheme: String = "http", host: String = "localhost", port: Int = 80,
-        path: String = "",
+        path: String = "/",
         body: Any = EmptyBody,
         block: HttpRequestBuilder.() -> Unit
 ): T = request {
@@ -56,7 +56,7 @@ suspend inline fun <reified T> HttpClient.post(
 
 suspend inline fun <reified T> HttpClient.post(
         scheme: String = "http", host: String = "localhost", port: Int = 80,
-        path: String = "",
+        path: String = "/",
         body: Any = EmptyBody
 ): T = post(scheme, host, port, path, body, {})
 

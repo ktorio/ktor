@@ -15,6 +15,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
+import org.junit.Assert.*
 import java.util.concurrent.atomic.*
 
 
@@ -62,9 +63,9 @@ open class CacheTests(factory: HttpClientBackendFactory) : TestWithKtor(factory)
         }
 
         runBlocking {
-            listOf("nocache", "nostore").forEach {
+            listOf("/nocache", "/nostore").forEach {
                 builder.url.path = it
-                assert(client.get<String>(builder) != client.get<String>(builder))
+                assertNotEquals(client.get<String>(builder), client.get<String>(builder))
             }
         }
 
@@ -79,7 +80,7 @@ open class CacheTests(factory: HttpClientBackendFactory) : TestWithKtor(factory)
 
         val results = mutableListOf<String>()
         val request = HttpRequestBuilder().apply {
-            url(path = "maxAge", port = 8080)
+            url(path = "/maxAge", port = 8080)
         }
 
         runBlocking {
@@ -92,9 +93,9 @@ open class CacheTests(factory: HttpClientBackendFactory) : TestWithKtor(factory)
             results += client.get<String>(request)
         }
 
-        assert(results[0] == results[1])
-        assert(results[2] == results[3])
-        assert(results[0] != results[2])
+        assertEquals(results[0], results[1])
+        assertEquals(results[2], results[3])
+        assertNotEquals(results[0], results[2])
 
         client.close()
     }

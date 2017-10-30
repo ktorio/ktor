@@ -62,12 +62,12 @@ class CIOBackend : HttpClientBackend {
         val bodySize = request.headers[HttpHeaders.ContentLength]?.toInt()
 
         try {
-            builder.requestLine(HttpMethod(request.method.value), request.url.fullPath, "HTTP/1.1")
+            builder.requestLine(
+                    request.method,
+                    request.url.fullPath,
+                    HttpProtocolVersion.HTTP_1_1.toString()
+            )
             builder.headerLine("Host", request.url.hostWithPort)
-
-            bodySize?.let {
-                builder.headerLine("Content-Length", it.toString())
-            }
 
             if (!request.headers.contains(HttpHeaders.UserAgent)) {
                 builder.headerLine("User-Agent", "CIO/ktor")
@@ -93,18 +93,18 @@ class CIOBackend : HttpClientBackend {
         launch(ioCoroutineDispatcher) {
             if (bodySize == null) {
                 val encoder = encodeChunked(output, ioCoroutineDispatcher)
-                writeBody(body, encoder.channel)
+                writeBody(body, encoder.channel, suppressClose = false)
                 encoder.join()
             } else {
-                writeBody(body, output)
+                writeBody(body, output, suppressClose = true)
             }
         }
     }
 
-    private suspend fun writeBody(body: HttpMessageBody, channel: ByteWriteChannel) {
+    private suspend fun writeBody(body: HttpMessageBody, channel: ByteWriteChannel, suppressClose: Boolean) {
         when (body) {
-            is OutputStreamBody -> body.block(OutputStreamAdapter(channel, suppressClose = false))
-            is InputStreamBody -> channel.write(body.stream)
+            is OutputStreamBody -> OutputStreamAdapter(channel, suppressClose).use { body.block(it) }
+            is InputStreamBody -> channel.write(body.stream, suppressClose)
         }
     }
 

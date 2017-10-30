@@ -40,7 +40,7 @@ class UrlBuilder {
 
     var port: Int = 80
 
-    var path: String = ""
+    var path: String = "/"
 
     var queryParameters: ParametersBuilder? = null
         private set

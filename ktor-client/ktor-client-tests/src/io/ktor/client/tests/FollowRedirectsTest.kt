@@ -12,6 +12,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
+import org.junit.Assert.*
 
 open class FollowRedirectsTest(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
     override val server: ApplicationEngine = embeddedServer(Jetty, 8080) {
@@ -31,13 +32,13 @@ open class FollowRedirectsTest(factory: HttpClientBackendFactory) : TestWithKtor
 
         runBlocking {
             client.get<HttpResponse>("http://localhost:8080/").use {
-                assert(it.status == HttpStatusCode.Found, { "without redirect response: $it"})
+                assertEquals(HttpStatusCode.Found, it.status)
             }
 
             client.get<HttpResponse>(port = 8080) {
                 followRedirects = true
             }.use {
-                assert(it.status == HttpStatusCode.OK, { "with redirect response: $it"})
+                assertEquals(HttpStatusCode.OK, it.status)
             }
         }
 

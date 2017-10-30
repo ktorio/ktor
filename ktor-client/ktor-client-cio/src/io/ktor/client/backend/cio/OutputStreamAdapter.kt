@@ -24,6 +24,6 @@ internal class OutputStreamAdapter(private val output: ByteWriteChannel, private
 }
 
 internal suspend fun ByteWriteChannel.write(stream: InputStream, suppressClose: Boolean = false) {
-    stream.copyTo(OutputStreamAdapter(this, suppressClose))
+    OutputStreamAdapter(this, suppressClose).use { stream.copyTo(it) }
 }
 

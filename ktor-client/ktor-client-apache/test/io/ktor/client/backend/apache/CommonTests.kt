@@ -1,6 +1,5 @@
-package io.ktor.tests.client.backend.apache
+package io.ktor.client.backend.apache
 
-import io.ktor.client.backend.apache.*
 import io.ktor.client.tests.*
 import org.junit.experimental.runners.*
 import org.junit.runner.*

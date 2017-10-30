@@ -13,17 +13,19 @@ import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
+import org.junit.Assert.*
 
 
 open class FullFormTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
     override val server = embeddedServer(Jetty, 8080) {
         routing {
             get("/hello") {
-                call.respondText("Hello, world")
+                assertEquals("Hello, server", call.receive<String>())
+                call.respondText("Hello, client")
             }
             post("/hello") {
-                assert(call.receive<String>() == "Hello, world")
-                call.respondText("")
+                assertEquals("Hello, server", call.receive<String>())
+                call.respondText("Hello, client")
             }
         }
     }
@@ -35,14 +37,36 @@ open class FullFormTests(factory: HttpClientBackendFactory) : TestWithKtor(facto
             val text = client.call {
                 url {
                     scheme = "http"
-                    host = "localhost"
+                    host = "127.0.0.1"
                     port = 8080
-                    path = "hello"
+                    path = "/hello"
                     method = HttpMethod.Get
+                    body = "Hello, server"
                 }
             }.readText()
 
-            assert(text == "Hello, world")
+            assertEquals("Hello, client", text)
+        }
+
+        client.close()
+    }
+
+    @Test
+    fun testPost() {
+        val client = createClient()
+        runBlocking {
+            val text = client.call {
+                url {
+                    scheme = "http"
+                    host = "127.0.0.1"
+                    port = 8080
+                    path = "/hello"
+                    method = HttpMethod.Post
+                    body = "Hello, server"
+                }
+            }.readText()
+
+            assertEquals("Hello, client", text)
         }
 
         client.close()
@@ -57,12 +81,14 @@ open class FullFormTests(factory: HttpClientBackendFactory) : TestWithKtor(facto
                 host = "localhost"
                 scheme = "http"
                 port = 8080
-                path = "hello"
-                method = HttpMethod.Get }
+                path = "/hello"
+                method = HttpMethod.Get
+                body = "Hello, server"
+            }
         }
 
         val body = runBlocking { client.request<String>(requestBuilder) }
-        assert(body == "Hello, world")
+        assert(body == "Hello, client")
 
         client.close()
     }

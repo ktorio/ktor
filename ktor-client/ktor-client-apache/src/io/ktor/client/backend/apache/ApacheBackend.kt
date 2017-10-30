@@ -75,6 +75,7 @@ class ApacheBackend : HttpClientBackend {
         }
 
         request.headers.entries().forEach { (name, values) ->
+            if (HttpHeaders.ContentLength == name) return@forEach
             values.forEach { value -> builder.addHeader(name, value) }
         }
 
