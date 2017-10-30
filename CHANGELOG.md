@@ -1,3 +1,22 @@
+# 0.9.0
+> Not yet published
+
+* Package structure reworked
+* Packages and maven groupId renamed org.jetbrains.ktor -> io.ktor
+* Server-related artifacts having ktor-server-* name prefix (ktor-host-netty -> ktor-server-netty)
+* Application Host renamed to Application Engine  
+* FinalContent renamed to OutgoingContent as opposite to IncomingContent (introduced in 0.4.0)
+* Added Application Engine configure facilities so one can specify thread pool size or some engine-specific parameter
+* Initial idiomatic ktor HTTP client implementation (artifacts prefixed with ktor-client-*)
+* Metrics support, DropWizard integration
+* Improve routing API, tune resolution mechanics, hide some implementation details
+* ContentNegotiation feature to support variable content on send and receive 
+* Jackson support
+* Experimental pure kotlin application engine on coroutines (CIOApplicationEngine) and CIO-based http client backend
+* Improved stability under load
+* Status pages processing improvements 
+* A lot of documentation
+
 # 0.4.0
 > Published 16 Aug 2017
 
