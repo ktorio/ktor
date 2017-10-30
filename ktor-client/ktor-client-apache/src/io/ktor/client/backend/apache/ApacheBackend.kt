@@ -18,6 +18,31 @@ import java.util.*
 class ApacheBackend : HttpClientBackend {
 
     suspend override fun makeRequest(request: HttpRequest): HttpResponseBuilder {
+        val backend: CloseableHttpClient = prepareClient(request)
+        val apacheRequest = convertRequest(request)
+
+        val sendTime = Date()
+        val apacheResponse = backend.execute(apacheRequest)
+        val receiveTime = Date()
+
+        return convertResponse(apacheResponse).apply {
+            requestTime = sendTime
+            responseTime = receiveTime
+
+            origin = Closeable {
+                apacheResponse.close()
+                backend.close()
+            }
+        }
+    }
+
+    override fun close() {}
+
+    companion object : HttpClientBackendFactory {
+        override operator fun invoke(): HttpClientBackend = ApacheBackend()
+    }
+
+    private fun prepareClient(request: HttpRequest): CloseableHttpClient {
         val clientBuilder = HttpClients.custom()
         with(clientBuilder) {
             disableAuthCaching()
@@ -31,12 +56,13 @@ class ApacheBackend : HttpClientBackend {
             clientBuilder.setSSLContext(it)
         }
 
-        val backend: CloseableHttpClient = clientBuilder.build()
+        return clientBuilder.build()
+    }
 
-        val apacheBuilder = RequestBuilder.create(request.method.value)
+    private fun convertRequest(request: HttpRequest): HttpUriRequest {
+        val builder = RequestBuilder.create(request.method.value)
         with(request) {
-
-            apacheBuilder.uri = URIBuilder().apply {
+            builder.uri = URIBuilder().apply {
                 scheme = url.scheme
                 host = url.host
                 port = url.port
@@ -49,29 +75,28 @@ class ApacheBackend : HttpClientBackend {
         }
 
         request.headers.entries().forEach { (name, values) ->
-            values.forEach { value -> apacheBuilder.addHeader(name, value) }
+            values.forEach { value -> builder.addHeader(name, value) }
         }
 
-        val requestBody = request.body
-        when (requestBody) {
-            is InputStreamBody -> InputStreamEntity(requestBody.stream)
+        val body = request.body
+        when (body) {
+            is InputStreamBody -> InputStreamEntity(body.stream)
             is OutputStreamBody -> {
                 val stream = ByteArrayOutputStream()
-                requestBody.block(stream)
+                body.block(stream)
                 ByteArrayEntity(stream.toByteArray())
             }
             else -> null
-        }?.let { apacheBuilder.entity = it }
+        }?.let { builder.entity = it }
 
-        apacheBuilder.config = RequestConfig.custom()
+        builder.config = RequestConfig.custom()
                 .setRedirectsEnabled(request.followRedirects)
                 .build()
 
-        val apacheRequest = apacheBuilder.build()
-        val startTime = Date()
+        return builder.build()
+    }
 
-        // todo: revert async backend(close problem)
-        val response: CloseableHttpResponse = backend.execute(apacheRequest)
+    private fun convertResponse(response: CloseableHttpResponse): HttpResponseBuilder {
         val statusLine = response.statusLine
         val entity = response.entity
 
@@ -82,9 +107,6 @@ class ApacheBackend : HttpClientBackend {
             } else {
                 HttpStatusCode.fromValue(statusLine.statusCode)
             }
-
-            requestTime = startTime
-            responseTime = Date()
 
             headers {
                 response.allHeaders.forEach { headerLine ->
@@ -97,19 +119,8 @@ class ApacheBackend : HttpClientBackend {
             }
 
             body = if (entity?.isStreaming == true) InputStreamBody(entity.content) else EmptyBody
-            origin = Closeable {
-                response.close()
-                backend.close()
-            }
         }
 
         return builder
     }
-
-    override fun close() {}
-
-    companion object : HttpClientBackendFactory {
-        override operator fun invoke(): HttpClientBackend = ApacheBackend()
-    }
 }
-
