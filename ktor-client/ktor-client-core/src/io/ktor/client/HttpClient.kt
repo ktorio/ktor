@@ -13,7 +13,10 @@ sealed class HttpClient : Closeable {
     abstract val responsePipeline: HttpResponsePipeline
 
     companion object {
-        operator fun invoke(backendFactory: HttpClientBackendFactory) = HttpClientFactory.create(backendFactory)
+        operator fun invoke(
+                backendFactory: HttpClientBackendFactory,
+                block: ClientConfig.() -> Unit = {}
+        ) = HttpClientFactory.createDefault(backendFactory, block)
     }
 }
 

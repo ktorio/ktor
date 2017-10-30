@@ -16,7 +16,7 @@ abstract class TestWithKtor(private val backendFactory: HttpClientBackendFactory
         (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as? Logger)?.level = Level.ERROR
     }
 
-    fun createClient() = HttpClient(backendFactory)
+    fun createClient(block: ClientConfig.() -> Unit = {}) = HttpClient(backendFactory, block)
 
     @Before
     fun startServer() {

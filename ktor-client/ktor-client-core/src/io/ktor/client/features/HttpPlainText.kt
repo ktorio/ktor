@@ -33,7 +33,7 @@ class HttpPlainText(val defaultCharset: Charset) {
         val body = requestString.toByteArray(charset)
 
         if (request.headers[HttpHeaders.ContentLength] == null) {
-            request.headers[HttpHeaders.ContentLength] = requestString.length.toString()
+            request.headers[HttpHeaders.ContentLength] = body.size.toString()
         }
 
         with(request.headers) {

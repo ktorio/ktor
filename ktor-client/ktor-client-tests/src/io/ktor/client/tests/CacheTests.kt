@@ -54,7 +54,7 @@ open class CacheTests(factory: HttpClientBackendFactory) : TestWithKtor(factory)
 
     @Test
     fun testDisabled() {
-        val client = createClient().config {
+        val client = createClient {
             install(HttpCache)
         }
 
@@ -74,7 +74,7 @@ open class CacheTests(factory: HttpClientBackendFactory) : TestWithKtor(factory)
 
     @Test
     fun maxAge() {
-        val client = createClient().config {
+        val client = createClient {
             install(HttpCache)
         }
 

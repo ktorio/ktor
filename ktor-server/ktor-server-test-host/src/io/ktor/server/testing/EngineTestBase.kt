@@ -197,11 +197,13 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     private fun withUrl(url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit) {
         runBlocking {
             withTimeout(timeout.seconds, TimeUnit.SECONDS) {
-                HttpClient(ApacheBackend).call(url, {
-                    this.sslContext = Companion.sslContext
-                    builder()
-                }).use { response ->
-                    block(response, port)
+                HttpClient(ApacheBackend).use { httpClient ->
+                    httpClient.call(url, {
+                        this.sslContext = Companion.sslContext
+                        builder()
+                    }).use { response ->
+                        block(response, port)
+                    }
                 }
             }
         }

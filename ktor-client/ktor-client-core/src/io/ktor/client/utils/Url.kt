@@ -71,6 +71,12 @@ class UrlBuilder {
             scheme, host, port, path, queryParameters?.build(), fragment, username, password
     )
 
+    override fun toString(): String = URI(
+            scheme, username, host, port, path,
+            queryParameters?.let { valuesOf(it).formUrlEncode() },
+            fragment
+    ).toString()
+
     private fun initQueryParameters() {
         if (queryParameters == null) {
             queryParameters = ParametersBuilder()

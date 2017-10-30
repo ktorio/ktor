@@ -372,7 +372,7 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
     }
     val engine = TestApplicationEngine(environment)
     engine.start()
-    return HttpClient { TestHttpClientBackend(engine) }
+    return HttpClient({ TestHttpClientBackend(engine) })
 }
 
 private fun ValuesMap.requireParameter(name: String) = get(name) ?: throw IllegalArgumentException("No parameter $name specified")

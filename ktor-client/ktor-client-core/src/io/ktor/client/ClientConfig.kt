@@ -8,7 +8,7 @@ import kotlin.collections.set
 
 private val CLIENT_CONFIG_KEY = AttributeKey<ClientConfig>("ClientConfig")
 
-class ClientConfig(private val parent: HttpClient) {
+class ClientConfig(private val parent: Closeable) {
     private val features = mutableMapOf<AttributeKey<*>, (HttpClient) -> Unit>()
     private val customInterceptors = mutableMapOf<String, (HttpClient) -> Unit>()
 
@@ -49,11 +49,11 @@ class ClientConfig(private val parent: HttpClient) {
     }
 }
 
-fun HttpClient.config(block: ClientConfig.() -> Unit): HttpClient {
+internal fun HttpClient.config(block: ClientConfig.() -> Unit): HttpClient {
     val config = attributes.computeIfAbsent(CLIENT_CONFIG_KEY) { ClientConfig(this) }
     return config.clone(this).apply(block).build()
 }
 
-fun HttpClient.default(features: List<HttpClientFeature<Any, out Any>> = listOf(HttpPlainText, HttpIgnoreBody)) = config {
+internal fun HttpClient.default(features: List<HttpClientFeature<Any, out Any>> = listOf(HttpPlainText, HttpIgnoreBody)) = config {
     features.forEach { install(it) }
 }

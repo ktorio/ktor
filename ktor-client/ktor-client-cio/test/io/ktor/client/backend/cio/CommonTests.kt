@@ -21,5 +21,3 @@ class CIOClientTestSuite {
     @Ignore
     class CIOPostTests : PostTests(BACKEND_FACTORY)
 }
-
-

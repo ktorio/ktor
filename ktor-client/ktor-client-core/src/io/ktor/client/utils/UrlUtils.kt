@@ -30,6 +30,7 @@ fun UrlBuilder.takeFrom(url: Url): UrlBuilder {
     path = url.path
     username = url.username
     password = url.password
+    fragment = url.fragment
     url.queryParameters?.let { addQueryParameters(it) }
 
     return this
@@ -41,6 +42,7 @@ fun UrlBuilder.takeFrom(uri: URI) {
     path = uri.path
     port = uri.port.takeIf { it > 0 } ?: if (scheme == "https") 443 else 80
     uri.query?.let { addQueryParameters(parseQueryString(it)) }
+    fragment = uri.fragment
 }
 
 fun UrlBuilder.takeFrom(url: URL) = takeFrom(url.toURI())
@@ -55,6 +57,7 @@ fun UrlBuilder.takeFrom(url: UrlBuilder): UrlBuilder {
     username = url.username
     password = url.password
     url.queryParameters?.let { addQueryParameters(it) }
+    fragment = url.fragment
 
     return this
 }
