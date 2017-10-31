@@ -15,7 +15,7 @@ import org.junit.Test
 import org.junit.Assert.*
 
 open class FollowRedirectsTest(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
-    override val server: ApplicationEngine = embeddedServer(Jetty, 8080) {
+    override val server: ApplicationEngine = embeddedServer(Jetty, port) {
         routing {
             get("/") {
                 call.respondRedirect("/get")
@@ -31,11 +31,11 @@ open class FollowRedirectsTest(factory: HttpClientBackendFactory) : TestWithKtor
         val client = createClient()
 
         runBlocking {
-            client.get<HttpResponse>("http://localhost:8080/").use {
+            client.get<HttpResponse>(port = port).use {
                 assertEquals(HttpStatusCode.Found, it.status)
             }
 
-            client.get<HttpResponse>(port = 8080) {
+            client.get<HttpResponse>(port = port) {
                 followRedirects = true
             }.use {
                 assertEquals(HttpStatusCode.OK, it.status)

@@ -19,7 +19,7 @@ import java.util.*
 open class PostTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
     private val BODY_PREFIX = "Hello, post"
 
-    override val server = embeddedServer(Jetty, 8080) {
+    override val server = embeddedServer(Jetty, port) {
         routing {
             post("/") {
                 val content = call.request.receiveContent().readText()
@@ -51,7 +51,7 @@ open class PostTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) 
         val client = createClient()
 
         val response = runBlocking {
-            client.post<String>(port = 8080, body = text) {
+            client.post<String>(port = port, body = text) {
                 headers.contentType(ContentType.Text.Plain.withCharset(Charset.defaultCharset()))
             }
         }

@@ -15,7 +15,7 @@ import org.junit.Assert.*
 
 
 open class CookiesTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
-    override val server: ApplicationEngine = embeddedServer(Jetty, 8080) {
+    override val server: ApplicationEngine = embeddedServer(Jetty, port) {
         routing {
             get("/") {
                 val cookie = Cookie("hello-cookie", "my-awesome-value")
@@ -44,7 +44,7 @@ open class CookiesTests(factory: HttpClientBackendFactory) : TestWithKtor(factor
             install(HttpCookies)
         }
 
-        runBlocking { client.get<Unit>(port = 8080) }
+        runBlocking { client.get<Unit>(port = port) }
 
         client.cookies("localhost").let {
             assertEquals(1, it.size)
@@ -66,7 +66,7 @@ open class CookiesTests(factory: HttpClientBackendFactory) : TestWithKtor(factor
 
         for (i in 1..10){
             val before = client.getId()
-            runBlocking { client.get<Unit>(path = "/update-user-id", port = 8080) }
+            runBlocking { client.get<Unit>(path = "/update-user-id", port = port) }
             assertEquals(before + 1, client.getId())
             assertEquals("ktor", client.cookies("localhost")["user"]?.value)
         }
@@ -87,10 +87,10 @@ open class CookiesTests(factory: HttpClientBackendFactory) : TestWithKtor(factor
             assertEquals(null, client.cookies("localhost")["user"]?.value)
         }
 
-        runBlocking { client.get<Unit>(path = "/update-user-id", port = 8080) }
+        runBlocking { client.get<Unit>(path = "/update-user-id", port = port) }
         check()
 
-        runBlocking { client.get<Unit>(path = "/update-user-id", port = 8080) }
+        runBlocking { client.get<Unit>(path = "/update-user-id", port = port) }
         check()
     }
 
@@ -108,7 +108,7 @@ open class CookiesTests(factory: HttpClientBackendFactory) : TestWithKtor(factor
         val d = b.config { }
 
         runBlocking {
-            a.get<Unit>(path = "/update-user-id", port = 8080)
+            a.get<Unit>(path = "/update-user-id", port = port)
         }
 
         assertEquals(2, a.getId())
@@ -117,7 +117,7 @@ open class CookiesTests(factory: HttpClientBackendFactory) : TestWithKtor(factor
         assertEquals(10, d.getId())
 
         runBlocking {
-            b.get<Unit>(path = "/update-user-id", port = 8080)
+            b.get<Unit>(path = "/update-user-id", port = port)
         }
 
         assertEquals(2, a.getId())
@@ -126,7 +126,7 @@ open class CookiesTests(factory: HttpClientBackendFactory) : TestWithKtor(factor
         assertEquals(11, d.getId())
 
         runBlocking {
-            c.get<Unit>(path = "/update-user-id", port = 8080)
+            c.get<Unit>(path = "/update-user-id", port = port)
         }
 
         assertEquals(3, a.getId())
@@ -135,7 +135,7 @@ open class CookiesTests(factory: HttpClientBackendFactory) : TestWithKtor(factor
         assertEquals(11, d.getId())
 
         runBlocking {
-            d.get<Unit>(path = "/update-user-id", port = 8080)
+            d.get<Unit>(path = "/update-user-id", port = port)
         }
 
         assertEquals(3, a.getId())

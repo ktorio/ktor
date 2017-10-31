@@ -17,7 +17,7 @@ import org.junit.Assert.*
 
 
 open class FullFormTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
-    override val server = embeddedServer(Jetty, 8080) {
+    override val server = embeddedServer(Jetty, port) {
         routing {
             get("/hello") {
                 assertEquals("Hello, server", call.receive<String>())
@@ -38,7 +38,7 @@ open class FullFormTests(factory: HttpClientBackendFactory) : TestWithKtor(facto
                 url {
                     scheme = "http"
                     host = "127.0.0.1"
-                    port = 8080
+                    port = super.port
                     path = "/hello"
                     method = HttpMethod.Get
                     body = "Hello, server"
@@ -59,7 +59,7 @@ open class FullFormTests(factory: HttpClientBackendFactory) : TestWithKtor(facto
                 url {
                     scheme = "http"
                     host = "127.0.0.1"
-                    port = 8080
+                    port = super.port
                     path = "/hello"
                     method = HttpMethod.Post
                     body = "Hello, server"
@@ -80,7 +80,7 @@ open class FullFormTests(factory: HttpClientBackendFactory) : TestWithKtor(facto
             url {
                 host = "localhost"
                 scheme = "http"
-                port = 8080
+                port = super.port
                 path = "/hello"
                 method = HttpMethod.Get
                 body = "Hello, server"

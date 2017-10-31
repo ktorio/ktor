@@ -18,7 +18,6 @@ import java.util.concurrent.atomic.*
 abstract class MultithreadedTest(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
     private val DEFAULT_SIZE = 100_000
     private val counter: AtomicInteger = AtomicInteger()
-    private val port: Int = ServerSocket(0).use { it.localPort }
 
     override val server: ApplicationEngine = embeddedServer(Jetty, port) {
         routing {

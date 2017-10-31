@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.*
 
 open class CacheTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
     private var counter = AtomicInteger()
-    override val server: ApplicationEngine = embeddedServer(Jetty, 8080) {
+    override val server: ApplicationEngine = embeddedServer(Jetty, port) {
         routing {
             get("/reset") {
                 counter.set(0)
@@ -59,7 +59,7 @@ open class CacheTests(factory: HttpClientBackendFactory) : TestWithKtor(factory)
         }
 
         val builder = HttpRequestBuilder().apply {
-            url(port = 8080)
+            url(port = port)
         }
 
         runBlocking {
@@ -80,7 +80,7 @@ open class CacheTests(factory: HttpClientBackendFactory) : TestWithKtor(factory)
 
         val results = mutableListOf<String>()
         val request = HttpRequestBuilder().apply {
-            url(path = "/maxAge", port = 8080)
+            url(path = "/maxAge", port = port)
         }
 
         runBlocking {

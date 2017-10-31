@@ -7,10 +7,12 @@ import io.ktor.client.backend.*
 import io.ktor.server.engine.*
 import org.junit.*
 import org.slf4j.*
+import java.net.*
 import java.util.concurrent.*
 
 abstract class TestWithKtor(private val backendFactory: HttpClientBackendFactory) {
     abstract val server: ApplicationEngine
+    protected val port: Int = ServerSocket(0).use { it.localPort }
 
     init {
         (LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as? Logger)?.level = Level.ERROR
