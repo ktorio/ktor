@@ -25,7 +25,7 @@ class HttpClientCall(
         val subject = HttpResponseContainer(expectedType, request, HttpResponseBuilder(response))
         val container = scope.responsePipeline.execute(scope, subject)
 
-        val value = container.response.body::class === expectedType || HttpResponse::class === expectedType
+        val value = container.response.body::class == expectedType || HttpResponse::class == expectedType
         assert(value, { "Expected to receive: $expectedType, but received: ${container.response.body::class}" })
         return container
     }

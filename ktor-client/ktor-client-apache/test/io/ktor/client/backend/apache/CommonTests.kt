@@ -5,7 +5,7 @@ import org.junit.experimental.runners.*
 import org.junit.runner.*
 
 
-private val BACKEND_FACTORY = { ApacheBackend() }
+private val BACKEND_FACTORY = ApacheBackend
 
 @RunWith(Enclosed::class)
 class ApacheClientTestSuite {
@@ -18,4 +18,6 @@ class ApacheClientTestSuite {
     class ApacheFullFormTests : FullFormTests(BACKEND_FACTORY)
 
     class ApachePostTests : PostTests(BACKEND_FACTORY)
+
+    class ApacheMultithreadedTest : MultithreadedTest(BACKEND_FACTORY)
 }

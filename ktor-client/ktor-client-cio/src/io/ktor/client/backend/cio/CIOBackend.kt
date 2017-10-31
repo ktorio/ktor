@@ -1,6 +1,7 @@
 package io.ktor.client.backend.cio
 
 import io.ktor.cio.*
+import io.ktor.client.*
 import io.ktor.client.backend.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
@@ -56,6 +57,12 @@ class CIOBackend : HttpClientBackend {
         }
     }
 
+    override fun close() {}
+
+    companion object : HttpClientBackendFactory {
+        override operator fun invoke(block: HttpClientBackendConfig.() -> Unit): HttpClientBackend = CIOBackend()
+    }
+
     private suspend fun writeRequest(request: HttpRequest, output: ByteWriteChannel) {
         val builder = RequestResponseBuilder()
         val body = request.body as HttpMessageBody
@@ -106,11 +113,5 @@ class CIOBackend : HttpClientBackend {
             is OutputStreamBody -> OutputStreamAdapter(channel, suppressClose).use { body.block(it) }
             is InputStreamBody -> channel.write(body.stream, suppressClose)
         }
-    }
-
-    override fun close() {}
-
-    companion object : HttpClientBackendFactory {
-        override operator fun invoke(): HttpClientBackend = CIOBackend()
     }
 }

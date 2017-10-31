@@ -2,6 +2,7 @@ package io.ktor.server.testing
 
 import io.ktor.application.*
 import io.ktor.client.*
+import io.ktor.client.backend.*
 import io.ktor.client.backend.apache.*
 import io.ktor.client.backend.jetty.*
 import io.ktor.client.call.*
@@ -197,14 +198,15 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     private fun withUrl(url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit) {
         runBlocking {
             withTimeout(timeout.seconds, TimeUnit.SECONDS) {
-                HttpClient(ApacheBackend).use { httpClient ->
-                    httpClient.call(url, {
-                        this.sslContext = Companion.sslContext
-                        builder()
-                    }).use { response ->
-                        block(response, port)
-                    }
+                val client = HttpClient(ApacheBackend.config {
+                    sslContext = Companion.sslContext
+                })
+
+                client.call(url, builder).use { response ->
+                    block(response, port)
                 }
+
+                client.close()
             }
         }
     }

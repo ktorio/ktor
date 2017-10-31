@@ -18,11 +18,12 @@ class HttpPlainText(val defaultCharset: Charset) {
 
         return when (body) {
             is OutputStreamBody -> {
-                val stream = ByteArrayOutputStream()
-                body.block(stream)
-                stream.toString(charset.name())
+                return ByteArrayOutputStream().use { stream ->
+                    body.block(stream)
+                    stream.toString(charset.name())
+                }
             }
-            is InputStreamBody -> InputStreamReader(body.stream, charset).readText()
+            is InputStreamBody -> body.stream.use { InputStreamReader(it, charset).readText() }
             is EmptyBody -> ""
         }
     }

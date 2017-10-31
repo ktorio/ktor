@@ -5,7 +5,7 @@ import org.junit.*
 import org.junit.experimental.runners.*
 import org.junit.runner.*
 
-private val BACKEND_FACTORY = { CIOBackend() }
+private val BACKEND_FACTORY = CIOBackend
 
 @RunWith(Enclosed::class)
 class CIOClientTestSuite {

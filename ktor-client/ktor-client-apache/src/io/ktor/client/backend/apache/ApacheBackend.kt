@@ -1,5 +1,6 @@
 package io.ktor.client.backend.apache
 
+import io.ktor.client.*
 import io.ktor.client.backend.*
 import io.ktor.client.request.HttpRequest
 import io.ktor.client.response.*
@@ -17,12 +18,13 @@ import org.apache.http.impl.nio.client.*
 import java.io.*
 import java.lang.*
 import java.util.*
+import javax.net.ssl.*
 import kotlin.coroutines.experimental.*
 
 
-class ApacheBackend : HttpClientBackend {
+class ApacheBackend(sslContext: SSLContext?) : HttpClientBackend {
     private val DEFAULT_TIMEOUT: Int = 10_000
-    private val backend: CloseableHttpAsyncClient = prepareClient().apply { start() }
+    private val backend: CloseableHttpAsyncClient = prepareClient(sslContext).apply { start() }
 
     suspend override fun makeRequest(request: HttpRequest): HttpResponseBuilder {
         val apacheRequest = convertRequest(request)
@@ -55,10 +57,13 @@ class ApacheBackend : HttpClientBackend {
     }
 
     companion object : HttpClientBackendFactory {
-        override operator fun invoke(): HttpClientBackend = ApacheBackend()
+        override operator fun invoke(block: HttpClientBackendConfig.() -> Unit): HttpClientBackend {
+            val config = HttpClientBackendConfig().apply(block)
+            return ApacheBackend(config.sslContext)
+        }
     }
 
-    private fun prepareClient(): CloseableHttpAsyncClient {
+    private fun prepareClient(sslContext: SSLContext?): CloseableHttpAsyncClient {
         val clientBuilder = HttpAsyncClients.custom()
         with(clientBuilder) {
             disableAuthCaching()
@@ -66,6 +71,7 @@ class ApacheBackend : HttpClientBackend {
             disableCookieManagement()
         }
 
+        sslContext?.let { clientBuilder.setSSLContext(it) }
         return clientBuilder.build()!!
     }
 

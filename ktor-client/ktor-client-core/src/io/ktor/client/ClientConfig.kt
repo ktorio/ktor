@@ -2,7 +2,7 @@ package io.ktor.client
 
 import io.ktor.client.features.*
 import io.ktor.util.*
-import java.io.Closeable
+import java.io.*
 import kotlin.collections.set
 
 

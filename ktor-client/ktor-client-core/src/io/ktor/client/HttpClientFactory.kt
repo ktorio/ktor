@@ -10,7 +10,7 @@ import io.ktor.client.utils.*
 
 object HttpClientFactory {
     fun createDefault(backendFactory: HttpClientBackendFactory, block: ClientConfig.() -> Unit = {}): HttpClient {
-        val backend = backendFactory()
+        val backend = backendFactory {}
 
         return ClientConfig(backend).apply {
             install("backend") {
