@@ -55,7 +55,7 @@ class ContentNegotiationTest {
                 register(customContentType, object : ContentConverter {
                     suspend override fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
                         if (value !is Wrapper) return null
-                        return TextContent("[${value.value}]", contentType.withCharset(context.suitableCharset()))
+                        return TextContent("[${value.value}]", contentType.withCharset(context.call.suitableCharset()))
                     }
 
                     suspend override fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
@@ -108,12 +108,53 @@ class ContentNegotiationTest {
                 assertEquals("[OK]", call.response.content)
             }
 
+            // Acceptable with multiple charsets and one preferred
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Accept, customContentType.toString())
+                addHeader(HttpHeaders.AcceptCharset, "ISO-8859-1;q=0.5, UTF-8;q=0.8")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(customContentType, call.response.contentType().withoutParameters())
+                assertEquals(Charsets.UTF_8, call.response.contentType().charset())
+                assertEquals("[OK]", call.response.content)
+            }
+
+            // Missing acceptable charset
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Accept, customContentType.toString())
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(customContentType, call.response.contentType().withoutParameters())
+                assertEquals(Charsets.UTF_8, call.response.contentType().charset()) // should be default
+                assertEquals("[OK]", call.response.content)
+            }
+
             // Unacceptable
             handleRequest(HttpMethod.Get, "/") {
             }.let { call ->
                 assertEquals(HttpStatusCode.NotAcceptable, call.response.status())
                 assertNull(call.response.headers[HttpHeaders.ContentType])
                 assertNull(call.response.content)
+            }
+
+            // Content-Type pattern
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Accept, ContentType(customContentType.contentType, "*").toString() )
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(customContentType, call.response.contentType().withoutParameters())
+                assertEquals(Charsets.UTF_8, call.response.contentType().charset())
+                assertEquals("[OK]", call.response.content)
+            }
+
+            // Content-Type twice
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Accept, "$customContentType,$customContentType")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(customContentType, call.response.contentType().withoutParameters())
+                assertEquals(Charsets.UTF_8, call.response.contentType().charset())
+                assertEquals("[OK]", call.response.content)
             }
 
             // Post

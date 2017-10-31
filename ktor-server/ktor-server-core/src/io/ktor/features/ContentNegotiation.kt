@@ -48,7 +48,10 @@ class ContentNegotiation(val converters: List<ContentConverterRegistration>) {
                     feature.converters.firstOrNull { it.contentType.match(contentType) }
                 }
 
-                val converted = suitableConverters.mapContent(this, subject)
+                val converted = suitableConverters.mapUntilNotNull {
+                    it.converter.convertForSend(this, it.contentType, subject)
+                }
+
                 val rendered = converted?.let { transformDefaultContent(it) } ?: HttpStatusCodeContent(HttpStatusCode.NotAcceptable)
                 proceedWith(rendered)
             }
@@ -69,20 +72,51 @@ class ContentNegotiation(val converters: List<ContentConverterRegistration>) {
 
 class UnsupportedMediaTypeException(contentType: ContentType) : Exception("Content type $contentType is not supported")
 
+/**
+ * A custom content converted that could be registered in [ContentNegotiation] feature for any particular content type
+ * Could provide bi-directional conversion implementation.
+ * One of the most typical examples of content converter is a json content converter that provides both serialziation
+ * and deserialization
+ */
 interface ContentConverter {
+    /**
+     * Convert a [value] to the specified [contentType] to a value suitable for sending (serialize).
+     * Note that as far as [ContentConverter] could be registered multiple times with different content types
+     * hence [contentType] could be different depends on what the client accepts (inferred from Accept header).
+     * This function could ignore value if it is not suitable for conversion and return `null` so in this case
+     * other registered converters could be tried or this function could be invoked with other content types
+     * it the converted has been registered multiple times with different content types
+     *
+     * @param context pipeline context
+     * @param contentType to which this data converted has been registered and that matches client's accept header
+     * @param value to be converted
+     *
+     * @return a converted value of null if this [value] is not suitable for this converter
+     */
     suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any?
+
+    /**
+     * Convert a value (RAW or intermediate) from receive pipeline (deserialize)
+     *
+     * @return a converted value (deserialized) or `null` if the context's subject is not suitable for this converter
+     */
     suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any?
 }
 
-fun PipelineContext<Any, ApplicationCall>.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset {
-    for ((charset, _) in call.request.acceptCharsetItems()) when {
+fun ApplicationCall.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset {
+    for ((charset, _) in request.acceptCharsetItems()) when {
         charset == "*" -> return defaultCharset
         Charset.isSupported(charset) -> return Charset.forName(charset)
     }
     return defaultCharset
 }
 
-private suspend fun List<ContentNegotiation.ContentConverterRegistration>.mapContent(context: PipelineContext<Any, ApplicationCall>, value: Any): Any? {
-    forEach { it.converter.convertForSend(context, it.contentType, value)?.also { return it } }
+private inline fun <F, T> Iterable<F>.mapUntilNotNull(block: (F) -> T?): T? {
+    @Suppress("LoopToCallChain")
+    for (element in this) {
+        val mapped = block(element)
+        if (mapped != null) return mapped
+    }
+
     return null
 }

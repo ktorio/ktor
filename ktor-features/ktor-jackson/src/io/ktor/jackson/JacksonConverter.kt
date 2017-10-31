@@ -26,7 +26,7 @@ import io.ktor.request.*
  */
 class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMapper()) : ContentConverter {
     override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
-        return TextContent(objectmapper.writeValueAsString(value), contentType.withCharset(context.suitableCharset()))
+        return TextContent(objectmapper.writeValueAsString(value), contentType.withCharset(context.call.suitableCharset()))
     }
 
     override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
