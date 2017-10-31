@@ -14,6 +14,7 @@ import io.ktor.tests.http.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.io.streams.*
 import org.junit.*
+import org.junit.Test
 import org.junit.runner.*
 import org.junit.runners.model.*
 import java.io.*
