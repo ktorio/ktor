@@ -1,5 +1,5 @@
 # 0.9.0
-> Not yet published
+> Published 31 Oct 2017
 
 * Package structure reworked
 * Packages and maven groupId renamed org.jetbrains.ktor -> io.ktor
