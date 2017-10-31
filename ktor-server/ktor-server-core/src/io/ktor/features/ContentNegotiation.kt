@@ -7,6 +7,7 @@ import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
+import java.nio.charset.Charset
 
 /**
  * https://tools.ietf.org/html/rfc7231#section-5.3
@@ -27,16 +28,6 @@ class ContentNegotiation(val converters: List<ContentConverterRegistration>) {
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, ContentNegotiation> {
         override val key = AttributeKey<ContentNegotiation>("gson")
 
-        private val contentTypeComparator = compareByDescending<Pair<ContentType, Double>> { it.second }.thenBy {
-            val contentType = it.first
-            var asterisks = 0
-            if (contentType.contentType == "*")
-                asterisks += 2
-            if (contentType.contentSubtype == "*")
-                asterisks++
-            asterisks
-        }.thenByDescending { it.first.parameters.size }
-
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ContentNegotiation {
             val configuration = Configuration().apply(configure)
             val feature = ContentNegotiation(configuration.converters)
@@ -53,11 +44,11 @@ class ContentNegotiation(val converters: List<ContentConverterRegistration>) {
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) {
                 if (subject is OutgoingContent) return@intercept
 
-                val suitableConverters = acceptedTypes().mapNotNull { (contentType, _) ->
+                val suitableConverters = call.request.acceptItems().mapNotNull { (contentType, _) ->
                     feature.converters.firstOrNull { it.contentType.match(contentType) }
                 }
 
-                val converted = suitableConverters.mapNotNull { it.converter.convertForSend(this, subject) }.firstOrNull()
+                val converted = suitableConverters.mapContent(this, subject)
                 val rendered = converted?.let { transformDefaultContent(it) } ?: HttpStatusCodeContent(HttpStatusCode.NotAcceptable)
                 proceedWith(rendered)
             }
@@ -73,32 +64,25 @@ class ContentNegotiation(val converters: List<ContentConverterRegistration>) {
             }
             return feature
         }
-
-        private fun PipelineContext<Any, ApplicationCall>.acceptedTypes(): List<Pair<ContentType, Double>> {
-            val acceptHeader = call.request.header(HttpHeaders.Accept)
-            val acceptHeaderValues = parseHeaderValue(acceptHeader)
-            return acceptHeaderValues
-                    .map { ContentType.parse(it.value) to it.quality }
-                    .sortedWith(contentTypeComparator)
-        }
     }
 }
 
 class UnsupportedMediaTypeException(contentType: ContentType) : Exception("Content type $contentType is not supported")
 
 interface ContentConverter {
-    suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, value: Any): Any?
+    suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any?
     suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any?
 }
 
-class ConvertedContent(text: String, val contentType: ContentType) : OutgoingContent.ByteArrayContent() {
-    private val bytes = text.toByteArray(Charsets.UTF_8)
-    override fun bytes(): ByteArray = bytes
-
-    override val headers = ValuesMap.build(true) {
-        set(HttpHeaders.ContentType, contentType.toString())
-        set(HttpHeaders.ContentLength, bytes.size.toString())
+fun PipelineContext<Any, ApplicationCall>.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): Charset {
+    for ((charset, _) in call.request.acceptCharsetItems()) when {
+        charset == "*" -> return defaultCharset
+        Charset.isSupported(charset) -> return Charset.forName(charset)
     }
+    return defaultCharset
+}
 
-    override fun toString() = "ConvertedContent($contentType) \"${bytes.toString(Charsets.UTF_8).take(30)}\""
+private suspend fun List<ContentNegotiation.ContentConverterRegistration>.mapContent(context: PipelineContext<Any, ApplicationCall>, value: Any): Any? {
+    forEach { it.converter.convertForSend(context, it.contentType, value)?.also { return it } }
+    return null
 }

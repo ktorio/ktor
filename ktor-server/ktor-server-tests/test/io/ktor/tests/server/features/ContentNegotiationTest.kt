@@ -53,9 +53,9 @@ class ContentNegotiationTest {
         withTestApplication {
             application.install(ContentNegotiation) {
                 register(customContentType, object : ContentConverter {
-                    suspend override fun convertForSend(context: PipelineContext<Any, ApplicationCall>, value: Any): Any? {
+                    suspend override fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
                         if (value !is Wrapper) return null
-                        return TextContent("[${value.value}]", customContentType)
+                        return TextContent("[${value.value}]", contentType.withCharset(context.suitableCharset()))
                     }
 
                     suspend override fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
@@ -83,6 +83,28 @@ class ContentNegotiationTest {
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals(customContentType, call.response.contentType().withoutParameters())
+                assertEquals("[OK]", call.response.content)
+            }
+
+            // Acceptable with charset
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Accept, customContentType.toString())
+                addHeader(HttpHeaders.AcceptCharset, Charsets.ISO_8859_1.toString())
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(customContentType, call.response.contentType().withoutParameters())
+                assertEquals(Charsets.ISO_8859_1, call.response.contentType().charset())
+                assertEquals("[OK]", call.response.content)
+            }
+
+            // Acceptable with any charset
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Accept, customContentType.toString())
+                addHeader(HttpHeaders.AcceptCharset, "*, ISO-8859-1;q=0.5")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(customContentType, call.response.contentType().withoutParameters())
+                assertEquals(Charsets.UTF_8, call.response.contentType().charset())
                 assertEquals("[OK]", call.response.content)
             }
 
