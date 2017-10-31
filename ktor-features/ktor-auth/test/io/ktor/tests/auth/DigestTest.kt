@@ -7,7 +7,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import org.junit.*
+import org.junit.Test
 import java.security.*
 import kotlin.test.*
 

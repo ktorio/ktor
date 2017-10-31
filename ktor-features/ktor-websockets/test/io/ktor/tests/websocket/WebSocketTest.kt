@@ -7,6 +7,7 @@ import io.ktor.util.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.experimental.channels.*
 import org.junit.*
+import org.junit.Test
 import org.junit.rules.*
 import java.nio.*
 import java.time.*

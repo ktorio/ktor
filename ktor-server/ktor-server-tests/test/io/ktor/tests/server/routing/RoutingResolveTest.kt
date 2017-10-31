@@ -4,7 +4,7 @@ import io.ktor.http.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import org.junit.*
+import org.junit.Test
 import kotlin.test.*
 
 private object RootRouteSelector : RouteSelector(RouteSelectorEvaluation.qualityConstant) {

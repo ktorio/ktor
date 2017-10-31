@@ -5,6 +5,7 @@ import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import org.junit.*
+import org.junit.Test
 import org.slf4j.*
 import kotlin.test.*
 

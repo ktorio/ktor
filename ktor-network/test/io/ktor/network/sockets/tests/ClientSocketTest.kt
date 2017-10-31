@@ -6,6 +6,7 @@ import io.ktor.network.sockets.Socket
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import org.junit.*
+import org.junit.Test
 import org.junit.rules.*
 import java.net.ServerSocket
 import java.util.concurrent.*

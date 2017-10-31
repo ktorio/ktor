@@ -2,7 +2,7 @@ package io.ktor.tests.websocket
 
 import io.ktor.util.*
 import io.ktor.websocket.*
-import org.junit.*
+import org.junit.Test
 import java.nio.*
 import kotlin.test.*
 

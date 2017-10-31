@@ -1,7 +1,7 @@
 package io.ktor.tests.utils
 
 import io.ktor.pipeline.*
-import org.junit.*
+import org.junit.Test
 import kotlin.test.*
 
 class PipelinePhasesTest {

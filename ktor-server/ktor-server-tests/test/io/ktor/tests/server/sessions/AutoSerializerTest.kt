@@ -2,7 +2,7 @@ package io.ktor.tests.server.sessions
 
 import io.ktor.http.*
 import io.ktor.sessions.*
-import org.junit.*
+import org.junit.Test
 import java.math.*
 import java.util.*
 import kotlin.test.*

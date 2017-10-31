@@ -2,7 +2,7 @@ package io.ktor.tests.server.nio
 
 import io.ktor.cio.*
 import io.ktor.features.*
-import org.junit.*
+import org.junit.Test
 import java.nio.*
 import kotlin.test.*
 

@@ -2,6 +2,7 @@ package io.ktor.tests.utils
 
 import io.ktor.cio.*
 import org.junit.*
+import org.junit.Test
 import java.io.*
 import kotlin.test.*
 

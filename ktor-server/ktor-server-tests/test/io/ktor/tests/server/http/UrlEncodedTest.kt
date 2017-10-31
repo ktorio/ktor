@@ -5,7 +5,7 @@ import io.ktor.request.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
-import org.junit.*
+import org.junit.Test
 import kotlin.test.*
 
 class UrlEncodedTest {

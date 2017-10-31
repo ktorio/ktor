@@ -3,6 +3,7 @@ package io.ktor.tests.hosts
 import com.typesafe.config.*
 import io.ktor.server.engine.*
 import org.junit.*
+import org.junit.Test
 import org.junit.rules.*
 import org.junit.runner.*
 import org.junit.runners.model.*

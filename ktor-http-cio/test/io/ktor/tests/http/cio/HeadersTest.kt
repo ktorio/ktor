@@ -5,6 +5,7 @@ import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import org.junit.*
+import org.junit.Test
 import kotlin.test.*
 
 class HeadersTest {

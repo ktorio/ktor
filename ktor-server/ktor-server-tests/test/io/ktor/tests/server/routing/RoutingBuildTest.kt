@@ -2,7 +2,7 @@ package io.ktor.tests.server.routing
 
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import org.junit.*
+import org.junit.Test
 import kotlin.test.*
 
 class RoutingBuildTest {

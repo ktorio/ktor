@@ -2,7 +2,7 @@ package io.ktor.tests.sessions
 
 import kotlinx.coroutines.experimental.*
 import io.ktor.sessions.*
-import org.junit.*
+import org.junit.Test
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.test.*

@@ -11,6 +11,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
+import org.junit.Test
 import java.time.*
 import java.util.concurrent.*
 import kotlin.test.*

@@ -8,7 +8,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import org.junit.*
+import org.junit.Test
 import java.io.*
 import java.nio.file.*
 import kotlin.test.*

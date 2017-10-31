@@ -7,7 +7,7 @@ import io.ktor.http.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import kotlinx.html.*
-import org.junit.*
+import org.junit.Test
 import kotlin.test.*
 
 class HtmlBuilderTest {

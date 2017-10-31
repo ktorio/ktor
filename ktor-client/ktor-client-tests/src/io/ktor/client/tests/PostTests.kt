@@ -11,7 +11,7 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
-import org.junit.*
+import org.junit.Test
 import org.junit.Assert.assertEquals
 import java.nio.charset.*
 import java.util.*

@@ -4,6 +4,7 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import kotlinx.io.streams.*
 import org.junit.*
+import org.junit.Test
 import kotlin.test.*
 
 class RequestResponseBuilderTest {

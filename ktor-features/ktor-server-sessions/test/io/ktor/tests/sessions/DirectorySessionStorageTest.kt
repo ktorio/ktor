@@ -4,6 +4,7 @@ import kotlinx.coroutines.experimental.*
 import io.ktor.cio.*
 import io.ktor.sessions.*
 import org.junit.*
+import org.junit.Test
 import java.io.*
 import java.nio.file.*
 import java.util.*

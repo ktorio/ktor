@@ -5,7 +5,7 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.core.*
 import kotlinx.io.streams.*
-import org.junit.*
+import org.junit.Test
 import java.io.*
 import java.io.EOFException
 import kotlin.test.*

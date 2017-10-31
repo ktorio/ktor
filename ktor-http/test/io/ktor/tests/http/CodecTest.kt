@@ -1,7 +1,7 @@
 package io.ktor.tests.http
 
 import io.ktor.http.*
-import org.junit.*
+import org.junit.Test
 import java.net.*
 import java.util.*
 import kotlin.test.*

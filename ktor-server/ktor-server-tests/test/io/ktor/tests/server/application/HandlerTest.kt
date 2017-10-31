@@ -5,7 +5,7 @@ import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.server.testing.*
-import org.junit.*
+import org.junit.Test
 import kotlin.test.*
 
 class HandlerTest {

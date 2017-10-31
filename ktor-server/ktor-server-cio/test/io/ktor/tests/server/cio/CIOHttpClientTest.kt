@@ -7,7 +7,7 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import kotlinx.coroutines.experimental.*
-import org.junit.*
+import org.junit.Test
 import java.io.*
 import java.net.*
 import java.time.*

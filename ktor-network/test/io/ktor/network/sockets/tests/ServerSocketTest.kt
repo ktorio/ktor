@@ -5,6 +5,7 @@ import io.ktor.network.sockets.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import org.junit.*
+import org.junit.Test
 import org.junit.rules.*
 import java.nio.channels.*
 import java.util.concurrent.*

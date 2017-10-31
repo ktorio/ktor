@@ -4,7 +4,7 @@ import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import org.junit.*
+import org.junit.Test
 import kotlin.reflect.jvm.*
 import kotlin.test.*
 

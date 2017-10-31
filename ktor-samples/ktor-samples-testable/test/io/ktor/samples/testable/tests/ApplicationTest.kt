@@ -4,7 +4,7 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.samples.testable.*
 import io.ktor.server.testing.*
-import org.junit.*
+import org.junit.Test
 import kotlin.test.*
 
 class ApplicationTest {

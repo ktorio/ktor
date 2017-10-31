@@ -2,7 +2,7 @@ package io.ktor.tests.utils
 
 import io.ktor.pipeline.*
 import kotlinx.coroutines.experimental.*
-import org.junit.*
+import org.junit.Test
 import kotlin.test.*
 
 class PipelineTest {

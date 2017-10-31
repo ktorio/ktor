@@ -13,12 +13,14 @@ import org.apache.directory.server.core.integ.*
 import org.apache.directory.server.core.integ.IntegrationUtils.*
 import org.apache.directory.server.ldap.*
 import org.junit.*
+import org.junit.Test
 import org.junit.runner.*
 import java.net.*
 import java.util.*
 import javax.naming.directory.*
 import javax.naming.ldap.*
 import kotlin.test.*
+import kotlin.test.Ignore
 
 @RunWith(FrameworkRunner::class)
 @CreateLdapServer(

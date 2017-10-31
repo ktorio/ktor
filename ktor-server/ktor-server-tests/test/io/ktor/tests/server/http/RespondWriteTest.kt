@@ -6,7 +6,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.experimental.*
-import org.junit.*
+import org.junit.Test
 import java.util.concurrent.*
 import kotlin.test.*
 
