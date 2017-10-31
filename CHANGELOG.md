@@ -3,7 +3,7 @@
 
 * Package structure reworked
 * Packages and maven groupId renamed org.jetbrains.ktor -> io.ktor
-* Server-related artifacts having ktor-server-* name prefix (ktor-host-netty -> ktor-server-netty)
+* Server-related artifacts having ktor-server-* name prefix (ktor-netty -> ktor-server-netty)
 * Application Host renamed to Application Engine  
 * FinalContent renamed to OutgoingContent as opposite to IncomingContent (introduced in 0.4.0)
 * Added Application Engine configure facilities so one can specify thread pool size or some engine-specific parameter
