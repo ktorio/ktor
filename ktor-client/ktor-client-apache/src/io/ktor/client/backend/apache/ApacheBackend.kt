@@ -1,62 +1,72 @@
 package io.ktor.client.backend.apache
 
 import io.ktor.client.backend.*
-import io.ktor.client.request.*
+import io.ktor.client.request.HttpRequest
 import io.ktor.client.response.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.http.HttpHeaders
 import io.ktor.util.*
+import org.apache.http.HttpResponse
 import org.apache.http.client.config.*
 import org.apache.http.client.methods.*
 import org.apache.http.client.utils.*
+import org.apache.http.concurrent.*
 import org.apache.http.entity.*
-import org.apache.http.impl.client.*
+import org.apache.http.impl.nio.client.*
 import java.io.*
+import java.lang.*
 import java.util.*
+import kotlin.coroutines.experimental.*
 
 
 class ApacheBackend : HttpClientBackend {
+    private val DEFAULT_TIMEOUT: Int = 10_000
+    private val backend: CloseableHttpAsyncClient = prepareClient().apply { start() }
 
     suspend override fun makeRequest(request: HttpRequest): HttpResponseBuilder {
-        val backend: CloseableHttpClient = prepareClient(request)
         val apacheRequest = convertRequest(request)
 
         val sendTime = Date()
-        val apacheResponse = backend.execute(apacheRequest)
+        val apacheResponse = suspendCoroutine<HttpResponse> { continuation ->
+            backend.execute(apacheRequest, object : FutureCallback<HttpResponse> {
+                override fun completed(result: HttpResponse) {
+                    continuation.resume(result)
+                }
+
+                override fun cancelled() {
+                }
+
+                override fun failed(exception: Exception) {
+                    continuation.resumeWithException(exception)
+                }
+            })
+        }
         val receiveTime = Date()
 
         return convertResponse(apacheResponse).apply {
             requestTime = sendTime
             responseTime = receiveTime
-
-            origin = Closeable {
-                apacheResponse.close()
-                backend.close()
-            }
         }
     }
 
-    override fun close() {}
+    override fun close() {
+        backend.close()
+    }
 
     companion object : HttpClientBackendFactory {
         override operator fun invoke(): HttpClientBackend = ApacheBackend()
     }
 
-    private fun prepareClient(request: HttpRequest): CloseableHttpClient {
-        val clientBuilder = HttpClients.custom()
+    private fun prepareClient(): CloseableHttpAsyncClient {
+        val clientBuilder = HttpAsyncClients.custom()
         with(clientBuilder) {
             disableAuthCaching()
-            disableAutomaticRetries()
             disableConnectionState()
-            disableContentCompression()
             disableCookieManagement()
         }
 
-        request.sslContext?.let {
-            clientBuilder.setSSLContext(it)
-        }
-
-        return clientBuilder.build()
+        return clientBuilder.build()!!
     }
 
     private fun convertRequest(request: HttpRequest): HttpUriRequest {
@@ -92,12 +102,15 @@ class ApacheBackend : HttpClientBackend {
 
         builder.config = RequestConfig.custom()
                 .setRedirectsEnabled(request.followRedirects)
+                .setSocketTimeout(DEFAULT_TIMEOUT)
+                .setConnectTimeout(DEFAULT_TIMEOUT)
+                .setConnectionRequestTimeout(DEFAULT_TIMEOUT)
                 .build()
 
         return builder.build()
     }
 
-    private fun convertResponse(response: CloseableHttpResponse): HttpResponseBuilder {
+    private fun convertResponse(response: HttpResponse): HttpResponseBuilder {
         val statusLine = response.statusLine
         val entity = response.entity
 
@@ -119,7 +132,11 @@ class ApacheBackend : HttpClientBackend {
                 version = HttpProtocolVersion(protocol, major, minor)
             }
 
-            body = if (entity?.isStreaming == true) InputStreamBody(entity.content) else EmptyBody
+            body = if (entity?.isStreaming == true) {
+                val stream = entity.content
+                origin = Closeable { stream.close() }
+                InputStreamBody(stream)
+            } else EmptyBody
         }
 
         return builder
