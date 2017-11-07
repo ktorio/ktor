@@ -31,7 +31,10 @@ fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
             call.application.environment.logFailure(call, error)
         } catch (error: Throwable) {
             call.application.environment.logFailure(call, error)
-            call.respond(HttpStatusCode.InternalServerError)
+            try {
+                call.respond(HttpStatusCode.InternalServerError)
+            } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
+            }
         }
     }
 

@@ -34,7 +34,8 @@ internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
             super.respondOutgoingContent(content)
         } catch (t: Throwable) {
             val out = responseChannel as? ByteWriteChannel
-            if (out != null) out.close(t)
+            out?.close(t)
+            throw t
         } finally {
             val out = responseChannel as? ByteWriteChannel
             if (out != null) out.close()

@@ -17,7 +17,6 @@ import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.streams.*
-import org.junit.*
 import org.junit.Test
 import org.junit.runners.model.*
 import org.slf4j.*
@@ -107,7 +106,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     @Test
     fun testLoggerOnError() {
         val message = "expected, ${nextNonce()}"
-        val collected = CopyOnWriteArrayList<Throwable>()
+        val collected = LinkedBlockingQueue<Throwable>()
 
         val log = object : Logger by LoggerFactory.getLogger("ktor.test") {
             override fun error(message: String, exception: Throwable?) {
@@ -121,13 +120,34 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             get("/") {
                 throw ExpectedException(message)
             }
+            get("/respondWrite") {
+                call.respondWrite {
+                    throw ExpectedException(message)
+                }
+            }
         }
 
         withUrl("/") {
             assertEquals(HttpStatusCode.InternalServerError.value, status.value)
 
-            assertEquals(message, collected.single { it is ExpectedException }.message)
-            collected.clear()
+            while (true) {
+                val exception = collected.poll(timeout.seconds, TimeUnit.SECONDS)
+                if (exception is ExpectedException) {
+                    assertEquals(message, exception.message)
+                    break
+                }
+            }
+        }
+
+        withUrl("/respondWrite") {
+            assertEquals(HttpStatusCode.OK.value, status.value)
+            while (true) {
+                val exception = collected.poll(timeout.seconds, TimeUnit.SECONDS)
+                if (exception is ExpectedException) {
+                    assertEquals(message, exception.message)
+                    break
+                }
+            }
         }
     }
 
