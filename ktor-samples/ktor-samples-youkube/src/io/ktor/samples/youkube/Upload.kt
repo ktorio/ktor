@@ -24,7 +24,7 @@ fun Route.upload(database: Database, uploadDir: File) {
                     acceptCharset = "utf-8"
 
                     label {
-                        for_ = "title"; +"Title:"
+                        htmlFor = "title"; +"Title:"
                         textInput { name = "title"; id = "title" }
                     }
 
