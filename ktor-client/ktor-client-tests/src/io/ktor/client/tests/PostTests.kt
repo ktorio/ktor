@@ -5,15 +5,13 @@ import io.ktor.client.*
 import io.ktor.client.backend.*
 import io.ktor.client.tests.utils.*
 import io.ktor.content.*
-import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
-import org.junit.Test
-import org.junit.Assert.assertEquals
-import java.nio.charset.*
+import org.junit.*
+import org.junit.Assert.*
 import java.util.*
 
 open class PostTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
@@ -51,9 +49,7 @@ open class PostTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) 
         val client = createClient()
 
         val response = runBlocking {
-            client.post<String>(port = port, body = text) {
-                headers.contentType(ContentType.Text.Plain.withCharset(Charset.defaultCharset()))
-            }
+            client.post<String>(port = port, body = text)
         }
 
         assertEquals(text, response)

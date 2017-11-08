@@ -3,7 +3,9 @@ package io.ktor.client.tests
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.backend.*
+import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
+import io.ktor.client.utils.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
@@ -33,7 +35,10 @@ abstract class MultithreadedTest(factory: HttpClientBackendFactory) : TestWithKt
 
         val result = List(DEFAULT_SIZE) {
             async {
-                return@async client.get<String>("http://127.0.0.1:$port").toInt()
+                val response = client.get<HttpResponse>("http://127.0.0.1:$port")
+                val result = response.readText().toInt()
+                response.close()
+                return@async result
             }
         }.map {
             it.await()

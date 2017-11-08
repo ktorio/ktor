@@ -50,7 +50,7 @@ suspend fun HttpClient.call(url: URL, block: HttpRequestBuilder.() -> Unit = {})
 suspend fun HttpClient.call(url: String, block: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
         call(URL(decodeURLPart(url)), block)
 
-suspend inline fun <reified T> HttpResponse.receive(): T {
+suspend inline fun <reified T> HttpResponse.receive(): T = use {
     if (T::class === HttpResponse::class) return this as T
 
     val body = call.receive(T::class).response.body

@@ -1,6 +1,5 @@
 package io.ktor.client.utils
 
-import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.util.*
 import java.nio.charset.*
@@ -22,6 +21,7 @@ private fun parseHttpDate(date: String): Date = HTTP_DATE_FORMAT.parse(date)
 private fun formatHttpDate(date: Date): String = HTTP_DATE_FORMAT.format(date)
 
 fun HttpMessageBuilder.contentType(type: ContentType) = headers.set(HttpHeaders.ContentType, type.toString())
+fun HttpMessageBuilder.contentLength(length: Int) = headers.set(HttpHeaders.ContentLength, length.toString())
 fun HttpMessageBuilder.charset(charset: Charset) = contentType()?.let { contentType(it.withCharset(charset)) }
 fun HttpMessageBuilder.maxAge(seconds: Int) = headers.append(HttpHeaders.CacheControl, "max-age:$seconds")
 fun HttpMessageBuilder.ifModifiedSince(date: Date) = headers.set(HttpHeaders.IfModifiedSince, formatHttpDate(date))
@@ -34,6 +34,7 @@ fun HttpMessageBuilder.lastModified(): Date? = headers[HttpHeaders.LastModified]
 fun HttpMessageBuilder.etag(): String? = headers[HttpHeaders.ETag]
 fun HttpMessageBuilder.expires(): Date? = headers[HttpHeaders.Expires]?.let { parseHttpDate(it) }
 fun HttpMessageBuilder.vary(): List<String>? = headers[HttpHeaders.Vary]?.split(",")?.map { it.trim() }
+fun HttpMessageBuilder.contentLength(): Int? = headers[HttpHeaders.ContentLength]?.toInt()
 
 fun HttpMessage.contentType(): ContentType? = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
 fun HttpMessage.charset(): Charset? = contentType()?.charset()
