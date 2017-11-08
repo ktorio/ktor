@@ -4,22 +4,17 @@ import kotlinx.coroutines.experimental.io.*
 import org.eclipse.jetty.http2.api.*
 import org.eclipse.jetty.http2.frames.*
 import org.eclipse.jetty.util.*
-import java.io.*
 import java.util.concurrent.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 
-class Http2OutputStream(private val stream: Stream) : OutputStream(), Callback {
+internal class Http2Request(private val stream: Stream) : Callback {
     private val l = ReentrantLock()
     private val sent = l.newCondition()!!
     private val empty = l.newCondition()!!
 
     private val failures = ArrayBlockingQueue<Throwable>(1)
     private var outstanding = 0
-
-    fun endBody() {
-        stream.data(DataFrame(stream.id, ByteBuffer.allocate(0), true), Callback.NOOP)
-    }
 
     override fun succeeded() {
         resume(false)
@@ -30,29 +25,24 @@ class Http2OutputStream(private val stream: Stream) : OutputStream(), Callback {
         resume(true)
     }
 
-    private fun resume(all: Boolean) {
-        l.withLock {
-            outstanding--
-            sent.signalAll()
+    fun write(src: ByteBuffer) {
+        writeEnter()
+        val frame = DataFrame(stream.id, src, false)
+        stream.data(frame, this)
+    }
 
-            if (all || outstanding == 0) {
-                empty.signalAll()
+    fun flush() {
+        l.withLock {
+            while (true) {
+                checkFailures()
+                if (outstanding == 0) break
+                empty.await()
             }
         }
     }
 
-    override fun write(b: Int) {
-        writeEnter()
-
-        val f = DataFrame(stream.id, ByteBuffer.wrap(byteArrayOf(b.toByte()), 0, 1), false)
-        stream.data(f, this)
-    }
-
-    override fun write(b: ByteArray, off: Int, len: Int) {
-        writeEnter()
-
-        val f = DataFrame(stream.id, ByteBuffer.wrap(b, off, len), false)
-        stream.data(f, this)
+    fun endBody() {
+        stream.data(DataFrame(stream.id, ByteBuffer.allocate(0), true), Callback.NOOP)
     }
 
     private fun writeEnter() {
@@ -68,12 +58,13 @@ class Http2OutputStream(private val stream: Stream) : OutputStream(), Callback {
         }
     }
 
-    override fun flush() {
+    private fun resume(all: Boolean) {
         l.withLock {
-            while (true) {
-                checkFailures()
-                if (outstanding == 0) break
-                empty.await()
+            outstanding--
+            sent.signalAll()
+
+            if (all || outstanding == 0) {
+                empty.signalAll()
             }
         }
     }
@@ -81,5 +72,4 @@ class Http2OutputStream(private val stream: Stream) : OutputStream(), Callback {
     private fun checkFailures() {
         failures.peek()?.let { throw it }
     }
-
 }
