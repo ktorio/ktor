@@ -16,9 +16,11 @@ object HttpClientFactory {
             install("backend") {
                 requestPipeline.intercept(HttpRequestPipeline.Send) { builder ->
                     val request = (builder as? HttpRequestBuilder)?.build() ?: return@intercept
-                    if (request.body !is HttpMessageBody) error("Body can't be processed: ${request.body}")
 
+                    if (request.body !is HttpMessageBody) error("Body can't be processed: ${request.body}")
                     val response = backend.makeRequest(request)
+                    if (response.body !is HttpMessageBody) error("Client backend response has wrong format: ${request.body}")
+
                     proceedWith(HttpClientCall(request, response, context))
                 }
 
