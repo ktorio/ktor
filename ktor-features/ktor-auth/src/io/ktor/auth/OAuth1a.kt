@@ -131,7 +131,7 @@ private suspend fun simpleOAuth1aStep2(client: HttpClient, secretKey: String, ba
         header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
         header(HttpHeaders.Accept, "*/*")
 
-        body = OutputStreamBody {
+        body = ByteWriteChannelBody {
             it.writer().use { writer ->
                 params.formUrlEncodeTo(writer)
             }

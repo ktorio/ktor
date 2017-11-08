@@ -28,11 +28,16 @@ class HttpClientTest {
                 server.accept()!!.use { client ->
                     val reader = client.inputStream.bufferedReader()
 
-                    val headers = reader.lineSequence().takeWhile { it.isNotBlank() }
-                            .associateBy({ it.substringBefore(":", "") }, { it.substringAfter(":").trimStart() })
+                    val headers = reader.lineSequence().takeWhile { it.isNotBlank() }.associateBy(
+                            { it.substringBefore(":", "") },
+                            { it.substringAfter(":").trimStart() }
+                    )
                     headersSync.add(headers)
 
-                    val requestContentBuffer = CharArray(headers[HttpHeaders.ContentLength]!!.toInt())
+                    val bodyLength = headers[HttpHeaders.ContentLength]?.toInt()
+                            ?: error("Header Content-Length is missing or invalid")
+                    val requestContentBuffer = CharArray(bodyLength)
+
                     var read = 0
                     while (read < requestContentBuffer.size) {
                         val rc = reader.read(requestContentBuffer, read, requestContentBuffer.size - read)
@@ -62,11 +67,7 @@ class HttpClientTest {
             method = HttpMethod.Post
             url.path = "/url"
             header("header", "value")
-            body = OutputStreamBody { out ->
-                out.writer().use { w ->
-                    w.write("request-body")
-                }
-            }
+            body = "request-body"
         }
 
         try {

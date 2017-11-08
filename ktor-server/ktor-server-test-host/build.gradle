@@ -5,6 +5,7 @@ dependencies {
     compile project(':ktor-client:ktor-client-core')
     compile project(':ktor-client:ktor-client-jetty')
     compile project(':ktor-client:ktor-client-apache')
+    compile project(':ktor-client:ktor-client-tests')
     compile group: 'org.eclipse.jetty.http2', name: 'http2-client', version: jetty_version
     compile group: 'org.eclipse.jetty', name: 'jetty-client', version: jetty_version
     compile group: 'org.eclipse.jetty.http2', name: 'http2-http-client-transport', version: jetty_version

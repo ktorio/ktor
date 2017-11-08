@@ -166,11 +166,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/", {
             method = HttpMethod.Post
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-            body = OutputStreamBody {
-                it.bufferedWriter().use {
-                    valuesOf("a" to listOf("1")).formUrlEncodeTo(it)
-                }
-            }
+            body = valuesOf("a" to listOf("1")).formUrlEncode()
         }) {
             assertEquals(200, status.value)
             assertEquals("a=1", readText())
@@ -525,8 +521,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/?urlp=1", {
             method = HttpMethod.Post
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-            body = OutputStreamBody {
-                it.write("formp=2".toByteArray())
+            body = ByteWriteChannelBody {
+                it.writeFully("formp=2".toByteArray())
             }
         }) {
             assertEquals(HttpStatusCode.OK.value, status.value)
@@ -553,7 +549,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/echo", {
             method = HttpMethod.Post
             header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-            body = OutputStreamBody {
+            body = ByteWriteChannelBody {
                 it.bufferedWriter().use { out ->
                     out.append("POST test\n")
                     out.append("Another line")
@@ -579,7 +575,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/", {
             method = HttpMethod.Post
             header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-            body = OutputStreamBody {
+            body = ByteWriteChannelBody {
                 it.bufferedWriter().use {
                     it.append("POST content")
                 }
@@ -614,7 +610,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             method = HttpMethod.Post
             header(HttpHeaders.ContentType, ContentType.MultiPart.FormData.withParameter("boundary", "***bbb***").toString())
 
-            body = OutputStreamBody {
+            body = ByteWriteChannelBody {
                 it.bufferedWriter(Charsets.ISO_8859_1).use { out ->
                     out.apply {
                         append("--***bbb***\r\n")
@@ -742,10 +738,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
         withUrl("/", {
             method = HttpMethod.Post
-            header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-            body = OutputStreamBody {
-                it.write("Hello".toByteArray())
-            }
+            body = "Hello"
         }) {
             assertEquals(200, status.value)
             assertEquals("Hello", readText())
@@ -779,8 +772,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/", {
             method = HttpMethod.Post
             header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-            body = OutputStreamBody {
-                it.write("Hello".toByteArray())
+            body = ByteWriteChannelBody {
+                it.writeFully("Hello".toByteArray())
             }
         }) {
             assertEquals(200, status.value)

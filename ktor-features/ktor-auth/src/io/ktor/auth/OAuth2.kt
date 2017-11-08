@@ -129,7 +129,7 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
 
         if (method == HttpMethod.Post) {
             contentType(ContentType.Application.FormUrlEncoded)
-            body = OutputStreamBody {
+            body = ByteWriteChannelBody {
                 it.writer().use { out ->
                     out.write(urlParameters)
                 }
