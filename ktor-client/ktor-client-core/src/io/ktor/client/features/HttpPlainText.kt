@@ -1,31 +1,25 @@
 package io.ktor.client.features
 
 import io.ktor.client.*
-import io.ktor.pipeline.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.network.util.*
+import io.ktor.pipeline.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.nio.charset.*
 
 
-class HttpPlainText(val defaultCharset: Charset) {
+class HttpPlainText(private val defaultCharset: Charset) {
     suspend fun read(response: HttpResponseBuilder): String? {
         val body = response.body as? HttpMessageBody ?: return null
         val charset = response.charset() ?: defaultCharset
+        val data = response.contentLength()?.let { body.toByteArray(it) } ?: body.toByteArray()
 
-        return when (body) {
-            is OutputStreamBody -> {
-                return ByteArrayOutputStream().use { stream ->
-                    body.block(stream)
-                    stream.toString(charset.name())
-                }
-            }
-            is InputStreamBody -> body.stream.use { InputStreamReader(it, charset).readText() }
-            is EmptyBody -> ""
-        }
+        return InputStreamReader(data.inputStream(), charset).readText()
     }
 
     fun write(request: HttpRequestBuilder): HttpMessageBody? {
@@ -41,7 +35,11 @@ class HttpPlainText(val defaultCharset: Charset) {
             get(HttpHeaders.ContentType) ?: contentType(ContentType.Text.Plain.withCharset(charset))
         }
 
-        return InputStreamBody(ByteArrayInputStream(body))
+        val writer = writer(ioCoroutineDispatcher) {
+            channel.writeFully(body)
+        }
+
+        return ByteReadChannelBody(writer.channel)
     }
 
     class Config {

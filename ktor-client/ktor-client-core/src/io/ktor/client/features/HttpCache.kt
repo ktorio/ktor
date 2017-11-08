@@ -95,7 +95,7 @@ class HttpCache(val maxAge: Int?) {
     private fun cacheResponse(request: HttpRequest, response: HttpResponse): Boolean {
         if (response.status != HttpStatusCode.OK) return false
         if (response.expires()?.before(Date()) == true) return false
-        if (response.body is InputStreamBody || response.body is OutputStreamBody) return false
+        if (response.body is ByteReadChannelBody || response.body is ByteWriteChannelBody) return false
 
         with(request.cacheControl) {
             if (noCache || noStore) return false
