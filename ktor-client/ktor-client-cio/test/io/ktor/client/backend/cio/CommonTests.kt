@@ -18,6 +18,5 @@ class CIOClientTestSuite {
 
     class CIOFullFormTests : FullFormTests(BACKEND_FACTORY)
 
-    @Ignore
     class CIOPostTests : PostTests(BACKEND_FACTORY)
 }

@@ -1,6 +1,5 @@
 package io.ktor.client.backend.cio
 
-import io.ktor.cio.*
 import io.ktor.client.*
 import io.ktor.client.backend.*
 import io.ktor.client.request.*
@@ -43,7 +42,7 @@ class CIOBackend : HttpClientBackend {
             version = HttpProtocolVersion.HTTP_1_1
 
             headers.appendAll(CIOHeaders(response.headers))
-            body = InputStreamBody(CIOReadChannelAdapter(responseBody.channel).toInputStream())
+            body = ByteReadChannelBody(responseBody.channel)
 
             this.requestTime = requestTime
             responseTime = Date()
@@ -100,18 +99,21 @@ class CIOBackend : HttpClientBackend {
         launch(ioCoroutineDispatcher) {
             if (bodySize == null) {
                 val encoder = encodeChunked(output, ioCoroutineDispatcher)
-                writeBody(body, encoder.channel, suppressClose = false)
+                writeBody(body, encoder.channel)
                 encoder.join()
             } else {
-                writeBody(body, output, suppressClose = true)
+                writeBody(body, output)
             }
         }
     }
 
-    private suspend fun writeBody(body: HttpMessageBody, channel: ByteWriteChannel, suppressClose: Boolean) {
+    private suspend fun writeBody(body: HttpMessageBody, channel: ByteWriteChannel) {
         when (body) {
-            is OutputStreamBody -> OutputStreamAdapter(channel, suppressClose).use { body.block(it) }
-            is InputStreamBody -> channel.write(body.stream, suppressClose)
+            is ByteWriteChannelBody -> {
+                body.block(channel)
+                channel.close()
+            }
+            is ByteReadChannelBody -> body.channel.copyAndClose(channel)
         }
     }
 }

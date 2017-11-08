@@ -64,7 +64,7 @@ class CIOHttpClientTest {
             url.path = "/url"
             header("header", "value")
             header("Content-Length", "12")
-            body = OutputStreamBody { out ->
+            body = ByteWriteChannelBody { out ->
                 out.writer().use { w ->
                     w.write("request-body")
                 }
@@ -154,7 +154,7 @@ class CIOHttpClientTest {
             url.path = "/url"
             header("header", "value")
             header("Transfer-Encoding", "chunked")
-            body = OutputStreamBody { out ->
+            body = ByteWriteChannelBody { out ->
                 out.writer().use { w ->
                     w.write("request-body")
                 }
