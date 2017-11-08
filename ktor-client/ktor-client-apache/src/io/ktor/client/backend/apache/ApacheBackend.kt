@@ -7,7 +7,10 @@ import io.ktor.client.response.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
+import io.ktor.network.util.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.experimental.io.*
 import org.apache.http.HttpResponse
 import org.apache.http.client.config.*
 import org.apache.http.client.methods.*
@@ -15,8 +18,12 @@ import org.apache.http.client.utils.*
 import org.apache.http.concurrent.*
 import org.apache.http.entity.*
 import org.apache.http.impl.nio.client.*
-import java.io.*
+import org.apache.http.nio.*
+import org.apache.http.nio.client.methods.*
+import org.apache.http.nio.protocol.*
+import org.apache.http.protocol.*
 import java.lang.*
+import java.nio.ByteBuffer
 import java.util.*
 import javax.net.ssl.*
 import kotlin.coroutines.experimental.*
@@ -30,25 +37,24 @@ class ApacheBackend(sslContext: SSLContext?) : HttpClientBackend {
         val apacheRequest = convertRequest(request)
 
         val sendTime = Date()
-        val apacheResponse = suspendCoroutine<HttpResponse> { continuation ->
-            backend.execute(apacheRequest, object : FutureCallback<HttpResponse> {
-                override fun completed(result: HttpResponse) {
-                    continuation.resume(result)
-                }
+        val responseData = Channel<ByteBuffer>(Channel.UNLIMITED)
 
-                override fun cancelled() {
-                }
-
-                override fun failed(exception: Exception) {
-                    continuation.resumeWithException(exception)
-                }
-            })
+        val apacheResponse = suspendRequest(responseData) { consumer, callback ->
+            backend.execute(HttpAsyncMethods.create(apacheRequest), consumer, callback)
         }
-        val receiveTime = Date()
 
+        val receiveTime = Date()
         return convertResponse(apacheResponse).apply {
             requestTime = sendTime
             responseTime = receiveTime
+            body = ByteReadChannelBody(writer(ioCoroutineDispatcher) {
+                while (true) {
+                    val data = responseData.receiveOrNull() ?: break
+                    channel.writeFully(data)
+                }
+
+                channel.close()
+            }.channel)
         }
     }
 
@@ -95,16 +101,14 @@ class ApacheBackend(sslContext: SSLContext?) : HttpClientBackend {
             values.forEach { value -> builder.addHeader(name, value) }
         }
 
-        val body = request.body
-        when (body) {
-            is InputStreamBody -> InputStreamEntity(body.stream)
-            is OutputStreamBody -> {
-                val stream = ByteArrayOutputStream()
-                body.block(stream)
-                ByteArrayEntity(stream.toByteArray())
-            }
-            else -> null
-        }?.let { builder.entity = it }
+        val body = request.body as HttpMessageBody
+        val length = request.contentLength() ?: -1
+        val chunked = request.headers[HttpHeaders.TransferEncoding] == "chunked"
+
+        if (body !is EmptyBody) {
+            val bodyStream = body.toByteReadChannel().toInputStream()
+            builder.entity = InputStreamEntity(bodyStream, length.toLong()).apply { isChunked = chunked }
+        }
 
         builder.config = RequestConfig.custom()
                 .setRedirectsEnabled(request.followRedirects)
@@ -137,14 +141,45 @@ class ApacheBackend(sslContext: SSLContext?) : HttpClientBackend {
             with(statusLine.protocolVersion) {
                 version = HttpProtocolVersion(protocol, major, minor)
             }
-
-            body = if (entity?.isStreaming == true) {
-                val stream = entity.content
-                origin = Closeable { stream.close() }
-                InputStreamBody(stream)
-            } else EmptyBody
         }
 
         return builder
     }
 }
+
+private suspend fun suspendRequest(
+        data: Channel<ByteBuffer>,
+        block: (HttpAsyncResponseConsumer<Unit>, FutureCallback<Unit>) -> Unit
+): HttpResponse {
+    return suspendCoroutine { continuation ->
+        val consumer = object : AsyncByteConsumer<Unit>() {
+            override fun buildResult(context: HttpContext) {
+                data.close()
+            }
+
+            override fun onByteReceived(buffer: ByteBuffer, io: IOControl) {
+                val content = buffer.copy()
+                if (content.remaining() > 0 && !data.offer(content)) {
+                    throw IllegalStateException("data.offer() failed")
+                }
+            }
+
+            override fun onResponseReceived(response: HttpResponse) {
+                continuation.resume(response)
+            }
+        }
+
+        val callback = object : FutureCallback<Unit> {
+            override fun failed(exception: Exception) {
+                continuation.resumeWithException(exception)
+            }
+
+            override fun completed(result: Unit) {}
+
+            override fun cancelled() {}
+        }
+
+        block(consumer, callback)
+    }
+}
+
