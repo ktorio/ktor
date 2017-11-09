@@ -35,11 +35,6 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
     private var completed: Boolean = false
 
     suspend final override fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
-        servletResponse.status = upgrade.status?.value ?: HttpStatusCode.SwitchingProtocols.value
-        upgrade.headers.flattenEntries().forEach { e ->
-            servletResponse.addHeader(e.first, e.second)
-        }
-
         try {
             servletResponse.flushBuffer()
         } catch (e: IOException) {
@@ -48,10 +43,6 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
 
         completed = true
 
-        performUpgrade(upgrade)
-    }
-
-    private suspend fun performUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         servletUpgradeImpl.performUpgrade(upgrade, servletRequest, servletResponse, engineContext, userContext)
     }
 

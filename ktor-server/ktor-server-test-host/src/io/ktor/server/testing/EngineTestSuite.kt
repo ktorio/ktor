@@ -1202,6 +1202,12 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                 assertEquals("Upgrade", response.headers[HttpHeaders.Connection]?.toString())
                 assertEquals("up", response.headers[HttpHeaders.Upgrade]?.toString())
 
+                (0 until response.headers.size)
+                        .map { response.headers.nameAt(it).toString() }
+                        .groupBy { it }.forEach { (name, values) ->
+                    assertEquals(1, values.size, "Duplicate header $name")
+                }
+
                 outputStream.apply {
                     writePacket {
                         writeLong(0x1122334455667788L)
