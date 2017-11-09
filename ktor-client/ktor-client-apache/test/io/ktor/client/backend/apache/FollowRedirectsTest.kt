@@ -1,4 +1,4 @@
-package io.ktor.client.tests
+package io.ktor.client.backend.apache
 
 import io.ktor.application.*
 import io.ktor.client.*
@@ -14,8 +14,8 @@ import kotlinx.coroutines.experimental.*
 import org.junit.Test
 import org.junit.Assert.*
 
-open class FollowRedirectsTest(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
-    override val server: ApplicationEngine = embeddedServer(Jetty, port) {
+open class FollowRedirectsTest : TestWithKtor() {
+    override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         routing {
             get("/") {
                 call.respondRedirect("/get")
@@ -27,21 +27,20 @@ open class FollowRedirectsTest(factory: HttpClientBackendFactory) : TestWithKtor
     }
 
     @Test
-    fun simpleRedirect() {
-        val client = createClient()
-
-        runBlocking {
-            client.get<HttpResponse>(port = port).use {
+    fun defaultTest() = runBlocking {
+        HttpClient(ApacheBackend).use { client ->
+            client.get<HttpResponse>(port = serverPort).use {
                 assertEquals(HttpStatusCode.Found, it.status)
             }
+        }
+    }
 
-            client.get<HttpResponse>(port = port) {
-                followRedirects = true
-            }.use {
+    @Test
+    fun redirectTest() = runBlocking {
+        HttpClient(ApacheBackend.config { followRedirects = true }).use { client ->
+            client.get<HttpResponse>(port = serverPort).use {
                 assertEquals(HttpStatusCode.OK, it.status)
             }
         }
-
-        client.close()
     }
 }

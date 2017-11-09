@@ -3,6 +3,6 @@ package io.ktor.client
 import javax.net.ssl.*
 
 
-class HttpClientBackendConfig {
+open class HttpClientBackendConfig {
     var sslContext: SSLContext? = null
 }

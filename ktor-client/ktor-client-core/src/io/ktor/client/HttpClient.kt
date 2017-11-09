@@ -14,7 +14,7 @@ sealed class HttpClient : Closeable {
 
     companion object {
         operator fun invoke(
-                backendFactory: HttpClientBackendFactory,
+                backendFactory: HttpClientBackendFactory<*>,
                 block: ClientConfig.() -> Unit = {}
         ) = HttpClientFactory.createDefault(backendFactory, block)
     }

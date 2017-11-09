@@ -14,14 +14,14 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
-import org.junit.Test
+import org.junit.*
 import org.junit.Assert.*
 import java.util.concurrent.atomic.*
 
 
-open class CacheTests(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
+open class CacheTest(private val factory: HttpClientBackendFactory<*>) : TestWithKtor() {
     private var counter = AtomicInteger()
-    override val server: ApplicationEngine = embeddedServer(Jetty, port) {
+    override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         routing {
             get("/reset") {
                 counter.set(0)
@@ -54,12 +54,12 @@ open class CacheTests(factory: HttpClientBackendFactory) : TestWithKtor(factory)
 
     @Test
     fun testDisabled() {
-        val client = createClient {
+        val client = HttpClient(factory) {
             install(HttpCache)
         }
 
         val builder = HttpRequestBuilder().apply {
-            url(port = port)
+            url(port = serverPort)
         }
 
         runBlocking {
@@ -74,13 +74,13 @@ open class CacheTests(factory: HttpClientBackendFactory) : TestWithKtor(factory)
 
     @Test
     fun maxAge() {
-        val client = createClient {
+        val client = HttpClient(factory) {
             install(HttpCache)
         }
 
         val results = mutableListOf<String>()
         val request = HttpRequestBuilder().apply {
-            url(path = "/maxAge", port = port)
+            url(path = "/maxAge", port = serverPort)
         }
 
         runBlocking {

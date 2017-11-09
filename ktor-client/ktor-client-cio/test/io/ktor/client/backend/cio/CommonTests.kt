@@ -1,22 +1,16 @@
 package io.ktor.client.backend.cio
 
 import io.ktor.client.tests.*
-import org.junit.*
 import org.junit.experimental.runners.*
 import org.junit.runner.*
 
-private val BACKEND_FACTORY = CIOBackend
-
 @RunWith(Enclosed::class)
 class CIOClientTestSuite {
-    class CIOCacheTest : CacheTests(BACKEND_FACTORY)
+    class CIOCacheTest : CacheTest(CIOBackend)
 
-    class CIOCookiesTest : CookiesTests(BACKEND_FACTORY)
+    class CIOCookiesTest : CookiesTest(CIOBackend)
 
-    @Ignore("Redirect is currently not supported in CIO backend")
-    class CIOFollowRedirectsTest : FollowRedirectsTest(BACKEND_FACTORY)
+    class CIOFullFormTests : FullFormTest(CIOBackend)
 
-    class CIOFullFormTests : FullFormTests(BACKEND_FACTORY)
-
-    class CIOPostTests : PostTests(BACKEND_FACTORY)
+    class CIOPostTests : PostTest(CIOBackend)
 }

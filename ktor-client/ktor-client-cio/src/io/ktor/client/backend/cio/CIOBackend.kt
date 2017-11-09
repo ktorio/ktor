@@ -58,8 +58,8 @@ class CIOBackend : HttpClientBackend {
 
     override fun close() {}
 
-    companion object : HttpClientBackendFactory {
-        override operator fun invoke(block: HttpClientBackendConfig.() -> Unit): HttpClientBackend = CIOBackend()
+    companion object : HttpClientBackendFactory<HttpClientBackendConfig> {
+        override fun create(block: HttpClientBackendConfig.() -> Unit): HttpClientBackend = CIOBackend()
     }
 
     private suspend fun writeRequest(request: HttpRequest, output: ByteWriteChannel) {

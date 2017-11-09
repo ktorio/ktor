@@ -5,7 +5,6 @@ import io.ktor.client.*
 import io.ktor.client.backend.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
-import io.ktor.client.utils.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
@@ -13,15 +12,14 @@ import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
 import org.junit.Assert.*
-import java.net.*
 import java.util.concurrent.atomic.*
 
 
-abstract class MultithreadedTest(factory: HttpClientBackendFactory) : TestWithKtor(factory) {
+abstract class MultithreadedTest(private val factory: HttpClientBackendFactory<*>) : TestWithKtor() {
     private val DEFAULT_SIZE = 100_000
     private val counter: AtomicInteger = AtomicInteger()
 
-    override val server: ApplicationEngine = embeddedServer(Jetty, port) {
+    override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         routing {
             get("/") {
                 call.respondText(counter.incrementAndGet().toString())
@@ -31,11 +29,11 @@ abstract class MultithreadedTest(factory: HttpClientBackendFactory) : TestWithKt
 
     @Test
     fun numberTest() = runBlocking {
-        val client = createClient()
+        val client = HttpClient(factory)
 
         val result = List(DEFAULT_SIZE) {
             async {
-                val response = client.get<HttpResponse>("http://127.0.0.1:$port")
+                val response = client.get<HttpResponse>("http://127.0.0.1:$serverPort")
                 val result = response.readText().toInt()
                 response.close()
                 return@async result

@@ -10,8 +10,14 @@ interface HttpClientBackend : Closeable {
     suspend fun makeRequest(request: HttpRequest): HttpResponseBuilder
 }
 
-typealias HttpClientBackendFactory = (HttpClientBackendConfig.() -> Unit) -> HttpClientBackend
-
-fun HttpClientBackendFactory.config(nested: HttpClientBackendConfig.() -> Unit): HttpClientBackendFactory = {
-    this { it(); nested() }
+interface HttpClientBackendFactory<out T : HttpClientBackendConfig> {
+    fun create(block: T.() -> Unit = {}): HttpClientBackend
 }
+
+fun <T : HttpClientBackendConfig> HttpClientBackendFactory<T>.config(nested: T.() -> Unit): HttpClientBackendFactory<T> =
+        object : HttpClientBackendFactory<T> {
+            override fun create(block: T.() -> Unit): HttpClientBackend = this@config.create {
+                block()
+                nested()
+            }
+        }
