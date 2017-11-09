@@ -59,7 +59,8 @@ internal class WebSocketWriter(val writeChannel: WriteChannel, ctx: CoroutineCon
         var flush: FlushRequest? = null
         var closeSent = closed
 
-        while (!isEmpty || serializer.hasOutstandingBytes) {
+        // initially serializer has at least one message queued
+        while (true) {
             while (flush == null && serializer.remainingCapacity > 0) {
                 val msg = poll() ?: break
                 if (msg is FlushRequest) flush = msg
@@ -72,6 +73,8 @@ internal class WebSocketWriter(val writeChannel: WriteChannel, ctx: CoroutineCon
                     serializer.enqueue(msg)
                 } else throw IllegalArgumentException("unknown message $msg")
             }
+
+            if (!serializer.hasOutstandingBytes && buffer.position() == 0) break
 
             serializer.masking = masking
             serializer.serialize(buffer)
@@ -99,6 +102,7 @@ internal class WebSocketWriter(val writeChannel: WriteChannel, ctx: CoroutineCon
         // it is important here to flush the channel as some engines could delay actual bytes transferring
         // as we reached here then we don't have any outstanding messages so we can flush at idle
         writeChannel.flush()
+        flush?.complete()
 
         return closeSent
     }
