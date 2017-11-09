@@ -6,7 +6,7 @@ import io.ktor.locations.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
-@location("/styles/main.css")
+@Location("/styles/main.css")
 class MainCss()
 
 fun Route.styles() {

@@ -6,7 +6,7 @@ import io.ktor.pipeline.*
 import io.ktor.routing.*
 import kotlin.reflect.*
 
-annotation class location(val path: String)
+annotation class Location(val path: String)
 
 val PipelineContext<Unit, ApplicationCall>.locations get() = call.application.locations
 val ApplicationCall.locations get() = application.locations

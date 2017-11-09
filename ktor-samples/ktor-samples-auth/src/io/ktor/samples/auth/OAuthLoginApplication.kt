@@ -15,8 +15,8 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.html.*
 import java.util.concurrent.*
 
-@location("/") class index()
-@location("/login/{type?}") class login(val type: String = "")
+@Location("/") class index()
+@Location("/login/{type?}") class login(val type: String = "")
 
 /**
  * DISCLAIMER

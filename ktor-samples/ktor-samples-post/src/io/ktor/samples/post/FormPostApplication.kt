@@ -11,8 +11,8 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
-@location("/") class index()
-@location("/form") class post()
+@Location("/") class index()
+@Location("/form") class post()
 
 fun Application.main() {
     install(DefaultHeaders)
