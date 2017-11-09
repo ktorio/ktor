@@ -4,8 +4,6 @@ dependencies {
     compile project(':ktor-http-cio')
     compile project(':ktor-network')
 
-    compile group: 'ch.qos.logback', name: 'logback-classic', version: logback_version
-
     testCompile project(':ktor-server:ktor-server-test-host')
     testCompile project(':ktor-server:ktor-server-core')
     testCompile project(':ktor-client:ktor-client-cio')

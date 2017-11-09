@@ -7,8 +7,6 @@ dependencies {
     compile group: 'org.eclipse.jetty', name: 'jetty-alpn-server', version: jetty_version
     compile group: 'org.eclipse.jetty.http2', name: 'http2-server', version: jetty_version
 
-    compile group: 'ch.qos.logback', name: 'logback-classic', version: logback_version
-
     testCompile project(':ktor-server:ktor-server-test-host')
     testCompile group: 'org.eclipse.jetty', name: 'jetty-servlet', version: jetty_version
     testCompile project(':ktor-server:ktor-server-core')
