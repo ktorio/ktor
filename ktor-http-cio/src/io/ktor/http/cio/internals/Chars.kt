@@ -53,15 +53,39 @@ internal fun CharSequence.parseHexLong(): Long {
 }
 
 internal fun CharSequence.parseDecLong(): Long {
+    val length = length
+    if (length > 19) numberFormatException(this)
+    if (length == 19) return parseDecLongWithCheck()
+
     var result = 0L
     for (i in 0 until length) {
-        val v = this[i].toInt() and 0xffff
-        val digit = if (v in 0x30..0x39) v.toLong() - 0x30 else -1L
-        if (digit == -1L) throw NumberFormatException("Invalid number: $this, wrong digit: ${this[i]}")
+        val digit = this[i].toLong() - 0x30L
+        if (digit < 0 || digit > 9) numberFormatException(this, i)
 
-        result = (result * 10) or digit
+        result = (result shl 3) + (result shl 1) + digit
     }
 
     return result
+}
+
+private fun CharSequence.parseDecLongWithCheck(): Long {
+    var result = 0L
+    for (i in 0 until length) {
+        val digit = this[i].toLong() - 0x30L
+        if (digit < 0 || digit > 9) numberFormatException(this, i)
+
+        result = (result shl 3) + (result shl 1) + digit
+        if (result < 0) numberFormatException(this)
+    }
+
+    return result
+}
+
+private fun numberFormatException(cs: CharSequence, idx: Int) {
+    throw NumberFormatException("Invalid number: $cs, wrong digit: ${cs[idx]} at position $idx")
+}
+
+private fun numberFormatException(cs: CharSequence) {
+    throw NumberFormatException("Invalid number $cs: too large for Long type")
 }
 

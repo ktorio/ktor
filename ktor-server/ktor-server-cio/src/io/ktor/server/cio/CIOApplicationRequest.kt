@@ -40,7 +40,7 @@ class CIOApplicationRequest(call: ApplicationCall,
             get() = request.headers["Host"]?.toString()?.substringAfter(":", "80")?.toInt() ?: 80
 
         override val method: HttpMethod
-            get() = HttpMethod.parse(request.method.value.toString())
+            get() = HttpMethod.parse(request.method.value)
 
         override val remoteHost: String
             get() = "unknown" // TODO
