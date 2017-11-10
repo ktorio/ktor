@@ -1,6 +1,7 @@
 package io.ktor.http.cio
 
 import io.ktor.http.*
+import io.ktor.http.cio.ConnectionType.*
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
@@ -16,7 +17,7 @@ fun expectHttpUpgrade(method: HttpMethod,
 fun expectHttpUpgrade(request: Request): Boolean {
     return expectHttpUpgrade(request.method,
             request.headers["Upgrade"],
-            connectionType(request.headers["Connection"]))
+            ConnectionType.parse(request.headers["Connection"]))
 }
 
 fun expectHttpBody(method: HttpMethod,
@@ -45,7 +46,7 @@ fun expectHttpBody(request: Request): Boolean {
     return expectHttpBody(request.method,
             request.headers["Content-Length"]?.parseDecLong() ?: -1,
             request.headers["Transfer-Encoding"],
-            connectionType(request.headers["Connection"]),
+            ConnectionType.parse(request.headers["Connection"]),
             request.headers["Content-Type"]
             )
 }
@@ -85,7 +86,7 @@ suspend fun parseHttpBody(headers: HttpHeadersMap, input: ByteReadChannel, out: 
     return parseHttpBody(
             headers["Content-Length"]?.parseDecLong() ?: -1,
             headers["Transfer-Encoding"],
-            connectionType(headers["Connection"]),
+            ConnectionType.parse(headers["Connection"]),
             input, out
     )
 }

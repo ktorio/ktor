@@ -24,6 +24,8 @@ suspend fun parseRequest(input: ByteReadChannel): Request? {
             skipSpaces(builder, range)
 
             if (range.start != range.end) throw ParserException("Extra characters in request line: ${builder.substring(range.start, range.end)}")
+            if (uri.isEmpty()) throw ParserException("URI is not specified")
+            if (version.isEmpty()) throw ParserException("HTTP version is not specified")
 
             val headers = parseHeaders(input, builder, range) ?: return null
 

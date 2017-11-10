@@ -1,20 +1,12 @@
 package io.ktor.http.cio
 
+import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
+import java.io.*
 import kotlin.coroutines.experimental.*
-
-fun connectionType(connection: CharSequence?): ConnectionType? {
-    return when {
-        connection == null -> null
-        connection.equalsLowerCase(other = "close") -> ConnectionType.Close
-        connection.equalsLowerCase(other = "keep-alive") -> ConnectionType.KeepAlive
-        connection.equalsLowerCase(other = "upgrade") -> ConnectionType.Upgrade
-        else -> null
-    }
-}
 
 fun lastHttpRequest(http11: Boolean, connectionType: ConnectionType?): Boolean {
     return when (connectionType) {
@@ -54,20 +46,31 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
 
     try {
         while (true) {
-            val request = parseRequest(input) ?: break
-            val contentLength = request.headers["Content-Length"]?.parseDecLong() ?: -1
-            val transferEncoding = request.headers["Transfer-Encoding"]
-            val upgrade = request.headers["Upgrade"]
-            val connection = request.headers["Connection"]
-            val contentType = request.headers["Content-Type"]
-            val http11 = request.version == "HTTP/1.1"
-            val connectionType = connectionType(connection)
-
-            val expectedHttpBody = expectHttpBody(request.method, contentLength, transferEncoding, connectionType, contentType)
-            val expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request.method, upgrade, connectionType)
-            val requestBody = if (expectedHttpBody || expectedHttpUpgrade) ByteChannel(true) else EmptyByteReadChannel
+            val request = try {
+                parseRequest(input) ?: break
+            } catch (io: IOException) {
+                throw io
+            } catch (t: Throwable) {
+                val bc = ByteChannel()
+                if (outputsActor.offer(bc)) {
+                    bc.writePacket(BadRequestPacket.copy())
+                    bc.close()
+                }
+                throw t
+            }
 
             val response = ByteChannel()
+
+            val transferEncoding = request.headers["Transfer-Encoding"]
+            val upgrade = request.headers["Upgrade"]
+            val contentType = request.headers["Content-Type"]
+            val http11 = request.version == "HTTP/1.1"
+
+            val connectionType: ConnectionType?
+            val contentLength: Long
+            val expectedHttpBody: Boolean
+            val expectedHttpUpgrade: Boolean
+
             try {
                 outputsActor.send(response)
             } catch (t: Throwable) {
@@ -75,6 +78,19 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
                 throw t
             }
 
+            try {
+                connectionType = ConnectionType.parse(request.headers["Connection"])
+                contentLength = request.headers["Content-Length"]?.parseDecLong() ?: -1
+                expectedHttpBody = expectHttpBody(request.method, contentLength, transferEncoding, connectionType, contentType)
+                expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request.method, upgrade, connectionType)
+            } catch (t: Throwable) {
+                request.release()
+                response.writePacket(BadRequestPacket.copy())
+                response.close()
+                throw t
+            }
+
+            val requestBody = if (expectedHttpBody || expectedHttpUpgrade) ByteChannel(true) else EmptyByteReadChannel
             val upgraded = if (expectedHttpUpgrade) CompletableDeferred<Boolean>() else null
 
             launch(callDispatcher) {
@@ -117,6 +133,13 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
         outputsActor.join()
     }
 }
+
+private val BadRequestPacket =
+    RequestResponseBuilder().apply {
+        responseLine("HTTP/1.0", HttpStatusCode.BadRequest.value, "Bad Request")
+        headerLine("Connection", "close")
+        emptyLine()
+    }.build()
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun <S, R> suspendLambda(noinline block: suspend S.() -> R): suspend S.() -> R = block
