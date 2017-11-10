@@ -1,6 +1,5 @@
 package io.ktor.server.cio
 
-import io.ktor.application.*
 import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
@@ -44,9 +43,43 @@ class CIOApplicationResponse(call: CIOApplicationCall,
             return headersNames
         }
 
-        override fun getEngineHeaderValues(name: String): List<String> = headersNames.indices
-                .filter { headersNames[it].equals(name, ignoreCase = true) }
-                .map { headerValues[it] }
+        override fun getEngineHeaderValues(name: String): List<String> {
+            val names = headersNames
+            val values = headerValues
+            val size = headersNames.size
+            var firstIndex = -1
+
+            for (i in 0 until size) {
+                if (names[i].equals(name, ignoreCase = true)) {
+                    firstIndex = i
+                    break
+                }
+            }
+
+            if (firstIndex == -1) return emptyList()
+
+            var secondIndex = -1
+            for (i in firstIndex until size) {
+                if (names[i].equals(name, ignoreCase = true)) {
+                    secondIndex = i
+                    break
+                }
+            }
+
+            if (secondIndex == -1) return listOf(values[firstIndex])
+
+            val result = ArrayList<String>(size - secondIndex + 1)
+            result.add(values[firstIndex])
+            result.add(values[secondIndex])
+
+            for (i in secondIndex until size) {
+                if (names[i].equals(name, ignoreCase = true)) {
+                    result.add(values[i])
+                }
+            }
+
+            return result
+        }
     }
 
     private fun hasHeader(name: String) = headersNames.any { it.equals(name, ignoreCase = true) }
