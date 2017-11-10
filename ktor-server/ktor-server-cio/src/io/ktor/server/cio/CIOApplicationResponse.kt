@@ -12,7 +12,7 @@ import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import kotlin.coroutines.experimental.*
 
-class CIOApplicationResponse(call: ApplicationCall,
+class CIOApplicationResponse(call: CIOApplicationCall,
                              private val output: ByteWriteChannel,
                              private val input: ByteReadChannel,
                              private val engineDispatcher: CoroutineContext,
@@ -27,6 +27,12 @@ class CIOApplicationResponse(call: ApplicationCall,
 
     @Volatile
     private var chunkedJob: Job? = null
+
+    init {
+        pipeline.intercept(ApplicationSendPipeline.Engine) {
+            call.release()
+        }
+    }
 
     override val headers = object : ResponseHeaders() {
         override fun engineAppendHeader(name: String, value: String) {

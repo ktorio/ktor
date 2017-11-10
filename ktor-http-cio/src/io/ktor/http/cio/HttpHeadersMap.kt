@@ -19,6 +19,8 @@ private const val EXPECTED_HEADERS_QTY = 32
 private const val HEADER_SIZE = 8
 private const val HEADER_ARRAY_POOL_SIZE = 1000
 
+private val EMPTY_INT_ARRAY = IntArray(0)
+
 class HttpHeadersMap internal constructor(private val builder: CharBufferBuilder) {
     var size = 0
         private set
@@ -83,7 +85,10 @@ class HttpHeadersMap internal constructor(private val builder: CharBufferBuilder
 
     fun release() {
         size = 0
-        IntArrayPool.recycle(indexes)
+        val idxs = indexes
+        indexes = EMPTY_INT_ARRAY
+
+        if (idxs !== EMPTY_INT_ARRAY) IntArrayPool.recycle(idxs)
     }
 }
 

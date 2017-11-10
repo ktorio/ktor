@@ -18,4 +18,7 @@ class CIOApplicationCall(application: Application,
     override val request = CIOApplicationRequest(this, input, _request)
     override val response = CIOApplicationResponse(this, output, input, engineDispatcher, appDispatcher, upgraded)
 
+    internal fun release() {
+        request.release()
+    }
 }
