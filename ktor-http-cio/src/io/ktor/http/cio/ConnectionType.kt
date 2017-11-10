@@ -13,7 +13,7 @@ class ConnectionType(val value: String, val hopByHopHeaders: List<String>) {
 
         fun parse(connection: CharSequence?): ConnectionType? {
             if (connection == null) return null
-            val known = knownTypes.search(connection, stopPredicate = { _, _ -> false })
+            val known = knownTypes.search(connection, lowerCase = true, stopPredicate = { _, _ -> false })
             if (known.size == 1) return known[0]
             return parseSlow(connection)
         }
@@ -41,7 +41,7 @@ class ConnectionType(val value: String, val hopByHopHeaders: List<String>) {
                     idx++
                 }
 
-                val detected = knownTypes.search(connection, start, idx, stopPredicate = { _, _ -> false }).singleOrNull()
+                val detected = knownTypes.search(connection, start, idx, lowerCase = true, stopPredicate = { _, _ -> false }).singleOrNull()
                 when {
                     detected == null -> {
                         if (hopHeadersList == null) {

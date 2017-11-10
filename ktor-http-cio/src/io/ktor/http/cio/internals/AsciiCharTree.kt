@@ -5,7 +5,7 @@ internal class AsciiCharTree<T : Any>(val root: Node<T>) {
         val array = Array(0x100) { chi -> children.singleOrNull { it.ch.toInt() == chi } }
     }
 
-    inline fun search(s: CharSequence, fromIdx: Int = 0, end: Int = s.length, stopPredicate: (Char, Int) -> Boolean): List<T> {
+    fun search(s: CharSequence, fromIdx: Int = 0, end: Int = s.length, lowerCase: Boolean = false, stopPredicate: (Char, Int) -> Boolean): List<T> {
         if (s.isEmpty()) throw IllegalArgumentException("Couldn't search in char tree for empty string")
         var node = root
 
@@ -15,13 +15,13 @@ internal class AsciiCharTree<T : Any>(val root: Node<T>) {
 
             if (stopPredicate(ch, chi)) break
 
-            val nextNode = node.array[chi] ?: return emptyList()
+            val nextNode = node.array[chi] ?: (if (lowerCase) node.array[ch.toLowerCase().toInt()] else null) ?: return emptyList()
             node = nextNode
         }
 
         return node.exact
     }
-;
+
     companion object {
         fun <T : CharSequence> build(from: List<T>): AsciiCharTree<T> {
             return build(from, { it.length }, { s, idx -> s[idx] })
