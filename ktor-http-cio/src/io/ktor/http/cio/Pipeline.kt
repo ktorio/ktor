@@ -6,16 +6,22 @@ import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
 import kotlin.coroutines.experimental.*
 
-
-fun lastHttpRequest(request: Request): Boolean {
-    val pre11 = !request.version.equalsLowerCase(other = "HTTP/1.1")
-    val connection = request.headers["Connection"]
-
+fun connectionType(connection: CharSequence?): ConnectionType? {
     return when {
-        connection == null -> pre11 // connection close by default for HTTP/1.0 and HTTP/0.x
-        connection.equalsLowerCase(other = "keep-alive") -> false
-        connection.equalsLowerCase(other = "close") -> true
-        else -> false // upgrade, etc
+        connection == null -> null
+        connection.equalsLowerCase(other = "close") -> ConnectionType.Close
+        connection.equalsLowerCase(other = "keep-alive") -> ConnectionType.KeepAlive
+        connection.equalsLowerCase(other = "upgrade") -> ConnectionType.Upgrade
+        else -> null
+    }
+}
+
+fun lastHttpRequest(http11: Boolean, connectionType: ConnectionType?): Boolean {
+    return when (connectionType) {
+        null -> !http11
+        ConnectionType.KeepAlive -> false
+        ConnectionType.Close -> true
+        else -> false
     }
 }
 
@@ -35,6 +41,7 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
             val receiveChildOrNull = suspendLambda<CoroutineScope, ByteReadChannel?> { channel.receiveOrNull() }
             while (true) {
                 val child = timeouts.withTimeout(receiveChildOrNull) ?: break
+//                child.joinTo(output, false)
                 child.copyTo(output)
                 output.flush()
             }
@@ -48,8 +55,16 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
     try {
         while (true) {
             val request = parseRequest(input) ?: break
-            val expectedHttpBody = expectHttpBody(request)
-            val expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request)
+            val contentLength = request.headers["Content-Length"]?.parseDecLong() ?: -1
+            val transferEncoding = request.headers["Transfer-Encoding"]
+            val upgrade = request.headers["Upgrade"]
+            val connection = request.headers["Connection"]
+            val contentType = request.headers["Content-Type"]
+            val http11 = request.version == "HTTP/1.1"
+            val connectionType = connectionType(connection)
+
+            val expectedHttpBody = expectHttpBody(request.method, contentLength, transferEncoding, connectionType, contentType)
+            val expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request.method, upgrade, connectionType)
             val requestBody = if (expectedHttpBody || expectedHttpUpgrade) ByteChannel(true) else EmptyByteReadChannel
 
             val response = ByteChannel()
@@ -87,7 +102,7 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
 
             if (expectedHttpBody && requestBody is ByteWriteChannel) {
                 try {
-                    parseHttpBody(request.headers, input, requestBody)
+                    parseHttpBody(contentLength, transferEncoding, connectionType, input, requestBody)
                 } catch (t: Throwable) {
                     requestBody.close(t)
                 } finally {
@@ -95,7 +110,7 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
                 }
             }
 
-            if (lastHttpRequest(request)) break
+            if (lastHttpRequest(http11, connectionType)) break
         }
     } finally {
         outputsActor.close()

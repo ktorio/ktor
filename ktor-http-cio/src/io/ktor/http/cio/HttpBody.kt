@@ -5,56 +5,56 @@ import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
 
-fun expectHttpUpgrade(request: Request): Boolean {
-    return request.method == HttpMethod.Get &&
-            request.headers[HttpHeaders.Upgrade] != null &&
-            request.headers[HttpHeaders.Connection].let { connection ->
-                connection != null && connection.contains("upgrade", ignoreCase = true)
-            }
+fun expectHttpUpgrade(method: HttpMethod,
+                      upgrade: CharSequence?,
+                      connectionType: ConnectionType?): Boolean {
+    return method == HttpMethod.Get &&
+            upgrade != null &&
+            connectionType == ConnectionType.Upgrade
 }
 
-fun expectHttpBody(request: Request): Boolean {
-    val method = request.method
+fun expectHttpUpgrade(request: Request): Boolean {
+    return expectHttpUpgrade(request.method,
+            request.headers["Upgrade"],
+            connectionType(request.headers["Connection"]))
+}
+
+fun expectHttpBody(method: HttpMethod,
+                   contentLength: Long,
+                   transferEncoding: CharSequence?,
+                   connectionType: ConnectionType?,
+                   contentType: CharSequence?): Boolean {
     if (method == HttpMethod.Get ||
             method == HttpMethod.Head ||
             method == HttpMethod.Options) {
         return false
     }
 
-    val hh = request.headers
-    val length = hh["Content-Length"]
-
-    if (length != null) {
-        if (length.length == 1 && length[0] == '0') return false
-        return true
+    if (transferEncoding != null) return true
+    if (connectionType == ConnectionType.Close) return true
+    if (contentLength != -1L) {
+        return contentLength > 0L
     }
 
-    val transferEncoding = hh["Transfer-Encoding"]
-    if (transferEncoding != null) {
-        return true
-    }
-
-    val connection = hh["Connection"]
-    if (connection != null && connection.startsWith("close")) {
-        return true
-    }
-
-    if (hh["Content-Type"] != null) return true
+    if (contentType != null) return true
 
     return false
 }
 
+fun expectHttpBody(request: Request): Boolean {
+    return expectHttpBody(request.method,
+            request.headers["Content-Length"]?.parseDecLong() ?: -1,
+            request.headers["Transfer-Encoding"],
+            connectionType(request.headers["Connection"]),
+            request.headers["Content-Type"]
+            )
+}
 
-suspend fun parseHttpBody(headers: HttpHeadersMap, input: ByteReadChannel, out: ByteWriteChannel) {
-    val lengthString = headers["Content-Length"]
-    if (lengthString != null) {
-        val length = lengthString.parseDecLong()
-
-        input.copyTo(out, length)
-        return
-    }
-
-    val transferEncoding = headers["Transfer-Encoding"]
+suspend fun parseHttpBody(contentLength: Long,
+                          transferEncoding: CharSequence?,
+                          connectionType: ConnectionType?,
+                          input: ByteReadChannel,
+                          out: ByteWriteChannel) {
     if (transferEncoding != null) {
         if (transferEncoding.equalsLowerCase(other = "chunked")) {
             return decodeChunked(input, out)
@@ -62,11 +62,16 @@ suspend fun parseHttpBody(headers: HttpHeadersMap, input: ByteReadChannel, out: 
             // do nothing special
         } else {
             out.close(IOException("Unsupported transfer-encoding $transferEncoding"))
-            // TODO unknown transfer encoding?
+            // TODO: combined transfer encodings
         }
     }
 
-    if (headers["Connection"]?.equalsLowerCase(other = "close") == true) {
+    if (contentLength != -1L) {
+        input.copyTo(out, contentLength)
+        return
+    }
+
+    if (connectionType == ConnectionType.Close) {
         input.copyTo(out)
         return
     }
@@ -74,4 +79,13 @@ suspend fun parseHttpBody(headers: HttpHeadersMap, input: ByteReadChannel, out: 
     out.close(IOException("Failed to parse request body: request body length should be specified, " +
             "chunked transfer encoding should be used or " +
             "keep-alive should be disabled (connection: close)"))
+}
+
+suspend fun parseHttpBody(headers: HttpHeadersMap, input: ByteReadChannel, out: ByteWriteChannel) {
+    return parseHttpBody(
+            headers["Content-Length"]?.parseDecLong() ?: -1,
+            headers["Transfer-Encoding"],
+            connectionType(headers["Connection"]),
+            input, out
+    )
 }
