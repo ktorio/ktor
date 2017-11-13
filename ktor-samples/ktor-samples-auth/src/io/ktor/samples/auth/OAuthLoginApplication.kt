@@ -109,9 +109,14 @@ fun Application.OAuthLoginApplication() {
             }
         }
 
+        val client = HttpClient(ApacheBackend)
+        environment.monitor.subscribe(ApplicationStopping) {
+            client.close()
+        }
+
         location<login>() {
             authentication {
-                oauthAtLocation<login>(HttpClient(ApacheBackend), exec.asCoroutineDispatcher(),
+                oauthAtLocation<login>(client, exec.asCoroutineDispatcher(),
                         providerLookup = { loginProviders[it.type] },
                         urlProvider = { _, p -> redirectUrl(login(p.name), false) })
             }

@@ -97,6 +97,7 @@ class OAuth2Test {
 
     @After
     fun tearDown() {
+        testClient.close()
         executor.shutdownNow()
     }
 

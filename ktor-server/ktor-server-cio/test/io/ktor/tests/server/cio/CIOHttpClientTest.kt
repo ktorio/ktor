@@ -59,7 +59,8 @@ class CIOHttpClientTest {
         }
 
         val port = portSync.take()
-        val response = HttpClient(CIOBackend).call(URL("http://127.0.0.1:$port/")) {
+        val client = HttpClient(CIOBackend)
+        val response = client.call(URL("http://127.0.0.1:$port/")) {
             method = HttpMethod.Post
             url.path = "/url"
             header("header", "value")
@@ -84,6 +85,7 @@ class CIOHttpClientTest {
             assertEquals("request-body", receivedContentSync.take())
         } finally {
             response.close()
+            client.close()
             th.join()
         }
     }
@@ -149,7 +151,8 @@ class CIOHttpClientTest {
 
         val port = portSync.await()
 
-        val response = HttpClient(CIOBackend).call(URL("http://127.0.0.1:$port/")) {
+        val client = HttpClient(CIOBackend)
+        val response = client.call(URL("http://127.0.0.1:$port/")) {
             method = HttpMethod.Post
             url.path = "/url"
             header("header", "value")
@@ -174,6 +177,7 @@ class CIOHttpClientTest {
             assertEquals("request-body", receivedContentSync.await())
         } finally {
             response.close()
+            client.close()
             th.join()
         }
     }

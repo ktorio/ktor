@@ -63,7 +63,8 @@ class HttpClientTest {
         }
 
         val port = portSync.take()
-        val response = HttpClient(ApacheBackend).call("http://127.0.0.1:$port/") {
+        val client = HttpClient(ApacheBackend)
+        val response = client.call("http://127.0.0.1:$port/") {
             method = HttpMethod.Post
             url.path = "/url"
             header("header", "value")
@@ -83,6 +84,7 @@ class HttpClientTest {
             assertEquals("request-body", receivedContentSync.take())
         } finally {
             response.close()
+            client.close()
             th.join()
         }
     }

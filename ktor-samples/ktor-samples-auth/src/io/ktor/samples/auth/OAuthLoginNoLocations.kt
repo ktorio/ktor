@@ -21,9 +21,14 @@ fun Application.OAuthLoginNoLocationApplication() {
         // generally you shouldn't do like that however there are situation when you could need
         // to do everything on lower level
 
+        val client = HttpClient(ApacheBackend)
+        environment.monitor.subscribe(ApplicationStopping) {
+            client.close()
+        }
+
         when (call.parameters["authStep"]) {
-            "1" -> oauthRespondRedirect(HttpClient(ApacheBackend), exec.asCoroutineDispatcher(), loginProviders.values.first(), "/any?authStep=2")
-            "2" -> oauthHandleCallback(HttpClient(ApacheBackend), exec.asCoroutineDispatcher(), loginProviders.values.first(), "/any?authStep=2", "/") {
+            "1" -> oauthRespondRedirect(client, exec.asCoroutineDispatcher(), loginProviders.values.first(), "/any?authStep=2")
+            "2" -> oauthHandleCallback(client, exec.asCoroutineDispatcher(), loginProviders.values.first(), "/any?authStep=2", "/") {
                 call.response.status(HttpStatusCode.OK)
                 call.respondText("success")
             }
