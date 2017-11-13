@@ -60,11 +60,19 @@ class ContentType(val contentType: String, val contentSubtype: String, parameter
 
     companion object {
         fun parse(value: String): ContentType = HeaderValueWithParameters.parse(value) { parts, parameters ->
-            val content = parts.split("/")
-            if (content.size != 2)
+            val slash = parts.indexOf('/')
+            if (slash == -1) {
+                if (parts.trim() == "*")
+                    return@parse Any
                 throw BadContentTypeFormatException(value)
-
-            ContentType(content[0].trim(), content[1].trim(), parameters)
+            }
+            val type = parts.substring(0, slash).trim()
+            if (type.isEmpty())
+                throw BadContentTypeFormatException(value)
+            val subtype = parts.substring(slash + 1).trim()
+            if (subtype.isEmpty() || subtype.contains('/'))
+                throw BadContentTypeFormatException(value)
+            ContentType(type, subtype, parameters)
         }
 
         val Any = ContentType("*", "*")

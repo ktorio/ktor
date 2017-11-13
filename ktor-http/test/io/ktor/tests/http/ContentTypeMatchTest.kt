@@ -7,12 +7,21 @@ import kotlin.test.*
 public class ContentTypeMatchTest {
     @Test
     fun testTypeAndSubtype() {
+        assertTrue { ContentType.parse("text/plain").match("*") }
+        assertTrue { ContentType.parse("text/plain").match("* ") }
         assertTrue { ContentType.parse("text/plain").match("*/*") }
+        assertTrue { ContentType.parse("text/plain").match("*/ *") }
         assertTrue { ContentType.parse("text/plain").match("*/plain") }
+        assertTrue { ContentType.parse("text/plain").match("* /plain") }
         assertTrue { ContentType.parse("text/PLAIN").match("*/plain") }
         assertTrue { ContentType.parse("text/plain").match("text/*") }
         assertTrue { ContentType.parse("text/plain").match("text/plain") }
         assertTrue { ContentType.parse("text/plain").match("TEXT/plain") }
+
+        assertFailsWith<BadContentTypeFormatException> { ContentType.parse("text/") }
+        assertFailsWith<BadContentTypeFormatException> { ContentType.parse("/plain") }
+        assertFailsWith<BadContentTypeFormatException> { ContentType.parse("foobar") }
+        assertFailsWith<BadContentTypeFormatException> { ContentType.parse("foo/bar/baz") }
 
         assertFalse(ContentType.parse("text/plain").match("image/plain"))
         assertFalse(ContentType.parse("text/plain").match("text/xml"))
