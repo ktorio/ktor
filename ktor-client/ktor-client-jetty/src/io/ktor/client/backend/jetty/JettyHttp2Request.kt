@@ -8,7 +8,7 @@ import java.util.concurrent.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 
-internal class Http2Request(private val stream: Stream) : Callback {
+internal class JettyHttp2Request(private val stream: Stream) : Callback {
     private val l = ReentrantLock()
     private val sent = l.newCondition()!!
     private val empty = l.newCondition()!!

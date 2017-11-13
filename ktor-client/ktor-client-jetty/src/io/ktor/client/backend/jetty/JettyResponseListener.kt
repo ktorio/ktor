@@ -4,7 +4,7 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.network.util.*
 import io.ktor.util.*
-import jdk.nashorn.internal.ir.annotations.*
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.future.*
 import kotlinx.coroutines.experimental.io.*
@@ -14,17 +14,21 @@ import org.eclipse.jetty.http2.api.*
 import org.eclipse.jetty.http2.frames.*
 import org.eclipse.jetty.util.*
 import java.io.*
-import java.nio.ByteBuffer
 import java.nio.channels.*
 import java.util.concurrent.*
 
-
 data class StatusWithHeaders(val statusCode: HttpStatusCode, val headers: Headers)
 
-internal class HttpChannelListener : Stream.Listener {
-    val channel: Channel<ByteBuffer> = Channel(Channel.UNLIMITED)
+private data class JettyResponseChunk(val buffer: ByteBuffer, val callback: Callback)
+
+internal class JettyResponseListener(private val channel: ByteWriteChannel) : Stream.Listener {
     private val headersBuilder: HeadersBuilder = HeadersBuilder(caseInsensitiveKey = true)
     private val onHeadersReceived: CompletableFuture<HttpStatusCode?> = CompletableFuture()
+    private val backendChannel = Channel<JettyResponseChunk>(Channel.UNLIMITED)
+
+    init {
+        runResponseProcessing()
+    }
 
     override fun onPush(stream: Stream, frame: PushPromiseFrame): Stream.Listener {
         stream.reset(ResetFrame(frame.promisedStreamId, ErrorCode.CANCEL_STREAM_ERROR.code), Callback.NOOP)
@@ -45,16 +49,14 @@ internal class HttpChannelListener : Stream.Listener {
     }
 
     override fun onData(stream: Stream, frame: DataFrame, callback: Callback) {
-        try {
-            if (frame.data.remaining() > 0 && !channel.offer(frame.data.copy())) {
-                throw IllegalStateException("data.offer() failed")
-            }
-
-            if (frame.isEndStream) channel.close()
-            callback.succeeded()
-        } catch (t: Throwable) {
-            callback.failed(t)
+        val data = frame.data.copy()
+        if (data.remaining() > 0 && !backendChannel.offer(JettyResponseChunk(data, callback))) {
+            val cause = IOException("backendChannel.offer() failed")
+            backendChannel.close(cause)
+            callback.failed(cause)
         }
+
+        if (frame.isEndStream) backendChannel.close()
     }
 
     override fun onHeaders(stream: Stream, frame: HeadersFrame) {
@@ -65,7 +67,8 @@ internal class HttpChannelListener : Stream.Listener {
         if (frame.isEndStream) channel.close()
 
         onHeadersReceived.complete((frame.metaData as? MetaData.Response)?.let {
-            HttpStatusCode(it.status, it.reason ?: "")
+            val (status, reason) = it.status to it.reason
+            reason?.let { HttpStatusCode(status, reason) } ?: HttpStatusCode.fromValue(status)
         })
     }
 
@@ -75,30 +78,28 @@ internal class HttpChannelListener : Stream.Listener {
         return StatusWithHeaders(statusCode, headersBuilder.build())
     }
 
+    private fun runResponseProcessing() = launch(ioCoroutineDispatcher) {
+        try {
+            while (!backendChannel.isClosedForReceive) {
+                val (buffer, callback) = backendChannel.receiveOrNull() ?: break
+                try {
+                    channel.writeFully(buffer)
+                    callback.succeeded()
+                } catch (t: Throwable) {
+                    callback.failed(t)
+                    channel.close(t)
+                    return@launch
+                }
+            }
+        } catch(t: Throwable) {
+            channel.close(t)
+            return@launch
+        }
+
+        channel.close()
+    }
+
     companion object {
         private val Ignore = Stream.Listener.Adapter()
-    }
-}
-
-internal class Http2Response {
-    val listener: HttpChannelListener = HttpChannelListener()
-
-    private val body: Channel<ByteBuffer> get() = listener.channel
-
-    suspend fun awaitHeaders(): StatusWithHeaders = listener.awaitHeaders()
-
-    fun channel(): ByteReadChannel {
-        return writer(ioCoroutineDispatcher) {
-            while (true) {
-                val buffer = body.receiveOrNull() ?: break
-                channel.writeFully(buffer)
-            }
-
-            body.close()
-        }.channel
-    }
-
-    fun close() {
-        body.close()
     }
 }

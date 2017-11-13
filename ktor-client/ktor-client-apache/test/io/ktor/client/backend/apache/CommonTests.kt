@@ -15,9 +15,9 @@ class ApacheClientTestSuite {
 
     class ApacheFollowRedirectsTest : FollowRedirectsTest(BACKEND_FACTORY)
 
-    class ApacheFullFormTests : FullFormTests(BACKEND_FACTORY)
-
     class ApachePostTests : PostTests(BACKEND_FACTORY)
 
     class ApacheMultithreadedTest : MultithreadedTest(BACKEND_FACTORY)
+
+    class ApacheFullFormTests : FullFormTests(BACKEND_FACTORY)
 }
