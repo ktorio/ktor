@@ -40,7 +40,7 @@ class WeakTimeoutQueue(private val timeoutMillis: Long,
             val wrapped = WeakTimeoutCoroutine(c.context, c)
             val handle = register(wrapped)
 
-            wrapped.initParentJob(c.context[Job])
+//            wrapped.initParentJob(c.context[Job])
             wrapped.disposeOnCompletion(handle)
 
             val result = try {
