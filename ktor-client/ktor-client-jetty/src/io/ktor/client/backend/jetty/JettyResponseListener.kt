@@ -16,6 +16,7 @@ import org.eclipse.jetty.util.*
 import java.io.*
 import java.nio.channels.*
 import java.util.concurrent.*
+import java.util.concurrent.atomic.*
 
 data class StatusWithHeaders(val statusCode: HttpStatusCode, val headers: Headers)
 
@@ -37,13 +38,13 @@ internal class JettyResponseListener(private val channel: ByteWriteChannel) : St
 
     override fun onReset(stream: Stream, frame: ResetFrame) {
         when (frame.error) {
-            0 -> channel.close()
-            ErrorCode.CANCEL_STREAM_ERROR.code -> channel.close(ClosedChannelException())
+            0 -> null
+            ErrorCode.CANCEL_STREAM_ERROR.code -> ClosedChannelException()
             else -> {
                 val code = ErrorCode.from(frame.error)
-                channel.close(IOException("Connection reset ${code?.name ?: "with unknown error code ${frame.error}"}"))
+                IOException("Connection reset ${code?.name ?: "with unknown error code ${frame.error}"}")
             }
-        }
+        }?.let { backendChannel.close(it) }
 
         onHeadersReceived.complete(null)
     }
@@ -64,7 +65,7 @@ internal class JettyResponseListener(private val channel: ByteWriteChannel) : St
             headersBuilder.append(field.name, field.value)
         }
 
-        if (frame.isEndStream) channel.close()
+        if (frame.isEndStream) backendChannel.close()
 
         onHeadersReceived.complete((frame.metaData as? MetaData.Response)?.let {
             val (status, reason) = it.status to it.reason
@@ -91,12 +92,12 @@ internal class JettyResponseListener(private val channel: ByteWriteChannel) : St
                     return@launch
                 }
             }
-        } catch(t: Throwable) {
+        } catch (t: Throwable) {
             channel.close(t)
             return@launch
+        } finally {
+            channel.close()
         }
-
-        channel.close()
     }
 
     companion object {

@@ -100,12 +100,19 @@ class JettyHttp2Backend : HttpClientBackend {
         if (body is Unit || body is EmptyBody || body !is HttpMessageBody) return
 
         val sourceChannel = body.toByteReadChannel()
+
         launch(ioCoroutineDispatcher) {
+            val buffer = HTTP_CLIENT_RESPONSE_POOL.borrow()
             while (!sourceChannel.isClosedForRead) {
-                sourceChannel.read { request.write(it) }
+                buffer.clear()
+                sourceChannel.readAvailable(buffer)
+
+                buffer.flip()
+                request.write(buffer)
             }
 
             request.endBody()
+            HTTP_CLIENT_RESPONSE_POOL.recycle(buffer)
         }
     }
 }
