@@ -11,19 +11,19 @@ import io.ktor.sessions.*
 import io.ktor.util.*
 import java.io.*
 
-@location("/video/{id}")
+@Location("/video/{id}")
 data class VideoStream(val id: Long)
 
-@location("/video/page/{id}")
+@Location("/video/page/{id}")
 data class VideoPage(val id: Long)
 
-@location("/login")
+@Location("/login")
 data class Login(val userName: String = "", val password: String = "")
 
-@location("/upload")
+@Location("/upload")
 class Upload()
 
-@location("/")
+@Location("/")
 class Index()
 
 data class YouKubeSession(val userId: String)

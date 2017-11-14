@@ -228,7 +228,7 @@ class LocationAttributeRouteService : LocationRouteService {
     }
 
     override fun findRoute(klass: KClass<*>): String? {
-        return klass.annotation<location>()?.path
+        return klass.annotation<Location>()?.path
     }
 }
 

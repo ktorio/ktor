@@ -32,7 +32,7 @@ object CustomLocationsFeature : ApplicationFeature<Application, Locations, Locat
 class index()
 class bye(val value: String)
 
-@location("entity/{id}")
+@Location("entity/{id}")
 class entity(val id: EntityID)
 
 data class EntityID(val typeId: Int, val entityId: Int)
