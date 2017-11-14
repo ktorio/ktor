@@ -13,7 +13,7 @@ import java.io.*
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.*
 
-private val RESPONSE_CHANNEL_SIZE = 32
+private val RESPONSE_CHANNEL_SIZE = 5
 
 private data class ApacheResponseChunk(val buffer: ByteBuffer, val io: IOControl)
 
@@ -45,17 +45,12 @@ internal class ApacheByteConsumer(
 
     override fun onResponseReceived(response: HttpResponse) = block(response)
 
-    fun release() {
-        backendChannel.close()
-        close()
-    }
-
     private fun runResponseProcessing() = launch(ioCoroutineDispatcher) {
         try {
             while (!backendChannel.isClosedForReceive) {
                 val (buffer, io) = backendChannel.receiveOrNull() ?: break
                 channel.writeFully(buffer)
-                if (channelSize.decrementAndGet() < RESPONSE_CHANNEL_SIZE) io.requestInput()
+                if (channelSize.decrementAndGet() < RESPONSE_CHANNEL_SIZE / 2) io.requestInput()
             }
         } catch (t: Throwable) {
             backendChannel.close(t)
