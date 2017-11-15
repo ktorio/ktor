@@ -250,6 +250,24 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/") {
             assertEquals(200, status.value)
             assertEquals("test-etag", headers[HttpHeaders.ETag])
+            assertNull(headers[HttpHeaders.TransferEncoding])
+            assertEquals("5", headers[HttpHeaders.ContentLength])
+        }
+    }
+
+    @Test
+    fun testHeadRequest() {
+        createAndStartServer {
+            install(AutoHeadResponse)
+            handle {
+                call.respondText("Hello")
+            }
+        }
+
+        withUrl("/", { method = HttpMethod.Head }) {
+            assertEquals(200, status.value)
+            assertNull(headers[HttpHeaders.TransferEncoding])
+            assertEquals("5", headers[HttpHeaders.ContentLength])
         }
     }
 
