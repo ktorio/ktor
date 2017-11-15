@@ -38,8 +38,8 @@ suspend fun HttpResponse.readBytes(): ByteArray {
     return body.toByteArray(sizeHint)
 }
 
-suspend fun HttpResponse.discardRemaining() {
-    val channel = bodyChannel
+suspend fun HttpMessageBody.discardRemaining() {
+    val channel = toByteReadChannel()
     val buffer = HTTP_CLIENT_RESPONSE_POOL.borrow()
 
     while (true) {
@@ -50,5 +50,6 @@ suspend fun HttpResponse.discardRemaining() {
     HTTP_CLIENT_RESPONSE_POOL.recycle(buffer)
 }
 
+suspend fun HttpResponse.discardRemaining() = (body as? HttpMessageBody)?.discardRemaining()
 
 class IllegalBodyStateException(val body: Any) : IllegalStateException("Body has been already processed by some feature: $body")
