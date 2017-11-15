@@ -22,6 +22,8 @@ internal val ArrayPool = object : DefaultPool<ByteArray>(1024) {
     }
 }
 
+private const val MAX_COPY_SIZE = 512 * 1024 // 512K
+
 private class ServletWriter(val output: ServletOutputStream) : WriteListener {
     val channel = ByteChannel()
 
@@ -56,24 +58,33 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
     }
 
     private suspend fun loop(buffer: ByteArray) {
+        var copied = 0L
         while (true) {
             val rc = channel.readAvailable(buffer)
             if (rc == -1) break
-            copyLoop(buffer, rc)
-        }
-    }
 
-    private suspend fun copyLoop(buffer: ByteArray, n: Int) {
-        awaitReady()
-        output.write(buffer, 0, n)
-        awaitReady()
-        output.flush()
+            copied += rc
+            if (copied > MAX_COPY_SIZE) {
+                copied = 0
+                yield()
+            }
+
+            awaitReady()
+            output.write(buffer, 0, rc)
+            awaitReady()
+            output.flush()
+        }
     }
 
     private suspend fun awaitReady() {
-        while (!output.isReady) {
+        if (output.isReady) return
+        return awaitReadySuspend()
+    }
+
+    private suspend fun awaitReadySuspend() {
+        do {
             events.receive()
-        }
+        } while (!output.isReady)
     }
 
     override fun onWritePossible() {

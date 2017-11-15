@@ -1017,7 +1017,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             }
         }
 
-        val originalSha1 = file.inputStream().use { it.sha1() }
+        val originalSha1WithSize = file.inputStream().use { it.sha1WithSize() }
 
         createAndStartServer {
             get("/file") {
@@ -1026,7 +1026,42 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         }
 
         withUrl("/file") {
-            assertEquals(originalSha1, bodyStream.sha1())
+            assertEquals(originalSha1WithSize, bodyStream.sha1WithSize())
+        }
+    }
+
+    @Test
+    fun testBigFileHttpUrlConnection() {
+        val file = File("build/large-file.dat")
+        val rnd = Random()
+
+        if (!file.exists()) {
+            file.bufferedWriter().use { out ->
+                for (line in 1..9000000) {
+                    for (col in 1..(30 + rnd.nextInt(40))) {
+                        out.append('a' + rnd.nextInt(25))
+                    }
+                    out.append('\n')
+                }
+            }
+        }
+
+        val originalSha1WithSize = file.inputStream().use { it.sha1WithSize() }
+
+        createAndStartServer {
+            get("/file") {
+                call.respond(LocalFileContent(file))
+            }
+        }
+
+        val connection = URL("http://localhost:$port/file").openConnection(Proxy.NO_PROXY) as HttpURLConnection
+        connection.connectTimeout = 10_000
+        connection.readTimeout = 10_000
+
+        try {
+            assertEquals(originalSha1WithSize, connection.inputStream.sha1WithSize())
+        } finally {
+            connection.disconnect()
         }
     }
 
@@ -1218,19 +1253,21 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     private fun String.urlPath() = replace("\\", "/")
     private class ExpectedException(message: String) : RuntimeException(message)
 
-    private fun InputStream.sha1(): String {
+    private fun InputStream.sha1WithSize(): Pair<String, Long> {
         val md = MessageDigest.getInstance("SHA1")
         val bytes = ByteArray(8192)
+        var count = 0L
 
         do {
             val rc = read(bytes)
             if (rc == -1) {
                 break
             }
+            count += rc
             md.update(bytes, 0, rc)
         } while (true)
 
-        return hex(md.digest())
+        return hex(md.digest()) to count
     }
 
     companion object {
