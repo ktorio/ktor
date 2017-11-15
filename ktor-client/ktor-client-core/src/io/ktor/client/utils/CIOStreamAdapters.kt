@@ -7,11 +7,13 @@ import kotlinx.io.pool.*
 import java.io.*
 
 
-private val DEFAULT_RESPONSE_POOL_SIZE = 1000
-internal val DEFAULT_RESPONSE_SIZE = 8192
+val DEFAULT_RESPONSE_POOL_SIZE = 1000
+val DEFAULT_RESPONSE_SIZE = 4096
 
 val HTTP_CLIENT_RESPONSE_POOL = object : DefaultPool<ByteBuffer>(DEFAULT_RESPONSE_POOL_SIZE) {
     override fun produceInstance(): ByteBuffer = ByteBuffer.allocate(DEFAULT_RESPONSE_SIZE)!!
+
+    override fun clearInstance(instance: ByteBuffer): ByteBuffer = instance.apply { clear() }
 }
 
 fun InputStream.toByteReadChannel(): ByteReadChannel {
