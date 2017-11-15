@@ -3,6 +3,7 @@ package io.ktor.server.netty
 import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
+import io.ktor.http.HttpHeaders
 import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.netty.channel.*
@@ -31,7 +32,12 @@ internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
 
     suspend override fun respondOutgoingContent(content: OutgoingContent) {
         try {
-            super.respondOutgoingContent(content)
+            if (content is OutgoingContent.NoContent && HttpHeaders.ContentLength in content.headers) {
+                commitHeaders(content)
+                sendResponse(false, EmptyByteReadChannel)
+            } else {
+                super.respondOutgoingContent(content)
+            }
         } catch (t: Throwable) {
             val out = responseChannel as? ByteWriteChannel
             out?.close(t)
