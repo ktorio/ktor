@@ -19,26 +19,28 @@ import org.apache.http.nio.client.methods.*
 import java.io.*
 import java.lang.*
 import java.util.*
+import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
 
+
+internal data class ApacheResponse(val response: HttpResponse, val responseReader: Closeable)
 
 class ApacheBackend(private val config: ApacheBackendConfig) : HttpClientBackend {
     private val backend: CloseableHttpAsyncClient = prepareClient().apply { start() }
 
     suspend override fun makeRequest(request: HttpRequest): HttpResponseBuilder {
         val apacheRequest = convertRequest(request)
-
         val sendTime = Date()
         val responseChannel = ByteChannel()
-
-        val apacheResponse = sendRequest(apacheRequest, responseChannel)
+        val (response, responseReader) = sendRequest(apacheRequest, responseChannel)
 
         val receiveTime = Date()
-        return convertResponse(apacheResponse).apply {
+        return convertResponse(response).apply {
             requestTime = sendTime
             responseTime = receiveTime
             body = ByteReadChannelBody(responseChannel)
+            origin = responseReader
         }
     }
 
@@ -136,24 +138,24 @@ class ApacheBackend(private val config: ApacheBackendConfig) : HttpClientBackend
         return builder
     }
 
-    private suspend fun sendRequest(apacheRequest: HttpUriRequest, responseChannel: ByteWriteChannel): HttpResponse =
+    private suspend fun sendRequest(apacheRequest: HttpUriRequest, responseChannel: ByteWriteChannel): ApacheResponse =
             suspendCoroutine { continuation ->
                 val completed = AtomicBoolean(false)
-                val consumer = ApacheByteConsumer(responseChannel) {
+                val consumer = ApacheResponseConsumer(responseChannel) {
                     if (completed.compareAndSet(false, true)) continuation.resume(it)
                 }
 
                 val callback = object : FutureCallback<Unit> {
                     override fun failed(exception: Exception) {
-                        responseChannel.close(exception)
+                        consumer.release(exception)
                         if (completed.compareAndSet(false, true)) continuation.resumeWithException(exception)
                     }
 
-                    override fun completed(result: Unit) {}
+                    override fun completed(result: Unit) = consumer.release()
 
                     override fun cancelled() {
-                        val cause = IOException("request canceled")
-                        responseChannel.close(cause)
+                        val cause = CancellationException("ApacheBackend: request canceled")
+                        consumer.release(cause)
                         if (completed.compareAndSet(false, true)) continuation.resumeWithException(cause)
                     }
                 }

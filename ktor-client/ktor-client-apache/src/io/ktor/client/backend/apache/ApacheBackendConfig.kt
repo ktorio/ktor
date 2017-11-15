@@ -8,7 +8,7 @@ class ApacheBackendConfig : HttpClientBackendConfig() {
     var followRedirects: Boolean = false
     var socketTimeout = 10_000
     var connectTimeout = 10_000
-    var connectionRequestTimeout = 10_000
+    var connectionRequestTimeout = 20_000
 
     var customRequest: (RequestConfig.Builder.() -> RequestConfig.Builder) = { this }
         private set
