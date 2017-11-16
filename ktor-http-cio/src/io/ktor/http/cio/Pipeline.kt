@@ -33,9 +33,15 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
             val receiveChildOrNull = suspendLambda<CoroutineScope, ByteReadChannel?> { channel.receiveOrNull() }
             while (true) {
                 val child = timeouts.withTimeout(receiveChildOrNull) ?: break
+                try {
 //                child.joinTo(output, false)
-                child.copyTo(output)
-                output.flush()
+                    child.copyTo(output)
+                    output.flush()
+                } catch (t: Throwable) {
+                    if (child is ByteWriteChannel) {
+                        child.close(t)
+                    }
+                }
             }
         } catch (t: Throwable) {
             output.close(t)
