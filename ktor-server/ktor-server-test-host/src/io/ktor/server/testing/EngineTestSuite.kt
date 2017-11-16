@@ -767,15 +767,19 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     fun testRepeatRequest() {
         createAndStartServer {
             get("/") {
+                println("Got call ${call.request.queryParameters["i"]}")
                 call.respond("OK ${call.request.queryParameters["i"]}")
+                println("Completed call ${call.request.queryParameters["i"]}")
             }
         }
 
         for (i in 1..100) {
+            println("Before $i")
             withUrl("/?i=$i") {
                 assertEquals(200, status.value)
                 assertEquals("OK $i", readText())
             }
+            println("After $i")
         }
     }
 
@@ -1080,6 +1084,54 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             assertEquals(originalSha1WithSize, connection.inputStream.sha1WithSize())
         } finally {
             connection.disconnect()
+        }
+    }
+
+    @Test
+    fun testClosedConnection() {
+        val completed = Job()
+
+        createAndStartServer {
+            get("/file") {
+                try {
+                    call.respond(object : OutgoingContent.WriteChannelContent() {
+                        suspend override fun writeTo(channel: WriteChannel) {
+                            val bb = ByteBuffer.allocate(100)
+                            for (i in 1L..1000L) {
+                                delay(100)
+                                bb.clear()
+                                bb.putLong(i)
+                                bb.flip()
+                                channel.write(bb)
+                                channel.flush()
+                            }
+                        }
+                    })
+                } finally {
+                    completed.cancel()
+                }
+            }
+        }
+
+        socket {
+            outputStream.writePacket(RequestResponseBuilder().apply {
+                requestLine(HttpMethod.Get, "/file", "HTTP/1.1")
+                headerLine("Host", "localhost:$port")
+                headerLine("Connection", "keep-alive")
+                emptyLine()
+            }.build())
+
+            outputStream.flush()
+
+            inputStream.read(ByteArray(100))
+            shutdownInput()
+            shutdownOutput()
+        }
+
+        runBlocking {
+            withTimeout(1000L, TimeUnit.SECONDS) {
+                completed.join()
+            }
         }
     }
 

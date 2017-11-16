@@ -70,9 +70,20 @@ internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
         }
     }
 
-    final fun close() {
-        sendResponse(content = EmptyByteReadChannel) // we don't need to suspendAwait() here as it handled in NettyApplicationCall
-         // while close only does flush() and doesn't terminate connection
+    internal fun ensureResponseSent() {
+        sendResponse(content = EmptyByteReadChannel)
+    }
+
+    internal fun close() {
+        val existingChannel = responseChannel
+        if (existingChannel is ByteWriteChannel) {
+            existingChannel.close(ClosedWriteChannelException("Application response has been closed"))
+            responseChannel = EmptyByteReadChannel
+        }
+
+        ensureResponseSent()
+        // we don't need to suspendAwait() here as it handled in NettyApplicationCall
+        // while close only does flush() and doesn't terminate connection
     }
 
     fun cancel() {

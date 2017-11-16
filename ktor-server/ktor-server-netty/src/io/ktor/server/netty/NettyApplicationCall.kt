@@ -19,7 +19,7 @@ internal abstract class NettyApplicationCall(application: Application,
 
     internal suspend fun finish() {
         try {
-            response.close()
+            response.ensureResponseSent()
             responseWriteJob.join()
         } finally {
             request.close()
