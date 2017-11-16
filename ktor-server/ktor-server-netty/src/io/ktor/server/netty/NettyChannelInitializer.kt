@@ -22,7 +22,8 @@ internal class NettyChannelInitializer(private val enginePipeline: EnginePipelin
                                        private val engineContext: CoroutineContext,
                                        private val userContext: CoroutineContext,
                                        private val connector: EngineConnectorConfig,
-                                       private val requestQueueLimit: Int) : ChannelInitializer<SocketChannel>() {
+                                       private val requestQueueLimit: Int,
+                                       private val responseWriteTimeout: Int) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
 
     init {
@@ -95,7 +96,7 @@ internal class NettyChannelInitializer(private val enginePipeline: EnginePipelin
                 with(pipeline) {
 //                    addLast(LoggingHandler(LogLevel.WARN))
                     addLast("codec", HttpServerCodec())
-                    addLast("timeout", WriteTimeoutHandler(10))
+                    addLast("timeout", WriteTimeoutHandler(responseWriteTimeout))
                     addLast("http1", handler)
 
                 }

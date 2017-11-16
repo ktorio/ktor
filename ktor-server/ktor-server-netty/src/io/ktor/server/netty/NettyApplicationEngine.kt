@@ -16,6 +16,7 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
     class Configuration : BaseApplicationEngine.Configuration() {
         var requestQueueLimit: Int = 16
         var configureBootstrap: ServerBootstrap.() -> Unit = {}
+        var responseWriteTimeoutSeconds: Int = 10
     }
 
     private val configuration = Configuration().apply(configure)
@@ -35,7 +36,8 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
             channel(NioServerSocketChannel::class.java)
             childHandler(NettyChannelInitializer(pipeline, environment,
                     callEventGroup, engineDispatcherWithShutdown, dispatcherWithShutdown,
-                    connector, configuration.requestQueueLimit))
+                    connector, configuration.requestQueueLimit,
+                    configuration.responseWriteTimeoutSeconds))
         }
     }
 
