@@ -58,6 +58,11 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
     }
 
     private suspend fun loop(buffer: ByteArray) {
+        if (channel.availableForRead == 0) {
+            awaitReady()
+            output.flush()
+        }
+
         var copied = 0L
         while (true) {
             val rc = channel.readAvailable(buffer)
@@ -72,7 +77,8 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
             awaitReady()
             output.write(buffer, 0, rc)
             awaitReady()
-            output.flush()
+
+            if (channel.availableForRead == 0) output.flush()
         }
     }
 
