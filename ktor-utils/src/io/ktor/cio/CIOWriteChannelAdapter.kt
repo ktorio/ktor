@@ -7,11 +7,11 @@ import java.nio.ByteBuffer
 class CIOWriteChannelAdapter(private val output: ByteWriteChannel,
                              private val suppressClose: Boolean = false) : WriteChannel {
     suspend override fun write(src: ByteBuffer) {
-        output.writeFully(src)
+        return output.writeFully(src)
     }
 
     suspend override fun flush() {
-        output.flush()
+        return output.flush()
     }
 
     override fun close() {
