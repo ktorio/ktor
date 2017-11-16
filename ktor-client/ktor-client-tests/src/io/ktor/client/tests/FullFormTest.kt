@@ -33,18 +33,18 @@ open class FullFormTest(private val factory: HttpClientBackendFactory<*>) : Test
     @Test
     fun testGet() = runBlocking {
         val client = HttpClient(factory)
-            val text = client.call {
-                url {
-                    scheme = "http"
-                    host = "127.0.0.1"
-                    port = serverPort
-                    path = "/hello"
-                    method = HttpMethod.Get
-                    body = "Hello, server"
-                }
-            }.readText()
+        val text = client.call {
+            url {
+                scheme = "http"
+                host = "127.0.0.1"
+                port = serverPort
+                path = "/hello"
+                method = HttpMethod.Get
+                body = "Hello, server"
+            }
+        }.use { it.readText() }
 
-            assertEquals("Hello, client", text)
+        assertEquals("Hello, client", text)
 
         client.close()
     }
@@ -61,7 +61,7 @@ open class FullFormTest(private val factory: HttpClientBackendFactory<*>) : Test
                 method = HttpMethod.Post
                 body = "Hello, server"
             }
-        }.readText()
+        }.use { it.readText() }
 
         assertEquals("Hello, client", text)
         client.close()
