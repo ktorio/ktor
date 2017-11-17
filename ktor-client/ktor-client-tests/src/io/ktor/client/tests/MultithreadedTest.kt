@@ -2,7 +2,7 @@ package io.ktor.client.tests
 
 import io.ktor.application.*
 import io.ktor.client.*
-import io.ktor.client.backend.*
+import io.ktor.client.engine.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
 import io.ktor.response.*
@@ -15,7 +15,7 @@ import org.junit.Assert.*
 import java.util.concurrent.atomic.*
 
 
-abstract class MultithreadedTest(private val factory: HttpClientBackendFactory<*>) : TestWithKtor() {
+abstract class MultithreadedTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     private val DEFAULT_SIZE = 100_000
     private val counter: AtomicInteger = AtomicInteger()
 

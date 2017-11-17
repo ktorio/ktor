@@ -1,10 +1,10 @@
-package io.ktor.client.backend.apache
+package io.ktor.client.engine.apache
 
 import io.ktor.client.*
 import org.apache.http.client.config.*
 import org.apache.http.impl.nio.client.*
 
-class ApacheBackendConfig : HttpClientBackendConfig() {
+class ApacheEngineConfig : HttpClientEngineConfig() {
     var followRedirects: Boolean = false
     var socketTimeout = 10_000
     var connectTimeout = 10_000

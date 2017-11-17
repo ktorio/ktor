@@ -1,7 +1,7 @@
 package io.ktor.server.testing
 
 import io.ktor.client.*
-import io.ktor.client.backend.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.utils.*
@@ -11,11 +11,11 @@ import java.io.*
 import java.util.*
 import java.util.concurrent.*
 
-class TestHttpClientConfig : HttpClientBackendConfig() {
+class TestHttpClientConfig : HttpClientEngineConfig() {
     lateinit var app: TestApplicationEngine
 }
 
-class TestHttpClientBackend(private val app: TestApplicationEngine) : HttpClientBackend {
+class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientEngine {
     suspend override fun makeRequest(request: HttpRequest): HttpResponseBuilder = HttpResponseBuilder().apply {
         val requestBody = request.body
         val charset = request.charset() ?: Charsets.UTF_8
@@ -46,10 +46,10 @@ class TestHttpClientBackend(private val app: TestApplicationEngine) : HttpClient
         app.stop(0L, 0L, TimeUnit.MILLISECONDS)
     }
 
-    companion object : HttpClientBackendFactory<TestHttpClientConfig> {
-        override fun create(block: TestHttpClientConfig.() -> Unit): HttpClientBackend {
+    companion object : HttpClientEngineFactory<TestHttpClientConfig> {
+        override fun create(block: TestHttpClientConfig.() -> Unit): HttpClientEngine {
             val config = TestHttpClientConfig().apply(block)
-            return TestHttpClientBackend(config.app)
+            return TestHttpClientEngine(config.app)
         }
     }
 }

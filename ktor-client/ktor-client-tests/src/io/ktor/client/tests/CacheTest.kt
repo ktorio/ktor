@@ -2,7 +2,7 @@ package io.ktor.client.tests
 
 import io.ktor.application.*
 import io.ktor.client.*
-import io.ktor.client.backend.*
+import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
@@ -19,7 +19,7 @@ import org.junit.Assert.*
 import java.util.concurrent.atomic.*
 
 
-open class CacheTest(private val factory: HttpClientBackendFactory<*>) : TestWithKtor() {
+open class CacheTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     private var counter = AtomicInteger()
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         routing {

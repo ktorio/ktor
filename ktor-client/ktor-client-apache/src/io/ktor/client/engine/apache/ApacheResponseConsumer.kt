@@ -1,4 +1,4 @@
-package io.ktor.client.backend.apache
+package io.ktor.client.engine.apache
 
 import io.ktor.client.utils.*
 import io.ktor.network.util.*

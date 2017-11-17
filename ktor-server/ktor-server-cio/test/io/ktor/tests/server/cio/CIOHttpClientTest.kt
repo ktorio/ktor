@@ -1,7 +1,7 @@
 package io.ktor.tests.server.cio
 
 import io.ktor.client.*
-import io.ktor.client.backend.cio.*
+import io.ktor.client.engine.cio.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
@@ -59,7 +59,7 @@ class CIOHttpClientTest {
         }
 
         val port = portSync.take()
-        val client = HttpClient(CIOBackend)
+        val client = HttpClient(CIO)
         val response = client.call(URL("http://127.0.0.1:$port/")) {
             method = HttpMethod.Post
             url.path = "/url"
@@ -151,7 +151,7 @@ class CIOHttpClientTest {
 
         val port = portSync.await()
 
-        val client = HttpClient(CIOBackend)
+        val client = HttpClient(CIO)
         val response = client.call(URL("http://127.0.0.1:$port/")) {
             method = HttpMethod.Post
             url.path = "/url"

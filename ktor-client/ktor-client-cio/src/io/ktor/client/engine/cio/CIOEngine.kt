@@ -1,7 +1,7 @@
-package io.ktor.client.backend.cio
+package io.ktor.client.engine.cio
 
 import io.ktor.client.*
-import io.ktor.client.backend.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.utils.*
@@ -16,7 +16,7 @@ import java.io.*
 import java.net.*
 import java.util.*
 
-class CIOBackend : HttpClientBackend {
+class CIOEngine : HttpClientEngine {
     suspend override fun makeRequest(request: HttpRequest): HttpResponseBuilder {
         require(request.url.scheme == "http") { "Coroutines HTTP client doesn't support https yet" }
 
@@ -57,10 +57,6 @@ class CIOBackend : HttpClientBackend {
     }
 
     override fun close() {}
-
-    companion object : HttpClientBackendFactory<HttpClientBackendConfig> {
-        override fun create(block: HttpClientBackendConfig.() -> Unit): HttpClientBackend = CIOBackend()
-    }
 
     private suspend fun writeRequest(request: HttpRequest, output: ByteWriteChannel) {
         val builder = RequestResponseBuilder()

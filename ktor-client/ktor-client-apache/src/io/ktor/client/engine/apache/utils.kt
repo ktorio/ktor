@@ -1,4 +1,4 @@
-package io.ktor.client.backend.apache
+package io.ktor.client.engine.apache
 
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.channels.*

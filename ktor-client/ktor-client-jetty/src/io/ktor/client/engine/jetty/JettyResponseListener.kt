@@ -1,4 +1,4 @@
-package io.ktor.client.backend.jetty
+package io.ktor.client.engine.jetty
 
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -16,7 +16,6 @@ import org.eclipse.jetty.util.*
 import java.io.*
 import java.nio.channels.*
 import java.util.concurrent.*
-import java.util.concurrent.atomic.*
 
 data class StatusWithHeaders(val statusCode: HttpStatusCode, val headers: Headers)
 

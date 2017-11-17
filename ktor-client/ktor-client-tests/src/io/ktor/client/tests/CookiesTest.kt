@@ -1,7 +1,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
-import io.ktor.client.backend.*
+import io.ktor.client.engine.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
@@ -14,7 +14,7 @@ import org.junit.*
 import org.junit.Assert.*
 
 
-open class CookiesTest(private val factory: HttpClientBackendFactory<*>) : TestWithKtor() {
+open class CookiesTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         routing {
             get("/") {

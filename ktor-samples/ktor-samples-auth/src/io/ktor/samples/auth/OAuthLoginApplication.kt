@@ -3,12 +3,11 @@ package io.ktor.samples.auth
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.client.*
-import io.ktor.client.backend.apache.*
+import io.ktor.client.engine.apache.*
 import io.ktor.features.*
 import io.ktor.html.*
 import io.ktor.http.*
 import io.ktor.locations.*
-import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.routing.*
 import kotlinx.coroutines.experimental.*
@@ -109,7 +108,7 @@ fun Application.OAuthLoginApplication() {
             }
         }
 
-        val client = HttpClient(ApacheBackend)
+        val client = HttpClient(Apache)
         environment.monitor.subscribe(ApplicationStopping) {
             client.close()
         }

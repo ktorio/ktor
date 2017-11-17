@@ -1,7 +1,6 @@
-package io.ktor.client.backend.jetty
+package io.ktor.client.engine.jetty
 
-import io.ktor.client.*
-import io.ktor.client.backend.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.utils.*
@@ -19,7 +18,7 @@ import java.net.*
 import java.util.*
 
 
-class JettyHttp2Backend : HttpClientBackend {
+class JettyHttp2Engine : HttpClientEngine {
     private val sslContextFactory = SslContextFactory(true)
 
     private val jettyClient = HTTP2Client().apply {
@@ -66,9 +65,6 @@ class JettyHttp2Backend : HttpClientBackend {
         jettyClient.stop()
     }
 
-    companion object : HttpClientBackendFactory<HttpClientBackendConfig> {
-        override fun create(block: HttpClientBackendConfig.() -> Unit): HttpClientBackend = JettyHttp2Backend()
-    }
 
     private suspend fun connect(host: String, port: Int): Session {
         return withPromise { promise ->

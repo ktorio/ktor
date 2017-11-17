@@ -2,7 +2,7 @@ package io.ktor.client.tests
 
 import io.ktor.application.*
 import io.ktor.client.*
-import io.ktor.client.backend.*
+import io.ktor.client.engine.*
 import io.ktor.client.call.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
@@ -16,7 +16,7 @@ import org.junit.Test
 import org.junit.Assert.*
 
 
-open class FullFormTest(private val factory: HttpClientBackendFactory<*>) : TestWithKtor() {
+open class FullFormTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server = embeddedServer(Jetty, serverPort) {
         routing {
             get("/hello") {

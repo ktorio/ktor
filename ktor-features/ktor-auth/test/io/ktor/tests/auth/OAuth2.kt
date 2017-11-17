@@ -3,7 +3,7 @@ package io.ktor.tests.auth
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.client.*
-import io.ktor.client.backend.*
+import io.ktor.client.engine.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
@@ -375,7 +375,7 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
     }
     val engine = TestApplicationEngine(environment)
     engine.start()
-    return HttpClient(TestHttpClientBackend.config { app = engine })
+    return HttpClient(TestHttpClientEngine.config { app = engine })
 }
 
 private fun ValuesMap.requireParameter(name: String) = get(name) ?: throw IllegalArgumentException("No parameter $name specified")

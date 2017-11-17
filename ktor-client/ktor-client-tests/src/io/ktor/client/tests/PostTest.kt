@@ -2,7 +2,7 @@ package io.ktor.client.tests
 
 import io.ktor.application.*
 import io.ktor.client.*
-import io.ktor.client.backend.*
+import io.ktor.client.engine.*
 import io.ktor.client.tests.utils.*
 import io.ktor.content.*
 import io.ktor.response.*
@@ -14,7 +14,7 @@ import org.junit.*
 import org.junit.Assert.*
 import java.util.*
 
-open class PostTest(private val factory: HttpClientBackendFactory<*>) : TestWithKtor() {
+open class PostTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     private val BODY_PREFIX = "Hello, post"
 
     override val server = embeddedServer(Jetty, serverPort) {

@@ -1,4 +1,4 @@
-package io.ktor.client.backend.jetty
+package io.ktor.client.engine.jetty
 
 import kotlinx.coroutines.experimental.io.*
 import org.eclipse.jetty.http2.api.*

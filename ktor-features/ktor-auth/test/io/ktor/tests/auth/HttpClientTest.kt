@@ -1,10 +1,9 @@
 package io.ktor.tests.auth
 
 import io.ktor.client.*
-import io.ktor.client.backend.apache.*
+import io.ktor.client.engine.apache.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
 import io.ktor.http.*
 import kotlinx.coroutines.experimental.*
 import org.junit.Test
@@ -63,7 +62,7 @@ class HttpClientTest {
         }
 
         val port = portSync.take()
-        val client = HttpClient(ApacheBackend)
+        val client = HttpClient(Apache)
         val response = client.call("http://127.0.0.1:$port/") {
             method = HttpMethod.Post
             url.path = "/url"

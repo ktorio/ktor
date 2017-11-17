@@ -3,9 +3,8 @@ package io.ktor.samples.auth
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.client.*
-import io.ktor.client.backend.apache.*
+import io.ktor.client.engine.apache.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import kotlinx.coroutines.experimental.*
 import java.util.concurrent.*
@@ -21,7 +20,7 @@ fun Application.OAuthLoginNoLocationApplication() {
         // generally you shouldn't do like that however there are situation when you could need
         // to do everything on lower level
 
-        val client = HttpClient(ApacheBackend)
+        val client = HttpClient(Apache)
         environment.monitor.subscribe(ApplicationStopping) {
             client.close()
         }

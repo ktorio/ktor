@@ -1,6 +1,6 @@
 package io.ktor.client
 
-import io.ktor.client.backend.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.util.*
@@ -14,7 +14,7 @@ sealed class HttpClient : Closeable {
 
     companion object {
         operator fun invoke(
-                backendFactory: HttpClientBackendFactory<*>,
+                backendFactory: HttpClientEngineFactory<*>,
                 block: ClientConfig.() -> Unit = {}
         ) = HttpClientFactory.createDefault(backendFactory, block)
     }

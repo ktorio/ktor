@@ -1,6 +1,6 @@
-package io.ktor.client.backend.apache
+package io.ktor.client.engine.apache
 
-import io.ktor.client.backend.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.HttpRequest
 import io.ktor.client.response.*
 import io.ktor.client.utils.*
@@ -26,7 +26,7 @@ import kotlin.coroutines.experimental.*
 
 internal data class ApacheResponse(val response: HttpResponse, val responseReader: Closeable)
 
-class ApacheBackend(private val config: ApacheBackendConfig) : HttpClientBackend {
+class ApacheEngine(private val config: ApacheEngineConfig) : HttpClientEngine {
     private val backend: CloseableHttpAsyncClient = prepareClient().apply { start() }
 
     suspend override fun makeRequest(request: HttpRequest): HttpResponseBuilder {
@@ -46,13 +46,6 @@ class ApacheBackend(private val config: ApacheBackendConfig) : HttpClientBackend
 
     override fun close() {
         backend.close()
-    }
-
-    companion object : HttpClientBackendFactory<ApacheBackendConfig> {
-        override fun create(block: ApacheBackendConfig.() -> Unit): HttpClientBackend {
-            val config = ApacheBackendConfig().apply(block)
-            return ApacheBackend(config)
-        }
     }
 
     private fun prepareClient(): CloseableHttpAsyncClient {
