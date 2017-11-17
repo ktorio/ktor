@@ -1,9 +1,12 @@
 package io.ktor.tests.server.application
 
+import io.ktor.config.*
+import kotlin.test.*
+
 class ConfigTest {
-    @org.junit.Test
+    @Test
     fun testMapApplicationConfig() {
-        val mapConfig = io.ktor.config.MapApplicationConfig()
+        val mapConfig = MapApplicationConfig()
         mapConfig.put("auth.hashAlgorithm", "SHA-256")
         mapConfig.put("auth.salt", "ktor")
         mapConfig.put("auth.users.size", "1")
@@ -16,14 +19,23 @@ class ConfigTest {
         mapConfig.put("auth.listValues", listOf("a","b","c"))
 
         val auth = mapConfig.config("auth")
-        kotlin.test.assertEquals("ktor", auth.property("salt").getString())
+        assertEquals("ktor", auth.property("salt").getString())
         val users = auth.configList("users")
-        kotlin.test.assertEquals(1, users.size)
-        kotlin.test.assertEquals("test", users[0].property("name").getString())
+        assertEquals(1, users.size)
+        assertEquals("test", users[0].property("name").getString())
 
-        kotlin.test.assertEquals(listOf("a","b","c"), auth.property("listValues").getList())
+        assertEquals(listOf("a","b","c"), auth.property("listValues").getList())
 
         val values = auth.property("values").getList()
-        kotlin.test.assertEquals("[a, b]", values.toString())
+        assertEquals("[a, b]", values.toString())
+
+        assertEquals(null, auth.propertyOrNull("missingProperty"))
+        assertEquals("SHA-256", auth.propertyOrNull("hashAlgorithm")?.getString())
+        assertEquals(listOf("a","b","c"), auth.propertyOrNull("listValues")?.getList())
+
+        assertEquals(null, mapConfig.propertyOrNull("missingProperty"))
+        assertEquals(null, mapConfig.propertyOrNull("auth.missingProperty"))
+        assertEquals("SHA-256", mapConfig.propertyOrNull("auth.hashAlgorithm")?.getString())
+        assertEquals(listOf("a","b","c"), mapConfig.propertyOrNull("auth.listValues")?.getList())
     }
 }
