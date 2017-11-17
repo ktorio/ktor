@@ -30,6 +30,16 @@ suspend fun ApplicationCall.respondText(text: String, contentType: ContentType? 
     return respond(message)
 }
 
+suspend fun ApplicationCall.respondFile(baseDir: File, fileName: String) {
+    val message = LocalFileContent(baseDir, fileName)
+    return respond(message)
+}
+
+suspend fun ApplicationCall.respondFile(file: File) {
+    val message = LocalFileContent(file)
+    return respond(message)
+}
+
 suspend fun ApplicationCall.respondText(contentType: ContentType? = null, status: HttpStatusCode? = null, provider: suspend () -> String) {
     val message = TextContent(provider(), defaultTextContentType(contentType), status)
     return respond(message)
