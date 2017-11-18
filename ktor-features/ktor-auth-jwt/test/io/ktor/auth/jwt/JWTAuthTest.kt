@@ -227,7 +227,7 @@ class JWTAuthTest {
 
     private fun makeJwtVerifier(): JWTVerifier = JWT
             .require(algorithm)
-            .withAudience()
+            .withAudience(audience)
             .withIssuer(issuer)
             .build()
 
