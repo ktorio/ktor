@@ -13,7 +13,17 @@ switch (serverEngineProp) {
 
 
 subprojects {
+    def withWar = project.file('web').isDirectory()
+
     apply plugin: 'application'
+
+    if (withWar) {
+        apply plugin: 'war'
+
+        war {
+            webAppDirName = 'web'
+        }
+    }
 
     dependencies {
         compile project(":ktor-server:ktor-server-core")
@@ -44,6 +54,10 @@ subprojects {
             } else if (serverEngineProp == 'jetty') {
                 boot group: 'org.mortbay.jetty.alpn', name: 'alpn-boot', version: jetty_alpn_boot_version
             }
+        }
+
+        if (withWar) {
+            compile project(':ktor-server:ktor-server-servlet')
         }
     }
 
