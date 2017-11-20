@@ -224,7 +224,16 @@ class ApplicationEngineEnvironmentReloading(
 
     override fun start() {
         applicationInstanceLock.write {
-            val (application, classLoader) = createApplication()
+            val (application, classLoader) = try {
+                createApplication()
+            } catch (t: Throwable) {
+                destroyApplication()
+                if (watchPatterns.isNotEmpty()) {
+                    watcher.close()
+                }
+
+                throw t
+            }
             _applicationInstance = application
             _applicationClassLoader = classLoader
         }
