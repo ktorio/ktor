@@ -139,9 +139,10 @@ class ApplicationEngineEnvironmentReloading(
         // we shouldn't watch URL for ktor-server-core classes, even if they match patterns,
         // because otherwise it loads two ApplicationEnvironment (and other) types which do not match
         val coreUrls = listOf(
-                ApplicationEnvironment::class.java,
-                Pipeline::class.java,
-                HttpStatusCode::class.java
+                ApplicationEnvironment::class.java, // ktor-server-core
+                Pipeline::class.java, // ktor-utils
+                HttpStatusCode::class.java, // ktor-http
+                kotlin.jvm.functions.Function1::class.java // kotlin-stdlib
         ).mapTo(HashSet()) { it.protectionDomain.codeSource.location }
 
         val watchUrls = allUrls.filter { url ->
