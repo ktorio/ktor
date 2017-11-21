@@ -1,4 +1,9 @@
 description = ''
+
+repositories {
+    maven { url "https://dl.bintray.com/kotlin/exposed" }
+}
+
 dependencies {
     compile group: 'com.h2database', name: 'h2', version: '[1.4.191,1.5)'
     compile group: 'com.mchange', name: 'c3p0', version: '0.9.5.2'

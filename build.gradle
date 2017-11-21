@@ -128,9 +128,7 @@ allprojects {
 
     repositories {
 //        mavenLocal()
-
-        maven { url "http://repo.maven.apache.org/maven2" }
-        maven { url "https://jcenter.bintray.com" }
+        jcenter()
 
         if (kotlin_version.contains("-eap") || kotlin_version.contains("-rc")) {
             if (kotlin_version.startsWith("1.1")) {
@@ -145,10 +143,7 @@ allprojects {
             maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
         }
 
-        maven { url "https://jitpack.io" }
-        maven { url "https://dl.bintray.com/kotlinx/kotlinx" }
         maven { url "https://dl.bintray.com/kotlin/kotlinx" }
-        maven { url "https://dl.bintray.com/kotlin/exposed" }
     }
 
     task packageSources(type: Jar) {
