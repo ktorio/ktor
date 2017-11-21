@@ -8,7 +8,6 @@ import com.auth0.jwt.impl.*
 import com.auth0.jwt.interfaces.*
 import io.ktor.application.*
 import io.ktor.auth.*
-import io.ktor.http.*
 import io.ktor.response.*
 import java.security.interfaces.*
 import java.util.*
@@ -18,24 +17,24 @@ private val JWTAuthKey: Any = "JWTAuth"
 data class JWTCredential(val payload: Payload) : Credential
 data class JWTPrincipal(val payload: Payload) : Principal
 
-fun AuthenticationPipeline.jwtAuthentication(verifier: JWTVerifier, validate: (JWTCredential) -> Principal?) {
+fun AuthenticationPipeline.jwtAuthentication(verifier: JWTVerifier, realm: String, validate: (JWTCredential) -> Principal?) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val token = call.getAuthToken()
+        val token = call.request.parseAuthorizationHeader()
         val principal = verifyAndValidate(verifier, token, validate)
-        evaluate(token, principal, context)
+        evaluate(token, principal, realm, context)
     }
 }
 
-fun AuthenticationPipeline.jwtAuthentication(jwkProvider: JwkProvider, issuer: String, validate: (JWTCredential) -> Principal?) {
+fun AuthenticationPipeline.jwtAuthentication(jwkProvider: JwkProvider, issuer: String, realm: String, validate: (JWTCredential) -> Principal?) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val token = call.getAuthToken()
+        val token = call.request.parseAuthorizationHeader()
         val verifier = getVerifier(jwkProvider, issuer, token)
         val principal = verifyAndValidate(verifier, token, validate)
-        evaluate(token, principal, context)
+        evaluate(token, principal, realm, context)
     }
 }
 
-private suspend fun evaluate(token: String?, principal: Principal?, context: AuthenticationContext) {
+private suspend fun evaluate(token: HttpAuthHeader?, principal: Principal?, realm: String, context: AuthenticationContext) {
     val cause = when {
         token == null -> NotAuthenticatedCause.NoCredentials
         principal == null -> NotAuthenticatedCause.InvalidCredentials
@@ -43,7 +42,7 @@ private suspend fun evaluate(token: String?, principal: Principal?, context: Aut
     }
     if (cause != null) {
         context.challenge(JWTAuthKey, cause) {
-            call.respond(HttpStatusCode.Unauthorized)
+            call.respond(UnauthorizedResponse(HttpAuthHeader.bearerAuthChallenge(realm)))
             it.success()
         }
     }
@@ -52,8 +51,8 @@ private suspend fun evaluate(token: String?, principal: Principal?, context: Aut
     }
 }
 
-private fun getVerifier(jwkProvider: JwkProvider, issuer: String, token: String?): JWTVerifier? {
-    val jwk = token?.let { jwkProvider.get(JWT.decode(it).keyId) }
+private fun getVerifier(jwkProvider: JwkProvider, issuer: String, token: HttpAuthHeader?): JWTVerifier? {
+    val jwk = token.getBlob()?.let { jwkProvider.get(JWT.decode(it).keyId) }
 
     val algorithm = try {
         jwk?.makeAlgorithm()
@@ -63,9 +62,9 @@ private fun getVerifier(jwkProvider: JwkProvider, issuer: String, token: String?
     return JWT.require(algorithm).withIssuer(issuer).build()
 }
 
-private fun verifyAndValidate(verifier: JWTVerifier?, token: String?, validate: (JWTCredential) -> Principal?): Principal? {
+private fun verifyAndValidate(verifier: JWTVerifier?, token: HttpAuthHeader?, validate: (JWTCredential) -> Principal?): Principal? {
     val jwt = try {
-        token?.let { verifier?.verify(it) }
+        token.getBlob()?.let { verifier?.verify(it) }
     } catch (ex: JWTVerificationException) {
         null
     } ?: return null
@@ -75,12 +74,13 @@ private fun verifyAndValidate(verifier: JWTVerifier?, token: String?, validate: 
     return credentials.let(validate)
 }
 
-private fun ApplicationCall.getAuthToken(): String? {
-    val headers = request.headers
-    val authHeader = headers[HttpHeaders.Authorization] ?: return null
-    val token = authHeader.removePrefix("Bearer ")
-    return token
+private fun HttpAuthHeader?.getBlob() = when {
+    this is HttpAuthHeader.Single && authScheme == "Bearer" -> blob
+    else -> null
 }
+
+private fun HttpAuthHeader.Companion.bearerAuthChallenge(realm: String): HttpAuthHeader =
+        HttpAuthHeader.Parameterized("Bearer", mapOf(HttpAuthHeader.Parameters.Realm to realm))
 
 private fun Jwk.makeAlgorithm(): Algorithm = when (algorithm) {
     "RS256" -> Algorithm.RSA256(publicKey as RSAPublicKey, null)
@@ -94,6 +94,5 @@ private fun Jwk.makeAlgorithm(): Algorithm = when (algorithm) {
 
 private fun DecodedJWT.parsePayload(): Payload {
     val payloadString = String(Base64.getUrlDecoder().decode(payload))
-    val parsedPayload = JWTParser().parsePayload(payloadString)
-    return parsedPayload
+    return JWTParser().parsePayload(payloadString)
 }
