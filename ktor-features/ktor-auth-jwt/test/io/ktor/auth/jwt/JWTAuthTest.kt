@@ -6,7 +6,6 @@ import com.auth0.jwt.algorithms.*
 import com.nhaarman.mockito_kotlin.*
 import io.ktor.application.*
 import io.ktor.auth.*
-import io.ktor.auth.jwt.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -42,10 +41,7 @@ class JWTAuthTest {
 
             val token = getToken()
 
-            val response = handleRequest {
-                uri = "/"
-                addHeader(HttpHeaders.Authorization, token)
-            }
+            val response = handleRequestWithToken(token)
 
             assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.OK, response.response.status())
@@ -143,7 +139,7 @@ class JWTAuthTest {
 
     @Test
     fun verifyWithMock() {
-        val token = getJwkToken()
+        val token = getJwkToken(prefix = false)
         val provider = getJwkProviderMock()
         val kid = JWT.decode(token).keyId
         val jwk = provider.get(kid)
@@ -177,7 +173,7 @@ class JWTAuthTest {
 
     private fun Application.configureServerJwk(mock: Boolean = false) = configureServer {
         val jwkProvider = if (mock) getJwkProviderMock() else makeJwkProvider()
-        jwtAuthentication(jwkProvider, issuer) { credentials ->
+        jwtAuthentication(jwkProvider, issuer, realm) { credentials ->
             if (credentials.payload.audience.contains(audience))
                 JWTPrincipal(credentials.payload)
             else
@@ -187,7 +183,7 @@ class JWTAuthTest {
 
     private fun Application.configureServerJwt() = configureServer {
         val jwtVerifier = makeJwtVerifier()
-        jwtAuthentication(jwtVerifier) { credentials ->
+        jwtAuthentication(jwtVerifier, realm) { credentials ->
             if (credentials.payload.audience.contains(audience))
                 JWTPrincipal(credentials.payload)
             else
@@ -219,6 +215,7 @@ class JWTAuthTest {
     private val jwkAlgorithm = Algorithm.RSA256(keyPair.public as RSAPublicKey, keyPair.private as RSAPrivateKey)
     private val issuer = "https://jwt-provider-domain/"
     private val audience = "jwt-audience"
+    private val realm = "ktor jwt auth test"
 
     private fun makeJwkProvider(): JwkProvider = JwkProviderBuilder(issuer)
             .cached(10, 24, TimeUnit.HOURS)
@@ -243,13 +240,13 @@ class JWTAuthTest {
         }
     }
 
-    private fun getJwkToken() = JWT.create()
+    private fun getJwkToken(prefix: Boolean = true) = (if (prefix) "Bearer " else "") + JWT.create()
             .withAudience(audience)
             .withIssuer(issuer)
             .withKeyId(kid)
             .sign(jwkAlgorithm)
 
-    private fun getToken() = JWT.create()
+    private fun getToken() = "Bearer " + JWT.create()
             .withAudience(audience)
             .withIssuer(issuer)
             .sign(algorithm)

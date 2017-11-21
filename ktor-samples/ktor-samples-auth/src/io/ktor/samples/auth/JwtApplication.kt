@@ -1,25 +1,26 @@
-package io.ktor.samples.auth.jwt
+package io.ktor.samples.auth
 
-import com.auth0.jwk.*
+import com.auth0.jwt.*
+import com.auth0.jwt.algorithms.*
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.auth.jwt.*
 import io.ktor.features.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import java.util.concurrent.*
 
-fun Application.jwkApplication() {
+fun Application.jwtApplication() {
     val issuer = environment.config.property("jwt.domain").getString()
     val audience = environment.config.property("jwt.audience").getString()
+    val realm = environment.config.property("jwt.realm").getString()
+
     install(DefaultHeaders)
     install(CallLogging)
     install(Routing) {
         route("/who") {
-            val jwkProvider = makeJwkProvider(issuer)
-
             authentication {
-                jwtAuthentication(jwkProvider, issuer) { credential ->
+                val jwtVerifier = makeJwtVerifier(issuer, audience)
+                jwtAuthentication(jwtVerifier, realm) { credential ->
                     if (credential.payload.audience.contains(audience))
                         JWTPrincipal(credential.payload)
                     else
@@ -35,8 +36,9 @@ fun Application.jwkApplication() {
     }
 }
 
-private fun makeJwkProvider(issuer: String): JwkProvider = JwkProviderBuilder(issuer)
-        .cached(10, 24, TimeUnit.HOURS)
-        .rateLimited(10, 1, TimeUnit.MINUTES)
+private val algorithm = Algorithm.HMAC256("secret")
+private fun makeJwtVerifier(issuer: String, audience: String): JWTVerifier = JWT
+        .require(algorithm)
+        .withAudience(audience)
+        .withIssuer(issuer)
         .build()
-
