@@ -28,9 +28,7 @@ class JWTAuthTest {
                 uri = "/"
             }
 
-            assertTrue(response.requestHandled)
-            assertEquals(HttpStatusCode.Unauthorized, response.response.status())
-            assertNull(response.response.content)
+            verifyResponseUnauthorized(response)
         }
     }
 
@@ -104,6 +102,72 @@ class JWTAuthTest {
             assertTrue(response.requestHandled)
             assertEquals(HttpStatusCode.OK, response.response.status())
             assertNotNull(response.response.content)
+        }
+    }
+
+    @Test
+    fun testJwtAuthSchemeMismatch() {
+        withApplication {
+            application.configureServerJwt()
+            val token = getToken().removePrefix("Bearer ")
+            val response = handleRequestWithToken(token)
+            verifyResponseUnauthorized(response)
+        }
+    }
+
+    @Test
+    fun testJwtAuthSchemeMistake() {
+        withApplication {
+            application.configureServerJwt()
+            val token = getToken().replace("Bearer", "Bearer:")
+            val response = handleRequestWithToken(token)
+            verifyResponseUnauthorized(response)
+        }
+    }
+
+    @Test
+    fun testJwtBlobPatternMismatch() {
+        withApplication {
+            application.configureServerJwt()
+            val token = getToken().let {
+                val i = it.length - 2
+                it.replaceRange(i..i + 1, " ")
+            }
+            val response = handleRequestWithToken(token)
+            verifyResponseUnauthorized(response)
+        }
+    }
+
+    @Test
+    fun testJwkAuthSchemeMismatch() {
+        withApplication {
+            application.configureServerJwk(mock = true)
+            val token = getJwkToken(false)
+            val response = handleRequestWithToken(token)
+            verifyResponseUnauthorized(response)
+        }
+    }
+
+    @Test
+    fun testJwkAuthSchemeMistake() {
+        withApplication {
+            application.configureServerJwk(mock = true)
+            val token = getJwkToken(true).replace("Bearer", "Bearer:")
+            val response = handleRequestWithToken(token)
+            verifyResponseUnauthorized(response)
+        }
+    }
+
+    @Test
+    fun testJwkBlobPatternMismatch() {
+        withApplication {
+            application.configureServerJwk(mock = true)
+            val token = getJwkToken(true).let {
+                val i = it.length - 2
+                it.replaceRange(i..i + 1, " ")
+            }
+            val response = handleRequestWithToken(token)
+            verifyResponseUnauthorized(response)
         }
     }
 

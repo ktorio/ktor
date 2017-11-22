@@ -8,18 +8,19 @@ import com.auth0.jwt.impl.*
 import com.auth0.jwt.interfaces.*
 import io.ktor.application.*
 import io.ktor.auth.*
+import io.ktor.request.*
 import io.ktor.response.*
 import java.security.interfaces.*
 import java.util.*
 
 private val JWTAuthKey: Any = "JWTAuth"
 
-data class JWTCredential(val payload: Payload) : Credential
-data class JWTPrincipal(val payload: Payload) : Principal
+class JWTCredential(val payload: Payload) : Credential
+class JWTPrincipal(val payload: Payload) : Principal
 
 fun AuthenticationPipeline.jwtAuthentication(verifier: JWTVerifier, realm: String, validate: (JWTCredential) -> Principal?) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val token = call.request.parseAuthorizationHeader()
+        val token = call.request.parseAuthorizationHeaderOrNull()
         val principal = verifyAndValidate(verifier, token, validate)
         evaluate(token, principal, realm, context)
     }
@@ -27,7 +28,7 @@ fun AuthenticationPipeline.jwtAuthentication(verifier: JWTVerifier, realm: Strin
 
 fun AuthenticationPipeline.jwtAuthentication(jwkProvider: JwkProvider, issuer: String, realm: String, validate: (JWTCredential) -> Principal?) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val token = call.request.parseAuthorizationHeader()
+        val token = call.request.parseAuthorizationHeaderOrNull()
         val verifier = getVerifier(jwkProvider, issuer, token)
         val principal = verifyAndValidate(verifier, token, validate)
         evaluate(token, principal, realm, context)
@@ -77,6 +78,12 @@ private fun verifyAndValidate(verifier: JWTVerifier?, token: HttpAuthHeader?, va
 private fun HttpAuthHeader?.getBlob() = when {
     this is HttpAuthHeader.Single && authScheme == "Bearer" -> blob
     else -> null
+}
+
+private fun ApplicationRequest.parseAuthorizationHeaderOrNull() = try {
+    parseAuthorizationHeader()
+} catch (ex: IllegalArgumentException) {
+    null
 }
 
 private fun HttpAuthHeader.Companion.bearerAuthChallenge(realm: String): HttpAuthHeader =
