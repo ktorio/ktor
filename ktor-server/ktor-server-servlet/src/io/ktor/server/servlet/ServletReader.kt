@@ -1,20 +1,22 @@
 package io.ktor.server.servlet
 
+import io.ktor.cio.*
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import javax.servlet.*
+import kotlin.coroutines.experimental.*
 
-internal fun servletReader(input: ServletInputStream): WriterJob {
-    val reader = Reader(input)
+internal fun servletReader(input: ServletInputStream, parent: CoroutineContext? = null): WriterJob {
+    val reader = ServletReader(input)
 
-    return writer(Unconfined, reader.channel) {
+    return writer(if (parent != null) Unconfined + parent else Unconfined, reader.channel) {
         reader.run()
     }
 }
 
-private class Reader(val input: ServletInputStream) : ReadListener {
+private class ServletReader(val input: ServletInputStream) : ReadListener {
     val channel = ByteChannel()
     private val events = Channel<Unit>(2)
 
@@ -24,12 +26,12 @@ private class Reader(val input: ServletInputStream) : ReadListener {
             input.setReadListener(this)
             events.receiveOrNull() ?: return
             loop(buffer)
-        } catch (eof: EOFException) {
-        } catch (cancelled: CancellationException) {
+
+            events.close()
+            channel.close()
         } catch (t: Throwable) {
             onError(t)
         } finally {
-            channel.close()
             input.close()
             ArrayPool.recycle(buffer)
         }
@@ -53,8 +55,10 @@ private class Reader(val input: ServletInputStream) : ReadListener {
     }
 
     override fun onError(t: Throwable) {
-        channel.close(t)
-        events.close(t)
+        val wrappedException = wrapException(t)
+
+        channel.close(wrappedException)
+        events.close(wrappedException)
     }
 
     override fun onAllDataRead() {
@@ -69,6 +73,14 @@ private class Reader(val input: ServletInputStream) : ReadListener {
                 }
             }
         } catch (ignore: Throwable) {
+        }
+    }
+
+    private fun wrapException(t: Throwable): Throwable? {
+        return when (t) {
+            is EOFException -> null
+            is IOException -> ChannelReadException("Cannot read from a servlet input stream", exception = t)
+            else -> t
         }
     }
 }

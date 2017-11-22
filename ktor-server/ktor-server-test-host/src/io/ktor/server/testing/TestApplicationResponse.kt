@@ -8,17 +8,15 @@ import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
-import java.io.*
 import java.time.*
 import java.util.concurrent.*
-import java.util.concurrent.TimeoutException
 
 class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationResponse(call) {
     private val realContent = lazy { ByteBufferWriteChannel() }
 
     @Volatile
     private var closed = false
-    private val webSocketCompleted = CountDownLatch(1)
+    private val webSocketCompleted = CompletableDeferred<Unit>()
 
     override fun setStatus(statusCode: HttpStatusCode) {}
 
@@ -44,7 +42,8 @@ class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationRespon
     }
 
     suspend override fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
-        upgrade.upgrade(call.receiveChannel(), realContent.value, Closeable { webSocketCompleted.countDown() }, CommonPool, Unconfined)
+        val job = upgrade.upgrade(call.receiveChannel(), realContent.value, CommonPool, Unconfined)
+        job.attachChild(webSocketCompleted)
     }
 
     override suspend fun responseChannel(): WriteChannel = realContent.value.apply {
@@ -77,8 +76,11 @@ class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationRespon
     }
 
     fun awaitWebSocket(duration: Duration) {
-        if (!webSocketCompleted.await(duration.toMillis(), TimeUnit.MILLISECONDS))
-            throw TimeoutException()
+        runBlocking {
+            withTimeout(duration.toMillis(), TimeUnit.MILLISECONDS) {
+                webSocketCompleted.join()
+            }
+        }
     }
 }
 

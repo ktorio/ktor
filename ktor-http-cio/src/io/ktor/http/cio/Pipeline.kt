@@ -28,7 +28,9 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
                                      callDispatcher: CoroutineContext,
                                      timeouts: WeakTimeoutQueue,
                                      handler: HttpRequestHandler) {
-    val outputsActor = actor<ByteReadChannel>(ioCoroutineContext, capacity = 5, start = CoroutineStart.UNDISPATCHED) {
+    val outputsActorJob = Job()
+
+    val outputsActor = actor<ByteReadChannel>(ioCoroutineContext + outputsActorJob, capacity = 5, start = CoroutineStart.UNDISPATCHED) {
         try {
             val receiveChildOrNull = suspendLambda<CoroutineScope, ByteReadChannel?> { channel.receiveOrNull() }
             while (true) {
@@ -136,7 +138,7 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
         }
     } finally {
         outputsActor.close()
-        outputsActor.join()
+        outputsActorJob.join()
     }
 }
 

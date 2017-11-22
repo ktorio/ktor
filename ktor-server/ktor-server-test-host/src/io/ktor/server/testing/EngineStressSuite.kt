@@ -17,7 +17,6 @@ import org.junit.*
 import org.junit.Test
 import org.junit.runner.*
 import org.junit.runners.model.*
-import java.io.*
 import java.net.*
 import java.nio.*
 import java.util.*
@@ -200,8 +199,8 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
         createAndStartServer {
             handle {
                 call.respond(object : OutgoingContent.ProtocolUpgrade() {
-                    suspend override fun upgrade(input: ReadChannel, output: WriteChannel, closeable: Closeable, engineContext: CoroutineContext, userContext: CoroutineContext) {
-                        launch(engineContext) {
+                    suspend override fun upgrade(input: ReadChannel, output: WriteChannel, engineContext: CoroutineContext, userContext: CoroutineContext): Job {
+                        return launch(engineContext) {
                             try {
                                 output.write(ByteBuffer.wrap(endMarkerCrLfBytes))
                                 output.flush()
@@ -209,7 +208,6 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
                             } finally {
                                 output.close()
                                 input.close()
-                                closeable.close()
                             }
                         }
                     }

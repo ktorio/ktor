@@ -66,18 +66,14 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
             addFirst(NettyDirectDecoder())
         }
 
-        run(userAppContext) {
-            upgrade.upgrade(CIOReadChannelAdapter(upgradedReadChannel), CIOWriteChannelAdapter(upgradedWriteChannel), Close(upgradedWriteChannel, bodyHandler), engineContext, userAppContext)
+        val job = upgrade.upgrade(CIOReadChannelAdapter(upgradedReadChannel), CIOWriteChannelAdapter(upgradedWriteChannel), engineContext, userAppContext)
+
+        job.invokeOnCompletion {
+            upgradedWriteChannel.close()
+            bodyHandler.close()
         }
 
         (call as NettyApplicationCall).responseWriteJob.join()
-    }
-
-    private class Close(private val bc: ByteWriteChannel, private val handler: RequestBodyHandler) : Closeable {
-        override fun close() {
-            bc.close()
-            handler.close()
-        }
     }
 
     private fun setChunked(message: HttpResponse) {

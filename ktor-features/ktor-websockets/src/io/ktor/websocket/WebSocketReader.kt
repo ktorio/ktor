@@ -1,44 +1,42 @@
 package io.ktor.websocket
 
-import kotlinx.coroutines.experimental.channels.*
 import io.ktor.cio.*
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.channels.*
 import java.nio.*
 import java.nio.channels.*
-import java.util.concurrent.*
+import java.util.concurrent.CancellationException
 import kotlin.coroutines.experimental.*
 
-internal class WebSocketReader(val byteChannel: ReadChannel, val maxFrameSize: () -> Long, val ctx: CoroutineContext, pool: ByteBufferPool) {
+internal class WebSocketReader(val byteChannel: ReadChannel, val maxFrameSize: () -> Long, job: Job, ctx: CoroutineContext, pool: ByteBufferPool) {
     private var state = State.HEADER
     private val frameParser = FrameParser()
     private val collector = SimpleFrameCollector()
 
-    private val queue by lazy {
-        produce(ctx, capacity = 8) { // lazy - workaround for missing produce(start = false)
-            val ticket = pool.allocate(DEFAULT_BUFFER_SIZE)
-            try {
-                readLoop(ticket.buffer)
-            } catch (expected: ClosedChannelException) {
-            } catch (expected: CancellationException) {
-            } finally {
-                pool.release(ticket)
-            }
+    private val queue = Channel<Frame>(8)
+
+    private val readerJob = launch(ctx + job, start = CoroutineStart.LAZY) {
+        val ticket = pool.allocate(DEFAULT_BUFFER_SIZE)
+        try {
+            readLoop(ticket.buffer)
+        } catch (expected: ClosedChannelException) {
+        } catch (expected: CancellationException) {
+            queue.cancel()
+        } catch (t: Throwable) {
+            queue.close(t)
+            throw t
+        } finally {
+            pool.release(ticket)
+            queue.close()
         }
     }
 
-    val incoming: ReceiveChannel<Frame> get() = queue
+    val incoming: ReceiveChannel<Frame> get() = queue.also { readerJob.start() }
 
-    fun start(): ProducerJob<Frame> {
-        return queue.apply { start() }
-    }
-
-    fun cancel(t: Throwable? = null) {
-        queue.cancel(t)
-    }
-
-    private suspend fun ProducerScope<Frame>.readLoop(buffer: ByteBuffer) {
+    private suspend fun readLoop(buffer: ByteBuffer) {
         buffer.clear()
 
-        while (isActive) {
+        while (true) {
             if (byteChannel.read(buffer) == -1) {
                 state = State.END
                 break
@@ -50,7 +48,7 @@ internal class WebSocketReader(val byteChannel: ReadChannel, val maxFrameSize: (
         }
     }
 
-    private suspend fun ProducerScope<Frame>.parseLoop(buffer: ByteBuffer) {
+    private suspend fun parseLoop(buffer: ByteBuffer) {
         while (buffer.hasRemaining()) {
             when (state) {
                 State.HEADER -> {
@@ -78,10 +76,10 @@ internal class WebSocketReader(val byteChannel: ReadChannel, val maxFrameSize: (
         }
     }
 
-    private suspend fun ProducerScope<Frame>.handleFrameIfProduced() {
+    private suspend fun handleFrameIfProduced() {
         if (!collector.hasRemaining) {
             state = State.HEADER
-            send(Frame.byType(frameParser.fin, frameParser.frameType, collector.take(frameParser.maskKey)))
+            queue.send(Frame.byType(frameParser.fin, frameParser.frameType, collector.take(frameParser.maskKey)))
             frameParser.bodyComplete()
         }
     }

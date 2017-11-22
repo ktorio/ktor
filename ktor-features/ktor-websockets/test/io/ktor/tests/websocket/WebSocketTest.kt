@@ -20,7 +20,7 @@ class WebSocketTest {
     val timeout = Timeout(30, TimeUnit.SECONDS)
 
     @Test
-    fun testHello() {
+    fun testSingleEcho() {
         withTestApplication {
             application.install(WebSockets)
             application.routing {

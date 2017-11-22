@@ -1230,8 +1230,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                             append(HttpHeaders.Connection, "Upgrade")
                         }
 
-                    suspend override fun upgrade(input: ReadChannel, output: WriteChannel, closeable: Closeable, engineContext: CoroutineContext, userContext: CoroutineContext) {
-                        try {
+                    suspend override fun upgrade(input: ReadChannel, output: WriteChannel, engineContext: CoroutineContext, userContext: CoroutineContext): Job {
+                        return launch (engineContext) {
                             val bb = ByteBuffer.allocate(8)
                             while (bb.hasRemaining()) {
                                 if (input.read(bb) == -1) {
@@ -1244,10 +1244,6 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                                 output.write(bb)
                             }
                             output.flush()
-                        } finally {
-                            output.close()
-                            input.close()
-                            closeable.close()
                         }
                     }
                 })

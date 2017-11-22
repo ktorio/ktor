@@ -3,7 +3,6 @@ package io.ktor.server.servlet
 import io.ktor.cio.*
 import io.ktor.content.*
 import kotlinx.coroutines.experimental.*
-import java.io.*
 import javax.servlet.http.*
 import kotlin.coroutines.experimental.*
 
@@ -37,35 +36,33 @@ class UpgradeRequest(val response: HttpServletResponse,
 class ServletUpgradeHandler : HttpUpgradeHandler {
     @Volatile
     lateinit var up: UpgradeRequest
+    private val upgradeJob = Job()
 
     override fun init(webConnection: WebConnection?) {
         if (webConnection == null) {
             throw IllegalArgumentException("Upgrade processing requires WebConnection instance")
         }
 
-        val servletReader = servletReader(webConnection.inputStream)
-        val servletWriter = servletWriter(webConnection.outputStream)
+        upgradeJob.invokeOnCompletion {
+            webConnection.close()
+        }
+
+        val servletReader = servletReader(webConnection.inputStream, parent = upgradeJob)
+        val servletWriter = servletWriter(webConnection.outputStream, parent = upgradeJob)
 
         val inputChannel = CIOReadChannelAdapter(servletReader.channel)
         val outputChannel = CIOWriteChannelAdapter(servletWriter.channel)
 
-        val closeable = Closeable {
-            servletWriter.channel.close()
-            servletReader.cancel()
-
-            runBlocking {
-                servletWriter.join()
-                servletReader.join()
-            }
-
-            webConnection.close()
-        }
-
         launch(up.userContext, start = CoroutineStart.UNDISPATCHED) {
-            up.upgradeMessage.upgrade(inputChannel, outputChannel, closeable, up.engineContext, up.userContext)
+            val job = up.upgradeMessage.upgrade(inputChannel, outputChannel, up.engineContext, up.userContext)
+
+            job.invokeOnCompletion(onCancelling = true) {
+                upgradeJob.cancel(it)
+            }
         }
     }
 
     override fun destroy() {
+        upgradeJob.cancel(CancellationException("Upgraded WebConnection destroyed"))
     }
 }

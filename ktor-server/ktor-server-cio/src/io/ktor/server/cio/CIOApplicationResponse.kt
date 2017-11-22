@@ -8,7 +8,6 @@ import io.ktor.response.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import java.io.*
 import kotlin.coroutines.experimental.*
 
 class CIOApplicationResponse(call: CIOApplicationCall,
@@ -101,12 +100,8 @@ class CIOApplicationResponse(call: CIOApplicationCall,
 
         sendResponseMessage(false, -1, false)
 
-        val upgradedJob = Job()
-        upgrade.upgrade(CIOReadChannelAdapter(input), CIOWriteChannelAdapter(output), Closeable {
-            output.close()
-            upgradedJob.cancel()
-        }, engineDispatcher, userDispatcher)
-
+        val upgradedJob = upgrade.upgrade(CIOReadChannelAdapter(input), CIOWriteChannelAdapter(output), engineDispatcher, userDispatcher)
+        upgradedJob.invokeOnCompletion { output.close() }
         upgradedJob.join()
     }
 

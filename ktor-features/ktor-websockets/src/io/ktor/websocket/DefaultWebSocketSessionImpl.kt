@@ -5,6 +5,7 @@ import kotlinx.coroutines.experimental.channels.*
 import io.ktor.application.*
 import io.ktor.cio.*
 import io.ktor.util.*
+import java.nio.*
 import java.time.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
@@ -16,7 +17,7 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
                                            val pool: ByteBufferPool
 ) : DefaultWebSocketSession, WebSocketSession by raw {
 
-    private val pinger = AtomicReference<ActorJob<Frame.Pong>?>(null)
+    private val pinger = AtomicReference<SendChannel<Frame.Pong>?>(null)
     private val closeReasonRef = CompletableDeferred<CloseReason>()
     private val filtered = Channel<Frame>(8)
     private val outgoingToBeProcessed = Channel<Frame>(8)
@@ -118,7 +119,7 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
 
         try {
             closeReasonRef.await()
-            closeSequence.join()
+//            closeSequence.join()
         } finally {
             cancelPinger()
         }
@@ -127,14 +128,18 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
     private fun runPinger() {
         if (!closeReasonRef.isCompleted) {
             val newPinger = pingInterval?.let { interval -> pinger(engineContext, raw, interval, timeout, pool, raw.outgoing) }
-            pinger.getAndSet(newPinger)?.cancel()
-            newPinger?.start()
+            pinger.getAndSet(newPinger)?.close()
+            newPinger?.offer(EmptyPong)
         } else {
             cancelPinger()
         }
     }
 
     private fun cancelPinger() {
-        pinger.getAndSet(null)?.cancel()
+        pinger.getAndSet(null)?.close()
+    }
+
+    companion object {
+        private val EmptyPong = Frame.Pong(ByteBuffer.allocate(0))
     }
 }

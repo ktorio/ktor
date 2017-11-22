@@ -17,7 +17,7 @@ import kotlin.coroutines.experimental.*
  *
  * Once the job is completed, the connection could be terminated.
  */
-fun closeSequence(coroutineContext: CoroutineContext, session: WebSocketSession, timeout: () -> Duration, populateCloseReason: (reason: CloseReason?) -> Unit): ActorJob<CloseFrameEvent> {
+fun closeSequence(coroutineContext: CoroutineContext, session: WebSocketSession, timeout: () -> Duration, populateCloseReason: (reason: CloseReason?) -> Unit): SendChannel<CloseFrameEvent> {
     return actor(coroutineContext, capacity = 2, start = CoroutineStart.LAZY) {
         var reason: CloseReason? = null
 

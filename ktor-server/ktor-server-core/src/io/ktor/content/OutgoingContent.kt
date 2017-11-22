@@ -3,6 +3,7 @@ package io.ktor.content
 import io.ktor.cio.*
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import java.io.*
 import kotlin.coroutines.experimental.*
 
@@ -77,9 +78,8 @@ sealed class OutgoingContent {
          */
         abstract suspend fun upgrade(input: ReadChannel,
                                      output: WriteChannel,
-                                     closeable: Closeable,
                                      engineContext: CoroutineContext,
-                                     userContext: CoroutineContext)
+                                     userContext: CoroutineContext): Job
     }
 }
 
