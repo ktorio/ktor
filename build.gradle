@@ -142,8 +142,6 @@ allprojects {
         } else if (kotlin_version.endsWith("-SNAPSHOT")) {
             maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
         }
-
-        maven { url "https://dl.bintray.com/kotlin/kotlinx" }
     }
 
     task packageSources(type: Jar) {
