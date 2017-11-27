@@ -22,23 +22,37 @@ internal class WebSocketWriter(val writeChannel: WriteChannel, val parent: Job, 
 
     private suspend fun ActorScope<Any>.writeLoop(buffer: ByteBuffer) {
         buffer.clear()
-        for (msg in this) {
+        loop@for (msg in this) {
             when (msg) {
-                is Frame -> drainQueueAndSerialize(msg, buffer)
+                is Frame -> if (drainQueueAndSerialize(msg, buffer)) break@loop
                 is FlushRequest -> msg.complete() // we don't need writeChannel.flush() here as we do flush at end of every drainQueueAndSerialize
+                else -> throw IllegalArgumentException("unknown message $msg")
+            }
+        }
+
+        close()
+
+        consumeEach { msg ->
+            when (msg) {
+                is Frame.Close -> {} // ignore
+                is Frame.Ping, is Frame.Pong -> {} // ignore
+                is FlushRequest -> msg.complete()
+                is Frame.Text, is Frame.Binary -> {
+                    // discard
+                }
                 else -> throw IllegalArgumentException("unknown message $msg")
             }
         }
     }
 
-    private suspend fun ActorScope<Any>.drainQueueAndSerialize(firstMsg: Frame, buffer: ByteBuffer) {
+    private suspend fun ActorScope<Any>.drainQueueAndSerialize(firstMsg: Frame, buffer: ByteBuffer): Boolean {
         var flush: FlushRequest? = null
         serializer.enqueue(firstMsg)
         var closeSent = firstMsg is Frame.Close
 
         // initially serializer has at least one message queued
         while (true) {
-            while (flush == null && serializer.remainingCapacity > 0) {
+            while (flush == null && !closeSent && serializer.remainingCapacity > 0) {
                 val msg = poll() ?: break
                 if (msg is FlushRequest) flush = msg
                 else if (msg is Frame.Close) {
@@ -72,14 +86,14 @@ internal class WebSocketWriter(val writeChannel: WriteChannel, val parent: Job, 
             // otherwise flush completion could be delayed for too long while actually could be done
 
             buffer.compact()
-
-            if (closeSent) channel.cancel() // will not process any more messages
         }
 
         // it is important here to flush the channel as some engines could delay actual bytes transferring
         // as we reached here then we don't have any outstanding messages so we can flush at idle
         writeChannel.flush()
         flush?.complete()
+
+        return closeSent
     }
 
     /**
