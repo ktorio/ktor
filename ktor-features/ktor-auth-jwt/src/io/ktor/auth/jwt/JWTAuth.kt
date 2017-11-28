@@ -18,14 +18,26 @@ private val JWTAuthKey: Any = "JWTAuth"
 class JWTCredential(val payload: Payload) : Credential
 class JWTPrincipal(val payload: Payload) : Principal
 
-fun AuthenticationPipeline.jwtAuthentication(verifier: JWTVerifier, realm: String, validate: (JWTCredential) -> Principal?) {
+/**
+ * Add JWT token authentication to the pipeline using a [JWTVerifier] to verify the token integrity.
+ * @param [jwtVerifier] verifies token format and signature
+ * @param [realm] used in the WWW-Authenticate response header
+ * @param [validate] verify the credentials provided by the client token
+ */
+fun AuthenticationPipeline.jwtAuthentication(jwtVerifier: JWTVerifier, realm: String, validate: (JWTCredential) -> Principal?) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val token = call.request.parseAuthorizationHeaderOrNull()
-        val principal = verifyAndValidate(verifier, token, validate)
+        val principal = verifyAndValidate(jwtVerifier, token, validate)
         evaluate(token, principal, realm, context)
     }
 }
 
+/**
+ * Add JWT token authentication to the pipeline using a [JwkProvider] to verify the token integrity.
+ * @param [jwkProvider] provides the JSON Web Key
+ * @param [issuer] the issuer of the JSON Web Token
+ * @param [realm] used in the WWW-Authenticate response header
+ */
 fun AuthenticationPipeline.jwtAuthentication(jwkProvider: JwkProvider, issuer: String, realm: String, validate: (JWTCredential) -> Principal?) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val token = call.request.parseAuthorizationHeaderOrNull()
@@ -63,9 +75,9 @@ private fun getVerifier(jwkProvider: JwkProvider, issuer: String, token: HttpAut
     return JWT.require(algorithm).withIssuer(issuer).build()
 }
 
-private fun verifyAndValidate(verifier: JWTVerifier?, token: HttpAuthHeader?, validate: (JWTCredential) -> Principal?): Principal? {
+private fun verifyAndValidate(jwtVerifier: JWTVerifier?, token: HttpAuthHeader?, validate: (JWTCredential) -> Principal?): Principal? {
     val jwt = try {
-        token.getBlob()?.let { verifier?.verify(it) }
+        token.getBlob()?.let { jwtVerifier?.verify(it) }
     } catch (ex: JWTVerificationException) {
         null
     } ?: return null
