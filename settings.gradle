@@ -29,6 +29,7 @@ include ':ktor-features:ktor-websockets'
 include ':ktor-features:ktor-html-builder'
 include ':ktor-features:ktor-auth'
 include ':ktor-features:ktor-auth-ldap'
+include ':ktor-features:ktor-auth-jwt'
 include ':ktor-features'
 include ':ktor-http'
 include ':ktor-utils'
@@ -85,6 +86,7 @@ project(':ktor-features:ktor-websockets').projectDir = "$rootDir/ktor-features/k
 project(':ktor-features:ktor-html-builder').projectDir = "$rootDir/ktor-features/ktor-html-builder" as File
 project(':ktor-features:ktor-auth').projectDir = "$rootDir/ktor-features/ktor-auth" as File
 project(':ktor-features:ktor-auth-ldap').projectDir = "$rootDir/ktor-features/ktor-auth-ldap" as File
+project(':ktor-features:ktor-auth-jwt').projectDir = "$rootDir/ktor-features/ktor-auth-jwt" as File
 project(':ktor-features').projectDir = "$rootDir/ktor-features" as File
 project(':ktor-http').projectDir = "$rootDir/ktor-http" as File
 project(':ktor-utils').projectDir = "$rootDir/ktor-utils" as File
