@@ -1,14 +1,11 @@
 package io.ktor.server.cio
 
-import io.ktor.http.cio.*
 import io.ktor.network.util.*
 import io.ktor.pipeline.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.io.*
 import java.util.concurrent.*
-import java.util.concurrent.atomic.*
 
 class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) : BaseApplicationEngine(environment) {
     class Configuration : BaseApplicationEngine.Configuration() {
@@ -24,16 +21,13 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
     private val hostDispatcher = ioCoroutineDispatcher
     private val userDispatcher = DispatcherWithShutdown(callExecutor.asCoroutineDispatcher())
 
-    private val state = AtomicReference<State>(State.CREATED)
+    private val stopRequest = CompletableDeferred<Unit>()
 
-    @Volatile
-    private var connectors: List<HttpServer>? = null
-
-    private val serverJob = Job()
-
-    override fun start(wait: Boolean): ApplicationEngine {
-        if (!state.compareAndSet(State.CREATED, State.STARTING)) throw IllegalStateException("Server is already started")
-        environment.start()
+    private val serverJob = launch(ioCoroutineDispatcher, start = CoroutineStart.LAZY) {
+        // starting
+        run(userDispatcher) {
+            environment.start()
+        }
 
         val connectors = ArrayList<HttpServer>(environment.connectors.size)
 
@@ -45,21 +39,26 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
                 connectors.add(connector)
             }
         } catch (t: Throwable) {
-            connectors.forEach { it.serverSocket.cancel() }
-            this.connectors = emptyList()
-            state.set(State.TERMINATED)
-            serverJob.cancel()
-            callExecutor.shutdown()
-            userDispatcher.completeShutdown()
-
+            connectors.forEach { it.rootServerJob.cancel(t) }
+            stopRequest.cancel(t)
             throw t
         }
 
-        this.connectors = connectors
+        stopRequest.await()
 
-        if (!state.compareAndSet(State.STARTING, State.RUNNING)) {
-            // shutting down
-            doShutdown(connectors)
+        // stopping
+        connectors.forEach { it.acceptJob.cancel() }
+    }
+
+    override fun start(wait: Boolean): ApplicationEngine {
+        serverJob.start()
+        serverJob.invokeOnCompletion {
+            try {
+                environment.stop()
+            } finally {
+                userDispatcher.completeShutdown()
+                callExecutor.shutdown()
+            }
         }
 
         if (wait) {
@@ -72,21 +71,7 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
-        val oldState: State
-        while (true) {
-            val current = state.get()
-            if (current == State.TERMINATED) return
-            if (current == State.CREATED && state.compareAndSet(current, State.TERMINATED)) return
-
-            if (state.compareAndSet(current, State.STOPPING)) {
-                oldState = current
-                break
-            }
-        }
-
-        if (oldState == State.RUNNING) {
-            doShutdown(this.connectors!!)
-        }
+        stopRequest.complete(Unit)
 
         runBlocking {
             val result = withTimeoutOrNull(gracePeriod, timeUnit) {
@@ -96,13 +81,8 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
 
             if (result == null) {
                 // timeout
-                connectors?.forEach {
-                    it.serverSocket.invokeOnCompletion { t ->
-                        if (t == null) {
-                            it.serverSocket.getCompleted().close()
-                        }
-                    }
-                }
+                userDispatcher.prepareShutdown()
+                serverJob.cancel()
 
                 val forceShutdown = withTimeoutOrNull(timeout - gracePeriod, timeUnit) {
                     serverJob.join()
@@ -116,41 +96,12 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
         }
     }
 
-    private fun doShutdown(connectors: List<HttpServer>) {
-        userDispatcher.prepareShutdown()
-
-        for (connector in connectors) {
-            connector.rootServerJob.cancel()
-        }
-
-        launch(hostDispatcher) {
-            for (connector in connectors) {
-                connector.rootServerJob.join()
-            }
-
-            try {
-                environment.stop()
-            } finally {
-                state.set(State.TERMINATED)
-                serverJob.cancel()
-
-                userDispatcher.completeShutdown()
-                callExecutor.shutdown()
-            }
-        }
-    }
-
     private fun startConnector(port: Int): HttpServer {
-        if (state.get() != State.STARTING) return HttpServer.CancelledServer
+        val settings = HttpServerSettings(port = port,
+                connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong())
 
-        val settings = HttpServerSettings(port = port, connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong())
         val server = httpServer(settings, userDispatcher) { request, input, output, upgraded ->
-            if (state.get() != State.RUNNING) {
-                respondServiceUnavailable(request.version, output)
-                return@httpServer
-            }
-
-            val call = CIOApplicationCall(application, request, input, output, hostDispatcher, userDispatcher, upgraded)
+            val call = CIOApplicationCall(application, request, input, output, hostDispatcher + serverJob, userDispatcher + serverJob, upgraded)
 
             try {
                 pipeline.execute(call)
@@ -160,35 +111,8 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
             }
         }
 
-        if (state.get() != State.STARTING) {
-            server.rootServerJob.cancel()
-        }
+        serverJob.attachChild(server.rootServerJob)
 
         return server
-    }
-
-    private suspend fun respondServiceUnavailable(httpVersion: CharSequence, output: ByteWriteChannel) {
-        RequestResponseBuilder().apply {
-            try {
-                val su = "Service Unavailable"
-                responseLine(httpVersion, 503, su)
-                headerLine("Connection", "close")
-                headerLine("Content-Length", su.length.toString())
-                emptyLine()
-                bytes(su.toByteArray())
-
-                output.writePacket(build())
-            } finally {
-                release()
-            }
-        }
-    }
-
-    private enum class State {
-        CREATED,
-        STARTING,
-        RUNNING,
-        STOPPING,
-        TERMINATED
     }
 }

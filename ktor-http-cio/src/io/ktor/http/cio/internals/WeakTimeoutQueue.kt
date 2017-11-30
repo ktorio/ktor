@@ -23,16 +23,33 @@ class WeakTimeoutQueue(private val timeoutMillis: Long,
                        private val clock: Clock = Clock.systemUTC(),
                        private val exceptionFactory: () -> Exception = { TimeoutCancellationException("Timeout of $timeoutMillis ms exceeded") }) {
     private val head = LockFreeLinkedListHead()
+    private @Volatile var cancelled = false
 
     fun register(r: Job) : DisposableHandle {
         val now = clock.millis()
         val head = head
+        if (cancelled) throw cancellationException()
 
         val cancellable = JobTask(now + timeoutMillis, r)
         head.addLast(cancellable)
 
-        process(now, head)
+        process(now, head, cancelled)
+        if (cancelled) {
+            val e = cancellationException()
+            cancellable.cancel(e)
+            throw e
+        }
+
         return cancellable
+    }
+
+    fun cancel() {
+        cancelled = true
+        process()
+    }
+
+    fun process() {
+        process(clock.millis(), head, cancelled)
     }
 
     suspend fun <T> withTimeout(block: suspend CoroutineScope.() -> T): T {
@@ -44,6 +61,7 @@ class WeakTimeoutQueue(private val timeoutMillis: Long,
             wrapped.disposeOnCompletion(handle)
 
             val result = try {
+                if (wrapped.isCancelled) throw wrapped.getCancellationException()
                 block.startCoroutineUninterceptedOrReturn(receiver = wrapped, completion = wrapped)
             } catch (t: Throwable) {
                 JobSupport.CompletedExceptionally(t)
@@ -69,13 +87,21 @@ class WeakTimeoutQueue(private val timeoutMillis: Long,
         }
     }
 
-    private fun process(now: Long, head: LockFreeLinkedListHead) {
+    private fun process(now: Long, head: LockFreeLinkedListHead, cancelled: Boolean) {
+        var e: Throwable? = null
+
         while (true) {
             val p = head.next as? Cancellable ?: break
-            if (p.deadline > now) break
-            if (p.isActive && p.remove()) p.cancel(exceptionFactory())
+            if (!cancelled && p.deadline > now) break
+
+            if (p.isActive && p.remove()) {
+                if (e == null) e = if (cancelled) cancellationException() else exceptionFactory()
+                p.cancel(e)
+            }
         }
     }
+
+    private fun cancellationException() = CancellationException("Timeout queue has been cancelled")
 
     private abstract class Cancellable(val deadline: Long) : LockFreeLinkedListNode(), DisposableHandle {
         open val isActive: Boolean
