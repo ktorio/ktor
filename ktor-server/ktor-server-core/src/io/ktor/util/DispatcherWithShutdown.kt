@@ -12,8 +12,8 @@ class DispatcherWithShutdown(delegate: CoroutineDispatcher) : CoroutineDispatche
     private val shutdownPool = lazy { Executors.newCachedThreadPool() }
 
     fun prepareShutdown() {
-        delegate = null
         shutdownPhase = ShutdownPhase.Graceful
+        delegate = null
     }
 
     fun completeShutdown() {
