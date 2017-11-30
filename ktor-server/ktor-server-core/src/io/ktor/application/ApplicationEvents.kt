@@ -1,25 +1,31 @@
 package io.ktor.application
 
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.internal.*
 import java.util.concurrent.*
 
 /**
  * Provides events for [Application] lifecycle
  */
 class ApplicationEvents {
-    private val handlers = ConcurrentHashMap<EventDefinition<*>, MutableList<EventHandler<*>>>()
+    private val handlers = ConcurrentHashMap<EventDefinition<*>, LockFreeLinkedListHead>()
 
     /**
      * Subscribe [handler] to an event specified by [definition]
      */
-    fun <T> subscribe(definition: EventDefinition<T>, handler: EventHandler<T>) {
-        handlers.computeIfAbsent(definition) { CopyOnWriteArrayList() }.add(handler)
+    fun <T> subscribe(definition: EventDefinition<T>, handler: EventHandler<T>): DisposableHandle {
+        val registration = HandlerRegistration(handler)
+        handlers.computeIfAbsent(definition) { LockFreeLinkedListHead() }.addLast(registration)
+        return registration
     }
 
     /**
      * Unsubscribe [handler] from an event specified by [definition]
      */
     fun <T> unsubscribe(definition: EventDefinition<T>, handler: EventHandler<T>) {
-        handlers.computeIfAbsent(definition) { CopyOnWriteArrayList() }.remove(handler)
+        handlers[definition]?.forEach<HandlerRegistration> {
+            if (it.handler == handler) it.remove()
+        }
     }
 
     /**
@@ -30,15 +36,21 @@ class ApplicationEvents {
      */
     fun <T> raise(definition: EventDefinition<T>, value: T) {
         var exception: Throwable? = null
-        handlers[definition]?.forEach { handler ->
+        handlers[definition]?.forEach<HandlerRegistration> { registration ->
             try {
                 @Suppress("UNCHECKED_CAST")
-                (handler as EventHandler<T>)(value)
+                (registration.handler as EventHandler<T>)(value)
             } catch (e: Throwable) {
                 exception?.addSuppressed(e) ?: run { exception = e }
             }
         }
         exception?.let { throw it }
+    }
+
+    private class HandlerRegistration(val handler: EventHandler<*>) : LockFreeLinkedListNode(), DisposableHandle {
+        override fun dispose() {
+            remove()
+        }
     }
 }
 
