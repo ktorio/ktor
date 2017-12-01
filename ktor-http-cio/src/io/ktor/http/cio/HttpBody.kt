@@ -1,29 +1,28 @@
 package io.ktor.http.cio
 
 import io.ktor.http.*
-import io.ktor.http.cio.ConnectionType.*
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
 
 fun expectHttpUpgrade(method: HttpMethod,
                       upgrade: CharSequence?,
-                      connectionType: ConnectionType?): Boolean {
+                      connectionOptions: ConnectionOptions?): Boolean {
     return method == HttpMethod.Get &&
             upgrade != null &&
-            connectionType == ConnectionType.Upgrade
+            connectionOptions?.upgrade == true
 }
 
 fun expectHttpUpgrade(request: Request): Boolean {
     return expectHttpUpgrade(request.method,
             request.headers["Upgrade"],
-            ConnectionType.parse(request.headers["Connection"]))
+            ConnectionOptions.parse(request.headers["Connection"]))
 }
 
 fun expectHttpBody(method: HttpMethod,
                    contentLength: Long,
                    transferEncoding: CharSequence?,
-                   connectionType: ConnectionType?,
+                   connectionOptions: ConnectionOptions?,
                    contentType: CharSequence?): Boolean {
     if (method == HttpMethod.Get ||
             method == HttpMethod.Head ||
@@ -32,7 +31,7 @@ fun expectHttpBody(method: HttpMethod,
     }
 
     if (transferEncoding != null) return true
-    if (connectionType == ConnectionType.Close) return true
+    if (connectionOptions?.close == true) return true
     if (contentLength != -1L) {
         return contentLength > 0L
     }
@@ -46,14 +45,14 @@ fun expectHttpBody(request: Request): Boolean {
     return expectHttpBody(request.method,
             request.headers["Content-Length"]?.parseDecLong() ?: -1,
             request.headers["Transfer-Encoding"],
-            ConnectionType.parse(request.headers["Connection"]),
+            ConnectionOptions.parse(request.headers["Connection"]),
             request.headers["Content-Type"]
             )
 }
 
 suspend fun parseHttpBody(contentLength: Long,
                           transferEncoding: CharSequence?,
-                          connectionType: ConnectionType?,
+                          connectionOptions: ConnectionOptions?,
                           input: ByteReadChannel,
                           out: ByteWriteChannel) {
     if (transferEncoding != null) {
@@ -72,7 +71,7 @@ suspend fun parseHttpBody(contentLength: Long,
         return
     }
 
-    if (connectionType == ConnectionType.Close) {
+    if (connectionOptions?.close == true) {
         input.copyTo(out)
         return
     }
@@ -86,7 +85,7 @@ suspend fun parseHttpBody(headers: HttpHeadersMap, input: ByteReadChannel, out: 
     return parseHttpBody(
             headers["Content-Length"]?.parseDecLong() ?: -1,
             headers["Transfer-Encoding"],
-            ConnectionType.parse(headers["Connection"]),
+            ConnectionOptions.parse(headers["Connection"]),
             input, out
     )
 }

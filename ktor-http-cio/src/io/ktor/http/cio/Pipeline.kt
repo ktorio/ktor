@@ -8,11 +8,11 @@ import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import kotlin.coroutines.experimental.*
 
-fun lastHttpRequest(http11: Boolean, connectionType: ConnectionType?): Boolean {
-    return when (connectionType) {
-        null -> !http11
-        ConnectionType.KeepAlive -> false
-        ConnectionType.Close -> true
+fun lastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boolean {
+    return when {
+        connectionOptions == null -> !http11
+        connectionOptions.keepAlive -> false
+        connectionOptions.close -> true
         else -> false
     }
 }
@@ -22,6 +22,9 @@ typealias HttpRequestHandler = suspend (request: Request,
                                         output: ByteWriteChannel,
                                         upgraded: CompletableDeferred<Boolean>?) -> Unit
 
+val HttpPipelineCoroutine = CoroutineName("http-pipeline")
+val HttpPipelineWriterCoroutine = CoroutineName("http-pipeline-writer")
+
 fun startConnectionPipeline(input: ByteReadChannel,
                             output: ByteWriteChannel,
                             ioContext: CoroutineContext,
@@ -29,9 +32,9 @@ fun startConnectionPipeline(input: ByteReadChannel,
                             timeout: WeakTimeoutQueue,
                             handler: HttpRequestHandler): Job {
 
-    return launch(ioContext + CoroutineName("http-pipeline")) {
+    return launch(ioContext + HttpPipelineCoroutine) {
         val outputsActor = actor<ByteReadChannel>(
-                context = coroutineContext + CoroutineName("http-pipeline-writer"),
+                context = coroutineContext + HttpPipelineWriterCoroutine,
                 capacity = 3,
                 start = CoroutineStart.UNDISPATCHED) {
             try {
@@ -81,7 +84,7 @@ fun startConnectionPipeline(input: ByteReadChannel,
                 val contentType = request.headers["Content-Type"]
                 val http11 = request.version == "HTTP/1.1"
 
-                val connectionType: ConnectionType?
+                val connectionOptions: ConnectionOptions?
                 val contentLength: Long
                 val expectedHttpBody: Boolean
                 val expectedHttpUpgrade: Boolean
@@ -94,10 +97,10 @@ fun startConnectionPipeline(input: ByteReadChannel,
                 }
 
                 try {
-                    connectionType = ConnectionType.parse(request.headers["Connection"])
+                    connectionOptions = ConnectionOptions.parse(request.headers["Connection"])
                     contentLength = request.headers["Content-Length"]?.parseDecLong() ?: -1
-                    expectedHttpBody = expectHttpBody(request.method, contentLength, transferEncoding, connectionType, contentType)
-                    expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request.method, upgrade, connectionType)
+                    expectedHttpBody = expectHttpBody(request.method, contentLength, transferEncoding, connectionOptions, contentType)
+                    expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request.method, upgrade, connectionOptions)
                 } catch (t: Throwable) {
                     request.release()
                     response.writePacket(BadRequestPacket.copy())
@@ -133,7 +136,7 @@ fun startConnectionPipeline(input: ByteReadChannel,
 
                 if (expectedHttpBody && requestBody is ByteWriteChannel) {
                     try {
-                        parseHttpBody(contentLength, transferEncoding, connectionType, input, requestBody)
+                        parseHttpBody(contentLength, transferEncoding, connectionOptions, input, requestBody)
                     } catch (t: Throwable) {
                         requestBody.close(t)
                     } finally {
@@ -141,7 +144,7 @@ fun startConnectionPipeline(input: ByteReadChannel,
                     }
                 }
 
-                if (lastHttpRequest(http11, connectionType)) break
+                if (lastHttpRequest(http11, connectionOptions)) break
             }
         } catch (t: IOException) { // already handled
             coroutineContext.cancel()
