@@ -7,15 +7,17 @@ import io.ktor.network.sockets.*
 import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.Socket
 import io.ktor.network.util.*
+import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
+import org.slf4j.*
 import java.net.*
 import java.nio.channels.*
 import java.time.*
 import java.util.concurrent.*
+import java.util.concurrent.CancellationException
 import kotlin.coroutines.experimental.*
 
-class HttpServer(val rootServerJob: Job, val acceptJob: Job, val serverSocket: Deferred<ServerSocket>) {
-}
+class HttpServer(val rootServerJob: Job, val acceptJob: Job, val serverSocket: Deferred<ServerSocket>)
 
 data class HttpServerSettings(
         val host: String = "0.0.0.0",
@@ -23,11 +25,11 @@ data class HttpServerSettings(
         val connectionIdleTimeoutSeconds: Long = 45
 )
 
-fun httpServer(settings: HttpServerSettings, callDispatcher: CoroutineContext = ioCoroutineDispatcher, handler: HttpRequestHandler): HttpServer {
+fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, callDispatcher: CoroutineContext = ioCoroutineDispatcher, handler: HttpRequestHandler): HttpServer {
     val socket = CompletableDeferred<ServerSocket>()
 
     val serverLatch = CompletableDeferred<Unit>()
-    val serverJob = launch(ioCoroutineDispatcher + CoroutineName("server-root-${settings.port}")) {
+    val serverJob = launch(ioCoroutineDispatcher + CoroutineName("server-root-${settings.port}") + (parentJob ?: EmptyCoroutineContext)) {
         serverLatch.await()
     }
 
@@ -41,12 +43,15 @@ fun httpServer(settings: HttpServerSettings, callDispatcher: CoroutineContext = 
             socket.complete(server)
 
             try {
+                val parentAndHandler = serverJob + KtorUncaughtExceptionHandler()
+
                 while (true) {
                     val client: Socket = server.accept()
 
                     val clientJob = startConnectionPipeline(
                             input = client.openReadChannel(),
                             output = client.openWriteChannel(),
+                            parentJob = parentAndHandler,
                             ioContext = ioCoroutineDispatcher,
                             callContext = callDispatcher,
                             timeout = timeout,
@@ -56,8 +61,6 @@ fun httpServer(settings: HttpServerSettings, callDispatcher: CoroutineContext = 
                     clientJob.invokeOnCompletion {
                         client.close()
                     }
-
-                    serverJob.attachChild(clientJob)
                 }
             } catch (closed: ClosedChannelException) {
                 coroutineContext.cancel(closed)
@@ -68,8 +71,10 @@ fun httpServer(settings: HttpServerSettings, callDispatcher: CoroutineContext = 
         }
     }
 
-    acceptJob.invokeOnCompletion {
+    acceptJob.invokeOnCompletion { t ->
+        t?.let { socket.completeExceptionally(it) }
         serverLatch.complete(Unit)
+        timeout.process()
     }
 
     serverJob.invokeOnCompletion(onCancelling = true) {
@@ -80,4 +85,19 @@ fun httpServer(settings: HttpServerSettings, callDispatcher: CoroutineContext = 
     }
 
     return HttpServer(serverJob, acceptJob, socket)
+}
+
+private class KtorUncaughtExceptionHandler : CoroutineExceptionHandler {
+    private val logger = LoggerFactory.getLogger(KtorUncaughtExceptionHandler::class.java)
+
+    override val key: CoroutineContext.Key<*>
+        get() = CoroutineExceptionHandler.Key
+
+    override fun handleException(context: CoroutineContext, exception: Throwable) {
+        if (exception is CancellationException) return
+
+        logger.error(exception)
+        // unlike the default coroutine exception handler we shouldn't cancel parent job here
+        // otherwise single call failure will cancel the whole server
+    }
 }

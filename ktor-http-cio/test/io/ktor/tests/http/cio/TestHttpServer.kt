@@ -97,7 +97,7 @@ private suspend fun client(socket: SocketChannel, ioCoroutineContext: CoroutineC
     }
 
     val timeouts = WeakTimeoutQueue(TimeUnit.HOURS.toMillis(1000))
-    startConnectionPipeline(incoming, outgoing, ioCoroutineContext, callDispatcher, timeouts, handler).invokeOnCompletion {
+    startConnectionPipeline(incoming, outgoing, null, ioCoroutineContext, callDispatcher, timeouts, handler).invokeOnCompletion {
         incoming.close()
         outgoing.close()
     }

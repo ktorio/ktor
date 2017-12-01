@@ -112,7 +112,13 @@ internal class WebSocketWriter(val writeChannel: WriteChannel, val parent: Job, 
 
     private class FlushRequest(parent: Job) {
         private val done = CompletableDeferred<Unit>()
-        init { parent.attachChild(done) }
+        init {
+            val reg = parent.attachChild(done)
+            done.invokeOnCompletion {
+                reg.dispose()
+            }
+        }
+
         fun complete() = done.complete(Unit)
         suspend fun await() = done.await()
     }

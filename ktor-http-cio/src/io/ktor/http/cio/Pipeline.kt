@@ -27,12 +27,13 @@ val HttpPipelineWriterCoroutine = CoroutineName("http-pipeline-writer")
 
 fun startConnectionPipeline(input: ByteReadChannel,
                             output: ByteWriteChannel,
+                            parentJob: CoroutineContext?,
                             ioContext: CoroutineContext,
                             callContext: CoroutineContext,
                             timeout: WeakTimeoutQueue,
                             handler: HttpRequestHandler): Job {
 
-    return launch(ioContext + HttpPipelineCoroutine) {
+    return launch(ioContext + HttpPipelineCoroutine + (parentJob ?: EmptyCoroutineContext)) {
         val outputsActor = actor<ByteReadChannel>(
                 context = coroutineContext + HttpPipelineWriterCoroutine,
                 capacity = 3,
@@ -164,7 +165,7 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
                                      callContext: CoroutineContext,
                                      timeouts: WeakTimeoutQueue,
                                      handler: HttpRequestHandler) {
-    startConnectionPipeline(input, output, ioCoroutineContext, callContext, timeouts, handler).join()
+    startConnectionPipeline(input, output, null, ioCoroutineContext, callContext, timeouts, handler).join()
 }
 
 private val BadRequestPacket =

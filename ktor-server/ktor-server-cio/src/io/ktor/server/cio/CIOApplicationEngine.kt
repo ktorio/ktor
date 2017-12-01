@@ -105,7 +105,7 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
         val settings = HttpServerSettings(port = port,
                 connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong())
 
-        val server = httpServer(settings, userDispatcher) { request, input, output, upgraded ->
+        return httpServer(settings, serverJob, userDispatcher) { request, input, output, upgraded ->
             val call = CIOApplicationCall(application, request, input, output, hostDispatcher + serverJob, userDispatcher + serverJob, upgraded)
 
             try {
@@ -115,9 +115,5 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
                 output.close(t)
             }
         }
-
-        serverJob.attachChild(server.rootServerJob)
-
-        return server
     }
 }
