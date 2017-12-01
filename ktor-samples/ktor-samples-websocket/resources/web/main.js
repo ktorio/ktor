@@ -12,8 +12,15 @@ function connect() {
         write("Connected");
     };
 
-    socket.onclose = function() {
-        write("Disconnected");
+    socket.onclose = function(evt) {
+        var explanation = "";
+        if (evt.reason && evt.reason.length > 0) {
+            explanation = "reason: " + evt.reason;
+        } else {
+            explanation = "without a reason specified";
+        }
+
+        write("Disconnected with close code " + evt.code + " and " + explanation);
         setTimeout(connect, 5000);
     };
 
