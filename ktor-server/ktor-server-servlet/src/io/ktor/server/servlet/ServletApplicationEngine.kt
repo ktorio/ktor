@@ -56,6 +56,7 @@ open class ServletApplicationEngine : KtorServlet() {
     }
 
     override fun destroy() {
+        environment.monitor.raise(ApplicationStopPreparing, environment)
         super.destroy()
         environment.stop()
     }

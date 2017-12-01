@@ -1,5 +1,6 @@
 package io.ktor.server.cio
 
+import io.ktor.application.*
 import io.ktor.network.util.*
 import io.ktor.pipeline.*
 import io.ktor.server.engine.*
@@ -48,6 +49,10 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
 
         // stopping
         connectors.forEach { it.acceptJob.cancel() }
+
+        run(userDispatcher) {
+            environment.monitor.raise(ApplicationStopPreparing, environment)
+        }
     }
 
     override fun start(wait: Boolean): ApplicationEngine {

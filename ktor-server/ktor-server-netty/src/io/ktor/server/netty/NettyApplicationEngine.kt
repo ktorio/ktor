@@ -1,5 +1,6 @@
 package io.ktor.server.netty
 
+import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.netty.bootstrap.*
@@ -55,6 +56,7 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+        environment.monitor.raise(ApplicationStopPreparing, environment)
         val channelFutures = channels?.map { it.close() }.orEmpty()
 
         dispatcherWithShutdown.prepareShutdown()

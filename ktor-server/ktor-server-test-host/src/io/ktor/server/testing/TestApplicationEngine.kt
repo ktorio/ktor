@@ -21,6 +21,7 @@ class TestApplicationEngine(environment: ApplicationEngineEnvironment = createTe
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+        environment.monitor.raise(ApplicationStopPreparing, environment)
         environment.stop()
     }
 

@@ -1,5 +1,6 @@
 package io.ktor.server.jetty
 
+import io.ktor.application.*
 import io.ktor.server.engine.*
 import org.eclipse.jetty.server.*
 import java.util.concurrent.*
@@ -32,6 +33,7 @@ open class JettyApplicationEngineBase(environment: ApplicationEngineEnvironment,
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+        environment.monitor.raise(ApplicationStopPreparing, environment)
         server.stopTimeout = timeUnit.toMillis(timeout)
         server.stop()
         server.destroy()

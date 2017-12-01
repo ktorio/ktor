@@ -43,6 +43,8 @@ val ApplicationStarting = EventDefinition<Application>()
  */
 val ApplicationStarted = EventDefinition<Application>()
 
+val ApplicationStopPreparing = EventDefinition<ApplicationEnvironment>()
+
 /**
  * Even definition for Application Stopping event
  */

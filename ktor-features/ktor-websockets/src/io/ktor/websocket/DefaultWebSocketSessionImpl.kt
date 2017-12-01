@@ -117,11 +117,18 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
             }
         }
 
+        val registration = application.environment.monitor.subscribe(ApplicationStopPreparing) {
+            launch(engineContext, start = CoroutineStart.UNDISPATCHED) {
+                outgoingToBeProcessed.send(Frame.Close(CloseReason(CloseReason.Codes.GOING_AWAY, "Server is going down")))
+            }
+        }
+
         try {
             closeReasonRef.await()
 //            closeSequence.join()
         } finally {
             cancelPinger()
+            registration.dispose()
         }
     }
 

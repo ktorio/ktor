@@ -98,6 +98,7 @@ class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configu
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+        environment.monitor.raise(ApplicationStopPreparing, environment)
         server.stop()
         environment.stop()
         tempDirectory.toFile().deleteRecursively()

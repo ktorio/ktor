@@ -20,6 +20,7 @@ class ShutDownUrl(val url: String, val exitCode: ApplicationCall.() -> Int) {
         thread {
             latch.await(10L, TimeUnit.SECONDS)
 
+            environment.monitor.raise(ApplicationStopPreparing, environment)
             if (environment is ApplicationEngineEnvironment) {
                 environment.stop()
             } else {
