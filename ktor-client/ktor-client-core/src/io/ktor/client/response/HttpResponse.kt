@@ -1,60 +1,23 @@
 package io.ktor.client.response
 
 import io.ktor.client.call.*
-import io.ktor.client.utils.*
+import io.ktor.content.*
 import io.ktor.http.*
 import java.io.*
 import java.util.*
 
 
-class HttpResponse(
-        val status: HttpStatusCode,
-        val version: HttpProtocolVersion,
-        override val headers: Headers,
-        val body: Any,
-        val requestTime: Date,
-        val responseTime: Date,
-        val call: HttpClientCall,
-        private val origin: Closeable?
-) : Closeable, HttpMessage {
-    val cacheControl: HttpResponseCacheControl by lazy { headers.computeResponseCacheControl() }
+interface BaseHttpResponse : HttpMessage, Closeable {
 
-    override fun close() {
-        origin?.close()
-    }
-}
+    val call: HttpClientCall
 
-class HttpResponseBuilder() : Closeable, HttpMessageBuilder {
-    lateinit var status: HttpStatusCode
-    lateinit var version: HttpProtocolVersion
-    lateinit var body: Any
-    lateinit var requestTime: Date
-    lateinit var responseTime: Date
+    val status: HttpStatusCode
 
-    override val headers = HeadersBuilder(caseInsensitiveKey = true)
-    val cacheControl: HttpResponseCacheControl get() = headers.computeResponseCacheControl()
+    val version: HttpProtocolVersion
 
-    var origin: Closeable? = null
+    val requestTime: Date
 
-    constructor(response: HttpResponse) : this() {
-        status= response.status
-        version = response.version
-        headers.appendAll(response.headers)
-        body = response.body
-        responseTime = response.responseTime
-        requestTime = response.requestTime
+    val responseTime: Date
 
-        origin = response
-    }
-
-    fun headers(block: HeadersBuilder.() -> Unit) {
-        headers.apply(block)
-    }
-
-    fun build(call: HttpClientCall): HttpResponse =
-            HttpResponse(status, version, headers.build(), body, requestTime, responseTime, call, origin)
-
-    override fun close() {
-        origin?.close()
-    }
+    fun receiveContent(): IncomingContent
 }

@@ -9,6 +9,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
@@ -187,7 +188,6 @@ class OAuth1aFlowTest {
             val result = handleRequest(HttpMethod.Get, "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier1")
 
             waitExecutor()
-            result.awaitCompletion()
 
             assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
@@ -204,7 +204,6 @@ class OAuth1aFlowTest {
             val result = handleRequest(HttpMethod.Get, "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier2")
 
             waitExecutor()
-            result.awaitCompletion()
 
             assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())
@@ -225,7 +224,6 @@ class OAuth1aFlowTest {
             val result = handleRequest(HttpMethod.Get, "/login")
 
             waitExecutor()
-            result.awaitCompletion()
 
             assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.Found, result.response.status())
@@ -247,7 +245,6 @@ class OAuth1aFlowTest {
             val result = handleRequest(HttpMethod.Get, "/login?redirected=true&oauth_token=token1&oauth_verifier=verifier1")
 
             waitExecutor()
-            result.awaitCompletion()
 
             assertTrue(result.requestHandled, "request should be handled")
             assertEquals(HttpStatusCode.OK, result.response.status())

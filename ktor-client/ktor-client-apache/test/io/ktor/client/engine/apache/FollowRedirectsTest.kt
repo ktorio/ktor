@@ -3,6 +3,7 @@ package io.ktor.client.engine.apache
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
+import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
@@ -29,7 +30,7 @@ open class FollowRedirectsTest : TestWithKtor() {
     @Test
     fun defaultTest() = runBlocking {
         HttpClient(Apache).use { client ->
-            client.get<HttpResponse>(port = serverPort).use {
+            client.get<BaseHttpResponse>(port = serverPort).use {
                 assertEquals(HttpStatusCode.Found, it.status)
             }
         }
@@ -38,7 +39,7 @@ open class FollowRedirectsTest : TestWithKtor() {
     @Test
     fun redirectTest() = runBlocking {
         HttpClient(Apache.config { followRedirects = true }).use { client ->
-            client.get<HttpResponse>(port = serverPort).use {
+            client.get<BaseHttpResponse>(port = serverPort).use {
                 assertEquals(HttpStatusCode.OK, it.status)
             }
         }

@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 
-private val MAX_QUEUE_LENGTH: Int = 65 * 1024 / DEFAULT_RESPONSE_SIZE
+private val MAX_QUEUE_LENGTH: Int = 65 * 1024 / DEFAULT_HTTP_BUFFER_SIZE
 
 private data class ApacheResponseChunk(val buffer: ByteBuffer, val io: IOControl?)
 
@@ -25,7 +25,7 @@ internal class ApacheResponseConsumer(
         private val block: (ApacheResponse) -> Unit
 ) : AbstractAsyncResponseConsumer<Unit>() {
     private val backendChannel = Channel<ApacheResponseChunk>(Channel.UNLIMITED)
-    private var current: ByteBuffer = HTTP_CLIENT_RESPONSE_POOL.borrow()
+    private var current: ByteBuffer = HttpClientDefaultPool.borrow()
     private val released = AtomicBoolean(false)
     private val lock = ReentrantLock()
     private var channelSize: Int = 0
@@ -45,10 +45,10 @@ internal class ApacheResponseConsumer(
             if (current.position() > 0) {
                 current.flip()
                 if (!backendChannel.offer(ApacheResponseChunk(current, null))) {
-                    HTTP_CLIENT_RESPONSE_POOL.recycle(current)
+                    HttpClientDefaultPool.recycle(current)
                     throw IOException("backendChannel.offer() failed")
                 }
-            } else HTTP_CLIENT_RESPONSE_POOL.recycle(current)
+            } else HttpClientDefaultPool.recycle(current)
         } finally {
             backendChannel.close(throwable)
         }
@@ -65,7 +65,7 @@ internal class ApacheResponseConsumer(
             throw IOException("backendChannel.offer() failed")
         }
 
-        current = HTTP_CLIENT_RESPONSE_POOL.borrow()
+        current = HttpClientDefaultPool.borrow()
         lock.withLock {
             ++channelSize
             if (channelSize == MAX_QUEUE_LENGTH) ioctrl.suspendInput()
@@ -84,7 +84,7 @@ internal class ApacheResponseConsumer(
                 }
 
                 channel.writeFully(buffer)
-                HTTP_CLIENT_RESPONSE_POOL.recycle(buffer)
+                HttpClientDefaultPool.recycle(buffer)
             }
         } catch (throwable: Throwable) {
             channel.close(throwable)

@@ -6,8 +6,8 @@ import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.ByteBuffer
 import kotlinx.coroutines.experimental.io.packet.*
-import kotlinx.coroutines.experimental.io.packet.ByteReadPacket
 import kotlinx.io.core.*
+import kotlinx.io.core.ByteReadPacket
 import java.io.*
 import java.io.EOFException
 import java.nio.*

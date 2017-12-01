@@ -3,6 +3,7 @@ package io.ktor.content
 import io.ktor.cio.*
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.nio.file.*

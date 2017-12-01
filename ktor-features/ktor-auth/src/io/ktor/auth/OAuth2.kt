@@ -5,7 +5,6 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.client.utils.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.pipeline.*
@@ -130,14 +129,9 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
         configure()
 
         if (method == HttpMethod.Post) {
-            contentType(ContentType.Application.FormUrlEncoded)
-            body = ByteWriteChannelBody {
-                it.writer().use { out ->
-                    out.write(urlParameters)
-                }
-            }
+            body = WriterContent({ write(urlParameters) }, ContentType.Application.FormUrlEncoded)
         }
-    }
+    }.response
 
     val body = response.readText()
 

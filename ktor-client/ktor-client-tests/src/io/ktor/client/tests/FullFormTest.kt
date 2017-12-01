@@ -4,6 +4,8 @@ import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.request.*
@@ -42,7 +44,7 @@ open class FullFormTest(private val factory: HttpClientEngineFactory<*>) : TestW
                 method = HttpMethod.Get
                 body = "Hello, server"
             }
-        }.use { it.readText() }
+        }.use { it.response.readText() }
 
         assertEquals("Hello, client", text)
 
@@ -61,7 +63,7 @@ open class FullFormTest(private val factory: HttpClientEngineFactory<*>) : TestW
                 method = HttpMethod.Post
                 body = "Hello, server"
             }
-        }.use { it.readText() }
+        }.use { it.response.readText() }
 
         assertEquals("Hello, client", text)
         client.close()

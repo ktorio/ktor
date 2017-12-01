@@ -3,7 +3,6 @@ package io.ktor.client.tests
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.client.utils.*
@@ -55,7 +54,7 @@ open class CacheTest(private val factory: HttpClientEngineFactory<*>) : TestWith
     @Test
     fun testDisabled() {
         val client = HttpClient(factory) {
-            install(HttpCache)
+//            install(HttpCache)
         }
 
         val builder = HttpRequestBuilder().apply {
@@ -75,7 +74,7 @@ open class CacheTest(private val factory: HttpClientEngineFactory<*>) : TestWith
     @Test
     fun maxAge() {
         val client = HttpClient(factory) {
-            install(HttpCache)
+//            install(HttpCache)
         }
 
         val results = mutableListOf<String>()

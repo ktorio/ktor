@@ -3,89 +3,6 @@ package io.ktor.client.utils
 import io.ktor.http.*
 
 
-abstract class HttpRequestCacheControl {
-    abstract val maxAge: Int?
-    abstract val maxStale: Int?
-    abstract val minFresh: Int?
-    abstract val noCache: Boolean
-    abstract val noStore: Boolean
-    abstract val noTransform: Boolean
-    abstract val onlyIfCached: Boolean
-}
-
-abstract class HttpResponseCacheControl {
-    abstract val mustRevalidate: Boolean
-    abstract val noCache: Boolean
-    abstract val noStore: Boolean
-    abstract val noTransform: Boolean
-    abstract val public: Boolean
-    abstract val private: Boolean
-    abstract val proxyRevalidate: Boolean
-    abstract val maxAge: Int?
-    abstract val sMaxAge: Int?
-}
-
-class HttpRequestCacheControlFromList(cacheControl: List<String>) : HttpRequestCacheControl() {
-    override val maxAge: Int? = cacheControl.intProperty(CacheControl.MAX_AGE)
-
-    override val maxStale: Int? = cacheControl.intProperty(CacheControl.MAX_STALE)
-
-    override val minFresh: Int? = cacheControl.intProperty(CacheControl.MIN_FRESH)
-
-    override val noCache: Boolean = cacheControl.booleanProperty(CacheControl.NO_CACHE)
-
-    override val noStore: Boolean = cacheControl.booleanProperty(CacheControl.NO_STORE)
-
-    override val noTransform: Boolean = cacheControl.booleanProperty(CacheControl.NO_TRANSFORM)
-
-    override val onlyIfCached: Boolean = cacheControl.booleanProperty(CacheControl.ONLY_IF_CACHED)
-}
-
-class HttpResponseCacheControlFromList(cacheControl: List<String>) : HttpResponseCacheControl() {
-    override val mustRevalidate: Boolean = cacheControl.booleanProperty(CacheControl.MUST_REVALIDATE)
-
-    override val noCache: Boolean = cacheControl.booleanProperty(CacheControl.NO_CACHE)
-
-    override val noStore: Boolean = cacheControl.booleanProperty(CacheControl.NO_STORE)
-
-    override val noTransform: Boolean = cacheControl.booleanProperty(CacheControl.NO_TRANSFORM)
-
-    override val public: Boolean = cacheControl.booleanProperty(CacheControl.PUBLIC)
-
-    override val private: Boolean = cacheControl.booleanProperty(CacheControl.PRIVATE)
-
-    override val proxyRevalidate: Boolean = cacheControl.booleanProperty(CacheControl.PROXY_REVALIDATE)
-
-    override val maxAge: Int? = cacheControl.intProperty(CacheControl.MAX_AGE)
-
-    override val sMaxAge: Int? = cacheControl.intProperty(CacheControl.S_MAX_AGE)
-}
-
-private fun List<String>.booleanProperty(key: String): Boolean = contains(key)
-
-private fun List<String>.intProperty(key: String): Int? =
-        find { it.startsWith(key) }?.split("=")?.getOrNull(1)?.toInt()
-
-fun Headers.computeRequestCacheControl(): HttpRequestCacheControl {
-    val rawHeader = getAll(HttpHeaders.CacheControl) ?: listOf()
-    return HttpRequestCacheControlFromList(rawHeader)
-}
-
-fun HeadersBuilder.computeRequestCacheControl(): HttpRequestCacheControl {
-    val rawHeader = getAll(HttpHeaders.CacheControl) ?: listOf()
-    return HttpRequestCacheControlFromList(rawHeader)
-}
-
-fun Headers.computeResponseCacheControl(): HttpResponseCacheControl {
-    val rawHeader = getAll(HttpHeaders.CacheControl) ?: listOf()
-    return HttpResponseCacheControlFromList(rawHeader)
-}
-
-fun HeadersBuilder.computeResponseCacheControl(): HttpResponseCacheControl {
-    val rawHeader = getAll(HttpHeaders.CacheControl) ?: listOf()
-    return HttpResponseCacheControlFromList(rawHeader)
-}
-
 object CacheControl {
     val MAX_AGE = "max-age"
     val MIN_FRESH = "min-fresh"
@@ -103,3 +20,19 @@ object CacheControl {
     val S_MAX_AGE = "s-maxage"
 }
 
+fun Headers.cacheControl(): List<String> = getAll(HttpHeaders.CacheControl) ?: listOf()
+fun Headers.maxAge(): Int? = cacheControl(CacheControl.MAX_AGE)
+fun Headers.onlyIfCached(): Boolean = cacheControl(CacheControl.ONLY_IF_CACHED) ?: false
+
+fun HeadersBuilder.maxAge(value: Int) = append(HttpHeaders.CacheControl, "${CacheControl.MAX_AGE}=$value")
+
+inline fun <reified T> Headers.cacheControl(key: String): T? = when (T::class) {
+    Int::class -> cacheControl().intProperty(key) as T?
+    Boolean::class -> cacheControl().booleanProperty(key) as T?
+    else -> null
+}
+
+fun List<String>.booleanProperty(key: String): Boolean = contains(key)
+
+fun List<String>.intProperty(key: String): Int? =
+        find { it.startsWith(key) }?.split("=")?.getOrNull(1)?.toInt()

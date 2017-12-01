@@ -1,6 +1,7 @@
 package io.ktor.client.engine.apache
 
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import org.apache.http.*
 import org.apache.http.concurrent.*
@@ -9,14 +10,13 @@ import org.apache.http.nio.client.methods.*
 import org.apache.http.nio.protocol.*
 import org.apache.http.protocol.*
 import java.nio.*
-import kotlin.coroutines.experimental.*
 
 
 internal suspend fun suspendRequest(
         data: Channel<ByteBuffer>,
         block: (HttpAsyncResponseConsumer<Unit>, FutureCallback<Unit>) -> Unit
 ): HttpResponse {
-    return suspendCoroutine { continuation ->
+    return suspendCancellableCoroutine { continuation ->
         val consumer = object : AsyncByteConsumer<Unit>() {
             override fun buildResult(context: HttpContext) {
                 data.close()

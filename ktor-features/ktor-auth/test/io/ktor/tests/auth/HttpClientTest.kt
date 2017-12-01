@@ -69,7 +69,7 @@ class HttpClientTest {
             url.path = "/url"
             header("header", "value")
             body = "request-body"
-        }
+        }.response
 
         try {
             assertEquals(HttpStatusCode.OK, response.status)

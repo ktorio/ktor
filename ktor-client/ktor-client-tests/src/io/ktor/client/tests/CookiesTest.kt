@@ -3,6 +3,7 @@ package io.ktor.client.tests
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.features.cookies.*
+import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.response.*
@@ -64,7 +65,7 @@ open class CookiesTest(private val factory: HttpClientEngineFactory<*>) : TestWi
             }
         }
 
-        List(10) {
+        repeat(10) {
             val before = client.getId()
             client.get<Unit>(path = "/update-user-id", port = serverPort)
             assertEquals(before + 1, client.getId())
@@ -148,7 +149,7 @@ open class CookiesTest(private val factory: HttpClientEngineFactory<*>) : TestWi
         client.close()
     }
 
-    private fun HttpClient.config(block: ClientConfig.() -> Unit): HttpClient = TODO()
+    private fun HttpClient.config(block: HttpClientConfig.() -> Unit): HttpClient = TODO()
 
     private fun HttpClient.getId() = cookies("localhost")["id"]?.value?.toInt()!!
 }

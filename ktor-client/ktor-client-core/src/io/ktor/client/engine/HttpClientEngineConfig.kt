@@ -1,4 +1,4 @@
-package io.ktor.client
+package io.ktor.client.engine
 
 import javax.net.ssl.*
 

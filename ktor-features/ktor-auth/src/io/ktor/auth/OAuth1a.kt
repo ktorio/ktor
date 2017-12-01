@@ -4,7 +4,7 @@ import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
+import io.ktor.client.response.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.pipeline.*
@@ -75,7 +75,7 @@ private suspend fun simpleOAuth1aStep1(client: HttpClient, secretKey: String, ba
         method = HttpMethod.Post
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
         header(HttpHeaders.Accept, ContentType.Any.toString())
-    }
+    }.response
 
     val body = response.readText()
 
@@ -129,15 +129,10 @@ private suspend fun simpleOAuth1aStep2(client: HttpClient, secretKey: String, ba
         method = HttpMethod.Post
 
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
-        header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
         header(HttpHeaders.Accept, "*/*")
 
-        body = ByteWriteChannelBody {
-            it.writer().use { writer ->
-                params.formUrlEncodeTo(writer)
-            }
-        }
-    }
+        body = WriterContent({ params.formUrlEncodeTo(this) }, ContentType.Application.FormUrlEncoded)
+    }.response
 
     val body = response.readText()
     try {

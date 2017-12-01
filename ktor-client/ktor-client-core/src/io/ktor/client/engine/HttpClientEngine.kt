@@ -1,23 +1,25 @@
 package io.ktor.client.engine
 
-import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
 import java.io.*
 
 
 interface HttpClientEngine : Closeable {
-    suspend fun makeRequest(request: HttpRequest): HttpResponseBuilder
+    fun prepareRequest(builder: HttpRequestBuilder, call: HttpClientCall): HttpRequest
 }
 
 interface HttpClientEngineFactory<out T : HttpClientEngineConfig> {
     fun create(block: T.() -> Unit = {}): HttpClientEngine
 }
 
-fun <T : HttpClientEngineConfig> HttpClientEngineFactory<T>.config(nested: T.() -> Unit): HttpClientEngineFactory<T> =
-        object : HttpClientEngineFactory<T> {
-            override fun create(block: T.() -> Unit): HttpClientEngine = this@config.create {
-                block()
-                nested()
-            }
+fun <T : HttpClientEngineConfig> HttpClientEngineFactory<T>.config(nested: T.() -> Unit): HttpClientEngineFactory<T> {
+    val parent = this
+
+    return object : HttpClientEngineFactory<T> {
+        override fun create(block: T.() -> Unit): HttpClientEngine = parent.create {
+            nested()
+            block()
         }
+    }
+}

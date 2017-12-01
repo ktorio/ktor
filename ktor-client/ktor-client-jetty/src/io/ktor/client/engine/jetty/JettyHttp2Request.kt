@@ -8,7 +8,7 @@ import org.eclipse.jetty.util.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
 
-private val EMPTY_BUFFER = ByteBuffer.allocate(0)!!
+private val EmptyByteBuffer = ByteBuffer.allocate(0)!!
 
 internal class JettyHttp2Request(private val stream: Stream) : Callback {
     private val continuation = AtomicReference<Continuation<Unit>>()
@@ -28,6 +28,6 @@ internal class JettyHttp2Request(private val stream: Stream) : Callback {
     }
 
     fun endBody() {
-        stream.data(DataFrame(stream.id, EMPTY_BUFFER, true), Callback.NOOP)
+        stream.data(DataFrame(stream.id, EmptyByteBuffer, true), Callback.NOOP)
     }
 }

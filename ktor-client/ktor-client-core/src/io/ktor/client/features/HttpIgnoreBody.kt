@@ -15,9 +15,8 @@ class HttpIgnoreBody {
         override fun install(feature: HttpIgnoreBody, scope: HttpClient) {
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { data ->
                 if (data.expectedType != Unit::class) return@intercept
-                (data.response.body as? HttpMessageBody)?.discardRemaining()
-                data.response.close()
-                data.response.body = Unit
+                context.response.close()
+                proceedWith(data.copy(response = Unit))
             }
         }
     }

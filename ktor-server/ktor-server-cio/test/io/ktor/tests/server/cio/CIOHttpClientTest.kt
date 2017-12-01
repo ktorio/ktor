@@ -4,6 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.response.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import kotlinx.coroutines.experimental.*
@@ -64,13 +65,8 @@ class CIOHttpClientTest {
             method = HttpMethod.Post
             url.path = "/url"
             header("header", "value")
-            header("Content-Length", "12")
-            body = ByteWriteChannelBody { out ->
-                out.writer().use { w ->
-                    w.write("request-body")
-                }
-            }
-        }
+            body = "request-body"
+        }.response
 
         try {
             assertEquals(HttpStatusCode.OK, response.status)
@@ -157,12 +153,8 @@ class CIOHttpClientTest {
             url.path = "/url"
             header("header", "value")
             header("Transfer-Encoding", "chunked")
-            body = ByteWriteChannelBody { out ->
-                out.writer().use { w ->
-                    w.write("request-body")
-                }
-            }
-        }
+            body = "request-body"
+        }.response
 
         try {
             assertEquals(HttpStatusCode.OK, response.status)

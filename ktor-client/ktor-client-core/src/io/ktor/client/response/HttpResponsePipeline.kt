@@ -1,12 +1,11 @@
 package io.ktor.client.response
 
-import io.ktor.client.*
-import io.ktor.client.request.*
+import io.ktor.client.call.*
 import io.ktor.pipeline.*
 import kotlin.reflect.*
 
 
-class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClient>(Receive, Parse, Transform, State, After) {
+class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClientCall>(Receive, Parse, Transform, State, After) {
     companion object Phases {
         /**
          * The earliest phase that happens before any other
@@ -35,4 +34,4 @@ class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClient>(Receive
     }
 }
 
-data class HttpResponseContainer(val expectedType: KClass<*>, val request: HttpRequest, val response: HttpResponseBuilder)
+data class HttpResponseContainer(val expectedType: KClass<*>, val response: Any)

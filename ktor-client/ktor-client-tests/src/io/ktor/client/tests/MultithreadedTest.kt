@@ -3,6 +3,7 @@ package io.ktor.client.tests
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
+import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
 import io.ktor.response.*
@@ -33,7 +34,7 @@ abstract class MultithreadedTest(private val factory: HttpClientEngineFactory<*>
 
         val result = List(DEFAULT_SIZE) {
             async {
-                val response = client.get<HttpResponse>("http://127.0.0.1:$serverPort")
+                val response = client.get<BaseHttpResponse>("http://127.0.0.1:$serverPort")
                 val result = response.readText().toInt()
                 response.close()
                 return@async result

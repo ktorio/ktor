@@ -174,7 +174,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     }
 
     protected fun findFreePort() = ServerSocket(0).use { it.localPort }
-    protected fun withUrl(path: String, builder: HttpRequestBuilder.() -> Unit = {}, block: suspend HttpResponse.(Int) -> Unit) {
+    protected fun withUrl(path: String, builder: HttpRequestBuilder.() -> Unit = {}, block: suspend BaseHttpResponse.(Int) -> Unit) {
         withUrl(URL("http://127.0.0.1:$port$path"), port, builder, block)
 
         if (enableSsl) {
@@ -195,14 +195,14 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         }
     }
 
-    private fun withUrl(url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit) {
+    private fun withUrl(url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit, block: suspend BaseHttpResponse.(Int) -> Unit) {
         runBlocking {
             withTimeout(timeout.seconds, TimeUnit.SECONDS) {
                 val client = HttpClient(Apache.config {
                     sslContext = Companion.sslContext
                 })
 
-                client.call(url, builder).use { response ->
+                client.call(url, builder).response.use { response ->
                     block(response, port)
                 }
 
@@ -211,11 +211,11 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         }
     }
 
-    private fun withHttp2(url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit) {
+    private fun withHttp2(url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit, block: suspend BaseHttpResponse.(Int) -> Unit) {
         runBlocking {
             withTimeout(timeout.seconds, TimeUnit.SECONDS) {
                 HttpClient(Jetty).use { httpClient ->
-                    httpClient.call(url, builder).use { response ->
+                    httpClient.call(url, builder).response.use { response ->
                         block(response, port)
                     }
                 }

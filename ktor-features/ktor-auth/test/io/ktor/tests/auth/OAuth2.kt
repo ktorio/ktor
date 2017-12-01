@@ -9,6 +9,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.server.testing.client.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import org.json.simple.*
@@ -276,13 +277,11 @@ class OAuth2Test {
     fun testResourceOwnerPasswordCredentials() = withTestApplication({ module() }) {
         handleRequestWithBasic("/resource", "user", "pass").let { result ->
             waitExecutor()
-            result.awaitCompletion()
             assertWWWAuthenticateHeaderExist(result)
         }
 
         handleRequestWithBasic("/resource", "user1", "password1").let { result ->
             waitExecutor()
-            result.awaitCompletion()
             assertFailures()
             assertEquals("ok", result.response.content)
         }

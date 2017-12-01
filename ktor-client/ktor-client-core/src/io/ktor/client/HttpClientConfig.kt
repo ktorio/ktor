@@ -2,13 +2,10 @@ package io.ktor.client
 
 import io.ktor.client.features.*
 import io.ktor.util.*
-import java.io.*
 import kotlin.collections.set
 
 
-private val CLIENT_CONFIG_KEY = AttributeKey<ClientConfig>("ClientConfig")
-
-class ClientConfig(private val parent: Closeable) {
+class HttpClientConfig {
     private val features = mutableMapOf<AttributeKey<*>, (HttpClient) -> Unit>()
     private val customInterceptors = mutableMapOf<String, (HttpClient) -> Unit>()
 
@@ -30,30 +27,16 @@ class ClientConfig(private val parent: Closeable) {
         customInterceptors[key] = block
     }
 
-    fun build(): HttpClient {
-        val scope = HttpCallScope(parent)
-        scope.attributes.put(CLIENT_CONFIG_KEY, this)
-
-        features.values.forEach { scope.apply(it) }
-        customInterceptors.values.forEach { scope.apply(it) }
-
-        return scope
+    fun install(client: HttpClient) {
+        features.values.forEach { client.apply(it) }
+        customInterceptors.values.forEach { client.apply(it) }
     }
 
-    fun clone(parent: HttpClient): ClientConfig {
-        val result = ClientConfig(parent)
+    fun clone(): HttpClientConfig {
+        val result = HttpClientConfig()
         result.features.putAll(features)
         result.customInterceptors.putAll(customInterceptors)
 
         return result
     }
-}
-
-internal fun HttpClient.config(block: ClientConfig.() -> Unit): HttpClient {
-    val config = attributes.computeIfAbsent(CLIENT_CONFIG_KEY) { ClientConfig(this) }
-    return config.clone(this).apply(block).build()
-}
-
-internal fun HttpClient.default(features: List<HttpClientFeature<Any, out Any>> = listOf(HttpPlainText, HttpIgnoreBody)) = config {
-    features.forEach { install(it) }
 }

@@ -1,6 +1,7 @@
 package io.ktor.request
 
 import io.ktor.application.*
+import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.pipeline.*
 import io.ktor.util.*

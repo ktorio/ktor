@@ -1,6 +1,6 @@
 package io.ktor.client.engine.apache
 
-import io.ktor.client.*
+import io.ktor.client.engine.*
 import org.apache.http.client.config.*
 import org.apache.http.impl.nio.client.*
 
