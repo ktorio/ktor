@@ -76,9 +76,9 @@ class WeakTimeoutQueue(private val timeoutMillis: Long,
         return when {
             result === suspended -> result
             c.isCompleted -> suspended
-            c is JobSupport.CompletedExceptionally -> {
+            result is JobSupport.CompletedExceptionally -> {
                 handle.dispose()
-                throw c.exception
+                throw result.exception
             }
             else -> {
                 handle.dispose()
