@@ -1,4 +1,4 @@
-package io.ktor.client.utils
+package io.ktor.http
 
 
 data class HttpProtocolVersion(val name: String, val major: Int, val minor: Int) {

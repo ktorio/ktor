@@ -1,12 +1,13 @@
 package io.ktor.websocket
 
+import io.ktor.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
-import io.ktor.cio.*
-import java.nio.*
+import kotlinx.coroutines.experimental.io.*
+import java.nio.ByteBuffer
 import kotlin.coroutines.experimental.*
 
-internal class WebSocketWriter(val writeChannel: WriteChannel, val parent: Job, ctx: CoroutineContext, val pool: ByteBufferPool) {
+internal class WebSocketWriter(val writeChannel: ByteWriteChannel, val parent: Job, ctx: CoroutineContext, val pool: ByteBufferPool) {
     private val queue = actor(ctx + parent, capacity = 8, start = CoroutineStart.LAZY) {
         val ticket = pool.allocate(DEFAULT_BUFFER_SIZE)
         try {
@@ -22,15 +23,19 @@ internal class WebSocketWriter(val writeChannel: WriteChannel, val parent: Job, 
 
     private suspend fun ActorScope<Any>.writeLoop(buffer: ByteBuffer) {
         buffer.clear()
-        loop@for (msg in this) {
-            when (msg) {
-                is Frame -> if (drainQueueAndSerialize(msg, buffer)) break@loop
-                is FlushRequest -> msg.complete() // we don't need writeChannel.flush() here as we do flush at end of every drainQueueAndSerialize
-                else -> throw IllegalArgumentException("unknown message $msg")
+        try {
+            loop@ for (msg in this) {
+                when (msg) {
+                    is Frame -> if (drainQueueAndSerialize(msg, buffer)) break@loop
+                    is FlushRequest -> msg.complete() // we don't need writeChannel.flush() here as we do flush at end of every drainQueueAndSerialize
+                    else -> throw IllegalArgumentException("unknown message $msg")
+                }
             }
         }
-
-        close()
+        finally {
+            close()
+            writeChannel.close()
+        }
 
         consumeEach { msg ->
             when (msg) {
@@ -72,7 +77,7 @@ internal class WebSocketWriter(val writeChannel: WriteChannel, val parent: Job, 
             buffer.flip()
 
             do {
-                writeChannel.write(buffer)
+                writeChannel.writeFully(buffer)
 
                 if (!serializer.hasOutstandingBytes && !buffer.hasRemaining()) {
                     flush?.let {

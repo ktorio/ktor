@@ -7,6 +7,7 @@ import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.io.*
 import java.io.*
 
 class TestApplicationRequest(
@@ -68,8 +69,10 @@ class TestApplicationRequest(
 
     override fun receiveContent() = TestIncomingContent(this)
 
-    class TestIncomingContent(override val request: TestApplicationRequest) : IncomingContent {
-        override fun readChannel() = request.bodyBytes.toReadChannel()
+    class TestIncomingContent(private val request: TestApplicationRequest) : IncomingContent {
+        override val headers: Headers = request.headers
+
+        override fun readChannel() = ByteReadChannel(request.bodyBytes)
         override fun inputStream(): InputStream = ByteArrayInputStream(request.bodyBytes)
 
         override fun multiPartData(): MultiPartData = object : MultiPartData {

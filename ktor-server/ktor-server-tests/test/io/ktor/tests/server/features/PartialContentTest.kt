@@ -87,8 +87,9 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath, {
             addHeader(HttpHeaders.Range, "bytes=1000000-7") // syntactically incorrect
         }).let { result ->
-            assertTrue(result.requestHandled)
+            result.awaitCompletion()
             assertEquals(HttpStatusCode.OK, result.response.status())
+            assertTrue(result.requestHandled)
         }
     }
 
@@ -147,8 +148,8 @@ class PartialContentTest {
     fun testPostNoRange() = withRangeApplication {
         // post request with no range
         handleRequest(HttpMethod.Post, localPath, {
-
         }).let { result ->
+            result.awaitCompletion()
             assertTrue(result.requestHandled)
             assertEquals(RangeUnits.Bytes.unitToken, result.response.headers[HttpHeaders.AcceptRanges])
             assertEquals(HttpStatusCode.OK, result.response.status())
@@ -205,16 +206,17 @@ class PartialContentTest {
     private fun BufferedReader.parseMultipart(boundary: String): List<String> {
         val parts = ArrayList<String>()
         do {
-            if (!scanUntilBoundary(boundary)) {
-                break
-            }
+            // according to rfc1341
+            val prefix = findLineWithBoundary(boundary) ?: fail("Unexpected end")
+
+            assert(prefix.startsWith("--$boundary"))
+
+            if (prefix.endsWith("--$boundary--")) break
             val headers = scanHeaders()
 
-            if (headers.isEmpty()) {
-                break
-            }
-
+            assertFalse(headers.isEmpty())
             assertNotNull(headers[HttpHeaders.ContentType])
+
             val range = headers[HttpHeaders.ContentRange]?.contentRange() ?: fail("Content-Range is missing in the part")
 
             val length = range.first.length.toInt()
@@ -230,15 +232,11 @@ class PartialContentTest {
         return parts
     }
 
-    private fun BufferedReader.scanUntilBoundary(boundary: String): Boolean {
+    private fun BufferedReader.findLineWithBoundary(boundary: String): String? {
         do {
-            val line = readLine() ?: return false
-            if (line == boundary) {
-                break
-            }
+            val line = readLine() ?: return null
+            if (line.contains(boundary)) return line
         } while (true)
-
-        return true
     }
 
     private fun BufferedReader.scanHeaders(): ValuesMap {

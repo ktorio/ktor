@@ -1,7 +1,6 @@
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -9,6 +8,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.io.*
 import org.junit.Test
 import kotlin.test.*
 
@@ -121,7 +121,7 @@ class StatusPageTest {
                     override val headers: ValuesMap
                         get() = ValuesMap.Empty
 
-                    override fun readFrom(): ReadChannel = fail("Should never reach here")
+                    override fun readFrom(): ByteReadChannel = fail("Should never reach here")
                 })
             }
 
@@ -266,7 +266,7 @@ class StatusPageTest {
             }
 
             assertFails {
-                handleRequest(HttpMethod.Get, "/")
+                handleRequest(HttpMethod.Get, "/").awaitCompletion()
             }
         }
     }

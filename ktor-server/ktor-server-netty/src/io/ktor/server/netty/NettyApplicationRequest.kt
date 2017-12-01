@@ -33,7 +33,7 @@ internal abstract class NettyApplicationRequest(
     override fun receiveContent() = NettyHttpIncomingContent(this)
 
     internal val contentChannelState = AtomicReference<ReadChannelState>(ReadChannelState.NEUTRAL)
-    internal val contentChannel = CIOReadChannelAdapter(requestBodyChannel)
+    internal val contentChannel = requestBodyChannel
     internal val contentMultipart = lazy {
         if (!isMultipart())
             throw IOException("The request content is not multipart encoded")

@@ -1,6 +1,7 @@
 package io.ktor.sessions
 
 import io.ktor.cio.*
+import kotlinx.coroutines.experimental.io.*
 
 class CacheStorage(val delegate: SessionStorage, val idleTimeout: Long) : SessionStorage {
     private val referenceCache = SoftReferenceCache<String, ByteArray> { id ->
@@ -8,12 +9,12 @@ class CacheStorage(val delegate: SessionStorage, val idleTimeout: Long) : Sessio
     }
     private val cache = BaseTimeoutCache(idleTimeout, true, referenceCache)
 
-    override suspend fun <R> read(id: String, consumer: suspend (ReadChannel) -> R): R {
-        val readChannel = cache.getOrCompute(id).toReadChannel()
-        return consumer(readChannel)
+    override suspend fun <R> read(id: String, consumer: suspend (ByteReadChannel) -> R): R {
+        val readChannel = cache.getOrCompute(id)
+        return consumer(ByteReadChannel(readChannel))
     }
 
-    override suspend fun write(id: String, provider: suspend (WriteChannel) -> Unit) {
+    override suspend fun write(id: String, provider: suspend (ByteWriteChannel) -> Unit) {
         cache.invalidate(id)
         return delegate.write(id, provider)
     }

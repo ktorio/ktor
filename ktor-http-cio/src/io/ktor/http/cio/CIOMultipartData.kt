@@ -1,9 +1,8 @@
-package io.ktor.server.cio
+package io.ktor.http.cio
 
+import io.ktor.content.*
 import io.ktor.http.*
-import io.ktor.http.cio.*
 import io.ktor.network.util.*
-import io.ktor.request.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*

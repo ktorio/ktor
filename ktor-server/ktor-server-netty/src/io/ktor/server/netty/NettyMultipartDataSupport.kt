@@ -1,8 +1,8 @@
 package io.ktor.server.netty
 
+import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
-import io.ktor.request.*
 import io.ktor.util.*
 import io.netty.buffer.*
 import io.netty.handler.codec.http.*

@@ -9,7 +9,7 @@ class URIFileContent(val uri: URI, override val contentType: ContentType = Conte
 
     override val headers by lazy { super<Resource>.headers }
 
-    override fun readFrom() = uri.toURL().openStream().toReadChannel() // TODO: use http client
+    override fun readFrom() = uri.toURL().openStream().toByteReadChannel() // TODO: use http client
 
     override val versions: List<Version>
         get() = emptyList()

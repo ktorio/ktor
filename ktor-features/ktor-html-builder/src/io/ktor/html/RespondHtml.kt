@@ -7,15 +7,16 @@ import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.response.*
+import kotlinx.coroutines.experimental.io.*
 
 suspend fun ApplicationCall.respondHtml(status: HttpStatusCode = HttpStatusCode.OK, block: HTML.() -> Unit) {
     respond(HtmlContent(status, builder = block))
 }
 
 suspend fun ApplicationCall.respondHtml(status: HttpStatusCode = HttpStatusCode.OK,
-                                versions: List<Version> = emptyList(),
-                                cacheControl: CacheControl? = null,
-                                block: HTML.() -> Unit) {
+                                        versions: List<Version> = emptyList(),
+                                        cacheControl: CacheControl? = null,
+                                        block: HTML.() -> Unit) {
     respond(HtmlContent(status, versions, cacheControl, builder = block))
 }
 
@@ -31,12 +32,10 @@ class HtmlContent(override val status: HttpStatusCode? = null,
     override val contentLength = null
     override val headers by lazy { super<Resource>.headers }
 
-    override suspend fun writeTo(channel: WriteChannel) {
-        val writer = channel.toOutputStream().bufferedWriter()
-        writer.use {
+    override suspend fun writeTo(channel: ByteWriteChannel) {
+        channel.bufferedWriter().use {
             it.append("<!DOCTYPE html>\n")
             it.appendHTML().html(builder)
         }
-        channel.close()
     }
 }

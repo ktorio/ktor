@@ -1,6 +1,7 @@
 package io.ktor.sessions
 
 import io.ktor.cio.*
+import kotlinx.coroutines.experimental.io.*
 import java.io.*
 
 internal class DirectoryStorage(val dir: File) : SessionStorage, Closeable {
@@ -11,7 +12,7 @@ internal class DirectoryStorage(val dir: File) : SessionStorage, Closeable {
     override fun close() {
     }
 
-    override suspend fun write(id: String, provider: suspend (WriteChannel) -> Unit) {
+    override suspend fun write(id: String, provider: suspend (ByteWriteChannel) -> Unit) {
         requireId(id)
         val file = fileOf(id)
 
@@ -19,7 +20,7 @@ internal class DirectoryStorage(val dir: File) : SessionStorage, Closeable {
         provider(file.writeChannel())
     }
 
-    override suspend fun <R> read(id: String, consumer: suspend (ReadChannel) -> R): R {
+    override suspend fun <R> read(id: String, consumer: suspend (ByteReadChannel) -> R): R {
         requireId(id)
         try {
             val file = fileOf(id)

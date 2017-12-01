@@ -2,6 +2,7 @@ package io.ktor.server.servlet
 
 import io.ktor.cio.*
 import io.ktor.content.*
+import io.ktor.http.*
 import kotlinx.coroutines.experimental.*
 import javax.servlet.http.*
 import kotlin.coroutines.experimental.*
@@ -50,8 +51,8 @@ class ServletUpgradeHandler : HttpUpgradeHandler {
         val servletReader = servletReader(webConnection.inputStream, parent = upgradeJob)
         val servletWriter = servletWriter(webConnection.outputStream, parent = upgradeJob)
 
-        val inputChannel = CIOReadChannelAdapter(servletReader.channel)
-        val outputChannel = CIOWriteChannelAdapter(servletWriter.channel)
+        val inputChannel = servletReader.channel
+        val outputChannel = servletWriter.channel
 
         launch(up.userContext, start = CoroutineStart.UNDISPATCHED) {
             val job = up.upgradeMessage.upgrade(inputChannel, outputChannel, up.engineContext, up.userContext)

@@ -1,5 +1,7 @@
 package io.ktor.cio
 
+import kotlinx.coroutines.experimental.*
+import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 import kotlin.coroutines.experimental.intrinsics.*
 
@@ -10,6 +12,10 @@ fun <T> runSync(block: suspend () -> T): T {
     }
     @Suppress("UNCHECKED_CAST")
     return result as T
+}
+
+fun CoroutineContext.executor(): Executor = Executor {
+    launch(this) { it.run() }
 }
 
 object NoopContinuation : Continuation<Any?> {

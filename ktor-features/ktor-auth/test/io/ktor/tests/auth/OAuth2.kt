@@ -276,11 +276,13 @@ class OAuth2Test {
     fun testResourceOwnerPasswordCredentials() = withTestApplication({ module() }) {
         handleRequestWithBasic("/resource", "user", "pass").let { result ->
             waitExecutor()
+            result.awaitCompletion()
             assertWWWAuthenticateHeaderExist(result)
         }
 
         handleRequestWithBasic("/resource", "user1", "password1").let { result ->
             waitExecutor()
+            result.awaitCompletion()
             assertFailures()
             assertEquals("ok", result.response.content)
         }

@@ -1,10 +1,12 @@
 package io.ktor.tests.websocket
 
 import io.ktor.application.*
+import io.ktor.cio.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import org.junit.*
 import org.junit.Test
@@ -67,15 +69,15 @@ class WebSocketTest {
             handleWebSocket("/echo") {
                 bodyBytes = byteArrayOf()
             }.let { call ->
-                call.response.awaitWebSocket(Duration.ofSeconds(10))
                 assertEquals("817ec123", hex(call.response.byteContent!!.take(4).toByteArray()))
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
             }
 
             handleWebSocket("/receiveSize") {
                 bodyBytes = hex("0x81 0x7e 0xcd 0xef".trimHex()) + "+".repeat(0xcdef).toByteArray()
             }.let { call ->
-                call.response.awaitWebSocket(Duration.ofSeconds(10))
                 assertEquals("82040000cdef", hex(call.response.byteContent!!.take(6).toByteArray()))
+                call.response.awaitWebSocket(Duration.ofSeconds(10))
             }
         }
     }
@@ -207,20 +209,20 @@ class WebSocketTest {
             handleWebSocket("/") {
                 bodyBytes = sendBuffer.array()
             }.let { call ->
-                call.response.awaitWebSocket(Duration.ofSeconds(10))
+                runBlocking {
+                    withTimeout(Duration.ofSeconds(10).toMillis()) {
+                        val reader = WebSocketReader(call.response.contentChannel()!!, { Int.MAX_VALUE.toLong() }, Job(), DefaultDispatcher, NoPool)
+                        val frame = reader.incoming.receive()
+                        val receivedContent = frame.buffer.moveToByteArray()
 
-                val p = FrameParser()
-                val bb = ByteBuffer.wrap(call.response.byteContent)
-                p.frame(bb)
+                        assertEquals(FrameType.BINARY, frame.frameType)
+                        assertEquals(content.size, receivedContent.size)
 
-                assertEquals(FrameType.BINARY, p.frameType)
-                assertTrue { p.bodyReady }
-                assertEquals(content.size.toLong(), p.length)
+                        assertTrue { receivedContent.contentEquals(content) }
+                    }
 
-                val bytes = ByteArray(p.length.toInt())
-                bb.get(bytes)
-
-                assertTrue { bytes.contentEquals(content) }
+                    call.response.awaitWebSocket(Duration.ofSeconds(10))
+                }
             }
         }
     }

@@ -40,48 +40,48 @@ class StaticContentTest {
         }
 
         // get file from nested folder
-        handleRequest(HttpMethod.Get, "/files/features/StaticContentTest.kt").let { result ->
+        handleAndAwait(HttpMethod.Get, "/files/features/StaticContentTest.kt").let { result ->
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
         // get file from a subfolder
-        handleRequest(HttpMethod.Get, "/selected/StaticContentTest.kt").let { result ->
+        handleAndAwait(HttpMethod.Get, "/selected/StaticContentTest.kt").let { result ->
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
         // can't get up to containing folder
         assertFailsWith<InvalidPathException> {
-            handleRequest(HttpMethod.Get, "/selected/../features/StaticContentTest.kt").let { result ->
+            handleAndAwait(HttpMethod.Get, "/selected/../features/StaticContentTest.kt").let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.OK, result.response.status())
             }
         }
 
         // can serve select file from other dir
-        handleRequest(HttpMethod.Get, "/selected/routing/RoutingBuildTest.kt").let { result ->
+        handleAndAwait(HttpMethod.Get, "/selected/routing/RoutingBuildTest.kt").let { result ->
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
         // can't serve file from other dir that was not published explicitly
-        handleRequest(HttpMethod.Get, "/selected/routing/RoutingResolveTest.kt").let { result ->
+        handleAndAwait(HttpMethod.Get, "/selected/routing/RoutingResolveTest.kt").let { result ->
             assertFalse(result.requestHandled)
         }
         // can't serve dir itself
-        handleRequest(HttpMethod.Get, "/selected/routing").let { result ->
+        handleAndAwait(HttpMethod.Get, "/selected/routing").let { result ->
             assertFalse(result.requestHandled)
         }
         // can serve file from virtual folder with a renamed file
-        handleRequest(HttpMethod.Get, "/selected/virtual/foobar.kt").let { result ->
+        handleAndAwait(HttpMethod.Get, "/selected/virtual/foobar.kt").let { result ->
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
         // can serve dir itself if default was given
-        handleRequest(HttpMethod.Get, "/selected/virtual").let { result ->
+        handleAndAwait(HttpMethod.Get, "/selected/virtual").let { result ->
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
         // can serve mapped file from root folder
-        handleRequest(HttpMethod.Get, "/foobar.kt").let { result ->
+        handleAndAwait(HttpMethod.Get, "/foobar.kt").let { result ->
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
@@ -109,30 +109,29 @@ class StaticContentTest {
             }
         }
 
-        handleRequest(HttpMethod.Get, "/StaticContentTest.class").let { result ->
+        handleAndAwait(HttpMethod.Get, "/StaticContentTest.class").let { result ->
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
         }
-        handleRequest(HttpMethod.Get, "/ArrayList.class").let { result ->
+        handleAndAwait(HttpMethod.Get, "/ArrayList.class").let { result ->
             assertTrue(result.requestHandled)
         }
-        handleRequest(HttpMethod.Get, "/z/ArrayList.class").let { result ->
+        handleAndAwait(HttpMethod.Get, "/z/ArrayList.class").let { result ->
             assertTrue(result.requestHandled)
         }
-        handleRequest(HttpMethod.Get, "/ArrayList.class2").let { result ->
+        handleAndAwait(HttpMethod.Get, "/ArrayList.class2").let { result ->
             assertFalse(result.requestHandled)
         }
-        handleRequest(HttpMethod.Get, "/features/StaticContentTest.kt").let { result ->
+        handleAndAwait(HttpMethod.Get, "/features/StaticContentTest.kt").let { result ->
             assertTrue(result.requestHandled)
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals(RangeUnits.Bytes.unitToken, result.response.headers[HttpHeaders.AcceptRanges])
             assertNotNull(result.response.headers[HttpHeaders.LastModified])
         }
-        handleRequest(HttpMethod.Get, "/f/features/StaticContentTest.kt").let { result ->
+        handleAndAwait(HttpMethod.Get, "/f/features/StaticContentTest.kt").let { result ->
             assertTrue(result.requestHandled)
         }
     }
-
 
     @Test
     fun testStaticContentWrongPath() = withTestApplication {
@@ -146,6 +145,7 @@ class StaticContentTest {
             assertFailsWith<InvalidPathException> {
                 handleRequest(HttpMethod.Get, path).let { result ->
                     assertFalse(result.requestHandled, "Should be unhandled for path $path")
+                    result.awaitCompletion()
                 }
             }
         }
@@ -158,8 +158,8 @@ class StaticContentTest {
         }
 
         handleRequest(HttpMethod.Get, "/").let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(File(basedir, "features/StaticContentTest.kt".replaceSeparators()).readText(), result.response.content)
+            assertTrue(result.requestHandled)
         }
     }
 
@@ -170,8 +170,8 @@ class StaticContentTest {
         }
 
         handleRequest(HttpMethod.Get, "/").let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(File(basedir, "features/StaticContentTest.kt".replaceSeparators()).readText(), result.response.content)
+            assertTrue(result.requestHandled)
         }
     }
 
@@ -233,15 +233,19 @@ class StaticContentTest {
         }
 
         handleRequest(HttpMethod.Get, "/").let { result ->
-            assertTrue(result.requestHandled)
             assertEquals(File(basedir, "features/StaticContentTest.kt".replaceSeparators()).readText(), result.response.content)
             assertEquals(listOf("max-age=300"), result.response.headers.values(HttpHeaders.CacheControl))
+            assertTrue(result.requestHandled)
         }
     }
 
 }
 
 private fun String.replaceSeparators() = replace("/", File.separator)
+
+private fun TestApplicationEngine.handleAndAwait(method: HttpMethod, uri: String, setup: TestApplicationRequest.() -> Unit = {}): TestApplicationCall {
+    return handleRequest(method, uri, setup).also { it.awaitCompletion() }
+}
 
 private inline suspend fun <reified T> assertFailsWithSuspended(noinline block: suspend () -> Unit): T {
     val exceptionClass = T::class.java

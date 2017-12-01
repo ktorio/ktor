@@ -147,7 +147,7 @@ inline suspend fun <TContext : Any> Pipeline<Unit, TContext>.execute(context: TC
 
 inline fun <reified TSubject : Any, TContext : Any> Pipeline<*, TContext>.intercept(
         phase: PipelinePhase,
-        crossinline block: PipelineContext<TSubject, TContext>.(TSubject) -> Unit) {
+        noinline block: suspend PipelineContext<TSubject, TContext>.(TSubject) -> Unit) {
 
     intercept(phase) interceptor@ { subject ->
         subject as? TSubject ?: return@interceptor

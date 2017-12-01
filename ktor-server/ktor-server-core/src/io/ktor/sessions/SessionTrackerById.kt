@@ -1,8 +1,8 @@
 package io.ktor.sessions
 
 import io.ktor.application.*
-import io.ktor.cio.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.io.*
 import kotlin.reflect.*
 
 class SessionTrackerById(val type: KClass<*>, val serializer: SessionSerializer, val storage: SessionStorage, val sessionIdProvider: () -> String) : SessionTracker {
@@ -13,12 +13,10 @@ class SessionTrackerById(val type: KClass<*>, val serializer: SessionSerializer,
 
         call.attributes.put(SessionIdKey, sessionId)
         try {
-            val session = storage.read(sessionId) { channel ->
-                // TODO: read text without blocking
-                val text = channel.toInputStream().bufferedReader().readText()
+            return storage.read(sessionId) { channel ->
+                val text = channel.readUTF8Line() ?: throw IllegalStateException("Failed to read stored session from $channel")
                 serializer.deserialize(text)
             }
-            return session
         } catch (notFound: NoSuchElementException) {
             call.application.log.debug("Failed to lookup session: $notFound")
         }
@@ -29,10 +27,8 @@ class SessionTrackerById(val type: KClass<*>, val serializer: SessionSerializer,
         val sessionId = call.attributes.computeIfAbsent(SessionIdKey, sessionIdProvider)
         val serialized = serializer.serialize(value)
         storage.write(sessionId) { channel ->
-            // TODO: write text without blocking
-            channel.toOutputStream().bufferedWriter().use { writer ->
-                writer.write(serialized)
-            }
+            channel.writeStringUtf8(serialized)
+            channel.close()
         }
         return sessionId
     }

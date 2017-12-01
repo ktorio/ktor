@@ -1,8 +1,8 @@
 package io.ktor.tests.sessions
 
-import kotlinx.coroutines.experimental.*
 import io.ktor.cio.*
 import io.ktor.sessions.*
+import kotlinx.coroutines.experimental.*
 import org.junit.*
 import org.junit.Test
 import java.io.*
@@ -26,7 +26,8 @@ class DirectorySessionStorageTest {
 
     @Test(expected = NoSuchElementException::class)
     fun testMissingSession() = runBlocking {
-        storage.read("id0") { it.close() }
+        storage.read("id0") { it.toByteArray() }
+        Unit
     }
 
     @Test
@@ -40,7 +41,7 @@ class DirectorySessionStorageTest {
         testSaveSimple()
         storage.invalidate("id1")
         assertFailsWith(NoSuchElementException::class) {
-            runBlocking { storage.read("id1") { it.close() } }
+            runBlocking { storage.read("id1") { } }
         }
         Unit
     }

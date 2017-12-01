@@ -1,8 +1,8 @@
 package io.ktor.samples.httpbin
 
 import io.ktor.application.*
+import io.ktor.content.*
 import io.ktor.features.*
-import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
 

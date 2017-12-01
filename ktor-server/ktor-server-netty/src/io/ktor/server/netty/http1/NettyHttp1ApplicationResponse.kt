@@ -66,7 +66,7 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
             addFirst(NettyDirectDecoder())
         }
 
-        val job = upgrade.upgrade(CIOReadChannelAdapter(upgradedReadChannel), CIOWriteChannelAdapter(upgradedWriteChannel), engineContext, userAppContext)
+        val job = upgrade.upgrade(upgradedReadChannel, upgradedWriteChannel, engineContext, userAppContext)
 
         job.invokeOnCompletion {
             upgradedWriteChannel.close()

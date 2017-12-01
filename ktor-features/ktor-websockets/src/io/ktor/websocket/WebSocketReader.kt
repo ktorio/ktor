@@ -3,12 +3,13 @@ package io.ktor.websocket
 import io.ktor.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
-import java.nio.*
+import kotlinx.coroutines.experimental.io.*
+import java.nio.ByteBuffer
 import java.nio.channels.*
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.experimental.*
 
-internal class WebSocketReader(val byteChannel: ReadChannel, val maxFrameSize: () -> Long, job: Job, ctx: CoroutineContext, pool: ByteBufferPool) {
+internal class WebSocketReader(val byteChannel: ByteReadChannel, val maxFrameSize: () -> Long, job: Job, ctx: CoroutineContext, pool: ByteBufferPool) {
     private var state = State.HEADER
     private val frameParser = FrameParser()
     private val collector = SimpleFrameCollector()
@@ -37,7 +38,7 @@ internal class WebSocketReader(val byteChannel: ReadChannel, val maxFrameSize: (
         buffer.clear()
 
         while (true) {
-            if (byteChannel.read(buffer) == -1) {
+            if (byteChannel.readAvailable(buffer) == -1) {
                 state = State.END
                 break
             }

@@ -1,5 +1,6 @@
 package io.ktor.server.servlet
 
+import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.util.*

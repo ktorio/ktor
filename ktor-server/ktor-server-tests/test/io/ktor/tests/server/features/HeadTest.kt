@@ -1,7 +1,6 @@
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
-import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -9,6 +8,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.io.*
 import org.junit.Test
 import kotlin.test.*
 
@@ -90,7 +90,7 @@ class HeadTest {
             application.routing {
                 get("/") {
                     call.respond(object : OutgoingContent.ReadChannelContent() {
-                        override fun readFrom() = "Hello".toByteArray().toReadChannel()
+                        override fun readFrom() = ByteReadChannel("Hello".toByteArray())
 
                         override val headers: ValuesMap
                             get() = ValuesMap.build(true) {

@@ -1,10 +1,10 @@
 package io.ktor.request
 
 import io.ktor.application.*
-import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.pipeline.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import kotlin.reflect.*
 
@@ -46,7 +46,7 @@ suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? {
 inline suspend fun ApplicationCall.receiveText(): String = receive()
 
 @Suppress("NOTHING_TO_INLINE")
-inline suspend fun ApplicationCall.receiveChannel(): ReadChannel = receive()
+inline suspend fun ApplicationCall.receiveChannel(): ByteReadChannel = receive()
 
 @Suppress("NOTHING_TO_INLINE")
 inline suspend fun ApplicationCall.receiveStream(): InputStream = receive()

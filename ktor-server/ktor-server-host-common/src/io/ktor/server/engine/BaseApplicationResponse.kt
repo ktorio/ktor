@@ -6,7 +6,7 @@ import io.ktor.content.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.*
-import java.nio.*
+import kotlinx.coroutines.experimental.io.*
 
 /**
  * Base class for implementing an [ApplicationResponse]
@@ -100,22 +100,22 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         val responseChannel = responseChannel()
         // Call user code to send data
         content.writeTo(responseChannel)
+        responseChannel.close()
     }
 
     protected open suspend fun respondFromBytes(bytes: ByteArray) {
-        val response = responseChannel()
-        response.write(ByteBuffer.wrap(bytes))
+        responseChannel().apply {
+            writeFully(bytes)
+            close()
+        }
     }
 
-    protected open suspend fun respondFromChannel(readChannel: ReadChannel) {
-        val writeChannel = responseChannel()
-        readChannel.copyTo(writeChannel, bufferPool, 65536)
-        writeChannel.flush()
-        readChannel.close()
+    protected open suspend fun respondFromChannel(readChannel: ByteReadChannel) {
+        readChannel.copyAndClose(responseChannel())
     }
 
     protected abstract suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade)
-    protected abstract suspend fun responseChannel(): WriteChannel
+    protected abstract suspend fun responseChannel(): ByteWriteChannel
     protected open val bufferPool: ByteBufferPool get() = NoPool
 
     protected abstract fun setStatus(statusCode: HttpStatusCode)

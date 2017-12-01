@@ -1,36 +1,97 @@
 package io.ktor.util
 
-import java.nio.*
+import io.ktor.cio.*
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.io.*
+import kotlinx.io.core.ByteOrder
+import kotlinx.io.pool.*
+import java.nio.ByteBuffer
 import java.util.zip.*
 
-internal val GZIP_MAGIC = 0x8b1f
-internal val GZIP_TRAILER_SIZE = 8
+private const val GZIP_MAGIC = 0x8b1f
+private val headerPadding = ByteArray(7)
 
-internal fun Deflater.deflate(outBuffer: ByteBuffer) {
+private fun Deflater.deflate(outBuffer: ByteBuffer) {
     if (outBuffer.hasRemaining()) {
         val written = deflate(outBuffer.array(), outBuffer.arrayOffset() + outBuffer.position(), outBuffer.remaining())
         outBuffer.position(outBuffer.position() + written)
     }
 }
 
-internal fun Deflater.setInput(buffer: ByteBuffer) {
+private fun Deflater.setInput(buffer: ByteBuffer) {
     require(buffer.hasArray()) { "buffer need to be array-backed" }
     setInput(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining())
 }
 
-internal fun Checksum.updateKeepPosition(buffer: ByteBuffer) {
+private fun Checksum.updateKeepPosition(buffer: ByteBuffer) {
     require(buffer.hasArray()) { "buffer need to be array-backed" }
     update(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining())
 }
 
-internal fun putGzipHeader(buffer: ByteBuffer) {
-    buffer.order(ByteOrder.LITTLE_ENDIAN)
-    buffer.putShort(GZIP_MAGIC.toShort())
-    buffer.put(Deflater.DEFLATED.toByte())
-    buffer.position(buffer.position() + 7)
+private suspend fun ByteWriteChannel.putGzipHeader() {
+    writeShort(GZIP_MAGIC.toShort())
+    writeByte(Deflater.DEFLATED.toByte())
+    writeFully(headerPadding)
 }
 
-internal fun putGzipTrailer(crc: Checksum, deflater: Deflater, trailing: ByteBuffer) {
-    trailing.putInt(crc.value.toInt())
-    trailing.putInt(deflater.totalIn)
+private suspend fun ByteWriteChannel.putGzipTrailer(crc: Checksum, deflater: Deflater) {
+    writeInt(crc.value.toInt())
+    // TODO: replace workaround
+    val buffer = ByteBuffer.allocate(4)
+    buffer.order(java.nio.ByteOrder.LITTLE_ENDIAN)
+    buffer.putInt(deflater.totalIn)
+    buffer.flip()
+    writeFully(buffer)
+//    writeInt(deflater.totalIn)
 }
+
+private suspend fun ByteWriteChannel.deflateWhile(deflater: Deflater, buffer: ByteBuffer, predicate: () -> Boolean) {
+    while (predicate()) {
+        buffer.clear()
+        deflater.deflate(buffer)
+        buffer.flip()
+        writeFully(buffer)
+    }
+}
+
+fun ByteReadChannel.deflated(
+        gzip: Boolean = true,
+        pool: ObjectPool<ByteBuffer> = EmptyByteBufferPool
+): ByteReadChannel = writer(Unconfined, autoFlush = true) {
+    channel.writeByteOrder = ByteOrder.LITTLE_ENDIAN
+    val crc = CRC32()
+    val deflater = Deflater(Deflater.BEST_COMPRESSION, true)
+    val input = pool.borrow()
+    val compressed = pool.borrow()
+
+    if (gzip) {
+        channel.putGzipHeader()
+    }
+
+    while (!isClosedForRead) {
+        input.clear()
+        if (readAvailable(input) <= 0) continue
+        input.flip()
+
+        crc.updateKeepPosition(input)
+        deflater.setInput(input)
+        channel.deflateWhile(deflater, compressed) { !deflater.needsInput() }
+    }
+
+    deflater.finish()
+    channel.deflateWhile(deflater, compressed) { !deflater.finished() }
+
+    if (gzip) {
+        channel.putGzipTrailer(crc, deflater)
+    }
+
+    pool.recycle(input)
+    pool.recycle(compressed)
+}.channel
+
+fun ByteWriteChannel.deflated(
+        gzip: Boolean = true,
+        pool: ObjectPool<ByteBuffer> = EmptyByteBufferPool
+): ByteWriteChannel = reader(Unconfined, autoFlush = true) {
+    channel.deflated(gzip, pool).copyAndClose(this@deflated)
+}.channel

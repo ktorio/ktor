@@ -54,10 +54,10 @@ internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
         sendResponse(chunked = false, content = ByteReadChannel(bytes))
     }
 
-    override suspend fun responseChannel(): WriteChannel {
+    override suspend fun responseChannel(): ByteWriteChannel {
         val channel = ByteChannel()
         sendResponse(content = channel)
-        return CIOWriteChannelAdapter(channel)
+        return channel
     }
 
     protected abstract fun responseMessage(chunked: Boolean, last: Boolean): Any

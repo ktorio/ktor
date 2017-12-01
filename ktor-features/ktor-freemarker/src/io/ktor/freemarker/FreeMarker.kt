@@ -8,6 +8,7 @@ import io.ktor.content.Version
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.io.*
 
 class FreeMarkerContent(val templateName: String,
                         val model: Any,
@@ -39,8 +40,8 @@ class FreeMarker(val config: Configuration) {
                                              val model: Any,
                                              val etag: String?,
                                              override val contentType: ContentType) : OutgoingContent.WriteChannelContent(), Resource {
-        suspend override fun writeTo(channel: WriteChannel) {
-            val writer = channel.toOutputStream().bufferedWriter(contentType.charset() ?: Charsets.UTF_8)
+        suspend override fun writeTo(channel: ByteWriteChannel) {
+            val writer = channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8)
             writer.use {
                 template.process(model, it)
             }

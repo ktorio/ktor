@@ -1,15 +1,20 @@
 package io.ktor.server.netty
 
-import io.ktor.cio.*
 import io.ktor.content.*
-import io.ktor.request.*
+import io.ktor.http.*
+import kotlinx.coroutines.experimental.io.*
 import java.util.concurrent.atomic.*
 
-internal class NettyHttpIncomingContent internal constructor(override val request: NettyApplicationRequest) : IncomingContent {
+internal class NettyHttpIncomingContent internal constructor(
+        val request: NettyApplicationRequest
+) : IncomingContent {
+
+    override val headers: Headers = request.headers
+
     private fun AtomicReference<NettyApplicationRequest.ReadChannelState>.switchTo(newState: NettyApplicationRequest.ReadChannelState) =
             get() == newState || compareAndSet(NettyApplicationRequest.ReadChannelState.NEUTRAL, newState)
 
-    override fun readChannel(): ReadChannel {
+    override fun readChannel(): ByteReadChannel {
         if (request.contentChannelState.switchTo(NettyApplicationRequest.ReadChannelState.RAW_CHANNEL)) {
             return request.contentChannel
         }

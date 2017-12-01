@@ -1,52 +1,41 @@
 package io.ktor.cio
 
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.io.*
+import kotlinx.io.pool.*
 import java.io.*
-import java.nio.*
+import java.nio.ByteBuffer
 
-class InputStreamFromReadChannel(val channel: ReadChannel, val bufferPool: ByteBufferPool = NoPool) : InputStream() {
-    private val singleByte = bufferPool.allocate(1)
+
+private class ByteReadChannelInputStream(private val channel: ByteReadChannel) : InputStream() {
     override fun read(): Int = runBlocking(Unconfined) {
-        singleByte.buffer.clear()
-
-        while (true) {
-            val count = channel.read(singleByte.buffer)
-            if (count == -1)
-                return@runBlocking -1
-            else if (count == 1)
-                break
+        try {
+            return@runBlocking channel.readByte().toInt() and 0xff
+        } catch (cause: NoSuchElementException) {
+            return@runBlocking -1
         }
-
-        singleByte.buffer.flip()
-        singleByte.buffer.get().toInt() and 0xff
     }
 
-    override fun read(b: ByteArray, off: Int, len: Int): Int = runBlocking(Unconfined) {
-        val bb = ByteBuffer.wrap(b, off, len)
-        channel.read(bb)
-    }
-
-    override fun close() {
-        super.close()
-        channel.close()
-        bufferPool.release(singleByte)
+    override fun read(array: ByteArray, offset: Int, length: Int): Int = runBlocking(Unconfined) {
+        return@runBlocking channel.readAvailable(array, offset, length)
     }
 }
 
-private class ReadChannelFromInputStream(val input: InputStream) : ReadChannel {
-    override suspend fun read(dst: ByteBuffer): Int {
-        val count = input.read(dst.array(), dst.arrayOffset() + dst.position(), dst.remaining())
-        if (count > 0) {
-            dst.position(dst.position() + count)
-        }
-        return count
+fun ByteReadChannel.toInputStream(): InputStream = ByteReadChannelInputStream(this)
+
+fun InputStream.toByteReadChannel(pool: ObjectPool<ByteBuffer> = EmptyByteBufferPool): ByteReadChannel = writer(Unconfined, autoFlush = true) {
+    val buffer = pool.borrow()
+    while (true) {
+        buffer.clear()
+        val readCount = read(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.remaining())
+        if (readCount < 0) break
+        if (readCount == 0) continue
+
+        buffer.position(buffer.position() + readCount)
+        buffer.flip()
+        channel.writeFully(buffer)
     }
 
-    override fun close() {
-        input.close()
-    }
-}
-
-
-fun ReadChannel.toInputStream(): InputStream = InputStreamFromReadChannel(this)
-fun InputStream.toReadChannel(): ReadChannel = ReadChannelFromInputStream(this)
+    pool.recycle(buffer)
+    close()
+}.channel

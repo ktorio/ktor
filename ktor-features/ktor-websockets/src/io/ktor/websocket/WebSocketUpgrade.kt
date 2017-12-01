@@ -6,6 +6,7 @@ import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.*
 import java.io.*
 import java.security.*
@@ -32,7 +33,7 @@ class WebSocketUpgrade(val call: ApplicationCall, val protocol: String? = null, 
             // TODO extensions
         }
 
-    override suspend fun upgrade(input: ReadChannel, output: WriteChannel, engineContext: CoroutineContext, userContext: CoroutineContext): Job {
+    override suspend fun upgrade(input: ByteReadChannel, output: ByteWriteChannel, engineContext: CoroutineContext, userContext: CoroutineContext): Job {
         val webSockets = call.application.feature(WebSockets)
         val webSocket = RawWebSocketImpl(call, input, output, NoPool, engineContext, userContext)
 

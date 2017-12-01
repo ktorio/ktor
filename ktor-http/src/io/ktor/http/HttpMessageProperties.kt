@@ -1,6 +1,5 @@
-package io.ktor.client.utils
+package io.ktor.http
 
-import io.ktor.http.*
 import io.ktor.util.*
 import java.nio.charset.*
 import java.text.*
@@ -43,6 +42,7 @@ fun HttpMessage.etag(): String? = headers[HttpHeaders.ETag]
 fun HttpMessage.expires(): Date? = headers[HttpHeaders.Expires]?.let { parseHttpDate(it) }
 fun HttpMessage.vary(): List<String>? = headers[HttpHeaders.Vary]?.split(",")?.map { it.trim() }
 fun HttpMessage.contentLength(): Int? = headers[HttpHeaders.ContentLength]?.toInt()
+fun HttpMessage.setCookie() = headers.getAll(HttpHeaders.SetCookie)?.map { parseServerSetCookieHeader(it) } ?: emptyList()
 
 fun HttpMessageBuilder.cookies(): List<Cookie> =
-        headers.getAll(HttpHeaders.SetCookie)?.map { parseServerSetCookieHeader(it) } ?: listOf()
+        headers.getAll(HttpHeaders.SetCookie)?.map { parseServerSetCookieHeader(it) } ?: emptyList()

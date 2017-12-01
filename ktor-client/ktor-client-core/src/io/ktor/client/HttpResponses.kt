@@ -3,6 +3,7 @@ package io.ktor.client
 import io.ktor.client.call.*
 import io.ktor.client.response.*
 import io.ktor.client.utils.*
+import io.ktor.http.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.nio.charset.*

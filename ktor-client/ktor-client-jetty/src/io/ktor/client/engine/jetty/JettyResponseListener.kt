@@ -1,6 +1,5 @@
 package io.ktor.client.engine.jetty
 
-import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.network.util.*
 import io.ktor.util.*

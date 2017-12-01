@@ -1,5 +1,6 @@
 package io.ktor.client.engine.jetty
 
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import org.eclipse.jetty.http2.api.*
 import org.eclipse.jetty.http2.frames.*
@@ -12,7 +13,7 @@ private val EMPTY_BUFFER = ByteBuffer.allocate(0)!!
 internal class JettyHttp2Request(private val stream: Stream) : Callback {
     private val continuation = AtomicReference<Continuation<Unit>>()
 
-    suspend fun write(src: ByteBuffer) = suspendCoroutine<Unit> { continuation ->
+    suspend fun write(src: ByteBuffer) = suspendCancellableCoroutine<Unit> { continuation ->
         this.continuation.set(continuation)
         val frame = DataFrame(stream.id, src, false)
         stream.data(frame, this)

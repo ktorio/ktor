@@ -1,6 +1,7 @@
 package io.ktor.tests.server.http
 
 import io.ktor.application.*
+import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.testing.*
@@ -102,7 +103,7 @@ class TestEngineMultipartTest {
             }
 
             assertFailsWith<AssertionError> {
-                handleRequest(HttpMethod.Post, "/")
+                handleRequest(HttpMethod.Post, "/").awaitCompletion()
             }
         }
     }

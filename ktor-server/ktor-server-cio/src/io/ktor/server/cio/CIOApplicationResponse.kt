@@ -1,6 +1,5 @@
 package io.ktor.server.cio
 
-import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
@@ -83,7 +82,7 @@ class CIOApplicationResponse(call: CIOApplicationCall,
 
     private fun hasHeader(name: String) = headersNames.any { it.equals(name, ignoreCase = true) }
 
-    suspend override fun responseChannel(): WriteChannel {
+    suspend override fun responseChannel(): ByteWriteChannel {
         sendResponseMessage(true, -1, false)
 
         val j = encodeChunked(output, engineDispatcher)
@@ -92,7 +91,7 @@ class CIOApplicationResponse(call: CIOApplicationCall,
         chunkedChannel = chunked
         chunkedJob = j
 
-        return CIOWriteChannelAdapter(chunked)
+        return chunked
     }
 
     suspend override fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
@@ -100,7 +99,7 @@ class CIOApplicationResponse(call: CIOApplicationCall,
 
         sendResponseMessage(false, -1, false)
 
-        val upgradedJob = upgrade.upgrade(CIOReadChannelAdapter(input), CIOWriteChannelAdapter(output), engineDispatcher, userDispatcher)
+        val upgradedJob = upgrade.upgrade(input, output, engineDispatcher, userDispatcher)
         upgradedJob.invokeOnCompletion { output.close() }
         upgradedJob.join()
     }

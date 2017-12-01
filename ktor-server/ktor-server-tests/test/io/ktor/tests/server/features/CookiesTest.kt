@@ -139,7 +139,7 @@ class CookiesTest {
             }
 
             assertFails {
-                handleRequest(HttpMethod.Get, "/1")
+                handleRequest(HttpMethod.Get, "/1").awaitCompletion()
             }
         }
     }

@@ -1,12 +1,10 @@
 package io.ktor.server.jetty.internal
 
 import io.ktor.content.*
-import io.ktor.server.jetty.*
 import io.ktor.server.servlet.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.io.*
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.server.*
-import java.util.concurrent.Executor
 import javax.servlet.http.*
 import kotlin.coroutines.experimental.*
 
@@ -15,14 +13,11 @@ object JettyUpgradeImpl : ServletUpgrade {
         // Jetty doesn't support Servlet API's upgrade so we have to implement our own
 
         val connection = servletRequest.getAttribute(HttpConnection::class.qualifiedName) as Connection
-        val inputChannel = EndPointReadChannel(connection.endPoint, Executor {
-            launch(engineContext) {
-                it.run()
-            }
-        })
-        val outputChannel = EndPointWriteChannel(connection.endPoint)
+        val inputChannel = ByteChannel(autoFlush = true)
+        val reader = EndPointReader(connection.endPoint, engineContext, inputChannel)
+        val outputChannel = endPointWriter(connection.endPoint)
 
-        servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, inputChannel)
+        servletRequest.setAttribute(HttpConnection.UPGRADE_CONNECTION_ATTRIBUTE, reader)
         val job = upgrade.upgrade(inputChannel, outputChannel, engineContext, userContext)
         job.invokeOnCompletion {
             connection.close()

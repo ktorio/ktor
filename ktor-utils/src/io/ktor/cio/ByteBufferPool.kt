@@ -1,6 +1,10 @@
 package io.ktor.cio
 
+import kotlinx.io.pool.*
 import java.nio.*
+
+
+internal val DEFAULT_BUFFER_SIZE = 4098
 
 interface ByteBufferPool {
     fun allocate(size: Int): PoolTicket
@@ -35,4 +39,18 @@ object NoPool : ByteBufferPool {
     private class Ticket(override val buffer: ByteBuffer) : PoolTicket
 }
 
+object EmptyByteBufferPool : ObjectPool<ByteBuffer> {
+    override val capacity: Int = 0
 
+    override fun borrow(): ByteBuffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
+
+    override fun dispose() {}
+
+    override fun recycle(instance: ByteBuffer) {}
+}
+
+suspend fun <T : Any> ObjectPool<T>.use(block: suspend (T) -> Unit) {
+    val item = borrow()
+    block(item)
+    recycle(item)
+}

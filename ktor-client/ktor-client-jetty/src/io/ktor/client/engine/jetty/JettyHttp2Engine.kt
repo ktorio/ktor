@@ -4,6 +4,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.utils.*
+import io.ktor.http.*
 import io.ktor.network.util.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*

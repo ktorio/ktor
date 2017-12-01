@@ -5,6 +5,7 @@ import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
+import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.lang.reflect.*
 import javax.servlet.http.*
@@ -50,10 +51,10 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
     }
 
     private val responseChannel = lazy {
-        CIOWriteChannelAdapter(responseByteChannel.value.channel)
+        responseByteChannel.value.channel
     }
 
-    override suspend fun responseChannel(): WriteChannel = responseChannel.value
+    override suspend fun responseChannel(): ByteWriteChannel = responseChannel.value
 
     init {
         pipeline.intercept(ApplicationSendPipeline.Engine) {

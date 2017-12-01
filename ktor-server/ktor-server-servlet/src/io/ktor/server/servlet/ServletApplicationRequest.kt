@@ -8,8 +8,10 @@ import io.ktor.request.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.nio.*
+import java.nio.ByteBuffer
 import javax.servlet.http.*
 
 class ServletApplicationRequest(call: ApplicationCall,
@@ -26,22 +28,14 @@ class ServletApplicationRequest(call: ApplicationCall,
 
     override fun receiveContent() = ServletIncomingContent(this)
 
-    class ServletIncomingContent(override val request: ServletApplicationRequest) : IncomingContent {
+    class ServletIncomingContent(
+            private val request: ServletApplicationRequest
+    ) : IncomingContent {
+        override val headers: Headers = request.headers
+
         private val copyJob by lazy { servletReader(request.servletRequest.inputStream) }
-        private fun byteChannel() = copyJob.channel
 
-        override fun readChannel(): ReadChannel = object: ReadChannel {
-            suspend override fun read(dst: ByteBuffer): Int {
-                return copyJob.channel.readAvailable(dst)
-            }
-
-            override fun close() {
-                runBlocking {
-                    copyJob.cancel()
-                    copyJob.join()
-                }
-            }
-        }
+        override fun readChannel(): ByteReadChannel = copyJob.channel
 
         override fun multiPartData(): MultiPartData = ServletMultiPartData(request, request.servletRequest)
         override fun inputStream(): InputStream = request.servletRequest.inputStream

@@ -1,20 +1,16 @@
 package io.ktor.server.cio
 
-import io.ktor.cio.*
 import io.ktor.content.*
+import io.ktor.http.*
 import io.ktor.http.cio.*
-import io.ktor.request.*
 import kotlinx.coroutines.experimental.io.*
 
 class CIOIncomingContent(private val channel: ByteReadChannel,
-                         private val headers: HttpHeadersMap,
-                         override val request: CIOApplicationRequest) : IncomingContent {
+                         private val headersMap: HttpHeadersMap,
+                         request: CIOApplicationRequest) : IncomingContent {
+    override val headers: Headers = request.headers
 
-    private fun byteChannel(): ByteReadChannel = channel
+    override fun readChannel(): ByteReadChannel = channel
 
-    override fun readChannel(): ReadChannel = CIOReadChannelAdapter(byteChannel())
-
-    override fun multiPartData(): MultiPartData {
-        return CIOMultipartData(byteChannel(), headers)
-    }
+    override fun multiPartData(): MultiPartData = CIOMultipartData(channel, headersMap)
 }

@@ -5,10 +5,11 @@ import kotlinx.coroutines.experimental.channels.*
 import io.ktor.application.*
 import io.ktor.cio.*
 import kotlin.coroutines.experimental.*
+import kotlinx.coroutines.experimental.io.*
 
 internal class RawWebSocketImpl(override val call: ApplicationCall,
-                                readChannel: ReadChannel,
-                                writeChannel: WriteChannel,
+                                val readChannel: ByteReadChannel,
+                                val writeChannel: ByteWriteChannel,
                                 pool: ByteBufferPool = NoPool,
                                 val engineContext: CoroutineContext,
                                 val userContext: CoroutineContext

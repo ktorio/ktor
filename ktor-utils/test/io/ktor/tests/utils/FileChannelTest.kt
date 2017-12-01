@@ -28,7 +28,8 @@ class FileChannelTest {
     fun testSingleByteFile() {
         temp.writeBytes(byteArrayOf(7))
 
-        assertEquals(listOf(7.toByte()), temp.readChannel().toInputStream().use { it.readBytes().toList() })
+        val stream = temp.readChannel().toInputStream()
+        assertEquals(listOf(7.toByte()), stream.use { it.readBytes().toList() })
     }
 
     @Test

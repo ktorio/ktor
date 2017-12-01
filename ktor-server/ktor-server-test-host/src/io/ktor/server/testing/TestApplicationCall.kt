@@ -13,3 +13,5 @@ class TestApplicationCall(application: Application) : BaseApplicationCall(applic
     @Volatile
     var requestHandled = false
 }
+
+fun TestApplicationCall.awaitCompletion() = response.awaitCompletion()

@@ -1,6 +1,8 @@
 package io.ktor.tests.http.cio
 
+import io.ktor.http.*
 import io.ktor.http.cio.*
+import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*

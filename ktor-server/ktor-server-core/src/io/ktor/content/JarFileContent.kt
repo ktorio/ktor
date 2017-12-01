@@ -29,7 +29,7 @@ class JarFileContent(val jarFile: File,
 
     override val headers by lazy { super<Resource>.headers }
 
-    override fun readFrom() = classLoader.getResourceAsStream(normalized)?.toReadChannel() ?: throw IOException("Resource $normalized not found")
+    override fun readFrom() = classLoader.getResourceAsStream(normalized)?.toByteReadChannel() ?: throw IOException("Resource $normalized not found")
 
     override val expires = null
     override val cacheControl = null

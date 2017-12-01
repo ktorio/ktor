@@ -3,6 +3,7 @@ package io.ktor.content
 import io.ktor.cio.*
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.nio.file.*
 import java.time.*
@@ -23,7 +24,9 @@ class LocalFileContent(val file: File,
 
     // TODO: consider using WriteChannelContent to avoid piping
     // Or even make it dual-content so engine implementation can choose
-    override fun readFrom() = file.readChannel()
+    override fun readFrom(): ByteReadChannel = file.readChannel()
+
+    override fun readFrom(range: LongRange): ByteReadChannel = file.readChannel(range.start, range.endInclusive)
 }
 
 fun LocalFileContent(baseDir: File,
