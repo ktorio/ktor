@@ -1,7 +1,6 @@
 package io.ktor.client.engine.jetty
 
 import io.ktor.http.*
-import io.ktor.network.util.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
@@ -20,7 +19,10 @@ data class StatusWithHeaders(val statusCode: HttpStatusCode, val headers: Header
 
 private data class JettyResponseChunk(val buffer: ByteBuffer, val callback: Callback)
 
-internal class JettyResponseListener(private val channel: ByteWriteChannel) : Stream.Listener {
+internal class JettyResponseListener(
+        private val channel: ByteWriteChannel,
+        private val dispatcher: CoroutineDispatcher
+) : Stream.Listener {
     private val headersBuilder: HeadersBuilder = HeadersBuilder(caseInsensitiveKey = true)
     private val onHeadersReceived: CompletableFuture<HttpStatusCode?> = CompletableFuture()
     private val backendChannel = Channel<JettyResponseChunk>(Channel.UNLIMITED)
@@ -77,7 +79,7 @@ internal class JettyResponseListener(private val channel: ByteWriteChannel) : St
         return StatusWithHeaders(statusCode, headersBuilder.build())
     }
 
-    private fun runResponseProcessing() = launch(ioCoroutineDispatcher) {
+    private fun runResponseProcessing() = launch(dispatcher) {
         try {
             while (!backendChannel.isClosedForReceive) {
                 val (buffer, callback) = backendChannel.receiveOrNull() ?: break

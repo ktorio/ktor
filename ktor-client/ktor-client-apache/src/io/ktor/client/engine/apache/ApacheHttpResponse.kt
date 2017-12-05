@@ -4,15 +4,12 @@ import io.ktor.client.call.*
 import io.ktor.client.response.*
 import io.ktor.content.*
 import io.ktor.http.*
-import io.ktor.http.cio.*
-import io.ktor.http.cio.internals.*
-import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 import java.util.*
 
 class ApacheHttpResponse internal constructor(
         override val call: HttpClientCall,
-        private val response: ApacheResponse,
+        private val response: ApacheEngineResponse,
         private val content: ByteReadChannel,
         override val requestTime: Date
 ) : BaseHttpResponse {

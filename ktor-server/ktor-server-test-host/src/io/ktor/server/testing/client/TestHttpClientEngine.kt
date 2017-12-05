@@ -6,7 +6,6 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.content.*
 import io.ktor.http.*
-import io.ktor.network.util.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
@@ -55,7 +54,7 @@ class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientE
         is OutgoingContent.ByteArrayContent -> bytes()
         is OutgoingContent.ReadChannelContent -> runBlocking { readFrom().toByteArray() }
         is OutgoingContent.WriteChannelContent -> runBlocking {
-            writer(ioCoroutineDispatcher) { writeTo(channel) }.channel.toByteArray()
+            writer(coroutineContext) { writeTo(channel) }.channel.toByteArray()
         }
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
     }

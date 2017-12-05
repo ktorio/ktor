@@ -1,7 +1,6 @@
 package io.ktor.client.engine.apache
 
 import io.ktor.client.utils.*
-import io.ktor.network.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
@@ -15,6 +14,7 @@ import java.nio.ByteBuffer
 import java.util.concurrent.atomic.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
+import kotlin.coroutines.experimental.*
 
 private val MAX_QUEUE_LENGTH: Int = 65 * 1024 / DEFAULT_HTTP_BUFFER_SIZE
 
@@ -22,7 +22,8 @@ private data class ApacheResponseChunk(val buffer: ByteBuffer, val io: IOControl
 
 internal class ApacheResponseConsumer(
         private val channel: ByteWriteChannel,
-        private val block: (ApacheResponse) -> Unit
+        private val dispatcher: CoroutineContext,
+        private val block: (ApacheEngineResponse) -> Unit
 ) : AbstractAsyncResponseConsumer<Unit>() {
     private val backendChannel = Channel<ApacheResponseChunk>(Channel.UNLIMITED)
     private var current: ByteBuffer = HttpClientDefaultPool.borrow()
@@ -34,7 +35,7 @@ internal class ApacheResponseConsumer(
         runResponseProcessing()
     }
 
-    override fun onResponseReceived(response: HttpResponse) = block(ApacheResponse(response, Closeable { release() }))
+    override fun onResponseReceived(response: HttpResponse) = block(ApacheEngineResponse(response, Closeable { release() }))
 
     override fun releaseResources() = Unit
 
@@ -74,7 +75,7 @@ internal class ApacheResponseConsumer(
 
     override fun onEntityEnclosed(entity: HttpEntity, contentType: ContentType) {}
 
-    private fun runResponseProcessing() = launch(ioCoroutineDispatcher) {
+    private fun runResponseProcessing() = launch(dispatcher) {
         try {
             while (!backendChannel.isClosedForReceive) {
                 val (buffer, io) = backendChannel.receiveOrNull() ?: break

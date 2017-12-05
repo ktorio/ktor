@@ -6,11 +6,11 @@ import io.ktor.client.utils.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import javax.net.ssl.*
 
 
 interface HttpRequest : HttpMessage {
-
     val call: HttpClientCall
 
     val method: HttpMethod
@@ -20,6 +20,8 @@ interface HttpRequest : HttpMessage {
     val sslContext: SSLContext?
 
     val attributes: Attributes
+
+    val context: Job
 
     suspend fun execute(content: OutgoingContent): BaseHttpResponse
 }

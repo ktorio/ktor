@@ -14,19 +14,13 @@ class TestHttpClientResponse(
         override val headers: Headers,
         private val content: ByteArray
 ) : BaseHttpResponse {
-
     override val requestTime = Date()
-
     override val responseTime = Date()
-
     override val version = HttpProtocolVersion.HTTP_1_1
 
     override fun receiveContent(): IncomingContent = object : IncomingContent {
-
         override val headers: Headers = this@TestHttpClientResponse.headers
-
         override fun readChannel(): ByteReadChannel = ByteReadChannel(content)
-
         override fun multiPartData(): MultiPartData = throw UnsupportedOperationException()
     }
 

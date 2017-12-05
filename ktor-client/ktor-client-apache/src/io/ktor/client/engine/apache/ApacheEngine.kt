@@ -3,19 +3,17 @@ package io.ktor.client.engine.apache
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import io.ktor.client.request.HttpRequest
-import org.apache.http.*
+import io.ktor.client.utils.*
+import kotlinx.coroutines.experimental.*
 import org.apache.http.impl.nio.client.*
-import java.io.*
 
-
-internal data class ApacheResponse(val engineResponse: HttpResponse, val responseReader: Closeable)
 
 class ApacheEngine(private val config: ApacheEngineConfig) : HttpClientEngine {
     private val engine: CloseableHttpAsyncClient = prepareClient().apply { start() }
+    private val dispatcher: CoroutineDispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
 
     override fun prepareRequest(builder: HttpRequestBuilder, call: HttpClientCall): HttpRequest =
-            ApacheHttpRequest(call, engine, config, builder)
+            ApacheHttpRequest(call, engine, config, dispatcher, builder)
 
     override fun close() {
         engine.close()

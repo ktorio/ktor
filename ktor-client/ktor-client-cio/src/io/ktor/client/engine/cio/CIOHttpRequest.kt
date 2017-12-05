@@ -8,7 +8,6 @@ import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.network.sockets.*
-import io.ktor.network.util.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
@@ -17,13 +16,19 @@ import java.net.*
 import java.util.*
 import javax.net.ssl.*
 
-class CIOHttpRequest(override val call: HttpClientCall, builder: HttpRequestBuilder) : HttpRequest {
+class CIOHttpRequest(
+        override val call: HttpClientCall,
+        private val dispatcher: CoroutineDispatcher,
+        builder: HttpRequestBuilder
+) : HttpRequest {
     override val attributes: Attributes = Attributes()
     override val method: HttpMethod = builder.method
     override val url: Url = builder.url.build()
 
     override val headers: Headers = builder.headers.build()
     override val sslContext: SSLContext? = builder.sslContext
+
+    override val context: Job = Job()
 
     init {
         require(url.scheme == "http") { "CIOEngine doesn't support https yet" }
@@ -42,7 +47,7 @@ class CIOHttpRequest(override val call: HttpClientCall, builder: HttpRequestBuil
             val contentLength = response.headers["Content-Length"]?.toString()?.toLong() ?: -1L
             val transferEncoding = response.headers["Transfer-Encoding"]
             val connectionType = ConnectionType.parse(response.headers["Connection"])
-            val responseBody = writer(ioCoroutineDispatcher) {
+            val responseBody = writer(dispatcher + context) {
                 parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
             }
 
@@ -90,13 +95,14 @@ class CIOHttpRequest(override val call: HttpClientCall, builder: HttpRequestBuil
         if (body is OutgoingContent.NoContent) return
         val chunked = bodySize == null || body.headers[HttpHeaders.TransferEncoding] == "chunked" || headers[HttpHeaders.TransferEncoding] == "chunked"
 
-        launch(ioCoroutineDispatcher) {
-            if (chunked) {
-                val encoder = encodeChunked(output, ioCoroutineDispatcher)
-                writeBody(body, encoder.channel)
-                encoder.join()
-            } else {
-                writeBody(body, output)
+        launch(dispatcher + context) {
+            val channel = if (chunked) encodeChunked(output, coroutineContext).channel else output
+            try {
+                writeBody(body, channel)
+            } catch (cause: Throwable) {
+                channel.close(cause)
+            } finally {
+                channel.close()
             }
         }
     }
@@ -109,8 +115,6 @@ class CIOHttpRequest(override val call: HttpClientCall, builder: HttpRequestBuil
             is OutgoingContent.WriteChannelContent -> body.writeTo(channel)
             is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
         }
-
-        channel.close()
     }
 }
 
