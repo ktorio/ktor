@@ -100,6 +100,12 @@ allprojects {
             outputDirectory = "$buildDir/javadoc"
             reportNotDocumented = false
         }
+
+        task dokkaWebsite(type: org.jetbrains.dokka.gradle.DokkaTask) {
+            outputFormat = 'kotlin-website'
+            outputDirectory = "${rootProject.projectDir}/apidoc"
+            reportNotDocumented = false
+        }
     }
 
     task jarTest(type: Jar, dependsOn: testClasses) {
