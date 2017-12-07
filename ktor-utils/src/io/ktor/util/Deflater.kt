@@ -36,13 +36,7 @@ private suspend fun ByteWriteChannel.putGzipHeader() {
 
 private suspend fun ByteWriteChannel.putGzipTrailer(crc: Checksum, deflater: Deflater) {
     writeInt(crc.value.toInt())
-    // TODO: replace workaround
-    val buffer = ByteBuffer.allocate(4)
-    buffer.order(java.nio.ByteOrder.LITTLE_ENDIAN)
-    buffer.putInt(deflater.totalIn)
-    buffer.flip()
-    writeFully(buffer)
-//    writeInt(deflater.totalIn)
+    writeInt(deflater.totalIn)
 }
 
 private suspend fun ByteWriteChannel.deflateWhile(deflater: Deflater, buffer: ByteBuffer, predicate: () -> Boolean) {
@@ -93,5 +87,5 @@ fun ByteWriteChannel.deflated(
         gzip: Boolean = true,
         pool: ObjectPool<ByteBuffer> = EmptyByteBufferPool
 ): ByteWriteChannel = reader(Unconfined, autoFlush = true) {
-    channel.deflated(gzip, pool).copyAndClose(this@deflated)
+    channel.deflated(gzip, pool).joinTo(this@deflated, closeOnEnd = true)
 }.channel

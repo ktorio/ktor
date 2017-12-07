@@ -2,8 +2,8 @@ package io.ktor.client.tests
 
 import io.ktor.application.*
 import io.ktor.client.*
-import io.ktor.client.engine.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
@@ -14,7 +14,7 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
-import org.junit.Test
+import org.junit.*
 import org.junit.Assert.*
 
 
@@ -85,7 +85,7 @@ open class FullFormTest(private val factory: HttpClientEngineFactory<*>) : TestW
         }
 
         val body = runBlocking { client.request<String>(requestBuilder) }
-        assert(body == "Hello, client")
+        assertEquals("Hello, client", body)
 
         client.close()
     }

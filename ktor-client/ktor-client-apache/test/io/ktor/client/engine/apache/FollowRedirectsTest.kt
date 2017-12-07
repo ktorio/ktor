@@ -30,7 +30,7 @@ open class FollowRedirectsTest : TestWithKtor() {
     @Test
     fun defaultTest() = runBlocking {
         HttpClient(Apache).use { client ->
-            client.get<BaseHttpResponse>(port = serverPort).use {
+            client.get<HttpResponse>(port = serverPort).use {
                 assertEquals(HttpStatusCode.Found, it.status)
             }
         }
@@ -39,7 +39,7 @@ open class FollowRedirectsTest : TestWithKtor() {
     @Test
     fun redirectTest() = runBlocking {
         HttpClient(Apache.config { followRedirects = true }).use { client ->
-            client.get<BaseHttpResponse>(port = serverPort).use {
+            client.get<HttpResponse>(port = serverPort).use {
                 assertEquals(HttpStatusCode.OK, it.status)
             }
         }

@@ -4,6 +4,7 @@ import io.ktor.client.call.*
 import io.ktor.client.response.*
 import io.ktor.content.*
 import io.ktor.http.*
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.util.*
 
@@ -13,10 +14,12 @@ class TestHttpClientResponse(
         override val status: HttpStatusCode,
         override val headers: Headers,
         private val content: ByteArray
-) : BaseHttpResponse {
+) : HttpResponse {
     override val requestTime = Date()
     override val responseTime = Date()
     override val version = HttpProtocolVersion.HTTP_1_1
+
+    override val executionContext: Job = Job()
 
     override fun receiveContent(): IncomingContent = object : IncomingContent {
         override val headers: Headers = this@TestHttpClientResponse.headers

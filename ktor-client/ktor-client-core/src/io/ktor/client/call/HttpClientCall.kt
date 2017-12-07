@@ -18,7 +18,7 @@ class HttpClientCall private constructor(
     lateinit var request: HttpRequest
         private set
 
-    lateinit var response: BaseHttpResponse
+    lateinit var response: HttpResponse
         private set
 
     suspend fun receive(expectedType: KClass<*>): Any {

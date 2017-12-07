@@ -33,9 +33,9 @@ class JettyHttpRequest(
 
     override val sslContext: SSLContext? = builder.sslContext
 
-    override val context: Job = Job()
+    override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 
-    suspend override fun execute(content: OutgoingContent): BaseHttpResponse {
+    suspend override fun execute(content: OutgoingContent): HttpResponse {
         val requestTime = Date()
         val session = client.connect(url.host, url.port).apply {
             this.settings(SettingsFrame(emptyMap(), true), org.eclipse.jetty.util.Callback.NOOP)
@@ -44,17 +44,19 @@ class JettyHttpRequest(
         val headersFrame = prepareHeadersFrame(content)
 
         val bodyChannel = ByteChannel()
-        val responseListener = JettyResponseListener(bodyChannel, dispatcher)
+        val responseContext = CompletableDeferred<Unit>()
+        val responseListener = JettyResponseListener(bodyChannel, dispatcher, responseContext)
 
         val jettyRequest = withPromise<Stream> { promise ->
             session.newStream(headersFrame, promise, responseListener)
         }.let { JettyHttp2Request(it) }
 
         sendRequestBody(jettyRequest, content)
+        executionContext.complete(Unit)
 
         val (status, headers) = responseListener.awaitHeaders()
         val origin = Closeable { bodyChannel.close() }
-        return JettyHttpResponse(call, status, headers, requestTime, bodyChannel, origin)
+        return JettyHttpResponse(call, status, headers, requestTime, responseContext, bodyChannel, origin)
     }
 
 
@@ -91,14 +93,14 @@ class JettyHttpRequest(
             }
             is OutgoingContent.ReadChannelContent -> content.readFrom().writeResponse(request)
             is OutgoingContent.WriteChannelContent -> {
-                val source = writer(dispatcher + context) { content.writeTo(channel) }.channel
+                val source = writer(dispatcher + executionContext) { content.writeTo(channel) }.channel
                 source.writeResponse(request)
             }
             is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(content)
         }
     }
 
-    private fun ByteReadChannel.writeResponse(request: JettyHttp2Request) = launch(dispatcher + context) {
+    private fun ByteReadChannel.writeResponse(request: JettyHttp2Request) = launch(dispatcher + executionContext) {
         val buffer = HttpClientDefaultPool.borrow()
         pass(buffer) { request.write(it) }
         HttpClientDefaultPool.recycle(buffer)

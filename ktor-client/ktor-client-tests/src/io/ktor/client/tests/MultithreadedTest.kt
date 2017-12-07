@@ -34,7 +34,7 @@ abstract class MultithreadedTest(private val factory: HttpClientEngineFactory<*>
 
         val result = List(DEFAULT_SIZE) {
             async {
-                val response = client.get<BaseHttpResponse>("http://127.0.0.1:$serverPort")
+                val response = client.get<HttpResponse>("http://127.0.0.1:$serverPort")
                 val result = response.readText().toInt()
                 response.close()
                 return@async result

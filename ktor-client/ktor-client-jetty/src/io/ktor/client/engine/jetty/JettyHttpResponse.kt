@@ -4,7 +4,7 @@ import io.ktor.client.call.*
 import io.ktor.client.response.*
 import io.ktor.content.*
 import io.ktor.http.*
-import io.ktor.http.cio.internals.*
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.util.*
@@ -14,21 +14,23 @@ class JettyHttpResponse(
         override val status: HttpStatusCode,
         override val headers: Headers,
         override val requestTime: Date,
+        override val executionContext: CompletableDeferred<Unit>,
         private val content: ByteReadChannel,
         private val origin: Closeable
-) : BaseHttpResponse {
+) : HttpResponse {
     override val version = HttpProtocolVersion.HTTP_2_0
     override val responseTime = Date()
 
     override fun receiveContent(): IncomingContent = object : IncomingContent {
         override fun readChannel(): ByteReadChannel = content
 
-        override fun multiPartData(): MultiPartData = TODO()
+        override fun multiPartData(): MultiPartData = throw UnsupportedOperationException()
 
         override val headers: Headers = this@JettyHttpResponse.headers
     }
 
     override fun close() {
         origin.close()
+        executionContext.complete(Unit)
     }
 }

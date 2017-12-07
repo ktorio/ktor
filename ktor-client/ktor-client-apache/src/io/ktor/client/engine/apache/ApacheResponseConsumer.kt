@@ -11,7 +11,6 @@ import org.apache.http.nio.protocol.*
 import org.apache.http.protocol.*
 import java.io.*
 import java.nio.ByteBuffer
-import java.util.concurrent.atomic.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
 import kotlin.coroutines.experimental.*
@@ -23,11 +22,11 @@ private data class ApacheResponseChunk(val buffer: ByteBuffer, val io: IOControl
 internal class ApacheResponseConsumer(
         private val channel: ByteWriteChannel,
         private val dispatcher: CoroutineContext,
-        private val block: (ApacheEngineResponse) -> Unit
+        private val parent: CompletableDeferred<Unit>,
+        private val block: (HttpResponse) -> Unit
 ) : AbstractAsyncResponseConsumer<Unit>() {
     private val backendChannel = Channel<ApacheResponseChunk>(Channel.UNLIMITED)
     private var current: ByteBuffer = HttpClientDefaultPool.borrow()
-    private val released = AtomicBoolean(false)
     private val lock = ReentrantLock()
     private var channelSize: Int = 0
 
@@ -35,24 +34,10 @@ internal class ApacheResponseConsumer(
         runResponseProcessing()
     }
 
-    override fun onResponseReceived(response: HttpResponse) = block(ApacheEngineResponse(response, Closeable { release() }))
+    override fun onResponseReceived(response: HttpResponse) = block(response)
 
-    override fun releaseResources() = Unit
-
-    fun release(throwable: Throwable? = null) {
-        if (!released.compareAndSet(false, true)) return
-
-        try {
-            if (current.position() > 0) {
-                current.flip()
-                if (!backendChannel.offer(ApacheResponseChunk(current, null))) {
-                    HttpClientDefaultPool.recycle(current)
-                    throw IOException("backendChannel.offer() failed")
-                }
-            } else HttpClientDefaultPool.recycle(current)
-        } finally {
-            backendChannel.close(throwable)
-        }
+    override fun releaseResources() {
+        backendChannel.close()
     }
 
     override fun buildResult(context: HttpContext) = Unit
@@ -75,7 +60,7 @@ internal class ApacheResponseConsumer(
 
     override fun onEntityEnclosed(entity: HttpEntity, contentType: ContentType) {}
 
-    private fun runResponseProcessing() = launch(dispatcher) {
+    private fun runResponseProcessing() = launch(dispatcher, parent = parent) {
         try {
             while (!backendChannel.isClosedForReceive) {
                 val (buffer, io) = backendChannel.receiveOrNull() ?: break
@@ -87,10 +72,21 @@ internal class ApacheResponseConsumer(
                 channel.writeFully(buffer)
                 HttpClientDefaultPool.recycle(buffer)
             }
+
+            channel.writeRemaining()
         } catch (throwable: Throwable) {
             channel.close(throwable)
         } finally {
             channel.close()
+            HttpClientDefaultPool.recycle(current)
         }
+    }.invokeOnCompletion {
+        parent.complete(Unit)
+    }
+
+    private suspend fun ByteWriteChannel.writeRemaining() {
+        if (current.remaining() == 0) return
+        current.flip()
+        writeFully(current)
     }
 }

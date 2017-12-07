@@ -42,19 +42,7 @@ sealed class OutgoingContent {
             if (range.isEmpty()) return@writer
 
             val source = readFrom()
-            var skipCount = range.start
-            while (skipCount > 0) {
-                source.read { buffer ->
-                    if (buffer.remaining() > skipCount) {
-                        skipCount -= buffer.remaining()
-                        buffer.position(buffer.limit())
-                    } else {
-                        buffer.position(buffer.position() + skipCount.toInt())
-                        skipCount = 0
-                    }
-                }
-            }
-
+            source.discard(range.start)
             val limit = range.endInclusive - range.start + 1
             source.copyTo(channel, limit)
         }.channel

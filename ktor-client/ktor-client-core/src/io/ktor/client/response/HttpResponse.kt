@@ -3,11 +3,12 @@ package io.ktor.client.response
 import io.ktor.client.call.*
 import io.ktor.content.*
 import io.ktor.http.*
+import kotlinx.coroutines.experimental.*
 import java.io.*
 import java.util.*
 
 
-interface BaseHttpResponse : HttpMessage, Closeable {
+interface HttpResponse : HttpMessage, Closeable {
 
     val call: HttpClientCall
 
@@ -18,6 +19,8 @@ interface BaseHttpResponse : HttpMessage, Closeable {
     val requestTime: Date
 
     val responseTime: Date
+
+    val executionContext: Job
 
     fun receiveContent(): IncomingContent
 }

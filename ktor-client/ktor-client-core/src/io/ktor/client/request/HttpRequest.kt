@@ -21,9 +21,9 @@ interface HttpRequest : HttpMessage {
 
     val attributes: Attributes
 
-    val context: Job
+    val executionContext: Job
 
-    suspend fun execute(content: OutgoingContent): BaseHttpResponse
+    suspend fun execute(content: OutgoingContent): HttpResponse
 }
 
 class HttpRequestBuilder : HttpMessageBuilder {
@@ -35,7 +35,7 @@ class HttpRequestBuilder : HttpMessageBuilder {
 
     fun headers(block: HeadersBuilder.() -> Unit) = headers.apply(block)
 
-    fun url(block: UrlBuilder.() -> Unit) = url.block()
+    fun url(block: UrlBuilder.(UrlBuilder) -> Unit) = url.block(url)
 }
 
 fun HttpRequestBuilder.takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {

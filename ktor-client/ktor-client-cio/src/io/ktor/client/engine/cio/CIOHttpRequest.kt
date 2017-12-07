@@ -28,13 +28,13 @@ class CIOHttpRequest(
     override val headers: Headers = builder.headers.build()
     override val sslContext: SSLContext? = builder.sslContext
 
-    override val context: Job = Job()
+    override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 
     init {
         require(url.scheme == "http") { "CIOEngine doesn't support https yet" }
     }
 
-    suspend override fun execute(content: OutgoingContent): BaseHttpResponse {
+    suspend override fun execute(content: OutgoingContent): HttpResponse {
         val requestTime = Date()
         val address = InetSocketAddress(url.host, url.port)
         val socket = aSocket().tcp().connect(address)
@@ -43,25 +43,16 @@ class CIOHttpRequest(
 
         try {
             writeRequest(output, content)
-            val response = parseResponse(input) ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
-            val contentLength = response.headers["Content-Length"]?.toString()?.toLong() ?: -1L
-            val transferEncoding = response.headers["Transfer-Encoding"]
-            val connectionType = ConnectionType.parse(response.headers["Connection"])
-            val responseBody = writer(dispatcher + context) {
-                parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
-            }
 
             val origin = Closeable {
-                responseBody.cancel()
-                response.release()
                 output.close()
                 socket.close()
             }
 
-            return CIOHttpResponse(call, response, responseBody.channel, requestTime, origin)
-        } catch (t: Throwable) {
+            return input.receiveResponse(call, requestTime, dispatcher, origin)
+        } catch (cause: Throwable) {
             socket.close()
-            throw t
+            throw cause
         }
     }
 
@@ -95,24 +86,27 @@ class CIOHttpRequest(
         if (body is OutgoingContent.NoContent) return
         val chunked = bodySize == null || body.headers[HttpHeaders.TransferEncoding] == "chunked" || headers[HttpHeaders.TransferEncoding] == "chunked"
 
-        launch(dispatcher + context) {
+        launch(dispatcher + executionContext) {
             val channel = if (chunked) encodeChunked(output, coroutineContext).channel else output
             try {
-                writeBody(body, channel)
+                channel.writeBody(body)
             } catch (cause: Throwable) {
                 channel.close(cause)
             } finally {
                 channel.close()
             }
+        }.invokeOnCompletion { cause ->
+            if (cause == null) executionContext.complete(Unit)
+            else executionContext.completeExceptionally(cause)
         }
     }
 
-    private suspend fun writeBody(body: OutgoingContent, channel: ByteWriteChannel) {
+    private suspend fun ByteWriteChannel.writeBody(body: OutgoingContent) {
         when (body) {
             is OutgoingContent.NoContent -> return
-            is OutgoingContent.ByteArrayContent -> channel.writeFully(body.bytes())
-            is OutgoingContent.ReadChannelContent -> body.readFrom().copyTo(channel)
-            is OutgoingContent.WriteChannelContent -> body.writeTo(channel)
+            is OutgoingContent.ByteArrayContent -> writeFully(body.bytes())
+            is OutgoingContent.ReadChannelContent -> body.readFrom().copyTo(this)
+            is OutgoingContent.WriteChannelContent -> body.writeTo(this)
             is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
         }
     }

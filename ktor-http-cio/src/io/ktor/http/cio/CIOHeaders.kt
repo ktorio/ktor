@@ -15,9 +15,8 @@ class CIOHeaders(private val headers: HttpHeadersMap) : ValuesMap {
 
     override fun names() = names
     override fun get(name: String): String? = headers.get(name)?.toString()
-    override fun getAll(name: String): List<String>? {
-        return get(name)?.let { listOf(it) }
-    }
+
+    override fun getAll(name: String): List<String> = headers.getAll(name).map { it.toString() }.toList()
 
     override fun isEmpty() = headers.size == 0
     override fun entries(): Set<Map.Entry<String, List<String>>> {

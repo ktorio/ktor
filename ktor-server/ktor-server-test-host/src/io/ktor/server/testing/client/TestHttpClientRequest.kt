@@ -23,9 +23,9 @@ class TestHttpClientRequest(
 
     override val sslContext: SSLContext? = builder.sslContext
 
-    override val context: Job = Job()
+    override val executionContext: Job = Job()
 
-    suspend override fun execute(content: OutgoingContent): BaseHttpResponse {
+    suspend override fun execute(content: OutgoingContent): HttpResponse {
         val response = engine.runRequest(method, url.fullPath, headers, content).response
         return TestHttpClientResponse(call, response.status()!!, response.headers.allValues(), response.byteContent!!)
     }
