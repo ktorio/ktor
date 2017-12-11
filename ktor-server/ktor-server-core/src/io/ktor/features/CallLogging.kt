@@ -7,6 +7,9 @@ import io.ktor.request.*
 import io.ktor.util.*
 import org.slf4j.*
 
+/**
+ * Logs application lifecycle and call events.
+ */
 class CallLogging(private val log: Logger, private val monitor: ApplicationEvents) {
 
     class Configuration
@@ -31,6 +34,9 @@ class CallLogging(private val log: Logger, private val monitor: ApplicationEvent
         monitor.subscribe(ApplicationStopped, stopped)
     }
 
+    /**
+     * Installable feature for [CallLogging].
+     */
     companion object Feature : ApplicationFeature<Application, Configuration, CallLogging> {
         override val key: AttributeKey<CallLogging> = AttributeKey("Call Logging")
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
