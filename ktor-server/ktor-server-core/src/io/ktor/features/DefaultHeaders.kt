@@ -1,11 +1,17 @@
 package io.ktor.features
 
 import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.util.*
+import io.ktor.http.HttpHeaders
+import io.ktor.http.toHttpDateString
+import io.ktor.response.header
+import io.ktor.util.AttributeKey
+import io.ktor.util.ValuesMapBuilder
 import java.time.*
 
+/**
+ * Adds standard HTTP headers `Date` and `Server` and provides ability to specify other headers
+ * that are included in responses.
+ */
 class DefaultHeaders(config: Configuration) {
     val headers = config.headers.build()
 
@@ -15,8 +21,15 @@ class DefaultHeaders(config: Configuration) {
     private var cachedDateTimeStamp: Long = 0L
     @Volatile private var cachedDateText: String = ZonedDateTime.now(ZoneOffset.UTC).toHttpDateString()
 
+    /**
+     * Configuration for [DefaultHeaders] feature.
+     */
     class Configuration {
         val headers = ValuesMapBuilder()
+
+        /**
+         * Adds standard header property [name] with the specified [value].
+         */
         fun header(name: String, value: String) = headers.append(name, value)
     }
 
@@ -45,6 +58,9 @@ class DefaultHeaders(config: Configuration) {
         call.response.header("Date", cachedDateText)
     }
 
+    /**
+     * Installable feature for [DefaultHeaders].
+     */
     companion object Feature : ApplicationFeature<Application, Configuration, DefaultHeaders> {
         override val key = AttributeKey<DefaultHeaders>("Default Headers")
 
