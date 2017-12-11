@@ -19,7 +19,7 @@ class TestHttpClientResponse(
     override val responseTime = Date()
     override val version = HttpProtocolVersion.HTTP_1_1
 
-    override val executionContext: Job = Job()
+    override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 
     override fun receiveContent(): IncomingContent = object : IncomingContent {
         override val headers: Headers = this@TestHttpClientResponse.headers
@@ -27,5 +27,8 @@ class TestHttpClientResponse(
         override fun multiPartData(): MultiPartData = throw UnsupportedOperationException()
     }
 
-    override fun close() {}
+    override fun close() {
+        executionContext.complete(Unit)
+        (call.request.executionContext as CompletableDeferred<Unit>).complete(Unit)
+    }
 }

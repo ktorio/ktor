@@ -51,6 +51,9 @@ object EmptyByteBufferPool : ObjectPool<ByteBuffer> {
 
 suspend fun <T : Any> ObjectPool<T>.use(block: suspend (T) -> Unit) {
     val item = borrow()
-    block(item)
-    recycle(item)
+    try {
+        block(item)
+    } finally {
+        recycle(item)
+    }
 }

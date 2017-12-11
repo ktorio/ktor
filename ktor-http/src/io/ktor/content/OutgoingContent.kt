@@ -1,6 +1,5 @@
 package io.ktor.content
 
-import io.ktor.cio.*
 import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*

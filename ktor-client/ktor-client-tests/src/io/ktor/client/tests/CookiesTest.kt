@@ -60,7 +60,7 @@ open class CookiesTest(private val factory: HttpClientEngineFactory<*>) : TestWi
         val client = HttpClient(factory) {
             install(HttpCookies) {
                 default {
-                    set("localhost", Cookie("id", "1"))
+                    addCookie("localhost", Cookie("id", "1"))
                 }
             }
         }
@@ -105,8 +105,8 @@ open class CookiesTest(private val factory: HttpClientEngineFactory<*>) : TestWi
          * c    d
          */
         val client = HttpClient(factory)
-        val a = client.config { install(HttpCookies) { default { set("localhost", Cookie("id", "1")) } } }
-        val b = a.config { install(HttpCookies) { default { set("localhost", Cookie("id", "10")) } } }
+        val a = client.config { install(HttpCookies) { default { addCookie("localhost", Cookie("id", "1")) } } }
+        val b = a.config { install(HttpCookies) { default { addCookie("localhost", Cookie("id", "10")) } } }
         val c = a.config { }
         val d = b.config { }
 

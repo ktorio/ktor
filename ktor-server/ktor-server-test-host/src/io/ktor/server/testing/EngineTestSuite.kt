@@ -1,6 +1,7 @@
 package io.ktor.server.testing
 
 import io.ktor.application.*
+import io.ktor.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.content.*
@@ -549,10 +550,10 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         createAndStartServer {
             route("/echo") {
                 handle {
-                    val response = call.receiveChannel()
+                    val response = call.receiveChannel().toByteArray()
                     call.respond(object : OutgoingContent.ReadChannelContent() {
                         override val headers: ValuesMap get() = ValuesMap.Empty
-                        override fun readFrom() = response
+                        override fun readFrom() = ByteReadChannel(response)
                     })
                 }
             }
@@ -1088,6 +1089,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                                 channel.writeFully(bb)
                                 channel.flush()
                             }
+
+                            channel.close()
                         }
                     })
                 } finally {
@@ -1214,7 +1217,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                         }
 
                     suspend override fun upgrade(input: ByteReadChannel, output: ByteWriteChannel, engineContext: CoroutineContext, userContext: CoroutineContext): Job {
-                        return launch (engineContext) {
+                        return launch(engineContext) {
                             val bb = ByteBuffer.allocate(8)
                             input.readFully(bb)
                             bb.flip()

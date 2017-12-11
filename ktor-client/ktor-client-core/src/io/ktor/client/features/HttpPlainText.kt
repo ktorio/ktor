@@ -3,20 +3,14 @@ package io.ktor.client.features
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.client.utils.*
 import io.ktor.content.*
 import io.ktor.http.*
-import io.ktor.network.util.*
-import io.ktor.pipeline.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.io.*
-import java.io.*
 import java.nio.charset.*
 
 
 class HttpPlainText(private val defaultCharset: Charset) {
-    suspend fun read(response: IncomingContent): String = response.readText()
+    suspend fun read(response: IncomingContent): String = response.readText(charset = defaultCharset)
 
     class Config {
         var defaultCharset: Charset = Charset.defaultCharset()
@@ -32,7 +26,8 @@ class HttpPlainText(private val defaultCharset: Charset) {
         override fun install(feature: HttpPlainText, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Render) { content ->
                 if (content !is String) return@intercept
-                proceedWith(TextContent(content, ContentType.Text.Plain.withCharset(Charset.defaultCharset())))
+                val contentType = ContentType.Text.Plain.withCharset(feature.defaultCharset)
+                proceedWith(TextContent(content, contentType))
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Parse) { (expectedType, response) ->

@@ -10,6 +10,8 @@ import kotlin.reflect.*
 import kotlin.reflect.full.*
 
 
+class HttpRequestContext(val client: HttpClient, val request: HttpRequest)
+
 class HttpClientCall private constructor(
         private val client: HttpClient
 ) : Closeable {

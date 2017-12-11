@@ -20,11 +20,11 @@ private val MAX_QUEUE_LENGTH: Int = 65 * 1024 / DEFAULT_HTTP_BUFFER_SIZE
 private data class ApacheResponseChunk(val buffer: ByteBuffer, val io: IOControl?)
 
 internal class ApacheResponseConsumer(
-        private val channel: ByteWriteChannel,
         private val dispatcher: CoroutineContext,
         private val parent: CompletableDeferred<Unit>,
-        private val block: (HttpResponse) -> Unit
+        private val block: (HttpResponse, ByteReadChannel) -> Unit
 ) : AbstractAsyncResponseConsumer<Unit>() {
+    private val channel = ByteChannel()
     private val backendChannel = Channel<ApacheResponseChunk>(Channel.UNLIMITED)
     private var current: ByteBuffer = HttpClientDefaultPool.borrow()
     private val lock = ReentrantLock()
@@ -34,7 +34,7 @@ internal class ApacheResponseConsumer(
         runResponseProcessing()
     }
 
-    override fun onResponseReceived(response: HttpResponse) = block(response)
+    override fun onResponseReceived(response: HttpResponse) = block(response, channel)
 
     override fun releaseResources() {
         backendChannel.close()
@@ -74,19 +74,23 @@ internal class ApacheResponseConsumer(
             }
 
             channel.writeRemaining()
-        } catch (throwable: Throwable) {
-            channel.close(throwable)
+        } catch (cause: Throwable) {
+            channel.close(cause)
+            throw cause
         } finally {
             channel.close()
             HttpClientDefaultPool.recycle(current)
         }
-    }.invokeOnCompletion {
-        parent.complete(Unit)
+    }.invokeOnCompletion { cause ->
+        if (cause != null) {
+            parent.completeExceptionally(cause)
+        } else {
+            parent.complete(Unit)
+        }
     }
 
     private suspend fun ByteWriteChannel.writeRemaining() {
-        if (current.remaining() == 0) return
         current.flip()
-        writeFully(current)
+        if (current.hasRemaining()) writeFully(current)
     }
 }

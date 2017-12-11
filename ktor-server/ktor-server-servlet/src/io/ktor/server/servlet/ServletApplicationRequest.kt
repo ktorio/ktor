@@ -1,17 +1,13 @@
 package io.ktor.server.servlet
 
 import io.ktor.application.*
-import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
-import java.nio.*
-import java.nio.ByteBuffer
 import javax.servlet.http.*
 
 class ServletApplicationRequest(call: ApplicationCall,

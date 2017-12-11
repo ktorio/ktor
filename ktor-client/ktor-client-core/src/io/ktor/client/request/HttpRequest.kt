@@ -36,7 +36,19 @@ class HttpRequestBuilder : HttpMessageBuilder {
     fun headers(block: HeadersBuilder.() -> Unit) = headers.apply(block)
 
     fun url(block: UrlBuilder.(UrlBuilder) -> Unit) = url.block(url)
+
+    fun build(): HttpRequestData = HttpRequestData(
+            url.build(), method, headers.build(), body, sslContext
+    )
 }
+
+class HttpRequestData(
+        val url: Url,
+        val method: HttpMethod,
+        val headers: Headers,
+        val body: Any,
+        val sslContext: SSLContext?
+)
 
 fun HttpRequestBuilder.takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
     method = builder.method

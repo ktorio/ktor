@@ -9,7 +9,6 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import java.io.*
 import java.time.*
 import java.util.concurrent.*
 
@@ -101,12 +100,6 @@ class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationRespon
             }
         }
     }
-}
-
-fun TestApplicationResponse.readBytes(size: Int): ByteArray = runBlocking {
-    val result = ByteArray(size)
-    contentChannel()!!.readFully(result)
-    result
 }
 
 fun TestApplicationResponse.contentType(): ContentType {

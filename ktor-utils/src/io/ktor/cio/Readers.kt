@@ -7,18 +7,17 @@ import java.io.*
 
 suspend fun ByteReadChannel.toByteArray(sizeHint: Int = 0, pool: ObjectPool<ByteBuffer> = EmptyByteBufferPool): ByteArray {
     val result = ByteArrayOutputStream(sizeHint)
-    val buffer = pool.borrow()
+    pool.use { buffer ->
+        while (!isClosedForRead) {
+            buffer.clear()
+            val count = readAvailable(buffer)
+            if (count == -1) break
+            buffer.flip()
 
-    while (!isClosedForRead) {
-        buffer.clear()
-        val count = readAvailable(buffer)
-        if (count == -1) break
-        buffer.flip()
-
-        result.write(buffer.array(), buffer.arrayOffset() + buffer.position(), count)
+            result.write(buffer.array(), buffer.arrayOffset() + buffer.position(), count)
+        }
     }
 
-    pool.recycle(buffer)
     return result.toByteArray()
 }
 
@@ -29,5 +28,16 @@ suspend fun ByteReadChannel.pass(buffer: ByteBuffer, block: suspend (ByteBuffer)
 
         buffer.flip()
         block(buffer)
+    }
+}
+
+suspend fun ByteWriteChannel.use(block: suspend ByteWriteChannel.() -> Unit) {
+    try {
+        block()
+    } catch (cause: Throwable) {
+        close(cause)
+        throw cause
+    } finally {
+        close()
     }
 }

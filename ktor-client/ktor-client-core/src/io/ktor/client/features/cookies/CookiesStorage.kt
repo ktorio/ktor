@@ -8,7 +8,7 @@ import java.util.concurrent.*
 interface CookiesStorage {
     operator fun get(host: String): Map<String, Cookie>?
     operator fun get(host: String, name: String): Cookie?
-    operator fun set(host: String, cookie: Cookie)
+    fun addCookie(host: String, cookie: Cookie)
 
     fun forEach(host: String, block: (Cookie) -> Unit)
 }
@@ -20,7 +20,7 @@ open class AcceptAllCookiesStorage : CookiesStorage {
 
     override operator fun get(host: String, name: String): Cookie? = data[host]?.get(name)
 
-    override operator fun set(host: String, cookie: Cookie) {
+    override fun addCookie(host: String, cookie: Cookie) {
         init(host)
         data[host]?.set(cookie.name, cookie)
     }
@@ -44,7 +44,7 @@ class ConstantCookieStorage(vararg cookies: Cookie) : CookiesStorage {
 
     override fun get(host: String, name: String): Cookie? = storage[name]
 
-    override fun set(host: String, cookie: Cookie) {}
+    override fun addCookie(host: String, cookie: Cookie) {}
 
     override fun forEach(host: String, block: (Cookie) -> Unit) {
         storage.values.forEach(block)

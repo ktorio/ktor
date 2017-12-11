@@ -13,7 +13,7 @@ class ApacheEngine(private val config: ApacheEngineConfig) : HttpClientEngine {
     private val dispatcher: CoroutineDispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
 
     override fun prepareRequest(builder: HttpRequestBuilder, call: HttpClientCall): HttpRequest =
-            ApacheHttpRequest(call, engine, config, dispatcher, builder)
+            ApacheHttpRequest(call, engine, config, dispatcher, builder.build())
 
     override fun close() {
         engine.close()

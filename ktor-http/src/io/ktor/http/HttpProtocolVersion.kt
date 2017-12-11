@@ -15,4 +15,3 @@ data class HttpProtocolVersion(val name: String, val major: Int, val minor: Int)
 
     override fun toString(): String = "$name/$major.$minor"
 }
-

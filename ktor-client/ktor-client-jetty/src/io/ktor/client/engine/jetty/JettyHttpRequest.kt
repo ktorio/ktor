@@ -52,7 +52,6 @@ class JettyHttpRequest(
         }.let { JettyHttp2Request(it) }
 
         sendRequestBody(jettyRequest, content)
-        executionContext.complete(Unit)
 
         val (status, headers) = responseListener.awaitHeaders()
         val origin = Closeable { bodyChannel.close() }
@@ -105,6 +104,12 @@ class JettyHttpRequest(
         pass(buffer) { request.write(it) }
         HttpClientDefaultPool.recycle(buffer)
         request.endBody()
+    }.invokeOnCompletion { cause ->
+        if (cause != null) {
+            executionContext.completeExceptionally(cause)
+        } else {
+            executionContext.complete(Unit)
+        }
     }
 }
 

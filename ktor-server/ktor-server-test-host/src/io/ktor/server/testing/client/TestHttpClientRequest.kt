@@ -23,7 +23,7 @@ class TestHttpClientRequest(
 
     override val sslContext: SSLContext? = builder.sslContext
 
-    override val executionContext: Job = Job()
+    override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 
     suspend override fun execute(content: OutgoingContent): HttpResponse {
         val response = engine.runRequest(method, url.fullPath, headers, content).response

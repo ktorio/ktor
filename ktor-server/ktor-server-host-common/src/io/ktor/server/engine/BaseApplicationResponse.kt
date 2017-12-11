@@ -97,16 +97,15 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
 
     protected open suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
         // Retrieve response channel, that might send out headers, so it should go after commitHeaders
-        val responseChannel = responseChannel()
-        // Call user code to send data
-        content.writeTo(responseChannel)
-        responseChannel.close()
+        responseChannel().use {
+            // Call user code to send data
+            content.writeTo(this)
+        }
     }
 
     protected open suspend fun respondFromBytes(bytes: ByteArray) {
-        responseChannel().apply {
+        responseChannel().use {
             writeFully(bytes)
-            close()
         }
     }
 

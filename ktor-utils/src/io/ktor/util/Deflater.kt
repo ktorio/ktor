@@ -8,6 +8,7 @@ import kotlinx.io.pool.*
 import java.nio.ByteBuffer
 import java.util.zip.*
 
+
 private const val GZIP_MAGIC = 0x8b1f
 private val headerPadding = ByteArray(7)
 
@@ -58,29 +59,31 @@ fun ByteReadChannel.deflated(
     val input = pool.borrow()
     val compressed = pool.borrow()
 
-    if (gzip) {
-        channel.putGzipHeader()
+    try {
+        if (gzip) {
+            channel.putGzipHeader()
+        }
+
+        while (!isClosedForRead) {
+            input.clear()
+            if (readAvailable(input) <= 0) continue
+            input.flip()
+
+            crc.updateKeepPosition(input)
+            deflater.setInput(input)
+            channel.deflateWhile(deflater, compressed) { !deflater.needsInput() }
+        }
+
+        deflater.finish()
+        channel.deflateWhile(deflater, compressed) { !deflater.finished() }
+
+        if (gzip) {
+            channel.putGzipTrailer(crc, deflater)
+        }
+    } finally {
+        pool.recycle(input)
+        pool.recycle(compressed)
     }
-
-    while (!isClosedForRead) {
-        input.clear()
-        if (readAvailable(input) <= 0) continue
-        input.flip()
-
-        crc.updateKeepPosition(input)
-        deflater.setInput(input)
-        channel.deflateWhile(deflater, compressed) { !deflater.needsInput() }
-    }
-
-    deflater.finish()
-    channel.deflateWhile(deflater, compressed) { !deflater.finished() }
-
-    if (gzip) {
-        channel.putGzipTrailer(crc, deflater)
-    }
-
-    pool.recycle(input)
-    pool.recycle(compressed)
 }.channel
 
 fun ByteWriteChannel.deflated(

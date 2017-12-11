@@ -138,8 +138,9 @@ fun startConnectionPipeline(input: ByteReadChannel,
                 if (expectedHttpBody && requestBody is ByteWriteChannel) {
                     try {
                         parseHttpBody(contentLength, transferEncoding, connectionOptions, input, requestBody)
-                    } catch (t: Throwable) {
-                        requestBody.close(t)
+                    } catch (cause: Throwable) {
+                        requestBody.close(cause)
+                        throw cause
                     } finally {
                         requestBody.close()
                     }
@@ -169,11 +170,11 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
 }
 
 private val BadRequestPacket =
-    RequestResponseBuilder().apply {
-        responseLine("HTTP/1.0", HttpStatusCode.BadRequest.value, "Bad Request")
-        headerLine("Connection", "close")
-        emptyLine()
-    }.build()
+        RequestResponseBuilder().apply {
+            responseLine("HTTP/1.0", HttpStatusCode.BadRequest.value, "Bad Request")
+            headerLine("Connection", "close")
+            emptyLine()
+        }.build()
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun <S, R> suspendLambda(noinline block: suspend S.() -> R): suspend S.() -> R = block

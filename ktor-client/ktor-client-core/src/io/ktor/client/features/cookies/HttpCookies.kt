@@ -41,9 +41,7 @@ class HttpCookies(private val storage: CookiesStorage) {
 
         override fun install(feature: HttpCookies, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.State) { content: OutgoingContent ->
-                if (content is OutgoingContent.ProtocolUpgrade) return@intercept
-
-                proceedWith(content.wrapCookies { oldHeaders ->
+                proceedWith(content.wrapHeaders { oldHeaders ->
                     val builder = HeadersBuilder()
                     builder.appendAll(oldHeaders)
 
@@ -58,7 +56,7 @@ class HttpCookies(private val storage: CookiesStorage) {
             scope.responsePipeline.intercept(HttpResponsePipeline.State) {
                 val host = context.request.url.host
                 context.response.setCookie().forEach {
-                    feature.storage[host] = it
+                    feature.storage.addCookie(host, it)
                 }
             }
         }
