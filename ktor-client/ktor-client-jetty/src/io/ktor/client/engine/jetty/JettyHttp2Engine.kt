@@ -6,12 +6,11 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import org.eclipse.jetty.http2.api.*
 import org.eclipse.jetty.http2.client.*
-import org.eclipse.jetty.util.ssl.*
 import java.net.*
 
 
-class JettyHttp2Engine(private val config: HttpClientEngineConfig) : HttpClientEngine {
-    private val sslContextFactory = SslContextFactory(true)
+class JettyHttp2Engine(config: JettyEngineConfig) : HttpClientEngine {
+    private val sslContextFactory = config.sslContextFactory
     private val jettyClient = HTTP2Client().apply {
         addBean(sslContextFactory)
         start()
