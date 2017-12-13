@@ -16,22 +16,19 @@ import org.eclipse.jetty.http2.api.*
 import org.eclipse.jetty.http2.frames.*
 import java.io.*
 import java.util.*
-import javax.net.ssl.*
 
 
 class JettyHttpRequest(
         override val call: HttpClientCall,
         private val client: JettyHttp2Engine,
         private val dispatcher: CoroutineDispatcher,
-        builder: HttpRequestBuilder
+        requestData: HttpRequestData
 ) : HttpRequest {
     override val attributes: Attributes = Attributes()
 
-    override val method: HttpMethod = builder.method
-    override val url: Url = builder.url.build()
-    override val headers: Headers = builder.headers.build()
-
-    override val sslContext: SSLContext? = builder.sslContext
+    override val method: HttpMethod = requestData.method
+    override val url: Url = requestData.url
+    override val headers: Headers = requestData.headers
 
     override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 
@@ -72,7 +69,7 @@ class JettyHttpRequest(
 
         val meta = MetaData.Request(
                 method.value,
-                url.scheme,
+                url.protocol.name,
                 HostPortHttpField("${url.host}:${url.port}"),
                 url.fullPath,
                 HttpVersion.HTTP_2,

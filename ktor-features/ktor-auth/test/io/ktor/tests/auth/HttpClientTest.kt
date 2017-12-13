@@ -1,8 +1,8 @@
 package io.ktor.tests.auth
 
 import io.ktor.client.*
-import io.ktor.client.engine.apache.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.apache.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
@@ -66,7 +66,7 @@ class HttpClientTest {
         val client = HttpClient(Apache)
         val response = client.call("http://127.0.0.1:$port/") {
             method = HttpMethod.Post
-            url.path = "/url"
+            url.encodedPath = "/url"
             header("header", "value")
             body = "request-body"
         }.response

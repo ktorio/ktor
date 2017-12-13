@@ -20,7 +20,7 @@ class JettyApplicationResponse(call: ServletApplicationCall,
             baseRequest.pushBuilder.apply {
                 this.method(builder.method.value)
                 this.path(builder.url.encodedPath)
-                val query = builder.url.build().substringAfter('?', "").takeIf { it.isNotEmpty() }
+                val query = builder.url.buildString().substringAfter('?', "").takeIf { it.isNotEmpty() }
                 if (query != null) {
                     queryString(query)
                 }

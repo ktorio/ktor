@@ -89,14 +89,13 @@ class ApacheRequestProducer(
     private fun setupRequest(): HttpUriRequest = with(requestData) {
         val builder = RequestBuilder.create(method.value)!!
         builder.uri = URIBuilder().apply {
-            scheme = url.scheme
+            scheme = url.protocol.name
             host = url.host
             port = url.port
-            path = url.path
+            path = url.encodedPath
 
-            // if we have `?` in tail of url we should initialise query parameters
-            if (url.queryParameters?.isEmpty() == true) setParameters(listOf())
-            url.queryParameters?.flattenEntries()?.forEach { (key, value) -> addParameter(key, value) }
+            if (url.parameters.isEmpty() && url.trailingQuery) setParameters(listOf())
+            url.parameters.flattenEntries().forEach { (key, value) -> addParameter(key, value) }
         }.build()
 
         headers.flattenEntries().forEach { (key, value) ->

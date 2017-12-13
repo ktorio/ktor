@@ -12,5 +12,13 @@ data class URLProtocol(val name: String, val defaultPort: Int) {
         val WSS = URLProtocol("wss", 443)
 
         val byName = listOf(HTTP, HTTPS, WS, WSS).associateBy { it.name }
+
+        fun createOrDefault(name: String, port: Int): URLProtocol {
+            byName[name]?.let {
+                if (it.defaultPort == port) return it
+            }
+
+            return URLProtocol(name, port)
+        }
     }
 }

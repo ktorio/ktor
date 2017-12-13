@@ -12,7 +12,7 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
-import org.junit.Test
+import org.junit.*
 import org.junit.Assert.*
 
 open class FollowRedirectsTest : TestWithKtor() {

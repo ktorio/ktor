@@ -1,11 +1,10 @@
 package io.ktor.tests.server.cio
 
 import io.ktor.client.*
-import io.ktor.client.engine.cio.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.client.utils.*
 import io.ktor.http.*
 import kotlinx.coroutines.experimental.*
 import org.junit.Test
@@ -63,7 +62,7 @@ class CIOHttpClientTest {
         val client = HttpClient(CIO)
         val response = client.call(URL("http://127.0.0.1:$port/")) {
             method = HttpMethod.Post
-            url.path = "/url"
+            url.encodedPath = "/url"
             header("header", "value")
             body = "request-body"
         }.response
@@ -150,7 +149,7 @@ class CIOHttpClientTest {
         val client = HttpClient(CIO)
         val response = client.call(URL("http://127.0.0.1:$port/")) {
             method = HttpMethod.Post
-            url.path = "/url"
+            url.encodedPath = "/url"
             header("header", "value")
             header("Transfer-Encoding", "chunked")
             body = "request-body"

@@ -3,7 +3,6 @@ package io.ktor.client.engine.cio
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.client.utils.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
@@ -14,24 +13,21 @@ import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.net.*
 import java.util.*
-import javax.net.ssl.*
 
 class CIOHttpRequest(
         override val call: HttpClientCall,
         private val dispatcher: CoroutineDispatcher,
-        builder: HttpRequestBuilder
+        requestData: HttpRequestData
 ) : HttpRequest {
     override val attributes: Attributes = Attributes()
-    override val method: HttpMethod = builder.method
-    override val url: Url = builder.url.build()
-
-    override val headers: Headers = builder.headers.build()
-    override val sslContext: SSLContext? = builder.sslContext
+    override val method: HttpMethod = requestData.method
+    override val url: Url = requestData.url
+    override val headers: Headers = requestData.headers
 
     override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 
     init {
-        require(url.scheme == "http") { "CIOEngine doesn't support https yet" }
+        require(url.protocol.name == "http") { "CIOEngine support only http yet" }
     }
 
     suspend override fun execute(content: OutgoingContent): HttpResponse {

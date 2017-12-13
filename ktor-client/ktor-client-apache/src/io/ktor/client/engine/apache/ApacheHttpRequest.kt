@@ -3,7 +3,6 @@ package io.ktor.client.engine.apache
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.client.utils.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.util.*
@@ -12,7 +11,6 @@ import org.apache.http.concurrent.*
 import org.apache.http.impl.nio.client.*
 import java.util.*
 import java.util.concurrent.atomic.*
-import javax.net.ssl.*
 
 
 class ApacheHttpRequest(
@@ -27,7 +25,6 @@ class ApacheHttpRequest(
     override val method: HttpMethod = requestData.method
     override val url: Url = requestData.url
     override val headers: Headers = requestData.headers
-    override val sslContext: SSLContext? = requestData.sslContext
 
     override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 

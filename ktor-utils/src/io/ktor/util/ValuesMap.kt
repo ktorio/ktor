@@ -253,6 +253,17 @@ fun ValuesMapBuilder.appendFiltered(source: ValuesMap, keepEmpty: Boolean = fals
     }
 }
 
+fun ValuesMapBuilder.appendAll(valuesMap: ValuesMapBuilder): ValuesMapBuilder = apply {
+    valuesMap.entries().forEach { (name, values) ->
+        appendAll(name, values)
+    }
+}
+
+fun valuesMapBuilderOf(builder: ValuesMapBuilder): ValuesMapBuilder =
+        ValuesMapBuilder(builder.caseInsensitiveKey).appendAll(builder)
+
+fun valuesOf(builder: ValuesMapBuilder): ValuesMap = valuesMapBuilderOf(builder).build()
+
 private fun entriesEquals(a: Set<Map.Entry<String, List<String>>>, b: Set<Map.Entry<String, List<String>>>): Boolean {
     return a == b
 }

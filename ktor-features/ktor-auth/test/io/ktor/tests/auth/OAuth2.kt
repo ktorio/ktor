@@ -251,7 +251,7 @@ class OAuth2Test {
             application.routing {
                 get("/login") {
                     oauthHandleCallback(testClient, dispatcher, settings, "http://localhost/login", "/", {
-                        url.addQueryParameter("badContentType", "true")
+                        url.parameters["badContentType"] = "true"
                     }) { token ->
                         call.respondText("Ho, $token")
                     }

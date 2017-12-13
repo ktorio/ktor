@@ -120,7 +120,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
     protected abstract fun setStatus(statusCode: HttpStatusCode)
 
     override fun push(builder: ResponsePushBuilder) {
-        link(builder.url.build(), LinkHeader.Rel.Prefetch)
+        link(builder.url.buildString(), LinkHeader.Rel.Prefetch)
     }
 
     class ResponseAlreadySentException : IllegalStateException("Response has already been sent")

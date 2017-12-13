@@ -11,7 +11,8 @@ class URLBuilder(
         var password: String? = null,
         var encodedPath: String = "/",
         val parameters: ValuesMapBuilder = ValuesMapBuilder(),
-        var fragment: String = ""
+        var fragment: String = "",
+        var trailingQuery: Boolean = false
 ) {
     fun path(vararg components: String) {
         path(components.asList())
@@ -21,7 +22,7 @@ class URLBuilder(
         encodedPath = components.joinToString("/", prefix = "/") { encodeURLPart(it) }
     }
 
-    fun <A : Appendable> appendTo(out: A): A {
+    private fun <A : Appendable> appendTo(out: A): A {
         out.append(protocol.name)
         out.append("://")
         user?.let { usr ->
@@ -46,10 +47,11 @@ class URLBuilder(
         out.append(encodedPath)
 
         val queryParameters = parameters.build()
-        if (!queryParameters.isEmpty()) {
+        if (!queryParameters.isEmpty() || trailingQuery) {
             out.append("?")
-            queryParameters.formUrlEncodeTo(out)
         }
+
+        queryParameters.formUrlEncodeTo(out)
 
         if (fragment.isNotEmpty()) {
             out.append('#')
@@ -60,8 +62,25 @@ class URLBuilder(
     }
 
     // note: 256 should fit 99.5% of all urls according to http://www.supermind.org/blog/740/average-length-of-a-url-part-2
-    fun build(): String = appendTo(StringBuilder(256)).toString()
+    fun buildString(): String = appendTo(StringBuilder(256)).toString()
+
+    fun build(): Url = Url(
+            protocol, host, port, encodedPath, parameters.build(), fragment, user, password, trailingQuery
+    )
 
     // Required to write external extension function
     companion object
 }
+
+data class Url(
+        val protocol: URLProtocol,
+        val host: String,
+        val port: Int,
+        val encodedPath: String,
+        val parameters: ValuesMap,
+        val fragment: String,
+        val user: String?,
+        val password: String?,
+        val trailingQuery: Boolean
+)
+

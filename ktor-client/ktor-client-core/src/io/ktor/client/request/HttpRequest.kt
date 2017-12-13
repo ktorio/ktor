@@ -7,7 +7,6 @@ import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
-import javax.net.ssl.*
 
 
 interface HttpRequest : HttpMessage {
@@ -17,8 +16,6 @@ interface HttpRequest : HttpMessage {
 
     val url: Url
 
-    val sslContext: SSLContext?
-
     val attributes: Attributes
 
     val executionContext: Job
@@ -27,18 +24,17 @@ interface HttpRequest : HttpMessage {
 }
 
 class HttpRequestBuilder : HttpMessageBuilder {
-    val url = UrlBuilder()
+    val url = URLBuilder()
     var method = HttpMethod.Get
     override val headers = HeadersBuilder(caseInsensitiveKey = true)
     var body: Any = EmptyContent
-    var sslContext: SSLContext? = null
 
     fun headers(block: HeadersBuilder.() -> Unit) = headers.apply(block)
 
-    fun url(block: UrlBuilder.(UrlBuilder) -> Unit) = url.block(url)
+    fun url(block: URLBuilder.(URLBuilder) -> Unit) = url.block(url)
 
     fun build(): HttpRequestData = HttpRequestData(
-            url.build(), method, headers.build(), body, sslContext
+            url.build(), method, headers.build(), body
     )
 }
 
@@ -46,16 +42,32 @@ class HttpRequestData(
         val url: Url,
         val method: HttpMethod,
         val headers: Headers,
-        val body: Any,
-        val sslContext: SSLContext?
+        val body: Any
 )
 
 fun HttpRequestBuilder.takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
     method = builder.method
     body = builder.body
-    sslContext = builder.sslContext
     url.takeFrom(builder.url)
     headers.appendAll(builder.headers)
 
     return this
+}
+
+fun HttpRequestBuilder.url(
+        scheme: String = "http",
+        host: String = "localhost",
+        port: Int = 80,
+        path: String = "/"
+) {
+    url.apply {
+        protocol = URLProtocol.createOrDefault(scheme, port)
+        this.host = host
+        this.port = port
+        encodedPath = path
+    }
+}
+
+fun HttpRequestBuilder.url(data: java.net.URL) {
+    url.takeFrom(data)
 }

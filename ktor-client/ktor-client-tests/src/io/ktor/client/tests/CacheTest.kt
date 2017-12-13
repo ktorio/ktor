@@ -5,8 +5,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
-import io.ktor.client.utils.*
-import io.ktor.content.CacheControl
+import io.ktor.content.*
 import io.ktor.features.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -63,7 +62,7 @@ open class CacheTest(private val factory: HttpClientEngineFactory<*>) : TestWith
 
         runBlocking {
             listOf("/nocache", "/nostore").forEach {
-                builder.url.path = it
+                builder.url.encodedPath = it
                 assertNotEquals(client.get<String>(builder), client.get<String>(builder))
             }
         }

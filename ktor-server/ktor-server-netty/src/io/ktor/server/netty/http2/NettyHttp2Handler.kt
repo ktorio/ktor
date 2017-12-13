@@ -81,7 +81,7 @@ internal class NettyHttp2Handler(private val enginePipeline: EnginePipeline,
         val pushPromiseFrame = Http2PushPromiseFrame()
         pushPromiseFrame.promisedStreamId = streamId
         pushPromiseFrame.headers.apply {
-            val pathAndQuery = builder.url.build().substringAfter("?", "").let { q ->
+            val pathAndQuery = builder.url.buildString().substringAfter("?", "").let { q ->
                 if (q.isEmpty()) {
                     builder.url.encodedPath
                 } else {

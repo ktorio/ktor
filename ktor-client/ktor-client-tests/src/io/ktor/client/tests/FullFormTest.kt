@@ -37,10 +37,10 @@ open class FullFormTest(private val factory: HttpClientEngineFactory<*>) : TestW
         val client = HttpClient(factory)
         val text = client.call {
             url {
-                scheme = "http"
+                protocol = URLProtocol.HTTP
                 host = "127.0.0.1"
                 port = serverPort
-                path = "/hello"
+                encodedPath = "/hello"
                 method = HttpMethod.Get
                 body = "Hello, server"
             }
@@ -56,10 +56,10 @@ open class FullFormTest(private val factory: HttpClientEngineFactory<*>) : TestW
         val client = HttpClient(factory)
         val text = client.call {
             url {
-                scheme = "http"
+                protocol = URLProtocol.HTTP
                 host = "127.0.0.1"
                 port = serverPort
-                path = "/hello"
+                encodedPath = "/hello"
                 method = HttpMethod.Post
                 body = "Hello, server"
             }
@@ -76,9 +76,9 @@ open class FullFormTest(private val factory: HttpClientEngineFactory<*>) : TestW
         val requestBuilder = request {
             url {
                 host = "localhost"
-                scheme = "http"
+                protocol = URLProtocol.HTTP
                 port = serverPort
-                path = "/hello"
+                encodedPath = "/hello"
                 method = HttpMethod.Get
                 body = "Hello, server"
             }

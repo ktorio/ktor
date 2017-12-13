@@ -19,6 +19,6 @@ fun URLBuilder.Companion.createFromCall(call: ApplicationCall): URLBuilder {
     return builder
 }
 
-fun url(block: URLBuilder.() -> Unit) = URLBuilder().apply(block).build()
+fun url(block: URLBuilder.() -> Unit) = URLBuilder().apply(block).buildString()
 fun ApplicationCall.url(block: URLBuilder.() -> Unit = {}) =
-        URLBuilder.Companion.createFromCall(this).apply(block).build()
+        URLBuilder.Companion.createFromCall(this).apply(block).buildString()

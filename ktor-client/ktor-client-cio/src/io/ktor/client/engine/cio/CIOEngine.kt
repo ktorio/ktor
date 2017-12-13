@@ -10,7 +10,7 @@ class CIOEngine(config: HttpClientEngineConfig) : HttpClientEngine {
     private val dispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
 
     override fun prepareRequest(builder: HttpRequestBuilder, call: HttpClientCall): HttpRequest =
-            CIOHttpRequest(call, dispatcher, builder)
+            CIOHttpRequest(call, dispatcher, builder.build())
 
     override fun close() {}
 }
