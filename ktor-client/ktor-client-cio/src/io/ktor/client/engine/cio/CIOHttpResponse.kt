@@ -39,12 +39,16 @@ class CIOHttpResponse(
         val transferEncoding = response.headers[HttpHeaders.TransferEncoding]
         val connectionType = ConnectionOptions.parse(response.headers[HttpHeaders.Connection])
 
-        val writerJob = writer(dispatcher + executionContext) {
-            parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
-        }
-
-        writerJob.invokeOnCompletion {
-            executionContext.complete(Unit)
+        val writerJob = writer(dispatcher, parent = executionContext) {
+            try {
+                parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
+            } catch (cause: Throwable) {
+                executionContext.completeExceptionally(cause)
+                channel.close(cause)
+            } finally {
+                channel.close()
+                executionContext.complete(Unit)
+            }
         }
 
         content = writerJob.channel

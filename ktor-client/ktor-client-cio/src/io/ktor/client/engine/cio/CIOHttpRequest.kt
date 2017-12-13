@@ -92,12 +92,11 @@ class CIOHttpRequest(
                 channel.writeBody(body)
             } catch (cause: Throwable) {
                 channel.close(cause)
+                executionContext.completeExceptionally(cause)
             } finally {
                 channel.close()
+                executionContext.complete(Unit)
             }
-        }.invokeOnCompletion { cause ->
-            if (cause == null) executionContext.complete(Unit)
-            else executionContext.completeExceptionally(cause)
         }
     }
 
