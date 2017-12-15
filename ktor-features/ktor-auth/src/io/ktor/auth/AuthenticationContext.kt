@@ -6,31 +6,60 @@ import io.ktor.util.*
 import java.util.*
 import kotlin.properties.*
 
-class AuthenticationContext {
+/**
+ * Represents an authentication context for the call
+ * @param call instance of [ApplicationCall] this context is for
+ */
+class AuthenticationContext(val call: ApplicationCall) {
+    /**
+     * Retrieves authenticated principal, or returns null if no user was authenticated
+     */
     var principal by Delegates.vetoable<Principal?>(null) { _, old, _ -> require(old == null); true }
-    val errors = HashMap<Any, NotAuthenticatedCause>()
+
+    /**
+     * Stores authentication failures for keys provided by authentication mechanisms
+     */
+    val errors = HashMap<Any, AuthenticationFailedCause>()
+
+    /**
+     * Appends an error to the [errors]
+     */
+    fun error(key: Any, cause: AuthenticationFailedCause) {
+        errors[key] = cause
+    }
+
+    /**
+     * Gets an [AuthenticationProcedureChallenge] for this context
+     */
     val challenge = AuthenticationProcedureChallenge()
 
+    /**
+     * Sets an authenticated principal for this context.
+     *
+     * This method may be called only once per context
+     */
     fun principal(principal: Principal) {
         this.principal = principal
     }
 
+    /**
+     * Retrieves a principal of type [T], if any
+     */
     inline fun <reified T : Principal> principal(): T? = principal as? T
 
-    fun error(key: Any, cause: NotAuthenticatedCause) {
-        errors[key] = cause
-    }
-
+    /**
+     * Requests a challenge to be sent to the client if none of mechanisms can authenticate a user
+     */
     suspend fun challenge(key: Any,
-                          cause: NotAuthenticatedCause,
+                          cause: AuthenticationFailedCause,
                           function: PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>) {
         error(key, cause)
         challenge.register.add(cause to function)
     }
 
     companion object {
-        val AttributeKey = AttributeKey<AuthenticationContext>("AuthContext")
+        private val AttributeKey = AttributeKey<AuthenticationContext>("AuthContext")
 
-        internal fun from(call: ApplicationCall) = call.attributes.computeIfAbsent(AttributeKey) { AuthenticationContext() }
+        internal fun from(call: ApplicationCall) = call.attributes.computeIfAbsent(AttributeKey) { AuthenticationContext(call) }
     }
 }

@@ -2,16 +2,17 @@ package io.ktor.auth
 
 import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
 
-val FormAuthKey: Any = "FormAuth"
+/**
+ * Installs Form Authentication mechanism into [AuthenticationPipeline]
+ */
 fun AuthenticationPipeline.formAuthentication(userParamName: String = "user",
-                                              passwordParamName: String = "password",
-                                              challenge: FormAuthChallenge = FormAuthChallenge.Unauthorized,
-                                              validate: (UserPasswordCredential) -> Principal?) {
+                                                           passwordParamName: String = "password",
+                                                           challenge: FormAuthChallenge = FormAuthChallenge.Unauthorized,
+                                                           validate: (UserPasswordCredential) -> Principal?) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val postParameters = call.receiveOrNull<ValuesMap>()
         val username = postParameters?.get(userParamName)
@@ -23,13 +24,13 @@ fun AuthenticationPipeline.formAuthentication(userParamName: String = "user",
         if (principal != null) {
             context.principal(principal)
         } else {
-            context.challenge(FormAuthKey, if (credentials == null) NotAuthenticatedCause.NoCredentials else NotAuthenticatedCause.InvalidCredentials) {
-                it.success()
-
+            val cause = if (credentials == null) AuthenticationFailedCause.NoCredentials else AuthenticationFailedCause.InvalidCredentials
+            context.challenge(formAuthenticationChallengeKey, cause) {
                 when (challenge) {
                     FormAuthChallenge.Unauthorized -> call.respond(HttpStatusCode.Unauthorized)
                     is FormAuthChallenge.Redirect -> call.respondRedirect(challenge.url(call, credentials))
                 }
+                it.complete()
             }
         }
     }
@@ -39,3 +40,5 @@ sealed class FormAuthChallenge {
     class Redirect(val url: (ApplicationCall, UserPasswordCredential?) -> String) : FormAuthChallenge()
     object Unauthorized : FormAuthChallenge()
 }
+
+private val formAuthenticationChallengeKey: Any = "FormAuth"

@@ -45,7 +45,7 @@ class DigestTest {
                 route("/") {
                     authentication {
                         intercept(AuthenticationPipeline.RequestAuthentication) {
-                            call.extractDigest()?.let { digest ->
+                            call.digestAuthenticationCredentials()?.let { digest ->
                                 foundDigests.add(digest)
                             }
                         }

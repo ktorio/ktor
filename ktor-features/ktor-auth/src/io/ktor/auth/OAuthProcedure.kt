@@ -10,24 +10,24 @@ import java.io.*
 val OAuthKey: Any = "OAuth"
 
 fun AuthenticationPipeline.oauth(client: HttpClient, dispatcher: CoroutineDispatcher,
-                                 providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                 urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+                                              providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                              urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     oauth1a(client, dispatcher, providerLookup, urlProvider)
     oauth2(client, dispatcher, providerLookup, urlProvider)
 }
 
 internal fun AuthenticationPipeline.oauth2(client: HttpClient, dispatcher: CoroutineDispatcher,
-                                           providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                           urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+                                                        providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                                        urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val provider = call.providerLookup()
         if (provider is OAuthServerSettings.OAuth2ServerSettings) {
             val token = call.oauth2HandleCallback()
             val callbackRedirectUrl = call.urlProvider(provider)
             if (token == null) {
-                context.challenge(OAuthKey, NotAuthenticatedCause.NoCredentials) {
-                    it.success()
+                context.challenge(OAuthKey, AuthenticationFailedCause.NoCredentials) {
                     call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, nextNonce(), scopes = provider.defaultScopes)
+                    it.complete()
                 }
             } else {
                 runAsyncWithError(dispatcher, context) {
@@ -40,18 +40,18 @@ internal fun AuthenticationPipeline.oauth2(client: HttpClient, dispatcher: Corou
 }
 
 internal fun AuthenticationPipeline.oauth1a(client: HttpClient, dispatcher: CoroutineDispatcher,
-                                            providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                            urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+                                                         providerLookup: ApplicationCall.() -> OAuthServerSettings?,
+                                                         urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val provider = call.providerLookup()
         if (provider is OAuthServerSettings.OAuth1aServerSettings) {
             val token = call.oauth1aHandleCallback()
             if (token == null) {
-                context.challenge(OAuthKey, NotAuthenticatedCause.NoCredentials) { ch ->
+                context.challenge(OAuthKey, AuthenticationFailedCause.NoCredentials) { ch ->
                     runAsyncWithError(dispatcher, context) {
                         val t = simpleOAuth1aStep1(client, provider, call.urlProvider(provider))
-                        ch.success()
                         call.redirectAuthenticateOAuth1a(provider, t)
+                        ch.complete()
                     }
                 }
             } else {
@@ -69,7 +69,7 @@ private suspend fun PipelineContext<*, ApplicationCall>.runAsyncWithError(dispat
         try {
             block()
         } catch (ioe: IOException) {
-            context.error(OAuthKey, NotAuthenticatedCause.Error(ioe.message ?: "IOException"))
+            context.error(OAuthKey, AuthenticationFailedCause.Error(ioe.message ?: "IOException"))
         }
     }
 }

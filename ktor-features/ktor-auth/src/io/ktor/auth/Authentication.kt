@@ -4,29 +4,43 @@ import io.ktor.application.*
 import io.ktor.pipeline.*
 import io.ktor.util.*
 
+/**
+ * Authentication feature supports pluggable mechanisms for checking and challenging a client to provide credentials
+ *
+ * @param pipeline keeps pipeline for this instance of a [Authentication]
+ */
 class Authentication(val pipeline: AuthenticationPipeline) {
+    private val challengePhase = PipelinePhase("Challenge")
+
     init {
+        // Install challenging interceptor, it installs last
         pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
             val principal = context.principal
-            if (principal == null) {
-                val challenges = context.challenge.challenges
-                if (challenges.isNotEmpty()) {
-                    val challengePhase = PipelinePhase("Challenge")
-                    val challengePipeline = Pipeline(challengePhase, challenges)
-                    challengePipeline.intercept(challengePhase) { challenge ->
-                        if (challenge.success)
-                            finish()
-                    }
-                    val challenge = challengePipeline.execute(call, context.challenge)
-                    if (challenge.success)
-                        finish()
+            if (principal != null) return@intercept
+
+            val challenges = context.challenge.challenges
+            if (challenges.isEmpty()) return@intercept
+
+            val challengePipeline = Pipeline<AuthenticationProcedureChallenge, ApplicationCall>(challengePhase)
+            for (challenge in challenges) {
+                challengePipeline.intercept(challengePhase) {
+                    challenge(it)
+                    if (it.completed)
+                        finish() // finish challenge pipeline if it has been completed
                 }
             }
+
+            val challenge = challengePipeline.execute(call, context.challenge)
+            if (challenge.completed)
+                finish() // finish authentication pipeline if challenge has been completed
         }
     }
 
+    /**
+     * Installable feature for [Authentication].
+     */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, AuthenticationPipeline, Authentication> {
-        val authenticationPhase = PipelinePhase("Authenticate")
+        private val authenticationPhase = PipelinePhase("Authenticate")
 
         override val key = AttributeKey<Authentication>("Authentication")
 
@@ -35,61 +49,34 @@ class Authentication(val pipeline: AuthenticationPipeline) {
             val feature = Authentication(authenticationPipeline)
             pipeline.insertPhaseAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
             pipeline.intercept(authenticationPhase) {
+                // don't run authentication if any filters signals it is not needed
+                if (authenticationPipeline.skipWhen.any { skip -> skip(call) })
+                    return@intercept
+
                 val authenticationContext = AuthenticationContext.from(call)
                 feature.pipeline.execute(call, authenticationContext)
-                if (authenticationContext.challenge.success)
-                    finish()
+                if (authenticationContext.challenge.completed)
+                    finish() // finish call pipeline if authentication challenge has been completed
             }
             return feature
         }
     }
-
 }
 
-class AuthenticationPipeline() : Pipeline<AuthenticationContext, ApplicationCall>(CheckAuthentication, RequestAuthentication) {
-    companion object {
-        val CheckAuthentication = PipelinePhase("CheckAuthentication")
-        val RequestAuthentication = PipelinePhase("RequestAuthentication")
-    }
+/**
+ * Installs authentication into `this` pipeline
+ */
+fun ApplicationCallPipeline.authentication(configuration: AuthenticationPipeline.() -> Unit): Authentication {
+    return install(Authentication, configuration)
 }
 
-
-fun ApplicationCallPipeline.authentication(procedure: AuthenticationPipeline.() -> Unit): Authentication {
-    return install(Authentication, procedure)
-}
-
-class AuthenticationProcedureChallenge {
-    internal val register = mutableListOf<Pair<NotAuthenticatedCause, PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>>>()
-
-    val challenges: List<PipelineInterceptor<AuthenticationProcedureChallenge, ApplicationCall>>
-        get() = register.filter { it.first !is NotAuthenticatedCause.Error }.sortedBy {
-            when (it.first) {
-                NotAuthenticatedCause.InvalidCredentials -> 1
-                NotAuthenticatedCause.NoCredentials -> 2
-                else -> throw NoWhenBranchMatchedException("${it.first}")
-            }
-        }.map { it.second }
-
-    @Volatile
-    var success = false
-        private set
-
-    fun success() {
-        success = true
-    }
-
-    override fun toString(): String = "AuthenticationProcedureChallenge"
-}
-
-sealed class NotAuthenticatedCause {
-    object NoCredentials : NotAuthenticatedCause()
-    object InvalidCredentials : NotAuthenticatedCause()
-    open class Error(val cause: String) : NotAuthenticatedCause()
-}
-
-
+/**
+ * Retrieves an [AuthenticationContext] for `this` call
+ */
 val ApplicationCall.authentication: AuthenticationContext
     get() = AuthenticationContext.from(this)
 
-
+/**
+ * Retrieves authenticated [Principal] for `this` call
+ */
 inline fun <reified P : Principal> ApplicationCall.principal() = authentication.principal<P>()

@@ -1,12 +1,39 @@
 package io.ktor.auth
 
 import io.ktor.application.*
-import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import java.util.*
 
-fun ApplicationCall.basicAuthenticationCredentials(): UserPasswordCredential? = request.basicAuthenticationCredentials()
+/**
+ * Installs Basic Authentication mechanism into [AuthenticationPipeline]
+ */
+fun AuthenticationPipeline.basicAuthentication(realm: String, validate: suspend (UserPasswordCredential) -> Principal?) {
+    intercept(AuthenticationPipeline.RequestAuthentication) { context ->
+        val credentials = call.request.basicAuthenticationCredentials()
+        val principal = credentials?.let { validate(it) }
+
+        val cause = when {
+            credentials == null -> AuthenticationFailedCause.NoCredentials
+            principal == null -> AuthenticationFailedCause.InvalidCredentials
+            else -> null
+        }
+
+        if (cause != null) {
+            context.challenge(basicAuthenticationChallengeKey, cause) {
+                call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge(realm)))
+                it.complete()
+            }
+        }
+        if (principal != null) {
+            context.principal(principal)
+        }
+    }
+}
+
+/**
+ * Retrieves Basic authentication credentials for this [ApplicationRequest]
+ */
 fun ApplicationRequest.basicAuthenticationCredentials(): UserPasswordCredential? {
     val parsed = parseAuthorizationHeader()
     when (parsed) {
@@ -29,26 +56,5 @@ fun ApplicationRequest.basicAuthenticationCredentials(): UserPasswordCredential?
     }
 }
 
-val BasicAuthKey: Any = "BasicAuth"
-fun AuthenticationPipeline.basicAuthentication(realm: String, validate: suspend (UserPasswordCredential) -> Principal?) {
-    intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val credentials = call.request.basicAuthenticationCredentials()
-        val principal = credentials?.let { validate(it) }
+private val basicAuthenticationChallengeKey: Any = "BasicAuth"
 
-        val cause = when {
-            credentials == null -> NotAuthenticatedCause.NoCredentials
-            principal == null -> NotAuthenticatedCause.InvalidCredentials
-            else -> null
-        }
-
-        if (cause != null) {
-            context.challenge(BasicAuthKey, cause) {
-                it.success()
-                call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge(realm)))
-            }
-        }
-        if (principal != null) {
-            context.principal(principal)
-        }
-    }
-}

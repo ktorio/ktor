@@ -2,6 +2,7 @@ package io.ktor.tests.auth
 
 import io.ktor.application.*
 import io.ktor.auth.*
+import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -37,7 +38,7 @@ class BasicAuthTest {
             application.intercept(ApplicationCallPipeline.Infrastructure) {
                 val authInfo = call.request.basicAuthenticationCredentials()
                 assertNotNull(authInfo)
-                assertEquals(authInfo, call.basicAuthenticationCredentials())
+                assertEquals(authInfo, call.request.basicAuthenticationCredentials())
 
                 assertEquals(user, authInfo!!.name)
                 assertEquals(p, authInfo.password)
@@ -83,6 +84,21 @@ class BasicAuthTest {
             assertNotEquals("Secret info", response.response.content)
 
             assertWWWAuthenticateHeaderExist(response)
+        }
+    }
+
+    @Test
+    fun testBasicAuthFiltered() {
+        withTestApplication {
+            application.configureServer()
+            val user = "user1"
+            val p = "wrong password"
+
+            val response = handleRequestWithBasic("/?backdoor", user, p)
+
+            assertTrue(response.requestHandled)
+            assertEquals(HttpStatusCode.OK, response.response.status())
+            assertEquals("Secret info", response.response.content)
         }
     }
 
@@ -138,6 +154,9 @@ class BasicAuthTest {
         routing {
             route("/") {
                 authentication {
+                    skipWhen {
+                        it.request.origin.uri.contains("backdoor")
+                    }
                     basicAuthentication("ktor-test") {
                         if (it.name == it.password)
                             UserIdPrincipal(it.name)

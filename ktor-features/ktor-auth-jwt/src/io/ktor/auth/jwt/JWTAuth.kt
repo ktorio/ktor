@@ -49,14 +49,14 @@ fun AuthenticationPipeline.jwtAuthentication(jwkProvider: JwkProvider, issuer: S
 
 private suspend fun evaluate(token: HttpAuthHeader?, principal: Principal?, realm: String, context: AuthenticationContext) {
     val cause = when {
-        token == null -> NotAuthenticatedCause.NoCredentials
-        principal == null -> NotAuthenticatedCause.InvalidCredentials
+        token == null -> AuthenticationFailedCause.NoCredentials
+        principal == null -> AuthenticationFailedCause.InvalidCredentials
         else -> null
     }
     if (cause != null) {
         context.challenge(JWTAuthKey, cause) {
             call.respond(UnauthorizedResponse(HttpAuthHeader.bearerAuthChallenge(realm)))
-            it.success()
+            it.complete()
         }
     }
     if (principal != null) {
