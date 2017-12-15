@@ -42,7 +42,7 @@ open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(Infrastruct
 /**
  * Current call for the context
  */
-val PipelineContext<*, ApplicationCall>.call: ApplicationCall get() = context
+inline val PipelineContext<*, ApplicationCall>.call: ApplicationCall get() = context
 
 /**
  * Current application for the context
