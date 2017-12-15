@@ -21,8 +21,9 @@ abstract class HeaderValueWithParameters(protected val content: String, val para
     }
 
     companion object {
-        fun <R> parse(value: String, init: (String, List<HeaderValueParam>) -> R) = parseHeaderValue(value).single().let { preParsed ->
-            init(preParsed.value, preParsed.params)
+        inline fun <R> parse(value: String, init: (String, List<HeaderValueParam>) -> R): R {
+            val headerValue = parseHeaderValue(value).single()
+            return init(headerValue.value, headerValue.params)
         }
     }
 }
