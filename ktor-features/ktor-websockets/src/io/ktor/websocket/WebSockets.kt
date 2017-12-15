@@ -30,7 +30,7 @@ class WebSockets(
         var masking: Boolean = false
     }
 
-    companion object : ApplicationFeature<Application, WebSocketOptions, WebSockets> {
+    companion object Feature : ApplicationFeature<Application, WebSocketOptions, WebSockets> {
         override val key = AttributeKey<WebSockets>("WebSockets")
 
         override fun install(pipeline: Application, configure: WebSocketOptions.() -> Unit): WebSockets {
