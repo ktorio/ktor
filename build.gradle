@@ -230,8 +230,8 @@ subprojects {
     dependencies {
         compile group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlin_version
         compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlin_version
-        compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jre7', version: kotlin_version
-        compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jre8', version: kotlin_version
+        compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk7', version: kotlin_version
+        compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: kotlin_version
         compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-jdk8', version: coroutines_version
         compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io', version: coroutines_version) {
             exclude(module: 'kotlin-stdlib')
