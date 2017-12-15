@@ -63,7 +63,7 @@ class ContentType(val contentType: String, val contentSubtype: String, parameter
             val slash = parts.indexOf('/')
             if (slash == -1) {
                 if (parts.trim() == "*")
-                    return@parse Any
+                    return Any
                 throw BadContentTypeFormatException(value)
             }
             val type = parts.substring(0, slash).trim()
