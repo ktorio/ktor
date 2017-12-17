@@ -20,7 +20,7 @@ class RoutingApplicationCall(private val call: ApplicationCall,
     override val request = RoutingApplicationRequest(this, receivePipeline, call.request)
     override val response = RoutingApplicationResponse(this, responsePipeline, call.response)
 
-    override val parameters: ValuesMap by lazy {
+    override val parameters: ValuesMap by lazy(LazyThreadSafetyMode.NONE) {
         ValuesMap.build {
             appendAll(call.parameters)
             appendMissing(resolvedValues)

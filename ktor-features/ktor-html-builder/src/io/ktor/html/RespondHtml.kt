@@ -30,7 +30,7 @@ class HtmlContent(override val status: HttpStatusCode? = null,
 
     override val expires = null
     override val contentLength = null
-    override val headers by lazy { super<Resource>.headers }
+    override val headers by lazy(LazyThreadSafetyMode.NONE) { super<Resource>.headers }
 
     override suspend fun writeTo(channel: ByteWriteChannel) {
         channel.bufferedWriter().use {

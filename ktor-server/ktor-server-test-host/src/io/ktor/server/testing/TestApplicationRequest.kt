@@ -51,7 +51,7 @@ class TestApplicationRequest(
 
     var multiPartEntries: List<PartData> = emptyList()
 
-    override val queryParameters by lazy { parseQueryString(queryString()) }
+    override val queryParameters by lazy(LazyThreadSafetyMode.NONE) { parseQueryString(queryString()) }
 
     private var headersMap: MutableMap<String, MutableList<String>>? = hashMapOf()
     fun addHeader(name: String, value: String) {
@@ -59,7 +59,7 @@ class TestApplicationRequest(
         map.getOrPut(name, { arrayListOf() }).add(value)
     }
 
-    override val headers by lazy {
+    override val headers by lazy(LazyThreadSafetyMode.NONE) {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")
         headersMap = null
         valuesOf(map, caseInsensitiveKey = true)
