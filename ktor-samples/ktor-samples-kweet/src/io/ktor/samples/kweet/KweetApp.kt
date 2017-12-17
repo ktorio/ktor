@@ -28,10 +28,10 @@ class Index()
 @Location("/post-new")
 class PostNew()
 
-@Location("/io/ktor/samples/kweet/{id}/delete")
+@Location("/kweet/{id}/delete")
 class KweetDelete(val id: Int)
 
-@Location("/io/ktor/samples/kweet/{id}")
+@Location("/kweet/{id}")
 data class ViewKweet(val id: Int)
 
 @Location("/user/{user}")
