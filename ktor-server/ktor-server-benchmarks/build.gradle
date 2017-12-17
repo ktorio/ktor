@@ -21,6 +21,7 @@ dependencies {
     jmh project(':ktor-server:ktor-server-test-host')
     jmh project(':ktor-server:ktor-server-netty')
     jmh project(':ktor-server:ktor-server-jetty')
+    jmh project(':ktor-server:ktor-server-cio')
 
     jmh group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
     jmh group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.6.0'
@@ -29,7 +30,6 @@ dependencies {
 
 jmh {
     jmhVersion = jmh_version
-    include = [/io.ktor.tests.ValuesMapBenchmark/]
 }
 
 jmhJar.archiveName = 'benchmarks.jar'
@@ -40,7 +40,7 @@ task runBenchmark(type: JavaExec, dependsOn: 'jmhJar') {
     if (project.hasProperty('benchmarkClassFqName')) {
         mainClassFqName = project.benchmarkClassFqName
     } else if (project.hasProperty('benchmarkName')) {
-        mainClassFqName = "io.ktor.benchmarks.${project.benchmarkName}Kt"
+        mainClassFqName = "io.ktor.server.benchmarks.${project.benchmarkName}Kt"
     }
 
     classpath = sourceSets.jmh.runtimeClasspath + jmhJar.outputs.files
