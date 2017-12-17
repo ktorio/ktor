@@ -337,7 +337,7 @@ class CompressionTest {
             application.routing {
                 get("/") {
                     call.respond(object : Resource, OutgoingContent.ReadChannelContent() {
-                        override val headers by lazy { super<Resource>.headers }
+                        override val headers by lazy(LazyThreadSafetyMode.NONE) { super<Resource>.headers }
 
                         override val contentType: ContentType
                             get() = ContentType.Text.Plain

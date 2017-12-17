@@ -27,7 +27,7 @@ class JarFileContent(val jarFile: File,
         get() = JarFile(jarFile).use { it.getJarEntry(resourcePath)?.size }
 
 
-    override val headers by lazy { super<Resource>.headers }
+    override val headers by lazy(LazyThreadSafetyMode.NONE) { super<Resource>.headers }
 
     override fun readFrom() = classLoader.getResourceAsStream(normalized)?.toByteReadChannel() ?: throw IOException("Resource $normalized not found")
 

@@ -32,7 +32,7 @@ object AutoHeadResponse : ApplicationFeature<ApplicationCallPipeline, Unit, Unit
     }
 
     private class HeadResponse(val delegate: OutgoingContent) : OutgoingContent.NoContent() {
-        override val headers by lazy { delegate.headers }
+        override val headers by lazy(LazyThreadSafetyMode.NONE) { delegate.headers }
         override val status: HttpStatusCode? get() = delegate.status
     }
 }
