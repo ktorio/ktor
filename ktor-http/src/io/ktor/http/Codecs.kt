@@ -14,7 +14,7 @@ fun encodeURLPart(s: String): String {
             .replace("%7E", "~")
 }
 
-fun decodeURLQueryComponent(text: String, start: Int = 0, end: Int = text.length): String {
+fun decodeURLQueryComponent(text: CharSequence, start: Int = 0, end: Int = text.length): String {
     return decodeScan(text, start, end, true, Charsets.UTF_8)
 }
 
@@ -22,7 +22,7 @@ fun decodeURLPart(text: String, start: Int = 0, end: Int = text.length): String 
     return decodeScan(text, start, end, false, Charsets.UTF_8)
 }
 
-private fun decodeScan(text: String, start: Int, end: Int, plusIsSpace: Boolean, charset: Charset): String {
+private fun decodeScan(text: CharSequence, start: Int, end: Int, plusIsSpace: Boolean, charset: Charset): String {
     for (index in start until end) {
         val ch = text[index]
         if (ch == '%' || (plusIsSpace && ch == '+')) {
@@ -30,11 +30,11 @@ private fun decodeScan(text: String, start: Int, end: Int, plusIsSpace: Boolean,
         }
     }
     if (start == 0 && end == text.length)
-        return text
+        return text.toString()
     return text.substring(start, end)
 }
 
-private fun decodeImpl(text: String, start: Int, end: Int, prefixEnd: Int, plusIsSpace: Boolean, charset: Charset): String {
+private fun decodeImpl(text: CharSequence, start: Int, end: Int, prefixEnd: Int, plusIsSpace: Boolean, charset: Charset): String {
     val length = end - start
     // if length is big, it probably means it is encoded
     val sbSize = if (length > 255) length / 3 else length
@@ -65,13 +65,13 @@ private fun decodeImpl(text: String, start: Int, end: Int, prefixEnd: Int, plusI
                 var count = 0
                 while (index < end && text[index] == '%') {
                     if (index + 2 >= end) {
-                        throw URISyntaxException(text, "Incomplete trailing HEX escape: ${text.substring(index)}", index)
+                        throw URISyntaxException(text.toString(), "Incomplete trailing HEX escape: ${text.substring(index)}", index)
                     }
 
                     val digit1 = charToHexDigit(text[index + 1])
                     val digit2 = charToHexDigit(text[index + 2])
                     if (digit1 == -1 || digit2 == -1) {
-                        throw URISyntaxException(text, "Wrong HEX escape: %${text[index + 1]}${text[index + 2]}", index)
+                        throw URISyntaxException(text.toString(), "Wrong HEX escape: %${text[index + 1]}${text[index + 2]}", index)
                     }
 
                     bytes[count++] = (digit1 * 16 + digit2).toByte()

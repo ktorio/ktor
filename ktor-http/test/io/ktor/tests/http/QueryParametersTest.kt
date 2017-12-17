@@ -7,63 +7,98 @@ import kotlin.test.*
 
 class QueryParametersTest {
 
+    fun assertQuery(query: String, startIndex: Int = 0, limit: Int = 1000, builder: ValuesMapBuilder.() -> Unit) {
+        val parameters = parseQueryString(query, startIndex, limit)
+        val built = ValuesMap.build(false, builder)
+        assertEquals(built, parameters)
+    }
+
     @Test
     fun oauthTest() {
-        val parameters = parseQueryString("redirected=true&oauth_token=token1&oauth_verifier=verifier1")
-        val built = ValuesMap.build {
+        assertQuery("redirected=true&oauth_token=token1&oauth_verifier=verifier1") {
             append("redirected", "true")
             append("oauth_token", "token1")
             append("oauth_verifier", "verifier1")
         }
-        assertEquals(built, parameters)
+    }
+
+    @Test
+    fun emptyTest() {
+        assertQuery("") {}
+        assertQuery("   ") {}
     }
 
     @Test
     fun escapePlusTest() {
-        val parameters = parseQueryString("id=1&optional=ok%2B.plus")
-        val built = ValuesMap.build {
+        assertQuery("id=1&optional=ok%2B.plus") {
             append("id", "1")
             append("optional", "ok+.plus")
         }
-        assertEquals(built, parameters)
     }
 
     @Test
     fun escapeSpaceTest() {
-        val parameters = parseQueryString("id=1&optional=ok+space")
-        val built = ValuesMap.build {
+        assertQuery("id=1&optional=ok+space") {
             append("id", "1")
             append("optional", "ok space")
         }
-        assertEquals(built, parameters)
+        assertQuery("id=1&optional=ok+") {
+            append("id", "1")
+            append("optional", "ok ")
+        }
     }
 
     @Test
     fun skipSpaces() {
-        val parameters = parseQueryString(" id=1 & optional= ok+space")
-        val built = ValuesMap.build {
+        assertQuery(" id=1 & optional= ok+space") {
             append("id", "1")
             append("optional", "ok space")
         }
-        assertEquals(built, parameters)
     }
 
     @Test
     fun noValue() {
-        val parameters = parseQueryString("id&optional")
-        val built = ValuesMap.build {
+        assertQuery("id") {
+            append("id", "")
+        }
+        assertQuery("id&optional") {
             append("id", "")
             append("optional", "")
         }
-        assertEquals(built, parameters)
     }
 
     @Test
     fun doubleEquals() {
-        val parameters = parseQueryString("id=1=2")
-        val built = ValuesMap.build {
+        assertQuery("id=1=2") {
             append("id", "1=2")
         }
-        assertEquals(built, parameters)
+    }
+
+    @Test
+    fun startIndexText() {
+        assertQuery("?id=1&optional=ok%2B.plus", 1) {
+            append("id", "1")
+            append("optional", "ok+.plus")
+        }
+        assertQuery("?id=1&optional=ok%2B.plus", 6) {
+            append("optional", "ok+.plus")
+        }
+    }
+
+    @Test
+    fun limitTest() {
+        assertQuery("redirected=true&oauth_token=token1&oauth_verifier=verifier1", limit = 1) {
+            append("redirected", "true")
+        }
+        assertQuery("redirected=true&oauth_token=token1&oauth_verifier=verifier1", limit = 2) {
+            append("redirected", "true")
+            append("oauth_token", "token1")
+        }
+    }
+
+    @Test
+    fun brokenTest() {
+        assertQuery("&&&&") {}
+        assertQuery("&=&=&") {}
     }
 }

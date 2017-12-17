@@ -2,26 +2,26 @@ package io.ktor.http
 
 import io.ktor.util.*
 
-fun parseQueryString(query: String, limit: Int = 1000): ValuesMap {
-    return if (query.isBlank()) {
+fun parseQueryString(query: CharSequence, startIndex: Int = 0, limit: Int = 1000): ValuesMap {
+    return if (startIndex > query.lastIndex) {
         ValuesMap.Empty
     } else {
-        ValuesMap.build { parse(query, limit) }
+        ValuesMap.build { parse(query, startIndex, limit) }
     }
 }
 
-private fun ValuesMapBuilder.parse(query: String, limit: Int) {
+private fun ValuesMapBuilder.parse(query: CharSequence, startIndex: Int, limit: Int) {
     var count = 0
-    var startIndex = 0
+    var nameIndex = startIndex
     var equalIndex = -1
-    for (index in query.indices) {
+    for (index in startIndex..query.lastIndex) {
         if (count == limit)
             return
         val ch = query[index]
         when (ch) {
             '&' -> {
-                appendParam(query, startIndex, equalIndex, index)
-                startIndex = index + 1
+                appendParam(query, nameIndex, equalIndex, index)
+                nameIndex = index + 1
                 equalIndex = -1
                 count++
             }
@@ -33,16 +33,40 @@ private fun ValuesMapBuilder.parse(query: String, limit: Int) {
     }
     if (count == limit)
         return
-    appendParam(query, startIndex, equalIndex, query.length)
+    appendParam(query, nameIndex, equalIndex, query.length)
 }
 
-private fun ValuesMapBuilder.appendParam(query: String, nameIndex: Int, equalIndex: Int, endIndex: Int) {
+private fun ValuesMapBuilder.appendParam(query: CharSequence, nameIndex: Int, equalIndex: Int, endIndex: Int) {
     if (equalIndex == -1) {
-        val name = decodeURLQueryComponent(query, nameIndex, endIndex).trim()
-        append(name, "")
+        val spaceNameIndex = trimStart(nameIndex, endIndex, query)
+        val spaceEndIndex = trimEnd(spaceNameIndex, endIndex, query)
+
+        if (spaceEndIndex > spaceNameIndex) {
+            val name = decodeURLQueryComponent(query, spaceNameIndex, spaceEndIndex)
+            append(name, "")
+        }
     } else {
-        val name = decodeURLQueryComponent(query, nameIndex, equalIndex).trim()
-        val value = decodeURLQueryComponent(query, equalIndex + 1, endIndex).trim()
-        append(name, value)
+        val spaceNameIndex = trimStart(nameIndex, equalIndex, query)
+        val spaceEqualIndex = trimEnd(spaceNameIndex, equalIndex, query)
+        if (spaceEqualIndex > spaceNameIndex) {
+            val name = decodeURLQueryComponent(query, spaceNameIndex, spaceEqualIndex)
+
+            val spaceValueIndex = trimStart(equalIndex + 1, endIndex, query)
+            val spaceEndIndex = trimEnd(spaceValueIndex, endIndex, query)
+            val value = decodeURLQueryComponent(query, spaceValueIndex, spaceEndIndex)
+            append(name, value)
+        }
     }
+}
+
+private fun trimEnd(start: Int, end: Int, text: CharSequence): Int {
+    var spaceIndex = end
+    while (spaceIndex > start && text[spaceIndex - 1].isWhitespace()) spaceIndex--
+    return spaceIndex
+}
+
+private fun trimStart(start: Int, end: Int, query: CharSequence): Int {
+    var spaceIndex = start
+    while (spaceIndex < end && query[spaceIndex].isWhitespace()) spaceIndex++
+    return spaceIndex
 }
