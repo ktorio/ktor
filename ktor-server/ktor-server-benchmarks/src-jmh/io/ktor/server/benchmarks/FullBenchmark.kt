@@ -13,11 +13,12 @@ import java.util.concurrent.*
 
 @State(Scope.Benchmark)
 class FullBenchmark {
+    private val coreDirectory = File("../ktor-server-core").absoluteFile.normalize()
     private val testHost: TestApplicationEngine = TestApplicationEngine(createTestEnvironment())
     private val classSignature = listOf(0xca, 0xfe, 0xba, 0xbe).map(Int::toByte)
     private val packageName = FullBenchmark::class.java.`package`.name
     private val classFileName = FullBenchmark::class.simpleName!! + ".class"
-    private val pomFile = File("pom.xml")
+    private val smallFile = File(coreDirectory, "build.gradle")
 
     @Setup
     fun startServer() {
@@ -36,7 +37,7 @@ class FullBenchmark {
                 call.respond(resource)
             }
             get("/regularFile") {
-                call.respond(LocalFileContent(pomFile))
+                call.respond(LocalFileContent(smallFile))
             }
         }
     }
