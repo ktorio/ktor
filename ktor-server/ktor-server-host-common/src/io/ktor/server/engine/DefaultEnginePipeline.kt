@@ -2,11 +2,9 @@ package io.ktor.server.engine
 
 import io.ktor.application.*
 import io.ktor.cio.*
-import io.ktor.content.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.pipeline.*
-import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
 import java.nio.channels.*
@@ -45,10 +43,10 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, e: Throwabl
     try {
         val status = call.response.status() ?: "Unhandled"
         when (e) {
-            is CancellationException -> log.error("$status: ${call.request.logInfo()}, cancelled")
-            is ClosedChannelException -> log.error("$status: ${call.request.logInfo()}, channel closed")
-            is ChannelIOException -> log.error("$status: ${call.request.logInfo()}, channel failed")
-            else -> log.error("$status: ${call.request.logInfo()}", e)
+            is CancellationException -> log.error("$status: ${call.request.toLogString()}, cancelled")
+            is ClosedChannelException -> log.error("$status: ${call.request.toLogString()}, channel closed")
+            is ChannelIOException -> log.error("$status: ${call.request.toLogString()}, channel failed")
+            else -> log.error("$status: ${call.request.toLogString()}", e)
         }
     } catch (oom: OutOfMemoryError) {
         try {

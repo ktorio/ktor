@@ -6,22 +6,43 @@ import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.util.*
 import org.slf4j.*
+import org.slf4j.event.*
 
 /**
  * Logs application lifecycle and call events.
  */
-class CallLogging(private val log: Logger, private val monitor: ApplicationEvents) {
+class CallLogging(private val log: Logger,
+                  private val monitor: ApplicationEvents,
+                  private val level: Level,
+                  private val filters: List<(ApplicationCall) -> Boolean>) {
 
-    class Configuration
+    /**
+     * Configuration for [CallLogging] feature
+     */
+    class Configuration {
+        internal val filters = mutableListOf<(ApplicationCall) -> Boolean>()
 
-    private val starting: (Application) -> Unit = { it.log.trace("Application starting: $it") }
-    private val started: (Application) -> Unit = { it.log.trace("Application started: $it") }
-    private val stopping: (Application) -> Unit = { it.log.trace("Application stopping: $it") }
+        /**
+         * Logging level for [CallLogging], default is [Level.TRACE]
+         */
+        var level: Level = Level.TRACE
+
+        /**
+         * Log messages for calls matching a [predicate]
+         */
+        fun filter(predicate: (ApplicationCall) -> Boolean) {
+            filters.add(predicate)
+        }
+    }
+
+    private val starting: (Application) -> Unit = { log("Application starting: $it") }
+    private val started: (Application) -> Unit = { log("Application started: $it") }
+    private val stopping: (Application) -> Unit = { log("Application stopping: $it") }
     private var stopped: (Application) -> Unit = {}
 
     init {
         stopped = {
-            it.log.trace("Application stopped: $it")
+            log("Application stopped: $it")
             monitor.unsubscribe(ApplicationStarting, starting)
             monitor.unsubscribe(ApplicationStarted, started)
             monitor.unsubscribe(ApplicationStopping, stopping)
@@ -41,8 +62,8 @@ class CallLogging(private val log: Logger, private val monitor: ApplicationEvent
         override val key: AttributeKey<CallLogging> = AttributeKey("Call Logging")
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
             val loggingPhase = PipelinePhase("Logging")
-            Configuration().apply(configure)
-            val feature = CallLogging(pipeline.log, pipeline.environment.monitor)
+            val configuration = Configuration().apply(configure)
+            val feature = CallLogging(pipeline.log, pipeline.environment.monitor, configuration.level, configuration.filters.toList())
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Infrastructure, loggingPhase)
             pipeline.intercept(loggingPhase) {
                 proceed()
@@ -50,17 +71,28 @@ class CallLogging(private val log: Logger, private val monitor: ApplicationEvent
             }
             return feature
         }
-
     }
 
+    private fun log(message: String) = when (level) {
+        Level.ERROR -> log.error(message)
+        Level.WARN -> log.warn(message)
+        Level.INFO -> log.info(message)
+        Level.DEBUG -> log.debug(message)
+        Level.TRACE -> log.trace(message)
+    }
 
     private fun logSuccess(call: ApplicationCall) {
-        val status = call.response.status() ?: "Unhandled"
-        when (status) {
-            HttpStatusCode.Found -> log.trace("$status: ${call.request.logInfo()} -> ${call.response.headers[HttpHeaders.Location]}")
-            else -> log.trace("$status: ${call.request.logInfo()}")
+        if (filters.isEmpty() || filters.any { it(call) }) {
+            val status = call.response.status() ?: "Unhandled"
+            when (status) {
+                HttpStatusCode.Found -> log("$status: ${call.request.toLogString()} -> ${call.response.headers[HttpHeaders.Location]}")
+                else -> log("$status: ${call.request.toLogString()}")
+            }
         }
     }
 }
 
-fun ApplicationRequest.logInfo() = "${httpMethod.value} - ${path()}"
+/**
+ * Generates a string representing this [ApplicationRequest] suitable for logging
+ */
+fun ApplicationRequest.toLogString() = "${httpMethod.value} - ${path()}"
