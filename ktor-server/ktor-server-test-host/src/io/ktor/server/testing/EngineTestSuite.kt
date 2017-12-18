@@ -1295,6 +1295,103 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         }
     }
 
+    @Test
+    @NoHttp2
+    open fun testChunked() {
+        val data = ByteArray(16 * 1024, { it.toByte() })
+        val size = data.size.toString()
+
+        createAndStartServer {
+            get("/chunked") {
+                call.respond(object : OutgoingContent.WriteChannelContent() {
+                    suspend override fun writeTo(channel: ByteWriteChannel) {
+                        channel.writeFully(data)
+                        channel.close()
+                    }
+                })
+            }
+            get("/pseudo-chunked") {
+                call.respond(object : OutgoingContent.WriteChannelContent() {
+                    override val headers: ValuesMap
+                        get() = ValuesMap.build(true) {
+                            append(HttpHeaders.ContentLength, size)
+                        }
+
+                    suspend override fun writeTo(channel: ByteWriteChannel) {
+                        channel.writeFully(data)
+                        channel.close()
+                    }
+                })
+            }
+            get("/array") {
+                call.respond(object : OutgoingContent.ByteArrayContent() {
+                    override val headers: ValuesMap
+                        get() = ValuesMap.build(true) {
+                            append(HttpHeaders.ContentLength, size)
+                        }
+
+                    override fun bytes(): ByteArray = data
+                })
+            }
+            get("/array-chunked") {
+                call.respond(object : OutgoingContent.ByteArrayContent() {
+                    override fun bytes(): ByteArray = data
+                })
+            }
+            get("/read-channel") {
+                call.respond(object : OutgoingContent.ReadChannelContent() {
+                    override fun readFrom(): ByteReadChannel = ByteReadChannel(data)
+                })
+            }
+            get("/fixed-read-channel") {
+                call.respond(object : OutgoingContent.ReadChannelContent() {
+                    override val headers: ValuesMap
+                        get() = ValuesMap.build(true) {
+                            append(HttpHeaders.ContentLength, size)
+                        }
+
+                    override fun readFrom(): ByteReadChannel = ByteReadChannel(data)
+                })
+            }
+        }
+
+        withUrl("/array") {
+            assertEquals(size, headers[HttpHeaders.ContentLength])
+            assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
+            org.junit.Assert.assertArrayEquals(data, call.response.readBytes())
+        }
+
+        withUrl("/array-chunked") {
+            assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
+            org.junit.Assert.assertArrayEquals(data, call.response.readBytes())
+            assertNull(headers[HttpHeaders.ContentLength])
+        }
+
+        withUrl("/chunked") {
+            assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
+            org.junit.Assert.assertArrayEquals(data, call.response.readBytes())
+            assertNull(headers[HttpHeaders.ContentLength])
+        }
+
+        withUrl("/fixed-read-channel") {
+            assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
+            assertEquals(size, headers[HttpHeaders.ContentLength])
+            org.junit.Assert.assertArrayEquals(data, call.response.readBytes())
+        }
+
+        withUrl("/pseudo-chunked") {
+            assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
+            assertEquals(size, headers[HttpHeaders.ContentLength])
+            org.junit.Assert.assertArrayEquals(data, call.response.readBytes())
+        }
+
+        withUrl("/read-channel") {
+            assertNull(headers[HttpHeaders.ContentLength])
+            assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
+            org.junit.Assert.assertArrayEquals(data, call.response.readBytes())
+        }
+    }
+
     private fun String.urlPath() = replace("\\", "/")
     private class ExpectedException(message: String) : RuntimeException(message)
 

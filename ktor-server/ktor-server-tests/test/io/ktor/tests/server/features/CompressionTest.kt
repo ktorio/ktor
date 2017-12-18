@@ -173,11 +173,9 @@ class CompressionTest {
 
             application.routing {
                 get("/small") {
-                    call.response.contentLength(4)
                     call.respondText("0123")
                 }
                 get("/big") {
-                    call.response.contentLength(20)
                     call.respondText("01234567890123456789")
                 }
                 get("/stream") {

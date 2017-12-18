@@ -37,13 +37,24 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         }
     }
 
-    protected fun commitHeaders(o: OutgoingContent) {
+    protected fun commitHeaders(content: OutgoingContent) {
         responded = true
-        o.status?.let { status(it) } ?: status() ?: status(HttpStatusCode.OK)
-        o.headers.forEach { name, values ->
-            for (value in values) {
-                header(name, value)
+        var transferEncoding: String? = null
+        var contentLength: String? = null
+        content.status?.let { status(it) } ?: status() ?: status(HttpStatusCode.OK)
+        content.headers.forEach { name, values ->
+            when (name) {
+                HttpHeaders.ContentLength -> contentLength = values.first()
+                HttpHeaders.TransferEncoding -> transferEncoding = values.first()
             }
+
+            for (value in values) {
+                headers.append(name, value)
+            }
+        }
+
+        if (transferEncoding == null && contentLength == null) {
+            headers.append(HttpHeaders.TransferEncoding, "chunked")
         }
 
         val connection = call.request.headers["Connection"]
@@ -99,18 +110,40 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         // Retrieve response channel, that might send out headers, so it should go after commitHeaders
         responseChannel().use {
             // Call user code to send data
+            val before = totalBytesWritten
             content.writeTo(this)
+
+            headers[HttpHeaders.ContentLength]?.toLong()?.let { length ->
+                val written = totalBytesWritten - before
+                ensureLength(length, written)
+            }
         }
     }
 
     protected open suspend fun respondFromBytes(bytes: ByteArray) {
+        headers[HttpHeaders.ContentLength]?.toLong()?.let { length ->
+            ensureLength(length, bytes.size.toLong())
+        }
+
         responseChannel().use {
             writeFully(bytes)
         }
     }
 
     protected open suspend fun respondFromChannel(readChannel: ByteReadChannel) {
-        readChannel.copyAndClose(responseChannel())
+        responseChannel().use {
+            val length = headers[HttpHeaders.ContentLength]?.toLong()
+            val copied = readChannel.copyTo(this, length ?: Long.MAX_VALUE)
+
+            length ?: return@use
+            val discarded = readChannel.discard(max = 1)
+            ensureLength(length, copied + discarded)
+        }
+    }
+
+    private fun ensureLength(expected: Long, actual: Long) {
+        if (expected < actual) throw BodyLengthIsTooLong(expected)
+        if (expected > actual) throw BodyLengthIsTooSmall(expected, actual)
     }
 
     protected abstract suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade)
@@ -124,4 +157,12 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
     }
 
     class ResponseAlreadySentException : IllegalStateException("Response has already been sent")
+
+    class BodyLengthIsTooSmall(expected: Long, actual: Long) : IllegalStateException(
+            "Body.size is too small. Body: $actual, Content-Length: $expected"
+    )
+
+    class BodyLengthIsTooLong(expected: Long) : IllegalStateException(
+            "Body.size is too long. Expected $expected"
+    )
 }
