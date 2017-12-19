@@ -8,6 +8,11 @@ import java.io.*
 import java.nio.file.*
 import java.time.*
 
+/**
+ * OutgoingContent representing a local [file] with a specified [contentType], [expires] date and [cacheControl]
+ *
+ * @param file specifies the File to be served to a client
+ */
 class LocalFileContent(val file: File,
                        override val contentType: ContentType = ContentType.defaultForFile(file),
                        override val expires: LocalDateTime? = null,
@@ -29,12 +34,18 @@ class LocalFileContent(val file: File,
     override fun readFrom(range: LongRange): ByteReadChannel = file.readChannel(range.start, range.endInclusive)
 }
 
+/**
+ * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
+ */
 fun LocalFileContent(baseDir: File,
                      relativePath: String,
                      contentType: ContentType = ContentType.defaultForFilePath(relativePath),
                      expires: LocalDateTime? = null,
                      cacheControl: CacheControl? = null) = LocalFileContent(baseDir.combineSafe(relativePath), contentType, expires, cacheControl)
 
+/**
+ * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
+ */
 fun LocalFileContent(baseDir: Path,
                      relativePath: Path,
                      contentType: ContentType = ContentType.defaultForFile(relativePath),

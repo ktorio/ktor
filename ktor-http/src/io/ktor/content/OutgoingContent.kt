@@ -23,7 +23,7 @@ sealed class OutgoingContent {
         get() = ValuesMap.Empty
 
     /**
-     * Variant of a [OutgoingContent] without payload
+     * Variant of a [OutgoingContent] without a payload
      */
     abstract class NoContent : OutgoingContent()
 
@@ -33,10 +33,13 @@ sealed class OutgoingContent {
      */
     abstract class ReadChannelContent : OutgoingContent() {
         /**
-         * Provides [ByteReadChannel] from which engine will read the data and send it to peer
+         * Provides [ByteReadChannel] for the content
          */
         abstract fun readFrom(): ByteReadChannel
 
+        /**
+         * Provides [ByteReadChannel] for the given range of the content
+         */
         open fun readFrom(range: LongRange): ByteReadChannel = writer(Unconfined, autoFlush = true) {
             if (range.isEmpty()) return@writer
 
