@@ -6,32 +6,6 @@ import kotlinx.io.pool.*
 import java.io.*
 import java.nio.ByteBuffer
 
-
-private class ByteReadChannelInputStream(
-        private val channel: ByteReadChannel,
-        private val parent: Job
-) : InputStream() {
-    override fun read(): Int = runBlocking(Unconfined + parent) {
-        try {
-            return@runBlocking channel.readByte().toInt() and 0xff
-        } catch (cause: NoSuchElementException) {
-            return@runBlocking -1
-        }
-    }
-
-    override fun read(array: ByteArray, offset: Int, length: Int): Int = runBlocking(Unconfined + parent) {
-        return@runBlocking channel.readAvailable(array, offset, length)
-    }
-
-    override fun close() {
-        channel.cancel()
-        parent.cancel()
-    }
-}
-
-fun ByteReadChannel.toInputStream(parent: Job = Job()): InputStream =
-        ByteReadChannelInputStream(this, parent)
-
 fun InputStream.toByteReadChannel(
         pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
         parent: Job = Job()

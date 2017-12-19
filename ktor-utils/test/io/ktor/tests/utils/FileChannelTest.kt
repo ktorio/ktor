@@ -1,6 +1,7 @@
 package io.ktor.tests.utils
 
 import io.ktor.cio.*
+import kotlinx.coroutines.experimental.io.jvm.javaio.*
 import org.junit.*
 import org.junit.Test
 import java.io.*

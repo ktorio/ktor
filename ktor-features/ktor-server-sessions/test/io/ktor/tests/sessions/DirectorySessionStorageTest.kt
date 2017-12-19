@@ -3,6 +3,7 @@ package io.ktor.tests.sessions
 import io.ktor.cio.*
 import io.ktor.sessions.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.io.jvm.javaio.*
 import org.junit.*
 import org.junit.Test
 import java.io.*

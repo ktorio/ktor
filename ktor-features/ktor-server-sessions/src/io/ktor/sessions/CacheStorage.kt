@@ -1,7 +1,7 @@
 package io.ktor.sessions
 
-import io.ktor.cio.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.experimental.io.jvm.javaio.*
 
 class CacheStorage(val delegate: SessionStorage, val idleTimeout: Long) : SessionStorage {
     private val referenceCache = SoftReferenceCache<String, ByteArray> { id ->

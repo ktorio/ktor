@@ -3,6 +3,7 @@ package io.ktor.content
 import io.ktor.cio.*
 import io.ktor.http.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.experimental.io.jvm.javaio.*
 import kotlinx.io.pool.*
 import java.io.*
 import java.nio.charset.*

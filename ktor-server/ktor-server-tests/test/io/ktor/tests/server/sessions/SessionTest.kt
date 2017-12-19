@@ -1,7 +1,6 @@
 package io.ktor.tests.server.sessions
 
 import io.ktor.application.*
-import io.ktor.cio.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -9,6 +8,7 @@ import io.ktor.server.testing.*
 import io.ktor.sessions.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.io.jvm.javaio.*
 import org.junit.Test
 import java.time.*
 import java.util.*
