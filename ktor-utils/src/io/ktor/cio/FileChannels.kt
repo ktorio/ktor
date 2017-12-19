@@ -5,37 +5,49 @@ import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.pool.*
 import java.io.*
 import java.nio.ByteBuffer
+import java.nio.channels.*
 import java.nio.file.*
-import kotlin.math.*
-
+import kotlin.coroutines.experimental.*
 
 fun File.readChannel(
         start: Long = 0,
         endInclusive: Long = -1,
-        pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+        coroutineContext: CoroutineContext = Unconfined
 ): ByteReadChannel {
+    val fileLength = length()
     val file = RandomAccessFile(this@readChannel, "r")
-    return writer(Unconfined, autoFlush = true) {
+    return writer(coroutineContext, autoFlush = false) {
         require(start >= 0L) { "start position shouldn't be negative but it is $start" }
-        require(endInclusive <= file.length() - 1) { "endInclusive points to the position out of the file: file size = ${file.length()}, endInclusive = $endInclusive" }
+        require(endInclusive <= fileLength - 1) { "endInclusive points to the position out of the file: file size = ${file.length()}, endInclusive = $endInclusive" }
+
         file.use {
-            pool.use { buffer ->
-                file.seek(start)
-                val lastIndex = file.length() - 1
-                val end = if (endInclusive >= 0) min(endInclusive, lastIndex) else lastIndex
+            val fileChannel: FileChannel = file.channel
+            if (start > 0) {
+                fileChannel.position(start)
+            }
 
+            if (endInclusive == -1L) {
+                channel.writeWhile { buffer ->
+                    fileChannel.read(buffer) != -1
+                }
+            } else {
                 var position = start
-                while (position <= end) {
-                    buffer.clear()
-                    val limit = min(buffer.remaining().toLong(), end - position + 1).toInt()
-                    val count = file.read(buffer.array(), buffer.arrayOffset() + buffer.position(), limit)
 
-                    if (count < 0) break
-                    buffer.position(buffer.position() + count)
-                    buffer.flip()
+                channel.writeWhile { buffer ->
+                    val fileRemaining = endInclusive - position + 1
+                    val rc = if (fileRemaining < buffer.remaining()) {
+                        val l = buffer.limit()
+                        buffer.limit(buffer.position() + fileRemaining.toInt())
+                        val r = fileChannel.read(buffer)
+                        buffer.limit(l)
+                        r
+                    } else {
+                        fileChannel.read(buffer)
+                    }
 
-                    channel.writeFully(buffer)
-                    position += limit
+                    if (rc > 0) position += rc
+
+                    rc != -1 && position <= endInclusive
                 }
             }
         }
