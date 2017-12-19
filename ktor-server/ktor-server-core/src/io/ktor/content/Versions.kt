@@ -26,11 +26,24 @@ interface Version {
 }
 
 /**
+ * Represent result of the version comparison between content being sent and HTTP request.
  *
+ * @param statusCode represents [HttpStatusCode] associated with the result.
  */
 enum class VersionCheckResult(val statusCode: HttpStatusCode) {
+    /**
+     * Indicates that content needs to be sent to recipient.
+     */
     OK(HttpStatusCode.OK),
+
+    /**
+     * Indicates that content has not modified according to headers sent by client.
+     */
     NOT_MODIFIED(HttpStatusCode.NotModified),
+
+    /**
+     * One or more conditions given in the request header fields evaluated to false.
+     */
     PRECONDITION_FAILED(HttpStatusCode.PreconditionFailed)
 }
 
