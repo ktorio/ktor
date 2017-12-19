@@ -91,7 +91,7 @@ class StaticContentTest {
 
     @Test
     fun testStaticContent() = withTestApplication {
-        application.install(PartialContentSupport)
+        application.install(PartialContent)
         application.install(AutoHeadResponse)
 
         application.routing {

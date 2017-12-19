@@ -128,16 +128,3 @@ data class EntityTagVersion(val etag: String) : Version {
     }
 }
 
-fun OutgoingContent.lastModifiedAndEtagVersions(): List<Version> {
-    if (this is Resource) {
-        return versions
-    }
-
-    val headers = headers
-    val lastModifiedHeaders = headers.getAll(HttpHeaders.LastModified) ?: emptyList()
-    val etagHeaders = headers.getAll(HttpHeaders.ETag) ?: emptyList()
-    val versions = ArrayList<Version>(lastModifiedHeaders.size + etagHeaders.size)
-    lastModifiedHeaders.mapTo(versions) { LastModifiedVersion(LocalDateTime.parse(it, httpDateFormat)) }
-    etagHeaders.mapTo(versions) { EntityTagVersion(it) }
-    return versions
-}

@@ -10,19 +10,41 @@ import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 import kotlin.properties.*
 
-class PartialContentSupport(val maxRangeCount: Int) {
+@Deprecated("Please use PartialContent instead", replaceWith = ReplaceWith("PartialContent"))
+typealias PartialContentSupport = PartialContent
+
+/**
+ * Feature to support requests to specific content ranges.
+ *
+ * It is essential for streaming video and restarting downloads.
+ *
+ */
+class PartialContent(private val maxRangeCount: Int) {
+
+    /**
+     * Configuration for [PartialContent].
+     */
     class Configuration {
+        /**
+         * Maximum number of ranges that will be accepted from HTTP request.
+         *
+         * If HTTP request specifies more ranges, they will all be merged into a single range.
+         */
         var maxRangeCount: Int by Delegates.vetoable(10) { _, _, new ->
             new <= 0 || throw IllegalArgumentException("Bad maxRangeCount value $new")
         }
     }
 
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, PartialContentSupport> {
-        val PartialContentPhase = PipelinePhase("PartialContent")
+    /**
+     * `ApplicationFeature` implementation for [PartialContent]
+     */
+    companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, PartialContent> {
+        private val PartialContentPhase = PipelinePhase("PartialContent")
 
-        override val key: AttributeKey<PartialContentSupport> = AttributeKey("Partial Content")
-        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): PartialContentSupport {
-            val feature = PartialContentSupport(Configuration().apply(configure).maxRangeCount)
+        override val key: AttributeKey<PartialContent> = AttributeKey("Partial Content")
+
+        override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): PartialContent {
+            val feature = PartialContent(Configuration().apply(configure).maxRangeCount)
             pipeline.intercept(ApplicationCallPipeline.Infrastructure) { feature.intercept(this) }
             return feature
         }
@@ -35,7 +57,7 @@ class PartialContentSupport(val maxRangeCount: Int) {
             call.response.pipeline.registerPhase()
             call.response.pipeline.intercept(PartialContentPhase) { message ->
                 if (message is OutgoingContent.ReadChannelContent && message !is RangeChannelProvider) {
-                    proceedWith(RangeChannelProvider.ByPass(message))
+                    proceedWith(RangeChannelProvider.Bypass(message))
                 }
             }
             return
@@ -71,12 +93,13 @@ class PartialContentSupport(val maxRangeCount: Int) {
         if (checkIfRangeHeader(content, call)) {
             processRange(content, rangesSpecifier, length)
         } else {
-            proceedWith(RangeChannelProvider.ByPass(content))
+            proceedWith(RangeChannelProvider.Bypass(content))
         }
     }
 
-    private fun checkIfRangeHeader(obj: OutgoingContent.ReadChannelContent, call: ApplicationCall): Boolean {
-        val versions = obj.lastModifiedAndEtagVersions()
+    private fun checkIfRangeHeader(content: OutgoingContent.ReadChannelContent, call: ApplicationCall): Boolean {
+        val conditionalHeadersFeature = call.application.featureOrNull(ConditionalHeaders)
+        val versions = conditionalHeadersFeature?.versionsFor(content) ?: content.defaultVersions
         val ifRange = call.request.header(HttpHeaders.IfRange)
 
         return ifRange == null || versions.all { version ->
@@ -126,7 +149,7 @@ class PartialContentSupport(val maxRangeCount: Int) {
     }
 
     private sealed class RangeChannelProvider : OutgoingContent.ReadChannelContent() {
-        class ByPass(val content: ReadChannelContent) : RangeChannelProvider() {
+        class Bypass(val content: ReadChannelContent) : RangeChannelProvider() {
             override val status: HttpStatusCode?
                 get() = content.status
 

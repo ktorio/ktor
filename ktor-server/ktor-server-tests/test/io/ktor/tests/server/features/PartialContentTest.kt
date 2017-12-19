@@ -18,7 +18,7 @@ class PartialContentTest {
     val localPath = "features/StaticContentTest.kt"
 
     fun withRangeApplication(test: TestApplicationEngine.(File) -> Unit) = withTestApplication {
-        application.install(PartialContentSupport)
+        application.install(PartialContent)
         application.install(AutoHeadResponse)
         application.routing {
             route(localPath) {

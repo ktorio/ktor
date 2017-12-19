@@ -69,7 +69,7 @@ class KweetApp {
         install(DefaultHeaders)
         install(CallLogging)
         install(ConditionalHeaders)
-        install(PartialContentSupport)
+        install(PartialContent)
         install(Locations)
         install(FreeMarker) {
             templateLoader = ClassTemplateLoader(KweetApp::class.java.classLoader, "templates")

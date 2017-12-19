@@ -1,6 +1,7 @@
 package io.ktor.tests.server.features
 
 import io.ktor.application.*
+import io.ktor.content.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.*
@@ -12,285 +13,171 @@ import java.util.*
 import kotlin.test.*
 
 class ETagsTest {
-    @Test
-    fun testNoConditions() {
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withETag("tag1") {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            val result = handleRequest {}
-            assertTrue(result.requestHandled)
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
-            assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
+    private fun withConditionalApplication(body: TestApplicationEngine.() -> Unit) = withTestApplication {
+        application.install(ConditionalHeaders) {
+            version { listOf(EntityTagVersion("tag1")) }
         }
+        application.routing {
+            handle {
+                call.respondText("response")
+            }
+        }
+
+        body()
     }
 
     @Test
-    fun testIfMatchConditionAccepted() {
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withETag("tag1") {
-                        call.respondText("response")
-                    }
-                }
-            }
+    fun testNoConditions() = withConditionalApplication {
+        val result = handleRequest {}
+        assertTrue(result.requestHandled)
+        assertEquals(HttpStatusCode.OK, result.response.status())
+        assertEquals("response", result.response.content)
+        assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
+    }
 
-            val result = handleRequest {
-                addHeader(HttpHeaders.IfMatch, "tag1")
-            }
-            assertTrue(result.requestHandled)
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
-            assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
+
+    @Test
+    fun testIfMatchConditionAccepted() = withConditionalApplication {
+        val result = handleRequest {
+            addHeader(HttpHeaders.IfMatch, "tag1")
         }
+        assertTrue(result.requestHandled)
+        assertEquals(HttpStatusCode.OK, result.response.status())
+        assertEquals("response", result.response.content)
+        assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
     }
 
     @Test
-    fun testIfMatchConditionFailed() {
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withETag("tag1") {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            val result = handleRequest {
-                addHeader(HttpHeaders.IfMatch, "tag2")
-            }
-            assertTrue(result.requestHandled)
-            assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
+    fun testIfMatchConditionFailed() = withConditionalApplication {
+        val result = handleRequest {
+            addHeader(HttpHeaders.IfMatch, "tag2")
         }
+        assertTrue(result.requestHandled)
+        assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
     }
 
     @Test
-    fun testIfNoneMatchConditionAccepted() {
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withETag("tag1") {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            val result = handleRequest {
-                addHeader(HttpHeaders.IfNoneMatch, "tag1")
-            }
-            assertTrue(result.requestHandled)
-            assertEquals(HttpStatusCode.NotModified, result.response.status())
+    fun testIfNoneMatchConditionAccepted() = withConditionalApplication {
+        val result = handleRequest {
+            addHeader(HttpHeaders.IfNoneMatch, "tag1")
         }
+        assertTrue(result.requestHandled)
+        assertEquals(HttpStatusCode.NotModified, result.response.status())
     }
 
     @Test
-    fun testIfNoneMatchWeakConditionAccepted() {
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withETag("tag1") {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            val result = handleRequest {
-                addHeader(HttpHeaders.IfNoneMatch, "W/tag1")
-            }
-            assertTrue(result.requestHandled)
-            assertEquals(HttpStatusCode.NotModified, result.response.status())
+    fun testIfNoneMatchWeakConditionAccepted() = withConditionalApplication {
+        val result = handleRequest {
+            addHeader(HttpHeaders.IfNoneMatch, "W/tag1")
         }
+        assertTrue(result.requestHandled)
+        assertEquals(HttpStatusCode.NotModified, result.response.status())
     }
 
     @Test
-    fun testIfNoneMatchConditionFailed() {
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withETag("tag1") {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            val result = handleRequest {
-                addHeader(HttpHeaders.IfNoneMatch, "tag2")
-            }
-            assertTrue(result.requestHandled)
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
-            assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
+    fun testIfNoneMatchConditionFailed() = withConditionalApplication {
+        val result = handleRequest {
+            addHeader(HttpHeaders.IfNoneMatch, "tag2")
         }
+        assertTrue(result.requestHandled)
+        assertEquals(HttpStatusCode.OK, result.response.status())
+        assertEquals("response", result.response.content)
+        assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
     }
 
     @Test
-    fun testIfMatchStar() {
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withETag("tag1") {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            val result = handleRequest {
-                addHeader(HttpHeaders.IfMatch, "*")
-            }
-            assertTrue(result.requestHandled)
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
-            assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
+    fun testIfMatchStar() = withConditionalApplication {
+        val result = handleRequest {
+            addHeader(HttpHeaders.IfMatch, "*")
         }
+        assertTrue(result.requestHandled)
+        assertEquals(HttpStatusCode.OK, result.response.status())
+        assertEquals("response", result.response.content)
+        assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
     }
 
     @Test
-    fun testIfNoneMatchStar() {
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withETag("tag1") {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            val result = handleRequest {
-                addHeader(HttpHeaders.IfNoneMatch, "*")
-            }
-            assertTrue(result.requestHandled)
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            // note: star for if-none-match is a special case
-            // that should be handled separately
-            // so we always pass it
+    fun testIfNoneMatchStar() = withConditionalApplication {
+        val result = handleRequest {
+            addHeader(HttpHeaders.IfNoneMatch, "*")
         }
+        assertTrue(result.requestHandled)
+        assertEquals(HttpStatusCode.OK, result.response.status())
+        // note: star for if-none-match is a special case
+        // that should be handled separately
+        // so we always pass it
     }
 
     @Test
-    fun testIfNoneMatchListConditionFailed() {
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withETag("tag1") {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            val result = handleRequest {
-                addHeader(HttpHeaders.IfNoneMatch, "tag0,tag1,tag3")
-            }
-            assertTrue(result.requestHandled)
-            assertEquals(HttpStatusCode.NotModified, result.response.status())
+    fun testIfNoneMatchListConditionFailed() = withConditionalApplication {
+        val result = handleRequest {
+            addHeader(HttpHeaders.IfNoneMatch, "tag0,tag1,tag3")
         }
+        assertTrue(result.requestHandled)
+        assertEquals(HttpStatusCode.NotModified, result.response.status())
     }
 
     @Test
-    fun testIfNoneMatchListConditionSuccess() {
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withETag("tag1") {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            val result = handleRequest {
-                addHeader(HttpHeaders.IfNoneMatch, "tag2")
-            }
-            assertTrue(result.requestHandled)
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
-            assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
+    fun testIfNoneMatchListConditionSuccess() = withConditionalApplication {
+        val result = handleRequest {
+            addHeader(HttpHeaders.IfNoneMatch, "tag2")
         }
+        assertTrue(result.requestHandled)
+        assertEquals(HttpStatusCode.OK, result.response.status())
+        assertEquals("response", result.response.content)
+        assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
     }
 
     @Test
-    fun testIfMatchListConditionAccepted() {
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withETag("tag1") {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            val result = handleRequest {
-                addHeader(HttpHeaders.IfMatch, "tag0,tag1,tag3")
-            }
-            assertTrue(result.requestHandled)
-            assertEquals(HttpStatusCode.OK, result.response.status())
-            assertEquals("response", result.response.content)
-            assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
+    fun testIfMatchListConditionAccepted() = withConditionalApplication {
+        val result = handleRequest {
+            addHeader(HttpHeaders.IfMatch, "tag0,tag1,tag3")
         }
+        assertTrue(result.requestHandled)
+        assertEquals(HttpStatusCode.OK, result.response.status())
+        assertEquals("response", result.response.content)
+        assertEquals("tag1", result.response.headers[HttpHeaders.ETag])
     }
 
     @Test
-    fun testIfMatchListConditionFailed() {
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withETag("tag1") {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            val result = handleRequest {
-                addHeader(HttpHeaders.IfMatch, "tag0,tag2,tag3")
-            }
-            assertTrue(result.requestHandled)
-            assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
+    fun testIfMatchListConditionFailed() = withConditionalApplication {
+        val result = handleRequest {
+            addHeader(HttpHeaders.IfMatch, "tag0,tag2,tag3")
         }
+        assertTrue(result.requestHandled)
+        assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
     }
 
 }
 
 class LastModifiedTest {
-    @Test
-    fun testNoHeaders() {
-        val date = Date()
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withLastModified(date) {
-                        call.respondText("response")
-                    }
-                }
+    val date = Date()
+    private fun withConditionalApplication(body: TestApplicationEngine.() -> Unit) = withTestApplication {
+        application.install(ConditionalHeaders) {
+            version { listOf(LastModifiedVersion(date)) }
+        }
+        application.routing {
+            handle {
+                call.respondText("response")
             }
+        }
 
-            handleRequest(HttpMethod.Get, "/").let { result ->
-                assertEquals(HttpStatusCode.OK, result.response.status())
-                assertEquals("response", result.response.content)
-            }
+        body()
+    }
+
+    @Test
+    fun testNoHeaders() = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/").let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("response", result.response.content)
         }
     }
 
     @Test
-    fun testIfModifiedSinceEq() {
-        val date = Date()
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withLastModified(date) {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.toLocalDateTime().toHttpDateString()) }).let { result ->
-                assertEquals(HttpStatusCode.NotModified, result.response.status())
-                assertNull(result.response.content)
-            }
+    fun testIfModifiedSinceEq() = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.toLocalDateTime().toHttpDateString()) }).let { result ->
+            assertEquals(HttpStatusCode.NotModified, result.response.status())
+            assertNull(result.response.content)
         }
     }
 
@@ -298,11 +185,12 @@ class LastModifiedTest {
     fun testIfModifiedSinceEqZoned() {
         val date = ZonedDateTime.now()
         withTestApplication {
+            application.install(ConditionalHeaders) {
+                version { listOf(LastModifiedVersion(date.toLocalDateTime())) }
+            }
             application.routing {
                 handle {
-                    call.withLastModified(date) {
-                        call.respondText("response")
-                    }
+                    call.respondText("response")
                 }
             }
 
@@ -314,131 +202,64 @@ class LastModifiedTest {
     }
 
     @Test
-    fun testIfModifiedSinceLess() {
-        val date = Date()
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withLastModified(date) {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.toLocalDateTime().minusDays(1).toHttpDateString()) }).let { result ->
-                assertEquals(HttpStatusCode.OK, result.response.status())
-                assertEquals("response", result.response.content)
-            }
+    fun testIfModifiedSinceLess() = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.toLocalDateTime().minusDays(1).toHttpDateString()) }).let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("response", result.response.content)
         }
     }
 
     @Test
-    fun testIfModifiedSinceGt() {
-        val date = Date()
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withLastModified(date) {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.toLocalDateTime().plusDays(1).toHttpDateString()) }).let { result ->
-                assertEquals(HttpStatusCode.NotModified, result.response.status())
-                assertNull(result.response.content)
-            }
+    fun testIfModifiedSinceGt() = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.toLocalDateTime().plusDays(1).toHttpDateString()) }).let { result ->
+            assertEquals(HttpStatusCode.NotModified, result.response.status())
+            assertNull(result.response.content)
         }
     }
 
     @Test
-    fun testIfModifiedSinceTimeZoned() {
-        val date = Date()
+    fun testIfModifiedSinceTimeZoned() = withConditionalApplication {
         val expectedDate = date.toLocalDateTime().toHttpDateString()
+        val customFormat = httpDateFormat.withZone(ZoneId.of("Europe/Moscow"))!!
 
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withLastModified(date) {
-                        call.respondText("response")
-                    }
-                }
-            }
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.toLocalDateTime()).replace("MT", "MSK")) }).let { result ->
+            assertEquals(HttpStatusCode.NotModified, result.response.status())
+            assertNull(result.response.content)
+        }
 
-            val customFormat = httpDateFormat.withZone(ZoneId.of("Europe/Moscow"))!!
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.toLocalDateTime().plusDays(1)).replace("MT", "MSK")) }).let { result ->
+            assertEquals(HttpStatusCode.NotModified, result.response.status())
+            assertNull(result.response.content)
+        }
 
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.toLocalDateTime()).replace("MT", "MSK")) }).let { result ->
-                assertEquals(HttpStatusCode.NotModified, result.response.status())
-                assertNull(result.response.content)
-            }
-
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.toLocalDateTime().plusDays(1)).replace("MT", "MSK")) }).let { result ->
-                assertEquals(HttpStatusCode.NotModified, result.response.status())
-                assertNull(result.response.content)
-            }
-
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.toLocalDateTime().minusDays(1)).replace("MT", "MSK")) }).let { result ->
-                assertEquals(HttpStatusCode.OK, result.response.status())
-                assertEquals("response", result.response.content)
-                assertEquals(expectedDate, result.response.headers[HttpHeaders.LastModified])
-            }
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.toLocalDateTime().minusDays(1)).replace("MT", "MSK")) }).let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("response", result.response.content)
+            assertEquals(expectedDate, result.response.headers[HttpHeaders.LastModified])
         }
     }
 
     @Test
-    fun testIfUnModifiedSinceEq() {
-        val date = Date()
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withLastModified(date) {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfUnmodifiedSince, date.toLocalDateTime().toHttpDateString()) }).let { result ->
-                assertEquals(HttpStatusCode.OK, result.response.status())
-                assertEquals("response", result.response.content)
-            }
+    fun testIfUnModifiedSinceEq() = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfUnmodifiedSince, date.toLocalDateTime().toHttpDateString()) }).let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("response", result.response.content)
         }
     }
 
     @Test
-    fun testIfUnModifiedSinceLess() {
-        val date = Date()
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withLastModified(date) {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfUnmodifiedSince, date.toLocalDateTime().minusDays(1).toHttpDateString()) }).let { result ->
-                assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
-                assertNull(result.response.content)
-            }
+    fun testIfUnModifiedSinceLess() = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfUnmodifiedSince, date.toLocalDateTime().minusDays(1).toHttpDateString()) }).let { result ->
+            assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
+            assertNull(result.response.content)
         }
     }
 
     @Test
-    fun testIfUnModifiedSinceGt() {
-        val date = Date()
-        withTestApplication {
-            application.routing {
-                handle {
-                    call.withLastModified(date) {
-                        call.respondText("response")
-                    }
-                }
-            }
-
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfUnmodifiedSince, date.toLocalDateTime().plusDays(1).toHttpDateString()) }).let { result ->
-                assertEquals(HttpStatusCode.OK, result.response.status())
-                assertEquals("response", result.response.content)
-            }
+    fun testIfUnModifiedSinceGt() = withConditionalApplication {
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfUnmodifiedSince, date.toLocalDateTime().plusDays(1).toHttpDateString()) }).let { result ->
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("response", result.response.content)
         }
     }
 

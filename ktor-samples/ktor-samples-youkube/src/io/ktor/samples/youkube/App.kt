@@ -33,7 +33,7 @@ fun Application.youKubeApplication() {
     install(CallLogging)
     install(Locations)
     install(ConditionalHeaders)
-    install(PartialContentSupport)
+    install(PartialContent)
     install(Compression) {
         default()
         excludeContentType(ContentType.Video.Any)

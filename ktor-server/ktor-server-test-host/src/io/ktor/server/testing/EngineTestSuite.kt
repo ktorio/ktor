@@ -393,7 +393,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         testLog.trace("test file is $file")
 
         createAndStartServer {
-            application.install(PartialContentSupport)
+            application.install(PartialContent)
             handle {
                 call.respond(LocalFileContent(file))
             }
@@ -420,7 +420,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
         createAndStartServer {
             application.install(Compression)
-            application.install(PartialContentSupport)
+            application.install(PartialContent)
 
             handle {
                 call.respond(LocalFileContent(file))

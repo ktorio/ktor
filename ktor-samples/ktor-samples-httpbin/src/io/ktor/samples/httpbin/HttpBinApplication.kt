@@ -78,7 +78,7 @@ fun Application.main() {
     install(Compression)
     install(CallLogging)
     install(ConditionalHeaders)
-    install(PartialContentSupport)
+    install(PartialContent)
     install(AutoHeadResponse)
     install(ContentNegotiation) {
         register(ContentType.Application.Json, GsonConverter())
