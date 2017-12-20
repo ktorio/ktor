@@ -26,7 +26,7 @@ class ApacheHttpResponse internal constructor(
 
         status = HttpStatusCode.fromValue(code)
         version = with(engineResponse.protocolVersion) { HttpProtocolVersion.fromValue(protocol, major, minor) }
-        headers = HeadersBuilder().apply {
+        headers = HeadersBuilder(caseInsensitiveKey = true).apply {
             engineResponse.allHeaders.forEach { headerLine ->
                 append(headerLine.name, headerLine.value)
             }
