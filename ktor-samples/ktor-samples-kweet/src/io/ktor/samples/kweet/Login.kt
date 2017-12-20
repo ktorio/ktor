@@ -30,8 +30,8 @@ fun Route.login(dao: DAOFacade, hash: (String) -> String) {
         val login = when {
             userId.length < 4 -> null
             password.length < 6 -> null
-            !userNameValid(it.userId) -> null
-            else -> dao.user(it.userId, hash(password))
+            !userNameValid(userId) -> null
+            else -> dao.user(userId, hash(password))
         }
 
         if (login == null) {
