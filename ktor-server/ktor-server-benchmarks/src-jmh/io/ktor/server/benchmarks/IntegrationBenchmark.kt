@@ -47,6 +47,12 @@ abstract class IntegrationBenchmark {
                 get("/thinkOK") {
                     call.respondText("OK")
                 }
+                get("/query") {
+                    val parameters = call.parameters
+                    val message = parameters["message"]
+                            ?: throw IllegalArgumentException("GET request should have `message` parameter")
+                    call.respondText(message)
+                }
                 static {
                     resource("jarfile", "String.class", "java.lang")
                     resource("regularClasspathFile", classFileName, packageName)
@@ -81,10 +87,7 @@ abstract class IntegrationBenchmark {
     }
 
     private fun load(url: String) {
-        httpClient.load(url).use {
-            val buf = ByteArray(8192)
-            while (it.read(buf) != -1);
-        }
+        httpClient.load(url)
     }
 
     @Benchmark
@@ -93,8 +96,8 @@ abstract class IntegrationBenchmark {
     }
 
     @Benchmark
-    fun sayOKLongParams() {
-        load("http://localhost:$port/sayOK?utm_source=Yandex&utm_medium=cpc&utm_campaign=shuby_Ekb_search&utm_content=obshie&page=6")
+    fun query() {
+        load("http://localhost:$port/query?utm_source=Google&utm_medium=cpc&utm_campaign=ok%2B+plus&utm_content=obshie&message=OK")
     }
 
     @Benchmark
@@ -155,36 +158,35 @@ class CIOIntegrationBenchmark : IntegrationBenchmark() {
 NOTE: Results on Ilya's MacBook Pro, rebooted without any extra programs running, executed with Gradle
 
 Benchmark                                        Mode  Cnt   Score   Error   Units
-CIOIntegrationBenchmark.jarfile                 thrpt   20  10.592 ± 0.192  ops/ms
-CIOIntegrationBenchmark.largeFile               thrpt   20   0.535 ± 0.012  ops/ms
-CIOIntegrationBenchmark.largeFileSync           thrpt   20   0.547 ± 0.016  ops/ms
-CIOIntegrationBenchmark.regularClasspathFile    thrpt   20  15.654 ± 0.433  ops/ms
-CIOIntegrationBenchmark.sayOK                   thrpt   20  56.161 ± 1.158  ops/ms
-CIOIntegrationBenchmark.sayOKLongParams         thrpt   20  53.788 ± 0.833  ops/ms
-CIOIntegrationBenchmark.smallFile               thrpt   20  30.727 ± 0.645  ops/ms
-CIOIntegrationBenchmark.smallFileSync           thrpt   20  44.239 ± 0.792  ops/ms
-CIOIntegrationBenchmark.thinkOK                 thrpt   20  54.354 ± 0.836  ops/ms
+CIOIntegrationBenchmark.jarfile                 thrpt   20   8.280 ± 0.314  ops/ms
+CIOIntegrationBenchmark.largeFile               thrpt   20   0.516 ± 0.011  ops/ms
+CIOIntegrationBenchmark.largeFileSync           thrpt   20   0.570 ± 0.016  ops/ms
+CIOIntegrationBenchmark.query                   thrpt   20  47.998 ± 1.252  ops/ms
+CIOIntegrationBenchmark.regularClasspathFile    thrpt   20  15.109 ± 0.255  ops/ms
+CIOIntegrationBenchmark.sayOK                   thrpt   20  53.502 ± 1.659  ops/ms
+CIOIntegrationBenchmark.smallFile               thrpt   20  31.820 ± 0.476  ops/ms
+CIOIntegrationBenchmark.smallFileSync           thrpt   20  42.918 ± 1.017  ops/ms
+CIOIntegrationBenchmark.thinkOK                 thrpt   20  54.000 ± 0.777  ops/ms
 
-JettyIntegrationBenchmark.jarfile               thrpt   20  12.776 ± 0.570  ops/ms
-JettyIntegrationBenchmark.largeFile             thrpt   20   1.171 ± 0.031  ops/ms
-JettyIntegrationBenchmark.largeFileSync         thrpt   20   1.133 ± 0.021  ops/ms
-JettyIntegrationBenchmark.regularClasspathFile  thrpt   20  17.985 ± 1.488  ops/ms
-JettyIntegrationBenchmark.sayOK                 thrpt   20  29.549 ± 1.770  ops/ms
-JettyIntegrationBenchmark.sayOKLongParams       thrpt   20  26.048 ± 1.041  ops/ms
-JettyIntegrationBenchmark.smallFile             thrpt   20  26.174 ± 2.346  ops/ms
-JettyIntegrationBenchmark.smallFileSync         thrpt   20  26.058 ± 1.432  ops/ms
-JettyIntegrationBenchmark.thinkOK               thrpt   20  28.185 ± 1.339  ops/ms
+JettyIntegrationBenchmark.jarfile               thrpt   20   9.241 ± 0.467  ops/ms
+JettyIntegrationBenchmark.largeFile             thrpt   20   1.121 ± 0.032  ops/ms
+JettyIntegrationBenchmark.largeFileSync         thrpt   20   1.181 ± 0.025  ops/ms
+JettyIntegrationBenchmark.query                 thrpt   20  27.000 ± 1.867  ops/ms
+JettyIntegrationBenchmark.regularClasspathFile  thrpt   20  16.778 ± 1.675  ops/ms
+JettyIntegrationBenchmark.sayOK                 thrpt   20  30.925 ± 1.612  ops/ms
+JettyIntegrationBenchmark.smallFile             thrpt   20  26.338 ± 1.829  ops/ms
+JettyIntegrationBenchmark.smallFileSync         thrpt   20  25.525 ± 1.588  ops/ms
+JettyIntegrationBenchmark.thinkOK               thrpt   20  27.348 ± 2.219  ops/ms
 
-NettyIntegrationBenchmark.jarfile               thrpt   20  12.575 ± 0.161  ops/ms
-NettyIntegrationBenchmark.largeFile             thrpt   20   0.919 ± 0.017  ops/ms
-NettyIntegrationBenchmark.largeFileSync         thrpt   20   3.516 ± 0.036  ops/ms
-NettyIntegrationBenchmark.regularClasspathFile  thrpt   20  18.771 ± 0.293  ops/ms
-NettyIntegrationBenchmark.sayOK                 thrpt   20  55.266 ± 1.751  ops/ms
-NettyIntegrationBenchmark.sayOKLongParams       thrpt   20  53.322 ± 1.389  ops/ms
-NettyIntegrationBenchmark.smallFile             thrpt   20  32.972 ± 0.730  ops/ms
-NettyIntegrationBenchmark.smallFileSync         thrpt   20  44.912 ± 1.044  ops/ms
-NettyIntegrationBenchmark.thinkOK               thrpt   20  53.655 ± 1.199  ops/ms
-
+NettyIntegrationBenchmark.jarfile               thrpt   20  10.640 ± 0.234  ops/ms
+NettyIntegrationBenchmark.largeFile             thrpt   20   0.853 ± 0.015  ops/ms
+NettyIntegrationBenchmark.largeFileSync         thrpt   20   3.633 ± 0.063  ops/ms
+NettyIntegrationBenchmark.query                 thrpt   20  47.397 ± 0.811  ops/ms
+NettyIntegrationBenchmark.regularClasspathFile  thrpt   20  18.127 ± 0.294  ops/ms
+NettyIntegrationBenchmark.sayOK                 thrpt   20  51.893 ± 1.016  ops/ms
+NettyIntegrationBenchmark.smallFile             thrpt   20  34.043 ± 0.747  ops/ms
+NettyIntegrationBenchmark.smallFileSync         thrpt   20  42.729 ± 1.431  ops/ms
+NettyIntegrationBenchmark.thinkOK               thrpt   20  51.209 ± 1.335  ops/ms
 */
 
 fun main(args: Array<String>) {

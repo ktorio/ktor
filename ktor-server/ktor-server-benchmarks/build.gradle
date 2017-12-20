@@ -22,6 +22,8 @@ dependencies {
     jmh project(':ktor-server:ktor-server-netty')
     jmh project(':ktor-server:ktor-server-jetty')
     jmh project(':ktor-server:ktor-server-cio')
+    jmh project(':ktor-client:ktor-client-cio')
+    jmh project(':ktor-client:ktor-client-apache')
 
     jmh group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.2'
     jmh group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.6.0'
