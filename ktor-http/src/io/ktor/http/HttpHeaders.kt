@@ -1,5 +1,11 @@
 package io.ktor.http
 
+val FORBIDDEN_HEADERS = setOf(
+        HttpHeaders.ContentLength,
+        HttpHeaders.TransferEncoding,
+        HttpHeaders.Upgrade
+)
+
 @Suppress("unused")
 object HttpHeaders {
     // Permanently registered standard HTTP headers

@@ -49,12 +49,12 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
             }
 
             for (value in values) {
-                headers.append(name, value)
+                headers.append(name, value, safe = false)
             }
         }
 
         if (transferEncoding == null && contentLength == null) {
-            headers.append(HttpHeaders.TransferEncoding, "chunked")
+            headers.append(HttpHeaders.TransferEncoding, "chunked", safe = false)
         }
 
         val connection = call.request.headers["Connection"]

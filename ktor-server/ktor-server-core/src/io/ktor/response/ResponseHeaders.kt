@@ -1,5 +1,6 @@
 package io.ktor.response
 
+import io.ktor.http.*
 import io.ktor.util.*
 
 abstract class ResponseHeaders {
@@ -12,7 +13,8 @@ abstract class ResponseHeaders {
         }
     }
 
-    fun append(name: String, value: String) {
+    fun append(name: String, value: String, safe: Boolean = true) {
+        if (safe && name.isForbidden()) throw HeaderForbiddenException(name)
         engineAppendHeader(name, value)
     }
 
@@ -20,3 +22,8 @@ abstract class ResponseHeaders {
     protected abstract fun getEngineHeaderNames(): List<String>
     protected abstract fun getEngineHeaderValues(name: String): List<String>
 }
+
+private fun String.isForbidden(): Boolean =
+    FORBIDDEN_HEADERS.any { it.equals(this, ignoreCase = true) }
+
+class HeaderForbiddenException(header: String): IllegalArgumentException("Header $header is forbidden")
