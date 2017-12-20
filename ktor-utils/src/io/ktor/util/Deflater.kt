@@ -51,7 +51,7 @@ private suspend fun ByteWriteChannel.deflateWhile(deflater: Deflater, buffer: By
 
 fun ByteReadChannel.deflated(
         gzip: Boolean = true,
-        pool: ObjectPool<ByteBuffer> = EmptyByteBufferPool
+        pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ): ByteReadChannel = writer(Unconfined, autoFlush = true) {
     channel.writeByteOrder = ByteOrder.LITTLE_ENDIAN
     val crc = CRC32()
@@ -88,7 +88,7 @@ fun ByteReadChannel.deflated(
 
 fun ByteWriteChannel.deflated(
         gzip: Boolean = true,
-        pool: ObjectPool<ByteBuffer> = EmptyByteBufferPool
+        pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ): ByteWriteChannel = reader(Unconfined, autoFlush = true) {
     channel.deflated(gzip, pool).joinTo(this@deflated, closeOnEnd = true)
 }.channel

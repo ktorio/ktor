@@ -5,6 +5,7 @@ import java.nio.*
 
 
 internal val DEFAULT_BUFFER_SIZE = 4098
+internal val DEFAULT_KTOR_POOL_SIZE = 2048
 
 interface ByteBufferPool {
     fun allocate(size: Int): PoolTicket
@@ -39,14 +40,10 @@ object NoPool : ByteBufferPool {
     private class Ticket(override val buffer: ByteBuffer) : PoolTicket
 }
 
-object EmptyByteBufferPool : ObjectPool<ByteBuffer> {
-    override val capacity: Int = 0
+object KtorDefaultPool : DefaultPool<ByteBuffer>(DEFAULT_KTOR_POOL_SIZE) {
+    override fun produceInstance(): ByteBuffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
 
-    override fun borrow(): ByteBuffer = ByteBuffer.allocate(DEFAULT_BUFFER_SIZE)
-
-    override fun dispose() {}
-
-    override fun recycle(instance: ByteBuffer) {}
+    override fun clearInstance(instance: ByteBuffer): ByteBuffer = instance.apply { clear() }
 }
 
 suspend fun <T : Any> ObjectPool<T>.use(block: suspend (T) -> Unit) {

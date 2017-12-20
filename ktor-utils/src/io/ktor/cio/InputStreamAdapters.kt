@@ -33,7 +33,7 @@ fun ByteReadChannel.toInputStream(parent: Job = Job()): InputStream =
         ByteReadChannelInputStream(this, parent)
 
 fun InputStream.toByteReadChannel(
-        pool: ObjectPool<ByteBuffer> = EmptyByteBufferPool,
+        pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
         parent: Job = Job()
 ): ByteReadChannel = writer(Unconfined, parent = parent, autoFlush = true) {
     val buffer = pool.borrow()

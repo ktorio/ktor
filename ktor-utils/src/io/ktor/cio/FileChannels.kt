@@ -12,7 +12,7 @@ import kotlin.math.*
 fun File.readChannel(
         start: Long = 0,
         endInclusive: Long = -1,
-        pool: ObjectPool<ByteBuffer> = EmptyByteBufferPool
+        pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ): ByteReadChannel {
     val file = RandomAccessFile(this@readChannel, "r")
     return writer(Unconfined, autoFlush = true) {
@@ -42,7 +42,7 @@ fun File.readChannel(
     }.channel
 }
 
-fun File.writeChannel(pool: ObjectPool<ByteBuffer> = EmptyByteBufferPool): ByteWriteChannel = reader(Unconfined, autoFlush = true) {
+fun File.writeChannel(pool: ObjectPool<ByteBuffer> = KtorDefaultPool): ByteWriteChannel = reader(Unconfined, autoFlush = true) {
     RandomAccessFile(this@writeChannel, "rw").use { file ->
         pool.use { buffer ->
             while (!channel.isClosedForRead) {

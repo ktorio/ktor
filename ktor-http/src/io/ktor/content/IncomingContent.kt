@@ -14,7 +14,7 @@ interface IncomingContent : HttpMessage {
 }
 
 suspend fun IncomingContent.readText(
-        pool: ObjectPool<ByteBuffer> = EmptyByteBufferPool,
+        pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
         charset: Charset? = null
 ): String {
     val length = headers[HttpHeaders.ContentLength]?.toInt() ?: 1
