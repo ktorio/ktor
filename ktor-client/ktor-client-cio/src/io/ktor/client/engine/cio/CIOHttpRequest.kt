@@ -82,8 +82,10 @@ class CIOHttpRequest(
         if (body is OutgoingContent.NoContent) return
         val chunked = bodySize == null || body.headers[HttpHeaders.TransferEncoding] == "chunked" || headers[HttpHeaders.TransferEncoding] == "chunked"
 
-        launch(dispatcher + executionContext) {
-            val channel = if (chunked) encodeChunked(output, coroutineContext).channel else output
+        launch(dispatcher, parent = executionContext) {
+            var chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, coroutineContext) else null
+            val channel = chunkedJob?.channel ?: output
+
             try {
                 channel.writeBody(body)
             } catch (cause: Throwable) {
@@ -91,6 +93,7 @@ class CIOHttpRequest(
                 executionContext.completeExceptionally(cause)
             } finally {
                 channel.close()
+                chunkedJob?.join()
                 executionContext.complete(Unit)
             }
         }
