@@ -1,6 +1,8 @@
 package io.ktor.http.cio.internals
 
 import io.ktor.http.*
+import kotlinx.io.core.*
+import java.nio.*
 
 internal fun CharSequence.hashCodeLowerCase(start: Int = 0, end: Int = length): Int {
     var hashCode = 0
@@ -38,14 +40,17 @@ private val HexTable = (0..0xff).map { v ->
     }
 }.toTypedArray()
 
+private val HexLetterTable = (0..0xf).map {
+    if (it < 0xa) (0x30 + it).toByte() else ('a' + it - 0x0a).toInt().toByte()
+}.toTypedArray()
+
 internal fun CharSequence.parseHexLong(): Long {
     var result = 0L
     val table = HexTable
     for (i in 0 until length) {
         val v = this[i].toInt() and 0xffff
         val digit = if (v < 0xff) table[v] else -1L
-        if (digit == -1L) throw NumberFormatException("Invalid HEX number: $this, wrong digit: ${this[i]}")
-
+        if (digit == -1L) hexNumberFormatException(this, i)
         result = (result shl 4) or digit
     }
 
@@ -79,6 +84,50 @@ private fun CharSequence.parseDecLongWithCheck(): Long {
     }
 
     return result
+}
+
+internal fun ByteBuffer.writeIntHex(value: Int): Int {
+    require(value > 0) { "Does only work for positive numbers" } // zero is not included!
+    var current = value
+    var zeroes = 0
+    val table = HexLetterTable
+
+    repeat(8) { idx ->
+        val v = current and 0x0f
+        if (v == 0) zeroes++ else zeroes = 0
+        current = current ushr 4
+
+        put(7 - idx, table[v])
+    }
+
+    return zeroes
+}
+
+internal fun BufferView.writeIntHex(value: Int) {
+    require(value > 0) { "Does only work for positive numbers" } // zero is not included!
+    var current = value
+    val table = HexLetterTable
+    var digits = 0
+
+    while (digits++ < 8) {
+        val v = current ushr 28
+        current = current shl 4
+
+        if (v != 0) {
+            writeByte(table[v])
+            break
+        }
+    }
+
+    while (digits++ < 8) {
+        val v = current ushr 28
+        current = current shl 4
+        writeByte(table[v])
+    }
+}
+
+private fun hexNumberFormatException(s: CharSequence, idx: Int): Nothing {
+    throw NumberFormatException("Invalid HEX number: $s, wrong digit: ${s[idx]}")
 }
 
 private fun numberFormatException(cs: CharSequence, idx: Int) {

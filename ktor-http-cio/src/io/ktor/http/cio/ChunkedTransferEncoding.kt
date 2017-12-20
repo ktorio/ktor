@@ -2,8 +2,11 @@ package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.io.core.*
+import kotlinx.io.core.ByteOrder
 import kotlinx.io.pool.*
 import java.io.*
+import java.io.EOFException
 import kotlin.coroutines.experimental.*
 
 private const val MAX_CHUNK_SIZE_LENGTH = 128
@@ -69,26 +72,33 @@ suspend fun encodeChunked(output: ByteWriteChannel, coroutineContext: CoroutineC
 }
 
 suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
-    val chunkSizeBuffer = ChunkSizeBufferPool.borrow()
     val buffer = DefaultByteBufferPool.borrow()
+    val view = BufferView.Pool.borrow()
+    view.byteOrder = ByteOrder.BIG_ENDIAN
 
     try {
         while (true) {
-            val size = input.readAvailable(buffer)
-            if (size == -1) {
-                break
+            while (buffer.hasRemaining()) {
+                val rc = input.readAvailable(buffer)
+                if (rc == -1) {
+                    break
+                }
             }
 
             buffer.flip()
-            chunkSizeBuffer.append(size.toString(16))
-            chunkSizeBuffer.append("\r\n")
-            output.writeStringUtf8(chunkSizeBuffer)
-            output.writeFully(buffer)
-            output.writeFully(CrLf)
-            output.flush()
+            if (!buffer.hasRemaining()) break
 
-            chunkSizeBuffer.clear()
+            view.resetForWrite()
+            view.writeIntHex(buffer.remaining())
+            view.writeShort(CrLfShort)
+
+            output.writeFully(view)
+            output.writeFully(buffer)
             buffer.clear()
+
+            output.writeFully(CrLf)
+
+            if (input.availableForRead == 0) output.flush()
         }
 
         output.writeFully(LastChunkBytes)
@@ -97,9 +107,12 @@ suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
     } finally {
         output.flush()
         DefaultByteBufferPool.recycle(buffer)
-        ChunkSizeBufferPool.recycle(chunkSizeBuffer)
+        view.release(BufferView.Pool)
     }
 }
+
+private const val CrLfShort: Short = 0x0d0a
+private const val CrLfCrLfInt: Int = 0x0d0a0d0a
 
 private val CrLf = "\r\n".toByteArray()
 private val LastChunkBytes = "0\r\n\r\n".toByteArray()

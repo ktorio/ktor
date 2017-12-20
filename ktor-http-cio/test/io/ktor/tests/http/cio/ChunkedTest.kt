@@ -125,7 +125,7 @@ class ChunkedTest {
         yield()
 
         val encodedText = encoded.readRemaining().inputStream().reader().readText()
-        assertEquals("3\r\n123\r\n2\r\n45\r\n1\r\n6\r\n0\r\n\r\n", encodedText)
+        assertEquals("6\r\n123456\r\n0\r\n\r\n", encodedText)
     }
 
     @Test
