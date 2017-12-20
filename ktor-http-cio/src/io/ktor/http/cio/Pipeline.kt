@@ -43,8 +43,8 @@ fun startConnectionPipeline(input: ByteReadChannel,
                 while (true) {
                     val child = timeout.withTimeout(receiveChildOrNull) ?: break
                     try {
-//                child.joinTo(output, false)
-                        child.copyTo(output)
+                        child.joinTo(output, false)
+//                        child.copyTo(output)
                         output.flush()
                     } catch (t: Throwable) {
                         if (child is ByteWriteChannel) {
