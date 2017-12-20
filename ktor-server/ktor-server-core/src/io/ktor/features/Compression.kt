@@ -85,7 +85,7 @@ class Compression(compression: Configuration) {
                 is OutgoingContent.ReadChannelContent -> ({ message.readFrom() })
                 is OutgoingContent.WriteChannelContent -> {
                     if (encoderOptions != null) {
-                        val response = CompressedWriteResponse(message, message.status, encoderOptions.name, encoderOptions.encoder)
+                        val response = CompressedWriteResponse(message, encoderOptions.name, encoderOptions.encoder)
                         context.proceedWith(response)
                     }
                     return
@@ -96,33 +96,52 @@ class Compression(compression: Configuration) {
             }
 
             if (encoderOptions != null) {
-                val response = CompressedResponse(channel, message.headers, message.status, encoderOptions.name, encoderOptions.encoder)
+                val response = CompressedResponse(message, channel, encoderOptions.name, encoderOptions.encoder)
                 context.proceedWith(response)
             }
 
         }
     }
 
-    private class CompressedResponse(val delegateChannel: () -> ByteReadChannel, val delegateHeaders: ValuesMap, override val status: HttpStatusCode?, val encoding: String, val encoder: CompressionEncoder) : OutgoingContent.ReadChannelContent() {
+    private class CompressedResponse(val original: OutgoingContent,
+                                     val delegateChannel: () -> ByteReadChannel,
+                                     val encoding: String,
+                                     val encoder: CompressionEncoder) : OutgoingContent.ReadChannelContent(), VersionedContent {
         override fun readFrom() = encoder.compress(delegateChannel())
         override val headers by lazy(LazyThreadSafetyMode.NONE) {
             ValuesMap.build(true) {
-                appendFiltered(delegateHeaders) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
+                appendFiltered(original.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
                 append(HttpHeaders.ContentEncoding, encoding)
             }
         }
+
+        override val contentType: ContentType
+            get() = original.contentType
+        override val status: HttpStatusCode?
+            get() = original.status
+        override val versions: List<Version>
+            get() = if (original is VersionedContent) original.versions else emptyList()
     }
 
-    private class CompressedWriteResponse(val delegate: WriteChannelContent, override val status: HttpStatusCode?, val encoding: String, val encoder: CompressionEncoder) : OutgoingContent.WriteChannelContent() {
+    private class CompressedWriteResponse(val original: WriteChannelContent,
+                                          val encoding: String,
+                                          val encoder: CompressionEncoder) : OutgoingContent.WriteChannelContent(), VersionedContent {
         override val headers by lazy(LazyThreadSafetyMode.NONE) {
             ValuesMap.build(true) {
-                appendFiltered(delegate.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
+                appendFiltered(original.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
                 append(HttpHeaders.ContentEncoding, encoding)
             }
         }
 
+        override val contentType: ContentType
+            get() = original.contentType
+        override val status: HttpStatusCode?
+            get() = original.status
+        override val versions: List<Version>
+            get() = if (original is VersionedContent) original.versions else emptyList()
+
         override suspend fun writeTo(channel: ByteWriteChannel) {
-            delegate.writeTo(encoder.compress(channel))
+            original.writeTo(encoder.compress(channel))
         }
     }
 
@@ -291,27 +310,19 @@ fun ConditionsHolderBuilder.condition(predicate: ApplicationCall.(OutgoingConten
  * Appends a minimum size condition to the encoder or Compression configuration
  */
 fun ConditionsHolderBuilder.minimumSize(minSize: Long) {
-    condition { it.contentLength()?.let { it >= minSize } ?: true }
+    condition { it.contentLength?.let { it >= minSize } ?: true }
 }
 
 /**
  * Appends a content type condition to the encoder or Compression configuration
  */
 fun ConditionsHolderBuilder.matchContentType(vararg mimeTypes: ContentType) {
-    condition {
-        it.contentType()?.let { mimeType ->
-            mimeTypes.any { mimeType.match(it) }
-        } ?: false
-    }
+    condition { content -> mimeTypes.any { content.contentType.match(it) } }
 }
 
 /**
  * Appends a content type exclusion condition to the encoder or Compression configuration
  */
 fun ConditionsHolderBuilder.excludeContentType(vararg mimeTypes: ContentType) {
-    condition {
-        it.contentType()?.let { mimeType ->
-            mimeTypes.none { mimeType.match(it) }
-        } ?: false
-    }
+    condition { content -> mimeTypes.none { content.contentType.match(it) } }
 }

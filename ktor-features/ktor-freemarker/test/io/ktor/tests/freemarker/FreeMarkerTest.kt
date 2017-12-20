@@ -17,7 +17,7 @@ class FreeMarkerTest {
     fun testName() {
         withTestApplication {
             application.setUpTestTemplates()
-
+            application.install(ConditionalHeaders)
             application.routing {
                 val model = mapOf("id" to 1, "title" to "Hello, World!")
 
@@ -44,6 +44,7 @@ class FreeMarkerTest {
         withTestApplication {
             application.setUpTestTemplates()
             application.install(Compression)
+            application.install(ConditionalHeaders)
 
             application.routing {
                 val model = mapOf("id" to 1, "title" to "Hello, World!")
@@ -72,6 +73,7 @@ class FreeMarkerTest {
     fun testWithoutEtag() {
         withTestApplication {
             application.setUpTestTemplates()
+            application.install(ConditionalHeaders)
 
             application.routing {
                 val model = mapOf("id" to 1, "title" to "Hello, World!")
@@ -98,6 +100,7 @@ class FreeMarkerTest {
     fun canRespondAppropriately() {
         withTestApplication {
             application.setUpTestTemplates()
+            application.install(ConditionalHeaders)
 
             application.routing {
                 val model = mapOf("id" to 1, "title" to "Bonjour le monde!")

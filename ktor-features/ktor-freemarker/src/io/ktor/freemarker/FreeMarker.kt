@@ -39,8 +39,8 @@ class FreeMarker(val config: Configuration) {
     private class FreeMarkerTemplateResource(val template: freemarker.template.Template,
                                              val model: Any,
                                              val etag: String?,
-                                             override val contentType: ContentType) : OutgoingContent.WriteChannelContent(), Resource {
-        override suspend fun writeTo(channel: ByteWriteChannel) {
+                                             override val contentType: ContentType) : OutgoingContent.WriteChannelContent(), VersionedContent {
+        suspend override fun writeTo(channel: ByteWriteChannel) {
             channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8).use {
                 template.process(model, it)
             }
@@ -53,10 +53,10 @@ class FreeMarker(val config: Configuration) {
                 emptyList()
             }
 
-        override val expires = null
-        override val cacheControl = null
-        override val contentLength = null
-
-        override val headers by lazy(LazyThreadSafetyMode.NONE) { super<Resource>.headers }
+        override val headers by lazy(LazyThreadSafetyMode.NONE) {
+            ValuesMap.build(true) {
+                contentType(contentType)
+            }
+        }
     }
 }

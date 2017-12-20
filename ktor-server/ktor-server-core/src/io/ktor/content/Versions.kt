@@ -8,6 +8,10 @@ import java.nio.file.attribute.*
 import java.time.*
 import java.util.*
 
+interface VersionedContent {
+    val versions: List<Version>
+}
+
 /**
  * Represents content version
  *

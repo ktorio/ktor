@@ -13,7 +13,10 @@ import java.nio.file.*
  *
  * @return [LocalFileContent] or [JarFileContent] or `null`
  */
-fun ApplicationCall.resolveResource(path: String, resourcePackage: String? = null, classLoader: ClassLoader = application.environment.classLoader, mimeResolve: (String) -> ContentType = { ContentType.defaultForFileExtension(it) }): Resource? {
+fun ApplicationCall.resolveResource(path: String,
+                                    resourcePackage: String? = null,
+                                    classLoader: ClassLoader = application.environment.classLoader,
+                                    mimeResolve: (String) -> ContentType = { ContentType.defaultForFileExtension(it) }): OutgoingContent? {
     val packagePath = (resourcePackage?.replace('.', '/') ?: "").appendPathPart(path)
     val normalizedPath = Paths.get(packagePath).normalizeAndRelativize()
     val normalizedResource = normalizedPath.toString().replace(File.separatorChar, '/')

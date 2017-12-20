@@ -9,6 +9,7 @@ import io.ktor.util.*
 class ByteArrayContent(private val bytes: ByteArray) : OutgoingContent.ByteArrayContent() {
     override val headers by lazy(LazyThreadSafetyMode.NONE) {
         ValuesMap.build(true) {
+            contentType(contentType)
             contentLength(bytes.size.toLong())
         }
     }

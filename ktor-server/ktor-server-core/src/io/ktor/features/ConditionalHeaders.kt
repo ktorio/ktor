@@ -35,11 +35,7 @@ class ConditionalHeaders(private val versionProviders: List<(OutgoingContent) ->
     internal suspend fun interceptor(context: PipelineContext<Any, ApplicationCall>, message: Any) {
         val call = context.call
 
-        val versions = when (message) {
-            is Resource -> message.versions
-            is OutgoingContent -> versionsFor(message)
-            else -> emptyList()
-        }
+        val versions = if (message is OutgoingContent) versionsFor(message) else emptyList()
 
         val checkResult = checkVersions(call, versions)
         if (checkResult != VersionCheckResult.OK) {
@@ -158,7 +154,8 @@ suspend fun ApplicationCall.withLastModified(lastModified: LocalDateTime, putHea
  */
 val OutgoingContent.defaultVersions: List<Version>
     get() {
-        if (this is Resource) return versions
+        if (this is VersionedContent)
+            return versions
 
         val headers = headers
         val lastModifiedHeaders = headers.getAll(HttpHeaders.LastModified) ?: emptyList()

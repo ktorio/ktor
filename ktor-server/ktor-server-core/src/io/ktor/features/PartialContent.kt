@@ -74,7 +74,7 @@ class PartialContent(private val maxRangeCount: Int) {
         call.attributes.put(Compression.SuppressionAttribute, true)
         call.response.pipeline.intercept(PartialContentPhase) response@ { message ->
             if (message is OutgoingContent.ReadChannelContent && message !is RangeChannelProvider) {
-                val length = message.contentLength() ?: return@response
+                val length = message.contentLength ?: return@response
                 tryProcessRange(message, call, rangeSpecifier, length)
             }
         }
@@ -144,15 +144,18 @@ class PartialContent(private val maxRangeCount: Int) {
 
         call.attributes.put(Compression.SuppressionAttribute, true) // multirange with compression is not supported yet
 
-        val contentType = content.contentType() ?: ContentType.Application.OctetStream
-        proceedWith(RangeChannelProvider.Multiple(call.isGet(), content, ranges, length, boundary, contentType))
+        proceedWith(RangeChannelProvider.Multiple(call.isGet(), content, ranges, length, boundary))
     }
 
-    private sealed class RangeChannelProvider : OutgoingContent.ReadChannelContent() {
-        class Bypass(val content: ReadChannelContent) : RangeChannelProvider() {
-            override val status: HttpStatusCode?
-                get() = content.status
+    private sealed class RangeChannelProvider(val content: ReadChannelContent) : OutgoingContent.ReadChannelContent(), VersionedContent {
+        override val status: HttpStatusCode?
+            get() = content.status
+        override val contentType: ContentType
+            get() = content.contentType
+        override val versions: List<Version>
+            get() = if (content is VersionedContent) content.versions else emptyList()
 
+        class Bypass(content: ReadChannelContent) : RangeChannelProvider(content) {
             override fun readFrom() = content.readFrom()
 
             override val headers by lazy(LazyThreadSafetyMode.NONE) {
@@ -163,8 +166,9 @@ class PartialContent(private val maxRangeCount: Int) {
             }
         }
 
-        class Single(val get: Boolean, val content: OutgoingContent.ReadChannelContent, val range: LongRange, val fullLength: Long) : RangeChannelProvider() {
-            override val status: HttpStatusCode? get() = if (get) HttpStatusCode.PartialContent else null
+        class Single(val get: Boolean, content: OutgoingContent.ReadChannelContent, val range: LongRange, val fullLength: Long) : RangeChannelProvider(content), VersionedContent {
+            override val status: HttpStatusCode?
+                get() = if (get) HttpStatusCode.PartialContent else null
 
             override fun readFrom(): ByteReadChannel = content.readFrom(range)
 
@@ -177,8 +181,9 @@ class PartialContent(private val maxRangeCount: Int) {
             }
         }
 
-        class Multiple(val get: Boolean, val content: OutgoingContent.ReadChannelContent, val ranges: List<LongRange>, val length: Long, val boundary: String, val contentType: ContentType) : RangeChannelProvider() {
-            override val status: HttpStatusCode? get() = if (get) HttpStatusCode.PartialContent else null
+        class Multiple(val get: Boolean, content: OutgoingContent.ReadChannelContent, val ranges: List<LongRange>, val length: Long, val boundary: String) : RangeChannelProvider(content) {
+            override val status: HttpStatusCode?
+                get() = if (get) HttpStatusCode.PartialContent else null
 
             override fun readFrom() = writeMultipleRanges(
                     { range -> content.readFrom(range) }, ranges, length, boundary, contentType.toString()

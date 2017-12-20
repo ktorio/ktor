@@ -7,6 +7,7 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 import org.junit.Test
 import java.time.*
@@ -334,8 +335,16 @@ class CompressionTest {
 
             application.routing {
                 get("/") {
-                    call.respond(object : Resource, OutgoingContent.ReadChannelContent() {
-                        override val headers by lazy(LazyThreadSafetyMode.NONE) { super<Resource>.headers }
+                    call.respond(object : OutgoingContent.ReadChannelContent(), VersionedContent {
+                        override val headers: ValuesMap
+                            get() = ValuesMap.build(true) {
+                                contentType(contentType)
+                                contentLength(contentLength)
+                                expires?.let { expires ->
+                                    expires(expires)
+                                }
+                                cacheControl(cacheControl)
+                            }
 
                         override val contentType: ContentType
                             get() = ContentType.Text.Plain
@@ -343,9 +352,9 @@ class CompressionTest {
                         override val versions: List<Version>
                             get() = listOf(LastModifiedVersion(ldt))
 
-                        override val expires = ldt
+                        val expires = ldt
 
-                        override val cacheControl = CacheControl.NoCache(CacheControl.Visibility.Public)
+                        val cacheControl = CacheControl.NoCache(CacheControl.Visibility.Public)
 
                         override val contentLength = 4L
 

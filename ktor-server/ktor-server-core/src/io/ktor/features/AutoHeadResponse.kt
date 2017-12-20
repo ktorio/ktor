@@ -31,8 +31,14 @@ object AutoHeadResponse : ApplicationFeature<ApplicationCallPipeline, Unit, Unit
         }
     }
 
-    private class HeadResponse(val delegate: OutgoingContent) : OutgoingContent.NoContent() {
-        override val headers by lazy(LazyThreadSafetyMode.NONE) { delegate.headers }
-        override val status: HttpStatusCode? get() = delegate.status
+    private class HeadResponse(val content: OutgoingContent) : OutgoingContent.NoContent(), VersionedContent {
+        override val status: HttpStatusCode?
+            get() = content.status
+        override val contentType: ContentType
+            get() = content.contentType
+        override val versions: List<Version>
+            get() = if (content is VersionedContent) content.versions else emptyList()
+
+        override val headers by lazy(LazyThreadSafetyMode.NONE) { content.headers }
     }
 }

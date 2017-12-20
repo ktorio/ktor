@@ -2,20 +2,19 @@ package io.ktor.content
 
 import io.ktor.cio.*
 import io.ktor.http.*
+import io.ktor.util.*
 import java.net.*
-import java.net.URL
 
-class URIFileContent(val uri: URI, override val contentType: ContentType = ContentType.defaultForFilePath(uri.path)): OutgoingContent.ReadChannelContent(), Resource {
+class URIFileContent(val uri: URI,
+                     override val contentType: ContentType = ContentType.defaultForFilePath(uri.path)) : OutgoingContent.ReadChannelContent() {
     constructor(url: URL, contentType: ContentType = ContentType.defaultForFilePath(url.path)) : this(url.toURI(), contentType)
 
-    override val headers by lazy(LazyThreadSafetyMode.NONE) { super<Resource>.headers }
+    override val headers by lazy(LazyThreadSafetyMode.NONE) {
+        ValuesMap.build(true) {
+            contentType(contentType)
+            contentLength?.let { contentLength(it) }
+        }
+    }
 
     override fun readFrom() = uri.toURL().openStream().toByteReadChannel() // TODO: use http client
-
-    override val versions: List<Version>
-        get() = emptyList()
-
-    override val expires = null
-    override val cacheControl = null
-    override val contentLength = null
 }

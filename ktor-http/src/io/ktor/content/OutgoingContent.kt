@@ -11,6 +11,18 @@ import kotlin.coroutines.experimental.*
  */
 sealed class OutgoingContent {
     /**
+     * Specifies [ContentType] for this resource.
+     */
+    open val contentType: ContentType get() = ContentType.Application.OctetStream
+
+    /**
+     * Specifies content length in bytes for this resource.
+     *
+     * If null, the resources will be sent as `Transfer-Encoding: chunked`
+     */
+    open val contentLength: Long? get() = null
+
+    /**
      * Status code to set when sending this content
      */
     open val status: HttpStatusCode?

@@ -91,6 +91,7 @@ class StaticContentTest {
 
     @Test
     fun testStaticContent() = withTestApplication {
+        application.install(ConditionalHeaders)
         application.install(PartialContent)
         application.install(AutoHeadResponse)
 

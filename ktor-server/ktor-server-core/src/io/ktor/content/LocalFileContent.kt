@@ -2,6 +2,7 @@ package io.ktor.content
 
 import io.ktor.cio.*
 import io.ktor.http.*
+import io.ktor.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
@@ -15,9 +16,8 @@ import java.time.*
  */
 class LocalFileContent(val file: File,
                        override val contentType: ContentType = ContentType.defaultForFile(file),
-                       override val expires: LocalDateTime? = null,
-                       override val cacheControl: CacheControl? = null) : OutgoingContent.ReadChannelContent(), Resource {
-
+                       val expires: LocalDateTime? = null,
+                       val cacheControl: CacheControl? = null) : OutgoingContent.ReadChannelContent(), VersionedContent {
 
     override val contentLength: Long
         get() = file.length()
@@ -25,7 +25,14 @@ class LocalFileContent(val file: File,
     override val versions: List<Version>
         get() = listOf(LastModifiedVersion(Files.getLastModifiedTime(file.toPath())))
 
-    override val headers by lazy(LazyThreadSafetyMode.NONE) { super<Resource>.headers }
+    override val headers by lazy(LazyThreadSafetyMode.NONE) {
+        ValuesMap.build(true) {
+            contentType(contentType)
+            contentLength(contentLength)
+            expires?.let { expires(it) }
+            cacheControl?.let { cacheControl(it) }
+        }
+    }
 
     // TODO: consider using WriteChannelContent to avoid piping
     // Or even make it dual-content so engine implementation can choose
