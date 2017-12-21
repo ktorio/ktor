@@ -94,15 +94,11 @@ internal class JettyResponseListener(
             }
         } catch (cause: Throwable) {
             channel.close(cause)
+            this@JettyResponseListener.context.completeExceptionally(cause)
             return@launch
         } finally {
             channel.close()
-        }
-    }.invokeOnCompletion { cause ->
-        if (cause != null) {
-            context.completeExceptionally(cause)
-        } else {
-            context.complete(Unit)
+            this@JettyResponseListener.context.complete(Unit)
         }
     }
 

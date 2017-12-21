@@ -64,5 +64,10 @@ private suspend fun CloseableHttpAsyncClient.sendRequest(
         }
     }
 
-    execute(request, consumer, callback)
+    val future = execute(request, consumer, callback)
+    continuation.invokeOnCompletion(onCancelling = true) { cause ->
+        cause ?: return@invokeOnCompletion
+        future.cancel(true)
+        parent.cancel(cause)
+    }
 }
