@@ -2,6 +2,7 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.ByteChannel
 import kotlinx.io.pool.*
@@ -44,30 +45,32 @@ internal fun attachForWritingImpl(channel: ByteChannel, nioChannel: WritableByte
 
 internal fun attachForWritingDirectImpl(channel: ByteChannel, nioChannel: WritableByteChannel, selectable: Selectable, selector: SelectorManager): ReaderJob {
     return reader(ioCoroutineDispatcher, channel) {
-        try {
-            var rc = 0
-            val readBlock = { buffer: ByteBuffer, _: Boolean ->
-                val r = nioChannel.write(buffer)
-                if (r > 0) true
-                else {
-                    rc = r
-                    false
-                }
-            }
+        selectable.interestOp(SelectInterest.WRITE, false)
 
-            while (true) {
-                channel.consumeEachBufferRange(readBlock)
-                if (rc == 0) {
-                    if (channel.isClosedForRead) break
-                    selectable.interestOp(SelectInterest.WRITE, true)
-                    selector.select(selectable, SelectInterest.WRITE)
-                } else {
-                    selectable.interestOp(SelectInterest.WRITE, false)
+        try {
+            channel.lookAheadSuspend {
+                while (true) {
+                    val buffer = request(0, 1)
+                    if (buffer == null) {
+//                        if (channel.isClosedForRead) break
+                        if (!awaitAtLeast(1)) break
+                        continue
+                    }
+
+                    while (buffer.hasRemaining()) {
+                        val r = nioChannel.write(buffer)
+
+                        if (r == 0) {
+                            selectable.interestOp(SelectInterest.WRITE, true)
+                            selector.select(selectable, SelectInterest.WRITE)
+                        } else {
+                            consumed(r)
+                        }
+                    }
                 }
             }
-        } catch (end: EOFException) {
-            selectable.interestOp(SelectInterest.WRITE, false)
         } finally {
+            selectable.interestOp(SelectInterest.WRITE, false)
             if (nioChannel is SocketChannel) {
                 try {
                     nioChannel.shutdownOutput()
