@@ -1,13 +1,15 @@
 package io.ktor.network.util
 
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.experimental.internal.*
+import kotlin.coroutines.experimental.intrinsics.*
 import java.io.*
+import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
 
 internal class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), Closeable {
     private val dispatcherThreadGroup = ThreadGroup(ioThreadGroup, "io-pool-group-sub")
-    private val tasks = Channel<Runnable>(Channel.UNLIMITED)
+    private val tasks = LockFreeLinkedListHead()
 
     init {
         require(nThreads > 0) { "nThreads should be positive but $nThreads specified"}
@@ -18,27 +20,90 @@ internal class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispa
     }
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
-        if (!tasks.offer(block)) {
-            CommonPool.dispatch(context, block)
+        val node: LockFreeLinkedListNode = if (block is LockFreeLinkedListNode && block.isFresh) {
+            tasks.addLast(block)
+            block
+        } else {
+            IODispatchedTask(block).also { tasks.addLast(it) }
         }
+        resumeAnyThread(node)
     }
 
     override fun close() {
-        tasks.close()
+        if (tasks.prev is Poison) return
+        tasks.addLastIfPrev(Poison()) { prev -> prev !is Poison }
+        resumeAllThreads()
     }
 
-    private inner class IOThread : Thread(dispatcherThreadGroup, "io-thread") {
+    private fun resumeAnyThread(node: LockFreeLinkedListNode) {
+        val threads = threads
+        for (i in 0 until nThreads) {
+            val cont = ThreadCont.getAndSet(threads[i], null)
+            if (cont != null) {
+                cont.resume(Unit)
+                return
+            } else if (node.isRemoved) return
+        }
+    }
+
+    private fun resumeAllThreads() {
+        val threads = threads
+        for (i in 0 until nThreads) {
+            ThreadCont.getAndSet(threads[i], null)?.resume(Unit)
+        }
+    }
+
+    internal inner class IOThread : Thread(dispatcherThreadGroup, "io-thread") {
+        @Volatile
+        @JvmField
+        var cont : Continuation<Unit>? = null
+
         init {
             isDaemon = true
         }
 
         override fun run() {
             runBlocking {
-                while (true) {
-                    val task = tasks.receiveOrNull() ?: break
-                    run(task)
+                try {
+                    while (true) {
+                        val task = receiveOrNull() ?: break
+                        run(task)
+                    }
+                } catch (t: Throwable) {
+                    println("thread died: $t")
                 }
             }
+        }
+
+        @Suppress("NOTHING_TO_INLINE")
+        private suspend inline fun receiveOrNull(): Runnable? {
+            val r = tasks.removeFirstIfIsInstanceOf<Runnable>()
+            if (r != null) return r
+            return receiveSuspend()
+        }
+
+        @Suppress("NOTHING_TO_INLINE")
+        private suspend inline fun receiveSuspend(): Runnable? {
+            do {
+                val t = tasks.removeFirstIfIsInstanceOf<Runnable>()
+                if (t != null) return t
+                if (tasks.next is Poison) return null
+                await()
+            } while (true)
+        }
+
+        private val awaitSuspendBlock = { c: Continuation<Unit>? ->
+            // nullable param is to avoid null check
+            // we know that it is always non-null
+            // and it will never crash if it is actually null
+            val ThreadCont = ThreadCont
+            if (!ThreadCont.compareAndSet(this, null, c)) throw IllegalStateException()
+            if (tasks.next !== tasks && ThreadCont.compareAndSet(this, c, null)) Unit
+            else COROUTINE_SUSPENDED
+        }
+
+        private suspend fun await() {
+            return suspendCoroutineOrReturn(awaitSuspendBlock)
         }
 
         private fun run(task: Runnable) {
@@ -48,4 +113,14 @@ internal class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispa
             }
         }
     }
+
+    companion object {
+        @Suppress("UNCHECKED_CAST")
+        private val ThreadCont =
+                AtomicReferenceFieldUpdater.newUpdater<IOThread, Continuation<*>>(IOThread::class.java, Continuation::class.java, IOThread::cont.name)
+        as AtomicReferenceFieldUpdater<IOThread, Continuation<Unit>?>
+    }
+
+    private class Poison : LockFreeLinkedListNode()
+    private class IODispatchedTask(val r: Runnable) : LockFreeLinkedListNode(), Runnable by r
 }
