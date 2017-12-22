@@ -27,8 +27,19 @@ fun File.readChannel(
             }
 
             if (endInclusive == -1L) {
-                channel.writeWhile { buffer ->
-                    fileChannel.read(buffer) != -1
+                channel.writeSuspendSession {
+                    while (true) {
+                        val buffer = request(1)
+                        if (buffer == null) {
+                            channel.flush()
+                            tryAwait(1)
+                            continue
+                        }
+
+                        val rc = fileChannel.read(buffer)
+                        if (rc == -1) break
+                        written(rc)
+                    }
                 }
             } else {
                 var position = start
