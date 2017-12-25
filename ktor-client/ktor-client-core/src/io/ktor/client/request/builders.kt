@@ -41,7 +41,7 @@ suspend inline fun <reified T> HttpClient.get(data: URL): T = get {
     url.takeFrom(data)
 }
 
-suspend inline fun <reified T> HttpClient.get(url: String): T = get(URL(decodeURLPart(url)))
+suspend inline fun <reified T> HttpClient.get(url: String): T = get(URL(url))
 
 suspend inline fun <reified T> HttpClient.post(
         scheme: String = "http", host: String = "localhost", port: Int = 80,
@@ -65,6 +65,6 @@ suspend inline fun <reified T> HttpClient.post(data: URL): T = post {
     url.takeFrom(data)
 }
 
-suspend inline fun <reified T> HttpClient.post(url: String): T = post(URL(decodeURLPart(url)))
+suspend inline fun <reified T> HttpClient.post(url: String): T = post(URL(url))
 
 fun request(block: HttpRequestBuilder.() -> Unit) = HttpRequestBuilder().apply(block)
