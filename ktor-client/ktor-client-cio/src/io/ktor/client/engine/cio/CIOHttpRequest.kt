@@ -14,6 +14,7 @@ import java.io.*
 import java.net.*
 import java.util.*
 
+
 class CIOHttpRequest(
         override val call: HttpClientCall,
         private val dispatcher: CoroutineDispatcher,
@@ -71,6 +72,8 @@ class CIOHttpRequest(
             body.headers.flattenEntries().forEach { (name, value) ->
                 builder.headerLine(name, value)
             }
+
+            builder.headerLine(HttpHeaders.Connection, "close")
 
             builder.emptyLine()
             output.writePacket(builder.build())
