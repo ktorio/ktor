@@ -28,7 +28,7 @@ class ApacheHttpRequest(
 
     override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 
-    suspend override fun execute(content: OutgoingContent): HttpResponse {
+    override suspend fun execute(content: OutgoingContent): HttpResponse {
         val request = ApacheRequestProducer(requestData, config, content, dispatcher, executionContext)
         return engine.sendRequest(call, request, dispatcher)
     }

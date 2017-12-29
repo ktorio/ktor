@@ -2,7 +2,6 @@ package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
 import java.net.*
-import java.net.DatagramSocketImpl
 import java.nio.channels.*
 
 class SocketOptions private constructor(private val allOptions: MutableMap<SocketOption<*>, Any?> = HashMap()) {

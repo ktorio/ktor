@@ -20,7 +20,7 @@ internal class ServletMultiPartData(val request: ApplicationRequest, val servlet
             else -> throw IOException("The request content is not multipart encoded")
         }
 
-    suspend override fun readPart() = if (partsIter.hasNext()) transformPart(partsIter.next()) else null
+    override suspend fun readPart() = if (partsIter.hasNext()) transformPart(partsIter.next()) else null
 
     private fun transformPart(servletPart: Part): PartData {
         return when {

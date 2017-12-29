@@ -34,7 +34,7 @@ class CIOMultipartData(private val channel: ByteReadChannel,
         }
     }
 
-    suspend override fun readPart(): PartData? {
+    override suspend fun readPart(): PartData? {
         while (true) {
             val event = events.receiveOrNull() ?: return null
             val part = eventToData(event)
@@ -98,7 +98,7 @@ class CIOMultipartData(private val channel: ByteReadChannel,
         } else {
             val packet = part.body.readRemaining(formFieldLimit) // TODO fail if limit exceeded
             try {
-                return PartData.FormItem(packet.readText().toString(), { part.release() }, CIOHeaders(headers))
+                return PartData.FormItem(packet.readText(), { part.release() }, CIOHeaders(headers))
             } finally {
                 packet.release()
             }

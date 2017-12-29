@@ -1,7 +1,6 @@
 package io.ktor.request
 
 import io.ktor.application.*
-import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.pipeline.*
 import io.ktor.util.*
@@ -21,10 +20,10 @@ open class ApplicationReceivePipeline : Pipeline<ApplicationReceiveRequest, Appl
 }
 
 @Deprecated("Use receiveOrNull instead", ReplaceWith("this.receiveOrNull<T>()"))
-inline suspend fun <reified T : Any> ApplicationCall.tryReceive(): T? = receiveOrNull()
+suspend inline fun <reified T : Any> ApplicationCall.tryReceive(): T? = receiveOrNull()
 
-inline suspend fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(T::class)
-inline suspend fun <reified T : Any> ApplicationCall.receive(): T {
+suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(T::class)
+suspend inline fun <reified T : Any> ApplicationCall.receive(): T {
     val type = T::class
     return receiveOrNull(type) ?: throw ContentTransformationException("Cannot transform this request's content to $type")
 }
@@ -44,18 +43,18 @@ suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? {
 }
 
 @Suppress("NOTHING_TO_INLINE")
-inline suspend fun ApplicationCall.receiveText(): String = receive()
+suspend inline fun ApplicationCall.receiveText(): String = receive()
 
 @Suppress("NOTHING_TO_INLINE")
-inline suspend fun ApplicationCall.receiveChannel(): ByteReadChannel = receive()
+suspend inline fun ApplicationCall.receiveChannel(): ByteReadChannel = receive()
 
 @Suppress("NOTHING_TO_INLINE")
-inline suspend fun ApplicationCall.receiveStream(): InputStream = receive()
+suspend inline fun ApplicationCall.receiveStream(): InputStream = receive()
 
 @Suppress("NOTHING_TO_INLINE")
-inline suspend fun ApplicationCall.receiveMultipart(): MultiPartData = receive()
+suspend inline fun ApplicationCall.receiveMultipart(): MultiPartData = receive()
 
 @Suppress("NOTHING_TO_INLINE")
-inline suspend fun ApplicationCall.receiveParameters(): ValuesMap = receive()
+suspend inline fun ApplicationCall.receiveParameters(): ValuesMap = receive()
 
 class ContentTransformationException(message: String) : Exception(message)

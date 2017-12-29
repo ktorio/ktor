@@ -23,7 +23,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
     }
 
     private var responded = false
-    override final val pipeline = ApplicationSendPipeline().apply {
+    final override val pipeline = ApplicationSendPipeline().apply {
         merge(call.application.sendPipeline)
         intercept(ApplicationSendPipeline.Engine) {
             if (responded)

@@ -12,8 +12,8 @@ internal abstract class NettyApplicationCall(application: Application,
 
     override val bufferPool = NettyByteBufferPool(context)
 
-    override abstract val request: NettyApplicationRequest
-    override abstract val response: NettyApplicationResponse
+    abstract override val request: NettyApplicationRequest
+    abstract override val response: NettyApplicationResponse
 
     internal val responseWriteJob = Job()
 

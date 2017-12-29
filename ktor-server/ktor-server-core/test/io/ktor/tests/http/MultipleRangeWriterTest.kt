@@ -4,7 +4,6 @@ import io.ktor.cio.*
 import io.ktor.features.*
 import kotlinx.coroutines.experimental.io.*
 import org.junit.Test
-import java.io.*
 import kotlin.test.*
 
 

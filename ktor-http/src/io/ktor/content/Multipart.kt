@@ -38,7 +38,7 @@ interface MultiPartData {
         override val parts: Sequence<PartData>
             get() = emptySequence()
 
-        suspend override fun readPart(): PartData? {
+        override suspend fun readPart(): PartData? {
             return null
         }
     }

@@ -11,8 +11,7 @@ fun Class<*>.findAllSupertypes(): List<Class<*>> {
     return result.toList()
 }
 
-tailrec
-private fun findAllSupertypes(nodes: MutableList<Pair<Class<*>, MutableList<Class<*>>>>, path: MutableSet<Class<*>>, visited: MutableSet<Class<*>>) {
+private tailrec fun findAllSupertypes(nodes: MutableList<Pair<Class<*>, MutableList<Class<*>>>>, path: MutableSet<Class<*>>, visited: MutableSet<Class<*>>) {
     if (nodes.isEmpty()) return
 
     val (current, children) = nodes[nodes.lastIndex]

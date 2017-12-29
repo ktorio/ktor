@@ -36,10 +36,10 @@ open class PostTest(private val factory: HttpClientEngineFactory<*>) : TestWithK
     @Test
     fun hugePost() {
         val builder = StringBuilder()
-        val STRING_SIZE = 1024 * 1024 * 32
+        val stringSize = 1024 * 1024 * 32
         val random = Random()
 
-        while (builder.length < STRING_SIZE) {
+        while (builder.length < stringSize) {
             builder.append(random.nextInt(256).toChar())
         }
 

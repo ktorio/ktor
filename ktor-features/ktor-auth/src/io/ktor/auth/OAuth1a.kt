@@ -18,7 +18,7 @@ import java.util.*
 import javax.crypto.*
 import javax.crypto.spec.*
 
-suspend internal fun PipelineContext<Unit, ApplicationCall>.oauth1a(
+internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth1a(
         client: HttpClient, dispatcher: CoroutineDispatcher,
         providerLookup: ApplicationCall.() -> OAuthServerSettings?,
         urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
@@ -97,11 +97,11 @@ private suspend fun simpleOAuth1aStep1(client: HttpClient, secretKey: String, ba
     }
 }
 
-suspend internal fun ApplicationCall.redirectAuthenticateOAuth1a(settings: OAuthServerSettings.OAuth1aServerSettings, requestToken: OAuthCallback.TokenPair) {
+internal suspend fun ApplicationCall.redirectAuthenticateOAuth1a(settings: OAuthServerSettings.OAuth1aServerSettings, requestToken: OAuthCallback.TokenPair) {
     redirectAuthenticateOAuth1a(settings.authorizeUrl, requestToken.token)
 }
 
-suspend internal fun ApplicationCall.redirectAuthenticateOAuth1a(authenticateUrl: String, requestToken: String) {
+internal suspend fun ApplicationCall.redirectAuthenticateOAuth1a(authenticateUrl: String, requestToken: String) {
     val url = authenticateUrl.appendUrlParameters("${HttpAuthHeader.Parameters.OAuthToken}=${encodeURLQueryComponent(requestToken)}")
     respondRedirect(url)
 }

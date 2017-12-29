@@ -4,10 +4,8 @@ import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import java.io.*
 import java.net.*
 import java.nio.channels.*
-import java.time.*
 import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 

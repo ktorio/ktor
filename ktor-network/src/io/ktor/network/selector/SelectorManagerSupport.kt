@@ -11,7 +11,7 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
 
     protected abstract fun publishInterest(selectable: Selectable)
 
-    override final suspend fun select(selectable: Selectable, interest: SelectInterest) {
+    final override suspend fun select(selectable: Selectable, interest: SelectInterest) {
         require(selectable.interestedOps and interest.flag != 0)
 
         suspendCancellableCoroutine<Unit> { c ->

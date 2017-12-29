@@ -23,7 +23,7 @@ internal abstract class NIOSocketImpl<out S>(override val channel: S, val select
     //  that will cause broken data
     // however it is not the case for attachForWriting this is why we use direct writing in any case
 
-    override final fun attachForReading(channel: ByteChannel): WriterJob {
+    final override fun attachForReading(channel: ByteChannel): WriterJob {
         return attachFor("reading", channel, writerJob) {
             if (pool != null) {
                 attachForReadingImpl(channel, this.channel, this, selector, pool)
@@ -33,7 +33,7 @@ internal abstract class NIOSocketImpl<out S>(override val channel: S, val select
         }
     }
 
-    override final fun attachForWriting(channel: ByteChannel): ReaderJob {
+    final override fun attachForWriting(channel: ByteChannel): ReaderJob {
         return attachFor("writing", channel, readerJob) {
             attachForWritingDirectImpl(channel, this.channel, this, selector)
         }

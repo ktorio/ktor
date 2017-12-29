@@ -19,7 +19,7 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
     private var processed = false
     private var destroyed = false
 
-    suspend tailrec override fun readPart(): PartData? {
+    override tailrec suspend fun readPart(): PartData? {
         if (processed || destroyed) return null
 
         val data = decodeNextOrNull()

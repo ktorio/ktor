@@ -11,7 +11,7 @@ import io.ktor.application.*
  * @param environment instance of [ApplicationEngineEnvironment] for this engine
  * @param pipeline pipeline to use with this engine
  */
-abstract class BaseApplicationEngine(override final val environment: ApplicationEngineEnvironment,
+abstract class BaseApplicationEngine(final override val environment: ApplicationEngineEnvironment,
                                      val pipeline: EnginePipeline = defaultEnginePipeline(environment)
 ) : ApplicationEngine {
 

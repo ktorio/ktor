@@ -14,7 +14,7 @@ import kotlinx.coroutines.experimental.*
 import org.json.simple.*
 import java.io.*
 
-suspend internal fun PipelineContext<Unit, ApplicationCall>.oauth2(
+internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
         client: HttpClient, dispatcher: CoroutineDispatcher,
         providerLookup: ApplicationCall.() -> OAuthServerSettings?,
         urlProvider: ApplicationCall.(OAuthServerSettings) -> String
@@ -44,7 +44,7 @@ internal fun ApplicationCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? 
     }
 }
 
-suspend internal fun ApplicationCall.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList()) {
+internal suspend fun ApplicationCall.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList()) {
     redirectAuthenticateOAuth2(authenticateUrl = settings.authorizeUrl,
             callbackRedirectUrl = callbackRedirectUrl,
             clientId = settings.clientId,

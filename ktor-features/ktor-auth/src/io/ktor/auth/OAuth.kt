@@ -127,7 +127,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
     }
 }
 
-suspend internal fun ApplicationCall.oauthHandleFail(redirectUrl: String) = respondRedirect(redirectUrl)
+internal suspend fun ApplicationCall.oauthHandleFail(redirectUrl: String) = respondRedirect(redirectUrl)
 
 internal fun String.appendUrlParameters(parameters: String) =
         when {

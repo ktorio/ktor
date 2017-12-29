@@ -15,7 +15,7 @@ class URLBuilderTest {
             encodedPath = "a/b"
         }
 
-        assertEquals("http://localhost/a/b", s.toString())
+        assertEquals("http://localhost/a/b", s)
     }
 
     @Test
@@ -24,7 +24,7 @@ class URLBuilderTest {
             encodedPath = "/a/b"
         }
 
-        assertEquals("http://localhost/a/b", s.toString())
+        assertEquals("http://localhost/a/b", s)
     }
 
     @Test
@@ -33,7 +33,7 @@ class URLBuilderTest {
             path("a", "b")
         }
 
-        assertEquals("http://localhost/a/b", s.toString())
+        assertEquals("http://localhost/a/b", s)
     }
 
     @Test
@@ -42,7 +42,7 @@ class URLBuilderTest {
             path(listOf("a", "b"))
         }
 
-        assertEquals("http://localhost/a/b", s.toString())
+        assertEquals("http://localhost/a/b", s)
     }
 
     @Test

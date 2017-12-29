@@ -82,7 +82,7 @@ class CIOApplicationResponse(call: CIOApplicationCall,
 
     private fun hasHeader(name: String) = headersNames.any { it.equals(name, ignoreCase = true) }
 
-    suspend override fun responseChannel(): ByteWriteChannel {
+    override suspend fun responseChannel(): ByteWriteChannel {
         sendResponseMessage(true, -1, false)
 
         val j = encodeChunked(output, engineDispatcher)
@@ -94,7 +94,7 @@ class CIOApplicationResponse(call: CIOApplicationCall,
         return chunked
     }
 
-    suspend override fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
+    override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         upgraded?.complete(true) ?: throw IllegalStateException("Unable to perform upgrade as it is not requested by the client: request should have Upgrade and Connection headers filled properly")
 
         sendResponseMessage(false, -1, false)
@@ -104,13 +104,13 @@ class CIOApplicationResponse(call: CIOApplicationCall,
         upgradedJob.join()
     }
 
-    suspend override fun respondFromBytes(bytes: ByteArray) {
+    override suspend fun respondFromBytes(bytes: ByteArray) {
         sendResponseMessage(false, bytes.size, true)
         output.writeFully(bytes)
         output.close()
     }
 
-    suspend override fun respondOutgoingContent(content: OutgoingContent) {
+    override suspend fun respondOutgoingContent(content: OutgoingContent) {
         super.respondOutgoingContent(content)
         if (content is OutgoingContent.NoContent) {
             sendResponseMessage(false, 0, true)

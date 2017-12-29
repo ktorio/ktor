@@ -40,7 +40,7 @@ internal class RawWebSocketImpl(override val call: ApplicationCall,
         }
     }
 
-    suspend override fun flush() = writer.flush()
+    override suspend fun flush() = writer.flush()
 
     override fun terminate() {
         job.cancel(CancellationException("WebSockedHandler terminated normally"))

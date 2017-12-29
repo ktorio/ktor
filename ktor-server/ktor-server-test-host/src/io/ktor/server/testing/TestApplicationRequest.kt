@@ -1,7 +1,6 @@
 package io.ktor.server.testing
 
 import io.ktor.application.*
-import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.request.*
@@ -84,7 +83,7 @@ class TestApplicationRequest(
                     else -> throw IOException("The request content is not multipart encoded")
                 }
 
-            suspend override fun readPart() = when {
+            override suspend fun readPart() = when {
                 !request.isMultipart() -> throw IOException("The request content is not multipart encoded")
                 items.hasNext() -> items.next()
                 else -> null

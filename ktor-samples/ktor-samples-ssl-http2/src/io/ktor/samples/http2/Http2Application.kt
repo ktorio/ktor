@@ -2,7 +2,6 @@ package io.ktor.samples.http2
 
 import io.ktor.application.*
 import io.ktor.features.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*

@@ -2,7 +2,6 @@ package io.ktor.samples.feature
 
 import io.ktor.application.*
 import io.ktor.features.*
-import io.ktor.pipeline.*
 import io.ktor.response.*
 import io.ktor.routing.*
 

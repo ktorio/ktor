@@ -4,8 +4,8 @@ import kotlinx.io.pool.*
 import java.nio.*
 
 
-internal val DEFAULT_BUFFER_SIZE = 4098
-internal val DEFAULT_KTOR_POOL_SIZE = 2048
+internal const val DEFAULT_BUFFER_SIZE = 4098
+internal const val DEFAULT_KTOR_POOL_SIZE = 2048
 
 interface ByteBufferPool {
     fun allocate(size: Int): PoolTicket

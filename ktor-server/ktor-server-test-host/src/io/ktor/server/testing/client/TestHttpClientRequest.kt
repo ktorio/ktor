@@ -21,7 +21,7 @@ class TestHttpClientRequest(
 
     override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 
-    suspend override fun execute(content: OutgoingContent): HttpResponse {
+    override suspend fun execute(content: OutgoingContent): HttpResponse {
         val response = engine.runRequest(method, url.fullPath, headers, content).response
         return TestHttpClientResponse(call, response.status()!!, response.headers.allValues(), response.byteContent!!)
     }

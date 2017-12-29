@@ -17,7 +17,7 @@ internal class ServerSocketImpl(override val channel: ServerSocketChannel, val s
     override val localAddress: SocketAddress
         get() = channel.localAddress
 
-    suspend override fun accept(): Socket {
+    override suspend fun accept(): Socket {
         channel.accept()?.let { return accepted(it) }
         return acceptSuspend()
     }

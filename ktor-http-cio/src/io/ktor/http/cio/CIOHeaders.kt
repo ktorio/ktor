@@ -14,7 +14,7 @@ class CIOHeaders(private val headers: HttpHeadersMap) : ValuesMap {
     override val caseInsensitiveName: Boolean get() = true
 
     override fun names() = names
-    override fun get(name: String): String? = headers.get(name)?.toString()
+    override fun get(name: String): String? = headers[name]?.toString()
 
     override fun getAll(name: String): List<String> = headers.getAll(name).map { it.toString() }.toList()
 

@@ -1,6 +1,5 @@
 package io.ktor.server.netty
 
-import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
@@ -30,7 +29,7 @@ internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
         }
     }
 
-    suspend override fun respondOutgoingContent(content: OutgoingContent) {
+    override suspend fun respondOutgoingContent(content: OutgoingContent) {
         try {
             if (content is OutgoingContent.NoContent && HttpHeaders.ContentLength in content.headers) {
                 commitHeaders(content)
@@ -44,11 +43,11 @@ internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
             throw t
         } finally {
             val out = responseChannel as? ByteWriteChannel
-            if (out != null) out.close()
+            out?.close()
         }
     }
 
-    suspend override fun respondFromBytes(bytes: ByteArray) {
+    override suspend fun respondFromBytes(bytes: ByteArray) {
         // Note that it shouldn't set HttpHeaders.ContentLength even if we know it here,
         // because it should've been set by commitHeaders earlier
         sendResponse(chunked = false, content = ByteReadChannel(bytes))

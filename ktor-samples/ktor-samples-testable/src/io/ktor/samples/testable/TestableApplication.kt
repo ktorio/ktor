@@ -1,7 +1,6 @@
 package io.ktor.samples.testable
 
 import io.ktor.application.*
-import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 

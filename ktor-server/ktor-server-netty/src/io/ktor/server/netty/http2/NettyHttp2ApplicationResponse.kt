@@ -29,7 +29,7 @@ internal class NettyHttp2ApplicationResponse(call: NettyApplicationCall,
         return DefaultHttp2HeadersFrame(responseHeaders, false)
     }
 
-    suspend override fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
+    override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         throw UnsupportedOperationException("HTTP/2 doesn't support upgrade")
     }
 

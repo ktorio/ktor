@@ -73,7 +73,7 @@ internal class EndPointReader(endp: EndPoint, context: CoroutineContext, private
 
     override fun onUpgradeTo(prefilled: ByteBuffer?) {
         if (prefilled != null && prefilled.hasRemaining()) {
-            println("Got prefilled ${prefilled.remaining()} bytes")
+            // println("Got prefilled ${prefilled.remaining()} bytes")
             // TODO in theory client could try to start communication with no server upgrade acknowledge
             // it is generally not the case so it is not implemented yet
         }

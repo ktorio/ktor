@@ -136,7 +136,7 @@ private inline fun cookiePart(name: String, value: Any?, encoding: CookieEncodin
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun cookiePartUnencoded(name: String, value: Any?) =
-        if (value != null) "$name=${value.toString()}" else ""
+        if (value != null) "$name=$value" else ""
 
 
 @Suppress("NOTHING_TO_INLINE")

@@ -40,7 +40,7 @@ class FreeMarker(val config: Configuration) {
                                              val model: Any,
                                              val etag: String?,
                                              override val contentType: ContentType) : OutgoingContent.WriteChannelContent(), Resource {
-        suspend override fun writeTo(channel: ByteWriteChannel) {
+        override suspend fun writeTo(channel: ByteWriteChannel) {
             channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8).use {
                 template.process(model, it)
             }

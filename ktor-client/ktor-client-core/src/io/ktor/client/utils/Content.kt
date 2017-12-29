@@ -24,7 +24,7 @@ fun OutgoingContent.wrapHeaders(block: (Headers) -> Headers): OutgoingContent = 
     is OutgoingContent.WriteChannelContent -> object : OutgoingContent.WriteChannelContent() {
         override val headers: ValuesMap = block(this@wrapHeaders.headers)
 
-        suspend override fun writeTo(channel: ByteWriteChannel) = this@wrapHeaders.writeTo(channel)
+        override suspend fun writeTo(channel: ByteWriteChannel) = this@wrapHeaders.writeTo(channel)
     }
     is OutgoingContent.ByteArrayContent -> object : OutgoingContent.ByteArrayContent() {
         override val headers: ValuesMap = block(this@wrapHeaders.headers)
@@ -34,7 +34,7 @@ fun OutgoingContent.wrapHeaders(block: (Headers) -> Headers): OutgoingContent = 
     is OutgoingContent.ProtocolUpgrade -> object : OutgoingContent.ProtocolUpgrade() {
         override val headers: ValuesMap = block(this@wrapHeaders.headers)
 
-        suspend override fun upgrade(
+        override suspend fun upgrade(
                 input: ByteReadChannel,
                 output: ByteWriteChannel,
                 engineContext: CoroutineContext,

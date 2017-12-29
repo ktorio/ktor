@@ -135,7 +135,7 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
     }
 }
 
-inline suspend fun <TContext : Any> Pipeline<Unit, TContext>.execute(context: TContext) = execute(context, Unit)
+suspend inline fun <TContext : Any> Pipeline<Unit, TContext>.execute(context: TContext) = execute(context, Unit)
 
 inline fun <reified TSubject : Any, TContext : Any> Pipeline<*, TContext>.intercept(
         phase: PipelinePhase,

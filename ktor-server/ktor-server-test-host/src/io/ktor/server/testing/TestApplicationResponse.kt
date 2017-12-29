@@ -53,7 +53,7 @@ class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationRespon
         }
     }
 
-    suspend override fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
+    override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         val job = upgrade.upgrade(call.receiveChannel(), realContent.value, CommonPool, Unconfined)
         val registration = job.attachChild(webSocketCompleted)
         webSocketCompleted.invokeOnCompletion {

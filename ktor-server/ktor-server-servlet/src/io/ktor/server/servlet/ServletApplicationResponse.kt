@@ -34,7 +34,7 @@ open class ServletApplicationResponse(call: ServletApplicationCall,
     @Volatile
     private var completed: Boolean = false
 
-    suspend final override fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
+    final override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         try {
             servletResponse.flushBuffer()
         } catch (e: IOException) {

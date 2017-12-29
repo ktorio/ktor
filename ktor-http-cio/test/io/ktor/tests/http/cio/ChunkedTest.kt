@@ -3,11 +3,9 @@ package io.ktor.tests.http.cio
 import io.ktor.http.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.io.core.*
 import kotlinx.io.streams.*
 import org.junit.Test
 import java.io.*
-import java.io.EOFException
 import kotlin.test.*
 
 class ChunkedTest {
@@ -51,7 +49,7 @@ class ChunkedTest {
 
         assertEquals(0, parsed.availableForRead)
         assertTrue { parsed.isClosedForRead }
-        assertEquals("trailing", ch.readRemaining().readText().toString())
+        assertEquals("trailing", ch.readRemaining().readText())
     }
 
     @Test

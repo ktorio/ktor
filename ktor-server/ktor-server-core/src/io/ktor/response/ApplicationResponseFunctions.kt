@@ -8,14 +8,14 @@ import java.io.*
 /**
  * Sends a [message] as a response
  */
-inline suspend fun ApplicationCall.respond(message: Any) {
+suspend inline fun ApplicationCall.respond(message: Any) {
     response.pipeline.execute(this, message)
 }
 
 /**
  * Sets [status] and sends a [message] as a response
  */
-inline suspend fun ApplicationCall.respond(status: HttpStatusCode, message: Any) {
+suspend inline fun ApplicationCall.respond(status: HttpStatusCode, message: Any) {
     response.status(status)
     response.pipeline.execute(this, message)
 }

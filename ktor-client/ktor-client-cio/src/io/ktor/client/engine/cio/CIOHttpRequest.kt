@@ -30,7 +30,7 @@ class CIOHttpRequest(
         require(url.protocol.name == "http") { "CIOEngine support only http yet" }
     }
 
-    suspend override fun execute(content: OutgoingContent): HttpResponse {
+    override suspend fun execute(content: OutgoingContent): HttpResponse {
         val requestTime = Date()
         val address = InetSocketAddress(url.host, url.port)
         val socket = aSocket().tcp().connect(address)
@@ -83,7 +83,7 @@ class CIOHttpRequest(
         val chunked = bodySize == null || body.headers[HttpHeaders.TransferEncoding] == "chunked" || headers[HttpHeaders.TransferEncoding] == "chunked"
 
         launch(dispatcher, parent = executionContext) {
-            var chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, coroutineContext) else null
+            val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, coroutineContext) else null
             val channel = chunkedJob?.channel ?: output
 
             try {

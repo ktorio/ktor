@@ -67,8 +67,7 @@ class CommandLineTest {
         assertEquals(jar.toURI(), urlClassLoader.urLs.single().toURI())
     }
 
-    tailrec
-    private fun findContainingZipFile(uri: URI): File {
+    private tailrec fun findContainingZipFile(uri: URI): File {
         if (uri.scheme == "file") {
             return File(uri.path.substringBefore("!"))
         } else {

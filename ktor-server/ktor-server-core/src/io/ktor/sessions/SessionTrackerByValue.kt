@@ -4,11 +4,11 @@ import io.ktor.application.*
 import kotlin.reflect.*
 
 class SessionTrackerByValue(val type: KClass<*>, val serializer: SessionSerializer) : SessionTracker {
-    suspend override fun load(call: ApplicationCall, transport: String?): Any? {
+    override suspend fun load(call: ApplicationCall, transport: String?): Any? {
         return transport?.let { serializer.deserialize(it) }
     }
 
-    suspend override fun store(call: ApplicationCall, value: Any): String {
+    override suspend fun store(call: ApplicationCall, value: Any): String {
         val serialized = serializer.serialize(value)
         return serialized
     }
@@ -19,7 +19,7 @@ class SessionTrackerByValue(val type: KClass<*>, val serializer: SessionSerializ
         }
     }
 
-    suspend override fun clear(call: ApplicationCall) {
+    override suspend fun clear(call: ApplicationCall) {
         // it's stateless, so nothing to clear
     }
 }

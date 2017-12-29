@@ -1,11 +1,10 @@
 package io.ktor.samples.html
 
-import kotlinx.html.*
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.html.*
-import io.ktor.pipeline.*
 import io.ktor.routing.*
+import kotlinx.html.*
 
 fun Application.main() {
     install(DefaultHeaders)

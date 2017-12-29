@@ -3,7 +3,6 @@ package io.ktor.network.sockets
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.packet.*
 import java.net.*
-import java.nio.*
 
 internal const val MAX_DATAGRAM_SIZE = 65535
 
@@ -32,5 +31,3 @@ interface DatagramReadWriteChannel : DatagramReadChannel, DatagramWriteChannel
 interface BoundDatagramSocket : ASocket, ABoundSocket, AReadable, DatagramReadWriteChannel
 
 interface ConnectedDatagramSocket : ASocket, ABoundSocket, AConnectedSocket, ReadWriteSocket, DatagramReadWriteChannel
-
-

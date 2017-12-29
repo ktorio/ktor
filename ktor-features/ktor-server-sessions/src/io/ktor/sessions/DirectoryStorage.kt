@@ -70,8 +70,7 @@ private fun File.mkdirsOrFail() {
     }
 }
 
-tailrec
-private fun File.deleteParentsWhileEmpty(mostTop: File) {
+private tailrec fun File.deleteParentsWhileEmpty(mostTop: File) {
     if (this != mostTop && isDirectory && exists() && list().isNullOrEmpty()) {
         if (!delete() && exists()) {
             throw IOException("Failed to delete dir $this")

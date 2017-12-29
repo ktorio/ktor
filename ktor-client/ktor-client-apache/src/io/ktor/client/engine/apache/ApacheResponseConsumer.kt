@@ -13,7 +13,7 @@ import java.nio.ByteBuffer
 import kotlin.coroutines.experimental.*
 
 
-private val MAX_QUEUE_LENGTH: Int = 65 * 1024 / DEFAULT_HTTP_BUFFER_SIZE
+private const val MAX_QUEUE_LENGTH: Int = 65 * 1024 / DEFAULT_HTTP_BUFFER_SIZE
 
 internal class ApacheResponseConsumer(
         private val dispatcher: CoroutineContext,

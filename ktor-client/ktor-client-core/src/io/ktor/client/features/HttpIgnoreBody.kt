@@ -2,7 +2,6 @@ package io.ktor.client.features
 
 import io.ktor.client.*
 import io.ktor.client.response.*
-import io.ktor.client.utils.*
 import io.ktor.util.*
 
 

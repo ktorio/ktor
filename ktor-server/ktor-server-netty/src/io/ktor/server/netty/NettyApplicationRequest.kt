@@ -1,7 +1,6 @@
 package io.ktor.server.netty
 
 import io.ktor.application.*
-import io.ktor.cio.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
 import io.ktor.util.*

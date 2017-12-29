@@ -3,8 +3,8 @@ package io.ktor.http.cio.internals
 import kotlinx.io.pool.*
 import java.nio.*
 
-internal val CHAR_BUFFER_POOL_SIZE = 4096
-internal val CHAR_BUFFER_SIZE = 4096
+internal const val CHAR_BUFFER_POOL_SIZE = 4096
+internal const val CHAR_BUFFER_SIZE = 4096
 
 internal val CharBufferPool: ObjectPool<CharBuffer> =
         object : DefaultPool<CharBuffer>(CHAR_BUFFER_POOL_SIZE) {

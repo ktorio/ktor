@@ -1079,7 +1079,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             get("/file") {
                 try {
                     call.respond(object : OutgoingContent.WriteChannelContent() {
-                        suspend override fun writeTo(channel: ByteWriteChannel) {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
                             val bb = ByteBuffer.allocate(100)
                             for (i in 1L..1000L) {
                                 delay(100)
@@ -1216,7 +1216,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                             append(HttpHeaders.Connection, "Upgrade")
                         }
 
-                    suspend override fun upgrade(input: ByteReadChannel, output: ByteWriteChannel, engineContext: CoroutineContext, userContext: CoroutineContext): Job {
+                    override suspend fun upgrade(input: ByteReadChannel, output: ByteWriteChannel, engineContext: CoroutineContext, userContext: CoroutineContext): Job {
                         return launch(engineContext) {
                             val bb = ByteBuffer.allocate(8)
                             input.readFully(bb)

@@ -32,7 +32,7 @@ class JettyHttpRequest(
 
     override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 
-    suspend override fun execute(content: OutgoingContent): HttpResponse {
+    override suspend fun execute(content: OutgoingContent): HttpResponse {
         val requestTime = Date()
         val session = client.connect(url.host, url.port).apply {
             this.settings(SettingsFrame(emptyMap(), true), org.eclipse.jetty.util.Callback.NOOP)

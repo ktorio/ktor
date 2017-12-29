@@ -1,8 +1,6 @@
 package io.ktor.server.servlet
 
-import io.ktor.cio.*
 import io.ktor.content.*
-import io.ktor.http.*
 import kotlinx.coroutines.experimental.*
 import javax.servlet.http.*
 import kotlin.coroutines.experimental.*
@@ -16,7 +14,7 @@ interface ServletUpgrade {
 }
 
 object DefaultServletUpgrade : ServletUpgrade {
-    suspend override fun performUpgrade(upgrade: OutgoingContent.ProtocolUpgrade,
+    override suspend fun performUpgrade(upgrade: OutgoingContent.ProtocolUpgrade,
                                         servletRequest: HttpServletRequest,
                                         servletResponse: HttpServletResponse,
                                         engineContext: CoroutineContext,

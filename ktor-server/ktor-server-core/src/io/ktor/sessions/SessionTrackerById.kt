@@ -8,7 +8,7 @@ import kotlin.reflect.*
 class SessionTrackerById(val type: KClass<*>, val serializer: SessionSerializer, val storage: SessionStorage, val sessionIdProvider: () -> String) : SessionTracker {
     private val SessionIdKey = AttributeKey<String>("SessionId")
 
-    suspend override fun load(call: ApplicationCall, transport: String?): Any? {
+    override suspend fun load(call: ApplicationCall, transport: String?): Any? {
         val sessionId = transport ?: return null
 
         call.attributes.put(SessionIdKey, sessionId)

@@ -53,12 +53,12 @@ class ContentNegotiationTest {
         withTestApplication {
             application.install(ContentNegotiation) {
                 register(customContentType, object : ContentConverter {
-                    suspend override fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
+                    override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
                         if (value !is Wrapper) return null
                         return TextContent("[${value.value}]", contentType.withCharset(context.call.suitableCharset()))
                     }
 
-                    suspend override fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
+                    override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
                         val type = context.subject.type
                         val incoming = context.subject.value
                         if (type != Wrapper::class || incoming !is IncomingContent) return null

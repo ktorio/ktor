@@ -54,7 +54,7 @@ internal class NettyRequestQueue(private val limit: Int) {
         }
     }
 
-    suspend tailrec fun receiveOrNull(): NettyApplicationCall? {
+    tailrec suspend fun receiveOrNull(): NettyApplicationCall? {
         val element = queue.removeFirstIfIsInstanceOf<CallElement>()
 
         if (element != null) {
