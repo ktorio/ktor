@@ -45,7 +45,8 @@ val Url.fullPath: String
             !parameters.isEmpty() -> "?${decodeURLPart(parameters.formUrlEncode())}"
             else -> ""
         }
-        return "$encodedPath$parameters"
+        val result = "$encodedPath$parameters"
+        return if (result.isEmpty()) "/" else result
     }
 
 val Url.hostWithPort: String get() = "$host:$port"
