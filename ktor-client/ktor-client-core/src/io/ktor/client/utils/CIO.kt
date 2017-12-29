@@ -5,9 +5,12 @@ import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.pool.*
 
 
+private val cpuCount: Int = Runtime.getRuntime().availableProcessors()
+
 const val DEFAULT_HTTP_POOL_SIZE = 1000
 const val DEFAULT_HTTP_BUFFER_SIZE = 4096
-const val HTTP_CLIENT_THREAD_COUNT = 4
+
+val HTTP_CLIENT_THREAD_COUNT: Int = maxOf(2, (cpuCount * 2 / 3))
 
 val HTTP_CLIENT_DEFAULT_DISPATCHER by lazy {
     newFixedThreadPoolContext(HTTP_CLIENT_THREAD_COUNT, "ktor-client-dispatcher")
