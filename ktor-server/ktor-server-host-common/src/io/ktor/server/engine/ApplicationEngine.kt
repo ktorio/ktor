@@ -7,11 +7,28 @@ import java.util.concurrent.*
  */
 interface ApplicationEngine {
 
+    /**
+     * Configuration for the [ApplicationEngine]
+     */
     open class Configuration {
+        /**
+         * Provides currently available parallelism, e.g. number of available processors
+         */
         val parallelism = Runtime.getRuntime().availableProcessors()
 
+        /**
+         * Specifies size of the event group for accepting connections
+         */
         var connectionGroupSize = parallelism / 2 + 1
+
+        /**
+         * Specifies size of the event group for processing connections, parsing messages and doing engine's internal work
+         */
         var workerGroupSize = parallelism / 2 + 1
+
+        /**
+         * Specifies size of the event group for running application code
+         */
         var callGroupSize = parallelism
     }
 

@@ -14,9 +14,24 @@ import java.util.concurrent.*
  * [ApplicationEngine] implementation for running in a standalone Netty
  */
 class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit = {}) : BaseApplicationEngine(environment) {
+
+    /**
+     * Configuration for the [NettyApplicationEngine]
+     */
     class Configuration : BaseApplicationEngine.Configuration() {
+        /**
+         * Size of the queue to store [ApplicationCall] instances that cannot be immediately processed
+         */
         var requestQueueLimit: Int = 16
+
+        /**
+         * User-provided function to configure Netty's [ServerBootstrap]
+         */
         var configureBootstrap: ServerBootstrap.() -> Unit = {}
+
+        /**
+         * Timeout in seconds for sending responses to client
+         */
         var responseWriteTimeoutSeconds: Int = 10
     }
 
@@ -85,6 +100,17 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
     }
 }
 
+/**
+ * [NioEventLoopGroup] for accepting connections
+ */
 class NettyConnectionPool(parallelism: Int) : NioEventLoopGroup(parallelism)
+
+/**
+ * [NioEventLoopGroup] for processing incoming requests and doing engine's internal work
+ */
 class NettyWorkerPool(parallelism: Int) : NioEventLoopGroup(parallelism)
+
+/**
+ * [NioEventLoopGroup] for processing [ApplicationCall] instances
+ */
 class NettyCallPool(parallelism: Int) : NioEventLoopGroup(parallelism)

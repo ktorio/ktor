@@ -4,7 +4,7 @@ import io.ktor.cio.*
 import io.netty.buffer.*
 import io.netty.channel.*
 
-internal class NettyByteBufferPool(val allocator: ByteBufAllocator): ByteBufferPool {
+internal class NettyByteBufferPool(private val allocator: ByteBufAllocator): ByteBufferPool {
     constructor(context: ChannelHandlerContext) : this(context.alloc())
 
     override fun allocate(size: Int): PoolTicket {

@@ -13,7 +13,7 @@ open class RequestCookies(val request: ApplicationRequest) {
         return map.computeIfAbsent(encoding to name) { decodeCookieValue(rawValue, encoding) }
     }
 
-    open fun fetchCookies(): Map<String, String> {
+    protected open fun fetchCookies(): Map<String, String> {
         val cookieHeaders = request.headers.getAll("Cookie") ?: return emptyMap()
         val map = HashMap<String, String>(cookieHeaders.size)
         for (cookieHeader in cookieHeaders) {

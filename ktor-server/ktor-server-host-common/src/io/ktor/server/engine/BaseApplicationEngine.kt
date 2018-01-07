@@ -15,6 +15,9 @@ abstract class BaseApplicationEngine(final override val environment: Application
                                      val pipeline: EnginePipeline = defaultEnginePipeline(environment)
 ) : ApplicationEngine {
 
+    /**
+     * Configuration for the [BaseApplicationEngine]
+     */
     open class Configuration : ApplicationEngine.Configuration()
 
     /**

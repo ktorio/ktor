@@ -36,7 +36,7 @@ internal class NettyChannelInitializer(private val enginePipeline: EnginePipelin
 
             @Suppress("UNCHECKED_CAST")
             val chain1 = connector.keyStore.getCertificateChain(connector.keyAlias).toList() as List<X509Certificate>
-            val certs = chain1.toList().toTypedArray<X509Certificate>()
+            val certs = chain1.toList().toTypedArray()
             val password = connector.privateKeyPassword()
             val pk = connector.keyStore.getKey(connector.keyAlias, password) as PrivateKey
             password.fill('\u0000')

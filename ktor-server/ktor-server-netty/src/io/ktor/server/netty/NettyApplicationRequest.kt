@@ -42,7 +42,7 @@ internal abstract class NettyApplicationRequest(
 
     protected abstract fun newDecoder(): HttpPostMultipartRequestDecoder
 
-    final fun close() {
+    fun close() {
         if (contentMultipart.isInitialized()) {
             contentMultipart.value.destroy()
         }
