@@ -49,7 +49,8 @@ class TestEngineMultipartTest {
                             "plain field",
                             dispose = {},
                             partHeaders = valuesOf(
-                                    HttpHeaders.ContentDisposition to listOf(ContentDisposition.File.withParameter(ContentDisposition.Parameters.Name, "field1").toString())
+                                    HttpHeaders.ContentDisposition,
+                                    ContentDisposition.File.withParameter(ContentDisposition.Parameters.Name, "field1").toString()
                             )
                     )
             )
@@ -79,12 +80,11 @@ class TestEngineMultipartTest {
                             streamProvider = { "file content".toByteArray().inputStream() },
                             dispose = {},
                             partHeaders = valuesOf(
-                                    HttpHeaders.ContentDisposition to listOf(
-                                            ContentDisposition.File
-                                                    .withParameter(ContentDisposition.Parameters.Name, "fileField")
-                                                    .withParameter(ContentDisposition.Parameters.FileName, "file.txt")
-                                                    .toString()
-                                    )
+                                    HttpHeaders.ContentDisposition,
+                                    ContentDisposition.File
+                                            .withParameter(ContentDisposition.Parameters.Name, "fileField")
+                                            .withParameter(ContentDisposition.Parameters.FileName, "file.txt")
+                                            .toString()
                             )
                     )
             )

@@ -26,7 +26,7 @@ class ApplicationRequestContentTest {
     @Test
     fun testValuesMap() {
         withTestApplication {
-            val values = valuesOf("a" to listOf("1"))
+            val values = valuesOf("a", "1")
 
             application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals(values, call.receiveParameters())
@@ -42,7 +42,7 @@ class ApplicationRequestContentTest {
     @Test
     fun testValuesMapWithCharset() {
         withTestApplication {
-            val values = valuesOf("a" to listOf("1"))
+            val values = valuesOf("a", "1")
 
             application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals(values, call.receiveParameters())

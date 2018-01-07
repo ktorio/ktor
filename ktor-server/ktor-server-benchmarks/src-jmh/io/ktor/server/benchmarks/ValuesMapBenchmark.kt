@@ -10,7 +10,7 @@ class ValuesMapBenchmark {
 
     @Benchmark
     fun valuesOfSingle(): ValuesMap {
-        return valuesOf("A" to listOf("B"))
+        return valuesOf("A", "B")
     }
 
     @Benchmark

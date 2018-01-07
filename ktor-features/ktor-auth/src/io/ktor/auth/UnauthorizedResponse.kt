@@ -10,7 +10,7 @@ class UnauthorizedResponse(vararg val challenges: HttpAuthHeader) : OutgoingCont
 
     override val headers: ValuesMap
         get() = if (challenges.isNotEmpty())
-            valuesOf(HttpHeaders.WWWAuthenticate, listOf(challenges.joinToString(", ") { it.render() }), caseInsensitiveKey = true)
+            valuesOf(HttpHeaders.WWWAuthenticate, challenges.joinToString(", ") { it.render() }, caseInsensitiveKey = true)
         else
             valuesOf()
 }

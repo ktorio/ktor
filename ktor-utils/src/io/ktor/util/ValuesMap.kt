@@ -200,6 +200,10 @@ fun valuesOf(pair: Pair<String, List<String>>, caseInsensitiveKey: Boolean = fal
     return ValuesMapSingleImpl(caseInsensitiveKey, pair.first, pair.second)
 }
 
+fun valuesOf(name: String, value: String, caseInsensitiveKey: Boolean = false): ValuesMap {
+    return ValuesMapSingleImpl(caseInsensitiveKey, name, listOf(value))
+}
+
 fun valuesOf(name: String, value: List<String>, caseInsensitiveKey: Boolean = false): ValuesMap {
     return ValuesMapSingleImpl(caseInsensitiveKey, name, value)
 }
@@ -255,8 +259,8 @@ fun ValuesMapBuilder.appendFiltered(source: ValuesMap, keepEmpty: Boolean = fals
 
 fun ValuesMapBuilder.appendAll(valuesMap: ValuesMapBuilder): ValuesMapBuilder = apply {
     valuesMap.entries().forEach { (name, values) ->
-        appendAll(name, values)
-    }
+                appendAll(name, values)
+            }
 }
 
 fun valuesMapBuilderOf(builder: ValuesMapBuilder): ValuesMapBuilder =

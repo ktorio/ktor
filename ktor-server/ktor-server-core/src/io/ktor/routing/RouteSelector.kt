@@ -119,7 +119,7 @@ data class OptionalParameterRouteSelector(val name: String) : RouteSelector(Rout
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
         if (param != null)
-            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, valuesOf(name to param))
+            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, valuesOf(name, param))
         return RouteSelectorEvaluation.Missing
     }
 
@@ -166,7 +166,7 @@ data class PathSegmentParameterRouteSelector(val name: String, val prefix: Strin
                 else
                     return RouteSelectorEvaluation.Failed
 
-            val values = valuesOf(name to listOf(suffixChecked))
+            val values = valuesOf(name, suffixChecked)
             return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, values, segmentIncrement = 1)
         }
         return RouteSelectorEvaluation.Failed
@@ -201,7 +201,7 @@ data class PathSegmentOptionalParameterRouteSelector(val name: String, val prefi
                 else
                     return RouteSelectorEvaluation.Missing
 
-            val values = valuesOf(name to listOf(suffixChecked))
+            val values = valuesOf(name, suffixChecked)
             return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, values, segmentIncrement = 1)
         }
         return RouteSelectorEvaluation.Missing
@@ -229,7 +229,7 @@ object PathSegmentWildcardRouteSelector : RouteSelector(RouteSelectorEvaluation.
  */
 data class PathSegmentTailcardRouteSelector(val name: String = "") : RouteSelector(RouteSelectorEvaluation.qualityTailcard) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        val values = if (name.isEmpty()) valuesOf() else valuesOf(name to context.segments.drop(segmentIndex).map { it })
+        val values = if (name.isEmpty()) valuesOf() else valuesOf(name, context.segments.drop(segmentIndex).map { it })
         val quality = if (segmentIndex < context.segments.size) RouteSelectorEvaluation.qualityTailcard else RouteSelectorEvaluation.qualityMissing
         return RouteSelectorEvaluation(true, quality, values, segmentIncrement = context.segments.size - segmentIndex)
     }
