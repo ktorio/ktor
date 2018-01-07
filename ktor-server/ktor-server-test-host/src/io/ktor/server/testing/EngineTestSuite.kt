@@ -166,7 +166,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/", {
             method = HttpMethod.Post
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-            body = valuesOf("a" to listOf("1")).formUrlEncode()
+            body = valuesOf("a", "1").formUrlEncode()
         }) {
             assertEquals(200, status.value)
             assertEquals("a=1", readText())
@@ -552,7 +552,6 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                 handle {
                     val response = call.receiveChannel().toByteArray()
                     call.respond(object : OutgoingContent.ReadChannelContent() {
-                        override val headers: ValuesMap get() = ValuesMap.Empty
                         override fun readFrom() = ByteReadChannel(response)
                     })
                 }
@@ -1299,12 +1298,12 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     @NoHttp2
     open fun testChunked() {
         val data = ByteArray(16 * 1024, { it.toByte() })
-        val size = data.size.toString()
+        val size = data.size.toLong()
 
         createAndStartServer {
             get("/chunked") {
                 call.respond(object : OutgoingContent.WriteChannelContent() {
-                    suspend override fun writeTo(channel: ByteWriteChannel) {
+                    override suspend fun writeTo(channel: ByteWriteChannel) {
                         channel.writeFully(data)
                         channel.close()
                     }
@@ -1312,12 +1311,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             }
             get("/pseudo-chunked") {
                 call.respond(object : OutgoingContent.WriteChannelContent() {
-                    override val headers: ValuesMap
-                        get() = ValuesMap.build(true) {
-                            append(HttpHeaders.ContentLength, size)
-                        }
-
-                    suspend override fun writeTo(channel: ByteWriteChannel) {
+                    override val contentLength: Long? get() = size
+                    override suspend fun writeTo(channel: ByteWriteChannel) {
                         channel.writeFully(data)
                         channel.close()
                     }
@@ -1325,11 +1320,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             }
             get("/array") {
                 call.respond(object : OutgoingContent.ByteArrayContent() {
-                    override val headers: ValuesMap
-                        get() = ValuesMap.build(true) {
-                            append(HttpHeaders.ContentLength, size)
-                        }
-
+                    override val contentLength: Long? get() = size
                     override fun bytes(): ByteArray = data
                 })
             }
@@ -1345,18 +1336,14 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             }
             get("/fixed-read-channel") {
                 call.respond(object : OutgoingContent.ReadChannelContent() {
-                    override val headers: ValuesMap
-                        get() = ValuesMap.build(true) {
-                            append(HttpHeaders.ContentLength, size)
-                        }
-
+                    override val contentLength: Long? get() = size
                     override fun readFrom(): ByteReadChannel = ByteReadChannel(data)
                 })
             }
         }
 
         withUrl("/array") {
-            assertEquals(size, headers[HttpHeaders.ContentLength])
+            assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
             assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
             org.junit.Assert.assertArrayEquals(data, call.response.readBytes())
         }
@@ -1375,13 +1362,13 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
         withUrl("/fixed-read-channel") {
             assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
-            assertEquals(size, headers[HttpHeaders.ContentLength])
+            assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
             org.junit.Assert.assertArrayEquals(data, call.response.readBytes())
         }
 
         withUrl("/pseudo-chunked") {
             assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
-            assertEquals(size, headers[HttpHeaders.ContentLength])
+            assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
             org.junit.Assert.assertArrayEquals(data, call.response.readBytes())
         }
 

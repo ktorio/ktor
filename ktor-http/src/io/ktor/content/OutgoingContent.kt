@@ -13,7 +13,7 @@ sealed class OutgoingContent {
     /**
      * Specifies [ContentType] for this resource.
      */
-    open val contentType: ContentType get() = ContentType.Application.OctetStream
+    open val contentType: ContentType? get() = null
 
     /**
      * Specifies content length in bytes for this resource.
@@ -33,6 +33,24 @@ sealed class OutgoingContent {
      */
     open val headers: ValuesMap
         get() = ValuesMap.Empty
+
+    private var extensionProperties: Attributes? = null
+
+    /**
+     * Gets an extension property for this content
+     */
+    open fun <T : Any> getProperty(key: AttributeKey<T>): T? = extensionProperties?.getOrNull(key)
+
+    /**
+     * Sets an extension property for this content
+     */
+    open fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) {
+        when {
+            value == null && extensionProperties == null -> return
+            value == null -> extensionProperties?.remove(key)
+            else -> (extensionProperties ?: Attributes()).also { extensionProperties = it }.put(key, value)
+        }
+    }
 
     /**
      * Variant of a [OutgoingContent] without a payload

@@ -99,20 +99,18 @@ class ApacheRequestProducer(
         }.build()
 
         headers.flattenEntries().forEach { (key, value) ->
-            if (HttpHeaders.CONTENT_LENGTH == key) return@forEach
-            builder.addHeader(key, value)
-        }
+                    if (HttpHeaders.CONTENT_LENGTH == key) return@forEach
+                    builder.addHeader(key, value)
+                }
 
-        this@ApacheRequestProducer.body.headers.flattenEntries().forEach { (key, value) ->
-            if (HttpHeaders.CONTENT_LENGTH == key) return@forEach
-            builder.addHeader(key, value)
-        }
+        val content = this@ApacheRequestProducer.body
+        content.headers.flattenEntries().forEach { (key, value) ->
+                    if (HttpHeaders.CONTENT_LENGTH == key) return@forEach
+                    builder.addHeader(key, value)
+                }
 
-        val length = this@ApacheRequestProducer.body.headers[HttpHeaders.CONTENT_LENGTH]
-                ?: headers[HttpHeaders.CONTENT_LENGTH]
-
-        val type = this@ApacheRequestProducer.body.headers[HttpHeaders.CONTENT_TYPE]
-                ?: headers[HttpHeaders.CONTENT_TYPE]
+        val length = headers[io.ktor.http.HttpHeaders.ContentLength] ?: content.contentLength?.toString()
+        val type = headers[io.ktor.http.HttpHeaders.ContentType] ?: content.contentType?.toString()
 
         if (body !is OutgoingContent.NoContent && body !is OutgoingContent.ProtocolUpgrade) {
             builder.entity = BasicHttpEntity().apply {

@@ -39,25 +39,42 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
 
     protected fun commitHeaders(content: OutgoingContent) {
         responded = true
-        var transferEncoding: String? = null
-        var contentLength: String? = null
+
+        var transferEncodingSet = false
+
         content.status?.let { status(it) } ?: status() ?: status(HttpStatusCode.OK)
         content.headers.forEach { name, values ->
             when (name) {
-                HttpHeaders.ContentLength -> contentLength = values.first()
-                HttpHeaders.TransferEncoding -> transferEncoding = values.first()
+                HttpHeaders.TransferEncoding -> transferEncodingSet = true
+                HttpHeaders.Upgrade -> {
+                    if (content !is OutgoingContent.ProtocolUpgrade)
+                        throw InvalidHeaderForContent(HttpHeaders.Upgrade, "non-upgrading response")
+                    for (value in values)
+                        headers.append(name, value, safeOnly = false)
+                    return@forEach
+                }
             }
+            for (value in values)
+                headers.append(name, value)
+        }
 
-            for (value in values) {
-                headers.append(name, value, safe = false)
+        val contentLength = content.contentLength
+        when {
+            contentLength != null -> {
+                // TODO: What should we do if TransferEncoding was set and length is present?
+                headers.append(HttpHeaders.ContentLength, contentLength.toString(), safeOnly = false)
+            }
+            !transferEncodingSet -> {
+                if (content !is OutgoingContent.NoContent)
+                    headers.append(HttpHeaders.TransferEncoding, "chunked", safeOnly = false)
             }
         }
 
-        if (transferEncoding == null && contentLength == null) {
-            headers.append(HttpHeaders.TransferEncoding, "chunked", safe = false)
+        content.contentType?.let {
+            headers.append(HttpHeaders.ContentType, it.toString(), safeOnly = false)
         }
 
-        val connection = call.request.headers["Connection"]
+        val connection = call.request.headers[HttpHeaders.Connection]
         if (connection != null) {
             when {
                 connection.equals("close", true) -> header("Connection", "close")
@@ -100,10 +117,15 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
             }
 
         // Do nothing, but maintain `when` exhaustiveness
-            is OutgoingContent.NoContent -> { /* no-op */
+            is OutgoingContent.NoContent -> {
                 commitHeaders(content)
+                return respondNoContent(content)
             }
         }
+    }
+
+    protected open suspend fun respondNoContent(content: OutgoingContent.NoContent) {
+        // Do nothing by default
     }
 
     protected open suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
@@ -114,16 +136,16 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
             content.writeTo(this)
 
             headers[HttpHeaders.ContentLength]?.toLong()?.let { length ->
-                val written = totalBytesWritten - before
-                ensureLength(length, written)
-            }
+                        val written = totalBytesWritten - before
+                        ensureLength(length, written)
+                    }
         }
     }
 
     protected open suspend fun respondFromBytes(bytes: ByteArray) {
         headers[HttpHeaders.ContentLength]?.toLong()?.let { length ->
-            ensureLength(length, bytes.size.toLong())
-        }
+                    ensureLength(length, bytes.size.toLong())
+                }
 
         responseChannel().use {
             writeFully(bytes)
@@ -157,6 +179,8 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
     }
 
     class ResponseAlreadySentException : IllegalStateException("Response has already been sent")
+
+    class InvalidHeaderForContent(name: String, content: String) : IllegalStateException("Header $name is not allowed for $content")
 
     class BodyLengthIsTooSmall(expected: Long, actual: Long) : IllegalStateException(
             "Body.size is too small. Body: $actual, Content-Length: $expected"

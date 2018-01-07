@@ -7,31 +7,19 @@ import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.nio.file.*
-import java.time.*
 
 /**
- * OutgoingContent representing a local [file] with a specified [contentType], [expires] date and [cacheControl]
+ * OutgoingContent representing a local [file] with a specified [contentType], [expires] date and [caching]
  *
  * @param file specifies the File to be served to a client
  */
 class LocalFileContent(val file: File,
-                       override val contentType: ContentType = ContentType.defaultForFile(file),
-                       val expires: LocalDateTime? = null,
-                       val cacheControl: CacheControl? = null) : OutgoingContent.ReadChannelContent(), VersionedContent {
+                       override val contentType: ContentType = ContentType.defaultForFile(file)) : OutgoingContent.ReadChannelContent() {
 
-    override val contentLength: Long
-        get() = file.length()
+    override val contentLength: Long get() = file.length()
 
-    override val versions: List<Version>
-        get() = listOf(LastModifiedVersion(Files.getLastModifiedTime(file.toPath())))
-
-    override val headers by lazy(LazyThreadSafetyMode.NONE) {
-        ValuesMap.build(true) {
-            contentType(contentType)
-            contentLength(contentLength)
-            expires?.let { expires(it) }
-            cacheControl?.let { cacheControl(it) }
-        }
+    init {
+        versions += LastModifiedVersion(Files.getLastModifiedTime(file.toPath()))
     }
 
     // TODO: consider using WriteChannelContent to avoid piping
@@ -44,17 +32,15 @@ class LocalFileContent(val file: File,
 /**
  * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
  */
-fun LocalFileContent(baseDir: File,
-                     relativePath: String,
-                     contentType: ContentType = ContentType.defaultForFilePath(relativePath),
-                     expires: LocalDateTime? = null,
-                     cacheControl: CacheControl? = null) = LocalFileContent(baseDir.combineSafe(relativePath), contentType, expires, cacheControl)
+fun LocalFileContent(baseDir: File, relativePath: String,
+                     contentType: ContentType = ContentType.defaultForFilePath(relativePath)): LocalFileContent {
+    return LocalFileContent(baseDir.combineSafe(relativePath), contentType)
+}
 
 /**
  * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
  */
-fun LocalFileContent(baseDir: Path,
-                     relativePath: Path,
-                     contentType: ContentType = ContentType.defaultForFile(relativePath),
-                     expires: LocalDateTime? = null,
-                     cacheControl: CacheControl? = null) = LocalFileContent(baseDir.combineSafe(relativePath), contentType, expires, cacheControl)
+fun LocalFileContent(baseDir: Path, relativePath: Path,
+                     contentType: ContentType = ContentType.defaultForFile(relativePath)): LocalFileContent {
+    return LocalFileContent(baseDir.combineSafe(relativePath), contentType)
+}

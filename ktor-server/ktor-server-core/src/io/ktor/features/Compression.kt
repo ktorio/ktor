@@ -106,7 +106,7 @@ class Compression(compression: Configuration) {
     private class CompressedResponse(val original: OutgoingContent,
                                      val delegateChannel: () -> ByteReadChannel,
                                      val encoding: String,
-                                     val encoder: CompressionEncoder) : OutgoingContent.ReadChannelContent(), VersionedContent {
+                                     val encoder: CompressionEncoder) : OutgoingContent.ReadChannelContent() {
         override fun readFrom() = encoder.compress(delegateChannel())
         override val headers by lazy(LazyThreadSafetyMode.NONE) {
             ValuesMap.build(true) {
@@ -115,17 +115,15 @@ class Compression(compression: Configuration) {
             }
         }
 
-        override val contentType: ContentType
-            get() = original.contentType
-        override val status: HttpStatusCode?
-            get() = original.status
-        override val versions: List<Version>
-            get() = if (original is VersionedContent) original.versions else emptyList()
+        override val contentType: ContentType? get() = original.contentType
+        override val status: HttpStatusCode? get() = original.status
+        override fun <T : Any> getProperty(key: AttributeKey<T>) = original.getProperty(key)
+        override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
     }
 
     private class CompressedWriteResponse(val original: WriteChannelContent,
                                           val encoding: String,
-                                          val encoder: CompressionEncoder) : OutgoingContent.WriteChannelContent(), VersionedContent {
+                                          val encoder: CompressionEncoder) : OutgoingContent.WriteChannelContent() {
         override val headers by lazy(LazyThreadSafetyMode.NONE) {
             ValuesMap.build(true) {
                 appendFiltered(original.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
@@ -133,12 +131,10 @@ class Compression(compression: Configuration) {
             }
         }
 
-        override val contentType: ContentType
-            get() = original.contentType
-        override val status: HttpStatusCode?
-            get() = original.status
-        override val versions: List<Version>
-            get() = if (original is VersionedContent) original.versions else emptyList()
+        override val contentType: ContentType? get() = original.contentType
+        override val status: HttpStatusCode? get() = original.status
+        override fun <T : Any> getProperty(key: AttributeKey<T>) = original.getProperty(key)
+        override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
 
         override suspend fun writeTo(channel: ByteWriteChannel) {
             original.writeTo(encoder.compress(channel))
@@ -317,12 +313,18 @@ fun ConditionsHolderBuilder.minimumSize(minSize: Long) {
  * Appends a content type condition to the encoder or Compression configuration
  */
 fun ConditionsHolderBuilder.matchContentType(vararg mimeTypes: ContentType) {
-    condition { content -> mimeTypes.any { content.contentType.match(it) } }
+    condition { content ->
+        val contentType = content.contentType ?: return@condition false
+        mimeTypes.any { contentType.match(it) }
+    }
 }
 
 /**
  * Appends a content type exclusion condition to the encoder or Compression configuration
  */
 fun ConditionsHolderBuilder.excludeContentType(vararg mimeTypes: ContentType) {
-    condition { content -> mimeTypes.none { content.contentType.match(it) } }
+    condition { content ->
+        val contentType = content.contentType ?: return@condition true
+        mimeTypes.none { contentType.match(it) }
+    }
 }

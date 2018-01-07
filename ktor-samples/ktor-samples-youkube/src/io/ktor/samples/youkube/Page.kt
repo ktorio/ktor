@@ -1,16 +1,16 @@
 package io.ktor.samples.youkube
 
-import kotlinx.html.*
 import io.ktor.application.*
 import io.ktor.content.*
-import io.ktor.html.*
+import io.ktor.html.HtmlContent
 import io.ktor.http.*
 import io.ktor.locations.*
+import io.ktor.response.*
 import io.ktor.sessions.*
+import kotlinx.html.*
 
 suspend fun ApplicationCall.respondDefaultHtml(versions: List<Version>, visibility: CacheControl.Visibility, title: String = "You Kube", block: DIV.() -> Unit) {
-    val cacheControl = CacheControl.MaxAge(3600 * 24 * 7, mustRevalidate = true, visibility = visibility, proxyMaxAgeSeconds = null, proxyRevalidate = false)
-    respondHtml(HttpStatusCode.OK, versions, cacheControl) {
+    val content = HtmlContent(HttpStatusCode.OK) {
         val session = sessions.get<YouKubeSession>()
         head {
             title { +title }
@@ -52,6 +52,11 @@ suspend fun ApplicationCall.respondDefaultHtml(versions: List<Version>, visibili
             }
         }
     }
+    content.versions = versions
+    content.caching = CachingOptions(
+            cacheControl = CacheControl.MaxAge(3600 * 24 * 7, mustRevalidate = true, visibility = visibility, proxyMaxAgeSeconds = null, proxyRevalidate = false)
+    )
+    respond(content)
 }
 
 

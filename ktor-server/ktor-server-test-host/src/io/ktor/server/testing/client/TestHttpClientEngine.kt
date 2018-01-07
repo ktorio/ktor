@@ -24,13 +24,23 @@ class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientE
 
     internal fun runRequest(method: HttpMethod, url: String, headers: Headers, content: OutgoingContent): TestApplicationCall {
         return app.handleRequest(method, url) {
-            headers.flattenEntries().forEach { (first, second) ->
-                addHeader(first, second)
-            }
+            headers.flattenEntries().forEach { (name, value) ->
+                        if (HttpHeaders.ContentLength == name) return@forEach // set later
+                        if (HttpHeaders.ContentType == name) return@forEach // set later
+                        addHeader(name, value)
+                    }
 
-            content.headers.flattenEntries().forEach { (first, second) ->
-                addHeader(first, second)
-            }
+            content.headers.flattenEntries().forEach { (name, value) ->
+                        if (HttpHeaders.ContentLength == name) return@forEach // TODO: throw exception for unsafe header?
+                        if (HttpHeaders.ContentType == name) return@forEach
+                        addHeader(name, value)
+                    }
+
+            val contentLength = headers[HttpHeaders.ContentLength] ?: content.contentLength?.toString()
+            val contentType = headers[HttpHeaders.ContentType] ?: content.contentType?.toString()
+
+            contentLength?.let { addHeader(HttpHeaders.ContentLength, it) }
+            contentType?.let { addHeader(HttpHeaders.ContentType, it) }
 
             if (content !is OutgoingContent.NoContent) {
                 bodyBytes = content.toByteArray()

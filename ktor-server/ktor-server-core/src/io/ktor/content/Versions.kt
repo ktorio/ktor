@@ -8,9 +8,17 @@ import java.nio.file.attribute.*
 import java.time.*
 import java.util.*
 
-interface VersionedContent {
-    val versions: List<Version>
-}
+/**
+ * Specifies a key for VersionList extension property for [OutgoingContent]
+ */
+val VersionListProperty = AttributeKey<List<Version>>("VersionList")
+
+/**
+ * Gets or sets list of [Version] instances as an extension property on this content
+ */
+var OutgoingContent.versions: List<Version>
+    get() = getProperty(VersionListProperty) ?: emptyList()
+    set(value) = setProperty(VersionListProperty, value)
 
 /**
  * Represents content version

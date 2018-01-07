@@ -56,7 +56,7 @@ class ConditionalHeaders(private val versionProviders: List<(OutgoingContent) ->
         }
     }
 
-    private suspend fun checkVersions(call: ApplicationCall, versions: List<Version>): VersionCheckResult {
+    private fun checkVersions(call: ApplicationCall, versions: List<Version>): VersionCheckResult {
         for (version in versions) {
             val result = version.check(call)
             if (result != VersionCheckResult.OK) {
@@ -116,6 +116,7 @@ suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, bl
 
 @Deprecated("Use configuration for ConditionalHeaders")
 suspend fun ApplicationCall.withLastModified(lastModified: ZonedDateTime, putHeader: Boolean = true, block: suspend () -> Unit) {
+    @Suppress("DEPRECATION")
     withLastModified(lastModified.toLocalDateTime(), putHeader, block)
 }
 
@@ -154,8 +155,9 @@ suspend fun ApplicationCall.withLastModified(lastModified: LocalDateTime, putHea
  */
 val OutgoingContent.defaultVersions: List<Version>
     get() {
-        if (this is VersionedContent)
-            return versions
+        val extensionVersions = versions
+        if (extensionVersions.isNotEmpty())
+            return extensionVersions
 
         val headers = headers
         val lastModifiedHeaders = headers.getAll(HttpHeaders.LastModified) ?: emptyList()

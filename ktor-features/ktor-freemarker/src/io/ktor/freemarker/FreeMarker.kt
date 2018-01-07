@@ -4,7 +4,6 @@ import freemarker.template.*
 import io.ktor.application.*
 import io.ktor.cio.*
 import io.ktor.content.*
-import io.ktor.content.Version
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.util.*
@@ -38,25 +37,17 @@ class FreeMarker(val config: Configuration) {
 
     private class FreeMarkerTemplateResource(val template: freemarker.template.Template,
                                              val model: Any,
-                                             val etag: String?,
-                                             override val contentType: ContentType) : OutgoingContent.WriteChannelContent(), VersionedContent {
+                                             etag: String?,
+                                             override val contentType: ContentType) : OutgoingContent.WriteChannelContent() {
         suspend override fun writeTo(channel: ByteWriteChannel) {
             channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8).use {
-                template.process(model, it)
-            }
+                        template.process(model, it)
+                    }
         }
 
-        override val versions: List<Version>
-            get() = if (etag != null) {
-                listOf(EntityTagVersion(etag))
-            } else {
-                emptyList()
-            }
-
-        override val headers by lazy(LazyThreadSafetyMode.NONE) {
-            ValuesMap.build(true) {
-                contentType(contentType)
-            }
+        init {
+            if (etag != null)
+                versions += EntityTagVersion(etag)
         }
     }
 }

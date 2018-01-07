@@ -104,14 +104,13 @@ class CIOApplicationResponse(call: CIOApplicationCall,
         channel.close()
     }
 
+    override suspend fun respondNoContent(content: OutgoingContent.NoContent) {
+        sendResponseMessage(contentReady = true)
+        output.close()
+    }
+
     override suspend fun respondOutgoingContent(content: OutgoingContent) {
         super.respondOutgoingContent(content)
-        if (content is OutgoingContent.NoContent) {
-            sendResponseMessage(contentReady = true)
-            output.close()
-            return
-        }
-
         chunkedChannel?.close()
         chunkedJob?.join()
     }

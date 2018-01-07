@@ -29,7 +29,7 @@ fun ApplicationCall.resolveResource(path: String,
             return if (file.exists()) LocalFileContent(file, mimeResolve(file.extension)) else null
         } else if (url.protocol == "jar") {
             val zipFile = findContainingJarFile(url.toString())
-            return JarFileContent(zipFile, normalizedResource, classLoader, mimeResolve(url.path.extension()))
+            return JarFileContent(zipFile, normalizedResource, mimeResolve(url.path.extension()))
         }
     }
 

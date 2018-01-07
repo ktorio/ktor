@@ -31,12 +31,7 @@ internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
 
     override suspend fun respondOutgoingContent(content: OutgoingContent) {
         try {
-            if (content is OutgoingContent.NoContent && HttpHeaders.ContentLength in content.headers) {
-                commitHeaders(content)
-                sendResponse(false, EmptyByteReadChannel)
-            } else {
-                super.respondOutgoingContent(content)
-            }
+            super.respondOutgoingContent(content)
         } catch (t: Throwable) {
             val out = responseChannel as? ByteWriteChannel
             out?.close(t)
@@ -59,6 +54,10 @@ internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
         val chunked = headers[HttpHeaders.TransferEncoding] == "chunked"
         sendResponse(chunked, content = channel)
         return channel
+    }
+
+    override suspend fun respondNoContent(content: OutgoingContent.NoContent) {
+        sendResponse(false, EmptyByteReadChannel)
     }
 
     protected abstract fun responseMessage(chunked: Boolean, last: Boolean): Any

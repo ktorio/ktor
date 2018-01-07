@@ -19,6 +19,7 @@ class PartialContentTest {
 
     fun withRangeApplication(test: TestApplicationEngine.(File) -> Unit) = withTestApplication {
         application.install(ConditionalHeaders)
+        application.install(CachingHeaders)
         application.install(PartialContent)
         application.install(AutoHeadResponse)
         application.routing {

@@ -9,13 +9,6 @@ class TextContent(val text: String, override val contentType: ContentType, overr
     override val contentLength: Long
         get() = bytes.size.toLong()
 
-    override val headers by lazy(LazyThreadSafetyMode.NONE) {
-        ValuesMap.build(true) {
-            contentType(contentType)
-            contentLength(contentLength)
-        }
-    }
-
     override fun bytes(): ByteArray = bytes
 
     override fun toString() = "TextContent[$contentType] \"${text.take(30)}\""

@@ -31,14 +31,12 @@ object AutoHeadResponse : ApplicationFeature<ApplicationCallPipeline, Unit, Unit
         }
     }
 
-    private class HeadResponse(val content: OutgoingContent) : OutgoingContent.NoContent(), VersionedContent {
-        override val status: HttpStatusCode?
-            get() = content.status
-        override val contentType: ContentType
-            get() = content.contentType
-        override val versions: List<Version>
-            get() = if (content is VersionedContent) content.versions else emptyList()
-
-        override val headers by lazy(LazyThreadSafetyMode.NONE) { content.headers }
+    private class HeadResponse(val original: OutgoingContent) : OutgoingContent.NoContent() {
+        override val status: HttpStatusCode? get() = original.status
+        override val contentType: ContentType? get() = original.contentType
+        override val contentLength: Long? get() = original.contentLength
+        override fun <T : Any> getProperty(key: AttributeKey<T>) = original.getProperty(key)
+        override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
+        override val headers get() = original.headers
     }
 }

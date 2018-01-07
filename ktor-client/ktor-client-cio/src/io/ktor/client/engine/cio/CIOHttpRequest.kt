@@ -53,9 +53,8 @@ class CIOHttpRequest(
         }
     }
 
-    private suspend fun writeRequest(output: ByteWriteChannel, body: OutgoingContent) {
+    private suspend fun writeRequest(output: ByteWriteChannel, content: OutgoingContent) {
         val builder = RequestResponseBuilder()
-        val bodySize = body.headers[HttpHeaders.ContentLength]?.toInt()
 
         try {
             builder.requestLine(method, url.fullPath, HttpProtocolVersion.HTTP_1_1.toString())
@@ -65,13 +64,24 @@ class CIOHttpRequest(
                 builder.headerLine("User-Agent", "CIO/ktor")
             }
 
+            // TODO: get rid of flattenEntries since it allocates alot
             headers.flattenEntries().forEach { (name, value) ->
-                builder.headerLine(name, value)
-            }
+                        if (HttpHeaders.ContentLength == name) return@forEach // set later
+                        if (HttpHeaders.ContentType == name) return@forEach // set later
+                        builder.headerLine(name, value)
+                    }
 
-            body.headers.flattenEntries().forEach { (name, value) ->
-                builder.headerLine(name, value)
-            }
+            content.headers.flattenEntries().forEach { (name, value) ->
+                        if (HttpHeaders.ContentLength == name) return@forEach // TODO: throw exception for unsafe header?
+                        if (HttpHeaders.ContentType == name) return@forEach
+                        builder.headerLine(name, value)
+                    }
+
+            val contentLength = headers[HttpHeaders.ContentLength] ?: content.contentLength?.toString()
+            val contentType = headers[HttpHeaders.ContentType] ?: content.contentType?.toString()
+
+            contentLength?.let { builder.headerLine(HttpHeaders.ContentLength, it)}
+            contentType?.let { builder.headerLine(HttpHeaders.ContentType, it)}
 
             builder.headerLine(HttpHeaders.Connection, "close")
 
@@ -82,15 +92,18 @@ class CIOHttpRequest(
             builder.release()
         }
 
-        if (body is OutgoingContent.NoContent) return
-        val chunked = bodySize == null || body.headers[HttpHeaders.TransferEncoding] == "chunked" || headers[HttpHeaders.TransferEncoding] == "chunked"
+        if (content is OutgoingContent.NoContent)
+            return
+
+        val contentLengthSet = content.headers.contains(HttpHeaders.ContentLength)
+        val chunked = contentLengthSet || content.headers[HttpHeaders.TransferEncoding] == "chunked" || headers[HttpHeaders.TransferEncoding] == "chunked"
 
         launch(dispatcher, parent = executionContext) {
             val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, coroutineContext) else null
             val channel = chunkedJob?.channel ?: output
 
             try {
-                channel.writeBody(body)
+                channel.writeBody(content)
             } catch (cause: Throwable) {
                 channel.close(cause)
                 executionContext.completeExceptionally(cause)

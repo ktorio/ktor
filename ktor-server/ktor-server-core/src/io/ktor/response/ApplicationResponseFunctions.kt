@@ -8,6 +8,7 @@ import java.io.*
 /**
  * Sends a [message] as a response
  */
+@Suppress("NOTHING_TO_INLINE")
 suspend inline fun ApplicationCall.respond(message: Any) {
     response.pipeline.execute(this, message)
 }
@@ -15,33 +16,53 @@ suspend inline fun ApplicationCall.respond(message: Any) {
 /**
  * Sets [status] and sends a [message] as a response
  */
+@Suppress("NOTHING_TO_INLINE")
 suspend inline fun ApplicationCall.respond(status: HttpStatusCode, message: Any) {
     response.status(status)
     response.pipeline.execute(this, message)
 }
 
+/**
+ * Responds to a client with a `301 Moved Permanently` or `302 Found` redirect
+ */
 suspend fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false) {
     response.headers.append(HttpHeaders.Location, url)
     return respond(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
 }
 
-suspend fun ApplicationCall.respondText(text: String, contentType: ContentType? = null, status: HttpStatusCode? = null) {
-    val message = TextContent(text, defaultTextContentType(contentType), status)
+/**
+ * Responds to a client with a plain text response, using specified [text]
+ * @param contentType is an optional [ContentType], default is [ContentType.Text.Plain]
+ * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
+ */
+suspend fun ApplicationCall.respondText(text: String, contentType: ContentType? = null, status: HttpStatusCode? = null, configure: OutgoingContent.() -> Unit = {}) {
+    val message = TextContent(text, defaultTextContentType(contentType), status).apply(configure)
     return respond(message)
 }
 
-suspend fun ApplicationCall.respondFile(baseDir: File, fileName: String) {
-    val message = LocalFileContent(baseDir, fileName)
-    return respond(message)
-}
-
-suspend fun ApplicationCall.respondFile(file: File) {
-    val message = LocalFileContent(file)
-    return respond(message)
-}
-
+/**
+ * Responds to a client with a plain text response, using specified [provider] to build a text
+ * @param contentType is an optional [ContentType], default is [ContentType.Text.Plain]
+ * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
+ */
 suspend fun ApplicationCall.respondText(contentType: ContentType? = null, status: HttpStatusCode? = null, provider: suspend () -> String) {
     val message = TextContent(provider(), defaultTextContentType(contentType), status)
+    return respond(message)
+}
+
+/**
+ * Responds to a client with a contents of a file with the name [fileName] in the [baseDir] folder
+ */
+suspend fun ApplicationCall.respondFile(baseDir: File, fileName: String, configure: OutgoingContent.() -> Unit = {}) {
+    val message = LocalFileContent(baseDir, fileName).apply(configure)
+    return respond(message)
+}
+
+/**
+ * Responds to a client with a contents of a [file]
+ */
+suspend fun ApplicationCall.respondFile(file: File, configure: OutgoingContent.() -> Unit = {}) {
+    val message = LocalFileContent(file).apply(configure)
     return respond(message)
 }
 
@@ -55,10 +76,20 @@ suspend fun ApplicationCall.respondWrite(contentType: ContentType? = null, statu
     return respond(message)
 }
 
+/**
+ * Creates a default [ContentType] based on the given [contentType] and current call
+ *
+ * If [contentType] is null, it tries to fetch already set response header "Content-Type". If the header is not available
+ * `text/plain` is used. If [contentType] is specified, it uses it
+ *
+ * Additionally, if charset is not set for either content type, it appends `; charset=UTF-8` to the content type.
+ */
 fun ApplicationCall.defaultTextContentType(contentType: ContentType?): ContentType {
-    val headersContentType = response.headers[HttpHeaders.ContentType]
     val result = when (contentType) {
-        null -> headersContentType?.let { ContentType.parse(headersContentType) } ?: ContentType.Text.Plain
+        null -> {
+            val headersContentType = response.headers[HttpHeaders.ContentType]
+            headersContentType?.let { ContentType.parse(headersContentType) } ?: ContentType.Text.Plain
+        }
         else -> contentType
     }
 

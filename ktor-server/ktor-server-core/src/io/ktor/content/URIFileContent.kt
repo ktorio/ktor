@@ -9,12 +9,5 @@ class URIFileContent(val uri: URI,
                      override val contentType: ContentType = ContentType.defaultForFilePath(uri.path)) : OutgoingContent.ReadChannelContent() {
     constructor(url: URL, contentType: ContentType = ContentType.defaultForFilePath(url.path)) : this(url.toURI(), contentType)
 
-    override val headers by lazy(LazyThreadSafetyMode.NONE) {
-        ValuesMap.build(true) {
-            contentType(contentType)
-            contentLength?.let { contentLength(it) }
-        }
-    }
-
     override fun readFrom() = uri.toURL().openStream().toByteReadChannel() // TODO: use http client
 }
