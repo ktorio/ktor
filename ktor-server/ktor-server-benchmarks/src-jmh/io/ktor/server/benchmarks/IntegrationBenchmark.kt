@@ -149,7 +149,9 @@ abstract class IntegrationBenchmark<TEngine : ApplicationEngine> {
 }
 
 /*
-NOTE: Results on Ilya's MacBook Pro, rebooted without any extra programs running, executed with Gradle
+NOTE: Results on Ilya's MacBook Pro, rebooted without any extra programs running
+
+$ gradle runBenchmark -PbenchmarkName=IntegrationBenchmark
 
 Benchmark                                                      Mode  Cnt    Score    Error   Units
 i.k.s.b.cio.CIOIntegrationBenchmark.jarfile                   thrpt   20    8.390 ±  0.270  ops/ms
