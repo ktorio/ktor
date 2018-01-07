@@ -1,10 +1,27 @@
-package io.ktor.content
+package io.ktor.http
 
 import java.util.*
 
+/**
+ * Represents a value for a `Cache-Control` header
+ *
+ * @param visibility specifies an optional visibility such as private or public
+ */
 sealed class CacheControl(val visibility: Visibility?) {
+
+    /**
+     * Controls caching by proxies
+     */
     enum class Visibility {
-        Public, Private
+        /**
+         * Specifies that the response is cacheable by clients and shared (proxy) caches.
+         */
+        Public,
+
+        /**
+         * Specifies that the response is cacheable only on the client and not by shared (proxy server) caches.
+         */
+        Private
     }
 
     class NoCache(visibility: Visibility?) : CacheControl(visibility) {
