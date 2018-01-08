@@ -6,10 +6,11 @@ import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.server.cio.*
+import io.ktor.server.benchmarks.cio.*
+import io.ktor.server.benchmarks.jetty.*
+import io.ktor.server.benchmarks.netty.*
+import io.ktor.server.benchmarks.test.*
 import io.ktor.server.engine.*
-import io.ktor.server.jetty.*
-import io.ktor.server.netty.*
 import org.openjdk.jmh.annotations.*
 import org.slf4j.*
 import org.slf4j.Logger
@@ -18,27 +19,28 @@ import java.util.concurrent.*
 
 
 @State(Scope.Benchmark)
-abstract class IntegrationBenchmark {
+abstract class IntegrationBenchmark<TEngine : ApplicationEngine> {
     private val coreDirectory = File("../ktor-server-core").absoluteFile.normalize()
     private val packageName = IntegrationBenchmark::class.java.`package`.name
     private val classFileName = IntegrationBenchmark::class.simpleName!! + ".class"
     private val smallFile = File(coreDirectory, "build.gradle")
     private val largeFile = File(coreDirectory, "build").walkTopDown().maxDepth(2).filter {
-        it.name.startsWith("ktor-server-core") && it.name.endsWith("SNAPSHOT.jar")
-    }.single()
+                                it.name.startsWith("ktor-server-core") && it.name.endsWith("SNAPSHOT.jar")
+                            }.single()
 
-    lateinit var server: ApplicationEngine
+    lateinit var server: TEngine
     private val httpClient = OkHttpBenchmarkClient()
 
     private val port = 5678
 
-    abstract fun createServer(port: Int, main: Application.() -> Unit): ApplicationEngine
+    abstract fun createServer(port: Int, main: Application.() -> Unit): TEngine
+    protected open val localhost = "http://localhost:$port"
 
     @Setup
     fun configureServer() {
         val root = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME) as ch.qos.logback.classic.Logger
-        val okContent = TextContent("OK", ContentType.Text.Plain, HttpStatusCode.OK)
         root.level = Level.ERROR
+        val okContent = TextContent("OK", ContentType.Text.Plain, HttpStatusCode.OK)
         server = createServer(port) {
             routing {
                 get("/sayOK") {
@@ -86,115 +88,122 @@ abstract class IntegrationBenchmark {
         httpClient.shutdown()
     }
 
-    private fun load(url: String) {
+    protected fun load(url: String) {
         httpClient.load(url)
     }
 
     @Benchmark
+    fun random() {
+        when (ThreadLocalRandom.current().nextInt(14)) {
+            0, 1, 2, 3, 4 -> thinkOK()
+            5, 6, 7, 8, 9 -> query()
+            10, 11, 12 -> smallFile()
+            13 -> largeFile()
+        }
+    }
+
+    @Benchmark
     fun sayOK() {
-        load("http://localhost:$port/sayOK")
+        load("$localhost/sayOK")
     }
 
     @Benchmark
     fun query() {
-        load("http://localhost:$port/query?utm_source=Google&utm_medium=cpc&utm_campaign=ok%2B+plus&utm_content=obshie&message=OK")
+        load("$localhost/query?utm_source=Google&utm_medium=cpc&utm_campaign=ok%2B+plus&utm_content=obshie&message=OK")
     }
 
     @Benchmark
     fun thinkOK() {
-        load("http://localhost:$port/thinkOK")
+        load("$localhost/thinkOK")
     }
 
     @Benchmark
     fun jarfile() {
-        load("http://localhost:$port/jarfile")
+        load("$localhost/jarfile")
     }
 
     @Benchmark
     fun regularClasspathFile() {
-        load("http://localhost:$port/regularClasspathFile")
+        load("$localhost/regularClasspathFile")
     }
 
     @Benchmark
     fun smallFile() {
-        load("http://localhost:$port/smallFile")
+        load("$localhost/smallFile")
     }
 
     @Benchmark
     fun smallFileSync() {
-        load("http://localhost:$port/smallFileSync")
+        load("$localhost/smallFileSync")
     }
 
     @Benchmark
     fun largeFile() {
-        load("http://localhost:$port/largeFile")
+        load("$localhost/largeFile")
     }
 
     @Benchmark
     fun largeFileSync() {
-        load("http://localhost:$port/largeFileSync")
-    }
-}
-
-class NettyIntegrationBenchmark : IntegrationBenchmark() {
-    override fun createServer(port: Int, main: Application.() -> Unit): ApplicationEngine {
-        return embeddedServer(Netty, port, module = main)
-    }
-}
-
-class JettyIntegrationBenchmark : IntegrationBenchmark() {
-    override fun createServer(port: Int, main: Application.() -> Unit): ApplicationEngine {
-        return embeddedServer(Jetty, port, module = main)
-    }
-}
-
-class CIOIntegrationBenchmark : IntegrationBenchmark() {
-    override fun createServer(port: Int, main: Application.() -> Unit): ApplicationEngine {
-        return embeddedServer(CIO, port, module = main)
+        load("$localhost/largeFileSync")
     }
 }
 
 /*
 NOTE: Results on Ilya's MacBook Pro, rebooted without any extra programs running, executed with Gradle
 
-Benchmark                                        Mode  Cnt   Score   Error   Units
-CIOIntegrationBenchmark.jarfile                 thrpt   20   8.280 ± 0.314  ops/ms
-CIOIntegrationBenchmark.largeFile               thrpt   20   0.516 ± 0.011  ops/ms
-CIOIntegrationBenchmark.largeFileSync           thrpt   20   0.570 ± 0.016  ops/ms
-CIOIntegrationBenchmark.query                   thrpt   20  47.998 ± 1.252  ops/ms
-CIOIntegrationBenchmark.regularClasspathFile    thrpt   20  15.109 ± 0.255  ops/ms
-CIOIntegrationBenchmark.sayOK                   thrpt   20  53.502 ± 1.659  ops/ms
-CIOIntegrationBenchmark.smallFile               thrpt   20  31.820 ± 0.476  ops/ms
-CIOIntegrationBenchmark.smallFileSync           thrpt   20  42.918 ± 1.017  ops/ms
-CIOIntegrationBenchmark.thinkOK                 thrpt   20  54.000 ± 0.777  ops/ms
+Benchmark                                                      Mode  Cnt    Score    Error   Units
+i.k.s.b.cio.CIOIntegrationBenchmark.jarfile                   thrpt   20    8.390 ±  0.270  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.largeFile                 thrpt   20    0.682 ±  0.014  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.largeFileSync             thrpt   20    0.696 ±  0.012  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.query                     thrpt   20   45.090 ±  0.874  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.random                    thrpt   20    8.111 ±  0.247  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.regularClasspathFile      thrpt   20   16.187 ±  0.264  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.sayOK                     thrpt   20   48.819 ±  0.891  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.smallFile                 thrpt   20   29.565 ±  2.076  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.smallFileSync             thrpt   20   37.043 ±  0.970  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.thinkOK                   thrpt   20   48.547 ±  0.707  ops/ms
 
-JettyIntegrationBenchmark.jarfile               thrpt   20   9.241 ± 0.467  ops/ms
-JettyIntegrationBenchmark.largeFile             thrpt   20   1.121 ± 0.032  ops/ms
-JettyIntegrationBenchmark.largeFileSync         thrpt   20   1.181 ± 0.025  ops/ms
-JettyIntegrationBenchmark.query                 thrpt   20  27.000 ± 1.867  ops/ms
-JettyIntegrationBenchmark.regularClasspathFile  thrpt   20  16.778 ± 1.675  ops/ms
-JettyIntegrationBenchmark.sayOK                 thrpt   20  30.925 ± 1.612  ops/ms
-JettyIntegrationBenchmark.smallFile             thrpt   20  26.338 ± 1.829  ops/ms
-JettyIntegrationBenchmark.smallFileSync         thrpt   20  25.525 ± 1.588  ops/ms
-JettyIntegrationBenchmark.thinkOK               thrpt   20  27.348 ± 2.219  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.jarfile               thrpt   20    8.609 ±  0.508  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.largeFile             thrpt   20    1.116 ±  0.028  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.largeFileSync         thrpt   20    1.411 ±  0.020  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.query                 thrpt   20   22.161 ±  1.391  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.random                thrpt   20    8.090 ±  0.351  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.regularClasspathFile  thrpt   20   14.452 ±  0.955  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.sayOK                 thrpt   20   26.201 ±  1.210  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.smallFile             thrpt   20   23.825 ±  2.450  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.smallFileSync         thrpt   20   23.818 ±  0.972  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.thinkOK               thrpt   20   26.111 ±  1.179  ops/ms
 
-NettyIntegrationBenchmark.jarfile               thrpt   20  10.640 ± 0.234  ops/ms
-NettyIntegrationBenchmark.largeFile             thrpt   20   0.853 ± 0.015  ops/ms
-NettyIntegrationBenchmark.largeFileSync         thrpt   20   3.633 ± 0.063  ops/ms
-NettyIntegrationBenchmark.query                 thrpt   20  47.397 ± 0.811  ops/ms
-NettyIntegrationBenchmark.regularClasspathFile  thrpt   20  18.127 ± 0.294  ops/ms
-NettyIntegrationBenchmark.sayOK                 thrpt   20  51.893 ± 1.016  ops/ms
-NettyIntegrationBenchmark.smallFile             thrpt   20  34.043 ± 0.747  ops/ms
-NettyIntegrationBenchmark.smallFileSync         thrpt   20  42.729 ± 1.431  ops/ms
-NettyIntegrationBenchmark.thinkOK               thrpt   20  51.209 ± 1.335  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.jarfile               thrpt   20    8.945 ±  0.250  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.largeFile             thrpt   20    0.770 ±  0.031  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.largeFileSync         thrpt   20    3.225 ±  0.065  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.query                 thrpt   20   42.816 ±  0.661  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.random                thrpt   20    7.922 ±  0.201  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.regularClasspathFile  thrpt   20   17.128 ±  0.448  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.sayOK                 thrpt   20   47.304 ±  1.055  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.smallFile             thrpt   20   30.102 ±  0.928  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.smallFileSync         thrpt   20   36.826 ±  0.650  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.thinkOK               thrpt   20   45.584 ±  0.758  ops/ms
+
+i.k.s.b.test.TestIntegrationBenchmark.jarfile                 thrpt   20   15.871 ±  0.186  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.largeFile               thrpt   20    2.955 ±  0.034  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.largeFileSync           thrpt   20    2.904 ±  0.030  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.query                   thrpt   20  550.201 ±  6.534  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.random                  thrpt   20   36.724 ±  0.645  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.regularClasspathFile    thrpt   20   48.553 ±  1.083  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.sayOK     e              thrpt   20  839.996 ± 12.154  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.smallFile               thrpt   20   87.324 ±  2.540  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.smallFileSync           thrpt   20  146.581 ±  4.622  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.thinkOK                 thrpt   20  805.347 ± 11.841  ops/ms
 */
 
 fun main(args: Array<String>) {
     benchmark(args) {
         threads = 32
+        run<CIOIntegrationBenchmark>()
         run<JettyIntegrationBenchmark>()
         run<NettyIntegrationBenchmark>()
-        run<CIOIntegrationBenchmark>()
+        run<TestIntegrationBenchmark>()
     }
 }
 

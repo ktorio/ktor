@@ -41,3 +41,12 @@ fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test: TestAp
         test()
     }
 }
+
+/**
+ * An [ApplicationEngineFactory] providing a CIO-based [ApplicationEngine]
+ */
+object TestEngine : ApplicationEngineFactory<TestApplicationEngine, TestApplicationEngine.Configuration> {
+    override fun create(environment: ApplicationEngineEnvironment, configure: TestApplicationEngine.Configuration.() -> Unit): TestApplicationEngine {
+        return TestApplicationEngine(environment, configure)
+    }
+}

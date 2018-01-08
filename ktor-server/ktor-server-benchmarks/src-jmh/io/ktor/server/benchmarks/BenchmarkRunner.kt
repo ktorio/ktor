@@ -141,14 +141,3 @@ fun runJMH(settings: BenchmarkSettings) {
     }
     Runner(options.build()).run()
 }
-
-fun main(args: Array<String>) {
-    benchmark(args) {
-        run<CodecsBenchmark>()
-        run<FullBenchmark>()
-        run<IntegrationBenchmark>()
-        run<PipelineBenchmark>()
-        run<RoutingBenchmark>()
-        run<ValuesMapBenchmark>()
-    }
-}

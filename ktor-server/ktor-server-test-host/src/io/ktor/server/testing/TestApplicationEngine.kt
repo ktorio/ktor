@@ -8,7 +8,11 @@ import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import java.util.concurrent.*
 
-class TestApplicationEngine(environment: ApplicationEngineEnvironment = createTestEnvironment()) : BaseApplicationEngine(environment, EnginePipeline()) {
+class TestApplicationEngine(environment: ApplicationEngineEnvironment = createTestEnvironment(), configure: Configuration.() -> Unit = {}) : BaseApplicationEngine(environment, EnginePipeline()) {
+
+    class Configuration : BaseApplicationEngine.Configuration()
+    private val configuration = Configuration().apply(configure)
+
     init {
         pipeline.intercept(EnginePipeline.Call) {
             call.application.execute(call)
