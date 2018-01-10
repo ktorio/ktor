@@ -10,27 +10,48 @@ import io.ktor.util.*
 import java.nio.charset.Charset
 
 /**
- * https://tools.ietf.org/html/rfc7231#section-5.3
- * https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation
+ * This feature provides automatic content conversion according to Content-Type and Accept headers
+ *
+ * See normative documents:
+ *
+ * * https://tools.ietf.org/html/rfc7231#section-5.3
+ * * https://developer.mozilla.org/en-US/docs/Web/HTTP/Content_negotiation
+ *
+ * @param registrations is a list of registered converters for ContentTypes
  */
-class ContentNegotiation(val converters: List<ContentConverterRegistration>) {
-    data class ContentConverterRegistration(val contentType: ContentType, val converter: ContentConverter)
+class ContentNegotiation(val registrations: List<ConverterRegistration>) {
 
+    /**
+     * Specifies which [converter] to use for a particular [contentType]
+     * @param contentType is an instance of [ContentType] for this registration
+     * @param converter is an instance of [ContentConverter] for this registration
+     */
+    data class ConverterRegistration(val contentType: ContentType, val converter: ContentConverter)
+
+    /**
+     * Configuration type for [ContentNegotiation] feature
+     */
     class Configuration {
-        internal val converters = ArrayList<ContentConverterRegistration>()
+        internal val registrations = mutableListOf<ConverterRegistration>()
 
-        fun <T : ContentConverter> register(contentType: ContentType, converter: T, configure: T.() -> Unit = {}) {
-            val registration = ContentConverterRegistration(contentType, converter.apply(configure))
-            converters.add(registration)
+        /**
+         * Registers a [contentType] to a specified [converter] with an optional [configuration] script for converter
+         */
+        fun <T : ContentConverter> register(contentType: ContentType, converter: T, configuration: T.() -> Unit = {}) {
+            val registration = ConverterRegistration(contentType, converter.apply(configuration))
+            registrations.add(registration)
         }
     }
 
+    /**
+     * Implementation of an [ApplicationFeature] for the [ContentNegotiation]
+     */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, ContentNegotiation> {
         override val key = AttributeKey<ContentNegotiation>("gson")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ContentNegotiation {
             val configuration = Configuration().apply(configure)
-            val feature = ContentNegotiation(configuration.converters)
+            val feature = ContentNegotiation(configuration.registrations)
 
             // Respond with "415 Unsupported Media Type" if content cannot be transformed on receive
             pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
@@ -45,7 +66,9 @@ class ContentNegotiation(val converters: List<ContentConverterRegistration>) {
                 if (subject is OutgoingContent) return@intercept
 
                 val suitableConverters = call.request.acceptItems().mapNotNull { (contentType, _) ->
-                    feature.converters.firstOrNull { it.contentType.match(contentType) }
+                    feature.registrations.firstOrNull {
+                        it.contentType.match(contentType)
+                    }
                 }
 
                 val converted = suitableConverters.mapUntilNotNull {
@@ -59,7 +82,7 @@ class ContentNegotiation(val converters: List<ContentConverterRegistration>) {
             pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
                 if (subject.value !is IncomingContent) return@intercept
                 val contentType = call.request.contentType().withoutParameters()
-                val suitableConverter = feature.converters.firstOrNull { it.contentType.match(contentType) }
+                val suitableConverter = feature.registrations.firstOrNull { it.contentType.match(contentType) }
                         ?: throw UnsupportedMediaTypeException(contentType)
                 val converted = suitableConverter.converter.convertForReceive(this)
                         ?: throw UnsupportedMediaTypeException(contentType)
