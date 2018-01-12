@@ -1,5 +1,8 @@
 package io.ktor.pipeline
 
+/**
+ * DslMarker for pipeline execution context
+ */
 @DslMarker
-@Target(*arrayOf(AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS, AnnotationTarget.TYPE))
+@Target(AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS, AnnotationTarget.TYPE)
 annotation class ContextDsl
