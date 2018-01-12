@@ -43,6 +43,9 @@ abstract class IntegrationBenchmark<TEngine : ApplicationEngine> {
         val okContent = TextContent("OK", ContentType.Text.Plain, HttpStatusCode.OK)
         server = createServer(port) {
             routing {
+                get("/long/path/to/find/issues/with/routing/scalability") {
+                    call.respond(okContent)
+                }
                 get("/sayOK") {
                     call.respond(okContent)
                 }
@@ -105,6 +108,11 @@ abstract class IntegrationBenchmark<TEngine : ApplicationEngine> {
     @Benchmark
     fun sayOK() {
         load("$localhost/sayOK")
+    }
+
+    @Benchmark
+    fun longPath() {
+        load("$localhost/long/path/to/find/issues/with/routing/scalability")
     }
 
     @Benchmark
