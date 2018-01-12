@@ -64,7 +64,7 @@ class WeakTimeoutQueue(private val timeoutMillis: Long,
                 if (wrapped.isCancelled) throw wrapped.getCancellationException()
                 block.startCoroutineUninterceptedOrReturn(receiver = wrapped, completion = wrapped)
             } catch (t: Throwable) {
-                JobSupport.CompletedExceptionally(t)
+                CompletedExceptionally(t)
             }
 
             unwrapResult(wrapped, handle, result)
@@ -76,7 +76,7 @@ class WeakTimeoutQueue(private val timeoutMillis: Long,
         return when {
             result === suspended -> result
             c.isCompleted -> suspended
-            result is JobSupport.CompletedExceptionally -> {
+            result is CompletedExceptionally -> {
                 handle.dispose()
                 throw result.exception
             }
@@ -123,12 +123,13 @@ class WeakTimeoutQueue(private val timeoutMillis: Long,
         }
     }
 
-    private class WeakTimeoutCoroutine<T>(context: CoroutineContext, val delegate: Continuation<T>) : AbstractCoroutine<T>(context, true), Continuation<T> {
+    private class WeakTimeoutCoroutine<in T>(context: CoroutineContext, val delegate: Continuation<T>) : AbstractCoroutine<T>(context, true), Continuation<T> {
         override fun afterCompletion(state: Any?, mode: Int) {
             if (state is CompletedExceptionally) {
+                @Suppress("INVISIBLE_MEMBER")
                 delegate.resumeWithExceptionMode(state.exception, mode)
             } else {
-                @Suppress("UNCHECKED_CAST")
+                @Suppress("UNCHECKED_CAST", "INVISIBLE_MEMBER")
                 delegate.resumeMode(state as T, mode)
             }
         }
