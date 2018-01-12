@@ -100,8 +100,10 @@ class CIOApplicationResponse(call: CIOApplicationCall,
     override suspend fun respondFromBytes(bytes: ByteArray) {
         sendResponseMessage(contentReady = true)
         val channel = preparedBodyChannel()
-        channel.writeFully(bytes)
-        channel.close()
+        return withContext<Unit>(Unconfined) {
+            channel.writeFully(bytes)
+            channel.close()
+        }
     }
 
     override suspend fun respondNoContent(content: OutgoingContent.NoContent) {

@@ -6,6 +6,7 @@ import io.ktor.content.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.*
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 
 /**
@@ -136,9 +137,9 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
             content.writeTo(this)
 
             headers[HttpHeaders.ContentLength]?.toLong()?.let { length ->
-                        val written = totalBytesWritten - before
-                        ensureLength(length, written)
-                    }
+                val written = totalBytesWritten - before
+                //ensureLength(length, written)
+            }
         }
     }
 
@@ -148,14 +149,18 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
                 }
 
         responseChannel().use {
-            writeFully(bytes)
+            withContext(Unconfined) {
+                writeFully(bytes)
+            }
         }
     }
 
     protected open suspend fun respondFromChannel(readChannel: ByteReadChannel) {
         responseChannel().use {
             val length = headers[HttpHeaders.ContentLength]?.toLong()
-            val copied = readChannel.copyTo(this, length ?: Long.MAX_VALUE)
+            val copied = withContext(Unconfined) {
+                readChannel.copyTo(this, length ?: Long.MAX_VALUE)
+            }
 
             length ?: return@use
             val discarded = readChannel.discard(max = 1)

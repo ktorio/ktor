@@ -26,7 +26,7 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
 
     private val serverJob = launch(ioCoroutineDispatcher, start = CoroutineStart.LAZY) {
         // starting
-        run(userDispatcher) {
+        withContext(userDispatcher) {
             environment.start()
         }
 
@@ -50,7 +50,7 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
         // stopping
         connectors.forEach { it.acceptJob.cancel() }
 
-        run(userDispatcher) {
+        withContext(userDispatcher) {
             environment.monitor.raise(ApplicationStopPreparing, environment)
         }
     }
@@ -105,15 +105,12 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
         val settings = HttpServerSettings(port = port,
                 connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong())
 
-        return httpServer(settings, serverJob, userDispatcher) { request, input, output, upgraded ->
-            val call = CIOApplicationCall(application, request, input, output, hostDispatcher + serverJob, userDispatcher + serverJob, upgraded)
+        val hostContext = hostDispatcher + serverJob
+        val userContext = userDispatcher + serverJob
 
-            try {
-                pipeline.execute(call)
-            } catch (t: Throwable) {
-                t.printStackTrace()
-                output.close(t)
-            }
+        return httpServer(settings, serverJob, userDispatcher) { request, input, output, upgraded ->
+            val call = CIOApplicationCall(application, request, input, output, hostContext, userContext, upgraded)
+            pipeline.execute(call)
         }
     }
 }
