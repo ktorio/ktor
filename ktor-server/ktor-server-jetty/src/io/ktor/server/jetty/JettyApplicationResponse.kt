@@ -7,13 +7,13 @@ import org.eclipse.jetty.server.*
 import javax.servlet.http.*
 import kotlin.coroutines.experimental.*
 
-class JettyApplicationResponse(call: ServletApplicationCall,
+class JettyApplicationResponse(call: AsyncServletApplicationCall,
                                servletRequest: HttpServletRequest,
                                servletResponse: HttpServletResponse,
                                engineContext: CoroutineContext,
                                userContext: CoroutineContext,
                                private val baseRequest: Request)
-    : ServletApplicationResponse(call, servletRequest, servletResponse, engineContext, userContext, JettyUpgradeImpl) {
+    : AsyncServletApplicationResponse(call, servletRequest, servletResponse, engineContext, userContext, JettyUpgradeImpl) {
 
     override fun push(builder: ResponsePushBuilder) {
         if (baseRequest.isPushSupported) {

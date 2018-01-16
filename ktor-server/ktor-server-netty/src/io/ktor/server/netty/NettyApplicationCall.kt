@@ -10,8 +10,6 @@ internal abstract class NettyApplicationCall(application: Application,
                                     val context: ChannelHandlerContext,
                                     private val requestMessage: Any) : BaseApplicationCall(application) {
 
-    override val bufferPool = NettyByteBufferPool(context)
-
     abstract override val request: NettyApplicationRequest
     abstract override val response: NettyApplicationResponse
 
