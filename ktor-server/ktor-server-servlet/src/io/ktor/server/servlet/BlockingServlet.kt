@@ -8,6 +8,7 @@ import io.ktor.response.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
+import java.io.*
 import javax.servlet.*
 import javax.servlet.http.*
 
@@ -40,8 +41,11 @@ private class BlockingServletApplicationResponse(
     override fun createResponseJob(): ReaderJob =
         reader(Unconfined) {
             val buffer = ArrayPool.borrow()
-            writeLoop(buffer, channel, servletResponse.outputStream)
-            ArrayPool.recycle(buffer)
+            try {
+                writeLoop(buffer, channel, servletResponse.outputStream)
+            } finally {
+                ArrayPool.recycle(buffer)
+            }
         }
 
     private suspend fun writeLoop(buffer: ByteArray, from: ByteReadChannel, to: ServletOutputStream) {
@@ -49,7 +53,12 @@ private class BlockingServletApplicationResponse(
             val n = from.readAvailable(buffer)
             if (n < 0) break
             check(n > 0)
-            to.write(buffer, 0, n)
+            try {
+                to.write(buffer, 0, n)
+                to.flush()
+            } catch (e: IOException) {
+                throw ChannelIOException("Failed to write to ServletOutputStream", e)
+            }
         }
     }
 

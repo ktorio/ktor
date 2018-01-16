@@ -5,20 +5,32 @@ import io.ktor.server.jetty.*
 import io.ktor.server.servlet.*
 import io.ktor.server.testing.*
 import org.eclipse.jetty.servlet.*
+import org.junit.*
 import javax.servlet.*
 
-class JettyServletContainerEngineTest : EngineTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet)
+class JettyAsyncServletContainerEngineTest :
+    EngineTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = true))
+
+class JettyBlockingServletContainerEngineTest :
+    EngineTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false)) {
+    @Ignore
+    override fun testUpgrade() {}
+}
 
 // the factory and engine are only suitable for testing
 // you shouldn't use it for production code
 
-private object Servlet : ApplicationEngineFactory<JettyServletApplicationEngine, JettyApplicationEngineBase.Configuration> {
+private class Servlet(private val async: Boolean) : ApplicationEngineFactory<JettyServletApplicationEngine, JettyApplicationEngineBase.Configuration> {
     override fun create(environment: ApplicationEngineEnvironment, configure: JettyApplicationEngineBase.Configuration.() -> Unit): JettyServletApplicationEngine {
-        return JettyServletApplicationEngine(environment, configure)
+        return JettyServletApplicationEngine(environment, configure, async)
     }
 }
 
-private class JettyServletApplicationEngine(environment: ApplicationEngineEnvironment, configure: JettyApplicationEngineBase.Configuration.() -> Unit) : JettyApplicationEngineBase(environment, configure) {
+private class JettyServletApplicationEngine(
+    environment: ApplicationEngineEnvironment,
+    configure: JettyApplicationEngineBase.Configuration.() -> Unit,
+    async: Boolean
+) : JettyApplicationEngineBase(environment, configure) {
     init {
         server.handler = ServletContextHandler().apply {
             classLoader = environment.classLoader
@@ -26,10 +38,10 @@ private class JettyServletApplicationEngine(environment: ApplicationEngineEnviro
 
             insertHandler(ServletHandler().apply {
                 val h = ServletHolder("ktor-servlet", ServletApplicationEngine::class.java).apply {
-                    isAsyncSupported = true
+                    isAsyncSupported = async
                     registration.setLoadOnStartup(1)
                     registration.setMultipartConfig(MultipartConfigElement(System.getProperty("java.io.tmpdir")))
-                    registration.setAsyncSupported(true)
+                    registration.setAsyncSupported(async)
                 }
 
                 addServlet(h)
