@@ -1,0 +1,4 @@
+description = ''
+dependencies {
+    compile group: 'org.apache.velocity', name: 'velocity-engine-core', version: '[2.0, 2.1)'
+}
