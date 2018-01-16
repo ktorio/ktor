@@ -752,19 +752,15 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     fun testRepeatRequest() {
         createAndStartServer {
             get("/") {
-                println("Got call ${call.request.queryParameters["i"]}")
                 call.respond("OK ${call.request.queryParameters["i"]}")
-                println("Completed call ${call.request.queryParameters["i"]}")
             }
         }
 
         for (i in 1..100) {
-            println("Before $i")
             withUrl("/?i=$i") {
                 assertEquals(200, status.value)
                 assertEquals("OK $i", readText())
             }
-            println("After $i")
         }
     }
 
