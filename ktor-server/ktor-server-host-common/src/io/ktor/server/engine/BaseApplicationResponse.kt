@@ -66,8 +66,11 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
                 headers.append(HttpHeaders.ContentLength, contentLength.toString(), safeOnly = false)
             }
             !transferEncodingSet -> {
-                if (content !is OutgoingContent.NoContent)
-                    headers.append(HttpHeaders.TransferEncoding, "chunked", safeOnly = false)
+                when (content) {
+                    is OutgoingContent.ProtocolUpgrade -> { }
+                    is OutgoingContent.NoContent -> headers.append(HttpHeaders.ContentLength, "0", safeOnly = false)
+                    else -> headers.append(HttpHeaders.TransferEncoding, "chunked", safeOnly = false)
+                }
             }
         }
 
@@ -145,8 +148,8 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
 
     protected open suspend fun respondFromBytes(bytes: ByteArray) {
         headers[HttpHeaders.ContentLength]?.toLong()?.let { length ->
-                    ensureLength(length, bytes.size.toLong())
-                }
+            ensureLength(length, bytes.size.toLong())
+        }
 
         responseChannel().use {
             withContext(Unconfined) {
