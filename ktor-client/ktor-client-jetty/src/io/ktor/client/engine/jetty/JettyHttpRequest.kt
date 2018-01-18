@@ -59,11 +59,11 @@ class JettyHttpRequest(
     private fun prepareHeadersFrame(content: OutgoingContent): HeadersFrame {
         val rawHeaders = HttpFields()
 
-        headers.flattenEntries().forEach { (name, value) ->
+        headers.flattenForEach { name, value ->
             rawHeaders.add(name, value)
         }
 
-        content.headers.flattenEntries().forEach { (name, value) ->
+        content.headers.flattenForEach { name, value ->
             rawHeaders.add(name, value)
         }
 

@@ -95,19 +95,19 @@ class ApacheRequestProducer(
             path = url.encodedPath
 
             if (url.parameters.isEmpty() && url.trailingQuery) setParameters(listOf())
-            url.parameters.flattenEntries().forEach { (key, value) -> addParameter(key, value) }
+            url.parameters.flattenForEach { key, value -> addParameter(key, value) }
         }.build()
 
-        headers.flattenEntries().forEach { (key, value) ->
-                    if (HttpHeaders.CONTENT_LENGTH == key) return@forEach
-                    builder.addHeader(key, value)
-                }
+        headers.flattenForEach { key, value ->
+            if (HttpHeaders.CONTENT_LENGTH == key) return@flattenForEach
+            builder.addHeader(key, value)
+        }
 
         val content = this@ApacheRequestProducer.body
-        content.headers.flattenEntries().forEach { (key, value) ->
-                    if (HttpHeaders.CONTENT_LENGTH == key) return@forEach
-                    builder.addHeader(key, value)
-                }
+        content.headers.flattenForEach { key, value ->
+            if (HttpHeaders.CONTENT_LENGTH == key) return@flattenForEach
+            builder.addHeader(key, value)
+        }
 
         val length = headers[io.ktor.http.HttpHeaders.ContentLength] ?: content.contentLength?.toString()
         val type = headers[io.ktor.http.HttpHeaders.ContentType] ?: content.contentType?.toString()

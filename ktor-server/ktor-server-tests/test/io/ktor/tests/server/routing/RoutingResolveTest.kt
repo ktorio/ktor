@@ -26,7 +26,7 @@ fun resolve(routing: Route, path: String, parameters: Parameters = Parameters.Em
                     parameters.formUrlEncodeTo(this)
                 }
             }
-            headers.flattenEntries().forEach { request.addHeader(it.first, it.second) }
+            headers.flattenForEach { name, value -> request.addHeader(name, value) }
         }).resolve()
     }
 }

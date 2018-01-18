@@ -227,6 +227,10 @@ fun StringValues.toMap(): Map<String, List<String>> =
 
 fun StringValues.flattenEntries(): List<Pair<String, String>> = entries().flatMap { e -> e.value.map { e.key to it } }
 
+fun StringValues.flattenForEach(block: (String, String) -> Unit) = forEach { name, items ->
+    items.forEach { block(name, it) }
+}
+
 fun StringValues.filter(keepEmpty: Boolean = false, predicate: (String, String) -> Boolean): StringValues {
     val entries = entries()
     val values: MutableMap<String, MutableList<String>> = if (caseInsensitiveName) CaseInsensitiveMap(entries.size) else LinkedHashMap(entries.size)

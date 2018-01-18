@@ -64,24 +64,23 @@ class CIOHttpRequest(
                 builder.headerLine("User-Agent", "CIO/ktor")
             }
 
-            // TODO: get rid of flattenEntries since it allocates alot
-            headers.flattenEntries().forEach { (name, value) ->
-                        if (HttpHeaders.ContentLength == name) return@forEach // set later
-                        if (HttpHeaders.ContentType == name) return@forEach // set later
-                        builder.headerLine(name, value)
-                    }
+            headers.flattenForEach { name, value ->
+                if (HttpHeaders.ContentLength == name) return@flattenForEach // set later
+                if (HttpHeaders.ContentType == name) return@flattenForEach // set later
+                builder.headerLine(name, value)
+            }
 
-            content.headers.flattenEntries().forEach { (name, value) ->
-                        if (HttpHeaders.ContentLength == name) return@forEach // TODO: throw exception for unsafe header?
-                        if (HttpHeaders.ContentType == name) return@forEach
-                        builder.headerLine(name, value)
-                    }
+            content.headers.flattenForEach { name, value ->
+                if (HttpHeaders.ContentLength == name) return@flattenForEach // TODO: throw exception for unsafe header?
+                if (HttpHeaders.ContentType == name) return@flattenForEach
+                builder.headerLine(name, value)
+            }
 
             val contentLength = headers[HttpHeaders.ContentLength] ?: content.contentLength?.toString()
             val contentType = headers[HttpHeaders.ContentType] ?: content.contentType?.toString()
 
-            contentLength?.let { builder.headerLine(HttpHeaders.ContentLength, it)}
-            contentType?.let { builder.headerLine(HttpHeaders.ContentType, it)}
+            contentLength?.let { builder.headerLine(HttpHeaders.ContentLength, it) }
+            contentType?.let { builder.headerLine(HttpHeaders.ContentType, it) }
 
             builder.headerLine(HttpHeaders.Connection, "close")
 
