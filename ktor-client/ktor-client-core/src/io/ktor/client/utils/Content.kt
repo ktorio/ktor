@@ -11,9 +11,17 @@ object EmptyContent : OutgoingContent.NoContent()
 
 fun OutgoingContent.wrapHeaders(block: (Headers) -> Headers): OutgoingContent = when (this) {
     is OutgoingContent.NoContent -> object : OutgoingContent.NoContent() {
+        override val contentLength: Long? get() = this@wrapHeaders.contentLength
+        override val contentType: ContentType? get() = this@wrapHeaders.contentType
+        override val status: HttpStatusCode? get() = this@wrapHeaders.status
+
         override val headers: Headers = block(this@wrapHeaders.headers)
     }
     is OutgoingContent.ReadChannelContent -> object : OutgoingContent.ReadChannelContent() {
+        override val contentLength: Long? get() = this@wrapHeaders.contentLength
+        override val contentType: ContentType? get() = this@wrapHeaders.contentType
+        override val status: HttpStatusCode? get() = this@wrapHeaders.status
+
         override val headers: Headers = block(this@wrapHeaders.headers)
 
         override fun readFrom(): ByteReadChannel = this@wrapHeaders.readFrom()
@@ -21,16 +29,27 @@ fun OutgoingContent.wrapHeaders(block: (Headers) -> Headers): OutgoingContent = 
         override fun readFrom(range: LongRange): ByteReadChannel = this@wrapHeaders.readFrom(range)
     }
     is OutgoingContent.WriteChannelContent -> object : OutgoingContent.WriteChannelContent() {
+        override val contentLength: Long? get() = this@wrapHeaders.contentLength
+        override val contentType: ContentType? get() = this@wrapHeaders.contentType
+        override val status: HttpStatusCode? get() = this@wrapHeaders.status
+
         override val headers: Headers = block(this@wrapHeaders.headers)
 
         override suspend fun writeTo(channel: ByteWriteChannel) = this@wrapHeaders.writeTo(channel)
     }
     is OutgoingContent.ByteArrayContent -> object : OutgoingContent.ByteArrayContent() {
+        override val contentLength: Long? get() = this@wrapHeaders.contentLength
+        override val contentType: ContentType? get() = this@wrapHeaders.contentType
+        override val status: HttpStatusCode? get() = this@wrapHeaders.status
+
         override val headers: Headers = block(this@wrapHeaders.headers)
 
         override fun bytes(): ByteArray = this@wrapHeaders.bytes()
     }
     is OutgoingContent.ProtocolUpgrade -> object : OutgoingContent.ProtocolUpgrade() {
+        override val contentLength: Long? get() = this@wrapHeaders.contentLength
+        override val contentType: ContentType? get() = this@wrapHeaders.contentType
+
         override val headers: Headers = block(this@wrapHeaders.headers)
 
         override suspend fun upgrade(
