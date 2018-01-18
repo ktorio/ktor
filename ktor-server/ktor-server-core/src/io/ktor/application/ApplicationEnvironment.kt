@@ -31,7 +31,7 @@ interface ApplicationEnvironment {
 }
 
 /**
- * Even definition for Application Starting event
+ * Event definition for Application Starting event
  *
  * Note, that application itself cannot receive this event because it fires before application is created
  * It is meant to be used by engines.
@@ -39,18 +39,18 @@ interface ApplicationEnvironment {
 val ApplicationStarting = EventDefinition<Application>()
 
 /**
- * Even definition for Application Started event
+ * Event definition for Application Started event
  */
 val ApplicationStarted = EventDefinition<Application>()
 
 val ApplicationStopPreparing = EventDefinition<ApplicationEnvironment>()
 
 /**
- * Even definition for Application Stopping event
+ * Event definition for Application Stopping event
  */
 val ApplicationStopping = EventDefinition<Application>()
 
 /**
- * Even definition for Application Stopped event
+ * Event definition for Application Stopped event
  */
 val ApplicationStopped = EventDefinition<Application>()
