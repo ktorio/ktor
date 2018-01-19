@@ -5,6 +5,10 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.internal.*
 import java.util.concurrent.atomic.*
 
+private const val StateRunning = 0
+private const val StateClosed = 1
+private const val StateCancelled = 2
+
 internal class NettyRequestQueue(private val limit: Int) {
     init {
         require(limit > 0)
@@ -18,10 +22,10 @@ internal class NettyRequestQueue(private val limit: Int) {
     private var receiver: CancellableContinuation<Unit>? = null
 
     @Volatile
-    private var closed = 0
+    private var state = StateRunning
 
     fun schedule(call: NettyApplicationCall) {
-        if (closed != 0) { // fast path if closed
+        if (state != StateRunning) { // fast path if closed
             call.dispose() // see note below
             return
         }
@@ -41,8 +45,15 @@ internal class NettyRequestQueue(private val limit: Int) {
         }
     }
 
+    fun close() {
+        if (State.compareAndSet(this, StateRunning, StateClosed)) {
+            queue.addLast(CloseElement())
+            resume()
+        }
+    }
+
     fun cancel() {
-        if (Closed.compareAndSet(this, 0, 1)) {
+        if (State.compareAndSet(this, StateRunning, StateCancelled)) {
             queue.addLast(CloseElement())
 
             while (true) {
@@ -61,8 +72,9 @@ internal class NettyRequestQueue(private val limit: Int) {
             return returnCall(element) ?: return receiveOrNull()
         }
 
-        if (closed != 0) {
-            return null
+        if (state != StateRunning) {
+            if (state == StateCancelled) throw CancellationException()
+            if (queue.next is CloseElement) return null
         }
 
         return receiveOrNullSuspend()
@@ -77,14 +89,15 @@ internal class NettyRequestQueue(private val limit: Int) {
             return returnCall(element) ?: return receiveOrNullSuspend()
         }
 
-        if (closed != 0) {
-            return null
+        if (state != StateRunning) {
+            if (state == StateCancelled) throw CancellationException()
+            if (queue.next is CloseElement) return null
         }
 
         suspendCancellableCoroutine<Unit>(holdCancellability = true) { c ->
             if (!Receiver.compareAndSet(this, null, c)) throw IllegalStateException("receive already pending")
 
-            if (closed != 0 || queue.next is CallElement) {
+            if (state != StateRunning || queue.next is CallElement) {
                 if (Receiver.compareAndSet(this, c, null)) {
                     c.resume(Unit)
                     return@suspendCancellableCoroutine
@@ -104,7 +117,7 @@ internal class NettyRequestQueue(private val limit: Int) {
     }
 
     private fun returnCall(element: CallElement): NettyApplicationCall? {
-        if (closed != 0) {
+        if (state == StateCancelled) {
             element.tryDispose()
             return null
         }
@@ -145,7 +158,7 @@ internal class NettyRequestQueue(private val limit: Int) {
 
     companion object {
         private val Counter = AtomicIntegerFieldUpdater.newUpdater(NettyRequestQueue::class.java, NettyRequestQueue::counter.name)!!
-        private val Closed = AtomicIntegerFieldUpdater.newUpdater(NettyRequestQueue::class.java, NettyRequestQueue::closed.name)!!
+        private val State = AtomicIntegerFieldUpdater.newUpdater(NettyRequestQueue::class.java, NettyRequestQueue::state.name)!!
 
         @Suppress("UNCHECKED_CAST")
         private val Receiver = AtomicReferenceFieldUpdater.newUpdater(NettyRequestQueue::class.java, CancellableContinuation::class.java, NettyRequestQueue::receiver.name) as AtomicReferenceFieldUpdater<NettyRequestQueue, CancellableContinuation<Unit>?>

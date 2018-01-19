@@ -11,7 +11,6 @@ import kotlin.coroutines.experimental.*
 internal class NettyHttp2ApplicationResponse(call: NettyApplicationCall,
                                              val handler: NettyHttp2Handler,
                                              context: ChannelHandlerContext,
-                                             val connection: Http2Connection,
                                              engineContext: CoroutineContext,
                                              userContext: CoroutineContext
                                              )
@@ -27,6 +26,8 @@ internal class NettyHttp2ApplicationResponse(call: NettyApplicationCall,
 
     override fun responseMessage(chunked: Boolean, last: Boolean): Any {
         return DefaultHttp2HeadersFrame(responseHeaders, false)
+        // endStream should be false
+        // as response pipeline is always sending at least one data frame
     }
 
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
@@ -45,7 +46,7 @@ internal class NettyHttp2ApplicationResponse(call: NettyApplicationCall,
 
     override fun push(builder: ResponsePushBuilder) {
         context.executor().execute {
-            handler.startHttp2PushPromise(connection, this@NettyHttp2ApplicationResponse.context, builder)
+            handler.startHttp2PushPromise(this@NettyHttp2ApplicationResponse.context, builder)
         }
     }
 }
