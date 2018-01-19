@@ -15,7 +15,15 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
     @Volatile
     private var cancellation: Throwable? = null
     private val responses = launch(dst.executor().asCoroutineDispatcher(), start = CoroutineStart.LAZY) {
-        loop()
+        try {
+            loop()
+        } catch (t: Throwable) {
+            if (t !is CancellationException) {
+                dst.fireExceptionCaught(t)
+            }
+
+            dst.close()
+        }
     }
 
     private var encapsulation: WriterEncapsulation = initialEncapsulation
