@@ -2,6 +2,7 @@ package io.ktor.samples.http2
 
 import io.ktor.application.*
 import io.ktor.features.*
+import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
@@ -12,7 +13,25 @@ fun Application.main() {
     install(CallLogging)
     install(Routing) {
         get("/") {
-            call.respondText("Hello, World!")
+            call.push("/style.css")
+
+            call.respondText("""
+                <!DOCTYPE html>
+                <html>
+                    <head>
+                        <link rel="stylesheet" type="text/css" href="/style.css">
+                    </head>
+                    <body>
+                        <h1>Hello, World!</h1>
+                    </body>
+                </html>
+            """.trimIndent(), contentType = ContentType.Text.Html)
+        }
+
+        get("/style.css") {
+            call.respondText("""
+                h1 { color: olive }
+            """, contentType = ContentType.Text.CSS)
         }
     }
 }
