@@ -6,6 +6,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
+import io.ktor.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
@@ -17,9 +18,10 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
 
+private const val TEST_SIZE = 100_000
+private const val DEFAULT_THREADS_COUNT = 32
+
 abstract class MultithreadedTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
-    private val DEFAULT_SIZE = 100_000
-    private val MAX_ACTIVE_TASKS = 4
     private val counter: AtomicInteger = AtomicInteger()
 
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
@@ -27,29 +29,41 @@ abstract class MultithreadedTest(private val factory: HttpClientEngineFactory<*>
             get("/") {
                 call.respondText(counter.incrementAndGet().toString())
             }
+            static {
+                resource("jarfile", "String.class", "java.lang")
+            }
         }
     }
 
     @Test
-    fun numberTest() = runBlocking {
+    fun numberTest() {
         val client = HttpClient(factory)
-        val pool = Executors.newFixedThreadPool(MAX_ACTIVE_TASKS)
+        val result = withPool {
+            val response = client.get<HttpResponse>("http://127.0.0.1:$serverPort")
+            val result = response.readText().toInt()
+            response.close()
+            result
+        }.toSet().size
 
-        val result = List(DEFAULT_SIZE) {
-            pool.submit(Callable<Int> {
-                runBlocking {
-                    val response = client.get<HttpResponse>("http://127.0.0.1:$serverPort")
-                    val result = response.readText().toInt()
-                    response.close()
-                    result
-                }
-            })
-        }.map { it.get() }.toSet().size
-
-        pool.shutdown()
-        assertEquals(DEFAULT_SIZE, result)
-        assertEquals(DEFAULT_SIZE, counter.get())
-        assertTrue(pool.awaitTermination(1, TimeUnit.SECONDS))
+        assertEquals(TEST_SIZE, result)
+        assertEquals(TEST_SIZE, counter.get())
         client.close()
     }
+}
+
+private fun <T> withPool(
+        threads: Int = DEFAULT_THREADS_COUNT,
+        testSize: Int = TEST_SIZE,
+        block: suspend () -> T
+): List<T> {
+    val pool = Executors.newFixedThreadPool(threads)
+    val result = List(testSize) {
+        pool.submit(Callable<T> {
+            runBlocking { block() }
+        })
+    }.map { it.get() }
+
+    pool.shutdown()
+    assertTrue(pool.awaitTermination(1, TimeUnit.SECONDS))
+    return result
 }
