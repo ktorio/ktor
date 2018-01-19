@@ -56,7 +56,9 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
             }
         }
 
-        dst.close()
+        if (encapsulation.requiresContextClose) {
+            dst.close()
+        }
     }
 
     private suspend fun processCall(call: NettyApplicationCall) {
@@ -79,6 +81,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         }
 
         var unflushedBytes = 0
+        var last = false
         while (true) {
             val buf = dst.alloc().buffer(4096)
             val bb = buf.nioBuffer(buf.writerIndex(), buf.writableBytes())
@@ -88,10 +91,13 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
                 break
             }
             buf.writerIndex(buf.writerIndex() + rc)
-            val message = encapsulation.transform(buf)
-
             unflushedBytes += rc
-            if (channel.availableForRead == 0 || unflushedBytes >= UnflushedLimit) {
+            val available = channel.availableForRead
+
+            last = available == 0 && channel.isClosedForRead
+            val message = encapsulation.transform(buf, last)
+
+            if (available == 0 || unflushedBytes >= UnflushedLimit) {
                 dst.writeAndFlush(message).suspendAwait()
                 unflushedBytes = 0
             } else {
@@ -99,7 +105,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
             }
         }
 
-        encapsulation.endOfStream()?.let { dst.writeAndFlush(it).suspendAwait() }
+        encapsulation.endOfStream(last)?.let { dst.writeAndFlush(it).suspendAwait() }
 
         if (close) {
             requestQueue.cancel()
@@ -110,16 +116,17 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 private const val UnflushedLimit = 65536
 
 sealed class WriterEncapsulation {
-    abstract fun transform(buf: ByteBuf): Any
-    abstract fun endOfStream(): Any?
+    open val requiresContextClose: Boolean get() = true
+    abstract fun transform(buf: ByteBuf, last: Boolean): Any
+    abstract fun endOfStream(lastTransformed: Boolean): Any?
     abstract fun upgrade(dst: ChannelHandlerContext): Unit
 
     object Http1 : WriterEncapsulation() {
-        override fun transform(buf: ByteBuf): Any {
+        override fun transform(buf: ByteBuf, last: Boolean): Any {
             return DefaultHttpContent(buf)
         }
 
-        override fun endOfStream(): Any? {
+        override fun endOfStream(lastTransformed: Boolean): Any? {
             return LastHttpContent.EMPTY_LAST_CONTENT
         }
 
@@ -131,12 +138,14 @@ sealed class WriterEncapsulation {
     }
 
     object Http2 : WriterEncapsulation() {
-        override fun transform(buf: ByteBuf): Any {
-            return DefaultHttp2DataFrame(buf, false)
+        override val requiresContextClose: Boolean get() = false
+
+        override fun transform(buf: ByteBuf, last: Boolean): Any {
+            return DefaultHttp2DataFrame(buf, last)
         }
 
-        override fun endOfStream(): Any? {
-            return DefaultHttp2DataFrame(true)
+        override fun endOfStream(lastTransformed: Boolean): Any? {
+            return if (lastTransformed) null else DefaultHttp2DataFrame(true)
         }
 
         override fun upgrade(dst: ChannelHandlerContext) {
@@ -145,11 +154,11 @@ sealed class WriterEncapsulation {
     }
 
     object Raw : WriterEncapsulation() {
-        override fun transform(buf: ByteBuf): Any {
+        override fun transform(buf: ByteBuf, last: Boolean): Any {
             return buf
         }
 
-        override fun endOfStream(): Any? {
+        override fun endOfStream(lastTransformed: Boolean): Any? {
             return null
         }
 
