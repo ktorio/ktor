@@ -12,7 +12,7 @@ internal class ServerSocketImpl(override val channel: ServerSocketChannel, val s
         require(!channel.isBlocking)
     }
 
-    override val closed = CompletableDeferred<Unit>()
+    override val socketContext = CompletableDeferred<Unit>()
 
     override val localAddress: SocketAddress
         get() = channel.localAddress
@@ -45,9 +45,9 @@ internal class ServerSocketImpl(override val channel: ServerSocketChannel, val s
                 selector.notifyClosed(this)
             }
 
-            closed.complete(Unit)
+            socketContext.complete(Unit)
         } catch (t: Throwable) {
-            closed.completeExceptionally(t)
+            socketContext.completeExceptionally(t)
         }
     }
 

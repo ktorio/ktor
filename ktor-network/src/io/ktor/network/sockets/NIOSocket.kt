@@ -15,7 +15,7 @@ internal abstract class NIOSocketImpl<out S>(override val channel: S, val select
     private val readerJob = AtomicReference<ReaderJob?>()
     private val writerJob = AtomicReference<WriterJob?>()
 
-    override val closed = CompletableDeferred<Unit>()
+    override val socketContext = CompletableDeferred<Unit>()
 
     // NOTE: it is important here to use different versions of attachForReadingImpl
     // because it is not always valid to use channel's internal buffer for NIO read/write:
@@ -26,16 +26,16 @@ internal abstract class NIOSocketImpl<out S>(override val channel: S, val select
     final override fun attachForReading(channel: ByteChannel): WriterJob {
         return attachFor("reading", channel, writerJob) {
             if (pool != null) {
-                attachForReadingImpl(channel, this.channel, this, selector, pool)
+                attachForReadingImpl(channel, this.channel, this, selector, pool, socketContext)
             } else {
-                attachForReadingDirectImpl(channel, this.channel, this, selector)
+                attachForReadingDirectImpl(channel, this.channel, this, selector, socketContext)
             }
         }
     }
 
     final override fun attachForWriting(channel: ByteChannel): ReaderJob {
         return attachFor("writing", channel, readerJob) {
-            attachForWritingDirectImpl(channel, this.channel, this, selector)
+            attachForWritingDirectImpl(channel, this.channel, this, selector, socketContext)
         }
     }
 
@@ -48,7 +48,6 @@ internal abstract class NIOSocketImpl<out S>(override val channel: S, val select
             readerJob.get()?.channel?.close()
             writerJob.get()?.cancel()
             checkChannels()
-            super.close()
         }
     }
 
@@ -83,6 +82,8 @@ internal abstract class NIOSocketImpl<out S>(override val channel: S, val select
     private fun actualClose(): Throwable? {
         return try {
             channel.close()
+            super.close()
+            socketContext.complete(Unit)
             null
         } catch (t: Throwable) {
             t
@@ -99,7 +100,7 @@ internal abstract class NIOSocketImpl<out S>(override val channel: S, val select
 
             val combined = combine(combine(e1, e2), e3)
 
-            if (combined == null) closed.complete(Unit) else closed.completeExceptionally(combined)
+            if (combined == null) socketContext.complete(Unit) else socketContext.completeExceptionally(combined)
         }
     }
 

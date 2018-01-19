@@ -9,7 +9,7 @@ import java.net.*
  * Base type for all async sockets
  */
 interface ASocket : Closeable, DisposableHandle {
-    val closed: Deferred<Unit>
+    val socketContext: Deferred<Unit>
 
     override fun dispose() {
         try {
@@ -19,8 +19,8 @@ interface ASocket : Closeable, DisposableHandle {
     }
 }
 
-val ASocket.isClosed: Boolean get() = closed.isCompleted
-suspend fun ASocket.awaitClosed() = closed.await()
+val ASocket.isClosed: Boolean get() = socketContext.isCompleted
+suspend fun ASocket.awaitClosed() = socketContext.await()
 
 interface AConnectedSocket : AWritable {
     /**
