@@ -7,8 +7,10 @@ import io.netty.channel.*
 import kotlinx.coroutines.experimental.*
 import kotlin.coroutines.experimental.*
 
-internal class NettyApplicationCallHandler(private val userCoroutineContext: CoroutineContext,
+internal class NettyApplicationCallHandler(userCoroutineContext: CoroutineContext,
                                            private val enginePipeline: EnginePipeline) : ChannelInboundHandlerAdapter() {
+    private val handleCoroutineContext = userCoroutineContext + CoroutineName("call-handler")
+
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         when (msg) {
             is ApplicationCall -> handleRequest(ctx, msg)
@@ -17,7 +19,7 @@ internal class NettyApplicationCallHandler(private val userCoroutineContext: Cor
     }
 
     private fun handleRequest(context: ChannelHandlerContext, call: ApplicationCall) {
-        launch(userCoroutineContext + NettyDispatcher.CurrentContext(context), start = CoroutineStart.UNDISPATCHED) {
+        launch(handleCoroutineContext + NettyDispatcher.CurrentContext(context), start = CoroutineStart.UNDISPATCHED) {
             enginePipeline.execute(call)
         }
     }

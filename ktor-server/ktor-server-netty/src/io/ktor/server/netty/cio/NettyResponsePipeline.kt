@@ -1,5 +1,6 @@
 package io.ktor.server.netty.cio
 
+import io.ktor.cio.*
 import io.ktor.http.*
 import io.ktor.server.netty.*
 import io.netty.buffer.*
@@ -7,6 +8,7 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
 import kotlinx.coroutines.experimental.*
+import java.io.*
 
 internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
                                      initialEncapsulation: WriterEncapsulation,
@@ -14,7 +16,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 ) {
     @Volatile
     private var cancellation: Throwable? = null
-    private val responses = launch(dst.executor().asCoroutineDispatcher(), start = CoroutineStart.LAZY) {
+    private val responses = launch(dst.executor().asCoroutineDispatcher() + ResponsePipelineCoroutineName, start = CoroutineStart.LAZY) {
         try {
             loop()
         } catch (t: Throwable) {
@@ -42,23 +44,21 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
     }
 
     private suspend fun loop() {
-        var cancellationReported = false
         while (true) {
             val call = requestQueue.receiveOrNull() ?: break
             try {
                 cancellation?.let { throw it }
 
                 processCall(call)
-            } catch (t: Throwable) {
+            } catch (actualException: Throwable) {
+                val t = when {
+                    actualException is IOException && actualException !is ChannelIOException -> ChannelWriteException(exception = actualException)
+                    else -> actualException
+                }
                 call.dispose()
                 call.responseWriteJob.cancel(t)
                 cancel(t)
                 requestQueue.cancel()
-
-                if (!cancellationReported) {
-                    cancellationReported = true
-                    dst.fireExceptionCaught(t)
-                }
             } finally {
                 call.responseWriteJob.cancel()
             }
@@ -121,6 +121,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
     }
 }
 
+private val ResponsePipelineCoroutineName = CoroutineName("response-pipeline")
 private const val UnflushedLimit = 65536
 
 sealed class WriterEncapsulation {
