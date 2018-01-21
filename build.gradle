@@ -242,6 +242,11 @@ subprojects {
         testCompile group: 'junit', name: 'junit', version: junit_version
     }
 
+    jar {
+        manifest {
+            attributes("Implementation-Title": project.name, "Implementation-Version": configuredVersion)
+        }
+    }
 }
 
 release {
