@@ -9,7 +9,7 @@ fun ApplicationCall.push(pathAndQuery: String) {
     push(path, parseQueryString(query))
 }
 
-fun ApplicationCall.push(encodedPath: String, parameters: StringValues) {
+fun ApplicationCall.push(encodedPath: String, parameters: Parameters) {
     push {
         url.encodedPath = encodedPath
         url.parameters.clear()

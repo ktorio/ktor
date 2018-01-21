@@ -7,7 +7,6 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import org.junit.Test
 import java.io.*
 import java.util.*
@@ -219,7 +218,8 @@ class PartialContentTest {
             assertFalse(headers.isEmpty())
             assertNotNull(headers[HttpHeaders.ContentType])
 
-            val range = headers[HttpHeaders.ContentRange]?.contentRange() ?: fail("Content-Range is missing in the part")
+            val range = headers[HttpHeaders.ContentRange]?.contentRange()
+                    ?: fail("Content-Range is missing in the part")
 
             val length = range.first.length.toInt()
             require(length > 0) { "range shouldn't be empty" }
@@ -241,20 +241,15 @@ class PartialContentTest {
         } while (true)
     }
 
-    private fun BufferedReader.scanHeaders(): StringValues {
-        val headers = StringValuesBuilder(true)
-
+    private fun BufferedReader.scanHeaders() = Headers.build {
         do {
             val line = readLine()
-            if (line.isNullOrBlank()) {
+            if (line.isNullOrBlank())
                 break
-            }
 
             val (header, value) = line.chomp(":") { throw IOException("Illegal header line $line") }
-            headers.append(header.trimEnd(), value.trimStart())
+            append(header.trimEnd(), value.trimStart())
         } while (true)
-
-        return headers.build()
     }
 
     private fun String.contentRange(): Pair<LongRange, Long> {

@@ -1,16 +1,14 @@
 package io.ktor.http
 
-import io.ktor.util.*
-
-fun parseQueryString(query: CharSequence, startIndex: Int = 0, limit: Int = 1000): StringValues {
+fun parseQueryString(query: CharSequence, startIndex: Int = 0, limit: Int = 1000): Parameters {
     return if (startIndex > query.lastIndex) {
-        StringValues.Empty
+        Parameters.Empty
     } else {
-        StringValues.build { parse(query, startIndex, limit) }
+        Parameters.build { parse(query, startIndex, limit) }
     }
 }
 
-private fun StringValuesBuilder.parse(query: CharSequence, startIndex: Int, limit: Int) {
+private fun ParametersBuilder.parse(query: CharSequence, startIndex: Int, limit: Int) {
     var count = 0
     var nameIndex = startIndex
     var equalIndex = -1
@@ -36,7 +34,7 @@ private fun StringValuesBuilder.parse(query: CharSequence, startIndex: Int, limi
     appendParam(query, nameIndex, equalIndex, query.length)
 }
 
-private fun StringValuesBuilder.appendParam(query: CharSequence, nameIndex: Int, equalIndex: Int, endIndex: Int) {
+private fun ParametersBuilder.appendParam(query: CharSequence, nameIndex: Int, equalIndex: Int, endIndex: Int) {
     if (equalIndex == -1) {
         val spaceNameIndex = trimStart(nameIndex, endIndex, query)
         val spaceEndIndex = trimEnd(spaceNameIndex, endIndex, query)

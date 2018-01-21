@@ -1,6 +1,7 @@
 package io.ktor.routing
 
 import io.ktor.application.*
+import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
@@ -12,7 +13,7 @@ class RoutingApplicationCall(private val call: ApplicationCall,
                              val route: Route,
                              receivePipeline: ApplicationReceivePipeline,
                              responsePipeline: ApplicationSendPipeline,
-                             resolvedValues: StringValues) : ApplicationCall {
+                             parameters: Parameters) : ApplicationCall {
 
     override val application: Application get() = call.application
     override val attributes: Attributes get() = call.attributes
@@ -20,10 +21,10 @@ class RoutingApplicationCall(private val call: ApplicationCall,
     override val request = RoutingApplicationRequest(this, receivePipeline, call.request)
     override val response = RoutingApplicationResponse(this, responsePipeline, call.response)
 
-    override val parameters: StringValues by lazy(LazyThreadSafetyMode.NONE) {
-        StringValues.build {
+    override val parameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
+        Parameters.build {
             appendAll(call.parameters)
-            appendMissing(resolvedValues)
+            appendMissing(parameters)
         }
     }
 

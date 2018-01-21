@@ -497,8 +497,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         return HttpStatusCode(statusCodeString.toInt(), message)
     }
 
-    private fun InputStream.parseHeaders(): StringValues {
-        val builder = StringValuesBuilder(caseInsensitiveName = true)
+    private fun InputStream.parseHeaders(): Headers {
+        val builder = HeadersBuilder()
 
         while (true) {
             val line = readLineISOCrLf()

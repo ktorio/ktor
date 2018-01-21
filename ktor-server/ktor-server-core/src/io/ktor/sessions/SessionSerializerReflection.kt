@@ -21,7 +21,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
         val values = parseQueryString(text)
 
         @Suppress("UNCHECKED_CAST")
-        if (type == StringValues::class)
+        if (type == Parameters::class)
             return values as T
 
         val instance = newInstance(values)
@@ -39,8 +39,8 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
     }
 
     override fun serialize(session: Any): String {
-        if (type == StringValues::class)
-            return (session as StringValues).formUrlEncode()
+        if (type == Parameters::class)
+            return (session as Parameters).formUrlEncode()
         val typed = session.cast(type)
         return properties.map { it.name to serializeValue(it.get(typed)) }.formUrlEncode()
     }

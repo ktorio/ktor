@@ -24,7 +24,7 @@ fun ApplicationReceivePipeline.installDefaultTransformations() {
             InputStream::class -> value.inputStream()
             MultiPartData::class -> value.multiPartData()
             String::class -> value.readText()
-            StringValues::class -> {
+            Parameters::class -> {
                 val contentType = value.contentType()
                 when {
                     contentType?.match(ContentType.Application.FormUrlEncoded) == true -> {
@@ -32,7 +32,7 @@ fun ApplicationReceivePipeline.installDefaultTransformations() {
                         parseQueryString(string)
                     }
                     contentType?.match(ContentType.MultiPart.FormData) == true -> {
-                        StringValues.build {
+                        Parameters.build {
                             val multipart = value.multiPartData()
                             while (true) {
                                 val it = multipart.readPart() ?: break

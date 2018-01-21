@@ -10,12 +10,12 @@ import io.ktor.util.*
  *
  * @param succeeded indicates if resolution succeeded
  * @param route specifies a routing node for successful resolution, or nearest one for failed
- * @param values holds all captured values from selectors
+ * @param parameters holds all captured values from selectors
  * @param quality represents quality value for resolution result
  */
 data class RoutingResolveResult(val succeeded: Boolean,
                                 val route: Route,
-                                val values: StringValues,
+                                val parameters: Parameters,
                                 val quality: Double)
 
 /**
@@ -98,12 +98,12 @@ class RoutingResolveContext(val routing: Route, val call: ApplicationCall) {
             bestChild = child
 
             // only calculate values if match is better then previous one
-            if (selectorResult.values.isEmpty() && immediateSelectQuality == subtreeResult.quality) {
+            if (selectorResult.parameters.isEmpty() && immediateSelectQuality == subtreeResult.quality) {
                 // do not allocate new RoutingResolveResult if it will be the same as subtreeResult
                 // TODO: Evaluate if we can make RoutingResolveResult mutable altogether and avoid allocations
                 bestResult = subtreeResult
             } else {
-                val combinedValues = selectorResult.values + subtreeResult.values
+                val combinedValues = selectorResult.parameters + subtreeResult.parameters
                 bestResult = RoutingResolveResult(true, subtreeResult.route, combinedValues, immediateSelectQuality)
             }
         }
@@ -113,10 +113,10 @@ class RoutingResolveContext(val routing: Route, val call: ApplicationCall) {
             if (bestResult != null && bestResult.quality > RouteSelectorEvaluation.qualityMissing)
                 return bestResult
 
-            return RoutingResolveResult(true, entry, StringValues.Empty, 1.0)
+            return RoutingResolveResult(true, entry, Parameters.Empty, 1.0)
         }
 
-        return bestResult ?: RoutingResolveResult(false, failEntry ?: entry, StringValues.Empty, 0.0)
+        return bestResult ?: RoutingResolveResult(false, failEntry ?: entry, Parameters.Empty, 0.0)
     }
 
 }

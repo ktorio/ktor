@@ -2,6 +2,7 @@ package io.ktor.request
 
 import io.ktor.application.*
 import io.ktor.content.*
+import io.ktor.http.*
 import io.ktor.pipeline.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
@@ -55,6 +56,6 @@ suspend inline fun ApplicationCall.receiveStream(): InputStream = receive()
 suspend inline fun ApplicationCall.receiveMultipart(): MultiPartData = receive()
 
 @Suppress("NOTHING_TO_INLINE")
-suspend inline fun ApplicationCall.receiveParameters(): StringValues = receive()
+suspend inline fun ApplicationCall.receiveParameters(): Parameters = receive()
 
 class ContentTransformationException(message: String) : Exception(message)

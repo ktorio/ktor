@@ -37,9 +37,10 @@ object EmptyHeaders : Headers {
     override fun isEmpty(): Boolean = true
 }
 
-fun headersOf(name: String, value: String): Headers {
-    return HeadersSingleImpl(name, listOf(value))
-}
+fun headersOf(): Headers = Headers.Empty
+fun headersOf(name: String, value: String): Headers = HeadersSingleImpl(name, listOf(value))
+fun headersOf(name: String, values: List<String>): Headers = HeadersSingleImpl(name, values)
+fun headersOf(vararg pairs: Pair<String, List<String>>): Headers = HeadersImpl(pairs.asList().toMap())
 
 class HeadersImpl(values: Map<String, List<String>> = emptyMap()) : Headers, StringValuesImpl(true, values)
 class HeadersSingleImpl(name: String, values: List<String>) : Headers, StringValuesSingleImpl(true, name, values)

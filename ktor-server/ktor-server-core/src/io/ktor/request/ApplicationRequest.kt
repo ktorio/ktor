@@ -22,7 +22,7 @@ interface ApplicationRequest {
     /**
      * Parameters provided in an URL
      */
-    val queryParameters: StringValues
+    val queryParameters: Parameters
 
     /**
      * Headers for this request

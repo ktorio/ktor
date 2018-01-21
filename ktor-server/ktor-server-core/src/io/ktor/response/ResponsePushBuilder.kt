@@ -6,7 +6,7 @@ import io.ktor.util.*
 
 interface ResponsePushBuilder {
     val url: URLBuilder
-    val headers: StringValuesBuilder
+    val headers: HeadersBuilder
     var method: HttpMethod
     val versions: MutableList<Version>
 }

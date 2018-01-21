@@ -3,7 +3,6 @@ package io.ktor.server.netty
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
-import io.ktor.util.*
 import io.netty.buffer.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.multipart.*
@@ -101,7 +100,7 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
         else -> null
     }
 
-    private fun FileUpload.headers() = StringValues.build(true) {
+    private fun FileUpload.headers() = Headers.build {
         if (contentType != null) {
             append(HttpHeaders.ContentType, contentType)
         }
@@ -117,7 +116,7 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
         contentLength(length())
     }
 
-    private fun Attribute.headers() = StringValues.build(true) {
+    private fun Attribute.headers() = Headers.build {
         contentType(ContentType.MultiPart.Mixed)
         append(HttpHeaders.ContentDisposition, ContentDisposition.Mixed.withParameter(ContentDisposition.Parameters.Name, name).toString())
     }

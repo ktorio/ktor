@@ -25,7 +25,7 @@ open class Locations(private val application: Application, private val routeServ
                                     val pathParameters: List<LocationInfoProperty>,
                                     val queryParameters: List<LocationInfoProperty>)
 
-    private fun LocationInfo.create(allParameters: StringValues): Any {
+    private fun LocationInfo.create(allParameters: Parameters): Any {
         val objectInstance = klass.objectInstance
         if (objectInstance != null) return objectInstance
 
@@ -45,7 +45,7 @@ open class Locations(private val application: Application, private val routeServ
         return constructor.callBy(arguments)
     }
 
-    private fun createFromParameters(parameters: StringValues, name: String, type: Type, optional: Boolean): Any? {
+    private fun createFromParameters(parameters: Parameters, name: String, type: Type, optional: Boolean): Any? {
         val values = parameters.getAll(name)
         return when (values) {
             null -> when {
@@ -127,7 +127,7 @@ open class Locations(private val application: Application, private val routeServ
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <T : Any> resolve(dataClass: KClass<*>, parameters: StringValues): T {
+    fun <T : Any> resolve(dataClass: KClass<*>, parameters: Parameters): T {
         return getOrCreateInfo(dataClass).create(parameters) as T
     }
 

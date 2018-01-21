@@ -1,5 +1,6 @@
 package io.ktor.application
 
+import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
@@ -31,6 +32,6 @@ interface ApplicationCall {
     /**
      * Parameters associated with this call
      */
-    val parameters: StringValues
+    val parameters: Parameters
 }
 

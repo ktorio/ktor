@@ -2,6 +2,7 @@ package io.ktor.samples.kweet
 
 import io.ktor.application.*
 import io.ktor.freemarker.*
+import io.ktor.http.*
 import io.ktor.locations.*
 import io.ktor.request.*
 import io.ktor.response.*
@@ -26,7 +27,7 @@ fun Route.postNew(dao: DAOFacade, hashFunction: (String) -> String) {
     post<PostNew> {
         val user = call.sessions.get<KweetSession>()?.let { dao.user(it.userId) }
 
-        val post = call.receive<StringValues>()
+        val post = call.receive<Parameters>()
         val date = post["date"]?.toLongOrNull() ?: return@post call.redirect(it)
         val code = post["code"] ?: return@post call.redirect(it)
         val text = post["text"] ?: return@post call.redirect(it)

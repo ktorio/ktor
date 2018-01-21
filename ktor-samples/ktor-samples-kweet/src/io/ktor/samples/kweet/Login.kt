@@ -2,6 +2,7 @@ package io.ktor.samples.kweet
 
 import io.ktor.application.*
 import io.ktor.freemarker.*
+import io.ktor.http.*
 import io.ktor.locations.*
 import io.ktor.request.*
 import io.ktor.response.*
@@ -21,7 +22,7 @@ fun Route.login(dao: DAOFacade, hash: (String) -> String) {
         }
     }
     post<Login> {
-        val post = call.receive<StringValues>()
+        val post = call.receive<Parameters>()
         val userId = post["userId"] ?: return@post call.redirect(it)
         val password = post["password"] ?: return@post call.redirect(it)
 

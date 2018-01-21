@@ -155,7 +155,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     fun testRequestContentFormData() {
         createAndStartServer {
             handle {
-                val parameters = call.receiveOrNull<StringValues>()
+                val parameters = call.receiveOrNull<Parameters>()
                 if (parameters != null)
                     call.respond(parameters.formUrlEncode())
                 else
@@ -166,7 +166,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/", {
             method = HttpMethod.Post
             header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-            body = valuesOf("a", "1").formUrlEncode()
+            body = parametersOf("a", "1").formUrlEncode()
         }) {
             assertEquals(200, status.value)
             assertEquals("a=1", readText())

@@ -16,7 +16,7 @@ class ServletApplicationRequest(call: ApplicationCall,
     override val local: RequestConnectionPoint = ServletConnectionPoint(servletRequest)
 
     override val queryParameters by lazy {
-        servletRequest.queryString?.let { parseQueryString(it) } ?: StringValues.Empty
+        servletRequest.queryString?.let { parseQueryString(it) } ?: Parameters.Empty
     }
 
     override val headers: Headers = ServletApplicationRequestHeaders(servletRequest)

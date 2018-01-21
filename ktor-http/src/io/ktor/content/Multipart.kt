@@ -6,9 +6,9 @@ import kotlinx.coroutines.experimental.*
 import java.io.*
 import kotlin.coroutines.experimental.*
 
-sealed class PartData(val dispose: () -> Unit, val partHeaders: StringValues) {
-    class FormItem(val value: String, dispose: () -> Unit, partHeaders: StringValues) : PartData(dispose, partHeaders)
-    class FileItem(val streamProvider: () -> InputStream, dispose: () -> Unit, partHeaders: StringValues) : PartData(dispose, partHeaders) {
+sealed class PartData(val dispose: () -> Unit, val partHeaders: Headers) {
+    class FormItem(val value: String, dispose: () -> Unit, partHeaders: Headers) : PartData(dispose, partHeaders)
+    class FileItem(val streamProvider: () -> InputStream, dispose: () -> Unit, partHeaders: Headers) : PartData(dispose, partHeaders) {
         val originalFileName = contentDisposition?.parameter(ContentDisposition.Parameters.FileName)
     }
 

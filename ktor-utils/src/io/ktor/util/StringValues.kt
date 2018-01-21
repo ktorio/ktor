@@ -222,15 +222,6 @@ fun valuesOf(map: Map<String, Iterable<String>>, caseInsensitiveKey: Boolean = f
     return StringValuesImpl(caseInsensitiveKey, values)
 }
 
-operator fun StringValues.plus(other: StringValues) = when {
-    caseInsensitiveName == other.caseInsensitiveName -> when {
-        this.isEmpty() -> other
-        other.isEmpty() -> this
-        else -> StringValues.build(caseInsensitiveName) { appendAll(this@plus); appendAll(other) }
-    }
-    else -> throw IllegalArgumentException("Cannot concatenate StringValues with case-sensitive and case-insensitive names")
-}
-
 fun StringValues.toMap(): Map<String, List<String>> =
         entries().associateByTo(LinkedHashMap(), { it.key }, { it.value.toList() })
 

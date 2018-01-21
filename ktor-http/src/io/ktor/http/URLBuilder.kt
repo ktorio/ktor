@@ -1,8 +1,5 @@
 package io.ktor.http
 
-import io.ktor.util.*
-
-
 class URLBuilder(
         var protocol: URLProtocol = URLProtocol.HTTP,
         var host: String = "localhost",
@@ -10,7 +7,7 @@ class URLBuilder(
         var user: String? = null,
         var password: String? = null,
         var encodedPath: String = "/",
-        val parameters: StringValuesBuilder = StringValuesBuilder(),
+        val parameters: ParametersBuilder = ParametersBuilder(),
         var fragment: String = "",
         var trailingQuery: Boolean = false
 ) {
@@ -77,7 +74,7 @@ data class Url(
         val host: String,
         val port: Int,
         val encodedPath: String,
-        val parameters: StringValues,
+        val parameters: Parameters,
         val fragment: String,
         val user: String?,
         val password: String?,

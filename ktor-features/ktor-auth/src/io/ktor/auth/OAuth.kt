@@ -44,8 +44,8 @@ sealed class OAuthCallback {
 }
 
 sealed class OAuthAccessTokenResponse : Principal {
-    data class OAuth1a(val token: String, val tokenSecret: String, val extraParameters: StringValues = StringValues.Empty) : OAuthAccessTokenResponse()
-    data class OAuth2(val accessToken: String, val tokenType: String, val expiresIn: Long, val refreshToken: String?, val extraParameters: StringValues = StringValues.Empty) : OAuthAccessTokenResponse()
+    data class OAuth1a(val token: String, val tokenSecret: String, val extraParameters: Parameters = Parameters.Empty) : OAuthAccessTokenResponse()
+    data class OAuth2(val accessToken: String, val tokenType: String, val expiresIn: Long, val refreshToken: String?, val extraParameters: Parameters = Parameters.Empty) : OAuthAccessTokenResponse()
 }
 
 object OAuthGrantTypes {

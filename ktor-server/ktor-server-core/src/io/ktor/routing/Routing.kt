@@ -1,6 +1,7 @@
 package io.ktor.routing
 
 import io.ktor.application.*
+import io.ktor.http.*
 import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
@@ -15,11 +16,11 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
         val resolveContext = RoutingResolveContext(this, context.call)
         val resolveResult = resolveContext.resolve()
         if (resolveResult.succeeded) {
-            executeResult(context, resolveResult.route, resolveResult.values)
+            executeResult(context, resolveResult.route, resolveResult.parameters)
         }
     }
 
-    private suspend fun executeResult(context: PipelineContext<Unit, ApplicationCall>, route: Route, parameters: StringValues) {
+    private suspend fun executeResult(context: PipelineContext<Unit, ApplicationCall>, route: Route, parameters: Parameters) {
         val routingCallPipeline = route.buildPipeline()
         val receivePipeline = ApplicationReceivePipeline().apply {
             merge(context.call.request.pipeline)

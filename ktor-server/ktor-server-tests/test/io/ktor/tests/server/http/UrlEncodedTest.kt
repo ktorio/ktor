@@ -3,13 +3,12 @@ package io.ktor.tests.server.http
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import org.junit.Test
 import kotlin.test.*
 
 class UrlEncodedTest {
-    fun ApplicationRequest.parseUrlEncodedParameters(limit: Int = 1000): StringValues {
+    fun ApplicationRequest.parseUrlEncodedParameters(limit: Int = 1000): Parameters {
         return runBlocking {
             call.receiveText().parseUrlEncodedParameters(contentCharset() ?: Charsets.UTF_8, limit)
         }
@@ -88,8 +87,8 @@ class UrlEncodedTest {
 
     @Test
     fun testRenderUrlEncodedStringValues() {
-        assertEquals("p1=a+b", valuesOf("p1", listOf("a b")).formUrlEncode())
-        assertEquals("p%3D1=a%3Db", valuesOf("p=1", listOf("a=b")).formUrlEncode())
-        assertEquals("p1=a&p1=b&p2=c", valuesOf("p1" to listOf("a", "b"), "p2" to listOf("c")).formUrlEncode())
+        assertEquals("p1=a+b", parametersOf("p1", listOf("a b")).formUrlEncode())
+        assertEquals("p%3D1=a%3Db", parametersOf("p=1", listOf("a=b")).formUrlEncode())
+        assertEquals("p1=a&p1=b&p2=c", parametersOf("p1" to listOf("a", "b"), "p2" to listOf("c")).formUrlEncode())
     }
 }

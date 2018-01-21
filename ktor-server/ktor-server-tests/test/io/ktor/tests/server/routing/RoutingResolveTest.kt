@@ -16,7 +16,7 @@ private object RootRouteSelector : RouteSelector(RouteSelectorEvaluation.quality
 }
 
 fun routing() = Route(parent = null, selector = RootRouteSelector)
-fun resolve(routing: Route, path: String, parameters: StringValues = StringValues.Empty, headers: StringValues = StringValues.Empty): RoutingResolveResult {
+fun resolve(routing: Route, path: String, parameters: Parameters = Parameters.Empty, headers: Headers = Headers.Empty): RoutingResolveResult {
     return withTestApplication {
         RoutingResolveContext(routing, TestApplicationCall(application).apply {
             request.method = HttpMethod.Get
@@ -126,7 +126,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value equal to 'value'") {
-                assertEquals("value", resolveResult.values["param"])
+                assertEquals("value", resolveResult.parameters["param"])
             }
         }
     }
@@ -147,7 +147,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value equal to 'value'") {
-                assertEquals("value", resolveResult.values["param"])
+                assertEquals("value", resolveResult.parameters["param"])
             }
         }
     }
@@ -166,8 +166,8 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should have parameter values equal to 'value1' and 'value2'") {
-                assertEquals("value1", resolveResult.values["param1"])
-                assertEquals("value2", resolveResult.values["param2"])
+                assertEquals("value1", resolveResult.parameters["param1"])
+                assertEquals("value2", resolveResult.parameters["param2"])
             }
         }
     }
@@ -186,7 +186,7 @@ class RoutingResolveTest {
                 assertTrue(resolveResult.succeeded)
             }
             it("should have parameter value equal to [value1, value2]") {
-                assertEquals(listOf("value1", "value2"), resolveResult.values.getAll("param"))
+                assertEquals(listOf("value1", "value2"), resolveResult.parameters.getAll("param"))
             }
         }
     }
@@ -207,7 +207,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value equal to 'value'") {
-                assertEquals("value", resolveResult.values["param"])
+                assertEquals("value", resolveResult.parameters["param"])
             }
         }
 
@@ -221,7 +221,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.route)
             }
             it("should not have parameter value") {
-                assertNull(resolveResult.values["param"])
+                assertNull(resolveResult.parameters["param"])
             }
         }
     }
@@ -311,7 +311,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value") {
-                assertEquals("value", resolveResult.values["items"])
+                assertEquals("value", resolveResult.parameters["items"])
             }
         }
 
@@ -325,7 +325,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.route)
             }
             it("should have empty parameter") {
-                assertNull(resolveResult.values["items"])
+                assertNull(resolveResult.parameters["items"])
             }
         }
 
@@ -339,7 +339,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value") {
-                assertEquals(listOf("bar", "baz", "blah"), resolveResult.values.getAll("items"))
+                assertEquals(listOf("bar", "baz", "blah"), resolveResult.parameters.getAll("items"))
             }
         }
     }
@@ -351,7 +351,7 @@ class RoutingResolveTest {
         val paramEntry = fooEntry.handle(ParameterRouteSelector("name"))
 
         on("resolving /foo with query string name=value") {
-            val resolveResult = resolve(root, "/foo", valuesOf("name", "value"))
+            val resolveResult = resolve(root, "/foo", parametersOf("name", "value"))
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -360,7 +360,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value") {
-                assertEquals(listOf("value"), resolveResult.values.getAll("name"))
+                assertEquals(listOf("value"), resolveResult.parameters.getAll("name"))
             }
         }
 
@@ -374,12 +374,12 @@ class RoutingResolveTest {
                 assertEquals(fooEntry, resolveResult.route)
             }
             it("should have no parameter") {
-                assertNull(resolveResult.values["name"])
+                assertNull(resolveResult.parameters["name"])
             }
         }
 
         on("resolving /foo with multiple parameters") {
-            val resolveResult = resolve(root, "/foo", valuesOf("name", listOf("value1", "value2")))
+            val resolveResult = resolve(root, "/foo", parametersOf("name", listOf("value1", "value2")))
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -388,7 +388,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value") {
-                assertEquals(listOf("value1", "value2"), resolveResult.values.getAll("name"))
+                assertEquals(listOf("value1", "value2"), resolveResult.parameters.getAll("name"))
             }
         }
     }
@@ -410,7 +410,7 @@ class RoutingResolveTest {
                 assertEquals(paramEntry, resolveResult.route)
             }
             it("should have parameter value equal to 'value'") {
-                assertEquals("value", resolveResult.values["name"])
+                assertEquals("value", resolveResult.parameters["name"])
             }
         }
 
@@ -424,7 +424,7 @@ class RoutingResolveTest {
                 assertEquals(constantEntry, resolveResult.route)
             }
             it("should not have parameter value") {
-                assertNull(resolveResult.values["name"])
+                assertNull(resolveResult.parameters["name"])
             }
         }
 
@@ -438,7 +438,7 @@ class RoutingResolveTest {
         val htmlEntry = fooEntry.handle(HttpHeaderRouteSelector("Accept", "text/html"))
 
         on("resolving /foo with more specific") {
-            val resolveResult = resolve(root, "/foo", headers = valuesOf("Accept", listOf("text/*, text/html, */*")))
+            val resolveResult = resolve(root, "/foo", headers = headersOf("Accept", listOf("text/*, text/html, */*")))
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -449,7 +449,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo with equal preference") {
-            val resolveResult = resolve(root, "/foo", headers = valuesOf("Accept", listOf("text/plain, text/html")))
+            val resolveResult = resolve(root, "/foo", headers = headersOf("Accept", listOf("text/plain, text/html")))
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -460,7 +460,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo with preference of text/plain") {
-            val resolveResult = resolve(root, "/foo", headers = valuesOf("Accept", listOf("text/plain, text/html; q=0.5")))
+            val resolveResult = resolve(root, "/foo", headers = headersOf("Accept", listOf("text/plain, text/html; q=0.5")))
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -471,7 +471,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo with preference of text/html") {
-            val resolveResult = resolve(root, "/foo", headers = valuesOf("Accept", listOf("text/plain; q=0.5, text/html")))
+            val resolveResult = resolve(root, "/foo", headers = headersOf("Accept", listOf("text/plain; q=0.5, text/html")))
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)

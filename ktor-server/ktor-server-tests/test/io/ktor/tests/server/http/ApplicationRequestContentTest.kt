@@ -26,7 +26,7 @@ class ApplicationRequestContentTest {
     @Test
     fun testStringValues() {
         withTestApplication {
-            val values = valuesOf("a", "1")
+            val values = parametersOf("a", "1")
 
             application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals(values, call.receiveParameters())
@@ -42,7 +42,7 @@ class ApplicationRequestContentTest {
     @Test
     fun testStringValuesWithCharset() {
         withTestApplication {
-            val values = valuesOf("a", "1")
+            val values = parametersOf("a", "1")
 
             application.intercept(ApplicationCallPipeline.Call) {
                 assertEquals(values, call.receiveParameters())
@@ -94,7 +94,7 @@ class ApplicationRequestContentTest {
 
     @Test
     fun testFormUrlEncodedContent() {
-        val values = valuesOf(
+        val values = parametersOf(
                 "one" to listOf("1"),
                 "two_space_three_and_four" to listOf("2 3 & 4")
         )

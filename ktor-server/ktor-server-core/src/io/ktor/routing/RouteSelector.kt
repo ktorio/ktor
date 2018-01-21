@@ -9,12 +9,12 @@ import io.ktor.util.*
  *
  * @param succeeded indicates if a route matches current [RoutingResolveContext]
  * @param quality indicates quality of this route as compared to other sibling routes
- * @param values is an instance of [StringValues] with parameters filled by [RouteSelector]
+ * @param parameters is an instance of [Parameters] with parameters filled by [RouteSelector]
  * @param segmentIncrement is a value indicating how many path segments has been consumed by a selector
  */
 data class RouteSelectorEvaluation(val succeeded: Boolean,
                                    val quality: Double,
-                                   val values: StringValues = StringValues.Empty,
+                                   val parameters: Parameters = Parameters.Empty,
                                    val segmentIncrement: Int = 0) {
     companion object {
         /**
@@ -104,7 +104,7 @@ data class ParameterRouteSelector(val name: String) : RouteSelector(RouteSelecto
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
         if (param != null)
-            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, valuesOf(name, param))
+            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, parametersOf(name, param))
         return RouteSelectorEvaluation.Failed
     }
 
@@ -119,7 +119,7 @@ data class OptionalParameterRouteSelector(val name: String) : RouteSelector(Rout
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
         if (param != null)
-            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, valuesOf(name, param))
+            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, parametersOf(name, param))
         return RouteSelectorEvaluation.Missing
     }
 
@@ -166,7 +166,7 @@ data class PathSegmentParameterRouteSelector(val name: String, val prefix: Strin
                 else
                     return RouteSelectorEvaluation.Failed
 
-            val values = valuesOf(name, suffixChecked)
+            val values = parametersOf(name, suffixChecked)
             return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, values, segmentIncrement = 1)
         }
         return RouteSelectorEvaluation.Failed
@@ -201,7 +201,7 @@ data class PathSegmentOptionalParameterRouteSelector(val name: String, val prefi
                 else
                     return RouteSelectorEvaluation.Missing
 
-            val values = valuesOf(name, suffixChecked)
+            val values = parametersOf(name, suffixChecked)
             return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, values, segmentIncrement = 1)
         }
         return RouteSelectorEvaluation.Missing
@@ -229,7 +229,7 @@ object PathSegmentWildcardRouteSelector : RouteSelector(RouteSelectorEvaluation.
  */
 data class PathSegmentTailcardRouteSelector(val name: String = "") : RouteSelector(RouteSelectorEvaluation.qualityTailcard) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        val values = if (name.isEmpty()) valuesOf() else valuesOf(name, context.segments.drop(segmentIndex).map { it })
+        val values = if (name.isEmpty()) parametersOf() else parametersOf(name, context.segments.drop(segmentIndex).map { it })
         val quality = if (segmentIndex < context.segments.size) RouteSelectorEvaluation.qualityTailcard else RouteSelectorEvaluation.qualityMissing
         return RouteSelectorEvaluation(true, quality, values, segmentIncrement = context.segments.size - segmentIndex)
     }
@@ -267,7 +267,7 @@ data class AndRouteSelector(val first: RouteSelector, val second: RouteSelector)
         val result2 = second.evaluate(context, segmentIndex + result1.segmentIncrement)
         if (!result2.succeeded)
             return result2
-        val resultValues = result1.values + result2.values
+        val resultValues = result1.parameters + result2.parameters
         return RouteSelectorEvaluation(true, result1.quality * result2.quality, resultValues, result1.segmentIncrement + result2.segmentIncrement)
     }
 

@@ -360,7 +360,7 @@ fun Route.handleRequestWithBodyFor(method: HttpMethod): Unit {
             handle {
                 val listFiles = call.receive<MultiPartData>().readAllParts().filterIsInstance<PartData.FileItem>()
                 call.sendHttpBinResponse {
-                    form = call.receive<StringValues>()
+                    form = call.receive<Parameters>()
                     files = listFiles.associateBy { part -> part.partName ?: "a" }
                 }
             }
@@ -370,7 +370,7 @@ fun Route.handleRequestWithBodyFor(method: HttpMethod): Unit {
         method(method) {
             handle {
                 call.sendHttpBinResponse {
-                    form = call.receive<StringValues>()
+                    form = call.receive<Parameters>()
                 }
             }
         }

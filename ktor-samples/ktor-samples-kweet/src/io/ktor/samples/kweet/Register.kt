@@ -2,6 +2,7 @@ package io.ktor.samples.kweet
 
 import io.ktor.application.*
 import io.ktor.freemarker.*
+import io.ktor.http.*
 import io.ktor.locations.*
 import io.ktor.request.*
 import io.ktor.response.*
@@ -20,7 +21,7 @@ fun Route.register(dao: DAOFacade, hashFunction: (String) -> String) {
 
         // receive post data
         // TODO: use conneg when it's ready and `call.receive<Register>()`
-        val registration = call.receive<StringValues>()
+        val registration = call.receive<Parameters>()
         val userId = registration["userId"] ?: return@post call.redirect(it)
         val password = registration["password"] ?: return@post call.redirect(it)
         val displayName = registration["displayName"] ?: return@post call.redirect(it)
