@@ -1,9 +1,10 @@
 package io.ktor.server.netty
 
-import io.ktor.util.*
+import io.ktor.http.*
 import io.netty.handler.codec.http.*
+import io.netty.handler.codec.http.HttpHeaders
 
-class NettyApplicationRequestHeaders(request: HttpRequest) : StringValues {
+class NettyApplicationRequestHeaders(request: HttpRequest) : Headers {
     private val headers: HttpHeaders = request.headers()
     override fun get(name: String): String? = headers.get(name)
     override fun contains(name: String): Boolean = headers.contains(name)

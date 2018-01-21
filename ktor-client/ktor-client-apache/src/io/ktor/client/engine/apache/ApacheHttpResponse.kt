@@ -26,11 +26,11 @@ class ApacheHttpResponse internal constructor(
 
         status = HttpStatusCode.fromValue(code)
         version = with(engineResponse.protocolVersion) { HttpProtocolVersion.fromValue(protocol, major, minor) }
-        headers = HeadersBuilder(caseInsensitiveKey = true).apply {
+        headers = Headers.build {
             engineResponse.allHeaders.forEach { headerLine ->
                 append(headerLine.name, headerLine.value)
             }
-        }.build()
+        }
     }
 
     override fun receiveContent(): IncomingContent = object : IncomingContent {

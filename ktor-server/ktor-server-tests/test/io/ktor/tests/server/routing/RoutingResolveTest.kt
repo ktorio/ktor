@@ -351,7 +351,7 @@ class RoutingResolveTest {
         val paramEntry = fooEntry.handle(ParameterRouteSelector("name"))
 
         on("resolving /foo with query string name=value") {
-            val resolveResult = resolve(root, "/foo", valuesOf("name" to listOf("value")))
+            val resolveResult = resolve(root, "/foo", valuesOf("name", "value"))
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -379,7 +379,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo with multiple parameters") {
-            val resolveResult = resolve(root, "/foo", valuesOf("name" to listOf("value1", "value2")))
+            val resolveResult = resolve(root, "/foo", valuesOf("name", listOf("value1", "value2")))
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -438,7 +438,7 @@ class RoutingResolveTest {
         val htmlEntry = fooEntry.handle(HttpHeaderRouteSelector("Accept", "text/html"))
 
         on("resolving /foo with more specific") {
-            val resolveResult = resolve(root, "/foo", headers = valuesOf("Accept" to listOf("text/*, text/html, */*")))
+            val resolveResult = resolve(root, "/foo", headers = valuesOf("Accept", listOf("text/*, text/html, */*")))
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -449,7 +449,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo with equal preference") {
-            val resolveResult = resolve(root, "/foo", headers = valuesOf("Accept" to listOf("text/plain, text/html")))
+            val resolveResult = resolve(root, "/foo", headers = valuesOf("Accept", listOf("text/plain, text/html")))
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -460,7 +460,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo with preference of text/plain") {
-            val resolveResult = resolve(root, "/foo", headers = valuesOf("Accept" to listOf("text/plain, text/html; q=0.5")))
+            val resolveResult = resolve(root, "/foo", headers = valuesOf("Accept", listOf("text/plain, text/html; q=0.5")))
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)
@@ -471,7 +471,7 @@ class RoutingResolveTest {
         }
 
         on("resolving /foo with preference of text/html") {
-            val resolveResult = resolve(root, "/foo", headers = valuesOf("Accept" to listOf("text/plain; q=0.5, text/html")))
+            val resolveResult = resolve(root, "/foo", headers = valuesOf("Accept", listOf("text/plain; q=0.5, text/html")))
 
             it("should successfully resolve") {
                 assertTrue(resolveResult.succeeded)

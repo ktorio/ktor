@@ -72,7 +72,7 @@ interface StringValues {
     fun isEmpty(): Boolean
 }
 
-private class StringValuesSingleImpl(override val caseInsensitiveName: Boolean, val name: String, val values: List<String>) : StringValues {
+open class StringValuesSingleImpl(override val caseInsensitiveName: Boolean, val name: String, val values: List<String>) : StringValues {
     override fun getAll(name: String): List<String>? = if (this.name.equals(name, caseInsensitiveName)) values else null
     override fun entries(): Set<Map.Entry<String, List<String>>> = setOf(object : Map.Entry<String, List<String>> {
         override val key: String = name
@@ -98,7 +98,7 @@ private class StringValuesSingleImpl(override val caseInsensitiveName: Boolean, 
     override fun contains(name: String, value: String): Boolean = name.equals(this.name, caseInsensitiveName) && values.contains(value)
 }
 
-private class StringValuesImpl(override val caseInsensitiveName: Boolean = false, private val values: Map<String, List<String>> = emptyMap()) : StringValues {
+open class StringValuesImpl(override val caseInsensitiveName: Boolean = false, private val values: Map<String, List<String>> = emptyMap()) : StringValues {
     override operator fun get(name: String) = listForKey(name)?.firstOrNull()
     override fun getAll(name: String): List<String>? = listForKey(name)
 
@@ -123,9 +123,9 @@ private class StringValuesImpl(override val caseInsensitiveName: Boolean = false
     override fun hashCode() = entriesHashCode(entries(), 31 * caseInsensitiveName.hashCode())
 }
 
-class StringValuesBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8) {
-    private val values: MutableMap<String, MutableList<String>> = if (caseInsensitiveKey) CaseInsensitiveMap(size) else LinkedHashMap(size)
-    private var built = false
+open class StringValuesBuilder(val caseInsensitiveName: Boolean = false, size: Int = 8) {
+    protected val values: MutableMap<String, MutableList<String>> = if (caseInsensitiveName) CaseInsensitiveMap(size) else LinkedHashMap(size)
+    protected var built = false
 
     fun getAll(name: String): List<String>? = values[name]
     fun contains(name: String, value: String) = values[name]?.contains(value) ?: false
@@ -184,13 +184,15 @@ class StringValuesBuilder(val caseInsensitiveKey: Boolean = false, size: Int = 8
         values.clear()
     }
 
-    fun build(): StringValues {
+    open fun build(): StringValues {
         require(!built) { "ValueMapBuilder can only build a single ValueMap" }
         built = true
-        return StringValuesImpl(caseInsensitiveKey, values)
+        return StringValuesImpl(caseInsensitiveName, values)
     }
 
     private fun ensureListForKey(name: String, size: Int): MutableList<String> {
+        if (built)
+            throw IllegalStateException("Cannot modify a builder when final structure has already been built")
         return values[name] ?: ArrayList<String>(size).also { values[name] = it }
     }
 }
@@ -199,21 +201,15 @@ fun valuesOf(vararg pairs: Pair<String, List<String>>, caseInsensitiveKey: Boole
     return StringValuesImpl(caseInsensitiveKey, pairs.asList().toMap())
 }
 
-fun valuesOf(pair: Pair<String, List<String>>, caseInsensitiveKey: Boolean = false): StringValues {
-    return StringValuesSingleImpl(caseInsensitiveKey, pair.first, pair.second)
-}
-
 fun valuesOf(name: String, value: String, caseInsensitiveKey: Boolean = false): StringValues {
     return StringValuesSingleImpl(caseInsensitiveKey, name, listOf(value))
 }
 
-fun valuesOf(name: String, value: List<String>, caseInsensitiveKey: Boolean = false): StringValues {
-    return StringValuesSingleImpl(caseInsensitiveKey, name, value)
+fun valuesOf(name: String, values: List<String>, caseInsensitiveKey: Boolean = false): StringValues {
+    return StringValuesSingleImpl(caseInsensitiveKey, name, values)
 }
 
-fun valuesOf(): StringValues {
-    return StringValues.Empty
-}
+fun valuesOf() = StringValues.Empty
 
 fun valuesOf(map: Map<String, Iterable<String>>, caseInsensitiveKey: Boolean = false): StringValues {
     val size = map.size
@@ -232,7 +228,7 @@ operator fun StringValues.plus(other: StringValues) = when {
         other.isEmpty() -> this
         else -> StringValues.build(caseInsensitiveName) { appendAll(this@plus); appendAll(other) }
     }
-    else -> throw IllegalArgumentException("It is forbidden to concatenate case sensitive and case insensitive maps")
+    else -> throw IllegalArgumentException("Cannot concatenate StringValues with case-sensitive and case-insensitive names")
 }
 
 fun StringValues.toMap(): Map<String, List<String>> =
@@ -262,14 +258,9 @@ fun StringValuesBuilder.appendFiltered(source: StringValues, keepEmpty: Boolean 
 
 fun StringValuesBuilder.appendAll(builder: StringValuesBuilder): StringValuesBuilder = apply {
     builder.entries().forEach { (name, values) ->
-                appendAll(name, values)
-            }
+        appendAll(name, values)
+    }
 }
-
-fun stringValuesBuilderOf(builder: StringValuesBuilder): StringValuesBuilder =
-        StringValuesBuilder(builder.caseInsensitiveKey).appendAll(builder)
-
-fun valuesOf(builder: StringValuesBuilder): StringValues = stringValuesBuilderOf(builder).build()
 
 private fun entriesEquals(a: Set<Map.Entry<String, List<String>>>, b: Set<Map.Entry<String, List<String>>>): Boolean {
     return a == b

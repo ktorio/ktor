@@ -5,7 +5,6 @@ import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
-import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
 
@@ -58,10 +57,14 @@ class TestApplicationRequest(
         map.getOrPut(name, { arrayListOf() }).add(value)
     }
 
-    override val headers by lazy(LazyThreadSafetyMode.NONE) {
+    override val headers : Headers by lazy(LazyThreadSafetyMode.NONE) {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")
         headersMap = null
-        valuesOf(map, caseInsensitiveKey = true)
+        Headers.build {
+            map.forEach { (name, values) ->
+                appendAll(name, values)
+            }
+        }
     }
 
     override val cookies = RequestCookies(this)

@@ -1,8 +1,8 @@
 package io.ktor.http.cio
 
-import io.ktor.util.*
+import io.ktor.http.*
 
-class CIOHeaders(private val headers: HttpHeadersMap) : StringValues {
+class CIOHeaders(private val headers: HttpHeadersMap) : Headers {
     private val names: Set<String> by lazy {
         LinkedHashSet<String>(headers.size).apply {
             for (i in 0 until headers.size) {

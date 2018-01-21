@@ -19,7 +19,7 @@ class ServletApplicationRequest(call: ApplicationCall,
         servletRequest.queryString?.let { parseQueryString(it) } ?: StringValues.Empty
     }
 
-    override val headers: StringValues = ServletApplicationRequestHeaders(servletRequest)
+    override val headers: Headers = ServletApplicationRequestHeaders(servletRequest)
     override val cookies: RequestCookies = ServletApplicationRequestCookies(servletRequest, this)
 
     override fun receiveContent() = ServletIncomingContent(this)

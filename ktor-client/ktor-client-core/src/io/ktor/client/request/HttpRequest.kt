@@ -26,7 +26,7 @@ interface HttpRequest : HttpMessage {
 class HttpRequestBuilder : HttpMessageBuilder {
     val url = URLBuilder()
     var method = HttpMethod.Get
-    override val headers = HeadersBuilder(caseInsensitiveKey = true)
+    override val headers = HeadersBuilder()
     var body: Any = EmptyContent
 
     fun headers(block: HeadersBuilder.() -> Unit) = headers.apply(block)

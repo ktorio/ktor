@@ -109,7 +109,7 @@ class Compression(compression: Configuration) {
                                      val encoder: CompressionEncoder) : OutgoingContent.ReadChannelContent() {
         override fun readFrom() = encoder.compress(delegateChannel())
         override val headers by lazy(LazyThreadSafetyMode.NONE) {
-            StringValues.build(true) {
+            Headers.build {
                 appendFiltered(original.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
                 append(HttpHeaders.ContentEncoding, encoding)
             }
@@ -125,7 +125,7 @@ class Compression(compression: Configuration) {
                                           val encoding: String,
                                           val encoder: CompressionEncoder) : OutgoingContent.WriteChannelContent() {
         override val headers by lazy(LazyThreadSafetyMode.NONE) {
-            StringValues.build(true) {
+            Headers.build {
                 appendFiltered(original.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
                 append(HttpHeaders.ContentEncoding, encoding)
             }

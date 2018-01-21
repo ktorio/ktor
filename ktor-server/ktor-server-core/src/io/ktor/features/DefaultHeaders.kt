@@ -1,11 +1,9 @@
 package io.ktor.features
 
 import io.ktor.application.*
-import io.ktor.http.HttpHeaders
-import io.ktor.http.toHttpDateString
-import io.ktor.response.header
-import io.ktor.util.AttributeKey
-import io.ktor.util.StringValuesBuilder
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.util.*
 import java.time.*
 
 /**
@@ -13,7 +11,7 @@ import java.time.*
  * that are included in responses.
  */
 class DefaultHeaders(config: Configuration) {
-    val headers = config.headers.build()
+    private val headers = config.headers.build()
 
     private val UTC = ZoneId.of("UTC")!! // it is very important to get it like that
     private val zoneUTCRules = UTC.rules
@@ -25,7 +23,10 @@ class DefaultHeaders(config: Configuration) {
      * Configuration for [DefaultHeaders] feature.
      */
     class Configuration {
-        val headers = StringValuesBuilder()
+        /**
+         * Provides a builder to append any custom headers to be sent with each request
+         */
+        val headers = HeadersBuilder()
 
         /**
          * Adds standard header property [name] with the specified [value].

@@ -104,7 +104,7 @@ data class ParameterRouteSelector(val name: String) : RouteSelector(RouteSelecto
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val param = context.call.parameters.getAll(name)
         if (param != null)
-            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, valuesOf(name to param))
+            return RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityParameter, valuesOf(name, param))
         return RouteSelectorEvaluation.Failed
     }
 

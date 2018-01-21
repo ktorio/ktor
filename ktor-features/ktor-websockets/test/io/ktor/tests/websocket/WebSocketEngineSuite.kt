@@ -498,7 +498,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     private fun InputStream.parseHeaders(): StringValues {
-        val builder = StringValuesBuilder(caseInsensitiveKey = true)
+        val builder = StringValuesBuilder(caseInsensitiveName = true)
 
         while (true) {
             val line = readLineISOCrLf()

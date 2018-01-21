@@ -7,7 +7,6 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 import org.junit.Test
 import kotlin.test.*
@@ -92,8 +91,8 @@ class HeadTest {
                     call.respond(object : OutgoingContent.ReadChannelContent() {
                         override fun readFrom() = ByteReadChannel("Hello".toByteArray())
 
-                        override val headers: StringValues
-                            get() = StringValues.build(true) {
+                        override val headers: Headers
+                            get() = Headers.build {
                                 append("M", "2")
                             }
                     })
@@ -105,12 +104,14 @@ class HeadTest {
                 assertNotNull(call.response.byteContent)
                 assertEquals("Hello", call.response.content)
                 assertEquals("2", call.response.headers["M"])
+                assertEquals("2", call.response.headers["m"])
             }
 
             handleRequest(HttpMethod.Head, "/").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertNull(call.response.content)
                 assertEquals("2", call.response.headers["M"])
+                assertEquals("2", call.response.headers["m"])
             }
         }
     }

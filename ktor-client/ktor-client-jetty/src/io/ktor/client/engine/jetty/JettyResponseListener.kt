@@ -24,7 +24,7 @@ internal class JettyResponseListener(
         private val dispatcher: CoroutineDispatcher,
         private val context: CompletableDeferred<Unit>
 ) : Stream.Listener {
-    private val headersBuilder: HeadersBuilder = HeadersBuilder(caseInsensitiveKey = true)
+    private val headersBuilder: HeadersBuilder = HeadersBuilder()
     private val onHeadersReceived: CompletableFuture<HttpStatusCode?> = CompletableFuture()
     private val backendChannel = Channel<JettyResponseChunk>(Channel.UNLIMITED)
 

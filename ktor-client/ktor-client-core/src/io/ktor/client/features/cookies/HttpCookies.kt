@@ -42,14 +42,12 @@ class HttpCookies(private val storage: CookiesStorage) {
         override fun install(feature: HttpCookies, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.State) { content: OutgoingContent ->
                 proceedWith(content.wrapHeaders { oldHeaders ->
-                    val builder = HeadersBuilder()
-                    builder.appendAll(oldHeaders)
-
-                    feature.forEach(context.request.url.host) {
-                        builder.append(HttpHeaders.Cookie, renderSetCookieHeader(it))
+                    Headers.build {
+                        appendAll(oldHeaders)
+                        feature.forEach(context.request.url.host) {
+                            append(HttpHeaders.Cookie, renderSetCookieHeader(it))
+                        }
                     }
-
-                    builder.build()
                 })
             }
 

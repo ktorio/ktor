@@ -44,7 +44,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/") {
             assertEquals(200, status.value)
 
-            val fields = StringValuesBuilder(true)
+            val fields = HeadersBuilder()
             fields.appendAll(headers)
 
             fields.remove(HttpHeaders.Date) // Do not check for Date field since it's unstable
@@ -1205,8 +1205,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         createAndStartServer {
             get("/up") {
                 call.respond(object : OutgoingContent.ProtocolUpgrade() {
-                    override val headers: StringValues
-                        get() = StringValues.build(true) {
+                    override val headers: Headers
+                        get() = Headers.build {
                             append(HttpHeaders.Upgrade, "up")
                             append(HttpHeaders.Connection, "Upgrade")
                         }
@@ -1387,8 +1387,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             get("/read-less") {
                 assertFailsSuspend {
                     call.respond(object : OutgoingContent.ReadChannelContent() {
-                        override val headers: StringValues
-                            get() = StringValues.build(true) {
+                        override val headers: Headers
+                            get() = Headers.build {
                                 append(HttpHeaders.ContentLength, doubleSize)
                             }
 
@@ -1399,8 +1399,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             get("/read-more") {
                 assertFailsSuspend {
                     call.respond(object : OutgoingContent.ReadChannelContent() {
-                        override val headers: StringValues
-                            get() = StringValues.build(true) {
+                        override val headers: Headers
+                            get() = Headers.build {
                                 append(HttpHeaders.ContentLength, halfSize)
                             }
 
@@ -1411,8 +1411,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             get("/write-less") {
                 assertFailsSuspend {
                     call.respond(object : OutgoingContent.WriteChannelContent() {
-                        override val headers: StringValues
-                            get() = StringValues.build(true) {
+                        override val headers: Headers
+                            get() = Headers.build {
                                 append(HttpHeaders.ContentLength, doubleSize)
                             }
 
@@ -1426,8 +1426,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             get("/write-more") {
                 assertFailsSuspend {
                     call.respond(object : OutgoingContent.WriteChannelContent() {
-                        override val headers: StringValues
-                            get() = StringValues.build(true) {
+                        override val headers: Headers
+                            get() = Headers.build {
                                 append(HttpHeaders.ContentLength, halfSize)
                             }
 

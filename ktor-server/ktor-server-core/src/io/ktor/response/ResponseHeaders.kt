@@ -1,13 +1,12 @@
 package io.ktor.response
 
 import io.ktor.http.*
-import io.ktor.util.*
 
 abstract class ResponseHeaders {
     operator fun contains(name: String): Boolean = getEngineHeaderValues(name).isNotEmpty()
     operator fun get(name: String): String? = getEngineHeaderValues(name).firstOrNull()
     fun values(name: String): List<String> = getEngineHeaderValues(name)
-    fun allValues(): StringValues = StringValues.build(true) {
+    fun allValues(): Headers = Headers.build {
         getEngineHeaderNames().forEach {
             appendAll(it, getEngineHeaderValues(it))
         }
@@ -33,4 +32,4 @@ private val unsafeHeaders = setOf(
         HttpHeaders.Upgrade
 )
 
-class UnsafeHeaderException(header: String): IllegalArgumentException("Header $header is controlled by the engine and cannot be set explicitly")
+class UnsafeHeaderException(header: String) : IllegalArgumentException("Header $header is controlled by the engine and cannot be set explicitly")

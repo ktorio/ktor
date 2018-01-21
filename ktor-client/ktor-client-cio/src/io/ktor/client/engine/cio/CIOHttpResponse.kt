@@ -5,7 +5,6 @@ import io.ktor.client.response.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
-import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
@@ -21,12 +20,12 @@ class CIOHttpResponse(
 ) : HttpResponse {
     override val status: HttpStatusCode = HttpStatusCode.fromValue(response.status)
     override val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
-    override val headers: Headers = StringValuesBuilder(caseInsensitiveKey = true).apply {
+    override val headers: Headers = Headers.build {
         val origin = CIOHeaders(response.headers)
         origin.names().forEach {
             appendAll(it, origin.getAll(it))
         }
-    }.build()
+    }
 
     override val responseTime: Date = Date()
 

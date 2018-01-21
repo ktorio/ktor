@@ -1,11 +1,12 @@
 package io.ktor.server.netty.http2
 
 import io.ktor.application.*
+import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.netty.*
-import io.ktor.util.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import io.netty.handler.codec.http.HttpMethod
 import io.netty.handler.codec.http.multipart.*
 import io.netty.handler.codec.http2.*
 import kotlinx.coroutines.experimental.*
@@ -20,7 +21,7 @@ internal class NettyHttp2ApplicationRequest(
         val contentByteChannel: ByteChannel = ByteChannel())
     : NettyApplicationRequest(call, context, contentByteChannel, nettyHeaders[":path"]?.toString() ?: "/", keepAlive = true) {
 
-    override val headers: StringValues by lazy { StringValues.build(caseInsensitiveName = true) { nettyHeaders.forEach { append(it.key.toString(), it.value.toString()) } } }
+    override val headers: Headers by lazy { Headers.build { nettyHeaders.forEach { append(it.key.toString(), it.value.toString()) } } }
 
     val contentActor = actor<Http2DataFrame>(Unconfined, kotlinx.coroutines.experimental.channels.Channel.UNLIMITED) {
         http2frameLoop(contentByteChannel)

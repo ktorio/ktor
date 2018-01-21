@@ -8,9 +8,9 @@ class UnauthorizedResponse(vararg val challenges: HttpAuthHeader) : OutgoingCont
     override val status: HttpStatusCode?
         get() = HttpStatusCode.Unauthorized
 
-    override val headers: StringValues
+    override val headers: Headers
         get() = if (challenges.isNotEmpty())
-            valuesOf(HttpHeaders.WWWAuthenticate, challenges.joinToString(", ") { it.render() }, caseInsensitiveKey = true)
+            headersOf(HttpHeaders.WWWAuthenticate, challenges.joinToString(", ") { it.render() })
         else
-            valuesOf()
+            Headers.Empty
 }

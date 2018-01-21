@@ -4,6 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.content.*
+import io.ktor.http.*
 import io.ktor.pipeline.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
@@ -24,7 +25,7 @@ internal class TestHandler(
         override fun install(feature: TestHandler, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Render) { content: OutgoingContent.ReadChannelContent ->
                 proceedWith(object : OutgoingContent.ReadChannelContent() {
-                    override val headers: StringValues = content.headers
+                    override val headers: Headers = content.headers
 
                     override fun readFrom(): ByteReadChannel = writer(Unconfined, autoFlush = true, parent = context.request.executionContext) {
                         try {
