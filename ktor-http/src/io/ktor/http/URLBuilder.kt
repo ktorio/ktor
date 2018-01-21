@@ -10,7 +10,7 @@ class URLBuilder(
         var user: String? = null,
         var password: String? = null,
         var encodedPath: String = "/",
-        val parameters: ValuesMapBuilder = ValuesMapBuilder(),
+        val parameters: StringValuesBuilder = StringValuesBuilder(),
         var fragment: String = "",
         var trailingQuery: Boolean = false
 ) {
@@ -77,7 +77,7 @@ data class Url(
         val host: String,
         val port: Int,
         val encodedPath: String,
-        val parameters: ValuesMap,
+        val parameters: StringValues,
         val fragment: String,
         val user: String?,
         val password: String?,

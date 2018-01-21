@@ -5,7 +5,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.toHttpDateString
 import io.ktor.response.header
 import io.ktor.util.AttributeKey
-import io.ktor.util.ValuesMapBuilder
+import io.ktor.util.StringValuesBuilder
 import java.time.*
 
 /**
@@ -25,7 +25,7 @@ class DefaultHeaders(config: Configuration) {
      * Configuration for [DefaultHeaders] feature.
      */
     class Configuration {
-        val headers = ValuesMapBuilder()
+        val headers = StringValuesBuilder()
 
         /**
          * Adds standard header property [name] with the specified [value].

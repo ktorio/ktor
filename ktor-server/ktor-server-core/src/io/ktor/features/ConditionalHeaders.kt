@@ -45,7 +45,7 @@ class ConditionalHeaders(private val versionProviders: List<(OutgoingContent) ->
         }
 
         if (versions.isNotEmpty()) {
-            val headers = ValuesMap.build {
+            val headers = StringValues.build {
                 versions.forEach { it.appendHeadersTo(this) }
             }
 

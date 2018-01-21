@@ -20,7 +20,7 @@ fun Route.register(dao: DAOFacade, hashFunction: (String) -> String) {
 
         // receive post data
         // TODO: use conneg when it's ready and `call.receive<Register>()`
-        val registration = call.receive<ValuesMap>()
+        val registration = call.receive<StringValues>()
         val userId = registration["userId"] ?: return@post call.redirect(it)
         val password = registration["password"] ?: return@post call.redirect(it)
         val displayName = registration["displayName"] ?: return@post call.redirect(it)

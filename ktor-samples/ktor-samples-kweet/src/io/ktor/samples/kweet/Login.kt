@@ -21,7 +21,7 @@ fun Route.login(dao: DAOFacade, hash: (String) -> String) {
         }
     }
     post<Login> {
-        val post = call.receive<ValuesMap>()
+        val post = call.receive<StringValues>()
         val userId = post["userId"] ?: return@post call.redirect(it)
         val password = post["password"] ?: return@post call.redirect(it)
 

@@ -101,7 +101,7 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
         else -> null
     }
 
-    private fun FileUpload.headers() = ValuesMap.build(true) {
+    private fun FileUpload.headers() = StringValues.build(true) {
         if (contentType != null) {
             append(HttpHeaders.ContentType, contentType)
         }
@@ -117,7 +117,7 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
         contentLength(length())
     }
 
-    private fun Attribute.headers() = ValuesMap.build(true) {
+    private fun Attribute.headers() = StringValues.build(true) {
         contentType(ContentType.MultiPart.Mixed)
         append(HttpHeaders.ContentDisposition, ContentDisposition.Mixed.withParameter(ContentDisposition.Parameters.Name, name).toString())
     }

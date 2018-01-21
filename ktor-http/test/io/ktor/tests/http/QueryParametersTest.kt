@@ -7,9 +7,9 @@ import kotlin.test.*
 
 class QueryParametersTest {
 
-    fun assertQuery(query: String, startIndex: Int = 0, limit: Int = 1000, builder: ValuesMapBuilder.() -> Unit) {
+    fun assertQuery(query: String, startIndex: Int = 0, limit: Int = 1000, builder: StringValuesBuilder.() -> Unit) {
         val parameters = parseQueryString(query, startIndex, limit)
-        val built = ValuesMap.build(false, builder)
+        val built = StringValues.build(false, builder)
         assertEquals(built, parameters)
     }
 

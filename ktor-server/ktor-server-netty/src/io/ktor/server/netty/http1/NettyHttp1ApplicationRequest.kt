@@ -14,7 +14,7 @@ internal class NettyHttp1ApplicationRequest(call: ApplicationCall,
                                             requestBodyChannel: ByteReadChannel)
     : NettyApplicationRequest(call, context, requestBodyChannel, httpRequest.uri(), HttpUtil.isKeepAlive(httpRequest)) {
     override val local = NettyConnectionPoint(httpRequest, context)
-    override val headers: ValuesMap = NettyApplicationRequestHeaders(httpRequest)
+    override val headers: StringValues = NettyApplicationRequestHeaders(httpRequest)
     override fun newDecoder(): HttpPostMultipartRequestDecoder {
         return HttpPostMultipartRequestDecoder(httpRequest)
     }

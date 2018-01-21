@@ -55,6 +55,6 @@ suspend inline fun ApplicationCall.receiveStream(): InputStream = receive()
 suspend inline fun ApplicationCall.receiveMultipart(): MultiPartData = receive()
 
 @Suppress("NOTHING_TO_INLINE")
-suspend inline fun ApplicationCall.receiveParameters(): ValuesMap = receive()
+suspend inline fun ApplicationCall.receiveParameters(): StringValues = receive()
 
 class ContentTransformationException(message: String) : Exception(message)

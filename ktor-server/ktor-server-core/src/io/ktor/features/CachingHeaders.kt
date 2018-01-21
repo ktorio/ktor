@@ -32,7 +32,7 @@ class CachingHeaders(private val optionsProviders: List<(OutgoingContent) -> Cac
         val options = if (message is OutgoingContent) optionsFor(message) else emptyList()
 
         if (options.isNotEmpty()) {
-            val headers = ValuesMap.build {
+            val headers = StringValues.build {
                 options.forEach {
                     if (it.cacheControl != null)
                         append(HttpHeaders.CacheControl, it.cacheControl.toString())

@@ -1,6 +1,5 @@
 package io.ktor.response
 
-import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.util.*
 import java.time.*
@@ -19,9 +18,9 @@ fun ApplicationResponse.contentLength(length: Long) = header(HttpHeaders.Content
 fun ApplicationResponse.cacheControl(value: CacheControl) = header(HttpHeaders.CacheControl, value.toString())
 fun ApplicationResponse.expires(value: LocalDateTime) = header(HttpHeaders.Expires, value)
 
-fun ValuesMapBuilder.cacheControl(value: CacheControl) = set(HttpHeaders.CacheControl, value.toString())
+fun StringValuesBuilder.cacheControl(value: CacheControl) = set(HttpHeaders.CacheControl, value.toString())
 
-fun ValuesMapBuilder.contentRange(range: LongRange?, fullLength: Long? = null, unit: String = RangeUnits.Bytes.unitToken) {
+fun StringValuesBuilder.contentRange(range: LongRange?, fullLength: Long? = null, unit: String = RangeUnits.Bytes.unitToken) {
     append(HttpHeaders.ContentRange, contentRangeHeaderValue(range, fullLength, unit))
 }
 fun ApplicationResponse.contentRange(range: LongRange?, fullLength: Long? = null, unit: RangeUnits) {

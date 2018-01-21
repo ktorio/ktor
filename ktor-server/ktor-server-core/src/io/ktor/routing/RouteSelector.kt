@@ -9,12 +9,12 @@ import io.ktor.util.*
  *
  * @param succeeded indicates if a route matches current [RoutingResolveContext]
  * @param quality indicates quality of this route as compared to other sibling routes
- * @param values is an instance of [ValuesMap] with parameters filled by [RouteSelector]
+ * @param values is an instance of [StringValues] with parameters filled by [RouteSelector]
  * @param segmentIncrement is a value indicating how many path segments has been consumed by a selector
  */
 data class RouteSelectorEvaluation(val succeeded: Boolean,
                                    val quality: Double,
-                                   val values: ValuesMap = ValuesMap.Empty,
+                                   val values: StringValues = StringValues.Empty,
                                    val segmentIncrement: Int = 0) {
     companion object {
         /**

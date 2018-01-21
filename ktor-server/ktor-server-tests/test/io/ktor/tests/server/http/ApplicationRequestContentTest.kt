@@ -24,7 +24,7 @@ class ApplicationRequestContentTest {
     }
 
     @Test
-    fun testValuesMap() {
+    fun testStringValues() {
         withTestApplication {
             val values = valuesOf("a", "1")
 
@@ -40,7 +40,7 @@ class ApplicationRequestContentTest {
     }
 
     @Test
-    fun testValuesMapWithCharset() {
+    fun testStringValuesWithCharset() {
         withTestApplication {
             val values = valuesOf("a", "1")
 

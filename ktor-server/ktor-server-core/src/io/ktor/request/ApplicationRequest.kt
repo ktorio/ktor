@@ -22,12 +22,12 @@ interface ApplicationRequest {
     /**
      * Parameters provided in an URL
      */
-    val queryParameters: ValuesMap
+    val queryParameters: StringValues
 
     /**
      * Headers for this request
      */
-    val headers: ValuesMap
+    val headers: StringValues
 
     /**
      * Contains http request and connection details such as a host name used to connect, port, scheme and so on.

@@ -21,7 +21,7 @@ class CIOHttpResponse(
 ) : HttpResponse {
     override val status: HttpStatusCode = HttpStatusCode.fromValue(response.status)
     override val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
-    override val headers: Headers = ValuesMapBuilder(caseInsensitiveKey = true).apply {
+    override val headers: Headers = StringValuesBuilder(caseInsensitiveKey = true).apply {
         val origin = CIOHeaders(response.headers)
         origin.names().forEach {
             appendAll(it, origin.getAll(it))

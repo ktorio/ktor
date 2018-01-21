@@ -18,7 +18,7 @@ internal abstract class NettyApplicationRequest(
         protected val uri: String,
         internal val keepAlive: Boolean) : BaseApplicationRequest(call) {
 
-    final override val queryParameters = object : ValuesMap {
+    final override val queryParameters = object : StringValues {
         private val decoder = QueryStringDecoder(uri)
         override val caseInsensitiveName: Boolean get() = true
         override fun getAll(name: String) = decoder.parameters()[name]

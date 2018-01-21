@@ -9,7 +9,7 @@ import org.junit.Test
 import kotlin.test.*
 
 class UrlEncodedTest {
-    fun ApplicationRequest.parseUrlEncodedParameters(limit: Int = 1000): ValuesMap {
+    fun ApplicationRequest.parseUrlEncodedParameters(limit: Int = 1000): StringValues {
         return runBlocking {
             call.receiveText().parseUrlEncodedParameters(contentCharset() ?: Charsets.UTF_8, limit)
         }
@@ -87,7 +87,7 @@ class UrlEncodedTest {
     }
 
     @Test
-    fun testRenderUrlEncodedValuesMap() {
+    fun testRenderUrlEncodedStringValues() {
         assertEquals("p1=a+b", valuesOf("p1" to listOf("a b")).formUrlEncode())
         assertEquals("p%3D1=a%3Db", valuesOf("p=1" to listOf("a=b")).formUrlEncode())
         assertEquals("p1=a&p1=b&p2=c", valuesOf("p1" to listOf("a", "b"), "p2" to listOf("c")).formUrlEncode())

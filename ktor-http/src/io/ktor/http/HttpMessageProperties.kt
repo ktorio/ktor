@@ -6,9 +6,9 @@ import java.text.*
 import java.util.*
 
 
-typealias Headers = ValuesMap
+typealias Headers = StringValues
 
-typealias HeadersBuilder = ValuesMapBuilder
+typealias HeadersBuilder = StringValuesBuilder
 
 private val HTTP_DATE_FORMAT: SimpleDateFormat
     get() = SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US).apply {

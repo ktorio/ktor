@@ -13,12 +13,12 @@ class CIOApplicationRequest(call: ApplicationCall,
                             private val request: Request) : BaseApplicationRequest(call) {
     override val cookies: RequestCookies by lazy { RequestCookies(this) }
     override fun receiveContent() = CIOIncomingContent(input, request.headers, this)
-    override val headers: ValuesMap = CIOHeaders(request.headers)
+    override val headers: StringValues = CIOHeaders(request.headers)
 
-    override val queryParameters: ValuesMap by lazy {
+    override val queryParameters: StringValues by lazy {
         val uri = request.uri
         val qIdx = uri.indexOf('?')
-        if (qIdx == -1 || qIdx == uri.lastIndex) return@lazy ValuesMap.Empty
+        if (qIdx == -1 || qIdx == uri.lastIndex) return@lazy StringValues.Empty
 
         parseQueryString(uri.substring(qIdx + 1))
     }

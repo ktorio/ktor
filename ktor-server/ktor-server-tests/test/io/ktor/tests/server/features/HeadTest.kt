@@ -92,8 +92,8 @@ class HeadTest {
                     call.respond(object : OutgoingContent.ReadChannelContent() {
                         override fun readFrom() = ByteReadChannel("Hello".toByteArray())
 
-                        override val headers: ValuesMap
-                            get() = ValuesMap.build(true) {
+                        override val headers: StringValues
+                            get() = StringValues.build(true) {
                                 append("M", "2")
                             }
                     })

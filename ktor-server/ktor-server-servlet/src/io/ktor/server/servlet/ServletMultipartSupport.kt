@@ -43,7 +43,7 @@ internal class ServletMultiPartData(val request: ApplicationRequest, val servlet
     private val Part.isFormField: Boolean
         get() = submittedFileName == null
 
-    private fun Part.toHeadersMap() = ValuesMap.build(true) {
+    private fun Part.toHeadersMap() = StringValues.build(true) {
         headerNames.forEach { headerName ->
             appendAll(headerName, getHeaders(headerName))
         }

@@ -15,7 +15,7 @@ import io.ktor.util.*
  */
 data class RoutingResolveResult(val succeeded: Boolean,
                                 val route: Route,
-                                val values: ValuesMap,
+                                val values: StringValues,
                                 val quality: Double)
 
 /**
@@ -113,10 +113,10 @@ class RoutingResolveContext(val routing: Route, val call: ApplicationCall) {
             if (bestResult != null && bestResult.quality > RouteSelectorEvaluation.qualityMissing)
                 return bestResult
 
-            return RoutingResolveResult(true, entry, ValuesMap.Empty, 1.0)
+            return RoutingResolveResult(true, entry, StringValues.Empty, 1.0)
         }
 
-        return bestResult ?: RoutingResolveResult(false, failEntry ?: entry, ValuesMap.Empty, 0.0)
+        return bestResult ?: RoutingResolveResult(false, failEntry ?: entry, StringValues.Empty, 0.0)
     }
 
 }

@@ -12,7 +12,7 @@ class RoutingApplicationCall(private val call: ApplicationCall,
                              val route: Route,
                              receivePipeline: ApplicationReceivePipeline,
                              responsePipeline: ApplicationSendPipeline,
-                             resolvedValues: ValuesMap) : ApplicationCall {
+                             resolvedValues: StringValues) : ApplicationCall {
 
     override val application: Application get() = call.application
     override val attributes: Attributes get() = call.attributes
@@ -20,8 +20,8 @@ class RoutingApplicationCall(private val call: ApplicationCall,
     override val request = RoutingApplicationRequest(this, receivePipeline, call.request)
     override val response = RoutingApplicationResponse(this, responsePipeline, call.response)
 
-    override val parameters: ValuesMap by lazy(LazyThreadSafetyMode.NONE) {
-        ValuesMap.build {
+    override val parameters: StringValues by lazy(LazyThreadSafetyMode.NONE) {
+        StringValues.build {
             appendAll(call.parameters)
             appendMissing(resolvedValues)
         }

@@ -10,5 +10,5 @@ import io.ktor.util.*
 abstract class BaseApplicationCall(final override val application: Application) : ApplicationCall {
     final override val attributes = Attributes()
     protected open val bufferPool: ByteBufferPool get() = NoPool
-    override val parameters: ValuesMap get() = request.queryParameters
+    override val parameters: StringValues get() = request.queryParameters
 }

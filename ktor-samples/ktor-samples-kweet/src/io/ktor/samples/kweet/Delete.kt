@@ -12,7 +12,7 @@ fun Route.delete(dao: DAOFacade, hashFunction: (String) -> String) {
     post<KweetDelete> {
         val user = call.sessions.get<KweetSession>()?.let { dao.user(it.userId) }
 
-        val post = call.receive<ValuesMap>()
+        val post = call.receive<StringValues>()
         val date = post["date"]?.toLongOrNull() ?: return@post call.redirect(ViewKweet(it.id))
         val code = post["code"] ?: return@post call.redirect(ViewKweet(it.id))
         val kweet = dao.getKweet(it.id)

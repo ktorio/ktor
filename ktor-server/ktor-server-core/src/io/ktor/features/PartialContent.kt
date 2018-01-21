@@ -157,7 +157,7 @@ class PartialContent(private val maxRangeCount: Int) {
             override fun readFrom() = original.readFrom()
 
             override val headers by lazy(LazyThreadSafetyMode.NONE) {
-                ValuesMap.build(true) {
+                StringValues.build(true) {
                     appendAll(original.headers)
                     acceptRanges()
                 }
@@ -172,7 +172,7 @@ class PartialContent(private val maxRangeCount: Int) {
             override fun readFrom(): ByteReadChannel = original.readFrom(range)
 
             override val headers by lazy(LazyThreadSafetyMode.NONE) {
-                ValuesMap.build(true) {
+                StringValues.build(true) {
                     appendFiltered(original.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
                     acceptRanges()
                     contentRange(range, fullLength)
@@ -190,8 +190,8 @@ class PartialContent(private val maxRangeCount: Int) {
                     { range -> original.readFrom(range) }, ranges, length, boundary, contentType.toString()
             )
 
-            override val headers: ValuesMap
-                get() = ValuesMap.build(true) {
+            override val headers: StringValues
+                get() = StringValues.build(true) {
                     appendFiltered(original.headers) { name, _ ->
                         !name.equals(HttpHeaders.ContentType, true) && !name.equals(HttpHeaders.ContentLength, true)
                     }
@@ -199,7 +199,7 @@ class PartialContent(private val maxRangeCount: Int) {
                 }
         }
 
-        protected fun ValuesMapBuilder.acceptRanges() {
+        protected fun StringValuesBuilder.acceptRanges() {
             if (!contains(HttpHeaders.AcceptRanges, RangeUnits.Bytes.unitToken)) {
                 append(HttpHeaders.AcceptRanges, RangeUnits.Bytes.unitToken)
             }

@@ -16,7 +16,7 @@ private object RootRouteSelector : RouteSelector(RouteSelectorEvaluation.quality
 }
 
 fun routing() = Route(parent = null, selector = RootRouteSelector)
-fun resolve(routing: Route, path: String, parameters: ValuesMap = ValuesMap.Empty, headers: ValuesMap = ValuesMap.Empty): RoutingResolveResult {
+fun resolve(routing: Route, path: String, parameters: StringValues = StringValues.Empty, headers: StringValues = StringValues.Empty): RoutingResolveResult {
     return withTestApplication {
         RoutingResolveContext(routing, TestApplicationCall(application).apply {
             request.method = HttpMethod.Get

@@ -103,7 +103,7 @@ class OAuth1aFlowTest {
                     throw IllegalArgumentException("Wrong verifier specified: $verifier")
                 }
 
-                return OAuthAccessTokenResponse.OAuth1a("temp-token-1", "temp-secret-1", ValuesMap.Empty)
+                return OAuthAccessTokenResponse.OAuth1a("temp-token-1", "temp-secret-1", StringValues.Empty)
             }
         })
     }

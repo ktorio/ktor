@@ -330,7 +330,7 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
             routing {
                 route("/oauth/access_token") {
                     handle {
-                        val formData = call.receiveOrNull() ?: ValuesMap.Empty
+                        val formData = call.receiveOrNull() ?: StringValues.Empty
                         val values = call.parameters + formData
 
                         val clientId = values.requireParameter(OAuth2RequestParameters.ClientId)
@@ -379,4 +379,4 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
     return HttpClient(TestHttpClientEngine.config { app = engine })
 }
 
-private fun ValuesMap.requireParameter(name: String) = get(name) ?: throw IllegalArgumentException("No parameter $name specified")
+private fun StringValues.requireParameter(name: String) = get(name) ?: throw IllegalArgumentException("No parameter $name specified")

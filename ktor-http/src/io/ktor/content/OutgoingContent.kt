@@ -31,8 +31,8 @@ sealed class OutgoingContent {
     /**
      * Headers to set when sending this content
      */
-    open val headers: ValuesMap
-        get() = ValuesMap.Empty
+    open val headers: StringValues
+        get() = StringValues.Empty
 
     private var extensionProperties: Attributes? = null
 

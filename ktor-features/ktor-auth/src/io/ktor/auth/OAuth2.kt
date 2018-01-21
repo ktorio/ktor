@@ -165,9 +165,9 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
     )
 }
 
-private fun decodeContent(content: String, contentType: ContentType): ValuesMap = when {
+private fun decodeContent(content: String, contentType: ContentType): StringValues = when {
     contentType.match(ContentType.Application.FormUrlEncoded) -> content.parseUrlEncodedParameters()
-    contentType.match(ContentType.Application.Json) -> ValuesMap.build {
+    contentType.match(ContentType.Application.Json) -> StringValues.build {
         (JSONValue.parseWithException(content) as JSONObject).forEach {
             append(it.key.toString(), it.value.toString())
         }

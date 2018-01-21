@@ -20,7 +20,7 @@ internal class NettyHttp2ApplicationRequest(
         val contentByteChannel: ByteChannel = ByteChannel())
     : NettyApplicationRequest(call, context, contentByteChannel, nettyHeaders[":path"]?.toString() ?: "/", keepAlive = true) {
 
-    override val headers: ValuesMap by lazy { ValuesMap.build(caseInsensitiveName = true) { nettyHeaders.forEach { append(it.key.toString(), it.value.toString()) } } }
+    override val headers: StringValues by lazy { StringValues.build(caseInsensitiveName = true) { nettyHeaders.forEach { append(it.key.toString(), it.value.toString()) } } }
 
     val contentActor = actor<Http2DataFrame>(Unconfined, kotlinx.coroutines.experimental.channels.Channel.UNLIMITED) {
         http2frameLoop(contentByteChannel)

@@ -31,6 +31,6 @@ interface ApplicationCall {
     /**
      * Parameters associated with this call
      */
-    val parameters: ValuesMap
+    val parameters: StringValues
 }
 

@@ -24,7 +24,7 @@ internal class TestHandler(
         override fun install(feature: TestHandler, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Render) { content: OutgoingContent.ReadChannelContent ->
                 proceedWith(object : OutgoingContent.ReadChannelContent() {
-                    override val headers: ValuesMap = content.headers
+                    override val headers: StringValues = content.headers
 
                     override fun readFrom(): ByteReadChannel = writer(Unconfined, autoFlush = true, parent = context.request.executionContext) {
                         try {

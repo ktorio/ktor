@@ -21,7 +21,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
         val values = parseQueryString(text)
 
         @Suppress("UNCHECKED_CAST")
-        if (type == ValuesMap::class)
+        if (type == StringValues::class)
             return values as T
 
         val instance = newInstance(values)
@@ -39,19 +39,19 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
     }
 
     override fun serialize(session: Any): String {
-        if (type == ValuesMap::class)
-            return (session as ValuesMap).formUrlEncode()
+        if (type == StringValues::class)
+            return (session as StringValues).formUrlEncode()
         val typed = session.cast(type)
         return properties.map { it.name to serializeValue(it.get(typed)) }.formUrlEncode()
     }
 
-    private fun newInstance(bundle: ValuesMap): T {
+    private fun newInstance(bundle: StringValues): T {
         val constructor = findConstructor(bundle)
         val params = constructor.parameters.associateBy({ it }, { coerceType(it.type, deserializeValue(bundle[it.name!!]!!)) })
         return constructor.callBy(params)
     }
 
-    private fun findConstructor(bundle: ValuesMap): KFunction<T> =
+    private fun findConstructor(bundle: StringValues): KFunction<T> =
             type.constructors
                     .filter { it.parameters.all { it.name != null && it.name!! in bundle } }
                     .maxBy { it.parameters.size }

@@ -2,7 +2,7 @@ package io.ktor.http.cio
 
 import io.ktor.util.*
 
-class CIOHeaders(private val headers: HttpHeadersMap) : ValuesMap {
+class CIOHeaders(private val headers: HttpHeadersMap) : StringValues {
     private val names: Set<String> by lazy {
         LinkedHashSet<String>(headers.size).apply {
             for (i in 0 until headers.size) {

@@ -4,10 +4,10 @@ import io.ktor.util.*
 import org.junit.Test
 import kotlin.test.*
 
-class ValuesMapTest {
+class StringValuesTest {
     @Test
     fun `single value map`() {
-        val map = ValuesMap.build {
+        val map = StringValues.build {
             append("key1", "value1")
         }
         assertEquals("value1", map["key1"])
@@ -19,7 +19,7 @@ class ValuesMapTest {
 
     @Test
     fun `two value map`() {
-        val map = ValuesMap.build {
+        val map = StringValues.build {
             append("key1", "value1")
             append("key1", "value2")
         }
@@ -33,7 +33,7 @@ class ValuesMapTest {
 
     @Test
     fun `three value case insensitive map`() {
-        val map = ValuesMap.build(true) {
+        val map = StringValues.build(true) {
             append("Key1", "value1")
             append("Key1", "value2")
             append("Key1", "Value3")
@@ -52,7 +52,7 @@ class ValuesMapTest {
 
     @Test
     fun `add empty values list adds a key`() {
-        val map = ValuesMap.build {
+        val map = StringValues.build {
             appendAll("key", emptyList())
         }
 
@@ -62,7 +62,7 @@ class ValuesMapTest {
 
     @Test
     fun `remove last should keep the key`() {
-        val map = ValuesMap.build {
+        val map = StringValues.build {
             append("key", "value")
             remove("key", "value")
         }
@@ -73,7 +73,7 @@ class ValuesMapTest {
 
     @Test
     fun `filter`() {
-        val map = ValuesMap.build(true) {
+        val map = StringValues.build(true) {
             append("Key1", "value1")
             append("Key1", "value2")
             append("Key1", "Value3")
@@ -92,12 +92,12 @@ class ValuesMapTest {
 
     @Test
     fun `appendFilter`() {
-        val original = ValuesMap.build(true) {
+        val original = StringValues.build(true) {
             append("Key1", "value1")
             append("Key1", "value2")
             append("Key1", "Value3")
         }
-        val map = ValuesMap.build(true) {
+        val map = StringValues.build(true) {
             appendFiltered(original) { _, value -> value.startsWith("V") }
         }
 

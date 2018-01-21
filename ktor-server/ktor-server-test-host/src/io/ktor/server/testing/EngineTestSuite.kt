@@ -44,7 +44,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         withUrl("/") {
             assertEquals(200, status.value)
 
-            val fields = ValuesMapBuilder(true)
+            val fields = StringValuesBuilder(true)
             fields.appendAll(headers)
 
             fields.remove(HttpHeaders.Date) // Do not check for Date field since it's unstable
@@ -155,9 +155,9 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     fun testRequestContentFormData() {
         createAndStartServer {
             handle {
-                val valuesMap = call.receiveOrNull<ValuesMap>()
-                if (valuesMap != null)
-                    call.respond(valuesMap.formUrlEncode())
+                val parameters = call.receiveOrNull<StringValues>()
+                if (parameters != null)
+                    call.respond(parameters.formUrlEncode())
                 else
                     call.respond(HttpStatusCode.UnsupportedMediaType)
             }
@@ -1205,8 +1205,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         createAndStartServer {
             get("/up") {
                 call.respond(object : OutgoingContent.ProtocolUpgrade() {
-                    override val headers: ValuesMap
-                        get() = ValuesMap.build(true) {
+                    override val headers: StringValues
+                        get() = StringValues.build(true) {
                             append(HttpHeaders.Upgrade, "up")
                             append(HttpHeaders.Connection, "Upgrade")
                         }
@@ -1387,8 +1387,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             get("/read-less") {
                 assertFailsSuspend {
                     call.respond(object : OutgoingContent.ReadChannelContent() {
-                        override val headers: ValuesMap
-                            get() = ValuesMap.build(true) {
+                        override val headers: StringValues
+                            get() = StringValues.build(true) {
                                 append(HttpHeaders.ContentLength, doubleSize)
                             }
 
@@ -1399,8 +1399,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             get("/read-more") {
                 assertFailsSuspend {
                     call.respond(object : OutgoingContent.ReadChannelContent() {
-                        override val headers: ValuesMap
-                            get() = ValuesMap.build(true) {
+                        override val headers: StringValues
+                            get() = StringValues.build(true) {
                                 append(HttpHeaders.ContentLength, halfSize)
                             }
 
@@ -1411,8 +1411,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             get("/write-less") {
                 assertFailsSuspend {
                     call.respond(object : OutgoingContent.WriteChannelContent() {
-                        override val headers: ValuesMap
-                            get() = ValuesMap.build(true) {
+                        override val headers: StringValues
+                            get() = StringValues.build(true) {
                                 append(HttpHeaders.ContentLength, doubleSize)
                             }
 
@@ -1426,8 +1426,8 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             get("/write-more") {
                 assertFailsSuspend {
                     call.respond(object : OutgoingContent.WriteChannelContent() {
-                        override val headers: ValuesMap
-                            get() = ValuesMap.build(true) {
+                        override val headers: StringValues
+                            get() = StringValues.build(true) {
                                 append(HttpHeaders.ContentLength, halfSize)
                             }
 
