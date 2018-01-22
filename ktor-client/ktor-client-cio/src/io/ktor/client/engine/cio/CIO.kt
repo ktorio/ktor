@@ -4,5 +4,5 @@ import io.ktor.client.engine.*
 
 object CIO : HttpClientEngineFactory<HttpClientEngineConfig> {
     override fun create(block: HttpClientEngineConfig.() -> Unit): HttpClientEngine =
-            CIOEngine(HttpClientEngineConfig().apply(block))
+            CIOEngine(CIOEngineConfig().apply(block))
 }

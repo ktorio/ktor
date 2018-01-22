@@ -98,4 +98,5 @@ class KtorBenchmarkClient : HttpBenchmarkClient {
                 channel.readAvailable(buffer)
             }
         }
-    }}
+    }
+}

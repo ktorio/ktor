@@ -1,5 +1,6 @@
 package io.ktor.client.utils
 
+import io.ktor.network.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.pool.*
@@ -13,7 +14,7 @@ const val DEFAULT_HTTP_BUFFER_SIZE = 4096
 val HTTP_CLIENT_THREAD_COUNT: Int = maxOf(2, (cpuCount * 2 / 3))
 
 val HTTP_CLIENT_DEFAULT_DISPATCHER by lazy {
-    newFixedThreadPoolContext(HTTP_CLIENT_THREAD_COUNT, "ktor-client-dispatcher")
+    IOCoroutineDispatcher(HTTP_CLIENT_THREAD_COUNT)
 }
 
 object HttpClientDefaultPool : DefaultPool<ByteBuffer>(DEFAULT_HTTP_POOL_SIZE) {

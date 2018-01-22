@@ -7,7 +7,7 @@ import java.io.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
 
-internal class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), Closeable {
+class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), Closeable {
     private val dispatcherThreadGroup = ThreadGroup(ioThreadGroup, "io-pool-group-sub")
     private val tasks = LockFreeLinkedListHead()
 

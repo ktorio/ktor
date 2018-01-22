@@ -1,23 +1,22 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
+import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import java.io.*
 import java.util.*
 
 class CIOHttpResponse(
-        override val call: HttpClientCall,
+        request: HttpRequest,
         override val requestTime: Date,
-        private val input: ByteReadChannel,
-        private val response: Response,
-        private val origin: Closeable,
-        dispatcher: CoroutineDispatcher
+        override val content: ByteReadChannel,
+        private val response: Response
 ) : HttpResponse {
+    override val call: HttpClientCall = request.call
     override val status: HttpStatusCode = HttpStatusCode.fromValue(response.status)
     override val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
     override val headers: Headers = Headers.build {
@@ -31,42 +30,8 @@ class CIOHttpResponse(
 
     override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 
-    override val content: ByteReadChannel
-
-    init {
-        val contentLength = response.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
-        val transferEncoding = response.headers[HttpHeaders.TransferEncoding]
-        val connectionType = ConnectionOptions.parse(response.headers[HttpHeaders.Connection])
-
-        val writerJob = writer(dispatcher, parent = executionContext) {
-            try {
-                parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
-            } catch (cause: Throwable) {
-                executionContext.completeExceptionally(cause)
-                channel.close(cause)
-            } finally {
-                channel.close()
-                executionContext.complete(Unit)
-            }
-        }
-
-        content = writerJob.channel
-    }
-
     override fun close() {
         response.release()
-        content.cancel()
-        origin.close()
         executionContext.complete(Unit)
     }
-}
-
-internal suspend fun ByteReadChannel.receiveResponse(
-        call: HttpClientCall,
-        requestTime: Date,
-        dispatcher: CoroutineDispatcher,
-        origin: Closeable
-): CIOHttpResponse {
-    val response = parseResponse(this) ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
-    return CIOHttpResponse(call, requestTime, this, response, origin, dispatcher)
 }
