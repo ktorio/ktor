@@ -108,8 +108,13 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         }
 
         return embeddedServer(applicationEngineFactory, environment) {
+            configure(this)
             this@EngineTestBase.callGroupSize = callGroupSize
         }
+    }
+
+    protected open fun configure(configuration: TConfiguration) {
+        // Empty, intended to be override in derived types when necessary
     }
 
     protected open fun features(application: Application, routingConfigurer: Routing.() -> Unit) {

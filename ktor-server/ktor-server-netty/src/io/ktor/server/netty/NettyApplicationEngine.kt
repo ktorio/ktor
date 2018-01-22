@@ -25,6 +25,11 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
         var requestQueueLimit: Int = 16
 
         /**
+         * Do not create separate call event group and reuse worker group for processing calls
+         */
+        var shareWorkGroup: Boolean = false
+
+        /**
          * User-provided function to configure Netty's [ServerBootstrap]
          */
         var configureBootstrap: ServerBootstrap.() -> Unit = {}
@@ -36,9 +41,21 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
     }
 
     private val configuration = Configuration().apply(configure)
-    private val connectionEventGroup = NettyConnectionPool(configuration.connectionGroupSize) // accepts connections
-    private val workerEventGroup = NettyWorkerPool(configuration.workerGroupSize) // processes socket data and parse HTTP
-    private val callEventGroup = NettyCallPool(configuration.callGroupSize) // processes calls
+
+    // accepts connections
+    private val connectionEventGroup = NettyConnectionPool(configuration.connectionGroupSize)
+
+    // processes socket data and parse HTTP, may also process calls if shareWorkGroup is true
+    private val workerEventGroup = if (configuration.shareWorkGroup)
+        NettyWorkerPool(configuration.workerGroupSize + configuration.callGroupSize)
+    else
+        NettyWorkerPool(configuration.workerGroupSize)
+
+    // processes calls
+    private val callEventGroup = if (configuration.shareWorkGroup)
+        workerEventGroup
+    else
+        NettyCallPool(configuration.callGroupSize)
 
     private val dispatcherWithShutdown = DispatcherWithShutdown(NettyDispatcher)
     private val engineDispatcherWithShutdown = DispatcherWithShutdown(workerEventGroup.asCoroutineDispatcher())
@@ -77,14 +94,17 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
         dispatcherWithShutdown.prepareShutdown()
         engineDispatcherWithShutdown.prepareShutdown()
         try {
-
             val shutdownConnections = connectionEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
-            val shutdownWorkers = workerEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
-            val shutdownCall = callEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
-
             shutdownConnections.await()
-            shutdownWorkers.await()
-            shutdownCall.await()
+
+            val shutdownWorkers = workerEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
+            if (configuration.shareWorkGroup) {
+                shutdownWorkers.await()
+            } else {
+                val shutdownCall = callEventGroup.shutdownGracefully(gracePeriod, timeout, timeUnit)
+                shutdownWorkers.await()
+                shutdownCall.await()
+            }
 
             environment.stop()
         } finally {
