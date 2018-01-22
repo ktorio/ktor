@@ -112,6 +112,7 @@ internal class NettyHttp2Handler(private val enginePipeline: EnginePipeline,
         }
     }
 
+    // TODO: avoid reflection access once Netty provides API, see https://github.com/netty/netty/issues/7603
     private fun Http2StreamChannel.setId(streamId: Int) {
         val stream = stream()!!
         stream.idField.setInt(stream, streamId)
