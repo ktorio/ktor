@@ -37,6 +37,7 @@ internal class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispa
 
     private fun resumeAnyThread(node: LockFreeLinkedListNode) {
         val threads = threads
+        @Suppress("LoopToCallChain")
         for (i in 0 until nThreads) {
             val cont = ThreadCont.getAndSet(threads[i], null)
             if (cont != null) {
@@ -63,7 +64,7 @@ internal class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispa
         }
 
         override fun run() {
-            runBlocking {
+            runBlocking(CoroutineName("io-dispatcher-executor")) {
                 try {
                     while (true) {
                         val task = receiveOrNull() ?: break
@@ -96,9 +97,9 @@ internal class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispa
             // nullable param is to avoid null check
             // we know that it is always non-null
             // and it will never crash if it is actually null
-            val ThreadCont = ThreadCont
-            if (!ThreadCont.compareAndSet(this, null, c)) throw IllegalStateException()
-            if (tasks.next !== tasks && ThreadCont.compareAndSet(this, c, null)) Unit
+            val threadCont = ThreadCont
+            if (!threadCont.compareAndSet(this, null, c)) throw IllegalStateException()
+            if (tasks.next !== tasks && threadCont.compareAndSet(this, c, null)) Unit
             else COROUTINE_SUSPENDED
         }
 
