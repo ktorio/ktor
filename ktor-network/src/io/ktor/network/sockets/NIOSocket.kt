@@ -117,5 +117,7 @@ internal abstract class NIOSocketImpl<out S>(override val channel: S, val select
         get() = get().let { it == null || it.isCompleted }
 
     private val AtomicReference<out Job?>.exception: Throwable?
-        get() = get()?.takeUnless { it.isActive || it.isCancelled }?.getCompletionException()?.takeUnless { it is CancellationException }
+        get() = get()?.takeUnless { it.isActive || it.isCancelled }
+                ?.getCancellationException()
+                ?.let { (it as? JobCancellationException)?.cause }
 }
