@@ -37,7 +37,7 @@ internal class ConnectionPipeline(
     private val inputChannel by lazy { socket.openReadChannel() }
     private val outputChannel by lazy { socket.openWriteChannel() }
 
-    val pipelineContext: Job = launch(dispatcher) {
+    val pipelineContext: Job = launch(dispatcher, start = CoroutineStart.LAZY) {
         try {
             socket = aSocket().tcpNoDelay().tcp().connect(address)
             while (true) {
@@ -65,7 +65,11 @@ internal class ConnectionPipeline(
         }
     }
 
-    private val responseHandler = actor<ConnectorResponseTask>(dispatcher, capacity = Channel.UNLIMITED) {
+    private val responseHandler = actor<ConnectorResponseTask>(
+            dispatcher,
+            capacity = Channel.UNLIMITED,
+            start = CoroutineStart.LAZY
+    ) {
         for (task in channel) {
             val job: Job? = try {
                 val response = parseResponse(inputChannel)
@@ -90,5 +94,9 @@ internal class ConnectionPipeline(
 
             job?.join()
         }
+    }
+
+    init {
+        pipelineContext.start()
     }
 }
