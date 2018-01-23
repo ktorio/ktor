@@ -23,7 +23,9 @@ class WeakTimeoutQueue(private val timeoutMillis: Long,
                        private val clock: Clock = Clock.systemUTC(),
                        private val exceptionFactory: () -> Exception = { TimeoutCancellationException("Timeout of $timeoutMillis ms exceeded") }) {
     private val head = LockFreeLinkedListHead()
-    private @Volatile var cancelled = false
+
+    @Volatile
+    private var cancelled = false
 
     fun register(r: Job) : DisposableHandle {
         val now = clock.millis()
@@ -124,15 +126,12 @@ class WeakTimeoutQueue(private val timeoutMillis: Long,
     }
 
     private class WeakTimeoutCoroutine<in T>(context: CoroutineContext, val delegate: Continuation<T>) : AbstractCoroutine<T>(context, true), Continuation<T> {
-        override fun afterCompletion(state: Any?, mode: Int) {
-            if (state is CompletedExceptionally) {
-                @Suppress("INVISIBLE_MEMBER")
-                delegate.resumeWithExceptionMode(state.exception, mode)
-            } else {
-                @Suppress("UNCHECKED_CAST", "INVISIBLE_MEMBER")
-                delegate.resumeMode(state as T, mode)
-            }
+        override fun onCompleted(value: T) {
+            delegate.resume(value)
+        }
+
+        override fun onCompletedExceptionally(exception: Throwable) {
+            delegate.resumeWithException(exception)
         }
     }
-
 }
