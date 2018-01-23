@@ -54,6 +54,7 @@ internal class ConnectionPipeline(
                 }
 
                 task.request.write(outputChannel, task.content)
+                outputChannel.flush()
             }
         } catch (cause: ClosedChannelException) {
         } catch (cause: ClosedReceiveChannelException) {

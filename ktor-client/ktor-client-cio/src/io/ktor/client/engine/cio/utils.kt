@@ -47,8 +47,8 @@ internal suspend fun CIOHttpRequest.write(output: ByteWriteChannel, content: Out
     if (content is OutgoingContent.NoContent)
         return
 
-    val contentLengthSet = content.headers.contains(HttpHeaders.ContentLength)
-    val chunked = contentLengthSet || content.headers[HttpHeaders.TransferEncoding] == "chunked" || headers[HttpHeaders.TransferEncoding] == "chunked"
+    val contentLength = headers[HttpHeaders.ContentLength]?.toLong() ?: content.contentLength
+    val chunked = contentLength == null || content.headers[HttpHeaders.TransferEncoding] == "chunked" || headers[HttpHeaders.TransferEncoding] == "chunked"
 
     val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, Unconfined) else null
     val channel = chunkedJob?.channel ?: output
@@ -65,6 +65,8 @@ internal suspend fun CIOHttpRequest.write(output: ByteWriteChannel, content: Out
         channel.close(cause)
         executionContext.completeExceptionally(cause)
     } finally {
+        channel.flush()
+        chunkedJob?.channel?.close()
         chunkedJob?.join()
         executionContext.complete(Unit)
     }

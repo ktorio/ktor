@@ -22,10 +22,6 @@ internal class Endpoint(
     private val queueSize = AtomicInteger()
     private val address = InetSocketAddress(host, port)
 
-    init {
-        newConnection()
-    }
-
     fun execute(task: ConnectorRequestTask) {
         queueSize.incrementAndGet()
         tasks.offer(task)
