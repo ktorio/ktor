@@ -50,6 +50,7 @@ data class HttpStatusCode(val value: Int, val description: String) {
         val UnsupportedMediaType = HttpStatusCode(415, "Unsupported Media Type")
         val RequestedRangeNotSatisfiable = HttpStatusCode(416, "Requested Range Not Satisfiable")
         val ExceptionFailed = HttpStatusCode(417, "Exception Failed")
+        val Teapot = HttpStatusCode(418, "I'm a teapot")
         val UpgradeRequired = HttpStatusCode(426, "Upgrade Required")
         val TooManyRequests = HttpStatusCode(429, "Too Many Requests")
         val RequestHeaderFieldTooLarge = HttpStatusCode(431, "Request Header Fields Too Large")
