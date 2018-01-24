@@ -1,9 +1,8 @@
 package io.ktor.samples.chat
 
 import kotlinx.coroutines.experimental.channels.*
-import io.ktor.util.*
 import io.ktor.websocket.*
-import java.nio.*
+import kotlinx.io.core.*
 import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
@@ -69,20 +68,20 @@ class ChatServer {
         }
     }
 
-    suspend fun broadcast(message: String) {
-        broadcast(ByteBufferBuilder.build {
-            putString(message, Charsets.UTF_8)
+    private suspend fun broadcast(message: String) {
+        broadcast(buildPacket {
+            writeStringUtf8(message)
         })
     }
 
-    suspend fun broadcast(sender: String, message: String) {
+    private suspend fun broadcast(sender: String, message: String) {
         val name = memberNames[sender] ?: sender
         broadcast("[$name] $message")
     }
 
-    suspend fun broadcast(serialized: ByteBuffer) {
+    private suspend fun broadcast(serialized: ByteReadPacket) {
         members.values.forEach { socket ->
-            socket.send(Frame.Text(true, serialized.duplicate()))
+            socket.send(Frame.Text(fin = true, packet = serialized))
         }
     }
 

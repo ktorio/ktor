@@ -2,6 +2,8 @@ package io.ktor.websocket
 
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.io.core.*
+import kotlinx.io.core.ByteOrder
 import java.nio.*
 
 enum class FrameType (val controlFrame: Boolean, val opcode: Int) {
@@ -30,21 +32,30 @@ enum class FrameType (val controlFrame: Boolean, val opcode: Int) {
 sealed class Frame(val fin: Boolean, val frameType: FrameType, val buffer: ByteBuffer, val disposableHandle: DisposableHandle = NonDisposableHandle) {
     private val initialSize = buffer.remaining()
 
-    class Binary(fin: Boolean, buffer: ByteBuffer) : Frame(fin, FrameType.BINARY, buffer)
+    class Binary(fin: Boolean, buffer: ByteBuffer) : Frame(fin, FrameType.BINARY, buffer) {
+        constructor(fin: Boolean, packet: ByteReadPacket) : this(fin, packet.readByteBuffer())
+    }
+
     class Text(fin: Boolean, buffer: ByteBuffer) : Frame(fin, FrameType.TEXT, buffer) {
         constructor(text: String) : this(true, ByteBuffer.wrap(text.toByteArray(Charsets.UTF_8)))
+        constructor(fin: Boolean, packet: ByteReadPacket) : this(fin, packet.readByteBuffer())
     }
 
     class Close(buffer: ByteBuffer) : Frame(true, FrameType.CLOSE, buffer) {
-        constructor(reason: CloseReason) : this(ByteBufferBuilder.build {
-            putShort(reason.code)
-            putString(reason.message, Charsets.UTF_8)
+        constructor(reason: CloseReason) : this(buildPacket {
+            byteOrder = ByteOrder.BIG_ENDIAN
+            writeShort(reason.code)
+            writeStringUtf8(reason.message)
         })
+        constructor(packet: ByteReadPacket) : this(packet.readByteBuffer())
         constructor() : this(Empty)
     }
-    class Ping(buffer: ByteBuffer) : Frame(true, FrameType.PING, buffer)
+    class Ping(buffer: ByteBuffer) : Frame(true, FrameType.PING, buffer) {
+        constructor(packet: ByteReadPacket) : this(packet.readByteBuffer())
+    }
     class Pong(buffer: ByteBuffer, disposableHandle: DisposableHandle) : Frame(true, FrameType.PONG, buffer, disposableHandle) {
         constructor(buffer: ByteBuffer) : this(buffer, NonDisposableHandle)
+        constructor(packet: ByteReadPacket) : this(packet.readByteBuffer())
     }
 
     override fun toString() = "Frame $frameType (fin=$fin, buffer len = $initialSize)"

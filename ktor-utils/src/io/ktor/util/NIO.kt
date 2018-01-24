@@ -59,8 +59,12 @@ fun ByteBuffer.copy(pool: ByteBufferPool, size: Int = remaining()): PoolTicket {
 /**
  * Helper class for building [ByteBuffer] with the specific content
  */
+@Deprecated("Use BytePacketBuilder instead")
 class ByteBufferBuilder(order: ByteOrder = ByteOrder.BIG_ENDIAN) {
     companion object {
+        @Deprecated("Use buildPacket instead",
+                ReplaceWith("buildPacket(block).readByteBuffer()",
+                        "kotlinx.io.core.buildPacket", "kotlinx.io.core.readByteBuffer"))
         inline fun build(order: ByteOrder = ByteOrder.BIG_ENDIAN, block: ByteBufferBuilder.() -> Unit): ByteBuffer {
             return ByteBufferBuilder(order).apply(block).build()
         }

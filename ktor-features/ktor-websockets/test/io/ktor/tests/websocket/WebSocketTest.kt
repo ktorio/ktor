@@ -8,6 +8,8 @@ import io.ktor.util.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
+import kotlinx.io.core.*
+import kotlinx.io.core.ByteOrder
 import org.junit.*
 import org.junit.Test
 import org.junit.rules.*
@@ -59,7 +61,10 @@ class WebSocketTest {
                 }
                 webSocketRaw("/receiveSize") {
                     val frame = incoming.receive()
-                    val bytes = ByteBufferBuilder.build(ByteOrder.BIG_ENDIAN) { putInt(frame.buffer.remaining()) }
+                    val bytes = buildPacket {
+                        byteOrder = ByteOrder.BIG_ENDIAN
+                        writeInt(frame.buffer.remaining())
+                    }
 
                     outgoing.send(Frame.Binary(true, bytes))
                     outgoing.send(Frame.Close())

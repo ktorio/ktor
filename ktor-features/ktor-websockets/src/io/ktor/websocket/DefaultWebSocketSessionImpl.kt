@@ -4,7 +4,7 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import io.ktor.application.*
 import io.ktor.cio.*
-import io.ktor.util.*
+import kotlinx.io.core.*
 import java.nio.*
 import java.time.*
 import java.util.concurrent.atomic.*
@@ -39,9 +39,8 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
         })
 
         launch(Unconfined) {
+            var last: BytePacketBuilder? = null
             try {
-                var last: ByteBufferBuilder? = null
-
                 raw.incoming.consumeEach { frame ->
                     when (frame) {
                         is Frame.Close -> closeSequence.send(CloseFrameEvent.Received(frame))
@@ -50,14 +49,14 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
                         else -> {
                             if (frame.fin) {
                                 last?.let { builder ->
-                                    builder.put(frame.buffer)
-                                    filtered.send(Frame.byType(true, frame.frameType, builder.build()))
+                                    builder.writeFully(frame.buffer)
+                                    filtered.send(Frame.byType(true, frame.frameType, builder.build().readByteBuffer()))
                                     last = null
                                 } ?: run {
                                     filtered.send(frame)
                                 }
                             } else {
-                                (last ?: ByteBufferBuilder().also { last = it }).put(frame.buffer)
+                                (last ?: BytePacketBuilder().also { last = it }).writeFully(frame.buffer)
                             }
                         }
                     }
@@ -66,6 +65,7 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
             } catch (t: Throwable) {
                 filtered.close(t)
             } finally {
+                last?.release()
                 ponger.close()
                 filtered.close()
                 closeSequence.close()
@@ -95,8 +95,8 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
                 val me: DefaultWebSocketSession = this@DefaultWebSocketSessionImpl
                 me.handler()
                 null
-            } catch (t: Throwable) {
-                t
+            } catch (failure: Throwable) {
+                failure
             }
 
             val reason = when (t) {
