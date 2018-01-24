@@ -17,15 +17,15 @@ class BasicAuthTest {
         withTestApplication {
             application.configureServer()
 
-            val response = handleRequest {
+            val call = handleRequest {
                 uri = "/"
             }
 
-            assertTrue(response.requestHandled)
-            assertEquals(HttpStatusCode.Unauthorized, response.response.status())
-            assertNull(response.response.content)
+            assertTrue(call.requestHandled)
+            assertEquals(HttpStatusCode.Unauthorized, call.response.status())
+            assertNull(call.response.content)
 
-            assertWWWAuthenticateHeaderExist(response)
+            assertWWWAuthenticateHeaderExist(call)
         }
     }
 
@@ -47,11 +47,11 @@ class BasicAuthTest {
                 call.respondText("ok")
             }
 
-            val response = handleRequestWithBasic("/", user, p)
+            val call = handleRequestWithBasic("/", user, p)
 
-            assertTrue(response.requestHandled)
-            assertEquals(HttpStatusCode.OK, response.response.status())
-            assertEquals("ok", response.response.content)
+            assertTrue(call.requestHandled)
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals("ok", call.response.content)
         }
     }
 
@@ -62,11 +62,11 @@ class BasicAuthTest {
             val user = "user1"
             val p = "user1"
 
-            val response = handleRequestWithBasic("/", user, p)
+            val call = handleRequestWithBasic("/", user, p)
 
-            assertTrue(response.requestHandled)
-            assertEquals(HttpStatusCode.OK, response.response.status())
-            assertEquals("Secret info", response.response.content)
+            assertTrue(call.requestHandled)
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals("Secret info", call.response.content)
         }
     }
 
@@ -77,13 +77,13 @@ class BasicAuthTest {
             val user = "user1"
             val p = "wrong password"
 
-            val response = handleRequestWithBasic("/", user, p)
+            val call = handleRequestWithBasic("/", user, p)
 
-            assertTrue(response.requestHandled)
-            assertEquals(HttpStatusCode.Unauthorized, response.response.status())
-            assertNotEquals("Secret info", response.response.content)
+            assertTrue(call.requestHandled)
+            assertEquals(HttpStatusCode.Unauthorized, call.response.status())
+            assertNotEquals("Secret info", call.response.content)
 
-            assertWWWAuthenticateHeaderExist(response)
+            assertWWWAuthenticateHeaderExist(call)
         }
     }
 
@@ -94,41 +94,39 @@ class BasicAuthTest {
             val user = "user1"
             val p = "wrong password"
 
-            val response = handleRequestWithBasic("/?backdoor", user, p)
+            val call = handleRequestWithBasic("/?backdoor", user, p)
 
-            assertTrue(response.requestHandled)
-            assertEquals(HttpStatusCode.OK, response.response.status())
-            assertEquals("Secret info", response.response.content)
+            assertTrue(call.requestHandled)
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals("Secret info", call.response.content)
         }
     }
 
     @Test
     fun testSimplifiedFlow() {
         withTestApplication {
-            application.routing {
-                route("/") {
-                    authentication {
-                        basicAuthentication("ktor-test") { c -> if (c.name == "good") UserIdPrincipal(c.name) else null }
-                    }
+            application.authentication {
+                configure { basicAuthentication("ktor-test") { c -> if (c.name == "good") UserIdPrincipal(c.name) else null } }
+            }
 
-                    handle {
-                        call.respondText("Secret info")
-                    }
+            application.routing {
+                authenticate {
+                    get("/") { call.respondText("Secret info") }
                 }
             }
 
-            handleRequestWithBasic("/", "bad", "").let { response ->
-                assertTrue(response.requestHandled)
-                assertEquals(HttpStatusCode.Unauthorized, response.response.status())
-                assertNotEquals("Secret info", response.response.content)
+            handleRequestWithBasic("/", "bad", "").let { call ->
+                assertTrue(call.requestHandled)
+                assertEquals(HttpStatusCode.Unauthorized, call.response.status())
+                assertNotEquals("Secret info", call.response.content)
 
-                assertWWWAuthenticateHeaderExist(response)
+                assertWWWAuthenticateHeaderExist(call)
             }
 
-            handleRequestWithBasic("/", "good", "").let { response ->
-                assertTrue(response.requestHandled)
-                assertEquals(HttpStatusCode.OK, response.response.status())
-                assertEquals("Secret info", response.response.content)
+            handleRequestWithBasic("/", "good", "").let { call ->
+                assertTrue(call.requestHandled)
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("Secret info", call.response.content)
             }
         }
     }
@@ -142,31 +140,33 @@ class BasicAuthTest {
                 addHeader(HttpHeaders.Authorization, "Basic $encoded")
             }
 
-    private fun assertWWWAuthenticateHeaderExist(response: ApplicationCall) {
-        assertNotNull(response.response.headers[HttpHeaders.WWWAuthenticate])
-        val header = parseAuthorizationHeader(response.response.headers[HttpHeaders.WWWAuthenticate]!!) as HttpAuthHeader.Parameterized
+    private fun assertWWWAuthenticateHeaderExist(call: ApplicationCall) {
+        assertNotNull(call.response.headers[HttpHeaders.WWWAuthenticate])
+        val header = parseAuthorizationHeader(call.response.headers[HttpHeaders.WWWAuthenticate]!!) as HttpAuthHeader.Parameterized
 
         assertEquals(AuthScheme.Basic, header.authScheme)
         assertEquals("ktor-test", header.parameter(HttpAuthHeader.Parameters.Realm))
     }
 
     private fun Application.configureServer() {
-        routing {
-            route("/") {
-                authentication {
-                    skipWhen {
-                        it.request.origin.uri.contains("backdoor")
-                    }
-                    basicAuthentication("ktor-test") {
-                        if (it.name == it.password)
-                            UserIdPrincipal(it.name)
-                        else
-                            null // fail!
-                    }
+        authentication {
+            configure {
+                skipWhen {
+                    it.request.origin.uri.contains("backdoor")
                 }
+                basicAuthentication("ktor-test") {
+                    if (it.name == it.password)
+                        UserIdPrincipal(it.name)
+                    else
+                        null // fail!
+                }
+            }
+        }
 
-                handle {
-                    call.respondText("Secret info")
+        routing {
+            authenticate {
+                route("/") {
+                    handle { call.respondText("Secret info") }
                 }
             }
         }

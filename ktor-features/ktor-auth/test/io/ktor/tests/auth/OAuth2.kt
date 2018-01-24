@@ -79,27 +79,28 @@ class OAuth2Test {
 
     val failures = ArrayList<Throwable>()
     fun Application.module(settings: OAuthServerSettings.OAuth2ServerSettings = DefaultSettings) {
-        routing {
-            route("/login") {
-                authentication {
-                    oauth(testClient, dispatcher, { settings }, { "http://localhost/login" })
+        install(Authentication) {
+            configure("login") {
+                oauth(testClient, dispatcher, { settings }, { "http://localhost/login" })
+            }
+            configure("resource") {
+                basicAuthentication("oauth2") {
+                    try {
+                        verifyWithOAuth2(it, testClient, settings)
+                    } catch (ioe: IOException) {
+                        null
+                    }
                 }
-
-                handle {
+            }
+        }
+        routing {
+            authenticate("login") {
+                get("/login") {
                     call.respondText("Hej, ${call.authentication.principal}")
                 }
             }
-            route("/resource") {
-                authentication {
-                    basicAuthentication("oauth2") {
-                        try {
-                            verifyWithOAuth2(it, testClient, settings)
-                        } catch (ioe: IOException) {
-                            null
-                        }
-                    }
-                }
-                handle {
+            authenticate("resource") {
+                get("/resource") {
                     call.respondText("ok")
                 }
             }
@@ -121,7 +122,8 @@ class OAuth2Test {
         assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.Found, result.response.status())
 
-        val url = URI(result.response.headers[HttpHeaders.Location] ?: throw IllegalStateException("No location header in the response"))
+        val url = URI(result.response.headers[HttpHeaders.Location]
+                ?: throw IllegalStateException("No location header in the response"))
         assertEquals("/authorize", url.path)
         assertEquals("login-server-com", url.host)
 
@@ -197,7 +199,8 @@ class OAuth2Test {
             assertTrue(result.requestHandled, "request should not be handled asynchronously")
 
             assertEquals(HttpStatusCode.Found, result.response.status())
-            val redirectUrl = URI.create(result.response.headers[HttpHeaders.Location] ?: fail("Redirect uri is missing"))
+            val redirectUrl = URI.create(result.response.headers[HttpHeaders.Location]
+                    ?: fail("Redirect uri is missing"))
             assertEquals("login-server-com", redirectUrl.host)
             assertEquals("/authorize", redirectUrl.path)
             val redirectParameters = redirectUrl.rawQuery?.parseUrlEncodedParameters() ?: fail("no redirect parameters")
@@ -409,4 +412,5 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
     return HttpClient(TestHttpClientEngine.config { app = engine })
 }
 
-private fun Parameters.requireParameter(name: String) = get(name) ?: throw IllegalArgumentException("No parameter $name specified")
+private fun Parameters.requireParameter(name: String) = get(name)
+        ?: throw IllegalArgumentException("No parameter $name specified")

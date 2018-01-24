@@ -42,17 +42,19 @@ class DigestTest {
         withTestApplication {
             val foundDigests = arrayListOf<DigestCredential>()
 
-            application.routing {
-                route("/") {
-                    authentication {
-                        intercept(AuthenticationPipeline.RequestAuthentication) {
-                            call.digestAuthenticationCredentials()?.let { digest ->
-                                foundDigests.add(digest)
-                            }
+            application.authentication {
+                configure {
+                    pipeline.intercept(AuthenticationPipeline.RequestAuthentication) {
+                        call.digestAuthenticationCredentials()?.let { digest ->
+                            foundDigests.add(digest)
                         }
                     }
+                }
+            }
 
-                    handle {}
+            application.routing {
+                authenticate {
+                    get("/") {}
                 }
             }
 
@@ -107,17 +109,17 @@ class DigestTest {
     }
 
     private fun Application.configureDigestServer() {
-        routing {
-            route("/") {
-                authentication {
-                    val p = "Circle Of Life"
-                    val digester = MessageDigest.getInstance("MD5")
-                    digestAuthentication(realm = "testrealm@host.com") { userName, realm ->if (userName == "missing") null else digest(digester, "$userName:$realm:$p") }
-                }
+        authentication {
+            val p = "Circle Of Life"
+            val digester = MessageDigest.getInstance("MD5")
+            configure {
+                digestAuthentication(realm = "testrealm@host.com") { userName, realm -> if (userName == "missing") null else digest(digester, "$userName:$realm:$p") }
+            }
+        }
 
-                handle {
-                    call.respondText("Secret info")
-                }
+        routing {
+            authenticate {
+                get("/") { call.respondText("Secret info") }
             }
         }
     }

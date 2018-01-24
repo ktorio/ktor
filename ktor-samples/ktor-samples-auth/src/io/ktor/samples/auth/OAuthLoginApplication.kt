@@ -14,8 +14,11 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.html.*
 import java.util.concurrent.*
 
-@Location("/") class index()
-@Location("/login/{type?}") class login(val type: String = "")
+@Location("/")
+class index()
+
+@Location("/login/{type?}")
+class login(val type: String = "")
 
 /**
  * DISCLAIMER
@@ -89,6 +92,20 @@ fun Application.OAuthLoginApplication() {
     install(DefaultHeaders)
     install(CallLogging)
     install(Locations)
+
+    val client = HttpClient(Apache)
+    environment.monitor.subscribe(ApplicationStopping) {
+        client.close()
+    }
+
+    authentication {
+        configure {
+            oauthAtLocation<login>(client, exec.asCoroutineDispatcher(),
+                    providerLookup = { loginProviders[it.type] },
+                    urlProvider = { _, p -> redirectUrl(login(p.name), false) })
+        }
+    }
+
     install(Routing) {
         get<index> {
             call.respondHtml {
@@ -108,30 +125,21 @@ fun Application.OAuthLoginApplication() {
             }
         }
 
-        val client = HttpClient(Apache)
-        environment.monitor.subscribe(ApplicationStopping) {
-            client.close()
-        }
-
         location<login>() {
-            authentication {
-                oauthAtLocation<login>(client, exec.asCoroutineDispatcher(),
-                        providerLookup = { loginProviders[it.type] },
-                        urlProvider = { _, p -> redirectUrl(login(p.name), false) })
-            }
-
             param("error") {
                 handle {
                     call.loginFailedPage(call.parameters.getAll("error").orEmpty())
                 }
             }
 
-            handle {
-                val principal = call.authentication.principal<OAuthAccessTokenResponse>()
-                if (principal != null) {
-                    call.loggedInSuccessResponse(principal)
-                } else {
-                    call.loginPage()
+            authenticate {
+                handle {
+                    val principal = call.authentication.principal<OAuthAccessTokenResponse>()
+                    if (principal != null) {
+                        call.loggedInSuccessResponse(principal)
+                    } else {
+                        call.loginPage()
+                    }
                 }
             }
         }

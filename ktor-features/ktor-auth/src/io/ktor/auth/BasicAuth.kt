@@ -8,8 +8,8 @@ import java.util.*
 /**
  * Installs Basic Authentication mechanism into [AuthenticationPipeline]
  */
-fun AuthenticationPipeline.basicAuthentication(realm: String, validate: suspend (UserPasswordCredential) -> Principal?) {
-    intercept(AuthenticationPipeline.RequestAuthentication) { context ->
+fun Authentication.AuthenticationConfiguration.basicAuthentication(realm: String, validate: suspend (UserPasswordCredential) -> Principal?) {
+    pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val credentials = call.request.basicAuthenticationCredentials()
         val principal = credentials?.let { validate(it) }
 

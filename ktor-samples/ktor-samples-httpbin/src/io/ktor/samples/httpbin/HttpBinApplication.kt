@@ -2,7 +2,6 @@ package io.ktor.samples.httpbin
 
 import com.google.gson.*
 import com.google.gson.reflect.*
-import kotlinx.coroutines.experimental.*
 import io.ktor.application.*
 import io.ktor.auth.*
 import io.ktor.content.*
@@ -14,6 +13,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import java.io.*
 import java.time.*
 import java.util.*
@@ -105,7 +105,9 @@ fun Application.main() {
     val hashedUserTable = UserHashedTableAuth(table = mapOf(
             "test" to decodeBase64("VltM4nfheqcJSyH887H+4NEOm2tDuKCl83p5axYXlF0=") // sha256 for "test"
     ))
-
+    authentication {
+        configure { basicAuthentication("ktor-samples-httpbin") { hashedUserTable.authenticate(it) } }
+    }
 
     routing {
         get("/get") {
@@ -285,15 +287,10 @@ fun Application.main() {
             }
         }
 
-        route("/basic-auth") {
-            authentication {
-                basicAuthentication("ktor-samples-httpbin") { hashedUserTable.authenticate(it) }
-            }
-            get {
-                call.sendHttpBinResponse()
-            }
-            get("{user}/{password}") {
-                call.sendHttpBinResponse()
+        authenticate {
+            route("/basic-auth") {
+                get { call.sendHttpBinResponse() }
+                get("{user}/{password}") { call.sendHttpBinResponse() }
             }
         }
 

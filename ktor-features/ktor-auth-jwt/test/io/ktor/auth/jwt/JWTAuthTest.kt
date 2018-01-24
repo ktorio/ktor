@@ -255,13 +255,15 @@ class JWTAuthTest {
         }
     }
 
-    private fun Application.configureServer(authBlock: (AuthenticationPipeline.() -> Unit)) {
+    private fun Application.configureServer(authBlock: (Authentication.AuthenticationConfiguration.() -> Unit)) {
+        authentication {
+            configure {
+                authBlock(this)
+            }
+        }
         routing {
-            route("/") {
-                authentication {
-                    authBlock(this)
-                }
-                handle {
+            authenticate {
+                get("/") {
                     val principal = call.authentication.principal<JWTPrincipal>()!!
                     principal.payload
                     //val subjectString = principal.payload.subject.removePrefix("auth0|")

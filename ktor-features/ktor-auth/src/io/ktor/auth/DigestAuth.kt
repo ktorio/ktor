@@ -9,14 +9,14 @@ import java.security.*
 /**
  * Installs Digest Authentication mechanism into [AuthenticationPipeline]
  */
-fun AuthenticationPipeline.digestAuthentication(
+fun Authentication.AuthenticationConfiguration.digestAuthentication(
         realm: String = "ktor",
         digestAlgorithm: String = "MD5",
         digesterProvider: (String) -> MessageDigest = { MessageDigest.getInstance(it) },
         userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray?) {
 
     val digester = digesterProvider(digestAlgorithm)
-    intercept(AuthenticationPipeline.RequestAuthentication) { context ->
+    pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val authorizationHeader = call.request.parseAuthorizationHeader()
         val credentials = authorizationHeader?.let { authHeader ->
             if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {

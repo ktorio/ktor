@@ -24,8 +24,8 @@ class JWTPrincipal(val payload: Payload) : Principal
  * @param [realm] used in the WWW-Authenticate response header
  * @param [validate] verify the credentials provided by the client token
  */
-fun AuthenticationPipeline.jwtAuthentication(jwtVerifier: JWTVerifier, realm: String, validate: (JWTCredential) -> Principal?) {
-    intercept(AuthenticationPipeline.RequestAuthentication) { context ->
+fun Authentication.AuthenticationConfiguration.jwtAuthentication(jwtVerifier: JWTVerifier, realm: String, validate: (JWTCredential) -> Principal?) {
+    pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val token = call.request.parseAuthorizationHeaderOrNull()
         val principal = verifyAndValidate(jwtVerifier, token, validate)
         evaluate(token, principal, realm, context)
@@ -38,8 +38,8 @@ fun AuthenticationPipeline.jwtAuthentication(jwtVerifier: JWTVerifier, realm: St
  * @param [issuer] the issuer of the JSON Web Token
  * @param [realm] used in the WWW-Authenticate response header
  */
-fun AuthenticationPipeline.jwtAuthentication(jwkProvider: JwkProvider, issuer: String, realm: String, validate: (JWTCredential) -> Principal?) {
-    intercept(AuthenticationPipeline.RequestAuthentication) { context ->
+fun Authentication.AuthenticationConfiguration.jwtAuthentication(jwkProvider: JwkProvider, issuer: String, realm: String, validate: (JWTCredential) -> Principal?) {
+    pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val token = call.request.parseAuthorizationHeaderOrNull()
         val verifier = getVerifier(jwkProvider, issuer, token)
         val principal = verifyAndValidate(verifier, token, validate)

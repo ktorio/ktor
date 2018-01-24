@@ -14,20 +14,23 @@ fun Application.jwtApplication() {
     val audience = environment.config.property("jwt.audience").getString()
     val realm = environment.config.property("jwt.realm").getString()
 
+    authentication {
+        val jwtVerifier = makeJwtVerifier(issuer, audience)
+        configure {
+            jwtAuthentication(jwtVerifier, realm) { credential ->
+                if (credential.payload.audience.contains(audience))
+                    JWTPrincipal(credential.payload)
+                else
+                    null
+            }
+        }
+    }
+
     install(DefaultHeaders)
     install(CallLogging)
     install(Routing) {
-        route("/who") {
-            authentication {
-                val jwtVerifier = makeJwtVerifier(issuer, audience)
-                jwtAuthentication(jwtVerifier, realm) { credential ->
-                    if (credential.payload.audience.contains(audience))
-                        JWTPrincipal(credential.payload)
-                    else
-                        null
-                }
-            }
-            handle {
+        authenticate {
+            get("/who") {
                 val principal = call.authentication.principal<JWTPrincipal>()
                 val subjectString = principal!!.payload.subject.removePrefix("auth0|")
                 call.respondText("Success, $subjectString")

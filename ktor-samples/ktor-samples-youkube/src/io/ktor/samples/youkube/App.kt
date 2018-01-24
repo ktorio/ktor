@@ -60,6 +60,14 @@ fun Application.youKubeApplication() {
         }
     }
 
+    install(Authentication) {
+        configure {
+            formAuthentication(Login::userName.name, Login::password.name,
+                    challenge = FormAuthChallenge.Redirect { call, c -> call.url(Login(c?.name ?: "")) },
+                    validate = { users.authenticate(it) })
+        }
+    }
+
     install(Routing) {
         login(users)
         upload(database, uploadDir)

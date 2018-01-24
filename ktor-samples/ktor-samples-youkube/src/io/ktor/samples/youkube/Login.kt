@@ -2,7 +2,6 @@ package io.ktor.samples.youkube
 
 import io.ktor.application.*
 import io.ktor.auth.*
-import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.locations.*
 import io.ktor.routing.*
@@ -11,14 +10,8 @@ import kotlinx.html.*
 
 fun Route.login(users: UserHashedTableAuth) {
     location<Login> {
-        method(HttpMethod.Post) {
-            authentication {
-                formAuthentication(Login::userName.name, Login::password.name,
-                        challenge = FormAuthChallenge.Redirect { call, c -> call.url(Login(c?.name ?: "")) },
-                        validate = { users.authenticate(it) })
-            }
-
-            handle {
+        authenticate {
+            post {
                 val principal = call.principal<UserIdPrincipal>()
                 call.sessions.set(YouKubeSession(principal!!.name))
                 call.respondRedirect(Index())

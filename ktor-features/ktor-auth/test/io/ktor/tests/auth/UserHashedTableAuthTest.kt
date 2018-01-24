@@ -33,27 +33,24 @@ class UserHashedTableAuthTest {
 
     fun testSingle(hashedUserTable: UserHashedTableAuth) {
         withTestApplication {
-            application.routing {
-                route("/redirect") {
-                    authentication {
-                        formAuthentication(
-                                challenge = FormAuthChallenge.Redirect({ _, _ -> "/unauthorized" }),
-                                validate = { hashedUserTable.authenticate(it) }
-                        )
-                    }
-                    post {
-                        call.respondText("ok")
-                    }
+            application.authentication {
+                configure {
+                    formAuthentication(
+                            challenge = FormAuthChallenge.Redirect({ _, _ -> "/unauthorized" }),
+                            validate = { hashedUserTable.authenticate(it) }
+                    )
                 }
-                route("/deny") {
-                    authentication {
-                        formAuthentication(
-                                validate = { hashedUserTable.authenticate(it) }
-                        )
-                    }
-                    post {
-                        call.respondText("ok")
-                    }
+                configure("checkOnly") {
+                    formAuthentication(validate = { hashedUserTable.authenticate(it) })
+                }
+            }
+
+            application.routing {
+                authenticate {
+                    post("/redirect") { call.respondText("ok") }
+                }
+                authenticate("checkOnly") {
+                    post("/deny") { call.respondText("ok") }
                 }
             }
 

@@ -13,6 +13,7 @@ import org.apache.directory.server.core.integ.*
 import org.apache.directory.server.core.integ.IntegrationUtils.*
 import org.apache.directory.server.ldap.*
 import org.junit.*
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.*
 import java.net.*
@@ -20,7 +21,6 @@ import java.util.*
 import javax.naming.directory.*
 import javax.naming.ldap.*
 import kotlin.test.*
-import kotlin.test.Ignore
 
 @RunWith(FrameworkRunner::class)
 @CreateLdapServer(
@@ -38,14 +38,19 @@ class LdapAuthTest {
     @Test
     fun testLoginToServer() {
         withTestApplication {
-            application.routing {
-                authentication {
+            application.authentication {
+                configure {
                     basicAuthentication("realm") { credential ->
                         ldapAuthenticate(credential, "ldap://$localhost:${ldapServer.port}", "uid=%s,ou=system")
                     }
                 }
-                get("/") {
-                    call.respondText(call.authentication.principal<UserIdPrincipal>()?.name ?: "null")
+            }
+
+            application.routing {
+                authenticate {
+                    get("/") {
+                        call.respondText(call.authentication.principal<UserIdPrincipal>()?.name ?: "null")
+                    }
                 }
             }
 
@@ -70,15 +75,15 @@ class LdapAuthTest {
     @Test
     fun testCustomLogin() {
         withTestApplication {
-            application.routing {
-                authentication {
-                    val ldapUrl = "ldap://$localhost:${ldapServer.port}"
-                    val configure: (MutableMap<String, Any?>) -> Unit = { env ->
-                        env.put("java.naming.security.principal", "uid=admin,ou=system")
-                        env.put("java.naming.security.credentials", "secret")
-                        env.put("java.naming.security.authentication", "simple")
-                    }
+            application.authentication {
+                val ldapUrl = "ldap://$localhost:${ldapServer.port}"
+                val configure: (MutableMap<String, Any?>) -> Unit = { env ->
+                    env.put("java.naming.security.principal", "uid=admin,ou=system")
+                    env.put("java.naming.security.credentials", "secret")
+                    env.put("java.naming.security.authentication", "simple")
+                }
 
+                configure {
                     basicAuthentication("realm") { credential ->
                         ldapAuthenticate(credential, ldapUrl, configure) {
                             val users = (lookup("ou=system") as LdapContext).lookup("ou=users") as LdapContext
@@ -94,9 +99,13 @@ class LdapAuthTest {
                         }
                     }
                 }
+            }
 
-                get("/") {
-                    call.respondText(call.authentication.principal<UserIdPrincipal>()?.name ?: "null")
+            application.routing {
+                authenticate {
+                    get("/") {
+                        call.respondText(call.authentication.principal<UserIdPrincipal>()?.name ?: "null")
+                    }
                 }
             }
 
@@ -137,11 +146,11 @@ class LdapAuthTest {
 
     private val localhost: String
         get() =
-        try {
-            InetAddress.getLocalHost().hostAddress
-        } catch (any: Throwable) {
-            "127.0.0.1"
-        }
+            try {
+                InetAddress.getLocalHost().hostAddress
+            } catch (any: Throwable) {
+                "127.0.0.1"
+            }
 
     companion object {
         @JvmStatic

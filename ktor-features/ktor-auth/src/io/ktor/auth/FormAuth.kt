@@ -9,11 +9,11 @@ import io.ktor.util.*
 /**
  * Installs Form Authentication mechanism into [AuthenticationPipeline]
  */
-fun AuthenticationPipeline.formAuthentication(userParamName: String = "user",
+fun Authentication.AuthenticationConfiguration.formAuthentication(userParamName: String = "user",
                                                            passwordParamName: String = "password",
                                                            challenge: FormAuthChallenge = FormAuthChallenge.Unauthorized,
                                                            validate: suspend (UserPasswordCredential) -> Principal?) {
-    intercept(AuthenticationPipeline.RequestAuthentication) { context ->
+    pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val postParameters = call.receiveOrNull<Parameters>()
         val username = postParameters?.get(userParamName)
         val password = postParameters?.get(passwordParamName)

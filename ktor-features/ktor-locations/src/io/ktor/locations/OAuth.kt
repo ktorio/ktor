@@ -21,7 +21,7 @@ import kotlin.reflect.*
  *
  * Class [T] must be annotated with [Location].
  */
-inline fun <reified T : Any> AuthenticationPipeline.oauthAtLocation(client: HttpClient, dispatcher: CoroutineDispatcher,
+inline fun <reified T : Any> Authentication.AuthenticationConfiguration.oauthAtLocation(client: HttpClient, dispatcher: CoroutineDispatcher,
                                                                     noinline providerLookup: ApplicationCall.(T) -> OAuthServerSettings?,
                                                                     noinline urlProvider: ApplicationCall.(T, OAuthServerSettings) -> Any) {
     oauthWithType(T::class, client, dispatcher, providerLookup, urlProvider)
@@ -32,7 +32,7 @@ inline fun <reified T : Any> AuthenticationPipeline.oauthAtLocation(client: Http
  *
  * @see AuthenticationPipeline.oauthAtLocation
  */
-fun <T : Any, R : Any> AuthenticationPipeline.oauthWithType(type: KClass<T>,
+fun <T : Any, R : Any> Authentication.AuthenticationConfiguration.oauthWithType(type: KClass<T>,
                                                    client: HttpClient,
                                                    dispatcher: CoroutineDispatcher,
                                                    providerLookup: ApplicationCall.(T) -> OAuthServerSettings?,

@@ -12,18 +12,20 @@ import kotlinx.html.stream.*
 fun Application.formPostAuthApplication() {
     install(DefaultHeaders)
     install(CallLogging)
-    install(Routing) {
-        route("/login") {
-            authentication {
-                formAuthentication { up: UserPasswordCredential ->
-                    when {
-                        up.password == "ppp" -> UserIdPrincipal(up.name)
-                        else -> null
-                    }
+    authentication {
+        configure {
+            formAuthentication { up: UserPasswordCredential ->
+                when {
+                    up.password == "ppp" -> UserIdPrincipal(up.name)
+                    else -> null
                 }
             }
+        }
+    }
 
-            handle {
+    install(Routing) {
+        authenticate {
+            get("/login") {
                 val principal = call.authentication.principal<UserIdPrincipal>()
                 if (principal != null) {
                     call.respondText("Hello, ${principal.name}")

@@ -15,11 +15,12 @@ class AuthBuildersTest {
         val username = "testuser"
 
         withTestApplication {
+            application.authentication {
+                configure { formAuthentication { c -> UserIdPrincipal(c.name) } }
+            }
+
             application.routing {
                 route("/") {
-                    authentication {
-                        formAuthentication { c -> UserIdPrincipal(c.name) }
-                    }
 
                     handle {
                         assertEquals(username, call.authentication.principal<UserIdPrincipal>()?.name)

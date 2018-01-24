@@ -2,19 +2,56 @@ package io.ktor.auth
 
 import io.ktor.application.*
 import io.ktor.pipeline.*
+import io.ktor.routing.*
 import io.ktor.util.*
 
 /**
  * Authentication feature supports pluggable mechanisms for checking and challenging a client to provide credentials
  *
- * @param pipeline keeps pipeline for this instance of a [Authentication]
+ * @param authenticationPipeline keeps pipeline for this instance of a [Authentication]
  */
-class Authentication(val pipeline: AuthenticationPipeline) {
+class Authentication(val configurations: List<AuthenticationConfiguration>) {
     private val challengePhase = PipelinePhase("Challenge")
 
+    open class AuthenticationConfiguration(val name: String? = null) {
+        val pipeline = AuthenticationPipeline()
+
+        private var filterPredicates: MutableList<(ApplicationCall) -> Boolean>? = null
+
+        /**
+         * Authentication filters specifying if authentication is required for particular [ApplicationCall]
+         *
+         * If there is no filters, authentication is required. If any filter returns true, authentication is not required.
+         */
+        val skipWhen: List<(ApplicationCall) -> Boolean> get() = filterPredicates ?: emptyList()
+
+        /**
+         * Adds an authentication filter to the list
+         */
+        fun skipWhen(predicate: (ApplicationCall) -> Boolean) {
+            val list = filterPredicates ?: mutableListOf()
+            list.add(predicate)
+            filterPredicates = list
+        }
+    }
+
+    class Configuration  {
+        val configurations = ArrayList<AuthenticationConfiguration>()
+
+        fun configure(name: String? = null
+                      , configure: AuthenticationConfiguration.() -> Unit) {
+            val configuration = AuthenticationConfiguration(name).apply(configure)
+            configurations.add(configuration)
+        }
+    }
+
     init {
+        configurations.forEach { configureChallenge(it.pipeline) }
+    }
+
+    fun configureChallenge(authenticationPipeline: AuthenticationPipeline) {
         // Install challenging interceptor, it installs last
-        pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
+        authenticationPipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
             val principal = context.principal
             if (principal != null) return@intercept
 
@@ -36,29 +73,34 @@ class Authentication(val pipeline: AuthenticationPipeline) {
         }
     }
 
+    fun interceptPipeline(pipeline: ApplicationCallPipeline, configurationName: String?) {
+        val configuration = configurations.firstOrNull { it.name == configurationName }
+                ?: throw IllegalArgumentException("Authentication configuration with the name $configurationName was not found")
+
+        pipeline.insertPhaseAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
+        pipeline.intercept(authenticationPhase) {
+            // don't run authentication if any filters signals it is not needed
+            if (configuration.skipWhen.any { skip -> skip(call) })
+                return@intercept
+
+            val authenticationContext = AuthenticationContext.from(call)
+            configuration.pipeline.execute(call, authenticationContext)
+            if (authenticationContext.challenge.completed)
+                finish() // finish call pipeline if authentication challenge has been completed
+        }
+    }
+
     /**
      * Installable feature for [Authentication].
      */
-    companion object Feature : ApplicationFeature<ApplicationCallPipeline, AuthenticationPipeline, Authentication> {
+    companion object Feature : ApplicationFeature<Application, Configuration, Authentication> {
         private val authenticationPhase = PipelinePhase("Authenticate")
 
         override val key = AttributeKey<Authentication>("Authentication")
 
-        override fun install(pipeline: ApplicationCallPipeline, configure: AuthenticationPipeline.() -> Unit): Authentication {
-            val authenticationPipeline = AuthenticationPipeline().apply(configure)
-            val feature = Authentication(authenticationPipeline)
-            pipeline.insertPhaseAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
-            pipeline.intercept(authenticationPhase) {
-                // don't run authentication if any filters signals it is not needed
-                if (authenticationPipeline.skipWhen.any { skip -> skip(call) })
-                    return@intercept
-
-                val authenticationContext = AuthenticationContext.from(call)
-                feature.pipeline.execute(call, authenticationContext)
-                if (authenticationContext.challenge.completed)
-                    finish() // finish call pipeline if authentication challenge has been completed
-            }
-            return feature
+        override fun install(pipeline: Application, configure: Configuration.() -> Unit): Authentication {
+            val configuration = Configuration().apply(configure)
+            return Authentication(configuration.configurations)
         }
     }
 }
@@ -66,7 +108,7 @@ class Authentication(val pipeline: AuthenticationPipeline) {
 /**
  * Installs authentication into `this` pipeline
  */
-fun ApplicationCallPipeline.authentication(configuration: AuthenticationPipeline.() -> Unit): Authentication {
+fun Application.authentication(configuration: Authentication.Configuration.() -> Unit): Authentication {
     return install(Authentication, configuration)
 }
 
@@ -80,3 +122,18 @@ val ApplicationCall.authentication: AuthenticationContext
  * Retrieves authenticated [Principal] for `this` call
  */
 inline fun <reified P : Principal> ApplicationCall.principal() = authentication.principal<P>()
+
+fun Route.authenticate(configurationName: String? = null, build: Route.() -> Unit): Route {
+    val authenticatedRoute = createChild(AuthenticationRouteSelector(configurationName))
+    application.feature(Authentication).interceptPipeline(authenticatedRoute, configurationName)
+    authenticatedRoute.build()
+    return authenticatedRoute
+}
+
+class AuthenticationRouteSelector(val name: String?) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+        return RouteSelectorEvaluation.Constant
+    }
+
+    override fun toString(): String = "(authenticate ${name ?: "default"})"
+}
