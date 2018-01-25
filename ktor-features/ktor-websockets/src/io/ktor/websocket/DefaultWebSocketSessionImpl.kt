@@ -92,7 +92,8 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
 
         launch(userContext) {
             val t = try {
-                handler()
+                val me: DefaultWebSocketSession = this@DefaultWebSocketSessionImpl
+                me.handler()
                 null
             } catch (t: Throwable) {
                 t
