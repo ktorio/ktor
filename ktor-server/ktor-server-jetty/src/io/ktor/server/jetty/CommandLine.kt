@@ -2,6 +2,7 @@
 
 package io.ktor.server.jetty
 
+import io.ktor.config.*
 import io.ktor.server.engine.*
 
 /**
@@ -10,5 +11,10 @@ import io.ktor.server.engine.*
  */
 fun main(args: Array<String>) {
     val applicationEnvironment = commandLineEnvironment(args)
-    JettyApplicationEngine(applicationEnvironment, {}).start()
+    JettyApplicationEngine(applicationEnvironment, { loadConfiguration(applicationEnvironment.config) }).start()
+}
+
+private fun JettyApplicationEngineBase.Configuration.loadConfiguration(config: ApplicationConfig) {
+    val deploymentConfig = config.config("ktor.deployment")
+    loadCommonConfiguration(deploymentConfig)
 }

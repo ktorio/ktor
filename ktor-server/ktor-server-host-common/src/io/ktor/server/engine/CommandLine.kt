@@ -119,3 +119,14 @@ private fun String.splitPair(ch: Char): Pair<String, String>? = indexOf(ch).let 
     }
 }
 
+fun BaseApplicationEngine.Configuration.loadCommonConfiguration(deploymentConfig: ApplicationConfig) {
+    deploymentConfig.propertyOrNull("callGroupSize")?.getString()?.toInt()?.let {
+        callGroupSize = it
+    }
+    deploymentConfig.propertyOrNull("connectionGroupSize")?.getString()?.toInt()?.let {
+        connectionGroupSize = it
+    }
+    deploymentConfig.propertyOrNull("workerGroupSize")?.getString()?.toInt()?.let {
+        workerGroupSize = it
+    }
+}

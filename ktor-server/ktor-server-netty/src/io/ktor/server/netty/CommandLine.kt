@@ -2,6 +2,7 @@
 
 package io.ktor.server.netty
 
+import io.ktor.config.*
 import io.ktor.server.engine.*
 
 /**
@@ -10,5 +11,19 @@ import io.ktor.server.engine.*
  */
 fun main(args: Array<String>) {
     val applicationEnvironment = commandLineEnvironment(args)
-    NettyApplicationEngine(applicationEnvironment).start()
+    NettyApplicationEngine(applicationEnvironment, { loadConfiguration(applicationEnvironment.config) }).start()
+}
+
+private fun NettyApplicationEngine.Configuration.loadConfiguration(config: ApplicationConfig) {
+    val deploymentConfig = config.config("ktor.deployment")
+    loadCommonConfiguration(deploymentConfig)
+    deploymentConfig.propertyOrNull("requestQueueLimit")?.getString()?.toInt()?.let {
+        requestQueueLimit = it
+    }
+    deploymentConfig.propertyOrNull("shareWorkGroup")?.getString()?.toBoolean()?.let {
+        shareWorkGroup = it
+    }
+    deploymentConfig.propertyOrNull("responseWriteTimeoutSeconds")?.getString()?.toInt()?.let {
+        responseWriteTimeoutSeconds = it
+    }
 }
