@@ -7,7 +7,7 @@
     <servlet>
         <display-name>Ktor Async Sample</display-name>
         <servlet-name>KtorAsyncSample</servlet-name>
-        <servlet-class>io.ktor.servlet.Servlet</servlet-class>
+        <servlet-class>io.ktor.server.servlet.ServletApplicationEngine</servlet-class>
         <multipart-config>
             <!-- 100mb max file upload -->
             <max-file-size>304857600</max-file-size>
