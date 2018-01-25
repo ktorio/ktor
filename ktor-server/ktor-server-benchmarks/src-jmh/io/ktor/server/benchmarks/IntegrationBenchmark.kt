@@ -29,7 +29,7 @@ abstract class IntegrationBenchmark<TEngine : ApplicationEngine> {
                             }.single()
 
     lateinit var server: TEngine
-    private val httpClient = KtorBenchmarkClient()
+    private val httpClient = OkHttpBenchmarkClient()
 
     private val port = 5678
 
