@@ -83,7 +83,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     }
 
     @Test
-    fun `single connection single thread with pipelininig`() {
+    fun `single connection single thread with pipelining`() {
         createAndStartServer {
             get("/") {
                 call.respondText(endMarkerCrLf)

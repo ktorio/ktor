@@ -9,7 +9,7 @@ import io.ktor.util.*
 import java.util.concurrent.*
 
 class Metrics(val registry: MetricRegistry) {
-    val baseName = MetricRegistry.name("ktor.calls")
+    val baseName: String = MetricRegistry.name("ktor.calls")
     private val duration = registry.timer(MetricRegistry.name(baseName, "duration"))
     private val active = registry.counter(MetricRegistry.name(baseName, "active"))
     private val exceptions = registry.meter(MetricRegistry.name(baseName, "exceptions"))
@@ -34,7 +34,7 @@ class Metrics(val registry: MetricRegistry) {
             configuration.registry.register("jvm.garbage", GarbageCollectorMetricSet())
             configuration.registry.register("jvm.threads", ThreadStatesGaugeSet())
             configuration.registry.register("jvm.files", FileDescriptorRatioGauge())
-            configuration.registry.register("jvm.atttributes", JvmAttributeGaugeSet())
+            configuration.registry.register("jvm.attributes", JvmAttributeGaugeSet())
 
             val phase = PipelinePhase("Metrics")
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Infrastructure, phase)
@@ -92,6 +92,7 @@ class Metrics(val registry: MetricRegistry) {
         }
     }
 
+    @Suppress("UNUSED_PARAMETER")
     private fun exception(call: ApplicationCall, e: Throwable) {
         exceptions.mark()
     }

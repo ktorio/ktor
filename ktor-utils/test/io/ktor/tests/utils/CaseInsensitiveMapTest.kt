@@ -4,9 +4,6 @@ import io.ktor.util.*
 import org.junit.Test
 import kotlin.test.*
 
-/**
- * Author: Sergey Mashkov
- */
 class CaseInsensitiveMapTest {
     val map = CaseInsensitiveMap<String>()
 

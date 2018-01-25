@@ -93,10 +93,10 @@ class HttpHeadersMap internal constructor(private val builder: CharBufferBuilder
 
     fun release() {
         size = 0
-        val idxs = indexes
-        indexes = EMPTY_INT_ARRAY
+        val indexes = indexes
+        this.indexes = EMPTY_INT_ARRAY
 
-        if (idxs !== EMPTY_INT_ARRAY) IntArrayPool.recycle(idxs)
+        if (indexes !== EMPTY_INT_ARRAY) IntArrayPool.recycle(indexes)
     }
 }
 
