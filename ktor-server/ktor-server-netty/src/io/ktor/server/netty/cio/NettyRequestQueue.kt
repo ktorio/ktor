@@ -104,9 +104,9 @@ internal class NettyRequestQueue(private val limit: Int) {
                 }
             }
 
-            c.invokeOnCompletion(true) {
+            c.invokeOnCompletion(onCancelling = true, handler = {
                 Receiver.compareAndSet(this, c, null)
-            }
+            })
         }
 
         return receiveOrNullSuspend()

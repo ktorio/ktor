@@ -320,7 +320,7 @@ class PipelineTest {
         val pipeline = pipeline()
         pipeline.intercept { subject ->
             events.add("intercept1 $subject")
-            run(CommonPool) {
+            withContext(CommonPool) {
                 events.add("future1 $subject")
                 proceed()
             }
@@ -341,7 +341,7 @@ class PipelineTest {
         val pipeline = pipeline()
         pipeline.intercept { subject ->
             events.add("intercept1 $subject")
-            run(CommonPool) {
+            withContext(CommonPool) {
                 events.add("future1 $subject")
                 proceed()
             }
@@ -351,7 +351,7 @@ class PipelineTest {
         pipeline.intercept {
             val secondary = pipeline()
             secondary.intercept { subject ->
-                run(CommonPool) {
+                withContext(CommonPool) {
                     events.add("intercept2 $subject")
                 }
             }

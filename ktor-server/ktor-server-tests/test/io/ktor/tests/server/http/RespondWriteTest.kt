@@ -51,7 +51,7 @@ class RespondWriteTest {
             application.routing {
                 get("/") {
                     call.respondWrite {
-                        run(executor.asCoroutineDispatcher()) {
+                        withContext(executor.asCoroutineDispatcher()) {
                             write("OK")
                         }
                     }

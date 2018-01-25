@@ -25,7 +25,7 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth1a(
     val provider = call.providerLookup()
     if (provider is OAuthServerSettings.OAuth1aServerSettings) {
         val token = call.oauth1aHandleCallback()
-        run(dispatcher) {
+        withContext(dispatcher) {
             val callbackRedirectUrl = call.urlProvider(provider)
             if (token == null) {
                 val t = simpleOAuth1aStep1(client, provider, callbackRedirectUrl)

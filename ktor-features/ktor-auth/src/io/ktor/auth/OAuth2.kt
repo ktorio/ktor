@@ -26,7 +26,7 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
         if (token == null) {
             call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, nextNonce(), scopes = provider.defaultScopes)
         } else {
-            run(dispatcher) {
+            withContext(dispatcher) {
                 val accessToken = simpleOAuth2Step2(client, provider, callbackRedirectUrl, token)
                 call.authentication.principal(accessToken)
             }
@@ -108,7 +108,7 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
                     OAuth2RequestParameters.State to state,
                     OAuth2RequestParameters.Code to code,
                     OAuth2RequestParameters.RedirectUri to usedRedirectUrl
-            ).filterNotNull() + extraParameters.toList()).formUrlEncode()
+            ) + extraParameters.toList()).formUrlEncode()
 
     val getUri = when (method) {
         HttpMethod.Get -> baseUrl.appendUrlParameters(urlParameters)

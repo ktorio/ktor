@@ -2,7 +2,6 @@ package io.ktor.auth
 
 import io.ktor.application.*
 import io.ktor.client.*
-import io.ktor.pipeline.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import java.io.*
@@ -64,8 +63,8 @@ internal fun AuthenticationPipeline.oauth1a(client: HttpClient, dispatcher: Coro
     }
 }
 
-private suspend fun PipelineContext<*, ApplicationCall>.runAsyncWithError(dispatcher: CoroutineDispatcher, context: AuthenticationContext, block: suspend () -> Unit) {
-    return run(dispatcher) {
+private suspend fun runAsyncWithError(dispatcher: CoroutineDispatcher, context: AuthenticationContext, block: suspend () -> Unit) {
+    return withContext(dispatcher) {
         try {
             block()
         } catch (ioe: IOException) {

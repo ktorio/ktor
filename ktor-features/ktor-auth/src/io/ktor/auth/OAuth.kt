@@ -65,7 +65,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauth(
 suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(client: HttpClient, dispatcher: CoroutineDispatcher, provider: OAuthServerSettings, callbackUrl: String) {
     when (provider) {
         is OAuthServerSettings.OAuth1aServerSettings -> {
-            run(dispatcher) {
+            withContext(dispatcher) {
                 val requestToken = simpleOAuth1aStep1(client, provider, callbackUrl)
                 call.redirectAuthenticateOAuth1a(provider, requestToken)
             }
@@ -91,7 +91,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
             if (tokens == null) {
                 call.respondRedirect(loginPageUrl)
             } else {
-                run(dispatcher) {
+                withContext(dispatcher) {
                     try {
                         val accessToken = simpleOAuth1aStep2(client, provider, tokens)
                         block(accessToken)
@@ -106,7 +106,7 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauthHandleCallback(
             if (code == null) {
                 call.respondRedirect(loginPageUrl)
             } else {
-                run(dispatcher) {
+                withContext(dispatcher) {
                     try {
                         val accessToken = simpleOAuth2Step2(
                                 client,
