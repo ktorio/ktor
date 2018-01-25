@@ -26,9 +26,7 @@ class CIOHttpRequest(
     }
 
     override suspend fun execute(content: OutgoingContent): HttpResponse {
-        return suspendCancellableCoroutine<CIOHttpResponse> {
-            engine.executeRequest(this, content, it)
-        }
+        return engine.executeRequest(this, content)
     }
 }
 

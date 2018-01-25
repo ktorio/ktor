@@ -5,4 +5,5 @@ dependencies {
     compile project(":ktor-server:ktor-server-jetty")
     compile group: 'ch.qos.logback', name: 'logback-classic', version: logback_version
     compile group: 'junit', name: 'junit', version: junit_version
+    compile group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
 }

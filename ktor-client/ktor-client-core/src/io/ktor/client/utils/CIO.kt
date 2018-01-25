@@ -22,3 +22,11 @@ object HttpClientDefaultPool : DefaultPool<ByteBuffer>(DEFAULT_HTTP_POOL_SIZE) {
 
     override fun clearInstance(instance: ByteBuffer): ByteBuffer = instance.apply { clear() }
 }
+
+suspend inline fun tryExecute(attempts: Int, noinline block: suspend () -> Boolean): Boolean {
+    repeat(attempts) {
+        if (block()) return true
+    }
+
+    return false
+}
