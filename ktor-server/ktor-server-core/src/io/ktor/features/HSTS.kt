@@ -11,7 +11,7 @@ class HSTS(config: Configuration) {
     class Configuration {
         var preload = false
         var includeSubDomains = true
-        var maxAge = Duration.ofDays(365)
+        var maxAge: Duration = Duration.ofDays(365)
 
         val customDirectives: MutableMap<String, String?> = HashMap()
     }

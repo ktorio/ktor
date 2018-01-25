@@ -10,13 +10,13 @@ private fun getDigest(text: String, algorithm: String, salt: String): ByteArray 
     digest(text.toByteArray())
 }
 
-fun decodeBase64(s: String) = Base64.getDecoder().decode(s)
-fun encodeBase64(bytes: ByteArray) = Base64.getEncoder().encodeToString(bytes)
+fun decodeBase64(s: String): ByteArray = Base64.getDecoder().decode(s)
+fun encodeBase64(bytes: ByteArray): String = Base64.getEncoder().encodeToString(bytes)
 
 // useful to work with openssl command line tool
 fun hex(s: String): ByteArray {
     val result = ByteArray(s.length / 2)
-    for (idx in 0..result.size - 1) {
+    for (idx in 0 until result.size) {
         val srcIdx = idx * 2
         result[idx] = ((Integer.parseInt(s[srcIdx].toString(), 16)) shl 4 or Integer.parseInt(s[srcIdx + 1].toString(), 16)).toByte()
     }

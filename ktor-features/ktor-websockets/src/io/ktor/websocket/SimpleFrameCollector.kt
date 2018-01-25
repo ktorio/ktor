@@ -27,7 +27,7 @@ internal class SimpleFrameCollector {
         remaining -= bb.moveTo(buffer!!, remaining)
     }
 
-    fun take(maskKey: Int?) = buffer!!.run {
+    fun take(maskKey: Int?): ByteBuffer = buffer!!.run {
         flip()
 
         val view = slice()

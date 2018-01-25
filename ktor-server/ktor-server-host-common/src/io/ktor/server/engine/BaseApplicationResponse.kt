@@ -136,13 +136,15 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         // Retrieve response channel, that might send out headers, so it should go after commitHeaders
         responseChannel().use {
             // Call user code to send data
-            val before = totalBytesWritten
+//            val before = totalBytesWritten
             content.writeTo(this)
 
-            headers[HttpHeaders.ContentLength]?.toLong()?.let { length ->
-                val written = totalBytesWritten - before
-                //ensureLength(length, written)
-            }
+            // TODO currently we can't ensure length like that
+            // because a joined channel doesn't increment totalBytesWritten
+//            headers[HttpHeaders.ContentLength]?.toLong()?.let { length ->
+//                val written = totalBytesWritten - before
+//                ensureLength(length, written)
+//            }
         }
     }
 

@@ -31,4 +31,4 @@ open class HoconApplicationConfig(private val config: Config) : ApplicationConfi
 }
 
 fun Config.tryGetString(path: String) = if (hasPath(path)) getString(path) else null
-fun Config.tryGetStringList(path: String) = if (hasPath(path)) getStringList(path) else null
+fun Config.tryGetStringList(path: String): List<String>? = if (hasPath(path)) getStringList(path) else null
