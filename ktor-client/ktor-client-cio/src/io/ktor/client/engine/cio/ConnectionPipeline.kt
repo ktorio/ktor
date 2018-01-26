@@ -54,6 +54,9 @@ internal class ConnectionPipeline(
 
                 task.request.write(outputChannel, task.content)
                 outputChannel.flush()
+                if (ConnectionOptions.parse(task.request.headers[HttpHeaders.Connection]) == ConnectionOptions.Close) {
+                    break
+                }
             }
         } catch (cause: ClosedChannelException) {
         } catch (cause: ClosedReceiveChannelException) {
@@ -65,6 +68,7 @@ internal class ConnectionPipeline(
 
     private val responseHandler = launch(dispatcher, start = CoroutineStart.LAZY) {
         socket.use {
+            var shouldClose = false
             for (task in responseChannel) {
                 requestLimit.leave()
                 val job: Job? = try {
@@ -73,6 +77,7 @@ internal class ConnectionPipeline(
                     val contentLength = response.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
                     val transferEncoding = response.headers[HttpHeaders.TransferEncoding]
                     val connectionType = ConnectionOptions.parse(response.headers[HttpHeaders.Connection])
+                    shouldClose = connectionType == ConnectionOptions.Close
 
                     val writerJob = writer(Unconfined, autoFlush = true) {
                         parseHttpBody(contentLength, transferEncoding, connectionType, inputChannel, channel)
@@ -88,6 +93,7 @@ internal class ConnectionPipeline(
                 }
 
                 job?.join()
+                if (shouldClose) break
             }
         }
     }
