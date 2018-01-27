@@ -40,7 +40,7 @@ interface ApplicationEngine {
     /**
      * Starts this [ApplicationEngine]
      *
-     * @param wait if true, this function does not exist until application engine stops and exits
+     * @param wait if true, this function does not exit until application engine stops and exits
      * @return returns this instance
      */
     fun start(wait: Boolean = false): ApplicationEngine
