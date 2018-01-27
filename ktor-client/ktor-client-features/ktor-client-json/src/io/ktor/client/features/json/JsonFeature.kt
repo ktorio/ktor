@@ -12,7 +12,7 @@ import io.ktor.util.*
 
 class JsonFeature(val serializer: JsonSerializer) {
     class Config {
-        var serializer: JsonSerializer = GsonSerializer()
+        lateinit var serializer: JsonSerializer
     }
 
     companion object Feature : HttpClientFeature<Config, JsonFeature> {

@@ -12,3 +12,7 @@ class GsonSerializer(block: GsonBuilder.() -> Unit = {}) : JsonSerializer {
 
     override fun read(type: KClass<*>, json: String): Any = backend.fromJson(json, type.java)
 }
+
+fun JsonFeature.Config.gson(block: GsonBuilder.() -> Unit = {}) {
+    serializer = GsonSerializer(block)
+}
