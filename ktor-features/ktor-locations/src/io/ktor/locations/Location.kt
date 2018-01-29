@@ -59,6 +59,14 @@ inline fun <reified T : Any> Route.put(noinline body: suspend PipelineContext<Un
     }
 }
 
+inline fun <reified T : Any> Route.delete(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
+    return location(T::class) {
+        method(HttpMethod.Delete) {
+            handle(body)
+        }
+    }
+}
+
 inline fun <reified T : Any> Route.patch(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
     return location(T::class) {
         method(HttpMethod.Patch) {
