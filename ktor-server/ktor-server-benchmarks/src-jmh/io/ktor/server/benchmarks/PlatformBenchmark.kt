@@ -1,5 +1,6 @@
 package io.ktor.server.benchmarks
 
+import io.ktor.server.benchmarks.cio.*
 import io.ktor.server.benchmarks.jetty.*
 import io.ktor.server.benchmarks.netty.*
 import org.openjdk.jmh.annotations.*
@@ -54,5 +55,6 @@ fun main(args: Array<String>) {
         threads = 32
         run<NettyPlatformBenchmark>()
         run<JettyPlatformBenchmark>()
+        run<CIOPlatformBenchmark>()
     }
 }
