@@ -10,7 +10,7 @@ import java.util.*
  * @param parent is a parent node in the tree, or null for root node
  * @param selector is an instance of [RouteSelector] for this node
  */
-@ContextDsl
+@RoutingDsl
 open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationCallPipeline() {
 
     /**
@@ -45,6 +45,7 @@ open class Route(val parent: Route?, val selector: RouteSelector) : ApplicationC
     /**
      * Installs a handler into this route which will be called when the route is selected for a call
      */
+    @RoutingDsl
     fun handle(handler: PipelineInterceptor<Unit, ApplicationCall>) {
         handlers.add(handler)
 

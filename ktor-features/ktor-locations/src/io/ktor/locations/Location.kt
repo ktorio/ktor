@@ -15,10 +15,12 @@ val PipelineContext<Unit, ApplicationCall>.locations get() = call.application.lo
 val ApplicationCall.locations get() = application.locations
 val Application.locations get() = feature(Locations)
 
+@RoutingDsl
 inline fun <reified T : Any> Route.location(noinline body: Route.() -> Unit): Route {
     return location(T::class, body)
 }
 
+@RoutingDsl
 inline fun <reified T : Any> Route.get(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
     return location(T::class) {
         method(HttpMethod.Get) {
@@ -27,6 +29,7 @@ inline fun <reified T : Any> Route.get(noinline body: suspend PipelineContext<Un
     }
 }
 
+@RoutingDsl
 inline fun <reified T : Any> Route.options(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
     return location(T::class) {
         method(HttpMethod.Options) {
@@ -35,6 +38,7 @@ inline fun <reified T : Any> Route.options(noinline body: suspend PipelineContex
     }
 }
 
+@RoutingDsl
 inline fun <reified T : Any> Route.head(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
     return location(T::class) {
         method(HttpMethod.Head) {
@@ -43,6 +47,7 @@ inline fun <reified T : Any> Route.head(noinline body: suspend PipelineContext<U
     }
 }
 
+@RoutingDsl
 inline fun <reified T : Any> Route.post(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
     return location(T::class) {
         method(HttpMethod.Post) {
@@ -51,6 +56,7 @@ inline fun <reified T : Any> Route.post(noinline body: suspend PipelineContext<U
     }
 }
 
+@RoutingDsl
 inline fun <reified T : Any> Route.put(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
     return location(T::class) {
         method(HttpMethod.Put) {
@@ -59,6 +65,7 @@ inline fun <reified T : Any> Route.put(noinline body: suspend PipelineContext<Un
     }
 }
 
+@RoutingDsl
 inline fun <reified T : Any> Route.delete(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
     return location(T::class) {
         method(HttpMethod.Delete) {
@@ -67,6 +74,7 @@ inline fun <reified T : Any> Route.delete(noinline body: suspend PipelineContext
     }
 }
 
+@RoutingDsl
 inline fun <reified T : Any> Route.patch(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit): Route {
     return location(T::class) {
         method(HttpMethod.Patch) {
@@ -75,15 +83,18 @@ inline fun <reified T : Any> Route.patch(noinline body: suspend PipelineContext<
     }
 }
 
+@RoutingDsl
 fun <T : Any> Route.location(data: KClass<T>, body: Route.() -> Unit): Route {
     val entry = application.locations.createEntry(this, data)
     return entry.apply(body)
 }
 
+@RoutingDsl
 inline fun <reified T : Any> Route.handle(noinline body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit) {
     return handle(T::class, body)
 }
 
+@RoutingDsl
 fun <T : Any> Route.handle(dataClass: KClass<T>, body: suspend PipelineContext<Unit, ApplicationCall>.(T) -> Unit) {
     handle {
         val location = locations.resolve<T>(dataClass, call)

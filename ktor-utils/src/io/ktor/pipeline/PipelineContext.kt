@@ -30,6 +30,7 @@ class PipelineContext<TSubject : Any, out TContext : Any>(
     /**
      * Continues execution of the pipeline with the given subject
      */
+    @ContextDsl
     suspend fun proceedWith(subject: TSubject): TSubject {
         this.subject = subject
         return proceed()
@@ -38,6 +39,7 @@ class PipelineContext<TSubject : Any, out TContext : Any>(
     /**
      * Continues execution of the pipeline with the same subject
      */
+    @ContextDsl
     suspend fun proceed(): TSubject {
         while (index >= 0) {
             if (interceptors.size == index) {
