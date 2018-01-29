@@ -10,7 +10,7 @@ import kotlin.reflect.*
 import kotlin.reflect.full.*
 
 
-class HttpRequestContext(val client: HttpClient, val request: HttpRequest)
+class HttpRequestContext(val client: HttpClient, val request: HttpRequestBuilder)
 
 class HttpClientCall private constructor(
         private val client: HttpClient
@@ -41,12 +41,15 @@ class HttpClientCall private constructor(
     companion object {
         suspend fun create(requestBuilder: HttpRequestBuilder, client: HttpClient): HttpClientCall {
             val call = HttpClientCall(client)
+
+            val context = HttpRequestContext(client, requestBuilder)
+            val received = client.requestPipeline.execute(context, requestBuilder.body)
             call.request = client.createRequest(requestBuilder, call)
 
-            val context = HttpRequestContext(client, call.request)
-            val content = client.requestPipeline.execute(context, requestBuilder.body) as? OutgoingContent ?: error("")
-            call.response = call.request.execute(content)
+            val content = received as? OutgoingContent
+                    ?: throw NoTransformationFound(received::class, OutgoingContent::class)
 
+            call.response = call.request.execute(content)
             return call
         }
     }

@@ -30,7 +30,7 @@ class JettyHttpRequest(
     override val url: Url = requestData.url
     override val headers: Headers = requestData.headers
 
-    override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
+    override val executionContext: CompletableDeferred<Unit> = requestData.executionContext
 
     override suspend fun execute(content: OutgoingContent): HttpResponse {
         val requestTime = Date()

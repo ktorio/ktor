@@ -29,12 +29,14 @@ class HttpRequestBuilder : HttpMessageBuilder {
     override val headers = HeadersBuilder()
     var body: Any = EmptyContent
 
+    val executionContext = CompletableDeferred<Unit>()
+
     fun headers(block: HeadersBuilder.() -> Unit) = headers.apply(block)
 
     fun url(block: URLBuilder.(URLBuilder) -> Unit) = url.block(url)
 
     fun build(): HttpRequestData = HttpRequestData(
-            url.build(), method, headers.build(), body
+            url.build(), method, headers.build(), body, executionContext
     )
 }
 
@@ -42,7 +44,8 @@ class HttpRequestData(
         val url: Url,
         val method: HttpMethod,
         val headers: Headers,
-        val body: Any
+        val body: Any,
+        val executionContext: CompletableDeferred<Unit>
 )
 
 fun HttpRequestBuilder.takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
