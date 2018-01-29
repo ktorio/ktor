@@ -21,22 +21,26 @@ class JsonFeature(val serializer: JsonSerializer) {
         override fun prepare(block: Config.() -> Unit): JsonFeature = Config().apply(block).let { JsonFeature(it.serializer) }
 
         override fun install(feature: JsonFeature, scope: HttpClient) {
-            val textFeature = scope.feature(HttpPlainText) ?: error("HttpPlainText feature should be installed to read payload")
+            scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { payload ->
+                val request = context.request
 
-            scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { request: HttpRequestBuilder ->
-                request.header(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                request.accept(ContentType.Application.Json)
+                if (request.contentType()?.match(ContentType.Application.Json) != true) {
+                    // request.header(HttpHeaders.Accept, ContentType.Application.Json.toString())
+                    return@intercept
+                }
 
-                if (request.contentType()?.match(ContentType.Application.Json) != true) return@intercept
-
-                val body = request.body
-                request.body = feature.serializer.write(body)
+                request.headers.remove(HttpHeaders.ContentType)
+                proceedWith(feature.serializer.write(payload))
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (expectedType, response) ->
                 if (response !is IncomingContent || context.response.contentType()?.match(ContentType.Application.Json) != true) return@intercept
 
-                val content = textFeature.read(response)
-                proceedWith(HttpResponseContainer(expectedType, feature.serializer.read(expectedType, content)))
+                proceedWith(HttpResponseContainer(
+                        expectedType,
+                        feature.serializer.read(expectedType, response)
+                ))
             }
         }
     }
