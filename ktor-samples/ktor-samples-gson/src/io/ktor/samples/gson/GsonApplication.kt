@@ -1,11 +1,16 @@
 package io.ktor.samples.gson
 
 import io.ktor.application.*
+import io.ktor.client.*
+import io.ktor.client.engine.apache.*
+import io.ktor.client.features.json.*
+import io.ktor.client.request.*
 import io.ktor.features.*
 import io.ktor.gson.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
+import kotlinx.coroutines.experimental.*
 import java.text.*
 
 data class Model(val name: String, val items: List<Item>)
@@ -43,5 +48,19 @@ fun Application.main() {
             else
                 call.respond(item)
         }
+    }
+}
+
+fun clientSample() = runBlocking {
+    val client = HttpClient(Apache) {
+        install(JsonFeature)
+    }
+
+    val model = client.get<Model>(port = 8080, path = "/v1")
+    println("Fetch items for ${model.name}:")
+
+    for ((key, _) in model.items) {
+        val item = client.get<Item>(port = 8080, path = "/v1/item/$key")
+        println("Received: $item")
     }
 }
