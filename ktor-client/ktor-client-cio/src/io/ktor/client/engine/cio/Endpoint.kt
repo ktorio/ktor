@@ -14,10 +14,13 @@ internal class Endpoint(
         port: Int,
         private val dispatcher: CoroutineDispatcher,
         private val endpointConfig: EndpointConfig,
-        private val connectionFactory: ConnectionFactory
+        private val connectionFactory: ConnectionFactory,
+        private val onDone: () -> Unit
 ) : Closeable {
     private val tasks: Channel<ConnectionRequestTask> = Channel(Channel.UNLIMITED)
     private val deliveryPoint: Channel<ConnectionRequestTask> = Channel()
+
+    private val MAX_ENDPOINT_IDLE_TIME = 2 * endpointConfig.connectTimeout
 
     @Volatile
     private var connectionsHolder: Int = 0
@@ -26,7 +29,17 @@ internal class Endpoint(
 
     private val postman = launch(dispatcher, start = CoroutineStart.LAZY) {
         try {
-            for (task in tasks) {
+            while (true) {
+                val task = withTimeoutOrNull(MAX_ENDPOINT_IDLE_TIME) {
+                    tasks.receive()
+                }
+
+                if (task == null) {
+                    onDone()
+                    tasks.close()
+                    continue
+                }
+
                 if (deliveryPoint.offer(task)) continue
 
                 val connections = Connections.get(this@Endpoint)
@@ -41,6 +54,7 @@ internal class Endpoint(
 
                 deliveryPoint.send(task)
             }
+        } catch (_: ClosedReceiveChannelException) {
         } finally {
             deliveryPoint.close()
         }
