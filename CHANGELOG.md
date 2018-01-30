@@ -1,3 +1,24 @@
+# 0.9.1
+> Published 29 Jan 2018
+
+* Support form blocking servlets and GAE
+* `Headers` and `Parameters` types instead of `ValuesMap`
+* Velocity templates support
+* Unsafe (Forbidden) headers checks added
+* Deprecated `Resource` type
+* Added support for extensible version providers to ConditionalHeaders feature 
+* Engine-specific configuration support for application.conf
+* Added filtering and customisation of log level to CallLogging feature
+* Added ability to skip authentication using a predicate, add documentation to Authentication feature
+* Introduced auth0 JWT/JWKS authentication (#266)
+* ktor http client DSL improvements
+* CIO engine improvements, stability and performance
+* Introduced [OutgoingContent] properties `contentLength`, `contentType` and `status` 
+* Upgrade Netty in the corresponding engine implementation
+* Introduced `shareWorkGroup` option for Netty engine
+* More documentation
+* Bump versions of dependencies
+
 # 0.9.0
 > Published 31 Oct 2017
 
