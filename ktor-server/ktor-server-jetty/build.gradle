@@ -5,6 +5,8 @@ dependencies {
     compile group: 'org.eclipse.jetty', name: 'jetty-server', version: jetty_version
     compile group: 'org.eclipse.jetty', name: 'jetty-servlets', version: jetty_version
     compile group: 'org.eclipse.jetty', name: 'jetty-alpn-server', version: jetty_version
+    compile group: 'org.eclipse.jetty', name: 'jetty-alpn-openjdk8-server', version: jetty_version
+    compile group: 'org.eclipse.jetty', name: 'jetty-alpn-java-server', version: jetty_version
     compile group: 'org.eclipse.jetty.http2', name: 'http2-server', version: jetty_version
 
     testCompile project(':ktor-server:ktor-server-test-host')

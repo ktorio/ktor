@@ -19,11 +19,20 @@ internal fun Server.initializeServer(environment: ApplicationEngineEnvironment) 
             }
         }
 
-        val alpnAvailable = try {
-            NegotiatingServerConnectionFactory.checkProtocolNegotiationAvailable()
-            true
-        } catch (e: Throwable) {
-            false
+        var alpnAvailable = false
+        var alpnConnectionFactory: ALPNServerConnectionFactory?
+        var http2ConnectionFactory: HTTP2ServerConnectionFactory?
+
+        try {
+            alpnConnectionFactory = ALPNServerConnectionFactory().apply {
+                defaultProtocol = HttpVersion.HTTP_1_1.asString()
+            }
+            http2ConnectionFactory = HTTP2ServerConnectionFactory(httpConfig)
+            alpnAvailable = true
+        } catch (t: Throwable) {
+            // ALPN or HTTP/2 implemented is not available
+            alpnConnectionFactory = null
+            http2ConnectionFactory = null
         }
 
         val connectionFactories = when (ktorConnector.type) {
@@ -45,12 +54,8 @@ internal fun Server.initializeServer(environment: ApplicationEngineEnvironment) 
                         "SSL_DHE_RSA_EXPORT_WITH_DES40_CBC_SHA",
                         "SSL_DHE_DSS_EXPORT_WITH_DES40_CBC_SHA")
             }, if (alpnAvailable) "alpn" else HttpVersion.HTTP_1_1.asString()),
-                    if (alpnAvailable) {
-                        ALPNServerConnectionFactory().apply {
-                            defaultProtocol = HttpVersion.HTTP_1_1.asString()
-                        }
-                    } else null,
-                    if (alpnAvailable) HTTP2ServerConnectionFactory(httpConfig) else HTTP2CServerConnectionFactory(httpConfig),
+                    alpnConnectionFactory,
+                    http2ConnectionFactory ?: HTTP2CServerConnectionFactory(httpConfig),
                     HttpConnectionFactory(httpConfig)).filterNotNull().toTypedArray()
             else -> throw IllegalArgumentException("Connector type ${ktorConnector.type} is not supported by Jetty engine implementation")
         }
