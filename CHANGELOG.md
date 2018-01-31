@@ -1,7 +1,7 @@
 # 0.9.1
 > Published 29 Jan 2018
 
-* Support form blocking servlets and GAE
+* Support for blocking servlets and GAE
 * `Headers` and `Parameters` types instead of `ValuesMap`
 * Velocity templates support
 * Unsafe (Forbidden) headers checks added
