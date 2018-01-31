@@ -116,6 +116,7 @@ class Compression(compression: Configuration) {
         }
 
         override val contentType: ContentType? get() = original.contentType
+        override val contentLength: Long? get() = original.contentLength
         override val status: HttpStatusCode? get() = original.status
         override fun <T : Any> getProperty(key: AttributeKey<T>) = original.getProperty(key)
         override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
@@ -132,6 +133,7 @@ class Compression(compression: Configuration) {
         }
 
         override val contentType: ContentType? get() = original.contentType
+        override val contentLength: Long? get() = original.contentLength
         override val status: HttpStatusCode? get() = original.status
         override fun <T : Any> getProperty(key: AttributeKey<T>) = original.getProperty(key)
         override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
