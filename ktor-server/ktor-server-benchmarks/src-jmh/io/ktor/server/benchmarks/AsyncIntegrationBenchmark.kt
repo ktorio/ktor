@@ -12,6 +12,7 @@ import io.ktor.server.benchmarks.jetty.*
 import io.ktor.server.benchmarks.netty.*
 import io.ktor.server.engine.*
 import org.openjdk.jmh.annotations.*
+import org.openjdk.jmh.infra.*
 import org.slf4j.*
 import org.slf4j.Logger
 import java.io.*
@@ -76,7 +77,7 @@ abstract class AsyncIntegrationBenchmark<TEngine : ApplicationEngine> {
     }
 
     fun load(url: String) = httpClient.submitTask(url)
-    fun join() = httpClient.joinTask()
+    fun join(control: Control) = httpClient.joinTask(control)
 
     @TearDown
     fun shutdownServer() {
@@ -135,39 +136,39 @@ abstract class AsyncIntegrationBenchmark<TEngine : ApplicationEngine> {
 
     @Benchmark
     @Group("sayOKGroup")
-    fun sayOK() = join()
+    fun sayOK(control: Control) = join(control)
 
     @Benchmark
     @Group("longPathGroup")
-    fun longPath() = join()
+    fun longPath(control: Control) = join(control)
 
     @Benchmark
     @Group("queryGroup")
-    fun query() = join()
+    fun query(control: Control) = join(control)
 
     @Benchmark
     @Group("thinkOKGroup")
-    fun thinkOk() = join()
+    fun thinkOk(control: Control) = join(control)
 
     @Benchmark
     @Group("jarfileGroup")
-    fun jarfile() = join()
+    fun jarfile(control: Control) = join(control)
 
     @Benchmark
     @Group("regularClasspathFileGroup")
-    fun regularClasspathFile() = join()
+    fun regularClasspathFile(control: Control) = join(control)
 
     @Benchmark
     @Group("smallFileGroup")
-    fun smallFile() = join()
+    fun smallFile(control: Control) = join(control)
 
     @Benchmark
     @Group("largeFileGroup")
-    fun largeFile() = join()
+    fun largeFile(control: Control) = join(control)
 
     @Benchmark
     @Group("largeFileSyncGroup")
-    fun largeFileSync() = join()
+    fun largeFileSync(control: Control) = join(control)
 }
 
 fun main(args: Array<String>) {

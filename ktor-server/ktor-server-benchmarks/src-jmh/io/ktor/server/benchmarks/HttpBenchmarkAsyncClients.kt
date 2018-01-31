@@ -2,15 +2,14 @@ package io.ktor.server.benchmarks
 
 import io.ktor.client.*
 import io.ktor.client.cio.*
-import io.ktor.client.cio.Semaphore
 import io.ktor.client.engine.*
-import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.utils.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import java.util.concurrent.*
+import org.openjdk.jmh.infra.*
+import java.util.concurrent.atomic.*
 
 
 interface AsyncHttpBenchmarkClient {
@@ -18,23 +17,23 @@ interface AsyncHttpBenchmarkClient {
     fun shutdown()
 
     fun submitTask(url: String)
-    fun joinTask()
+    fun joinTask(control: Control)
 }
 
 class KtorBenchmarkClient(val engineFactory: HttpClientEngineFactory<*>) : AsyncHttpBenchmarkClient {
     private val loadLimit = Semaphore(1000)
     private var httpClient: HttpClient? = null
-    private val jobs = ConcurrentLinkedQueue<Job>()
+    private val parent = Job()
+    private val done = AtomicInteger()
 
     override fun setup() {
+        done.set(0)
         httpClient = HttpClient(engineFactory)
     }
 
     override fun shutdown() {
         runBlocking {
-            while (jobs.isNotEmpty()) {
-                jobs.poll().join()
-            }
+            parent.cancelAndJoin()
         }
 
         httpClient?.close()
@@ -46,29 +45,32 @@ class KtorBenchmarkClient(val engineFactory: HttpClientEngineFactory<*>) : Async
             loadLimit.enter()
         }
 
-        val job = launch(HTTP_CLIENT_DEFAULT_DISPATCHER) {
-            httpClient!!.get<HttpResponse>(url).use { response ->
-                val channel = response.receiveContent().readChannel()
-                val buffer = ByteBuffer.allocate(1024)
-                while (!channel.isClosedForRead) {
-                    buffer.clear()
-                    channel.readAvailable(buffer)
+        launch(HTTP_CLIENT_DEFAULT_DISPATCHER, parent = parent) {
+            try {
+                httpClient!!.get<HttpResponse>(url).use { response ->
+                    val content = response.content
+                    val buffer = ByteBuffer.allocate(1024)
+                    while (!content.isClosedForRead) {
+                        buffer.clear()
+                        content.readAvailable(buffer)
+                    }
+
                 }
+
+                done.incrementAndGet()
+            } catch (cause: Throwable) {
+            } finally {
+                loadLimit.leave()
             }
-
-            loadLimit.leave()
         }
-
-        jobs.add(job)
     }
 
-    override fun joinTask() {
-        while (true) {
-            val job = jobs.poll() ?: continue
-            runBlocking {
-                job.join()
-            }
-            break
+    override fun joinTask(control: Control) {
+        while (!control.stopMeasurement) {
+            val prev = done.get()
+            if (prev <= 0) continue
+
+            if (done.compareAndSet(prev, prev - 1)) break
         }
     }
 }
