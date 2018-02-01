@@ -1,25 +1,42 @@
 package io.ktor.content
 
 import io.ktor.http.*
-import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import java.io.*
 import kotlin.coroutines.experimental.*
 
-sealed class PartData(val dispose: () -> Unit, val partHeaders: Headers) {
+/**
+ * Represents a multipart/form-data entry. Could be a [FormItem] or [FileItem]
+ */
+sealed class PartData(val dispose: () -> Unit, val headers: Headers) {
     class FormItem(val value: String, dispose: () -> Unit, partHeaders: Headers) : PartData(dispose, partHeaders)
     class FileItem(val streamProvider: () -> InputStream, dispose: () -> Unit, partHeaders: Headers) : PartData(dispose, partHeaders) {
         val originalFileName = contentDisposition?.parameter(ContentDisposition.Parameters.FileName)
     }
 
-    val contentDisposition: ContentDisposition? by lazy {
-        partHeaders[HttpHeaders.ContentDisposition]?.let { ContentDisposition.parse(it) }
+    /**
+     * Parsed `Content-Disposition` header or `null` if missing
+     */
+    val contentDisposition: ContentDisposition? by lazy(LazyThreadSafetyMode.NONE) {
+        headers[HttpHeaders.ContentDisposition]?.let { ContentDisposition.parse(it) }
     }
 
-    val partName: String?
-        get() = contentDisposition?.name
+    /**
+     * Parsed `Content-Type` header or `null` if missing
+     */
+    val contentType: ContentType? by lazy(LazyThreadSafetyMode.NONE) { headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } }
 
-    val contentType: ContentType? by lazy { partHeaders[HttpHeaders.ContentType]?.let { ContentType.parse(it) } }
+    /**
+     * Optional part name based on `Content-Disposition` header
+     */
+    val name: String? get() = contentDisposition?.name
+
+    @Deprecated("Use name property instead", ReplaceWith("name"))
+    val partName: String?
+        get() = name
+
+    @Deprecated("Use headers property instead", ReplaceWith("headers"))
+    val partHeaders: Headers get() = headers
 }
 
 interface MultiPartData {
@@ -32,6 +49,9 @@ interface MultiPartData {
             }
         }
 
+    /**
+     * Reads next part data or `null` if end of multipart stream encountered
+     */
     suspend fun readPart(): PartData?
 
     object Empty : MultiPartData {
@@ -44,6 +64,10 @@ interface MultiPartData {
     }
 }
 
+/**
+ * Parse multipart data stream and invoke [partHandler] for each [PartData] encountered
+ * @param partHandler to be invoked for every part item
+ */
 suspend fun MultiPartData.forEachPart(partHandler: suspend (PartData) -> Unit) {
     while (true) {
         val part = readPart() ?: break
@@ -51,6 +75,10 @@ suspend fun MultiPartData.forEachPart(partHandler: suspend (PartData) -> Unit) {
     }
 }
 
+/**
+ * Parse multipart data stream and put all parts into a list
+ * @return a list of part data
+ */
 suspend fun MultiPartData.readAllParts(): List<PartData> {
     var part = readPart() ?: return emptyList()
     val parts = ArrayList<PartData>()

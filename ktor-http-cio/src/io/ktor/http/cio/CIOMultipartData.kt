@@ -2,21 +2,34 @@ package io.ktor.http.cio
 
 import io.ktor.content.*
 import io.ktor.http.*
+import io.ktor.http.cio.internals.*
 import io.ktor.network.util.*
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.nio.channels.*
 import java.nio.file.*
 import kotlin.coroutines.experimental.*
 
-class CIOMultipartData(private val channel: ByteReadChannel,
-                       private val headers: HttpHeadersMap,
-                       private val formFieldLimit: Int = 65536,
-                       private val inMemoryFileUploadLimit: Int = formFieldLimit) : MultiPartData {
+class CIOMultipartData(channel: ByteReadChannel,
+                       headers: HttpHeadersMap,
+                       formFieldLimit: Int = 65536,
+                       inMemoryFileUploadLimit: Int = formFieldLimit)
+    : CIOMultipartDataBase(
+        ioCoroutineDispatcher,
+        channel, headers[HttpHeaders.ContentType]!!,
+        headers[HttpHeaders.ContentLength]?.parseDecLong(),
+        formFieldLimit, inMemoryFileUploadLimit)
 
-    private val events = parseMultipart(ioCoroutineDispatcher, channel, headers)
+open class CIOMultipartDataBase(
+                                coroutineContext: CoroutineContext,
+                                channel: ByteReadChannel,
+                                contentType: CharSequence,
+                                contentLength: Long?,
+                                private val formFieldLimit: Int = 65536,
+                                private val inMemoryFileUploadLimit: Int = formFieldLimit) : MultiPartData {
+
+    private val events = parseMultipart(coroutineContext, channel, contentType, contentLength)
 
     override val parts: Sequence<PartData> = buildSequence {
         while (!events.isClosedForReceive) {
@@ -101,14 +114,6 @@ class CIOMultipartData(private val channel: ByteReadChannel,
                 return PartData.FormItem(packet.readText(), { part.release() }, CIOHeaders(headers))
             } finally {
                 packet.release()
-            }
-        }
-    }
-
-    private fun <F, T> ReceiveChannel<F>.toSequence(transform: suspend (F) -> T) = buildSequence<T> {
-        runBlocking {
-            while (true) {
-                receiveOrNull()?.let { yield(transform(it)) } ?: break
             }
         }
     }

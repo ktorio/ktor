@@ -99,6 +99,12 @@ private val headerParameterEndChars = charArrayOf(' ', ';', ',')
 
 fun parseMultipart(coroutineContext: CoroutineContext, input: ByteReadChannel, headers: HttpHeadersMap): ReceiveChannel<MultipartEvent> {
     val contentType = headers["Content-Type"] ?: throw IOException("Failed to parse multipart: no Content-Type header")
+    val contentLength = headers["Content-Length"]?.parseDecLong()
+
+    return parseMultipart(coroutineContext, input, contentType, contentLength)
+}
+
+fun parseMultipart(coroutineContext: CoroutineContext, input: ByteReadChannel, contentType: CharSequence, contentLength: Long?): ReceiveChannel<MultipartEvent> {
     if (!contentType.startsWith("multipart/")) throw IOException("Failed to parse multipart: Content-Type should be multipart/* but it is $contentType")
     val boundaryParameter = contentType.indexOf("boundary=") // TODO parse HTTP header properly instead
     if (boundaryParameter == -1) throw IOException("Failed to parse multipart: Content-Type's boundary parameter is missing")
@@ -124,12 +130,11 @@ fun parseMultipart(coroutineContext: CoroutineContext, input: ByteReadChannel, h
 
     boundaryBytes.clear()
 
-    val totalLength = headers["Content-Length"]?.parseDecLong()
+    // TODO fail if contentLength = 0 and content subtype is wrong
 
-    // TODO fail if totalLength = 0 and content subtype is wrong
-
-    return parseMultipart(coroutineContext, boundaryBytes, input, totalLength)
+    return parseMultipart(coroutineContext, boundaryBytes, input, contentLength)
 }
+
 
 private val EmptyCharBuffer = CharBuffer.allocate(0)!!
 private val CrLf = ByteBuffer.wrap("\r\n".toByteArray())!!
