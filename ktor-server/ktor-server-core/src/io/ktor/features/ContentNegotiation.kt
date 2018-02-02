@@ -65,7 +65,13 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) {
                 if (subject is OutgoingContent) return@intercept
 
-                val suitableConverters = call.request.acceptItems().mapNotNull { (contentType, _) ->
+                var acceptContentTypes = call.request.acceptItems().map { it.value }
+                // From https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+                // "If no Accept header field is present, then it is assumed that the client accepts all media types."
+                if(acceptContentTypes.isEmpty()) {
+                    acceptContentTypes = listOf("*/*")
+                }
+                val suitableConverters = acceptContentTypes.mapNotNull { contentType ->
                     feature.registrations.firstOrNull {
                         it.contentType.match(contentType)
                     }
