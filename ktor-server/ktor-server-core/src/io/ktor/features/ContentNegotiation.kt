@@ -65,15 +65,16 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) {
                 if (subject is OutgoingContent) return@intercept
 
-                var acceptContentTypes = call.request.acceptItems().map { it.value }
-                // From https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
-                // "If no Accept header field is present, then it is assumed that the client accepts all media types."
-                if(acceptContentTypes.isEmpty()) {
-                    acceptContentTypes = listOf("*/*")
-                }
-                val suitableConverters = acceptContentTypes.mapNotNull { contentType ->
-                    feature.registrations.firstOrNull {
-                        it.contentType.match(contentType)
+                val acceptItems = call.request.acceptItems()
+                val suitableConverters = if (acceptItems.isEmpty()) {
+                    // From https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+                    // "If no Accept header field is present, then it is assumed that the client accepts all media types."
+                    feature.registrations
+                } else {
+                    acceptItems.mapNotNull { (contentType, _) ->
+                        feature.registrations.firstOrNull {
+                            it.contentType.match(contentType)
+                        }
                     }
                 }
 
