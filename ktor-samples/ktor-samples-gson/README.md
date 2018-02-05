@@ -1,4 +1,4 @@
-*ktor-samples-json*
+*ktor-samples-gson*
 ===================
 
 ## Usage
@@ -10,27 +10,31 @@
 ##### Gradle
 
 ```
-compile 'org.jetbrains.ktor:ktor-gson:0.4.0-alpha-13'
-compile 'org.jetbrains.ktor:ktor-netty:0.4.0-alpha-13'
+compile "io.ktor:ktor-gson:$ktor_version"
+compile "io.ktor:ktor-server-netty:$ktor_version"
 ```
 
 #### Main Method
 
 ```kotlin
-import org.jetbrains.ktor.application.install
-import org.jetbrains.ktor.gson.GsonSupport
-import org.jetbrains.ktor.host.embeddedServer
-import org.jetbrains.ktor.netty.Netty
-import org.jetbrains.ktor.response.respond
-import org.jetbrains.ktor.routing.get
-import org.jetbrains.ktor.routing.routing
+import io.ktor.application.install
+import io.ktor.application.call
+import io.ktor.features.ContentNegotiation
+import io.ktor.gson.gson
+import io.ktor.response.respond
+import io.ktor.server.engine.embeddedServer
+import io.ktor.server.netty.Netty
+import io.ktor.routing.get
+import io.ktor.routing.routing
 
 data class Person(val firstname: String, val lastname: String)
 
 fun main(args: Array<String>) {
     embeddedServer(Netty, 8080) {
-        install(GsonSupport) {
-            setPrettyPrinting()
+        install(ContentNegotiation) {
+            gson {
+                setPrettyPrinting()
+            }
         }
         routing {
             get("/person") {
