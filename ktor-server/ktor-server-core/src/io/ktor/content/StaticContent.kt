@@ -96,7 +96,7 @@ private val staticBasePackageName = AttributeKey<String>("BasePackage")
  * Base package for relative resources calculations for static content
  */
 var Route.staticBasePackage: String?
-    get() = attributes.getOrNull(staticBasePackageName)
+    get() = attributes.getOrNull(staticBasePackageName) ?: parent?.staticBasePackage
     set(value) {
         if (value != null)
             attributes.put(staticBasePackageName, value)
