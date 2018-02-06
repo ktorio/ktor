@@ -1,6 +1,8 @@
 package io.ktor.server.engine
 
+import io.ktor.application.*
 import io.ktor.content.*
+import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
@@ -23,7 +25,7 @@ fun ApplicationReceivePipeline.installDefaultTransformations() {
             ByteReadChannel::class -> value.readChannel()
             InputStream::class -> value.inputStream()
             MultiPartData::class -> value.multiPartData()
-            String::class -> value.readText()
+            String::class -> value.readText(charset = call.request.contentCharset())
             Parameters::class -> {
                 val contentType = value.contentType()
                 when {
