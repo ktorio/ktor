@@ -36,6 +36,7 @@ include ':ktor-http'
 include ':ktor-utils'
 include ':ktor-http-cio'
 include ':ktor-network'
+include ':ktor-network-tls'
 include ':ktor-samples:ktor-samples-hello'
 include ':ktor-samples:ktor-samples-html'
 include ':ktor-samples:ktor-samples-locations'
@@ -94,6 +95,7 @@ project(':ktor-http').projectDir = "$rootDir/ktor-http" as File
 project(':ktor-utils').projectDir = "$rootDir/ktor-utils" as File
 project(':ktor-http-cio').projectDir = "$rootDir/ktor-http-cio" as File
 project(':ktor-network').projectDir = "$rootDir/ktor-network" as File
+project(':ktor-network-tls').projectDir = "$rootDir/ktor-network-tls" as File
 project(':ktor-samples:ktor-samples-hello').projectDir = "$rootDir/ktor-samples/ktor-samples-hello" as File
 project(':ktor-samples:ktor-samples-html').projectDir = "$rootDir/ktor-samples/ktor-samples-html" as File
 project(':ktor-samples:ktor-samples-locations').projectDir = "$rootDir/ktor-samples/ktor-samples-locations" as File
