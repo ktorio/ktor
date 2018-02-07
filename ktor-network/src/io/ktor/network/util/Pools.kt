@@ -11,7 +11,7 @@ private val cpuCount = Runtime.getRuntime().availableProcessors()
 
 val ioCoroutineDispatcher: CoroutineDispatcher = IOCoroutineDispatcher(maxOf(2, (cpuCount * 2 / 3)))
 
-internal val DefaultDatagramByteBufferPool: ObjectPool<ByteBuffer> = DirectByteBufferPool(MAX_DATAGRAM_SIZE, 2048)
+val DefaultDatagramByteBufferPool: ObjectPool<ByteBuffer> = DirectByteBufferPool(MAX_DATAGRAM_SIZE, 2048)
 
 internal class DirectByteBufferPool(val bufferSize: Int, size: Int) : DefaultPool<ByteBuffer>(size) {
     override fun produceInstance(): ByteBuffer = java.nio.ByteBuffer.allocateDirect(bufferSize)
