@@ -47,19 +47,19 @@ fun Route.upload(database: Database, uploadDir: File) {
             var title = ""
             var videoFile: File? = null
 
-            multipart.forEachPart {
-                if (it is PartData.FormItem) {
-                    if (it.partName == "title") {
-                        title = it.value
+            multipart.forEachPart { part ->
+                if (part is PartData.FormItem) {
+                    if (part.name == "title") {
+                        title = part.value
                     }
-                } else if (it is PartData.FileItem) {
-                    val ext = File(it.originalFileName).extension
+                } else if (part is PartData.FileItem) {
+                    val ext = File(part.originalFileName).extension
                     val file = File(uploadDir, "upload-${System.currentTimeMillis()}-${session.userId.hashCode()}-${title.hashCode()}.$ext")
-                    it.streamProvider().use { its -> file.outputStream().buffered().use { its.copyTo(it) } }
+                    part.streamProvider().use { its -> file.outputStream().buffered().use { its.copyTo(it) } }
                     videoFile = file
                 }
 
-                it.dispose()
+                part.dispose()
             }
 
             val id = database.addVideo(title, session.userId, videoFile!!)

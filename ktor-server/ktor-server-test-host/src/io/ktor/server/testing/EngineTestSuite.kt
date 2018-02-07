@@ -598,10 +598,10 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             post("/") {
                 val response = StringBuilder()
 
-                call.receiveMultipart().readAllParts().sortedBy { it.partName }.forEach { part ->
+                call.receiveMultipart().readAllParts().sortedBy { it.name }.forEach { part ->
                     when (part) {
-                        is PartData.FormItem -> response.append("${part.partName}=${part.value}\n")
-                        is PartData.FileItem -> response.append("file:${part.partName},${part.originalFileName},${part.streamProvider().bufferedReader().readText()}\n")
+                        is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
+                        is PartData.FileItem -> response.append("file:${part.name},${part.originalFileName},${part.streamProvider().bufferedReader().readText()}\n")
                     }
 
                     part.dispose()

@@ -53,8 +53,8 @@ fun Application.main() {
                     while (true) {
                         val part = multipart.readPart() ?: break
                         when (part) {
-                            is PartData.FormItem -> appendln("Form field: ${part.partName} = ${part.value}")
-                            is PartData.FileItem -> appendln("File field: ${part.partName} -> ${part.originalFileName} of ${part.contentType}")
+                            is PartData.FormItem -> appendln("Form field: ${part.name} = ${part.value}")
+                            is PartData.FileItem -> appendln("File field: ${part.name} -> ${part.originalFileName} of ${part.contentType}")
                         }
                         part.dispose()
                     }
