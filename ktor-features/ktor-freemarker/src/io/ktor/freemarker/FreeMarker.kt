@@ -10,7 +10,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 
 class FreeMarkerContent(val template: String,
-                        val model: Any,
+                        val model: Any?,
                         val etag: String? = null,
                         val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8))
 
@@ -36,7 +36,7 @@ class FreeMarker(val config: Configuration) {
     }
 
     private class FreeMarkerOutgoingContent(val template: Template,
-                                            val model: Any,
+                                            val model: Any?,
                                             etag: String?,
                                             override val contentType: ContentType) : OutgoingContent.WriteChannelContent() {
         override suspend fun writeTo(channel: ByteWriteChannel) {
