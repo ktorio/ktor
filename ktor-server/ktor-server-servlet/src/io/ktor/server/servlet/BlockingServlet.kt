@@ -26,6 +26,7 @@ private class BlockingServletApplicationRequest(
     servletRequest: HttpServletRequest
 ) : ServletApplicationRequest(call, servletRequest) {
     override fun receiveContent(): IncomingContent = BlockingServletIncomingContent(this)
+    override fun receiveChannel() = servletRequest.inputStream.toByteReadChannel()
 }
 
 private class BlockingServletIncomingContent(

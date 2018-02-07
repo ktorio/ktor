@@ -8,6 +8,8 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
 import java.nio.charset.*
+import kotlinx.coroutines.experimental.io.*
+import java.nio.charset.Charset
 
 /**
  * This feature provides automatic content conversion according to Content-Type and Accept headers
@@ -87,7 +89,7 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
             }
 
             pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
-                if (subject.value !is IncomingContent) return@intercept
+                if (subject.value !is ByteReadChannel) return@intercept
                 val contentType = call.request.contentType().withoutParameters()
                 val suitableConverter = feature.registrations.firstOrNull { it.contentType.match(contentType) }
                         ?: throw UnsupportedMediaTypeException(contentType)

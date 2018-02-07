@@ -9,6 +9,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.experimental.io.*
 import org.junit.Test
 import kotlin.test.*
 
@@ -23,9 +24,9 @@ class ContentNegotiationTest {
 
         override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
             val type = context.subject.type
-            val incoming = context.subject.value
-            if (type != Wrapper::class || incoming !is IncomingContent) return null
-            return Wrapper(incoming.readText().removeSurrounding("[", "]"))
+            val channel = context.subject.value
+            if (type != Wrapper::class || channel !is ByteReadChannel) return null
+            return Wrapper(channel.readRemaining().readText().removeSurrounding("[", "]"))
         }
     }
 
@@ -38,8 +39,8 @@ class ContentNegotiationTest {
         override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
             val type = context.subject.type
             val incoming = context.subject.value
-            if (type != Wrapper::class || incoming !is IncomingContent) return null
-            return Wrapper(incoming.readText())
+            if (type != Wrapper::class || incoming !is ByteReadChannel) return null
+            return Wrapper(incoming.readRemaining().readText())
         }
     }
 

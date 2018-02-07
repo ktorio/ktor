@@ -6,6 +6,7 @@ import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.io.*
 import org.junit.Test
 import kotlin.test.*
 
@@ -75,9 +76,9 @@ class ApplicationRequestContentTest {
 
             application.receivePipeline.intercept(ApplicationReceivePipeline.Transform) { query ->
                 if (query.type != IntList::class) return@intercept
-                val message = query.value as? IncomingContent ?: return@intercept
+                val message = query.value as? ByteReadChannel ?: return@intercept
 
-                val string = message.readText()
+                val string = message.readRemaining().readText()
                 val transformed = IntList.parse(string)
                 proceedWith(ApplicationReceiveRequest(query.type, transformed))
             }

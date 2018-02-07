@@ -31,13 +31,15 @@ class AsyncServletApplicationRequest(
     call: ApplicationCall, servletRequest: HttpServletRequest
 ) : ServletApplicationRequest(call, servletRequest) {
 
-    override fun receiveContent(): IncomingContent = AsyncServletIncomingContent(this)
+    private val copyJob by lazy { servletReader(servletRequest.inputStream) }
+    override fun receiveContent(): IncomingContent = AsyncServletIncomingContent(this, copyJob)
+    override fun receiveChannel() = copyJob.channel
 }
 
 private class AsyncServletIncomingContent(
-    request: ServletApplicationRequest
+    request: ServletApplicationRequest,
+    val copyJob: WriterJob
 ) : ServletIncomingContent(request) {
-    private val copyJob by lazy { servletReader(request.servletRequest.inputStream) }
     override fun readChannel(): ByteReadChannel = copyJob.channel
 }
 

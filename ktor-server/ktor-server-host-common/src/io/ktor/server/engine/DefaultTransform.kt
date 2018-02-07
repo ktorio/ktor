@@ -2,13 +2,17 @@ package io.ktor.server.engine
 
 import io.ktor.application.*
 import io.ktor.content.*
-import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.cio.*
+import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
-import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.experimental.io.jvm.javaio.*
+import kotlinx.io.streams.*
 import java.io.*
+import java.nio.charset.*
 
 fun ApplicationSendPipeline.installDefaultTransformations() {
     intercept(ApplicationSendPipeline.Render) { value ->
@@ -20,29 +24,29 @@ fun ApplicationSendPipeline.installDefaultTransformations() {
 
 fun ApplicationReceivePipeline.installDefaultTransformations() {
     intercept(ApplicationReceivePipeline.Transform) { query ->
-        val value = query.value as? IncomingContent ?: return@intercept
+        val channel = query.value as? ByteReadChannel ?: return@intercept
         val transformed: Any? = when (query.type) {
-            ByteReadChannel::class -> value.readChannel()
-            InputStream::class -> value.inputStream()
-            MultiPartData::class -> value.multiPartData()
-            String::class -> value.readText(charset = call.request.contentCharset())
+            ByteReadChannel::class -> channel
+            InputStream::class -> channel.toInputStream()
+            MultiPartData::class -> multiPartData(channel)
+            String::class -> channel.readText(charset = call.request.contentCharset() ?: Charsets.ISO_8859_1)
             Parameters::class -> {
-                val contentType = value.contentType()
+                val contentType = call.request.contentType()
                 when {
-                    contentType?.match(ContentType.Application.FormUrlEncoded) == true -> {
-                        val string = value.readText()
+                    contentType.match(ContentType.Application.FormUrlEncoded) -> {
+                        val string = channel.readText(charset = call.request.contentCharset() ?: Charsets.ISO_8859_1)
                         parseQueryString(string)
                     }
-                    contentType?.match(ContentType.MultiPart.FormData) == true -> {
+                    contentType.match(ContentType.MultiPart.FormData) -> {
                         Parameters.build {
-                            val multipart = value.multiPartData()
-                            while (true) {
-                                val it = multipart.readPart() ?: break
-                                if (it is PartData.FormItem) {
-                                    it.partName?.let { name -> append(name, it.value) }
-                                } else {
-                                    it.dispose()
+                            multiPartData(channel).forEachPart { part ->
+                                if (part is PartData.FormItem) {
+                                    part.name?.let { partName ->
+                                        append(partName, part.value)
+                                    }
                                 }
+
+                                part.dispose()
                             }
                         }
                     }
@@ -53,6 +57,30 @@ fun ApplicationReceivePipeline.installDefaultTransformations() {
         }
         if (transformed != null)
             proceedWith(ApplicationReceiveRequest(query.type, transformed))
+    }
+}
+
+private fun PipelineContext<*, ApplicationCall>.multiPartData(rc: ByteReadChannel): MultiPartData {
+    val contentType = call.request.header(HttpHeaders.ContentType) ?:
+            throw IllegalStateException("Content-Type header is required for multipart processing")
+
+    val contentLength = call.request.header(HttpHeaders.ContentLength)?.toLong()
+
+    return CIOMultipartDataBase(Unconfined, rc, contentType, contentLength)
+}
+
+private suspend fun ByteReadChannel.readText(
+        charset: Charset
+): String {
+    if (isClosedForRead) return ""
+
+    val content = readRemaining()
+
+    return try {
+        if (charset == Charsets.UTF_8) content.readText()
+        else content.inputStream().reader(charset).readText()
+    } finally {
+        content.release()
     }
 }
 

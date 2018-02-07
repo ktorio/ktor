@@ -9,6 +9,8 @@ import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.experimental.io.jvm.javaio.*
 
 /**
  *    install(ContentNegotiation) {
@@ -43,8 +45,14 @@ class GsonSupport(val gson: Gson) {
             pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
                 val contentType = call.request.contentType()
                 if (contentType.match(ContentType.Application.Json)) {
-                    val message = it.value as? IncomingContent ?: return@intercept
-                    val json = message.readText()
+                    val channel = it.value as? ByteReadChannel
+                    if (channel != null) {
+                        val value = gson.fromJson(channel.toInputStream().reader(contentType.charset() ?: Charsets.UTF_8), it.type.javaObjectType)
+                        proceedWith(ApplicationReceiveRequest(it.type, value))
+                        return@intercept
+                    }
+                    val message = it.value as? ByteReadChannel ?: return@intercept
+                    val json = message.readRemaining().readText()
                     val value = gson.fromJson(json, it.type.javaObjectType)
                     proceedWith(ApplicationReceiveRequest(it.type, value))
                 }
@@ -67,9 +75,10 @@ class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
 
     override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
         val request = context.subject
-        val value = request.value as? IncomingContent ?: return null
+        val channel = request.value as? ByteReadChannel ?: return null
+        val reader = channel.toInputStream().reader(context.call.request.contentCharset() ?: Charsets.UTF_8)
         val type = request.type
-        return gson.fromJson(value.readText(), type.javaObjectType)
+        return gson.fromJson(reader, type.javaObjectType)
     }
 }
 

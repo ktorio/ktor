@@ -1,6 +1,5 @@
 package io.ktor.content
 
-import io.ktor.cio.*
 import io.ktor.http.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.jvm.javaio.*
@@ -16,7 +15,7 @@ interface IncomingContent : HttpMessage {
 }
 
 @Deprecated("Pool specification is not supported anymore", ReplaceWith("readText(charset)"))
-suspend fun IncomingContent.readText(pool: ObjectPool<ByteBuffer>, charset: Charset? = null) = readText(charset)
+suspend fun IncomingContent.readText(pool: ObjectPool<ByteBuffer>, charset: Charset? = null) = readText(charset ?: charset() ?: Charsets.ISO_8859_1)
 
 suspend fun IncomingContent.readText() = readText(charset() ?: Charsets.ISO_8859_1)
 

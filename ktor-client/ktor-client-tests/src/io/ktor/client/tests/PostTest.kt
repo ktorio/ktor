@@ -6,6 +6,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.content.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
@@ -21,7 +22,7 @@ open class PostTest(private val factory: HttpClientEngineFactory<*>) : TestWithK
     override val server = embeddedServer(Jetty, serverPort) {
         routing {
             post("/") {
-                val content = call.request.receiveContent().readText()
+                val content = call.receive<String>()
                 assert(content.startsWith(BODY_PREFIX))
                 call.respondText(content)
             }

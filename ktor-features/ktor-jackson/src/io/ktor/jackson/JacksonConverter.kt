@@ -8,6 +8,8 @@ import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.pipeline.*
 import io.ktor.request.*
+import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.experimental.io.jvm.javaio.*
 
 /**
  *    install(ContentNegotiation) {
@@ -31,9 +33,10 @@ class JacksonConverter(private val objectmapper: ObjectMapper = jacksonObjectMap
 
     override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
         val request = context.subject
-        val value = request.value as? IncomingContent ?: return null
         val type = request.type
-        return objectmapper.readValue(value.readText(), type.javaObjectType)
+        val value = request.value as? ByteReadChannel ?: return null
+        val reader = value.toInputStream().reader(context.call.request.contentCharset() ?: Charsets.UTF_8)
+        return objectmapper.readValue(reader, type.javaObjectType)
     }
 }
 

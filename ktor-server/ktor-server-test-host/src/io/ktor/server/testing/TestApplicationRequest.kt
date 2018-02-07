@@ -70,6 +70,9 @@ class TestApplicationRequest(
     override val cookies = RequestCookies(this)
 
     override fun receiveContent() = TestIncomingContent(this)
+    override fun receiveChannel(): ByteReadChannel {
+        return ByteReadChannel(bodyBytes)
+    }
 
     class TestIncomingContent(private val request: TestApplicationRequest) : IncomingContent {
         override val headers: Headers = request.headers
