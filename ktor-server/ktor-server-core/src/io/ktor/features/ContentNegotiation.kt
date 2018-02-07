@@ -7,7 +7,7 @@ import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
-import java.nio.charset.Charset
+import java.nio.charset.*
 
 /**
  * This feature provides automatic content conversion according to Content-Type and Accept headers
@@ -65,17 +65,24 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
             pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) {
                 if (subject is OutgoingContent) return@intercept
 
-                val suitableConverters = call.request.acceptItems().mapNotNull { (contentType, _) ->
-                    feature.registrations.firstOrNull {
-                        it.contentType.match(contentType)
-                    }
+                val acceptItems = call.request.acceptItems()
+                val suitableConverters = if (acceptItems.isEmpty()) {
+                    // all converters are suitable since client didn't indicate what it wants
+                    feature.registrations
+                } else {
+                    // select converters that match specified Accept header, in order of quality
+                    acceptItems.flatMap { (contentType, _) ->
+                        feature.registrations.filter { it.contentType.match(contentType) }
+                    }.distinct()
                 }
 
-                val converted = suitableConverters.mapUntilNotNull {
+                // Pick the first one that can convert the subject successfully
+                val converted = suitableConverters.mapFirstNotNull {
                     it.converter.convertForSend(this, it.contentType, subject)
                 }
 
-                val rendered = converted?.let { transformDefaultContent(it) } ?: HttpStatusCodeContent(HttpStatusCode.NotAcceptable)
+                val rendered = converted?.let { transformDefaultContent(it) }
+                        ?: HttpStatusCodeContent(HttpStatusCode.NotAcceptable)
                 proceedWith(rendered)
             }
 
@@ -113,7 +120,7 @@ interface ContentConverter {
      * @param contentType to which this data converted has been registered and that matches client's accept header
      * @param value to be converted
      *
-     * @return a converted value of null if this [value] is not suitable for this converter
+     * @return a converted value, or null if this [value] is not suitable for this converter
      */
     suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any?
 
@@ -133,12 +140,12 @@ fun ApplicationCall.suitableCharset(defaultCharset: Charset = Charsets.UTF_8): C
     return defaultCharset
 }
 
-private inline fun <F, T> Iterable<F>.mapUntilNotNull(block: (F) -> T?): T? {
+private inline fun <F, T> Iterable<F>.mapFirstNotNull(block: (F) -> T?): T? {
     @Suppress("LoopToCallChain")
     for (element in this) {
         val mapped = block(element)
-        if (mapped != null) return mapped
+        if (mapped != null)
+            return mapped
     }
-
     return null
 }

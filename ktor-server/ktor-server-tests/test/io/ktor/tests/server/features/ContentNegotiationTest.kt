@@ -15,6 +15,34 @@ import kotlin.test.*
 class ContentNegotiationTest {
     private val customContentType = ContentType.parse("application/ktor")
 
+    private val customContentConverter = object : ContentConverter {
+        override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
+            if (value !is Wrapper) return null
+            return TextContent("[${value.value}]", contentType.withCharset(context.call.suitableCharset()))
+        }
+
+        override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
+            val type = context.subject.type
+            val incoming = context.subject.value
+            if (type != Wrapper::class || incoming !is IncomingContent) return null
+            return Wrapper(incoming.readText().removeSurrounding("[", "]"))
+        }
+    }
+
+    private val textContentConverter =  object : ContentConverter {
+        override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
+            if (value !is Wrapper) return null
+            return TextContent(value.value, contentType.withCharset(context.call.suitableCharset()))
+        }
+
+        override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
+            val type = context.subject.type
+            val incoming = context.subject.value
+            if (type != Wrapper::class || incoming !is IncomingContent) return null
+            return Wrapper(incoming.readText())
+        }
+    }
+
     @Test
     fun testEmpty() = withTestApplication {
         application.install(ContentNegotiation) {
@@ -52,19 +80,7 @@ class ContentNegotiationTest {
     fun testCustom() {
         withTestApplication {
             application.install(ContentNegotiation) {
-                register(customContentType, object : ContentConverter {
-                    override suspend fun convertForSend(context: PipelineContext<Any, ApplicationCall>, contentType: ContentType, value: Any): Any? {
-                        if (value !is Wrapper) return null
-                        return TextContent("[${value.value}]", contentType.withCharset(context.call.suitableCharset()))
-                    }
-
-                    override suspend fun convertForReceive(context: PipelineContext<ApplicationReceiveRequest, ApplicationCall>): Any? {
-                        val type = context.subject.type
-                        val incoming = context.subject.value
-                        if (type != Wrapper::class || incoming !is IncomingContent) return null
-                        return Wrapper(incoming.readText().removeSurrounding("[", "]"))
-                    }
-                })
+                register(customContentType, customContentConverter)
             }
 
             application.routing {
@@ -131,6 +147,7 @@ class ContentNegotiationTest {
 
             // Unacceptable
             handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Accept, ContentType.Text.Plain.toString())
             }.let { call ->
                 assertEquals(HttpStatusCode.NotAcceptable, call.response.status())
                 assertNull(call.response.headers[HttpHeaders.ContentType])
@@ -177,6 +194,69 @@ class ContentNegotiationTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals(customContentType, call.response.contentType().withoutParameters())
                 assertEquals("[OK: The Text]", call.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testMultiple() {
+        val textContentConverter: ContentConverter = textContentConverter
+
+        withTestApplication {
+            application.install(ContentNegotiation) {
+                // Order here matters. The first registered content type matching the Accept header will be chosen.
+                register(customContentType, customContentConverter)
+                register(ContentType.Text.Plain, textContentConverter)
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond(Wrapper("OK"))
+                }
+            }
+
+            // Accept: application/ktor
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Accept, customContentType.toString())
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(customContentType, call.response.contentType().withoutParameters())
+                assertEquals("[OK]", call.response.content)
+            }
+
+            // Accept: text/plain
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Accept, ContentType.Text.Plain.toString())
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
+                assertEquals("OK", call.response.content)
+            }
+
+            // Accept: text/*
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Accept, ContentType.Text.Any.toString())
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
+                assertEquals("OK", call.response.content)
+            }
+
+            // Accept: */*
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Accept, ContentType.Any.toString())
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(customContentType, call.response.contentType().withoutParameters())
+                assertEquals("[OK]", call.response.content)
+            }
+
+            // No Accept header
+            handleRequest(HttpMethod.Get, "/") {
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(customContentType, call.response.contentType().withoutParameters())
+                assertEquals("[OK]", call.response.content)
             }
         }
     }
