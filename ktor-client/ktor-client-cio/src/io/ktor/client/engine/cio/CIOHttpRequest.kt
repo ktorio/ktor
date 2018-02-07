@@ -18,15 +18,9 @@ class CIOHttpRequest(
     override val method: HttpMethod = requestData.method
     override val url: Url = requestData.url
     override val headers: Headers = requestData.headers
-
     override val executionContext: CompletableDeferred<Unit> = requestData.executionContext
-
-    init {
-        require(url.protocol.name == "http") { "CIOEngine support only http yet" }
-    }
 
     override suspend fun execute(content: OutgoingContent): HttpResponse {
         return engine.executeRequest(this, content)
     }
 }
-

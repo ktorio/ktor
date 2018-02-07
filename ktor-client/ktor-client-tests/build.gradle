@@ -3,6 +3,7 @@ description = "Common tests for client"
 dependencies {
     compile project(":ktor-client:ktor-client-core")
     compile project(":ktor-server:ktor-server-jetty")
+    compile project(":ktor-server:ktor-server-netty")
     compile group: 'ch.qos.logback', name: 'logback-classic', version: logback_version
     compile group: 'junit', name: 'junit', version: junit_version
     compile group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
