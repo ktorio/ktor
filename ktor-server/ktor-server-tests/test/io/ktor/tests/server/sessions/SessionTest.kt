@@ -1,16 +1,23 @@
 package io.ktor.tests.server.sessions
 
-import io.ktor.application.*
-import io.ktor.http.*
-import io.ktor.response.*
-import io.ktor.routing.*
-import io.ktor.server.testing.*
+import io.ktor.application.call
+import io.ktor.application.install
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.http.encodeURLQueryComponent
+import io.ktor.response.respondText
+import io.ktor.routing.get
+import io.ktor.routing.route
+import io.ktor.routing.routing
+import io.ktor.server.testing.TestApplicationEngine
+import io.ktor.server.testing.handleRequest
+import io.ktor.server.testing.withTestApplication
 import io.ktor.sessions.*
-import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.io.jvm.javaio.*
+import io.ktor.util.hex
+import kotlinx.coroutines.experimental.io.jvm.javaio.toInputStream
+import kotlinx.coroutines.experimental.runBlocking
 import org.junit.Test
-import java.time.*
+import java.time.Duration
 import java.util.*
 import kotlin.test.*
 
@@ -153,49 +160,84 @@ class SessionTest {
                 }
             }
 
+            commonSignedChecks()
+        }
+    }
+
+    @Test
+    fun testSessionEncrypted() {
+        val encryptKey = hex("00112233445566778899aabbccddeeff")
+        val signKey = hex("02030405060708090a0b0c")
+        val forcedIvForTesting = hex("00112233445566778899aabbccddeeff")
+
+        withTestApplication {
+            application.install(Sessions) {
+                cookie<TestUserSession>(cookieName) {
+                    transform(SessionTransportTransformerEncrypt(encryptKey, signKey, { forcedIvForTesting }))
+                }
+            }
+
             application.routing {
-                get("/1") {
+                get("/3") {
                     call.sessions.set(TestUserSession("id2", emptyList()))
                     call.respondText("ok")
                 }
-                get("/2") {
-                    call.respondText("ok, ${call.sessions.get<TestUserSession>()?.userId}")
-                }
             }
 
-            var sessionId = ""
-            handleRequest(HttpMethod.Get, "/1").let { call ->
+            handleRequest(HttpMethod.Get, "/3").let { call ->
                 val sessionCookie = call.response.cookies[cookieName]
-                assertNotNull(sessionCookie, "No session cookie found")
-                sessionId = sessionCookie!!.value
+                assertEquals(
+                    "00112233445566778899aabbccddeeff/c3850fc1ddc62f71ec5eaad6d393b91fa809fe32a1cf0cb4730788c5a489daef:51a5e9fcd1c91418f9a623bafa5022a524348e44244265dc0cab2cebacc28a5d",
+                    sessionCookie!!.value
+                )
             }
 
-            handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(sessionId)}")
-            }.let { call ->
-                assertEquals("ok, id2", call.response.content)
-            }
+            commonSignedChecks()
+        }
+    }
 
-            handleRequest(HttpMethod.Get, "/2") {
-                //                addHeader(HttpHeaders.Cookie, "$cookieName=$sessionId")
-            }.let { call ->
-                assertEquals("ok, null", call.response.content)
+    private fun TestApplicationEngine.commonSignedChecks() {
+        application.routing {
+            get("/1") {
+                call.sessions.set(TestUserSession("id2", emptyList()))
+                call.respondText("ok")
             }
-
-            handleRequest(HttpMethod.Get, "/2") {
-                val brokenSession = flipLastHexDigit(sessionId)
-                addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(brokenSession)}")
-            }.let { call ->
-                assertEquals("ok, null", call.response.content)
+            get("/2") {
+                call.respondText("ok, ${call.sessions.get<TestUserSession>()?.userId}")
             }
+        }
 
-            handleRequest(HttpMethod.Get, "/2") {
-                val invalidHex = sessionId.mapIndexed { i, c -> if (i == sessionId.lastIndex) 'x' else c }.joinToString("")
-                addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(invalidHex)}")
-            }.let { call ->
-                assertEquals("ok, null", call.response.content)
-            }
+        var sessionId = ""
+        handleRequest(HttpMethod.Get, "/1").let { call ->
+            val sessionCookie = call.response.cookies[cookieName]
+            assertNotNull(sessionCookie, "No session cookie found")
+            sessionId = sessionCookie!!.value
+        }
 
+        handleRequest(HttpMethod.Get, "/2") {
+            addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(sessionId)}")
+        }.let { call ->
+            assertEquals("ok, id2", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/2") {
+            //                addHeader(HttpHeaders.Cookie, "$cookieName=$sessionId")
+        }.let { call ->
+            assertEquals("ok, null", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/2") {
+            val brokenSession = flipLastHexDigit(sessionId)
+            addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(brokenSession)}")
+        }.let { call ->
+            assertEquals("ok, null", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/2") {
+            val invalidHex = sessionId.mapIndexed { i, c -> if (i == sessionId.lastIndex) 'x' else c }.joinToString("")
+            addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(invalidHex)}")
+        }.let { call ->
+            assertEquals("ok, null", call.response.content)
         }
     }
 
