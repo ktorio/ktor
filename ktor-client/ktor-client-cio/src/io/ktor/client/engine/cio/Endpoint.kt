@@ -3,6 +3,7 @@ package io.ktor.client.engine.cio
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.content.*
+import io.ktor.network.tls.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import java.io.*
@@ -12,15 +13,16 @@ import java.util.concurrent.atomic.*
 internal class Endpoint(
         host: String,
         port: Int,
+        private val secure: Boolean,
         private val dispatcher: CoroutineDispatcher,
-        private val endpointConfig: EndpointConfig,
+        private val config: CIOEngineConfig,
         private val connectionFactory: ConnectionFactory,
         private val onDone: () -> Unit
 ) : Closeable {
     private val tasks: Channel<ConnectionRequestTask> = Channel(Channel.UNLIMITED)
     private val deliveryPoint: Channel<ConnectionRequestTask> = Channel()
 
-    private val MAX_ENDPOINT_IDLE_TIME = 2 * endpointConfig.connectTimeout
+    private val MAX_ENDPOINT_IDLE_TIME = 2 * config.endpoint.connectTimeout
 
     @Volatile
     private var connectionsHolder: Int = 0
@@ -43,13 +45,19 @@ internal class Endpoint(
                 if (deliveryPoint.offer(task)) continue
 
                 val connections = Connections.get(this@Endpoint)
+
                 val connect: suspend () -> Boolean = {
-                    withTimeoutOrNull(endpointConfig.connectTimeout) { newConnection() } != null
+                    withTimeoutOrNull(config.endpoint.connectTimeout) { newConnection() } != null
                 }
 
-                if (connections < endpointConfig.maxConnectionsPerRoute && !tryExecute(endpointConfig.connectRetryAttempts, connect)) {
-                    task.continuation.resumeWithException(ConnectTimeout(task.request))
-                    continue
+                try {
+                    if (connections < config.endpoint.maxConnectionsPerRoute && !tryExecute(config.endpoint.connectRetryAttempts, connect)) {
+                        task.continuation.resumeWithException(ConnectTimeout(task.request))
+                        continue
+                    }
+                } catch (cause: Throwable) {
+                    task.continuation.resumeWithException(cause)
+                    throw cause
                 }
 
                 deliveryPoint.send(task)
@@ -68,12 +76,20 @@ internal class Endpoint(
 
     private suspend fun newConnection() {
         Connections.incrementAndGet(this)
-        val socket = connectionFactory.connect(address)
-        val pipeline = ConnectionPipeline(dispatcher, endpointConfig.keepAliveTime, endpointConfig.pipelineMaxSize, socket, deliveryPoint)
+        val socket = connectionFactory.connect(address).let {
+            if (secure) it.tls(config.https.trustManager, address.hostName, dispatcher) else it
+        }
 
-        pipeline.pipelineContext.invokeOnCompletion {
-            connectionFactory.release()
-            Connections.decrementAndGet(this)
+        ConnectionPipeline(
+                dispatcher,
+                config.endpoint.keepAliveTime, config.endpoint.pipelineMaxSize,
+                socket,
+                deliveryPoint
+        ).apply {
+            pipelineContext.invokeOnCompletion {
+                connectionFactory.release()
+                Connections.decrementAndGet(this@Endpoint)
+            }
         }
     }
 
