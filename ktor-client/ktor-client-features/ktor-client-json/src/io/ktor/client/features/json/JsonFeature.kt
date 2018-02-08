@@ -35,11 +35,11 @@ class JsonFeature(val serializer: JsonSerializer) {
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (expectedType, response) ->
-                if (response !is IncomingContent || context.response.contentType()?.match(ContentType.Application.Json) != true) return@intercept
+                if (response !is HttpResponse || context.response.contentType()?.match(ContentType.Application.Json) != true) return@intercept
 
                 proceedWith(HttpResponseContainer(
                         expectedType,
-                        feature.serializer.read(expectedType, response)
+                        feature.serializer.read(expectedType, response.receiveContent())
                 ))
             }
         }

@@ -27,7 +27,7 @@ class HttpClientCall private constructor(
         if (response::class.isSubclassOf(expectedType)) return response
         if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
 
-        val subject = HttpResponseContainer(expectedType, response.receiveContent())
+        val subject = HttpResponseContainer(expectedType, response)
         val result = client.responsePipeline.execute(this, subject).response
 
         if (!result::class.isSubclassOf(expectedType)) throw NoTransformationFound(result::class, expectedType)

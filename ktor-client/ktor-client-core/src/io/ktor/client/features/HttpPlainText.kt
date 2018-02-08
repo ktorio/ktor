@@ -31,8 +31,8 @@ class HttpPlainText(private val defaultCharset: Charset) {
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Parse) { (expectedType, response) ->
-                if (expectedType != String::class || response !is IncomingContent) return@intercept
-                proceedWith(HttpResponseContainer(expectedType, feature.read(response)))
+                if (expectedType != String::class || response !is HttpResponse) return@intercept
+                proceedWith(HttpResponseContainer(expectedType, feature.read(response.receiveContent())))
             }
         }
     }
