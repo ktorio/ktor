@@ -7,6 +7,12 @@ import kotlin.reflect.*
 fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>, storage: SessionStorage) = cookie(name, sessionType, storage, {})
 
 inline fun <reified S : Any> Sessions.Configuration.cookie(name: String, storage: SessionStorage): Unit = cookie(name, S::class, storage, {})
+
+/**
+ * Configures a session that will use a cookie with the specified [name] that will contain a session id.
+ * The actual content of the session will be stored at server side using the specified [storage].
+ * The cookie configuration can be set inside [block] using the cookie property exposed by [CookieIdSessionBuilder].
+ */
 inline fun <reified S : Any> Sessions.Configuration.cookie(name: String, storage: SessionStorage, block: CookieIdSessionBuilder<S>.() -> Unit) = cookie(name, S::class, storage, block)
 
 inline fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>, storage: SessionStorage, block: CookieIdSessionBuilder<S>.() -> Unit) {
@@ -21,6 +27,11 @@ inline fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KC
 fun <S : Any> Sessions.Configuration.header(name: String, sessionType: KClass<S>, storage: SessionStorage) = header(name, sessionType, storage, {})
 
 inline fun <reified S : Any> Sessions.Configuration.header(name: String, storage: SessionStorage): Unit = header(name, S::class, storage, {})
+
+/**
+ * Configures a session that will use a header with the specified [name] that will contain a session id.
+ * The actual content of the session will be stored at server side using the specified [storage].
+ */
 inline fun <reified S : Any> Sessions.Configuration.header(name: String, storage: SessionStorage, block: HeaderIdSessionBuilder<S>.() -> Unit) = header(name, S::class, storage, block)
 
 inline fun <S : Any> Sessions.Configuration.header(name: String, sessionType: KClass<S>, storage: SessionStorage, block: HeaderIdSessionBuilder<S>.() -> Unit) {
@@ -35,6 +46,12 @@ inline fun <S : Any> Sessions.Configuration.header(name: String, sessionType: KC
 fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>): Unit = cookie(name, sessionType, {})
 
 inline fun <reified S : Any> Sessions.Configuration.cookie(name: String): Unit = cookie(name, S::class, {})
+
+/**
+ * Configures a session that will use a cookie with the specified [name] that will contain the actual session content
+ * optionally transformed by specified transforms in [block].
+ * The cookie configuration can be set inside [block] using the cookie property exposed by [CookieIdSessionBuilder].
+ */
 inline fun <reified S : Any> Sessions.Configuration.cookie(name: String, block: CookieSessionBuilder<S>.() -> Unit): Unit = cookie(name, S::class, block)
 
 inline fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KClass<S>, block: CookieSessionBuilder<S>.() -> Unit) {
@@ -49,6 +66,11 @@ inline fun <S : Any> Sessions.Configuration.cookie(name: String, sessionType: KC
 fun <S : Any> Sessions.Configuration.header(name: String, sessionType: KClass<S>): Unit = header(name, sessionType, {})
 
 inline fun <reified S : Any> Sessions.Configuration.header(name: String): Unit = header(name, S::class, {})
+
+/**
+ * Configures a session that will use a header with the specified [name] that will contain the actual session content
+ * optionally transformed by specified transforms in [block].
+ */
 inline fun <reified S : Any> Sessions.Configuration.header(name: String, block: HeaderSessionBuilder<S>.() -> Unit): Unit = header(name, S::class, block)
 
 inline fun <S : Any> Sessions.Configuration.header(name: String, sessionType: KClass<S>, block: HeaderSessionBuilder<S>.() -> Unit) {

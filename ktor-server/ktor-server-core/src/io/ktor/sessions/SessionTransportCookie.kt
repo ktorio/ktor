@@ -5,6 +5,11 @@ import io.ktor.http.*
 import java.time.*
 import java.time.temporal.*
 
+/**
+ * SessionTransport that will add a Set-Cookie header and will read Cookie header
+ * for the specified cookie [name], and a specific cookie [configuration] after
+ * applying/un-applying the specified transforms defined by [transformers].
+ */
 class SessionTransportCookie(val name: String,
                              val configuration: CookieConfiguration,
                              val transformers: List<SessionTransportTransformer>

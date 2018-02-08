@@ -5,6 +5,9 @@ import io.ktor.response.*
 import io.ktor.util.*
 import kotlin.reflect.*
 
+/**
+ * Sessions reature that provides a mechanism to persist information between requests.
+ */
 class Sessions(val providers: List<SessionProvider>) {
     class Configuration {
         val providers = mutableListOf<SessionProvider>()

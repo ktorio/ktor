@@ -3,6 +3,10 @@ package io.ktor.sessions
 import io.ktor.application.*
 import io.ktor.response.*
 
+/**
+ * SessionTransport that will set or get the specific header [name],
+ * applying/un-applying the specified transforms defined by [transformers].
+ */
 class SessionTransportHeader(val name: String,
                              val transformers: List<SessionTransportTransformer>
 ) : SessionTransport {
