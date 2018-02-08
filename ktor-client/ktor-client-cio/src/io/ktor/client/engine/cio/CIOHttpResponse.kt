@@ -31,7 +31,7 @@ class CIOHttpResponse(
 
     override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 
-    private val content: ByteReadChannel
+    override val content: ByteReadChannel
 
     init {
         val contentLength = response.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
@@ -51,14 +51,6 @@ class CIOHttpResponse(
         }
 
         content = writerJob.channel
-    }
-
-    override fun receiveContent(): IncomingContent = object : IncomingContent {
-        override val headers: Headers = this@CIOHttpResponse.headers
-
-        override fun readChannel(): ByteReadChannel = content
-
-        override fun multiPartData(): MultiPartData = throw UnsupportedOperationException()
     }
 
     override fun close() {

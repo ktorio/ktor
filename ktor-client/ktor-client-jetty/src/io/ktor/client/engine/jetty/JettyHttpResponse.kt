@@ -15,19 +15,11 @@ class JettyHttpResponse(
         override val headers: Headers,
         override val requestTime: Date,
         override val executionContext: CompletableDeferred<Unit>,
-        private val content: ByteReadChannel,
+        override val content: ByteReadChannel,
         private val origin: Closeable
 ) : HttpResponse {
     override val version = HttpProtocolVersion.HTTP_2_0
     override val responseTime = Date()
-
-    override fun receiveContent(): IncomingContent = object : IncomingContent {
-        override fun readChannel(): ByteReadChannel = content
-
-        override fun multiPartData(): MultiPartData = throw UnsupportedOperationException()
-
-        override val headers: Headers = this@JettyHttpResponse.headers
-    }
 
     override fun close() {
         origin.close()

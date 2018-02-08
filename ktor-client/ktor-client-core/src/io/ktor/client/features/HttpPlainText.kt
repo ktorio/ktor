@@ -10,7 +10,7 @@ import java.nio.charset.*
 
 
 class HttpPlainText(private val defaultCharset: Charset) {
-    suspend fun read(response: IncomingContent): String = response.readText(charset = defaultCharset)
+    suspend fun read(response: HttpResponse): String = response.readText(charset = defaultCharset)
 
     class Config {
         var defaultCharset: Charset = Charset.defaultCharset()
@@ -32,7 +32,7 @@ class HttpPlainText(private val defaultCharset: Charset) {
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Parse) { (expectedType, response) ->
                 if (expectedType != String::class || response !is HttpResponse) return@intercept
-                proceedWith(HttpResponseContainer(expectedType, feature.read(response.receiveContent())))
+                proceedWith(HttpResponseContainer(expectedType, feature.read(response)))
             }
         }
     }

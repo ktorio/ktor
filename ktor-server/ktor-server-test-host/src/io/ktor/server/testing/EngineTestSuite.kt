@@ -16,6 +16,7 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.experimental.io.jvm.javaio.*
 import kotlinx.io.streams.*
 import org.junit.Test
 import org.junit.runners.model.*
@@ -382,7 +383,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             header(HttpHeaders.AcceptEncoding, "gzip")
         }) {
             assertEquals(200, status.value)
-            assertEquals(file.readText(), GZIPInputStream(receiveContent().inputStream()).reader().use { it.readText() })
+            assertEquals(file.readText(), GZIPInputStream(content.toInputStream()).reader().use { it.readText() })
             assertEquals("gzip", headers[HttpHeaders.ContentEncoding])
         }
     }
@@ -969,7 +970,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                 try {
                     withUrl("/$i") {
                         //setRequestProperty("Connection", "close")
-                        receiveContent().inputStream().reader().use { reader ->
+                        content.toInputStream().reader().use { reader ->
                             val firstByte = reader.read()
                             if (firstByte == -1) {
                                 //println("Premature end of response stream at iteration $i")
@@ -1027,7 +1028,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         }
 
         withUrl("/file") {
-            assertEquals(originalSha1WithSize, receiveContent().inputStream().sha1WithSize())
+            assertEquals(originalSha1WithSize, content.toInputStream().sha1WithSize())
         }
     }
 

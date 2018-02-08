@@ -4,6 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
+import io.ktor.http.*
 import kotlinx.coroutines.experimental.*
 import okhttp3.*
 import org.apache.http.client.methods.*
@@ -91,7 +92,7 @@ class KtorBenchmarkClient : HttpBenchmarkClient {
     override fun load(url: String) = runBlocking {
         val buffer = ByteBuffer.allocate(1024)
         httpClient!!.get<HttpResponse>(url).use { response ->
-            val channel = response.receiveContent().readChannel()
+            val channel = response.content
             while (!channel.isClosedForRead) {
                 buffer.clear()
                 channel.readAvailable(buffer)

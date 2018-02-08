@@ -26,7 +26,6 @@ class JsonFeature(val serializer: JsonSerializer) {
 
                 request.accept(ContentType.Application.Json)
                 if (request.contentType()?.match(ContentType.Application.Json) != true) {
-                    // request.header(HttpHeaders.Accept, ContentType.Application.Json.toString())
                     return@intercept
                 }
 
@@ -39,7 +38,7 @@ class JsonFeature(val serializer: JsonSerializer) {
 
                 proceedWith(HttpResponseContainer(
                         expectedType,
-                        feature.serializer.read(expectedType, response.receiveContent())
+                        feature.serializer.read(expectedType, response)
                 ))
             }
         }
