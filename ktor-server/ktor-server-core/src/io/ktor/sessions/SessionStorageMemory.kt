@@ -5,6 +5,12 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.util.concurrent.*
 
+/**
+ * [SessionStorage] that stores session contents into memory.
+ * Since it doesn't use any TTL sessions will grow while the application is running and will be discarded
+ * once the server stops.
+ * This is intended for development.
+ */
 class SessionStorageMemory : SessionStorage {
     private val sessions = ConcurrentHashMap<String, ByteArray>()
 
