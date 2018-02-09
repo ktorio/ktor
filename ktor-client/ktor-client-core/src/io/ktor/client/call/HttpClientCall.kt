@@ -10,8 +10,6 @@ import kotlin.reflect.*
 import kotlin.reflect.full.*
 
 
-class HttpRequestContext(val client: HttpClient, val request: HttpRequestBuilder)
-
 class HttpClientCall private constructor(
         private val client: HttpClient
 ) : Closeable {
@@ -42,8 +40,7 @@ class HttpClientCall private constructor(
         suspend fun create(requestBuilder: HttpRequestBuilder, client: HttpClient): HttpClientCall {
             val call = HttpClientCall(client)
 
-            val context = HttpRequestContext(client, requestBuilder)
-            val received = client.requestPipeline.execute(context, requestBuilder.body)
+            val received = client.requestPipeline.execute(requestBuilder, requestBuilder.body)
             call.request = client.createRequest(requestBuilder, call)
 
             val content = received as? OutgoingContent

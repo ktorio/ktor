@@ -44,7 +44,7 @@ class HttpCookies(private val storage: CookiesStorage) {
                 proceedWith(content.wrapHeaders { oldHeaders ->
                     Headers.build {
                         appendAll(oldHeaders)
-                        feature.forEach(context.request.url.host) {
+                        feature.forEach(context.url.host) {
                             append(HttpHeaders.Cookie, renderSetCookieHeader(it))
                         }
                     }

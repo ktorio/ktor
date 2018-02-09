@@ -4,9 +4,9 @@ import io.ktor.client.call.*
 import io.ktor.pipeline.*
 
 
-class HttpRequestPipeline : Pipeline<Any, HttpRequestContext>(Before, State, Transform, Render, Send) {
+class HttpRequestPipeline : Pipeline<Any, HttpRequestBuilder>(Before, State, Transform, Render, Send) {
     /**
-     * All interceptors should accept [HttpRequestBuilder] and proceed with [HttpRequestBuilder] or [HttpClientCall].
+     * All interceptors accept payload as [subject] and try to convert it to [OutgoingContent]
      * Last phase should proceed with [HttpClientCall]
      */
     companion object Phases {

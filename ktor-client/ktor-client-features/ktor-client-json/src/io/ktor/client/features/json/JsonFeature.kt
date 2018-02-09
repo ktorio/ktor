@@ -18,18 +18,18 @@ class JsonFeature(val serializer: JsonSerializer) {
     companion object Feature : HttpClientFeature<Config, JsonFeature> {
         override val key: AttributeKey<JsonFeature> = AttributeKey("Json")
 
-        override fun prepare(block: Config.() -> Unit): JsonFeature = Config().apply(block).let { JsonFeature(it.serializer) }
+        override fun prepare(block: Config.() -> Unit): JsonFeature =
+                Config().apply(block).let { JsonFeature(it.serializer) }
 
         override fun install(feature: JsonFeature, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { payload ->
-                val request = context.request
 
-                request.accept(ContentType.Application.Json)
-                if (request.contentType()?.match(ContentType.Application.Json) != true) {
+                context.accept(ContentType.Application.Json)
+                if (context.contentType()?.match(ContentType.Application.Json) != true) {
                     return@intercept
                 }
 
-                request.headers.remove(HttpHeaders.ContentType)
+                context.headers.remove(HttpHeaders.ContentType)
                 proceedWith(feature.serializer.write(payload))
             }
 
