@@ -7,8 +7,10 @@ import java.util.concurrent.*
 
 /**
  * [SessionStorage] that stores session contents into memory.
- * Since it doesn't use any TTL sessions will grow while the application is running and will be discarded
- * once the server stops.
+ *
+ * Since it doesn't use any TTL sessions, memory usage will increase while the application is running
+ * and session information will be discarded once the server stops.
+ *
  * This is intended for development.
  */
 class SessionStorageMemory : SessionStorage {

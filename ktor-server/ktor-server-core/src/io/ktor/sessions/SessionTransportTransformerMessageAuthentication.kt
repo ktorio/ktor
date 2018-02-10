@@ -5,9 +5,9 @@ import javax.crypto.*
 import javax.crypto.spec.*
 
 /**
- * Session transformer that will append a [algorithm] MAC (Message Authentication Code) hash of the input.
+ * Session transformer that appends an [algorithm] MAC (Message Authentication Code) hash of the input.
  * Where the input is either a session contents or a previous transformation.
- * It will use a specified [keySpec] when generating the Mac hash.
+ * It uses a specified [keySpec] when generating the Mac hash.
  */
 class SessionTransportTransformerMessageAuthentication(val keySpec: SecretKeySpec, val algorithm: String = "HmacSHA1") : SessionTransportTransformer {
     constructor(key: ByteArray, algorithm: String = "HmacSHA1") : this(SecretKeySpec(key, algorithm), algorithm)

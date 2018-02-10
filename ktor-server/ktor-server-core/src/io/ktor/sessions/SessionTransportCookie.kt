@@ -6,7 +6,7 @@ import java.time.*
 import java.time.temporal.*
 
 /**
- * SessionTransport that will add a Set-Cookie header and will read Cookie header
+ * SessionTransport that adds a Set-Cookie header and reads Cookie header
  * for the specified cookie [name], and a specific cookie [configuration] after
  * applying/un-applying the specified transforms defined by [transformers].
  */

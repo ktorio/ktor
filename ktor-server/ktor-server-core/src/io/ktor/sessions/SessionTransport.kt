@@ -7,17 +7,17 @@ import io.ktor.application.*
  */
 interface SessionTransport {
     /**
-     * Will get session information from a [call] and will return a String if success or null if couldn't.
+     * Gets session information from a [call] and returns a String if success or null if failed.
      */
     fun receive(call: ApplicationCall): String?
 
     /**
-     * Will set session information represented by [value] to a [call].
+     * Sets session information represented by [value] to a [call].
      */
     fun send(call: ApplicationCall, value: String)
 
     /**
-     * Will clear session information from a specific [call].
+     * Clears session information from a specific [call].
      */
     fun clear(call: ApplicationCall)
 }
