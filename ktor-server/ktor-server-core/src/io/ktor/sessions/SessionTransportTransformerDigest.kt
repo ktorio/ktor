@@ -6,9 +6,9 @@ import java.security.*
 private val delimiter = '/'
 
 /**
- * Session transformer that will append a [algorithm] hash of the input.
+ * Session transformer that appends an [algorithm] hash of the input.
  * Where the input is either a session contents or a previous transformation.
- * It will prepend a [salt] when computing the hash.
+ * It prepends a [salt] when computing the hash.
  */
 class SessionTransportTransformerDigest(val salt: String = "ktor", val algorithm: String = "SHA-256") : SessionTransportTransformer {
 

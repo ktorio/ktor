@@ -6,7 +6,7 @@ package io.ktor.sessions
 interface SessionTransportTransformer {
     /**
      * Un-apply a transformation for [transportValue] representing a transformed session.
-     * Will return null if it fails.
+     * Returns null if it fails.
      *
      * @return Untransformed value or null
      */
@@ -22,7 +22,7 @@ interface SessionTransportTransformer {
 
 /**
  * Un-applies a list of session transformations to a [cookieValue] representing a transformed session string.
- * If any of the unapplication of transformations fails returning a null, this function will return null too.
+ * If any of the unapplication of transformations fail returning a null, this function also returns null.
  *
  * @return A string representing the original session contents.
  */
