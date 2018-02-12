@@ -22,13 +22,13 @@ class HttpClientCall private constructor(
         private set
 
     suspend fun receive(expectedType: KClass<*>): Any {
-        if (response::class.isSubclassOf(expectedType)) return response
+        if (expectedType.isInstance(response)) return response
         if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
 
         val subject = HttpResponseContainer(expectedType, response)
         val result = client.responsePipeline.execute(this, subject).response
 
-        if (!result::class.isSubclassOf(expectedType)) throw NoTransformationFound(result::class, expectedType)
+        if (!expectedType.isInstance(result)) throw NoTransformationFound(result::class, expectedType)
         return result
     }
 
