@@ -17,7 +17,7 @@ import org.junit.Assert.*
 import java.util.concurrent.atomic.*
 
 
-open class CacheTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+abstract class CacheTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     private var counter = AtomicInteger()
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         routing {

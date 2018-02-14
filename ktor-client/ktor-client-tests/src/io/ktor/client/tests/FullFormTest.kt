@@ -18,7 +18,7 @@ import org.junit.*
 import org.junit.Assert.*
 
 
-open class FullFormTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+abstract class FullFormTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server = embeddedServer(Jetty, serverPort) {
         routing {
             get("/hello") {

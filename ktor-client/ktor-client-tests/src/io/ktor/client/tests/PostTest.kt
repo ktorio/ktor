@@ -16,7 +16,7 @@ import org.junit.*
 import org.junit.Assert.*
 import java.util.*
 
-open class PostTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+abstract class PostTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     private val BODY_PREFIX = "Hello, post"
 
     override val server = embeddedServer(Jetty, serverPort) {

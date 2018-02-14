@@ -15,7 +15,7 @@ import org.junit.*
 import org.junit.Assert.*
 
 
-open class CookiesTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
+abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
         routing {
             get("/") {
