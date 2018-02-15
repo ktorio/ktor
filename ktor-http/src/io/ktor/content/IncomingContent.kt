@@ -8,6 +8,7 @@ import kotlinx.io.streams.*
 import java.io.*
 import java.nio.charset.*
 
+@Deprecated("Use receive<ByteReadChannel>(), receive<MultiPartData>() or receive<InputStream>() instead")
 interface IncomingContent : HttpMessage {
     fun readChannel(): ByteReadChannel
     fun multiPartData(): MultiPartData
