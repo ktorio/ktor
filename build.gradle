@@ -235,7 +235,9 @@ subprojects {
         compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-jdk8', version: coroutines_version
         compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io', version: coroutines_version) {
             exclude(module: 'kotlin-stdlib')
+            exclude(module: 'kotlinx-io-jvm')
         }
+        compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-jvm', version: '0.0.10')
         compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
         compile group: 'com.typesafe', name: 'config', version: '1.3.1'
         testCompile group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
