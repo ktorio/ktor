@@ -16,7 +16,13 @@ class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), 
     }
 
     private val threads = (1..nThreads).map {
-        IOThread().apply { start() }
+        IOThread(tasks, dispatcherThreadGroup)
+    }
+
+    init {
+        threads.forEach {
+            it.start()
+        }
     }
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
@@ -39,25 +45,21 @@ class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), 
         val threads = threads
         @Suppress("LoopToCallChain")
         for (i in 0 until nThreads) {
-            val cont = ThreadCont.getAndSet(threads[i], null)
-            if (cont != null) {
-                cont.resume(Unit)
-                return
-            } else if (node.isRemoved) return
+            if (threads[i].tryResume() || node.isRemoved) return
         }
     }
 
     private fun resumeAllThreads() {
         val threads = threads
         for (i in 0 until nThreads) {
-            ThreadCont.getAndSet(threads[i], null)?.resume(Unit)
+            threads[i].tryResume()
         }
     }
 
-    internal inner class IOThread : Thread(dispatcherThreadGroup, "io-thread") {
+    private class IOThread(private val tasks: LockFreeLinkedListHead,
+                           dispatcherThreadGroup: ThreadGroup) : Thread(dispatcherThreadGroup, "io-thread") {
         @Volatile
-        @JvmField
-        var cont : Continuation<Unit>? = null
+        private var cont : Continuation<Unit>? = null
 
         init {
             isDaemon = true
@@ -68,7 +70,10 @@ class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), 
                 try {
                     while (true) {
                         val task = receiveOrNull() ?: break
-                        run(task)
+                        try {
+                            task.run()
+                        } catch (t: Throwable) {
+                        }
                     }
                 } catch (t: Throwable) {
                     println("thread died: $t")
@@ -76,20 +81,29 @@ class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), 
             }
         }
 
+        fun tryResume(): Boolean {
+            val cont = ThreadCont.getAndSet(this, null)
+            if (cont != null) {
+                cont.resume(Unit)
+                return true
+            }
+            return false
+        }
+
         @Suppress("NOTHING_TO_INLINE")
         private suspend inline fun receiveOrNull(): Runnable? {
             val r = tasks.removeFirstIfIsInstanceOf<Runnable>()
             if (r != null) return r
-            return receiveSuspend()
+            return receiveOrNullSuspend()
         }
 
         @Suppress("NOTHING_TO_INLINE")
-        private suspend inline fun receiveSuspend(): Runnable? {
+        private suspend inline fun receiveOrNullSuspend(): Runnable? {
             do {
                 val t = tasks.removeFirstIfIsInstanceOf<Runnable>()
                 if (t != null) return t
                 if (tasks.next is Poison) return null
-                await()
+                waitForTasks()
             } while (true)
         }
 
@@ -98,28 +112,22 @@ class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), 
             // we know that it is always non-null
             // and it will never crash if it is actually null
             val threadCont = ThreadCont
-            if (!threadCont.compareAndSet(this, null, c)) throw IllegalStateException()
+            if (!threadCont.compareAndSet(this, null, c)) throw IllegalStateException("Failed to set continuation")
             if (tasks.next !== tasks && threadCont.compareAndSet(this, c, null)) Unit
             else COROUTINE_SUSPENDED
         }
 
-        private suspend fun await() {
+        private suspend fun waitForTasks() {
             return suspendCoroutineOrReturn(awaitSuspendBlock)
         }
 
-        private fun run(task: Runnable) {
-            try {
-                task.run()
-            } catch (t: Throwable) {
-            }
+        companion object {
+            @Suppress("UNCHECKED_CAST")
+            @JvmStatic
+            private val ThreadCont =
+                    AtomicReferenceFieldUpdater.newUpdater<IOThread, Continuation<*>>(IOThread::class.java, Continuation::class.java, IOThread::cont.name)
+                            as AtomicReferenceFieldUpdater<IOThread, Continuation<Unit>?>
         }
-    }
-
-    companion object {
-        @Suppress("UNCHECKED_CAST")
-        private val ThreadCont =
-                AtomicReferenceFieldUpdater.newUpdater<IOThread, Continuation<*>>(IOThread::class.java, Continuation::class.java, IOThread::cont.name)
-        as AtomicReferenceFieldUpdater<IOThread, Continuation<Unit>?>
     }
 
     private class Poison : LockFreeLinkedListNode()
