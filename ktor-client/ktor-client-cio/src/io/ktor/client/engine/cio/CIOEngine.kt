@@ -5,14 +5,15 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.content.*
+import io.ktor.http.*
 import kotlinx.coroutines.experimental.channels.*
-import java.nio.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
 class CIOEngine(private val config: CIOEngineConfig) : HttpClientEngine {
     private val dispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
+
     private val connectionFactory = ConnectionFactory(config.maxConnectionsCount)
     private val closed = AtomicBoolean()
 
@@ -24,9 +25,10 @@ class CIOEngine(private val config: CIOEngineConfig) : HttpClientEngine {
             if (closed.get()) throw ClientClosedException()
 
             val endpoint = with(request.url) {
-                val address = "$host:$port"
+                val address = "$host:$port:$protocol"
                 endpoints.computeIfAbsent(address) {
-                    Endpoint(host, port, dispatcher, config.endpointConfig, connectionFactory) {
+                    val secure = (protocol.name.equals(URLProtocol.HTTPS.name, ignoreCase = true))
+                    Endpoint(host, port, secure, dispatcher, config, connectionFactory) {
                         endpoints.remove(address)
                     }
                 }
