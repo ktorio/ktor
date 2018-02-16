@@ -12,6 +12,10 @@ open class JettyApplicationEngineBase(environment: ApplicationEngineEnvironment,
                                       configure: Configuration.() -> Unit) : BaseApplicationEngine(environment) {
 
     class Configuration : BaseApplicationEngine.Configuration() {
+        /**
+         * Property function that will be called during Jetty server initialization
+         * with the server instance as receiver.
+         */
         var configureServer: Server.() -> Unit = {}
     }
 

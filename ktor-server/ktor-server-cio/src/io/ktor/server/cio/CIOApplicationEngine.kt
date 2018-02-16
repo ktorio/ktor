@@ -10,6 +10,10 @@ import java.util.concurrent.*
 
 class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) : BaseApplicationEngine(environment) {
     class Configuration : BaseApplicationEngine.Configuration() {
+        /**
+         * Number of seconds that the server will keep HTTP IDLE connections open.
+         * A connection is IDLE if there are no active requests running.
+         */
         var connectionIdleTimeoutSeconds: Int = 45
     }
 
