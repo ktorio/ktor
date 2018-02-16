@@ -16,6 +16,10 @@ import javax.servlet.*
 
 class TomcatApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) : BaseApplicationEngine(environment) {
     class Configuration : BaseApplicationEngine.Configuration() {
+        /**
+         * Property to provide a lambda that will be called
+         * during Tomcat server initialization with the server instance as argument.
+         */
         var configureTomcat: Tomcat.() -> Unit = {}
     }
 
