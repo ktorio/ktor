@@ -12,14 +12,14 @@ import io.ktor.util.*
 fun AuthenticationPipeline.formAuthentication(userParamName: String = "user",
                                                            passwordParamName: String = "password",
                                                            challenge: FormAuthChallenge = FormAuthChallenge.Unauthorized,
-                                                           validate: (UserPasswordCredential) -> Principal?) {
+                                                           validate: suspend (UserPasswordCredential) -> Principal?) {
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val postParameters = call.receiveOrNull<Parameters>()
         val username = postParameters?.get(userParamName)
         val password = postParameters?.get(passwordParamName)
 
         val credentials = if (username != null && password != null) UserPasswordCredential(username, password) else null
-        val principal = credentials?.let(validate)
+        val principal = credentials?.let { validate(it) }
 
         if (principal != null) {
             context.principal(principal)
