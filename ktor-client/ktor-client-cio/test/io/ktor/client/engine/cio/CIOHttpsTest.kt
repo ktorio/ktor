@@ -4,7 +4,9 @@ import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
+import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
+import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
@@ -63,5 +65,13 @@ class CIOHttpsTest : TestWithKtor() {
         }).use { client ->
             assertEquals("Hello, world", client.get("https://127.0.0.1:$serverPort/"))
         }
+    }
+
+    @Test
+    fun external(): Unit = runBlocking {
+        val client = HttpClient(CIO)
+
+        val response = client.get<HttpResponse>("https://kotlinlang.org")
+        assertEquals(HttpStatusCode.OK, response.status)
     }
 }

@@ -72,7 +72,7 @@ internal class TLSClientSession(
 
                 if (handshakeHeader.type != TLSHandshakeType.HelloRequest) {
                     handshakesPacket.writeTLSHandshake(handshakeHeader)
-                    if (!record.isEmpty) handshakesPacket.writePacket(body.copy())
+                    if (!body.isEmpty) handshakesPacket.writePacket(body.copy())
                 }
 
                 handshake(body)
@@ -87,6 +87,12 @@ internal class TLSClientSession(
                 // authentication processes were successful.
                 receiveHandshakeFinished()
                 return true
+            }
+            TLSRecordType.Alert -> {
+                val level = TLSAlertLevel.byCode(record.readByte().toInt())
+                val code = TLSAlertType.byCode(record.readByte().toInt())
+
+                throw TLSException("Received alert during handshake. Level: $level, code: $code")
             }
             else -> throw TLSException("Unsupported TLS record type ${recordHeader.type}")
         }
