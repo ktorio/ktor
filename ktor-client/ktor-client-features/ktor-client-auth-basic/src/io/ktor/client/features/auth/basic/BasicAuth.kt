@@ -2,15 +2,29 @@ package io.ktor.client.features.auth.basic
 
 import io.ktor.client.*
 import io.ktor.client.features.*
+import io.ktor.client.features.cookies.HttpCookies.Config
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.pipeline.*
 import io.ktor.util.*
 
+/**
+ * [HttpClient] feature that sets an `Authorization: basic` header
+ * as specified in RFC-2617 using [username] and [password].
+ *
+ * https://www.ietf.org/rfc/rfc2617.txt
+ */
 class BasicAuth(val username: String, val password: String) {
 
     class Configuration {
+        /**
+         * Required: The username of the basic auth.
+         */
         lateinit var username: String
+
+        /**
+         * Required: The password of the basic auth.
+         */
         lateinit var password: String
 
         fun build(): BasicAuth = BasicAuth(username, password)

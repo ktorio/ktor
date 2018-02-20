@@ -6,9 +6,15 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlin.coroutines.experimental.*
 
-
+/**
+ * Concrete [OutgoingContent] without a payload.
+ */
 object EmptyContent : OutgoingContent.NoContent()
 
+/**
+ * Generates a new [OutgoingContent] of the same abstract type
+ * but with [OutgoingContent.headers] transformed by the specified [block].
+ */
 fun OutgoingContent.wrapHeaders(block: (Headers) -> Headers): OutgoingContent = when (this) {
     is OutgoingContent.NoContent -> object : OutgoingContent.NoContent() {
         override val contentLength: Long? get() = this@wrapHeaders.contentLength

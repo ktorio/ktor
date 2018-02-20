@@ -4,18 +4,36 @@ import io.ktor.http.*
 import java.util.*
 import java.util.concurrent.*
 
-
+/**
+ * Storage for [Cookie].
+ */
 interface CookiesStorage {
+    /**
+     * Gets a map of [String] to [Cookie] for a specific [host].
+     */
     suspend fun get(host: String): Map<String, Cookie>?
-    suspend fun get(host: String, name: String): Cookie?
-    suspend fun addCookie(host: String, cookie: Cookie)
 
+    /**
+     * Try to get a [Cookie] with the specified cookie's [name] for a [host].
+     */
+    suspend fun get(host: String, name: String): Cookie?
+
+    /**
+     * Sets a [cookie] for the specified [host].
+     */
+    suspend fun addCookie(host: String, cookie: Cookie)
 }
 
+/**
+ * Runs a [block] of code, for all the cookies set in the specified [host].
+ */
 suspend inline fun CookiesStorage.forEach(host: String, block: (Cookie) -> Unit) {
     get(host)?.forEach { block(it.value) }
 }
 
+/**
+ * [CookiesStorage] that stores all the cookies in an in-memory map.
+ */
 open class AcceptAllCookiesStorage : CookiesStorage {
     private val data = ConcurrentHashMap<String, MutableMap<String, Cookie>>()
 
@@ -37,6 +55,9 @@ open class AcceptAllCookiesStorage : CookiesStorage {
     }
 }
 
+/**
+ * [CookiesStorage] that ignores [addCookie] and returns a list of specified [cookies] when constructed.
+ */
 class ConstantCookieStorage(vararg cookies: Cookie) : CookiesStorage {
     private val storage: Map<String, Cookie> = cookies.map { it.name to it }.toMap()
 
