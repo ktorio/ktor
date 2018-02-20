@@ -9,9 +9,21 @@ import io.ktor.http.*
 import io.ktor.pipeline.*
 import io.ktor.util.*
 
-
+/**
+ * [HttpClient] feature that serializes/de-serializes as JSON custom objects
+ * to request and from response bodies using a [serializer].
+ *
+ * The default [serializer] is [GsonSerializer].
+ *
+ * Note: It will de-serialize the body response if the specified type is a public accessible class
+ *       and the Content-Type is `application/json`
+ */
 class JsonFeature(val serializer: JsonSerializer) {
     class Config {
+        /**
+         * Serialized that will be used for serializing requests bodies,
+         * and de-serializing response bodies when Content-Type matches `application/json`.
+         */
         var serializer: JsonSerializer = GsonSerializer()
     }
 

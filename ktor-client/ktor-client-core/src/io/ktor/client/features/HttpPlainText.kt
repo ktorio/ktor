@@ -8,7 +8,14 @@ import io.ktor.http.*
 import io.ktor.util.*
 import java.nio.charset.*
 
-
+/**
+ * [HttpClient] feature that encodes [String] request bodies to [TextContent]
+ * using a specific charset defined at [HttpPlainText.defaultCharset].
+ * And also processes the response body as [String].
+ *
+ * NOTE: the [HttpPlainText.defaultCharset] is the default one for your JVM so can change between servers!
+ *       So please, specify one if you want consistent results in all your deployments.
+ */
 class HttpPlainText(private val defaultCharset: Charset) {
     suspend fun read(response: HttpResponse): String = response.readText(charset = defaultCharset)
 

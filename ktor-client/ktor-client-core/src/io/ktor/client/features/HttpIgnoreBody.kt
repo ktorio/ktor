@@ -3,8 +3,13 @@ package io.ktor.client.features
 import io.ktor.client.*
 import io.ktor.client.response.*
 import io.ktor.util.*
+import io.ktor.client.call.*
 
-
+/**
+ * [HttpClient] feature that closes the [HttpClientCall.response] early for optimizing resources.
+ *
+ * This feature doesn't have anything to configure.
+ */
 class HttpIgnoreBody {
     companion object Feature : HttpClientFeature<Unit, HttpIgnoreBody> {
         override val key: AttributeKey<HttpIgnoreBody> = AttributeKey("HttpIgnoreBody")

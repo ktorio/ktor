@@ -1,10 +1,14 @@
 package io.ktor.client.response
 
+import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.request.*
 import io.ktor.pipeline.*
 import kotlin.reflect.*
 
-
+/**
+ * [HttpClient] Pipeline used for executing [HttpResponse].
+ */
 class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClientCall>(Receive, Parse, Transform, State, After) {
     companion object Phases {
         /**
@@ -34,4 +38,7 @@ class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClientCall>(Rec
     }
 }
 
+/**
+ * Class representing a typed [response] with an attached [expectedType].
+ */
 data class HttpResponseContainer(val expectedType: KClass<*>, val response: Any)
