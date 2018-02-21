@@ -8,12 +8,12 @@
 Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.
 
 ```kotlin
-import io.ktor.netty.*
+import io.ktor.server.netty.*
 import io.ktor.routing.*
 import io.ktor.application.*
-import io.ktor.host.*
 import io.ktor.http.*
 import io.ktor.response.*
+import io.ktor.server.engine.*
 
 fun main(args: Array<String>) {
     embeddedServer(Netty, 8080) {
