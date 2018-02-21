@@ -18,9 +18,10 @@ class CIOHttpRequest(
     override val method: HttpMethod = requestData.method
     override val url: Url = requestData.url
     override val headers: Headers = requestData.headers
+    override val content: OutgoingContent = requestData.body as OutgoingContent
     override val executionContext: CompletableDeferred<Unit> = requestData.executionContext
 
-    override suspend fun execute(content: OutgoingContent): HttpResponse {
+    override suspend fun execute(): HttpResponse {
         return engine.executeRequest(this, content)
     }
 }

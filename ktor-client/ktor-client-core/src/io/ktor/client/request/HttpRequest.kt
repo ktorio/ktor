@@ -39,11 +39,13 @@ interface HttpRequest : HttpMessage {
      */
     val executionContext: Job
 
+    val content: OutgoingContent
+
     /**
-     * Actually executes / sends the request with the specified [content]
+     * Actually executes / sends the request
      * including the request headers and the payload.
      */
-    suspend fun execute(content: OutgoingContent): HttpResponse
+    suspend fun execute(): HttpResponse
 }
 
 /**

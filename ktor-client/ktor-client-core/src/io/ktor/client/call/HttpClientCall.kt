@@ -63,13 +63,15 @@ class HttpClientCall private constructor(
             val call = HttpClientCall(client)
 
             val received = client.requestPipeline.execute(requestBuilder, requestBuilder.body)
-            val requestData = requestBuilder.build()
-            call.request = client.createRequest(requestData, call)
-
             val content = received as? OutgoingContent
                     ?: throw NoTransformationFound(received::class, OutgoingContent::class)
 
-            call.response = call.request.execute(content)
+            requestBuilder.body = received
+
+            val requestData = requestBuilder.build()
+
+            call.request = client.createRequest(requestData, call)
+            call.response = call.request.execute()
             return call
         }
     }
