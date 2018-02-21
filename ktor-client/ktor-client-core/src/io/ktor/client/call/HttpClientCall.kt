@@ -63,7 +63,8 @@ class HttpClientCall private constructor(
             val call = HttpClientCall(client)
 
             val received = client.requestPipeline.execute(requestBuilder, requestBuilder.body)
-            call.request = client.createRequest(requestBuilder, call)
+            val requestData = requestBuilder.build()
+            call.request = client.createRequest(requestData, call)
 
             val content = received as? OutgoingContent
                     ?: throw NoTransformationFound(received::class, OutgoingContent::class)

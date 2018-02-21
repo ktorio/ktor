@@ -15,8 +15,8 @@ class ApacheEngine(private val config: ApacheEngineConfig) : HttpClientEngine {
     private val engine: CloseableHttpAsyncClient = prepareClient().apply { start() }
     private val dispatcher: CoroutineDispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
 
-    override fun prepareRequest(builder: HttpRequestBuilder, call: HttpClientCall): HttpRequest =
-            ApacheHttpRequest(call, engine, config, dispatcher, builder.build())
+    override fun prepareRequest(data: HttpRequestData, call: HttpClientCall): HttpRequest =
+            ApacheHttpRequest(call, engine, config, dispatcher, data)
 
     override fun close() {
         try {

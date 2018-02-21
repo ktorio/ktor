@@ -9,10 +9,10 @@ import java.io.*
  */
 interface HttpClientEngine : Closeable {
     /**
-     * Creates a new [HttpRequest] specific for this engine, using a request [builder]
+     * Creates a new [HttpRequest] specific for this engine, using a request [data]
      * and a [call] with the request configured.
      */
-    fun prepareRequest(builder: HttpRequestBuilder, call: HttpClientCall): HttpRequest
+    fun prepareRequest(data: HttpRequestData, call: HttpClientCall): HttpRequest
 }
 
 /**

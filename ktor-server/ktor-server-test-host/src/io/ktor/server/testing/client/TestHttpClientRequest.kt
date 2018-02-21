@@ -11,13 +11,13 @@ import kotlinx.coroutines.experimental.*
 class TestHttpClientRequest(
         override val call: HttpClientCall,
         private val engine: TestHttpClientEngine,
-        builder: HttpRequestBuilder
+        data: HttpRequestData
 ) : HttpRequest {
     override val attributes: Attributes = Attributes()
 
-    override val method: HttpMethod = builder.method
-    override val url: Url = builder.url.build()
-    override val headers: Headers = builder.headers.build()
+    override val method: HttpMethod = data.method
+    override val url: Url = data.url
+    override val headers: Headers = data.headers
 
     override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 

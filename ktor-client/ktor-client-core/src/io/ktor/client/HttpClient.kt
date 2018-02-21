@@ -56,10 +56,10 @@ class HttpClient private constructor(
     }
 
     /**
-     * Creates a new [HttpRequest] from a request [builder] and a specific client [call].
+     * Creates a new [HttpRequest] from a request [data] and a specific client [call].
      */
-    fun createRequest(builder: HttpRequestBuilder, call: HttpClientCall): HttpRequest =
-            engine.prepareRequest(builder, call)
+    fun createRequest(data: HttpRequestData, call: HttpClientCall): HttpRequest =
+            engine.prepareRequest(data, call)
 
     /**
      * Returns a new [HttpClient] copying this client configuration,

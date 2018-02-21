@@ -18,8 +18,8 @@ class JettyHttp2Engine(config: JettyEngineConfig) : HttpClientEngine {
 
     private val dispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
 
-    override fun prepareRequest(builder: HttpRequestBuilder, call: HttpClientCall): HttpRequest =
-            JettyHttpRequest(call, this, dispatcher, builder.build())
+    override fun prepareRequest(data: HttpRequestData, call: HttpClientCall): HttpRequest =
+            JettyHttpRequest(call, this, dispatcher, data)
 
     suspend fun connect(host: String, port: Int): Session {
         return withPromise { promise ->

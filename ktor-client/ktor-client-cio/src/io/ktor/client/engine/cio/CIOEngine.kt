@@ -17,8 +17,8 @@ class CIOEngine(private val config: CIOEngineConfig) : HttpClientEngine {
     private val connectionFactory = ConnectionFactory(config.maxConnectionsCount)
     private val closed = AtomicBoolean()
 
-    override fun prepareRequest(builder: HttpRequestBuilder, call: HttpClientCall): HttpRequest =
-            CIOHttpRequest(call, this, builder.build())
+    override fun prepareRequest(data: HttpRequestData, call: HttpClientCall): HttpRequest =
+            CIOHttpRequest(call, this, data)
 
     internal suspend fun executeRequest(request: CIOHttpRequest, content: OutgoingContent): CIOHttpResponse {
         while (true) {

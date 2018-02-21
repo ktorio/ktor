@@ -17,8 +17,8 @@ class TestHttpClientConfig : HttpClientEngineConfig() {
 
 class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientEngine {
 
-    override fun prepareRequest(builder: HttpRequestBuilder, call: HttpClientCall): HttpRequest =
-            TestHttpClientRequest(call, this, builder)
+    override fun prepareRequest(data: HttpRequestData, call: HttpClientCall): HttpRequest =
+            TestHttpClientRequest(call, this, data)
 
     internal fun runRequest(
             method: HttpMethod, url: String, headers: Headers, content: OutgoingContent
