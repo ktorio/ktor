@@ -49,18 +49,18 @@ suspend inline fun <reified T> HttpClient.post(
 }
 
 suspend inline fun <reified T> HttpClient.get(
-        data: URL,
+        url: URL,
         block: HttpRequestBuilder.() -> Unit = {}
 ): T = get {
-    url.takeFrom(data)
+    this.url.takeFrom(url)
     block()
 }
 
 suspend inline fun <reified T> HttpClient.post(
-        data: URL,
+        url: URL,
         block: HttpRequestBuilder.() -> Unit = {}
 ): T = post {
-    url.takeFrom(data)
+    this.url.takeFrom(url)
 }
 
 suspend inline fun <reified T> HttpClient.get(
