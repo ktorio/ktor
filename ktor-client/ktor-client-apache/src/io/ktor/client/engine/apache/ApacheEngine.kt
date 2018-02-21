@@ -19,7 +19,10 @@ class ApacheEngine(private val config: ApacheEngineConfig) : HttpClientEngine {
             ApacheHttpRequest(call, engine, config, dispatcher, builder.build())
 
     override fun close() {
-        engine.close()
+        try {
+            engine.close()
+        } catch (cause: Throwable) {
+        }
     }
 
     private fun prepareClient(): CloseableHttpAsyncClient {
