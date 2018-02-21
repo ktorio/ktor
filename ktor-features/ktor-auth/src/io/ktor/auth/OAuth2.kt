@@ -24,7 +24,8 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
         val token = call.oauth2HandleCallback()
         val callbackRedirectUrl = call.urlProvider(provider)
         if (token == null) {
-            call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, nextNonce(), scopes = provider.defaultScopes)
+            val stateProvider = provider.stateProvider
+            call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, state = stateProvider.getState(call), scopes = provider.defaultScopes)
         } else {
             withContext(dispatcher) {
                 val accessToken = simpleOAuth2Step2(client, provider, callbackRedirectUrl, token)
@@ -70,7 +71,8 @@ internal suspend fun simpleOAuth2Step2(client: HttpClient,
             callbackResponse.token,
             extraParameters,
             configure,
-            settings.accessTokenRequiresBasicAuth
+            settings.accessTokenRequiresBasicAuth,
+            settings.stateProvider
     )
 }
 
@@ -99,7 +101,13 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
                                       extraParameters: Map<String, String> = emptyMap(),
                                       configure: HttpRequestBuilder.() -> Unit = {},
                                       useBasicAuth: Boolean = false,
+                                      stateProvider: OAuth2StateProvider = DefaultOAuth2StateProvider,
                                       grantType: String = OAuthGrantTypes.AuthorizationCode): OAuthAccessTokenResponse.OAuth2 {
+
+    if (state != null) {
+        stateProvider.verifyState(state)
+    }
+
     val urlParameters =
             (listOf(
                     OAuth2RequestParameters.ClientId to clientId,
@@ -113,7 +121,7 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
     val getUri = when (method) {
         HttpMethod.Get -> baseUrl.appendUrlParameters(urlParameters)
         HttpMethod.Post -> baseUrl
-        else -> throw UnsupportedOperationException()
+        else -> throw UnsupportedOperationException("Method $method is not supported. Use GET or POST")
     }
 
     val response = client.call(getUri) {
@@ -137,7 +145,7 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
 
     val (contentType, content) = try {
         if (response.status == HttpStatusCode.NotFound) {
-            throw IOException("Not found 404 for the page $baseUrl")
+            throw IOException("Not found. Got 404 for the page $baseUrl")
         }
         val contentType = response.headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ContentType.Any
 
@@ -145,7 +153,7 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
     } catch (ioe: IOException) {
         throw ioe
     } catch (t: Throwable) {
-        throw IOException("Failed to acquire request token due to $body", t)
+        throw IOException("Failed to acquire request token due to wrong content: $body", t)
     } finally {
         response.close()
     }
@@ -203,6 +211,7 @@ suspend fun verifyWithOAuth2(c: UserPasswordCredential, client: HttpClient, sett
                     OAuth2RequestParameters.Password to c.password
             ),
             useBasicAuth = true,
+            stateProvider = settings.stateProvider,
             grantType = OAuthGrantTypes.Password
     )
 }

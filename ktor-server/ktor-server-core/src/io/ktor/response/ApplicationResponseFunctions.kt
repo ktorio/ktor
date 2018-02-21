@@ -3,6 +3,7 @@ package io.ktor.response
 import io.ktor.application.*
 import io.ktor.content.*
 import io.ktor.http.*
+import io.ktor.util.*
 import java.io.*
 
 /**
@@ -28,6 +29,14 @@ suspend inline fun ApplicationCall.respond(status: HttpStatusCode, message: Any)
 suspend fun ApplicationCall.respondRedirect(url: String, permanent: Boolean = false) {
     response.headers.append(HttpHeaders.Location, url)
     return respond(if (permanent) HttpStatusCode.MovedPermanently else HttpStatusCode.Found)
+}
+
+/**
+ * Responds to a client with a `301 Moved Permanently` or `302 Found` redirect.
+ * Unlike the other [respondRedirect] it provides a way to build URL based on current call using [block] function
+ */
+suspend inline fun ApplicationCall.respondRedirect(permanent: Boolean = false, block: URLBuilder.() -> Unit) {
+    return respondRedirect(url(block), permanent)
 }
 
 /**

@@ -14,6 +14,32 @@ enum class OAuthVersion {
     V10a, V20
 }
 
+/**
+ * Provides states for OAuth2. State could be just a random number (nonce) or could contain additional form fields or
+ * a signature. It is important that it should be a way to verify state. So all states need to be saved somehow or
+ * a state need to be a signed set of parameters that could be verified later
+ */
+interface OAuth2StateProvider {
+    /**
+     * Generates a new state for given [call]
+     */
+    suspend fun getState(call: ApplicationCall): String
+
+    /**
+     * Verifies [state] and throws exceptions if it's not valid
+     */
+    suspend fun verifyState(state: String)
+}
+
+object DefaultOAuth2StateProvider : OAuth2StateProvider {
+    override suspend fun getState(call: ApplicationCall): String {
+        return nextNonce()
+    }
+
+    override suspend fun verifyState(state: String) {
+    }
+}
+
 sealed class OAuthServerSettings(val name: String, val version: OAuthVersion) {
     class OAuth1aServerSettings(
             name: String,
@@ -34,7 +60,9 @@ sealed class OAuthServerSettings(val name: String, val version: OAuthVersion) {
             val clientId: String,
             val clientSecret: String,
             val defaultScopes: List<String> = emptyList(),
-            val accessTokenRequiresBasicAuth: Boolean = false
+            val accessTokenRequiresBasicAuth: Boolean = false,
+
+            val stateProvider: OAuth2StateProvider = DefaultOAuth2StateProvider
     ) : OAuthServerSettings(name, OAuthVersion.V20)
 }
 
