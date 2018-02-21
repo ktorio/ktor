@@ -9,7 +9,7 @@ class HttpIgnoreBody {
     companion object Feature : HttpClientFeature<Unit, HttpIgnoreBody> {
         override val key: AttributeKey<HttpIgnoreBody> = AttributeKey("HttpIgnoreBody")
 
-        override fun prepare(block: Unit.() -> Unit): HttpIgnoreBody = HttpIgnoreBody()
+        override suspend fun prepare(block: Unit.() -> Unit): HttpIgnoreBody = HttpIgnoreBody()
 
         override fun install(feature: HttpIgnoreBody, scope: HttpClient) {
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { data ->

@@ -6,28 +6,28 @@ import java.util.concurrent.*
 
 
 interface CookiesStorage {
-    operator fun get(host: String): Map<String, Cookie>?
-    operator fun get(host: String, name: String): Cookie?
-    fun addCookie(host: String, cookie: Cookie)
+    suspend fun get(host: String): Map<String, Cookie>?
+    suspend fun get(host: String, name: String): Cookie?
+    suspend fun addCookie(host: String, cookie: Cookie)
 
-    fun forEach(host: String, block: (Cookie) -> Unit)
+}
+
+suspend inline fun CookiesStorage.forEach(host: String, block: (Cookie) -> Unit) {
+    get(host)?.forEach { block(it.value) }
 }
 
 open class AcceptAllCookiesStorage : CookiesStorage {
     private val data = ConcurrentHashMap<String, MutableMap<String, Cookie>>()
 
-    override fun get(host: String): Map<String, Cookie>? = Collections.unmodifiableMap(data[host])
-
-    override operator fun get(host: String, name: String): Cookie? = data[host]?.get(name)
-
-    override fun addCookie(host: String, cookie: Cookie) {
-        init(host)
-        data[host]?.set(cookie.name, cookie)
+    override suspend fun get(host: String): Map<String, Cookie>? = data[host]?.let {
+        Collections.unmodifiableMap(data[host])
     }
 
-    override fun forEach(host: String, block: (Cookie) -> Unit) {
+    override suspend fun get(host: String, name: String): Cookie? = data[host]?.get(name)
+
+    override suspend fun addCookie(host: String, cookie: Cookie) {
         init(host)
-        data[host]?.values?.forEach(block)
+        data[host]?.set(cookie.name, cookie)
     }
 
     private fun init(host: String) {
@@ -40,13 +40,9 @@ open class AcceptAllCookiesStorage : CookiesStorage {
 class ConstantCookieStorage(vararg cookies: Cookie) : CookiesStorage {
     private val storage: Map<String, Cookie> = cookies.map { it.name to it }.toMap()
 
-    override fun get(host: String): Map<String, Cookie>? = storage
+    override suspend fun get(host: String): Map<String, Cookie>? = storage
 
-    override fun get(host: String, name: String): Cookie? = storage[name]
+    override suspend fun get(host: String, name: String): Cookie? = storage[name]
 
-    override fun addCookie(host: String, cookie: Cookie) {}
-
-    override fun forEach(host: String, block: (Cookie) -> Unit) {
-        storage.values.forEach(block)
-    }
+    override suspend fun addCookie(host: String, cookie: Cookie) {}
 }

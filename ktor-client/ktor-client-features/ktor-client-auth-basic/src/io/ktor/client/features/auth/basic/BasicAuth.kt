@@ -20,7 +20,7 @@ class BasicAuth(val username: String, val password: String) {
 
         override val key: AttributeKey<BasicAuth> = AttributeKey("AuthBasicHeader")
 
-        override fun prepare(block: Configuration.() -> Unit): BasicAuth = Configuration().apply(block).build()
+        override suspend fun prepare(block: Configuration.() -> Unit): BasicAuth = Configuration().apply(block).build()
 
         override fun install(feature: BasicAuth, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.State) { request: HttpRequestBuilder ->

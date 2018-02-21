@@ -13,39 +13,44 @@ import io.ktor.util.*
 
 class HttpCookies(private val storage: CookiesStorage) {
 
-    operator fun get(host: String): Map<String, Cookie>? = storage[host]
+    suspend fun get(host: String): Map<String, Cookie>? = storage.get(host)
 
-    operator fun get(host: String, name: String): Cookie? = storage[host, name]
+    suspend fun get(host: String, name: String): Cookie? = storage.get(host, name)
 
-    fun forEach(host: String, block: (Cookie) -> Unit) = storage.forEach(host, block)
+    suspend fun forEach(host: String, block: (Cookie) -> Unit) = storage.forEach(host, block)
 
     class Config {
-        private val defaults = mutableListOf<CookiesStorage.() -> Unit>()
+        private val defaults = mutableListOf<suspend CookiesStorage.() -> Unit>()
 
         var storage: CookiesStorage = AcceptAllCookiesStorage()
 
-        fun default(block: CookiesStorage.() -> Unit) {
+        fun default(block: suspend CookiesStorage.() -> Unit) {
             defaults.add(block)
         }
 
-        fun build(): HttpCookies {
-            defaults.forEach { storage.apply(it) }
+        suspend fun build(): HttpCookies {
+            defaults.forEach {
+                it.invoke(storage)
+            }
+
             return HttpCookies(storage)
         }
     }
 
     companion object Feature : HttpClientFeature<Config, HttpCookies> {
-        override fun prepare(block: Config.() -> Unit): HttpCookies = Config().apply(block).build()
+        override suspend fun prepare(block: Config.() -> Unit): HttpCookies = Config().apply(block).build()
 
         override val key: AttributeKey<HttpCookies> = AttributeKey("HttpCookies")
 
         override fun install(feature: HttpCookies, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.State) { content: OutgoingContent ->
+                val cookies = feature.get(context.url.host) ?: return@intercept
+
                 proceedWith(content.wrapHeaders { oldHeaders ->
                     Headers.build {
                         appendAll(oldHeaders)
-                        feature.forEach(context.url.host) {
-                            append(HttpHeaders.Cookie, renderSetCookieHeader(it))
+                        cookies.forEach {
+                            append(HttpHeaders.Cookie, renderSetCookieHeader(it.value))
                         }
                     }
                 })
@@ -61,4 +66,4 @@ class HttpCookies(private val storage: CookiesStorage) {
     }
 }
 
-fun HttpClient.cookies(host: String): Map<String, Cookie> = feature(HttpCookies)?.get(host) ?: mapOf()
+suspend fun HttpClient.cookies(host: String): Map<String, Cookie> = feature(HttpCookies)?.get(host) ?: mapOf()

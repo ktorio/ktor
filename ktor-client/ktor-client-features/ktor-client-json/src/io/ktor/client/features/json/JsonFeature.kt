@@ -18,7 +18,7 @@ class JsonFeature(val serializer: JsonSerializer) {
     companion object Feature : HttpClientFeature<Config, JsonFeature> {
         override val key: AttributeKey<JsonFeature> = AttributeKey("Json")
 
-        override fun prepare(block: Config.() -> Unit): JsonFeature =
+        override suspend fun prepare(block: Config.() -> Unit): JsonFeature =
                 Config().apply(block).let { JsonFeature(it.serializer) }
 
         override fun install(feature: JsonFeature, scope: HttpClient) {
