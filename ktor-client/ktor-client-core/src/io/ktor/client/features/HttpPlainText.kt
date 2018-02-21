@@ -21,7 +21,7 @@ class HttpPlainText(private val defaultCharset: Charset) {
     companion object Feature : HttpClientFeature<Config, HttpPlainText> {
         override val key = AttributeKey<HttpPlainText>("HttpPlainText")
 
-        override fun prepare(block: Config.() -> Unit): HttpPlainText = Config().apply(block).build()
+        override suspend fun prepare(block: Config.() -> Unit): HttpPlainText = Config().apply(block).build()
 
         override fun install(feature: HttpPlainText, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Render) { content ->

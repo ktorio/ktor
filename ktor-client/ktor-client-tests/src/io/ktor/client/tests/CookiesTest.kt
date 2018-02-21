@@ -82,23 +82,18 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
             }
         }
 
-        fun HttpClient.check() {
-            assertEquals(1, getId())
-            assertNull(cookies("localhost")["user"]?.value)
-        }
-
         test { client ->
-            client.get<Unit>(path = "/update-user-id", port = serverPort)
-            client.check()
-
-            client.get<Unit>(path = "/update-user-id", port = serverPort)
-            client.check()
+            repeat(3) {
+                client.get<Unit>(path = "/update-user-id", port = serverPort)
+                assertEquals(1, client.getId())
+                assertNull(client.cookies("localhost")["user"]?.value)
+            }
         }
     }
 
     @Test
     @Ignore
-    fun multipleClients() {
+    fun multipleClients() = runBlocking {
         /* a -> b
          * |    |
          * c    d
@@ -109,36 +104,28 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
         val c = a.config { }
         val d = b.config { }
 
-        runBlocking {
-            a.get<Unit>(path = "/update-user-id", port = serverPort)
-        }
+        a.get<Unit>(path = "/update-user-id", port = serverPort)
 
         assertEquals(2, a.getId())
         assertEquals(2, c.getId())
         assertEquals(10, b.getId())
         assertEquals(10, d.getId())
 
-        runBlocking {
-            b.get<Unit>(path = "/update-user-id", port = serverPort)
-        }
+        b.get<Unit>(path = "/update-user-id", port = serverPort)
 
         assertEquals(2, a.getId())
         assertEquals(2, c.getId())
         assertEquals(11, b.getId())
         assertEquals(11, d.getId())
 
-        runBlocking {
-            c.get<Unit>(path = "/update-user-id", port = serverPort)
-        }
+        c.get<Unit>(path = "/update-user-id", port = serverPort)
 
         assertEquals(3, a.getId())
         assertEquals(3, c.getId())
         assertEquals(11, b.getId())
         assertEquals(11, d.getId())
 
-        runBlocking {
-            d.get<Unit>(path = "/update-user-id", port = serverPort)
-        }
+        d.get<Unit>(path = "/update-user-id", port = serverPort)
 
         assertEquals(3, a.getId())
         assertEquals(3, c.getId())
@@ -150,5 +137,5 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
 
     private fun HttpClient.config(block: HttpClientConfig.() -> Unit): HttpClient = TODO()
 
-    private fun HttpClient.getId() = cookies("localhost")["id"]?.value?.toInt()!!
+    private suspend fun HttpClient.getId() = cookies("localhost")["id"]?.value?.toInt()!!
 }

@@ -9,7 +9,7 @@ class HttpClientConfig {
     private val features = mutableMapOf<AttributeKey<*>, (HttpClient) -> Unit>()
     private val customInterceptors = mutableMapOf<String, (HttpClient) -> Unit>()
 
-    fun <TBuilder : Any, TFeature : Any> install(
+    suspend fun <TBuilder : Any, TFeature : Any> install(
             feature: HttpClientFeature<TBuilder, TFeature>,
             configure: TBuilder.() -> Unit = {}
     ) {

@@ -16,11 +16,11 @@ internal fun <T : HttpClientEngineConfig> clientTest(
 }
 
 internal class TestClientBuilder(
-        var config: HttpClientConfig.() -> Unit = {},
+        var config: suspend HttpClientConfig.() -> Unit = {},
         var test: suspend (HttpClient) -> Unit = {}
 )
 
-internal fun TestClientBuilder.config(block: HttpClientConfig.() -> Unit): Unit {
+internal fun TestClientBuilder.config(block: suspend HttpClientConfig.() -> Unit): Unit {
     config = block
 }
 

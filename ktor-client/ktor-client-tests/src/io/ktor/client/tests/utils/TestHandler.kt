@@ -20,14 +20,16 @@ internal class TestHandler(
     companion object Feature : HttpClientFeature<Config, TestHandler> {
         override val key: AttributeKey<TestHandler> = AttributeKey("Buffer")
 
-        override fun prepare(block: Config.() -> Unit): TestHandler = Config().apply(block).let { TestHandler(it.onClose) }
+        override suspend fun prepare(block: Config.() -> Unit): TestHandler =
+                Config().apply(block).let { TestHandler(it.onClose) }
 
         override fun install(feature: TestHandler, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Render) { content: OutgoingContent.ReadChannelContent ->
                 proceedWith(object : OutgoingContent.ReadChannelContent() {
                     override val headers: Headers = content.headers
 
-                    override fun readFrom(): ByteReadChannel = writer(Unconfined, autoFlush = true,
+                    override fun readFrom(): ByteReadChannel = writer(
+                            Unconfined, autoFlush = true,
                             parent = context.executionContext
                     ) {
                         try {
