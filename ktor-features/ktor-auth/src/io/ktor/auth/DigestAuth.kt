@@ -13,7 +13,7 @@ fun AuthenticationPipeline.digestAuthentication(
         realm: String = "ktor",
         digestAlgorithm: String = "MD5",
         digesterProvider: (String) -> MessageDigest = { MessageDigest.getInstance(it) },
-        userNameRealmPasswordDigestProvider: (String, String) -> ByteArray) {
+        userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray?) {
 
     val digester = digesterProvider(digestAlgorithm)
     intercept(AuthenticationPipeline.RequestAuthentication) { context ->
@@ -98,15 +98,18 @@ fun HttpAuthHeader.Parameterized.toDigestCredential() = DigestCredential(
 /**
  * Verifies credentials are valid for given [method] and [digester] and [userNameRealmPasswordDigest]
  */
-fun DigestCredential.verify(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: (String, String) -> ByteArray): Boolean {
-    val validDigest = expectedDigest(method, digester, userNameRealmPasswordDigest(userName, realm))
+suspend fun DigestCredential.verify(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: suspend (String, String) -> ByteArray?): Boolean {
+    val userNameRealmPasswordDigestResult = userNameRealmPasswordDigest(userName, realm)
+    val validDigest = expectedDigest(method, digester, userNameRealmPasswordDigestResult ?: ByteArray(0))
 
     val incoming: ByteArray = try {
         hex(response)
     } catch (e: NumberFormatException) {
         return false
     }
-    return MessageDigest.isEqual(incoming, validDigest)
+
+    // here we do null-check in the end because it should be always time-constant comparison due to security reasons
+    return MessageDigest.isEqual(incoming, validDigest) && userNameRealmPasswordDigestResult != null
 }
 
 /**

@@ -7,6 +7,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import org.junit.Test
 import java.security.*
 import kotlin.test.*
@@ -83,7 +84,7 @@ class DigestTest {
     }
 
     @Test
-    fun testVerify() {
+    fun testVerify(): Unit = runBlocking {
         val authHeaderContent = """Digest username="Mufasa",
                      realm="testrealm@host.com",
                      nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
@@ -111,7 +112,7 @@ class DigestTest {
                 authentication {
                     val p = "Circle Of Life"
                     val digester = MessageDigest.getInstance("MD5")
-                    digestAuthentication { userName, realm -> digest(digester, "$userName:$realm:$p") }
+                    digestAuthentication { userName, realm ->if (userName == "missing") null else digest(digester, "$userName:$realm:$p") }
                 }
 
                 handle {
@@ -162,6 +163,30 @@ class DigestTest {
                  nc=00000001,
                  cnonce="0a4f113b",
                  response="bad response goes here  507c4ef1",
+                 opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize())
+            }
+
+            assertTrue(response.requestHandled)
+            assertEquals(HttpStatusCode.Unauthorized, response.response.status())
+        }
+    }
+
+    @Test
+    fun testDigestFromRFCExampleAuthFailedDueToMissingUser() {
+        withTestApplication {
+            application.configureDigestServer()
+
+            val response = handleRequest {
+                uri = "/"
+
+                addHeader(HttpHeaders.Authorization, """Digest username="missing",
+                 realm="testrealm@host.com",
+                 nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",
+                 uri="/dir/index.html",
+                 qop=auth,
+                 nc=00000001,
+                 cnonce="0a4f113b",
+                 response="6629fae49393a05397450978507c4ef1",
                  opaque="5ccc069c403ebaf9f0171e9517f40e41"""".normalize())
             }
 
