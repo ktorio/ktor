@@ -10,6 +10,13 @@ import kotlin.reflect.*
 import kotlin.reflect.full.*
 import kotlin.reflect.jvm.*
 
+/**
+ * **EXPERIMENTAL** Ktor feature that allows to handle and construct routes in a typed way.
+ *
+ * You have to create data classes/objects representing parametrized routes and annotate them with [Location].
+ * Then you can register sub-routes and handlers for those locations and create links to them
+ * using [Locations.href].
+ */
 open class Locations(private val application: Application, private val routeService: LocationRouteService) {
     private val conversionService: ConversionService get() = application.conversionService
     private val rootUri = ResolvedUriInfo("", emptyList())
@@ -173,6 +180,11 @@ open class Locations(private val application: Application, private val routeServ
         return parentInfo.combine(relativePath, queryValues)
     }
 
+    /**
+     * Constructs the url for [location].
+     *
+     * The class of [location] instance **must** be annotated with [Location].
+     */
     fun href(location: Any): String {
         val info = pathAndQuery(location)
         return info.path + if (info.query.any())
@@ -232,4 +244,7 @@ class LocationAttributeRouteService : LocationRouteService {
     }
 }
 
+/**
+ * Exception that raises when route parameters in curly brackets do not match class properties.
+ */
 class RoutingException(message: String) : Exception(message)
