@@ -49,7 +49,7 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
      * Implementation of an [ApplicationFeature] for the [ContentNegotiation]
      */
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, Configuration, ContentNegotiation> {
-        override val key = AttributeKey<ContentNegotiation>("gson")
+        override val key = AttributeKey<ContentNegotiation>("ContentNegotiation")
 
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): ContentNegotiation {
             val configuration = Configuration().apply(configure)
