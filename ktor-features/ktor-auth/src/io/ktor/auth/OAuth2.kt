@@ -79,7 +79,7 @@ internal suspend fun simpleOAuth2Step2(client: HttpClient,
 private suspend fun ApplicationCall.redirectAuthenticateOAuth2(authenticateUrl: String, callbackRedirectUrl: String, clientId: String, state: String, scopes: List<String> = emptyList(), parameters: List<Pair<String, String>> = emptyList()) {
     return respondRedirect(authenticateUrl
             .appendUrlParameters("${OAuth2RequestParameters.ClientId}=${encodeURLQueryComponent(clientId)}&${OAuth2RequestParameters.RedirectUri}=${encodeURLQueryComponent(callbackRedirectUrl)}")
-            .appendUrlParameters(optionalParameter(OAuth2RequestParameters.Scope, scopes.joinToString(",")))
+            .appendUrlParameters(optionalParameter(OAuth2RequestParameters.Scope, encodeURLQueryComponent(scopes.joinToString(" "))))
             .appendUrlParameters("${OAuth2RequestParameters.State}=${encodeURLQueryComponent(state)}")
             .appendUrlParameters("${OAuth2RequestParameters.ResponseType}=code")
             .appendUrlParameters(parameters.formUrlEncode())

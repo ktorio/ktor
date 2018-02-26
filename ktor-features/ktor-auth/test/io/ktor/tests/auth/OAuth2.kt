@@ -25,12 +25,21 @@ class OAuth2Test {
     private val executor = Executors.newSingleThreadExecutor()
     private val dispatcher = executor.asCoroutineDispatcher()
 
-    private val settings = OAuthServerSettings.OAuth2ServerSettings(
+    private val DefaultSettings = OAuthServerSettings.OAuth2ServerSettings(
             name = "oauth2",
             authorizeUrl = "https://login-server-com/authorize",
             accessTokenUrl = "https://login-server-com/oauth/access_token",
             clientId = "clientId1",
             clientSecret = "clientSecret1"
+    )
+
+    private val DefaultSettingsWithScopes = OAuthServerSettings.OAuth2ServerSettings(
+            name = "oauth2",
+            authorizeUrl = "https://login-server-com/authorize",
+            accessTokenUrl = "https://login-server-com/oauth/access_token",
+            clientId = "clientId1",
+            clientSecret = "clientSecret1",
+            defaultScopes = listOf("scope1", "scope2")
     )
 
     val testClient = createOAuth2Server(object : OAuth2Server {
@@ -69,7 +78,7 @@ class OAuth2Test {
     })
 
     val failures = ArrayList<Throwable>()
-    fun Application.module() {
+    fun Application.module(settings: OAuthServerSettings.OAuth2ServerSettings = DefaultSettings) {
         routing {
             route("/login") {
                 authentication {
@@ -124,6 +133,27 @@ class OAuth2Test {
     }
 
     @Test
+    fun testRedirectWithScopes() = withTestApplication({ module(DefaultSettingsWithScopes) }) {
+        val result = handleRequest {
+            uri = "/login"
+        }
+
+        assertTrue(result.requestHandled)
+        assertEquals(HttpStatusCode.Found, result.response.status())
+
+        val url = URI(result.response.headers[HttpHeaders.Location] ?: throw IllegalStateException("No location header in the response"))
+        assertEquals("/authorize", url.path)
+        assertEquals("login-server-com", url.host)
+
+        val query = parseQueryString(url.query)
+        assertEquals("clientId1", query[OAuth2RequestParameters.ClientId])
+        assertEquals("code", query[OAuth2RequestParameters.ResponseType])
+        assertNotNull(query[OAuth2RequestParameters.State])
+        assertEquals("http://localhost/login", query[OAuth2RequestParameters.RedirectUri])
+        assertEquals("scope1 scope2", query[OAuth2RequestParameters.Scope])
+    }
+
+    @Test
     fun testRequestToken() = withTestApplication({ module() }) {
         val result = handleRequest {
             uri = "/login?" + listOf(
@@ -159,7 +189,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthRespondRedirect(testClient, dispatcher, settings, "http://localhost/login")
+                    oauthRespondRedirect(testClient, dispatcher, DefaultSettings, "http://localhost/login")
                 }
             }
 
@@ -184,7 +214,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient, dispatcher, settings, "http://localhost/login", "/") { token ->
+                    oauthHandleCallback(testClient, dispatcher, DefaultSettings, "http://localhost/login", "/") { token ->
                         call.respondText("Ho, $token")
                     }
                 }
@@ -209,7 +239,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient, dispatcher, settings, "http://localhost/login", "/") { token ->
+                    oauthHandleCallback(testClient, dispatcher, DefaultSettings, "http://localhost/login", "/") { token ->
                         call.respondText("Ho, $token")
                     }
                 }
@@ -232,7 +262,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient, dispatcher, settings, "http://localhost/login", "/") { token ->
+                    oauthHandleCallback(testClient, dispatcher, DefaultSettings, "http://localhost/login", "/") { token ->
                         call.respondText("Ho, $token")
                     }
                 }
@@ -250,7 +280,7 @@ class OAuth2Test {
         withTestApplication {
             application.routing {
                 get("/login") {
-                    oauthHandleCallback(testClient, dispatcher, settings, "http://localhost/login", "/", {
+                    oauthHandleCallback(testClient, dispatcher, DefaultSettings, "http://localhost/login", "/", {
                         url.parameters["badContentType"] = "true"
                     }) { token ->
                         call.respondText("Ho, $token")
