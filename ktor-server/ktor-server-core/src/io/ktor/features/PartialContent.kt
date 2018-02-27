@@ -97,7 +97,7 @@ class PartialContent(private val maxRangeCount: Int) {
         }
     }
 
-    private fun checkIfRangeHeader(content: OutgoingContent.ReadChannelContent, call: ApplicationCall): Boolean {
+    private suspend fun checkIfRangeHeader(content: OutgoingContent.ReadChannelContent, call: ApplicationCall): Boolean {
         val conditionalHeadersFeature = call.application.featureOrNull(ConditionalHeaders)
         val versions = conditionalHeadersFeature?.versionsFor(content) ?: content.defaultVersions
         val ifRange = call.request.header(HttpHeaders.IfRange)

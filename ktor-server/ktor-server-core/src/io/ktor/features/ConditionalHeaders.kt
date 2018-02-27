@@ -12,13 +12,13 @@ import java.util.*
 /**
  * Feature to check modified/match conditional headers and avoid sending contents if it was not changed
  */
-class ConditionalHeaders(private val versionProviders: List<(OutgoingContent) -> List<Version>>) {
+class ConditionalHeaders(private val versionProviders: List<suspend (OutgoingContent) -> List<Version>>) {
 
     /**
      * Configuration for [ConditionalHeaders] feature
      */
     class Configuration {
-        internal val versionProviders = mutableListOf<(OutgoingContent) -> List<Version>>()
+        internal val versionProviders = mutableListOf<suspend (OutgoingContent) -> List<Version>>()
 
         init {
             versionProviders.add { content -> content.defaultVersions }
@@ -27,7 +27,7 @@ class ConditionalHeaders(private val versionProviders: List<(OutgoingContent) ->
         /**
          * Registers a function that can fetch version list for a given [OutgoingContent]
          */
-        fun version(provider: (OutgoingContent) -> List<Version>) {
+        fun version(provider: suspend (OutgoingContent) -> List<Version>) {
             versionProviders.add(provider)
         }
     }
@@ -69,7 +69,7 @@ class ConditionalHeaders(private val versionProviders: List<(OutgoingContent) ->
     /**
      * Retrieves versions such as [LastModifiedVersion] or [EntityTagVersion] for a given content
      */
-    fun versionsFor(content: OutgoingContent): List<Version> {
+    suspend fun versionsFor(content: OutgoingContent): List<Version> {
         return versionProviders.flatMapTo(ArrayList(versionProviders.size)) { it(content) }
     }
 
