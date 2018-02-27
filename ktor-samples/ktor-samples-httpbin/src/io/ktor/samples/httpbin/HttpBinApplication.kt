@@ -98,7 +98,7 @@ fun Application.main() {
         }
     }
 
-    val staticfilesDir = File("ktor-samples/ktor-samples-httpbin/resources/static")
+    val staticfilesDir = File("resources/static")
     require(staticfilesDir.exists()) { "Cannot find ${staticfilesDir.absolutePath}" }
 
     // Authorization
