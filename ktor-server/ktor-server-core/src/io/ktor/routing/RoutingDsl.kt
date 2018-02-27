@@ -1,8 +1,8 @@
-package io.ktor.pipeline
+package io.ktor.routing
 
 /**
- * DslMarker for pipeline execution context
+ * DslMarker for routing context
  */
 @DslMarker
 @Target(AnnotationTarget.CLASS, AnnotationTarget.TYPEALIAS, AnnotationTarget.TYPE, AnnotationTarget.FUNCTION)
-annotation class ContextDsl
+annotation class RoutingDsl

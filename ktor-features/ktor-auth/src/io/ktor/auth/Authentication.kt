@@ -2,6 +2,7 @@ package io.ktor.auth
 
 import io.ktor.application.*
 import io.ktor.pipeline.*
+import io.ktor.routing.RoutingDsl
 import io.ktor.util.*
 
 /**
@@ -66,6 +67,7 @@ class Authentication(val pipeline: AuthenticationPipeline) {
 /**
  * Installs authentication into `this` pipeline
  */
+@RoutingDsl
 fun ApplicationCallPipeline.authentication(configuration: AuthenticationPipeline.() -> Unit): Authentication {
     return install(Authentication, configuration)
 }
