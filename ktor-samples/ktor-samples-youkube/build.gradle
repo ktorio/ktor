@@ -1,8 +1,0 @@
-description = ''
-dependencies {
-    compile project(':ktor-features:ktor-locations')
-    compile project(':ktor-features:ktor-html-builder')
-    compile group: 'org.ehcache', name: 'ehcache', version: '3.0.0.m4'
-    compile group: 'com.google.code.gson', name: 'gson', version: '2.7'
-    compile project(':ktor-features:ktor-auth')
-}
