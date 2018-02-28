@@ -4,6 +4,7 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.internal.*
 import kotlin.coroutines.experimental.intrinsics.*
 import java.io.*
+import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
 
@@ -12,11 +13,11 @@ class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), 
     private val tasks = LockFreeLinkedListHead()
 
     init {
-        require(nThreads > 0) { "nThreads should be positive but $nThreads specified"}
+        require(nThreads > 0) { "nThreads should be positive but $nThreads specified" }
     }
 
-    private val threads = (1..nThreads).map {
-        IOThread(tasks, dispatcherThreadGroup)
+    private val threads = Array(nThreads) {
+        IOThread(it + 1, tasks, dispatcherThreadGroup)
     }
 
     init {
@@ -56,27 +57,31 @@ class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), 
         }
     }
 
-    private class IOThread(private val tasks: LockFreeLinkedListHead,
-                           dispatcherThreadGroup: ThreadGroup) : Thread(dispatcherThreadGroup, "io-thread") {
+    private class IOThread(
+            private val number: Int,
+            private val tasks: LockFreeLinkedListHead,
+            dispatcherThreadGroup: ThreadGroup) : Thread(dispatcherThreadGroup, "io-thread-$number") {
+
         @Volatile
-        private var cont : Continuation<Unit>? = null
+        private var cont: Continuation<Unit>? = null
 
         init {
             isDaemon = true
         }
 
         override fun run() {
-            runBlocking(CoroutineName("io-dispatcher-executor")) {
+            runBlocking(CoroutineName("io-dispatcher-executor-$number")) {
                 try {
                     while (true) {
                         val task = receiveOrNull() ?: break
                         try {
                             task.run()
                         } catch (t: Throwable) {
+                            onException(ExecutionException("Task failed", t))
                         }
                     }
                 } catch (t: Throwable) {
-                    println("thread died: $t")
+                    onException(ExecutionException("Thread pool worker failed", t))
                 }
             }
         }
@@ -88,6 +93,10 @@ class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), 
                 return true
             }
             return false
+        }
+
+        private fun onException(t: Throwable) {
+            Thread.currentThread().uncaughtExceptionHandler.uncaughtException(this, t)
         }
 
         @Suppress("NOTHING_TO_INLINE")
