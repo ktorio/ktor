@@ -45,7 +45,6 @@ include ':ktor-samples:ktor-samples-auth'
 include ':ktor-samples:ktor-samples-testable'
 include ':ktor-samples:ktor-samples-gson'
 include ':ktor-samples:ktor-samples-jackson'
-include ':ktor-samples:ktor-samples-post'
 include ':ktor-samples:ktor-samples-embedded'
 include ':ktor-samples:ktor-samples-httpbin'
 include ':ktor-samples:ktor-samples-metrics'
@@ -103,7 +102,6 @@ project(':ktor-samples:ktor-samples-auth').projectDir = "$rootDir/ktor-samples/k
 project(':ktor-samples:ktor-samples-testable').projectDir = "$rootDir/ktor-samples/ktor-samples-testable" as File
 project(':ktor-samples:ktor-samples-gson').projectDir = "$rootDir/ktor-samples/ktor-samples-gson" as File
 project(':ktor-samples:ktor-samples-jackson').projectDir = "$rootDir/ktor-samples/ktor-samples-jackson" as File
-project(':ktor-samples:ktor-samples-post').projectDir = "$rootDir/ktor-samples/ktor-samples-post" as File
 project(':ktor-samples:ktor-samples-embedded').projectDir = "$rootDir/ktor-samples/ktor-samples-embedded" as File
 project(':ktor-samples:ktor-samples-httpbin').projectDir = "$rootDir/ktor-samples/ktor-samples-httpbin" as File
 project(':ktor-samples:ktor-samples-metrics').projectDir = "$rootDir/ktor-samples/ktor-samples-metrics" as File
