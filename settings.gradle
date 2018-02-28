@@ -50,7 +50,6 @@ include ':ktor-samples:ktor-samples-httpbin'
 include ':ktor-samples:ktor-samples-metrics'
 include ':ktor-samples:ktor-samples-guice'
 include ':ktor-samples:ktor-samples-youkube'
-include ':ktor-samples:ktor-samples-kweet'
 include ':ktor-samples:ktor-samples-websocket'
 include ':ktor-samples:ktor-samples-ssl-http2'
 include ':ktor-samples:ktor-samples-static-content'
@@ -107,7 +106,6 @@ project(':ktor-samples:ktor-samples-httpbin').projectDir = "$rootDir/ktor-sample
 project(':ktor-samples:ktor-samples-metrics').projectDir = "$rootDir/ktor-samples/ktor-samples-metrics" as File
 project(':ktor-samples:ktor-samples-guice').projectDir = "$rootDir/ktor-samples/ktor-samples-guice" as File
 project(':ktor-samples:ktor-samples-youkube').projectDir = "$rootDir/ktor-samples/ktor-samples-youkube" as File
-project(':ktor-samples:ktor-samples-kweet').projectDir = "$rootDir/ktor-samples/ktor-samples-kweet" as File
 project(':ktor-samples:ktor-samples-websocket').projectDir = "$rootDir/ktor-samples/ktor-samples-websocket" as File
 project(':ktor-samples:ktor-samples-ssl-http2').projectDir = "$rootDir/ktor-samples/ktor-samples-ssl-http2" as File
 project(':ktor-samples:ktor-samples-static-content').projectDir = "$rootDir/ktor-samples/ktor-samples-static-content" as File
