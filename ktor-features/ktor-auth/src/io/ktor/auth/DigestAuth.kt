@@ -26,7 +26,9 @@ fun AuthenticationPipeline.digestAuthentication(
         }
 
         val principal = credentials?.let {
-            if ((it.algorithm ?: "MD5") == digestAlgorithm && it.verify(call.request.local.method, digester, userNameRealmPasswordDigestProvider))
+            if ((it.algorithm ?: "MD5") == digestAlgorithm
+                    && it.realm == realm
+                    && it.verify(call.request.local.method, digester, userNameRealmPasswordDigestProvider))
                 UserIdPrincipal(it.userName)
             else
                 null
