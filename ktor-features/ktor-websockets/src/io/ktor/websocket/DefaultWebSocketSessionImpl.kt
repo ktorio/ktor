@@ -5,16 +5,18 @@ import kotlinx.coroutines.experimental.channels.*
 import io.ktor.application.*
 import io.ktor.cio.*
 import kotlinx.io.core.*
+import kotlinx.io.pool.*
 import java.nio.*
 import java.time.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
 import kotlin.properties.*
 
-internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
-                                           val engineContext: CoroutineContext,
-                                           val userContext: CoroutineContext,
-                                           val pool: ByteBufferPool
+internal class DefaultWebSocketSessionImpl(
+        val raw: WebSocketSession,
+        val engineContext: CoroutineContext,
+        val userContext: CoroutineContext,
+        val pool: ObjectPool<ByteBuffer>
 ) : DefaultWebSocketSession, WebSocketSession by raw {
 
     private val pinger = AtomicReference<SendChannel<Frame.Pong>?>(null)
@@ -33,7 +35,7 @@ internal class DefaultWebSocketSessionImpl(val raw: WebSocketSession,
 
     suspend fun run(handler: suspend DefaultWebSocketSession.() -> Unit) {
         runPinger()
-        val ponger = ponger(engineContext, this, NoPool)
+        val ponger = ponger(engineContext, this, KtorDefaultPool)
         val closeSequence = closeSequence(engineContext, raw, { timeout }, { reason ->
             closeReasonRef.complete(reason ?: CloseReason(CloseReason.Codes.NORMAL, ""))
         })

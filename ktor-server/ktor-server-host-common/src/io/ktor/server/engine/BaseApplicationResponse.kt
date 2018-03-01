@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.response.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.io.pool.*
 
 /**
  * Base class for implementing an [ApplicationResponse]
@@ -180,7 +181,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
 
     protected abstract suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade)
     protected abstract suspend fun responseChannel(): ByteWriteChannel
-    protected open val bufferPool: ByteBufferPool get() = NoPool
+    protected open val bufferPool: ObjectPool<ByteBuffer> get() = KtorDefaultPool
 
     protected abstract fun setStatus(statusCode: HttpStatusCode)
 

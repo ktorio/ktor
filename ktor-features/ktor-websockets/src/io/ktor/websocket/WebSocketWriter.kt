@@ -4,17 +4,18 @@ import io.ktor.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.io.pool.*
 import java.nio.ByteBuffer
 import kotlin.coroutines.experimental.*
 
-internal class WebSocketWriter(val writeChannel: ByteWriteChannel, val parent: Job, ctx: CoroutineContext, val pool: ByteBufferPool) {
+internal class WebSocketWriter(
+        val writeChannel: ByteWriteChannel,
+        val parent: Job,
+        ctx: CoroutineContext,
+        val pool: ObjectPool<ByteBuffer>
+) {
     private val queue = actor(ctx + parent, capacity = 8, start = CoroutineStart.LAZY) {
-        val ticket = pool.allocate(DEFAULT_BUFFER_SIZE)
-        try {
-            writeLoop(ticket.buffer)
-        } finally {
-            pool.release(ticket)
-        }
+        pool.use { writeLoop(it) }
     }
 
     var masking: Boolean = false

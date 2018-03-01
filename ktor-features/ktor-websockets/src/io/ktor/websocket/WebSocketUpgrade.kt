@@ -34,7 +34,7 @@ class WebSocketUpgrade(val call: ApplicationCall, val protocol: String? = null, 
 
     override suspend fun upgrade(input: ByteReadChannel, output: ByteWriteChannel, engineContext: CoroutineContext, userContext: CoroutineContext): Job {
         val webSockets = call.application.feature(WebSockets)
-        val webSocket = RawWebSocketImpl(call, input, output, NoPool, engineContext, userContext)
+        val webSocket = RawWebSocketImpl(call, input, output, KtorDefaultPool, engineContext, userContext)
 
         webSocket.maxFrameSize = webSockets.maxFrameSize
         webSocket.masking = webSockets.masking

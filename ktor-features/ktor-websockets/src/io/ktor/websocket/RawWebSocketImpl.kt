@@ -5,12 +5,13 @@ import io.ktor.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.io.pool.*
 import kotlin.coroutines.experimental.*
 
 internal class RawWebSocketImpl(override val call: ApplicationCall,
                                 readChannel: ByteReadChannel,
                                 writeChannel: ByteWriteChannel,
-                                pool: ByteBufferPool = NoPool,
+                                pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
                                 val engineContext: CoroutineContext,
                                 val userContext: CoroutineContext
 ) : WebSocketSession {

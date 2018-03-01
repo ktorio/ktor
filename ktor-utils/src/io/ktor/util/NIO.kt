@@ -1,6 +1,6 @@
 package io.ktor.util
 
-import io.ktor.cio.*
+import kotlinx.io.pool.*
 import java.nio.*
 import java.nio.charset.*
 
@@ -48,12 +48,10 @@ fun ByteBuffer.copy(size: Int = remaining()): ByteBuffer {
 /**
  * Moves all bytes in `this` buffer to a newly created buffer with the optionally specified [size] by allocating it from the given [pool]
  */
-fun ByteBuffer.copy(pool: ByteBufferPool, size: Int = remaining()): PoolTicket {
-    return pool.allocate(size).apply {
-        buffer.clear()
-        this@copy.slice().moveTo(buffer)
-        flip()
-    }
+fun ByteBuffer.copy(pool: ObjectPool<ByteBuffer>, size: Int = remaining()): ByteBuffer = pool.borrow().also {
+    it.limit(size)
+    slice().moveTo(it)
+    it.flip()
 }
 
 /**
