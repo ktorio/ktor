@@ -30,4 +30,13 @@ class URLBuilderTest {
 
         assertEquals(urlString, url.buildString())
     }
+
+    @Test
+    fun defaultPortBuildStringTest() {
+        val url = URLBuilder().apply {
+            takeFrom(URI.create("http://localhost:80/path"))
+        }
+
+        assertEquals("http://localhost/path", url.buildString())
+    }
 }
