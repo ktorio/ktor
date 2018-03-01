@@ -363,10 +363,7 @@ internal class TLSClientSession(
         output.flush()
     }
 
-    private fun doHash(): ByteArray {
-        val handshakes = handshakesPacket.build()
-        handshakesPacket.writePacket(handshakes.copy())
-
+    private fun doHash(): ByteArray = handshakesPacket.preview { handshakes: ByteReadPacket ->
         val digest = MessageDigest.getInstance(cipherSuite!!.hashName)!!
 
         val buffer = DefaultByteBufferPool.borrow()
@@ -379,7 +376,7 @@ internal class TLSClientSession(
                 buffer.clear()
             }
 
-            return digest.digest()
+            return@preview digest.digest()
         } finally {
             DefaultByteBufferPool.recycle(buffer)
         }
