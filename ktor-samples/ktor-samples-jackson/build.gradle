@@ -1,5 +1,0 @@
-description = ''
-dependencies {
-    compile project(':ktor-features:ktor-jackson')
-    compile ('com.fasterxml.jackson.datatype:jackson-datatype-jsr310:2.9.2')
-}
