@@ -26,6 +26,7 @@ fun Application.main() {
     }
 }
 
+@HtmlTagMarker
 fun FlowContent.widget(body: FlowContent.() -> Unit) {
     div { body() }
 }
