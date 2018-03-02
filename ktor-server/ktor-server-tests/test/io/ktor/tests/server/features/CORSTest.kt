@@ -374,6 +374,71 @@ class CORSTest {
     }
 
     @Test
+    fun testSameOriginEnabled() {
+        withTestApplication {
+            application.install(CORS)
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+                delete("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://localhost")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(null, call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+
+            handleRequest(HttpMethod.Delete, "/") {
+                addHeader(HttpHeaders.Origin, "http://localhost")
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(null, call.response.headers[HttpHeaders.AccessControlAllowOrigin])
+                assertEquals("OK", call.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://localhost:8080")
+            }.let { call ->
+                assertEquals(HttpStatusCode.Forbidden, call.response.status())
+            }
+        }
+    }
+
+    @Test
+    fun testSameOriginDisabled() {
+        withTestApplication {
+            application.install(CORS) {
+                allowSameOrigin = false
+            }
+
+            application.routing {
+                get("/") {
+                    call.respond("OK")
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://localhost")
+            }.let { call ->
+                assertEquals(HttpStatusCode.Forbidden, call.response.status())
+            }
+
+            handleRequest(HttpMethod.Get, "/") {
+                addHeader(HttpHeaders.Origin, "http://localhost:8080")
+            }.let { call ->
+                assertEquals(HttpStatusCode.Forbidden, call.response.status())
+            }
+        }
+    }
+
+    @Test
     fun testMultipleDomainsOriginNotSupported() {
         // the specification is not clear whether we should support multiple domains Origin header and how do we validate them
         withTestApplication {

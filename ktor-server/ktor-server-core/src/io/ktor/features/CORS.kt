@@ -13,6 +13,7 @@ import java.util.*
 class CORS(configuration: Configuration) {
     private val numberRegex = "[0-9]+".toRegex()
 
+    val allowSameOrigin = configuration.allowSameOrigin
     val allowsAnyHost = "*" in configuration.hosts
     val allowCredentials = configuration.allowCredentials
     val allHeaders = configuration.headers + Configuration.CorsDefaultHeaders
@@ -31,6 +32,8 @@ class CORS(configuration: Configuration) {
         val origin = call.request.headers.getAll(HttpHeaders.Origin)?.singleOrNull()
                 ?.takeIf(this::isValidOrigin)
                 ?: return
+
+        if (allowSameOrigin && call.isSameOrigin(origin)) return
 
         if (!call.corsCheckOrigins(origin)) {
             context.respondCorsFailed()
@@ -101,6 +104,11 @@ class CORS(configuration: Configuration) {
         if (maxAgeHeaderValue != null) {
             response.header(HttpHeaders.AccessControlMaxAge, maxAgeHeaderValue)
         }
+    }
+
+    private fun ApplicationCall.isSameOrigin(origin: String): Boolean {
+        val requestOrigin = "${this.request.origin.scheme}://${this.request.origin.host}:${this.request.origin.port}"
+        return normalizeOrigin(requestOrigin) == normalizeOrigin(origin)
     }
 
     private fun ApplicationCall.corsCheckOrigins(origin: String): Boolean {
@@ -190,6 +198,7 @@ class CORS(configuration: Configuration) {
         var allowCredentials = false
 
         var maxAge: Duration = Duration.ofDays(1)
+        var allowSameOrigin: Boolean = true
 
         fun anyHost() {
             hosts.add("*")
