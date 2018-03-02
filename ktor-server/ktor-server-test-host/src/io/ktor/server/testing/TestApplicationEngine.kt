@@ -1,11 +1,15 @@
 package io.ktor.server.testing
 
 import io.ktor.application.*
+import io.ktor.cio.*
 import io.ktor.http.*
 import io.ktor.pipeline.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.websocket.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.experimental.io.*
 import java.util.concurrent.*
 
 class TestApplicationEngine(environment: ApplicationEngineEnvironment = createTestEnvironment(), configure: Configuration.() -> Unit = {}) : BaseApplicationEngine(environment, EnginePipeline()) {
@@ -41,6 +45,29 @@ class TestApplicationEngine(environment: ApplicationEngineEnvironment = createTe
 
         setup()
     }.apply { execute(this) }
+
+    fun handleWebSocketConversation(
+        uri: String, setup: TestApplicationRequest.() -> Unit = {},
+        callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
+    ): TestApplicationCall {
+        val bc = ByteChannel(true)
+        val call = handleWebSocket(uri) {
+            setup()
+            this.bodyChannel = bc
+        }
+
+        val pool = KtorDefaultPool
+        val engineContext = Unconfined
+        val job = Job()
+        val writer = WebSocketWriter(bc, job, engineContext, pool)
+        val reader = WebSocketReader(call.response.contentChannel()!!, { Int.MAX_VALUE.toLong() }, job, engineContext, pool)
+
+        runBlocking {
+            call.callback(reader.incoming, writer.outgoing)
+            job.cancelAndJoin()
+        }
+        return call
+    }
 
     fun createCall(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         return TestApplicationCall(application).apply {

@@ -13,7 +13,7 @@ import kotlinx.io.core.ByteOrder
 import org.junit.*
 import org.junit.Test
 import org.junit.rules.*
-import java.nio.*
+import java.nio.ByteBuffer
 import java.time.*
 import java.util.*
 import java.util.concurrent.*
@@ -269,6 +269,39 @@ class WebSocketTest {
                 call.response.awaitWebSocket(Duration.ofSeconds(10))
 
                 assertEquals("ABC123", receivedText)
+            }
+        }
+    }
+
+    @Test
+    fun testConversation() {
+        withTestApplication {
+            application.install(WebSockets)
+
+            val received = arrayListOf<String>()
+            application.routing {
+                webSocket("/echo") {
+                    try {
+                        while (true) {
+                            val text = (incoming.receive() as Frame.Text).readText()
+                            received += text
+                            outgoing.send(Frame.Text(text))
+                        }
+                    } catch (e: ClosedReceiveChannelException) {
+                        // Do nothing!
+                    } catch (e: Throwable) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+
+            handleWebSocketConversation("/echo") { incoming, outgoing ->
+                val textMessages = listOf("HELLO", "WORLD")
+                for (msg in textMessages) {
+                    outgoing.send(Frame.Text(msg))
+                    assertEquals(msg, (incoming.receive() as Frame.Text).readText())
+                }
+                assertEquals(textMessages, received)
             }
         }
     }

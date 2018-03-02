@@ -15,5 +15,9 @@ dependencies {
     compile group: 'junit', name: 'junit', version: junit_version
     compile project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
 
+    // Not ideal, but prevents an additional artifact, and this is usually just included for testing,
+    // so shouldn't increase the size of the final artifact.
+    compile project(':ktor-features:ktor-websockets')
+
     testCompile project(':ktor-server:ktor-server-core')
 }

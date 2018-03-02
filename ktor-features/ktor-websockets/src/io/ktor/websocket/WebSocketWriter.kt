@@ -8,7 +8,7 @@ import kotlinx.io.pool.*
 import java.nio.ByteBuffer
 import kotlin.coroutines.experimental.*
 
-internal class WebSocketWriter(
+class WebSocketWriter(
         val writeChannel: ByteWriteChannel,
         val parent: Job,
         ctx: CoroutineContext,
@@ -20,7 +20,7 @@ internal class WebSocketWriter(
 
     var masking: Boolean = false
     val outgoing: SendChannel<Frame> get() = queue
-    val serializer = Serializer()
+    internal val serializer = Serializer()
 
     private suspend fun ActorScope<Any>.writeLoop(buffer: ByteBuffer) {
         buffer.clear()
