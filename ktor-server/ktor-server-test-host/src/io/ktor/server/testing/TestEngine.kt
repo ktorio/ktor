@@ -21,8 +21,12 @@ fun TestApplicationEngine.handleRequest(method: HttpMethod, uri: String, setup: 
     }
 }
 
-fun <R> withApplication(environment: ApplicationEngineEnvironment = createTestEnvironment(), test: TestApplicationEngine.() -> R): R {
-    val engine = TestApplicationEngine(environment)
+fun <R> withApplication(
+    environment: ApplicationEngineEnvironment = createTestEnvironment(),
+    configure: TestApplicationEngine.Configuration.() -> Unit = {},
+    test: TestApplicationEngine.() -> R
+): R {
+    val engine = TestApplicationEngine(environment, configure)
     engine.start()
     try {
         return engine.test()
@@ -37,6 +41,17 @@ fun <R> withTestApplication(test: TestApplicationEngine.() -> R): R {
 
 fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test: TestApplicationEngine.() -> R): R {
     return withApplication(createTestEnvironment()) {
+        moduleFunction(application)
+        test()
+    }
+}
+
+fun <R> withTestApplication(
+    moduleFunction: Application.() -> Unit,
+    configure: TestApplicationEngine.Configuration.() -> Unit = {},
+    test: TestApplicationEngine.() -> R
+): R {
+    return withApplication(createTestEnvironment(), configure) {
         moduleFunction(application)
         test()
     }

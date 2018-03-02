@@ -14,7 +14,10 @@ import java.util.concurrent.*
 
 class TestApplicationEngine(environment: ApplicationEngineEnvironment = createTestEnvironment(), configure: Configuration.() -> Unit = {}) : BaseApplicationEngine(environment, EnginePipeline()) {
 
-    class Configuration : BaseApplicationEngine.Configuration()
+    class Configuration : BaseApplicationEngine.Configuration() {
+        var dispatcher: CoroutineDispatcher = Unconfined
+    }
+
     private val configuration = Configuration().apply(configure)
 
     init {
@@ -77,7 +80,7 @@ class TestApplicationEngine(environment: ApplicationEngineEnvironment = createTe
         }
     }
 
-    private fun execute(call: TestApplicationCall) = launch(Unconfined) {
+    private fun execute(call: TestApplicationCall) = launch(configuration.dispatcher) {
         try {
             pipeline.execute(call)
         } catch (t: Throwable) {
