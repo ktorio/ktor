@@ -1,6 +1,0 @@
-description = ''
-dependencies {
-    compile project(':ktor-features:ktor-gson')
-    compile project(':ktor-features:ktor-html-builder')
-    compile project(':ktor-features:ktor-auth')
-}
