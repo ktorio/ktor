@@ -1,6 +1,7 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
+import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
@@ -27,6 +28,7 @@ fun ApplicationReceivePipeline.installDefaultTransformations() {
         val channel = query.value as? ByteReadChannel ?: return@intercept
         val transformed: Any? = when (query.type) {
             ByteReadChannel::class -> channel
+            ByteArray::class -> channel.toByteArray()
             InputStream::class -> channel.toInputStream()
             MultiPartData::class -> multiPartData(channel)
             String::class -> channel.readText(charset = call.request.contentCharset() ?: Charsets.ISO_8859_1)

@@ -12,9 +12,11 @@ import java.util.jar.*
  * @param jarFile is an instance of [File] representing a Jar
  * @param resourcePath is an instance of a resource inside a Jar file
  */
-class JarFileContent(val jarFile: File,
-                     val resourcePath: String,
-                     override val contentType: ContentType) : OutgoingContent.ReadChannelContent() {
+class JarFileContent(
+        val jarFile: File,
+        val resourcePath: String,
+        override val contentType: ContentType
+) : OutgoingContent.ReadChannelContent() {
 
     private val normalized = Paths.get(resourcePath).normalize().toString().replace(File.separatorChar, '/')
     private val jarEntry by lazy(LazyThreadSafetyMode.NONE) { jar.getJarEntry(resourcePath) }

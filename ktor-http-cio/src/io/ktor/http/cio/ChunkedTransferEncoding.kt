@@ -18,6 +18,7 @@ private val ChunkSizeBufferPool: ObjectPool<StringBuilder> = object : DefaultPoo
 }
 
 typealias DecoderJob = WriterJob
+
 suspend fun decodeChunked(input: ByteReadChannel, coroutineContext: CoroutineContext): DecoderJob {
     return writer(coroutineContext) {
         decodeChunked(input, channel)
@@ -65,11 +66,11 @@ suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
 }
 
 typealias EncoderJob = ReaderJob
-suspend fun encodeChunked(output: ByteWriteChannel, coroutineContext: CoroutineContext): EncoderJob {
-    return reader(coroutineContext) {
-        encodeChunked(output, channel)
-    }
-}
+
+suspend fun encodeChunked(output: ByteWriteChannel, coroutineContext: CoroutineContext): EncoderJob =
+        reader(coroutineContext) {
+            encodeChunked(output, channel)
+        }
 
 suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
     val buffer = DefaultByteBufferPool.borrow()

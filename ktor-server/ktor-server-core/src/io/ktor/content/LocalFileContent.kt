@@ -13,8 +13,10 @@ import java.nio.file.*
  *
  * @param file specifies the File to be served to a client
  */
-class LocalFileContent(val file: File,
-                       override val contentType: ContentType = ContentType.defaultForFile(file)) : OutgoingContent.ReadChannelContent() {
+class LocalFileContent(
+        val file: File,
+        override val contentType: ContentType = ContentType.defaultForFile(file)
+) : OutgoingContent.ReadChannelContent() {
 
     override val contentLength: Long get() = file.length()
 

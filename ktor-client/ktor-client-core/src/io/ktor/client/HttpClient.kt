@@ -23,6 +23,7 @@ class HttpClient private constructor(
     init {
         config.install(HttpPlainText)
         config.install(HttpIgnoreBody)
+        config.install("DefaultTransformers") { defaultTransformers() }
 
         config.install(this)
     }

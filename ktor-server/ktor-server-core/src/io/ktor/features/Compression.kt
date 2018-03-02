@@ -77,8 +77,7 @@ class Compression(compression: Configuration) {
                 && options.conditions.all { it(call, message) }
                 && !call.isCompressionSuppressed()
                 && message.headers[HttpHeaders.ContentEncoding].let { it == null || it == "identity" }
-                ) {
-
+        ) {
             val encoderOptions = encoders.firstOrNull { it.conditions.all { it(call, message) } }
 
             val channel: () -> ByteReadChannel = when (message) {

@@ -1,8 +1,5 @@
 package io.ktor.content
 
-import io.ktor.http.*
-import io.ktor.util.*
-
 /**
  * Implementation of the [OutgoingContent.ByteArrayContent] for sending array of bytes
  */
