@@ -64,7 +64,7 @@ fun HttpRequestBuilder.url(
         path: String = "/"
 ) {
     url.apply {
-        protocol = URLProtocol.createOrDefault(scheme, port)
+        protocol = URLProtocol.createOrDefault(scheme)
         this.host = host
         this.port = port
         encodedPath = path

@@ -39,4 +39,22 @@ class URLBuilderTest {
 
         assertEquals("http://localhost/path", url.buildString())
     }
+
+    @Test
+    fun testCustom() {
+        val url = URLBuilder().apply {
+            takeFrom(URI.create("custom://localhost:8080/path"))
+        }
+
+        assertEquals("custom://localhost:8080/path", url.buildString())
+    }
+
+    @Test
+    fun testCapitalize() {
+        val url = URLBuilder().apply {
+            takeFrom(URI.create("custom://localhost:8080/path".capitalize()))
+        }
+
+        assertEquals("custom://localhost:8080/path", url.buildString())
+    }
 }

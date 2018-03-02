@@ -6,7 +6,7 @@ import java.net.*
 
 fun URLBuilder.takeFrom(uri: URI) {
     port = uri.port.takeIf { it > 0 } ?: if (uri.scheme == "https") 443 else 80
-    protocol = URLProtocol.createOrDefault(uri.scheme, port)
+    protocol = URLProtocol.createOrDefault(uri.scheme)
     host = uri.host
     val path = uri.path
     encodedPath = when (path) {
