@@ -40,6 +40,7 @@ class TestApplicationRequest(
             get() = this@TestApplicationRequest.version
     }
 
+    var bodyChannel: ByteReadChannel? = null
     var bodyBytes: ByteArray = ByteArray(0)
     var body: String
         get() = bodyBytes.toString(Charsets.UTF_8)
@@ -71,7 +72,7 @@ class TestApplicationRequest(
 
     override fun receiveContent() = TestIncomingContent(this)
     override fun receiveChannel(): ByteReadChannel {
-        return ByteReadChannel(bodyBytes)
+        return bodyChannel ?: ByteReadChannel(bodyBytes)
     }
 
     class TestIncomingContent(private val request: TestApplicationRequest) : IncomingContent {
