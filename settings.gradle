@@ -41,7 +41,6 @@ include ':ktor-network-tls'
 include ':ktor-samples:ktor-samples-locations'
 include ':ktor-samples:ktor-samples-auth'
 include ':ktor-samples:ktor-samples-testable'
-include ':ktor-samples:ktor-samples-embedded'
 include ':ktor-samples:ktor-samples-metrics'
 include ':ktor-samples:ktor-samples-guice'
 include ':ktor-samples:ktor-samples-ssl-http2'
@@ -90,7 +89,6 @@ project(':ktor-network-tls').projectDir = "$rootDir/ktor-network-tls" as File
 project(':ktor-samples:ktor-samples-locations').projectDir = "$rootDir/ktor-samples/ktor-samples-locations" as File
 project(':ktor-samples:ktor-samples-auth').projectDir = "$rootDir/ktor-samples/ktor-samples-auth" as File
 project(':ktor-samples:ktor-samples-testable').projectDir = "$rootDir/ktor-samples/ktor-samples-testable" as File
-project(':ktor-samples:ktor-samples-embedded').projectDir = "$rootDir/ktor-samples/ktor-samples-embedded" as File
 project(':ktor-samples:ktor-samples-metrics').projectDir = "$rootDir/ktor-samples/ktor-samples-metrics" as File
 project(':ktor-samples:ktor-samples-guice').projectDir = "$rootDir/ktor-samples/ktor-samples-guice" as File
 project(':ktor-samples:ktor-samples-ssl-http2').projectDir = "$rootDir/ktor-samples/ktor-samples-ssl-http2" as File
