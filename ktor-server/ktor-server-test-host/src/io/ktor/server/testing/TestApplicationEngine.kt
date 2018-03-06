@@ -64,6 +64,8 @@ class TestApplicationEngine(environment: ApplicationEngineEnvironment = createTe
 
         runBlocking {
             call.callback(reader.incoming, writer.outgoing)
+            writer.flush()
+            writer.close()
             job.cancelAndJoin()
         }
         return call
