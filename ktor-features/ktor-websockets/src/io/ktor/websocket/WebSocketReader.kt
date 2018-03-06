@@ -9,6 +9,10 @@ import java.nio.channels.*
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.experimental.*
 
+/**
+ * Class that continuously reads a [byteChannel] and
+ * converts into Websocket [Frame] exposing them in [incoming].
+ */
 class WebSocketReader @Deprecated("Internal API") constructor(
         val byteChannel: ByteReadChannel,
         val maxFrameSize: () -> Long,
@@ -37,6 +41,9 @@ class WebSocketReader @Deprecated("Internal API") constructor(
         }
     }
 
+    /**
+     * Channel receiving Websocket's [Frame] objects read from [byteChannel].
+     */
     val incoming: ReceiveChannel<Frame> get() = queue.also { readerJob.start() }
 
     private suspend fun readLoop(buffer: ByteBuffer) {

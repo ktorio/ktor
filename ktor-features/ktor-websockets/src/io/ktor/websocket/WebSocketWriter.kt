@@ -8,6 +8,10 @@ import kotlinx.io.pool.*
 import java.nio.ByteBuffer
 import kotlin.coroutines.experimental.*
 
+/**
+ * Class that processes written [outgoing] Websocket [Frame],
+ * serializes them and writes the bits into the [writeChannel].
+ */
 class WebSocketWriter @Deprecated("Internal API") constructor(
         val writeChannel: ByteWriteChannel,
         val parent: Job,
@@ -18,8 +22,16 @@ class WebSocketWriter @Deprecated("Internal API") constructor(
         pool.use { writeLoop(it) }
     }
 
+    /**
+     * Whether it will mask serialized frames.
+     */
     var masking: Boolean = false
+
+    /**
+     * Channel for sending Websocket's [Frame] that will be serialized and written to [writeChannel].
+     */
     val outgoing: SendChannel<Frame> get() = queue
+
     internal val serializer = Serializer()
 
     private suspend fun ActorScope<Any>.writeLoop(buffer: ByteBuffer) {
@@ -112,6 +124,9 @@ class WebSocketWriter @Deprecated("Internal API") constructor(
      */
     suspend fun flush() = FlushRequest(parent).also { queue.send(it) }.await()
 
+    /**
+     * Closes the message queue
+     */
     fun close() {
         queue.close()
     }
