@@ -216,7 +216,7 @@ class WebSocketTest {
             }.let { call ->
                 runBlocking {
                     withTimeout(Duration.ofSeconds(10).toMillis()) {
-                        val reader = WebSocketReader(call.response.contentChannel()!!, { Int.MAX_VALUE.toLong() }, Job(), DefaultDispatcher, KtorDefaultPool)
+                        val reader = @Suppress("DEPRECATION") WebSocketReader(call.response.contentChannel()!!, { Int.MAX_VALUE.toLong() }, Job(), DefaultDispatcher, KtorDefaultPool)
                         val frame = reader.incoming.receive()
                         val receivedContent = frame.buffer.moveToByteArray()
 

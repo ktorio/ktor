@@ -59,8 +59,8 @@ class TestApplicationEngine(environment: ApplicationEngineEnvironment = createTe
         val pool = KtorDefaultPool
         val engineContext = Unconfined
         val job = Job()
-        val writer = WebSocketWriter(bc, job, engineContext, pool)
-        val reader = WebSocketReader(call.response.contentChannel()!!, { Int.MAX_VALUE.toLong() }, job, engineContext, pool)
+        val writer = @Suppress("DEPRECATION") WebSocketWriter(bc, job, engineContext, pool)
+        val reader = @Suppress("DEPRECATION") WebSocketReader(call.response.contentChannel()!!, { Int.MAX_VALUE.toLong() }, job, engineContext, pool)
 
         runBlocking {
             call.callback(reader.incoming, writer.outgoing)

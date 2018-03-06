@@ -9,7 +9,7 @@ import java.nio.channels.*
 import java.util.concurrent.CancellationException
 import kotlin.coroutines.experimental.*
 
-class WebSocketReader(
+class WebSocketReader @Deprecated("Internal API") constructor(
         val byteChannel: ByteReadChannel,
         val maxFrameSize: () -> Long,
         job: Job, context: CoroutineContext,

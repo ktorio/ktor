@@ -17,8 +17,8 @@ internal class RawWebSocketImpl(override val call: ApplicationCall,
 ) : WebSocketSession {
     private val job = Job()
 
-    private val writer = WebSocketWriter(writeChannel, job, engineContext, pool)
-    private val reader = WebSocketReader(readChannel, this::maxFrameSize, job, engineContext, pool)
+    private val writer = @Suppress("DEPRECATION") WebSocketWriter(writeChannel, job, engineContext, pool)
+    private val reader = @Suppress("DEPRECATION") WebSocketReader(readChannel, this::maxFrameSize, job, engineContext, pool)
 
     override val application: Application get() = call.application
 

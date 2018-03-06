@@ -8,7 +8,7 @@ import kotlinx.io.pool.*
 import java.nio.ByteBuffer
 import kotlin.coroutines.experimental.*
 
-class WebSocketWriter(
+class WebSocketWriter @Deprecated("Internal API") constructor(
         val writeChannel: ByteWriteChannel,
         val parent: Job,
         ctx: CoroutineContext,
