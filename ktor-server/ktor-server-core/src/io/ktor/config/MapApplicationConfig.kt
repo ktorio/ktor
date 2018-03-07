@@ -26,10 +26,7 @@ class MapApplicationConfig : ApplicationConfig {
     }
 
     override fun property(path: String): ApplicationConfigValue {
-        val key = combine(this.path, path)
-        if (!map.containsKey(key) && !map.containsKey(combine(key, "size")))
-            throw ApplicationConfigurationException("Property $key not found.")
-        return MapApplicationConfigValue(map, key)
+        return propertyOrNull(path) ?: throw ApplicationConfigurationException("Property ${combine(this.path, path)} not found.")
     }
 
     override fun configList(path: String): List<ApplicationConfig> {
@@ -42,7 +39,11 @@ class MapApplicationConfig : ApplicationConfig {
 
     override fun propertyOrNull(path: String): ApplicationConfigValue? {
         val key = combine(this.path, path)
-        return if (map.containsKey(key)) MapApplicationConfigValue(map, key) else null
+        return if (!map.containsKey(key) && !map.containsKey(combine(key, "size"))) {
+            null
+        } else {
+            MapApplicationConfigValue(map, key)
+        }
     }
 
     override fun config(path: String): ApplicationConfig = MapApplicationConfig(map, combine(this.path, path))
