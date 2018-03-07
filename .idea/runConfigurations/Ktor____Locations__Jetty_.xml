@@ -2,7 +2,7 @@
   <configuration default="false" name="Ktor :: Locations (Jetty)" type="GradleRunConfiguration" factoryName="Gradle" folderName="Samples" singleton="true">
     <ExternalSystemSettings>
       <option name="executionName" />
-      <option name="externalProjectPath" value="$PROJECT_DIR$/ktor-features/ktor-locations" />
+      <option name="externalProjectPath" value="$PROJECT_DIR$/ktor-samples/ktor-samples-locations" />
       <option name="externalSystemIdString" value="GRADLE" />
       <option name="scriptParameters" value="-PserverEngine=jetty" />
       <option name="taskDescriptions">
