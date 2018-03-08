@@ -17,7 +17,7 @@ class DefaultHeaders(config: Configuration) {
     private val zoneUTCRules = UTC.rules
 
     private var cachedDateTimeStamp: Long = 0L
-    @Volatile private var cachedDateText: String = ZonedDateTime.now(ZoneOffset.UTC).toHttpDateString()
+    @Volatile private var cachedDateText: String = ZonedDateTime.now(GreenwichMeanTime).toHttpDateString()
 
     /**
      * Configuration for [DefaultHeaders] feature.

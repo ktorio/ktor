@@ -114,12 +114,6 @@ suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, bl
     }
 }
 
-@Deprecated("Use configuration for ConditionalHeaders")
-suspend fun ApplicationCall.withLastModified(lastModified: ZonedDateTime, putHeader: Boolean = true, block: suspend () -> Unit) {
-    @Suppress("DEPRECATION")
-    withLastModified(lastModified.toLocalDateTime(), putHeader, block)
-}
-
 /**
  * The function passes the given [lastModified] date through the client provided
  *  http conditional headers If-Modified-Since and If-Unmodified-Since. Depends on conditions it
@@ -134,7 +128,7 @@ suspend fun ApplicationCall.withLastModified(lastModified: ZonedDateTime, putHea
  *  https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.25
  */
 @Deprecated("Use configuration for ConditionalHeaders")
-suspend fun ApplicationCall.withLastModified(lastModified: LocalDateTime, putHeader: Boolean = true, block: suspend () -> Unit) {
+suspend fun ApplicationCall.withLastModified(lastModified: ZonedDateTime, putHeader: Boolean = true, block: suspend () -> Unit) {
     val version = LastModifiedVersion(lastModified)
     val result = version.check(this)
 
@@ -163,7 +157,7 @@ val OutgoingContent.defaultVersions: List<Version>
         val lastModifiedHeaders = headers.getAll(HttpHeaders.LastModified) ?: emptyList()
         val etagHeaders = headers.getAll(HttpHeaders.ETag) ?: emptyList()
         val versions = ArrayList<Version>(lastModifiedHeaders.size + etagHeaders.size)
-        lastModifiedHeaders.mapTo(versions) { LastModifiedVersion(LocalDateTime.parse(it, httpDateFormat)) }
+        lastModifiedHeaders.mapTo(versions) { LastModifiedVersion(ZonedDateTime.parse(it, httpDateFormat)) }
         etagHeaders.mapTo(versions) { EntityTagVersion(it) }
         return versions
     }

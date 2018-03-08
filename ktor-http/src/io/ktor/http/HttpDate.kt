@@ -1,5 +1,6 @@
 package io.ktor.http
 
+import io.ktor.util.*
 import java.time.*
 import java.time.format.*
 import java.time.temporal.*
@@ -14,4 +15,4 @@ val httpDateFormat =
         DateTimeFormatter
                 .ofPattern("EEE, dd MMM yyyy HH:mm:ss z")
                 .withLocale(Locale.US)
-                .withZone(ZoneId.of("GMT"))!!
+                .withZone(GreenwichMeanTime)!!

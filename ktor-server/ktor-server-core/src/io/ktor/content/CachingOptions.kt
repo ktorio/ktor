@@ -19,6 +19,5 @@ var OutgoingContent.caching: CachingOptions?
 /**
  * Specifies caching properties for an [OutgoingContent] such as Cache-Control or Expires
  */
-data class CachingOptions(val cacheControl: CacheControl? = null,
-                          val expires: LocalDateTime? = null)
+data class CachingOptions(val cacheControl: CacheControl? = null, val expires: ZonedDateTime? = null)
 

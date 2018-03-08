@@ -3,13 +3,14 @@ package io.ktor.tests.server.cio
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.server.cio.*
+import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.time.*
 
 
 @Volatile
-private var cachedDateText: String = ZonedDateTime.now(ZoneOffset.UTC).toHttpDateString()
+private var cachedDateText: String = ZonedDateTime.now(GreenwichMeanTime).toHttpDateString()
 
 private val HelloWorld = "Hello, World!".toByteArray()
 private val HelloWorldLength = HelloWorld.size.toString()
@@ -28,7 +29,7 @@ fun main(args: Array<String>) {
 
     launch {
         while (isActive) {
-            cachedDateText = ZonedDateTime.now(ZoneOffset.UTC).toHttpDateString()
+            cachedDateText = ZonedDateTime.now(GreenwichMeanTime).toHttpDateString()
             delay(1000)
         }
     }

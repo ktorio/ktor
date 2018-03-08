@@ -7,7 +7,13 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
+import org.junit.*
 import org.junit.Test
+import org.junit.rules.*
+import java.io.*
+import java.nio.file.*
+import java.text.*
 import java.time.*
 import java.util.*
 import kotlin.test.*
@@ -151,7 +157,8 @@ class ETagsTest {
 }
 
 class LastModifiedTest {
-    val date = Date()
+    private val date = Date()
+
     private fun withConditionalApplication(body: TestApplicationEngine.() -> Unit) = withTestApplication {
         application.install(ConditionalHeaders) {
             version { listOf(LastModifiedVersion(date)) }
@@ -186,7 +193,7 @@ class LastModifiedTest {
         val date = ZonedDateTime.now()
         withTestApplication {
             application.install(ConditionalHeaders) {
-                version { listOf(LastModifiedVersion(date.toLocalDateTime())) }
+                version { listOf(LastModifiedVersion(date)) }
             }
             application.routing {
                 handle {
@@ -219,7 +226,7 @@ class LastModifiedTest {
 
     @Test
     fun testIfModifiedSinceTimeZoned() = withConditionalApplication {
-        val expectedDate = date.toLocalDateTime().toHttpDateString()
+        val expectedDate = date.toZonedDateTime().toHttpDateString()
         val customFormat = httpDateFormat.withZone(ZoneId.of("Europe/Moscow"))!!
 
         handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.toLocalDateTime()).replace("MT", "MSK")) }).let { result ->
@@ -264,4 +271,72 @@ class LastModifiedTest {
     }
 
     private fun Date.toLocalDateTime() = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault())
+}
+
+
+class LastModifiedVersionTest {
+    private fun temporaryDefaultTimezone(timeZone : TimeZone, block : () -> Unit) {
+        val originalTimeZone : TimeZone = TimeZone.getDefault()
+        TimeZone.setDefault(timeZone)
+        try {
+            block()
+        } finally {
+            TimeZone.setDefault(originalTimeZone)
+        }
+    }
+
+    private fun checkLastModifiedHeaderIsIndependentOfLocalTimezone(constructLastModifiedVersion : (Date) -> LastModifiedVersion) {
+        // setup: any non-zero-offset-Timezone will do
+        temporaryDefaultTimezone(TimeZone.getTimeZone("GMT+08:00")) {
+
+            // guard: local default timezone needs to be different from GMT for the problem to manifest
+            assertTrue(TimeZone.getDefault().rawOffset != 0, "invalid test setup - local timezone is GMT: ${TimeZone.getDefault()}")
+
+            // setup: last modified for file
+            val expectedLastModified : Date = SimpleDateFormat("yyyy-MM-dd HH:mm:ss z").parse("2018-03-04 15:12:23 GMT")
+
+            // setup: object to test
+            val lastModifiedVersion = constructLastModifiedVersion(expectedLastModified)
+
+            // setup HeadersBuilder as test spy
+            val headersBuilder = HeadersBuilder()
+
+            // exercise
+            lastModifiedVersion.appendHeadersTo(headersBuilder)
+
+            // check
+            assertEquals("Sun, 04 Mar 2018 15:12:23 GMT", headersBuilder["Last-Modified"])
+        }
+    }
+
+    @Test
+    fun lastModifiedHeaderFromDateIsIndependentOfLocalTimezone() {
+        checkLastModifiedHeaderIsIndependentOfLocalTimezone { input : Date -> LastModifiedVersion(input) }
+    }
+
+    @Test
+    fun lastModifiedHeaderFromLocalDateTimeIsIndependentOfLocalTimezone() {
+        checkLastModifiedHeaderIsIndependentOfLocalTimezone { input : Date ->
+            LastModifiedVersion(ZonedDateTime.ofInstant(input.toInstant(), ZoneId.systemDefault()))
+        }
+    }
+
+    @get:Rule
+    val temporaryFolder = TemporaryFolder()
+
+    @Test
+    fun lastModifiedHeaderFromFileTimeIsIndependentOfLocalTimezone() {
+        checkLastModifiedHeaderIsIndependentOfLocalTimezone { input : Date ->
+            // setup: create file
+            val file : File = temporaryFolder.newFile("foo.txt").apply {
+                setLastModified(input.time)
+            }
+
+            // guard: file lastmodified is actually set as expected
+            Assert.assertEquals(input.time, file.lastModified())
+
+            // setup: object to test
+            LastModifiedVersion(Files.getLastModifiedTime(file.toPath()))
+        }
+    }
 }

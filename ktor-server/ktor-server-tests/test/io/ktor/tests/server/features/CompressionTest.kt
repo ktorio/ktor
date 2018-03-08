@@ -7,6 +7,7 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 import org.junit.Test
 import java.time.*
@@ -326,7 +327,7 @@ class CompressionTest {
 
     @Test
     fun testWithConditionalHeaders() {
-        val dateTime = LocalDateTime.now()
+        val dateTime = ZonedDateTime.now(GreenwichMeanTime)
 
         withTestApplication {
             application.install(ConditionalHeaders)

@@ -72,7 +72,7 @@ enum class VersionCheckResult(val statusCode: HttpStatusCode) {
  *
  *  @param lastModified of the current content, for example file's last modified date
  */
-data class LastModifiedVersion(val lastModified: LocalDateTime) : Version {
+data class LastModifiedVersion(val lastModified: ZonedDateTime) : Version {
     /**
      *  @return [VersionCheckResult.OK] if all header pass or there was no headers in the request,
      *  [VersionCheckResult.NOT_MODIFIED] for If-Modified-Since,
@@ -80,8 +80,8 @@ data class LastModifiedVersion(val lastModified: LocalDateTime) : Version {
      */
     override fun check(call: ApplicationCall): VersionCheckResult {
         val normalized = lastModified.withNano(0) // we need this because of the http date format that only has seconds
-        val ifModifiedSince = call.request.headers[HttpHeaders.IfModifiedSince]?.fromHttpDateString()?.toLocalDateTime()
-        val ifUnmodifiedSince = call.request.headers[HttpHeaders.IfUnmodifiedSince]?.fromHttpDateString()?.toLocalDateTime()
+        val ifModifiedSince = call.request.headers[HttpHeaders.IfModifiedSince]?.fromHttpDateString()
+        val ifUnmodifiedSince = call.request.headers[HttpHeaders.IfUnmodifiedSince]?.fromHttpDateString()
 
         if (ifModifiedSince != null) {
             if (normalized <= ifModifiedSince) {
@@ -97,11 +97,11 @@ data class LastModifiedVersion(val lastModified: LocalDateTime) : Version {
         return VersionCheckResult.OK
     }
 
-    constructor(lastModified: FileTime) : this(LocalDateTime.ofInstant(lastModified.toInstant(), ZoneId.systemDefault()))
-    constructor(lastModified: Date) : this(lastModified.toLocalDateTime())
+    constructor(lastModified: FileTime) : this(ZonedDateTime.ofInstant(lastModified.toInstant(), ZoneId.systemDefault()))
+    constructor(lastModified: Date) : this(lastModified.toZonedDateTime())
 
     override fun appendHeadersTo(builder: HeadersBuilder) {
-        builder.lastModified(lastModified.atZone(ZoneOffset.UTC))
+        builder.lastModified(lastModified.withZoneSameInstant(GreenwichMeanTime))
     }
 }
 
