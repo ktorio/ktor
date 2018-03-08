@@ -92,6 +92,10 @@ class ContentNegotiationTest {
                     val text = call.receive<Wrapper>().value
                     call.respond(Wrapper("OK: $text"))
                 }
+                post("/raw") {
+                    val text = call.receiveText()
+                    call.respond("RAW: $text")
+                }
             }
 
             // Acceptable
@@ -184,6 +188,17 @@ class ContentNegotiationTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals(customContentType, call.response.contentType().withoutParameters())
                 assertEquals("[OK: The Text]", call.response.content)
+            }
+
+            // Post to raw endpoint with custom content type
+            handleRequest(HttpMethod.Post, "/raw") {
+                addHeader(HttpHeaders.ContentType, customContentType.toString())
+                addHeader(HttpHeaders.Accept, customContentType.toString())
+                body = "[The Text]"
+            }.let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
+                assertEquals("RAW: [The Text]", call.response.content)
             }
 
             // Post with charset
