@@ -26,7 +26,7 @@ class DefaultHeaders(config: Configuration) {
         /**
          * Provides a builder to append any custom headers to be sent with each request
          */
-        val headers = HeadersBuilder()
+        internal val headers = HeadersBuilder()
 
         /**
          * Adds standard header property [name] with the specified [value].
