@@ -157,7 +157,7 @@ class ETagsTest {
 }
 
 class LastModifiedTest {
-    private val date = Date()
+    private val date = ZonedDateTime.now(GreenwichMeanTime)!!
 
     private fun withConditionalApplication(body: TestApplicationEngine.() -> Unit) = withTestApplication {
         application.install(ConditionalHeaders) {
@@ -182,7 +182,7 @@ class LastModifiedTest {
 
     @Test
     fun testIfModifiedSinceEq() = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.toLocalDateTime().toHttpDateString()) }).let { result ->
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.toHttpDateString()) }).let { result ->
             assertEquals(HttpStatusCode.NotModified, result.response.status())
             assertNull(result.response.content)
         }
@@ -190,7 +190,6 @@ class LastModifiedTest {
 
     @Test
     fun testIfModifiedSinceEqZoned() {
-        val date = ZonedDateTime.now()
         withTestApplication {
             application.install(ConditionalHeaders) {
                 version { listOf(LastModifiedVersion(date)) }
@@ -201,7 +200,7 @@ class LastModifiedTest {
                 }
             }
 
-            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.toLocalDateTime().toHttpDateString()) }).let { result ->
+            handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.toHttpDateString()) }).let { result ->
                 assertEquals(HttpStatusCode.NotModified, result.response.status())
                 assertNull(result.response.content)
             }
@@ -210,7 +209,7 @@ class LastModifiedTest {
 
     @Test
     fun testIfModifiedSinceLess() = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.toLocalDateTime().minusDays(1).toHttpDateString()) }).let { result ->
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.minusDays(1).toHttpDateString()) }).let { result ->
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("response", result.response.content)
         }
@@ -218,7 +217,7 @@ class LastModifiedTest {
 
     @Test
     fun testIfModifiedSinceGt() = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.toLocalDateTime().plusDays(1).toHttpDateString()) }).let { result ->
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, date.plusDays(1).toHttpDateString()) }).let { result ->
             assertEquals(HttpStatusCode.NotModified, result.response.status())
             assertNull(result.response.content)
         }
@@ -226,20 +225,20 @@ class LastModifiedTest {
 
     @Test
     fun testIfModifiedSinceTimeZoned() = withConditionalApplication {
-        val expectedDate = date.toZonedDateTime().toHttpDateString()
+        val expectedDate = date.toHttpDateString()
         val customFormat = httpDateFormat.withZone(ZoneId.of("Europe/Moscow"))!!
 
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.toLocalDateTime()).replace("MT", "MSK")) }).let { result ->
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date).replace("MT", "MSK")) }).let { result ->
             assertEquals(HttpStatusCode.NotModified, result.response.status())
             assertNull(result.response.content)
         }
 
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.toLocalDateTime().plusDays(1)).replace("MT", "MSK")) }).let { result ->
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.plusDays(1)).replace("MT", "MSK")) }).let { result ->
             assertEquals(HttpStatusCode.NotModified, result.response.status())
             assertNull(result.response.content)
         }
 
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.toLocalDateTime().minusDays(1)).replace("MT", "MSK")) }).let { result ->
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfModifiedSince, customFormat.format(date.minusDays(1)).replace("MT", "MSK")) }).let { result ->
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("response", result.response.content)
             assertEquals(expectedDate, result.response.headers[HttpHeaders.LastModified])
@@ -248,7 +247,7 @@ class LastModifiedTest {
 
     @Test
     fun testIfUnModifiedSinceEq() = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfUnmodifiedSince, date.toLocalDateTime().toHttpDateString()) }).let { result ->
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfUnmodifiedSince, date.toHttpDateString()) }).let { result ->
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("response", result.response.content)
         }
@@ -256,7 +255,7 @@ class LastModifiedTest {
 
     @Test
     fun testIfUnModifiedSinceLess() = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfUnmodifiedSince, date.toLocalDateTime().minusDays(1).toHttpDateString()) }).let { result ->
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfUnmodifiedSince, date.minusDays(1).toHttpDateString()) }).let { result ->
             assertEquals(HttpStatusCode.PreconditionFailed, result.response.status())
             assertNull(result.response.content)
         }
@@ -264,13 +263,11 @@ class LastModifiedTest {
 
     @Test
     fun testIfUnModifiedSinceGt() = withConditionalApplication {
-        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfUnmodifiedSince, date.toLocalDateTime().plusDays(1).toHttpDateString()) }).let { result ->
+        handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.IfUnmodifiedSince, date.plusDays(1).toHttpDateString()) }).let { result ->
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertEquals("response", result.response.content)
         }
     }
-
-    private fun Date.toLocalDateTime() = LocalDateTime.ofInstant(toInstant(), ZoneId.systemDefault())
 }
 
 
