@@ -140,8 +140,8 @@ class FreeMarkerTest {
 
                 val lines = content!!.lines()
 
-                assertEquals(lines[0], "<p>Hello, 1</p>")
-                assertEquals(lines[1], "<h1>Bonjour le monde!</h1>")
+                assertEquals("<p>Hello, 1</p>", lines[0])
+                assertEquals("<h1>Bonjour le monde!</h1>", lines[1])
             }
         }
     }
