@@ -346,4 +346,171 @@ class RoutingProcessingTest {
             assertFalse { call.requestHandled }
         }
     }
+
+    @Test
+    fun `routing with tracing`() = withTestApplication {
+        var trace: RoutingResolveTrace? = null
+        application.routing {
+            trace {
+                trace = it
+            }
+            get("/bar") { call.respond("/bar") }
+            get("/baz") { call.respond("/baz") }
+            get("/baz/x") { call.respond("/baz/x") }
+            get("/baz/x/{optional?}") { call.respond("/baz/x/{optional?}") }
+            get("/baz/{y}") { call.respond("/baz/{y}") }
+            get("/baz/{y}/value") { call.respond("/baz/{y}/value") }
+            get("/{param}") { call.respond("/{param}") }
+            get("/{param}/x") { call.respond("/{param}/x") }
+            get("/{param}/x/z") { call.respond("/{param}/x/z") }
+            get("/*/extra") { call.respond("/*/extra") }
+
+        }
+
+        handleRequest {
+            uri = "/bar"
+            method = HttpMethod.Get
+        }.let {
+            assertEquals("/bar", it.response.content)
+            assertEquals("""Trace for [bar]
+/, segment:0 -> SUCCESS @ /bar/(method:GET))
+  /bar, segment:1 -> SUCCESS @ /bar/(method:GET))
+    /bar/(method:GET), segment:1 -> SUCCESS @ /bar/(method:GET))
+  /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz)
+  /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
+  /*, segment:0 -> FAILURE "Better match was already found" @ /*)
+""", trace?.buildText())
+        }
+
+        handleRequest {
+            uri = "/bar/x"
+            method = HttpMethod.Get
+        }.let {
+            assertEquals("/{param}/x", it.response.content)
+            assertEquals("""Trace for [bar, x]
+/, segment:0 -> SUCCESS; Parameters [param=[bar]] @ /{param}/x/(method:GET))
+  /bar, segment:1 -> FAILURE "Not all segments matched" @ /bar/(method:GET))
+    /bar/(method:GET), segment:1 -> FAILURE "Not all segments matched" @ /bar/(method:GET))
+  /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz)
+  /{param}, segment:1 -> SUCCESS @ /{param}/x/(method:GET))
+    /{param}/(method:GET), segment:1 -> FAILURE "Not all segments matched" @ /{param}/(method:GET))
+    /{param}/x, segment:2 -> SUCCESS @ /{param}/x/(method:GET))
+      /{param}/x/(method:GET), segment:2 -> SUCCESS @ /{param}/x/(method:GET))
+      /{param}/x/z, segment:2 -> FAILURE "Selector didn't match" @ /{param}/x/z)
+  /*, segment:0 -> FAILURE "Better match was already found" @ /*)
+""", trace?.buildText())
+        }
+
+        handleRequest {
+            uri = "/baz/x"
+            method = HttpMethod.Get
+        }.let {
+            assertEquals("/baz/x", it.response.content)
+            assertEquals("""Trace for [baz, x]
+/, segment:0 -> SUCCESS @ /baz/x/(method:GET))
+  /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar)
+  /baz, segment:1 -> SUCCESS @ /baz/x/(method:GET))
+    /baz/(method:GET), segment:1 -> FAILURE "Not all segments matched" @ /baz/(method:GET))
+    /baz/x, segment:2 -> SUCCESS @ /baz/x/(method:GET))
+      /baz/x/(method:GET), segment:2 -> SUCCESS @ /baz/x/(method:GET))
+      /baz/x/{optional?}, segment:2 -> FAILURE "Better match was already found" @ /baz/x/{optional?})
+    /baz/{y}, segment:1 -> FAILURE "Better match was already found" @ /baz/{y})
+  /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
+  /*, segment:0 -> FAILURE "Better match was already found" @ /*)
+""", trace?.buildText())
+        }
+
+        handleRequest {
+            uri = "/baz/doo"
+            method = HttpMethod.Get
+        }.let {
+            assertEquals("/baz/{y}", it.response.content)
+            assertEquals("""Trace for [baz, doo]
+/, segment:0 -> SUCCESS; Parameters [y=[doo]] @ /baz/{y}/(method:GET))
+  /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar)
+  /baz, segment:1 -> SUCCESS; Parameters [y=[doo]] @ /baz/{y}/(method:GET))
+    /baz/(method:GET), segment:1 -> FAILURE "Not all segments matched" @ /baz/(method:GET))
+    /baz/x, segment:1 -> FAILURE "Selector didn't match" @ /baz/x)
+    /baz/{y}, segment:2 -> SUCCESS @ /baz/{y}/(method:GET))
+      /baz/{y}/(method:GET), segment:2 -> SUCCESS @ /baz/{y}/(method:GET))
+      /baz/{y}/value, segment:2 -> FAILURE "Selector didn't match" @ /baz/{y}/value)
+  /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
+  /*, segment:0 -> FAILURE "Better match was already found" @ /*)
+""", trace?.buildText())
+        }
+
+        handleRequest {
+            uri = "/baz/x/z"
+            method = HttpMethod.Get
+        }.let {
+            assertEquals("/baz/x/{optional?}", it.response.content)
+            assertEquals("""Trace for [baz, x, z]
+/, segment:0 -> SUCCESS; Parameters [optional=[z]] @ /baz/x/{optional?}/(method:GET))
+  /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar)
+  /baz, segment:1 -> SUCCESS; Parameters [optional=[z]] @ /baz/x/{optional?}/(method:GET))
+    /baz/(method:GET), segment:1 -> FAILURE "Not all segments matched" @ /baz/(method:GET))
+    /baz/x, segment:2 -> SUCCESS; Parameters [optional=[z]] @ /baz/x/{optional?}/(method:GET))
+      /baz/x/(method:GET), segment:2 -> FAILURE "Not all segments matched" @ /baz/x/(method:GET))
+      /baz/x/{optional?}, segment:3 -> SUCCESS @ /baz/x/{optional?}/(method:GET))
+        /baz/x/{optional?}/(method:GET), segment:3 -> SUCCESS @ /baz/x/{optional?}/(method:GET))
+    /baz/{y}, segment:1 -> FAILURE "Better match was already found" @ /baz/{y})
+  /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
+  /*, segment:0 -> FAILURE "Better match was already found" @ /*)
+""", trace?.buildText())
+        }
+
+        handleRequest {
+            uri = "/baz/x/value"
+            method = HttpMethod.Get
+        }.let {
+            assertEquals("/baz/x/{optional?}", it.response.content)
+            assertEquals("""Trace for [baz, x, value]
+/, segment:0 -> SUCCESS; Parameters [optional=[value]] @ /baz/x/{optional?}/(method:GET))
+  /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar)
+  /baz, segment:1 -> SUCCESS; Parameters [optional=[value]] @ /baz/x/{optional?}/(method:GET))
+    /baz/(method:GET), segment:1 -> FAILURE "Not all segments matched" @ /baz/(method:GET))
+    /baz/x, segment:2 -> SUCCESS; Parameters [optional=[value]] @ /baz/x/{optional?}/(method:GET))
+      /baz/x/(method:GET), segment:2 -> FAILURE "Not all segments matched" @ /baz/x/(method:GET))
+      /baz/x/{optional?}, segment:3 -> SUCCESS @ /baz/x/{optional?}/(method:GET))
+        /baz/x/{optional?}/(method:GET), segment:3 -> SUCCESS @ /baz/x/{optional?}/(method:GET))
+    /baz/{y}, segment:1 -> FAILURE "Better match was already found" @ /baz/{y})
+  /{param}, segment:0 -> FAILURE "Better match was already found" @ /{param})
+  /*, segment:0 -> FAILURE "Better match was already found" @ /*)
+""", trace?.buildText())
+        }
+
+        handleRequest {
+            uri = "/p"
+            method = HttpMethod.Get
+        }.let {
+            assertEquals("/{param}", it.response.content)
+            assertEquals("""Trace for [p]
+/, segment:0 -> SUCCESS; Parameters [param=[p]] @ /{param}/(method:GET))
+  /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar)
+  /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz)
+  /{param}, segment:1 -> SUCCESS @ /{param}/(method:GET))
+    /{param}/(method:GET), segment:1 -> SUCCESS @ /{param}/(method:GET))
+    /{param}/x, segment:1 -> FAILURE "Selector didn't match" @ /{param}/x)
+  /*, segment:0 -> FAILURE "Better match was already found" @ /*)
+""", trace?.buildText())
+        }
+
+        handleRequest {
+            uri = "/p/x"
+            method = HttpMethod.Get
+        }.let {
+            assertEquals("/{param}/x", it.response.content)
+            assertEquals("""Trace for [p, x]
+/, segment:0 -> SUCCESS; Parameters [param=[p]] @ /{param}/x/(method:GET))
+  /bar, segment:0 -> FAILURE "Selector didn't match" @ /bar)
+  /baz, segment:0 -> FAILURE "Selector didn't match" @ /baz)
+  /{param}, segment:1 -> SUCCESS @ /{param}/x/(method:GET))
+    /{param}/(method:GET), segment:1 -> FAILURE "Not all segments matched" @ /{param}/(method:GET))
+    /{param}/x, segment:2 -> SUCCESS @ /{param}/x/(method:GET))
+      /{param}/x/(method:GET), segment:2 -> SUCCESS @ /{param}/x/(method:GET))
+      /{param}/x/z, segment:2 -> FAILURE "Selector didn't match" @ /{param}/x/z)
+  /*, segment:0 -> FAILURE "Better match was already found" @ /*)
+""", trace?.buildText())
+        }
+    }
 }

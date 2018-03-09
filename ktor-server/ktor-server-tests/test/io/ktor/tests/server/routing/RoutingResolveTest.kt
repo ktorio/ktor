@@ -27,7 +27,7 @@ fun resolve(routing: Route, path: String, parameters: Parameters = Parameters.Em
                 }
             }
             headers.flattenForEach { name, value -> request.addHeader(name, value) }
-        }).resolve()
+        }, emptyList()).resolve()
     }
 }
 
@@ -38,14 +38,8 @@ class RoutingResolveTest {
     fun `empty routing`() {
         val root = routing()
         val result = resolve(root, "/foo/bar")
-        on("resolving any request") {
-            it("should not succeed") {
-                assertFalse(result.succeeded)
-            }
-            it("should have root as fail entry") {
-                assertEquals(root, result.route)
-            }
-        }
+        assertTrue(result is RoutingResolveResult.Failure)
+        assertEquals(root, result.route)
     }
 
     @Test
@@ -56,7 +50,7 @@ class RoutingResolveTest {
         on("resolving /foo") {
             val result = resolve(root, "/foo")
             it("should succeed") {
-                assertTrue(result.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should have fooEntry as success entry") {
                 assertEquals(fooEntry, result.route)
@@ -65,7 +59,7 @@ class RoutingResolveTest {
         on("resolving /foo/bar") {
             val result = resolve(root, "/foo/bar")
             it("should not succeed") {
-                assertFalse(result.succeeded)
+                assertTrue(result is RoutingResolveResult.Failure)
             }
             it("should have fooEntry as fail entry") {
                 assertEquals(fooEntry, result.route)
@@ -82,7 +76,7 @@ class RoutingResolveTest {
         on("resolving /foo") {
             val result = resolve(root, "/foo")
             it("should succeed") {
-                assertTrue(result.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should have fooEntry as success entry") {
                 assertEquals(fooEntry, result.route)
@@ -92,7 +86,7 @@ class RoutingResolveTest {
         on("resolving /foo/bar") {
             val result = resolve(root, "/foo/bar")
             it("should succeed") {
-                assertTrue(result.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should have barEntry as success entry") {
                 assertEquals(barEntry, result.route)
@@ -102,7 +96,7 @@ class RoutingResolveTest {
         on("resolving /other/bar") {
             val result = resolve(root, "/other/bar")
             it("should not succeed") {
-                assertFalse(result.succeeded)
+                assertTrue(result is RoutingResolveResult.Failure)
             }
             it("should have root as fail entry") {
                 assertEquals(root, result.route)
@@ -117,16 +111,16 @@ class RoutingResolveTest {
                 .handle(PathSegmentParameterRouteSelector("param"))
 
         on("resolving /foo/value") {
-            val resolveResult = resolve(root, "/foo/value")
+            val result = resolve(root, "/foo/value")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.route)
+                assertEquals(paramEntry, result.route)
             }
             it("should have parameter value equal to 'value'") {
-                assertEquals("value", resolveResult.parameters["param"])
+                assertEquals("value", (result as RoutingResolveResult.Success).parameters["param"])
             }
         }
     }
@@ -138,16 +132,16 @@ class RoutingResolveTest {
                 .handle(PathSegmentParameterRouteSelector("param", "a", "b"))
 
         on("resolving /foo/value") {
-            val resolveResult = resolve(root, "/foo/avalueb")
+            val result = resolve(root, "/foo/avalueb")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.route)
+                assertEquals(paramEntry, result.route)
             }
             it("should have parameter value equal to 'value'") {
-                assertEquals("value", resolveResult.parameters["param"])
+                assertEquals("value", result.parameters["param"])
             }
         }
     }
@@ -160,14 +154,14 @@ class RoutingResolveTest {
                 .handle(PathSegmentParameterRouteSelector("param2"))
 
         on("resolving /foo/value1/value2") {
-            val resolveResult = resolve(root, "/foo/value1/value2")
+            val result = resolve(root, "/foo/value1/value2")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should have parameter values equal to 'value1' and 'value2'") {
-                assertEquals("value1", resolveResult.parameters["param1"])
-                assertEquals("value2", resolveResult.parameters["param2"])
+                assertEquals("value1", result.parameters["param1"])
+                assertEquals("value2", result.parameters["param2"])
             }
         }
     }
@@ -180,13 +174,13 @@ class RoutingResolveTest {
                 .handle(PathSegmentParameterRouteSelector("param"))
 
         on("resolving /foo/value1/value2") {
-            val resolveResult = resolve(root, "/foo/value1/value2")
+            val result = resolve(root, "/foo/value1/value2")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should have parameter value equal to [value1, value2]") {
-                assertEquals(listOf("value1", "value2"), resolveResult.parameters.getAll("param"))
+                assertEquals(listOf("value1", "value2"), result.parameters.getAll("param"))
             }
         }
     }
@@ -198,30 +192,30 @@ class RoutingResolveTest {
                 .handle(PathSegmentOptionalParameterRouteSelector("param"))
 
         on("resolving /foo/value") {
-            val resolveResult = resolve(root, "/foo/value")
+            val result = resolve(root, "/foo/value")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.route)
+                assertEquals(paramEntry, result.route)
             }
             it("should have parameter value equal to 'value'") {
-                assertEquals("value", resolveResult.parameters["param"])
+                assertEquals("value", result.parameters["param"])
             }
         }
 
         on("resolving /foo") {
-            val resolveResult = resolve(root, "/foo")
+            val result = resolve(root, "/foo")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.route)
+                assertEquals(paramEntry, result.route)
             }
             it("should not have parameter value") {
-                assertNull(resolveResult.parameters["param"])
+                assertNull(result.parameters["param"])
             }
         }
     }
@@ -233,24 +227,24 @@ class RoutingResolveTest {
         val paramEntry = fooEntry.handle(PathSegmentWildcardRouteSelector)
 
         on("resolving /foo/value") {
-            val resolveResult = resolve(root, "/foo/value")
+            val result = resolve(root, "/foo/value")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.route)
+                assertEquals(paramEntry, result.route)
             }
         }
 
         on("resolving /foo") {
-            val resolveResult = resolve(root, "/foo")
+            val result = resolve(root, "/foo")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to fooEntry") {
-                assertEquals(fooEntry, resolveResult.route)
+                assertEquals(fooEntry, result.route)
             }
         }
     }
@@ -262,35 +256,35 @@ class RoutingResolveTest {
                 .handle(PathSegmentTailcardRouteSelector())
 
         on("resolving /foo/value") {
-            val resolveResult = resolve(root, "/foo/value")
+            val result = resolve(root, "/foo/value")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.route)
+                assertEquals(paramEntry, result.route)
             }
         }
 
         on("resolving /foo") {
-            val resolveResult = resolve(root, "/foo")
+            val result = resolve(root, "/foo")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.route)
+                assertEquals(paramEntry, result.route)
             }
         }
 
         on("resolving /foo/bar/baz/blah") {
-            val resolveResult = resolve(root, "/foo/bar/baz/blah")
+            val result = resolve(root, "/foo/bar/baz/blah")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.route)
+                assertEquals(paramEntry, result.route)
             }
         }
     }
@@ -302,44 +296,44 @@ class RoutingResolveTest {
                 .handle(PathSegmentTailcardRouteSelector("items"))
 
         on("resolving /foo/value") {
-            val resolveResult = resolve(root, "/foo/value")
+            val result = resolve(root, "/foo/value")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.route)
+                assertEquals(paramEntry, result.route)
             }
             it("should have parameter value") {
-                assertEquals("value", resolveResult.parameters["items"])
+                assertEquals("value", result.parameters["items"])
             }
         }
 
         on("resolving /foo") {
-            val resolveResult = resolve(root, "/foo")
+            val result = resolve(root, "/foo")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to fooEntry") {
-                assertEquals(paramEntry, resolveResult.route)
+                assertEquals(paramEntry, result.route)
             }
             it("should have empty parameter") {
-                assertNull(resolveResult.parameters["items"])
+                assertNull(result.parameters["items"])
             }
         }
 
         on("resolving /foo/bar/baz/blah") {
-            val resolveResult = resolve(root, "/foo/bar/baz/blah")
+            val result = resolve(root, "/foo/bar/baz/blah")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.route)
+                assertEquals(paramEntry, result.route)
             }
             it("should have parameter value") {
-                assertEquals(listOf("bar", "baz", "blah"), resolveResult.parameters.getAll("items"))
+                assertEquals(listOf("bar", "baz", "blah"), result.parameters.getAll("items"))
             }
         }
     }
@@ -351,44 +345,44 @@ class RoutingResolveTest {
         val paramEntry = fooEntry.handle(ParameterRouteSelector("name"))
 
         on("resolving /foo with query string name=value") {
-            val resolveResult = resolve(root, "/foo", parametersOf("name", "value"))
+            val result = resolve(root, "/foo", parametersOf("name", "value"))
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.route)
+                assertEquals(paramEntry, result.route)
             }
             it("should have parameter value") {
-                assertEquals(listOf("value"), resolveResult.parameters.getAll("name"))
+                assertEquals(listOf("value"), result.parameters.getAll("name"))
             }
         }
 
         on("resolving /foo") {
-            val resolveResult = resolve(root, "/foo")
+            val result = resolve(root, "/foo")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to fooEntry") {
-                assertEquals(fooEntry, resolveResult.route)
+                assertEquals(fooEntry, result.route)
             }
             it("should have no parameter") {
-                assertNull(resolveResult.parameters["name"])
+                assertNull(result.parameters["name"])
             }
         }
 
         on("resolving /foo with multiple parameters") {
-            val resolveResult = resolve(root, "/foo", parametersOf("name", listOf("value1", "value2")))
+            val result = resolve(root, "/foo", parametersOf("name", listOf("value1", "value2")))
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.route)
+                assertEquals(paramEntry, result.route)
             }
             it("should have parameter value") {
-                assertEquals(listOf("value1", "value2"), resolveResult.parameters.getAll("name"))
+                assertEquals(listOf("value1", "value2"), result.parameters.getAll("name"))
             }
         }
     }
@@ -401,30 +395,30 @@ class RoutingResolveTest {
         val constantEntry = fooEntry.handle(PathSegmentConstantRouteSelector("admin"))
 
         on("resolving /foo/value") {
-            val resolveResult = resolve(root, "/foo/value")
+            val result = resolve(root, "/foo/value")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to paramEntry") {
-                assertEquals(paramEntry, resolveResult.route)
+                assertEquals(paramEntry, result.route)
             }
             it("should have parameter value equal to 'value'") {
-                assertEquals("value", resolveResult.parameters["name"])
+                assertEquals("value", result.parameters["name"])
             }
         }
 
         on("resolving /foo/admin") {
-            val resolveResult = resolve(root, "/foo/admin")
+            val result = resolve(root, "/foo/admin")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to constantEntry") {
-                assertEquals(constantEntry, resolveResult.route)
+                assertEquals(constantEntry, result.route)
             }
             it("should not have parameter value") {
-                assertNull(resolveResult.parameters["name"])
+                assertNull(result.parameters["name"])
             }
         }
 
@@ -438,46 +432,46 @@ class RoutingResolveTest {
         val htmlEntry = fooEntry.handle(HttpHeaderRouteSelector("Accept", "text/html"))
 
         on("resolving /foo with more specific") {
-            val resolveResult = resolve(root, "/foo", headers = headersOf("Accept", listOf("text/*, text/html, */*")))
+            val result = resolve(root, "/foo", headers = headersOf("Accept", listOf("text/*, text/html, */*")))
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to htmlEntry") {
-                assertEquals(htmlEntry, resolveResult.route)
+                assertEquals(htmlEntry, result.route)
             }
         }
 
         on("resolving /foo with equal preference") {
-            val resolveResult = resolve(root, "/foo", headers = headersOf("Accept", listOf("text/plain, text/html")))
+            val result = resolve(root, "/foo", headers = headersOf("Accept", listOf("text/plain, text/html")))
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to plainEntry") {
-                assertEquals(plainEntry, resolveResult.route)
+                assertEquals(plainEntry, result.route)
             }
         }
 
         on("resolving /foo with preference of text/plain") {
-            val resolveResult = resolve(root, "/foo", headers = headersOf("Accept", listOf("text/plain, text/html; q=0.5")))
+            val result = resolve(root, "/foo", headers = headersOf("Accept", listOf("text/plain, text/html; q=0.5")))
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to plainEntry") {
-                assertEquals(plainEntry, resolveResult.route)
+                assertEquals(plainEntry, result.route)
             }
         }
 
         on("resolving /foo with preference of text/html") {
-            val resolveResult = resolve(root, "/foo", headers = headersOf("Accept", listOf("text/plain; q=0.5, text/html")))
+            val result = resolve(root, "/foo", headers = headersOf("Accept", listOf("text/plain; q=0.5, text/html")))
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to htmlEntry") {
-                assertEquals(htmlEntry, resolveResult.route)
+                assertEquals(htmlEntry, result.route)
             }
         }
     }
@@ -489,23 +483,23 @@ class RoutingResolveTest {
         val varargEntry = routing.createRouteFromPath("/{...}").apply { handle {} }
 
         on("resolving /") {
-            val resolveResult = resolve(routing, "/")
+            val result = resolve(routing, "/")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to rootEntry") {
-                assertEquals(rootEntry, resolveResult.route)
+                assertEquals(rootEntry, result.route)
             }
         }
         on("resolving /path") {
-            val resolveResult = resolve(routing, "/path")
+            val result = resolve(routing, "/path")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to varargEntry") {
-                assertEquals(varargEntry, resolveResult.route)
+                assertEquals(varargEntry, result.route)
             }
         }
 
@@ -518,33 +512,33 @@ class RoutingResolveTest {
         val currentEntry = routing.createRouteFromPath("/sessions/current/{date?}").apply { handle {} }
 
         on("resolving date") {
-            val resolveResult = resolve(routing, "/sessions/2017-11-02")
+            val result = resolve(routing, "/sessions/2017-11-02")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to rootEntry") {
-                assertEquals(dateEntry, resolveResult.route)
+                assertEquals(dateEntry, result.route)
             }
         }
         on("resolving current") {
-            val resolveResult = resolve(routing, "/sessions/current/2017-11-02T10:00")
+            val result = resolve(routing, "/sessions/current/2017-11-02T10:00")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to varargEntry") {
-                assertEquals(currentEntry, resolveResult.route)
+                assertEquals(currentEntry, result.route)
             }
         }
         on("resolving optional current") {
-            val resolveResult = resolve(routing, "/sessions/current/")
+            val result = resolve(routing, "/sessions/current/")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to varargEntry") {
-                assertEquals(currentEntry, resolveResult.route)
+                assertEquals(currentEntry, result.route)
             }
         }
 
@@ -557,24 +551,24 @@ class RoutingResolveTest {
         val plusEntry = routing.createRouteFromPath("/a+b").apply { handle {} }
 
         on("resolving /a%20b") {
-            val resolveResult = resolve(routing, "/a%20b")
+            val result = resolve(routing, "/a%20b")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to varargEntry") {
-                assertEquals(spaceEntry, resolveResult.route)
+                assertEquals(spaceEntry, result.route)
             }
         }
 
         on("resolving /a+b") {
-            val resolveResult = resolve(routing, "/a+b")
+            val result = resolve(routing, "/a+b")
 
             it("should successfully resolve") {
-                assertTrue(resolveResult.succeeded)
+                assertTrue(result is RoutingResolveResult.Success)
             }
             it("should resolve to varargEntry") {
-                assertEquals(plusEntry, resolveResult.route)
+                assertEquals(plusEntry, result.route)
             }
         }
     }

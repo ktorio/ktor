@@ -12,10 +12,16 @@ import io.ktor.util.*
  * @param application is an instance of [Application] for this routing
  */
 class Routing(val application: Application) : Route(parent = null, selector = RootRouteSelector) {
+    private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
+
+    fun trace(block: (RoutingResolveTrace) -> Unit) {
+        tracers.add(block)
+    }
+
     private suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
-        val resolveContext = RoutingResolveContext(this, context.call)
+        val resolveContext = RoutingResolveContext(this, context.call, tracers)
         val resolveResult = resolveContext.resolve()
-        if (resolveResult.succeeded) {
+        if (resolveResult is RoutingResolveResult.Success) {
             executeResult(context, resolveResult.route, resolveResult.parameters)
         }
     }
