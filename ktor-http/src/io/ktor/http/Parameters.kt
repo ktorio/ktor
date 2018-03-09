@@ -35,6 +35,7 @@ object EmptyParameters : Parameters {
     override fun names(): Set<String> = emptySet()
     override fun entries(): Set<Map.Entry<String, List<String>>> = emptySet()
     override fun isEmpty(): Boolean = true
+    override fun toString() = "Parameters ${entries()}"
 }
 
 fun parametersOf(): Parameters = Parameters.Empty
@@ -42,8 +43,13 @@ fun parametersOf(name: String, value: String): Parameters = ParametersSingleImpl
 fun parametersOf(name: String, values: List<String>): Parameters = ParametersSingleImpl(name, values)
 fun parametersOf(vararg pairs: Pair<String, List<String>>): Parameters = ParametersImpl(pairs.asList().toMap())
 
-class ParametersImpl(values: Map<String, List<String>> = emptyMap()) : Parameters, StringValuesImpl(true, values)
-class ParametersSingleImpl(name: String, values: List<String>) : Parameters, StringValuesSingleImpl(true, name, values)
+class ParametersImpl(values: Map<String, List<String>> = emptyMap()) : Parameters, StringValuesImpl(true, values) {
+    override fun toString() = "Parameters ${entries()}"
+}
+
+class ParametersSingleImpl(name: String, values: List<String>) : Parameters, StringValuesSingleImpl(true, name, values) {
+    override fun toString() = "Parameters ${entries()}"
+}
 
 operator fun Parameters.plus(other: Parameters) = when {
     caseInsensitiveName == other.caseInsensitiveName -> when {

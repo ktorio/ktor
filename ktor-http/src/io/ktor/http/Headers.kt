@@ -35,6 +35,7 @@ object EmptyHeaders : Headers {
     override fun names(): Set<String> = emptySet()
     override fun entries(): Set<Map.Entry<String, List<String>>> = emptySet()
     override fun isEmpty(): Boolean = true
+    override fun toString() = "Headers ${entries()}"
 }
 
 fun headersOf(): Headers = Headers.Empty
@@ -42,7 +43,12 @@ fun headersOf(name: String, value: String): Headers = HeadersSingleImpl(name, li
 fun headersOf(name: String, values: List<String>): Headers = HeadersSingleImpl(name, values)
 fun headersOf(vararg pairs: Pair<String, List<String>>): Headers = HeadersImpl(pairs.asList().toMap())
 
-class HeadersImpl(values: Map<String, List<String>> = emptyMap()) : Headers, StringValuesImpl(true, values)
-class HeadersSingleImpl(name: String, values: List<String>) : Headers, StringValuesSingleImpl(true, name, values)
+class HeadersImpl(values: Map<String, List<String>> = emptyMap()) : Headers, StringValuesImpl(true, values) {
+    override fun toString() = "Headers ${entries()}"
+}
+
+class HeadersSingleImpl(name: String, values: List<String>) : Headers, StringValuesSingleImpl(true, name, values) {
+    override fun toString() = "Headers ${entries()}"
+}
 
 
