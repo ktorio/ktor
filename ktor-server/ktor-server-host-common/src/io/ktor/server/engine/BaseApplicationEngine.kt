@@ -30,6 +30,10 @@ abstract class BaseApplicationEngine(final override val environment: Application
             it.receivePipeline.installDefaultTransformations()
             it.sendPipeline.installDefaultTransformations()
         }
+        environment.monitor.subscribe(ApplicationStarted) {
+            environment.connectors.forEach {
+                environment.log.info("Responding at ${it.type.name.toLowerCase()}://${it.host}:${it.port}")
+            }
+        }
     }
-
 }
