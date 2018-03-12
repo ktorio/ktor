@@ -16,5 +16,4 @@ abstract class ServletIncomingContent(
             request.headers[HttpHeaders.ContentType]!!,
             request.headers[HttpHeaders.ContentLength]?.toLong()
             )
-    override fun inputStream(): InputStream = request.servletRequest.inputStream
 }

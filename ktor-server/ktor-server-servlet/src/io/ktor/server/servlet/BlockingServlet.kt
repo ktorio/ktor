@@ -33,6 +33,7 @@ private class BlockingServletIncomingContent(
     request: BlockingServletApplicationRequest
 ) : ServletIncomingContent(request) {
     override fun readChannel(): ByteReadChannel = inputStream().toByteReadChannel()
+    override fun inputStream(): InputStream = request.servletRequest.inputStream
 }
 
 private class BlockingServletApplicationResponse(

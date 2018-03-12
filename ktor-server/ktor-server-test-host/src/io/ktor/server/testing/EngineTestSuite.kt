@@ -750,6 +750,24 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     }
 
     @Test
+    fun testReceiveInputStream() {
+        createAndStartServer {
+            post("/") {
+                @Suppress("DEPRECATION")
+                call.respond(call.request.receiveContent().inputStream().reader().readText())
+            }
+        }
+
+        withUrl("/", {
+            method = HttpMethod.Post
+            body = "Hello"
+        }) {
+            assertEquals(200, status.value)
+            assertEquals("Hello", readText())
+        }
+    }
+
+    @Test
     fun testRepeatRequest() {
         createAndStartServer {
             get("/") {
