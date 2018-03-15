@@ -11,12 +11,12 @@ import kotlinx.coroutines.experimental.io.*
 class CIOApplicationRequest(call: ApplicationCall,
                             private val input: ByteReadChannel,
                             private val request: Request) : BaseApplicationRequest(call) {
-    override val cookies: RequestCookies by lazy { RequestCookies(this) }
+    override val cookies: RequestCookies by lazy(LazyThreadSafetyMode.NONE) { RequestCookies(this) }
     override fun receiveContent() = CIOIncomingContent(input, request.headers, this)
     override fun receiveChannel() = input
     override val headers: Headers = CIOHeaders(request.headers)
 
-    override val queryParameters: Parameters by lazy {
+    override val queryParameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
         val uri = request.uri
         val qIdx = uri.indexOf('?')
         if (qIdx == -1 || qIdx == uri.lastIndex) return@lazy Parameters.Empty
@@ -24,7 +24,7 @@ class CIOApplicationRequest(call: ApplicationCall,
         parseQueryString(uri.substring(qIdx + 1))
     }
 
-    override val local: RequestConnectionPoint by lazy { object : RequestConnectionPoint {
+    override val local: RequestConnectionPoint = object : RequestConnectionPoint {
         override val scheme: String
             get() = "http"
 
@@ -45,7 +45,7 @@ class CIOApplicationRequest(call: ApplicationCall,
 
         override val remoteHost: String
             get() = "unknown" // TODO
-    } }
+    }
 
     internal fun release() {
         request.release()
