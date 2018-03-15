@@ -4,6 +4,8 @@ import io.ktor.server.netty.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.internal.*
 import java.util.concurrent.atomic.*
+import kotlin.coroutines.experimental.*
+import  kotlin.coroutines.experimental.intrinsics.*
 
 private const val StateRunning = 0
 private const val StateClosed = 1
@@ -19,7 +21,7 @@ internal class NettyRequestQueue(private val limit: Int) {
     private var counter = 0
 
     @Volatile
-    private var receiver: CancellableContinuation<Unit>? = null
+    private var receiver: Continuation<Unit>? = null
 
     @Volatile
     private var state = StateRunning
@@ -94,19 +96,14 @@ internal class NettyRequestQueue(private val limit: Int) {
             if (queue.next is CloseElement) return null
         }
 
-        suspendCancellableCoroutine<Unit>(holdCancellability = true) { c ->
+        suspendCoroutineOrReturn<Unit> { c ->
             if (!Receiver.compareAndSet(this, null, c)) throw IllegalStateException("receive already pending")
 
-            if (state != StateRunning || queue.next is CallElement) {
-                if (Receiver.compareAndSet(this, c, null)) {
-                    c.resume(Unit)
-                    return@suspendCancellableCoroutine
-                }
+            if ((state != StateRunning || queue.next is CallElement) && Receiver.compareAndSet(this, c, null)) {
+                Unit
+            } else {
+                COROUTINE_SUSPENDED
             }
-
-            c.invokeOnCompletion(onCancelling = true, handler = {
-                Receiver.compareAndSet(this, c, null)
-            })
         }
 
         return receiveOrNullSuspend()
@@ -161,6 +158,6 @@ internal class NettyRequestQueue(private val limit: Int) {
         private val State = AtomicIntegerFieldUpdater.newUpdater(NettyRequestQueue::class.java, NettyRequestQueue::state.name)!!
 
         @Suppress("UNCHECKED_CAST")
-        private val Receiver = AtomicReferenceFieldUpdater.newUpdater(NettyRequestQueue::class.java, CancellableContinuation::class.java, NettyRequestQueue::receiver.name) as AtomicReferenceFieldUpdater<NettyRequestQueue, CancellableContinuation<Unit>?>
+        private val Receiver = AtomicReferenceFieldUpdater.newUpdater(NettyRequestQueue::class.java, Continuation::class.java, NettyRequestQueue::receiver.name) as AtomicReferenceFieldUpdater<NettyRequestQueue, Continuation<Unit>?>
     }
 }

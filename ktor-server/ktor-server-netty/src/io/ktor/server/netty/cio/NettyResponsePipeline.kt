@@ -34,15 +34,6 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         responses.start()
     }
 
-    fun close() {
-        responses.cancel()
-    }
-
-    fun cancel(cause: Throwable) {
-        cancellation = cause
-        responses.cancel()
-    }
-
     private suspend fun loop() {
         while (true) {
             val call = requestQueue.receiveOrNull() ?: break
@@ -55,9 +46,11 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
                     actualException is IOException && actualException !is ChannelIOException -> ChannelWriteException(exception = actualException)
                     else -> actualException
                 }
+
+                cancellation = t
                 call.dispose()
                 call.responseWriteJob.cancel(t)
-                cancel(t)
+                responses.cancel()
                 requestQueue.cancel()
             } finally {
                 call.responseWriteJob.cancel()
