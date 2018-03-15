@@ -2,16 +2,21 @@ package io.ktor.http
 
 import java.nio.charset.*
 
-class ContentType(val contentType: String, val contentSubtype: String, parameters: List<HeaderValueParam> = emptyList()) : HeaderValueWithParameters("$contentType/$contentSubtype", parameters) {
+class ContentType private constructor(val contentType: String, val contentSubtype: String, existingContent: String, parameters: List<HeaderValueParam> = emptyList())
+    : HeaderValueWithParameters(existingContent, parameters) {
+
+    constructor(contentType: String, contentSubtype: String, parameters: List<HeaderValueParam> = emptyList()) : this(contentType, contentSubtype, "$contentType/$contentSubtype", parameters)
+
     fun withParameter(name: String, value: String): ContentType {
-        val existing = parameters.indexOfFirst {
-            it.name.equals(name, ignoreCase = true) && it.value.equals(value, ignoreCase = true)
-        }
-        val newParameters = if (existing == -1)
-            parameters + HeaderValueParam(name, value)
-        else
-            parameters
-        return ContentType(contentType, contentSubtype, newParameters)
+        if (hasParameter(name, value)) return this
+
+        return ContentType(contentType, contentSubtype, content, parameters + HeaderValueParam(name, value))
+    }
+
+    private fun hasParameter(name: String, value: String): Boolean = when (parameters.size) {
+        0 -> false
+        1 -> parameters[0].let { it.name.equals(name, ignoreCase = true) && it.value.equals(value, ignoreCase = true) }
+        else -> parameters.any { it.name.equals(name, ignoreCase = true) && it.value.equals(value, ignoreCase = true) }
     }
 
     fun withoutParameters() = ContentType(contentType, contentSubtype)

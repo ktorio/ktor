@@ -64,7 +64,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         when {
             contentLength != null -> {
                 // TODO: What should we do if TransferEncoding was set and length is present?
-                headers.append(HttpHeaders.ContentLength, contentLength.toString(), safeOnly = false)
+                headers.append(HttpHeaders.ContentLength, contentLength.toStringFast(), safeOnly = false)
             }
             !transferEncodingSet -> {
                 when (content) {
