@@ -7,16 +7,39 @@ import io.ktor.util.*
 import java.security.*
 
 /**
- * Installs Digest Authentication mechanism into [AuthenticationPipeline]
+ * Represents a Digest authentication provider
+ * @param name is the name of the provider, or `null` for a default provider
  */
-fun Authentication.AuthenticationConfiguration.digestAuthentication(
-        realm: String = "ktor",
-        digestAlgorithm: String = "MD5",
-        digesterProvider: (String) -> MessageDigest = { MessageDigest.getInstance(it) },
-        userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray?) {
+class DigestAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
+    /**
+     * Specifies realm to be passed in `WWW-Authenticate` header
+     */
+    var realm: String = "Ktor Server"
 
-    val digester = digesterProvider(digestAlgorithm)
-    pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
+    var digester: MessageDigest = MessageDigest.getInstance("MD5")
+
+    var userNameRealmPasswordDigestProvider: suspend (String, String) -> ByteArray? = { userName, realm ->
+        when (userName) {
+            "missing" -> null
+            else -> {
+                digester.reset()
+                digester.update("$userName:$realm".toByteArray(Charsets.ISO_8859_1))
+                digester.digest()
+            }
+        }
+    }
+}
+
+/**
+ * Installs Digest Authentication mechanism
+ */
+fun Authentication.Configuration.digest(name: String? = null, configure: DigestAuthenticationProvider.() -> Unit) {
+    val provider = DigestAuthenticationProvider(name).apply(configure)
+    val realm = provider.realm
+    val userNameRealmPasswordDigestProvider = provider.userNameRealmPasswordDigestProvider
+    val digester = provider.digester
+
+    provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val authorizationHeader = call.request.parseAuthorizationHeader()
         val credentials = authorizationHeader?.let { authHeader ->
             if (authHeader.authScheme == AuthScheme.Digest && authHeader is HttpAuthHeader.Parameterized) {
@@ -26,28 +49,31 @@ fun Authentication.AuthenticationConfiguration.digestAuthentication(
         }
 
         val principal = credentials?.let {
-            if ((it.algorithm ?: "MD5") == digestAlgorithm
+            if ((it.algorithm ?: "MD5") == digester.algorithm
                     && it.realm == realm
-                    && it.verify(call.request.local.method, digester, userNameRealmPasswordDigestProvider))
+                    && it.verifier(call.request.local.method, digester, userNameRealmPasswordDigestProvider))
                 UserIdPrincipal(it.userName)
             else
                 null
         }
 
-        if (principal != null) {
-            context.principal(principal)
-        } else {
-            val cause = when {
-                credentials == null -> AuthenticationFailedCause.NoCredentials
-                else -> AuthenticationFailedCause.InvalidCredentials
-            }
+        when (principal) {
+            null -> {
+                val cause = when (credentials) {
+                    null -> AuthenticationFailedCause.NoCredentials
+                    else -> AuthenticationFailedCause.InvalidCredentials
+                }
 
-            context.challenge(digestAuthenticationChallengeKey, cause) {
-                call.respond(UnauthorizedResponse(HttpAuthHeader.digestAuthChallenge(realm)))
-                it.complete()
+                context.challenge(digestAuthenticationChallengeKey, cause) {
+                    call.respond(UnauthorizedResponse(HttpAuthHeader.digestAuthChallenge(realm)))
+                    it.complete()
+                }
             }
+            else -> context.principal(principal)
         }
     }
+
+    register(provider)
 }
 
 /**
@@ -100,7 +126,7 @@ fun HttpAuthHeader.Parameterized.toDigestCredential() = DigestCredential(
 /**
  * Verifies credentials are valid for given [method] and [digester] and [userNameRealmPasswordDigest]
  */
-suspend fun DigestCredential.verify(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: suspend (String, String) -> ByteArray?): Boolean {
+suspend fun DigestCredential.verifier(method: HttpMethod, digester: MessageDigest, userNameRealmPasswordDigest: suspend (String, String) -> ByteArray?): Boolean {
     val userNameRealmPasswordDigestResult = userNameRealmPasswordDigest(userName, realm)
     val validDigest = expectedDigest(method, digester, userNameRealmPasswordDigestResult ?: ByteArray(0))
 

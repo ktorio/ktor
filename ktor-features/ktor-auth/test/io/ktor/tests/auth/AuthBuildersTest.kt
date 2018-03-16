@@ -15,8 +15,8 @@ class AuthBuildersTest {
         val username = "testuser"
 
         withTestApplication {
-            application.authentication {
-                configure { formAuthentication { c -> UserIdPrincipal(c.name) } }
+            application.install(Authentication) {
+                form { validate{ c -> UserIdPrincipal(c.name) } }
             }
 
             application.routing {

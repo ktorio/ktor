@@ -14,10 +14,11 @@ fun Application.jwkApplication() {
     val audience = environment.config.property("jwt.audience").getString()
     val realm = environment.config.property("jwt.realm").getString()
 
-    authentication {
-        configure {
-            val jwkProvider = makeJwkProvider(issuer)
-            jwtAuthentication(jwkProvider, issuer, realm) { credential ->
+    install(Authentication) {
+        jwt {
+            this@jwt.realm = realm
+            verifier(makeJwkProvider(issuer), issuer)
+            validate { credential ->
                 if (credential.payload.audience.contains(audience))
                     JWTPrincipal(credential.payload)
                 else

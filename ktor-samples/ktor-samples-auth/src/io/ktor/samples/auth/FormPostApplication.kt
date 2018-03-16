@@ -12,9 +12,9 @@ import kotlinx.html.stream.*
 fun Application.formPostAuthApplication() {
     install(DefaultHeaders)
     install(CallLogging)
-    authentication {
-        configure {
-            formAuthentication { up: UserPasswordCredential ->
+    install(Authentication) {
+        form {
+            validate { up: UserPasswordCredential ->
                 when {
                     up.password == "ppp" -> UserIdPrincipal(up.name)
                     else -> null

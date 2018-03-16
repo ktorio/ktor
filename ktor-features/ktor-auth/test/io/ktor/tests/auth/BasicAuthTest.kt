@@ -105,8 +105,11 @@ class BasicAuthTest {
     @Test
     fun testSimplifiedFlow() {
         withTestApplication {
-            application.authentication {
-                configure { basicAuthentication("ktor-test") { c -> if (c.name == "good") UserIdPrincipal(c.name) else null } }
+            application.install(Authentication) {
+                basic {
+                    realm = "ktor-test"
+                    validate { c -> if (c.name == "good") UserIdPrincipal(c.name) else null }
+                }
             }
 
             application.routing {
@@ -149,17 +152,16 @@ class BasicAuthTest {
     }
 
     private fun Application.configureServer() {
-        authentication {
-            configure {
-                skipWhen {
-                    it.request.origin.uri.contains("backdoor")
-                }
-                basicAuthentication("ktor-test") {
+        install(Authentication) {
+            basic {
+                realm = "ktor-test"
+                validate {
                     if (it.name == it.password)
                         UserIdPrincipal(it.name)
                     else
                         null // fail!
                 }
+                skipWhen { it.request.origin.uri.contains("backdoor") }
             }
         }
 

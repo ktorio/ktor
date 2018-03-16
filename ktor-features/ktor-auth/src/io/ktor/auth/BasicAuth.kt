@@ -5,13 +5,39 @@ import io.ktor.request.*
 import io.ktor.response.*
 import java.util.*
 
+
 /**
- * Installs Basic Authentication mechanism into [AuthenticationPipeline]
+ * Represents a Basic authentication provider
+ * @param name is the name of the provider, or `null` for a default provider
  */
-fun Authentication.AuthenticationConfiguration.basicAuthentication(realm: String, validate: suspend (UserPasswordCredential) -> Principal?) {
-    pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
+class BasicAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
+    internal var authenticationFunction: suspend (UserPasswordCredential) -> Principal? = { null }
+
+    /**
+     * Specifies realm to be passed in `WWW-Authenticate` header
+     */
+    var realm: String = "Ktor Server"
+
+    /**
+     * Sets a validation function that will check given [UserPasswordCredential] instance and return [Principal],
+     * or null if credential does not correspond to an authenticated principal
+     */
+    fun validate(body: suspend (UserPasswordCredential) -> Principal?) {
+        authenticationFunction = body
+    }
+}
+
+/**
+ * Installs Basic Authentication mechanism
+ */
+fun Authentication.Configuration.basic(name: String? = null, configure: BasicAuthenticationProvider.() -> Unit) {
+    val provider = BasicAuthenticationProvider(name).apply(configure)
+    val realm = provider.realm
+    val authenticate = provider.authenticationFunction
+
+    provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val credentials = call.request.basicAuthenticationCredentials()
-        val principal = credentials?.let { validate(it) }
+        val principal = credentials?.let { authenticate(it) }
 
         val cause = when {
             credentials == null -> AuthenticationFailedCause.NoCredentials
@@ -29,6 +55,8 @@ fun Authentication.AuthenticationConfiguration.basicAuthentication(realm: String
             context.principal(principal)
         }
     }
+
+    register(provider)
 }
 
 /**

@@ -38,9 +38,10 @@ class LdapAuthTest {
     @Test
     fun testLoginToServer() {
         withTestApplication {
-            application.authentication {
-                configure {
-                    basicAuthentication("realm") { credential ->
+            application.install(Authentication) {
+                basic {
+                    realm = "realm"
+                    validate { credential ->
                         ldapAuthenticate(credential, "ldap://$localhost:${ldapServer.port}", "uid=%s,ou=system")
                     }
                 }
@@ -54,6 +55,11 @@ class LdapAuthTest {
                 }
             }
 
+            handleRequest(HttpMethod.Get, "/").let { result ->
+                assertTrue(result.requestHandled)
+                assertEquals(result.response.headers[HttpHeaders.WWWAuthenticate], "Basic realm=\"realm\"")
+                assertEquals(HttpStatusCode.Unauthorized, result.response.status())
+            }
             handleRequest(HttpMethod.Get, "/", { addHeader(HttpHeaders.Authorization, "Basic " + Base64.getEncoder().encodeToString("admin:secret".toByteArray())) }).let { result ->
                 assertTrue(result.requestHandled)
                 assertEquals(HttpStatusCode.OK, result.response.status())
@@ -75,7 +81,7 @@ class LdapAuthTest {
     @Test
     fun testCustomLogin() {
         withTestApplication {
-            application.authentication {
+            application.install(Authentication) {
                 val ldapUrl = "ldap://$localhost:${ldapServer.port}"
                 val configure: (MutableMap<String, Any?>) -> Unit = { env ->
                     env.put("java.naming.security.principal", "uid=admin,ou=system")
@@ -83,8 +89,8 @@ class LdapAuthTest {
                     env.put("java.naming.security.authentication", "simple")
                 }
 
-                configure {
-                    basicAuthentication("realm") { credential ->
+                basic {
+                    validate { credential ->
                         ldapAuthenticate(credential, ldapUrl, configure) {
                             val users = (lookup("ou=system") as LdapContext).lookup("ou=users") as LdapContext
                             val controls = SearchControls().apply {

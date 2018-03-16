@@ -15,9 +15,9 @@ fun Application.basicAuthWithLdap() {
     install(DefaultHeaders)
     install(CallLogging)
     install(Locations)
-    authentication {
-        configure {
-            basicAuthentication("files") { credentials ->
+    install(Authentication) {
+        basic {
+            validate { credentials ->
                 ldapAuthenticate(credentials, "ldap://localhost:389", "cn=%s ou=users") {
                     if (it.name == it.password) {
                         UserIdPrincipal(it.name)

@@ -9,7 +9,6 @@ import io.ktor.locations.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.testing.client.*
-import kotlinx.coroutines.experimental.*
 import org.junit.Test
 import java.net.*
 import kotlin.test.*
@@ -18,17 +17,15 @@ class OAuthLocationsTest {
     @Test
     fun testOAuthAtLocation() = withTestApplication {
         application.install(Locations)
-        application.authentication {
-            configure {
-                val client = HttpClient(TestHttpClientEngine.config { app = this@withTestApplication })
-                oauthAtLocation<A>(client, Unconfined,
-                        {
-                            OAuthServerSettings.OAuth2ServerSettings("a", "http://oauth-server/auth",
-                                    "http://oauth-server/token",
-                                    clientId = "test", clientSecret = "secret")
-                        },
-                        { _, _ -> B() }
-                )
+        application.install(Authentication) {
+            oauth {
+                client = HttpClient(TestHttpClientEngine.config { app = this@withTestApplication })
+                providerLookup = {
+                    OAuthServerSettings.OAuth2ServerSettings("a", "http://oauth-server/auth",
+                            "http://oauth-server/token",
+                            clientId = "test", clientSecret = "secret")
+                }
+                urlProvider = { url(B()) }
             }
         }
 
@@ -51,17 +48,15 @@ class OAuthLocationsTest {
     @Test
     fun testOAuthAtLocationString() = withTestApplication {
         application.install(Locations)
-        application.authentication {
-            configure {
-                val client = HttpClient(TestHttpClientEngine.config { app = this@withTestApplication })
-                oauthAtLocation<A>(client, Unconfined,
-                        {
-                            OAuthServerSettings.OAuth2ServerSettings("a", "http://oauth-server/auth",
-                                    "http://oauth-server/token",
-                                    clientId = "test", clientSecret = "secret")
-                        },
-                        { _, _ -> "http://localhost/B" }
-                )
+        application.install(Authentication) {
+            oauth {
+                client = HttpClient(TestHttpClientEngine.config { app = this@withTestApplication })
+                providerLookup = {
+                    OAuthServerSettings.OAuth2ServerSettings("a", "http://oauth-server/auth",
+                            "http://oauth-server/token",
+                            clientId = "test", clientSecret = "secret")
+                }
+                urlProvider = { "http://localhost/B" }
             }
         }
 

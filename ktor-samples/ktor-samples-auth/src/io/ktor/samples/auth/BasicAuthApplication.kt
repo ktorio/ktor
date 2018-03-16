@@ -22,26 +22,23 @@ fun Application.basicAuthApplication() {
     install(DefaultHeaders)
     install(CallLogging)
     install(Locations)
-
-    authentication {
-        configure("one") {
-            basicAuthentication("ktor") { credentials ->
-                if (credentials.name == credentials.password) {
-                    UserIdPrincipal(credentials.name)
-                } else {
-                    null
+    install(Authentication) {
+        basic("one") {
+            validate {
+                when {
+                    it.name == it.password -> UserIdPrincipal(it.name)
+                    else -> null
                 }
             }
         }
-        configure("two") {
-            basicAuthentication("ktor") { hashedUserTable.authenticate(it) }
+        basic("two") {
+            validate { hashedUserTable.authenticate(it) }
         }
-        configure("three") {
-            basicAuthentication("ktor") { credentials ->
-                if (credentials.name == credentials.password) {
-                    UserIdPrincipal(credentials.name)
-                } else {
-                    null
+        basic("three") {
+            validate {
+                when {
+                    it.name == it.password -> UserIdPrincipal(it.name)
+                    else -> null
                 }
             }
         }

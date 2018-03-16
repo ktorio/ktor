@@ -8,45 +8,31 @@ import io.ktor.util.*
 /**
  * Authentication feature supports pluggable mechanisms for checking and challenging a client to provide credentials
  *
- * @param authenticationPipeline keeps pipeline for this instance of a [Authentication]
+ * @param providers list of registered instances of [AuthenticationProvider]
  */
-class Authentication(val configurations: List<AuthenticationConfiguration>) {
+class Authentication(val providers: List<AuthenticationProvider>) {
     private val challengePhase = PipelinePhase("Challenge")
 
-    open class AuthenticationConfiguration(val name: String? = null) {
-        val pipeline = AuthenticationPipeline()
 
-        private var filterPredicates: MutableList<(ApplicationCall) -> Boolean>? = null
+    class Configuration {
+        val providers = ArrayList<AuthenticationProvider>()
 
-        /**
-         * Authentication filters specifying if authentication is required for particular [ApplicationCall]
-         *
-         * If there is no filters, authentication is required. If any filter returns true, authentication is not required.
-         */
-        val skipWhen: List<(ApplicationCall) -> Boolean> get() = filterPredicates ?: emptyList()
-
-        /**
-         * Adds an authentication filter to the list
-         */
-        fun skipWhen(predicate: (ApplicationCall) -> Boolean) {
-            val list = filterPredicates ?: mutableListOf()
-            list.add(predicate)
-            filterPredicates = list
+        fun provider(name: String? = null, configure: AuthenticationProvider.() -> Unit) {
+            if (providers.any { it.name == name })
+                throw IllegalArgumentException("Provider with the name $name is already registered")
+            val configuration = AuthenticationProvider(name).apply(configure)
+            providers.add(configuration)
         }
-    }
 
-    class Configuration  {
-        val configurations = ArrayList<AuthenticationConfiguration>()
-
-        fun configure(name: String? = null
-                      , configure: AuthenticationConfiguration.() -> Unit) {
-            val configuration = AuthenticationConfiguration(name).apply(configure)
-            configurations.add(configuration)
+        fun register(provider: AuthenticationProvider) {
+            if (providers.any { it.name == provider.name })
+                throw IllegalArgumentException("Provider with the name ${provider.name} is already registered")
+            providers.add(provider)
         }
     }
 
     init {
-        configurations.forEach { configureChallenge(it.pipeline) }
+        providers.forEach { configureChallenge(it.pipeline) }
     }
 
     fun configureChallenge(authenticationPipeline: AuthenticationPipeline) {
@@ -74,8 +60,13 @@ class Authentication(val configurations: List<AuthenticationConfiguration>) {
     }
 
     fun interceptPipeline(pipeline: ApplicationCallPipeline, configurationName: String?) {
-        val configuration = configurations.firstOrNull { it.name == configurationName }
-                ?: throw IllegalArgumentException("Authentication configuration with the name $configurationName was not found")
+        val configuration = providers.firstOrNull { it.name == configurationName }
+                ?: throw IllegalArgumentException(
+                        if (configurationName == null)
+                            "Default authentication configuration was not found"
+                        else
+                            "Authentication configuration with the name $configurationName was not found"
+                )
 
         pipeline.insertPhaseAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
         pipeline.intercept(authenticationPhase) {
@@ -100,16 +91,9 @@ class Authentication(val configurations: List<AuthenticationConfiguration>) {
 
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): Authentication {
             val configuration = Configuration().apply(configure)
-            return Authentication(configuration.configurations)
+            return Authentication(configuration.providers)
         }
     }
-}
-
-/**
- * Installs authentication into `this` pipeline
- */
-fun Application.authentication(configuration: Authentication.Configuration.() -> Unit): Authentication {
-    return install(Authentication, configuration)
 }
 
 /**
@@ -137,3 +121,4 @@ class AuthenticationRouteSelector(val name: String?) : RouteSelector(RouteSelect
 
     override fun toString(): String = "(authenticate ${name ?: "default"})"
 }
+

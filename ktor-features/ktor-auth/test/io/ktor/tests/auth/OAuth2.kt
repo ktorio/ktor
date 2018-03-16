@@ -80,11 +80,14 @@ class OAuth2Test {
     val failures = ArrayList<Throwable>()
     fun Application.module(settings: OAuthServerSettings.OAuth2ServerSettings = DefaultSettings) {
         install(Authentication) {
-            configure("login") {
-                oauth(testClient, dispatcher, { settings }, { "http://localhost/login" })
+            oauth("login") {
+                client = testClient
+                providerLookup = { settings }
+                urlProvider = { "http://localhost/login" }
             }
-            configure("resource") {
-                basicAuthentication("oauth2") {
+            basic("resource") {
+                realm = "oauth2"
+                validate {
                     try {
                         verifyWithOAuth2(it, testClient, settings)
                     } catch (ioe: IOException) {
@@ -143,7 +146,8 @@ class OAuth2Test {
         assertTrue(result.requestHandled)
         assertEquals(HttpStatusCode.Found, result.response.status())
 
-        val url = URI(result.response.headers[HttpHeaders.Location] ?: throw IllegalStateException("No location header in the response"))
+        val url = URI(result.response.headers[HttpHeaders.Location]
+                ?: throw IllegalStateException("No location header in the response"))
         assertEquals("/authorize", url.path)
         assertEquals("login-server-com", url.host)
 

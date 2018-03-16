@@ -3,21 +3,27 @@ package io.ktor.auth
 import io.ktor.application.*
 import io.ktor.client.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
 import java.io.*
 
 val OAuthKey: Any = "OAuth"
 
-fun Authentication.AuthenticationConfiguration.oauth(client: HttpClient, dispatcher: CoroutineDispatcher,
-                                              providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                              urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
-    oauth1a(client, dispatcher, providerLookup, urlProvider)
-    oauth2(client, dispatcher, providerLookup, urlProvider)
+class OAuthAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
+    lateinit var client: HttpClient
+    lateinit var providerLookup: ApplicationCall.() -> OAuthServerSettings?
+    lateinit var urlProvider: ApplicationCall.(OAuthServerSettings) -> String
 }
 
-internal fun Authentication.AuthenticationConfiguration.oauth2(client: HttpClient, dispatcher: CoroutineDispatcher,
-                                                        providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                                        urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+/**
+ * Installs OAuth Authentication mechanism
+ */
+fun Authentication.Configuration.oauth(name: String? = null, configure: OAuthAuthenticationProvider.() -> Unit) {
+    val provider = OAuthAuthenticationProvider(name).apply(configure)
+    provider.oauth1a()
+    provider.oauth2()
+    register(provider)
+}
+
+internal fun OAuthAuthenticationProvider.oauth2() {
     pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val provider = call.providerLookup()
         if (provider is OAuthServerSettings.OAuth2ServerSettings) {
@@ -29,7 +35,7 @@ internal fun Authentication.AuthenticationConfiguration.oauth2(client: HttpClien
                     it.complete()
                 }
             } else {
-                runAsyncWithError(dispatcher, context) {
+                withIOException(context) {
                     val accessToken = simpleOAuth2Step2(client, provider, callbackRedirectUrl, token)
                     context.principal(accessToken)
                 }
@@ -38,23 +44,21 @@ internal fun Authentication.AuthenticationConfiguration.oauth2(client: HttpClien
     }
 }
 
-internal fun Authentication.AuthenticationConfiguration.oauth1a(client: HttpClient, dispatcher: CoroutineDispatcher,
-                                                         providerLookup: ApplicationCall.() -> OAuthServerSettings?,
-                                                         urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
+internal fun OAuthAuthenticationProvider.oauth1a() {
     pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val provider = call.providerLookup()
         if (provider is OAuthServerSettings.OAuth1aServerSettings) {
             val token = call.oauth1aHandleCallback()
             if (token == null) {
                 context.challenge(OAuthKey, AuthenticationFailedCause.NoCredentials) { ch ->
-                    runAsyncWithError(dispatcher, context) {
+                    withIOException(context) {
                         val t = simpleOAuth1aStep1(client, provider, call.urlProvider(provider))
                         call.redirectAuthenticateOAuth1a(provider, t)
                         ch.complete()
                     }
                 }
             } else {
-                runAsyncWithError(dispatcher, context) {
+                withIOException(context) {
                     val accessToken = simpleOAuth1aStep2(client, provider, token)
                     context.principal(accessToken)
                 }
@@ -63,12 +67,10 @@ internal fun Authentication.AuthenticationConfiguration.oauth1a(client: HttpClie
     }
 }
 
-private suspend fun runAsyncWithError(dispatcher: CoroutineDispatcher, context: AuthenticationContext, block: suspend () -> Unit) {
-    return withContext(dispatcher) {
-        try {
-            block()
-        } catch (ioe: IOException) {
-            context.error(OAuthKey, AuthenticationFailedCause.Error(ioe.message ?: "IOException"))
-        }
+private suspend fun withIOException(context: AuthenticationContext, block: suspend () -> Unit) {
+    try {
+        block()
+    } catch (ioe: IOException) {
+        context.error(OAuthKey, AuthenticationFailedCause.Error(ioe.message ?: "IOException"))
     }
 }

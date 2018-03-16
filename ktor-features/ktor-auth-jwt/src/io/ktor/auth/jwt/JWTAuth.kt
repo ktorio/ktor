@@ -18,33 +18,53 @@ private val JWTAuthKey: Any = "JWTAuth"
 class JWTCredential(val payload: Payload) : Credential
 class JWTPrincipal(val payload: Payload) : Principal
 
-/**
- * Add JWT token authentication to the pipeline using a [JWTVerifier] to verify the token integrity.
- * @param [jwtVerifier] verifies token format and signature
- * @param [realm] used in the WWW-Authenticate response header
- * @param [validate] verify the credentials provided by the client token
- */
-fun Authentication.AuthenticationConfiguration.jwtAuthentication(jwtVerifier: JWTVerifier, realm: String, validate: (JWTCredential) -> Principal?) {
-    pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val token = call.request.parseAuthorizationHeaderOrNull()
-        val principal = verifyAndValidate(jwtVerifier, token, validate)
-        evaluate(token, principal, realm, context)
+class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
+    internal var authenticationFunction: suspend (JWTCredential) -> Principal? = { null }
+
+    var realm: String = "Ktor Server"
+    internal var verifier: ((HttpAuthHeader?) -> JWTVerifier?) = { null }
+
+    /**
+     * @param [verifier] verifies token format and signature
+     */
+    fun verifier(verifier: JWTVerifier) {
+        this.verifier = { verifier }
+    }
+
+    /**
+     * @param [verifier] verifies token format and signature
+     */
+    fun verifier(verifier: (HttpAuthHeader?) -> JWTVerifier?) {
+        this.verifier = verifier
+    }
+
+    /**
+     * @param [jwkProvider] provides the JSON Web Key
+     * @param [issuer] the issuer of the JSON Web Token
+     */
+    fun verifier(jwkProvider: JwkProvider, issuer: String) {
+        this.verifier = { token -> getVerifier(jwkProvider, issuer, token) }
+    }
+
+    fun validate(body: suspend (JWTCredential) -> Principal?) {
+        authenticationFunction = body
     }
 }
 
 /**
- * Add JWT token authentication to the pipeline using a [JwkProvider] to verify the token integrity.
- * @param [jwkProvider] provides the JSON Web Key
- * @param [issuer] the issuer of the JSON Web Token
- * @param [realm] used in the WWW-Authenticate response header
+ * Installs JWT Authentication mechanism
  */
-fun Authentication.AuthenticationConfiguration.jwtAuthentication(jwkProvider: JwkProvider, issuer: String, realm: String, validate: (JWTCredential) -> Principal?) {
-    pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
+fun Authentication.Configuration.jwt(name: String? = null, configure: JWTAuthenticationProvider.() -> Unit) {
+    val provider = JWTAuthenticationProvider(name).apply(configure)
+    val realm = provider.realm
+    val authenticate = provider.authenticationFunction
+    val verifier = provider.verifier
+    provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val token = call.request.parseAuthorizationHeaderOrNull()
-        val verifier = getVerifier(jwkProvider, issuer, token)
-        val principal = verifyAndValidate(verifier, token, validate)
+        val principal = verifyAndValidate(verifier(token), token, authenticate)
         evaluate(token, principal, realm, context)
     }
+    register(provider)
 }
 
 private suspend fun evaluate(token: HttpAuthHeader?, principal: Principal?, realm: String, context: AuthenticationContext) {
@@ -75,7 +95,7 @@ private fun getVerifier(jwkProvider: JwkProvider, issuer: String, token: HttpAut
     return JWT.require(algorithm).withIssuer(issuer).build()
 }
 
-private fun verifyAndValidate(jwtVerifier: JWTVerifier?, token: HttpAuthHeader?, validate: (JWTCredential) -> Principal?): Principal? {
+private suspend fun verifyAndValidate(jwtVerifier: JWTVerifier?, token: HttpAuthHeader?, validate: suspend (JWTCredential) -> Principal?): Principal? {
     val jwt = try {
         token.getBlob()?.let { jwtVerifier?.verify(it) }
     } catch (ex: JWTVerificationException) {
@@ -83,8 +103,8 @@ private fun verifyAndValidate(jwtVerifier: JWTVerifier?, token: HttpAuthHeader?,
     } ?: return null
 
     val payload = jwt.parsePayload()
-    val credentials = payload.let(::JWTCredential)
-    return credentials.let(validate)
+    val credentials = JWTCredential(payload)
+    return validate(credentials)
 }
 
 private fun HttpAuthHeader?.getBlob() = when {

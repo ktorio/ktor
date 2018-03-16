@@ -236,30 +236,36 @@ class JWTAuthTest {
     }
 
     private fun Application.configureServerJwk(mock: Boolean = false) = configureServer {
-        val jwkProvider = if (mock) getJwkProviderMock() else makeJwkProvider()
-        jwtAuthentication(jwkProvider, issuer, realm) { credentials ->
-            if (credentials.payload.audience.contains(audience))
-                JWTPrincipal(credentials.payload)
-            else
-                null
+        jwt {
+            this@jwt.realm = realm
+            verifier(if (mock) getJwkProviderMock() else makeJwkProvider(), issuer)
+            validate { credential ->
+                when {
+                    credential.payload.audience.contains(audience) -> JWTPrincipal(credential.payload)
+                    else -> null
+                }
+            }
+
         }
     }
 
     private fun Application.configureServerJwt() = configureServer {
-        val jwtVerifier = makeJwtVerifier()
-        jwtAuthentication(jwtVerifier, realm) { credentials ->
-            if (credentials.payload.audience.contains(audience))
-                JWTPrincipal(credentials.payload)
-            else
-                null
+        jwt {
+            this@jwt.realm = realm
+            verifier(makeJwtVerifier())
+            validate { credential ->
+                when {
+                    credential.payload.audience.contains(audience) -> JWTPrincipal(credential.payload)
+                    else -> null
+                }
+            }
+
         }
     }
 
-    private fun Application.configureServer(authBlock: (Authentication.AuthenticationConfiguration.() -> Unit)) {
-        authentication {
-            configure {
-                authBlock(this)
-            }
+    private fun Application.configureServer(authBlock: (Authentication.Configuration.() -> Unit)) {
+        install(Authentication) {
+            authBlock(this)
         }
         routing {
             authenticate {

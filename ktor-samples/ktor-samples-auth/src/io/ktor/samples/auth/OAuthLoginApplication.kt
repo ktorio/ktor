@@ -10,9 +10,7 @@ import io.ktor.http.*
 import io.ktor.locations.*
 import io.ktor.request.*
 import io.ktor.routing.*
-import kotlinx.coroutines.experimental.*
 import kotlinx.html.*
-import java.util.concurrent.*
 
 @Location("/")
 class index()
@@ -86,8 +84,6 @@ val loginProviders = listOf(
         )
 ).associateBy { it.name }
 
-private val exec = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors() * 4)
-
 fun Application.OAuthLoginApplication() {
     install(DefaultHeaders)
     install(CallLogging)
@@ -98,11 +94,11 @@ fun Application.OAuthLoginApplication() {
         client.close()
     }
 
-    authentication {
-        configure {
-            oauthAtLocation<login>(client, exec.asCoroutineDispatcher(),
-                    providerLookup = { loginProviders[it.type] },
-                    urlProvider = { _, p -> redirectUrl(login(p.name), false) })
+    install(Authentication) {
+        oauth {
+            this@oauth.client = client
+            providerLookup = { loginProviders[parameters["type"]] }
+            urlProvider = { redirectUrl(login(it.name), false) }
         }
     }
 

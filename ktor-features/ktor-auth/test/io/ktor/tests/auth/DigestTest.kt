@@ -42,12 +42,10 @@ class DigestTest {
         withTestApplication {
             val foundDigests = arrayListOf<DigestCredential>()
 
-            application.authentication {
-                configure {
+            application.install(Authentication) {
+                provider {
                     pipeline.intercept(AuthenticationPipeline.RequestAuthentication) {
-                        call.digestAuthenticationCredentials()?.let { digest ->
-                            foundDigests.add(digest)
-                        }
+                        call.digestAuthenticationCredentials()?.let { digest -> foundDigests.add(digest) }
                     }
                 }
             }
@@ -105,15 +103,21 @@ class DigestTest {
         val digester = MessageDigest.getInstance(digest.algorithm ?: "MD5")
 
         assertEquals(digest.response, hex(digest.expectedDigest(HttpMethod.Get, digester, digest(digester, userNameRealmPassword))))
-        assertTrue(digest.verify(HttpMethod.Get, digester) { user, realm -> digest(digester, "$user:$realm:$p") })
+        assertTrue(digest.verifier(HttpMethod.Get, digester) { user, realm -> digest(digester, "$user:$realm:$p") })
     }
 
     private fun Application.configureDigestServer() {
-        authentication {
-            val p = "Circle Of Life"
-            val digester = MessageDigest.getInstance("MD5")
-            configure {
-                digestAuthentication(realm = "testrealm@host.com") { userName, realm -> if (userName == "missing") null else digest(digester, "$userName:$realm:$p") }
+        install(Authentication) {
+            digest {
+                val p = "Circle Of Life"
+                digester = MessageDigest.getInstance("MD5")
+                realm = "testrealm@host.com"
+                userNameRealmPasswordDigestProvider = { userName, realm ->
+                    when (userName) {
+                        "missing" -> null
+                        else -> digest(digester, "$userName:$realm:$p")
+                    }
+                }
             }
         }
 

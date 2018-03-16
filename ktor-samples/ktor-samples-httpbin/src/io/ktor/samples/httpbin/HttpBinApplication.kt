@@ -105,8 +105,12 @@ fun Application.main() {
     val hashedUserTable = UserHashedTableAuth(table = mapOf(
             "test" to decodeBase64("VltM4nfheqcJSyH887H+4NEOm2tDuKCl83p5axYXlF0=") // sha256 for "test"
     ))
-    authentication {
-        configure { basicAuthentication("ktor-samples-httpbin") { hashedUserTable.authenticate(it) } }
+
+    install(Authentication) {
+        basic {
+            realm = "ktor-samples-httpbin"
+            validate { hashedUserTable.authenticate(it) }
+        }
     }
 
     routing {
