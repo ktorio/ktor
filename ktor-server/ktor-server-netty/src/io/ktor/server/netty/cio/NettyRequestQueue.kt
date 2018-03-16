@@ -2,26 +2,54 @@ package io.ktor.server.netty.cio
 
 import io.ktor.server.netty.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.internal.*
 import java.util.concurrent.atomic.*
-import kotlin.coroutines.experimental.*
-import  kotlin.coroutines.experimental.intrinsics.*
 
 private const val StateRunning = 0
 private const val StateClosed = 1
 private const val StateCancelled = 2
 
-internal class NettyRequestQueue(private val limit: Int) {
+internal class NettyRequestQueue(private val _readLimit: Int) {
     init {
-        require(limit > 0)
+        require(_readLimit > 0) { "readLimit should be positive: $_readLimit" }
+//        require(executeLimit > 0) { "executeLimit should be positive: $executeLimit" }
     }
 
-    private val queue = LockFreeLinkedListHead()
     @Volatile
     private var counter = 0
+    private val incomingQueue = Channel<CallElement>(Channel.UNLIMITED)
+    private val readyQueue = Channel<CallElement>(Channel.UNLIMITED)
 
-    @Volatile
-    private var receiver: Continuation<Unit>? = null
+    val elements: ReceiveChannel<CallElement> = readyQueue
+
+    init {
+        launch(Unconfined, start = CoroutineStart.UNDISPATCHED) {
+            try {
+                while (state == StateRunning) {
+                    val e = incomingQueue.receiveOrNull() ?: break
+                    val counter = Counter.decrementAndGet(this@NettyRequestQueue)
+                    if (incomingQueue.isEmpty || counter < _readLimit) e.call.context.read()
+
+                    try {
+                        readyQueue.send(e)
+                        if (state != StateRunning) {
+                            e.tryDispose()
+                        }
+                    } catch (t: Throwable) {
+                        e.tryDispose()
+                        throw t
+                    }
+                }
+            } finally {
+                if (state == StateClosed) {
+                    readyQueue.close()
+                } else {
+                    readyQueue.cancel()
+                }
+            }
+        }
+    }
 
     @Volatile
     private var state = StateRunning
@@ -32,108 +60,34 @@ internal class NettyRequestQueue(private val limit: Int) {
             return
         }
 
+        Counter.incrementAndGet(this)
         val element = CallElement(call)
-        val n = Counter.incrementAndGet(this)
+        incomingQueue.offer(element)
 
-        if (!queue.addLastIfPrev(element, { it !is CloseElement })) {
-            // counter is already incremented but we can ignore it as the queue is already closed
-            call.dispose() // it is safe here to dispose as call handling is not yet started
-        } else if (n < limit) {
-            element.ensureRunning()
-            call.context.read()
-            resume()
-        } else if (n == limit) {
-            element.ensureRunning()
+        if (state != StateRunning) {
+            element.tryDispose()
         }
     }
 
     fun close() {
         if (State.compareAndSet(this, StateRunning, StateClosed)) {
-            queue.addLast(CloseElement())
-            resume()
+            incomingQueue.close()
         }
     }
 
     fun cancel() {
         if (State.compareAndSet(this, StateRunning, StateCancelled)) {
-            queue.addLast(CloseElement())
+            incomingQueue.close()
 
             while (true) {
-                val element = queue.removeFirstIfIsInstanceOf<CallElement>() ?: break
-                element.tryDispose()
-            }
-
-            resume()
-        }
-    }
-
-    fun poll(): NettyApplicationCall? {
-        return (queue.next as? CallElement)?.call
-    }
-
-    tailrec suspend fun receiveOrNull(): NettyApplicationCall? {
-        val element = queue.removeFirstIfIsInstanceOf<CallElement>()
-
-        if (element != null) {
-            return returnCall(element) ?: return receiveOrNull()
-        }
-
-        if (state != StateRunning) {
-            if (state == StateCancelled) throw CancellationException()
-            if (queue.next is CloseElement) return null
-        }
-
-        return receiveOrNullSuspend()
-    }
-
-    fun canRequestMoreEvents(): Boolean = counter <= limit
-
-    private tailrec suspend fun receiveOrNullSuspend(): NettyApplicationCall? {
-        val element = queue.removeFirstIfIsInstanceOf<CallElement>()
-
-        if (element != null) {
-            return returnCall(element) ?: return receiveOrNullSuspend()
-        }
-
-        if (state != StateRunning) {
-            if (state == StateCancelled) throw CancellationException()
-            if (queue.next is CloseElement) return null
-        }
-
-        suspendCoroutineOrReturn<Unit> { c ->
-            if (!Receiver.compareAndSet(this, null, c)) throw IllegalStateException("receive already pending")
-
-            if ((state != StateRunning || queue.next is CallElement) && Receiver.compareAndSet(this, c, null)) {
-                Unit
-            } else {
-                COROUTINE_SUSPENDED
+                incomingQueue.poll()?.tryDispose() ?: break
             }
         }
-
-        return receiveOrNullSuspend()
     }
 
-    private fun resume() {
-        Receiver.getAndSet(this, null)?.resume(Unit)
-    }
+    fun canRequestMoreEvents(): Boolean = incomingQueue.isEmpty
 
-    private fun returnCall(element: CallElement): NettyApplicationCall? {
-        if (state == StateCancelled) {
-            element.tryDispose()
-            return null
-        }
-
-        val n = Counter.getAndDecrement(this)
-        if (n == limit) {
-            element.call.context.read()
-            (queue.next as? CallElement)?.ensureRunning()
-        }
-
-        return if (element.ensureRunning()) element.call else null
-    }
-
-    private class CloseElement : LockFreeLinkedListNode()
-    private class CallElement(val call: NettyApplicationCall) : LockFreeLinkedListNode() {
+    internal class CallElement(val call: NettyApplicationCall) : LockFreeLinkedListNode() {
         @Volatile
         private var scheduled: Int = 0
 
@@ -160,8 +114,5 @@ internal class NettyRequestQueue(private val limit: Int) {
     companion object {
         private val Counter = AtomicIntegerFieldUpdater.newUpdater(NettyRequestQueue::class.java, NettyRequestQueue::counter.name)!!
         private val State = AtomicIntegerFieldUpdater.newUpdater(NettyRequestQueue::class.java, NettyRequestQueue::state.name)!!
-
-        @Suppress("UNCHECKED_CAST")
-        private val Receiver = AtomicReferenceFieldUpdater.newUpdater(NettyRequestQueue::class.java, Continuation::class.java, NettyRequestQueue::receiver.name) as AtomicReferenceFieldUpdater<NettyRequestQueue, Continuation<Unit>?>
     }
 }

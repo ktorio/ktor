@@ -8,6 +8,7 @@ import io.ktor.server.netty.cio.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlinx.coroutines.experimental.io.*
+import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 
 internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
@@ -30,8 +31,10 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
 
     override val headers: ResponseHeaders = object : ResponseHeaders() {
         override fun engineAppendHeader(name: String, value: String) {
-            if (responseMessageSent)
+            if (responseMessageSent) {
+                if (responseMessage.isCancelled) throw CancellationException("Call execution has been cancelled")
                 throw UnsupportedOperationException("Headers can no longer be set because response was already completed")
+            }
             responseHeaders.add(name, value)
         }
 
