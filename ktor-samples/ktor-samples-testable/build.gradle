@@ -1,5 +1,0 @@
-description = ''
-dependencies {
-    compile project(':ktor-features:ktor-html-builder')
-    testCompile project(':ktor-server:ktor-server-test-host')
-}
