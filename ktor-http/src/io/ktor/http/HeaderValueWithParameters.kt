@@ -28,7 +28,7 @@ abstract class HeaderValueWithParameters(protected val content: String, val para
     }
 }
 
-private val CHARACTERS_SHOULD_BE_ESCAPED = "\"=;,\\/".toCharArray()
+private val CHARACTERS_SHOULD_BE_ESCAPED = "\"=;,\\/ ".toCharArray()
 fun String.escapeIfNeeded() = when {
     indexOfAny(CHARACTERS_SHOULD_BE_ESCAPED) != -1 -> quote()
     else -> this
