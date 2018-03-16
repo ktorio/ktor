@@ -37,6 +37,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
     private suspend fun loop() {
         while (true) {
             val call = requestQueue.receiveOrNull() ?: break
+
             try {
                 cancellation?.let { throw it }
 
@@ -48,6 +49,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
                 }
 
                 cancellation = t
+                call.response.responseChannel.cancel(t)
                 call.dispose()
                 call.responseWriteJob.cancel(t)
                 responses.cancel()
@@ -75,10 +77,10 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
             encapsulation.upgrade(dst)
             encapsulation = WriterEncapsulation.Raw
             dst.flush()
-        } else if (channel.availableForRead > 0) {
-            dst.write(responseMessage)
+//        } else if (channel.availableForRead > 0 || requestQueue.hasNextResponseMessage()) {
         } else {
-            dst.writeAndFlush(responseMessage)
+            dst.write(responseMessage)
+//            dst.writeAndFlush(responseMessage)
         }
 
         var unflushedBytes = 0
@@ -98,7 +100,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
             last = available == 0 && channel.isClosedForRead
             val message = encapsulation.transform(buf, last)
 
-            if (available == 0 || unflushedBytes >= UnflushedLimit) {
+            if (unflushedBytes >= UnflushedLimit) {
                 dst.writeAndFlush(message).suspendAwait()
                 unflushedBytes = 0
             } else {
@@ -106,13 +108,27 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
             }
         }
 
-        encapsulation.endOfStream(last)?.let { dst.writeAndFlush(it).suspendAwait() }
+        encapsulation.endOfStream(last)?.let {
+            if (requestQueue.hasNextResponseMessage() && !close) {
+                dst.write(it)
+            } else {
+                dst.writeAndFlush(it).suspendAwait()
+            }
+
+            Unit
+        } ?: run {
+            if (!requestQueue.hasNextResponseMessage() || close) {
+                dst.flush()
+            }
+        }
 
         if (close) {
             requestQueue.cancel()
         }
     }
 }
+
+private fun NettyRequestQueue.hasNextResponseMessage() = poll()?.response?.responseMessage?.isCompleted == true
 
 private val ResponsePipelineCoroutineName = CoroutineName("response-pipeline")
 private const val UnflushedLimit = 65536
