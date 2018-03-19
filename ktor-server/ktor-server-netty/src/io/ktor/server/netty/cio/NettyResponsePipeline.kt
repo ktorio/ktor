@@ -73,7 +73,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
             val e = incoming.receiveOrNull()
 
             if (e != null && e.ensureRunning()) {
-                running.add(e)
+                running.addLast(e)
             }
         }
     }
@@ -83,7 +83,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         return running.isNotEmpty() && running.peekFirst().call.response.responseMessage.isCompleted
     }
 
-    private suspend fun processElement(element: NettyRequestQueue.CallElement) {
+    private suspend inline fun processElement(element: NettyRequestQueue.CallElement) {
         val call = element.call
 
         try {
@@ -112,7 +112,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         dst.flush()
     }
 
-    private suspend fun finishCall(call: NettyApplicationCall, lastMessage: Any?) {
+    private suspend inline fun finishCall(call: NettyApplicationCall, lastMessage: Any?) {
         val close = !call.request.keepAlive
         val doNotFlush = hasNextResponseMessage() && !close
 
@@ -137,52 +137,84 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         }
     }
 
-    private suspend fun processCall(call: NettyApplicationCall) {
+    private suspend inline fun processCall(call: NettyApplicationCall) {
         val responseMessage = call.response.responseMessage.await()
         val response = call.response
 
         if (response.isUpgradeResponse()) {
             processUpgrade(responseMessage)
-//        } else if (channel.availableForRead > 0 || requestQueue.hasNextResponseMessage()) {
         } else {
             dst.write(responseMessage)
-//            dst.writeAndFlush(responseMessage)
         }
 
         tryFill()
 
+        if (responseMessage is FullHttpResponse) {
+            return finishCall(call, null)
+        }
+
+        val knownSize = (responseMessage as? HttpResponse)?.headers()?.getInt("Content-Length", -1) ?: -1
+
+        when (knownSize) {
+            0 -> processEmpty(call)
+            in 1..65536 -> processSmallContent(call, response, knownSize)
+            else -> processBodyGeneral(call, response)
+        }
+    }
+
+    private suspend fun processEmpty(call: NettyApplicationCall) {
+        return finishCall(call, encapsulation.endOfStream(false))
+    }
+
+    private suspend fun processSmallContent(call: NettyApplicationCall, response: NettyApplicationResponse, size: Int) {
+        val buffer = dst.alloc().buffer(size)
+        val channel = response.responseChannel
+
+        val start = buffer.writerIndex()
+        channel.readFully(buffer.nioBuffer(start, buffer.writableBytes()))
+        buffer.writerIndex(start + size)
+
+        val encapsulation = encapsulation
+        dst.write(encapsulation.transform(buffer, true))
+        finishCall(call, encapsulation.endOfStream(true))
+    }
+
+    private suspend fun processBodyGeneral(call: NettyApplicationCall, response: NettyApplicationResponse) {
         val channel = response.responseChannel
         val encapsulation = encapsulation
 
         var unflushedBytes = 0
-        var last = false
-        while (true) {
-            val buf = dst.alloc().buffer(4096)
-            val bb = buf.nioBuffer(buf.writerIndex(), buf.writableBytes())
-            val rc = channel.readAvailable(bb)
-            if (rc == -1) {
-                buf.release()
-                break
+
+        channel.lookAheadSuspend {
+            while (true) {
+                val buffer = request(0, 1)
+                if (buffer == null) {
+                    if (!awaitAtLeast(1)) break
+                    continue
+                }
+
+                val rc = buffer.remaining()
+                val buf = dst.alloc().buffer(rc)
+                val idx = buf.writerIndex()
+                buf.setBytes(idx, buffer)
+                buf.writerIndex(idx + rc)
+
+                consumed(rc)
+                unflushedBytes += rc
+
+                val message = encapsulation.transform(buf, false)
+
+                if (unflushedBytes >= UnflushedLimit) {
+                    tryFill()
+                    dst.writeAndFlush(message).suspendAwait()
+                    unflushedBytes = 0
+                } else {
+                    dst.write(message)
+                }
             }
-            buf.writerIndex(buf.writerIndex() + rc)
-            unflushedBytes += rc
-
-            last = channel.isClosedForRead
-            val message = encapsulation.transform(buf, last)
-
-            if (unflushedBytes >= UnflushedLimit) {
-                tryFill()
-                dst.writeAndFlush(message).suspendAwait()
-                unflushedBytes = 0
-            } else {
-                dst.write(message)
-            }
-
-            if (last) break
         }
 
-        val lastMessage = encapsulation.endOfStream(last)
-        finishCall(call, lastMessage)
+        finishCall(call, encapsulation.endOfStream(false))
     }
 }
 

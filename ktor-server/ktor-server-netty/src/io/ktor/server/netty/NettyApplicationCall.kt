@@ -6,14 +6,14 @@ import io.netty.channel.*
 import io.netty.util.*
 import kotlinx.coroutines.experimental.*
 
-internal abstract class NettyApplicationCall(application: Application,
+abstract class NettyApplicationCall(application: Application,
                                     val context: ChannelHandlerContext,
                                     private val requestMessage: Any) : BaseApplicationCall(application) {
 
     abstract override val request: NettyApplicationRequest
     abstract override val response: NettyApplicationResponse
 
-    internal val responseWriteJob = Job()
+    val responseWriteJob = Job()
 
     internal suspend fun finish() {
         try {

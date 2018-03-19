@@ -5,7 +5,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.experimental.io.*
 import java.util.concurrent.atomic.*
 
-internal class NettyHttpIncomingContent internal constructor(
+class NettyHttpIncomingContent internal constructor(
         val request: NettyApplicationRequest
 ) : IncomingContent {
 

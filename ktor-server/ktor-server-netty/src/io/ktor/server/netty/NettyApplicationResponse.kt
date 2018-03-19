@@ -11,12 +11,12 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlin.coroutines.experimental.*
 
-internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
+abstract class NettyApplicationResponse(call: NettyApplicationCall,
                                                  protected val context: ChannelHandlerContext,
                                                  protected val engineContext: CoroutineContext,
                                                  protected val userContext: CoroutineContext) : BaseApplicationResponse(call) {
 
-    internal val responseMessage = CompletableDeferred<Any>()
+    val responseMessage = CompletableDeferred<Any>()
 
     @Volatile
     protected var responseMessageSent = false
@@ -46,7 +46,12 @@ internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
         // Note that it shouldn't set HttpHeaders.ContentLength even if we know it here,
         // because it should've been set by commitHeaders earlier
         val chunked = headers[HttpHeaders.TransferEncoding] == "chunked"
-        sendResponse(chunked, content = ByteReadChannel(bytes))
+
+        if (!responseMessageSent) {
+            responseChannel = EmptyByteReadChannel
+            responseMessage.complete(responseMessage(chunked, bytes))
+            responseMessageSent = true
+        }
     }
 
     override suspend fun responseChannel(): ByteWriteChannel {
@@ -61,8 +66,9 @@ internal abstract class NettyApplicationResponse(call: NettyApplicationCall,
     }
 
     protected abstract fun responseMessage(chunked: Boolean, last: Boolean): Any
+    protected open fun responseMessage(chunked: Boolean, data: ByteArray): Any = responseMessage(chunked, true)
 
-    protected fun sendResponse(chunked: Boolean = true, content: ByteReadChannel) {
+    internal fun sendResponse(chunked: Boolean = true, content: ByteReadChannel) {
         if (!responseMessageSent) {
             responseChannel = content
             responseMessage.complete(responseMessage(chunked, content.isClosedForRead))

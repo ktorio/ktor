@@ -29,10 +29,10 @@ internal class NettyRequestQueue(private val _readLimit: Int) {
                 while (state == StateRunning) {
                     val e = incomingQueue.receiveOrNull() ?: break
                     val counter = Counter.decrementAndGet(this@NettyRequestQueue)
-                    if (incomingQueue.isEmpty || counter < _readLimit) e.call.context.read()
+                    if (counter < _readLimit) e.call.context.read()
 
                     try {
-                        readyQueue.send(e)
+                        check(readyQueue.offer(e))
                         if (state != StateRunning) {
                             e.tryDispose()
                         }

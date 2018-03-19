@@ -12,7 +12,7 @@ import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.util.concurrent.atomic.*
 
-internal abstract class NettyApplicationRequest(
+abstract class NettyApplicationRequest(
         call: ApplicationCall,
         protected val context: ChannelHandlerContext,
         private val requestBodyChannel: ByteReadChannel,

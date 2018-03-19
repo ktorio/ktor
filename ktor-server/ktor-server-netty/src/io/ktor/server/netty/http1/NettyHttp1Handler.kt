@@ -46,6 +46,7 @@ internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,
 
         val call = NettyHttp1ApplicationCall(environment.application, context, message, requestBodyChannel, engineContext, userContext)
         requestQueue.schedule(call)
+//        context.fireChannelRead(call)
     }
 
     override fun channelActive(ctx: ChannelHandlerContext) {
@@ -60,6 +61,7 @@ internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,
             }
 
             responseWriter.ensureRunning()
+//            ctx.startLoop(enginePipeline)
         }
 
         super.channelActive(ctx)
@@ -74,6 +76,7 @@ internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,
             }
 
             requestQueue.cancel()
+//            ctx.stopLoop()
         }
         super.channelInactive(ctx)
     }

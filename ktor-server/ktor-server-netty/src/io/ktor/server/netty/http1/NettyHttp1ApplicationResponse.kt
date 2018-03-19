@@ -5,6 +5,7 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.cio.*
+import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlinx.coroutines.experimental.io.*
@@ -44,6 +45,14 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
 
     override fun responseMessage(chunked: Boolean, last: Boolean): Any {
         val responseMessage = DefaultHttpResponse(protocol, responseStatus, responseHeaders)
+        if (chunked) {
+            setChunked(responseMessage)
+        }
+        return responseMessage
+    }
+
+    override fun responseMessage(chunked: Boolean, data: ByteArray): Any {
+        val responseMessage = DefaultFullHttpResponse(protocol, responseStatus, Unpooled.wrappedBuffer(data), responseHeaders, EmptyHttpHeaders.INSTANCE)
         if (chunked) {
             setChunked(responseMessage)
         }
