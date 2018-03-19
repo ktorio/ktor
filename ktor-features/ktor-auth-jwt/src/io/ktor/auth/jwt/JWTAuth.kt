@@ -135,3 +135,29 @@ private fun DecodedJWT.parsePayload(): Payload {
     val payloadString = String(Base64.getUrlDecoder().decode(payload))
     return JWTParser().parsePayload(payloadString)
 }
+
+@Deprecated("Use DSL builder form", replaceWith = ReplaceWith("jwt {\n" +
+        "        this.realm = realm\n" +
+        "        this.verifier(jwtVerifier)\n" +
+        "        this.validate(validate)\n" +
+        "    }\n"))
+fun Authentication.Configuration.jwtAuthentication(jwtVerifier: JWTVerifier, realm: String, validate: suspend (JWTCredential) -> Principal?) {
+    jwt {
+        this.realm = realm
+        this.verifier(jwtVerifier)
+        this.validate(validate)
+    }
+}
+
+@Deprecated("Use DSL builder form", replaceWith = ReplaceWith("jwt {\n" +
+        "        this.realm = realm\n" +
+        "        this.verifier(jwkProvider, issuer)\n" +
+        "        this.validate(validate)\n" +
+        "    }\n"))
+fun Authentication.Configuration.jwtAuthentication(jwkProvider: JwkProvider, issuer: String, realm: String, validate: suspend (JWTCredential) -> Principal?) {
+    jwt {
+        this.realm = realm
+        this.verifier(jwkProvider, issuer)
+        this.validate(validate)
+    }
+}
