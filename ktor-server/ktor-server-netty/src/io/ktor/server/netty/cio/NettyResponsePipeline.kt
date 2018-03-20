@@ -12,14 +12,18 @@ import kotlinx.coroutines.experimental.channels.*
 import java.io.*
 import java.util.*
 
+private const val RUNNING_QUEUE_SIZE = 10
+private const val READY_QUEUE_SIZE = 16
+
 internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
                                      initialEncapsulation: WriterEncapsulation,
                                      private val requestQueue: NettyRequestQueue
 ) {
     private val incoming: ReceiveChannel<NettyRequestQueue.CallElement> = requestQueue.elements
-    private val running = ArrayDeque<NettyRequestQueue.CallElement>(3)
+    private val ready = ArrayDeque<NettyRequestQueue.CallElement>(READY_QUEUE_SIZE)
+    private val running = ArrayDeque<NettyRequestQueue.CallElement>(RUNNING_QUEUE_SIZE)
 
-    private val responses = launch(dst.executor().asCoroutineDispatcher() + ResponsePipelineCoroutineName, start = CoroutineStart.LAZY) {
+    private val responses = launch(dst.executor().asCoroutineDispatcher() + ResponsePipelineCoroutineName, start = CoroutineStart.UNDISPATCHED) {
         try {
             processJobs()
         } catch (t: Throwable) {
@@ -57,14 +61,14 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
     }
 
     private fun tryFill() {
-        while (running.isNotFull()) {
-            val e = incoming.poll() ?: break
-
-            if (e.ensureRunning()) {
-                running.addLast(e)
-            } else {
+        while (isNotFull()) {
+            if (!pollReady()) {
+                tryStart()
+                dst.read()
                 break
             }
+
+            tryStart()
         }
     }
 
@@ -74,9 +78,31 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
             if (e != null && e.ensureRunning()) {
                 running.addLast(e)
+                tryFill()
             }
         }
     }
+
+    private fun pollReady(): Boolean {
+        for (index in 1..(READY_QUEUE_SIZE - ready.size)) {
+            val e = incoming.poll() ?: return false
+            ready.addLast(e)
+        }
+        return true
+    }
+
+    private fun tryStart() {
+        while (ready.isNotEmpty() && running.size < RUNNING_QUEUE_SIZE) {
+            val e = ready.removeFirst()
+            if (e.ensureRunning()) {
+                running.addLast(e)
+            } else {
+                break
+            }
+        }
+    }
+
+    private fun isNotFull(): Boolean = ready.size < READY_QUEUE_SIZE || running.size < RUNNING_QUEUE_SIZE
 
     private fun hasNextResponseMessage(): Boolean {
         tryFill()
@@ -220,9 +246,6 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
 private fun NettyApplicationResponse.isUpgradeResponse() =
         status()?.value == HttpStatusCode.SwitchingProtocols.value
-
-private fun <E> ArrayDeque<E>.isNotFull(): Boolean = size != 3
-
 
 private val ResponsePipelineCoroutineName = CoroutineName("response-pipeline")
 private const val UnflushedLimit = 65536
