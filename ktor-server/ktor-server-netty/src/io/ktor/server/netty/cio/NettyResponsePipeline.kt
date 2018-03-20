@@ -184,6 +184,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         when (knownSize) {
             0 -> processEmpty(call)
             in 1..65536 -> processSmallContent(call, response, knownSize)
+            -1 -> processBodyFlusher(call, response)
             else -> processBodyGeneral(call, response)
         }
     }
@@ -231,6 +232,44 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
                 val message = encapsulation.transform(buf, false)
 
                 if (unflushedBytes >= UnflushedLimit) {
+                    tryFill()
+                    dst.writeAndFlush(message).suspendAwait()
+                    unflushedBytes = 0
+                } else {
+                    dst.write(message)
+                }
+            }
+        }
+
+        finishCall(call, encapsulation.endOfStream(false))
+    }
+
+    private suspend fun processBodyFlusher(call: NettyApplicationCall, response: NettyApplicationResponse) {
+        val channel = response.responseChannel
+        val encapsulation = encapsulation
+
+        var unflushedBytes = 0
+
+        channel.lookAheadSuspend {
+            while (true) {
+                val buffer = request(0, 1)
+                if (buffer == null) {
+                    if (!awaitAtLeast(1)) break
+                    continue
+                }
+
+                val rc = buffer.remaining()
+                val buf = dst.alloc().buffer(rc)
+                val idx = buf.writerIndex()
+                buf.setBytes(idx, buffer)
+                buf.writerIndex(idx + rc)
+
+                consumed(rc)
+                unflushedBytes += rc
+
+                val message = encapsulation.transform(buf, false)
+
+                if (unflushedBytes >= UnflushedLimit || channel.availableForRead == 0) {
                     tryFill()
                     dst.writeAndFlush(message).suspendAwait()
                     unflushedBytes = 0
