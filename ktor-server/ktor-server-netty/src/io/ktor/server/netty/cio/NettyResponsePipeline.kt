@@ -9,6 +9,7 @@ import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.util.*
 
@@ -179,7 +180,12 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
             return finishCall(call, null)
         }
 
-        val knownSize = (responseMessage as? HttpResponse)?.headers()?.getInt("Content-Length", -1) ?: -1
+        val responseChannel = response.responseChannel
+        val knownSize = when {
+            responseChannel === EmptyByteReadChannel -> 0
+            responseMessage is HttpResponse -> responseMessage.headers().getInt("Content-Length", -1)
+            else -> -1
+        }
 
         when (knownSize) {
             0 -> processEmpty(call)
