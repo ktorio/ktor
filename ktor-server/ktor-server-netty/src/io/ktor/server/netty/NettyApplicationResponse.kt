@@ -62,7 +62,7 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
     }
 
     override suspend fun respondNoContent(content: OutgoingContent.NoContent) {
-        sendResponse(false, EmptyByteReadChannel)
+        respondFromBytes(EmptyByteArray)
     }
 
     protected abstract fun responseMessage(chunked: Boolean, last: Boolean): Any
@@ -101,6 +101,7 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
     }
 
     companion object {
+        private val EmptyByteArray = ByteArray(0)
         val responseStatusCache = HttpStatusCode.allStatusCodes.associateBy({ it.value }, { HttpResponseStatus.valueOf(it.value) })
     }
 }
