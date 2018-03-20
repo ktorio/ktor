@@ -89,6 +89,7 @@ internal class NettyChannelInitializer(private val enginePipeline: EnginePipelin
                 with(pipeline) {
 //                    addLast(LoggingHandler(LogLevel.WARN))
                     addLast("codec", HttpServerCodec())
+                    addLast("continue", HttpServerExpectContinueHandler())
                     addLast("timeout", WriteTimeoutHandler(responseWriteTimeout))
                     addLast("http1", handler)
 
