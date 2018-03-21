@@ -134,6 +134,21 @@ class URLBuilderTest {
     }
 
     @Test
+    fun testWithApplication2() {
+        withTestApplication {
+            application.intercept(ApplicationCallPipeline.Call) {
+                repeat(3) {
+                    assertEquals("http://my-host/?p=v", call.url())
+                }
+            }
+
+            handleRequest(HttpMethod.Get, "/?p=v") {
+                addHeader(HttpHeaders.Host, "my-host")
+            }
+        }
+    }
+
+    @Test
     fun testWithApplicationAndPort() {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
