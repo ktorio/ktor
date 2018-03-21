@@ -13,16 +13,18 @@ import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.util.*
 
-private const val RUNNING_QUEUE_SIZE = 10
-private const val READY_QUEUE_SIZE = 16
+private const val UNFLUSHED_LIMIT = 65536
 
 internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
                                      initialEncapsulation: WriterEncapsulation,
                                      private val requestQueue: NettyRequestQueue
 ) {
+    private val readyQueueSize = requestQueue.readLimit
+    private val runningQueueSize = requestQueue.runningLimit
+
     private val incoming: ReceiveChannel<NettyRequestQueue.CallElement> = requestQueue.elements
-    private val ready = ArrayDeque<NettyRequestQueue.CallElement>(READY_QUEUE_SIZE)
-    private val running = ArrayDeque<NettyRequestQueue.CallElement>(RUNNING_QUEUE_SIZE)
+    private val ready = ArrayDeque<NettyRequestQueue.CallElement>(readyQueueSize)
+    private val running = ArrayDeque<NettyRequestQueue.CallElement>(runningQueueSize)
 
     private val responses = launch(dst.executor().asCoroutineDispatcher() + ResponsePipelineCoroutineName, start = CoroutineStart.UNDISPATCHED) {
         try {
@@ -85,7 +87,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
     }
 
     private fun pollReady(): Boolean {
-        for (index in 1..(READY_QUEUE_SIZE - ready.size)) {
+        for (index in 1..(readyQueueSize - ready.size)) {
             val e = incoming.poll() ?: return false
             ready.addLast(e)
         }
@@ -93,7 +95,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
     }
 
     private fun tryStart() {
-        while (ready.isNotEmpty() && running.size < RUNNING_QUEUE_SIZE) {
+        while (ready.isNotEmpty() && running.size < runningQueueSize) {
             val e = ready.removeFirst()
             if (e.ensureRunning()) {
                 running.addLast(e)
@@ -103,13 +105,14 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         }
     }
 
-    private fun isNotFull(): Boolean = ready.size < READY_QUEUE_SIZE || running.size < RUNNING_QUEUE_SIZE
+    private fun isNotFull(): Boolean = ready.size < readyQueueSize || running.size < runningQueueSize
 
     private fun hasNextResponseMessage(): Boolean {
         tryFill()
         return running.isNotEmpty() && running.peekFirst().call.response.responseMessage.isCompleted
     }
 
+    @Suppress("NOTHING_TO_INLINE")
     private suspend inline fun processElement(element: NettyRequestQueue.CallElement) {
         val call = element.call
 
@@ -139,6 +142,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         dst.flush()
     }
 
+    @Suppress("NOTHING_TO_INLINE")
     private suspend inline fun finishCall(call: NettyApplicationCall, lastMessage: Any?) {
         val close = !call.request.keepAlive
         val doNotFlush = hasNextResponseMessage() && !close
@@ -164,6 +168,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         }
     }
 
+    @Suppress("NOTHING_TO_INLINE")
     private suspend inline fun processCall(call: NettyApplicationCall) {
         val responseMessage = call.response.responseMessage.await()
         val response = call.response
@@ -237,7 +242,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
                 val message = encapsulation.transform(buf, false)
 
-                if (unflushedBytes >= UnflushedLimit) {
+                if (unflushedBytes >= UNFLUSHED_LIMIT) {
                     tryFill()
                     dst.writeAndFlush(message).suspendAwait()
                     unflushedBytes = 0
@@ -275,7 +280,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
                 val message = encapsulation.transform(buf, false)
 
-                if (unflushedBytes >= UnflushedLimit || channel.availableForRead == 0) {
+                if (unflushedBytes >= UNFLUSHED_LIMIT || channel.availableForRead == 0) {
                     tryFill()
                     dst.writeAndFlush(message).suspendAwait()
                     unflushedBytes = 0
@@ -293,13 +298,12 @@ private fun NettyApplicationResponse.isUpgradeResponse() =
         status()?.value == HttpStatusCode.SwitchingProtocols.value
 
 private val ResponsePipelineCoroutineName = CoroutineName("response-pipeline")
-private const val UnflushedLimit = 65536
 
 sealed class WriterEncapsulation {
     open val requiresContextClose: Boolean get() = true
     abstract fun transform(buf: ByteBuf, last: Boolean): Any
     abstract fun endOfStream(lastTransformed: Boolean): Any?
-    abstract fun upgrade(dst: ChannelHandlerContext): Unit
+    abstract fun upgrade(dst: ChannelHandlerContext)
 
     object Http1 : WriterEncapsulation() {
         override fun transform(buf: ByteBuf, last: Boolean): Any {

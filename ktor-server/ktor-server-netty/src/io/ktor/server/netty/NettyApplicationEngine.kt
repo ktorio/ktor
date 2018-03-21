@@ -25,6 +25,11 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
         var requestQueueLimit: Int = 16
 
         /**
+         * Number of concurrently running requests from the same http pipeline
+         */
+        var runningLimit: Int = 10
+
+        /**
          * Do not create separate call event group and reuse worker group for processing calls
          */
         var shareWorkGroup: Boolean = false
@@ -69,7 +74,9 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
             channel(NioServerSocketChannel::class.java)
             childHandler(NettyChannelInitializer(pipeline, environment,
                     callEventGroup, engineDispatcherWithShutdown, dispatcherWithShutdown,
-                    connector, configuration.requestQueueLimit,
+                    connector,
+                    configuration.requestQueueLimit,
+                    configuration.runningLimit,
                     configuration.responseWriteTimeoutSeconds))
         }
     }

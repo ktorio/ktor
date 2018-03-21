@@ -57,7 +57,7 @@ internal class NettyHttp2Handler(private val enginePipeline: EnginePipeline,
     }
 
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
-        val requestQueue = NettyRequestQueue(1)
+        val requestQueue = NettyRequestQueue(1, 1)
         val responseWriter = NettyResponsePipeline(context, WriterEncapsulation.Http2, requestQueue)
 
         val call = NettyHttp2ApplicationCall(application, context, headers, this, Unconfined, userCoroutineContext)

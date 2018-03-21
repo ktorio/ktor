@@ -23,6 +23,7 @@ internal class NettyChannelInitializer(private val enginePipeline: EnginePipelin
                                        private val userContext: CoroutineContext,
                                        private val connector: EngineConnectorConfig,
                                        private val requestQueueLimit: Int,
+                                       private val runningLimit: Int,
                                        private val responseWriteTimeout: Int) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
 
@@ -83,7 +84,7 @@ internal class NettyChannelInitializer(private val enginePipeline: EnginePipelin
                 pipeline.addLast(Http2MultiplexCodecBuilder.forServer(handler).build())
             }
             ApplicationProtocolNames.HTTP_1_1 -> {
-                val requestQueue = NettyRequestQueue(requestQueueLimit)
+                val requestQueue = NettyRequestQueue(requestQueueLimit, runningLimit)
                 val handler = NettyHttp1Handler(enginePipeline, environment, callEventGroup, engineContext, userContext, requestQueue)
 
                 with(pipeline) {

@@ -5,10 +5,10 @@ import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.internal.*
 import java.util.concurrent.atomic.*
 
-internal class NettyRequestQueue(private val _readLimit: Int) {
+internal class NettyRequestQueue(internal val readLimit: Int, internal val runningLimit: Int) {
     init {
-        require(_readLimit > 0) { "readLimit should be positive: $_readLimit" }
-//        require(executeLimit > 0) { "executeLimit should be positive: $executeLimit" }
+        require(readLimit > 0) { "readLimit should be positive: $readLimit" }
+        require(runningLimit > 0) { "executeLimit should be positive: $runningLimit" }
     }
 
     private val incomingQueue = Channel<CallElement>(Channel.UNLIMITED)
