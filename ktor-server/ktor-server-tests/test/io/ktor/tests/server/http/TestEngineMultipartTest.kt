@@ -9,24 +9,14 @@ import org.junit.Test
 import kotlin.test.*
 
 class TestEngineMultipartTest {
+    private val boundary = "***bbb***"
+    private val contentType = ContentType.MultiPart.FormData.withParameter("boundary", boundary)
 
     @Test
     fun testNonMultipart() {
         testMultiParts({
             assertNull(it, "it should be no multipart data")
         }, setup = {})
-    }
-
-    @Test
-    fun testMultiPartsDefault() {
-        testMultiParts({
-            assertNotNull(it, "it should be multipart data")
-            if (it != null) {
-                assertEquals(emptyList<PartData>(), it.readAllParts())
-            }
-        }, setup = {
-            addHeader(HttpHeaders.ContentType, ContentType.MultiPart.FormData.toString())
-        })
     }
 
     @Test
@@ -42,17 +32,15 @@ class TestEngineMultipartTest {
                 parts[0].dispose()
             }
         }, setup = {
-            addHeader(HttpHeaders.ContentType, ContentType.MultiPart.FormData.toString())
-            multiPartEntries = listOf(
-                    PartData.FormItem(
-                            "plain field",
-                            dispose = {},
-                            partHeaders = headersOf(
-                                    HttpHeaders.ContentDisposition,
-                                    ContentDisposition.File.withParameter(ContentDisposition.Parameters.Name, "field1").toString()
-                            )
+            addHeader(HttpHeaders.ContentType, contentType.toString())
+            setBody(boundary, listOf(PartData.FormItem(
+                    "plain field",
+                    dispose = {},
+                    partHeaders = headersOf(
+                            HttpHeaders.ContentDisposition,
+                            ContentDisposition.File.withParameter(ContentDisposition.Parameters.Name, "field1").toString()
                     )
-            )
+            )))
         })
     }
 
@@ -73,20 +61,18 @@ class TestEngineMultipartTest {
                 file.dispose()
             }
         }, setup = {
-            addHeader(HttpHeaders.ContentType, ContentType.MultiPart.FormData.toString())
-            multiPartEntries = listOf(
-                    PartData.FileItem(
-                            streamProvider = { "file content".toByteArray().inputStream() },
-                            dispose = {},
-                            partHeaders = headersOf(
-                                    HttpHeaders.ContentDisposition,
-                                    ContentDisposition.File
-                                            .withParameter(ContentDisposition.Parameters.Name, "fileField")
-                                            .withParameter(ContentDisposition.Parameters.FileName, "file.txt")
-                                            .toString()
-                            )
+            addHeader(HttpHeaders.ContentType, contentType.toString())
+            setBody(boundary, listOf(PartData.FileItem(
+                    streamProvider = { "file content".toByteArray().inputStream() },
+                    dispose = {},
+                    partHeaders = headersOf(
+                            HttpHeaders.ContentDisposition,
+                            ContentDisposition.File
+                                    .withParameter(ContentDisposition.Parameters.Name, "fileField")
+                                    .withParameter(ContentDisposition.Parameters.FileName, "file.txt")
+                                    .toString()
                     )
-            )
+            )))
         })
     }
 
@@ -102,12 +88,12 @@ class TestEngineMultipartTest {
             }
 
             assertFailsWith<AssertionError> {
-                handleRequest(HttpMethod.Post, "/").awaitCompletion()
+                handleRequest(HttpMethod.Post, "/")
             }
         }
     }
 
-    fun testMultiParts(asserts: suspend (MultiPartData?) -> Unit, setup: TestApplicationRequest.() -> Unit) {
+    private fun testMultiParts(asserts: suspend (MultiPartData?) -> Unit, setup: TestApplicationRequest.() -> Unit) {
         withTestApplication {
             application.intercept(ApplicationCallPipeline.Call) {
                 if (call.request.isMultipart()) {

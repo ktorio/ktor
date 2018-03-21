@@ -20,6 +20,7 @@ sealed class MultipartEvent {
             body.release()
         }
     }
+
     class MultipartPart(val headers: Deferred<HttpHeadersMap>, val body: ByteReadChannel) : MultipartEvent() {
         override fun release() {
             headers.invokeOnCompletion { t ->
@@ -30,6 +31,7 @@ sealed class MultipartEvent {
             // TODO body
         }
     }
+
     class Epilogue(val body: ByteReadPacket) : MultipartEvent() {
         override fun release() {
             body.release()
@@ -123,7 +125,12 @@ fun parseMultipart(coroutineContext: CoroutineContext, input: ByteReadChannel, h
     return parseMultipart(coroutineContext, input, contentType, contentLength)
 }
 
-fun parseMultipart(coroutineContext: CoroutineContext, input: ByteReadChannel, contentType: CharSequence, contentLength: Long?): ReceiveChannel<MultipartEvent> {
+fun parseMultipart(
+        coroutineContext: CoroutineContext,
+        input: ByteReadChannel,
+        contentType: CharSequence,
+        contentLength: Long?
+): ReceiveChannel<MultipartEvent> {
     if (!contentType.startsWith("multipart/")) throw IOException("Failed to parse multipart: Content-Type should be multipart/* but it is $contentType")
     val boundaryParameter = contentType.indexOf("boundary=") // TODO parse HTTP header properly instead
     if (boundaryParameter == -1) throw IOException("Failed to parse multipart: Content-Type's boundary parameter is missing")
@@ -229,7 +236,7 @@ private suspend fun copyUntilBoundary(name: String, boundaryPrefixed: ByteBuffer
         while (true) {
             buffer.clear()
             val rc = input.readUntilDelimiter(boundaryPrefixed, buffer)
-            if (rc == 0) break // got boundary or eof
+            if (rc <= 0) break // got boundary or eof
             buffer.flip()
             writeFully(buffer)
             copied += rc

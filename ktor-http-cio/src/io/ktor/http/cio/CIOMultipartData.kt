@@ -19,16 +19,17 @@ class CIOMultipartData(channel: ByteReadChannel,
         ioCoroutineDispatcher,
         channel, headers[HttpHeaders.ContentType]!!,
         headers[HttpHeaders.ContentLength]?.parseDecLong(),
-        formFieldLimit, inMemoryFileUploadLimit)
+        formFieldLimit, inMemoryFileUploadLimit
+)
 
 open class CIOMultipartDataBase(
-                                coroutineContext: CoroutineContext,
-                                channel: ByteReadChannel,
-                                contentType: CharSequence,
-                                contentLength: Long?,
-                                private val formFieldLimit: Int = 65536,
-                                private val inMemoryFileUploadLimit: Int = formFieldLimit) : MultiPartData {
-
+        coroutineContext: CoroutineContext,
+        channel: ByteReadChannel,
+        contentType: CharSequence,
+        contentLength: Long?,
+        private val formFieldLimit: Int = 65536,
+        private val inMemoryFileUploadLimit: Int = formFieldLimit
+) : MultiPartData {
     private val events = parseMultipart(coroutineContext, channel, contentType, contentLength)
 
     override val parts: Sequence<PartData> = buildSequence {
