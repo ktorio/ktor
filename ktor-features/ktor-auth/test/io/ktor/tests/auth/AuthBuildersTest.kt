@@ -16,21 +16,23 @@ class AuthBuildersTest {
 
         withTestApplication {
             application.install(Authentication) {
-                form { validate{ c -> UserIdPrincipal(c.name) } }
+                form { validate { c -> UserIdPrincipal(c.name) } }
             }
 
             application.routing {
-                route("/") {
+                authenticate {
+                    route("/") {
 
-                    handle {
-                        assertEquals(username, call.authentication.principal<UserIdPrincipal>()?.name)
+                        handle {
+                            assertEquals(username, call.authentication.principal<UserIdPrincipal>()?.name)
+                        }
                     }
                 }
             }
 
             handleRequest(HttpMethod.Post, "/") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                body = "user=$username&password=p"
+                setBody("user=$username&password=p")
             }
         }
     }

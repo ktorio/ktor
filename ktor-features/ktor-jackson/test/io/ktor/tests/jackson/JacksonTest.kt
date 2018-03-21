@@ -42,7 +42,7 @@ class JacksonTest {
         handleRequest(HttpMethod.Post, "/") {
             addHeader("Accept", "text/plain")
             addHeader("Content-Type", "application/json")
-            body = """{"id":1,"title":"Hello, World!"}"""
+            setBody("""{"id":1,"title":"Hello, World!"}""")
         }.response.let { response ->
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
@@ -83,7 +83,7 @@ class JacksonTest {
 
         handleRequest(HttpMethod.Post, "/") {
             addHeader("Content-Type", "application/json")
-            body = """{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},{"item":"Sphere","quantity":2}]}"""
+            setBody("""{"id":777,"name":"Cargo","children":[{"item":"Qube","quantity":1},{"item":"Sphere","quantity":2}]}""")
         }.response.let { response ->
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)

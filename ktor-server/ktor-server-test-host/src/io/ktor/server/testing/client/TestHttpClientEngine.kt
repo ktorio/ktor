@@ -1,6 +1,5 @@
 package io.ktor.server.testing.client
 
-import io.ktor.cio.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
@@ -12,17 +11,18 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.util.concurrent.*
 
-private val EmptyByteArray = ByteArray(0)
-
 class TestHttpClientConfig : HttpClientEngineConfig() {
     lateinit var app: TestApplicationEngine
 }
 
 class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientEngine {
 
-    override fun prepareRequest(builder: HttpRequestBuilder, call: HttpClientCall): HttpRequest = TestHttpClientRequest(call, this, builder)
+    override fun prepareRequest(builder: HttpRequestBuilder, call: HttpClientCall): HttpRequest =
+            TestHttpClientRequest(call, this, builder)
 
-    internal fun runRequest(method: HttpMethod, url: String, headers: Headers, content: OutgoingContent): TestApplicationCall {
+    internal fun runRequest(
+            method: HttpMethod, url: String, headers: Headers, content: OutgoingContent
+    ): TestApplicationCall {
         return app.handleRequest(method, url) {
             headers.flattenForEach { name, value ->
                 if (HttpHeaders.ContentLength == name) return@flattenForEach // set later
@@ -43,7 +43,7 @@ class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientE
             contentType?.let { addHeader(HttpHeaders.ContentType, it) }
 
             if (content !is OutgoingContent.NoContent) {
-                bodyBytes = content.toByteArray()
+                body = content.toByteReadChannel()
             }
         }
     }
@@ -59,12 +59,12 @@ class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientE
         }
     }
 
-    private fun OutgoingContent.toByteArray(): ByteArray = when (this) {
-        is OutgoingContent.NoContent -> EmptyByteArray
-        is OutgoingContent.ByteArrayContent -> bytes()
-        is OutgoingContent.ReadChannelContent -> runBlocking { readFrom().toByteArray() }
+    private fun OutgoingContent.toByteReadChannel(): ByteReadChannel = when (this) {
+        is OutgoingContent.NoContent -> EmptyByteReadChannel
+        is OutgoingContent.ByteArrayContent -> ByteReadChannel(bytes())
+        is OutgoingContent.ReadChannelContent -> readFrom()
         is OutgoingContent.WriteChannelContent -> runBlocking {
-            writer(coroutineContext) { writeTo(channel) }.channel.toByteArray()
+            writer(coroutineContext) { writeTo(channel) }.channel
         }
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
     }

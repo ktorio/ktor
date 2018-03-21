@@ -40,9 +40,7 @@ class WebSocketTest {
             }
 
             handleWebSocket("/echo") {
-                bodyBytes = hex("""
-                    0x81 0x05 0x48 0x65 0x6c 0x6c 0x6f
-                """.trimHex())
+                setBody(hex("""0x81 0x05 0x48 0x65 0x6c 0x6c 0x6f""".trimHex()))
             }.let { call ->
                 call.response.awaitWebSocket(Duration.ofSeconds(10))
                 assertEquals("810548656c6c6f", hex(call.response.byteContent!!))
@@ -72,14 +70,14 @@ class WebSocketTest {
             }
 
             handleWebSocket("/echo") {
-                bodyBytes = byteArrayOf()
+                setBody(byteArrayOf())
             }.let { call ->
                 assertEquals("817ec123", hex(call.response.byteContent!!.take(4).toByteArray()))
                 call.response.awaitWebSocket(Duration.ofSeconds(10))
             }
 
             handleWebSocket("/receiveSize") {
-                bodyBytes = hex("0x81 0x7e 0xcd 0xef".trimHex()) + "+".repeat(0xcdef).toByteArray()
+                setBody(hex("0x81 0x7e 0xcd 0xef".trimHex()) + "+".repeat(0xcdef).toByteArray())
             }.let { call ->
                 assertEquals("82040000cdef", hex(call.response.byteContent!!.take(6).toByteArray()))
                 call.response.awaitWebSocket(Duration.ofSeconds(10))
@@ -107,9 +105,7 @@ class WebSocketTest {
             }
 
             handleWebSocket("/echo") {
-                bodyBytes = hex("""
-                    0x81 0x85 0x37 0xfa 0x21 0x3d 0x7f 0x9f 0x4d 0x51 0x58
-                """.trimHex())
+                setBody(hex("""0x81 0x85 0x37 0xfa 0x21 0x3d 0x7f 0x9f 0x4d 0x51 0x58""".trimHex()))
             }.let { call ->
                 call.response.awaitWebSocket(Duration.ofSeconds(10))
 
@@ -144,9 +140,7 @@ class WebSocketTest {
             }
 
             handleWebSocket("/echo") {
-                bodyBytes = hex("""
-                    0x88 0x02 0xe8 0x03
-                """.trimHex())
+                setBody(hex("""0x88 0x02 0xe8 0x03""".trimHex()))
             }.let { call ->
                 call.response.awaitWebSocket(Duration.ofSeconds(10))
                 assertEquals("0x88 0x02 0xe8 0x03".trimHex(), hex(call.response.byteContent!!))
@@ -212,11 +206,15 @@ class WebSocketTest {
             }
 
             handleWebSocket("/") {
-                bodyBytes = sendBuffer.array()
+                setBody(sendBuffer.array())
             }.let { call ->
                 runBlocking {
                     withTimeout(Duration.ofSeconds(10).toMillis()) {
-                        val reader = @Suppress("DEPRECATION") WebSocketReader(call.response.contentChannel()!!, { Int.MAX_VALUE.toLong() }, Job(), DefaultDispatcher, KtorDefaultPool)
+                        val reader = @Suppress("DEPRECATION") WebSocketReader(
+                                call.response.websocketChannel()!!, { Int.MAX_VALUE.toLong() },
+                                Job(), DefaultDispatcher, KtorDefaultPool
+                        )
+
                         val frame = reader.incoming.receive()
                         val receivedContent = frame.buffer.moveToByteArray()
 
@@ -264,7 +262,7 @@ class WebSocketTest {
             }
 
             handleWebSocket("/") {
-                bodyBytes = sendBuffer.array()
+                setBody(sendBuffer.array())
             }.let { call ->
                 call.response.awaitWebSocket(Duration.ofSeconds(10))
 

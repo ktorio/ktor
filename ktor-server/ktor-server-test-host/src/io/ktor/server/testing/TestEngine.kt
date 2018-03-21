@@ -13,18 +13,20 @@ fun createTestEnvironment(configure: ApplicationEngineEnvironmentBuilder.() -> U
     configure()
 }
 
-fun TestApplicationEngine.handleRequest(method: HttpMethod, uri: String, setup: TestApplicationRequest.() -> Unit = {}): TestApplicationCall {
-    return handleRequest {
-        this.uri = uri
-        this.method = method
-        setup()
-    }
+fun TestApplicationEngine.handleRequest(
+        method: HttpMethod,
+        uri: String,
+        setup: TestApplicationRequest.() -> Unit = {}
+): TestApplicationCall = handleRequest {
+    this.uri = uri
+    this.method = method
+    setup()
 }
 
 fun <R> withApplication(
-    environment: ApplicationEngineEnvironment = createTestEnvironment(),
-    configure: TestApplicationEngine.Configuration.() -> Unit = {},
-    test: TestApplicationEngine.() -> R
+        environment: ApplicationEngineEnvironment = createTestEnvironment(),
+        configure: TestApplicationEngine.Configuration.() -> Unit = {},
+        test: TestApplicationEngine.() -> R
 ): R {
     val engine = TestApplicationEngine(environment, configure)
     engine.start()
@@ -47,9 +49,9 @@ fun <R> withTestApplication(moduleFunction: Application.() -> Unit, test: TestAp
 }
 
 fun <R> withTestApplication(
-    moduleFunction: Application.() -> Unit,
-    configure: TestApplicationEngine.Configuration.() -> Unit = {},
-    test: TestApplicationEngine.() -> R
+        moduleFunction: Application.() -> Unit,
+        configure: TestApplicationEngine.Configuration.() -> Unit = {},
+        test: TestApplicationEngine.() -> R
 ): R {
     return withApplication(createTestEnvironment(), configure) {
         moduleFunction(application)
@@ -61,7 +63,7 @@ fun <R> withTestApplication(
  * An [ApplicationEngineFactory] providing a CIO-based [ApplicationEngine]
  */
 object TestEngine : ApplicationEngineFactory<TestApplicationEngine, TestApplicationEngine.Configuration> {
-    override fun create(environment: ApplicationEngineEnvironment, configure: TestApplicationEngine.Configuration.() -> Unit): TestApplicationEngine {
-        return TestApplicationEngine(environment, configure)
-    }
+    override fun create(
+            environment: ApplicationEngineEnvironment, configure: TestApplicationEngine.Configuration.() -> Unit
+    ): TestApplicationEngine = TestApplicationEngine(environment, configure)
 }

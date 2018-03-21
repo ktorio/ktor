@@ -5,8 +5,8 @@ import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
+import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
-import java.io.*
 
 class TestApplicationRequest(
         call: ApplicationCall,
@@ -14,7 +14,6 @@ class TestApplicationRequest(
         var uri: String = "/",
         var version: String = "HTTP/1.1"
 ) : BaseApplicationRequest(call) {
-
     var protocol: String = "http"
 
     override val local = object : RequestConnectionPoint {
@@ -40,25 +39,21 @@ class TestApplicationRequest(
             get() = this@TestApplicationRequest.version
     }
 
-    var bodyChannel: ByteReadChannel? = null
-    var bodyBytes: ByteArray = ByteArray(0)
-    var body: String
-        get() = bodyBytes.toString(Charsets.UTF_8)
-        set(newValue) {
-            bodyBytes = newValue.toByteArray(Charsets.UTF_8)
-        }
-
-    var multiPartEntries: List<PartData> = emptyList()
+    @Volatile
+    var body: ByteReadChannel = EmptyByteReadChannel
 
     override val queryParameters by lazy(LazyThreadSafetyMode.NONE) { parseQueryString(queryString()) }
 
+    override val cookies = RequestCookies(this)
+
     private var headersMap: MutableMap<String, MutableList<String>>? = hashMapOf()
+
     fun addHeader(name: String, value: String) {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")
         map.getOrPut(name, { arrayListOf() }).add(value)
     }
 
-    override val headers : Headers by lazy(LazyThreadSafetyMode.NONE) {
+    override val headers: Headers by lazy(LazyThreadSafetyMode.NONE) {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")
         headersMap = null
         Headers.build {
@@ -68,35 +63,41 @@ class TestApplicationRequest(
         }
     }
 
-    override val cookies = RequestCookies(this)
+    override fun receiveChannel(): ByteReadChannel = body
 
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION")
-    override fun receiveContent() = TestIncomingContent(this)
-    override fun receiveChannel(): ByteReadChannel {
-        return bodyChannel ?: ByteReadChannel(bodyBytes)
-    }
-
-    class TestIncomingContent(private val request: TestApplicationRequest) : @Suppress("DEPRECATION") IncomingContent {
-        override val headers: Headers = request.headers
-
-        override fun readChannel() = ByteReadChannel(request.bodyBytes)
-        override fun inputStream(): InputStream = ByteArrayInputStream(request.bodyBytes)
-
-        override fun multiPartData(): MultiPartData = object : MultiPartData {
-            private val items by lazy { request.multiPartEntries.iterator() }
-
-            @Suppress("OverridingDeprecatedMember", "DEPRECATION")
-            override val parts: Sequence<PartData>
-                get() = when {
-                    request.isMultipart() -> request.multiPartEntries.asSequence()
-                    else -> throw IOException("The request content is not multipart encoded")
-                }
-
-            override suspend fun readPart() = when {
-                !request.isMultipart() -> throw IOException("The request content is not multipart encoded")
-                items.hasNext() -> items.next()
-                else -> null
-            }
-        }
-    }
+    @SuppressWarnings()
+    override fun receiveContent(): IncomingContent =
+            error("IncomingContent is no longer supported by the TestApplicationEngine")
 }
+
+fun TestApplicationRequest.setBody(value: String) {
+    body = ByteReadChannel(value.toByteArray())
+}
+
+fun TestApplicationRequest.setBody(value: ByteArray) {
+    body = ByteReadChannel(value)
+}
+
+
+fun TestApplicationRequest.setBody(boundary: String, values: List<PartData>): Unit = setBody(buildString {
+    if (values.isEmpty()) return
+
+    append("\r\n\r\n")
+    values.forEach {
+        append("--$boundary\r\n")
+        it.headers.flattenForEach { key, value -> append("$key: $value\r\n") }
+        append("\r\n")
+        when (it) {
+            is PartData.FileItem -> {
+                val charset = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }?.charset()
+                        ?: Charsets.ISO_8859_1
+
+                append(it.streamProvider().reader(charset).readText())
+            }
+            is PartData.FormItem -> append(it.value)
+        }
+        append("\r\n")
+    }
+
+    append("--$boundary--\r\n\r\n")
+})

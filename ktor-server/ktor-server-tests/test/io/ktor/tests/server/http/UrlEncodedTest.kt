@@ -18,7 +18,7 @@ class UrlEncodedTest {
     fun `should parse simple with no headers`() {
         withTestApplication {
             createCall {
-                body = "field1=%D0%A2%D0%B5%D1%81%D1%82"
+                setBody("field1=%D0%A2%D0%B5%D1%81%D1%82")
 
                 val parsed = parseUrlEncodedParameters()
                 assertEquals("\u0422\u0435\u0441\u0442", parsed["field1"])
@@ -30,7 +30,7 @@ class UrlEncodedTest {
     fun `should parse simple with no encoding`() {
         withTestApplication {
             createCall {
-                body = "field1=%D0%A2%D0%B5%D1%81%D1%82"
+                setBody("field1=%D0%A2%D0%B5%D1%81%D1%82")
                 addHeader(HttpHeaders.ContentType, "application/x-www-form-urlencoded")
 
                 val parsed = parseUrlEncodedParameters()
@@ -43,7 +43,7 @@ class UrlEncodedTest {
     fun `should parse simple with specified encoding utf8`() {
         withTestApplication {
             createCall {
-                body = "field1=%D0%A2%D0%B5%D1%81%D1%82"
+                setBody("field1=%D0%A2%D0%B5%D1%81%D1%82")
                 addHeader(HttpHeaders.ContentType, "application/x-www-form-urlencoded; charset=utf-8")
 
                 val parsed = parseUrlEncodedParameters()
@@ -56,7 +56,7 @@ class UrlEncodedTest {
     fun `should parse simple with specified encoding non utf`() {
         withTestApplication {
             createCall {
-                body = "field1=%D2%E5%F1%F2"
+                setBody("field1=%D2%E5%F1%F2")
                 addHeader(HttpHeaders.ContentType, "application/x-www-form-urlencoded; charset=windows-1251")
 
                 val parsed = parseUrlEncodedParameters()
@@ -69,7 +69,7 @@ class UrlEncodedTest {
     fun `should parse simple with specified encoding non utf in parameter`() {
         withTestApplication {
             createCall {
-                body = "field1=%D2%E5%F1%F2&_charset_=windows-1251"
+                setBody("field1=%D2%E5%F1%F2&_charset_=windows-1251")
                 addHeader(HttpHeaders.ContentType, "application/x-www-form-urlencoded")
 
                 val parsed = parseUrlEncodedParameters()

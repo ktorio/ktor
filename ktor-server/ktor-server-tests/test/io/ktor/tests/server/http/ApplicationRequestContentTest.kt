@@ -19,7 +19,7 @@ class ApplicationRequestContentTest {
             }
 
             handleRequest(HttpMethod.Get, "") {
-                body = "bodyContent"
+                setBody("bodyContent")
             }
         }
     }
@@ -35,7 +35,7 @@ class ApplicationRequestContentTest {
 
             handleRequest(HttpMethod.Post, "") {
                 addHeader(HttpHeaders.ContentType, "application/x-www-form-urlencoded")
-                body = values.formUrlEncode()
+                setBody(values.formUrlEncode())
             }
         }
     }
@@ -51,7 +51,7 @@ class ApplicationRequestContentTest {
 
             handleRequest(HttpMethod.Post, "") {
                 addHeader(HttpHeaders.ContentType, "application/x-www-form-urlencoded; charset=UTF-8")
-                body = values.formUrlEncode()
+                setBody(values.formUrlEncode())
             }
         }
     }
@@ -64,7 +64,7 @@ class ApplicationRequestContentTest {
             }
 
             handleRequest(HttpMethod.Get, "") {
-                body = "bodyContent"
+                setBody("bodyContent")
             }
         }
     }
@@ -88,7 +88,7 @@ class ApplicationRequestContentTest {
             }
 
             handleRequest(HttpMethod.Get, "") {
-                body = value.toString()
+                setBody(value.toString())
             }
         }
     }
@@ -106,7 +106,7 @@ class ApplicationRequestContentTest {
 
             handleRequest(HttpMethod.Post, "") {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-                body = values.formUrlEncode()
+                setBody(values.formUrlEncode())
             }
         }
     }

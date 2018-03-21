@@ -88,7 +88,6 @@ class PartialContentTest {
         handleRequest(HttpMethod.Get, localPath, {
             addHeader(HttpHeaders.Range, "bytes=1000000-7") // syntactically incorrect
         }).let { result ->
-            result.awaitCompletion()
             assertEquals(HttpStatusCode.OK, result.response.status())
             assertTrue(result.requestHandled)
         }
@@ -150,7 +149,6 @@ class PartialContentTest {
         // post request with no range
         handleRequest(HttpMethod.Post, localPath, {
         }).let { result ->
-            result.awaitCompletion()
             assertTrue(result.requestHandled)
             assertEquals(RangeUnits.Bytes.unitToken, result.response.headers[HttpHeaders.AcceptRanges])
             assertEquals(HttpStatusCode.OK, result.response.status())

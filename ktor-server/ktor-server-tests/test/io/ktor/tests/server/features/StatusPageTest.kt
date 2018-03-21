@@ -262,7 +262,7 @@ class StatusPageTest {
             }
 
             assertFails {
-                handleRequest(HttpMethod.Get, "/").awaitCompletion()
+                handleRequest(HttpMethod.Get, "/")
             }
         }
     }

@@ -3,6 +3,7 @@ package io.ktor.server.testing
 import io.ktor.application.*
 import io.ktor.cio.*
 import io.ktor.http.*
+import io.ktor.network.util.*
 import io.ktor.pipeline.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
@@ -11,11 +12,15 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
 import java.util.concurrent.*
+import kotlin.coroutines.experimental.*
 
-class TestApplicationEngine(environment: ApplicationEngineEnvironment = createTestEnvironment(), configure: Configuration.() -> Unit = {}) : BaseApplicationEngine(environment, EnginePipeline()) {
+class TestApplicationEngine(
+        environment: ApplicationEngineEnvironment = createTestEnvironment(),
+        configure: Configuration.() -> Unit = {}
+) : BaseApplicationEngine(environment, EnginePipeline()) {
 
     class Configuration : BaseApplicationEngine.Configuration() {
-        var dispatcher: CoroutineDispatcher = Unconfined
+        var dispatcher: CoroutineContext = ioCoroutineDispatcher
     }
 
     private val configuration = Configuration().apply(configure)
@@ -37,35 +42,57 @@ class TestApplicationEngine(environment: ApplicationEngineEnvironment = createTe
     }
 
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
-        return createCall(setup).apply { execute(this) }
+        val call = createCall(readResponse = true, setup = setup)
+
+        val pipelineJob = launch(configuration.dispatcher) {
+            pipeline.execute(call)
+        }
+
+        runBlocking {
+            pipelineJob.join()
+            pipelineJob.getCancellationException().cause?.let { throw it }
+            call.response.flush()
+        }
+
+        return call
     }
 
-    fun handleWebSocket(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall = createCall {
-        this.uri = uri
-        addHeader(HttpHeaders.Connection, "Upgrade")
-        addHeader(HttpHeaders.Upgrade, "websocket")
-        addHeader(HttpHeaders.SecWebSocketKey, encodeBase64("test".toByteArray()))
+    fun handleWebSocket(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
+        val call = createCall {
+            this.uri = uri
+            addHeader(HttpHeaders.Connection, "Upgrade")
+            addHeader(HttpHeaders.Upgrade, "websocket")
+            addHeader(HttpHeaders.SecWebSocketKey, encodeBase64("test".toByteArray()))
 
-        setup()
-    }.apply { execute(this) }
+            setup()
+        }
+
+        runBlocking(configuration.dispatcher) {
+            pipeline.execute(call)
+        }
+
+        return call
+    }
 
     fun handleWebSocketConversation(
-        uri: String, setup: TestApplicationRequest.() -> Unit = {},
-        callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
+            uri: String, setup: TestApplicationRequest.() -> Unit = {},
+            callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
     ): TestApplicationCall {
-        val bc = ByteChannel(true)
+        val websocketChannel = ByteChannel(true)
         val call = handleWebSocket(uri) {
             setup()
-            this.bodyChannel = bc
+            body = websocketChannel
         }
 
         val pool = KtorDefaultPool
         val engineContext = Unconfined
         val job = Job()
-        val writer = @Suppress("DEPRECATION") WebSocketWriter(bc, job, engineContext, pool)
-        val reader = @Suppress("DEPRECATION") WebSocketReader(call.response.contentChannel()!!, { Int.MAX_VALUE.toLong() }, job, engineContext, pool)
+        val writer = @Suppress("DEPRECATION") WebSocketWriter(websocketChannel, job, engineContext, pool)
+        val reader = @Suppress("DEPRECATION") WebSocketReader(
+                call.response.websocketChannel()!!, { Int.MAX_VALUE.toLong() }, job, engineContext, pool
+        )
 
-        runBlocking {
+        runBlocking(configuration.dispatcher) {
             call.callback(reader.incoming, writer.outgoing)
             writer.flush()
             writer.close()
@@ -74,19 +101,6 @@ class TestApplicationEngine(environment: ApplicationEngineEnvironment = createTe
         return call
     }
 
-    fun createCall(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
-        return TestApplicationCall(application).apply {
-            setup(request)
-        }
-    }
-
-    private fun execute(call: TestApplicationCall) = launch(configuration.dispatcher) {
-        try {
-            pipeline.execute(call)
-        } catch (t: Throwable) {
-            call.response.complete(t)
-        } finally {
-            call.response.complete()
-        }
-    }
+    fun createCall(readResponse: Boolean = false, setup: TestApplicationRequest.() -> Unit): TestApplicationCall =
+            TestApplicationCall(application, readResponse).apply { setup(request) }
 }

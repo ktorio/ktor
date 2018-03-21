@@ -3,6 +3,7 @@ package io.ktor.server.testing
 import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
+import io.ktor.network.util.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
@@ -11,23 +12,29 @@ import kotlinx.coroutines.experimental.io.*
 import java.time.*
 import java.util.concurrent.*
 
-class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationResponse(call) {
-    private val realContent = lazy { ByteChannel() }
-    private val completed: Job = Job()
+class TestApplicationResponse(
+        call: TestApplicationCall, val readResponse: Boolean = false
+) : BaseApplicationResponse(call) {
+
+    val content: String?
+        get() {
+            val charset = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it).charset() } ?: Charsets.UTF_8
+            return byteContent?.toString(charset)
+        }
+
+    var byteContent: ByteArray? = null
+        get() = when {
+            field != null -> field
+            responseChannel == null -> null
+            else -> runBlocking { responseChannel!!.toByteArray() }
+        }
+        private set
 
     @Volatile
-    private var closed = false
-    private val webSocketCompleted = CompletableDeferred<Unit>()
+    private var responseChannel: ByteChannel? = null
 
-    val content: String? by lazy {
-        val charset = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it).charset() } ?: Charsets.UTF_8
-        byteContent?.toString(charset)
-    }
-
-    val byteContent: ByteArray? by lazy {
-        if (!realContent.isInitialized()) return@lazy null
-        runBlocking { realContent.value.toByteArray() }
-    }
+    @Volatile
+    private var responseJob: Job? = null
 
     override fun setStatus(statusCode: HttpStatusCode) {}
 
@@ -35,7 +42,7 @@ class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationRespon
         private val builder = HeadersBuilder()
 
         override fun engineAppendHeader(name: String, value: String) {
-            if (closed)
+            if (call.requestHandled)
                 throw UnsupportedOperationException("Headers can no longer be set because response was already completed")
             builder.append(name, value)
         }
@@ -47,60 +54,42 @@ class TestApplicationResponse(call: TestApplicationCall) : BaseApplicationRespon
     init {
         pipeline.intercept(ApplicationSendPipeline.Engine) {
             call.requestHandled = true
-            close()
         }
     }
+
+    override suspend fun responseChannel(): ByteWriteChannel {
+        val result = ByteChannel(autoFlush = true)
+
+        if (readResponse) {
+            responseJob = launch(ioCoroutineDispatcher) {
+                byteContent = result.toByteArray()
+            }
+        }
+
+        responseChannel = result
+        return result
+    }
+
+    suspend fun flush() {
+        responseJob?.join()
+        responseJob?.getCancellationException()?.cause?.let { throw it }
+    }
+
+    // Websockets & upgrade
+    private val webSocketCompleted: CompletableDeferred<Unit> = CompletableDeferred()
 
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
-        val job = upgrade.upgrade(call.receiveChannel(), realContent.value, CommonPool, Unconfined)
+        val job = upgrade.upgrade(call.receiveChannel(), responseChannel(), CommonPool, Unconfined)
         val registration = job.attachChild(webSocketCompleted)
-        webSocketCompleted.invokeOnCompletion {
-            registration.dispose()
+
+        webSocketCompleted.invokeOnCompletion { registration.dispose() }
+    }
+
+    fun awaitWebSocket(duration: Duration) = runBlocking {
+        withTimeout(duration.toMillis(), TimeUnit.MILLISECONDS) {
+            webSocketCompleted.join()
         }
     }
 
-    override suspend fun responseChannel(): ByteWriteChannel = realContent.value.apply {
-        headers[HttpHeaders.ContentLength]?.let { contentLengthString ->
-            val contentLength = contentLengthString.toLong()
-            if (contentLength >= Int.MAX_VALUE) {
-                throw IllegalStateException("Content length is too big for test engine")
-            }
-        }
-    }
-
-    fun contentChannel(): ByteReadChannel? = if (realContent.isInitialized()) realContent.value else null
-
-    fun complete(exception: Throwable? = null) {
-        if (exception != null && realContent.isInitialized()) realContent.value.close(exception)
-        completed.cancel(exception)
-    }
-
-    fun awaitCompletion() = runBlocking {
-        val channel = contentChannel()
-        if (channel != null) {
-            while (!channel.isClosedForRead) {
-                channel.read { it.position(it.limit()) }
-            }
-        }
-
-        completed.join()
-        completed.getCancellationException().cause?.let { throw it }
-    }
-
-    fun close() {
-        closed = true
-    }
-
-    fun awaitWebSocket(duration: Duration) {
-        runBlocking {
-            withTimeout(duration.toMillis(), TimeUnit.MILLISECONDS) {
-                webSocketCompleted.join()
-            }
-        }
-    }
-}
-
-fun TestApplicationResponse.contentType(): ContentType {
-    val contentTypeHeader = requireNotNull(headers[HttpHeaders.ContentType])
-    return ContentType.parse(contentTypeHeader)
+    fun websocketChannel(): ByteReadChannel? = responseChannel
 }

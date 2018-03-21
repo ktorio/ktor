@@ -67,7 +67,7 @@ class ContentNegotiationTest {
             assertEquals("OK", call.response.content)
         }
         handleRequest(HttpMethod.Post, "/") {
-            body = "The Text"
+            setBody("The Text")
         }.let { call ->
             assertEquals(HttpStatusCode.OK, call.response.status())
             assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
@@ -183,7 +183,7 @@ class ContentNegotiationTest {
             handleRequest(HttpMethod.Post, "/") {
                 addHeader(HttpHeaders.ContentType, customContentType.toString())
                 addHeader(HttpHeaders.Accept, customContentType.toString())
-                body = "[The Text]"
+                setBody("[The Text]")
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals(customContentType, call.response.contentType().withoutParameters())
@@ -194,7 +194,7 @@ class ContentNegotiationTest {
             handleRequest(HttpMethod.Post, "/raw") {
                 addHeader(HttpHeaders.ContentType, customContentType.toString())
                 addHeader(HttpHeaders.Accept, customContentType.toString())
-                body = "[The Text]"
+                setBody("[The Text]")
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals(ContentType.Text.Plain, call.response.contentType().withoutParameters())
@@ -205,7 +205,7 @@ class ContentNegotiationTest {
             handleRequest(HttpMethod.Post, "/") {
                 addHeader(HttpHeaders.ContentType, customContentType.withCharset(Charsets.UTF_8).toString())
                 addHeader(HttpHeaders.Accept, customContentType.toString())
-                body = "[The Text]"
+                setBody("[The Text]")
             }.let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals(customContentType, call.response.contentType().withoutParameters())

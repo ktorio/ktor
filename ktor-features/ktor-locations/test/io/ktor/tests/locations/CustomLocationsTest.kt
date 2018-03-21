@@ -98,5 +98,4 @@ class CustomLocationsTest {
         urlShouldBeHandled(href)
         urlShouldBeUnhandled("/")
     }
-
 }

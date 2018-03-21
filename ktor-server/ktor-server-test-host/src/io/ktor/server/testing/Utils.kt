@@ -1,5 +1,6 @@
 package io.ktor.server.testing
 
+import io.ktor.http.*
 import kotlin.test.*
 
 object On
@@ -22,4 +23,9 @@ internal suspend fun assertFailsSuspend(block: suspend () -> Unit): Throwable {
 
     assertNotNull(exception)
     return exception!!
+}
+
+fun TestApplicationResponse.contentType(): ContentType {
+    val contentTypeHeader = requireNotNull(headers[HttpHeaders.ContentType])
+    return ContentType.parse(contentTypeHeader)
 }

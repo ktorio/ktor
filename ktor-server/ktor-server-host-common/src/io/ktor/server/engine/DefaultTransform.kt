@@ -61,11 +61,10 @@ fun ApplicationReceivePipeline.installDefaultTransformations() {
 }
 
 private fun PipelineContext<*, ApplicationCall>.multiPartData(rc: ByteReadChannel): MultiPartData {
-    val contentType = call.request.header(HttpHeaders.ContentType) ?:
-            throw IllegalStateException("Content-Type header is required for multipart processing")
+    val contentType = call.request.header(HttpHeaders.ContentType)
+            ?: throw IllegalStateException("Content-Type header is required for multipart processing")
 
     val contentLength = call.request.header(HttpHeaders.ContentLength)?.toLong()
-
     return CIOMultipartDataBase(Unconfined, rc, contentType, contentLength)
 }
 

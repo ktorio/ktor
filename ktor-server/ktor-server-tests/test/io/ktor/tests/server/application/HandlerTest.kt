@@ -48,7 +48,7 @@ class HandlerTest {
         }
         val call = handleRequest {
             method = HttpMethod.Post
-            body = "Body"
+            setBody("Body")
         }
         assertTrue(call.requestHandled)
     }

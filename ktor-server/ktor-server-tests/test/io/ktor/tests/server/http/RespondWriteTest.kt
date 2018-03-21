@@ -38,7 +38,7 @@ class RespondWriteTest {
             }
 
             assertFailsWith<IllegalStateException> {
-                handleRequest(HttpMethod.Get, "/").awaitCompletion()
+                handleRequest(HttpMethod.Get, "/")
             }
         }
     }
