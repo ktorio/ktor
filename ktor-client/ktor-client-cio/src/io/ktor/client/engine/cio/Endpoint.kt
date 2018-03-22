@@ -77,7 +77,7 @@ internal class Endpoint(
     private suspend fun newConnection() {
         Connections.incrementAndGet(this)
         val socket = connectionFactory.connect(address).let {
-            if (secure) it.tls(config.https.trustManager, address.hostName, dispatcher) else it
+            if (secure) it.tls(config.https.trustManager, config.https.randomAlgorithm, address.hostName, dispatcher) else it
         }
 
         ConnectionPipeline(

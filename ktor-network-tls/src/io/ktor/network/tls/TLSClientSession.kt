@@ -18,7 +18,8 @@ internal class TLSClientSession(
         val output: ByteWriteChannel,
         val trustManager: X509TrustManager? = null,
         val serverName: String? = null,
-        val coroutineContext: CoroutineContext
+        val coroutineContext: CoroutineContext,
+        randomAlgorithm: String = "NativePRNGNonBlocking"
 ) : AReadable, AWritable {
     private var readerJob: ReaderJob? = null
     private var writerJob: WriterJob? = null
@@ -38,7 +39,7 @@ internal class TLSClientSession(
 
     private var keyMaterial: ByteArray = EmptyByteArray
 
-    private val random = SecureRandom.getInstance("NativePRNGNonBlocking")
+    private val random = SecureRandom.getInstance(randomAlgorithm)
 
     suspend fun negotiate() {
         try {

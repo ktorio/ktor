@@ -27,10 +27,15 @@ suspend fun ReadWriteSocket.tls(
 
 suspend fun Socket.tls(
         trustManager: X509TrustManager? = null,
+        randomAlgorithm: String = "NativePRNGNonBlocking",
         serverName: String? = null,
         coroutineContext: CoroutineContext = ioCoroutineDispatcher
 ): Socket {
-    val session = TLSClientSession(openReadChannel(), openWriteChannel(), trustManager, serverName, coroutineContext)
+    val session = TLSClientSession(
+            openReadChannel(), openWriteChannel(),
+            trustManager, serverName, coroutineContext, randomAlgorithm
+    )
+
     val socket = TLSSocketImpl(session, this)
 
     try {

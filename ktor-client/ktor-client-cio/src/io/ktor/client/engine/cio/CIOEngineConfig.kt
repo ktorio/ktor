@@ -23,4 +23,5 @@ class EndpointConfig {
 
 class HttpsConfig {
     var trustManager: X509TrustManager? = null
+    var randomAlgorithm = "NativePRNGNonBlocking"
 }
