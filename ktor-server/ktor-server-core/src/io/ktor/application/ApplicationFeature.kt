@@ -25,10 +25,14 @@ interface ApplicationFeature<in TPipeline : Pipeline<*, ApplicationCall>, out TC
 private val featureRegistryKey = AttributeKey<Attributes>("ApplicationFeatureRegistry")
 
 /**
- * Gets feature instance for this pipeline
+ * Gets feature instance for this pipeline, or fails with [MissingApplicationFeatureException] if the feature is not installed
+ * @throws MissingApplicationFeatureException
+ * @param feature application feature to lookup
+ * @return an instance of feature
  */
 fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.feature(feature: ApplicationFeature<A, B, F>): F {
-    return attributes[featureRegistryKey][feature.key]
+    return attributes[featureRegistryKey].getOrNull(feature.key) ?:
+            throw MissingApplicationFeatureException(feature.key)
 }
 
 /**
@@ -98,3 +102,11 @@ fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallFeature(key: Attribut
  * Thrown when Application Feature has been attempted to be installed with the same key as already installed Feature
  */
 class DuplicateApplicationFeatureException(message: String) : Exception(message)
+
+/**
+ * Thrown when Application Feature has been attempted to be accessed but has not been installed before
+ * @param key application feature's attribute key
+ */
+class MissingApplicationFeatureException(val key: AttributeKey<*>) : IllegalStateException() {
+    override val message: String get() = "Application feature ${key.name} is not installed"
+}
