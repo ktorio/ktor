@@ -64,7 +64,7 @@ fun generateCertificate(file: File, algorithm: String = "SHA1withRSA", keyAlias:
     jks.setCertificateEntry(keyAlias, cert)
     jks.setKeyEntry(keyAlias, keyPair.private, keyPassword.toCharArray(), arrayOf(cert))
 
-    file.parentFile.mkdirs()
+    file.parentFile?.mkdirs()
     file.outputStream().use {
         jks.store(it, jksPassword.toCharArray())
     }
