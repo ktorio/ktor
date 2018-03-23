@@ -70,12 +70,13 @@ class TestApplicationRequest(
 
     override val cookies = RequestCookies(this)
 
+    @Suppress("OverridingDeprecatedMember", "DEPRECATION")
     override fun receiveContent() = TestIncomingContent(this)
     override fun receiveChannel(): ByteReadChannel {
         return bodyChannel ?: ByteReadChannel(bodyBytes)
     }
 
-    class TestIncomingContent(private val request: TestApplicationRequest) : IncomingContent {
+    class TestIncomingContent(private val request: TestApplicationRequest) : @Suppress("DEPRECATION") IncomingContent {
         override val headers: Headers = request.headers
 
         override fun readChannel() = ByteReadChannel(request.bodyBytes)
@@ -84,6 +85,7 @@ class TestApplicationRequest(
         override fun multiPartData(): MultiPartData = object : MultiPartData {
             private val items by lazy { request.multiPartEntries.iterator() }
 
+            @Suppress("OverridingDeprecatedMember", "DEPRECATION")
             override val parts: Sequence<PartData>
                 get() = when {
                     request.isMultipart() -> request.multiPartEntries.asSequence()

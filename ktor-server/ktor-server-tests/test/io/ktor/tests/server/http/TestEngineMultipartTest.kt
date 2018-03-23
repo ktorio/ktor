@@ -37,7 +37,7 @@ class TestEngineMultipartTest {
                 val parts = it.readAllParts()
 
                 assertEquals(1, parts.size)
-                assertEquals("field1", parts[0].partName)
+                assertEquals("field1", parts[0].name)
                 assertEquals("plain field", (parts[0] as PartData.FormItem).value)
                 parts[0].dispose()
             }
@@ -66,7 +66,7 @@ class TestEngineMultipartTest {
                 assertEquals(1, parts.size)
                 val file = parts[0] as PartData.FileItem
 
-                assertEquals("fileField", file.partName)
+                assertEquals("fileField", file.name)
                 assertEquals("file.txt", file.originalFileName)
                 assertEquals("file content", file.streamProvider().reader().readText())
 

@@ -15,11 +15,16 @@ interface IncomingContent : HttpMessage {
     fun inputStream(): InputStream = readChannel().toInputStream()
 }
 
-@Deprecated("Pool specification is not supported anymore", ReplaceWith("readText(charset)"))
+@Deprecated("Use receive<ByteReadChannel>(), receive<MultiPartData>() or receive<InputStream>() instead")
+@Suppress("OverridingDeprecatedMember", "DEPRECATION", "UNUSED_PARAMETER")
 suspend fun IncomingContent.readText(pool: ObjectPool<ByteBuffer>, charset: Charset? = null) = readText(charset ?: charset() ?: Charsets.ISO_8859_1)
 
+@Deprecated("Use receive<ByteReadChannel>(), receive<MultiPartData>() or receive<InputStream>() instead")
+@Suppress("OverridingDeprecatedMember", "DEPRECATION")
 suspend fun IncomingContent.readText() = readText(charset() ?: Charsets.ISO_8859_1)
 
+@Deprecated("Use receive<ByteReadChannel>(), receive<MultiPartData>() or receive<InputStream>() instead")
+@Suppress("OverridingDeprecatedMember", "DEPRECATION")
 suspend fun IncomingContent.readText(
         charset: Charset
 ): String {

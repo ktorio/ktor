@@ -5,13 +5,13 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
-import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 
 class CIOApplicationRequest(call: ApplicationCall,
                             private val input: ByteReadChannel,
                             private val request: Request) : BaseApplicationRequest(call) {
     override val cookies: RequestCookies by lazy(LazyThreadSafetyMode.NONE) { RequestCookies(this) }
+    @Suppress("OverridingDeprecatedMember")
     override fun receiveContent() = CIOIncomingContent(input, request.headers, this)
     override fun receiveChannel() = input
     override val headers: Headers = CIOHeaders(request.headers)

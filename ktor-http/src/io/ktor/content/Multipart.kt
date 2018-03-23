@@ -55,6 +55,7 @@ interface MultiPartData {
     suspend fun readPart(): PartData?
 
     object Empty : MultiPartData {
+        @Suppress("OverridingDeprecatedMember", "DEPRECATION")
         override val parts: Sequence<PartData>
             get() = emptySequence()
 

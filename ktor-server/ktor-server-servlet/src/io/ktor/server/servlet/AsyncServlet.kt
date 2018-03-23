@@ -32,6 +32,7 @@ class AsyncServletApplicationRequest(
 ) : ServletApplicationRequest(call, servletRequest) {
 
     private val copyJob by lazy { servletReader(servletRequest.inputStream) }
+    @Suppress("OverridingDeprecatedMember", "DEPRECATION")
     override fun receiveContent(): IncomingContent = AsyncServletIncomingContent(this, copyJob)
     override fun receiveChannel() = copyJob.channel
 }

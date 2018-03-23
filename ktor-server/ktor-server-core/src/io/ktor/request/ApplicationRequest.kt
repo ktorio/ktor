@@ -3,7 +3,6 @@ package io.ktor.request
 import io.ktor.application.*
 import io.ktor.content.*
 import io.ktor.http.*
-import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 
 /**
@@ -41,6 +40,7 @@ interface ApplicationRequest {
      */
     val cookies: RequestCookies
 
+    @Suppress("DEPRECATION")
     @Deprecated("Use receive<type>() instead")
     fun receiveContent(): IncomingContent
 

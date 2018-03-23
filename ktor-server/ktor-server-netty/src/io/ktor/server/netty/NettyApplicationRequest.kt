@@ -4,7 +4,6 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
-import io.ktor.util.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.multipart.*
@@ -30,6 +29,7 @@ abstract class NettyApplicationRequest(
 
     override val cookies: RequestCookies = NettyApplicationRequestCookies(this)
 
+    @Suppress("OverridingDeprecatedMember", "DEPRECATION")
     override fun receiveContent() = NettyHttpIncomingContent(this)
     override fun receiveChannel() = requestBodyChannel
 

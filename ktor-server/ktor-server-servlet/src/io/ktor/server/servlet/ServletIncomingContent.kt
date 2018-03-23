@@ -8,7 +8,7 @@ import java.io.*
 
 abstract class ServletIncomingContent(
     protected val request: ServletApplicationRequest
-) : IncomingContent {
+) : @Suppress("DEPRECATION") IncomingContent {
     override val headers: Headers = request.headers
     override fun multiPartData(): MultiPartData = CIOMultipartDataBase(
             Unconfined,

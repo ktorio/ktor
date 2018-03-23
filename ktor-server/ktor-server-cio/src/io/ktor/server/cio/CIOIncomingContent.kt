@@ -7,7 +7,7 @@ import kotlinx.coroutines.experimental.io.*
 
 class CIOIncomingContent(private val channel: ByteReadChannel,
                          private val headersMap: HttpHeadersMap,
-                         request: CIOApplicationRequest) : IncomingContent {
+                         request: CIOApplicationRequest) : @Suppress("DEPRECATION") IncomingContent {
     override val headers: Headers = request.headers
 
     override fun readChannel(): ByteReadChannel = channel

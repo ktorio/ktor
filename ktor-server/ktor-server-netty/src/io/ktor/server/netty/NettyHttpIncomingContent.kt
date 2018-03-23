@@ -7,7 +7,7 @@ import java.util.concurrent.atomic.*
 
 class NettyHttpIncomingContent internal constructor(
         val request: NettyApplicationRequest
-) : IncomingContent {
+) : @Suppress("DEPRECATION") IncomingContent {
 
     override val headers: Headers = request.headers
 

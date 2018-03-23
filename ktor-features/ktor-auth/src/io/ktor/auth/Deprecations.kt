@@ -60,7 +60,7 @@ fun Authentication.Configuration.formAuthentication(userParamName: String = "use
         "        this.providerLookup = providerLookup\n" +
         "        this.urlProvider = urlProvider\n" +
         "    }"))
-fun Authentication.Configuration.oauth(client: HttpClient, dispatcher: CoroutineDispatcher,
+fun Authentication.Configuration.oauth(client: HttpClient, @Suppress("UNUSED_PARAMETER") dispatcher: CoroutineDispatcher,
                                        providerLookup: ApplicationCall.() -> OAuthServerSettings?,
                                        urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {
     oauth {
