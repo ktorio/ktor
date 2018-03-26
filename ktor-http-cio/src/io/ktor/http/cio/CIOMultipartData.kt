@@ -91,7 +91,7 @@ open class CIOMultipartDataBase(
 
             if (!completeRead) {
                 val tmp = Files.createTempFile("file-upload-", ".tmp")
-                FileChannel.open(tmp, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING).use { out ->
+                FileChannel.open(tmp, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE).use { out ->
                     while (true) {
                         while (buffer.hasRemaining()) {
                             out.write(buffer)

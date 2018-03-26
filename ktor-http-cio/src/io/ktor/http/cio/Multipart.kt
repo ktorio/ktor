@@ -46,23 +46,42 @@ suspend fun parsePreamble(boundaryPrefixed: ByteBuffer, input: ByteReadChannel, 
     return copyUntilBoundary("preamble/prologue", boundaryPrefixed, input, { output.writeFully(it) }, limit)
 }
 
-suspend fun parsePart(boundaryPrefixed: ByteBuffer, input: ByteReadChannel, output: ByteWriteChannel, limit: Long = Long.MAX_VALUE): Pair<HttpHeadersMap, Long> {
+suspend fun parsePart(boundaryPrefixed: ByteBuffer, input: ByteReadChannel, output: ByteWriteChannel,
+                      limit: Long = Long.MAX_VALUE): Pair<HttpHeadersMap, Long> {
     val headers = parsePartHeaders(input)
     try {
-        val cl = headers["Content-Length"]?.parseDecLong()
-        val size = if (cl != null) {
-            if (cl > limit) throw IOException("Multipart part content length limit of $limit exceeded (actual size is $cl)")
-            input.copyTo(output, cl)
-        } else {
-            copyUntilBoundary("part", boundaryPrefixed, input, { output.writeFully(it) }, limit)
-        }
-        output.flush()
-
+        val size = parsePartBody(boundaryPrefixed, input, output, headers, limit)
         return Pair(headers, size)
     } catch (t: Throwable) {
         headers.release()
         throw t
     }
+}
+
+suspend fun parsePartHeaders(input: ByteReadChannel): HttpHeadersMap {
+    val builder = CharBufferBuilder()
+
+    try {
+        return parseHeaders(input, builder, MutableRange(0, 0)) ?: throw EOFException("Failed to parse multipart headers: unexpected end of stream")
+    } catch (t: Throwable) {
+        builder.release()
+        throw t
+    }
+}
+
+suspend fun parsePartBody(boundaryPrefixed: ByteBuffer,
+                          input: ByteReadChannel, output: ByteWriteChannel,
+                          headers: HttpHeadersMap, limit: Long = Long.MAX_VALUE): Long {
+    val cl = headers["Content-Length"]?.parseDecLong()
+    val size = if (cl != null) {
+        if (cl > limit) throw IOException("Multipart part content length limit of $limit exceeded (actual size is $cl)")
+        input.copyTo(output, cl)
+    } else {
+        copyUntilBoundary("part", boundaryPrefixed, input, { output.writeFully(it) }, limit)
+    }
+    output.flush()
+
+    return size
 }
 
 suspend fun boundary(boundaryPrefixed: ByteBuffer, input: ByteReadChannel): Boolean {
@@ -170,15 +189,22 @@ fun parseMultipart(coroutineContext: CoroutineContext, boundaryPrefixed: ByteBuf
             val part = MultipartEvent.MultipartPart(headers, body)
             channel.send(part)
 
-            val (hh, _) = try {
-                parsePart(boundaryPrefixed, input, body)
+            var hh: HttpHeadersMap? = null
+            try {
+                hh = parsePartHeaders(input)
+                if (!headers.complete(hh)) {
+                    hh.release()
+                    throw CancellationException("Multipart processing has been cancelled")
+                }
+                parsePartBody(boundaryPrefixed, input, body, hh)
             } catch (t: Throwable) {
-                headers.completeExceptionally(t)
+                if (headers.completeExceptionally(t)) {
+                    hh?.release()
+                }
                 body.close(t)
                 throw t
             }
 
-            headers.complete(hh)
             body.close()
         } while (!boundary(boundaryPrefixed, input))
 
@@ -215,17 +241,6 @@ private suspend fun copyUntilBoundary(name: String, boundaryPrefixed: ByteBuffer
         return copied
     } finally {
         DefaultByteBufferPool.recycle(buffer)
-    }
-}
-
-private suspend fun parsePartHeaders(input: ByteReadChannel): HttpHeadersMap {
-    val builder = CharBufferBuilder()
-
-    try {
-        return parseHeaders(input, builder, MutableRange(0, 0)) ?: throw EOFException("Failed to parse multipart headers: unexpected end of stream")
-    } catch (t: Throwable) {
-        builder.release()
-        throw t
     }
 }
 
