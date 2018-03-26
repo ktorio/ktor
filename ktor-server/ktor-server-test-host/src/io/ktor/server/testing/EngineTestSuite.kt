@@ -638,6 +638,57 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     }
 
     @Test
+    @NoHttp2
+    fun testMultipartFileUploadLarge() {
+        val numberOfLines = 10000
+
+        createAndStartServer {
+            post("/") {
+                val response = StringBuilder()
+
+                call.receiveMultipart().forEachPart { part ->
+                    when (part) {
+                        is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
+                        is PartData.FileItem -> response.append("file:${part.name},${part.originalFileName},${part.streamProvider().bufferedReader().lineSequence().count()}\n")
+                    }
+
+                    part.dispose()
+                }
+
+                call.respondText(response.toString())
+            }
+        }
+
+        withUrl("/", {
+            method = HttpMethod.Post
+            val contentType = ContentType.MultiPart.FormData
+                    .withParameter("boundary", "***bbb***")
+                    .withCharset(Charsets.ISO_8859_1)
+
+            body = WriterContent({
+                append("--***bbb***\r\n")
+                append("Content-Disposition: form-data; name=\"a story\"\r\n")
+                append("\r\n")
+                append("Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\r\n")
+                append("--***bbb***\r\n")
+                append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\r\n")
+                append("Content-Type: text/plain\r\n")
+                append("\r\n")
+                withContext(CommonPool) {
+                    repeat(numberOfLines) {
+                        append("File content goes here\r\n")
+                    }
+                }
+                append("--***bbb***--\r\n")
+                flush()
+            }, contentType)
+        }) {
+            assertEquals(200, status.value)
+            assertEquals("a story=Hi user. The snake you gave me for free ate all the birds. Please take it back ASAP.\nfile:attachment,original.txt,$numberOfLines\n", readText())
+        }
+    }
+
+    @Test
     fun testRequestTwiceNoKeepAlive() {
         createAndStartServer {
             get("/") {
