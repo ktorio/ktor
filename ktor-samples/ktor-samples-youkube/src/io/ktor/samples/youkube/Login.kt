@@ -8,7 +8,7 @@ import io.ktor.routing.*
 import io.ktor.sessions.*
 import kotlinx.html.*
 
-fun Route.login(users: UserHashedTableAuth) {
+fun Route.login() {
     location<Login> {
         authenticate {
             post {

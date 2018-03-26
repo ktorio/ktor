@@ -71,7 +71,7 @@ class CustomLocationsTest {
         application.install(Locations)
         application.install(DataConversion) {
             convert<EntityID> {
-                decode { values, type ->
+                decode { values, _ ->
                     val (typeId, entityId) = values.single().split('-').map { it.toInt() }
                     EntityID(typeId, entityId)
                 }

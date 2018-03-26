@@ -70,7 +70,7 @@ fun Application.youKubeApplication() {
     }
 
     install(Routing) {
-        login(users)
+        login()
         upload(database, uploadDir)
         videos(database)
         styles()
