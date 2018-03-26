@@ -2,7 +2,7 @@
   <configuration default="false" name="Ktor :: YouKube" type="GradleRunConfiguration" factoryName="Gradle" folderName="Samples" singleton="true">
     <ExternalSystemSettings>
       <option name="executionName" />
-      <option name="externalProjectPath" value="$PROJECT_DIR$/ktor-samples/you-kube" />
+      <option name="externalProjectPath" value="$PROJECT_DIR$/ktor-samples/ktor-samples-youkube" />
       <option name="externalSystemIdString" value="GRADLE" />
       <option name="scriptParameters" value="-PserverEngine=jetty" />
       <option name="taskDescriptions">
