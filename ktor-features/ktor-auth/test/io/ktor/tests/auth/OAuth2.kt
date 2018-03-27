@@ -39,7 +39,7 @@ class OAuth2Test {
             accessTokenUrl = "https://login-server-com/oauth/access_token",
             clientId = "clientId1",
             clientSecret = "clientSecret1",
-            defaultScopes = listOf("scope1", "scope2")
+            defaultScopes = listOf("http://example.com/scope1", "http://example.com/scope2")
     )
 
     val testClient = createOAuth2Server(object : OAuth2Server {
@@ -156,7 +156,7 @@ class OAuth2Test {
         assertEquals("code", query[OAuth2RequestParameters.ResponseType])
         assertNotNull(query[OAuth2RequestParameters.State])
         assertEquals("http://localhost/login", query[OAuth2RequestParameters.RedirectUri])
-        assertEquals("scope1 scope2", query[OAuth2RequestParameters.Scope])
+        assertEquals("http://example.com/scope1 http://example.com/scope2", query[OAuth2RequestParameters.Scope])
     }
 
     @Test
