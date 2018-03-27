@@ -61,7 +61,13 @@ fun Application.youKubeApplication() {
     }
 
     install(Authentication) {
-        form {
+        session<YouKubeSession>("session") {
+            challenge = SessionAuthChallenge.Redirect { call, c -> call.url(Login(c?.userId ?: "")) }
+            validate { _, session ->
+                UserIdPrincipal(session.userId)
+            }
+        }
+        form("form") {
             userParamName = Login::userName.name
             passwordParamName = Login::password.name
             challenge = FormAuthChallenge.Redirect { call, c -> call.url(Login(c?.name ?: "")) }

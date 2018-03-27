@@ -10,7 +10,7 @@ import kotlinx.html.*
 
 fun Route.login() {
     location<Login> {
-        authenticate {
+        authenticate("form") {
             post {
                 val principal = call.principal<UserIdPrincipal>()
                 call.sessions.set(YouKubeSession(principal!!.name))

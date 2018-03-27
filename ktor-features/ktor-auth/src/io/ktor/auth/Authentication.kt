@@ -13,7 +13,6 @@ import io.ktor.util.*
 class Authentication(val providers: List<AuthenticationProvider>) {
     private val challengePhase = PipelinePhase("Challenge")
 
-
     class Configuration {
         val providers = ArrayList<AuthenticationProvider>()
 
