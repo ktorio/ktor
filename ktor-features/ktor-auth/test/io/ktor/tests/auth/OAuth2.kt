@@ -42,7 +42,27 @@ class OAuth2Test {
             defaultScopes = listOf("http://example.com/scope1", "http://example.com/scope2")
     )
 
-    val testClient = createOAuth2Server(object : OAuth2Server {
+    private val DefaultSettingsWithInterceptor = OAuthServerSettings.OAuth2ServerSettings(
+            name = "oauth2",
+            authorizeUrl = "https://login-server-com/authorize",
+            accessTokenUrl = "https://login-server-com/oauth/access_token",
+            clientId = "clientId1",
+            clientSecret = "clientSecret1",
+            authorizeUrlInterceptor = {
+                parameters.append("custom", "value1")
+            }
+    )
+
+    private val DefaultSettingsWithMethodPost = OAuthServerSettings.OAuth2ServerSettings(
+            name = "oauth2",
+            authorizeUrl = "https://login-server-com/authorize",
+            accessTokenUrl = "https://login-server-com/oauth/access_token",
+            clientId = "clientId1",
+            clientSecret = "clientSecret1",
+            requestMethod = HttpMethod.Post
+    )
+
+    private val testClient = createOAuth2Server(object : OAuth2Server {
         override fun requestToken(clientId: String, clientSecret: String, grantType: String, state: String?, code: String?, redirectUri: String?, userName: String?, password: String?): OAuthAccessTokenResponse.OAuth2 {
             if (clientId != "clientId1") {
                 throw IllegalArgumentException("Wrong clientId $clientId")
@@ -99,7 +119,8 @@ class OAuth2Test {
         routing {
             authenticate("login") {
                 get("/login") {
-                    call.respondText("Hej, ${call.authentication.principal}")
+                    val principal = call.authentication.principal as? OAuthAccessTokenResponse.OAuth2
+                    call.respondText("Hej, $principal")
                 }
             }
             authenticate("resource") {
@@ -160,7 +181,44 @@ class OAuth2Test {
     }
 
     @Test
+    fun testRedirectCustomizedByInterceptor() = withTestApplication({ module(DefaultSettingsWithInterceptor) }) {
+        val result = handleRequest {
+            uri = "/login"
+        }
+
+        assertTrue(result.requestHandled)
+        assertEquals(HttpStatusCode.Found, result.response.status())
+
+        val url = URI(result.response.headers[HttpHeaders.Location]
+                ?: throw IllegalStateException("No location header in the response"))
+        assertEquals("/authorize", url.path)
+        assertEquals("login-server-com", url.host)
+
+        val query = parseQueryString(url.query)
+        assertEquals("clientId1", query[OAuth2RequestParameters.ClientId])
+        assertEquals("code", query[OAuth2RequestParameters.ResponseType])
+        assertNotNull(query[OAuth2RequestParameters.State])
+        assertEquals("http://localhost/login", query[OAuth2RequestParameters.RedirectUri])
+        assertEquals("value1", query["custom"])
+    }
+
+    @Test
     fun testRequestToken() = withTestApplication({ module() }) {
+        val result = handleRequest {
+            uri = "/login?" + listOf(
+                    OAuth2RequestParameters.Code to "code1",
+                    OAuth2RequestParameters.State to "state1"
+            ).formUrlEncode()
+        }
+
+        waitExecutor()
+
+        assertTrue(result.requestHandled, "request should be handled")
+        assertEquals(HttpStatusCode.OK, result.response.status())
+    }
+
+    @Test
+    fun testRequestTokenMethodPost() = withTestApplication({ module(DefaultSettingsWithMethodPost) }) {
         val result = handleRequest {
             uri = "/login?" + listOf(
                     OAuth2RequestParameters.Code to "code1",

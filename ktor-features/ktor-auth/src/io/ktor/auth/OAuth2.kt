@@ -13,6 +13,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import org.json.simple.*
 import java.io.*
+import java.net.*
 
 internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
         client: HttpClient, dispatcher: CoroutineDispatcher,
@@ -25,7 +26,10 @@ internal suspend fun PipelineContext<Unit, ApplicationCall>.oauth2(
         val callbackRedirectUrl = call.urlProvider(provider)
         if (token == null) {
             val stateProvider = provider.stateProvider
-            call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, state = stateProvider.getState(call), scopes = provider.defaultScopes)
+            call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl,
+                    state = stateProvider.getState(call),
+                    scopes = provider.defaultScopes,
+                    interceptor = provider.authorizeUrlInterceptor)
         } else {
             withContext(dispatcher) {
                 val accessToken = simpleOAuth2Step2(client, provider, callbackRedirectUrl, token)
@@ -45,13 +49,14 @@ internal fun ApplicationCall.oauth2HandleCallback(): OAuthCallback.TokenSingle? 
     }
 }
 
-internal suspend fun ApplicationCall.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList()) {
+internal suspend fun ApplicationCall.redirectAuthenticateOAuth2(settings: OAuthServerSettings.OAuth2ServerSettings, callbackRedirectUrl: String, state: String, extraParameters: List<Pair<String, String>> = emptyList(), scopes: List<String> = emptyList(), interceptor: URLBuilder.() -> Unit) {
     redirectAuthenticateOAuth2(authenticateUrl = settings.authorizeUrl,
             callbackRedirectUrl = callbackRedirectUrl,
             clientId = settings.clientId,
             state = state,
             scopes = scopes,
-            parameters = extraParameters)
+            parameters = extraParameters,
+            interceptor = interceptor)
 }
 
 internal suspend fun simpleOAuth2Step2(client: HttpClient,
@@ -76,19 +81,32 @@ internal suspend fun simpleOAuth2Step2(client: HttpClient,
     )
 }
 
-private suspend fun ApplicationCall.redirectAuthenticateOAuth2(authenticateUrl: String, callbackRedirectUrl: String, clientId: String, state: String, scopes: List<String> = emptyList(), parameters: List<Pair<String, String>> = emptyList()) {
-    return respondRedirect(authenticateUrl
-            .appendUrlParameters("${OAuth2RequestParameters.ClientId}=${encodeURLQueryComponent(clientId)}&${OAuth2RequestParameters.RedirectUri}=${encodeURLQueryComponent(callbackRedirectUrl)}")
-            .appendUrlParameters(optionalParameter(OAuth2RequestParameters.Scope, scopes.joinToString(" ")))
-            .appendUrlParameters("${OAuth2RequestParameters.State}=${encodeURLQueryComponent(state)}")
-            .appendUrlParameters("${OAuth2RequestParameters.ResponseType}=code")
-            .appendUrlParameters(parameters.formUrlEncode())
-    )
-}
+private suspend fun ApplicationCall.redirectAuthenticateOAuth2(authenticateUrl: String,
+                                                               callbackRedirectUrl: String,
+                                                               clientId: String,
+                                                               state: String,
+                                                               scopes: List<String> = emptyList(),
+                                                               parameters: List<Pair<String, String>> = emptyList(),
+                                                               interceptor: URLBuilder.() -> Unit = {}) {
 
-internal fun optionalParameter(name: String, value: String, condition: (String) -> Boolean = { it.isNotBlank() }): String =
-        if (condition(value)) "${encodeURLQueryComponent(name)}=${encodeURLQueryComponent(value)}"
-        else ""
+    val url = URLBuilder()
+    url.takeFrom(URI(authenticateUrl))
+    url.parameters.apply {
+        append(OAuth2RequestParameters.ClientId, clientId)
+        append(OAuth2RequestParameters.RedirectUri, callbackRedirectUrl)
+        if (scopes.isNotEmpty()) {
+            append(OAuth2RequestParameters.Scope, scopes.joinToString(" "))
+        }
+        append(OAuth2RequestParameters.State, state)
+        append(OAuth2RequestParameters.ResponseType, "code")
+        parameters.forEach { (k, v) ->
+            append(k, v)
+        }
+    }
+    interceptor(url)
+
+    return respondRedirect(url.buildString())
+}
 
 private suspend fun simpleOAuth2Step2(client: HttpClient,
                                       method: HttpMethod,
@@ -108,23 +126,34 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
         stateProvider.verifyState(state)
     }
 
-    val urlParameters =
-            (listOf(
-                    OAuth2RequestParameters.ClientId to clientId,
-                    OAuth2RequestParameters.ClientSecret to clientSecret,
-                    OAuth2RequestParameters.GrantType to grantType,
-                    OAuth2RequestParameters.State to state,
-                    OAuth2RequestParameters.Code to code,
-                    OAuth2RequestParameters.RedirectUri to usedRedirectUrl
-            ) + extraParameters.toList()).formUrlEncode()
+    val request = HttpRequestBuilder()
+    request.url.takeFrom(URI(baseUrl))
 
-    val getUri = when (method) {
-        HttpMethod.Get -> baseUrl.appendUrlParameters(urlParameters)
-        HttpMethod.Post -> baseUrl
+    val urlParameters = ParametersBuilder().apply {
+        append(OAuth2RequestParameters.ClientId,  clientId)
+        append(OAuth2RequestParameters.ClientSecret,  clientSecret)
+        append(OAuth2RequestParameters.GrantType,  grantType)
+        if (state != null) {
+            append(OAuth2RequestParameters.State, state)
+        }
+        if (code != null) {
+            append(OAuth2RequestParameters.Code, code)
+        }
+        if (usedRedirectUrl != null) {
+            append(OAuth2RequestParameters.RedirectUri, usedRedirectUrl)
+        }
+        extraParameters.forEach { (k, v) ->
+            append(k, v)
+        }
+    }
+
+    when (method) {
+        HttpMethod.Get -> request.url.parameters.appendAll(urlParameters)
+        HttpMethod.Post -> request.body = TextContent(urlParameters.build().formUrlEncode(), ContentType.Application.FormUrlEncoded)
         else -> throw UnsupportedOperationException("Method $method is not supported. Use GET or POST")
     }
 
-    val response = client.call(getUri) {
+    request.apply {
         this.method = method
         header(HttpHeaders.Accept, listOf(ContentType.Application.FormUrlEncoded, ContentType.Application.Json).joinToString(","))
         if (useBasicAuth) {
@@ -135,11 +164,9 @@ private suspend fun simpleOAuth2Step2(client: HttpClient,
         }
 
         configure()
+    }
 
-        if (method == HttpMethod.Post) {
-            body = WriterContent({ write(urlParameters) }, ContentType.Application.FormUrlEncoded)
-        }
-    }.response
+    val response = client.call(request).response
 
     val body = response.readText()
 
@@ -217,23 +244,23 @@ suspend fun verifyWithOAuth2(c: UserPasswordCredential, client: HttpClient, sett
 }
 
 object OAuth2RequestParameters {
-    val ClientId = "client_id"
-    val Scope = "scope"
-    val ClientSecret = "client_secret"
-    val GrantType = "grant_type"
-    val Code = "code"
-    val State = "state"
-    val RedirectUri = "redirect_uri"
-    val ResponseType = "response_type"
-    val UserName = "username"
-    val Password = "password"
+    const val ClientId = "client_id"
+    const val Scope = "scope"
+    const val ClientSecret = "client_secret"
+    const val GrantType = "grant_type"
+    const val Code = "code"
+    const val State = "state"
+    const val RedirectUri = "redirect_uri"
+    const val ResponseType = "response_type"
+    const val UserName = "username"
+    const val Password = "password"
 }
 
 object OAuth2ResponseParameters {
-    val AccessToken = "access_token"
-    val TokenType = "token_type"
-    val ExpiresIn = "expires_in"
-    val RefreshToken = "refresh_token"
-    val Error = "error"
-    val ErrorDescription = "error_description"
+    const val AccessToken = "access_token"
+    const val TokenType = "token_type"
+    const val ExpiresIn = "expires_in"
+    const val RefreshToken = "refresh_token"
+    const val Error = "error"
+    const val ErrorDescription = "error_description"
 }

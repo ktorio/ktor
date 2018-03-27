@@ -62,7 +62,8 @@ sealed class OAuthServerSettings(val name: String, val version: OAuthVersion) {
             val defaultScopes: List<String> = emptyList(),
             val accessTokenRequiresBasicAuth: Boolean = false,
 
-            val stateProvider: OAuth2StateProvider = DefaultOAuth2StateProvider
+            val stateProvider: OAuth2StateProvider = DefaultOAuth2StateProvider,
+            val authorizeUrlInterceptor: URLBuilder.() -> Unit = {}
     ) : OAuthServerSettings(name, OAuthVersion.V20)
 }
 
@@ -77,8 +78,8 @@ sealed class OAuthAccessTokenResponse : Principal {
 }
 
 object OAuthGrantTypes {
-    val AuthorizationCode = "authorization_code"
-    val Password = "password"
+    const val AuthorizationCode = "authorization_code"
+    const val Password = "password"
 }
 
 suspend fun PipelineContext<Unit, ApplicationCall>.oauth(
@@ -99,7 +100,10 @@ suspend fun PipelineContext<Unit, ApplicationCall>.oauthRespondRedirect(client: 
             }
         }
         is OAuthServerSettings.OAuth2ServerSettings -> {
-            call.redirectAuthenticateOAuth2(provider, callbackUrl, nextNonce(), scopes = provider.defaultScopes)
+            call.redirectAuthenticateOAuth2(provider, callbackUrl,
+                    provider.stateProvider.getState(call),
+                    scopes = provider.defaultScopes,
+                    interceptor = provider.authorizeUrlInterceptor)
         }
     }
 }

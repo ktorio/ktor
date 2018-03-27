@@ -2,7 +2,6 @@ package io.ktor.auth
 
 import io.ktor.application.*
 import io.ktor.client.*
-import io.ktor.util.*
 import java.io.*
 
 val OAuthKey: Any = "OAuth"
@@ -31,7 +30,10 @@ internal fun OAuthAuthenticationProvider.oauth2() {
             val callbackRedirectUrl = call.urlProvider(provider)
             if (token == null) {
                 context.challenge(OAuthKey, AuthenticationFailedCause.NoCredentials) {
-                    call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl, nextNonce(), scopes = provider.defaultScopes)
+                    call.redirectAuthenticateOAuth2(provider, callbackRedirectUrl,
+                            state = provider.stateProvider.getState(call),
+                            scopes = provider.defaultScopes,
+                            interceptor = provider.authorizeUrlInterceptor)
                     it.complete()
                 }
             } else {
