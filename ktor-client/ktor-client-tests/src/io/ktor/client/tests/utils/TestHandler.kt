@@ -27,7 +27,9 @@ internal class TestHandler(
                 proceedWith(object : OutgoingContent.ReadChannelContent() {
                     override val headers: Headers = content.headers
 
-                    override fun readFrom(): ByteReadChannel = writer(Unconfined, autoFlush = true, parent = context.executionContext) {
+                    override fun readFrom(): ByteReadChannel = writer(Unconfined, autoFlush = true,
+                            parent = context.executionContext
+                    ) {
                         try {
                             content.readFrom().copyAndClose(channel)
                         } catch (cause: Throwable) {

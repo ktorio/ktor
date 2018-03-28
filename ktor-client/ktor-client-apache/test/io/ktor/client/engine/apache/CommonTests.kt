@@ -14,3 +14,5 @@ class ApachePostTest : PostTest(Apache)
 class ApacheMultithreadedTest : MultithreadedTest(Apache)
 
 class ApacheFullFormTest : FullFormTest(Apache)
+
+class ApacheContentTest : ContentTest(Apache)
