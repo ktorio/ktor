@@ -43,7 +43,7 @@ class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientE
             contentType?.let { addHeader(HttpHeaders.ContentType, it) }
 
             if (content !is OutgoingContent.NoContent) {
-                body = content.toByteReadChannel()
+                bodyChannel = content.toByteReadChannel()
             }
         }
     }

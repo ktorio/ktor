@@ -81,7 +81,7 @@ class TestApplicationEngine(
         val websocketChannel = ByteChannel(true)
         val call = handleWebSocket(uri) {
             setup()
-            body = websocketChannel
+            bodyChannel = websocketChannel
         }
 
         val pool = KtorDefaultPool

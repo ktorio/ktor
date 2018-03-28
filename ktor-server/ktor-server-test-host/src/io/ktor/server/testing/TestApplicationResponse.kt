@@ -70,6 +70,8 @@ class TestApplicationResponse(
         return result
     }
 
+    fun contentChannel(): ByteReadChannel? = byteContent?.let { ByteReadChannel(it) }
+
     suspend fun flush() {
         responseJob?.join()
         responseJob?.getCancellationException()?.cause?.let { throw it }

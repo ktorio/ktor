@@ -1,12 +1,15 @@
 package io.ktor.server.testing
 
 import io.ktor.application.*
+import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
+import sun.invoke.empty.Empty
 
 class TestApplicationRequest(
         call: ApplicationCall,
@@ -40,7 +43,25 @@ class TestApplicationRequest(
     }
 
     @Volatile
-    var body: ByteReadChannel = EmptyByteReadChannel
+    var bodyChannel: ByteReadChannel = EmptyByteReadChannel
+
+    @Deprecated("Use setBody() method instead", ReplaceWith("setBody()"))
+    var bodyBytes: ByteArray
+        @Deprecated("TestApplicationEngine no longer supports bodyBytes.get()", level = DeprecationLevel.ERROR)
+        get() = error("TestApplicationEngine no longer supports bodyBytes.get()")
+        set(value) { setBody(value) }
+
+    @Deprecated("Use setBody() method instead", ReplaceWith("setBody()"))
+    var body: String
+        @Deprecated("TestApplicationEngine no longer supports body.get()", level = DeprecationLevel.ERROR)
+        get() = error("TestApplicationEngine no longer supports body.get()")
+        set(value) { setBody(value) }
+
+    @Deprecated(
+            message = "multiPartEntries is deprecated, use setBody() method instead",
+            replaceWith = ReplaceWith("setBody()"), level = DeprecationLevel.ERROR
+    )
+    var multiPartEntries: List<PartData> = listOf()
 
     override val queryParameters by lazy(LazyThreadSafetyMode.NONE) { parseQueryString(queryString()) }
 
@@ -63,21 +84,20 @@ class TestApplicationRequest(
         }
     }
 
-    override fun receiveChannel(): ByteReadChannel = body
+    override fun receiveChannel(): ByteReadChannel = bodyChannel
 
     @SuppressWarnings()
-    override fun receiveContent(): IncomingContent =
-            error("IncomingContent is no longer supported by the TestApplicationEngine")
+    @Deprecated(message = "TestApplicationEngine no longer supports IncomingContent", level = DeprecationLevel.ERROR)
+    override fun receiveContent(): IncomingContent = error("TestApplicationEngine no longer supports IncomingContent")
 }
 
 fun TestApplicationRequest.setBody(value: String) {
-    body = ByteReadChannel(value.toByteArray())
+    setBody(value.toByteArray())
 }
 
 fun TestApplicationRequest.setBody(value: ByteArray) {
-    body = ByteReadChannel(value)
+    bodyChannel = ByteReadChannel(value)
 }
-
 
 fun TestApplicationRequest.setBody(boundary: String, values: List<PartData>): Unit = setBody(buildString {
     if (values.isEmpty()) return
