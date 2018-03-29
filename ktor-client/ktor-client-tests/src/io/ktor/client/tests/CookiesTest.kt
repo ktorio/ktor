@@ -40,24 +40,23 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
     }
 
     @Test
-    fun testAccept() {
-        val client = HttpClient(factory) {
+    fun testAccept(): Unit = clientTest(factory) {
+        config {
             install(HttpCookies)
         }
 
-        runBlocking { client.get<Unit>(port = serverPort) }
-
-        client.cookies("localhost").let {
-            assertEquals(1, it.size)
-            assertEquals("my-awesome-value", it["hello-cookie"]!!.value)
+        test { client ->
+            client.get<Unit>(port = serverPort)
+            client.cookies("localhost").let {
+                assertEquals(1, it.size)
+                assertEquals("my-awesome-value", it["hello-cookie"]!!.value)
+            }
         }
-
-        client.close()
     }
 
     @Test
-    fun testUpdate() = runBlocking {
-        val client = HttpClient(factory) {
+    fun testUpdate(): Unit = clientTest(factory) {
+        config {
             install(HttpCookies) {
                 default {
                     addCookie("localhost", Cookie("id", "1"))
@@ -65,36 +64,36 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
             }
         }
 
-        repeat(10) {
-            val before = client.getId()
-            client.get<Unit>(path = "/update-user-id", port = serverPort)
-            assertEquals(before + 1, client.getId())
-            assertEquals("ktor", client.cookies("localhost")["user"]?.value)
+        test { client ->
+            repeat(10) {
+                val before = client.getId()
+                client.get<Unit>(path = "/update-user-id", port = serverPort)
+                assertEquals(before + 1, client.getId())
+                assertEquals("ktor", client.cookies("localhost")["user"]?.value)
+            }
         }
-
-        client.close()
     }
 
     @Test
-    fun testConstant() {
-        val client = HttpClient(factory) {
+    fun testConstant(): Unit = clientTest(factory) {
+        config {
             install(HttpCookies) {
                 storage = ConstantCookieStorage(Cookie("id", "1"))
             }
         }
 
-        fun check() {
-            assertEquals(1, client.getId())
-            assertEquals(null, client.cookies("localhost")["user"]?.value)
+        fun HttpClient.check() {
+            assertEquals(1, getId())
+            assertNull(cookies("localhost")["user"]?.value)
         }
 
-        runBlocking { client.get<Unit>(path = "/update-user-id", port = serverPort) }
-        check()
+        test { client ->
+            client.get<Unit>(path = "/update-user-id", port = serverPort)
+            client.check()
 
-        runBlocking { client.get<Unit>(path = "/update-user-id", port = serverPort) }
-        check()
-
-        client.close()
+            client.get<Unit>(path = "/update-user-id", port = serverPort)
+            client.check()
+        }
     }
 
     @Test
