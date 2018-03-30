@@ -438,6 +438,7 @@ class HighLoadHttpGenerator(val host: String, port: Int,
                     try {
                         if (!c.doWrite()) {
                             c.writePending = true
+                            readReady.add(c)
                             pending.add(c)
                         } else {
                             readReady.add(c)
@@ -473,6 +474,7 @@ class HighLoadHttpGenerator(val host: String, port: Int,
 
                             if (rc == -1) {
                                 connectionsCount--
+                                c.close()
                             } else {
                                 c.readPending = true
                                 pending.add(c)
