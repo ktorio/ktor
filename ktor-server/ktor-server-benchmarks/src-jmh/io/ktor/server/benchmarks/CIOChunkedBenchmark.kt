@@ -1,7 +1,6 @@
 package io.ktor.server.benchmarks
 
 import io.ktor.http.cio.*
-import io.netty.handler.stream.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import org.openjdk.jmh.annotations.*

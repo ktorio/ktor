@@ -1,10 +1,8 @@
 package io.ktor.client.response
 
 import io.ktor.cio.*
-import io.ktor.client.call.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
-import java.nio.charset.*
 
 /**
  * Exactly reads [count] bytes of the [HttpResponse.content].

@@ -4,7 +4,6 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
-import io.ktor.util.*
 import javax.servlet.http.*
 
 abstract class ServletApplicationRequest(call: ApplicationCall,

@@ -5,7 +5,6 @@ import io.ktor.content.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.*
-import io.ktor.util.*
 
 class HttpBinResponse(
         var parameters: Parameters? = null,

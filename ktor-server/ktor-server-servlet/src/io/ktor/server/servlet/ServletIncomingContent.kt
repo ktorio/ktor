@@ -4,7 +4,6 @@ import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import kotlinx.coroutines.experimental.*
-import java.io.*
 
 abstract class ServletIncomingContent(
     protected val request: ServletApplicationRequest

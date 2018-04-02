@@ -2,7 +2,6 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
-import io.ktor.content.*
 import io.ktor.network.tls.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
@@ -68,11 +67,10 @@ internal class Endpoint(
         }
     }
 
-    suspend fun execute(request: CIOHttpRequest): CIOHttpResponse =
-            suspendCancellableCoroutine {
-                val task = ConnectionRequestTask(request, it)
-                tasks.offer(task)
-            }
+    suspend fun execute(request: CIOHttpRequest): CIOHttpResponse = suspendCancellableCoroutine {
+        val task = ConnectionRequestTask(request, it)
+        tasks.offer(task)
+    }
 
     private suspend fun newConnection() {
         Connections.incrementAndGet(this)

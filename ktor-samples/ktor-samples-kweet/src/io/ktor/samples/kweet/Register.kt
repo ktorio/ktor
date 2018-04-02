@@ -10,7 +10,6 @@ import io.ktor.routing.*
 import io.ktor.samples.kweet.dao.*
 import io.ktor.samples.kweet.model.*
 import io.ktor.sessions.*
-import io.ktor.util.*
 
 fun Route.register(dao: DAOFacade, hashFunction: (String) -> String) {
     post<Register> {

@@ -1,11 +1,5 @@
 package io.ktor.server.benchmarks
 
-import io.ktor.client.*
-import io.ktor.client.engine.cio.*
-import io.ktor.client.request.*
-import io.ktor.client.response.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.io.*
 import okhttp3.*
 import org.apache.http.client.methods.*
 import org.apache.http.impl.client.*

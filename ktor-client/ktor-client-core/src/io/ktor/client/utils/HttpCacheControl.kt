@@ -1,7 +1,5 @@
 package io.ktor.client.utils
 
-import io.ktor.http.*
-
 /**
  * List of [CacheControl] known values.
  */

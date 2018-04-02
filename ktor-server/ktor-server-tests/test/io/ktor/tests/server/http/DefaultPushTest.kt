@@ -2,9 +2,7 @@ package io.ktor.tests.server.http
 
 import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.response.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.experimental.*
 import kotlin.test.*
 
 class DefaultPushTest {

@@ -2,7 +2,6 @@ package io.ktor.routing
 
 import io.ktor.http.*
 import io.ktor.request.*
-import io.ktor.util.*
 
 /**
  * Represents a result of a route evaluation against a call

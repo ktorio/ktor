@@ -1,7 +1,6 @@
 package io.ktor.server.benchmarks.cio
 
 import io.ktor.application.*
-import io.ktor.client.engine.*
 import io.ktor.server.benchmarks.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*

@@ -40,6 +40,9 @@ class HttpRequestPipeline : Pipeline<Any, HttpRequestBuilder>(Before, State, Tra
     }
 }
 
+/**
+ * [HttpClient] Pipeline used for sending [HttpRequest] to remote server.
+ */
 class HttpSendPipeline : Pipeline<Any, HttpRequestBuilder>(Before, State, Engine) {
 
     companion object Phases {
@@ -48,6 +51,9 @@ class HttpSendPipeline : Pipeline<Any, HttpRequestBuilder>(Before, State, Engine
          */
         val Before = PipelinePhase("Before")
 
+        /**
+         * Use this phase to modify request with shared state
+         */
         val State = PipelinePhase("State")
 
         /**

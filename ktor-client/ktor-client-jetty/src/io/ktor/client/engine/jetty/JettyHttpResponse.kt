@@ -2,7 +2,6 @@ package io.ktor.client.engine.jetty
 
 import io.ktor.client.call.*
 import io.ktor.client.response.*
-import io.ktor.content.*
 import io.ktor.http.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*

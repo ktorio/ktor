@@ -2,8 +2,6 @@ package io.ktor.network.tls
 
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.packet.*
-import kotlinx.coroutines.experimental.io.packet.ByteReadPacket
 import kotlinx.io.core.*
 import java.io.*
 import java.security.cert.*

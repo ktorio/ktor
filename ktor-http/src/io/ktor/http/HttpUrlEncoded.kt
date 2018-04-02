@@ -1,6 +1,5 @@
 package io.ktor.http
 
-import io.ktor.util.*
 import java.net.*
 import java.nio.charset.*
 

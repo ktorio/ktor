@@ -5,7 +5,6 @@ import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.response.*
-import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.html.*
 import kotlinx.html.stream.*

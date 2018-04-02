@@ -128,7 +128,7 @@ class VelocityTest {
         val bax = "$"
 
         install(Velocity) {
-            setProperty("resource.loader", "string");
+            setProperty("resource.loader", "string")
             addProperty("string.resource.loader.class", StringResourceLoader::class.java.name)
             addProperty("string.resource.loader.repository.static", "false")
             init() // need to call `init` before trying to retrieve string repository

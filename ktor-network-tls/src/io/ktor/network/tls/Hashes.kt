@@ -1,7 +1,6 @@
 package io.ktor.network.tls
 
 import io.ktor.http.cio.internals.*
-import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.packet.*
 import java.security.*

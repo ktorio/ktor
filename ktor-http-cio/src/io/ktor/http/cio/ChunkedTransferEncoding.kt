@@ -5,8 +5,6 @@ import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.core.*
 import kotlinx.io.core.ByteOrder
 import kotlinx.io.pool.*
-import java.io.*
-import java.io.EOFException
 import kotlin.coroutines.experimental.*
 
 private const val MAX_CHUNK_SIZE_LENGTH = 128

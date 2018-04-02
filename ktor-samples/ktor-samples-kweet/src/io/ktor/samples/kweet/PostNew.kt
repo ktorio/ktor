@@ -9,7 +9,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.samples.kweet.dao.*
 import io.ktor.sessions.*
-import io.ktor.util.*
 
 fun Route.postNew(dao: DAOFacade, hashFunction: (String) -> String) {
     get<PostNew> {

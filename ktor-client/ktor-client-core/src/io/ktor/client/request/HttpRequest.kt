@@ -2,7 +2,6 @@ package io.ktor.client.request
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.response.*
 import io.ktor.client.utils.*
 import io.ktor.content.*
 import io.ktor.http.*

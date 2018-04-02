@@ -16,8 +16,8 @@ fun Application.main() {
                 .outputTo(log)
                 .convertRatesTo(TimeUnit.SECONDS)
                 .convertDurationsTo(TimeUnit.MILLISECONDS)
-                .build();
-        reporter.start(10, TimeUnit.SECONDS);
+                .build()
+        reporter.start(10, TimeUnit.SECONDS)
     }
 
     install(Routing) {

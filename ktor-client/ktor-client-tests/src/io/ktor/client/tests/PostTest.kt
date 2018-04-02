@@ -5,7 +5,6 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
-import io.ktor.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*

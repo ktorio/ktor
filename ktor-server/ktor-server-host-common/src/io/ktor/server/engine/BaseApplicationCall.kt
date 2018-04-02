@@ -1,7 +1,6 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
-import io.ktor.cio.*
 import io.ktor.http.*
 import io.ktor.util.*
 

@@ -2,7 +2,6 @@ package io.ktor.client.response
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.request.*
 import io.ktor.pipeline.*
 import kotlin.reflect.*
 
@@ -38,11 +37,19 @@ class HttpResponsePipeline : Pipeline<HttpResponseContainer, HttpClientCall>(Rec
     }
 }
 
-class HttpReceivePipeline : Pipeline<HttpResponse, HttpClientCall>(Response, State, After) {
+/**
+ * [HttpClient] Pipeline used for receiving [HttpResponse] without any processing.
+ */
+class HttpReceivePipeline : Pipeline<HttpResponse, HttpClientCall>(Before, State, After) {
     companion object Phases {
+        /**
+         * The earliest phase that happens before any other
+         */
+        val Before = PipelinePhase("Response")
 
-        val Response = PipelinePhase("Response")
-
+        /**
+         * Use this phase to store request shared state
+         */
         val State = PipelinePhase("State")
 
         /**
