@@ -39,13 +39,10 @@ interface HttpRequest : HttpMessage {
      */
     val executionContext: Job
 
-    val content: OutgoingContent
-
     /**
-     * Actually executes / sends the request
-     * including the request headers and the payload.
+     * An [OutgoingContent] representing the request body
      */
-    suspend fun execute(): HttpResponse
+    val content: OutgoingContent
 }
 
 /**
@@ -77,9 +74,22 @@ class HttpRequestBuilder : HttpMessageBuilder {
      */
     val executionContext: CompletableDeferred<Unit> = CompletableDeferred<Unit>()
 
+    private var attributesBuilder: Attributes.() -> Unit = {}
+
+    /**
+     * Create immutable [HttpRequestData]
+     */
     fun build(): HttpRequestData = HttpRequestData(
-            url.build(), method, headers.build(), body, executionContext
+            url.build(), method, headers.build(), body, executionContext, attributesBuilder
     )
+
+    /**
+     * Set request specific attributes specified by [block]
+     */
+    fun setAttributes(block: Attributes.() -> Unit) {
+        val old = attributesBuilder
+        attributesBuilder = { old(); block() }
+    }
 
     companion object
 }
@@ -93,7 +103,8 @@ class HttpRequestData(
         val method: HttpMethod,
         val headers: Headers,
         val body: Any,
-        val executionContext: CompletableDeferred<Unit>
+        val executionContext: CompletableDeferred<Unit>,
+        val attributes: Attributes.() -> Unit
 )
 
 /**
@@ -119,14 +130,26 @@ fun HttpRequestBuilder.takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder
 fun HttpRequestBuilder.url(block: URLBuilder.() -> Unit): Unit = block(url)
 
 /**
- * Executes a [block] that configures the [URLBuilder] associated to this request.
+ * Sets the [HttpRequestBuilder] from [request].
+ */
+fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBuilder {
+    method = request.method
+    body = request.body
+    url.takeFrom(request.url)
+    headers.appendAll(request.headers)
+
+    return this
+}
+
+/**
+ * Executes a [block] that configures the [URLBuilder] associated to thisrequest.
  */
 operator fun HttpRequestBuilder.Companion.invoke(block: URLBuilder.() -> Unit): HttpRequestBuilder =
         HttpRequestBuilder().apply { url(block) }
 
 /**
  * Sets the [url] using the specified [scheme], [host], [port] and [path].
- */
+*/
 fun HttpRequestBuilder.url(
         scheme: String = "http", host: String = "localhost", port: Int = 80, path: String = "/",
         block: URLBuilder.() -> Unit = {}
@@ -153,6 +176,11 @@ operator fun HttpRequestBuilder.Companion.invoke(
  * Sets the [HttpRequestBuilder.url] from [url].
  */
 fun HttpRequestBuilder.url(url: java.net.URL): Unit = this.url.takeFrom(url)
+
+ /**
+ * Sets the [HttpRequestBuilder.url] from [url].
+ */
+fun HttpRequestBuilder.url(url: String): Unit = this.url.takeFrom(java.net.URI(url))
 
 /**
  * Constructs a [HttpRequestBuilder] from [url].

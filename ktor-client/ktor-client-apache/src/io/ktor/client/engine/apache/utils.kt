@@ -15,35 +15,33 @@ import java.nio.*
 internal suspend fun suspendRequest(
         data: Channel<ByteBuffer>,
         block: (HttpAsyncResponseConsumer<Unit>, FutureCallback<Unit>) -> Unit
-): HttpResponse {
-    return suspendCancellableCoroutine { continuation ->
-        val consumer = object : AsyncByteConsumer<Unit>() {
-            override fun buildResult(context: HttpContext) {
-                data.close()
-            }
+): HttpResponse = suspendCancellableCoroutine { continuation ->
+    val consumer = object : AsyncByteConsumer<Unit>() {
+        override fun buildResult(context: HttpContext) {
+            data.close()
+        }
 
-            override fun onByteReceived(buffer: ByteBuffer, io: IOControl) {
-                val content = buffer.copy()
-                if (content.remaining() > 0 && !data.offer(content)) {
-                    throw IllegalStateException("data.offer() failed")
-                }
-            }
-
-            override fun onResponseReceived(response: HttpResponse) {
-                continuation.resume(response)
+        override fun onByteReceived(buffer: ByteBuffer, io: IOControl) {
+            val content = buffer.copy()
+            if (content.remaining() > 0 && !data.offer(content)) {
+                throw IllegalStateException("data.offer() failed")
             }
         }
 
-        val callback = object : FutureCallback<Unit> {
-            override fun failed(exception: Exception) {
-                continuation.resumeWithException(exception)
-            }
-
-            override fun completed(result: Unit) {}
-
-            override fun cancelled() {}
+        override fun onResponseReceived(response: HttpResponse) {
+            continuation.resume(response)
         }
-
-        block(consumer, callback)
     }
+
+    val callback = object : FutureCallback<Unit> {
+        override fun failed(exception: Exception) {
+            continuation.resumeWithException(exception)
+        }
+
+        override fun completed(result: Unit) {}
+
+        override fun cancelled() {}
+    }
+
+    block(consumer, callback)
 }

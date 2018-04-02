@@ -4,24 +4,29 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
+import kotlinx.coroutines.experimental.*
 import org.eclipse.jetty.http2.api.*
 import org.eclipse.jetty.http2.client.*
+import org.eclipse.jetty.util.ssl.*
 import java.net.*
 
 
 class JettyHttp2Engine(config: JettyEngineConfig) : HttpClientEngine {
-    private val sslContextFactory = config.sslContextFactory
+    private val dispatcher: CoroutineDispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
+    private val sslContextFactory: SslContextFactory = config.sslContextFactory
     private val jettyClient = HTTP2Client().apply {
         addBean(sslContextFactory)
         start()
     }
 
-    private val dispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
+    override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
+        val request = JettyHttpRequest(call, this, dispatcher, data)
+        val response = request.execute()
 
-    override fun prepareRequest(data: HttpRequestData, call: HttpClientCall): HttpRequest =
-            JettyHttpRequest(call, this, dispatcher, data)
+        return HttpEngineCall(request, response)
+    }
 
-    suspend fun connect(host: String, port: Int): Session {
+    internal suspend fun connect(host: String, port: Int): Session {
         return withPromise { promise ->
             jettyClient.connect(sslContextFactory, InetSocketAddress(host, port), Session.Listener.Adapter(), promise)
         }

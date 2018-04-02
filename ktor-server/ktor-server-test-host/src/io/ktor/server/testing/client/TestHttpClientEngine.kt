@@ -11,16 +11,23 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.util.concurrent.*
 
-class TestHttpClientConfig : HttpClientEngineConfig() {
-    lateinit var app: TestApplicationEngine
-}
-
 class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientEngine {
 
-    override fun prepareRequest(data: HttpRequestData, call: HttpClientCall): HttpRequest =
-            TestHttpClientRequest(call, this, data)
+    override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
+        val request = TestHttpClientRequest(call, this, data)
+        val responseData = with(request) {
+            runRequest(method, url.fullPath, headers, content).response
+        }
 
-    internal fun runRequest(
+        val clientResponse = TestHttpClientResponse(
+                call, responseData.status()!!, responseData.headers.allValues(), responseData.byteContent!!
+        )
+
+        return HttpEngineCall(request, clientResponse)
+
+    }
+
+    private fun runRequest(
             method: HttpMethod, url: String, headers: Headers, content: OutgoingContent
     ): TestApplicationCall {
         return app.handleRequest(method, url) {

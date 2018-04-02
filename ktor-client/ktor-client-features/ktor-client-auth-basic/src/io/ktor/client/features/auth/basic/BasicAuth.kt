@@ -2,7 +2,6 @@ package io.ktor.client.features.auth.basic
 
 import io.ktor.client.*
 import io.ktor.client.features.*
-import io.ktor.client.features.cookies.HttpCookies.Config
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.pipeline.*

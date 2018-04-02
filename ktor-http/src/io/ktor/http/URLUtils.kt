@@ -3,28 +3,53 @@ package io.ktor.http
 import io.ktor.util.*
 import java.net.*
 
+fun URLBuilder.takeFrom(url: String) {
+    takeFrom(URI(url))
+}
 
 fun URLBuilder.takeFrom(uri: URI) {
-    port = uri.port.takeIf { it > 0 } ?: if (uri.scheme == "https") 443 else 80
-    protocol = URLProtocol.createOrDefault(uri.scheme)
-    host = uri.host
-    val path = uri.path
-    encodedPath = when (path) {
-        null -> "/"
-        "" -> "/"
-        else -> path
+    if (uri.port > 0) {
+        port = uri.port
+    } else {
+        when (uri.scheme) {
+            "http" -> port = 80
+            "https" -> port = 443
+        }
+    }
+
+    uri.scheme?.let { protocol = URLProtocol.createOrDefault(it) }
+    uri.host?.let { host = it }
+    uri.path?.let {
+        encodedPath = when (it) {
+            "" -> "/"
+            else -> it
+        }
     }
     uri.query?.let { parameters.appendAll(parseQueryString(it)) }
     if (uri.query?.isEmpty() == true) {
         trailingQuery = true
     }
 
-    fragment = uri.fragment ?: ""
+    uri.fragment?.let { fragment = it }
 }
 
 fun URLBuilder.takeFrom(url: java.net.URL) = takeFrom(url.toURI())
 
 fun URLBuilder.takeFrom(url: URLBuilder): URLBuilder {
+    protocol = url.protocol
+    host = url.host
+    port = url.port
+    encodedPath = url.encodedPath
+    user = url.user
+    password = url.password
+    parameters.appendAll(url.parameters)
+    fragment = url.fragment
+    trailingQuery = url.trailingQuery
+
+    return this
+}
+
+fun URLBuilder.takeFrom(url: Url): URLBuilder {
     protocol = url.protocol
     host = url.host
     port = url.port

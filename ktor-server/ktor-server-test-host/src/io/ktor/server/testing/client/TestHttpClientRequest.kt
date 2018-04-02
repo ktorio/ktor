@@ -2,7 +2,6 @@ package io.ktor.server.testing.client
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.util.*
@@ -22,9 +21,4 @@ class TestHttpClientRequest(
     override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 
     override val content: OutgoingContent = requestData.body as OutgoingContent
-
-    override suspend fun execute(): HttpResponse {
-        val response = engine.runRequest(method, url.fullPath, headers, content).response
-        return TestHttpClientResponse(call, response.status()!!, response.headers.allValues(), response.byteContent!!)
-    }
 }

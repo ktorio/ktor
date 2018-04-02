@@ -128,4 +128,4 @@ suspend inline fun <reified T> HttpClient.post(
 /**
  * Creates a [HttpRequestBuilder] and configures it with a [block] of code.
  */
-fun request(block: HttpRequestBuilder.() -> Unit) = HttpRequestBuilder().apply(block)
+fun request(block: HttpRequestBuilder.() -> Unit): HttpRequestBuilder = HttpRequestBuilder().apply(block)

@@ -1,7 +1,6 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.cio.*
-import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.network.sockets.*
@@ -15,7 +14,6 @@ import java.util.*
 
 internal class ConnectionRequestTask(
         val request: CIOHttpRequest,
-        val content: OutgoingContent,
         val continuation: CancellableContinuation<CIOHttpResponse>
 )
 
@@ -52,7 +50,7 @@ internal class ConnectionPipeline(
                     throw cause
                 }
 
-                task.request.write(outputChannel, task.content)
+                task.request.write(outputChannel, task.request.content)
                 outputChannel.flush()
                 if (ConnectionOptions.parse(task.request.headers[HttpHeaders.Connection]) == ConnectionOptions.Close) {
                     break

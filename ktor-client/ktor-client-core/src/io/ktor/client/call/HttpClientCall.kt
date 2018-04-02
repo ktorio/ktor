@@ -3,16 +3,14 @@ package io.ktor.client.call
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.content.*
 import java.io.*
 import java.util.concurrent.atomic.*
 import kotlin.reflect.*
-import kotlin.reflect.full.*
 
 /**
  * A class that represents a single pair of [request] and [response] for a specific [HttpClient].
  */
-class HttpClientCall private constructor(
+class HttpClientCall internal constructor(
         private val client: HttpClient
 ) : Closeable {
     private val received = AtomicBoolean(false)
@@ -21,13 +19,13 @@ class HttpClientCall private constructor(
      * Represents the [request] sent by the client.
      */
     lateinit var request: HttpRequest
-        private set
+        internal set
 
     /**
      * Represents the [response] sent by the server.
      */
     lateinit var response: HttpResponse
-        private set
+        internal set
 
     /**
      * Tries to receive the payload of the [response] as an specific [expectedType].
@@ -53,36 +51,16 @@ class HttpClientCall private constructor(
     override fun close() {
         response.close()
     }
-
-    companion object {
-        /**
-         * Creates a new [HttpClientCall] building the request with the specified [requestBuilder]
-         * and using a specific HTTP [client].
-         */
-        suspend fun create(requestBuilder: HttpRequestBuilder, client: HttpClient): HttpClientCall {
-            val call = HttpClientCall(client)
-
-            val received = client.requestPipeline.execute(requestBuilder, requestBuilder.body)
-            val content = received as? OutgoingContent
-                    ?: throw NoTransformationFound(received::class, OutgoingContent::class)
-
-            requestBuilder.body = received
-
-            val requestData = requestBuilder.build()
-
-            call.request = client.createRequest(requestData, call)
-            call.response = call.request.execute()
-            return call
-        }
-    }
 }
+
+data class HttpEngineCall(val request: HttpRequest, val response: HttpResponse)
 
 /**
  * Constructs a [HttpClientCall] from this [HttpClient] and with the specified [HttpRequestBuilder]
  * configured inside the [block].
  */
 suspend fun HttpClient.call(block: HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
-        HttpClientCall.create(HttpRequestBuilder().apply(block), this)
+        execute(HttpRequestBuilder().apply(block))
 
 /**
  * Tries to receive the payload of the [response] as an specific type [T].

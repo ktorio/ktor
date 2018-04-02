@@ -4,7 +4,6 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
-import io.ktor.content.*
 import io.ktor.http.*
 import kotlinx.coroutines.experimental.channels.*
 import java.util.concurrent.*
@@ -17,10 +16,14 @@ class CIOEngine(private val config: CIOEngineConfig) : HttpClientEngine {
     private val connectionFactory = ConnectionFactory(config.maxConnectionsCount)
     private val closed = AtomicBoolean()
 
-    override fun prepareRequest(data: HttpRequestData, call: HttpClientCall): HttpRequest =
-            CIOHttpRequest(call, this, data)
+    override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
+        val request = CIOHttpRequest(call, this, data)
+        val response = executeRequest(request)
 
-    internal suspend fun executeRequest(request: CIOHttpRequest, content: OutgoingContent): CIOHttpResponse {
+        return HttpEngineCall(request, response)
+    }
+
+    private suspend fun executeRequest(request: CIOHttpRequest): CIOHttpResponse {
         while (true) {
             if (closed.get()) throw ClientClosedException()
 
@@ -36,7 +39,7 @@ class CIOEngine(private val config: CIOEngineConfig) : HttpClientEngine {
             }
 
             try {
-                return endpoint.execute(request, content)
+                return endpoint.execute(request)
             } catch (cause: ClosedSendChannelException) {
                 if (closed.get()) throw ClientClosedException(cause)
                 continue

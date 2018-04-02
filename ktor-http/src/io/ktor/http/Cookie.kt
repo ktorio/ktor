@@ -44,18 +44,17 @@ fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     )
 }
 
-fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true): Map<String, String> {
-    val pattern = """(^|;)\s*([^()<>@;:/\\"\[\]\?=\{\}\s]+)\s*(=\s*("[^"]*"|[^;]*))?""".toRegex()
-
-    return pattern.findAll(cookiesHeader)
-        .map { (it.groups[2]?.value ?: "") to (it.groups[4]?.value ?: "") }
-        .filter { !skipEscaped || !it.first.startsWith("$") }
-        .map { when {
-            it.second.startsWith("\"") && it.second.endsWith("\"") -> it.copy(second = it.second.removeSurrounding("\""))
-            else -> it
-        } }
-        .toMap()
-}
+private val clientCookieHeaderPattern = """(^|;)\s*([^()<>@;:/\\"\[\]\?=\{\}\s]+)\s*(=\s*("[^"]*"|[^;]*))?""".toRegex()
+fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true): Map<String, String> =
+        clientCookieHeaderPattern.findAll(cookiesHeader)
+                .map { (it.groups[2]?.value ?: "") to (it.groups[4]?.value ?: "") }
+                .filter { !skipEscaped || !it.first.startsWith("$") }
+                .map {
+                    if (it.second.startsWith("\"") && it.second.endsWith("\""))
+                        it.copy(second = it.second.removeSurrounding("\""))
+                    else it
+                }
+                .toMap()
 
 fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
     renderSetCookieHeader(
@@ -72,17 +71,14 @@ fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
     )
 }
 
-fun renderSetCookieHeader(name: String,
-                                 value: String,
-                                 encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-                                 maxAge: Int = 0,
-                                 expires: Temporal? = null,
-                                 domain: String? = null,
-                                 path: String? = null,
-                                 secure: Boolean = false,
-                                 httpOnly: Boolean = false,
-                                 extensions: Map<String, String?> = emptyMap()): String =
-        (listOf(
+fun renderSetCookieHeader(
+        name: String, value: String,
+        encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
+        maxAge: Int = 0, expires: Temporal? = null, domain: String? = null,
+        path: String? = null,
+        secure: Boolean = false, httpOnly: Boolean = false,
+        extensions: Map<String, String?> = emptyMap()): String = (
+        listOf(
                 cookiePart(name.assertCookieName(), value, encoding),
                 cookiePartUnencoded("Max-Age", if (maxAge > 0) maxAge else null),
                 cookiePartUnencoded("Expires", expires?.toHttpDateString()),
@@ -91,36 +87,35 @@ fun renderSetCookieHeader(name: String,
 
                 cookiePartFlag("Secure", secure),
                 cookiePartFlag("HttpOnly", httpOnly)
-        ) + extensions.map {
-            cookiePartExt(it.key.assertCookieName(), it.value, encoding)
-        } + cookiePartExt("\$x-enc", encoding.name, CookieEncoding.RAW)
-                ).filter { it.isNotEmpty() }
-                .joinToString("; ")
+        )
+                + extensions.map { cookiePartExt(it.key.assertCookieName(), it.value, encoding) }
+                + cookiePartExt("\$x-enc", encoding.name, CookieEncoding.RAW)
+        ).filter { it.isNotEmpty() }
+        .joinToString("; ")
 
-fun encodeCookieValue(value: String, encoding: CookieEncoding): String =
-        when (encoding) {
-            CookieEncoding.RAW -> when {
-                value.any { it.shouldEscapeInCookies() } -> throw IllegalArgumentException("The cookie value contains characters that couldn't be encoded in RAW format. Consider URL_ENCODING mode")
-                else -> value
-            }
-            CookieEncoding.DQUOTES -> when {
-                value.contains('"') -> throw IllegalArgumentException("The cookie value contains characters that couldn't be encoded in RAW format. Consider URL_ENCODING mode")
-                value.any { it.shouldEscapeInCookies() } -> "\"$value\""
-                else -> value
-            }
-            CookieEncoding.BASE64_ENCODING -> Base64.getEncoder().encodeToString(value.toByteArray(Charsets.UTF_8))
-            CookieEncoding.URI_ENCODING -> URLEncoder.encode(value, "UTF-8")
-        }
+fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (encoding) {
+    CookieEncoding.RAW -> when {
+        value.any { it.shouldEscapeInCookies() } -> throw IllegalArgumentException("The cookie value contains characters that couldn't be encoded in RAW format. Consider URL_ENCODING mode")
+        else -> value
+    }
+    CookieEncoding.DQUOTES -> when {
+        value.contains('"') -> throw IllegalArgumentException("The cookie value contains characters that couldn't be encoded in RAW format. Consider URL_ENCODING mode")
+        value.any { it.shouldEscapeInCookies() } -> "\"$value\""
+        else -> value
+    }
+    CookieEncoding.BASE64_ENCODING -> Base64.getEncoder().encodeToString(value.toByteArray(Charsets.UTF_8))
+    CookieEncoding.URI_ENCODING -> URLEncoder.encode(value, "UTF-8")
+}
 
-fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String =
-        when (encoding) {
-            CookieEncoding.RAW, CookieEncoding.DQUOTES -> when {
-                encodedValue.trimStart().startsWith("\"") && encodedValue.trimEnd().endsWith("\"") -> encodedValue.trim().removeSurrounding("\"")
-                else -> encodedValue
-            }
-            CookieEncoding.URI_ENCODING -> URLDecoder.decode(encodedValue, "UTF-8")
-            CookieEncoding.BASE64_ENCODING -> Base64.getDecoder().decode(encodedValue).toString(Charsets.UTF_8)
-        }
+fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String = when (encoding) {
+    CookieEncoding.RAW, CookieEncoding.DQUOTES -> when {
+        encodedValue.trimStart().startsWith("\"") && encodedValue.trimEnd().endsWith("\"") ->
+            encodedValue.trim().removeSurrounding("\"")
+        else -> encodedValue
+    }
+    CookieEncoding.URI_ENCODING -> URLDecoder.decode(encodedValue, "UTF-8")
+    CookieEncoding.BASE64_ENCODING -> Base64.getDecoder().decode(encodedValue).toString(Charsets.UTF_8)
+}
 
 private fun String.assertCookieName() = when {
     any { it.shouldEscapeInCookies() } -> throw IllegalArgumentException("Cookie name is not valid: $this")

@@ -34,7 +34,7 @@ class JettyHttpRequest(
 
     override val content: OutgoingContent = requestData.body as OutgoingContent
 
-    override suspend fun execute(): HttpResponse {
+    internal suspend fun execute(): HttpResponse {
         val requestTime = Date()
         val session = client.connect(url.host, url.port).apply {
             this.settings(SettingsFrame(emptyMap(), true), org.eclipse.jetty.util.Callback.NOOP)

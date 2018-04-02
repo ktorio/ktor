@@ -2,7 +2,6 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.util.*
@@ -20,8 +19,4 @@ class CIOHttpRequest(
     override val headers: Headers = requestData.headers
     override val content: OutgoingContent = requestData.body as OutgoingContent
     override val executionContext: CompletableDeferred<Unit> = requestData.executionContext
-
-    override suspend fun execute(): HttpResponse {
-        return engine.executeRequest(this, content)
-    }
 }

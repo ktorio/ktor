@@ -68,9 +68,9 @@ internal class Endpoint(
         }
     }
 
-    suspend fun execute(request: CIOHttpRequest, content: OutgoingContent): CIOHttpResponse =
+    suspend fun execute(request: CIOHttpRequest): CIOHttpResponse =
             suspendCancellableCoroutine {
-                val task = ConnectionRequestTask(request, content, it)
+                val task = ConnectionRequestTask(request, it)
                 tasks.offer(task)
             }
 

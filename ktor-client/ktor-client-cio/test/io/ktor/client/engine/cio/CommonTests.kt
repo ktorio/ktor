@@ -16,3 +16,5 @@ class CIOFullFormTest : FullFormTest(CIO)
 class CIOMultithreadedTest : MultithreadedTest(CIO)
 
 class CIOContentTest : ContentTest(CIO)
+
+class CIORedirectTest : HttpRedirectTest(CIO)
