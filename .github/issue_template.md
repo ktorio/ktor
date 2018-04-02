@@ -1,6 +1,6 @@
 ### Ktor Version
 
-### Ktor Engine used
+### Ktor Engine Used
 
 ### JVM Version, Operating System and Relevant Context
 
