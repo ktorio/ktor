@@ -67,7 +67,10 @@ subprojects {
         def bootClasspath = configurations.boot.files
         def runTask = getTasksByName("run", false).first() as JavaExec
 
-        runTask.jvmArgs(bootClasspath.collect { "-Xbootclasspath/p:${it.absolutePath}" })
+        if(JavaVersion.current() != JavaVersion.VERSION_1_8) {
+            runTask.jvmArgs(bootClasspath.collect { "-Xbootclasspath/p:${it.absolutePath}" })
+        }
+
         if (project.hasProperty("jmc")) {
             runTask.jvmArgs("-XX:+UnlockCommercialFeatures", 
                             "-XX:+FlightRecorder",

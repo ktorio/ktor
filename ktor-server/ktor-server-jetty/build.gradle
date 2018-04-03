@@ -23,8 +23,10 @@ task testHttp2(type: Test, dependsOn: 'testClasses') {
     systemProperty 'enable.http2', 'true'
     exclude("**/*StressTest*")
 
-    def bootClasspath = configurations.boot.files
-    jvmArgs(bootClasspath.collect { "-Xbootclasspath/p:${it.absolutePath}" })
+    if (JavaVersion.current() == JavaVersion.VERSION_1_8) { 
+        def bootClasspath = configurations.boot.files
+        jvmArgs(bootClasspath.collect { "-Xbootclasspath/p:${it.absolutePath}" })
+    }
 }
 
 tasks.test.dependsOn(tasks.testHttp2)
