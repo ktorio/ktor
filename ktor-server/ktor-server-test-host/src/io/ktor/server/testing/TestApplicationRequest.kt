@@ -1,15 +1,12 @@
 package io.ktor.server.testing
 
 import io.ktor.application.*
-import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import sun.invoke.empty.Empty
 
 class TestApplicationRequest(
         call: ApplicationCall,
