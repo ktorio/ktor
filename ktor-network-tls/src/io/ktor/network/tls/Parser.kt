@@ -5,7 +5,6 @@ import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.packet.*
 import kotlinx.coroutines.experimental.io.packet.ByteReadPacket
 import kotlinx.io.core.*
-import sun.security.x509.*
 import java.io.*
 import java.security.cert.*
 import kotlin.experimental.*
@@ -112,6 +111,7 @@ fun ByteReadPacket.readTLSCertificate(handshake: TLSHandshakeHeader): List<Certi
     val certificatesChainLength = readTripleByteLength()
     var certificateBase = 0
     val result = ArrayList<Certificate>()
+    val factory = CertificateFactory.getInstance("X.509")!!
 
     while (certificateBase < certificatesChainLength) {
         val certificateLength = readTripleByteLength()
@@ -122,7 +122,8 @@ fun ByteReadPacket.readTLSCertificate(handshake: TLSHandshakeHeader): List<Certi
         readFully(certificate)
         certificateBase += certificateLength + 3
 
-        result.add(X509CertImpl(certificate))
+        val x509 = factory.generateCertificate(certificate.inputStream())
+        result.add(x509)
     }
 
     return result
