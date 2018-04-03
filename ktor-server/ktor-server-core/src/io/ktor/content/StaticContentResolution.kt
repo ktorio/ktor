@@ -24,12 +24,17 @@ fun ApplicationCall.resolveResource(path: String,
     // note: we don't need to check for .. in the normalizedPath because all .. get replaced with //
 
     for (url in classLoader.getResources(normalizedResource).asSequence()) {
-        if (url.protocol == "file") {
-            val file = File(decodeURLPart(url.path))
-            return if (file.exists()) LocalFileContent(file, mimeResolve(file.extension)) else null
-        } else if (url.protocol == "jar") {
-            val zipFile = findContainingJarFile(url.toString())
-            return JarFileContent(zipFile, normalizedResource, mimeResolve(url.path.extension()))
+        when (url.protocol) {
+            "file" -> {
+                val file = File(decodeURLPart(url.path))
+                return if (file.exists()) LocalFileContent(file, mimeResolve(file.extension)) else null
+            }
+            "jar" -> {
+                val zipFile = findContainingJarFile(url.toString())
+                return JarFileContent(zipFile, normalizedResource, mimeResolve(url.path.extension()))
+            }
+            "jrt" -> return URIFileContent(url, mimeResolve(url.path.extension()))
+            else -> {}
         }
     }
 
