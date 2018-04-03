@@ -11,7 +11,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import org.junit.Test
-import sun.security.rsa.*
 import java.security.*
 import java.security.interfaces.*
 import java.util.concurrent.*
@@ -281,7 +280,7 @@ class JWTAuthTest {
     }
 
     private val algorithm = Algorithm.HMAC256("secret")
-    private val keyPair = RSAKeyPairGenerator().apply {
+    private val keyPair = KeyPairGenerator.getInstance("RSA").apply {
         initialize(2048, SecureRandom())
     }.generateKeyPair()
     private val jwkAlgorithm = Algorithm.RSA256(keyPair.public as RSAPublicKey, keyPair.private as RSAPrivateKey)
