@@ -6,6 +6,7 @@ import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.pool.*
 import java.io.*
+import java.util.concurrent.TimeoutException
 import javax.servlet.*
 import kotlin.coroutines.experimental.*
 
@@ -106,13 +107,14 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
     }
 
     override fun onError(t: Throwable) {
-        events.close(t)
-        channel.close(wrapException(t))
+        val wrapped = wrapException(t)
+        events.cancel(wrapped)
+        channel.cancel(wrapped)
     }
 
     private fun wrapException(t: Throwable): Throwable {
-        return if (t is IOException) {
-            ChannelWriteException(exception = t)
+        return if (t is IOException || t is TimeoutException) {
+            ChannelWriteException("Failed to write to servlet async stream", exception = t as Exception)
         } else t
     }
 }
