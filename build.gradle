@@ -92,19 +92,16 @@ allprojects {
         dokka {
             outputFormat = 'html'
             outputDirectory = "$buildDir/kdoc"
-            reportNotDocumented = false
         }
 
         task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
             outputFormat = 'javadoc'
             outputDirectory = "$buildDir/javadoc"
-            reportNotDocumented = false
         }
 
         task dokkaWebsite(type: org.jetbrains.dokka.gradle.DokkaTask) {
             outputFormat = 'kotlin-website'
             outputDirectory = "${rootProject.projectDir}/apidoc"
-            reportNotDocumented = false
         }
     }
 
