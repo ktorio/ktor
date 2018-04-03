@@ -5,6 +5,7 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
+import java.util.concurrent.TimeoutException
 import javax.servlet.*
 import kotlin.coroutines.experimental.*
 
@@ -79,7 +80,8 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
     private fun wrapException(t: Throwable): Throwable? {
         return when (t) {
             is EOFException -> null
-            is IOException -> ChannelReadException("Cannot read from a servlet input stream", exception = t)
+            is TimeoutException,
+            is IOException -> ChannelReadException("Cannot read from a servlet input stream", exception = t as Exception)
             else -> t
         }
     }
