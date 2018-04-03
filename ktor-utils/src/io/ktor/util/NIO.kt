@@ -63,6 +63,7 @@ class ByteBufferBuilder(order: ByteOrder = ByteOrder.BIG_ENDIAN) {
         @Deprecated("Use buildPacket instead",
                 ReplaceWith("buildPacket(block).readByteBuffer()",
                         "kotlinx.io.core.buildPacket", "kotlinx.io.core.readByteBuffer"))
+        @Suppress("DEPRECATION")
         inline fun build(order: ByteOrder = ByteOrder.BIG_ENDIAN, block: ByteBufferBuilder.() -> Unit): ByteBuffer {
             return ByteBufferBuilder(order).apply(block).build()
         }
