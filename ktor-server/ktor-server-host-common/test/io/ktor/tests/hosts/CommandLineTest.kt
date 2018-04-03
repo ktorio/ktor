@@ -70,6 +70,8 @@ class CommandLineTest {
     private tailrec fun findContainingZipFile(uri: URI): File {
         if (uri.scheme == "file") {
             return File(uri.path.substringBefore("!"))
+        } else if (uri.scheme == "jrt") {
+            TODO("jfr: file system is not yet supported")
         } else {
             return findContainingZipFile(URI(uri.rawSchemeSpecificPart))
         }
