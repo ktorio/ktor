@@ -14,7 +14,12 @@ import java.security.*
 fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
     val argsMap = args.mapNotNull { it.splitPair('=') }.toMap()
 
-    val jar = argsMap["-jar"]?.let { File(it).toURI().toURL() }
+    val jar = argsMap["-jar"]?.let {
+        when {
+            it.startsWith("file:")|| it.startsWith("jrt:") || it.startsWith("jar:") -> URI(it).toURL()
+            else -> File(it).toURI().toURL()
+        }
+    }
     val configFile = argsMap["-config"]?.let { File(it) }
     val commandLineMap = argsMap.filterKeys { it.startsWith("-P:") }.mapKeys { it.key.removePrefix("-P:") }
 

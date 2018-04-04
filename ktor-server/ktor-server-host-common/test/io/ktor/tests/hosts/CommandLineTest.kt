@@ -7,6 +7,7 @@ import org.junit.Test
 import org.junit.rules.*
 import org.junit.runner.*
 import org.junit.runners.model.*
+import sun.tools.jar.resources.*
 import java.io.*
 import java.net.*
 import java.util.*
@@ -62,18 +63,23 @@ class CommandLineTest {
 
     @Test
     fun testJar() {
-        val jar = findContainingZipFile(CommandLineTest::class.java.classLoader.getResources("java/util/ArrayList.class").nextElement().toURI())
-        val urlClassLoader = commandLineEnvironment(arrayOf("-jar=${jar.absolutePath}")).classLoader as URLClassLoader
-        assertEquals(jar.toURI(), urlClassLoader.urLs.single().toURI())
+        val (file, uri) = findContainingZipFileOrUri(
+                CommandLineTest::class.java.classLoader.getResources("java/util/ArrayList.class").nextElement().toURI())
+
+        val opt = if (file != null) file.absolutePath else uri!!.toASCIIString()
+        val expectedUri = uri ?: file!!.toURI()
+
+        val urlClassLoader = commandLineEnvironment(arrayOf("-jar=$opt")).classLoader as URLClassLoader
+        assertEquals(expectedUri, urlClassLoader.urLs.single().toURI())
     }
 
-    private tailrec fun findContainingZipFile(uri: URI): File {
+    private tailrec fun findContainingZipFileOrUri(uri: URI): Pair<File?, URI?> {
         if (uri.scheme == "file") {
-            return File(uri.path.substringBefore("!"))
+            return Pair(File(uri.path.substringBefore("!")), null)
         } else if (uri.scheme == "jrt") {
-            TODO("jfr: file system is not yet supported")
+            return Pair(null, uri)
         } else {
-            return findContainingZipFile(URI(uri.rawSchemeSpecificPart))
+            return findContainingZipFileOrUri(URI(uri.rawSchemeSpecificPart))
         }
     }
 
