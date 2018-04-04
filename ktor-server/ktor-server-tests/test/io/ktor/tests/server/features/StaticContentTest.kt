@@ -173,16 +173,19 @@ class StaticContentTest {
     @Test
     fun testSendLocalFileBadRelative() = withTestApplication {
         application.intercept(ApplicationCallPipeline.Call) {
-            assertFailsWithSuspended<IllegalArgumentException> {
+            assertFailsWithSuspended<Exception> {
                 call.respond(LocalFileContent(basedir, "/../../../../../../../../../../../../../etc/passwd"))
             }
-            assertFailsWithSuspended<IllegalArgumentException> {
+            assertFailsWithSuspended<Exception> {
+                call.respond(LocalFileContent(basedir, "../../../../../../../../../../../../../etc/passwd"))
+            }
+            assertFailsWithSuspended<Exception> {
                 call.respond(LocalFileContent(basedir.toPath(), Paths.get("../pom.xml")))
             }
-            assertFailsWithSuspended<IllegalArgumentException> {
+            assertFailsWithSuspended<Exception> {
                 call.respond(LocalFileContent(basedir.toPath(), Paths.get("../../pom.xml")))
             }
-            assertFailsWithSuspended<IllegalArgumentException> {
+            assertFailsWithSuspended<Exception> {
                 call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../pom.xml")))
             }
         }
@@ -195,16 +198,19 @@ class StaticContentTest {
     @Test
     fun testSendLocalFileBadRelativePaths() = withTestApplication {
         application.intercept(ApplicationCallPipeline.Call) {
-            assertFailsWithSuspended<IllegalArgumentException> {
+            assertFailsWithSuspended<Exception> {
                 call.respond(LocalFileContent(basedir.toPath(), Paths.get("/../../../../../../../../../../../../../etc/passwd")))
             }
-            assertFailsWithSuspended<IllegalArgumentException> {
+            assertFailsWithSuspended<Exception> {
+                call.respond(LocalFileContent(basedir.toPath(), Paths.get("../../../../../../../../../../../../../etc/passwd")))
+            }
+            assertFailsWithSuspended<Exception> {
                 call.respond(LocalFileContent(basedir, "../pom.xml"))
             }
-            assertFailsWithSuspended<IllegalArgumentException> {
+            assertFailsWithSuspended<Exception> {
                 call.respond(LocalFileContent(basedir, "../../pom.xml"))
             }
-            assertFailsWithSuspended<IllegalArgumentException> {
+            assertFailsWithSuspended<Exception> {
                 call.respond(LocalFileContent(basedir, "/../pom.xml"))
             }
         }

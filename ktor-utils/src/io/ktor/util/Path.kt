@@ -15,8 +15,9 @@ fun File.combineSafe(relativePath: String): File = combineSafe(Paths.get(relativ
 fun File.combineSafe(relativePath: Path): File {
     val normalized = relativePath.normalizeAndRelativize()
     if (normalized.startsWith("..")) {
-        throw InvalidPathException(relativePath.toString(), "Bad relative path")
+        throw InvalidPathException(relativePath.toString(), "Bad relative path $relativePath")
     }
+    check(!normalized.isAbsolute) { "Bad relative path $relativePath" }
 
     return File(this, normalized.toString())
 }
@@ -24,8 +25,9 @@ fun File.combineSafe(relativePath: Path): File {
 fun Path.combineSafe(relativePath: Path): File {
     val normalized = relativePath.normalizeAndRelativize()
     if (normalized.startsWith("..")) {
-        throw InvalidPathException(relativePath.toString(), "Bad relative path")
+        throw InvalidPathException(relativePath.toString(), "Bad relative path $relativePath")
     }
+    check(!normalized.isAbsolute) { "Bad relative path $relativePath"}
 
     return resolve(normalized).toFile()
 }
