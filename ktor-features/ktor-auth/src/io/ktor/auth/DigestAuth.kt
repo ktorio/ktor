@@ -153,6 +153,6 @@ fun DigestCredential.expectedDigest(method: HttpMethod, digester: MessageDigest,
     val start = hex(userNameRealmPasswordDigest)
     val end = hex(digest("${method.value.toUpperCase()}:$digestUri"))
 
-    val a = (qop == null ? listOf(start, nonce, end) : listOf(start, nonce, nonceCount, cnonce, qop, end)).joinToString(":")
+    val a = (if (qop == null) listOf(start, nonce, end) else listOf(start, nonce, nonceCount, cnonce, qop, end)).joinToString(":")
     return digest(a)
 }
