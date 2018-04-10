@@ -35,7 +35,7 @@ suspend inline fun <reified T> HttpClient.get(builder: HttpRequestBuilder): T {
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
 suspend inline fun <reified T> HttpClient.post(builder: HttpRequestBuilder): T {
-    builder.method = HttpMethod.Get
+    builder.method = HttpMethod.Post
     return request(builder)
 }
 
