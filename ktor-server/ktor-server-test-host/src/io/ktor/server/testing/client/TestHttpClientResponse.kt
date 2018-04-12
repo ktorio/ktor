@@ -9,10 +9,10 @@ import java.util.*
 
 
 class TestHttpClientResponse(
-        override val call: HttpClientCall,
-        override val status: HttpStatusCode,
-        override val headers: Headers,
-        contentData: ByteArray
+    override val call: HttpClientCall,
+    override val status: HttpStatusCode,
+    override val headers: Headers,
+    contentData: ByteArray
 ) : HttpResponse {
     override val requestTime = Date()
     override val responseTime = Date()
@@ -23,6 +23,7 @@ class TestHttpClientResponse(
 
     override fun close() {
         executionContext.complete(Unit)
+        @Suppress("UNCHECKED_CAST")
         (call.request.executionContext as CompletableDeferred<Unit>).complete(Unit)
     }
 }

@@ -81,10 +81,9 @@ class TestApplicationResponse(
     private val webSocketCompleted: CompletableDeferred<Unit> = CompletableDeferred()
 
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
-        val job = upgrade.upgrade(call.receiveChannel(), responseChannel(), CommonPool, Unconfined)
-        val registration = job.attachChild(webSocketCompleted)
-
-        webSocketCompleted.invokeOnCompletion { registration.dispose() }
+        upgrade.upgrade(call.receiveChannel(), responseChannel(), CommonPool, Unconfined).invokeOnCompletion {
+            webSocketCompleted.complete(Unit)
+        }
     }
 
     fun awaitWebSocket(duration: Duration) = runBlocking {

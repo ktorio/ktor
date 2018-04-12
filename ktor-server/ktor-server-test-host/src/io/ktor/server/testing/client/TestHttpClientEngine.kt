@@ -5,6 +5,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.content.*
 import io.ktor.http.*
+import io.ktor.network.util.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
@@ -12,6 +13,7 @@ import kotlinx.coroutines.experimental.io.*
 import java.util.concurrent.*
 
 class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientEngine {
+    override val dispatcher: CoroutineDispatcher = ioCoroutineDispatcher
 
     override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
         val request = TestHttpClientRequest(call, this, data)
@@ -20,7 +22,7 @@ class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientE
         }
 
         val clientResponse = TestHttpClientResponse(
-                call, responseData.status()!!, responseData.headers.allValues(), responseData.byteContent!!
+            call, responseData.status()!!, responseData.headers.allValues(), responseData.byteContent!!
         )
 
         return HttpEngineCall(request, clientResponse)
@@ -28,30 +30,28 @@ class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientE
     }
 
     private fun runRequest(
-            method: HttpMethod, url: String, headers: Headers, content: OutgoingContent
-    ): TestApplicationCall {
-        return app.handleRequest(method, url) {
-            headers.flattenForEach { name, value ->
-                if (HttpHeaders.ContentLength == name) return@flattenForEach // set later
-                if (HttpHeaders.ContentType == name) return@flattenForEach // set later
-                addHeader(name, value)
-            }
+        method: HttpMethod, url: String, headers: Headers, content: OutgoingContent
+    ): TestApplicationCall = app.handleRequest(method, url) {
+        headers.flattenForEach { name, value ->
+            if (HttpHeaders.ContentLength == name) return@flattenForEach // set later
+            if (HttpHeaders.ContentType == name) return@flattenForEach // set later
+            addHeader(name, value)
+        }
 
-            content.headers.flattenForEach { name, value ->
-                if (HttpHeaders.ContentLength == name) return@flattenForEach // TODO: throw exception for unsafe header?
-                if (HttpHeaders.ContentType == name) return@flattenForEach
-                addHeader(name, value)
-            }
+        content.headers.flattenForEach { name, value ->
+            if (HttpHeaders.ContentLength == name) return@flattenForEach // TODO: throw exception for unsafe header?
+            if (HttpHeaders.ContentType == name) return@flattenForEach
+            addHeader(name, value)
+        }
 
-            val contentLength = headers[HttpHeaders.ContentLength] ?: content.contentLength?.toString()
-            val contentType = headers[HttpHeaders.ContentType] ?: content.contentType?.toString()
+        val contentLength = headers[HttpHeaders.ContentLength] ?: content.contentLength?.toString()
+        val contentType = headers[HttpHeaders.ContentType] ?: content.contentType?.toString()
 
-            contentLength?.let { addHeader(HttpHeaders.ContentLength, it) }
-            contentType?.let { addHeader(HttpHeaders.ContentType, it) }
+        contentLength?.let { addHeader(HttpHeaders.ContentLength, it) }
+        contentType?.let { addHeader(HttpHeaders.ContentType, it) }
 
-            if (content !is OutgoingContent.NoContent) {
-                bodyChannel = content.toByteReadChannel()
-            }
+        if (content !is OutgoingContent.NoContent) {
+            bodyChannel = content.toByteReadChannel()
         }
     }
 

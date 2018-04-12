@@ -1,13 +1,9 @@
-package io.ktor.websocket
+package io.ktor.http.cio.websocket
 
 import kotlinx.coroutines.experimental.channels.*
-import io.ktor.application.*
+import kotlin.coroutines.experimental.*
 
 interface WebSocketSession {
-    val call: ApplicationCall
-
-    val application: Application
-
     /**
      * Incoming frames channel
      */
@@ -31,6 +27,11 @@ interface WebSocketSession {
     var maxFrameSize: Long
 
     /**
+     * Dispatcher to handle io operations
+     */
+    val dispatcher: CoroutineContext
+
+    /**
      * Flush all outstanding messages and suspend until all earlier sent messages will be written. Could be called
      * at any time even after close. May return immediately if connection is already terminated.
      */
@@ -48,6 +49,8 @@ interface WebSocketSession {
      * Initiate connection termination immediately. Termination may complete asynchronously.
      */
     fun terminate()
+
+    suspend fun close(cause: Throwable? = null)
 }
 
 suspend fun WebSocketSession.close(reason: CloseReason) {

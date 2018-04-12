@@ -8,9 +8,9 @@ package io.ktor.pipeline
  */
 @ContextDsl
 class PipelineContext<TSubject : Any, out TContext : Any>(
-        val context: TContext,
-        private val interceptors: List<PipelineInterceptor<TSubject, TContext>>,
-        subject: TSubject
+    val context: TContext,
+    private val interceptors: List<PipelineInterceptor<TSubject, TContext>>,
+    subject: TSubject
 ) {
     /**
      * Subject of this pipeline execution

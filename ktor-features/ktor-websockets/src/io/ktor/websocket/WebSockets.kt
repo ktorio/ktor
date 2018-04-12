@@ -2,6 +2,7 @@ package io.ktor.websocket
 
 import io.ktor.application.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.*
 import java.time.*
 
 /**
@@ -18,15 +19,17 @@ import java.time.*
  * ```
  */
 class WebSockets(
-        val pingInterval: Duration?,
-        val timeout: Duration,
-        val maxFrameSize: Long,
-        val masking: Boolean
+    val pingInterval: Duration?,
+    val timeout: Duration,
+    val maxFrameSize: Long,
+    val masking: Boolean
 ) {
+    val context = CompletableDeferred<Unit>()
+
     class WebSocketOptions {
         var pingPeriod: Duration? = null
         var timeout: Duration = Duration.ofSeconds(15)
-        var maxFrameSize = Long.MAX_VALUE
+        var maxFrameSize: Long = Long.MAX_VALUE
         var masking: Boolean = false
     }
 
@@ -34,10 +37,15 @@ class WebSockets(
         override val key = AttributeKey<WebSockets>("WebSockets")
 
         override fun install(pipeline: Application, configure: WebSocketOptions.() -> Unit): WebSockets {
-            return WebSocketOptions().also(configure).let { options ->
-                val webSockets = WebSockets(options.pingPeriod, options.timeout, options.maxFrameSize, options.masking)
+            val config = WebSocketOptions().also(configure)
+            with(config) {
+                val webSockets = WebSockets(pingPeriod, timeout, maxFrameSize, masking)
 
-                webSockets
+                pipeline.environment.monitor.subscribe(ApplicationStopPreparing) {
+                    webSockets.context.complete(Unit)
+                }
+
+                return webSockets
             }
         }
     }

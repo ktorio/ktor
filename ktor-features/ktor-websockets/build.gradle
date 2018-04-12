@@ -1,5 +1,7 @@
 description = ''
 dependencies {
+    compile project(':ktor-http-cio')
+
     testCompile project(':ktor-server:ktor-server-jetty')
     testCompile project(':ktor-server:ktor-server-netty')
     testCompile project(':ktor-server:ktor-server-tomcat')

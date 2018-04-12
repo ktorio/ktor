@@ -48,10 +48,10 @@ fun ByteBuffer.copy(size: Int = remaining()): ByteBuffer {
 /**
  * Moves all bytes in `this` buffer to a newly created buffer with the optionally specified [size] by allocating it from the given [pool]
  */
-fun ByteBuffer.copy(pool: ObjectPool<ByteBuffer>, size: Int = remaining()): ByteBuffer = pool.borrow().also {
-    it.limit(size)
-    slice().moveTo(it)
-    it.flip()
+fun ByteBuffer.copy(pool: ObjectPool<ByteBuffer>, size: Int = remaining()): ByteBuffer = pool.borrow().apply {
+    limit(size)
+    this@copy.slice().moveTo(this)
+    flip()
 }
 
 /**

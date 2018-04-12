@@ -1,9 +1,9 @@
-package io.ktor.websocket
+package io.ktor.http.cio.websocket
 
 import java.nio.*
 import java.util.concurrent.atomic.*
 
-internal class FrameParser {
+class FrameParser @Deprecated("Internal Api") constructor(){
     private val state = AtomicReference(State.HEADER0)
 
     var fin = false

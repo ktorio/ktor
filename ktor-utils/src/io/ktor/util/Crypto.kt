@@ -13,6 +13,8 @@ private fun getDigest(text: String, algorithm: String, salt: String): ByteArray 
 fun decodeBase64(s: String): ByteArray = Base64.getDecoder().decode(s)
 fun encodeBase64(bytes: ByteArray): String = Base64.getEncoder().encodeToString(bytes)
 
+fun sha1(bytes: ByteArray): ByteArray = MessageDigest.getInstance("SHA1").digest(bytes)!!
+
 // useful to work with openssl command line tool
 fun hex(s: String): ByteArray {
     val result = ByteArray(s.length / 2)

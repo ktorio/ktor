@@ -1,11 +1,10 @@
-package io.ktor.websocket
+package io.ktor.http.cio.websocket
 
 import io.ktor.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.pool.*
-import java.nio.ByteBuffer
 import kotlin.coroutines.experimental.*
 
 /**
@@ -13,52 +12,48 @@ import kotlin.coroutines.experimental.*
  * serializes them and writes the bits into the [writeChannel].
  */
 class WebSocketWriter @Deprecated("Internal API") constructor(
-        val writeChannel: ByteWriteChannel,
-        val parent: Job,
-        ctx: CoroutineContext,
-        val pool: ObjectPool<ByteBuffer>
-) {
-    private val queue = actor(ctx + parent, capacity = 8, start = CoroutineStart.LAZY) {
-        pool.use { writeLoop(it) }
-    }
-
+    private val writeChannel: ByteWriteChannel,
+    private val parent: Job,
+    context: CoroutineContext,
     /**
      * Whether it will mask serialized frames.
      */
-    var masking: Boolean = false
+    var masking: Boolean = false,
+    val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+) {
+    private val queue = actor(context, parent = parent, capacity = 8, start = CoroutineStart.LAZY) {
+        pool.use { writeLoop(it) }
+    }
 
     /**
      * Channel for sending Websocket's [Frame] that will be serialized and written to [writeChannel].
      */
     val outgoing: SendChannel<Frame> get() = queue
 
-    internal val serializer = Serializer()
+    private val serializer = @Suppress("DEPRECATION") Serializer()
 
     private suspend fun ActorScope<Any>.writeLoop(buffer: ByteBuffer) {
         buffer.clear()
         try {
-            loop@ for (msg in this) {
-                when (msg) {
-                    is Frame -> if (drainQueueAndSerialize(msg, buffer)) break@loop
-                    is FlushRequest -> msg.complete() // we don't need writeChannel.flush() here as we do flush at end of every drainQueueAndSerialize
-                    else -> throw IllegalArgumentException("unknown message $msg")
+            loop@ for (message in this) {
+                when (message) {
+                    is Frame -> if (drainQueueAndSerialize(message, buffer)) break@loop
+                    is FlushRequest -> message.complete() // we don't need writeChannel.flush() here as we do flush at end of every drainQueueAndSerialize
+                    else -> throw IllegalArgumentException("unknown message $message")
                 }
             }
-        }
-        finally {
+        } finally {
             close()
             writeChannel.close()
         }
 
-        consumeEach { msg ->
-            when (msg) {
+        consumeEach { message ->
+            when (message) {
                 is Frame.Close -> {} // ignore
                 is Frame.Ping, is Frame.Pong -> {} // ignore
-                is FlushRequest -> msg.complete()
-                is Frame.Text, is Frame.Binary -> {
-                    // discard
-                }
-                else -> throw IllegalArgumentException("unknown message $msg")
+                is FlushRequest -> message.complete()
+                is Frame.Text, is Frame.Binary -> {} // discard
+                else -> throw IllegalArgumentException("unknown message $message")
             }
         }
     }
@@ -70,17 +65,19 @@ class WebSocketWriter @Deprecated("Internal API") constructor(
 
         // initially serializer has at least one message queued
         while (true) {
-            while (flush == null && !closeSent && serializer.remainingCapacity > 0) {
-                val msg = poll() ?: break
-                if (msg is FlushRequest) flush = msg
-                else if (msg is Frame.Close) {
-                    serializer.enqueue(msg)
-                    close()
-                    closeSent = true
-                    break
-                } else if (msg is Frame) {
-                    serializer.enqueue(msg)
-                } else throw IllegalArgumentException("unknown message $msg")
+            poll@ while (flush == null && !closeSent && serializer.remainingCapacity > 0) {
+                val message = poll() ?: break
+                when (message) {
+                    is FlushRequest -> flush = message
+                    is Frame.Close -> {
+                        serializer.enqueue(message)
+                        close()
+                        closeSent = true
+                        break@poll
+                    }
+                    is Frame -> serializer.enqueue(message)
+                    else -> throw IllegalArgumentException("unknown message $message")
+                }
             }
 
             if (!serializer.hasOutstandingBytes && buffer.position() == 0) break

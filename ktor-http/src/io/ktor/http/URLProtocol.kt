@@ -18,3 +18,9 @@ data class URLProtocol(val name: String, val defaultPort: Int) {
         }
     }
 }
+
+fun URLProtocol.isWebsocket(): Boolean =
+    (name.equals("ws", ignoreCase = true) || name.equals("wss", ignoreCase = true))
+
+fun URLProtocol.isSecure(): Boolean =
+    (name.equals("https", ignoreCase = true) || name.equals("wss", ignoreCase = true))

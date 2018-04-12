@@ -1,10 +1,10 @@
-package io.ktor.websocket
+package io.ktor.http.cio.websocket
 
 import io.ktor.util.*
 import java.nio.*
 import java.util.concurrent.*
 
-internal class Serializer {
+class Serializer @Deprecated("Internal Api") constructor() {
     private val q = ArrayBlockingQueue<Frame>(1024)
 
     private var frameBody: ByteBuffer? = null
@@ -38,8 +38,8 @@ internal class Serializer {
         }
     }
 
-    private fun serializeHeader(f: Frame, buffer: ByteBuffer, mask: Boolean) {
-        val size = f.buffer.remaining()
+    private fun serializeHeader(frame: Frame, buffer: ByteBuffer, mask: Boolean) {
+        val size = frame.buffer.remaining()
         val length1 = when {
             size < 126 -> size
             size <= 0xffff -> 126
@@ -47,16 +47,16 @@ internal class Serializer {
         }
 
         buffer.put(
-                (f.fin.flagAt(7) or f.frameType.opcode).toByte()
+            (frame.fin.flagAt(7) or frame.frameType.opcode).toByte()
         )
         buffer.put(
-                (mask.flagAt(7) or length1).toByte()
+            (mask.flagAt(7) or length1).toByte()
         )
 
         if (length1 == 126) {
-            buffer.putShort(f.buffer.remaining().toShort())
+            buffer.putShort(frame.buffer.remaining().toShort())
         } else if (length1 == 127) {
-            buffer.putLong(f.buffer.remaining().toLong())
+            buffer.putLong(frame.buffer.remaining().toLong())
         }
 
         maskBuffer?.duplicate()?.moveTo(buffer)

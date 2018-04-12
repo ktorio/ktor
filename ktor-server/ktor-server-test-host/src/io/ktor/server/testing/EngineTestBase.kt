@@ -25,8 +25,13 @@ import javax.net.ssl.*
 import kotlin.test.*
 
 
-abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>) {
-    protected val isUnderDebugger = java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.orEmpty().any { "-agentlib:jdwp" in it }
+abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+    val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+) {
+    protected val isUnderDebugger: Boolean =
+        java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.orEmpty()
+            .any { "-agentlib:jdwp" in it }
+
     protected var port = findFreePort()
     protected var sslPort = findFreePort()
     protected var server: TEngine? = null
@@ -52,7 +57,9 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     val test = TestName()
 
     @get:Rule
-    open val timeout = PublishedTimeout(if (isUnderDebugger) 1000000L else (System.getProperty("host.test.timeout.seconds")?.toLong() ?: 120L))
+    open val timeout = PublishedTimeout(
+        if (isUnderDebugger) 1000000L else (System.getProperty("host.test.timeout.seconds")?.toLong() ?: 120L)
+    )
 
     protected val socketReadTimeout by lazy { timeout.seconds.toInt() * 1000 }
 
@@ -179,7 +186,9 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     }
 
     protected fun findFreePort() = ServerSocket(0).use { it.localPort }
-    protected fun withUrl(path: String, builder: HttpRequestBuilder.() -> Unit = {}, block: suspend HttpResponse.(Int) -> Unit) {
+    protected fun withUrl(
+        path: String, builder: HttpRequestBuilder.() -> Unit = {}, block: suspend HttpResponse.(Int) -> Unit
+    ) {
         withUrl(URL("http://127.0.0.1:$port$path"), port, builder, block)
 
         if (enableSsl) {
@@ -200,27 +209,29 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         }
     }
 
-    private fun withUrl(url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit) {
-        runBlocking {
-            withTimeout(timeout.seconds, TimeUnit.SECONDS) {
-                HttpClient(Apache.config {
-                    sslContext = Companion.sslContext
-                }).use { client ->
-                    client.call(url, builder).response.use { response ->
-                        block(response, port)
-                    }
+    private fun withUrl(
+        url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit,
+        block: suspend HttpResponse.(Int) -> Unit
+    ) = runBlocking<Unit> {
+        withTimeout(timeout.seconds, TimeUnit.SECONDS) {
+            HttpClient(Apache.config {
+                sslContext = Companion.sslContext
+            }).use { client ->
+                client.call(url, builder).response.use { response ->
+                    block(response, port)
                 }
             }
         }
     }
 
-    private fun withHttp2(url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit) {
-        runBlocking {
-            withTimeout(timeout.seconds, TimeUnit.SECONDS) {
-                HttpClient(Jetty).use { httpClient ->
-                    httpClient.call(url, builder).response.use { response ->
-                        block(response, port)
-                    }
+    private fun withHttp2(
+        url: URL, port: Int,
+        builder: HttpRequestBuilder.() -> Unit, block: suspend HttpResponse.(Int) -> Unit
+    ): Unit = runBlocking {
+        withTimeout(timeout.seconds, TimeUnit.SECONDS) {
+            HttpClient(Jetty).use { httpClient ->
+                httpClient.call(url, builder).response.use { response ->
+                    block(response, port)
                 }
             }
         }

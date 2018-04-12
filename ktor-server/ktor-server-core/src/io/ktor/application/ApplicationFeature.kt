@@ -31,8 +31,8 @@ private val featureRegistryKey = AttributeKey<Attributes>("ApplicationFeatureReg
  * @return an instance of feature
  */
 fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.feature(feature: ApplicationFeature<A, B, F>): F {
-    return attributes[featureRegistryKey].getOrNull(feature.key) ?:
-            throw MissingApplicationFeatureException(feature.key)
+    return attributes[featureRegistryKey].getOrNull(feature.key)
+            ?: throw MissingApplicationFeatureException(feature.key)
 }
 
 /**
@@ -45,7 +45,10 @@ fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.featureOrNull(feature
 /**
  * Installs [feature] into this pipeline, if it is not yet installed
  */
-fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(feature: ApplicationFeature<P, B, F>, configure: B.() -> Unit = {}): F {
+fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
+    feature: ApplicationFeature<P, B, F>,
+    configure: B.() -> Unit = {}
+): F {
     val registry = attributes.computeIfAbsent(featureRegistryKey) { Attributes() }
     val installedFeature = registry.getOrNull(feature.key)
     when (installedFeature) {
@@ -56,7 +59,7 @@ fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(feature: Appl
                 registry.put(feature.key, installed)
                 //environment.log.trace("`${feature.name}` feature was installed successfully.")
                 return installed
-            } catch(t: Throwable) {
+            } catch (t: Throwable) {
                 //environment.log.error("`${feature.name}` feature failed to install.", t)
                 throw t
             }
@@ -85,7 +88,8 @@ fun <A : Pipeline<*, ApplicationCall>> A.uninstallAllFeatures() {
 /**
  * Uninstalls [feature] from the pipeline
  */
-fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(feature: ApplicationFeature<A, B, F>) = uninstallFeature(feature.key)
+fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(feature: ApplicationFeature<A, B, F>) =
+    uninstallFeature(feature.key)
 
 /**
  * Uninstalls feature specified by [key] from the pipeline

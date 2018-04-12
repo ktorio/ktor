@@ -3,6 +3,8 @@ package io.ktor.server.testing
 import io.ktor.application.*
 import io.ktor.cio.*
 import io.ktor.http.*
+import io.ktor.http.cio.websocket.*
+import io.ktor.http.cio.websocket.Frame
 import io.ktor.network.util.*
 import io.ktor.pipeline.*
 import io.ktor.server.engine.*
@@ -15,8 +17,8 @@ import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 
 class TestApplicationEngine(
-        environment: ApplicationEngineEnvironment = createTestEnvironment(),
-        configure: Configuration.() -> Unit = {}
+    environment: ApplicationEngineEnvironment = createTestEnvironment(),
+    configure: Configuration.() -> Unit = {}
 ) : BaseApplicationEngine(environment, EnginePipeline()) {
 
     class Configuration : BaseApplicationEngine.Configuration() {
@@ -75,8 +77,8 @@ class TestApplicationEngine(
     }
 
     fun handleWebSocketConversation(
-            uri: String, setup: TestApplicationRequest.() -> Unit = {},
-            callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
+        uri: String, setup: TestApplicationRequest.() -> Unit = {},
+        callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
     ): TestApplicationCall {
         val websocketChannel = ByteChannel(true)
         val call = handleWebSocket(uri) {
@@ -87,9 +89,9 @@ class TestApplicationEngine(
         val pool = KtorDefaultPool
         val engineContext = Unconfined
         val job = Job()
-        val writer = @Suppress("DEPRECATION") WebSocketWriter(websocketChannel, job, engineContext, pool)
+        val writer = @Suppress("DEPRECATION") WebSocketWriter(websocketChannel, job, engineContext, pool = pool)
         val reader = @Suppress("DEPRECATION") WebSocketReader(
-                call.response.websocketChannel()!!, { Int.MAX_VALUE.toLong() }, job, engineContext, pool
+            call.response.websocketChannel()!!, Int.MAX_VALUE.toLong(), job, engineContext, pool
         )
 
         runBlocking(configuration.dispatcher) {
@@ -102,5 +104,5 @@ class TestApplicationEngine(
     }
 
     fun createCall(readResponse: Boolean = false, setup: TestApplicationRequest.() -> Unit): TestApplicationCall =
-            TestApplicationCall(application, readResponse).apply { setup(request) }
+        TestApplicationCall(application, readResponse).apply { setup(request) }
 }

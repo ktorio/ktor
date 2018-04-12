@@ -1,14 +1,13 @@
 package io.ktor.websocket
 
 import io.ktor.application.*
-import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
+import io.ktor.http.cio.websocket.*
+import io.ktor.http.websocket.*
 import io.ktor.request.*
-import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import java.security.*
 import kotlin.coroutines.experimental.*
 
 /**
@@ -18,31 +17,42 @@ import kotlin.coroutines.experimental.*
  * Please note that you generally shouldn't use this object directly but use [WebSockets] feature with routing builders
  * [webSocket] instead
  */
-class WebSocketUpgrade(val call: ApplicationCall, val protocol: String? = null, val handle: suspend WebSocketSession.(Dispatchers) -> Unit) : OutgoingContent.ProtocolUpgrade() {
-    private val key = call.request.header(HttpHeaders.SecWebSocketKey) ?: throw IllegalArgumentException("It should be ${HttpHeaders.SecWebSocketKey} header")
+class WebSocketUpgrade(
+    val call: ApplicationCall,
+    val protocol: String? = null,
+    val handle: suspend WebSocketSession.() -> Unit
+) : OutgoingContent.ProtocolUpgrade() {
+    private val key = call.request.header(HttpHeaders.SecWebSocketKey)
+            ?: throw IllegalArgumentException("It should be ${HttpHeaders.SecWebSocketKey} header")
 
     override val headers: Headers
         get() = Headers.build {
             append(HttpHeaders.Upgrade, "websocket")
             append(HttpHeaders.Connection, "Upgrade")
-            append(HttpHeaders.SecWebSocketAccept, encodeBase64(sha1("${key.trim()}258EAFA5-E914-47DA-95CA-C5AB0DC85B11")))
+            append(HttpHeaders.SecWebSocketAccept, websocketServerAccept(key))
             if (protocol != null) {
                 append(HttpHeaders.SecWebSocketProtocol, protocol)
             }
-            // TODO extensions
         }
 
-    override suspend fun upgrade(input: ByteReadChannel, output: ByteWriteChannel, engineContext: CoroutineContext, userContext: CoroutineContext): Job {
-        val webSockets = call.application.feature(WebSockets)
-        val webSocket = RawWebSocketImpl(call, input, output, KtorDefaultPool, engineContext, userContext)
+    override suspend fun upgrade(
+        input: ByteReadChannel,
+        output: ByteWriteChannel,
+        engineContext: CoroutineContext,
+        userContext: CoroutineContext
+    ): Job {
+        val feature = call.application.feature(WebSockets)
+        val webSocket = RawWebSocket(
+            input, output,
+            feature.maxFrameSize, feature.masking,
+            dispatcher = engineContext
+        )
 
-        webSocket.maxFrameSize = webSockets.maxFrameSize
-        webSocket.masking = webSockets.masking
-
-        return webSocket.start(handle)
+        return launch(userContext, parent = feature.context) {
+            try {
+                webSocket.start(handle)
+            } catch (cause: Throwable) {
+            }
+        }
     }
-
-    class Dispatchers(val engineContext: CoroutineContext, val userContext: CoroutineContext)
-
-    private fun sha1(s: String) = MessageDigest.getInstance("SHA1").digest(s.toByteArray(Charsets.ISO_8859_1))
 }

@@ -114,9 +114,11 @@ sealed class OutgoingContent {
          * @param engineContext is a [CoroutineContext] to execute non-blocking code, such as parsing or processing
          * @param userContext is a [CoroutineContext] to execute user-provided callbacks or code potentially blocking
          */
-        abstract suspend fun upgrade(input: ByteReadChannel,
-                                     output: ByteWriteChannel,
-                                     engineContext: CoroutineContext,
-                                     userContext: CoroutineContext): Job
+        abstract suspend fun upgrade(
+            input: ByteReadChannel,
+            output: ByteWriteChannel,
+            engineContext: CoroutineContext,
+            userContext: CoroutineContext
+        ): Job
     }
 }

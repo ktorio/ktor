@@ -10,6 +10,18 @@ abstract class HttpMessage internal constructor(val headers: HttpHeadersMap, pri
     }
 }
 
-class Request internal constructor(val method: HttpMethod, val uri: CharSequence, val version: CharSequence, headers: HttpHeadersMap, builder: CharBufferBuilder) : HttpMessage(headers, builder)
+class Request internal constructor(
+    val method: HttpMethod,
+    val uri: CharSequence,
+    val version: CharSequence,
+    headers: HttpHeadersMap,
+    builder: CharBufferBuilder
+) : HttpMessage(headers, builder)
 
-class Response internal constructor(val version: CharSequence, val status: Int, val statusText: CharSequence, headers: HttpHeadersMap, builder: CharBufferBuilder) : HttpMessage(headers, builder)
+class Response internal constructor(
+    val version: CharSequence,
+    val status: Int,
+    val statusText: CharSequence,
+    headers: HttpHeadersMap,
+    builder: CharBufferBuilder
+) : HttpMessage(headers, builder)

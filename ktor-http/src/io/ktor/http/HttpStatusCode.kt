@@ -63,12 +63,14 @@ data class HttpStatusCode(val value: Int, val description: String) {
         val VariantAlsoNegotiates = HttpStatusCode(506, "Variant Also Negotiates")
 
         val allStatusCodes = HttpStatusCode.Companion::class.memberProperties
-                .filter { it.returnType.classifier == HttpStatusCode::class }
-                .map { it.get(this) as HttpStatusCode }
+            .filter { it.returnType.classifier == HttpStatusCode::class }
+            .map { it.get(this) as HttpStatusCode }
 
-        private val byValue by lazy { Array(1000) { idx ->
-            allStatusCodes.firstOrNull { it.value == idx }
-        } }
+        private val byValue by lazy {
+            Array(1000) { idx ->
+                allStatusCodes.firstOrNull { it.value == idx }
+            }
+        }
 
         fun fromValue(value: Int): HttpStatusCode {
             val knownStatus = if (value > 0 && value < 1000) byValue[value] else null
@@ -77,3 +79,4 @@ data class HttpStatusCode(val value: Int, val description: String) {
     }
 }
 
+fun HttpStatusCode.isSuccess(): Boolean = value in (200 until 300)

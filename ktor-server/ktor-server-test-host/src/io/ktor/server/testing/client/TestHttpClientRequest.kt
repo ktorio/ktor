@@ -8,9 +8,9 @@ import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 
 class TestHttpClientRequest(
-        override val call: HttpClientCall,
-        private val engine: TestHttpClientEngine,
-        requestData: HttpRequestData
+    override val call: HttpClientCall,
+    private val engine: TestHttpClientEngine,
+    requestData: HttpRequestData
 ) : HttpRequest {
     override val attributes: Attributes = Attributes()
 

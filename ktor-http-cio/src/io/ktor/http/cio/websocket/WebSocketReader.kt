@@ -1,5 +1,6 @@
-package io.ktor.websocket
+package io.ktor.http.cio.websocket
 
+import io.ktor.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
@@ -14,27 +15,30 @@ import kotlin.coroutines.experimental.*
  * converts into Websocket [Frame] exposing them in [incoming].
  */
 class WebSocketReader @Deprecated("Internal API") constructor(
-        val byteChannel: ByteReadChannel,
-        val maxFrameSize: () -> Long,
-        job: Job, context: CoroutineContext,
-        pool: ObjectPool<ByteBuffer>
+    private val byteChannel: ByteReadChannel,
+    var maxFrameSize: Long,
+    parent: Job,
+    context: CoroutineContext,
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) {
     private var state = State.HEADER
+    @Suppress("DEPRECATION")
     private val frameParser = FrameParser()
+    @Suppress("DEPRECATION")
     private val collector = SimpleFrameCollector()
 
     private val queue = Channel<Frame>(8)
 
-    private val readerJob = launch(context + job, start = CoroutineStart.LAZY) {
+    private val readerJob = launch(context, parent = parent, start = CoroutineStart.LAZY) {
         val buffer = pool.borrow()
         try {
             readLoop(buffer)
         } catch (expected: ClosedChannelException) {
         } catch (expected: CancellationException) {
             queue.cancel()
-        } catch (t: Throwable) {
-            queue.close(t)
-            throw t
+        } catch (cause: Throwable) {
+            queue.close(cause)
+            throw cause
         } finally {
             pool.recycle(buffer)
             queue.close()
@@ -69,7 +73,7 @@ class WebSocketReader @Deprecated("Internal API") constructor(
 
                     if (frameParser.bodyReady) {
                         state = State.BODY
-                        if (frameParser.length > Int.MAX_VALUE || frameParser.length > maxFrameSize()) {
+                        if (frameParser.length > Int.MAX_VALUE || frameParser.length > maxFrameSize) {
                             throw FrameTooBigException(frameParser.length)
                         }
 
@@ -102,7 +106,7 @@ class WebSocketReader @Deprecated("Internal API") constructor(
             get() = "Frame is too big: $frameSize"
     }
 
-    enum class State {
+    private enum class State {
         HEADER,
         BODY,
         END

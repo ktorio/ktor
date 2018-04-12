@@ -52,7 +52,9 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
     }
 
     override fun responseMessage(chunked: Boolean, data: ByteArray): Any {
-        val responseMessage = DefaultFullHttpResponse(protocol, responseStatus, Unpooled.wrappedBuffer(data), responseHeaders, EmptyHttpHeaders.INSTANCE)
+        val responseMessage = DefaultFullHttpResponse(
+                protocol, responseStatus, Unpooled.wrappedBuffer(data), responseHeaders, EmptyHttpHeaders.INSTANCE
+        )
         if (chunked) {
             setChunked(responseMessage)
         }

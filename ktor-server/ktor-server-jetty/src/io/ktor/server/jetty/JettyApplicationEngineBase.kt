@@ -8,8 +8,10 @@ import java.util.concurrent.*
 /**
  * [ApplicationEngine] base type for running in a standalone Jetty
  */
-open class JettyApplicationEngineBase(environment: ApplicationEngineEnvironment,
-                                      configure: Configuration.() -> Unit) : BaseApplicationEngine(environment) {
+open class JettyApplicationEngineBase(
+    environment: ApplicationEngineEnvironment,
+    configure: Configuration.() -> Unit
+) : BaseApplicationEngine(environment) {
 
     class Configuration : BaseApplicationEngine.Configuration() {
         /**
