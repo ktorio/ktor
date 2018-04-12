@@ -19,9 +19,9 @@ import org.junit.Test
 import kotlin.test.*
 
 data class Widget(
-        val name: String,
-        val value: Int,
-        val tags: List<String> = emptyList()
+    val name: String,
+    val value: Int,
+    val tags: List<String> = emptyList()
 )
 
 class JsonTest : TestWithKtor() {

@@ -11,7 +11,7 @@ import io.ktor.util.*
  * [HttpClient] feature that handles http redirect
  */
 class HttpRedirect(
-        val maxJumps: Int
+    val maxJumps: Int
 ) {
 
     class Config {
@@ -24,7 +24,7 @@ class HttpRedirect(
         private val Redirect = PipelinePhase("RedirectPhase")
 
         override suspend fun prepare(block: Config.() -> Unit): HttpRedirect =
-                HttpRedirect(Config().apply(block).maxJumps)
+            HttpRedirect(Config().apply(block).maxJumps)
 
         override fun install(feature: HttpRedirect, scope: HttpClient) {
             scope.requestPipeline.insertPhaseBefore(HttpRequestPipeline.Send, Redirect)

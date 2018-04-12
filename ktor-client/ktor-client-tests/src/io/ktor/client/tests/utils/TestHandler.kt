@@ -11,7 +11,7 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 
 internal class TestHandler(
-        private val resource: (cause: Throwable?) -> Unit
+    private val resource: (cause: Throwable?) -> Unit
 ) {
     class Config {
         var onClose: (cause: Throwable?) -> Unit = {}
@@ -21,7 +21,7 @@ internal class TestHandler(
         override val key: AttributeKey<TestHandler> = AttributeKey("Buffer")
 
         override suspend fun prepare(block: Config.() -> Unit): TestHandler =
-                Config().apply(block).let { TestHandler(it.onClose) }
+            Config().apply(block).let { TestHandler(it.onClose) }
 
         override fun install(feature: TestHandler, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Render) { content: OutgoingContent.ReadChannelContent ->
@@ -29,8 +29,8 @@ internal class TestHandler(
                     override val headers: Headers = content.headers
 
                     override fun readFrom(): ByteReadChannel = writer(
-                            Unconfined, autoFlush = true,
-                            parent = context.executionContext
+                        Unconfined, autoFlush = true,
+                        parent = context.executionContext
                     ) {
                         try {
                             content.readFrom().copyAndClose(channel)

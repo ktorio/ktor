@@ -2,12 +2,19 @@ package io.ktor.client.engine
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import kotlinx.coroutines.experimental.*
 import java.io.*
 
 /**
  * Base interface use to define engines for [HttpClient].
  */
 interface HttpClientEngine : Closeable {
+
+    /**
+     * [CoroutineDispatcher] specified for io operations.
+     */
+    val dispatcher: CoroutineDispatcher
+
     /**
      * Creates a new [HttpClientCall] specific for this engine, using a request [data].
      */

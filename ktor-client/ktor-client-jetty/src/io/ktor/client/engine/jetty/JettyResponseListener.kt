@@ -15,14 +15,14 @@ import java.io.*
 import java.nio.channels.*
 import java.util.concurrent.*
 
-data class StatusWithHeaders(val statusCode: HttpStatusCode, val headers: Headers)
+internal data class StatusWithHeaders(val statusCode: HttpStatusCode, val headers: Headers)
 
 private data class JettyResponseChunk(val buffer: ByteBuffer, val callback: Callback)
 
 internal class JettyResponseListener(
-        private val channel: ByteWriteChannel,
-        private val dispatcher: CoroutineDispatcher,
-        private val context: CompletableDeferred<Unit>
+    private val channel: ByteWriteChannel,
+    private val dispatcher: CoroutineDispatcher,
+    private val context: CompletableDeferred<Unit>
 ) : Stream.Listener {
     private val headersBuilder: HeadersBuilder = HeadersBuilder()
     private val onHeadersReceived: CompletableFuture<HttpStatusCode?> = CompletableFuture()

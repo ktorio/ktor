@@ -59,10 +59,10 @@ fun OutgoingContent.wrapHeaders(block: (Headers) -> Headers): OutgoingContent = 
         override val headers: Headers = block(this@wrapHeaders.headers)
 
         override suspend fun upgrade(
-                input: ByteReadChannel,
-                output: ByteWriteChannel,
-                engineContext: CoroutineContext,
-                userContext: CoroutineContext
+            input: ByteReadChannel,
+            output: ByteWriteChannel,
+            engineContext: CoroutineContext,
+            userContext: CoroutineContext
         ): Job = this@wrapHeaders.upgrade(input, output, engineContext, userContext)
     }
 }

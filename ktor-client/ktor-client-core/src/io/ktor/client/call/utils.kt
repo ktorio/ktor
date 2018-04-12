@@ -7,8 +7,8 @@ import io.ktor.http.*
 import java.net.*
 
 
-class UnsupportedContentTypeException(content: OutgoingContent)
-    : IllegalStateException("Failed to write body: ${content::class}")
+class UnsupportedContentTypeException(content: OutgoingContent) :
+    IllegalStateException("Failed to write body: ${content::class}")
 
 /**
  * Constructs a [HttpClientCall] from this [HttpClient] and
@@ -30,4 +30,4 @@ suspend fun HttpClient.call(url: URL, block: HttpRequestBuilder.() -> Unit = {})
  * an [url] and an optional [block] configuring a [HttpRequestBuilder].
  */
 suspend fun HttpClient.call(url: String, block: HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
-        call(URL(url), block)
+    call(URL(url), block)

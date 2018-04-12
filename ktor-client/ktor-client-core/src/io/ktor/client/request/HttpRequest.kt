@@ -75,11 +75,13 @@ class HttpRequestBuilder : HttpMessageBuilder {
 
     private var attributesBuilder: Attributes.() -> Unit = {}
 
+    fun url(block: URLBuilder.(URLBuilder) -> Unit): Unit = url.block(url)
+
     /**
      * Create immutable [HttpRequestData]
      */
     fun build(): HttpRequestData = HttpRequestData(
-            url.build(), method, headers.build(), body, executionContext, attributesBuilder
+        url.build(), method, headers.build(), body, executionContext, attributesBuilder
     )
 
     /**
@@ -98,12 +100,12 @@ class HttpRequestBuilder : HttpMessageBuilder {
  * Built by [HttpRequestBuilder].
  */
 class HttpRequestData(
-        val url: Url,
-        val method: HttpMethod,
-        val headers: Headers,
-        val body: Any,
-        val executionContext: CompletableDeferred<Unit>,
-        val attributes: Attributes.() -> Unit
+    val url: Url,
+    val method: HttpMethod,
+    val headers: Headers,
+    val body: Any,
+    val executionContext: CompletableDeferred<Unit>,
+    val attributes: Attributes.() -> Unit
 )
 
 /**
@@ -144,14 +146,14 @@ fun HttpRequestBuilder.takeFrom(request: HttpRequestData): HttpRequestBuilder {
  * Executes a [block] that configures the [URLBuilder] associated to thisrequest.
  */
 operator fun HttpRequestBuilder.Companion.invoke(block: URLBuilder.() -> Unit): HttpRequestBuilder =
-        HttpRequestBuilder().apply { url(block) }
+    HttpRequestBuilder().apply { url(block) }
 
 /**
  * Sets the [url] using the specified [scheme], [host], [port] and [path].
-*/
+ */
 fun HttpRequestBuilder.url(
-        scheme: String = "http", host: String = "localhost", port: Int = 80, path: String = "/",
-        block: URLBuilder.() -> Unit = {}
+    scheme: String = "http", host: String = "localhost", port: Int = 80, path: String = "/",
+    block: URLBuilder.() -> Unit = {}
 ): Unit {
     url.apply {
         protocol = URLProtocol.createOrDefault(scheme)
@@ -167,8 +169,8 @@ fun HttpRequestBuilder.url(
  * and optionally further configures it using [block].
  */
 operator fun HttpRequestBuilder.Companion.invoke(
-        scheme: String = "http", host: String = "localhost", port: Int = 80, path: String = "/",
-        block: URLBuilder.() -> Unit = {}
+    scheme: String = "http", host: String = "localhost", port: Int = 80, path: String = "/",
+    block: URLBuilder.() -> Unit = {}
 ): HttpRequestBuilder = HttpRequestBuilder().apply { url(scheme, host, port, path, block) }
 
 /**
@@ -176,7 +178,7 @@ operator fun HttpRequestBuilder.Companion.invoke(
  */
 fun HttpRequestBuilder.url(url: java.net.URL): Unit = this.url.takeFrom(url)
 
- /**
+/**
  * Sets the [HttpRequestBuilder.url] from [url].
  */
 fun HttpRequestBuilder.url(url: String): Unit = this.url.takeFrom(java.net.URI(url))
@@ -185,4 +187,4 @@ fun HttpRequestBuilder.url(url: String): Unit = this.url.takeFrom(java.net.URI(u
  * Constructs a [HttpRequestBuilder] from [url].
  */
 operator fun HttpRequestBuilder.Companion.invoke(url: java.net.URL): HttpRequestBuilder =
-        HttpRequestBuilder().apply { url(url) }
+    HttpRequestBuilder().apply { url(url) }

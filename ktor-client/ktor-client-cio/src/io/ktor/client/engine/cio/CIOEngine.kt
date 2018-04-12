@@ -9,15 +9,15 @@ import kotlinx.coroutines.experimental.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
-class CIOEngine(private val config: CIOEngineConfig) : HttpClientEngine {
-    private val dispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
+internal class CIOEngine(private val config: CIOEngineConfig) : HttpClientEngine {
+    override val dispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
 
     private val connectionFactory = ConnectionFactory(config.maxConnectionsCount)
     private val closed = AtomicBoolean()
 
     override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
-        val request = CIOHttpRequest(call, this, data)
+        val request = CIOHttpRequest(call, data)
         val response = executeRequest(request)
 
         return HttpEngineCall(request, response)
@@ -30,7 +30,7 @@ class CIOEngine(private val config: CIOEngineConfig) : HttpClientEngine {
             val endpoint = with(request.url) {
                 val address = "$host:$port:$protocol"
                 endpoints.computeIfAbsent(address) {
-                    val secure = (protocol.name.equals(URLProtocol.HTTPS.name, ignoreCase = true))
+                    val secure = (protocol.isSecure())
                     Endpoint(host, port, secure, dispatcher, config, connectionFactory) {
                         endpoints.remove(address)
                     }

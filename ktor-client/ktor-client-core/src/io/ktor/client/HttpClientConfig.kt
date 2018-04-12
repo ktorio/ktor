@@ -15,8 +15,8 @@ class HttpClientConfig {
      * Installs a specific [feature] and optionally [configure] it.
      */
     suspend fun <TBuilder : Any, TFeature : Any> install(
-            feature: HttpClientFeature<TBuilder, TFeature>,
-            configure: TBuilder.() -> Unit = {}
+        feature: HttpClientFeature<TBuilder, TFeature>,
+        configure: TBuilder.() -> Unit = {}
     ) {
         val featureData = feature.prepare(configure)
 

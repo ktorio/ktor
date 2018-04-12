@@ -29,7 +29,7 @@ class JsonFeature(val serializer: JsonSerializer) {
         override val key: AttributeKey<JsonFeature> = AttributeKey("Json")
 
         override suspend fun prepare(block: Config.() -> Unit): JsonFeature =
-                Config().apply(block).let { JsonFeature(it.serializer) }
+            Config().apply(block).let { JsonFeature(it.serializer) }
 
         override fun install(feature: JsonFeature, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { payload ->
@@ -44,12 +44,11 @@ class JsonFeature(val serializer: JsonSerializer) {
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (expectedType, response) ->
-                if (response !is HttpResponse || context.response.contentType()?.match(ContentType.Application.Json) != true) return@intercept
+                if (response !is HttpResponse
+                    || context.response.contentType()?.match(ContentType.Application.Json) != true
+                ) return@intercept
 
-                proceedWith(HttpResponseContainer(
-                        expectedType,
-                        feature.serializer.read(expectedType, response)
-                ))
+                proceedWith(HttpResponseContainer(expectedType, feature.serializer.read(expectedType, response)))
             }
         }
     }

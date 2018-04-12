@@ -11,17 +11,16 @@ import org.apache.http.impl.nio.reactor.*
 private const val MAX_CONNECTIONS_COUNT = 1000
 private const val IO_THREAD_COUNT_DEFAULT = 4
 
-class ApacheEngine(private val config: ApacheEngineConfig) : HttpClientEngine {
+internal class ApacheEngine(private val config: ApacheEngineConfig) : HttpClientEngine {
+    private val engine: CloseableHttpAsyncClient = prepareClient().apply { start() }
+    override val dispatcher: CoroutineDispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
 
     override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
-        val request = ApacheHttpRequest(call, engine, config, dispatcher, data)
+        val request = ApacheHttpRequest(call, engine, config, data, dispatcher)
         val response = request.execute()
 
         return HttpEngineCall(request, response)
     }
-
-    private val engine: CloseableHttpAsyncClient = prepareClient().apply { start() }
-    private val dispatcher: CoroutineDispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
 
     override fun close() {
         try {

@@ -20,9 +20,9 @@ import kotlin.test.*
 
 open class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     private val TEST_SIZE = listOf(
-            0, 1, // small edge cases
-            4 * 1024 - 1, 4 * 1024, 4 * 1024 + 1, // ByteChannel edge cases
-            16 * 1024 * 1024 // big
+        0, 1, // small edge cases
+        4 * 1024 - 1, 4 * 1024, 4 * 1024 + 1, // ByteChannel edge cases
+        16 * 1024 * 1024 // big
     )
 
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {

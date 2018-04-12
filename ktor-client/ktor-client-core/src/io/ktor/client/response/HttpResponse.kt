@@ -3,6 +3,7 @@ package io.ktor.client.response
 import io.ktor.cio.*
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
@@ -62,8 +63,8 @@ interface HttpResponse : HttpMessage, Closeable {
  *      So it just acts as a fallback, honoring the server preference.
  */
 suspend fun HttpResponse.readText(
-        charset: Charset? = null,
-        pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    charset: Charset? = null,
+    pool: ObjectPool<ByteBuffer> = HttpClientDefaultPool
 ): String {
     val length = headers[HttpHeaders.ContentLength]?.toInt() ?: 1
     return content.toByteArray(length, pool).toString(charset() ?: charset ?: Charsets.ISO_8859_1)

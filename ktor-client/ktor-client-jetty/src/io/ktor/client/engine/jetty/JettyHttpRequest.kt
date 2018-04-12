@@ -18,11 +18,11 @@ import java.io.*
 import java.util.*
 
 
-class JettyHttpRequest(
-        override val call: HttpClientCall,
-        private val client: JettyHttp2Engine,
-        private val dispatcher: CoroutineDispatcher,
-        requestData: HttpRequestData
+internal class JettyHttpRequest(
+    override val call: HttpClientCall,
+    private val client: JettyHttp2Engine,
+    private val dispatcher: CoroutineDispatcher,
+    requestData: HttpRequestData
 ) : HttpRequest {
     override val attributes: Attributes = Attributes()
 
@@ -70,13 +70,13 @@ class JettyHttpRequest(
         }
 
         val meta = MetaData.Request(
-                method.value,
-                url.protocol.name,
-                HostPortHttpField("${url.host}:${url.port}"),
-                url.fullPath,
-                HttpVersion.HTTP_2,
-                rawHeaders,
-                Long.MIN_VALUE
+            method.value,
+            url.protocol.name,
+            HostPortHttpField("${url.host}:${url.port}"),
+            url.fullPath,
+            HttpVersion.HTTP_2,
+            rawHeaders,
+            Long.MIN_VALUE
         )
 
         return HeadersFrame(meta, null, content is OutgoingContent.NoContent)

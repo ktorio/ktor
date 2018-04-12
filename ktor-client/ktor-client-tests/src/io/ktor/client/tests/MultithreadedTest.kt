@@ -52,9 +52,9 @@ abstract class MultithreadedTest(private val factory: HttpClientEngineFactory<*>
 }
 
 private fun <T> withPool(
-        threads: Int = DEFAULT_THREADS_COUNT,
-        testSize: Int = TEST_SIZE,
-        block: suspend () -> T
+    threads: Int = DEFAULT_THREADS_COUNT,
+    testSize: Int = TEST_SIZE,
+    block: suspend () -> T
 ): List<T> {
     val pool = Executors.newFixedThreadPool(threads)
     val result = List(testSize) {

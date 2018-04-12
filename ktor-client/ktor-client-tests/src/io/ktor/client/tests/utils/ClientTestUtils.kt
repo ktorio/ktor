@@ -4,9 +4,9 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 import kotlinx.coroutines.experimental.*
 
-internal fun <T : HttpClientEngineConfig> clientTest(
-        factory: HttpClientEngineFactory<T>,
-        block: suspend TestClientBuilder.() -> Unit
+fun <T : HttpClientEngineConfig> clientTest(
+    factory: HttpClientEngineFactory<T>,
+    block: suspend TestClientBuilder.() -> Unit
 ): Unit = runBlocking {
     val builder = TestClientBuilder().also { it.block() }
 
@@ -15,15 +15,15 @@ internal fun <T : HttpClientEngineConfig> clientTest(
     }.use { client -> builder.test(client) }
 }
 
-internal class TestClientBuilder(
-        var config: suspend HttpClientConfig.() -> Unit = {},
-        var test: suspend (HttpClient) -> Unit = {}
+class TestClientBuilder(
+    var config: suspend HttpClientConfig.() -> Unit = {},
+    var test: suspend (HttpClient) -> Unit = {}
 )
 
-internal fun TestClientBuilder.config(block: suspend HttpClientConfig.() -> Unit): Unit {
+fun TestClientBuilder.config(block: suspend HttpClientConfig.() -> Unit): Unit {
     config = block
 }
 
-internal fun TestClientBuilder.test(block: suspend (HttpClient) -> Unit): Unit {
+fun TestClientBuilder.test(block: suspend (HttpClient) -> Unit): Unit {
     test = block
 }

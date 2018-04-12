@@ -8,7 +8,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 
-internal suspend fun CIOHttpRequest.write(output: ByteWriteChannel, content: OutgoingContent) {
+internal suspend fun CIOHttpRequest.write(output: ByteWriteChannel) {
     val builder = RequestResponseBuilder()
 
     val contentLength = headers[HttpHeaders.ContentLength] ?: content.contentLength?.toString()
@@ -61,12 +61,10 @@ internal suspend fun CIOHttpRequest.write(output: ByteWriteChannel, content: Out
     try {
         when (content) {
             is OutgoingContent.NoContent -> return
-            is OutgoingContent.ByteArrayContent -> {
-                channel.writeFully(content.bytes())
-            }
+            is OutgoingContent.ByteArrayContent -> channel.writeFully(content.bytes())
             is OutgoingContent.ReadChannelContent -> content.readFrom().joinTo(channel, closeOnEnd = false)
             is OutgoingContent.WriteChannelContent -> content.writeTo(channel)
-            is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(content)
+            is OutgoingContent.ProtocolUpgrade -> UnsupportedContentTypeException(content)
         }
     } catch (cause: Throwable) {
         channel.close(cause)

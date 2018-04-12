@@ -12,23 +12,12 @@ import java.io.*
 import java.nio.channels.*
 import java.util.*
 
-internal class ConnectionRequestTask(
-        val request: CIOHttpRequest,
-        val continuation: CancellableContinuation<CIOHttpResponse>
-)
-
-private class ConnectionResponseTask(
-        val requestTime: Date,
-        val continuation: CancellableContinuation<CIOHttpResponse>,
-        val call: CIOHttpRequest
-)
-
 internal class ConnectionPipeline(
-        dispatcher: CoroutineDispatcher,
-        keepAliveTime: Int,
-        pipelineMaxSize: Int,
-        socket: Socket,
-        tasks: Channel<ConnectionRequestTask>
+    dispatcher: CoroutineDispatcher,
+    keepAliveTime: Int,
+    pipelineMaxSize: Int,
+    socket: Socket,
+    tasks: Channel<RequestTask>
 ) {
     private val inputChannel = socket.openReadChannel()
     private val outputChannel = socket.openWriteChannel()
@@ -50,7 +39,7 @@ internal class ConnectionPipeline(
                     throw cause
                 }
 
-                task.request.write(outputChannel, task.request.content)
+                task.request.write(outputChannel)
                 outputChannel.flush()
                 if (ConnectionOptions.parse(task.request.headers[HttpHeaders.Connection]) == ConnectionOptions.Close) {
                     break
@@ -81,7 +70,7 @@ internal class ConnectionPipeline(
                         parseHttpBody(contentLength, transferEncoding, connectionType, inputChannel, channel)
                     }
 
-                    task.continuation.resume(CIOHttpResponse(task.call, task.requestTime, writerJob.channel, response))
+                    task.continuation.resume(CIOHttpResponse(task.request, task.requestTime, writerJob.channel, response))
                     writerJob
                 } catch (cause: ClosedChannelException) {
                     null

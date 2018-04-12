@@ -1,0 +1,9 @@
+description = "Ktor websocket support"
+
+dependencies {
+    compile project(":ktor-client:ktor-client-core")
+
+    testCompile project(":ktor-client:ktor-client-cio")
+    testCompile project(":ktor-features:ktor-websockets")
+    testCompile project(":ktor-client:ktor-client-tests")
+}

@@ -19,12 +19,12 @@ import org.apache.http.nio.protocol.*
 import org.apache.http.protocol.*
 import java.nio.ByteBuffer
 
-class ApacheRequestProducer(
-        private val requestData: HttpRequestData,
-        private val config: ApacheEngineConfig,
-        private val body: OutgoingContent,
-        private val dispatcher: CoroutineDispatcher,
-        private val context: CompletableDeferred<Unit>
+internal class ApacheRequestProducer(
+    private val requestData: HttpRequestData,
+    private val config: ApacheEngineConfig,
+    private val body: OutgoingContent,
+    private val dispatcher: CoroutineDispatcher,
+    private val context: CompletableDeferred<Unit>
 ) : HttpAsyncRequestProducer {
     private var requestJob: Job? = null
     private val requestChannel = Channel<ByteBuffer>(1)
@@ -127,12 +127,12 @@ class ApacheRequestProducer(
 
         with(config) {
             builder.config = RequestConfig.custom()
-                    .setRedirectsEnabled(followRedirects)
-                    .setSocketTimeout(socketTimeout)
-                    .setConnectTimeout(connectTimeout)
-                    .setConnectionRequestTimeout(connectionRequestTimeout)
-                    .customRequest()
-                    .build()
+                .setRedirectsEnabled(followRedirects)
+                .setSocketTimeout(socketTimeout)
+                .setConnectTimeout(connectTimeout)
+                .setConnectionRequestTimeout(connectionRequestTimeout)
+                .customRequest()
+                .build()
         }
 
         return builder.build()

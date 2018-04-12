@@ -11,9 +11,11 @@ import org.eclipse.jetty.util.ssl.*
 import java.net.*
 
 
-class JettyHttp2Engine(config: JettyEngineConfig) : HttpClientEngine {
-    private val dispatcher: CoroutineDispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
+internal class JettyHttp2Engine(config: JettyEngineConfig) : HttpClientEngine {
+    override val dispatcher: CoroutineDispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
+
     private val sslContextFactory: SslContextFactory = config.sslContextFactory
+
     private val jettyClient = HTTP2Client().apply {
         addBean(sslContextFactory)
         start()

@@ -3,14 +3,12 @@ package io.ktor.client.engine.cio
 import io.ktor.client.engine.*
 import javax.net.ssl.*
 
-
 class CIOEngineConfig : HttpClientEngineConfig() {
     val endpoint = EndpointConfig()
     val https = HttpsConfig()
 
     var maxConnectionsCount = 1000
 }
-
 
 class EndpointConfig {
     var maxConnectionsPerRoute: Int = 100

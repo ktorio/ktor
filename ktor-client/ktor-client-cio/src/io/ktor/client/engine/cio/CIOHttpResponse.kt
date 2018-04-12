@@ -9,11 +9,11 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.util.*
 
-class CIOHttpResponse(
-        request: HttpRequest,
-        override val requestTime: Date,
-        override val content: ByteReadChannel,
-        private val response: Response
+internal class CIOHttpResponse(
+    request: HttpRequest,
+    override val requestTime: Date,
+    override val content: ByteReadChannel,
+    private val response: Response
 ) : HttpResponse {
     override val call: HttpClientCall = request.call
     override val status: HttpStatusCode = HttpStatusCode.fromValue(response.status)

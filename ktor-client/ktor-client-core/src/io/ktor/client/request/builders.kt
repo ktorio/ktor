@@ -11,7 +11,7 @@ import java.net.*
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
 suspend inline fun <reified T> HttpClient.request(
-        builder: HttpRequestBuilder = HttpRequestBuilder()
+    builder: HttpRequestBuilder = HttpRequestBuilder()
 ): T = call(builder).receive()
 
 /**
@@ -19,7 +19,7 @@ suspend inline fun <reified T> HttpClient.request(
  * and tries to receive a specific type [T], if fails, an exception is thrown.
  */
 suspend inline fun <reified T> HttpClient.request(block: HttpRequestBuilder.() -> Unit): T =
-        request(HttpRequestBuilder().apply(block))
+    request(HttpRequestBuilder().apply(block))
 
 /**
  * Executes a [HttpClient] GET request, with the information from the [builder]
@@ -46,10 +46,10 @@ suspend inline fun <reified T> HttpClient.post(builder: HttpRequestBuilder): T {
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
 suspend inline fun <reified T> HttpClient.get(
-        scheme: String = "http", host: String = "localhost", port: Int = 80,
-        path: String = "/",
-        body: Any = EmptyContent,
-        block: HttpRequestBuilder.() -> Unit = {}
+    scheme: String = "http", host: String = "localhost", port: Int = 80,
+    path: String = "/",
+    body: Any = EmptyContent,
+    block: HttpRequestBuilder.() -> Unit = {}
 ): T = request {
     url(scheme, host, port, path)
     method = HttpMethod.Get
@@ -64,10 +64,10 @@ suspend inline fun <reified T> HttpClient.get(
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
 suspend inline fun <reified T> HttpClient.post(
-        scheme: String = "http", host: String = "localhost", port: Int = 80,
-        path: String = "/",
-        body: Any = EmptyContent,
-        block: HttpRequestBuilder.() -> Unit = {}
+    scheme: String = "http", host: String = "localhost", port: Int = 80,
+    path: String = "/",
+    body: Any = EmptyContent,
+    block: HttpRequestBuilder.() -> Unit = {}
 ): T = request {
     url(scheme, host, port, path)
     method = HttpMethod.Post
@@ -82,8 +82,8 @@ suspend inline fun <reified T> HttpClient.post(
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
 suspend inline fun <reified T> HttpClient.get(
-        url: URL,
-        block: HttpRequestBuilder.() -> Unit = {}
+    url: URL,
+    block: HttpRequestBuilder.() -> Unit = {}
 ): T = get {
     this.url.takeFrom(url)
     block()
@@ -96,8 +96,8 @@ suspend inline fun <reified T> HttpClient.get(
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
 suspend inline fun <reified T> HttpClient.post(
-        url: URL,
-        block: HttpRequestBuilder.() -> Unit = {}
+    url: URL,
+    block: HttpRequestBuilder.() -> Unit = {}
 ): T = post {
     this.url.takeFrom(url)
     block()
@@ -110,8 +110,8 @@ suspend inline fun <reified T> HttpClient.post(
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
 suspend inline fun <reified T> HttpClient.get(
-        url: String,
-        block: HttpRequestBuilder.() -> Unit = {}
+    url: String,
+    block: HttpRequestBuilder.() -> Unit = {}
 ): T = get(URL(url), block = block)
 
 /**
@@ -121,8 +121,8 @@ suspend inline fun <reified T> HttpClient.get(
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
 suspend inline fun <reified T> HttpClient.post(
-        url: String,
-        block: HttpRequestBuilder.() -> Unit = {}
+    url: String,
+    block: HttpRequestBuilder.() -> Unit = {}
 ): T = post(URL(url), block = block)
 
 /**

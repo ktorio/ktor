@@ -11,7 +11,7 @@ import kotlin.reflect.*
  * A class that represents a single pair of [request] and [response] for a specific [HttpClient].
  */
 class HttpClientCall internal constructor(
-        private val client: HttpClient
+    private val client: HttpClient
 ) : Closeable {
     private val received = AtomicBoolean(false)
 
@@ -60,7 +60,7 @@ data class HttpEngineCall(val request: HttpRequest, val response: HttpResponse)
  * configured inside the [block].
  */
 suspend fun HttpClient.call(block: HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
-        execute(HttpRequestBuilder().apply(block))
+    execute(HttpRequestBuilder().apply(block))
 
 /**
  * Tries to receive the payload of the [response] as an specific type [T].

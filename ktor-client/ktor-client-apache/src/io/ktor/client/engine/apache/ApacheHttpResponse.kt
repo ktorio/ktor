@@ -8,12 +8,12 @@ import kotlinx.coroutines.experimental.io.*
 import java.util.*
 
 
-class ApacheHttpResponse internal constructor(
-        override val call: HttpClientCall,
-        override val requestTime: Date,
-        override val executionContext: CompletableDeferred<Unit>,
-        private val engineResponse: org.apache.http.HttpResponse,
-        override val content: ByteReadChannel
+internal class ApacheHttpResponse internal constructor(
+    override val call: HttpClientCall,
+    override val requestTime: Date,
+    override val executionContext: CompletableDeferred<Unit>,
+    private val engineResponse: org.apache.http.HttpResponse,
+    override val content: ByteReadChannel
 ) : HttpResponse {
     override val status: HttpStatusCode
     override val version: HttpProtocolVersion

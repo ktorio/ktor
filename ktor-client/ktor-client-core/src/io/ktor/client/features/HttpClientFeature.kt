@@ -30,4 +30,4 @@ interface HttpClientFeature<out TBuilder : Any, TFeature : Any> {
  * Try to get a [feature] installed in this client. Returns `null` if the feature was not previously installed.
  */
 fun <B : Any, F : Any> HttpClient.feature(feature: HttpClientFeature<B, F>): F? =
-        attributes.getOrNull(FEATURE_INSTALLED_LIST)?.getOrNull(feature.key)
+    attributes.getOrNull(FEATURE_INSTALLED_LIST)?.getOrNull(feature.key)
