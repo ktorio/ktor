@@ -19,7 +19,7 @@ class JWTCredential(val payload: Payload) : Credential
 class JWTPrincipal(val payload: Payload) : Principal
 
 class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
-    internal var authenticationFunction: suspend (JWTCredential) -> Principal? = { null }
+    internal var authenticationFunction: suspend ApplicationCall.(JWTCredential) -> Principal? = { null }
 
     var realm: String = "Ktor Server"
     internal var verifier: ((HttpAuthHeader?) -> JWTVerifier?) = { null }
@@ -46,7 +46,7 @@ class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
         this.verifier = { token -> getVerifier(jwkProvider, issuer, token) }
     }
 
-    fun validate(body: suspend (JWTCredential) -> Principal?) {
+    fun validate(body: suspend ApplicationCall.(JWTCredential) -> Principal?) {
         authenticationFunction = body
     }
 }
@@ -61,7 +61,7 @@ fun Authentication.Configuration.jwt(name: String? = null, configure: JWTAuthent
     val verifier = provider.verifier
     provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val token = call.request.parseAuthorizationHeaderOrNull()
-        val principal = verifyAndValidate(verifier(token), token, authenticate)
+        val principal = verifyAndValidate(call, verifier(token), token, authenticate)
         evaluate(token, principal, realm, context)
     }
     register(provider)
@@ -95,7 +95,7 @@ private fun getVerifier(jwkProvider: JwkProvider, issuer: String, token: HttpAut
     return JWT.require(algorithm).withIssuer(issuer).build()
 }
 
-private suspend fun verifyAndValidate(jwtVerifier: JWTVerifier?, token: HttpAuthHeader?, validate: suspend (JWTCredential) -> Principal?): Principal? {
+private suspend fun verifyAndValidate(call: ApplicationCall, jwtVerifier: JWTVerifier?, token: HttpAuthHeader?, validate: suspend ApplicationCall.(JWTCredential) -> Principal?): Principal? {
     val jwt = try {
         token.getBlob()?.let { jwtVerifier?.verify(it) }
     } catch (ex: JWTVerificationException) {
@@ -104,7 +104,7 @@ private suspend fun verifyAndValidate(jwtVerifier: JWTVerifier?, token: HttpAuth
 
     val payload = jwt.parsePayload()
     val credentials = JWTCredential(payload)
-    return validate(credentials)
+    return validate(call, credentials)
 }
 
 private fun HttpAuthHeader?.getBlob() = when {
@@ -145,7 +145,7 @@ fun Authentication.Configuration.jwtAuthentication(jwtVerifier: JWTVerifier, rea
     jwt {
         this.realm = realm
         this.verifier(jwtVerifier)
-        this.validate(validate)
+        this.validate { validate(it) }
     }
 }
 
@@ -158,6 +158,6 @@ fun Authentication.Configuration.jwtAuthentication(jwkProvider: JwkProvider, iss
     jwt {
         this.realm = realm
         this.verifier(jwkProvider, issuer)
-        this.validate(validate)
+        this.validate { validate(it) }
     }
 }

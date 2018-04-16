@@ -10,7 +10,7 @@ import io.ktor.response.*
  * @param name is the name of the provider, or `null` for a default provider
  */
 class FormAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
-    internal var authenticationFunction: suspend (UserPasswordCredential) -> Principal? = { null }
+    internal var authenticationFunction: suspend ApplicationCall.(UserPasswordCredential) -> Principal? = { null }
 
     /**
      * POST parameter to fetch for a user name
@@ -31,7 +31,7 @@ class FormAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
      * Sets a validation function that will check given [UserPasswordCredential] instance and return [Principal],
      * or null if credential does not correspond to an authenticated principal
      */
-    fun validate(body: suspend (UserPasswordCredential) -> Principal?) {
+    fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Principal?) {
         authenticationFunction = body
     }
 }
@@ -52,7 +52,7 @@ fun Authentication.Configuration.form(name: String? = null, configure: FormAuthe
         val password = postParameters?.get(passwordParamName)
 
         val credentials = if (username != null && password != null) UserPasswordCredential(username, password) else null
-        val principal = credentials?.let { validate(it) }
+        val principal = credentials?.let { validate(call, it) }
 
         if (principal != null) {
             context.principal(principal)
@@ -79,7 +79,11 @@ sealed class FormAuthChallenge {
      * Redirect to an URL provided by the given function.
      * @property url is a function receiving [ApplicationCall] and [UserPasswordCredential] and returning an URL to redirect to.
      */
-    class Redirect(val url: (ApplicationCall, UserPasswordCredential?) -> String) : FormAuthChallenge()
+    class Redirect(val url: ApplicationCall.(UserPasswordCredential?) -> String) : FormAuthChallenge() {
+        @Deprecated("Call is passed as receiver", ReplaceWith("FormAuthChallenge.Redirect { c -> oldUrl(c) }"))
+        @Suppress("UNUSED_PARAMETER")
+        constructor(forMigration: Unit = Unit, url: (ApplicationCall, UserPasswordCredential?) -> String) : this(url)
+    }
 
     /**
      * Respond with [HttpStatusCode.Unauthorized].

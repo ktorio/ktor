@@ -50,7 +50,7 @@ fun Authentication.Configuration.formAuthentication(userParamName: String = "use
         this.userParamName = userParamName
         this.passwordParamName = passwordParamName
         this.challenge = challenge
-        this.validate(validate)
+        this.validate { validate(it) }
     }
 
 }

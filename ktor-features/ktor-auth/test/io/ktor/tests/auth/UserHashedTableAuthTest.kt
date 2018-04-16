@@ -31,11 +31,11 @@ class UserHashedTableAuthTest {
         testSingle(UserHashedTableAuth(mapConfig.config("auth")))
     }
 
-    fun testSingle(hashedUserTable: UserHashedTableAuth) {
+    private fun testSingle(hashedUserTable: UserHashedTableAuth) {
         withTestApplication {
             application.install(Authentication) {
                 form {
-                    challenge = FormAuthChallenge.Redirect({ _, _ -> "/unauthorized" })
+                    challenge = FormAuthChallenge.Redirect({ "/unauthorized" })
                     validate { hashedUserTable.authenticate(it) }
                 }
                 form("checkOnly") {
@@ -85,7 +85,7 @@ class UserHashedTableAuthTest {
         }
     }
 
-    fun TestApplicationEngine.handlePost(uri: String, user: String? = null, password: String? = null): TestApplicationCall {
+    private fun TestApplicationEngine.handlePost(uri: String, user: String? = null, password: String? = null): TestApplicationCall {
         return handleRequest(HttpMethod.Post, uri) {
             addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
             setBody(

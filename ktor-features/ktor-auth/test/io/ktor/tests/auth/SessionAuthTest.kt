@@ -47,7 +47,7 @@ class SessionAuthTest {
             application.install(Authentication) {
                 session<MySession>()
                 form("f") {
-                    challenge = FormAuthChallenge.Redirect(url = { _, _ -> "/login"})
+                    challenge = FormAuthChallenge.Redirect(url = { "/login" })
                     validate { null }
                 }
             }
