@@ -31,52 +31,116 @@ class Authentication(val providers: List<AuthenticationProvider>) {
     }
 
     init {
-        providers.forEach { configureChallenge(it.pipeline) }
+        providers.forEach { forEveryProvider(it.pipeline) }
     }
 
-    fun configureChallenge(authenticationPipeline: AuthenticationPipeline) {
-        // Install challenging interceptor, it installs last
+    private fun forEveryProvider(authenticationPipeline: AuthenticationPipeline) {
         authenticationPipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
             val principal = context.principal
-            if (principal != null) return@intercept
-
-            val challenges = context.challenge.challenges
-            if (challenges.isEmpty()) return@intercept
-
-            val challengePipeline = Pipeline<AuthenticationProcedureChallenge, ApplicationCall>(challengePhase)
-            for (challenge in challenges) {
-                challengePipeline.intercept(challengePhase) {
-                    challenge(it)
-                    if (it.completed)
-                        finish() // finish challenge pipeline if it has been completed
-                }
+            if (principal != null) {
+                finish()
+                return@intercept
             }
 
-            val challenge = challengePipeline.execute(call, context.challenge)
-            if (challenge.completed)
-                finish() // finish authentication pipeline if challenge has been completed
+            if (context.challenge.register.all { it.first === AuthenticationFailedCause.NoCredentials }) {
+                return@intercept
+            }
+
+            executeChallenges()
         }
     }
 
-    fun interceptPipeline(pipeline: ApplicationCallPipeline, configurationName: String?) {
-        val configuration = providers.firstOrNull { it.name == configurationName }
+    private fun ensureChallenges(authenticationPipeline: AuthenticationPipeline) {
+        // Install challenging interceptor, it installs last
+        authenticationPipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
+            if (context.principal == null && context.challenge.completed) {
+                finish()
+                return@intercept
+            }
+
+            executeChallenges()
+        }
+    }
+
+    private suspend fun PipelineContext<AuthenticationContext, ApplicationCall>.executeChallenges() {
+        val context = subject
+        val challengePipeline = Pipeline<AuthenticationProcedureChallenge, ApplicationCall>(challengePhase)
+        for (challenge in context.challenge.challenges) {
+            challengePipeline.intercept(challengePhase) {
+                challenge(it)
+                if (it.completed)
+                    finish() // finish challenge pipeline if it has been completed
+            }
+        }
+
+        val challenge = challengePipeline.execute(call, context.challenge)
+        if (challenge.completed)
+            finish() // finish authentication pipeline if challenge has been completed
+    }
+
+    fun interceptPipeline(pipeline: ApplicationCallPipeline, configurationNames: List<String?> = listOf(null)) {
+        require(configurationNames.isNotEmpty()) { "It should be at least one configuration name or default listOf(null)" }
+
+        val configurations = configurationNames.map { configurationName ->
+            providers.firstOrNull { it.name == configurationName }
                 ?: throw IllegalArgumentException(
-                        if (configurationName == null)
-                            "Default authentication configuration was not found"
-                        else
-                            "Authentication configuration with the name $configurationName was not found"
+                    if (configurationName == null)
+                        "Default authentication configuration was not found"
+                    else
+                        "Authentication configuration with the name $configurationName was not found"
                 )
+        }
+
+        val merged = AuthenticationPipeline()
+
+        for (cfg in configurations) {
+            merged.merge(cfg.pipeline)
+        }
+
+        ensureChallenges(merged)
 
         pipeline.insertPhaseAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
         pipeline.intercept(authenticationPhase) {
-            // don't run authentication if any filters signals it is not needed
-            if (configuration.skipWhen.any { skip -> skip(call) })
-                return@intercept
-
+            val call = call
             val authenticationContext = AuthenticationContext.from(call)
-            configuration.pipeline.execute(call, authenticationContext)
-            if (authenticationContext.challenge.completed)
+
+            if (authenticationContext.principal != null) return@intercept
+
+            val firstSkippedIndex = configurations.indexOfFirst {
+                it.skipWhen.any { skipCondition -> skipCondition(call) }
+            }
+
+            if (firstSkippedIndex == -1) { // all configurations are unskipped - apply the whole prebuilt pipeline
+                merged.execute(call, authenticationContext)
+            } else {
+                // rebuild pipeline to skip particular auth methods
+
+                val child = AuthenticationPipeline()
+                var qty = 0
+                for (idx in 0 until firstSkippedIndex) {
+                    child.merge(configurations[idx].pipeline)
+                    qty++
+                }
+                for (idx in firstSkippedIndex + 1 until configurations.size) {
+                    val cfg = configurations[idx]
+                    if (cfg.skipWhen.none { skipCondition -> skipCondition(call) }) {
+                        child.merge(cfg.pipeline)
+                        qty++
+                    }
+                }
+
+                if (qty == 0) { // all auth methods are skipped so simply leave
+                    return@intercept
+                }
+
+                ensureChallenges(child)
+
+                child.execute(call, authenticationContext)
+            }
+
+            if (authenticationContext.challenge.completed) {
                 finish() // finish call pipeline if authentication challenge has been completed
+            }
         }
     }
 
@@ -106,18 +170,20 @@ val ApplicationCall.authentication: AuthenticationContext
  */
 inline fun <reified P : Principal> ApplicationCall.principal() = authentication.principal<P>()
 
-fun Route.authenticate(configurationName: String? = null, build: Route.() -> Unit): Route {
-    val authenticatedRoute = createChild(AuthenticationRouteSelector(configurationName))
-    application.feature(Authentication).interceptPipeline(authenticatedRoute, configurationName)
+fun Route.authenticate(vararg configurations: String? = arrayOf<String?>(null), build: Route.() -> Unit): Route {
+    val configurationNames = configurations.distinct()
+    val authenticatedRoute = createChild(AuthenticationRouteSelector(configurationNames))
+
+    application.feature(Authentication).interceptPipeline(authenticatedRoute, configurationNames)
     authenticatedRoute.build()
     return authenticatedRoute
 }
 
-class AuthenticationRouteSelector(val name: String?) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
+class AuthenticationRouteSelector(val names: List<String?>) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         return RouteSelectorEvaluation.Constant
     }
 
-    override fun toString(): String = "(authenticate ${name ?: "default"})"
+    override fun toString(): String = "(authenticate ${names.joinToString { it ?: "\"default\"" }})"
 }
 
