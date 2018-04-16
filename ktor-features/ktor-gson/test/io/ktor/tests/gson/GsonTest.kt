@@ -14,11 +14,13 @@ import kotlin.test.*
 class GsonTest {
     @Test
     fun testMap() = withTestApplication {
+        val uc = "\u0422"
+
         application.install(ContentNegotiation) {
             register(ContentType.Application.Json, GsonConverter())
         }
         application.routing {
-            val model = mapOf("id" to 1, "title" to "Hello, World!")
+            val model = mapOf("id" to 1, "title" to "Hello, World!", "unicode" to uc)
             get("/") {
                 call.respond(model)
             }
@@ -34,7 +36,7 @@ class GsonTest {
         }.response.let { response ->
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
-            assertEquals(listOf("""{"id":1,"title":"Hello, World!"}"""), response.content!!.lines())
+            assertEquals(listOf("""{"id":1,"title":"Hello, World!","unicode":"$uc"}"""), response.content!!.lines())
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Application.Json.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
@@ -42,11 +44,11 @@ class GsonTest {
         handleRequest(HttpMethod.Post, "/") {
             addHeader("Accept", "text/plain")
             addHeader("Content-Type", "application/json")
-            setBody("""{"id":1,"title":"Hello, World!"}""")
+            setBody("""{"id":1,"title":"Hello, World!","unicode":"$uc"}""")
         }.response.let { response ->
             assertEquals(HttpStatusCode.OK, response.status())
             assertNotNull(response.content)
-            assertEquals(listOf("""id=1.0, title=Hello, World!"""), response.content!!.lines())
+            assertEquals(listOf("""id=1.0, title=Hello, World!, unicode=$uc"""), response.content!!.lines())
             val contentTypeText = assertNotNull(response.headers[HttpHeaders.ContentType])
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), ContentType.parse(contentTypeText))
         }
