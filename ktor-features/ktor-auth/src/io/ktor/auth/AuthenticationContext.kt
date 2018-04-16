@@ -14,7 +14,7 @@ class AuthenticationContext(val call: ApplicationCall) {
     /**
      * Retrieves authenticated principal, or returns null if no user was authenticated
      */
-    var principal by Delegates.vetoable<Principal?>(null) { _, old, _ -> require(old == null); true }
+    var principal by Delegates.vetoable<Principal?>(null) { _, old, _ -> require(old == null) { "Principal can be only assigned once" }; true }
 
     /**
      * Stores authentication failures for keys provided by authentication mechanisms
