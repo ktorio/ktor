@@ -11,8 +11,6 @@ import io.ktor.util.*
  * @param providers list of registered instances of [AuthenticationProvider]
  */
 class Authentication(val providers: List<AuthenticationProvider>) {
-    private val challengePhase = PipelinePhase("Challenge")
-
     class Configuration {
         val providers = ArrayList<AuthenticationProvider>()
 
@@ -52,21 +50,35 @@ class Authentication(val providers: List<AuthenticationProvider>) {
                 )
         }
 
-        val authenticationPipeline = AuthenticationPipeline()
-
-        for (provider in configurations) {
-            authenticationPipeline.merge(provider.pipeline)
+        val authenticationPipeline = when {
+            configurations.size == 1 -> configurations[0].pipeline
+            else -> AuthenticationPipeline().apply {
+                for (provider in configurations) {
+                    merge(provider.pipeline)
+                }
+            }
         }
 
-        ensureChallenges(authenticationPipeline)
-
         pipeline.insertPhaseAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
+        pipeline.insertPhaseAfter(authenticationPhase, challengePhase)
+
         pipeline.intercept(authenticationPhase) {
             val call = call
             val authenticationContext = AuthenticationContext.from(call)
             if (authenticationContext.principal != null) return@intercept
 
             processAuthentication(call, authenticationContext, configurations, authenticationPipeline)
+        }
+
+        pipeline.intercept(challengePhase) {
+            val context = AuthenticationContext.from(call)
+
+            when {
+                context.principal != null -> {
+                }
+                context.challenge.completed -> finish()
+                else -> executeChallenges(context)
+            }
         }
     }
 
@@ -75,6 +87,7 @@ class Authentication(val providers: List<AuthenticationProvider>) {
      */
     companion object Feature : ApplicationFeature<Application, Configuration, Authentication> {
         private val authenticationPhase = PipelinePhase("Authenticate")
+        private val challengePhase = PipelinePhase("Challenge")
 
         override val key = AttributeKey<Authentication>("Authentication")
 
@@ -97,24 +110,11 @@ class Authentication(val providers: List<AuthenticationProvider>) {
                 return@intercept
             }
 
-            executeChallenges()
+            executeChallenges(context)
         }
     }
 
-    private fun ensureChallenges(authenticationPipeline: AuthenticationPipeline) {
-        // Install challenging interceptor at the end
-        authenticationPipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-            if (context.principal == null && context.challenge.completed) {
-                finish()
-                return@intercept
-            }
-
-            executeChallenges()
-        }
-    }
-
-    private suspend fun PipelineContext<AuthenticationContext, ApplicationCall>.executeChallenges() {
-        val context = subject
+    private suspend fun PipelineContext<*, ApplicationCall>.executeChallenges(context: AuthenticationContext) {
         val challengePipeline = Pipeline<AuthenticationProcedureChallenge, ApplicationCall>(challengePhase)
         for (challenge in context.challenge.challenges) {
             challengePipeline.intercept(challengePhase) {
@@ -147,28 +147,24 @@ class Authentication(val providers: List<AuthenticationProvider>) {
             // rebuild pipeline to skip particular auth methods
 
             val child = AuthenticationPipeline()
-            var qty = 0
+            var applicableCount = 0
 
             for (idx in 0 until firstSkippedIndex) {
                 child.merge(configurations[idx].pipeline)
-                qty++
+                applicableCount++
             }
 
             for (idx in firstSkippedIndex + 1 until configurations.size) {
                 val provider = configurations[idx]
                 if (provider.skipWhen.none { skipCondition -> skipCondition(call) }) {
                     child.merge(provider.pipeline)
-                    qty++
+                    applicableCount++
                 }
             }
 
-            if (qty == 0) { // all auth methods are skipped so simply leave
-                return
+            if (applicableCount > 0) {
+                child.execute(call, authenticationContext)
             }
-
-            ensureChallenges(child)
-
-            child.execute(call, authenticationContext)
         }
 
         if (authenticationContext.challenge.completed) {

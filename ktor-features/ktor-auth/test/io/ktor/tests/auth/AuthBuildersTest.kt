@@ -41,7 +41,6 @@ class AuthBuildersTest {
     }
 
     @Test
-    @Ignore
     fun testMultipleConfigurationsNested() {
         withTestApplication {
             application.install(Authentication) {
