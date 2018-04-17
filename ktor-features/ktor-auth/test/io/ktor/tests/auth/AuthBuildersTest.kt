@@ -238,18 +238,39 @@ class AuthBuildersTest {
                             }
                         }
                     }
+                    get("/login") {
+                        val user = call.principal<UserIdPrincipal>()
+                        if (user != null) {
+                            call.respondRedirect("/")
+                        } else {
+                            call.respondText("Login form goes here.")
+                        }
+                    }
+                    authenticate("F") {
+                        post("/login") {
+                            val user = call.principal<UserIdPrincipal>()
+                            assertNotNull(user)
+                            call.sessions.set(TestSession(user!!.name))
+                            call.respondText("Logged in successfully as ${user.name}.")
+                        }
+                    }
                 }
             }
 
             val serializedSession = autoSerializerOf<TestSession>().serialize(TestSession("tester"))
+            val sessionCookieContent = "S=$serializedSession"
             fun TestApplicationRequest.addCookie() {
-                addHeader(HttpHeaders.Cookie, "S=$serializedSession")
+                addHeader(HttpHeaders.Cookie, sessionCookieContent)
             }
             fun TestApplicationRequest.addBasicAuth() {
                 addHeader(
                     HttpHeaders.Authorization,
                     HttpAuthHeader.Single("basic", Base64.getEncoder().encodeToString("tester:".toByteArray())).render()
                 )
+            }
+            fun TestApplicationRequest.addFormAuth(name: String, pass: String) {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+                setBody("user=$name&password=$pass")
             }
 
             on("Index should be available for everyone") {
@@ -278,6 +299,29 @@ class AuthBuildersTest {
                 }
                 assertTrue { call.requestHandled }
                 assertEquals("Profile for tester.", call.response.content)
+            }
+            on("Login page shouldn't be shown for an authenticated user (with cookies)") {
+                val call = handleRequest(HttpMethod.Get, "/login") {
+                    addCookie()
+                }
+                assertTrue { call.requestHandled }
+                assertEquals(HttpStatusCode.Found.value, call.response.status()?.value)
+            }
+            on("Login page should be shown for clean user") {
+                val call = handleRequest(HttpMethod.Get, "/login")
+                assertTrue { call.requestHandled }
+                assertEquals("Login form goes here.", call.response.content)
+            }
+            on("Login page should create session on form post") {
+                val call = handleRequest(HttpMethod.Post, "/login") {
+                    addFormAuth("tester", "")
+                }
+                val cookies = call.response.headers[HttpHeaders.SetCookie]?.let { parseServerSetCookieHeader(it) }
+
+                assertTrue { call.requestHandled }
+                assertNotNull(cookies, "Set-Cookie should be sent")
+                assertEquals(serializedSession, cookies?.value)
+                assertEquals("Logged in successfully as tester.", call.response.content)
             }
             on("An authenticated user can download files by a web browser") {
                 val call = handleRequest(HttpMethod.Get, "/user/files/doc1.txt") {
