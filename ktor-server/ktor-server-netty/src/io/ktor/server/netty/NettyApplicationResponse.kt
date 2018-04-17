@@ -48,8 +48,12 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
         val chunked = headers[HttpHeaders.TransferEncoding] == "chunked"
 
         if (!responseMessageSent) {
-            responseChannel = EmptyByteReadChannel
-            responseMessage.complete(responseMessage(chunked, bytes))
+            val message = responseMessage(chunked, bytes)
+            responseMessage.complete(message)
+            responseChannel = when (message) {
+                is LastHttpContent -> EmptyByteReadChannel
+                else -> ByteReadChannel(bytes)
+            }
             responseMessageSent = true
         }
     }
