@@ -34,7 +34,58 @@ class Authentication(val providers: List<AuthenticationProvider>) {
         providers.forEach { forEveryProvider(it.pipeline) }
     }
 
+    /**
+     * Configures [pipeline] to process authentication by one or multiple auth methods
+     * @param pipeline to be configured
+     * @param configurationNames references to auth providers, could contain null to point to default
+     */
+    fun interceptPipeline(pipeline: ApplicationCallPipeline, configurationNames: List<String?> = listOf(null)) {
+        require(configurationNames.isNotEmpty()) { "At least one configuration name or default listOf(null)" }
+
+        val configurations = configurationNames.map { configurationName ->
+            providers.firstOrNull { it.name == configurationName }
+                ?: throw IllegalArgumentException(
+                    if (configurationName == null)
+                        "Default authentication configuration was not found"
+                    else
+                        "Authentication configuration with the name $configurationName was not found"
+                )
+        }
+
+        val authenticationPipeline = AuthenticationPipeline()
+
+        for (provider in configurations) {
+            authenticationPipeline.merge(provider.pipeline)
+        }
+
+        ensureChallenges(authenticationPipeline)
+
+        pipeline.insertPhaseAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
+        pipeline.intercept(authenticationPhase) {
+            val call = call
+            val authenticationContext = AuthenticationContext.from(call)
+            if (authenticationContext.principal != null) return@intercept
+
+            processAuthentication(call, authenticationContext, configurations, authenticationPipeline)
+        }
+    }
+
+    /**
+     * Installable feature for [Authentication].
+     */
+    companion object Feature : ApplicationFeature<Application, Configuration, Authentication> {
+        private val authenticationPhase = PipelinePhase("Authenticate")
+
+        override val key = AttributeKey<Authentication>("Authentication")
+
+        override fun install(pipeline: Application, configure: Configuration.() -> Unit): Authentication {
+            val configuration = Configuration().apply(configure)
+            return Authentication(configuration.providers.toList())
+        }
+    }
+
     private fun forEveryProvider(authenticationPipeline: AuthenticationPipeline) {
+        // Install challenging interceptor for every provider
         authenticationPipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
             val principal = context.principal
             if (principal != null) {
@@ -51,7 +102,7 @@ class Authentication(val providers: List<AuthenticationProvider>) {
     }
 
     private fun ensureChallenges(authenticationPipeline: AuthenticationPipeline) {
-        // Install challenging interceptor, it installs last
+        // Install challenging interceptor at the end
         authenticationPipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
             if (context.principal == null && context.challenge.completed) {
                 finish()
@@ -78,83 +129,50 @@ class Authentication(val providers: List<AuthenticationProvider>) {
             finish() // finish authentication pipeline if challenge has been completed
     }
 
-    fun interceptPipeline(pipeline: ApplicationCallPipeline, configurationNames: List<String?> = listOf(null)) {
-        require(configurationNames.isNotEmpty()) { "It should be at least one configuration name or default listOf(null)" }
-
-        val configurations = configurationNames.map { configurationName ->
-            providers.firstOrNull { it.name == configurationName }
-                ?: throw IllegalArgumentException(
-                    if (configurationName == null)
-                        "Default authentication configuration was not found"
-                    else
-                        "Authentication configuration with the name $configurationName was not found"
-                )
+    private suspend fun PipelineContext<Unit, ApplicationCall>.processAuthentication(
+        call: ApplicationCall,
+        authenticationContext: AuthenticationContext,
+        configurations: List<AuthenticationProvider>,
+        defaultPipeline: AuthenticationPipeline
+    ) {
+        val firstSkippedIndex = configurations.indexOfFirst {
+            it.skipWhen.any { skipCondition -> skipCondition(call) }
         }
 
-        val merged = AuthenticationPipeline()
+        if (firstSkippedIndex == -1) { // all configurations are unskipped - apply the whole prebuilt pipeline
+            defaultPipeline.execute(call, authenticationContext)
+        } else if (firstSkippedIndex == 0 && configurations.size == 1) {
+            return // the only configuration is skipped - fast-path return
+        } else {
+            // rebuild pipeline to skip particular auth methods
 
-        for (cfg in configurations) {
-            merged.merge(cfg.pipeline)
-        }
+            val child = AuthenticationPipeline()
+            var qty = 0
 
-        ensureChallenges(merged)
-
-        pipeline.insertPhaseAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
-        pipeline.intercept(authenticationPhase) {
-            val call = call
-            val authenticationContext = AuthenticationContext.from(call)
-
-            if (authenticationContext.principal != null) return@intercept
-
-            val firstSkippedIndex = configurations.indexOfFirst {
-                it.skipWhen.any { skipCondition -> skipCondition(call) }
+            for (idx in 0 until firstSkippedIndex) {
+                child.merge(configurations[idx].pipeline)
+                qty++
             }
 
-            if (firstSkippedIndex == -1) { // all configurations are unskipped - apply the whole prebuilt pipeline
-                merged.execute(call, authenticationContext)
-            } else {
-                // rebuild pipeline to skip particular auth methods
-
-                val child = AuthenticationPipeline()
-                var qty = 0
-                for (idx in 0 until firstSkippedIndex) {
-                    child.merge(configurations[idx].pipeline)
+            for (idx in firstSkippedIndex + 1 until configurations.size) {
+                val provider = configurations[idx]
+                if (provider.skipWhen.none { skipCondition -> skipCondition(call) }) {
+                    child.merge(provider.pipeline)
                     qty++
                 }
-                for (idx in firstSkippedIndex + 1 until configurations.size) {
-                    val cfg = configurations[idx]
-                    if (cfg.skipWhen.none { skipCondition -> skipCondition(call) }) {
-                        child.merge(cfg.pipeline)
-                        qty++
-                    }
-                }
-
-                if (qty == 0) { // all auth methods are skipped so simply leave
-                    return@intercept
-                }
-
-                ensureChallenges(child)
-
-                child.execute(call, authenticationContext)
             }
 
-            if (authenticationContext.challenge.completed) {
-                finish() // finish call pipeline if authentication challenge has been completed
+            if (qty == 0) { // all auth methods are skipped so simply leave
+                return
             }
+
+            ensureChallenges(child)
+
+            child.execute(call, authenticationContext)
         }
-    }
 
-    /**
-     * Installable feature for [Authentication].
-     */
-    companion object Feature : ApplicationFeature<Application, Configuration, Authentication> {
-        private val authenticationPhase = PipelinePhase("Authenticate")
-
-        override val key = AttributeKey<Authentication>("Authentication")
-
-        override fun install(pipeline: Application, configure: Configuration.() -> Unit): Authentication {
-            val configuration = Configuration().apply(configure)
-            return Authentication(configuration.providers)
+        if (authenticationContext.challenge.completed) {
+            finish() // finish call pipeline if authentication challenge has been completed
         }
     }
 }
@@ -170,7 +188,22 @@ val ApplicationCall.authentication: AuthenticationContext
  */
 inline fun <reified P : Principal> ApplicationCall.principal() = authentication.principal<P>()
 
+/**
+ * Creates an authentication route that does handle authentication by the specified providers referred by
+ * [configurations] names. `null` could be used to point to the default provider and could be also mixed with other
+ * provider names.
+ * Other routes, handlers and interceptors could be nested into this node
+ *
+ * The [Authentication] feature need to be installed first otherwise
+ * it will fail with [MissingApplicationFeatureException] and all providers requested by [configurations] need
+ * to be already registered.
+ *
+ * @param configurations names that point to already registered authentication providers
+ * @throws MissingApplicationFeatureException if no [Authentication] feature installed first
+ * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names
+ */
 fun Route.authenticate(vararg configurations: String? = arrayOf<String?>(null), build: Route.() -> Unit): Route {
+    require(configurations.isNotEmpty()) { "At least one configuration name or null for default need to be provided" }
     val configurationNames = configurations.distinct()
     val authenticatedRoute = createChild(AuthenticationRouteSelector(configurationNames))
 
@@ -179,6 +212,11 @@ fun Route.authenticate(vararg configurations: String? = arrayOf<String?>(null), 
     return authenticatedRoute
 }
 
+/**
+ * An authentication route node that is used by [Authentication] feature
+ * and usually created by [Route.authenticate] DSL function so generally there is no need to instantiate it directly
+ * unless you are writing an extension
+ */
 class AuthenticationRouteSelector(val names: List<String?>) : RouteSelector(RouteSelectorEvaluation.qualityConstant) {
     override fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         return RouteSelectorEvaluation.Constant
