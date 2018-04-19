@@ -225,7 +225,7 @@ internal class TLSClientSession(
         val body = decrypted.readTLSHandshake(handshakeHeader).readBytes()
 
         if (handshakeHeader.type != TLSHandshakeType.Finished)
-            throw TLSException("TLS handshake failed: expected Finihsed record after ChangeCipherSpec but got ${handshakeHeader.type}")
+            throw TLSException("TLS handshake failed: expected Finished record after ChangeCipherSpec but got ${handshakeHeader.type}")
 
         check(decrypted.isEmpty)
 

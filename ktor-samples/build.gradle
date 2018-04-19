@@ -45,7 +45,7 @@ subprojects {
                 } else if (osName.contains('mac')) {
                     nativeClassifier = 'osx-x86_64'
                 } else {
-                    throw new InvalidUserDataException("Unsupoprted os family $osName")
+                    throw new InvalidUserDataException("Unsupported os family $osName")
                 }
 
                 compile group: 'io.netty', name: 'netty-tcnative', version: netty_tcnative_version
