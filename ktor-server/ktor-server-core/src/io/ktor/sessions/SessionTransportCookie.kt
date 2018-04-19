@@ -39,7 +39,7 @@ class SessionTransportCookie(val name: String,
     }
 
     override fun clear(call: ApplicationCall) {
-        call.response.cookies.appendExpired(name)
+        call.response.cookies.appendExpired(name, configuration.domain, configuration.path)
     }
 }
 
