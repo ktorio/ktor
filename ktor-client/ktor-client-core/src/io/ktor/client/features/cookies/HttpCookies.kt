@@ -60,9 +60,12 @@ class HttpCookies(private val storage: CookiesStorage) {
 
                 val cookies = feature.get(host) ?: return@intercept
                 with(context) {
-                    cookies.forEach { _, cookie ->
-                        header(HttpHeaders.Cookie, renderSetCookieHeader(cookie))
-                    }
+                    header(HttpHeaders.Cookie, buildString {
+                        cookies.forEach { _, cookie ->
+                            append(renderSetCookieHeader(cookie))
+                            append(";")
+                        }
+                    })
                 }
             }
 

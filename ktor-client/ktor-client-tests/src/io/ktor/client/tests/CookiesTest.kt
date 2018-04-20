@@ -36,6 +36,15 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
 
                 context.respond("Done")
             }
+            get("/multiple") {
+                val cookies = context.request.cookies
+                val first = cookies["first"] ?: fail()
+                val second = cookies["second"] ?: fail()
+
+                assertEquals("first-cookie", first)
+                assertEquals("second-cookie", second)
+                context.respond("Multiple done")
+            }
         }
     }
 
@@ -88,6 +97,23 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
                 assertEquals(1, client.getId())
                 assertNull(client.cookies("localhost")["user"]?.value)
             }
+        }
+    }
+
+    @Test
+    fun testMultipleCookies(): Unit = clientTest(factory) {
+        config {
+            install(HttpCookies) {
+                default {
+                    addCookie("localhost", Cookie("first", "first-cookie"))
+                    addCookie("localhost", Cookie("second", "second-cookie"))
+                }
+            }
+        }
+
+        test { client ->
+            val response = client.get<String>(port = serverPort, path="/multiple")
+            assertEquals("Multiple done", response)
         }
     }
 
