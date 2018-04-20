@@ -161,50 +161,54 @@ NOTE: Results on Ilya's MacBook Pro, rebooted without any extra programs running
 
 $ gradle runBenchmark -PbenchmarkName=IntegrationBenchmark
 
-Benchmark                                                      Mode  Cnt    Score    Error   Units
-i.k.s.b.cio.CIOIntegrationBenchmark.jarfile                   thrpt   20    8.390 ±  0.270  ops/ms
-i.k.s.b.cio.CIOIntegrationBenchmark.largeFile                 thrpt   20    0.682 ±  0.014  ops/ms
-i.k.s.b.cio.CIOIntegrationBenchmark.largeFileSync             thrpt   20    0.696 ±  0.012  ops/ms
-i.k.s.b.cio.CIOIntegrationBenchmark.query                     thrpt   20   45.090 ±  0.874  ops/ms
-i.k.s.b.cio.CIOIntegrationBenchmark.random                    thrpt   20    8.111 ±  0.247  ops/ms
-i.k.s.b.cio.CIOIntegrationBenchmark.regularClasspathFile      thrpt   20   16.187 ±  0.264  ops/ms
-i.k.s.b.cio.CIOIntegrationBenchmark.sayOK                     thrpt   20   48.819 ±  0.891  ops/ms
-i.k.s.b.cio.CIOIntegrationBenchmark.smallFile                 thrpt   20   29.565 ±  2.076  ops/ms
-i.k.s.b.cio.CIOIntegrationBenchmark.smallFileSync             thrpt   20   37.043 ±  0.970  ops/ms
-i.k.s.b.cio.CIOIntegrationBenchmark.thinkOK                   thrpt   20   48.547 ±  0.707  ops/ms
+Benchmark                                                      Mode  Cnt    Score   Error   Units
+i.k.s.b.cio.CIOIntegrationBenchmark.jarfile                   thrpt   20   10.217 ± 0.452  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.largeFile                 thrpt   20    1.064 ± 0.026  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.largeFileSync             thrpt   20    0.645 ± 0.017  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.longPath                  thrpt   20   49.213 ± 0.588  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.query                     thrpt   20   45.203 ± 0.902  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.random                    thrpt   20   11.531 ± 0.469  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.regularClasspathFile      thrpt   20   18.748 ± 0.336  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.sayOK                     thrpt   20   50.870 ± 0.784  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.smallFile                 thrpt   20   32.664 ± 0.534  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.smallFileSync             thrpt   20   37.114 ± 0.696  ops/ms
+i.k.s.b.cio.CIOIntegrationBenchmark.thinkOK                   thrpt   20   51.270 ± 0.785  ops/ms
 
-i.k.s.b.jetty.JettyIntegrationBenchmark.jarfile               thrpt   20    8.609 ±  0.508  ops/ms
-i.k.s.b.jetty.JettyIntegrationBenchmark.largeFile             thrpt   20    1.116 ±  0.028  ops/ms
-i.k.s.b.jetty.JettyIntegrationBenchmark.largeFileSync         thrpt   20    1.411 ±  0.020  ops/ms
-i.k.s.b.jetty.JettyIntegrationBenchmark.query                 thrpt   20   22.161 ±  1.391  ops/ms
-i.k.s.b.jetty.JettyIntegrationBenchmark.random                thrpt   20    8.090 ±  0.351  ops/ms
-i.k.s.b.jetty.JettyIntegrationBenchmark.regularClasspathFile  thrpt   20   14.452 ±  0.955  ops/ms
-i.k.s.b.jetty.JettyIntegrationBenchmark.sayOK                 thrpt   20   26.201 ±  1.210  ops/ms
-i.k.s.b.jetty.JettyIntegrationBenchmark.smallFile             thrpt   20   23.825 ±  2.450  ops/ms
-i.k.s.b.jetty.JettyIntegrationBenchmark.smallFileSync         thrpt   20   23.818 ±  0.972  ops/ms
-i.k.s.b.jetty.JettyIntegrationBenchmark.thinkOK               thrpt   20   26.111 ±  1.179  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.jarfile               thrpt   20   11.181 ± 0.457  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.largeFile             thrpt   20    1.812 ± 0.041  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.largeFileSync         thrpt   20    2.550 ± 0.139  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.longPath              thrpt   20   35.177 ± 2.778  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.query                 thrpt   20   27.416 ± 2.841  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.random                thrpt   20   12.948 ± 0.623  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.regularClasspathFile  thrpt   20   14.755 ± 1.247  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.sayOK                 thrpt   20   31.445 ± 1.872  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.smallFile             thrpt   20   26.449 ± 2.458  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.smallFileSync         thrpt   20   27.044 ± 2.389  ops/ms
+i.k.s.b.jetty.JettyIntegrationBenchmark.thinkOK               thrpt   20   30.741 ± 2.458  ops/ms
 
-i.k.s.b.netty.NettyIntegrationBenchmark.jarfile               thrpt   20    8.945 ±  0.250  ops/ms
-i.k.s.b.netty.NettyIntegrationBenchmark.largeFile             thrpt   20    0.770 ±  0.031  ops/ms
-i.k.s.b.netty.NettyIntegrationBenchmark.largeFileSync         thrpt   20    3.225 ±  0.065  ops/ms
-i.k.s.b.netty.NettyIntegrationBenchmark.query                 thrpt   20   42.816 ±  0.661  ops/ms
-i.k.s.b.netty.NettyIntegrationBenchmark.random                thrpt   20    7.922 ±  0.201  ops/ms
-i.k.s.b.netty.NettyIntegrationBenchmark.regularClasspathFile  thrpt   20   17.128 ±  0.448  ops/ms
-i.k.s.b.netty.NettyIntegrationBenchmark.sayOK                 thrpt   20   47.304 ±  1.055  ops/ms
-i.k.s.b.netty.NettyIntegrationBenchmark.smallFile             thrpt   20   30.102 ±  0.928  ops/ms
-i.k.s.b.netty.NettyIntegrationBenchmark.smallFileSync         thrpt   20   36.826 ±  0.650  ops/ms
-i.k.s.b.netty.NettyIntegrationBenchmark.thinkOK               thrpt   20   45.584 ±  0.758  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.jarfile               thrpt   20   12.470 ± 0.445  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.largeFile             thrpt   20    2.189 ± 0.062  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.largeFileSync         thrpt   20    3.564 ± 0.065  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.longPath              thrpt   20   45.505 ± 1.166  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.query                 thrpt   20   43.703 ± 0.778  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.random                thrpt   20   17.386 ± 0.353  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.regularClasspathFile  thrpt   20   21.320 ± 0.361  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.sayOK                 thrpt   20   48.073 ± 0.894  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.smallFile             thrpt   20   30.410 ± 0.393  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.smallFileSync         thrpt   20   36.090 ± 0.561  ops/ms
+i.k.s.b.netty.NettyIntegrationBenchmark.thinkOK               thrpt   20   47.290 ± 1.024  ops/ms
 
-i.k.s.b.test.TestIntegrationBenchmark.jarfile                 thrpt   20   15.871 ±  0.186  ops/ms
-i.k.s.b.test.TestIntegrationBenchmark.largeFile               thrpt   20    2.955 ±  0.034  ops/ms
-i.k.s.b.test.TestIntegrationBenchmark.largeFileSync           thrpt   20    2.904 ±  0.030  ops/ms
-i.k.s.b.test.TestIntegrationBenchmark.query                   thrpt   20  550.201 ±  6.534  ops/ms
-i.k.s.b.test.TestIntegrationBenchmark.random                  thrpt   20   36.724 ±  0.645  ops/ms
-i.k.s.b.test.TestIntegrationBenchmark.regularClasspathFile    thrpt   20   48.553 ±  1.083  ops/ms
-i.k.s.b.test.TestIntegrationBenchmark.sayOK     e              thrpt   20  839.996 ± 12.154  ops/ms
-i.k.s.b.test.TestIntegrationBenchmark.smallFile               thrpt   20   87.324 ±  2.540  ops/ms
-i.k.s.b.test.TestIntegrationBenchmark.smallFileSync           thrpt   20  146.581 ±  4.622  ops/ms
-i.k.s.b.test.TestIntegrationBenchmark.thinkOK                 thrpt   20  805.347 ± 11.841  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.jarfile                 thrpt   20   18.978 ± 0.275  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.largeFile               thrpt   20    2.447 ± 0.016  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.largeFileSync           thrpt   20    3.024 ± 0.014  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.longPath                thrpt   20  162.994 ± 2.890  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.query                   thrpt   20  146.176 ± 2.389  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.random                  thrpt   20   25.105 ± 0.574  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.regularClasspathFile    thrpt   20   31.574 ± 0.847  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.sayOK                   thrpt   20  169.702 ± 2.615  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.smallFile               thrpt   20   51.168 ± 1.337  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.smallFileSync           thrpt   20   78.312 ± 4.669  ops/ms
+i.k.s.b.test.TestIntegrationBenchmark.thinkOK                 thrpt   20  166.843 ± 2.513  ops/ms
 */
 
 fun main(args: Array<String>) {
