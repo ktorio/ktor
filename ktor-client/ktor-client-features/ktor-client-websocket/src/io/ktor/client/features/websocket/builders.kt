@@ -38,7 +38,6 @@ suspend fun HttpClient.webSocketRaw(
     } catch (cause: Throwable) {
         session.close(cause)
     } finally {
-        session
         session.close()
     }
 }
