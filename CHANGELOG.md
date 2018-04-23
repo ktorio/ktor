@@ -1,5 +1,5 @@
 # 0.9.2
-> Unpublished
+> Published 23 Apr 2018
 
 * New auth DSL, more suspendable functions (such as `verify`/`validate`)
 * `RoutingResolveTrace` for introspecting routing resolution process
