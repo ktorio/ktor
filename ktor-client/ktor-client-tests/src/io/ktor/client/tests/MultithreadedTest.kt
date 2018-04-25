@@ -12,10 +12,9 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
-import org.junit.*
-import org.junit.Assert.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
+import kotlin.test.*
 
 
 private const val TEST_SIZE = 100_000

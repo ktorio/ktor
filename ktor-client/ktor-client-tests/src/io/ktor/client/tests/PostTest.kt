@@ -11,9 +11,8 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
 import kotlinx.coroutines.experimental.*
-import org.junit.*
-import org.junit.Assert.*
 import java.util.*
+import kotlin.test.*
 
 abstract class PostTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     private val BODY_PREFIX = "Hello, post"

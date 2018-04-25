@@ -18,3 +18,5 @@ class ApacheFullFormTest : FullFormTest(Apache)
 class ApacheContentTest : ContentTest(Apache)
 
 class ApacheRedirectTest : HttpRedirectTest(Apache)
+
+class ApacheBuildersTest : BuildersTest(Apache)

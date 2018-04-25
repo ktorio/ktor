@@ -14,11 +14,11 @@ import io.ktor.server.netty.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
-import org.junit.Test
 import java.io.*
 import java.security.*
 import javax.net.ssl.*
 import kotlin.test.*
+import kotlin.test.Test
 
 class CIOHttpsTest : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Netty, applicationEngineEnvironment {
