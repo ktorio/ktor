@@ -9,7 +9,7 @@ import io.ktor.http.cio.websocket.*
 suspend fun HttpClient.webSocketRawSession(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = 80, path: String = "/",
     block: HttpRequestBuilder.() -> Unit = {}
-): WebSocketSession = request {
+): ClientWebSocketSession = request {
     this.method = method
     url("ws", host, port, path)
     block()
@@ -18,15 +18,17 @@ suspend fun HttpClient.webSocketRawSession(
 suspend fun HttpClient.webSocketSession(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = 80, path: String = "/",
     block: HttpRequestBuilder.() -> Unit = {}
-): DefaultWebSocketSession {
+): DefaultClientWebSocketSession {
     val feature = feature(WebSockets) ?: error("WebSockets feature should be installed")
     val session = webSocketRawSession(method, host, port, path, block)
-    return DefaultWebSocketSessionImpl(session, feature.context)
+    val origin = DefaultWebSocketSessionImpl(session, feature.context)
+
+    return DefaultClientWebSocketSession(session.call, origin)
 }
 
 suspend fun HttpClient.webSocketRaw(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = 80, path: String = "/",
-    request: HttpRequestBuilder.() -> Unit = {}, block: suspend WebSocketSession.() -> Unit
+    request: HttpRequestBuilder.() -> Unit = {}, block: suspend ClientWebSocketSession.() -> Unit
 ): Unit {
     val session = webSocketRawSession(method, host, port, path) {
         url.protocol = URLProtocol.WS
@@ -44,7 +46,7 @@ suspend fun HttpClient.webSocketRaw(
 
 suspend fun HttpClient.webSocket(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = 80, path: String = "/",
-    request: HttpRequestBuilder.() -> Unit = {}, block: suspend WebSocketSession.() -> Unit
+    request: HttpRequestBuilder.() -> Unit = {}, block: suspend DefaultClientWebSocketSession.() -> Unit
 ): Unit {
     val session = webSocketSession(method, host, port, path) {
         url.protocol = URLProtocol.WS
@@ -62,12 +64,12 @@ suspend fun HttpClient.webSocket(
 
 suspend fun HttpClient.wsRaw(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = 80, path: String = "/",
-    request: HttpRequestBuilder.() -> Unit = {}, block: suspend WebSocketSession.() -> Unit
+    request: HttpRequestBuilder.() -> Unit = {}, block: suspend ClientWebSocketSession.() -> Unit
 ): Unit = webSocketRaw(method, host, port, path, request, block)
 
 suspend fun HttpClient.wssRaw(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = 443, path: String = "/",
-    request: HttpRequestBuilder.() -> Unit = {}, block: suspend WebSocketSession.() -> Unit
+    request: HttpRequestBuilder.() -> Unit = {}, block: suspend ClientWebSocketSession.() -> Unit
 ): Unit = webSocketRaw(method, host, port, path, request = {
     url.protocol = URLProtocol.WSS
 
@@ -76,12 +78,12 @@ suspend fun HttpClient.wssRaw(
 
 suspend fun HttpClient.ws(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = 80, path: String = "/",
-    request: HttpRequestBuilder.() -> Unit = {}, block: suspend WebSocketSession.() -> Unit
+    request: HttpRequestBuilder.() -> Unit = {}, block: suspend DefaultClientWebSocketSession.() -> Unit
 ): Unit = webSocket(method, host, port, path, request, block)
 
 suspend fun HttpClient.wss(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = 443, path: String = "/",
-    request: HttpRequestBuilder.() -> Unit = {}, block: suspend WebSocketSession.() -> Unit
+    request: HttpRequestBuilder.() -> Unit = {}, block: suspend DefaultClientWebSocketSession.() -> Unit
 ): Unit = webSocket(method, host, port, path, request = {
     url.protocol = URLProtocol.WSS
     request()
