@@ -1,5 +1,9 @@
 description = ''
 
+dependencies {
+    compile project(':ktor-network-tls')
+}
+
 task generateJks(type: JavaExec, dependsOn: 'classes') {
     classpath = sourceSets.main.runtimeClasspath
     main = 'io.ktor.samples.http2.CertificateGenerator'

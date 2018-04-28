@@ -3,6 +3,7 @@ package io.ktor.samples.http2
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.network.tls.certificates.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
