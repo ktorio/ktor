@@ -13,7 +13,8 @@ import java.util.concurrent.*
 /**
  * [ApplicationEngine] implementation for running in a standalone Netty
  */
-class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit = {}) : BaseApplicationEngine(environment) {
+class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit = {}) :
+    BaseApplicationEngine(environment) {
 
     /**
      * Configuration for the [NettyApplicationEngine]
@@ -72,20 +73,24 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
             configuration.configureBootstrap(this)
             group(connectionEventGroup, workerEventGroup)
             channel(NioServerSocketChannel::class.java)
-            childHandler(NettyChannelInitializer(pipeline, environment,
+            childHandler(
+                NettyChannelInitializer(
+                    pipeline, environment,
                     callEventGroup, engineDispatcherWithShutdown, dispatcherWithShutdown,
                     connector,
                     configuration.requestQueueLimit,
                     configuration.runningLimit,
-                    configuration.responseWriteTimeoutSeconds))
+                    configuration.responseWriteTimeoutSeconds
+                )
+            )
         }
     }
 
     override fun start(wait: Boolean): NettyApplicationEngine {
         environment.start()
         channels = bootstraps.zip(environment.connectors)
-                .map { it.first.bind(it.second.host, it.second.port) }
-                .map { it.sync().channel() }
+            .map { it.first.bind(it.second.host, it.second.port) }
+            .map { it.sync().channel() }
 
         if (wait) {
             channels?.map { it.closeFuture() }?.forEach { it.sync() }

@@ -201,8 +201,7 @@ private fun parametersString(parameters: List<HeaderValueParam>) =
                 .joinToString("&") { "${it.first}=${it.second}" }
 
 fun signatureBaseString(header: HttpAuthHeader.Parameterized, method: HttpMethod, baseUrl: String, parameters: List<HeaderValueParam>) =
-        listOf(method.value.toUpperCase(), baseUrl, parametersString(header.parameters + parameters))
-                .map { it.percentEncode() }
-                .joinToString("&")
+    listOf(method.value.toUpperCase(), baseUrl, parametersString(header.parameters + parameters))
+        .joinToString("&") { it.percentEncode() }
 
 private fun String.percentEncode() = encodeURLPart(this)

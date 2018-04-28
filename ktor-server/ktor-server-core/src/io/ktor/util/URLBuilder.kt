@@ -29,4 +29,4 @@ fun url(block: URLBuilder.() -> Unit) = URLBuilder().apply(block).buildString()
  * and then invokes [block] function on the url builder so amend parameters
  */
 inline fun ApplicationCall.url(block: URLBuilder.() -> Unit = {}) =
-        URLBuilder.Companion.createFromCall(this).apply(block).buildString()
+        URLBuilder.createFromCall(this).apply(block).buildString()

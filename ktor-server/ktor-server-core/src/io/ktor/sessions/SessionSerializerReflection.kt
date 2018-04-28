@@ -258,7 +258,7 @@ class SessionSerializerReflection<T : Any>(val type: KClass<T>) : SessionSeriali
             }
 
     private fun deserializeCollection(value: String): List<*> = decodeURLQueryComponent(value).split("&").filter { it.isNotEmpty() }.map { deserializeValue(decodeURLQueryComponent(it)) }
-    private fun serializeCollection(value: Collection<*>): String = encodeURLQueryComponent(value.map { encodeURLQueryComponent(serializeValue(it)) }.joinToString("&"))
+    private fun serializeCollection(value: Collection<*>): String = encodeURLQueryComponent(value.joinToString("&") { encodeURLQueryComponent(serializeValue(it)) })
 
     private fun deserializeMap(value: String): Map<*, *> = decodeURLQueryComponent(value).split("&").filter { it.isNotEmpty() }.associateBy(
             { deserializeValue(decodeURLQueryComponent(it.substringBefore('='))) },

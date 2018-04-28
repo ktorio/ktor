@@ -21,11 +21,11 @@ abstract class FullFormTest(private val factory: HttpClientEngineFactory<*>) : T
     override val server = embeddedServer(Jetty, serverPort) {
         routing {
             get("/hello") {
-                assertEquals("Hello, server", call.receive<String>())
+                assertEquals("Hello, server", call.receive())
                 call.respondText("Hello, client")
             }
             post("/hello") {
-                assertEquals("Hello, server", call.receive<String>())
+                assertEquals("Hello, server", call.receive())
                 call.respondText("Hello, client")
             }
         }

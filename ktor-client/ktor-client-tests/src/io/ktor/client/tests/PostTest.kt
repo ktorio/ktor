@@ -15,13 +15,13 @@ import java.util.*
 import kotlin.test.*
 
 abstract class PostTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
-    private val BODY_PREFIX = "Hello, post"
+    private val prefix = "Hello, post"
 
     override val server = embeddedServer(Jetty, serverPort) {
         routing {
             post("/") {
                 val content = call.receive<String>()
-                assert(content.startsWith(BODY_PREFIX))
+                assert(content.startsWith(prefix))
                 call.respondText(content)
             }
         }
@@ -29,7 +29,7 @@ abstract class PostTest(private val factory: HttpClientEngineFactory<*>) : TestW
 
     @Test
     fun postString() {
-        postHelper(BODY_PREFIX)
+        postHelper(prefix)
     }
 
     @Test
@@ -42,7 +42,7 @@ abstract class PostTest(private val factory: HttpClientEngineFactory<*>) : TestW
             builder.append(random.nextInt(256).toChar())
         }
 
-        postHelper("$BODY_PREFIX: $builder")
+        postHelper("$prefix: $builder")
     }
 
     private fun postHelper(text: String) {

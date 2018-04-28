@@ -71,7 +71,7 @@ class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * A deferred used to control the execution of this request.
      */
-    val executionContext: CompletableDeferred<Unit> = CompletableDeferred<Unit>()
+    val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 
     private var attributesBuilder: Attributes.() -> Unit = {}
 

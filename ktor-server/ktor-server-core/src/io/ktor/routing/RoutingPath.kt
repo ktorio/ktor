@@ -18,7 +18,7 @@ class RoutingPath private constructor(val parts: List<RoutingPathSegment>) {
         }
     }
 
-    override fun toString(): String = parts.map { it.value }.joinToString("/")
+    override fun toString(): String = parts.joinToString("/") { it.value }
 }
 
 data class RoutingPathSegment(val value: String, val kind: RoutingPathSegmentKind)

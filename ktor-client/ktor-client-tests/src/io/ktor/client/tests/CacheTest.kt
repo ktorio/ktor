@@ -59,7 +59,7 @@ abstract class CacheTest(private val factory: HttpClientEngineFactory<*>) : Test
 
         listOf("/nocache", "/nostore").forEach {
             builder.url.encodedPath = it
-            assertNotEquals(client.get<String>(builder), client.get<String>(builder))
+            assertNotEquals(client.get<String>(builder), client.get(builder))
         }
 
         client.close()

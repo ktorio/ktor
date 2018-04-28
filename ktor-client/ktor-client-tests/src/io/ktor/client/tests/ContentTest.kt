@@ -19,7 +19,7 @@ import java.io.*
 import kotlin.test.*
 
 open class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
-    private val TEST_SIZE = listOf(
+    private val testSize = listOf(
         0, 1, // small edge cases
         4 * 1024 - 1, 4 * 1024, 4 * 1024 + 1, // ByteChannel edge cases
         16 * 1024 * 1024 // big
@@ -35,7 +35,7 @@ open class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWi
     }
 
     @Test
-    fun byteArrayTest(): Unit = TEST_SIZE.forEach { size ->
+    fun byteArrayTest(): Unit = testSize.forEach { size ->
         val content = makeArray(size)
         val response = requestWithBody<ByteArray>(content)
 
@@ -43,14 +43,14 @@ open class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWi
     }
 
     @Test
-    fun stringTest() = TEST_SIZE.forEach { size ->
+    fun stringTest() = testSize.forEach { size ->
         val content = makeString(size)
         val requestWithBody = requestWithBody<String>(content)
         assertArrayEquals("Test fail with size: $size", content.toByteArray(), requestWithBody.toByteArray())
     }
 
     @Test
-    fun textContentTest() = TEST_SIZE.forEach { size ->
+    fun textContentTest() = testSize.forEach { size ->
         val content = makeString(size)
         val response = requestWithBody<String>(TextContent(content, ContentType.Text.Plain))
 
@@ -58,7 +58,7 @@ open class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWi
     }
 
     @Test
-    fun byteArrayContent() = TEST_SIZE.forEach { size ->
+    fun byteArrayContent() = testSize.forEach { size ->
         val content = makeArray(size)
         val response = requestWithBody<ByteArray>(ByteArrayContent(content))
 

@@ -7,7 +7,6 @@ import org.junit.Test
 import org.junit.rules.*
 import org.junit.runner.*
 import org.junit.runners.model.*
-import sun.tools.jar.resources.*
 import java.io.*
 import java.net.*
 import java.util.*

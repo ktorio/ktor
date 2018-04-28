@@ -26,7 +26,9 @@ fun hex(s: String): ByteArray {
     return result
 }
 
-fun hex(bytes: ByteArray) = bytes.map { Integer.toHexString(it.toInt() and 0xff).padStart(2, '0') }.joinToString("")
+fun hex(bytes: ByteArray) = bytes.joinToString("") {
+    Integer.toHexString(it.toInt() and 0xff).padStart(2, '0')
+}
 
 fun raw(s: String) = s.toByteArray(Charsets.UTF_8)
 

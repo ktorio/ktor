@@ -137,16 +137,18 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
             }
 
             val failures = startServer(server)
-            if (failures.isEmpty()) {
-                return server
-            } else if (failures.any { it is BindException }) {
-                port = findFreePort()
-                sslPort = findFreePort()
-                server.stop(1L, 1L, TimeUnit.SECONDS)
-                lastFailures = failures
-            } else {
-                server.stop(1L, 1L, TimeUnit.SECONDS)
-                throw MultipleFailureException(failures)
+            when {
+                failures.isEmpty() -> return server
+                failures.any { it is BindException } -> {
+                    port = findFreePort()
+                    sslPort = findFreePort()
+                    server.stop(1L, 1L, TimeUnit.SECONDS)
+                    lastFailures = failures
+                }
+                else -> {
+                    server.stop(1L, 1L, TimeUnit.SECONDS)
+                    throw MultipleFailureException(failures)
+                }
             }
         }
 
@@ -212,7 +214,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     private fun withUrl(
         url: URL, port: Int, builder: HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
-    ) = runBlocking<Unit> {
+    ) = runBlocking {
         withTimeout(timeout.seconds, TimeUnit.SECONDS) {
             HttpClient(Apache.config {
                 sslContext = Companion.sslContext

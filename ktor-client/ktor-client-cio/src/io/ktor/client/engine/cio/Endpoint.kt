@@ -25,7 +25,7 @@ internal class Endpoint(
 ) : Closeable {
     private val tasks: Channel<RequestTask> = Channel(Channel.UNLIMITED)
     private val deliveryPoint: Channel<RequestTask> = Channel()
-    private val MAX_ENDPOINT_IDLE_TIME = 2 * config.endpoint.connectTimeout
+    private val maxEndpointIdleTime = 2 * config.endpoint.connectTimeout
 
     @Volatile
     private var connectionsHolder: Int = 0
@@ -35,7 +35,7 @@ internal class Endpoint(
     private val postman = launch(dispatcher, start = CoroutineStart.LAZY) {
         try {
             while (true) {
-                val task = withTimeoutOrNull(MAX_ENDPOINT_IDLE_TIME) {
+                val task = withTimeoutOrNull(maxEndpointIdleTime) {
                     tasks.receive()
                 }
 

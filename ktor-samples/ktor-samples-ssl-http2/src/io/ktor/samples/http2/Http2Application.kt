@@ -6,7 +6,6 @@ import io.ktor.http.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.response.*
 import io.ktor.routing.*
-import io.ktor.util.*
 import java.io.*
 
 fun Application.main() {

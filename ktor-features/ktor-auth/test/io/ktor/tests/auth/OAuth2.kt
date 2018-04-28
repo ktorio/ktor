@@ -458,7 +458,7 @@ private fun createOAuth2Server(server: OAuth2Server): HttpClient {
                         }
 
                         val contentType = when {
-                            badContentType == true -> ContentType.Text.Plain
+                            badContentType -> ContentType.Text.Plain
                             else -> ContentType.Application.Json
                         }
 
