@@ -20,6 +20,6 @@ suspend fun HttpResponse.readBytes(): ByteArray =
 /**
  * Efficiently discards the remaining bytes of [HttpResponse.content].
  */
-suspend fun HttpResponse.discardRemaining() = HttpClientDefaultPool.use { buffer ->
+suspend fun HttpResponse.discardRemaining(): Unit = HttpClientDefaultPool.use { buffer ->
     content.pass(buffer) { it.clear() }
 }

@@ -31,7 +31,7 @@ class HttpClient private constructor(
     /**
      * Pipeline used for processing all the requests sent by this client.
      */
-    val requestPipeline = HttpRequestPipeline().apply {
+    val requestPipeline: HttpRequestPipeline = HttpRequestPipeline().apply {
         // default send scenario
         intercept(HttpRequestPipeline.Send) { content ->
             proceedWith(sendPipeline.execute(context, content))
@@ -41,12 +41,12 @@ class HttpClient private constructor(
     /**
      * Pipeline used for processing all the responses sent by the server.
      */
-    val responsePipeline = HttpResponsePipeline()
+    val responsePipeline: HttpResponsePipeline = HttpResponsePipeline()
 
     /**
      * Pipeline used for sending the request
      */
-    val sendPipeline = HttpSendPipeline().apply {
+    val sendPipeline: HttpSendPipeline = HttpSendPipeline().apply {
         intercept(HttpSendPipeline.Engine) { content ->
             val call = HttpClientCall(this@HttpClient)
             val requestData = HttpRequestBuilder().apply {
@@ -66,12 +66,12 @@ class HttpClient private constructor(
     /**
      * Pipeline used for receiving request
      */
-    val receivePipeline = HttpReceivePipeline()
+    val receivePipeline: HttpReceivePipeline = HttpReceivePipeline()
 
     /**
      * Typed attributes used as a lightweight container for this client.
      */
-    val attributes = Attributes()
+    val attributes: Attributes = Attributes()
 
     /**
      * Dispatcher handles io operations

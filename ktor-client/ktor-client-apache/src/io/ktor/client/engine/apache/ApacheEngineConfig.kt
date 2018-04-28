@@ -18,19 +18,19 @@ class ApacheEngineConfig : HttpClientEngineConfig() {
      * Max milliseconds between TCP packets - default 10 seconds.
      * A value of 0 represents infinite, while -1 represents system's default value.
      */
-    var socketTimeout = 10_000
+    var socketTimeout: Int = 10_000
 
     /**
      * Max milliseconds to establish an HTTP connection - default 10 seconds.
      * A value of 0 represents infinite, while -1 represents system's default value.
      */
-    var connectTimeout = 10_000
+    var connectTimeout: Int = 10_000
 
     /**
      * Max milliseconds for the connection manager to start a request - default 20 seconds.
      * A value of 0 represents infinite, while -1 represents system's default value.
      */
-    var connectionRequestTimeout = 20_000
+    var connectionRequestTimeout: Int = 20_000
 
     /**
      * Custom processor for [RequestConfig.Builder].
