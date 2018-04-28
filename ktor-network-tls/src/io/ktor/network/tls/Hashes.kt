@@ -9,9 +9,9 @@ import kotlin.coroutines.experimental.*
 
 
 internal suspend fun hashMessages(
-        messages: List<ByteReadPacket>,
-        baseHash: String,
-        coroutineContext: CoroutineContext
+    messages: List<ByteReadPacket>,
+    baseHash: String,
+    coroutineContext: CoroutineContext
 ): ByteArray {
     val messageDigest = MessageDigest.getInstance(baseHash)
     val digestBytes = ByteArray(messageDigest.digestLength)
@@ -24,27 +24,30 @@ internal suspend fun hashMessages(
     return digestBytes
 }
 
-private fun digest(digest: MessageDigest, coroutineContext: CoroutineContext, result: ByteArray): ReaderJob =
-        reader(coroutineContext) {
-            digest.reset()
-            val buffer = DefaultByteBufferPool.borrow()
-            try {
-                while (true) {
-                    buffer.clear()
-                    val rc = channel.readAvailable(buffer)
-                    if (rc == -1) break
-                    buffer.flip()
-                    digest.update(buffer)
-                }
-
-                digest.digest(result, 0, digest.digestLength)
-            } finally {
-                DefaultByteBufferPool.recycle(buffer)
-            }
+private fun digest(
+    digest: MessageDigest,
+    coroutineContext: CoroutineContext,
+    result: ByteArray
+): ReaderJob = reader(coroutineContext) {
+    digest.reset()
+    val buffer = DefaultByteBufferPool.borrow()
+    try {
+        while (true) {
+            buffer.clear()
+            val rc = channel.readAvailable(buffer)
+            if (rc == -1) break
+            buffer.flip()
+            digest.update(buffer)
         }
 
+        digest.digest(result, 0, digest.digestLength)
+    } finally {
+        DefaultByteBufferPool.recycle(buffer)
+    }
+}
+
 internal fun PRF(secret: SecretKey, label: ByteArray, seed: ByteArray, requiredLength: Int = 12) = P_hash(
-        label + seed, Mac.getInstance(secret.algorithm), secret, requiredLength
+    label + seed, Mac.getInstance(secret.algorithm), secret, requiredLength
 )
 
 private fun P_hash(seed: ByteArray, mac: Mac, secretKey: SecretKey, requiredLength: Int = 12): ByteArray {

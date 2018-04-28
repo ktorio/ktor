@@ -3,21 +3,27 @@ package io.ktor.network.tls
 import io.ktor.http.cio.internals.*
 import io.ktor.network.util.*
 import kotlinx.io.core.*
+import java.security.*
 import javax.crypto.*
 import javax.crypto.spec.*
 
 
-internal fun encryptCipher(suite: CipherSuite, keyMaterial: ByteArray, recordType: TLSRecordType, recordLength: Int, recordIv: Long, seq: Long): Cipher {
+internal fun encryptCipher(
+    suite: CipherSuite,
+    keyMaterial: ByteArray,
+    recordType: TLSRecordType,
+    recordLength: Int, recordIv: Long, seq: Long
+): Cipher {
     val cipher = Cipher.getInstance(suite.jdkCipherName)
 
     val key = keyMaterial.clientKey(suite)
     val fixedIv = keyMaterial.clientIV(suite)
     val iv = fixedIv.copyOf(suite.ivLength)
 
-    var s = recordIv
+    var sequence = recordIv
     for (idx in suite.ivLength - 1 downTo suite.fixedIvLength) {
-        iv[idx] = (s and 0xff).toByte()
-        s = s ushr 8
+        iv[idx] = (sequence and 0xff).toByte()
+        sequence = sequence ushr 8
     }
 
     // TODO non-gcm ciphers
@@ -26,10 +32,10 @@ internal fun encryptCipher(suite: CipherSuite, keyMaterial: ByteArray, recordTyp
     cipher.init(Cipher.ENCRYPT_MODE, key, gcmSpec)
 
     val aad = ByteArray(13)
-    s = seq
+    sequence = seq
     for (idx in 7 downTo 0) {
-        aad[idx] = (s and 0xff).toByte()
-        s = s ushr 8
+        aad[idx] = (sequence and 0xff).toByte()
+        sequence = sequence ushr 8
     }
     aad[9] = 3 // TLS 1.2
     aad[10] = 3
@@ -43,7 +49,23 @@ internal fun encryptCipher(suite: CipherSuite, keyMaterial: ByteArray, recordTyp
     return cipher
 }
 
-internal fun decryptCipher(suite: CipherSuite, keyMaterial: ByteArray, recordType: TLSRecordType, recordLength: Int, recordIv: Long, seq: Long): Cipher {
+internal fun makeDecryptCipher(
+    suite: CipherSuite,
+    key: PublicKey
+): Cipher {
+    val cipher = Cipher.getInstance(suite.jdkCipherName)!!
+
+    cipher.init(Cipher.DECRYPT_MODE, key)
+
+    return cipher
+}
+
+internal fun decryptCipher(
+    suite: CipherSuite,
+    keyMaterial: ByteArray,
+    recordType: TLSRecordType,
+    recordLength: Int, recordIv: Long, seq: Long
+): Cipher {
     val cipher = Cipher.getInstance(suite.jdkCipherName)
 
     val key = keyMaterial.serverKey(suite)
