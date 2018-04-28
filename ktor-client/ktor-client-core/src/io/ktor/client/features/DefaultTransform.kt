@@ -16,10 +16,10 @@ fun HttpClient.defaultTransformers() {
         }
     }
 
-    responsePipeline.intercept(HttpResponsePipeline.Parse) { (type, content) ->
+    responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, content) ->
         if (content !is HttpResponse) return@intercept
-        when (type) {
-            ByteArray::class -> proceedWith(HttpResponseContainer(type, content.content.toByteArray()))
+        when (info.type) {
+            ByteArray::class -> proceedWith(HttpResponseContainer(info, content.content.toByteArray()))
         }
     }
 }

@@ -31,10 +31,10 @@ class WebSockets(
                 proceedWith(WebSocketContent())
             }
 
-            scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (type, response) ->
+            scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, response) ->
                 val content = context.request.content
 
-                if (!type.isSubclassOf(WebSocketSession::class)
+                if (!info.type.isSubclassOf(WebSocketSession::class)
                     || response !is HttpResponse
                     || response.status != HttpStatusCode.SwitchingProtocols
                     || content !is WebSocketContent
@@ -52,7 +52,7 @@ class WebSockets(
                     override val call: HttpClientCall = response.call
                 }
 
-                proceedWith(HttpResponseContainer(type, session))
+                proceedWith(HttpResponseContainer(info, session))
             }
         }
     }
