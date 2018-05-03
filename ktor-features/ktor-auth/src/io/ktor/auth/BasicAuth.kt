@@ -11,7 +11,7 @@ import java.util.*
  * @param name is the name of the provider, or `null` for a default provider
  */
 class BasicAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
-    internal var authenticationFunction: suspend (UserPasswordCredential) -> Principal? = { null }
+    internal var authenticationFunction: suspend ApplicationCall.(UserPasswordCredential) -> Principal? = { null }
 
     /**
      * Specifies realm to be passed in `WWW-Authenticate` header
@@ -22,7 +22,7 @@ class BasicAuthenticationProvider(name: String?) : AuthenticationProvider(name) 
      * Sets a validation function that will check given [UserPasswordCredential] instance and return [Principal],
      * or null if credential does not correspond to an authenticated principal
      */
-    fun validate(body: suspend (UserPasswordCredential) -> Principal?) {
+    fun validate(body: suspend ApplicationCall.(UserPasswordCredential) -> Principal?) {
         authenticationFunction = body
     }
 }
@@ -37,7 +37,7 @@ fun Authentication.Configuration.basic(name: String? = null, configure: BasicAut
 
     provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val credentials = call.request.basicAuthenticationCredentials()
-        val principal = credentials?.let { authenticate(it) }
+        val principal = credentials?.let { authenticate(call, it) }
 
         val cause = when {
             credentials == null -> AuthenticationFailedCause.NoCredentials

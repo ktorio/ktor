@@ -12,7 +12,7 @@ fun Application.authentication(body: Authentication.Configuration.() -> Unit) = 
 fun Authentication.Configuration.basicAuthentication(realm: String, validate: suspend (UserPasswordCredential) -> Principal?) {
     basic {
         this.realm = realm
-        validate(validate)
+        validate { validate(it) }
     }
 }
 
