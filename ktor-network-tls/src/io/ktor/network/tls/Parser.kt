@@ -78,8 +78,8 @@ internal fun ByteReadPacket.readCurveParams(): NamedCurve {
 
             return NamedCurve.fromCode(curveId) ?: throw TLSException("Unknown EC id")
         }
-        ServerKeyExchangeType.ExplicitPrime -> TODO()
-        ServerKeyExchangeType.ExplicitChar -> TODO()
+        ServerKeyExchangeType.ExplicitPrime -> TODO("ExplicitPrime server key exchange type is not yet supported")
+        ServerKeyExchangeType.ExplicitChar -> TODO("ExplicitChar server key exchange type is not yet supported")
     }
 }
 

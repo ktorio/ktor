@@ -130,7 +130,10 @@ internal class TLSClientHandshake(
 
                 channel.send(handshake)
 
-                if (handshake.type == TLSHandshakeType.Finished) return@produce
+                if (handshake.type == TLSHandshakeType.Finished) {
+                    packet.release()
+                    return@produce
+                }
             }
         }
     }
@@ -146,7 +149,7 @@ internal class TLSClientHandshake(
 
     private fun selectAndVerifyAlgorithm(serverHello: TLSServerHello): HashAndSign {
         val suite = serverHello.cipherSuite
-        check(suite in SupportedSuites)
+        check(suite in SupportedSuites) { "Unsupported cipher suite ${suite.jdkCipherName} in SERVER_HELLO" }
 
         val clientExchanges = SupportedSignatureAlgorithms.filter {
             it.hash == suite.hash && it.sign == suite.signatureAlgorithm
@@ -254,8 +257,10 @@ internal class TLSClientHandshake(
 
                             encryptionInfo = generateECKeys(curve, point)
                         }
-                        SecretExchangeType.RSA ->
+                        SecretExchangeType.RSA -> {
+                            packet.release()
                             error("Server key exchange handshake doesn't expected in RCA exchange type")
+                        }
                     }
                 }
                 TLSHandshakeType.ServerDone -> {

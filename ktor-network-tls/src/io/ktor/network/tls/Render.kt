@@ -123,7 +123,12 @@ private fun buildSignatureAlgorithmsExtension(
     }
 }
 
+private const val MAX_SERVER_NAME_LENGTH: Int = Short.MAX_VALUE - 5
 private fun buildServerNameExtension(name: String): ByteReadPacket = buildPacket {
+    require(name.length < MAX_SERVER_NAME_LENGTH) {
+        "Server name length limit exceeded: at most $MAX_SERVER_NAME_LENGTH characters allowed"
+    }
+
     writeShort(TLSExtensionType.SERVER_NAME.code) // server_name
     writeShort((name.length + 2 + 1 + 2).toShort()) // length
     writeShort((name.length + 2 + 1).toShort()) // list length
@@ -132,7 +137,13 @@ private fun buildServerNameExtension(name: String): ByteReadPacket = buildPacket
     writeStringUtf8(name)
 }
 
+private const val MAX_CURVES_QUANTITY: Int = Short.MAX_VALUE / 2 - 1
+
 private fun buildECCurvesExtension(curves: List<NamedCurve> = SupportedNamedCurves): ByteReadPacket = buildPacket {
+    require(curves.size <= MAX_CURVES_QUANTITY) {
+        "Too many named curves provided: at most $MAX_CURVES_QUANTITY could be provided"
+    }
+
     writeShort(TLSExtensionType.ELLIPTIC_CURVES.code)
     val size = curves.size * 2
 
