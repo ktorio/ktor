@@ -49,6 +49,9 @@ class SocketBuilder internal constructor(val selector: SelectorManager, override
 }
 
 class TcpSocketBuilder internal constructor(val selector: SelectorManager, override var options: SocketOptions) : Configurable<TcpSocketBuilder> {
+    suspend fun connect(hostname: String, port: Int) = connect(InetSocketAddress(hostname, port))
+    fun bind(hostname: String = "0.0.0.0", port: Int = 0) = bind(InetSocketAddress(hostname, port))
+
     suspend fun connect(remoteAddress: SocketAddress): Socket {
         return selector.buildOrClose({ openSocketChannel() }) {
             assignOptions(options)
