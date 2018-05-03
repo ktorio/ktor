@@ -13,10 +13,10 @@ object KtorDefaultPool : DefaultPool<ByteBuffer>(DEFAULT_KTOR_POOL_SIZE) {
     override fun clearInstance(instance: ByteBuffer): ByteBuffer = instance.apply { clear() }
 }
 
-suspend fun <T : Any> ObjectPool<T>.use(block: suspend (T) -> Unit) {
+inline fun <T : Any, R> ObjectPool<T>.use(block: (T) -> R): R {
     val item = borrow()
     try {
-        block(item)
+        return block(item)
     } finally {
         recycle(item)
     }
