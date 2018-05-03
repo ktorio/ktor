@@ -61,7 +61,7 @@ suspend fun ApplicationCall.respondText(contentType: ContentType? = null, status
 
 /**
  * Responds to a client with a raw bytes response, using specified [provider] to build a byte array
- * @param contentType is an optional [ContentType], default is [ContentType.Text.Plain]
+ * @param contentType is an optional [ContentType], unspecified by default
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
  */
 suspend fun ApplicationCall.respondBytes(contentType: ContentType? = null, status: HttpStatusCode? = null, provider: suspend () -> ByteArray) {
@@ -70,7 +70,7 @@ suspend fun ApplicationCall.respondBytes(contentType: ContentType? = null, statu
 
 /**
  * Responds to a client with a raw bytes response, using specified [bytes]
- * @param contentType is an optional [ContentType], default is [ContentType.Text.Plain]
+ * @param contentType is an optional [ContentType], unspecified by default
  * @param status is an optional [HttpStatusCode], default is [HttpStatusCode.OK]
  */
 suspend fun ApplicationCall.respondBytes(bytes: ByteArray, contentType: ContentType? = null, status: HttpStatusCode? = null, configure: OutgoingContent.() -> Unit = {}) {
