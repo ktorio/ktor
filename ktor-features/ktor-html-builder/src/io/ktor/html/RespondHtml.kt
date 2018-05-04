@@ -27,7 +27,7 @@ class HtmlContent(override val status: HttpStatusCode? = null, private val build
     override suspend fun writeTo(channel: ByteWriteChannel) {
         channel.bufferedWriter().use {
                     it.append("<!DOCTYPE html>\n")
-                    it.appendHTML().html(builder)
+                    it.appendHTML().html(block = builder)
                 }
     }
 }
