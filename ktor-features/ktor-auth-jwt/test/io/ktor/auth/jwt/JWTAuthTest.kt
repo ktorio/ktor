@@ -47,6 +47,23 @@ class JWTAuthTest {
     }
 
     @Test
+    fun testJwtSuccessWithCustomScheme() {
+        withApplication {
+            application.configureServerJwt {
+                authSchemes("Bearer", "Token")
+            }
+
+            val token = getToken(scheme = "Token")
+
+            val response = handleRequestWithToken(token)
+
+            assertTrue(response.requestHandled)
+            assertEquals(HttpStatusCode.OK, response.response.status())
+            assertNotNull(response.response.content)
+        }
+    }
+
+    @Test
     fun testJwtAlgorithmMismatch() {
         withApplication {
             application.configureServerJwt()
@@ -109,6 +126,16 @@ class JWTAuthTest {
         withApplication {
             application.configureServerJwt()
             val token = getToken().removePrefix("Bearer ")
+            val response = handleRequestWithToken(token)
+            verifyResponseUnauthorized(response)
+        }
+    }
+
+    @Test
+    fun testJwtAuthSchemeMismatch2() {
+        withApplication {
+            application.configureServerJwt()
+            val token = getToken("Token")
             val response = handleRequestWithToken(token)
             verifyResponseUnauthorized(response)
         }
@@ -248,7 +275,7 @@ class JWTAuthTest {
         }
     }
 
-    private fun Application.configureServerJwt() = configureServer {
+    private fun Application.configureServerJwt(extra: JWTAuthenticationProvider.() -> Unit = {}) = configureServer {
         jwt {
             this@jwt.realm = this@JWTAuthTest.realm
             verifier(makeJwtVerifier())
@@ -258,7 +285,7 @@ class JWTAuthTest {
                     else -> null
                 }
             }
-
+            extra()
         }
     }
 
@@ -317,7 +344,7 @@ class JWTAuthTest {
             .withKeyId(kid)
             .sign(jwkAlgorithm)
 
-    private fun getToken() = "Bearer " + JWT.create()
+    private fun getToken(scheme: String = "Bearer") = "$scheme " + JWT.create()
             .withAudience(audience)
             .withIssuer(issuer)
             .sign(algorithm)
