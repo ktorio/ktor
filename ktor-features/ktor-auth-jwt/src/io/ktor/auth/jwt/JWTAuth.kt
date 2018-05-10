@@ -60,7 +60,7 @@ class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
     }
 }
 
-class JWTAuthSchemes(val defaultScheme: String, vararg val additionalSchemes: String) {
+internal class JWTAuthSchemes(val defaultScheme: String, vararg val additionalSchemes: String) {
     val schemes = (arrayOf(defaultScheme) + additionalSchemes).toSet()
     val schemesLowerCase = schemes.map { it.toLowerCase() }.toSet()
 
