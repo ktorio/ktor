@@ -26,9 +26,10 @@ class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
     internal var verifier: ((HttpAuthHeader?) -> JWTVerifier?) = { null }
 
     /**
-     * @param [supported] list of supported authentication schemes for JWT (by default only "Bearer")
+     * @param [schemes] list of supported authentication schemes for JWT (by default only "Bearer")
      */
     fun authSchemes(vararg schemes: String = arrayOf("Bearer")) {
+        require(schemes.isNotEmpty()) { "At least one scheme should be provided" }
         supportedAuthSchemes = schemes.toSet()
     }
 
