@@ -21,16 +21,16 @@ class JWTPrincipal(val payload: Payload) : Principal
 class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
     internal var authenticationFunction: suspend ApplicationCall.(JWTCredential) -> Principal? = { null }
 
-    internal var supportedAuthSchemes = setOf("Bearer")
+    internal var schemes = JWTAuthSchemes("Bearer")
     var realm: String = "Ktor Server"
     internal var verifier: ((HttpAuthHeader?) -> JWTVerifier?) = { null }
 
     /**
-     * @param [schemes] list of supported authentication schemes for JWT (by default only "Bearer")
+     * @param [defaultScheme] default scheme that will be used to challenge the client when no valid auth is provided
+     * @param [additionalSchemes] additional schemes that will be accepted when validating the authentication
      */
-    fun authSchemes(vararg schemes: String = arrayOf("Bearer")) {
-        require(schemes.isNotEmpty()) { "At least one scheme should be provided" }
-        supportedAuthSchemes = schemes.toSet()
+    fun authSchemes(defaultScheme: String = "Bearer", vararg additionalSchemes: String) {
+        schemes = JWTAuthSchemes(defaultScheme, *additionalSchemes)
     }
 
     /**
@@ -52,12 +52,19 @@ class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
      * @param [issuer] the issuer of the JSON Web Token
      */
     fun verifier(jwkProvider: JwkProvider, issuer: String) {
-        this.verifier = { token -> getVerifier(jwkProvider, issuer, token, supportedAuthSchemes) }
+        this.verifier = { token -> getVerifier(jwkProvider, issuer, token, schemes) }
     }
 
     fun validate(body: suspend ApplicationCall.(JWTCredential) -> Principal?) {
         authenticationFunction = body
     }
+}
+
+class JWTAuthSchemes(val defaultScheme: String, vararg val additionalSchemes: String) {
+    val schemes = (arrayOf(defaultScheme) + additionalSchemes).toSet()
+    val schemesLowerCase = schemes.map { it.toLowerCase() }.toSet()
+
+    operator fun contains(scheme: String): Boolean = scheme.toLowerCase() in schemesLowerCase
 }
 
 /**
@@ -68,16 +75,16 @@ fun Authentication.Configuration.jwt(name: String? = null, configure: JWTAuthent
     val realm = provider.realm
     val authenticate = provider.authenticationFunction
     val verifier = provider.verifier
-    val supportedAuthSchemes = provider.supportedAuthSchemes
+    val schemes = provider.schemes
     provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
         val token = call.request.parseAuthorizationHeaderOrNull()
-        val principal = verifyAndValidate(call, verifier(token), token, supportedAuthSchemes, authenticate)
-        evaluate(token, principal, realm, supportedAuthSchemes, context)
+        val principal = verifyAndValidate(call, verifier(token), token, schemes, authenticate)
+        evaluate(token, principal, realm, schemes, context)
     }
     register(provider)
 }
 
-private suspend fun evaluate(token: HttpAuthHeader?, principal: Principal?, realm: String, supportedAuthSchemes: Set<String>, context: AuthenticationContext) {
+private suspend fun evaluate(token: HttpAuthHeader?, principal: Principal?, realm: String, schemes: JWTAuthSchemes, context: AuthenticationContext) {
     val cause = when {
         token == null -> AuthenticationFailedCause.NoCredentials
         principal == null -> AuthenticationFailedCause.InvalidCredentials
@@ -85,7 +92,7 @@ private suspend fun evaluate(token: HttpAuthHeader?, principal: Principal?, real
     }
     if (cause != null) {
         context.challenge(JWTAuthKey, cause) {
-            call.respond(UnauthorizedResponse(HttpAuthHeader.bearerAuthChallenge(realm, supportedAuthSchemes)))
+            call.respond(UnauthorizedResponse(HttpAuthHeader.bearerAuthChallenge(realm, schemes)))
             it.complete()
         }
     }
@@ -94,8 +101,8 @@ private suspend fun evaluate(token: HttpAuthHeader?, principal: Principal?, real
     }
 }
 
-private fun getVerifier(jwkProvider: JwkProvider, issuer: String, token: HttpAuthHeader?, supportedAuthSchemes: Set<String>): JWTVerifier? {
-    val jwk = token.getBlob(supportedAuthSchemes)?.let { jwkProvider.get(JWT.decode(it).keyId) }
+private fun getVerifier(jwkProvider: JwkProvider, issuer: String, token: HttpAuthHeader?, schemes: JWTAuthSchemes): JWTVerifier? {
+    val jwk = token.getBlob(schemes)?.let { jwkProvider.get(JWT.decode(it).keyId) }
 
     val algorithm = try {
         jwk?.makeAlgorithm()
@@ -105,9 +112,9 @@ private fun getVerifier(jwkProvider: JwkProvider, issuer: String, token: HttpAut
     return JWT.require(algorithm).withIssuer(issuer).build()
 }
 
-private suspend fun verifyAndValidate(call: ApplicationCall, jwtVerifier: JWTVerifier?, token: HttpAuthHeader?, supportedAuthSchemes: Set<String>, validate: suspend ApplicationCall.(JWTCredential) -> Principal?): Principal? {
+private suspend fun verifyAndValidate(call: ApplicationCall, jwtVerifier: JWTVerifier?, token: HttpAuthHeader?, schemes: JWTAuthSchemes, validate: suspend ApplicationCall.(JWTCredential) -> Principal?): Principal? {
     val jwt = try {
-        token.getBlob(supportedAuthSchemes)?.let { jwtVerifier?.verify(it) }
+        token.getBlob(schemes)?.let { jwtVerifier?.verify(it) }
     } catch (ex: JWTVerificationException) {
         null
     } ?: return null
@@ -117,8 +124,8 @@ private suspend fun verifyAndValidate(call: ApplicationCall, jwtVerifier: JWTVer
     return validate(call, credentials)
 }
 
-private fun HttpAuthHeader?.getBlob(supportedAuthSchemes: Set<String>) = when {
-    this is HttpAuthHeader.Single && authScheme in supportedAuthSchemes -> blob
+private fun HttpAuthHeader?.getBlob(schemes: JWTAuthSchemes) = when {
+    this is HttpAuthHeader.Single && authScheme.toLowerCase() in schemes -> blob
     else -> null
 }
 
@@ -128,8 +135,8 @@ private fun ApplicationRequest.parseAuthorizationHeaderOrNull() = try {
     null
 }
 
-private fun HttpAuthHeader.Companion.bearerAuthChallenge(realm: String, supportedAuthSchemes: Set<String>): HttpAuthHeader =
-        HttpAuthHeader.Parameterized(supportedAuthSchemes.first(), mapOf(HttpAuthHeader.Parameters.Realm to realm))
+private fun HttpAuthHeader.Companion.bearerAuthChallenge(realm: String, schemes: JWTAuthSchemes): HttpAuthHeader =
+        HttpAuthHeader.Parameterized(schemes.defaultScheme, mapOf(HttpAuthHeader.Parameters.Realm to realm))
 
 private fun Jwk.makeAlgorithm(): Algorithm = when (algorithm) {
     "RS256" -> Algorithm.RSA256(publicKey as RSAPublicKey, null)

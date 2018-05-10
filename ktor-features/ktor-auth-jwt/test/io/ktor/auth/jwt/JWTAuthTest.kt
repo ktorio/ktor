@@ -64,6 +64,23 @@ class JWTAuthTest {
     }
 
     @Test
+    fun testJwtSuccessWithCustomSchemeWithDifferentCases() {
+        withApplication {
+            application.configureServerJwt {
+                authSchemes("Bearer", "tokEN")
+            }
+
+            val token = getToken(scheme = "TOKen")
+
+            val response = handleRequestWithToken(token)
+
+            assertTrue(response.requestHandled)
+            assertEquals(HttpStatusCode.OK, response.response.status())
+            assertNotNull(response.response.content)
+        }
+    }
+
+    @Test
     fun testJwtAlgorithmMismatch() {
         withApplication {
             application.configureServerJwt()
