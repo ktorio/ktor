@@ -11,7 +11,7 @@ fun String.escapeHTML(): String {
         for (idx in 0 until text.length) {
             val ch = text[idx]
             when (ch) {
-                '\'' -> append("&apos;")
+                '\'' -> append("&#x27;")
                 '\"' -> append("&quot")
                 '&' -> append("&amp;")
                 '<' -> append("&lt;")
