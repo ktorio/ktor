@@ -41,7 +41,7 @@ object DefaultConversionService : ConversionService {
 
         when {
             values.isEmpty() -> throw DataConversionException("There are no values when trying to construct single value $type")
-            values.size > 1 -> throw DataConversionException("There are multiply values when trying to construct single value $type")
+            values.size > 1 -> throw DataConversionException("There are multiple values when trying to construct single value $type")
             else -> return convert(values.single(), type)
         }
     }
@@ -56,7 +56,8 @@ object DefaultConversionService : ConversionService {
         String::class.java, java.lang.String::class.java -> value
         else ->
             if (type is Class<*> && type.isEnum) {
-                type.enumConstants.first { (it as Enum<*>).name == value }
+                type.enumConstants?.firstOrNull { (it as Enum<*>).name == value }
+                    ?: throw DataConversionException("Value $value is not a enum member name of $type")
             } else
                 throw DataConversionException("Type $type is not supported in default data conversion service")
     }

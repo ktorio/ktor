@@ -7,6 +7,7 @@ import io.ktor.locations.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import org.junit.Test
 import kotlin.test.*
 
@@ -424,6 +425,30 @@ class LocationsTest {
         }
         urlShouldBeHandled(application.locations.href(OverlappingPath1(1, "Foo")))
         urlShouldBeUnhandled(application.locations.href(OverlappingPath2("1-Foo")))
+    }
+
+    enum class LocationEnum {
+        A, B, C
+    }
+
+    @Location("/") class LocationWithEnum(val e: LocationEnum)
+
+    @Test fun `location class with enum value`() = withLocationsApplication {
+        application.routing {
+            get<LocationWithEnum> {
+                call.respondText(call.locations.resolve<LocationWithEnum>(LocationWithEnum::class, call).e.name)
+            }
+        }
+
+        urlShouldBeHandled("/?e=A", "A")
+        urlShouldBeHandled("/?e=B", "B")
+
+        val t = assertFailsWith<DataConversionException> {
+            handleRequest(HttpMethod.Get, "/?e=x")
+        }
+
+        assertTrue { "LocationEnum" in t.message!! }
+        assertTrue { "x" in t.message!! }
     }
 }
 
