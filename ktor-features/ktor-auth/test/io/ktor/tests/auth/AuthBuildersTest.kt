@@ -7,7 +7,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.sessions.*
-import org.junit.Test
 import java.util.*
 import kotlin.test.*
 
@@ -343,6 +342,72 @@ class AuthBuildersTest {
                 }
                 assertTrue { call.requestHandled }
                 assertEquals("File doc1.txt for user tester.", call.response.content)
+            }
+        }
+    }
+
+    @Test
+    fun testModifyingAuthentication() = withTestApplication {
+        application.authentication {
+            basic("1") {
+                validate { it.name.takeIf { it == "aaa" }?.let { UserIdPrincipal(it) } }
+            }
+        }
+
+        on("add a new auth method") {
+            application.authentication {
+                form("2") {
+                    validate { it.name.takeIf { it == "bbb" }?.let { UserIdPrincipal(it) } }
+                }
+            }
+        }
+
+        on("auth method name conflict") {
+            application.authentication {
+                assertFails {
+                    basic("2") {
+                    }
+                }
+            }
+        }
+
+        application.routing {
+            authenticate("1", "2") {
+                get("/") {
+                    call.respondText(call.principal<UserIdPrincipal>()?.name ?: "?")
+                }
+            }
+        }
+
+        on("attempt to auth") {
+            fun TestApplicationRequest.addBasicAuth(name: String) {
+                addHeader(
+                    HttpHeaders.Authorization,
+                    HttpAuthHeader.Single("basic", Base64.getEncoder().encodeToString("$name:".toByteArray())).render()
+                )
+            }
+            fun TestApplicationRequest.addFormAuth(name: String) {
+                addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+                setBody("user=$name&password=")
+            }
+
+            on("try first auth provider") {
+                val call = handleRequest(HttpMethod.Get, "/") {
+                    addBasicAuth("aaa")
+                }
+                assertEquals("aaa", call.response.content)
+            }
+            on("try second auth provider") {
+                val call = handleRequest(HttpMethod.Get, "/") {
+                    addFormAuth("bbb")
+                }
+                assertEquals("bbb", call.response.content)
+            }
+            on("try invalid user name") {
+                val call = handleRequest(HttpMethod.Get, "/") {
+                    addBasicAuth("unknown")
+                }
+                assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
             }
         }
     }

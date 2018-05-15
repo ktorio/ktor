@@ -5,9 +5,6 @@ import io.ktor.client.*
 import kotlinx.coroutines.experimental.*
 import java.security.*
 
-@Deprecated("Install Authentication feature directly into Application", replaceWith = ReplaceWith("install(Authentication, body)"))
-fun Application.authentication(body: Authentication.Configuration.() -> Unit) = install(Authentication, body)
-
 @Deprecated("Use DSL builder form", replaceWith = ReplaceWith("basic { this.realm = realm\n validate(validate)}"))
 fun Authentication.Configuration.basicAuthentication(realm: String, validate: suspend (UserPasswordCredential) -> Principal?) {
     basic {

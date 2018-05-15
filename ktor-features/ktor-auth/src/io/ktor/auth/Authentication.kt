@@ -8,11 +8,19 @@ import io.ktor.util.*
 /**
  * Authentication feature supports pluggable mechanisms for checking and challenging a client to provide credentials
  *
- * @param providers list of registered instances of [AuthenticationProvider]
+ * @param config initial authentication configuration
  */
-class Authentication(val providers: List<AuthenticationProvider>) {
-    class Configuration {
-        val providers = ArrayList<AuthenticationProvider>()
+class Authentication(config: Configuration) {
+    /**
+     * @param providers list of registered instances of [AuthenticationProvider]
+     */
+    constructor(providers: List<AuthenticationProvider>) : this(Configuration(providers))
+    constructor() : this(Configuration())
+
+    private var config = config.copy()
+
+    class Configuration(providers: List<AuthenticationProvider> = emptyList()) {
+        val providers = ArrayList<AuthenticationProvider>(providers)
 
         fun provider(name: String? = null, configure: AuthenticationProvider.() -> Unit) {
             if (providers.any { it.name == name })
@@ -26,10 +34,21 @@ class Authentication(val providers: List<AuthenticationProvider>) {
                 throw IllegalArgumentException("Provider with the name ${provider.name} is already registered")
             providers.add(provider)
         }
+
+        fun copy(): Configuration = Configuration(providers)
     }
 
     init {
-        providers.forEach { forEveryProvider(it.pipeline) }
+        config.providers.forEach { forEveryProvider(it.pipeline) }
+    }
+
+    fun configure(block: Configuration.() -> Unit) {
+        val newConfiguration = config.copy()
+        block(newConfiguration)
+        val added = newConfiguration.providers - config.providers
+
+        config = newConfiguration.copy()
+        added.forEach { forEveryProvider(it.pipeline) }
     }
 
     /**
@@ -41,7 +60,7 @@ class Authentication(val providers: List<AuthenticationProvider>) {
         require(configurationNames.isNotEmpty()) { "At least one configuration name or default listOf(null)" }
 
         val configurations = configurationNames.map { configurationName ->
-            providers.firstOrNull { it.name == configurationName }
+            config.providers.firstOrNull { it.name == configurationName }
                 ?: throw IllegalArgumentException(
                     if (configurationName == null)
                         "Default authentication configuration was not found"
@@ -92,8 +111,9 @@ class Authentication(val providers: List<AuthenticationProvider>) {
         override val key = AttributeKey<Authentication>("Authentication")
 
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): Authentication {
-            val configuration = Configuration().apply(configure)
-            return Authentication(configuration.providers.toList())
+            return Authentication().apply {
+                configure(configure)
+            }
         }
     }
 
@@ -221,3 +241,12 @@ class AuthenticationRouteSelector(val names: List<String?>) : RouteSelector(Rout
     override fun toString(): String = "(authenticate ${names.joinToString { it ?: "\"default\"" }})"
 }
 
+/**
+ * Installs [Authentication] feature if not yet installed and invokes [block] on it's config.
+ * One is allowed to modify existing authentication configuration only in [authentication]'s block or
+ * via [Authentication.configure] function.
+ * Changing captured instance of configuration outside of [block] may have no effect or damage application's state.
+ */
+fun Application.authentication(block: Authentication.Configuration.() -> Unit) {
+    featureOrNull(Authentication)?.configure(block) ?: install(Authentication, block)
+}
