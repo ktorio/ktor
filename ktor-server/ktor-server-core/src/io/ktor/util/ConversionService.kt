@@ -1,6 +1,7 @@
 package io.ktor.util
 
 import java.lang.reflect.*
+import java.math.*
 
 interface ConversionService {
     fun fromValues(values: List<String>, type: Type): Any?
@@ -19,7 +20,8 @@ object DefaultConversionService : ConversionService {
                 Double::class.java, java.lang.Double::class.java,
                 Long::class.java, java.lang.Long::class.java,
                 Boolean::class.java, java.lang.Boolean::class.java,
-                String::class.java, java.lang.String::class.java -> value.toString()
+                String::class.java, java.lang.String::class.java,
+                BigInteger::class.java, BigDecimal::class.java -> value.toString()
                 else -> {
                     if (type.isEnum) {
                         (value as Enum<*>).name
@@ -54,6 +56,8 @@ object DefaultConversionService : ConversionService {
         Long::class.java, java.lang.Long::class.java -> value.toLong()
         Boolean::class.java, java.lang.Boolean::class.java -> value.toBoolean()
         String::class.java, java.lang.String::class.java -> value
+        BigDecimal::class.java -> BigDecimal(value)
+        BigInteger::class.java -> BigInteger(value)
         else ->
             if (type is Class<*> && type.isEnum) {
                 type.enumConstants?.firstOrNull { (it as Enum<*>).name == value }

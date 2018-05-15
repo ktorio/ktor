@@ -9,6 +9,7 @@ import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import org.junit.Test
+import java.math.*
 import kotlin.test.*
 
 private fun withLocationsApplication(test: TestApplicationEngine.() -> Unit) = withTestApplication {
@@ -449,6 +450,25 @@ class LocationsTest {
 
         assertTrue { "LocationEnum" in t.message!! }
         assertTrue { "x" in t.message!! }
+    }
+
+    @Location("/") class LocationWithBigNumbers(val bd: BigDecimal, val bi: BigInteger)
+
+    @Test fun `location class with big numbers`() = withLocationsApplication {
+        val bd = BigDecimal("123456789012345678901234567890")
+        val bi = BigInteger("123456789012345678901234567890")
+
+        application.routing {
+            get<LocationWithBigNumbers> { location ->
+                assertEquals(bd, location.bd)
+                assertEquals(bi, location.bi)
+
+                call.respondText(call.locations.href(location))
+            }
+        }
+
+        urlShouldBeHandled("/?bd=123456789012345678901234567890&bi=123456789012345678901234567890",
+            "/?bd=123456789012345678901234567890&bi=123456789012345678901234567890")
     }
 }
 

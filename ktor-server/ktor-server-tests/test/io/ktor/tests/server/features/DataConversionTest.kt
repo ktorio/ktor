@@ -5,6 +5,7 @@ import io.ktor.features.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import org.junit.Test
+import java.math.*
 import kotlin.reflect.jvm.*
 import kotlin.test.*
 
@@ -23,6 +24,18 @@ class DataConversionTest {
         val type = this@DataConversionTest::expectedList.returnType.javaType
         val id = application.conversionService.fromValues(listOf("1", "2"), type)
         assertEquals(expectedList, id)
+    }
+
+    @Test
+    fun testBigNumbers() = withTestApplication {
+        val expected = "12345678901234567890"
+        val v = application.conversionService.toValues(BigDecimal(expected))
+        assertEquals(expected, v.single())
+        assertEquals(BigDecimal(expected), application.conversionService.fromValues(v, BigDecimal::class.java))
+
+        val v2 = application.conversionService.toValues(BigInteger(expected))
+        assertEquals(expected, v2.single())
+        assertEquals(BigInteger(expected), application.conversionService.fromValues(v2, BigInteger::class.java))
     }
 
     data class EntityID(val typeId: Int, val entityId: Int)
