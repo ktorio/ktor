@@ -38,6 +38,9 @@ def dokkaExcludes = [
         'ktor-client'
 ]
 
+def globalM2 = "$buildDir/m2"
+def publishLocal = project.hasProperty('publishLocal')
+
 allprojects {
     apply plugin: 'maven'
     apply plugin: 'maven-publish'
@@ -169,6 +172,14 @@ allprojects {
     }
 
     publishing {
+        if (publishLocal) {
+            repositories {
+                maven {
+                    url globalM2
+                }
+            }
+        }
+
         publications {
             mavenProject(MavenPublication) {
                 from components.java
