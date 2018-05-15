@@ -3,6 +3,7 @@ package io.ktor.auth
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.util.*
+import java.util.*
 
 object AuthScheme {
     val Basic = "Basic"
@@ -54,6 +55,16 @@ sealed class HttpAuthHeader(val authScheme: String) {
 
         override fun render() = "$authScheme $blob"
         override fun render(encoding: HeaderValueEncoding) = render()
+
+        override fun equals(other: Any?): Boolean {
+            if (other !is HttpAuthHeader.Single) return false
+            return other.authScheme.equals(authScheme, ignoreCase = true) &&
+                other.blob.equals(blob, ignoreCase = true)
+        }
+
+        override fun hashCode(): Int {
+            return Objects.hash(authScheme.toLowerCase(), blob.toLowerCase())
+        }
     }
 
     class Parameterized(authScheme: String, val parameters: List<HeaderValueParam>, val encoding: HeaderValueEncoding = HeaderValueEncoding.QUOTED_WHEN_REQUIRED) : HttpAuthHeader(authScheme) {
@@ -76,10 +87,24 @@ sealed class HttpAuthHeader(val authScheme: String) {
         }
 
         override fun render(): String = render(encoding)
+
+        override fun equals(other: Any?): Boolean {
+            if (other !is HttpAuthHeader.Parameterized) return false
+            return other.authScheme.equals(authScheme, ignoreCase = true) &&
+                other.parameters == parameters
+        }
+
+        override fun hashCode(): Int {
+            return Objects.hash(authScheme.toLowerCase(), parameters)
+        }
     }
 
     abstract fun render(encoding: HeaderValueEncoding): String
     abstract fun render(): String
+
+    override fun toString(): String {
+        return render()
+    }
 
     companion object {
         fun basicAuthChallenge(realm: String) = Parameterized(AuthScheme.Basic, mapOf(Parameters.Realm to realm))
