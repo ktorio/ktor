@@ -261,12 +261,6 @@ class AuthBuildersTest {
             fun TestApplicationRequest.addCookie() {
                 addHeader(HttpHeaders.Cookie, sessionCookieContent)
             }
-            fun TestApplicationRequest.addBasicAuth() {
-                addHeader(
-                    HttpHeaders.Authorization,
-                    HttpAuthHeader.Single("basic", Base64.getEncoder().encodeToString("tester:".toByteArray())).render()
-                )
-            }
             fun TestApplicationRequest.addFormAuth(name: String, pass: String) {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
                 setBody("user=$name&password=$pass")
@@ -380,12 +374,6 @@ class AuthBuildersTest {
         }
 
         on("attempt to auth") {
-            fun TestApplicationRequest.addBasicAuth(name: String) {
-                addHeader(
-                    HttpHeaders.Authorization,
-                    HttpAuthHeader.Single("basic", Base64.getEncoder().encodeToString("$name:".toByteArray())).render()
-                )
-            }
             fun TestApplicationRequest.addFormAuth(name: String) {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
                 setBody("user=$name&password=")
@@ -410,6 +398,53 @@ class AuthBuildersTest {
                 assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
             }
         }
+    }
+
+    @Test
+    fun testAuthenticateOptionally() {
+        withTestApplication {
+            application.apply {
+                authentication {
+                    basic {
+                        validate { it.name.takeIf { it == "aaa" }?.let { UserIdPrincipal(it) } }
+                    }
+                }
+                routing {
+                    authenticateOptional {
+                        get("/auth") {
+                            call.respond("OK:${call.authentication.principal<UserIdPrincipal>()?.name}")
+                        }
+                    }
+                }
+
+                on("try call with authentication") {
+                    val call = handleRequest(HttpMethod.Get, "/auth") {
+                        addBasicAuth("aaa")
+                    }
+                    assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
+                    assertEquals("OK:aaa", call.response.content)
+                }
+                on("try call with bad authentication") {
+                    val call = handleRequest(HttpMethod.Get, "/auth") {
+                        addBasicAuth("unknown")
+                    }
+                    assertEquals(HttpStatusCode.Unauthorized.value, call.response.status()?.value)
+                }
+                on("try call without authentication") {
+                    val call = handleRequest(HttpMethod.Get, "/auth") {
+                    }
+                    assertEquals(HttpStatusCode.OK.value, call.response.status()?.value)
+                    assertEquals("OK:null", call.response.content)
+                }
+            }
+        }
+    }
+
+    private fun TestApplicationRequest.addBasicAuth(name: String = "tester") {
+        addHeader(
+            HttpHeaders.Authorization,
+            HttpAuthHeader.Single("basic", Base64.getEncoder().encodeToString("$name:".toByteArray())).render()
+        )
     }
 
     data class TestSession(val name: String)
