@@ -56,7 +56,7 @@ class Authentication(config: Configuration) {
      * @param pipeline to be configured
      * @param configurationNames references to auth providers, could contain null to point to default
      */
-    fun interceptPipeline(pipeline: ApplicationCallPipeline, configurationNames: List<String?> = listOf(null)) {
+    fun interceptPipeline(pipeline: ApplicationCallPipeline, configurationNames: List<String?> = listOf(null), optional: Boolean = false) {
         require(configurationNames.isNotEmpty()) { "At least one configuration name or default listOf(null)" }
 
         val configurations = configurationNames.map { configurationName ->
@@ -96,7 +96,11 @@ class Authentication(config: Configuration) {
                 context.principal != null -> {
                 }
                 context.challenge.completed -> finish()
-                else -> executeChallenges(context)
+                else -> {
+                    if (!optional) {
+                        executeChallenges(context)
+                    }
+                }
             }
         }
     }
@@ -218,12 +222,18 @@ inline fun <reified P : Principal> ApplicationCall.principal() = authentication.
  * @throws MissingApplicationFeatureException if no [Authentication] feature installed first
  * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names
  */
-fun Route.authenticate(vararg configurations: String? = arrayOf<String?>(null), build: Route.() -> Unit): Route {
+fun Route.authenticate(vararg configurations: String? = arrayOf<String?>(null), build: Route.() -> Unit): Route =
+    _authenticateOptional(*configurations, build = build, optional = false)
+
+fun Route.authenticateOptional(vararg configurations: String? = arrayOf<String?>(null), build: Route.() -> Unit): Route =
+    _authenticateOptional(*configurations, build = build, optional = true)
+
+private fun Route._authenticateOptional(vararg configurations: String? = arrayOf<String?>(null), build: Route.() -> Unit, optional: Boolean): Route {
     require(configurations.isNotEmpty()) { "At least one configuration name or null for default need to be provided" }
     val configurationNames = configurations.distinct()
     val authenticatedRoute = createChild(AuthenticationRouteSelector(configurationNames))
 
-    application.feature(Authentication).interceptPipeline(authenticatedRoute, configurationNames)
+    application.feature(Authentication).interceptPipeline(authenticatedRoute, configurationNames, optional = optional)
     authenticatedRoute.build()
     return authenticatedRoute
 }
