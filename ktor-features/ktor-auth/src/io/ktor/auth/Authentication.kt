@@ -219,16 +219,11 @@ inline fun <reified P : Principal> ApplicationCall.principal() = authentication.
  * to be already registered.
  *
  * @param configurations names that point to already registered authentication providers
+ * @param optional when set, if no auth is provided by the client, the call will continue but with a null [Principal]
  * @throws MissingApplicationFeatureException if no [Authentication] feature installed first
  * @throws IllegalArgumentException if there are no registered providers referred by [configurations] names
  */
-fun Route.authenticate(vararg configurations: String? = arrayOf<String?>(null), build: Route.() -> Unit): Route =
-    _authenticateOptional(*configurations, build = build, optional = false)
-
-fun Route.authenticateOptional(vararg configurations: String? = arrayOf<String?>(null), build: Route.() -> Unit): Route =
-    _authenticateOptional(*configurations, build = build, optional = true)
-
-private fun Route._authenticateOptional(vararg configurations: String? = arrayOf<String?>(null), build: Route.() -> Unit, optional: Boolean): Route {
+fun Route.authenticate(vararg configurations: String? = arrayOf<String?>(null), optional: Boolean = false, build: Route.() -> Unit): Route {
     require(configurations.isNotEmpty()) { "At least one configuration name or null for default need to be provided" }
     val configurationNames = configurations.distinct()
     val authenticatedRoute = createChild(AuthenticationRouteSelector(configurationNames))

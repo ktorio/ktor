@@ -410,7 +410,7 @@ class AuthBuildersTest {
                     }
                 }
                 routing {
-                    authenticateOptional {
+                    authenticate(optional = true) {
                         get("/auth") {
                             call.respond("OK:${call.authentication.principal<UserIdPrincipal>()?.name}")
                         }
