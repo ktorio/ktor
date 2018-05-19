@@ -88,6 +88,42 @@ class BasicAuthTest {
     }
 
     @Test
+    fun testBasicAuthDifferentScheme() {
+        withTestApplication {
+            application.configureServer()
+
+            val call = handleRequest {
+                uri = "/"
+                addHeader(HttpHeaders.Authorization, "Bearer some-token")
+            }
+
+            assertTrue(call.requestHandled)
+            assertEquals(HttpStatusCode.Unauthorized, call.response.status())
+            assertNotEquals("Secret info", call.response.content)
+
+            assertWWWAuthenticateHeaderExist(call)
+        }
+    }
+
+    @Test
+    fun testBasicAuthInvalidBase64() {
+        withTestApplication {
+            application.configureServer()
+
+            val call = handleRequest {
+                uri = "/"
+                addHeader(HttpHeaders.Authorization, "Basic +-test")
+            }
+
+            assertTrue(call.requestHandled)
+            assertEquals(HttpStatusCode.Unauthorized, call.response.status())
+            assertNotEquals("Secret info", call.response.content)
+
+            assertWWWAuthenticateHeaderExist(call)
+        }
+    }
+
+    @Test
     fun testBasicAuthFiltered() {
         withTestApplication {
             application.configureServer()
