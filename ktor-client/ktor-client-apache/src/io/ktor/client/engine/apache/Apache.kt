@@ -1,5 +1,6 @@
 package io.ktor.client.engine.apache
 
+import io.ktor.client.*
 import io.ktor.client.engine.*
 
 
@@ -17,4 +18,8 @@ object Apache : HttpClientEngineFactory<ApacheEngineConfig> {
         val config = ApacheEngineConfig().apply(block)
         return ApacheEngine(config)
     }
+}
+
+class ApacheEngineContainer : HttpClientEngineContainer {
+    override val factory: HttpClientEngineFactory<*> = Apache
 }
