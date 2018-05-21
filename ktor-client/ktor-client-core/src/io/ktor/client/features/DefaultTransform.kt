@@ -5,12 +5,18 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.content.*
+import io.ktor.http.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.jvm.javaio.*
 import java.io.*
 
 fun HttpClient.defaultTransformers() {
     requestPipeline.intercept(HttpRequestPipeline.Render) { body ->
+
+        if (context.headers[HttpHeaders.Accept] == null) {
+            context.headers.append(HttpHeaders.Accept, "*/*")
+        }
+
         when (body) {
             is ByteArray -> proceedWith(object : OutgoingContent.ByteArrayContent() {
                 override val contentLength: Long = body.size.toLong()
