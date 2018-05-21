@@ -3,6 +3,7 @@ package io.ktor.auth
 import io.ktor.application.*
 import io.ktor.request.*
 import io.ktor.response.*
+import java.nio.charset.*
 import java.util.*
 
 
@@ -19,6 +20,11 @@ class BasicAuthenticationProvider(name: String?) : AuthenticationProvider(name) 
     var realm: String = "Ktor Server"
 
     /**
+     * Specifies the charset to be used.
+     */
+    var charset: Charset = Charsets.UTF_8
+
+    /**
      * Sets a validation function that will check given [UserPasswordCredential] instance and return [Principal],
      * or null if credential does not correspond to an authenticated principal
      */
@@ -33,10 +39,11 @@ class BasicAuthenticationProvider(name: String?) : AuthenticationProvider(name) 
 fun Authentication.Configuration.basic(name: String? = null, configure: BasicAuthenticationProvider.() -> Unit) {
     val provider = BasicAuthenticationProvider(name).apply(configure)
     val realm = provider.realm
+    val charset = provider.charset
     val authenticate = provider.authenticationFunction
 
     provider.pipeline.intercept(AuthenticationPipeline.RequestAuthentication) { context ->
-        val credentials = call.request.basicAuthenticationCredentials()
+        val credentials = call.request.basicAuthenticationCredentials(charset)
         val principal = credentials?.let { authenticate(call, it) }
 
         val cause = when {
@@ -47,7 +54,7 @@ fun Authentication.Configuration.basic(name: String? = null, configure: BasicAut
 
         if (cause != null) {
             context.challenge(basicAuthenticationChallengeKey, cause) {
-                call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge(realm)))
+                call.respond(UnauthorizedResponse(HttpAuthHeader.basicAuthChallenge(realm, charset)))
                 it.complete()
             }
         }
@@ -62,7 +69,7 @@ fun Authentication.Configuration.basic(name: String? = null, configure: BasicAut
 /**
  * Retrieves Basic authentication credentials for this [ApplicationRequest]
  */
-fun ApplicationRequest.basicAuthenticationCredentials(): UserPasswordCredential? {
+fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset = Charsets.UTF_8): UserPasswordCredential? {
     val parsed = parseAuthorizationHeader()
     when (parsed) {
         is HttpAuthHeader.Single -> {
@@ -72,14 +79,8 @@ fun ApplicationRequest.basicAuthenticationCredentials(): UserPasswordCredential?
                 return null
             }
 
-            // here we can only use ISO 8859-1 character encoding because there is no character encoding specified as per RFC
-            //     see http://greenbytes.de/tech/webdav/draft-reschke-basicauth-enc-latest.html
-            //      http://tools.ietf.org/html/draft-ietf-httpauth-digest-15
-            //      https://bugzilla.mozilla.org/show_bug.cgi?id=41489
-            //      https://code.google.com/p/chromium/issues/detail?id=25790
-
             val userPass = try {
-                Base64.getDecoder().decode(parsed.blob).toString(Charsets.ISO_8859_1)
+                Base64.getDecoder().decode(parsed.blob).toString(charset)
             } catch (e : IllegalArgumentException) {
                 return null
             }

@@ -9,6 +9,7 @@ import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import org.junit.Test
+import java.nio.charset.*
 import kotlin.test.*
 
 class BasicAuthTest {
@@ -26,6 +27,37 @@ class BasicAuthTest {
             assertNull(call.response.content)
 
             assertWWWAuthenticateHeaderExist(call)
+            assertEquals("Basic realm=ktor-test, charset=UTF-8", call.response.headers[HttpHeaders.WWWAuthenticate])
+        }
+    }
+
+    @Test
+    fun testCustomCharset() {
+        withTestApplication {
+            application.apply {
+                install(Authentication) {
+                    basic {
+                        realm = "ktor-test"
+                        charset = Charsets.ISO_8859_1
+                        validate { null }
+                    }
+                }
+
+                routing {
+                    authenticate {
+                        get("/") { call.respondText("Secret info") }
+                    }
+                }
+            }
+
+            val call = handleRequest {
+                uri = "/"
+            }
+
+            assertEquals(
+                "Basic realm=ktor-test, charset=ISO-8859-1",
+                call.response.headers[HttpHeaders.WWWAuthenticate]
+            )
         }
     }
 
@@ -63,6 +95,24 @@ class BasicAuthTest {
             val p = "user1"
 
             val call = handleRequestWithBasic("/", user, p)
+
+            assertTrue(call.requestHandled)
+            assertEquals(HttpStatusCode.OK, call.response.status())
+            assertEquals("Secret info", call.response.content)
+        }
+    }
+
+    @Test
+    fun testUtf8Charset() {
+        withTestApplication {
+            val user = "Лира"
+            val p = "Лира"
+
+            application.configureServer {
+                if (it.name == user && it.password == p) UserIdPrincipal(it.name) else null
+            }
+
+            val call = handleRequestWithBasic("/", user, p, charset = Charsets.UTF_8)
 
             assertTrue(call.requestHandled)
             assertEquals(HttpStatusCode.OK, call.response.status())
@@ -170,32 +220,37 @@ class BasicAuthTest {
         }
     }
 
-    private fun TestApplicationEngine.handleRequestWithBasic(url: String, user: String, pass: String) =
-            handleRequest {
-                uri = url
+    private fun TestApplicationEngine.handleRequestWithBasic(
+        url: String, user: String, pass: String, charset: Charset = Charsets.ISO_8859_1
+    ) =
+        handleRequest {
+            uri = url
 
-                val up = "$user:$pass"
-                val encoded = encodeBase64(up.toByteArray(Charsets.ISO_8859_1))
-                addHeader(HttpHeaders.Authorization, "Basic $encoded")
-            }
+            val up = "$user:$pass"
+            val encoded = encodeBase64(up.toByteArray(charset))
+            addHeader(HttpHeaders.Authorization, "Basic $encoded")
+        }
 
     private fun assertWWWAuthenticateHeaderExist(call: ApplicationCall) {
         assertNotNull(call.response.headers[HttpHeaders.WWWAuthenticate])
-        val header = parseAuthorizationHeader(call.response.headers[HttpHeaders.WWWAuthenticate]!!) as HttpAuthHeader.Parameterized
+        val header =
+            parseAuthorizationHeader(call.response.headers[HttpHeaders.WWWAuthenticate]!!) as HttpAuthHeader.Parameterized
 
         assertEquals(AuthScheme.Basic, header.authScheme)
         assertEquals("ktor-test", header.parameter(HttpAuthHeader.Parameters.Realm))
     }
 
-    private fun Application.configureServer() {
+    private fun Application.configureServer(
+        validate: suspend (UserPasswordCredential) -> Principal? = {
+            if (it.name == it.password) UserIdPrincipal(it.name) else null
+
+        }
+    ) {
         install(Authentication) {
             basic {
                 realm = "ktor-test"
                 validate {
-                    if (it.name == it.password)
-                        UserIdPrincipal(it.name)
-                    else
-                        null // fail!
+                    validate(it)
                 }
                 skipWhen { it.request.origin.uri.contains("backdoor") }
             }
