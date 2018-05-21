@@ -16,6 +16,7 @@ import java.io.*
  */
 class HttpClient private constructor(
     private val engine: HttpClientEngine,
+    private val useDefaultTransformers: Boolean = true,
     block: suspend HttpClientConfig.() -> Unit = {}
 ) : Closeable {
 
@@ -25,8 +26,9 @@ class HttpClient private constructor(
      */
     constructor(
         engineFactory: HttpClientEngineFactory<*>,
+        useDefaultTransformers: Boolean = true,
         block: suspend HttpClientConfig.() -> Unit = {}
-    ) : this(engineFactory.create(), block)
+    ) : this(engineFactory.create(), useDefaultTransformers, block)
 
     /**
      * Pipeline used for processing all the requests sent by this client.
@@ -84,7 +86,11 @@ class HttpClient private constructor(
         runBlocking {
             config.install(HttpPlainText)
             config.install(HttpIgnoreBody)
-            config.install("DefaultTransformers") { defaultTransformers() }
+
+            if (useDefaultTransformers) {
+                config.install("DefaultTransformers") { defaultTransformers() }
+            }
+
             config.block()
         }
 
@@ -101,7 +107,8 @@ class HttpClient private constructor(
      * Returns a new [HttpClient] copying this client configuration,
      * and additionally configured by the [block] parameter.
      */
-    fun config(block: suspend HttpClientConfig.() -> Unit): HttpClient = HttpClient(engine, block)
+    fun config(block: suspend HttpClientConfig.() -> Unit): HttpClient =
+        HttpClient(engine, useDefaultTransformers, block)
 
     /**
      * Closes the underlying [engine].
