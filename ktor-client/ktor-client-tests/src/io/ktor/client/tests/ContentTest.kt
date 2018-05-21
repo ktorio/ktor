@@ -5,6 +5,7 @@ import io.ktor.cio.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
+import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
 import io.ktor.content.*
 import io.ktor.http.*
@@ -40,6 +41,34 @@ open class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWi
         val response = requestWithBody<ByteArray>(content)
 
         assertArrayEquals("Test fail with size: $size", content, response)
+    }
+
+    @Test
+    fun byteReadChannelTest(): Unit = testSize.forEach { size ->
+        val content = makeArray(size)
+
+        runBlocking {
+            HttpClient(factory).use { client ->
+                val response = client.post<HttpResponse>(path = "echo", port = serverPort, body = content)
+                val responseData = response.content.toByteArray()
+
+                assertArrayEquals("Test fail with size: $size", content, responseData)
+            }
+        }
+    }
+
+    @Test
+    fun inputStreamTest(): Unit = testSize.forEach { size ->
+        val content = makeArray(size)
+
+        runBlocking {
+            HttpClient(factory).use { client ->
+                val response = client.post<InputStream>(path = "echo", port = serverPort, body = content)
+                val responseData = response.readBytes()
+
+                assertArrayEquals("Test fail with size: $size", content, responseData)
+            }
+        }
     }
 
     @Test
