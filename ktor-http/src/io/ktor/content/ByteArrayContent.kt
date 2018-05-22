@@ -10,5 +10,7 @@ class ByteArrayContent(
     override val contentType: ContentType? = null,
     override val status: HttpStatusCode? = null
 ) : OutgoingContent.ByteArrayContent() {
+    override val contentLength: Long get() = bytes.size.toLong()
+
     override fun bytes(): ByteArray = bytes
 }
