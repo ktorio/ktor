@@ -1,5 +1,6 @@
 package io.ktor.client.features
 
+import io.ktor.cio.*
 import io.ktor.client.*
 import io.ktor.client.response.*
 import io.ktor.util.*
@@ -19,6 +20,10 @@ class HttpIgnoreBody {
         override fun install(feature: HttpIgnoreBody, scope: HttpClient) {
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, _) ->
                 if (info.type != Unit::class) return@intercept
+
+                if (scope.engineConfig.pipelining) {
+                    context.response.readBytes()
+                }
                 context.response.close()
                 proceedWith(HttpResponseContainer(info, Unit))
             }

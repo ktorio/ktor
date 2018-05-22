@@ -46,7 +46,7 @@ internal class Endpoint(
                 }
 
                 try {
-                    if (task.requiresDedicatedConnection()) {
+                    if (!config.pipelining || task.requiresDedicatedConnection()) {
                         makeDedicatedRequest(task)
                     } else {
                         makePipelineRequest(task)

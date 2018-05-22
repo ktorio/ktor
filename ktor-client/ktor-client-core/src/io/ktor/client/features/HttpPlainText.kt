@@ -16,7 +16,7 @@ import java.nio.charset.*
  * NOTE: the [HttpPlainText.defaultCharset] is the default one for your JVM so can change between servers!
  *       So please, specify one if you want consistent results in all your deployments.
  */
-class HttpPlainText(private val defaultCharset: Charset) {
+class HttpPlainText(var defaultCharset: Charset) {
 
     internal suspend fun read(response: HttpResponse): String = response.readText(charset = defaultCharset)
 

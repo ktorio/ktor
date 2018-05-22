@@ -19,7 +19,7 @@ fun URLBuilder.takeFrom(uri: URI) {
 
     uri.scheme?.let { protocol = URLProtocol.createOrDefault(it) }
     uri.host?.let { host = it }
-    uri.path?.let {
+    uri.rawPath?.let {
         encodedPath = when (it) {
             "" -> "/"
             else -> it

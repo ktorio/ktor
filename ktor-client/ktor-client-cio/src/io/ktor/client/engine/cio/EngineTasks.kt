@@ -11,7 +11,7 @@ internal class RequestTask(
 
 internal fun RequestTask.requiresDedicatedConnection(): Boolean = listOf(request.headers, request.content.headers).any {
     it[HttpHeaders.Connection] == "close" || it.contains(HttpHeaders.Upgrade)
-}
+} || request.method !in listOf(HttpMethod.Get, HttpMethod.Head)
 
 
 internal class ConnectionResponseTask(

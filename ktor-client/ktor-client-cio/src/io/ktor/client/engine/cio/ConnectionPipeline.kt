@@ -41,9 +41,6 @@ internal class ConnectionPipeline(
 
                 task.request.write(outputChannel)
                 outputChannel.flush()
-                if (ConnectionOptions.parse(task.request.headers[HttpHeaders.Connection]) == ConnectionOptions.Close) {
-                    break
-                }
             }
         } catch (cause: ClosedChannelException) {
         } catch (cause: ClosedReceiveChannelException) {
@@ -70,7 +67,14 @@ internal class ConnectionPipeline(
                         parseHttpBody(contentLength, transferEncoding, connectionType, inputChannel, channel)
                     }
 
-                    task.continuation.resume(CIOHttpResponse(task.request, task.requestTime, writerJob.channel, response))
+                    task.continuation.resume(
+                        CIOHttpResponse(
+                            task.request,
+                            task.requestTime,
+                            writerJob.channel,
+                            response
+                        )
+                    )
                     writerJob
                 } catch (cause: ClosedChannelException) {
                     null

@@ -80,6 +80,11 @@ class HttpClient private constructor(
      */
     val dispatcher: CoroutineDispatcher = engine.dispatcher
 
+    /**
+     * Client engine config
+     */
+    val engineConfig: HttpClientEngineConfig = engine.config
+
     private val config = HttpClientConfig()
 
     init {

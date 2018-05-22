@@ -9,7 +9,7 @@ import kotlinx.coroutines.experimental.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
-internal class CIOEngine(private val config: CIOEngineConfig) : HttpClientEngine {
+internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientEngine {
     override val dispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
 
@@ -35,7 +35,6 @@ internal class CIOEngine(private val config: CIOEngineConfig) : HttpClientEngine
                         endpoints.remove(address)
                     }
                 }
-
             }
 
             try {

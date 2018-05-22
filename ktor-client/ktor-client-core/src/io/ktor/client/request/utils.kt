@@ -18,6 +18,11 @@ val HttpRequestBuilder.port: Int get() = url.port
 fun HttpRequestBuilder.header(key: String, value: String): Unit = headers.append(key, value)
 
 /**
+ * Sets a single parameter of [key] with a specific [value].
+ */
+fun HttpRequestBuilder.parameter(key: String, value: String): Unit = url.parameters.append(key, value)
+
+/**
  * Sets the `Accept` header with a specific [contentType].
  */
 fun HttpRequestBuilder.accept(contentType: ContentType): Unit = headers.append(HttpHeaders.Accept, contentType.toString())
