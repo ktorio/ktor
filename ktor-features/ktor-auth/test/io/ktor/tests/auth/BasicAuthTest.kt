@@ -32,13 +32,13 @@ class BasicAuthTest {
     }
 
     @Test
-    fun testCustomCharset() {
+    fun testCharsetNull() {
         withTestApplication {
             application.apply {
                 install(Authentication) {
                     basic {
                         realm = "ktor-test"
-                        charset = Charsets.ISO_8859_1
+                        charset = null
                         validate { null }
                     }
                 }
@@ -55,7 +55,7 @@ class BasicAuthTest {
             }
 
             assertEquals(
-                "Basic realm=ktor-test, charset=ISO-8859-1",
+                "Basic realm=ktor-test",
                 call.response.headers[HttpHeaders.WWWAuthenticate]
             )
         }

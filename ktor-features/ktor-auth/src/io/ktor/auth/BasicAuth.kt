@@ -20,9 +20,17 @@ class BasicAuthenticationProvider(name: String?) : AuthenticationProvider(name) 
     var realm: String = "Ktor Server"
 
     /**
-     * Specifies the charset to be used.
+     * Specifies the charset to be used. It can be either UTF_8 or null.
      */
-    var charset: Charset = Charsets.UTF_8
+    var charset: Charset? = Charsets.UTF_8
+        set(value) {
+            if (value != null && value != Charsets.UTF_8) {
+                // https://tools.ietf.org/html/rfc7617#section-2.1
+                // 'The only allowed value is "UTF-8"; it is to be matched case-insensitively'
+                throw IllegalArgumentException("Basic Authentication charset can be either UTF-8 or null")
+            }
+            field = value
+        }
 
     /**
      * Sets a validation function that will check given [UserPasswordCredential] instance and return [Principal],
@@ -69,7 +77,7 @@ fun Authentication.Configuration.basic(name: String? = null, configure: BasicAut
 /**
  * Retrieves Basic authentication credentials for this [ApplicationRequest]
  */
-fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset = Charsets.UTF_8): UserPasswordCredential? {
+fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? = null): UserPasswordCredential? {
     val parsed = parseAuthorizationHeader()
     when (parsed) {
         is HttpAuthHeader.Single -> {
@@ -80,7 +88,7 @@ fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset = Charset
             }
 
             val userPass = try {
-                Base64.getDecoder().decode(parsed.blob).toString(charset)
+                Base64.getDecoder().decode(parsed.blob).toString(charset ?: Charsets.ISO_8859_1)
             } catch (e : IllegalArgumentException) {
                 return null
             }
