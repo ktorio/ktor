@@ -1,9 +1,0 @@
-description = ''
-dependencies {
-    compile project(':ktor-features:ktor-locations')
-    compile project(':ktor-features:ktor-html-builder')
-    compile project(':ktor-features:ktor-auth-ldap')
-    compile project(':ktor-features:ktor-auth')
-    compile project(':ktor-features:ktor-auth-jwt')
-    compile project(':ktor-client:ktor-client-apache')
-}
