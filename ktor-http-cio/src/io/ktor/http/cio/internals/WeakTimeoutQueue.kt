@@ -5,6 +5,7 @@ import kotlinx.coroutines.experimental.internal.*
 import java.time.*
 import kotlin.coroutines.experimental.*
 import kotlin.coroutines.experimental.intrinsics.*
+import kotlin.jvm.*
 
 /**
  * It provides ability to cancel jobs and schedule coroutine with timeout. Unlike regular withTimeout
@@ -80,7 +81,7 @@ class WeakTimeoutQueue(private val timeoutMillis: Long,
             c.isCompleted -> suspended
             result is CompletedExceptionally -> {
                 handle.dispose()
-                throw result.exception
+                throw result.cause
             }
             else -> {
                 handle.dispose()
