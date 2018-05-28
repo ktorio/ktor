@@ -46,7 +46,7 @@ internal class ConnectionPipeline(
         } catch (cause: ClosedReceiveChannelException) {
         } finally {
             responseChannel.close()
-            outputChannel.close()
+//            outputChannel.close()
         }
     }
 

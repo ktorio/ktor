@@ -34,7 +34,9 @@ import kotlin.coroutines.experimental.*
 import kotlin.system.*
 import kotlin.test.*
 
-abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
+abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
+        hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
+) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
     @Test
     fun testTextContent() {
         createAndStartServer {
@@ -813,25 +815,18 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
     @Test
     fun testRepeatRequest() {
-        val testTime = measureTimeMillis {
-            createAndStartServer {
-                get("/") {
-                    call.respond("OK ${call.request.queryParameters["i"]}")
-                }
-            }
-
-            for (i in 1..100) {
-                val current = measureTimeMillis {
-                    withUrl("/?i=$i") {
-                        assertEquals(200, status.value)
-                        assertEquals("OK $i", readText())
-                    }
-                }
-                println("done in: $current")
+        createAndStartServer {
+            get("/") {
+                call.respond("OK ${call.request.queryParameters["i"]}")
             }
         }
 
-        println("test done in ${testTime / 1000.0} seconds")
+        for (i in 1..100) {
+            withUrl("/?i=$i") {
+                assertEquals(200, status.value)
+                assertEquals("OK $i", readText())
+            }
+        }
     }
 
     @Test

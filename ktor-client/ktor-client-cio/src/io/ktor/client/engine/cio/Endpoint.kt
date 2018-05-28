@@ -83,7 +83,7 @@ internal class Endpoint(
         deliveryPoint.send(task)
     }
 
-    private suspend fun makeDedicatedRequest(task: RequestTask) {
+    private fun makeDedicatedRequest(task: RequestTask) = launch(dispatcher) {
         val connection = connect()
         val input = connection.openReadChannel()
         val output = connection.openWriteChannel()
