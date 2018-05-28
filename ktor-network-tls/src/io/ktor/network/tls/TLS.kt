@@ -9,6 +9,7 @@ import kotlin.coroutines.experimental.*
 suspend fun Socket.tls(
     trustManager: X509TrustManager? = null,
     randomAlgorithm: String = "NativePRNGNonBlocking",
+    cipherSuites: List<CipherSuite>,
     serverName: String? = null,
     coroutineContext: CoroutineContext = ioCoroutineDispatcher
 ): Socket {
@@ -18,7 +19,7 @@ suspend fun Socket.tls(
     val session = try {
         TLSClientSession(
             reader, writer, coroutineContext,
-            trustManager, randomAlgorithm, serverName
+            trustManager, randomAlgorithm, cipherSuites, serverName
         ).also { it.start() }
     } catch (cause: Throwable) {
         reader.cancel(cause)

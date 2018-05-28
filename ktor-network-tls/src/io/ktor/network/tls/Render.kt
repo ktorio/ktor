@@ -10,7 +10,8 @@ import javax.crypto.*
 
 internal suspend fun ByteWriteChannel.writeRecord(record: TLSRecord) = with(record) {
     writeByte(type.code.toByte())
-    writeShort(version.code.toShort())
+    writeByte((version.code shr 8).toByte())
+    writeByte(version.code.toByte())
     writeShort(packet.remaining.toShort())
     writePacket(packet)
     flush()

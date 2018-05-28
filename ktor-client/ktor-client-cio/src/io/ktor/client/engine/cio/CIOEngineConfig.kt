@@ -1,6 +1,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
+import io.ktor.network.tls.*
 import javax.net.ssl.*
 
 class CIOEngineConfig : HttpClientEngineConfig() {
@@ -22,4 +23,5 @@ class EndpointConfig {
 class HttpsConfig {
     var trustManager: X509TrustManager? = null
     var randomAlgorithm: String = "NativePRNGNonBlocking"
+    var cipherSuites: List<CipherSuite> = CIOCipherSuites.SupportedSuites
 }

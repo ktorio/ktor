@@ -23,13 +23,13 @@ import kotlin.test.Test
 
 class CIOHttpsTest : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Netty, applicationEngineEnvironment {
-        sslConnector(keyStore, "mysha256ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
+        sslConnector(keyStore, "mysha384ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
             port = serverPort
             keyStorePath = keyStoreFile.absoluteFile
 
             module {
                 routing {
-                    get {
+                    get("/") {
                         call.respondText("Hello, world")
                     }
                 }
@@ -56,7 +56,7 @@ class CIOHttpsTest : TestWithKtor() {
                 certificate("mysha256ecdsa") {
                     hash = HashAlgorithm.SHA256
                     sign = SignatureAlgorithm.ECDSA
-                    keySizeInBits = 384
+                    keySizeInBits = 256
                     password = "changeit"
                 }
                 certificate("mykey") {

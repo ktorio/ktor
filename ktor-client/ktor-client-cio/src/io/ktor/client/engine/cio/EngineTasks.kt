@@ -4,7 +4,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.experimental.*
 import java.util.*
 
-internal class RequestTask(
+internal data class RequestTask(
     val request: CIOHttpRequest,
     val continuation: CancellableContinuation<CIOHttpResponse>
 )

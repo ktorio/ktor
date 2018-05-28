@@ -89,7 +89,7 @@ internal class Endpoint(
         val output = connection.openWriteChannel()
         val requestTime = Date()
 
-        val request = task.request
+        val (request, continuation) = task
 
         fun closeConnection(cause: Throwable?) {
             try {
@@ -100,37 +100,41 @@ internal class Endpoint(
             }
         }
 
-        request.write(output)
+        try {
+            request.write(output)
 
-        val response = parseResponse(input) ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
+            val response = parseResponse(input) ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
 
-        val status = response.status
-        val contentLength = response.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
-        val transferEncoding = response.headers[HttpHeaders.TransferEncoding]
-        val connectionType = ConnectionOptions.parse(response.headers[HttpHeaders.Connection])
+            val status = response.status
+            val contentLength = response.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
+            val transferEncoding = response.headers[HttpHeaders.TransferEncoding]
+            val connectionType = ConnectionOptions.parse(response.headers[HttpHeaders.Connection])
 
-        val body = when (status) {
-            HttpStatusCode.SwitchingProtocols.value -> {
-                val content = request.content as? ClientUpgradeContent
-                        ?: error("Invalid content type: UpgradeContent required")
+            val body = when (status) {
+                HttpStatusCode.SwitchingProtocols.value -> {
+                    val content = request.content as? ClientUpgradeContent
+                            ?: error("Invalid content type: UpgradeContent required")
 
-                launch(dispatcher) {
-                    content.pipeTo(output)
-                }.invokeOnCompletion(::closeConnection)
+                    launch(dispatcher) {
+                        content.pipeTo(output)
+                    }.invokeOnCompletion(::closeConnection)
 
-                input
-            }
-            else -> {
-                val httpBodyParser = writer(dispatcher, autoFlush = true) {
-                    parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
+                    input
                 }
+                else -> {
+                    val httpBodyParser = writer(dispatcher, autoFlush = true) {
+                        parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
+                    }
 
-                httpBodyParser.invokeOnCompletion(::closeConnection)
-                httpBodyParser.channel
+                    httpBodyParser.invokeOnCompletion(::closeConnection)
+                    httpBodyParser.channel
+                }
             }
-        }
 
-        task.continuation.resume(CIOHttpResponse(task.request, requestTime, body, response))
+            continuation.resume(CIOHttpResponse(request, requestTime, body, response))
+        } catch (cause: Throwable) {
+            continuation.resumeWithException(cause)
+        }
     }
 
     private suspend fun createPipeline() {
@@ -158,7 +162,7 @@ internal class Endpoint(
             if (!secure) return@connect connection
 
             with(config.https) {
-                return@connect connection.tls(trustManager, randomAlgorithm, address.hostName, dispatcher)
+                return@connect connection.tls(trustManager, randomAlgorithm, cipherSuites, address.hostName, dispatcher)
             }
         }
 

@@ -1,6 +1,7 @@
 package io.ktor.network.selector
 
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.NonCancellable.invokeOnCompletion
 import java.nio.channels.*
 import java.nio.channels.spi.*
 

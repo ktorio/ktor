@@ -15,13 +15,13 @@ internal class TLSClientSession(
     private val coroutineContext: CoroutineContext,
     trustManager: X509TrustManager?,
     randomAlgorithm: String,
+    cipherSuites: List<CipherSuite>,
     serverName: String?
 ) : AReadable, AWritable {
-
     private val handshaker = TLSClientHandshake(
         rawInput, rawOutput,
         coroutineContext,
-        trustManager, randomAlgorithm, serverName
+        trustManager, randomAlgorithm, cipherSuites, serverName
     )
 
     private val input = handshaker.input
@@ -40,16 +40,21 @@ internal class TLSClientSession(
     }
 
     private suspend fun appDataInputLoop(pipe: ByteWriteChannel) {
-        input.consumeEach { record ->
-            val packet = record.packet
-            val length = packet.remaining
-            when (record.type) {
-                TLSRecordType.ApplicationData -> {
-                    pipe.writePacket(record.packet)
-                    pipe.flush()
+        try {
+            input.consumeEach { record ->
+                val packet = record.packet
+                val length = packet.remaining
+                when (record.type) {
+                    TLSRecordType.ApplicationData -> {
+                        pipe.writePacket(record.packet)
+                        pipe.flush()
+                    }
+                    else -> throw TLSException("Unexpected record ${record.type} ($length bytes)")
                 }
-                else -> throw TLSException("Unexpected record ${record.type} ($length bytes)")
             }
+        } catch (cause: Throwable) {
+        } finally {
+            pipe.close()
         }
     }
 

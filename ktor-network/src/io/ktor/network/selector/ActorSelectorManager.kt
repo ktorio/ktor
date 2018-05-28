@@ -3,7 +3,7 @@ package io.ktor.network.selector
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.internal.*
-import java.io.Closeable
+import java.io.*
 import java.nio.channels.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
