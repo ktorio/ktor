@@ -2,6 +2,7 @@ package io.ktor.client.utils
 
 import io.ktor.network.util.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.experimental.scheduling.*
 import kotlinx.io.pool.*
 
 
@@ -26,7 +27,7 @@ val HTTP_CLIENT_THREAD_COUNT: Int = maxOf(2, (cpuCount * 2 / 3))
  * Default [IOCoroutineDispatcher] that uses [HTTP_CLIENT_THREAD_COUNT] as the number of threads.
  */
 val HTTP_CLIENT_DEFAULT_DISPATCHER by lazy {
-    IOCoroutineDispatcher(HTTP_CLIENT_THREAD_COUNT)
+    ExperimentalCoroutineDispatcher(HTTP_CLIENT_THREAD_COUNT)
 }
 
 /**
