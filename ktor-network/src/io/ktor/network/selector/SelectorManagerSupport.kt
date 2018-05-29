@@ -132,7 +132,10 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         val cause = t ?: ClosedSelectorException()
 
         selector.keys().forEach { k ->
-            k.interestOps(0)
+            try {
+                if (k.isValid) k.interestOps(0)
+            } catch (ignore: CancelledKeyException) {
+            }
             (k.attachment() as? Selectable)?.let { cancelAllSuspensions(it, cause) }
             k.cancel()
         }
