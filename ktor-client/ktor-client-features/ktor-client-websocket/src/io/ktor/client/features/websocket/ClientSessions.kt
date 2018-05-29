@@ -10,4 +10,6 @@ interface ClientWebSocketSession : WebSocketSession {
 class DefaultClientWebSocketSession(
     override val call: HttpClientCall,
     delegate: DefaultWebSocketSession
-) : ClientWebSocketSession, DefaultWebSocketSession by delegate
+) : ClientWebSocketSession, DefaultWebSocketSession by delegate {
+    override var masking: Boolean = true
+}
