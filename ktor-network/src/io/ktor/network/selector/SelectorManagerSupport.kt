@@ -17,8 +17,8 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         suspendCancellableCoroutine<Unit> { c ->
 //            val c = base.tracked()  // useful for debugging
 
-            selectable.suspensions.addSuspension(interest, c)
             c.disposeOnCancel(selectable)
+            selectable.suspensions.addSuspension(interest, c)
 
             if (!c.isCancelled) {
                 publishInterest(selectable)
@@ -107,11 +107,23 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
     }
 
     protected fun cancelAllSuspensions(attachment: Selectable, t: Throwable) {
+        val cancelled = ArrayList<Pair<CancellableContinuation<Unit>, Any>>(SelectInterest.size)
+
         attachment.suspensions.invokeForEachPresent {
-            try {
-                resumeWithException(t)
-            } catch (t2: Throwable) { // rejected?
-                t2.printStackTrace()
+            val v = tryResumeWithException(t)
+            if (v != null) {
+                cancelled.add(Pair(this, v))
+            }
+        }
+
+        if (cancelled.isNotEmpty()) {
+            for ((c, token) in cancelled) {
+                try {
+                    c.completeResume(token)
+                } catch (t: Throwable) {
+                    // rejected?
+                    t.printStackTrace()
+                }
             }
         }
     }
@@ -120,8 +132,9 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         val cause = t ?: ClosedSelectorException()
 
         selector.keys().forEach { k ->
-            k.cancel()
+            k.interestOps(0)
             (k.attachment() as? Selectable)?.let { cancelAllSuspensions(it, cause) }
+            k.cancel()
         }
     }
 
@@ -129,10 +142,9 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         invokeOnCompletion { if (isCancelled) disposableHandle.dispose() }
     }
 
-    internal var SelectionKey.subject: Selectable?
+    private var SelectionKey.subject: Selectable?
         get() = attachment() as? Selectable
         set(newValue) {
             attach(newValue)
         }
-
 }

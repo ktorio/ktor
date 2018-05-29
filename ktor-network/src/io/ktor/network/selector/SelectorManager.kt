@@ -41,6 +41,7 @@ enum class SelectInterest(val flag: Int) {
     companion object {
         val AllInterests: Array<SelectInterest> = values()
         val flags: IntArray = values().map { it.flag }.toIntArray()
+        val size: Int = values().size
     }
 }
 
