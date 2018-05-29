@@ -120,7 +120,8 @@ class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSup
                     selectWakeup()
                 }
             }
-            else throw IOException("Failed to publish interest to the queue")
+            else if (selectable.channel.isOpen) throw ClosedSelectorException()
+            else throw ClosedChannelException()
         } catch (t: Throwable) {
             cancelAllSuspensions(selectable, t)
         }
