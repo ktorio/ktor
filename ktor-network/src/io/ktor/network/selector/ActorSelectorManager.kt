@@ -4,7 +4,6 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.internal.*
 import java.io.Closeable
-import java.io.*
 import java.nio.channels.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
@@ -19,7 +18,7 @@ class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSup
     @Volatile
     private var inSelect = false
 
-    private val continuation = AtomicReference<Continuation<Unit>?>(null)
+    private val continuation = ContinuationHolder<Unit, Continuation<Unit>>()
 
     @Volatile
     private var closed = false
@@ -114,10 +113,7 @@ class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSup
     override fun publishInterest(selectable: Selectable) {
         try {
             if (mb.addLast(selectable)) {
-                val cont = continuation.getAndSet(null)
-                if (cont != null) {
-                    cont.resume(Unit)
-                } else {
+                if (!continuation.resume(Unit)) {
                     selectWakeup()
                 }
             }
@@ -141,10 +137,7 @@ class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSup
             if (closed) return null
 
             suspendCoroutineUninterceptedOrReturn<Unit> {
-                continuation.set(it)
-
-                if ((!isEmpty || closed) && continuation.compareAndSet(it, null)) Unit
-                else COROUTINE_SUSPENDED
+                continuation.suspendIf(it) { isEmpty && !closed } ?: Unit
             }
         }
     }
@@ -152,11 +145,34 @@ class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSup
     override fun close() {
         closed = true
         mb.close()
-        val cont = continuation.getAndSet(null)
-        if (cont != null) {
-            cont.resume(Unit)
-        } else {
+        if (!continuation.resume(Unit)) {
             selectWakeup()
+        }
+    }
+
+    private class ContinuationHolder<R, C : Continuation<R>> {
+        private val ref = AtomicReference<C?>(null)
+
+        fun resume(value: R): Boolean {
+            val continuation = ref.getAndSet(null)
+            if (continuation != null) {
+                continuation.resume(value)
+                return true
+            }
+
+            return false
+        }
+
+        /**
+         * @return `null` if not suspended due to failed condition or `COROUTINE_SUSPENDED` if successfully applied
+         */
+        inline fun suspendIf(continuation: C, condition: () -> Boolean): Any? {
+            if (!condition()) return null
+            if (!ref.compareAndSet(null, continuation)) {
+                throw IllegalStateException("Continuation is already set")
+            }
+            if (!condition() && ref.compareAndSet(continuation, null)) return null
+            return COROUTINE_SUSPENDED
         }
     }
 }
