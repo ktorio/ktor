@@ -3,6 +3,7 @@ package io.ktor.network.selector
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.internal.*
+import java.io.Closeable
 import java.io.*
 import java.nio.channels.*
 import java.util.concurrent.atomic.*
@@ -18,7 +19,7 @@ class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSup
     @Volatile
     private var inSelect = false
 
-    private val continuation = AtomicReference<Continuation<Selectable?>?>(null)
+    private val continuation = AtomicReference<Continuation<Unit>?>(null)
 
     @Volatile
     private var closed = false
@@ -115,7 +116,7 @@ class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSup
             if (mb.addLast(selectable)) {
                 val cont = continuation.getAndSet(null)
                 if (cont != null) {
-                    cont.resume(null)
+                    cont.resume(Unit)
                 } else {
                     selectWakeup()
                 }
@@ -139,15 +140,12 @@ class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSup
 
             if (closed) return null
 
-            val m3 = suspendCoroutineUninterceptedOrReturn<Selectable?> {
+            suspendCoroutineUninterceptedOrReturn<Unit> {
                 continuation.set(it)
 
-                val m2 = removeFirstOrNull()
-                if ((m2 != null || closed) && continuation.compareAndSet(it, null)) m2
+                if ((!isEmpty || closed) && continuation.compareAndSet(it, null)) Unit
                 else COROUTINE_SUSPENDED
             }
-
-            if (m3 != null) return m3
         }
     }
 
@@ -156,7 +154,7 @@ class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSup
         mb.close()
         val cont = continuation.getAndSet(null)
         if (cont != null) {
-            cont.resume(null)
+            cont.resume(Unit)
         } else {
             selectWakeup()
         }
