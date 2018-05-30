@@ -19,10 +19,9 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
     }
 
     private val configuration = Configuration().apply(configure)
-    private val callDispatcher = ExperimentalCoroutineDispatcher()
 
     private val hostDispatcher = ioCoroutineDispatcher
-    private val userDispatcher = DispatcherWithShutdown(callDispatcher)
+    private val userDispatcher = DispatcherWithShutdown((hostDispatcher as ExperimentalCoroutineDispatcher).blocking(32))
 
     private val stopRequest = CompletableDeferred<Unit>()
 
@@ -64,7 +63,6 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
                 environment.stop()
             } finally {
                 userDispatcher.completeShutdown()
-                callDispatcher.close()
             }
         }
 
