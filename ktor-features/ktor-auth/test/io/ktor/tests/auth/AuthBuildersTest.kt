@@ -333,7 +333,7 @@ class AuthBuildersTest {
                 val firstAttempt = handleRequest(HttpMethod.Get, "/user/files/doc1.txt")
                 assertTrue { firstAttempt.requestHandled }
                 // with no auth header we should get basic auth challenge
-                assertEquals("Basic realm=test-app", firstAttempt.response.headers[HttpHeaders.WWWAuthenticate])
+                assertEquals("Basic realm=test-app, charset=UTF-8", firstAttempt.response.headers[HttpHeaders.WWWAuthenticate])
 
                 // so a download tool should show a prompt so user can provide name and password
                 // and retry with basic auth credentials

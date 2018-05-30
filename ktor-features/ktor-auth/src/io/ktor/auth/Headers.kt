@@ -3,7 +3,9 @@ package io.ktor.auth
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.util.*
+import java.nio.charset.*
 import java.util.*
+import kotlin.collections.LinkedHashMap
 
 object AuthScheme {
     val Basic = "Basic"
@@ -107,7 +109,15 @@ sealed class HttpAuthHeader(val authScheme: String) {
     }
 
     companion object {
-        fun basicAuthChallenge(realm: String) = Parameterized(AuthScheme.Basic, mapOf(Parameters.Realm to realm))
+        fun basicAuthChallenge(realm: String, charset: Charset?) = Parameterized(
+            AuthScheme.Basic, LinkedHashMap<String, String>().apply {
+                put(Parameters.Realm, realm)
+                if (charset != null) {
+                    put(Parameters.Charset, charset.name())
+                }
+            }
+        )
+
         fun digestAuthChallenge(realm: String, nonce: String = nextNonce(), domain: List<String> = emptyList(), opaque: String? = null, stale: Boolean? = null, algorithm: String = "MD5")
                 = Parameterized(AuthScheme.Digest, linkedMapOf<String, String>().apply {
             put("realm", realm)
@@ -127,6 +137,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
 
     object Parameters {
         val Realm = "realm"
+        val Charset = "charset"
 
         val OAuthCallback = "oauth_callback"
         val OAuthConsumerKey = "oauth_consumer_key"
