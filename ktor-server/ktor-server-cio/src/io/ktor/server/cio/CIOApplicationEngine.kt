@@ -6,6 +6,7 @@ import io.ktor.pipeline.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.scheduling.*
 import java.util.concurrent.*
 
 class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) : BaseApplicationEngine(environment) {
@@ -18,13 +19,10 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
     }
 
     private val configuration = Configuration().apply(configure)
-
-    private val callExecutor = Executors.newFixedThreadPool(configuration.callGroupSize) { r ->
-        Thread(r, "engine-thread")
-    }
+    private val callDispatcher = ExperimentalCoroutineDispatcher()
 
     private val hostDispatcher = ioCoroutineDispatcher
-    private val userDispatcher = DispatcherWithShutdown(callExecutor.asCoroutineDispatcher())
+    private val userDispatcher = DispatcherWithShutdown(callDispatcher)
 
     private val stopRequest = CompletableDeferred<Unit>()
 
@@ -66,7 +64,7 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
                 environment.stop()
             } finally {
                 userDispatcher.completeShutdown()
-                callExecutor.shutdown()
+                callDispatcher.close()
             }
         }
 
