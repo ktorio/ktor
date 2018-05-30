@@ -11,6 +11,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.util.concurrent.*
+import kotlin.coroutines.experimental.*
 
 class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientEngine {
     override val dispatcher: CoroutineDispatcher = ioCoroutineDispatcher
