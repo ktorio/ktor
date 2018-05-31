@@ -1,4 +1,4 @@
 dependencies {
     compile project(':ktor-network')
-    compile project(':ktor-http-cio')
+    compile project(':ktor-http:ktor-http-cio')
 }

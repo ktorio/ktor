@@ -3,7 +3,7 @@ dependencies {
     compile project(":ktor-utils")
     compile project(':ktor-http')
 
-    testCompile project(":ktor-http-cio")
+    testCompile project(":ktor-http:ktor-http-cio")
     testCompile project(":ktor-network")
 }
 
