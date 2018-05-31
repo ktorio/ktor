@@ -1,6 +1,6 @@
 package io.ktor.http
 
-import io.ktor.compat.*
+import io.ktor.util.*
 
 data class URLProtocol(val name: String, val defaultPort: Int) {
     init {

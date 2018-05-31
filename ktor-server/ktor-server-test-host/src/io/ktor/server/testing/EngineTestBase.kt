@@ -8,12 +8,11 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.engine.jetty.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.compat.*
 import io.ktor.features.*
-import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
+import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
 import org.junit.rules.*

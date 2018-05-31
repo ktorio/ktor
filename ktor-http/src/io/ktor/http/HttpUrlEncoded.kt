@@ -26,7 +26,7 @@ fun List<Pair<String, String?>>.formUrlEncode(): String = StringBuilder().apply 
 fun List<Pair<String, String?>>.formUrlEncodeTo(out: Appendable) {
     filter { it.second != null }.joinTo(
         out, "&"
-    ) { "${encodeURLQueryComponent(it.first)}=${encodeURLQueryComponent(it.second.toString())}" }
+    ) { "${encodeURLPart(it.first)}=${encodeURLPart(it.second.toString())}" }
 }
 
 fun Parameters.formUrlEncode(): String = entries()

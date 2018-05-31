@@ -78,6 +78,9 @@ class StringValuesTest {
             append("Key1", "value2")
             append("Key1", "Value3")
         }.filter { _, value -> value.startsWith("V") }
+        val names = map.names()
+        val values = map.entries()
+        setOf("Key1") == names
         assertEquals("Value3", map["key1"])
         assertEquals("Value3", map["keY1"])
         assertEquals(setOf("Key1"), map.names())

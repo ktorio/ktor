@@ -2,8 +2,8 @@ package io.ktor.client.response
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.compat.*
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.charsets.*

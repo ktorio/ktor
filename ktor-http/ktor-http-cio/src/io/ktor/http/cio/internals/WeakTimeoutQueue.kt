@@ -20,15 +20,17 @@ import kotlin.jvm.*
  *  however in the particular use-case (closing IDLE connection) it is just fine
  *  as we really don't care about stalling IDLE connections if there are no more incoming
  */
-class WeakTimeoutQueue(private val timeoutMillis: Long,
-                       private val clock: Clock = Clock.systemUTC(),
-                       private val exceptionFactory: () -> Exception = { TimeoutCancellationException("Timeout of $timeoutMillis ms exceeded") }) {
+class WeakTimeoutQueue(
+    private val timeoutMillis: Long,
+    private val clock: Clock = Clock.systemUTC(),
+    private val exceptionFactory: () -> Exception = { TimeoutCancellationException("Timeout of $timeoutMillis ms exceeded") }
+) {
     private val head = LockFreeLinkedListHead()
 
     @Volatile
     private var cancelled = false
 
-    fun register(r: Job) : DisposableHandle {
+    fun register(r: Job): DisposableHandle {
         val now = clock.millis()
         val head = head
         if (cancelled) throw cancellationException()
@@ -126,7 +128,8 @@ class WeakTimeoutQueue(private val timeoutMillis: Long,
         }
     }
 
-    private class WeakTimeoutCoroutine<in T>(context: CoroutineContext, val delegate: Continuation<T>) : AbstractCoroutine<T>(context, true), Continuation<T> {
+    private class WeakTimeoutCoroutine<in T>(context: CoroutineContext, val delegate: Continuation<T>) :
+        AbstractCoroutine<T>(context, true), Continuation<T> {
         override fun onCompleted(value: T) {
             delegate.resume(value)
         }

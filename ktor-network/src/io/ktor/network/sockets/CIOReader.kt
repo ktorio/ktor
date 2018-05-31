@@ -1,8 +1,8 @@
 package io.ktor.network.sockets
 
-import io.ktor.compat.*
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
+import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.ByteChannel

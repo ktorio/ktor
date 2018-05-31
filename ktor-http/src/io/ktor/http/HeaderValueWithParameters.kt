@@ -1,8 +1,11 @@
 package io.ktor.http
 
-import io.ktor.compat.*
+import io.ktor.util.*
 
-abstract class HeaderValueWithParameters(protected val content: String, val parameters: List<HeaderValueParam> = emptyList()) {
+abstract class HeaderValueWithParameters(
+    protected val content: String,
+    val parameters: List<HeaderValueParam> = emptyList()
+) {
 
     fun parameter(name: String) = parameters.firstOrNull { it.name.equals(name, ignoreCase = true) }?.value
 

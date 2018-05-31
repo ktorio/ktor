@@ -3,7 +3,7 @@ package io.ktor.client.call
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.compat.*
+import io.ktor.util.*
 import kotlin.reflect.*
 
 /**

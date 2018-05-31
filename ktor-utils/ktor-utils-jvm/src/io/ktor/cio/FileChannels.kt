@@ -1,6 +1,6 @@
 package io.ktor.cio
 
-import io.ktor.compat.*
+import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.pool.*

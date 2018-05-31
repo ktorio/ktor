@@ -1,0 +1,15 @@
+konanArtifacts {
+    library('ktor_client_core_ios') {
+        enableMultiplatform true
+
+        srcDir 'src'
+
+        libraries {
+            artifact project(':ktor-http:ktor-http-ios'), 'ktor_http_ios'
+        }
+    }
+}
+
+dependencies {
+    expectedBy project(":ktor-client:ktor-client-core")
+}

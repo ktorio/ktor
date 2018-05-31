@@ -1,10 +1,8 @@
 package io.ktor.tests.http.cio
 
-import io.ktor.compat.*
 import io.ktor.http.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.ByteReadChannel.*
 import kotlinx.io.streams.*
 import org.junit.Test
 import java.io.*

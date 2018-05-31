@@ -1,6 +1,5 @@
 package io.ktor.http
 
-import io.ktor.compat.*
 import io.ktor.util.*
 import org.slf4j.*
 import java.io.*
@@ -48,7 +47,7 @@ private val contentTypesFileName = "mimelist.csv"
 
 private val contentTypesByExtensions: Map<String, List<ContentType>> by lazy(LazyThreadSafetyMode.PUBLICATION) {
     val records = processRecords { ext, contentType -> ext to contentType }
-    caseInsensitiveMap<List<ContentType>>(records.size).apply { putAll(records) }
+    caseInsensitiveMap<List<ContentType>>().apply { putAll(records) }
 }
 
 private val extensionsByContentType: Map<ContentType, List<String>> by lazy {

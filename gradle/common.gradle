@@ -3,14 +3,15 @@ apply plugin: 'kotlin-platform-common'
 dependencies {
     compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-common', version: kotlin_version
     compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-common', version: coroutines_version
-//    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-io', version: kotlinx_io_version
 
     compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-io', version: kotlinx_io_version) {
         exclude(module: 'kotlin-stdlib-common')
     }
 
-    compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io', version:  kotlinx_io_version) {
+    compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io', version: kotlinx_io_version) {
         exclude(module: 'kotlin-stdlib-common')
     }
 
+    testCompile "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version"
+    testCompile "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"
 }

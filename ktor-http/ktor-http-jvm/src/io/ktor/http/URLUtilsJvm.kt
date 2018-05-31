@@ -7,6 +7,11 @@ fun URLBuilder.takeFrom(url: String) {
 }
 
 fun URLBuilder.takeFrom(uri: URI) {
+    uri.scheme?.let {
+        protocol = URLProtocol.createOrDefault(it)
+        port = protocol.defaultPort
+    }
+
     if (uri.port > 0) {
         port = uri.port
     } else {
@@ -22,7 +27,6 @@ fun URLBuilder.takeFrom(uri: URI) {
         password = parts.getOrNull(1)
     }
 
-    uri.scheme?.let { protocol = URLProtocol.createOrDefault(it) }
     uri.host?.let { host = it }
     uri.rawPath?.let {
         encodedPath = when (it) {

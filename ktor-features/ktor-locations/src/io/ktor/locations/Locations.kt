@@ -25,12 +25,14 @@ open class Locations(private val application: Application, private val routeServ
     private class LocationInfoProperty(val name: String, val getter: KProperty1.Getter<*, *>, val isOptional: Boolean)
 
     private data class ResolvedUriInfo(val path: String, val query: List<Pair<String, String>>)
-    private data class LocationInfo(val klass: KClass<*>,
-                                    val parent: LocationInfo?,
-                                    val parentParameter: LocationInfoProperty?,
-                                    val path: String,
-                                    val pathParameters: List<LocationInfoProperty>,
-                                    val queryParameters: List<LocationInfoProperty>)
+    private data class LocationInfo(
+        val klass: KClass<*>,
+        val parent: LocationInfo?,
+        val parentParameter: LocationInfoProperty?,
+        val path: String,
+        val pathParameters: List<LocationInfoProperty>,
+        val queryParameters: List<LocationInfoProperty>
+    )
 
     private fun LocationInfo.create(allParameters: Parameters): Any {
         val objectInstance = klass.objectInstance
@@ -66,7 +68,10 @@ open class Locations(private val application: Application, private val routeServ
     @Suppress("UNUSED_PARAMETER")
     private fun getParameterNameFromAnnotation(parameter: KParameter): String = TODO()
 
-    private fun ResolvedUriInfo.combine(relativePath: String, queryValues: List<Pair<String, String>>): ResolvedUriInfo {
+    private fun ResolvedUriInfo.combine(
+        relativePath: String,
+        queryValues: List<Pair<String, String>>
+    ): ResolvedUriInfo {
         val pathElements = (path.split("/") + relativePath.split("/")).filterNot { it.isEmpty() }
         val combinedPath = pathElements.joinToString("/", "/")
         return ResolvedUriInfo(combinedPath, query + queryValues)
@@ -87,16 +92,21 @@ open class Locations(private val application: Application, private val routeServ
                 return@getOrPut LocationInfo(dataClass, parentInfo, null, path, emptyList(), emptyList())
 
             val constructor: KFunction<Any> =
-                    dataClass.primaryConstructor
-                            ?: dataClass.constructors.singleOrNull()
-                            ?: throw IllegalArgumentException("Class $dataClass cannot be instantiated because the constructor is missing")
+                dataClass.primaryConstructor
+                    ?: dataClass.constructors.singleOrNull()
+                    ?: throw IllegalArgumentException("Class $dataClass cannot be instantiated because the constructor is missing")
 
             val declaredProperties = constructor.parameters.map { parameter ->
-                val property = dataClass.declaredMemberProperties.singleOrNull { property -> property.name == parameter.name }
+                val property =
+                    dataClass.declaredMemberProperties.singleOrNull { property -> property.name == parameter.name }
                 if (property == null) {
                     throw RoutingException("Parameter ${parameter.name} of constructor for class ${dataClass.qualifiedName} should have corresponding property")
                 }
-                LocationInfoProperty(parameter.name ?: "<unnamed>", (property as KProperty1<out Any?, *>).getter, parameter.isOptional)
+                LocationInfoProperty(
+                    parameter.name ?: "<unnamed>",
+                    (property as KProperty1<out Any?, *>).getter,
+                    parameter.isOptional
+                )
             }
 
             val parentParameter = declaredProperties.firstOrNull {
@@ -113,8 +123,8 @@ open class Locations(private val application: Application, private val routeServ
             }
 
             val pathParameterNames = RoutingPath.parse(path).parts
-                    .filter { it.kind == RoutingPathSegmentKind.Parameter }
-                    .map { PathSegmentSelectorBuilder.parseName(it.value) }
+                .filter { it.kind == RoutingPathSegmentKind.Parameter }
+                .map { PathSegmentSelectorBuilder.parseName(it.value) }
 
             val declaredParameterNames = declaredProperties.map { it.name }.toSet()
             val invalidParameters = pathParameterNames.filter { it !in declaredParameterNames }
@@ -123,7 +133,8 @@ open class Locations(private val application: Application, private val routeServ
             }
 
             val pathParameters = declaredProperties.filter { it.name in pathParameterNames }
-            val queryParameters = declaredProperties.filterNot { pathParameterNames.contains(it.name) || it == parentParameter }
+            val queryParameters =
+                declaredProperties.filterNot { pathParameterNames.contains(it.name) || it == parentParameter }
             LocationInfo(dataClass, parentInfo, parentParameter, path, pathParameters, queryParameters)
         }
     }
@@ -160,7 +171,9 @@ open class Locations(private val application: Application, private val routeServ
             }
         }
 
-        val relativePath = substituteParts.filterNot { it.isEmpty() }.joinToString("/") { encodeURLPart(it) }
+        val relativePath = substituteParts
+            .filterNot { it.isEmpty() }
+            .joinToString("/") { encodeURLQueryComponent(it) }
 
         val parentInfo = if (info.parent == null)
             rootUri
@@ -171,11 +184,10 @@ open class Locations(private val application: Application, private val routeServ
             ResolvedUriInfo(info.parent.path, emptyList())
         }
 
-        val queryValues = info.queryParameters
-                .flatMap { property ->
-                    val value = property.getter.call(location)
-                    conversionService.toValues(value).map { property.name to it }
-                }
+        val queryValues = info.queryParameters.flatMap { property ->
+                val value = property.getter.call(location)
+                conversionService.toValues(value).map { property.name to it }
+            }
 
         return parentInfo.combine(relativePath, queryValues)
     }

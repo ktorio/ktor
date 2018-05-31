@@ -1,7 +1,7 @@
 package io.ktor.client.utils
 
+import io.ktor.network.util.*
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.scheduling.*
 import kotlinx.io.pool.*
 import java.nio.*
 
@@ -10,7 +10,7 @@ private val cpuCount: Int = Runtime.getRuntime().availableProcessors()
 actual val HTTP_CLIENT_THREAD_COUNT: Int = maxOf(2, (cpuCount * 2 / 3))
 
 actual val HTTP_CLIENT_DEFAULT_DISPATCHER: CoroutineDispatcher by lazy {
-    ExperimentalCoroutineDispatcher(HTTP_CLIENT_THREAD_COUNT)
+    IOCoroutineDispatcher(HTTP_CLIENT_THREAD_COUNT)
 }
 
 /**

@@ -12,11 +12,17 @@ class AttributeKey<T>(val name: String) {
         "AttributeKey: $name"
 }
 
-expect class Attributes() {
+expect fun Attributes(): Attributes
+
+/**
+ * Map of attributes accessible by [AttributeKey] in a typed manner
+ */
+interface Attributes {
     /**
      * Gets a value of the attribute for the specified [key], or throws an exception if an attribute doesn't exist
      */
-    operator fun <T : Any> get(key: AttributeKey<T>): T
+    operator fun <T : Any> get(key: AttributeKey<T>): T =
+        getOrNull(key) ?: throw IllegalStateException("No instance for key $key")
 
     /**
      * Gets a value of the attribute for the specified [key], or return `null` if an attribute doesn't exist
@@ -41,12 +47,12 @@ expect class Attributes() {
     /**
      * Removes an attribute with the specified [key] and returns its current value, throws an exception if an attribute doesn't exist
      */
-    fun <T : Any> take(key: AttributeKey<T>): T
+    fun <T : Any> take(key: AttributeKey<T>): T = get(key).also { remove(key) }
 
     /**
      * Removes an attribute with the specified [key] and returns its current value, returns `null` if an attribute doesn't exist
      */
-    fun <T : Any> takeOrNull(key: AttributeKey<T>): T?
+    fun <T : Any> takeOrNull(key: AttributeKey<T>): T? = getOrNull(key).also { remove(key) }
 
     /**
      * Gets a value of the attribute for the specified [key], or calls supplied [block] to compute its value

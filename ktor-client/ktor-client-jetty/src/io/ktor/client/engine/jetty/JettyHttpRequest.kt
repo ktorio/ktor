@@ -9,6 +9,7 @@ import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.http.HttpMethod
 import io.ktor.util.*
+import io.ktor.util.Closeable
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import org.eclipse.jetty.http.*
@@ -48,14 +49,18 @@ internal class JettyHttpRequest(
         val responseContext = CompletableDeferred<Unit>()
         val responseListener = JettyResponseListener(session, bodyChannel, dispatcher, responseContext)
 
-        val jettyRequest = withPromise<Stream> { promise ->
+        val jettyRequest = JettyHttp2Request(withPromise { promise ->
             session.newStream(headersFrame, promise, responseListener)
-        }.let { JettyHttp2Request(it) }
+        })
 
         sendRequestBody(jettyRequest, content)
 
         val (status, headers) = responseListener.awaitHeaders()
-        val origin = Closeable { bodyChannel.close() }
+        val origin = object : Closeable {
+            override fun close() {
+                bodyChannel.close()
+            }
+        }
         return JettyHttpResponse(call, status, headers, requestTime, responseContext, bodyChannel, origin)
     }
 

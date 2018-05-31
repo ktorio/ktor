@@ -3,9 +3,9 @@ package io.ktor.client.engine.jetty
 import io.ktor.client.call.*
 import io.ktor.client.response.*
 import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import java.io.*
 import java.util.*
 
 internal class JettyHttpResponse(

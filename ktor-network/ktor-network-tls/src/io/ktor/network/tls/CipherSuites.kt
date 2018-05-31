@@ -29,6 +29,11 @@ data class CipherSuite(
 }
 
 
+/**
+ * CIO cipher suites collection
+ * https://www.ietf.org/rfc/rfc5289.txt
+ * https://tools.ietf.org/html/rfc5288#section-3
+ */
 object CIOCipherSuites {
     val TLS_RSA_WITH_AES_128_GCM_SHA256 = CipherSuite(
         0x009c, "TLS_RSA_WITH_AES_128_GCM_SHA256", "AES128-GCM-SHA256",
@@ -38,8 +43,6 @@ object CIOCipherSuites {
         HashAlgorithm.SHA256, SignatureAlgorithm.RSA
     )
 
-    // https://tools.ietf.org/html/rfc5288#section-3
-    // https://www.ietf.org/rfc/rfc5289.txt
     val ECDHE_ECDSA_AES256_SHA384 = CipherSuite(
         0xc02c.toShort(), "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", "ECDHE-ECDSA-AES256-GCM-SHA384",
         SecretExchangeType.ECDHE, "AES/GCM/NoPadding",
@@ -68,6 +71,9 @@ object CIOCipherSuites {
         HashAlgorithm.SHA256, SignatureAlgorithm.RSA
     )
 
+    /**
+     * List of suites supported by current platform
+     */
     val SupportedSuites: List<CipherSuite> = listOf(
         ECDHE_ECDSA_AES256_SHA384,
         ECDHE_RSA_AES256_SHA384,

@@ -6,7 +6,7 @@ import kotlin.test.*
 
 
 class URLBuilderTest {
-    val urlString = "http://localhost:8080/path"
+    private val urlString = "http://localhost:8080/path"
 
     @Test
     fun takeFromURITest() {

@@ -1,6 +1,6 @@
 package io.ktor.http
 
-import io.ktor.compat.*
+import io.ktor.util.*
 
 data class Cookie(
     val name: String,
@@ -92,7 +92,7 @@ fun renderSetCookieHeader(
     path: String? = null,
     secure: Boolean = false, httpOnly: Boolean = false,
     extensions: Map<String, String?> = emptyMap()
-,
+    ,
     includeEncoding: Boolean = true
 ): String = (
         listOf(
@@ -120,7 +120,7 @@ fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (e
         value.any { it.shouldEscapeInCookies() } -> "\"$value\""
         else -> value
     }
-    CookieEncoding.BASE64_ENCODING -> encodeBase64(value)
+    CookieEncoding.BASE64_ENCODING -> value.encodeBase64()
     CookieEncoding.URI_ENCODING -> encodeURLQueryComponent(value)
 }
 
@@ -131,7 +131,7 @@ fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String = 
         else -> encodedValue
     }
     CookieEncoding.URI_ENCODING -> decodeURLQueryComponent(encodedValue)
-    CookieEncoding.BASE64_ENCODING -> decodeBase64(encodedValue)
+    CookieEncoding.BASE64_ENCODING -> encodedValue.decodeBase64()
 }
 
 private fun String.assertCookieName() = when {

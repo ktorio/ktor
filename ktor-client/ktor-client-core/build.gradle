@@ -1,7 +1,7 @@
 description = "Ktor http client"
 
 dependencies {
-    compile project(":ktor-http")
+    compile project(":ktor-http:ktor-http-cio")
     compile project(":ktor-utils")
 }
 
