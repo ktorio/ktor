@@ -98,7 +98,10 @@ open class StringValuesSingleImpl(override val caseInsensitiveName: Boolean, val
     override fun contains(name: String, value: String): Boolean = name.equals(this.name, caseInsensitiveName) && values.contains(value)
 }
 
-open class StringValuesImpl(override val caseInsensitiveName: Boolean = false, private val values: Map<String, List<String>> = emptyMap()) : StringValues {
+open class StringValuesImpl(override val caseInsensitiveName: Boolean = false, values: Map<String, List<String>> = emptyMap()) : StringValues {
+    protected val values: Map<String, List<String>> by lazy {
+        if (caseInsensitiveName) CaseInsensitiveMap<List<String>>().apply { putAll(values) } else values.toMap()
+    }
     override operator fun get(name: String) = listForKey(name)?.firstOrNull()
     override fun getAll(name: String): List<String>? = listForKey(name)
 
