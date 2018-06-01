@@ -180,4 +180,12 @@ class HeadersTest {
         assertEquals("file; k=\"v,v\"; k2=\"=\"", ContentDisposition.File.withParameter("k", "v,v").withParameter("k2", "=").toString())
         assertEquals("file; k=\"v,v\"; k2=v2", ContentDisposition.File.withParameter("k", "v,v").withParameter("k2", "v2").toString())
     }
+
+    @Test
+    fun `headersOf should be case insensitive`() {
+        val value = "world"
+        assertEquals(value, headersOf("hello", value)["HELLO"])
+        assertEquals(value, headersOf("hello", listOf(value))["HELLO"])
+        assertEquals(value, headersOf("hello" to listOf(value))["HELLO"])
+    }
 }
