@@ -12,6 +12,7 @@ import java.nio.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import kotlin.concurrent.*
+import kotlin.jvm.*
 import kotlin.test.*
 
 class ServerSocketTest {

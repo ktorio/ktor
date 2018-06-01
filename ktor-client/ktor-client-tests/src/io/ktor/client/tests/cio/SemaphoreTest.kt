@@ -1,6 +1,6 @@
 package io.ktor.client.tests.cio
 
-import io.ktor.client.cio.*
+import io.ktor.cio.*
 import kotlinx.coroutines.experimental.*
 import org.junit.Test
 import java.util.concurrent.atomic.*

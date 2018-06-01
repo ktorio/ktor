@@ -3,7 +3,7 @@ package io.ktor.client.request
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.utils.*
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
@@ -176,15 +176,4 @@ operator fun HttpRequestBuilder.Companion.invoke(
 /**
  * Sets the [HttpRequestBuilder.url] from [url].
  */
-fun HttpRequestBuilder.url(url: java.net.URL): Unit = this.url.takeFrom(url)
-
-/**
- * Sets the [HttpRequestBuilder.url] from [url].
- */
-fun HttpRequestBuilder.url(url: String): Unit = this.url.takeFrom(java.net.URI(url))
-
-/**
- * Constructs a [HttpRequestBuilder] from [url].
- */
-operator fun HttpRequestBuilder.Companion.invoke(url: java.net.URL): HttpRequestBuilder =
-    HttpRequestBuilder().apply { url(url) }
+fun HttpRequestBuilder.url(url: String): Unit = TODO("url parser") //this.url.takeFrom(java.net.URI(url))

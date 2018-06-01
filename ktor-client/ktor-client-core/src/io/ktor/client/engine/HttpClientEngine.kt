@@ -2,8 +2,8 @@ package io.ktor.client.engine
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.compat.*
 import kotlinx.coroutines.experimental.*
-import java.io.*
 
 /**
  * Base interface use to define engines for [HttpClient].

@@ -2,7 +2,7 @@ package io.ktor.server.servlet
 
 import io.ktor.application.*
 import io.ktor.cio.*
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.server.engine.*

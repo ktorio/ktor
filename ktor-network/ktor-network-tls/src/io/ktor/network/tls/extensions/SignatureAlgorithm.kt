@@ -53,7 +53,7 @@ internal fun ByteReadPacket.parseSignatureAlgorithms(): List<HashAndSign> {
         result += readHashAndSign()
     }
 
-    if (remaining != length)
+    if (remaining.toInt() != length)
         throw TLSException("Invalid hash and sign packet size: expected $length, actual ${result.size}")
 
     return result

@@ -1,6 +1,6 @@
 package io.ktor.client.engine.cio
 
-import io.ktor.client.cio.*
+import io.ktor.cio.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.network.sockets.*
@@ -58,12 +58,14 @@ internal class ConnectionPipeline(
                 val job: Job? = try {
                     val response = parseResponse(inputChannel)
                         ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
+
+                    val method = task.request.method
                     val contentLength = response.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
                     val transferEncoding = response.headers[HttpHeaders.TransferEncoding]
                     val chunked = transferEncoding == "chunked"
                     val connectionType = ConnectionOptions.parse(response.headers[HttpHeaders.Connection])
-                    shouldClose = (connectionType == ConnectionOptions.Close) || chunked
-                    val method = task.request.method
+                    shouldClose = (connectionType == ConnectionOptions.Close)
+
 
                     val hasBody = (contentLength > 0 || chunked) && method != HttpMethod.Head
 

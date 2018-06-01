@@ -3,6 +3,7 @@ package io.ktor.client.engine.apache
 import io.ktor.client.engine.*
 import org.apache.http.client.config.*
 import org.apache.http.impl.nio.client.*
+import javax.net.ssl.*
 
 /**
  * Configuration for [Apache] implementation of [HttpClientEngineFactory].
@@ -31,6 +32,12 @@ class ApacheEngineConfig : HttpClientEngineConfig() {
      * A value of 0 represents infinite, while -1 represents system's default value.
      */
     var connectionRequestTimeout: Int = 20_000
+
+    /**
+     * Optional Java's SSLContext allowing to set custom keys,
+     * trust manager or custom source for secure random data
+     */
+    var sslContext: SSLContext? = null
 
     /**
      * Custom processor for [RequestConfig.Builder].

@@ -1,5 +1,6 @@
 package io.ktor.tests.http.cio
 
+import io.ktor.compat.*
 import io.ktor.http.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*

@@ -14,6 +14,7 @@ import org.eclipse.jetty.http2.client.*
 import org.eclipse.jetty.http2.frames.*
 import org.eclipse.jetty.util.*
 import java.io.*
+import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.*
 

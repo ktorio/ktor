@@ -49,12 +49,12 @@ internal fun ByteReadPacket.readTLSServerHello(): TLSServerHello {
     val compressionMethod = readByte().toShort() and 0xff
     if (compressionMethod.toInt() != 0) throw TLSException("Unsupported TLS compression method $compressionMethod (only null 0 compression method is supported)")
 
-    if (remaining == 0) return TLSServerHello(version, random, sessionId, suite, compressionMethod)
+    if (remaining.toInt() == 0) return TLSServerHello(version, random, sessionId, suite, compressionMethod)
 
     // handle extensions
     val extensionSize = readShort().toInt() and 0xffff
 
-    if (remaining != extensionSize)
+    if (remaining.toInt() != extensionSize)
         throw TLSException("Invalid extensions size: requested $extensionSize, available $remaining")
 
     val extensions = mutableListOf<TLSExtension>()

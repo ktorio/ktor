@@ -3,9 +3,9 @@ package io.ktor.network.sockets
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import kotlinx.coroutines.experimental.channels.*
-import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.core.*
 import java.net.*
+import java.nio.*
 import java.nio.channels.*
 
 internal class DatagramSocketImpl(override val channel: DatagramChannel, selector: SelectorManager)
@@ -48,9 +48,7 @@ internal class DatagramSocketImpl(override val channel: DatagramChannel, selecto
         } catch (t: Throwable) {
             DefaultDatagramByteBufferPool.recycle(buffer)
             throw t
-        }
-
-        if (address == null) return receiveSuspend(buffer)
+        } ?: return receiveSuspend(buffer)
 
         interestOp(SelectInterest.READ, false)
         buffer.flip()
@@ -80,7 +78,7 @@ internal class DatagramSocketImpl(override val channel: DatagramChannel, selecto
     }
 
     private suspend fun sendImpl(datagram: Datagram) {
-        val buffer = ByteBuffer.allocateDirect(datagram.packet.remaining)
+        val buffer = ByteBuffer.allocateDirect(datagram.packet.remaining.toInt())
         datagram.packet.readAvailable(buffer)
         buffer.flip()
 

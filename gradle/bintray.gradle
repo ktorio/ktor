@@ -1,0 +1,19 @@
+bintray {
+    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+    publish = true
+
+    pkg {
+        userOrg = 'kotlin'
+        repo = 'ktor'
+        name = 'ktor'
+
+        publications = ['mavenProject']
+
+        version {
+            name = project.version
+            released = new Date()
+            vcsTag = project.version
+        }
+    }
+}

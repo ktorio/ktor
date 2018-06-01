@@ -9,6 +9,7 @@ import java.io.*
 import java.nio.ByteBuffer
 import java.nio.channels.*
 import java.nio.file.*
+import kotlin.coroutines.experimental.*
 
 @State(Scope.Benchmark)
 class ChannelBenchmarks {

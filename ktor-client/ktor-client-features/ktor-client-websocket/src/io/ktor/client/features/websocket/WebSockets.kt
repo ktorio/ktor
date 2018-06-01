@@ -23,7 +23,7 @@ class WebSockets(
     companion object Feature : HttpClientFeature<Unit, WebSockets> {
         override val key: AttributeKey<WebSockets> = AttributeKey("Websocket")
 
-        override suspend fun prepare(block: Unit.() -> Unit): WebSockets = WebSockets()
+        override fun prepare(block: Unit.() -> Unit): WebSockets = WebSockets()
 
         override fun install(feature: WebSockets, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Render) { _ ->

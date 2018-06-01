@@ -2,7 +2,7 @@ package io.ktor.features
 
 import io.ktor.application.*
 import io.ktor.cio.*
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.pipeline.*
 import io.ktor.request.*

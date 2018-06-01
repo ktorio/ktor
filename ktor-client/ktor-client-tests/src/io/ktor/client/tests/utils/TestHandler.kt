@@ -3,7 +3,7 @@ package io.ktor.client.tests.utils
 import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.pipeline.*
 import io.ktor.util.*
@@ -20,7 +20,7 @@ internal class TestHandler(
     companion object Feature : HttpClientFeature<Config, TestHandler> {
         override val key: AttributeKey<TestHandler> = AttributeKey("Buffer")
 
-        override suspend fun prepare(block: Config.() -> Unit): TestHandler =
+        override fun prepare(block: Config.() -> Unit): TestHandler =
             Config().apply(block).let { TestHandler(it.onClose) }
 
         override fun install(feature: TestHandler, scope: HttpClient) {

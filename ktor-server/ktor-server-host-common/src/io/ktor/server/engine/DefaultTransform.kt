@@ -2,7 +2,7 @@ package io.ktor.server.engine
 
 import io.ktor.application.*
 import io.ktor.cio.*
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.pipeline.*
@@ -75,7 +75,7 @@ private suspend fun ByteReadChannel.readText(
 ): String {
     if (isClosedForRead) return ""
 
-    val content = readRemaining()
+    val content = readRemaining(Long.MAX_VALUE)
 
     return try {
         if (charset == Charsets.UTF_8) content.readText()

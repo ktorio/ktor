@@ -1,7 +1,7 @@
 package io.ktor.network.sockets
 
 import kotlinx.coroutines.experimental.channels.*
-import kotlinx.coroutines.experimental.io.packet.*
+import kotlinx.io.core.*
 import java.net.*
 
 internal const val MAX_DATAGRAM_SIZE = 65535

@@ -2,9 +2,10 @@ package io.ktor.gson
 
 import com.google.gson.*
 import io.ktor.application.*
-import io.ktor.content.*
+import io.ktor.compat.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*

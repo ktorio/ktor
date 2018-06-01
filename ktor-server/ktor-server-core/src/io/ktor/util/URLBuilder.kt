@@ -5,7 +5,6 @@ import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.request.*
 
-
 /**
  * Creates an url using current call's schema, path and parameters as initial
  */

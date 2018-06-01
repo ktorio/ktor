@@ -3,8 +3,7 @@ package io.ktor.client.call
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import java.io.*
-import java.util.concurrent.atomic.*
+import io.ktor.compat.*
 import kotlin.reflect.*
 
 /**
@@ -13,7 +12,7 @@ import kotlin.reflect.*
 class HttpClientCall internal constructor(
     private val client: HttpClient
 ) : Closeable {
-    private val received = AtomicBoolean(false)
+//    private val received = AtomicBoolean(false)
 
     /**
      * Represents the [request] sent by the client.
@@ -36,7 +35,7 @@ class HttpClientCall internal constructor(
      */
     suspend fun receive(info: TypeInfo): Any {
         if (info.type.isInstance(response)) return response
-        if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
+//        if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
 
         val subject = HttpResponseContainer(info, response)
         try {

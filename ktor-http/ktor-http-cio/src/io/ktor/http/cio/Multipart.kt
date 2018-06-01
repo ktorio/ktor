@@ -2,11 +2,9 @@ package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.ByteBuffer
-import kotlinx.coroutines.experimental.io.packet.*
-import kotlinx.coroutines.experimental.io.packet.ByteReadPacket
 import kotlinx.io.core.*
 import java.io.*
 import java.io.EOFException
@@ -148,7 +146,7 @@ fun parseMultipart(coroutineContext: CoroutineContext, boundaryPrefixed: ByteBuf
             position(2)
         }
 
-        val preamble = WritePacket()
+        val preamble = BytePacketBuilder()
         parsePreamble(firstBoundary, input, preamble, 8192)
 
         if (preamble.size > 0) {

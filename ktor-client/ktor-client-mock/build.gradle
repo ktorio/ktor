@@ -1,5 +1,5 @@
 
 dependencies {
-    compile project(":ktor-http-cio")
+    compile project(":ktor-http:ktor-http-cio")
     compile project(":ktor-client:ktor-client-core")
 }

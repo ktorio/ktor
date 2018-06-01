@@ -132,7 +132,7 @@ internal fun BytePacketBuilder.writeX509Info(
             }
         }
 
-        writeDerLength(extensions.remaining)
+        writeDerLength(extensions.remaining.toInt())
         writePacket(extensions)
     }
 }
@@ -148,7 +148,7 @@ private fun BytePacketBuilder.writeAlgorithmIdentifier(algorithm: String) {
 private fun BytePacketBuilder.writeX509Extension(id: Int, builder: BytePacketBuilder.() -> Unit) {
     writeByte((0x80 or id).toByte())
     val packet = buildPacket { builder() }
-    writeDerLength(packet.remaining)
+    writeDerLength(packet.remaining.toInt())
     writePacket(packet)
 }
 
@@ -214,7 +214,7 @@ private fun BytePacketBuilder.writeVersion(v: Int = 2) {
     val encoded = buildPacket {
         writeAsnInt(v)
     }
-    writeDerLength(encoded.remaining)
+    writeDerLength(encoded.remaining.toInt())
     writePacket(encoded)
 }
 
@@ -222,7 +222,7 @@ private fun BytePacketBuilder.writeDerOctetString(block: BytePacketBuilder.() ->
     val sub = buildPacket { block() }
 
     writeDerType(0, 4, true)
-    writeDerLength(sub.remaining)
+    writeDerLength(sub.remaining.toInt())
     writePacket(sub)
 }
 
@@ -230,7 +230,7 @@ private fun BytePacketBuilder.writeDerBitString(block: BytePacketBuilder.() -> U
     val sub = buildPacket { block() }
 
     writeDerType(0, 3, true)
-    writeDerLength(sub.remaining + 1)
+    writeDerLength(sub.remaining.toInt() + 1)
     writeByte(0)
     writePacket(sub)
 }
@@ -264,7 +264,7 @@ private fun BytePacketBuilder.writeDerUTF8String(s: String, type: Int = 0x0c) {
     }
 
     writeDerType(0, type, true)
-    writeDerLength(sub.remaining)
+    writeDerLength(sub.remaining.toInt())
     writePacket(sub)
 }
 
@@ -276,7 +276,7 @@ private fun BytePacketBuilder.writeDerSequence(block: BytePacketBuilder.() -> Un
     val sub = buildPacket { block() }
 
     writeDerType(0, 0x10, false)
-    writeDerLength(sub.remaining)
+    writeDerLength(sub.remaining.toInt())
     writePacket(sub)
 }
 
@@ -284,7 +284,7 @@ private fun BytePacketBuilder.writeDerSet(block: BytePacketBuilder.() -> Unit) {
     val sub = buildPacket { block() }
 
     writeDerType(0, 0x11, false)
-    writeDerLength(sub.remaining)
+    writeDerLength(sub.remaining.toInt())
     writePacket(sub)
 }
 
@@ -306,7 +306,7 @@ private fun BytePacketBuilder.writeDerObjectIdentifier(identifier: IntArray) {
     }
 
     writeDerType(0, 6, true)
-    writeDerLength(sub.remaining)
+    writeDerLength(sub.remaining.toInt())
     writePacket(sub)
 }
 
@@ -335,7 +335,7 @@ private fun BytePacketBuilder.writeAsnInt(value: Int) {
             writeByte(part.toByte())
         }
     }
-    writeDerLength(encoded.remaining)
+    writeDerLength(encoded.remaining.toInt())
     writePacket(encoded)
 }
 

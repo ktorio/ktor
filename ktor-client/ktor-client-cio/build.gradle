@@ -1,7 +1,7 @@
 description = "CIO backend for ktor http client"
 
 dependencies {
-    compile project(":ktor-client:ktor-client-core")
+    compile project(":ktor-client:ktor-client-core:ktor-client-core-jvm")
     compile project(":ktor-http:ktor-http-cio")
     compile project(":ktor-network:ktor-network-tls")
 

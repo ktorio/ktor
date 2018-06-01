@@ -1,6 +1,6 @@
 package io.ktor.server.servlet
 
-import io.ktor.content.*
+import io.ktor.http.content.*
 import kotlinx.coroutines.experimental.*
 import javax.servlet.http.*
 import kotlin.coroutines.experimental.*

@@ -1,0 +1,30 @@
+apply plugin: 'org.jetbrains.dokka'
+
+dokka {
+    outputFormat = 'html'
+    outputDirectory = "$buildDir/kdoc"
+}
+
+task dokkaJavadoc(type: dokka.getClass()) {
+    outputFormat = 'javadoc'
+    outputDirectory = "$buildDir/javadoc"
+}
+
+task dokkaWebsite(type: dokka.getClass()) {
+    outputFormat = 'kotlin-website'
+    outputDirectory = "${rootProject.projectDir}/apidoc"
+}
+
+
+task javadocJar(type: Jar, dependsOn: 'dokkaJavadoc') {
+    classifier = 'javadoc'
+    from fileTree(new File(project.buildDir, 'javadoc'))
+}
+
+task dokkaJar(type: Jar, dependsOn: 'dokka') {
+    classifier = 'kdoc'
+    from fileTree(new File(project.buildDir, 'kdoc'))
+}
+
+artifacts.archives javadocJar
+artifacts.archives dokkaJar

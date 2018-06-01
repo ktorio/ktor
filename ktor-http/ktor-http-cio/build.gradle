@@ -1,5 +1,5 @@
 description = ''
 dependencies {
-    compile project(':ktor-http')
+    compile project(':ktor-http:ktor-http-jvm')
     compile project(':ktor-network')
 }

@@ -1,7 +1,5 @@
 package io.ktor.http
 
-import java.util.*
-
 data class HeaderValueParam(val name: String, val value: String) {
     override fun equals(other: Any?): Boolean {
         return other is HeaderValueParam

@@ -1,6 +1,6 @@
 package io.ktor.client.engine.cio
 
-import io.ktor.client.cio.*
+import io.ktor.cio.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket

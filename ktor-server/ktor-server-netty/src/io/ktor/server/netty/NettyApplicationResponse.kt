@@ -1,8 +1,8 @@
 package io.ktor.server.netty
 
-import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.netty.channel.*
@@ -21,7 +21,7 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
     @Volatile
     protected var responseMessageSent = false
 
-    internal var responseChannel: ByteReadChannel = EmptyByteReadChannel
+    internal var responseChannel: ByteReadChannel = ByteReadChannel.Empty
 
     init {
         pipeline.intercept(ApplicationSendPipeline.Engine) {
@@ -51,7 +51,7 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
             val message = responseMessage(chunked, bytes)
             responseMessage.complete(message)
             responseChannel = when (message) {
-                is LastHttpContent -> EmptyByteReadChannel
+                is LastHttpContent -> ByteReadChannel.Empty
                 else -> ByteReadChannel(bytes)
             }
             responseMessageSent = true
@@ -81,14 +81,14 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
     }
 
     internal fun ensureResponseSent() {
-        sendResponse(content = EmptyByteReadChannel)
+        sendResponse(content = ByteReadChannel.Empty)
     }
 
     internal fun close() {
         val existingChannel = responseChannel
         if (existingChannel is ByteWriteChannel) {
             existingChannel.close(ClosedWriteChannelException("Application response has been closed"))
-            responseChannel = EmptyByteReadChannel
+            responseChannel = ByteReadChannel.Empty
         }
 
         ensureResponseSent()
@@ -98,7 +98,7 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
 
     fun cancel() {
         if (!responseMessageSent) {
-            responseChannel = EmptyByteReadChannel
+            responseChannel = ByteReadChannel.Empty
             responseMessage.cancel()
             responseMessageSent = true
         }
@@ -106,6 +106,8 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
 
     companion object {
         private val EmptyByteArray = ByteArray(0)
-        val responseStatusCache = HttpStatusCode.allStatusCodes.associateBy({ it.value }, { HttpResponseStatus.valueOf(it.value) })
+
+        val responseStatusCache: Map<Int, HttpResponseStatus> =
+            HttpStatusCode.allStatusCodes.associateBy({ it.value }, { HttpResponseStatus.valueOf(it.value) })
     }
 }

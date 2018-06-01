@@ -28,7 +28,7 @@ class ResponseCookies(private val response: ApplicationResponse, private val sec
                 value,
                 encoding,
                 maxAge,
-                expires,
+                expires?.toHttpDateString(),
                 domain,
                 path,
                 secure,

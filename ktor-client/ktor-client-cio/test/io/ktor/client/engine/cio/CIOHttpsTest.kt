@@ -6,6 +6,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
+import io.ktor.compat.*
 import io.ktor.http.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.network.tls.extensions.*

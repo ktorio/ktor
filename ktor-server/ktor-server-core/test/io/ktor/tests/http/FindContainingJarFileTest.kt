@@ -1,6 +1,6 @@
 package io.ktor.tests.http
 
-import io.ktor.content.*
+import io.ktor.http.content.*
 import org.junit.Test
 import kotlin.test.*
 

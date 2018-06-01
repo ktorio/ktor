@@ -1,6 +1,6 @@
 package io.ktor.http
 
-import java.nio.charset.*
+import kotlinx.io.charsets.*
 
 class ContentType private constructor(val contentType: String, val contentSubtype: String, existingContent: String, parameters: List<HeaderValueParam> = emptyList())
     : HeaderValueWithParameters(existingContent, parameters) {
@@ -158,5 +158,5 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
 
 class BadContentTypeFormatException(value: String) : Exception("Bad Content-Type format: $value")
 
-fun ContentType.withCharset(charset: Charset) = withParameter("charset", charset.name())
+fun ContentType.withCharset(charset: Charset) = withParameter("charset", charset.name)
 fun HeaderValueWithParameters.charset() = parameter("charset")?.let { Charset.forName(it) }

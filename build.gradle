@@ -30,37 +30,50 @@ buildscript {
 
 apply plugin: 'net.researchgate.release'
 
-def configuredVersion = project.hasProperty('releaseVersion') ? project.releaseVersion : project.version
-def dokkaExcludes = [
+ext.configuredVersion = project.hasProperty('releaseVersion') ? project.releaseVersion : project.version
+ext.dokkaExcludes = [
         'ktor-server',
         'ktor-samples',
         'ktor-features',
         'ktor-client'
 ]
 
-def globalM2 = "$buildDir/m2"
-def publishLocal = project.hasProperty('publishLocal')
+ext.globalM2 = "$buildDir/m2"
+ext.publishLocal = project.hasProperty('publishLocal')
+
+def commonModules = [
+        'ktor-client-core',
+        'ktor-utils',
+        'ktor-http'
+]
 
 allprojects {
-    apply plugin: 'maven'
-    apply plugin: 'maven-publish'
-    apply plugin: 'kotlin'
-
-    apply plugin: 'com.jfrog.bintray'
-
     group = 'io.ktor'
     version = configuredVersion
 
-    def skipDokka = project.path.contains("ktor-samples") || project == rootProject || project.name in dokkaExcludes
-    def skipUpload = project.path.contains("ktor-samples")
+    repositories {
+//        mavenLocal()
+        jcenter()
+        maven { url "https://dl.bintray.com/e5l/kotlinx-io-test" }
 
-    if (!skipDokka) {
-        apply plugin: 'org.jetbrains.dokka'
+        if (kotlin_version.contains("-eap") || kotlin_version.contains("-rc")) {
+            if (kotlin_version.startsWith("1.1")) {
+                maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
+            } else if (kotlin_version.startsWith("1.2")) {
+                maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
+                maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
+            }
+        } else if (kotlin_version.contains("-dev")) {
+            maven { url 'http://daal.bintray.com/kotlin/kotlin-dev' }
+        } else if (kotlin_version.endsWith("-SNAPSHOT")) {
+            maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        }
     }
 
-    configurations {
-        testOutput.extendsFrom(testCompile)
-        boot
+    if (commonModules.contains(project.name)) {
+        apply from: rootProject.file('gradle/common.gradle')
+    } else {
+        apply from: rootProject.file('gradle/jvm.gradle')
     }
 
     sourceSets {
@@ -85,178 +98,7 @@ allprojects {
         }
     }
 
-    kotlin {
-        experimental {
-            coroutines 'enable'
-        }
-    }
-
-    if (!skipDokka) {
-        dokka {
-            outputFormat = 'html'
-            outputDirectory = "$buildDir/kdoc"
-        }
-
-        task dokkaJavadoc(type: org.jetbrains.dokka.gradle.DokkaTask) {
-            outputFormat = 'javadoc'
-            outputDirectory = "$buildDir/javadoc"
-        }
-
-        task dokkaWebsite(type: org.jetbrains.dokka.gradle.DokkaTask) {
-            outputFormat = 'kotlin-website'
-            outputDirectory = "${rootProject.projectDir}/apidoc"
-        }
-    }
-
-    task jarTest(type: Jar, dependsOn: testClasses) {
-        from sourceSets.test.output
-        classifier = 'test'
-    }
-
-    test {
-        ignoreFailures = true
-        maxHeapSize = "2g"
-        exclude("**/*StressTest*")
-    }
-
-    task stressTest(type: Test, dependsOn: testClasses) {
-        ignoreFailures = true
-        maxHeapSize = "2g"
-        forkEvery = 1
-        include("**/*StressTest*")
-        systemProperty "enable.stress.tests", "true"
-    }
-
-    dependencies {
-        testCompile group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
-        testCompile group: 'junit', name: 'junit', version: junit_version
-    }
-
-    repositories {
-//        mavenLocal()
-        jcenter()
-
-        if (kotlin_version.contains("-eap") || kotlin_version.contains("-rc")) {
-            if (kotlin_version.startsWith("1.1")) {
-                maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.1' }
-            } else if (kotlin_version.startsWith("1.2")) {
-                maven { url 'http://dl.bintray.com/kotlin/kotlin-eap-1.2' }
-                maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
-            }
-        } else if (kotlin_version.contains("-dev")) {
-            maven { url 'http://dl.bintray.com/kotlin/kotlin-dev' }
-        } else if (kotlin_version.endsWith("-SNAPSHOT")) {
-            maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-        }
-    }
-
-    task packageSources(type: Jar) {
-        classifier = 'sources'
-        from sourceSets.main.allSource
-    }
-
-    task javadocJar(type: Jar, dependsOn: 'dokkaJavadoc') {
-        classifier = 'javadoc'
-        from fileTree(new File(project.buildDir, 'javadoc'))
-    }
-
-    task dokkaJar(type: Jar, dependsOn: 'dokka') {
-        classifier = 'kdoc'
-        from fileTree(new File(project.buildDir, 'kdoc'))
-    }
-
-    artifacts.archives packageSources
-    if (!skipDokka) {
-        artifacts.archives javadocJar
-        artifacts.archives dokkaJar
-    }
-
-    publishing {
-        if (publishLocal) {
-            repositories {
-                maven {
-                    url globalM2
-                }
-            }
-        }
-
-        publications {
-            mavenProject(MavenPublication) {
-                from components.java
-                groupId project.group
-                artifactId project.name
-                version project.version
-
-                artifact packageSources {
-                    classifier 'sources'
-                }
-
-                if (!skipDokka) {
-                    artifact javadocJar {
-                        classifier 'javadoc'
-                    }
-
-                    artifact dokkaJar {
-                        classifier 'kdoc'
-                    }
-                }
-            }
-        }
-    }
-
-    if (!skipUpload) {
-        bintray {
-            user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
-            key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
-            publish = true
-
-            pkg {
-                userOrg = 'kotlin'
-                repo = 'ktor'
-                name = 'ktor'
-
-                publications = ['mavenProject']
-
-                version {
-                    name = project.version
-                    released = new Date()
-                    vcsTag = project.version
-                }
-            }
-        }
-    }
-}
-
-subprojects {
-    apply plugin: 'java'
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
-    tasks.withType(JavaCompile) {
-        options.encoding = 'UTF-8'
-    }
-
-    dependencies {
-        compile group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlin_version
-        compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlin_version
-        compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk7', version: kotlin_version
-        compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: kotlin_version
-        compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-jdk8', version: coroutines_version
-        compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io', version: coroutines_version) {
-            exclude(module: 'kotlin-stdlib')
-            exclude(module: 'kotlinx-io-jvm')
-        }
-        compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-jvm', version: '0.0.10')
-        compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
-        compile group: 'com.typesafe', name: 'config', version: '1.3.1'
-        testCompile group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
-        testCompile group: 'junit', name: 'junit', version: junit_version
-    }
-
-    jar {
-        manifest {
-            attributes("Implementation-Title": project.name, "Implementation-Version": configuredVersion)
-        }
-    }
+    kotlin.experimental.coroutines = 'enable'
 }
 
 release {

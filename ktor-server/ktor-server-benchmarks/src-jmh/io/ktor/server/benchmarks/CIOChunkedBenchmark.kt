@@ -6,6 +6,7 @@ import kotlinx.coroutines.experimental.io.*
 import org.openjdk.jmh.annotations.*
 import java.nio.ByteBuffer
 import java.util.*
+import kotlin.coroutines.experimental.*
 
 @State(Scope.Benchmark)
 class CIOChunkedBenchmark {

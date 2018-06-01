@@ -76,7 +76,7 @@ suspend fun parseHttpBody(
     }
 
     if (connectionOptions?.close == true) {
-        input.copyTo(out)
+        input.copyTo(out, Long.MAX_VALUE)
         return
     }
 

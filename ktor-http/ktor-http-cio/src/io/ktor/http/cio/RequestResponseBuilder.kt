@@ -1,8 +1,8 @@
 package io.ktor.http.cio
 
 import io.ktor.http.*
-import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.core.*
+import java.nio.*
 
 class RequestResponseBuilder {
     private val packet = BytePacketBuilder()

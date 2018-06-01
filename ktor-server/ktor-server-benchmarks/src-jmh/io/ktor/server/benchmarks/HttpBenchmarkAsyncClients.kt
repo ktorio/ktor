@@ -1,14 +1,18 @@
 package io.ktor.server.benchmarks
 
+import io.ktor.*
+import io.ktor.cio.*
 import io.ktor.client.*
 import io.ktor.client.cio.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.utils.*
+import io.ktor.compat.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import org.openjdk.jmh.infra.*
+import java.nio.*
 import java.util.concurrent.atomic.*
 
 

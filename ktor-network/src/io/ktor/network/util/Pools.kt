@@ -2,9 +2,9 @@ package io.ktor.network.util
 
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.scheduling.*
 import kotlinx.io.pool.*
+import java.nio.*
 
 val ioThreadGroup = ThreadGroup("io-pool-group")
 

@@ -3,8 +3,10 @@ package io.ktor.http.cio
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.experimental.io.ByteReadChannel.*
 import java.io.*
 import kotlin.coroutines.experimental.*
 
@@ -109,7 +111,7 @@ fun startConnectionPipeline(input: ByteReadChannel,
                     throw t
                 }
 
-                val requestBody = if (expectedHttpBody || expectedHttpUpgrade) ByteChannel(true) else EmptyByteReadChannel
+                val requestBody = if (expectedHttpBody || expectedHttpUpgrade) ByteChannel(true) else ByteReadChannel.Empty
                 val upgraded = if (expectedHttpUpgrade) CompletableDeferred<Boolean>() else null
 
                 launch(callContext + thisJob + CoroutineName("request-handler")) {

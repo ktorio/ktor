@@ -1,26 +1,13 @@
 package io.ktor.http.cio
 
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.http.*
-import io.ktor.http.cio.internals.*
-import io.ktor.network.util.*
-import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
+import java.nio.*
 import java.nio.channels.*
 import java.nio.file.*
 import kotlin.coroutines.experimental.*
-
-class CIOMultipartData(channel: ByteReadChannel,
-                       headers: HttpHeadersMap,
-                       formFieldLimit: Int = 65536,
-                       inMemoryFileUploadLimit: Int = formFieldLimit)
-    : CIOMultipartDataBase(
-        ioCoroutineDispatcher,
-        channel, headers[HttpHeaders.ContentType]!!,
-        headers[HttpHeaders.ContentLength]?.parseDecLong(),
-        formFieldLimit, inMemoryFileUploadLimit
-)
 
 open class CIOMultipartDataBase(
         coroutineContext: CoroutineContext,
@@ -31,22 +18,6 @@ open class CIOMultipartDataBase(
         private val inMemoryFileUploadLimit: Int = formFieldLimit
 ) : MultiPartData {
     private val events = parseMultipart(coroutineContext, channel, contentType, contentLength)
-
-    override val parts: Sequence<PartData> = buildSequence {
-        while (!events.isClosedForReceive) {
-            val transformed = ArrayList<PartData>()
-
-            runBlocking {
-                while (true) {
-                    val evt = (if (transformed.isEmpty()) events.receiveOrNull() else events.poll()) ?: break
-                    val data = eventToData(evt) ?: continue
-                    transformed.add(data)
-                }
-            }
-
-            yieldAll(transformed)
-        }
-    }
 
     override suspend fun readPart(): PartData? {
         while (true) {
@@ -110,7 +81,7 @@ open class CIOMultipartDataBase(
                 return PartData.FileItem({ bis }, { part.release() }, CIOHeaders(headers))
             }
         } else {
-            val packet = part.body.readRemaining(formFieldLimit) // TODO fail if limit exceeded
+            val packet = part.body.readRemaining(formFieldLimit.toLong()) // TODO fail if limit exceeded
             try {
                 return PartData.FormItem(packet.readText(), { part.release() }, CIOHeaders(headers))
             } finally {

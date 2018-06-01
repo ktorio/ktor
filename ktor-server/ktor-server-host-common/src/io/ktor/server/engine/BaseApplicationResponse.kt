@@ -2,13 +2,14 @@ package io.ktor.server.engine
 
 import io.ktor.application.*
 import io.ktor.cio.*
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.pool.*
+import java.nio.*
 
 /**
  * Base class for implementing an [ApplicationResponse]

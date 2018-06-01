@@ -12,7 +12,7 @@ import java.util.*
 
 internal class CIOHttpResponse(
     request: HttpRequest,
-    override val requestTime: Date,
+    /*override*/ val requestTime: Date,
     override val content: ByteReadChannel,
     private val response: Response,
     private val pipelined: Boolean
@@ -27,7 +27,7 @@ internal class CIOHttpResponse(
         }
     }
 
-    override val responseTime: Date = Date()
+    /*override*/ val responseTime: Date = Date()
 
     override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 

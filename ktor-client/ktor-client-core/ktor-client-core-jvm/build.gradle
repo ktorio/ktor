@@ -1,0 +1,11 @@
+
+dependencies {
+    expectedBy project(":ktor-client:ktor-client-core")
+
+    compile project(":ktor-http:ktor-http-cio")
+    compile project(":ktor-http:ktor-http-jvm")
+    compile project(":ktor-utils:ktor-utils-jvm")
+
+    testCompile project(":ktor-client:ktor-client-mock")
+    testCompile project(":ktor-client:ktor-client-tests")
+}

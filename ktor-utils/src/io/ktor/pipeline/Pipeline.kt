@@ -1,7 +1,7 @@
 package io.ktor.pipeline
 
 import io.ktor.util.*
-import java.util.*
+import kotlin.jvm.Volatile
 
 /**
  * Represents an execution pipeline for asynchronous extensible computations
@@ -56,6 +56,7 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
     }
 
     private var interceptorsQuantity = 0
+
     @Volatile
     private var interceptors: ArrayList<PipelineInterceptor<TSubject, TContext>>? = null
 
@@ -126,7 +127,6 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
     }
 
     companion object {
-        @JvmStatic
         private fun <TSubject : Any, Call : Any> ArrayList<PhaseContent<TSubject, Call>>.findPhase(phase: PipelinePhase): PhaseContent<TSubject, Call>? {
             @Suppress("LoopToCallChain")
             for (index in 0..lastIndex) {

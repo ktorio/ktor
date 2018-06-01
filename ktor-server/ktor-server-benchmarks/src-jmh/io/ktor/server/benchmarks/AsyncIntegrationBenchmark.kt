@@ -3,7 +3,7 @@ package io.ktor.server.benchmarks
 import ch.qos.logback.classic.Level
 import io.ktor.application.*
 import io.ktor.client.engine.cio.*
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*

@@ -1,6 +1,6 @@
 package io.ktor.server.netty.http2
 
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.server.netty.*

@@ -1,12 +1,9 @@
 package io.ktor.tests.http
 
 import io.ktor.http.*
-import io.ktor.http.HttpHeaders
 import io.ktor.http.cio.*
-import kotlinx.io.core.*
 import java.net.*
 import java.nio.*
-import java.nio.ByteOrder
 import java.nio.channels.*
 import java.nio.channels.spi.*
 import java.util.concurrent.*
@@ -42,7 +39,7 @@ class HighLoadHttpGenerator(val host: String, port: Int,
     private val remote = InetSocketAddress(host, port)
     private val request = RequestResponseBuilder().apply(builder).build()
 
-    private val requestByteBuffer = ByteBuffer.allocateDirect(request.remaining)!!.apply {
+    private val requestByteBuffer = ByteBuffer.allocateDirect(request.remaining.toInt())!!.apply {
         request.copy().readFully(this)
         clear()
     }

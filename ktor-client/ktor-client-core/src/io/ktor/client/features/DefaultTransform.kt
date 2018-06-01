@@ -1,14 +1,12 @@
 package io.ktor.client.features
 
-import io.ktor.cio.*
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.jvm.javaio.*
-import java.io.*
+import kotlinx.io.core.*
 
 fun HttpClient.defaultTransformers() {
     requestPipeline.intercept(HttpRequestPipeline.Render) { body ->
@@ -27,16 +25,21 @@ fun HttpClient.defaultTransformers() {
 
     responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, response) ->
         if (response !is HttpResponse) return@intercept
+        val contentLength = response.headers[HttpHeaders.ContentLength]?.toLong() ?: Long.MAX_VALUE
         when (info.type) {
             Unit::class -> {
                 response.close()
                 proceedWith(HttpResponseContainer(info, Unit))
             }
-            ByteArray::class -> proceedWith(HttpResponseContainer(info, response.content.toByteArray()))
             ByteReadChannel::class -> proceedWith(HttpResponseContainer(info, response.content))
-            InputStream::class -> proceedWith(
-                HttpResponseContainer(info, response.content.toInputStream(response.executionContext))
-            )
+            ByteArray::class -> {
+                val readRemaining = response.content.readRemaining(contentLength)
+                proceedWith(HttpResponseContainer(info, readRemaining.readBytes()))
+            }
         }
     }
+
+    platformDefaultTransformers()
 }
+
+internal expect fun HttpClient.platformDefaultTransformers()

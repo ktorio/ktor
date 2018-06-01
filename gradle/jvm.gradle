@@ -1,0 +1,116 @@
+apply plugin: 'kotlin-platform-jvm'
+
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'java'
+
+task jarTest(type: Jar, dependsOn: testClasses) {
+    from sourceSets.test.output
+    classifier = 'test'
+}
+
+test {
+    ignoreFailures = true
+    maxHeapSize = "2g"
+    exclude("**/*StressTest*")
+}
+
+task stressTest(type: Test, dependsOn: testClasses) {
+    ignoreFailures = true
+    maxHeapSize = "2g"
+    forkEvery = 1
+    include("**/*StressTest*")
+    systemProperty "enable.stress.tests", "true"
+}
+
+task packageSources(type: Jar) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+artifacts.archives packageSources
+
+configurations {
+    testOutput.extendsFrom(testCompile)
+    boot
+}
+
+def skipDokka = project.path.contains("ktor-samples") || project == rootProject || project.name in dokkaExcludes
+if (!skipDokka) {
+    apply from: rootProject.file('gradle/dokka.gradle')
+}
+
+publishing {
+    if (publishLocal) {
+        repositories {
+            maven {
+                url globalM2
+            }
+        }
+    }
+
+    publications {
+        mavenProject(MavenPublication) {
+            from components.java
+            groupId project.group
+            artifactId project.name
+            version project.version
+
+            artifact packageSources {
+                classifier 'sources'
+            }
+
+            if (!skipDokka) {
+                artifact javadocJar {
+                    classifier 'javadoc'
+                }
+
+                artifact dokkaJar {
+                    classifier 'kdoc'
+                }
+            }
+        }
+    }
+}
+
+def skipUpload = project.path.contains("ktor-samples")
+
+if (!skipUpload) {
+    apply from: rootProject.file("gradle/bintray.gradle")
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+dependencies {
+    compile group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlin_version
+    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlin_version
+    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk7', version: kotlin_version
+    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: kotlin_version
+    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: coroutines_version
+    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-jdk8', version: coroutines_version
+
+    compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-jvm', version: kotlinx_io_version) {
+        exclude(module: 'kotlin-stdlib-jvm')
+    }
+
+    compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-jvm', version: kotlinx_io_version) {
+        exclude(module: 'kotlin-stdlib-jvm')
+    }
+
+    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+    compile group: 'com.typesafe', name: 'config', version: '1.3.1'
+    testCompile group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
+    testCompile group: 'junit', name: 'junit', version: junit_version
+}
+
+jar {
+    manifest {
+        attributes("Implementation-Title": project.name, "Implementation-Version": configuredVersion)
+    }
+}

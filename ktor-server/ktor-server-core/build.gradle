@@ -1,7 +1,7 @@
 description = ''
 dependencies {
-    compile project(":ktor-utils")
-    compile project(':ktor-http')
+    compile project(":ktor-utils:ktor-utils-jvm")
+    compile project(':ktor-http:ktor-http-jvm')
 
     testCompile project(":ktor-http:ktor-http-cio")
     testCompile project(":ktor-network")

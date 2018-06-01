@@ -1,10 +1,10 @@
 package io.ktor.client.engine.jetty
 
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.io.*
 import org.eclipse.jetty.http2.api.*
 import org.eclipse.jetty.http2.frames.*
 import org.eclipse.jetty.util.*
+import java.nio.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
 

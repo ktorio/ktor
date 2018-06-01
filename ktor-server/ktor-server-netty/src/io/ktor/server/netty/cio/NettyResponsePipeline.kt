@@ -8,8 +8,10 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http2.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.experimental.io.ByteReadChannel.*
 import java.io.*
 import java.util.*
 
@@ -187,7 +189,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
         val responseChannel = response.responseChannel
         val knownSize = when {
-            responseChannel === EmptyByteReadChannel -> 0
+            responseChannel === ByteReadChannel.Empty -> 0
             responseMessage is HttpResponse -> responseMessage.headers().getInt("Content-Length", -1)
             else -> -1
         }

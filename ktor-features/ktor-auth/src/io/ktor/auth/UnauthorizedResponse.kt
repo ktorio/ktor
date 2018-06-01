@@ -1,6 +1,6 @@
 package io.ktor.auth
 
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.http.*
 
 class UnauthorizedResponse(vararg val challenges: HttpAuthHeader) : OutgoingContent.NoContent() {

@@ -1,6 +1,6 @@
 package io.ktor.network.tls
 
-import kotlinx.coroutines.experimental.io.packet.ByteReadPacket
+import kotlinx.io.core.*
 
 class TLSRecord(
     val type: TLSRecordType = TLSRecordType.Handshake,

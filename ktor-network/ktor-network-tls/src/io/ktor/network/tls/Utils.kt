@@ -1,9 +1,7 @@
 package io.ktor.network.tls
 
 import io.ktor.http.cio.internals.*
-import kotlinx.coroutines.experimental.io.packet.*
 import kotlinx.io.core.*
-import kotlinx.io.core.ByteReadPacket
 import java.io.*
 import java.security.*
 
@@ -13,7 +11,7 @@ internal fun ByteReadPacket.duplicate(): Pair<ByteReadPacket, ByteReadPacket> {
 }
 
 internal class Digest : Closeable {
-    private val state = WritePacket()
+    private val state = BytePacketBuilder()
 
     fun update(packet: ByteReadPacket) = synchronized(this) {
         if (packet.isEmpty) return
@@ -51,7 +49,7 @@ internal operator fun Digest.plusAssign(record: TLSHandshake) {
     check(record.type != TLSHandshakeType.HelloRequest)
 
     update(buildPacket {
-        writeTLSHandshakeType(record.type, record.packet.remaining)
+        writeTLSHandshakeType(record.type, record.packet.remaining.toInt())
         if (record.packet.remaining > 0) writePacket(record.packet.copy())
     })
 }

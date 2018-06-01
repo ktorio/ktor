@@ -2,11 +2,10 @@ package io.ktor.network.tls
 
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.packet.*
+import kotlinx.io.core.*
 import java.security.*
 import javax.crypto.*
 import kotlin.coroutines.experimental.*
-
 
 internal suspend fun hashMessages(
     messages: List<ByteReadPacket>,

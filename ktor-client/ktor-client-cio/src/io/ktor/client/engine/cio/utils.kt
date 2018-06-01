@@ -1,7 +1,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.util.*

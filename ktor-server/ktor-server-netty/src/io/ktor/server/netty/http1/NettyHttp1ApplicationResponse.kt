@@ -1,6 +1,6 @@
 package io.ktor.server.netty.http1
 
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.server.netty.*
@@ -9,7 +9,6 @@ import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlinx.coroutines.experimental.io.*
-import java.util.concurrent.*
 import kotlin.coroutines.experimental.*
 
 internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,

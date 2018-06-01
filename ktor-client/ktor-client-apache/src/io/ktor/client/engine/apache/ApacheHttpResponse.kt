@@ -10,7 +10,7 @@ import java.util.*
 
 internal class ApacheHttpResponse internal constructor(
     override val call: HttpClientCall,
-    override val requestTime: Date,
+    /*override*/ val requestTime: Date,
     override val executionContext: CompletableDeferred<Unit>,
     private val engineResponse: org.apache.http.HttpResponse,
     override val content: ByteReadChannel
@@ -18,7 +18,7 @@ internal class ApacheHttpResponse internal constructor(
     override val status: HttpStatusCode
     override val version: HttpProtocolVersion
     override val headers: Headers
-    override val responseTime: Date = Date()
+    /*override*/ val responseTime: Date = Date()
 
     init {
         val code = engineResponse.statusLine.statusCode

@@ -14,8 +14,8 @@ class TestHttpClientResponse(
     override val headers: Headers,
     contentData: ByteArray
 ) : HttpResponse {
-    override val requestTime = Date()
-    override val responseTime = Date()
+    /*override*/ val requestTime = Date()
+    /*override*/ val responseTime = Date()
     override val version = HttpProtocolVersion.HTTP_1_1
     override val content: ByteReadChannel = ByteReadChannel(contentData)
 

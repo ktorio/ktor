@@ -1,5 +1,7 @@
 package io.ktor.http
 
+import io.ktor.compat.*
+
 data class URLProtocol(val name: String, val defaultPort: Int) {
     init {
         require(name.all { it.isLowerCase() }) { "All characters should be lower case" }

@@ -1,6 +1,7 @@
 package io.ktor.util
 
-import java.util.*
+import io.ktor.compat.*
+
 
 @Deprecated("ValuesMap was split into Headers and Parameters, please choose type appropriate for the context", level = DeprecationLevel.ERROR)
 interface ValuesMap
@@ -100,7 +101,7 @@ open class StringValuesSingleImpl(override val caseInsensitiveName: Boolean, val
 
 open class StringValuesImpl(override val caseInsensitiveName: Boolean = false, values: Map<String, List<String>> = emptyMap()) : StringValues {
     protected val values: Map<String, List<String>> by lazy {
-        if (caseInsensitiveName) CaseInsensitiveMap<List<String>>().apply { putAll(values) } else values.toMap()
+        if (caseInsensitiveName) caseInsensitiveMap<List<String>>(values.size).apply { putAll(values) } else values.toMap()
     }
     override operator fun get(name: String) = listForKey(name)?.firstOrNull()
     override fun getAll(name: String): List<String>? = listForKey(name)
@@ -108,9 +109,9 @@ open class StringValuesImpl(override val caseInsensitiveName: Boolean = false, v
     override operator fun contains(name: String) = listForKey(name) != null
     override fun contains(name: String, value: String) = listForKey(name)?.contains(value) ?: false
 
-    override fun names(): Set<String> = Collections.unmodifiableSet(values.keys)
-    override fun isEmpty() = values.isEmpty()
-    override fun entries(): Set<Map.Entry<String, List<String>>> = Collections.unmodifiableSet(values.entries)
+    override fun names(): Set<String> = values.keys.unmodifiable()
+    override fun isEmpty(): Boolean = values.isEmpty()
+    override fun entries(): Set<Map.Entry<String, List<String>>> = values.entries.unmodifiable()
     override fun forEach(body: (String, List<String>) -> Unit) = values.forEach(body)
 
     private fun listForKey(name: String): List<String>? = values[name]
@@ -127,7 +128,7 @@ open class StringValuesImpl(override val caseInsensitiveName: Boolean = false, v
 }
 
 open class StringValuesBuilder(val caseInsensitiveName: Boolean = false, size: Int = 8) {
-    protected val values: MutableMap<String, MutableList<String>> = if (caseInsensitiveName) CaseInsensitiveMap(size) else LinkedHashMap(size)
+    protected val values: MutableMap<String, MutableList<String>> = if (caseInsensitiveName) caseInsensitiveMap(size) else LinkedHashMap(size)
     protected var built = false
 
     fun getAll(name: String): List<String>? = values[name]
@@ -135,7 +136,7 @@ open class StringValuesBuilder(val caseInsensitiveName: Boolean = false, size: I
 
     fun names() = values.keys
     fun isEmpty() = values.isEmpty()
-    fun entries(): Set<Map.Entry<String, List<String>>> = Collections.unmodifiableSet(values.entries)
+    fun entries(): Set<Map.Entry<String, List<String>>> = values.entries.unmodifiable()
 
     operator fun set(name: String, value: String) {
         val list = ensureListForKey(name, 1)
@@ -220,7 +221,7 @@ fun valuesOf(map: Map<String, Iterable<String>>, caseInsensitiveKey: Boolean = f
         val entry = map.entries.single()
         return StringValuesSingleImpl(caseInsensitiveKey, entry.key, entry.value.toList())
     }
-    val values: MutableMap<String, List<String>> = if (caseInsensitiveKey) CaseInsensitiveMap(size) else LinkedHashMap(size)
+    val values: MutableMap<String, List<String>> = if (caseInsensitiveKey) caseInsensitiveMap(size) else LinkedHashMap(size)
     map.entries.forEach { values.put(it.key, it.value.toList()) }
     return StringValuesImpl(caseInsensitiveKey, values)
 }
@@ -236,7 +237,7 @@ fun StringValues.flattenForEach(block: (String, String) -> Unit) = forEach { nam
 
 fun StringValues.filter(keepEmpty: Boolean = false, predicate: (String, String) -> Boolean): StringValues {
     val entries = entries()
-    val values: MutableMap<String, MutableList<String>> = if (caseInsensitiveName) CaseInsensitiveMap(entries.size) else LinkedHashMap(entries.size)
+    val values: MutableMap<String, MutableList<String>> = if (caseInsensitiveName) caseInsensitiveMap(entries.size) else LinkedHashMap(entries.size)
     entries.forEach { entry ->
         val list = entry.value.filterTo(ArrayList(entry.value.size)) { predicate(entry.key, it) }
         if (keepEmpty || list.isNotEmpty())

@@ -18,7 +18,7 @@ interface HttpClientFeature<out TBuilder : Any, TFeature : Any> {
     /**
      * Builds a [TFeature] by calling the [block] with a [TBuilder] config instance as receiver.
      */
-    suspend fun prepare(block: TBuilder.() -> Unit = {}): TFeature
+    fun prepare(block: TBuilder.() -> Unit = {}): TFeature
 
     /**
      * Installs the [feature] class for a [HttpClient] defined at [scope].
