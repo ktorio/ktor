@@ -10,48 +10,34 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
-import kotlinx.coroutines.experimental.*
-import java.util.*
+import org.junit.Assert.*
 import kotlin.test.*
 
 abstract class PostTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
-    private val prefix = "Hello, post"
-
     override val server = embeddedServer(Jetty, serverPort) {
         routing {
             post("/") {
                 val content = call.receive<String>()
-                assert(content.startsWith(prefix))
-                call.respondText(content)
+                call.respond(content)
             }
         }
     }
 
     @Test
     fun postString() {
-        postHelper(prefix)
+        postHelper(makeString(777))
     }
 
     @Test
     fun hugePost() {
-        val builder = StringBuilder()
-        val stringSize = 1024 * 1024 * 32
-        val random = Random()
-
-        while (builder.length < stringSize) {
-            builder.append(random.nextInt(256).toChar())
-        }
-
-        postHelper("$prefix: $builder")
+        postHelper(makeString(32 * 1024 * 1024))
     }
 
-    private fun postHelper(text: String) = runBlocking {
-        val client = HttpClient(factory)
-
-        val response = client.post<String>(port = serverPort, body = text)
-
-        assertEquals(text, response)
-        client.close()
+    private fun postHelper(text: String) = clientTest(factory) {
+        test { client ->
+            val response = client.post<String>(port = serverPort, body = text)
+            assertEquals(text, response)
+        }
     }
 
 }

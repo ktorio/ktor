@@ -5,11 +5,13 @@ import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.pool.*
 import java.io.*
 import java.nio.ByteBuffer
+import kotlin.coroutines.experimental.*
 
 fun InputStream.toByteReadChannel(
-        pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
-        parent: Job = Job()
-): ByteReadChannel = writer(Unconfined, parent = parent, autoFlush = true) {
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
+    context: CoroutineContext = Unconfined,
+    parent: Job = Job()
+): ByteReadChannel = writer(context, parent = parent, autoFlush = true) {
     val buffer = pool.borrow()
     try {
         while (true) {

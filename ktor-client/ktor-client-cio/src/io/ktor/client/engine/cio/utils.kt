@@ -1,6 +1,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
+import io.ktor.client.request.*
 import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
@@ -8,7 +9,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 
-internal suspend fun CIOHttpRequest.write(output: ByteWriteChannel) {
+internal suspend fun DefaultHttpRequest.write(output: ByteWriteChannel) {
     val builder = RequestResponseBuilder()
 
     val contentLength = headers[HttpHeaders.ContentLength] ?: content.contentLength?.toString()
@@ -52,6 +53,7 @@ internal suspend fun CIOHttpRequest.write(output: ByteWriteChannel) {
         builder.release()
     }
 
+    val content = content
     if (content is OutgoingContent.NoContent)
         return
 

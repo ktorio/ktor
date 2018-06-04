@@ -8,6 +8,7 @@ import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.core.*
 import java.io.*
 import java.io.EOFException
+import java.nio.*
 import kotlin.coroutines.experimental.*
 
 sealed class MultipartEvent {

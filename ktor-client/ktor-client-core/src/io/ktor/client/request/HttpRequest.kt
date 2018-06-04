@@ -44,6 +44,21 @@ interface HttpRequest : HttpMessage {
     val content: OutgoingContent
 }
 
+open class DefaultHttpRequest(override val call: HttpClientCall, data: HttpRequestData) : HttpRequest {
+
+    override val method: HttpMethod = data.method
+
+    override val url: Url = data.url
+
+    override val executionContext: CompletableDeferred<Unit> = data.executionContext
+
+    override val content: OutgoingContent = data.body as OutgoingContent
+
+    override val headers: Headers = data.headers
+
+    override val attributes: Attributes = Attributes()
+}
+
 /**
  * Class for building [HttpRequestData].
  */

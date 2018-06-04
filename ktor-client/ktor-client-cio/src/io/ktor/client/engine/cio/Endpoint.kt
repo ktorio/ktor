@@ -62,7 +62,7 @@ internal class Endpoint(
         }
     }
 
-    suspend fun execute(request: CIOHttpRequest): CIOHttpResponse {
+    suspend fun execute(request: DefaultHttpRequest): CIOHttpResponse {
         val result = CompletableDeferred<CIOHttpResponse>()
         val task = RequestTask(request, result)
         tasks.offer(task)

@@ -20,13 +20,13 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientEngin
     private val closed = AtomicBoolean()
 
     override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
-        val request = CIOHttpRequest(call, data)
+        val request = DefaultHttpRequest(call, data)
         val response = executeRequest(request)
 
         return HttpEngineCall(request, response)
     }
 
-    private suspend fun executeRequest(request: CIOHttpRequest): CIOHttpResponse {
+    private suspend fun executeRequest(request: DefaultHttpRequest): CIOHttpResponse {
         while (true) {
             if (closed.get()) throw ClientClosedException()
 

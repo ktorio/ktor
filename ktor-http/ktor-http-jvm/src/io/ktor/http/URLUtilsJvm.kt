@@ -16,6 +16,12 @@ fun URLBuilder.takeFrom(uri: URI) {
         }
     }
 
+    if (uri.userInfo != null && uri.userInfo.isNotEmpty()) {
+        val parts = uri.userInfo.split(":")
+        user = parts.first()
+        password = parts.getOrNull(1)
+    }
+
     uri.scheme?.let { protocol = URLProtocol.createOrDefault(it) }
     uri.host?.let { host = it }
     uri.rawPath?.let {
@@ -32,4 +38,4 @@ fun URLBuilder.takeFrom(uri: URI) {
     uri.fragment?.let { fragment = it }
 }
 
-fun URLBuilder.takeFrom(url: java.net.URL) = takeFrom(url.toURI())
+fun URLBuilder.takeFrom(url: URL) = takeFrom(url.toURI())

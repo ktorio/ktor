@@ -46,11 +46,16 @@ actual class Attributes {
     actual fun <T : Any> takeOrNull(key: AttributeKey<T>): T? = getOrNull(key).also { map.remove(key) }
 
     /**
-     * Gets a value of the attribute for the specified [key], or calls supplied [block] to compute its value
+     * Gets a value of the attribute for the specified [key], or calls supplied [block] to compute its value.
+     * Note: [block] could be eventually evaluated twice for the same key.
+     * TODO: To be discussed. Workaround for android < API 24.
      */
     @Suppress("UNCHECKED_CAST")
-    actual fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T =
-        map.computeIfAbsent(key) { block() } as T
+    actual fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T {
+        map[key]?.let { return it as T }
+        val result = block()
+        return (map.putIfAbsent(key, result) ?: result) as T
+    }
 
     /**
      * Returns [List] of all [AttributeKey] instances in this map
