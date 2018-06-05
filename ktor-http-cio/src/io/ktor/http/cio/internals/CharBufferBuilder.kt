@@ -18,7 +18,7 @@ internal class CharBufferBuilder : CharSequence, Appendable {
         return getImpl(index)
     }
 
-    private fun getImpl(index: Int) = bufferForIndex(index).get(index % CHAR_BUFFER_SIZE)
+    private fun getImpl(index: Int) = bufferForIndex(index).get(index % CHAR_BUFFER_LENGTH)
 
     override fun subSequence(startIndex: Int, endIndex: Int): CharSequence {
         require(startIndex <= endIndex) { "startIndex ($startIndex) should be less or equal to endIndex ($endIndex)" }
@@ -81,24 +81,24 @@ internal class CharBufferBuilder : CharSequence, Appendable {
     private fun copy(startIndex: Int, endIndex: Int): CharSequence {
         if (startIndex == endIndex) return ""
 
-        val sb = StringBuilder(endIndex - startIndex)
+        val builder = StringBuilder(endIndex - startIndex)
 
         var buffer: CharBuffer
-        var base = startIndex - (startIndex % CHAR_BUFFER_SIZE)
+        var base = startIndex - (startIndex % CHAR_BUFFER_LENGTH)
 
         while (base < endIndex) {
             buffer = bufferForIndex(base)
             val innerStartIndex = maxOf(0, startIndex - base)
-            val innerEndIndex = minOf(endIndex - base, CHAR_BUFFER_POOL_SIZE)
+            val innerEndIndex = minOf(endIndex - base, CHAR_BUFFER_LENGTH)
 
             for (innerIndex in innerStartIndex until innerEndIndex) {
-                sb.append(buffer.get(innerIndex))
+                builder.append(buffer.get(innerIndex))
             }
 
-            base += CHAR_BUFFER_SIZE
+            base += CHAR_BUFFER_LENGTH
         }
 
-        return sb
+        return builder
     }
 
     @Suppress("ConvertTwoComparisonsToRangeCheck")
@@ -153,11 +153,11 @@ internal class CharBufferBuilder : CharSequence, Appendable {
         val list = buffers
 
         if (list == null) {
-            if (index >= CHAR_BUFFER_SIZE) throw IndexOutOfBoundsException("$index is not in range [0; ${CHAR_BUFFER_SIZE})")
+            if (index >= CHAR_BUFFER_LENGTH) throw IndexOutOfBoundsException("$index is not in range [0; $CHAR_BUFFER_LENGTH)")
             return current ?: throw IndexOutOfBoundsException("$index is not in range [0; 0)")
         }
 
-        return list[index / CHAR_BUFFER_SIZE]
+        return list[index / CHAR_BUFFER_LENGTH]
     }
 
     private fun nonFullBuffer(): CharBuffer {
