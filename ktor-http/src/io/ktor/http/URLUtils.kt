@@ -8,17 +8,15 @@ fun URLBuilder.takeFrom(url: String) {
 }
 
 fun URLBuilder.takeFrom(uri: URI) {
-    if (uri.port > 0) {
-        port = uri.port
-    } else {
-        when (uri.scheme) {
-            "http" -> port = 80
-            "https" -> port = 443
-        }
-    }
-
     uri.scheme?.let { protocol = URLProtocol.createOrDefault(it) }
     uri.host?.let { host = it }
+
+    port = if (uri.port > 0) {
+        uri.port
+    } else {
+        protocol.defaultPort
+    }
+
     uri.path?.let {
         encodedPath = when (it) {
             "" -> "/"
