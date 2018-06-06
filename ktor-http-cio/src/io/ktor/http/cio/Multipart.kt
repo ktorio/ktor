@@ -1,5 +1,6 @@
 package io.ktor.http.cio
 
+import io.ktor.http.ContentType
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
@@ -131,12 +132,10 @@ fun parseMultipart(
         contentType: CharSequence,
         contentLength: Long?
 ): ReceiveChannel<MultipartEvent> {
-    if (!contentType.startsWith("multipart/")) throw IOException("Failed to parse multipart: Content-Type should be multipart/* but it is $contentType")
-    val boundaryParameter = contentType.indexOf("boundary=") // TODO parse HTTP header properly instead
-    if (boundaryParameter == -1) throw IOException("Failed to parse multipart: Content-Type's boundary parameter is missing")
-    val boundaryStart = boundaryParameter + 9
-    val boundaryEnd = contentType.indexOfAny(headerParameterEndChars, boundaryStart)
-    val boundaryLength = if (boundaryEnd == -1) contentType.length - boundaryStart else boundaryEnd - boundaryStart
+    val parsedContentType = ContentType.parse(contentType.toString())
+    if (!parsedContentType.match(ContentType.MultiPart.Any)) throw IOException("Failed to parse multipart: Content-Type should be multipart/* but it is $parsedContentType")
+    val boundaryParameter = parsedContentType.parameter("boundary") ?: throw IOException("Failed to parse multipart: Content-Type's boundary parameter is missing")
+    val boundaryLength = boundaryParameter.length
 
     // RFC 2046, sec 5.1.1
     if (boundaryLength > 70) throw IOException("Failed to parse multipart: boundary shouldn't be longer than 70 characters")
@@ -148,10 +147,10 @@ fun parseMultipart(
     boundaryBytes.put(pch)
     boundaryBytes.put(pch)
 
-    for (i in 0 until boundaryLength) {
-        val ch = contentType[boundaryStart + i].toInt() and 0xffff
-        if (ch > 0x7f) throw IOException("Failed to parse multipart: wrong boundary byte 0x${ch.toString(16)} - should be 7bit character")
-        boundaryBytes.put(ch.toByte())
+    for (ch in boundaryParameter) {
+        val b =  ch.toByte()
+        if (b > 0x7f) throw IOException("Failed to parse multipart: wrong boundary byte 0x${b.toString(16)} - should be 7bit character")
+        boundaryBytes.put(b)
     }
 
     boundaryBytes.clear()
