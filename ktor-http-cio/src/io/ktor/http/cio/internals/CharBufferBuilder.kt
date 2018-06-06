@@ -140,7 +140,7 @@ internal class CharBufferBuilder : CharSequence, Appendable {
     private tailrec fun append(csq: CharSequence, start: Int, end: Int, buffer: CharBuffer) {
         val limitedEnd = minOf(end, start + buffer.remaining())
 
-        for (i in start..limitedEnd) {
+        for (i in start until limitedEnd) {
             buffer.put(csq[i])
         }
 
