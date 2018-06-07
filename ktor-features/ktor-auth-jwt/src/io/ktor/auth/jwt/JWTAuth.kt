@@ -145,6 +145,7 @@ private fun Jwk.makeAlgorithm(): Algorithm = when (algorithm) {
     "ES256" -> Algorithm.ECDSA256(publicKey as ECPublicKey, null)
     "ES384" -> Algorithm.ECDSA384(publicKey as ECPublicKey, null)
     "ES512" -> Algorithm.ECDSA512(publicKey as ECPublicKey, null)
+    null -> Algorithm.RSA256(publicKey as RSAPublicKey, null)
     else -> throw IllegalArgumentException("Unsupported algorithm $algorithm")
 }
 
