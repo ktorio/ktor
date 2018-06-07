@@ -138,7 +138,7 @@ private fun ApplicationRequest.parseAuthorizationHeaderOrNull() = try {
 private fun HttpAuthHeader.Companion.bearerAuthChallenge(realm: String, schemes: JWTAuthSchemes): HttpAuthHeader =
         HttpAuthHeader.Parameterized(schemes.defaultScheme, mapOf(HttpAuthHeader.Parameters.Realm to realm))
 
-private fun Jwk.makeAlgorithm(): Algorithm = when (algorithm) {
+internal fun Jwk.makeAlgorithm(): Algorithm = when (algorithm) {
     "RS256" -> Algorithm.RSA256(publicKey as RSAPublicKey, null)
     "RS384" -> Algorithm.RSA384(publicKey as RSAPublicKey, null)
     "RS512" -> Algorithm.RSA512(publicKey as RSAPublicKey, null)
