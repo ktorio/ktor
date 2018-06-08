@@ -16,10 +16,12 @@ class PartialContentTest {
     val basedir = listOf(File("test"), File("ktor-server/ktor-server-tests/test")).map { File(it, "io/ktor/tests/server") }.first(File::exists)
     val localPath = "features/StaticContentTest.kt"
 
-    fun withRangeApplication(test: TestApplicationEngine.(File) -> Unit) = withTestApplication {
+    fun withRangeApplication(maxRangeCount: Int? = null, test: TestApplicationEngine.(File) -> Unit) = withTestApplication {
         application.install(ConditionalHeaders)
         application.install(CachingHeaders)
-        application.install(PartialContent)
+        application.install(PartialContent) {
+            maxRangeCount?.let { this.maxRangeCount = it }
+        }
         application.install(AutoHeadResponse)
         application.routing {
             route(localPath) {
@@ -33,6 +35,39 @@ class PartialContentTest {
         }
 
         test(File(basedir, localPath))
+    }
+
+    @Test
+    fun testCustomMaxRangeCountAccepted() = withRangeApplication(maxRangeCount = 10) { file ->
+    }
+
+    @Test(expected = IllegalArgumentException::class)
+    fun testCustomMaxRangeCountNotAccepted() = withRangeApplication(maxRangeCount = 0) { file ->
+    }
+
+    @Test
+    fun testCustomMaxRangeCountAcceptedRange() = withRangeApplication(maxRangeCount = 2) { file ->
+        handleRequest(HttpMethod.Get, localPath, {
+            addHeader(HttpHeaders.Range, "bytes=0-0,2-2")
+        }).let { result ->
+            assertTrue(result.requestHandled)
+            assertEquals(HttpStatusCode.PartialContent, result.response.status())
+            assertEquals(null, result.response.headers[HttpHeaders.ContentRange])
+            assertNotNull(result.response.headers[HttpHeaders.LastModified])
+        }
+    }
+
+    @Test
+    fun testCustomMaxRangeCountAcceptedRangeLimited() = withRangeApplication(maxRangeCount = 2) { file ->
+        handleRequest(HttpMethod.Get, localPath, {
+            addHeader(HttpHeaders.Range, "bytes=0-0,2-2,4-4")
+        }).let { result ->
+            assertTrue(result.requestHandled)
+            assertEquals(HttpStatusCode.PartialContent, result.response.status())
+            assertEquals("bytes 0-4/${file.length()}", result.response.headers[HttpHeaders.ContentRange])
+            assertEquals("packa", result.response.content)
+            assertNotNull(result.response.headers[HttpHeaders.LastModified])
+        }
     }
 
     @Test
