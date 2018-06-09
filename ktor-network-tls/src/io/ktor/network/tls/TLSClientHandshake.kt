@@ -93,6 +93,7 @@ internal class TLSClientHandshake(
                 channel.send(TLSRecord(record.type, packet = packet))
             }
         } catch (cause: Throwable) {
+            channel.close(cause)
             // Remote server closed connection
         } finally {
             output.close()
@@ -104,23 +105,27 @@ internal class TLSClientHandshake(
         var useCipher = false
 
         channel.consumeEach { rawRecord ->
-            val record = if (useCipher) {
-                val cipher = encryptCipher(
-                    serverHello.cipherSuite,
-                    key, rawRecord.type, rawRecord.packet.remaining, packetCounter, packetCounter
-                )
+            try {
+                val record = if (useCipher) {
+                    val cipher = encryptCipher(
+                        serverHello.cipherSuite,
+                        key, rawRecord.type, rawRecord.packet.remaining, packetCounter, packetCounter
+                    )
 
-                val packet = rawRecord.packet.encrypted(cipher, packetCounter)
-                packetCounter++
+                    val packet = rawRecord.packet.encrypted(cipher, packetCounter)
+                    packetCounter++
 
-                TLSRecord(rawRecord.type, packet = packet)
-            } else rawRecord
+                    TLSRecord(rawRecord.type, packet = packet)
+                } else rawRecord
 
-            if (rawRecord.type == TLSRecordType.ChangeCipherSpec) {
-                useCipher = true
+                if (rawRecord.type == TLSRecordType.ChangeCipherSpec) {
+                    useCipher = true
+                }
+
+                rawOutput.writeRecord(record)
+            } catch (cause: Throwable) {
+                channel.close(cause)
             }
-
-            rawOutput.writeRecord(record)
         }
 
         rawOutput.close()
@@ -199,9 +204,9 @@ internal class TLSClientHandshake(
 
     private suspend fun handleCertificatesAndKeys(signatureAlgorithm: HashAndSign) {
         val exchangeType = serverHello.cipherSuite.exchangeType
+        val signatureType = serverHello.cipherSuite.signatureAlgorithm
         var serverCertificate: Certificate? = null
         var certificateRequested = false
-        var preferableSignatureAlgorithm = signatureAlgorithm
         var encryptionInfo: EncryptionInfo? = null
 
         while (true) {
@@ -213,14 +218,7 @@ internal class TLSClientHandshake(
                     val certs = packet.readTLSCertificate()
                     val x509s = certs.filterIsInstance<X509Certificate>()
 
-                    val authType = when (exchangeType) {
-                        RSA -> "RSA"
-                        ECDHE -> "EC"
-                    }
-
-                    val manager: X509TrustManager = trustManager ?: findTrustManager()
-                    manager.checkServerTrusted(x509s.toTypedArray(), authType)
-
+                    val manager = trustManager ?: findTrustManager()
                     serverCertificate = x509s.firstOrNull { certificate ->
                         SupportedSignatureAlgorithms.any {
                             it.name.equals(
@@ -239,7 +237,16 @@ internal class TLSClientHandshake(
                         ECDHE -> {
                             val curve = packet.readCurveParams()
                             val point = packet.readECPoint(curve.fieldSize)
-                            preferableSignatureAlgorithm = packet.readHashAndSign()
+                            val hashAndSign = packet.readHashAndSign()
+
+                            if (
+                                SupportedSignatureAlgorithms.indexOf(hashAndSign) >
+                                SupportedSignatureAlgorithms.indexOf(signatureAlgorithm)
+                            ) throw TLSException(
+                                "Selected algorithms doesn't match with server previously negotiated:" +
+                                        " expected $signatureAlgorithm," +
+                                        " actual $hashAndSign"
+                            )
 
                             val params = buildPacket {
                                 // TODO: support other curve types
@@ -248,7 +255,7 @@ internal class TLSClientHandshake(
                                 writeECPoint(point, curve.fieldSize)
                             }
 
-                            val signature = Signature.getInstance(preferableSignatureAlgorithm.name)!!.apply {
+                            val signature = Signature.getInstance(hashAndSign.name)!!.apply {
                                 initVerify(serverCertificate)
                                 update(buildPacket {
                                     writeFully(clientSeed)
@@ -271,7 +278,7 @@ internal class TLSClientHandshake(
                 }
                 TLSHandshakeType.ServerDone -> {
                     handleServerDone(
-                        preferableSignatureAlgorithm,
+                        exchangeType,
                         serverCertificate!!,
                         certificateRequested,
                         encryptionInfo
@@ -284,7 +291,7 @@ internal class TLSClientHandshake(
     }
 
     private suspend fun handleServerDone(
-        signatureAlgorithm: HashAndSign,
+        exchangeType: SecretExchangeType,
         serverCertificate: Certificate,
         certificateRequested: Boolean,
         encryptionInfo: EncryptionInfo?
@@ -293,7 +300,7 @@ internal class TLSClientHandshake(
 
         val preSecret = generatePreSecret(encryptionInfo)
         sendClientKeyExchange(
-            signatureAlgorithm,
+            exchangeType,
             serverCertificate,
             preSecret,
             certificateRequested,
@@ -326,23 +333,22 @@ internal class TLSClientHandshake(
         }
 
     private suspend fun sendClientKeyExchange(
-        signatureAlgorithm: HashAndSign,
+        exchangeType: SecretExchangeType,
         serverCertificate: Certificate,
         preSecret: ByteArray,
         certificateRequested: Boolean,
         encryptionInfo: EncryptionInfo?
     ) {
-        val packet = when (signatureAlgorithm.sign) {
-            SignatureAlgorithm.RSA -> buildPacket {
+        val packet = when (exchangeType) {
+            RSA -> buildPacket {
                 writeEncryptedPreMasterSecret(preSecret, serverCertificate.publicKey, random)
             }
-            SignatureAlgorithm.ECDSA -> buildPacket {
+            ECDHE -> buildPacket {
                 if (certificateRequested) return@buildPacket // Key exchange has already completed implicit in the certificate message.
-                if (encryptionInfo == null) throw TLSException("ECDHE_ECDSA: Encryption info should be provided")
+                if (encryptionInfo == null) throw TLSException("ECDHE: Encryption info should be provided")
 
                 writePublicKeyUncompressed(encryptionInfo.clientPublic)
             }
-            SignatureAlgorithm.ANON -> throw TLSException("Anon signature couldn't be used to exchange keys")
         }
 
         sendHandshakeRecord(TLSHandshakeType.ClientKeyExchange) { writePacket(packet) }

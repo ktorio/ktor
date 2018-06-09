@@ -1,6 +1,6 @@
 package io.ktor.network.tls.platform
 
-internal class PlatformVersion(val major: String, val minor: Int = -1) {
+internal class PlatformVersion(val major: String, val minor: Int) {
 
     companion object {
         operator fun invoke(rawVersion: String): PlatformVersion {
@@ -10,9 +10,11 @@ internal class PlatformVersion(val major: String, val minor: Int = -1) {
                 return PlatformVersion(major, minor.toInt())
             }
 
-            return PlatformVersion(major = rawVersion)
+            return PlatformVersion(major = rawVersion, minor = -1)
         }
     }
 }
 
-internal val platformVersion: PlatformVersion = PlatformVersion(System.getProperty("java.version"))
+internal val platformVersion: PlatformVersion by lazy {
+    PlatformVersion(System.getProperty("java.version"))
+}

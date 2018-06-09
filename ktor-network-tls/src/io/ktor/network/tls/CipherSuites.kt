@@ -5,8 +5,8 @@ import io.ktor.network.tls.platform.*
 
 
 enum class SecretExchangeType {
-    RSA,
-    ECDHE
+    ECDHE,
+    RSA
 }
 
 data class CipherSuite(
@@ -48,15 +48,31 @@ object CIOCipherSuites {
     )
 
     val ECDHE_ECDSA_AES128_SHA256 = CipherSuite(
-        0xc02b.toShort(), "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA384", "ECDHE-ECDSA-AES128-GCM-SHA384",
+        0xc02b.toShort(), "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", "ECDHE-ECDSA-AES128-GCM-SHA256",
         SecretExchangeType.ECDHE, "AES/GCM/NoPadding",
         128, 4, 12, 16, "HmacSHA256", 0,
         HashAlgorithm.SHA256, SignatureAlgorithm.ECDSA
     )
 
+    val ECDHE_RSA_AES256_SHA384 = CipherSuite(
+        0xc030.toShort(), "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", "ECDHE-RSA-AES256-GCM-SHA384",
+        SecretExchangeType.ECDHE, "AES/GCM/NoPadding",
+        256, 4, 12, 16, "HmacSHA384", 0,
+        HashAlgorithm.SHA384, SignatureAlgorithm.RSA
+    )
+
+    val ECDHE_RSA_AES128_SHA256 = CipherSuite(
+        0xc02f.toShort(), "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", "ECDHE-RSA-AES128-GCM-SHA256",
+        SecretExchangeType.ECDHE, "AES/GCM/NoPadding",
+        128, 4, 12, 16, "HmacSHA256", 0,
+        HashAlgorithm.SHA256, SignatureAlgorithm.RSA
+    )
+
     val SupportedSuites: List<CipherSuite> = listOf(
         ECDHE_ECDSA_AES256_SHA384,
+        ECDHE_RSA_AES256_SHA384,
         ECDHE_ECDSA_AES128_SHA256,
+        ECDHE_RSA_AES128_SHA256,
         TLS_RSA_WITH_AES_128_GCM_SHA256
     ).filter { it.isSupported() }
 }

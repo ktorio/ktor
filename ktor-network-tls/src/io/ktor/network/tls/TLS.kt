@@ -9,7 +9,7 @@ import kotlin.coroutines.experimental.*
 suspend fun Socket.tls(
     trustManager: X509TrustManager? = null,
     randomAlgorithm: String = "NativePRNGNonBlocking",
-    cipherSuites: List<CipherSuite>,
+    cipherSuites: List<CipherSuite> = CIOCipherSuites.SupportedSuites,
     serverName: String? = null,
     coroutineContext: CoroutineContext = ioCoroutineDispatcher
 ): Socket {

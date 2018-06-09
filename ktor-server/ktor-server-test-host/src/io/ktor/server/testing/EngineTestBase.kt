@@ -220,10 +220,6 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
             HttpClient(CIO.config {
                 https.also {
                     it.trustManager = trustManager
-                    it.cipherSuites = listOf(
-                        CIOCipherSuites.ECDHE_ECDSA_AES128_SHA256,
-                        CIOCipherSuites.TLS_RSA_WITH_AES_128_GCM_SHA256
-                    )
                 }
             }).use { client ->
                 client.call(url, builder).response.use { response ->
