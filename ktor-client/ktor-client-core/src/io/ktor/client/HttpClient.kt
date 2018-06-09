@@ -33,7 +33,7 @@ class HttpClient private constructor(
 
     constructor(
         block: suspend HttpClientConfig.() -> Unit = {}
-    ) : this(findAvailableFactory(), block)
+    ) : this(findAvailableFactory(), block = block)
 
     /**
      * Pipeline used for processing all the requests sent by this client.
