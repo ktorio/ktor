@@ -28,6 +28,7 @@ interface SelectorManager {
     suspend fun select(selectable: Selectable, interest: SelectInterest)
 
     companion object {
+        @Deprecated("Create selector manager explicitly")
         val DefaultSelectorManager = ActorSelectorManager(ioCoroutineDispatcher)
     }
 }
