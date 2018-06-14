@@ -25,20 +25,22 @@ data class HttpServerSettings(
         val connectionIdleTimeoutSeconds: Long = 45
 )
 
-fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, callDispatcher: CoroutineContext = ioCoroutineDispatcher, handler: HttpRequestHandler): HttpServer {
+fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, callDispatcher: CoroutineContext? = null, handler: HttpRequestHandler): HttpServer {
     val socket = CompletableDeferred<ServerSocket>()
+    val cpuCount = Runtime.getRuntime().availableProcessors()
+    val dispatcher = IOCoroutineDispatcher((cpuCount * 2 / 3).coerceAtLeast(2))
 
     val serverLatch = CompletableDeferred<Unit>()
-    val serverJob = launch(ioCoroutineDispatcher + CoroutineName("server-root-${settings.port}") + (parentJob ?: EmptyCoroutineContext)) {
+    val serverJob = launch(dispatcher + CoroutineName("server-root-${settings.port}") + (parentJob ?: EmptyCoroutineContext)) {
         serverLatch.await()
     }
 
-    val selector = ActorSelectorManager(ioCoroutineDispatcher)
+    val selector = ActorSelectorManager(dispatcher)
     val timeout = WeakTimeoutQueue(TimeUnit.SECONDS.toMillis(settings.connectionIdleTimeoutSeconds),
             Clock.systemUTC(),
             { TimeoutCancellationException("Connection IDLE") })
 
-    val acceptJob = launch(ioCoroutineDispatcher + serverJob + CoroutineName("accept-${settings.port}")) {
+    val acceptJob = launch(dispatcher + serverJob + CoroutineName("accept-${settings.port}")) {
         aSocket(selector).tcp().bind(InetSocketAddress(settings.host, settings.port)).use { server ->
             socket.complete(server)
 
@@ -52,8 +54,8 @@ fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, callDispatc
                             input = client.openReadChannel(),
                             output = client.openWriteChannel(),
                             parentJob = parentAndHandler,
-                            ioContext = ioCoroutineDispatcher,
-                            callContext = callDispatcher,
+                            ioContext = dispatcher,
+                            callContext = callDispatcher ?: dispatcher,
                             timeout = timeout,
                             handler = handler
                     )
@@ -82,6 +84,7 @@ fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, callDispatc
     }
     serverJob.invokeOnCompletion {
         selector.close()
+        dispatcher.close()
     }
 
     return HttpServer(serverJob, acceptJob, socket)
