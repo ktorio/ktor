@@ -5,15 +5,18 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.network.selector.*
 import kotlinx.coroutines.experimental.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
+
+private val selectorManager by lazy { ActorSelectorManager(HTTP_CLIENT_DEFAULT_DISPATCHER) }
 
 internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientEngine {
     override val dispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
 
-    private val connectionFactory = ConnectionFactory(config.maxConnectionsCount)
+    private val connectionFactory = ConnectionFactory(selectorManager, config.maxConnectionsCount)
     private val closed = AtomicBoolean()
 
     override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
