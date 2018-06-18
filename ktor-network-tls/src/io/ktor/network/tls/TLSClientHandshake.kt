@@ -204,7 +204,6 @@ internal class TLSClientHandshake(
 
     private suspend fun handleCertificatesAndKeys(signatureAlgorithm: HashAndSign) {
         val exchangeType = serverHello.cipherSuite.exchangeType
-        val signatureType = serverHello.cipherSuite.signatureAlgorithm
         var serverCertificate: Certificate? = null
         var certificateRequested = false
         var encryptionInfo: EncryptionInfo? = null
@@ -217,8 +216,18 @@ internal class TLSClientHandshake(
                 TLSHandshakeType.Certificate -> {
                     val certs = packet.readTLSCertificate()
                     val x509s = certs.filterIsInstance<X509Certificate>()
+                    if (x509s.isEmpty()) throw TLSException("Server sent no certificate")
+
+                    val rawSignature = x509s.first().sigAlgName.toUpperCase()
+                    val type = when {
+                        rawSignature.endsWith(SignatureAlgorithm.ECDSA.name) -> SignatureAlgorithm.ECDSA.name
+                        rawSignature.endsWith(SignatureAlgorithm.RSA.name) -> SignatureAlgorithm.RSA.name
+                        else -> throw TLSException("Unsupported certificate signature type")
+                    }
 
                     val manager = trustManager ?: findTrustManager()
+                    manager.checkServerTrusted(x509s.toTypedArray(), "${exchangeType.name}_$type")
+
                     serverCertificate = x509s.firstOrNull { certificate ->
                         SupportedSignatureAlgorithms.any {
                             it.name.equals(
