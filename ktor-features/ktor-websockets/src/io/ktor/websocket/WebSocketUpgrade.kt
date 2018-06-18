@@ -23,13 +23,14 @@ class WebSocketUpgrade(
     val handle: suspend WebSocketSession.() -> Unit
 ) : OutgoingContent.ProtocolUpgrade() {
     private val key = call.request.header(HttpHeaders.SecWebSocketKey)
-            ?: throw IllegalArgumentException("It should be ${HttpHeaders.SecWebSocketKey} header")
 
     override val headers: Headers
         get() = Headers.build {
             append(HttpHeaders.Upgrade, "websocket")
             append(HttpHeaders.Connection, "Upgrade")
-            append(HttpHeaders.SecWebSocketAccept, websocketServerAccept(key))
+            if (key != null) {
+                append(HttpHeaders.SecWebSocketAccept, websocketServerAccept(key))
+            }
             if (protocol != null) {
                 append(HttpHeaders.SecWebSocketProtocol, protocol)
             }
