@@ -1,4 +1,4 @@
-package io.ktor.client.tests.engine.mock
+package io.ktor.client.engine.mock
 
 import io.ktor.client.call.*
 import io.ktor.client.response.*
@@ -7,7 +7,7 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.util.*
 
-internal class MockHttpResponse(
+class MockHttpResponse(
     override val call: HttpClientCall,
     override val status: HttpStatusCode,
     override val content: ByteReadChannel = EmptyByteReadChannel,

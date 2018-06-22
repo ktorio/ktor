@@ -15,7 +15,7 @@ import java.util.*
  *
  * This is a generic implementation that uses a specific engine [HttpClientEngine].
  */
-class HttpClient private constructor(
+class HttpClient(
     private val engine: HttpClientEngine,
     private val useDefaultTransformers: Boolean = true,
     block: suspend HttpClientConfig.() -> Unit = {}
