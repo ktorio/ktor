@@ -1,6 +1,7 @@
 package io.ktor.network.selector
 
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.NonCancellable.invokeOnCompletion
 import java.nio.channels.*
 import java.nio.channels.spi.*
 
@@ -17,7 +18,7 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
         suspendCancellableCoroutine<Unit> { c ->
 //            val c = base.tracked()  // useful for debugging
 
-            c.disposeOnCancel(selectable)
+            c.disposeOnCancellation(selectable)
             selectable.suspensions.addSuspension(interest, c)
 
             if (!c.isCancelled) {
@@ -139,10 +140,6 @@ abstract class SelectorManagerSupport internal constructor() : SelectorManager {
             (k.attachment() as? Selectable)?.let { cancelAllSuspensions(it, cause) }
             k.cancel()
         }
-    }
-
-    internal fun CancellableContinuation<*>.disposeOnCancel(disposableHandle: DisposableHandle) {
-        invokeOnCompletion { if (isCancelled) disposableHandle.dispose() }
     }
 
     private var SelectionKey.subject: Selectable?

@@ -53,6 +53,7 @@ class WebSocketTest : TestWithKtor() {
                     val frame = incoming.receive()
                     assert(frame is Frame.Text)
                     assertEquals("text: $it", (frame as Frame.Text).readText())
+
                 }
 
                 outgoing.send(Frame.Close())
@@ -68,6 +69,8 @@ class WebSocketTest : TestWithKtor() {
 
         test { client ->
             client.ws(port = serverPort, path = "ws") {
+                assertTrue(masking)
+
                 repeat(10) {
                     ping(it.toString())
                 }

@@ -3,7 +3,6 @@ package io.ktor.client.response
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.pipeline.*
-import kotlin.reflect.*
 
 /**
  * [HttpClient] Pipeline used for executing [HttpResponse].
@@ -62,4 +61,4 @@ class HttpReceivePipeline : Pipeline<HttpResponse, HttpClientCall>(Before, State
 /**
  * Class representing a typed [response] with an attached [expectedType].
  */
-data class HttpResponseContainer(val expectedType: KClass<*>, val response: Any)
+data class HttpResponseContainer(val expectedType: TypeInfo, val response: Any)

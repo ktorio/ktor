@@ -4,7 +4,7 @@ import io.ktor.http.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
-import org.junit.Test
+import kotlin.math.*
 import kotlin.test.*
 
 class MultipartTest {
@@ -197,5 +197,63 @@ class MultipartTest {
 
         val jpeg2 = allEvents[5] as MultipartEvent.MultipartPart
         assertEquals("JFIF second", jpeg2.body.readRemaining().readText())
+    }
+
+    @Test
+    fun testParseBoundary() {
+        testBoundary("\r\n--A", "multipart/mixed;boundary=A")
+        testBoundary("\r\n--A", "multipart/mixed; boundary=A")
+        testBoundary("\r\n--A", "multipart/mixed;  boundary=A")
+        testBoundary("\r\n--AB", "multipart/mixed; boundary=AB")
+        testBoundary("\r\n--A", "multipart/mixed; boundary=A ")
+        testBoundary("\r\n--AB", "multipart/mixed; boundary=AB ")
+        testBoundary("\r\n--AB", "multipart/mixed; boundary=AB c")
+        testBoundary("\r\n--A", "multipart/mixed; boundary=A,")
+        testBoundary("\r\n--AB", "multipart/mixed; boundary=AB,")
+        testBoundary("\r\n--AB", "multipart/mixed; boundary=AB,c")
+        testBoundary("\r\n--A", "multipart/mixed; boundary=A;")
+        testBoundary("\r\n--A", "multipart/mixed; boundary=A;b")
+        testBoundary("\r\n--AB", "multipart/mixed; boundary=AB;")
+        testBoundary("\r\n--AB", "multipart/mixed; boundary=AB;c")
+        testBoundary("\r\n--A", "multipart/mixed; boundary= A;")
+        testBoundary("\r\n--A", "multipart/mixed; boundary= A;b")
+        testBoundary("\r\n--A", "multipart/mixed; boundary= A,")
+        testBoundary("\r\n--A", "multipart/mixed; boundary= A,b")
+        testBoundary("\r\n--A", "multipart/mixed; boundary= A ")
+        testBoundary("\r\n--A", "multipart/mixed; boundary= A b")
+        testBoundary("\r\n--Ab", "multipart/mixed; boundary= Ab")
+
+        testBoundary("\r\n-- A\"", "multipart/mixed; boundary=\" A\\\"\"")
+        testBoundary("\r\n--A", "multipart/mixed; boundary= \"A\"")
+        testBoundary("\r\n--A", "multipart/mixed; boundary=\"A\" ")
+
+        testBoundary("\r\n--A", "multipart/mixed; a_boundary=\"boundary=z\"; boundary=A")
+
+        testBoundary("\r\n--" + "0".repeat(70),
+                "multipart/mixed; boundary=" + "0".repeat(70))
+
+        assertFails {
+            parseBoundary("multipart/mixed; boundary=" + "0".repeat(71))
+        }
+
+        assertFails {
+            parseBoundary("multipart/mixed; boundary=")
+        }
+
+        assertFails {
+            parseBoundary("multipart/mixed; boundary= ")
+        }
+
+        assertFails {
+            parseBoundary("multipart/mixed; boundary= \"\" ")
+        }
+    }
+
+    private fun testBoundary(expectedBoundary: String, headerValue: String) {
+        val boundary = parseBoundary(headerValue)
+        val actualBoundary = String(boundary.array(),
+                boundary.arrayOffset() + boundary.position(), boundary.remaining())
+
+        assertEquals(expectedBoundary, actualBoundary)
     }
 }

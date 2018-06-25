@@ -1,13 +1,14 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.engine.*
+import io.ktor.network.tls.*
 import javax.net.ssl.*
 
 class CIOEngineConfig : HttpClientEngineConfig() {
-    val endpoint = EndpointConfig()
-    val https = HttpsConfig()
+    val endpoint: EndpointConfig = EndpointConfig()
+    val https: HttpsConfig = HttpsConfig()
 
-    var maxConnectionsCount = 1000
+    var maxConnectionsCount: Int = 1000
 }
 
 class EndpointConfig {
@@ -21,5 +22,6 @@ class EndpointConfig {
 
 class HttpsConfig {
     var trustManager: X509TrustManager? = null
-    var randomAlgorithm = "NativePRNGNonBlocking"
+    var randomAlgorithm: String = "NativePRNGNonBlocking"
+    var cipherSuites: List<CipherSuite> = CIOCipherSuites.SupportedSuites
 }

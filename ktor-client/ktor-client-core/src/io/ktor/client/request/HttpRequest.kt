@@ -51,7 +51,7 @@ class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * [URLBuilder] to configure the URL for this request.
      */
-    val url = URLBuilder()
+    val url: URLBuilder = URLBuilder()
 
     /**
      * [HttpMethod] used by this request. [HttpMethod.Get] by default.
@@ -61,7 +61,7 @@ class HttpRequestBuilder : HttpMessageBuilder {
     /**
      * [HeadersBuilder] to configure the headers for this request.
      */
-    override val headers = HeadersBuilder()
+    override val headers: HeadersBuilder = HeadersBuilder()
 
     /**
      * The [body] for this request. Initially [EmptyContent].

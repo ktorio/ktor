@@ -11,8 +11,11 @@ import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.util.concurrent.*
+import kotlin.coroutines.experimental.*
 
-class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientEngine {
+class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngine {
+    private val app: TestApplicationEngine = config.app
+
     override val dispatcher: CoroutineDispatcher = ioCoroutineDispatcher
 
     override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
@@ -26,7 +29,6 @@ class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientE
         )
 
         return HttpEngineCall(request, clientResponse)
-
     }
 
     private fun runRequest(
@@ -62,7 +64,7 @@ class TestHttpClientEngine(private val app: TestApplicationEngine) : HttpClientE
     companion object : HttpClientEngineFactory<TestHttpClientConfig> {
         override fun create(block: TestHttpClientConfig.() -> Unit): HttpClientEngine {
             val config = TestHttpClientConfig().apply(block)
-            return TestHttpClientEngine(config.app)
+            return TestHttpClientEngine(config)
         }
     }
 

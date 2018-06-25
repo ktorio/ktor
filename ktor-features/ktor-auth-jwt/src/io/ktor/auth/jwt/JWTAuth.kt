@@ -55,6 +55,13 @@ class JWTAuthenticationProvider(name: String?) : AuthenticationProvider(name) {
         this.verifier = { token -> getVerifier(jwkProvider, issuer, token, schemes) }
     }
 
+    /**
+     * @param [jwkProvider] provides the JSON Web Key
+     */
+    fun verifier(jwkProvider: JwkProvider) {
+        this.verifier = { token -> getVerifier(jwkProvider, token, schemes) }
+    }
+
     fun validate(body: suspend ApplicationCall.(JWTCredential) -> Principal?) {
         authenticationFunction = body
     }
@@ -101,7 +108,7 @@ private suspend fun evaluate(token: HttpAuthHeader?, principal: Principal?, real
     }
 }
 
-private fun getVerifier(jwkProvider: JwkProvider, issuer: String, token: HttpAuthHeader?, schemes: JWTAuthSchemes): JWTVerifier? {
+private fun getVerifierNullableIssuer(jwkProvider: JwkProvider, issuer: String?, token: HttpAuthHeader?, schemes: JWTAuthSchemes): JWTVerifier? {
     val jwk = token.getBlob(schemes)?.let { jwkProvider.get(JWT.decode(it).keyId) }
 
     val algorithm = try {
@@ -109,7 +116,18 @@ private fun getVerifier(jwkProvider: JwkProvider, issuer: String, token: HttpAut
     } catch (ex: IllegalArgumentException) {
         null
     } ?: return null
-    return JWT.require(algorithm).withIssuer(issuer).build()
+    return when(issuer) {
+        null -> JWT.require(algorithm).build()
+        else -> JWT.require(algorithm).withIssuer(issuer).build()
+    }
+}
+
+private fun getVerifier(jwkProvider: JwkProvider, issuer: String, token: HttpAuthHeader?, schemes: JWTAuthSchemes): JWTVerifier? {
+    return getVerifierNullableIssuer(jwkProvider, issuer, token, schemes)
+}
+
+private fun getVerifier(jwkProvider: JwkProvider, token: HttpAuthHeader?, schemes: JWTAuthSchemes): JWTVerifier? {
+    return getVerifierNullableIssuer(jwkProvider, null, token, schemes)
 }
 
 private suspend fun verifyAndValidate(call: ApplicationCall, jwtVerifier: JWTVerifier?, token: HttpAuthHeader?, schemes: JWTAuthSchemes, validate: suspend ApplicationCall.(JWTCredential) -> Principal?): Principal? {
@@ -138,13 +156,14 @@ private fun ApplicationRequest.parseAuthorizationHeaderOrNull() = try {
 private fun HttpAuthHeader.Companion.bearerAuthChallenge(realm: String, schemes: JWTAuthSchemes): HttpAuthHeader =
         HttpAuthHeader.Parameterized(schemes.defaultScheme, mapOf(HttpAuthHeader.Parameters.Realm to realm))
 
-private fun Jwk.makeAlgorithm(): Algorithm = when (algorithm) {
+internal fun Jwk.makeAlgorithm(): Algorithm = when (algorithm) {
     "RS256" -> Algorithm.RSA256(publicKey as RSAPublicKey, null)
     "RS384" -> Algorithm.RSA384(publicKey as RSAPublicKey, null)
     "RS512" -> Algorithm.RSA512(publicKey as RSAPublicKey, null)
     "ES256" -> Algorithm.ECDSA256(publicKey as ECPublicKey, null)
     "ES384" -> Algorithm.ECDSA384(publicKey as ECPublicKey, null)
     "ES512" -> Algorithm.ECDSA512(publicKey as ECPublicKey, null)
+    null -> Algorithm.RSA256(publicKey as RSAPublicKey, null)
     else -> throw IllegalArgumentException("Unsupported algorithm $algorithm")
 }
 

@@ -34,14 +34,14 @@ class HttpClientCall internal constructor(
      * @throws NoTransformationFound If no transformation is found for the [expectedType].
      * @throws DoubleReceiveException If already called [receive].
      */
-    suspend fun receive(expectedType: KClass<*>): Any {
-        if (expectedType.isInstance(response)) return response
+    suspend fun receive(info: TypeInfo): Any {
+        if (info.type.isInstance(response)) return response
         if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
 
-        val subject = HttpResponseContainer(expectedType, response)
+        val subject = HttpResponseContainer(info, response)
         val result = client.responsePipeline.execute(this, subject).response
 
-        if (!expectedType.isInstance(result)) throw NoTransformationFound(result::class, expectedType)
+        if (!info.type.isInstance(result)) throw NoTransformationFound(result::class, info.type)
         return result
     }
 
@@ -68,7 +68,7 @@ suspend fun HttpClient.call(block: HttpRequestBuilder.() -> Unit = {}): HttpClie
  * @throws NoTransformationFound If no transformation is found for the type [T].
  * @throws DoubleReceiveException If already called [receive].
  */
-suspend inline fun <reified T> HttpClientCall.receive(): T = receive(T::class) as T
+suspend inline fun <reified T> HttpClientCall.receive(): T = receive(typeInfo<T>()) as T
 
 /**
  * Exception representing that the response payload has already been received.

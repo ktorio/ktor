@@ -11,5 +11,5 @@ class JettyEngineConfig : HttpClientEngineConfig() {
     /**
      * A Jetty's [SslContextFactory]. By default it trusts all the certificates.
      */
-    var sslContextFactory = SslContextFactory(true)
+    var sslContextFactory: SslContextFactory = SslContextFactory(true)
 }

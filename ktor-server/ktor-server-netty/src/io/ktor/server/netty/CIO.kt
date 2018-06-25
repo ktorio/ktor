@@ -53,7 +53,7 @@ private class CoroutineListener<T, F : Future<T>>(private val future: F,
                                                   private val exception: (Throwable, Continuation<T>) -> Unit
 ) : GenericFutureListener<F>, DisposableHandle {
     init {
-        continuation.disposeOnCompletion(this)
+        continuation.disposeOnCancellation(this)
     }
 
     override fun operationComplete(future: F) {

@@ -16,6 +16,11 @@ interface HttpClientEngine : Closeable {
     val dispatcher: CoroutineDispatcher
 
     /**
+     * Engine configuration
+     */
+    val config: HttpClientEngineConfig
+
+    /**
      * Creates a new [HttpClientCall] specific for this engine, using a request [data].
      */
     suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall

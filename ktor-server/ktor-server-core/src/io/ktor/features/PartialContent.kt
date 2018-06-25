@@ -31,7 +31,7 @@ class PartialContent(private val maxRangeCount: Int) {
          * If HTTP request specifies more ranges, they will all be merged into a single range.
          */
         var maxRangeCount: Int by Delegates.vetoable(10) { _, _, new ->
-            new <= 0 || throw IllegalArgumentException("Bad maxRangeCount value $new")
+            new > 0 || throw IllegalArgumentException("Bad maxRangeCount value $new")
         }
     }
 

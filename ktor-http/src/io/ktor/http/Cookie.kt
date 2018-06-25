@@ -5,16 +5,16 @@ import java.time.temporal.*
 import java.util.*
 
 data class Cookie(
-        val name: String,
-        val value: String,
-        val encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-        val maxAge: Int = 0,
-        val expires: Temporal? = null,
-        val domain: String? = null,
-        val path: String? = null,
-        val secure: Boolean = false,
-        val httpOnly: Boolean = false,
-        val extensions: Map<String, String?> = emptyMap()
+    val name: String,
+    val value: String,
+    val encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
+    val maxAge: Int = 0,
+    val expires: Temporal? = null,
+    val domain: String? = null,
+    val path: String? = null,
+    val secure: Boolean = false,
+    val httpOnly: Boolean = false,
+    val extensions: Map<String, String?> = emptyMap()
 )
 
 enum class CookieEncoding {
@@ -29,69 +29,87 @@ fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
     val loweredMap = asMap.mapKeys { it.key.toLowerCase() }
 
     return Cookie(
-            name = first.key,
-            value = decodeCookieValue(first.value, encoding),
-            encoding = encoding,
-            maxAge = loweredMap["max-age"]?.toInt() ?: 0,
-            expires = loweredMap["expires"]?.fromHttpDateString(),
-            domain = loweredMap["domain"],
-            path = loweredMap["path"],
-            secure = "secure" in loweredMap,
-            httpOnly = "httponly" in loweredMap,
-            extensions = asMap.filterKeys {
-                it.toLowerCase() !in loweredPartNames && it != first.key
-            }
+        name = first.key,
+        value = decodeCookieValue(first.value, encoding),
+        encoding = encoding,
+        maxAge = loweredMap["max-age"]?.toInt() ?: 0,
+        expires = loweredMap["expires"]?.fromHttpDateString(),
+        domain = loweredMap["domain"],
+        path = loweredMap["path"],
+        secure = "secure" in loweredMap,
+        httpOnly = "httponly" in loweredMap,
+        extensions = asMap.filterKeys {
+            it.toLowerCase() !in loweredPartNames && it != first.key
+        }
     )
 }
 
 private val clientCookieHeaderPattern = """(^|;)\s*([^()<>@;:/\\"\[\]\?=\{\}\s]+)\s*(=\s*("[^"]*"|[^;]*))?""".toRegex()
 fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true): Map<String, String> =
-        clientCookieHeaderPattern.findAll(cookiesHeader)
-                .map { (it.groups[2]?.value ?: "") to (it.groups[4]?.value ?: "") }
-                .filter { !skipEscaped || !it.first.startsWith("$") }
-                .map {
-                    if (it.second.startsWith("\"") && it.second.endsWith("\""))
-                        it.copy(second = it.second.removeSurrounding("\""))
-                    else it
-                }
-                .toMap()
+    clientCookieHeaderPattern.findAll(cookiesHeader)
+        .map { (it.groups[2]?.value ?: "") to (it.groups[4]?.value ?: "") }
+        .filter { !skipEscaped || !it.first.startsWith("$") }
+        .map {
+            if (it.second.startsWith("\"") && it.second.endsWith("\""))
+                it.copy(second = it.second.removeSurrounding("\""))
+            else it
+        }
+        .toMap()
 
 fun renderSetCookieHeader(cookie: Cookie): String = with(cookie) {
     renderSetCookieHeader(
-            name,
-            value,
-            encoding,
-            maxAge,
-            expires,
-            domain,
-            path,
-            secure,
-            httpOnly,
-            extensions
+        name,
+        value,
+        encoding,
+        maxAge,
+        expires,
+        domain,
+        path,
+        secure,
+        httpOnly,
+        extensions
+    )
+}
+
+fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
+    renderSetCookieHeader(
+        name,
+        value,
+        encoding,
+        maxAge,
+        expires,
+        domain,
+        path,
+        secure,
+        httpOnly,
+        extensions,
+        includeEncoding = false
     )
 }
 
 fun renderSetCookieHeader(
-        name: String, value: String,
-        encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-        maxAge: Int = 0, expires: Temporal? = null, domain: String? = null,
-        path: String? = null,
-        secure: Boolean = false, httpOnly: Boolean = false,
-        extensions: Map<String, String?> = emptyMap()): String = (
+    name: String, value: String,
+    encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
+    maxAge: Int = 0, expires: Temporal? = null, domain: String? = null,
+    path: String? = null,
+    secure: Boolean = false, httpOnly: Boolean = false,
+    extensions: Map<String, String?> = emptyMap(),
+    includeEncoding: Boolean = true
+): String = (
         listOf(
-                cookiePart(name.assertCookieName(), value, encoding),
-                cookiePartUnencoded("Max-Age", if (maxAge > 0) maxAge else null),
-                cookiePartUnencoded("Expires", expires?.toHttpDateString()),
-                cookiePart("Domain", domain, CookieEncoding.RAW),
-                cookiePart("Path", path, CookieEncoding.RAW),
+            cookiePart(name.assertCookieName(), value, encoding),
+            cookiePartUnencoded("Max-Age", if (maxAge > 0) maxAge else null),
+            cookiePartUnencoded("Expires", expires?.toHttpDateString()),
+            cookiePart("Domain", domain, CookieEncoding.RAW),
+            cookiePart("Path", path, CookieEncoding.RAW),
 
-                cookiePartFlag("Secure", secure),
-                cookiePartFlag("HttpOnly", httpOnly)
+            cookiePartFlag("Secure", secure),
+            cookiePartFlag("HttpOnly", httpOnly)
         )
                 + extensions.map { cookiePartExt(it.key.assertCookieName(), it.value, encoding) }
-                + cookiePartExt("\$x-enc", encoding.name, CookieEncoding.RAW)
+                + if (includeEncoding) cookiePartExt("\$x-enc", encoding.name, CookieEncoding.RAW) else ""
         ).filter { it.isNotEmpty() }
-        .joinToString("; ")
+    .joinToString("; ")
 
 fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (encoding) {
     CookieEncoding.RAW -> when {
@@ -127,17 +145,17 @@ private fun Char.shouldEscapeInCookies() = this.isWhitespace() || this < ' ' || 
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun cookiePart(name: String, value: Any?, encoding: CookieEncoding) =
-        if (value != null) "$name=${encodeCookieValue(value.toString(), encoding)}" else ""
+    if (value != null) "$name=${encodeCookieValue(value.toString(), encoding)}" else ""
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun cookiePartUnencoded(name: String, value: Any?) =
-        if (value != null) "$name=$value" else ""
+    if (value != null) "$name=$value" else ""
 
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun cookiePartFlag(name: String, value: Boolean) =
-        if (value) name else ""
+    if (value) name else ""
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun cookiePartExt(name: String, value: String?, encoding: CookieEncoding) =
-        if (value == null) cookiePartFlag(name, true) else cookiePart(name, value, encoding)
+    if (value == null) cookiePartFlag(name, true) else cookiePart(name, value, encoding)

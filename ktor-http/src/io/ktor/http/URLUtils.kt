@@ -17,7 +17,7 @@ fun URLBuilder.takeFrom(uri: URI) {
         protocol.defaultPort
     }
 
-    uri.path?.let {
+    uri.rawPath?.let {
         encodedPath = when (it) {
             "" -> "/"
             else -> it

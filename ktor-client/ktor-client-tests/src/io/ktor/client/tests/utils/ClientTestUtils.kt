@@ -7,23 +7,30 @@ import kotlinx.coroutines.experimental.*
 fun <T : HttpClientEngineConfig> clientTest(
     factory: HttpClientEngineFactory<T>,
     block: suspend TestClientBuilder.() -> Unit
+): Unit = clientTest(HttpClient(factory), block)
+
+fun clientTest(
+    engine: HttpClientEngine,
+    block: suspend TestClientBuilder.() -> Unit
+): Unit = clientTest(HttpClient(engine), block)
+
+fun clientTest(
+    client: HttpClient,
+    block: suspend TestClientBuilder.() -> Unit
 ): Unit = runBlocking {
     val builder = TestClientBuilder().also { it.block() }
-
-    HttpClient(factory).config {
-        builder.config(this)
-    }.use { client -> builder.test(client) }
+    client.config { builder.config(this) }.use { client -> builder.test(client) }
 }
 
 class TestClientBuilder(
     var config: suspend HttpClientConfig.() -> Unit = {},
-    var test: suspend (HttpClient) -> Unit = {}
+    var test: suspend (client: HttpClient) -> Unit = {}
 )
 
 fun TestClientBuilder.config(block: suspend HttpClientConfig.() -> Unit): Unit {
     config = block
 }
 
-fun TestClientBuilder.test(block: suspend (HttpClient) -> Unit): Unit {
+fun TestClientBuilder.test(block: suspend (client: HttpClient) -> Unit): Unit {
     test = block
 }

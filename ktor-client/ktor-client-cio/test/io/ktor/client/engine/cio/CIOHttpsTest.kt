@@ -23,13 +23,13 @@ import kotlin.test.Test
 
 class CIOHttpsTest : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Netty, applicationEngineEnvironment {
-        sslConnector(keyStore, "mysha256ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
+        sslConnector(keyStore, "sha256ecdsa", { "changeit".toCharArray() }, { "changeit".toCharArray() }) {
             port = serverPort
             keyStorePath = keyStoreFile.absoluteFile
 
             module {
                 routing {
-                    get {
+                    get("/") {
                         call.respondText("Hello, world")
                     }
                 }
@@ -47,19 +47,25 @@ class CIOHttpsTest : TestWithKtor() {
         @JvmStatic
         fun setupAll() {
             keyStore = buildKeyStore {
-                certificate("mysha384ecdsa") {
+                certificate("sha384ecdsa") {
                     hash = HashAlgorithm.SHA384
                     sign = SignatureAlgorithm.ECDSA
                     keySizeInBits = 384
                     password = "changeit"
                 }
-                certificate("mysha256ecdsa") {
+                certificate("sha256ecdsa") {
                     hash = HashAlgorithm.SHA256
                     sign = SignatureAlgorithm.ECDSA
-                    keySizeInBits = 384
+                    keySizeInBits = 256
                     password = "changeit"
                 }
-                certificate("mykey") {
+                certificate("sha384rsa") {
+                    hash = HashAlgorithm.SHA384
+                    sign = SignatureAlgorithm.RSA
+                    keySizeInBits = 1024
+                    password = "changeit"
+                }
+                certificate("sha1rsa") {
                     hash = HashAlgorithm.SHA1
                     sign = SignatureAlgorithm.RSA
                     keySizeInBits = 1024
@@ -96,4 +102,21 @@ class CIOHttpsTest : TestWithKtor() {
         val response = client.get<HttpResponse>("https://kotlinlang.org")
         assertEquals(HttpStatusCode.OK, response.status)
     }
+
+    @Test
+    fun customDomainsTest() = clientTest(CIO) {
+        val domains = listOf(
+            "https://google.com",
+            "https://facebook.com",
+            "https://elster.de",
+            "https://freenode.net"
+        )
+
+        test { client ->
+            domains.forEach { url ->
+                client.get<HttpResponse>(url)
+            }
+        }
+    }
+
 }

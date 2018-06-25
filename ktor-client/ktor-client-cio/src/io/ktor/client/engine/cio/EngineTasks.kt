@@ -4,14 +4,14 @@ import io.ktor.http.*
 import kotlinx.coroutines.experimental.*
 import java.util.*
 
-internal class RequestTask(
+internal data class RequestTask(
     val request: CIOHttpRequest,
     val continuation: CancellableContinuation<CIOHttpResponse>
 )
 
 internal fun RequestTask.requiresDedicatedConnection(): Boolean = listOf(request.headers, request.content.headers).any {
     it[HttpHeaders.Connection] == "close" || it.contains(HttpHeaders.Upgrade)
-}
+} || request.method !in listOf(HttpMethod.Get, HttpMethod.Head)
 
 
 internal class ConnectionResponseTask(

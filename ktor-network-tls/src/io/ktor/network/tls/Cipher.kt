@@ -12,7 +12,7 @@ internal fun encryptCipher(
     suite: CipherSuite,
     keyMaterial: ByteArray,
     recordType: TLSRecordType,
-    recordLength: Int, recordIv: Long, seq: Long
+    recordLength: Int, recordIv: Long, recordId: Long
 ): Cipher {
     val cipher = Cipher.getInstance(suite.jdkCipherName)
 
@@ -20,43 +20,22 @@ internal fun encryptCipher(
     val fixedIv = keyMaterial.clientIV(suite)
     val iv = fixedIv.copyOf(suite.ivLength)
 
-    var sequence = recordIv
-    for (idx in suite.ivLength - 1 downTo suite.fixedIvLength) {
-        iv[idx] = (sequence and 0xff).toByte()
-        sequence = sequence ushr 8
-    }
+    iv.set(suite.fixedIvLength, recordIv)
 
     // TODO non-gcm ciphers
     val gcmSpec = GCMParameterSpec(suite.cipherTagSizeInBytes * 8, iv)
 
     cipher.init(Cipher.ENCRYPT_MODE, key, gcmSpec)
 
-    val aad = ByteArray(13)
-    sequence = seq
-    for (idx in 7 downTo 0) {
-        aad[idx] = (sequence and 0xff).toByte()
-        sequence = sequence ushr 8
+    val aad = ByteArray(13).also {
+        it.set(0, recordId)
+        it[8] = recordType.code.toByte()
+        it[9] = 3 // TLS 1.2
+        it[10] = 3
+        it.set(11, recordLength.toShort())
     }
-    aad[9] = 3 // TLS 1.2
-    aad[10] = 3
-
-    aad[8] = recordType.code.toByte()
-    aad[11] = (recordLength shr 8).toByte()
-    aad[12] = (recordLength and 0xff).toByte()
 
     cipher.updateAAD(aad)
-
-    return cipher
-}
-
-internal fun makeDecryptCipher(
-    suite: CipherSuite,
-    key: PublicKey
-): Cipher {
-    val cipher = Cipher.getInstance(suite.jdkCipherName)!!
-
-    cipher.init(Cipher.DECRYPT_MODE, key)
-
     return cipher
 }
 
@@ -64,7 +43,7 @@ internal fun decryptCipher(
     suite: CipherSuite,
     keyMaterial: ByteArray,
     recordType: TLSRecordType,
-    recordLength: Int, recordIv: Long, seq: Long
+    recordLength: Int, recordIv: Long, recordId: Long
 ): Cipher {
     val cipher = Cipher.getInstance(suite.jdkCipherName)
 
@@ -72,11 +51,7 @@ internal fun decryptCipher(
     val fixedIv = keyMaterial.serverIV(suite)
     val iv = fixedIv.copyOf(suite.ivLength)
 
-    var s = recordIv
-    for (idx in suite.ivLength - 1 downTo suite.fixedIvLength) {
-        iv[idx] = (s and 0xff).toByte()
-        s = s ushr 8
-    }
+    iv.set(suite.fixedIvLength, recordIv)
 
     // TODO non-gcm ciphers
     val gcmSpec = GCMParameterSpec(suite.cipherTagSizeInBytes * 8, iv)
@@ -84,29 +59,25 @@ internal fun decryptCipher(
     cipher.init(Cipher.DECRYPT_MODE, key, gcmSpec)
 
     val contentSize = recordLength - (suite.ivLength - suite.fixedIvLength) - suite.cipherTagSizeInBytes
-    val aad = ByteArray(13)
-    s = seq
-    for (idx in 7 downTo 0) {
-        aad[idx] = (s and 0xff).toByte()
-        s = s ushr 8
+    check(contentSize < 0x10000) { "Content size should fit in 2 bytes, actual: $contentSize" }
+
+    val aad = ByteArray(13).also {
+        it.set(0, recordId)
+        it[8] = recordType.code.toByte()
+        it[9] = 3 // TLS 1.2
+        it[10] = 3
+        it.set(11, contentSize.toShort())
     }
 
-    aad[9] = 3 // TLS 1.2
-    aad[10] = 3
-
-    aad[8] = recordType.code.toByte()
-    aad[11] = (contentSize shr 8).toByte()
-    aad[12] = (contentSize and 0xff).toByte()
-
     cipher.updateAAD(aad)
-
     return cipher
 }
 
-
 internal fun ByteReadPacket.encrypted(cipher: Cipher, recordIv: Long): ByteReadPacket {
     val buffer = DefaultByteBufferPool.borrow()
-    val encrypted = DefaultByteBufferPool.borrow()
+    var encryptedPool = DefaultByteBufferPool
+    var encrypted = encryptedPool.borrow()
+
     try {
         return buildPacket {
             buffer.clear()
@@ -121,6 +92,13 @@ internal fun ByteReadPacket.encrypted(cipher: Cipher, recordIv: Long): ByteReadP
                 if (!buffer.hasRemaining() && isEmpty) break
 
                 encrypted.clear()
+
+                if (cipher.getOutputSize(buffer.remaining()) > encrypted.remaining()) {
+                    encryptedPool.recycle(encrypted)
+                    encryptedPool = DefaultDatagramByteBufferPool
+                    encrypted = encryptedPool.borrow()
+                }
+
                 cipher.update(buffer, encrypted)
                 encrypted.flip()
                 writeFully(encrypted)
@@ -131,7 +109,7 @@ internal fun ByteReadPacket.encrypted(cipher: Cipher, recordIv: Long): ByteReadP
         }
     } finally {
         DefaultByteBufferPool.recycle(buffer)
-        DefaultByteBufferPool.recycle(encrypted)
+        encryptedPool.recycle(encrypted)
     }
 }
 
@@ -173,5 +151,23 @@ internal fun ByteReadPacket.decrypted(cipher: Cipher): ByteReadPacket {
     } finally {
         DefaultByteBufferPool.recycle(buffer)
         decryptedPool.recycle(decrypted)
+    }
+}
+
+internal fun ByteArray.set(offset: Int, data: Long) {
+    for (idx in 0..7) {
+        this[idx + offset] = (data ushr (7 - idx) * 8).toByte()
+    }
+}
+
+internal fun ByteArray.set(offset: Int, data: Int) {
+    for (idx in 0..3) {
+        this[idx + offset] = (data ushr (3 - idx) * 8).toByte()
+    }
+}
+
+internal fun ByteArray.set(offset: Int, data: Short) {
+    for (idx in 0..1) {
+        this[idx + offset] = (data.toInt() ushr (1 - idx) * 8).toByte()
     }
 }

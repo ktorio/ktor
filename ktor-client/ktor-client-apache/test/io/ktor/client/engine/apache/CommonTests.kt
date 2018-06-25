@@ -20,3 +20,5 @@ class ApacheContentTest : ContentTest(Apache)
 class ApacheRedirectTest : HttpRedirectTest(Apache)
 
 class ApacheBuildersTest : BuildersTest(Apache)
+
+class ApacheFeaturesTest : FeaturesTest(Apache)

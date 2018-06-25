@@ -2,7 +2,7 @@ package io.ktor.tests.auth
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.engine.apache.*
+import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
@@ -63,7 +63,7 @@ class HttpClientTest {
         }
 
         val port = portSync.take()
-        val client = HttpClient(Apache)
+        val client = HttpClient(CIO)
         val response = client.call("http://127.0.0.1:$port/") {
             method = HttpMethod.Post
             url.encodedPath = "/url"

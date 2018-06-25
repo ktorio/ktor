@@ -91,7 +91,7 @@ internal class ApacheRequestProducer(
         builder.uri = URIBuilder().apply {
             scheme = url.protocol.name
             host = url.host
-            port = url.port
+            if (url.port != url.protocol.defaultPort) port = url.port
             path = url.encodedPath
 
             if (url.parameters.isEmpty() && url.trailingQuery) setParameters(listOf())

@@ -8,14 +8,16 @@ import io.ktor.client.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import java.io.*
+import java.util.*
 
 /**
  * Asynchronous client to perform HTTP requests.
  *
  * This is a generic implementation that uses a specific engine [HttpClientEngine].
  */
-class HttpClient private constructor(
+class HttpClient(
     private val engine: HttpClientEngine,
+    private val useDefaultTransformers: Boolean = true,
     block: suspend HttpClientConfig.() -> Unit = {}
 ) : Closeable {
 
@@ -25,13 +27,18 @@ class HttpClient private constructor(
      */
     constructor(
         engineFactory: HttpClientEngineFactory<*>,
+        useDefaultTransformers: Boolean = true,
         block: suspend HttpClientConfig.() -> Unit = {}
-    ) : this(engineFactory.create(), block)
+    ) : this(engineFactory.create(), useDefaultTransformers, block)
+
+    constructor(
+        block: suspend HttpClientConfig.() -> Unit = {}
+    ) : this(findAvailableFactory(), block = block)
 
     /**
      * Pipeline used for processing all the requests sent by this client.
      */
-    val requestPipeline = HttpRequestPipeline().apply {
+    val requestPipeline: HttpRequestPipeline = HttpRequestPipeline().apply {
         // default send scenario
         intercept(HttpRequestPipeline.Send) { content ->
             proceedWith(sendPipeline.execute(context, content))
@@ -41,12 +48,12 @@ class HttpClient private constructor(
     /**
      * Pipeline used for processing all the responses sent by the server.
      */
-    val responsePipeline = HttpResponsePipeline()
+    val responsePipeline: HttpResponsePipeline = HttpResponsePipeline()
 
     /**
      * Pipeline used for sending the request
      */
-    val sendPipeline = HttpSendPipeline().apply {
+    val sendPipeline: HttpSendPipeline = HttpSendPipeline().apply {
         intercept(HttpSendPipeline.Engine) { content ->
             val call = HttpClientCall(this@HttpClient)
             val requestData = HttpRequestBuilder().apply {
@@ -66,17 +73,22 @@ class HttpClient private constructor(
     /**
      * Pipeline used for receiving request
      */
-    val receivePipeline = HttpReceivePipeline()
+    val receivePipeline: HttpReceivePipeline = HttpReceivePipeline()
 
     /**
      * Typed attributes used as a lightweight container for this client.
      */
-    val attributes = Attributes()
+    val attributes: Attributes = Attributes()
 
     /**
      * Dispatcher handles io operations
      */
     val dispatcher: CoroutineDispatcher = engine.dispatcher
+
+    /**
+     * Client engine config
+     */
+    val engineConfig: HttpClientEngineConfig = engine.config
 
     private val config = HttpClientConfig()
 
@@ -84,7 +96,11 @@ class HttpClient private constructor(
         runBlocking {
             config.install(HttpPlainText)
             config.install(HttpIgnoreBody)
-            config.install("DefaultTransformers") { defaultTransformers() }
+
+            if (useDefaultTransformers) {
+                config.install("DefaultTransformers") { defaultTransformers() }
+            }
+
             config.block()
         }
 
@@ -101,7 +117,8 @@ class HttpClient private constructor(
      * Returns a new [HttpClient] copying this client configuration,
      * and additionally configured by the [block] parameter.
      */
-    fun config(block: suspend HttpClientConfig.() -> Unit): HttpClient = HttpClient(engine, block)
+    fun config(block: suspend HttpClientConfig.() -> Unit): HttpClient =
+        HttpClient(engine, useDefaultTransformers, block)
 
     /**
      * Closes the underlying [engine].
@@ -119,3 +136,10 @@ class HttpClient private constructor(
         }
     }
 }
+
+interface HttpClientEngineContainer {
+    val factory: HttpClientEngineFactory<*>
+}
+
+internal fun findAvailableFactory(): HttpClientEngineFactory<*> =
+    ServiceLoader.load(HttpClientEngineContainer::class.java).toList().first().factory

@@ -14,6 +14,11 @@ open class HttpClientEngineConfig {
     var sslContext: SSLContext? = null
 
     /**
+     * Enable http pipelining
+     */
+    var pipelining: Boolean = true
+
+    /**
      * The [CoroutineDispatcher] that will be used for the client requests.
      */
     var dispatcher: CoroutineDispatcher? = null

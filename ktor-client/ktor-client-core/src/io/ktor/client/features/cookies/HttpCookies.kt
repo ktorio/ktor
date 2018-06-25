@@ -62,7 +62,7 @@ class HttpCookies(private val storage: CookiesStorage) {
                 with(context) {
                     header(HttpHeaders.Cookie, buildString {
                         cookies.forEach { _, cookie ->
-                            append(renderSetCookieHeader(cookie))
+                            append(renderCookieHeader(cookie))
                             append(";")
                         }
                     })

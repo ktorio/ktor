@@ -2,7 +2,7 @@ description = ''
 dependencies {
     compile project(':ktor-features:ktor-auth')
     compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1.1'
-    compile group: 'com.auth0', name: 'java-jwt', version: '3.3.0'
-    compile group: 'com.auth0', name: 'jwks-rsa', version: '0.3.0'
-    testCompile "com.nhaarman:mockito-kotlin:1.5.0"
+    compile group: 'com.auth0', name: 'java-jwt', version: '3.4.0'
+    compile group: 'com.auth0', name: 'jwks-rsa', version: '0.5.0'
+    testCompile "com.nhaarman:mockito-kotlin:1.6.0"
 }

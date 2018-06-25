@@ -72,8 +72,8 @@ private suspend fun CloseableHttpAsyncClient.sendRequest(
         throw cause
     }
 
-    continuation.invokeOnCompletion(onCancelling = true) { cause ->
-        cause ?: return@invokeOnCompletion
+    continuation.invokeOnCancellation { cause ->
+        cause ?: return@invokeOnCancellation
         future.cancel(true)
         parent.cancel(cause)
     }
