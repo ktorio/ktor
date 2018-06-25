@@ -218,6 +218,20 @@ inline fun <reified P : Principal> ApplicationCall.principal() = authentication.
  * it will fail with [MissingApplicationFeatureException] and all providers requested by [configurations] need
  * to be already registered.
  *
+ * Is is important to note that when [optional] is set, challenges will be skipped only if no credentials are provided.
+ *
+ * To summarize:
+ *
+ * optional=false:
+ *   - No credentials: challenge is sent and route is NOT executed
+ *   - Bad credentials: Unauthorized
+ *   - Good credentials: route handler will be executed
+ *
+ * optional=true:
+ *   - No credentials: route handler will be executed with a null [Principal]
+ *   - Bad credentials: Unauthorized
+ *   - Good credentials: route handler will be executed
+ *
  * @param configurations names that point to already registered authentication providers
  * @param optional when set, if no auth is provided by the client, the call will continue but with a null [Principal]
  * @throws MissingApplicationFeatureException if no [Authentication] feature installed first
