@@ -1,3 +1,29 @@
+# 0.9.3
+> Unpublised
+
+* Improved WebSocket API
+* Websocket header `Sec-WebSocket-Key` is now optional
+* Fixed client cookies rendering to avoid `x-enc`
+* Fixed plain text client reader
+* Added EC support in CIO TLS
+* Added `ApplicationCall` as receiver for auth `validate` functions
+* Introduced `call.respondBytes`
+* Improved JWT support: multiple schemes, nullable issuer
+* Conversion service enum type diagnostics improved (#403)
+* Avoided using apos entity in HTML escaping as IE doesn't support it (#400)
+* Converter support for java big numbers
+* Ability to add auth methods to existing feature on the fly
+* Improved auth header scheme and contents validation (#415)
+* Default charset for BasicAuth is now UTF-8 (#420) 
+* Added `ByteArrayContent.contentLength` (#421)
+* Fixed `headersOf` case insensitive issue (#426)
+* Client deserialization improved by using type token
+* Ability to disable client default transformers
+* Explicit `Accept` header in client request
+* A lot of bugfixes in CIO client and server
+* Turn on masking in client websockets (#423)
+* Fixed inverted `PartialContent.Configuration.maxRangeCount` check (#440)
+
 # 0.9.2
 > Published 23 Apr 2018
 
