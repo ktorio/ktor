@@ -139,6 +139,21 @@ class JWTAuthTest {
     }
 
     @Test
+    fun testJwkSuccessNoIssuer() {
+        withApplication {
+            application.configureServerJwkNoIssuer(mock = true)
+
+            val token = getJwkToken()
+
+            val response = handleRequestWithToken(token)
+
+            assertTrue(response.requestHandled)
+            assertEquals(HttpStatusCode.OK, response.response.status())
+            assertNotNull(response.response.content)
+        }
+    }
+
+    @Test
     fun testJwtAuthSchemeMismatch() {
         withApplication {
             application.configureServerJwt()
@@ -282,6 +297,20 @@ class JWTAuthTest {
         jwt {
             this@jwt.realm = this@JWTAuthTest.realm
             verifier(if (mock) getJwkProviderMock() else makeJwkProvider(), issuer)
+            validate { credential ->
+                when {
+                    credential.payload.audience.contains(audience) -> JWTPrincipal(credential.payload)
+                    else -> null
+                }
+            }
+
+        }
+    }
+
+    private fun Application.configureServerJwkNoIssuer(mock: Boolean = false) = configureServer {
+        jwt {
+            this@jwt.realm = this@JWTAuthTest.realm
+            verifier(if (mock) getJwkProviderMock() else makeJwkProvider())
             validate { credential ->
                 when {
                     credential.payload.audience.contains(audience) -> JWTPrincipal(credential.payload)
