@@ -50,6 +50,16 @@ class URLBuilderTest {
     }
 
     @Test
+    fun testWss() {
+        val url = URLBuilder().apply {
+            takeFrom(URI.create("wss://localhost/path"))
+        }
+
+        assertEquals("wss://localhost/path", url.buildString())
+        assertEquals(443, url.port)
+    }
+
+    @Test
     fun testCapitalize() {
         val url = URLBuilder().apply {
             takeFrom(URI.create("custom://localhost:8080/path".capitalize()))
