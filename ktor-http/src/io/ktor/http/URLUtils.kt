@@ -13,8 +13,10 @@ fun URLBuilder.takeFrom(uri: URI) {
 
     port = if (uri.port > 0) {
         uri.port
-    } else {
+    } else if (uri.host != null) {
         protocol.defaultPort
+    } else {
+        port
     }
 
     uri.rawPath?.let {

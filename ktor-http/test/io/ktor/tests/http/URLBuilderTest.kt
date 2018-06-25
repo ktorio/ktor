@@ -67,4 +67,22 @@ class URLBuilderTest {
 
         assertEquals("custom://localhost:8080/path", url.buildString())
     }
+
+    @Test
+    fun testTakeFromRewritePort() {
+        URLBuilder().apply {
+            port = 9093
+            takeFrom(URI("http://localhost:81/"))
+        }.buildString().let { url -> assertEquals("http://localhost:81/", url) }
+
+        URLBuilder().apply {
+            port = 9093
+            takeFrom(URI("http://localhost/"))
+        }.buildString().let { url -> assertEquals("http://localhost/", url) }
+
+        URLBuilder().apply {
+            port = 9093
+            takeFrom(URI("/test"))
+        }.buildString().let { url -> assertEquals("http://localhost:9093/test", url) }
+    }
 }
