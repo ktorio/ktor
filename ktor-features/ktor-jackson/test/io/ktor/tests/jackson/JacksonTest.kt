@@ -1,5 +1,6 @@
 package io.ktor.tests.jackson
 
+import com.fasterxml.jackson.databind.*
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
@@ -95,7 +96,29 @@ class JacksonTest {
         }
 
     }
+
+    @Test
+    fun testPrettyPrinter() = withTestApplication {
+        application.install(ContentNegotiation) {
+            jackson {
+                configure(SerializationFeature.INDENT_OUTPUT, true)
+            }
+        }
+
+        application.routing {
+            get("/") {
+                call.respond(mapOf("a" to 1, "b" to 2))
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/") {
+            addHeader(HttpHeaders.Accept, "application/json")
+        }.response.let { response ->
+            assertEquals("{\n  \"a\" : 1,\n  \"b\" : 2\n}", response.content)
+        }
+    }
 }
+
 
 data class MyEntity(val id: Int, val name: String, val children: List<ChildEntity>)
 data class ChildEntity(val item: String, val quantity: Int)
