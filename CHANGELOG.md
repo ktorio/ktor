@@ -1,11 +1,12 @@
 # 0.9.3
-> Unpublised
+> Published 26 Jun 2018
 
 * Improved WebSocket API
 * Websocket header `Sec-WebSocket-Key` is now optional
 * Fixed client cookies rendering to avoid `x-enc`
 * Fixed plain text client reader
 * Added EC support in CIO TLS
+* Introduced optional authentication 
 * Added `ApplicationCall` as receiver for auth `validate` functions
 * Introduced `call.respondBytes`
 * Improved JWT support: multiple schemes, nullable issuer
@@ -23,6 +24,8 @@
 * A lot of bugfixes in CIO client and server
 * Turn on masking in client websockets (#423)
 * Fixed inverted `PartialContent.Configuration.maxRangeCount` check (#440)
+* Fixed uncaught `UnsupportedMediaTypeException` from `receiveOrNull()` (#442)
+* Upgraded jwks/jwt, applied RSA256 by default if unspecified (#434, #435)
 
 # 0.9.2
 > Published 23 Apr 2018
