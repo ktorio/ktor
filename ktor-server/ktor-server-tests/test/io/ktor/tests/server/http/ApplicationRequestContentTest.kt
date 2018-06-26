@@ -1,8 +1,11 @@
 package io.ktor.tests.server.http
 
 import io.ktor.application.*
+import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.experimental.io.*
 import org.junit.Test
@@ -106,6 +109,38 @@ class ApplicationRequestContentTest {
                 addHeader(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
                 setBody(values.formUrlEncode())
             }
+        }
+    }
+
+    @Test
+    fun testReceiveUnsupportedTypeFailing(): Unit = withTestApplication {
+        application.install(ContentNegotiation)
+
+        application.routing {
+            get("/") {
+                val v = call.receive<IntList>()
+                call.respondText(v.values.joinToString())
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/").let { call ->
+            assertEquals(415, call.response.status()?.value)
+        }
+    }
+
+    @Test
+    fun testReceiveUnsupportedTypeNotFailing(): Unit = withTestApplication {
+        application.install(ContentNegotiation)
+
+        application.routing {
+            get("/") {
+                val v = call.receiveOrNull<IntList>()
+                call.respondText(v?.values?.joinToString() ?: "(none)")
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/").let { call ->
+            assertEquals(200, call.response.status()?.value)
         }
     }
 }

@@ -63,7 +63,7 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
                 }
             }
 
-            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) {
+            pipeline.sendPipeline.intercept(ApplicationSendPipeline.Render) { subject ->
                 if (subject is OutgoingContent) return@intercept
 
                 val acceptItems = call.request.acceptItems()
@@ -87,21 +87,22 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
                 proceedWith(rendered)
             }
 
-            pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Transform) {
+            pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Transform) { receive ->
                 if (subject.value !is ByteReadChannel) return@intercept
                 val contentType = call.request.contentType().withoutParameters()
                 val suitableConverter = feature.registrations.firstOrNull { it.contentType.match(contentType) }
                         ?: throw UnsupportedMediaTypeException(contentType)
                 val converted = suitableConverter.converter.convertForReceive(this)
                         ?: throw UnsupportedMediaTypeException(contentType)
-                proceedWith(ApplicationReceiveRequest(it.type, converted))
+                proceedWith(ApplicationReceiveRequest(receive.type, converted))
             }
             return feature
         }
     }
 }
 
-class UnsupportedMediaTypeException(contentType: ContentType) : Exception("Content type $contentType is not supported")
+class UnsupportedMediaTypeException(contentType: ContentType) :
+        ContentTransformationException("Content type $contentType is not supported")
 
 /**
  * A custom content converted that could be registered in [ContentNegotiation] feature for any particular content type
