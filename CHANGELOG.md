@@ -4,11 +4,12 @@
 * Improved WebSocket API
 * Websocket header `Sec-WebSocket-Key` is now optional
 * Fixed client cookies rendering to avoid `x-enc`
-* Fixed plain text client reader
-* Added EC support in CIO TLS
+* Fixed plain text client reader (#392)
+* Added EC support in CIO TLS (#394: ECDHE_RSA_AES256_SHA384, ECDHE_RSA_AES128_SHA256)
+* Fix client certificate validation
 * Introduced optional authentication 
 * Added `ApplicationCall` as receiver for auth `validate` functions
-* Introduced `call.respondBytes`
+* Introduced `call.respondBytes` (#395)
 * Improved JWT support: multiple schemes, nullable issuer
 * Conversion service enum type diagnostics improved (#403)
 * Avoided using apos entity in HTML escaping as IE doesn't support it (#400)
@@ -21,11 +22,18 @@
 * Client deserialization improved by using type token
 * Ability to disable client default transformers
 * Explicit `Accept` header in client request
-* A lot of bugfixes in CIO client and server
 * Turn on masking in client websockets (#423)
 * Fixed inverted `PartialContent.Configuration.maxRangeCount` check (#440)
 * Fixed uncaught `UnsupportedMediaTypeException` from `receiveOrNull()` (#442)
+* Fix multipart boundary header parsing
 * Upgraded jwks/jwt, applied RSA256 by default if unspecified (#434, #435)
+* Upgrade coroutine version to 0.23.3
+* Upgrade Jetty version to 9.4.11.v20180605
+* Add `client-mock-engine` for testing purpose
+* Use default available engine by deafult
+* Upgrade kotlin to 1.2.50
+
+Move ktor-samples to a separate repository (#340). https://github.com/ktorio/ktor-samples
 
 # 0.9.2
 > Published 23 Apr 2018
