@@ -167,11 +167,14 @@ internal class CharBufferBuilder : CharSequence, Appendable {
     private fun appendNewBuffer(): CharBuffer {
         val newBuffer = CharBufferPool.borrow()
         val existing = current
-        if (existing == null) {
-            current = newBuffer
-        } else {
-            val list = buffers ?: ArrayList<CharBuffer>().also { buffers = it }
-            list.add(existing)
+        current = newBuffer
+
+        if (existing != null) {
+            val list = buffers ?: ArrayList<CharBuffer>().also {
+                buffers = it
+                it.add(existing)
+            }
+
             list.add(newBuffer)
         }
 
