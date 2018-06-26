@@ -1,9 +1,10 @@
 package io.ktor.http.cio.internals
 
+import kotlinx.io.pool.*
 import java.nio.*
 
 @Suppress("LoopToCallChain", "ReplaceRangeToWithUntil")
-internal class CharBufferBuilder : CharSequence, Appendable {
+internal class CharBufferBuilder(val pool: ObjectPool<CharBuffer> = CharBufferPool) : CharSequence, Appendable {
     private var buffers: MutableList<CharBuffer>? = null
     private var current: CharBuffer? = null
     private var stringified: String? = null
@@ -68,10 +69,10 @@ internal class CharBufferBuilder : CharSequence, Appendable {
         if (list != null) {
             current = null
             for (i in 0 until list.size) {
-                CharBufferPool.recycle(list[i])
+                pool.recycle(list[i])
             }
         } else {
-            current?.let { CharBufferPool.recycle(it) }
+            current?.let { pool.recycle(it) }
             current = null
         }
 
@@ -153,19 +154,21 @@ internal class CharBufferBuilder : CharSequence, Appendable {
         val list = buffers
 
         if (list == null) {
-            if (index >= CHAR_BUFFER_LENGTH) throw IndexOutOfBoundsException("$index is not in range [0; $CHAR_BUFFER_LENGTH)")
-            return current ?: throw IndexOutOfBoundsException("$index is not in range [0; 0)")
+            if (index >= CHAR_BUFFER_LENGTH) throwSingleBuffer(index)
+            return current ?: throwSingleBuffer(index)
         }
 
         return list[index / CHAR_BUFFER_LENGTH]
     }
+
+    private fun throwSingleBuffer(index: Int): Nothing = throw IndexOutOfBoundsException("$index is not in range [0; ${current?.position() ?: 0})")
 
     private fun nonFullBuffer(): CharBuffer {
         return current?.takeIf { it.hasRemaining() } ?: appendNewBuffer()
     }
 
     private fun appendNewBuffer(): CharBuffer {
-        val newBuffer = CharBufferPool.borrow()
+        val newBuffer = pool.borrow()
         val existing = current
         current = newBuffer
 
