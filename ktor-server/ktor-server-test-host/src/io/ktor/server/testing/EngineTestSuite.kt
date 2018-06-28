@@ -384,6 +384,31 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     }
 
     @Test
+    fun testStreamingContentWithCompression() {
+        val file = listOf(File("src"), File("ktor-server/ktor-server-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" }.first()
+        testLog.trace("test file is $file")
+
+        createAndStartServer {
+            application.install(Compression)
+            handle {
+                call.respond(object: OutgoingContent.WriteChannelContent() {
+                    override suspend fun writeTo(channel: ByteWriteChannel) {
+                        channel.writeStringUtf8("Hello!")
+                    }
+                })
+            }
+        }
+
+        withUrl("/", {
+            header(HttpHeaders.AcceptEncoding, "gzip")
+        }) {
+            assertEquals(200, status.value)
+            assertEquals("Hello!", GZIPInputStream(content.toInputStream()).reader().use { it.readText() })
+            assertEquals("gzip", headers[HttpHeaders.ContentEncoding])
+        }
+    }
+
+    @Test
     fun testLocalFileContentRange() {
         val file = listOf(File("src"), File("ktor-server/ktor-server-core/src")).first { it.exists() }.walkBottomUp().filter { it.extension == "kt" && it.reader().use { it.read().toChar() == 'p' } }.first()
         testLog.trace("test file is $file")
