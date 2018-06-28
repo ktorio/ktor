@@ -1,6 +1,7 @@
 package io.ktor.features
 
 import io.ktor.application.*
+import io.ktor.cio.*
 import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.pipeline.*
@@ -76,9 +77,9 @@ class Compression(compression: Configuration) {
                 && message !is CompressedResponse
                 && options.conditions.all { it(call, message) }
                 && !call.isCompressionSuppressed()
-                && message.headers[HttpHeaders.ContentEncoding].let { it == null || it == "identity" }
+                && message.headers[HttpHeaders.ContentEncoding].let { it == null || it != "identity" }
         ) {
-            val encoderOptions = encoders.firstOrNull { it.conditions.all { it(call, message) } }
+            val encoderOptions = encoders.firstOrNull { encoder -> encoder.conditions.all { it(call, message) } }
 
             val channel: () -> ByteReadChannel = when (message) {
                 is OutgoingContent.ReadChannelContent -> ({ message.readFrom() })
@@ -136,7 +137,9 @@ class Compression(compression: Configuration) {
         override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
 
         override suspend fun writeTo(channel: ByteWriteChannel) {
-            original.writeTo(encoder.compress(channel))
+            encoder.compress(channel).use {
+                original.writeTo(this)
+            }
         }
     }
 
@@ -305,7 +308,7 @@ fun ConditionsHolderBuilder.condition(predicate: ApplicationCall.(OutgoingConten
  * Appends a minimum size condition to the encoder or Compression configuration
  */
 fun ConditionsHolderBuilder.minimumSize(minSize: Long) {
-    condition { it.contentLength?.let { it >= minSize } ?: true }
+    condition { content -> content.contentLength?.let { it >= minSize } ?: true }
 }
 
 /**

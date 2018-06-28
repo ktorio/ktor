@@ -428,6 +428,44 @@ class CompressionTest {
         }
     }
 
+    @Test
+    fun testCompressionRespondBytes(): Unit = withTestApplication {
+        application.install(Compression)
+
+        application.routing {
+            get("/") {
+                call.respond(object: OutgoingContent.WriteChannelContent() {
+                    override suspend fun writeTo(channel: ByteWriteChannel) {
+                        channel.writeStringUtf8("Hello!")
+                    }
+                })
+            }
+        }
+
+        handleAndAssert("/", "gzip", "gzip", "Hello!")
+    }
+
+    @Test
+    fun testCompressionRespondObjectWithIdentity(): Unit = withTestApplication {
+        application.install(Compression)
+
+        application.routing {
+            get("/") {
+                call.respond(object: OutgoingContent.ByteArrayContent() {
+                    override val headers: Headers
+                        get() = Headers.build {
+                            appendAll(super.headers)
+                            append(HttpHeaders.ContentEncoding, "identity")
+                        }
+
+                    override fun bytes(): ByteArray = "Hello!".toByteArray()
+                })
+            }
+        }
+
+        handleAndAssert("/", "gzip", "identity", "Hello!")
+    }
+
     private fun TestApplicationEngine.handleAndAssert(url: String, acceptHeader: String?, expectedEncoding: String?, expectedContent: String): TestApplicationCall {
         val result = handleRequest(HttpMethod.Get, url) {
             if (acceptHeader != null) {
@@ -441,7 +479,8 @@ class CompressionTest {
             when (expectedEncoding) {
                 "gzip" -> assertEquals(expectedContent, result.response.readGzip())
                 "deflate" -> assertEquals(expectedContent, result.response.readDeflate())
-                else -> fail("unknown encoding $expectedContent")
+                "identity" -> assertEquals(expectedContent, result.response.readIdentity())
+                else -> fail("unknown encoding $expectedEncoding")
             }
         } else {
             assertNull(result.response.headers[HttpHeaders.ContentEncoding], "content shouldn't be compressed")
@@ -452,6 +491,7 @@ class CompressionTest {
         return result
     }
 
+    private fun TestApplicationResponse.readIdentity() = byteContent!!.inputStream().reader().readText()
     private fun TestApplicationResponse.readDeflate() = InflaterInputStream(byteContent!!.inputStream(), Inflater(true)).reader().readText()
     private fun TestApplicationResponse.readGzip() = GZIPInputStream(byteContent!!.inputStream()).reader().readText()
 }
