@@ -4,14 +4,14 @@ import io.ktor.http.*
 import java.time.*
 import java.time.temporal.*
 
-@Deprecated("Use respondText/respondBytes with content type or send respond object with the specified content type")
-fun ApplicationResponse.contentType(value: ContentType) = @Suppress("DEPRECATION") contentType(value.toString())
+@Deprecated("Use respondText/respondBytes with content type or send respond object with the specified content type", level = DeprecationLevel.ERROR)
+fun ApplicationResponse.contentType(value: ContentType): Unit = throw UnsafeHeaderException(HttpHeaders.ContentType)
 
-@Deprecated("Use respondText/respondBytes with content type or send respond object with the specified content type")
-fun ApplicationResponse.contentType(value: String) = headers.append(HttpHeaders.ContentType, value)
+@Deprecated("Use respondText/respondBytes with content type or send respond object with the specified content type", level = DeprecationLevel.ERROR)
+fun ApplicationResponse.contentType(value: String): Unit = throw UnsafeHeaderException(HttpHeaders.ContentType)
 
-@Deprecated("Use respondText/respondBytes or send respond object with the specified content length")
-fun ApplicationResponse.contentLength(length: Long) = header(HttpHeaders.ContentLength, length)
+@Deprecated("Use respondText/respondBytes or send respond object with the specified content length", level = DeprecationLevel.ERROR)
+fun ApplicationResponse.contentLength(length: Long): Unit = throw UnsafeHeaderException(HttpHeaders.ContentType)
 
 fun ApplicationResponse.header(name: String, value: String) = headers.append(name, value)
 fun ApplicationResponse.header(name: String, value: Int) = headers.append(name, value.toString())
