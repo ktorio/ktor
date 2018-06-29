@@ -1,5 +1,7 @@
 package io.ktor.http
 
+import java.net.*
+
 class URLBuilder(
         var protocol: URLProtocol = URLProtocol.HTTP,
         var host: String = "localhost",
@@ -79,5 +81,8 @@ data class Url(
         val user: String?,
         val password: String?,
         val trailingQuery: Boolean
-)
+) {
+    override fun toString(): String = fullUrl
+}
 
+fun Url(fullUrl: String): Url = URLBuilder().apply { takeFrom(URI(fullUrl)) }.build()
