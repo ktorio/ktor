@@ -81,17 +81,3 @@ val Url.fullPath: String
     }
 
 val Url.hostWithPort: String get() = "$host:$port"
-val Url.hostWithPortIfRequired: String get() = if (port == protocol.defaultPort) host else hostWithPort
-val Url.fullUrl: String get() {
-    var full = "${protocol.name}://"
-    if (user != null) {
-        full += "$user"
-        if (password != null) {
-            full += ":$password"
-        }
-        full += "@"
-    }
-    full += "$hostWithPortIfRequired$fullPath"
-    if (fragment.isNotEmpty()) full += "#$fragment"
-    return full
-}

@@ -82,7 +82,32 @@ data class Url(
         val password: String?,
         val trailingQuery: Boolean
 ) {
-    override fun toString(): String = fullUrl
+    companion object {
+        operator fun invoke(fullUrl: String): Url = URLBuilder().apply { takeFrom(URI(fullUrl)) }.build()
+    }
+
+    override fun toString(): String = buildString {
+        append(protocol.name)
+        append("://")
+        if (user != null) {
+            append(user)
+            if (password != null) {
+                append(':')
+                append(password)
+            }
+            append('@')
+        }
+        if (port == protocol.defaultPort) {
+            append(host)
+        } else {
+            append(hostWithPort)
+        }
+        append(fullPath)
+        if (fragment.isNotEmpty()) {
+            append('#')
+            append(fragment)
+        }
+    }
 }
 
-fun Url(fullUrl: String): Url = URLBuilder().apply { takeFrom(URI(fullUrl)) }.build()
+

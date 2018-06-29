@@ -19,8 +19,7 @@ class UrlTest {
         assertEquals(null, url.user)
         assertEquals(null, url.password)
         assertEquals(false, url.trailingQuery)
-        assertEquals(urlString, url.toString())
-        assertEquals(urlString, url.fullUrl)
+        assertEquals(urlString, "$url")
     }
 
     @Test
@@ -31,7 +30,7 @@ class UrlTest {
         assertEquals(8080, url.port)
         assertEquals("user", url.user)
         assertEquals("password", url.password)
-        assertEquals(urlString, url.fullUrl)
+        assertEquals(urlString, "$url")
     }
 
     @Test
@@ -42,6 +41,6 @@ class UrlTest {
         assertEquals(8080, url.port)
         assertEquals("user", url.user)
         assertEquals(null, url.password)
-        assertEquals(urlString, url.fullUrl)
+        assertEquals(urlString, "$url")
     }
 }
