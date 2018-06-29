@@ -824,8 +824,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     fun testReceiveInputStream() {
         createAndStartServer {
             post("/") {
-                @Suppress("DEPRECATION")
-                call.respond(call.request.receiveContent().inputStream().reader().readText())
+                call.respond(call.receive<InputStream>().reader().readText())
             }
         }
 

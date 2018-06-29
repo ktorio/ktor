@@ -82,9 +82,6 @@ class TestApplicationRequest(
     }
 
     override fun receiveChannel(): ByteReadChannel = bodyChannel
-
-    @Deprecated(message = "TestApplicationEngine no longer supports IncomingContent", level = DeprecationLevel.ERROR)
-    override fun receiveContent(): @Suppress("DEPRECATION") IncomingContent = error("TestApplicationEngine no longer supports IncomingContent")
 }
 
 fun TestApplicationRequest.setBody(value: String) {

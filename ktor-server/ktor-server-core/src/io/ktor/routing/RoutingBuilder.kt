@@ -3,6 +3,7 @@ package io.ktor.routing
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.pipeline.*
+import io.ktor.request.*
 
 /**
  * Builds a route to match specified [path]
@@ -103,6 +104,16 @@ fun Route.get(body: PipelineInterceptor<Unit, ApplicationCall>): Route {
 @ContextDsl
 fun Route.post(path: String, body: PipelineInterceptor<Unit, ApplicationCall>): Route {
     return route(path, HttpMethod.Post) { handle(body) }
+}
+
+@ContextDsl
+@JvmName("postTyped")
+inline fun <reified R : Any> Route.post(path: String, crossinline body: suspend PipelineContext<Unit, ApplicationCall>.(R) -> Unit): Route {
+    return route(path, HttpMethod.Post) {
+        handle {
+            body(call.receive())
+        }
+    }
 }
 
 /**

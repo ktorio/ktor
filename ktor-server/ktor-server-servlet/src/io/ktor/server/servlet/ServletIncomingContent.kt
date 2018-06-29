@@ -5,9 +5,10 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import kotlinx.coroutines.experimental.*
 
+@Deprecated("IncomingContent is no longer supported", level = DeprecationLevel.ERROR)
 abstract class ServletIncomingContent(
     protected val request: ServletApplicationRequest
-) : @Suppress("DEPRECATION") IncomingContent {
+) : @Suppress("DEPRECATION_ERROR") IncomingContent {
     override val headers: Headers = request.headers
     override fun multiPartData(): MultiPartData = CIOMultipartDataBase(
             Unconfined,

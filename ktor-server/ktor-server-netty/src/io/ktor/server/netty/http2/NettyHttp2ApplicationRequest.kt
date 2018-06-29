@@ -32,9 +32,6 @@ internal class NettyHttp2ApplicationRequest(
     override val cookies: RequestCookies
         get() = throw UnsupportedOperationException()
 
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION")
-    override fun receiveContent() = NettyHttpIncomingContent(this)
-
     override fun newDecoder(): HttpPostMultipartRequestDecoder {
         val hh = DefaultHttpHeaders(false)
         for ((name, value) in nettyHeaders) {

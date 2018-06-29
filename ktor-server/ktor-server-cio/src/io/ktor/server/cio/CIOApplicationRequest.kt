@@ -11,8 +11,7 @@ class CIOApplicationRequest(call: ApplicationCall,
                             private val input: ByteReadChannel,
                             private val request: Request) : BaseApplicationRequest(call) {
     override val cookies: RequestCookies by lazy(LazyThreadSafetyMode.NONE) { RequestCookies(this) }
-    @Suppress("OverridingDeprecatedMember")
-    override fun receiveContent() = CIOIncomingContent(input, request.headers, this)
+
     override fun receiveChannel() = input
     override val headers: Headers = CIOHeaders(request.headers)
 

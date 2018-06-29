@@ -9,7 +9,6 @@ import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.multipart.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
-import java.util.concurrent.atomic.*
 
 abstract class NettyApplicationRequest(
         call: ApplicationCall,
@@ -29,13 +28,9 @@ abstract class NettyApplicationRequest(
 
     override val cookies: RequestCookies = NettyApplicationRequestCookies(this)
 
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION")
-    override fun receiveContent() = NettyHttpIncomingContent(this)
     override fun receiveChannel() = requestBodyChannel
 
-    internal val contentChannelState = AtomicReference<ReadChannelState>(ReadChannelState.NEUTRAL)
-    internal val contentChannel = requestBodyChannel
-    internal val contentMultipart = lazy {
+    private val contentMultipart = lazy {
         if (!isMultipart())
             throw IOException("The request content is not multipart encoded")
         val decoder = newDecoder()
@@ -48,11 +43,5 @@ abstract class NettyApplicationRequest(
         if (contentMultipart.isInitialized()) {
             contentMultipart.value.destroy()
         }
-    }
-
-    internal enum class ReadChannelState {
-        NEUTRAL,
-        RAW_CHANNEL,
-        MULTIPART_HANDLER
     }
 }

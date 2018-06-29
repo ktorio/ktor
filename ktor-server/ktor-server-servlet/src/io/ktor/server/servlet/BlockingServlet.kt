@@ -25,16 +25,8 @@ private class BlockingServletApplicationRequest(
     call: ApplicationCall,
     servletRequest: HttpServletRequest
 ) : ServletApplicationRequest(call, servletRequest) {
-    @Suppress("OverridingDeprecatedMember", "DEPRECATION")
-    override fun receiveContent(): IncomingContent = BlockingServletIncomingContent(this)
-    override fun receiveChannel() = servletRequest.inputStream.toByteReadChannel()
-}
 
-private class BlockingServletIncomingContent(
-    request: BlockingServletApplicationRequest
-) : ServletIncomingContent(request) {
-    override fun readChannel(): ByteReadChannel = inputStream().toByteReadChannel()
-    override fun inputStream(): InputStream = request.servletRequest.inputStream
+    override fun receiveChannel() = servletRequest.inputStream.toByteReadChannel()
 }
 
 private class BlockingServletApplicationResponse(

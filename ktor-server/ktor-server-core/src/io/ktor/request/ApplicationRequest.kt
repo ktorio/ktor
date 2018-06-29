@@ -40,9 +40,11 @@ interface ApplicationRequest {
      */
     val cookies: RequestCookies
 
-    @Suppress("DEPRECATION")
-    @Deprecated("Use receive<type>() instead")
-    fun receiveContent(): IncomingContent
+    @Suppress("DEPRECATION_ERROR")
+    @Deprecated("Use receive<type>() instead",
+            level = DeprecationLevel.ERROR,
+            replaceWith = ReplaceWith("receive<T>()"))
+    fun receiveContent(): IncomingContent = throw UnsupportedOperationException("IncomingContent is no longer supported")
 
     fun receiveChannel(): ByteReadChannel
 }
