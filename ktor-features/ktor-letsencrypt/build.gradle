@@ -1,0 +1,14 @@
+description = ''
+dependencies {
+    compile project(':ktor-features:ktor-auth')
+    compile project(":ktor-server:ktor-server-core")
+    compile project(":ktor-server:ktor-server-host-common")
+    compile project(":ktor-network-tls")
+
+    compile "org.shredzone.acme4j:acme4j-client:$acme4j_version"
+    compile "org.shredzone.acme4j:acme4j-utils:$acme4j_version"
+
+    testCompile project(":ktor-server:ktor-server-test-host")
+    testCompile project(":ktor-server:ktor-server-netty")
+    testCompile "ch.qos.logback:logback-classic:$logback_version"
+}

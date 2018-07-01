@@ -8,6 +8,7 @@ import io.netty.channel.*
 import io.netty.channel.nio.*
 import io.netty.channel.socket.nio.*
 import kotlinx.coroutines.experimental.*
+import java.net.*
 import java.util.concurrent.*
 
 /**
@@ -68,22 +69,45 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
 
 
     private var channels: List<Channel>? = null
-    private val bootstraps = environment.connectors.map { connector ->
-        ServerBootstrap().apply {
-            configuration.configureBootstrap(this)
-            group(connectionEventGroup, workerEventGroup)
-            channel(NioServerSocketChannel::class.java)
-            childHandler(
-                NettyChannelInitializer(
-                    pipeline, environment,
-                    callEventGroup, engineDispatcherWithShutdown, dispatcherWithShutdown,
-                    connector,
-                    configuration.requestQueueLimit,
-                    configuration.runningLimit,
-                    configuration.responseWriteTimeoutSeconds
-                )
+    private val bootstraps = environment.connectors.map { it.nettyBootstrap() }
+
+    fun EngineConnectorConfig.nettyBootstrap() = ServerBootstrap().apply {
+        configuration.configureBootstrap(this)
+        group(connectionEventGroup, workerEventGroup)
+        channel(NioServerSocketChannel::class.java)
+        childHandler(
+            NettyChannelInitializer(
+                pipeline, environment,
+                callEventGroup, engineDispatcherWithShutdown, dispatcherWithShutdown,
+                this@nettyBootstrap,
+                configuration.requestQueueLimit,
+                configuration.runningLimit,
+                configuration.responseWriteTimeoutSeconds
             )
+        )
+    }
+
+    val disposeListenConnector = environment.monitor.subscribe(RequestUpdateConnectors) { update ->
+        val updatedEndpoints = update.all.map { it.host + ":" + it.port }.toSet()
+
+        val updatedChannels = arrayListOf<Channel>()
+
+        for (channel in channels ?: listOf()) {
+            val addr = channel.localAddress() as? InetSocketAddress ?: continue
+            val endpointString = addr.address?.hostAddress + ":" + addr.port
+            if (endpointString in updatedEndpoints) {
+                // @TODO: We might be able to update certificates without closing?
+                channel.close()
+            } else {
+                updatedChannels += channel
+            }
         }
+
+        for (connector in update.connect) {
+            updatedChannels += connector.nettyBootstrap().bind(connector.host, connector.port).sync().channel()
+        }
+
+        this.channels = updatedChannels.toList()
     }
 
     override fun start(wait: Boolean): NettyApplicationEngine {
@@ -100,6 +124,7 @@ class NettyApplicationEngine(environment: ApplicationEngineEnvironment, configur
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+        disposeListenConnector.dispose()
         environment.monitor.raise(ApplicationStopPreparing, environment)
         val channelFutures = channels?.map { it.close() }.orEmpty()
 

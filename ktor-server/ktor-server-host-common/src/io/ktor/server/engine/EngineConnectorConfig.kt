@@ -1,5 +1,6 @@
 package io.ktor.server.engine
 
+import io.ktor.application.*
 import java.io.*
 import java.security.*
 
@@ -55,6 +56,12 @@ interface EngineSSLConnectorConfig : EngineConnectorConfig {
     val keyStorePassword: () -> CharArray
     val privateKeyPassword: () -> CharArray
 }
+
+class UpdateConnectors(val connect: Iterable<EngineConnectorConfig>, val disconnect: Iterable<EngineConnectorConfig>) {
+    val all by lazy { connect + disconnect }
+}
+
+val RequestUpdateConnectors = EventDefinition<UpdateConnectors>()
 
 /**
  * Adds a non-secure connector to this engine environment
