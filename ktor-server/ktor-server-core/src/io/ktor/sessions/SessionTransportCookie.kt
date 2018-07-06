@@ -54,4 +54,22 @@ class CookieConfiguration {
     var secure: Boolean = false
     var httpOnly: Boolean = false
     val extensions: MutableMap<String, String?> = mutableMapOf()
+
+    enum class SameSite { STRICT, LAX }
+
+    companion object {
+        private val SameSiteExt = "SameSite"
+    }
+
+    var sameSite: SameSite?
+        get() = extensions[SameSiteExt]?.run {
+            SameSite.values().firstOrNull { it.name.equals(this, ignoreCase = true) }
+        }
+        set(value) {
+            if (value == null) {
+                extensions.remove(SameSiteExt)
+            } else {
+                extensions[SameSiteExt] = value.name.toLowerCase()
+            }
+        }
 }
