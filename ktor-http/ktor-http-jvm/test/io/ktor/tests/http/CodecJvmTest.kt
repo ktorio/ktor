@@ -21,7 +21,7 @@ class CodecJvmTest {
             }
 
             try {
-                decodeURLQueryComponent(String(sb))
+                String(sb).decodeURLQueryComponent()
             } catch (ignore: URLDecodeException) {
             } catch (t: Throwable) {
                 fail("Failed at ${String(sb)}")

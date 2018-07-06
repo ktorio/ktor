@@ -26,7 +26,7 @@ fun ApplicationCall.resolveResource(path: String,
     for (url in classLoader.getResources(normalizedResource).asSequence()) {
         when (url.protocol) {
             "file" -> {
-                val file = File(decodeURLPart(url.path))
+                val file = File(url.path.decodeURLPart())
                 return if (file.isFile) LocalFileContent(file, mimeResolve(file.extension)) else null
             }
             "jar" -> {
@@ -52,7 +52,7 @@ internal fun findContainingJarFile(url: String): File {
         val jarPathSeparator = url.indexOf("!", startIndex = 9)
         require(jarPathSeparator != -1) { "Jar path requires !/ separator but it is: $url" }
 
-        return File(decodeURLPart(url.substring(9, jarPathSeparator)))
+        return File(url.substring(9, jarPathSeparator).decodeURLPart())
     }
 
     throw IllegalArgumentException("Only local jars are supported (jar:file:)")

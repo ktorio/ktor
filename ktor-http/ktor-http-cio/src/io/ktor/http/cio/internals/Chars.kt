@@ -103,7 +103,7 @@ internal fun ByteBuffer.writeIntHex(value: Int): Int {
     return zeroes
 }
 
-internal fun BufferView.writeIntHex(value: Int) {
+internal fun IoBuffer.writeIntHex(value: Int) {
     require(value > 0) { "Does only work for positive numbers" } // zero is not included!
     var current = value
     val table = HexLetterTable

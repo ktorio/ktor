@@ -3,8 +3,10 @@ package io.ktor.http
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 
+private val URL_ALPHABET = (('a'..'z') + ('A'..'Z') + ('0'..'9')).map { it.toByte() }
+
 /**
-https://tools.ietf.org/html/rfc3986#section-2
+ * https://tools.ietf.org/html/rfc3986#section-2
  */
 private val URL_PROTOCOL_PART = listOf(
     ':', '/', '?', '#', '[', ']', '@',  // general
@@ -12,18 +14,22 @@ private val URL_PROTOCOL_PART = listOf(
     '-', '.', '_', '~', '+' // unreserved
 ).map { it.toByte() }
 
-private val URL_ALPHABET = (('a'..'z') + ('A'..'Z') + ('0'..'9')).map { it.toByte() }
+/**
+ * Oauth specific percent encoding
+ * https://tools.ietf.org/html/rfc5849#section-3.6
+ */
+private val OAUTH_SYMBOLS = listOf('-', '.', '_', '~').map { it.toByte() }
+
 /**
  * Encode url part as specified in
  * https://tools.ietf.org/html/rfc3986#section-2
  */
-fun encodeURLQueryComponent(
-    part: String,
+fun String.encodeURLQueryComponent(
     encodeFull: Boolean = false,
     spaceToPlus: Boolean = false,
     charset: Charset = Charsets.UTF_8
 ): String = buildString {
-    val content = charset.newEncoder().encode(part)
+    val content = charset.newEncoder().encode(this@encodeURLQueryComponent)
     content.forEach {
         when {
             it == ' '.toByte() -> if (spaceToPlus) append('+') else append("%20")
@@ -33,38 +39,52 @@ fun encodeURLQueryComponent(
     }
 }
 
+/**
+ * Encode [this] in percent encoding specified here:
+ * https://tools.ietf.org/html/rfc5849#section-3.6
+ */
+fun String.encodeOAuth(): String = encodeURLParameter(encodePlus = true)
 
 /**
- * Encode url-part string. Using url-parts, doesn't change url structure
+ * Encode [this] as query parameter
  */
-fun encodeURLPart(part: String): String = encodeURLQueryComponent(part, encodeFull = true)
-
-fun decodeURLQueryComponent(
-    text: CharSequence,
-    start: Int = 0, end: Int = text.length,
-    charset: Charset = Charsets.UTF_8
-): String = decodeScan(text, start, end, false, charset)
-
-fun decodeURLPart(
-    text: String,
-    start: Int = 0, end: Int = text.length,
-    charset: Charset = Charsets.UTF_8
-): String = decodeScan(text, start, end, false, charset)
-
-private fun decodeScan(text: CharSequence, start: Int, end: Int, plusIsSpace: Boolean, charset: Charset): String {
-    for (index in start until end) {
-        val ch = text[index]
-        if (ch == '%' || (plusIsSpace && ch == '+')) {
-            return decodeImpl(text, start, end, index, plusIsSpace, charset)
+fun String.encodeURLParameter(
+    encodePlus: Boolean = true,
+    spaceToPlus: Boolean = false
+): String = buildString {
+    val content = Charsets.UTF_8.newEncoder().encode(this@encodeURLParameter)
+    content.forEach {
+        when {
+            it in URL_ALPHABET || it in OAUTH_SYMBOLS -> append(it.toChar())
+            !encodePlus && it == '+'.toByte() -> append('+')
+            spaceToPlus && it == ' '.toByte() -> append('+')
+            else -> append(it.percentEncode())
         }
     }
-    if (start == 0 && end == text.length)
-        return text.toString()
-    return text.substring(start, end)
 }
 
-private fun decodeImpl(
-    text: CharSequence,
+fun CharSequence.decodeURLQueryComponent(
+    start: Int = 0, end: Int = length,
+    plusIsSpace: Boolean = false,
+    charset: Charset = Charsets.UTF_8
+): String = decodeScan(start, end, plusIsSpace, charset)
+
+fun String.decodeURLPart(
+    start: Int = 0, end: Int = length,
+    charset: Charset = Charsets.UTF_8
+): String = decodeScan(start, end, false, charset)
+
+private fun CharSequence.decodeScan(start: Int, end: Int, plusIsSpace: Boolean, charset: Charset): String {
+    for (index in start until end) {
+        val ch = this[index]
+        if (ch == '%' || (plusIsSpace && ch == '+')) {
+            return decodeImpl(start, end, index, plusIsSpace, charset)
+        }
+    }
+    return if (start == 0 && end == length) toString() else substring(start, end)
+}
+
+private fun CharSequence.decodeImpl(
     start: Int,
     end: Int,
     prefixEnd: Int,
@@ -77,7 +97,7 @@ private fun decodeImpl(
     val sb = StringBuilder(sbSize)
 
     if (prefixEnd > start) {
-        sb.append(text, start, prefixEnd)
+        sb.append(this, start, prefixEnd)
     }
 
     var index = prefixEnd
@@ -86,7 +106,7 @@ private fun decodeImpl(
     var bytes: ByteArray? = null
 
     while (index < end) {
-        val c = text[index]
+        val c = this[index]
         when {
             plusIsSpace && c == '+' -> {
                 sb.append(' ')
@@ -99,18 +119,18 @@ private fun decodeImpl(
 
                 // fill ByteArray with all the bytes, so Charset can decode text
                 var count = 0
-                while (index < end && text[index] == '%') {
+                while (index < end && this[index] == '%') {
                     if (index + 2 >= end) {
                         throw URLDecodeException(
-                            "Incomplete trailing HEX escape: ${text.substring(index)}, in $text at $index"
+                            "Incomplete trailing HEX escape: ${substring(index)}, in $this at $index"
                         )
                     }
 
-                    val digit1 = charToHexDigit(text[index + 1])
-                    val digit2 = charToHexDigit(text[index + 2])
+                    val digit1 = charToHexDigit(this[index + 1])
+                    val digit2 = charToHexDigit(this[index + 2])
                     if (digit1 == -1 || digit2 == -1) {
                         throw URLDecodeException(
-                            "Wrong HEX escape: %${text[index + 1]}${text[index + 2]}, in $text, at $index"
+                            "Wrong HEX escape: %${this[index + 1]}${this[index + 2]}, in $this, at $index"
                         )
                     }
 

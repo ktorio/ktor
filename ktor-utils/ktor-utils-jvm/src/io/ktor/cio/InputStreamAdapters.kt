@@ -4,7 +4,7 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.pool.*
 import java.io.*
-import java.nio.ByteBuffer
+import java.nio.*
 import kotlin.coroutines.experimental.*
 
 fun InputStream.toByteReadChannel(

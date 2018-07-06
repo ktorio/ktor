@@ -18,17 +18,17 @@ class URLBuilder(
     }
 
     fun path(components: List<String>) {
-        encodedPath = components.joinToString("/", prefix = "/") { encodeURLPart(it) }
+        encodedPath = components.joinToString("/", prefix = "/") { it.encodeURLQueryComponent() }
     }
 
     private fun <A : Appendable> appendTo(out: A): A {
         out.append(protocol.name)
         out.append("://")
-        user?.let { usr ->
-            out.append(encodeURLPart(usr))
-            password?.let { pwd ->
+        user?.let { user ->
+            out.append(user.encodeURLParameter())
+            password?.let { password ->
                 out.append(":")
-                out.append(encodeURLPart(pwd))
+                out.append(password.encodeURLParameter())
             }
             out.append("@")
         }
@@ -54,7 +54,7 @@ class URLBuilder(
 
         if (fragment.isNotEmpty()) {
             out.append('#')
-            out.append(encodeURLPart(fragment))
+            out.append(fragment.encodeURLQueryComponent())
         }
 
         return out

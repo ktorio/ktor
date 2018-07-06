@@ -10,10 +10,10 @@ fun String.parseUrlEncodedParameters(defaultEncoding: Charset = Charsets.UTF_8, 
 
     val charset = Charset.forName(encoding)
     return Parameters.build {
-        parameters.forEach {
+        parameters.forEach { (key, value) ->
             append(
-                decodeURLQueryComponent(it.first, charset = charset),
-                decodeURLQueryComponent(it.second, charset = charset)
+                key.decodeURLQueryComponent(charset = charset),
+                value.decodeURLQueryComponent(charset = charset)
             )
         }
     }
@@ -26,7 +26,12 @@ fun List<Pair<String, String?>>.formUrlEncode(): String = StringBuilder().apply 
 fun List<Pair<String, String?>>.formUrlEncodeTo(out: Appendable) {
     filter { it.second != null }.joinTo(
         out, "&"
-    ) { "${encodeURLPart(it.first)}=${encodeURLPart(it.second.toString())}" }
+    ) {
+        val key = it.first.encodeURLParameter(encodePlus = true, spaceToPlus = true)
+        val value = it.second.toString().encodeURLParameter(encodePlus = true, spaceToPlus = true)
+
+        "$key=$value"
+    }
 }
 
 fun Parameters.formUrlEncode(): String = entries()

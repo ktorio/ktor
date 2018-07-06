@@ -324,7 +324,7 @@ private fun createOAuthServer(server: TestingOAuthServer): HttpClient {
                         return@post
                     }
 
-                    val callback = authHeader.parameter(HttpAuthHeader.Parameters.OAuthCallback)?.let { decodeURLPart(it) }
+                    val callback = authHeader.parameter(HttpAuthHeader.Parameters.OAuthCallback)?.decodeURLPart()
                     val consumerKey = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthConsumerKey)
                     val nonce = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthNonce)
                     val signatureMethod = authHeader.requireParameter(HttpAuthHeader.Parameters.OAuthSignatureMethod)
@@ -410,7 +410,7 @@ private suspend fun ApplicationCall.fail(text: String?) {
     respondText(message)
 }
 
-private fun HttpAuthHeader.Parameterized.requireParameter(name: String) = parameter(name)?.let { decodeURLPart(it) }
+private fun HttpAuthHeader.Parameterized.requireParameter(name: String): String = parameter(name)?.decodeURLPart()
         ?: throw IllegalArgumentException("No $name parameter specified in OAuth header")
 
 data class TestOAuthTokenResponse(val callbackConfirmed: Boolean, val token: String, val tokenSecret: String)

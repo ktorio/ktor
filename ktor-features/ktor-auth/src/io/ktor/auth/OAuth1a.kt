@@ -122,7 +122,7 @@ internal suspend fun ApplicationCall.redirectAuthenticateOAuth1a(
 
 internal suspend fun ApplicationCall.redirectAuthenticateOAuth1a(authenticateUrl: String, requestToken: String) {
     val url = authenticateUrl.appendUrlParameters(
-        "${HttpAuthHeader.Parameters.OAuthToken}=${encodeURLQueryComponent(requestToken)}"
+        "${HttpAuthHeader.Parameters.OAuthToken}=${requestToken.encodeURLParameter()}"
     )
     respondRedirect(url)
 }
@@ -232,7 +232,7 @@ fun signatureBaseString(
     baseUrl: String,
     parameters: List<HeaderValueParam>
 ): String = listOf(method.value.toUpperCase(), baseUrl, parametersString(header.parameters + parameters))
-    .joinToString("&") { it.percentEncode() }
+    .joinToString("&") { it.encodeURLParameter() }
 
 private fun String.hmacSha1(key: String): String {
     val keySpec = SecretKeySpec(key.toByteArray(), "HmacSHA1")
@@ -243,8 +243,6 @@ private fun String.hmacSha1(key: String): String {
 }
 
 private fun parametersString(parameters: List<HeaderValueParam>): String =
-    parameters.map { it.name.percentEncode() to it.value.percentEncode() }
+    parameters.map { it.name.encodeURLParameter() to it.value.encodeURLParameter() }
         .sortedWith(compareBy<Pair<String, String>> { it.first }.then(compareBy { it.second }))
         .joinToString("&") { "${it.first}=${it.second}" }
-
-private fun String.percentEncode(): String = encodeURLPart(this)

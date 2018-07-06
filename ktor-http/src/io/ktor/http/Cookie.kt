@@ -121,7 +121,7 @@ fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (e
         else -> value
     }
     CookieEncoding.BASE64_ENCODING -> value.encodeBase64()
-    CookieEncoding.URI_ENCODING -> encodeURLQueryComponent(value)
+    CookieEncoding.URI_ENCODING -> value.encodeURLQueryComponent(encodeFull = true, spaceToPlus = true)
 }
 
 fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String = when (encoding) {
@@ -130,7 +130,7 @@ fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String = 
             encodedValue.trim().removeSurrounding("\"")
         else -> encodedValue
     }
-    CookieEncoding.URI_ENCODING -> decodeURLQueryComponent(encodedValue)
+    CookieEncoding.URI_ENCODING -> encodedValue.decodeURLQueryComponent(plusIsSpace = true)
     CookieEncoding.BASE64_ENCODING -> encodedValue.decodeBase64()
 }
 

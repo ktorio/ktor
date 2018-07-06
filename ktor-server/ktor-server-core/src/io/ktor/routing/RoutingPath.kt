@@ -10,7 +10,7 @@ class RoutingPath private constructor(val parts: List<RoutingPathSegment>) {
             val segments = path.splitToSequence("/").filter { it.isNotEmpty() }.map { segment ->
                 when {
                     segment.contains('{') && segment.contains('}') -> RoutingPathSegment(segment, RoutingPathSegmentKind.Parameter)
-                    else -> RoutingPathSegment(decodeURLPart(segment), RoutingPathSegmentKind.Constant)
+                    else -> RoutingPathSegment(segment.decodeURLPart(), RoutingPathSegmentKind.Constant)
                 }
             }
 

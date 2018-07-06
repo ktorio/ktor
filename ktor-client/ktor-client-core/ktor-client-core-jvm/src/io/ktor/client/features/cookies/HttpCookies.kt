@@ -1,6 +1,5 @@
 package io.ktor.client.features.cookies
 
-import io.ktor.*
 import io.ktor.client.*
 import io.ktor.client.features.*
 import io.ktor.client.features.cookies.HttpCookies.*

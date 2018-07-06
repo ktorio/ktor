@@ -22,7 +22,7 @@ class CookiesTest {
         val cookies = parseClientCookiesHeader(rawCookies)
 
         assertEquals(2, cookies.size)
-        assertEquals(encodeURLPart("1,2,3,4"), cookies["first"])
+        assertEquals("1,2,3,4".encodeURLParameter(), cookies["first"])
         assertEquals("abc", cookies["second"])
 
         MockEngine.RESPONSE_OK(call, this)

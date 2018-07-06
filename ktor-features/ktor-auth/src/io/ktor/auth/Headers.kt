@@ -85,7 +85,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
         private fun String.encode(encoding: HeaderValueEncoding) = when (encoding) {
             HeaderValueEncoding.QUOTED_WHEN_REQUIRED -> escapeIfNeeded()
             HeaderValueEncoding.QUOTED_ALWAYS -> quote()
-            HeaderValueEncoding.URI_ENCODE -> encodeURLPart(this)
+            HeaderValueEncoding.URI_ENCODE -> encodeURLParameter()
         }
 
         override fun render(): String = render(encoding)

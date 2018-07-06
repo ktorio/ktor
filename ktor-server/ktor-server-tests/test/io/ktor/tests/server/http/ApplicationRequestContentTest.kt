@@ -31,12 +31,14 @@ class ApplicationRequestContentTest {
             val values = parametersOf("a", "1")
 
             application.intercept(ApplicationCallPipeline.Call) {
-                assertEquals(values, call.receiveParameters())
+                val actual = call.receiveParameters()
+                assertEquals(values, actual)
             }
 
             handleRequest(HttpMethod.Post, "") {
                 addHeader(HttpHeaders.ContentType, "application/x-www-form-urlencoded")
-                setBody(values.formUrlEncode())
+                val value = values.formUrlEncode()
+                setBody(value)
             }
         }
     }

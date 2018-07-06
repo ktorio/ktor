@@ -173,7 +173,7 @@ open class Locations(private val application: Application, private val routeServ
 
         val relativePath = substituteParts
             .filterNot { it.isEmpty() }
-            .joinToString("/") { encodeURLQueryComponent(it) }
+            .joinToString("/") { it.encodeURLQueryComponent() }
 
         val parentInfo = if (info.parent == null)
             rootUri
