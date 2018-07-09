@@ -26,6 +26,7 @@ include ':ktor-features:ktor-velocity'
 include ':ktor-features:ktor-gson'
 include ':ktor-features:ktor-jackson'
 include ':ktor-features:ktor-metrics'
+include ':ktor-features:ktor-server-ratelimits'
 include ':ktor-features:ktor-server-sessions'
 include ':ktor-features:ktor-locations'
 include ':ktor-features:ktor-websockets'
@@ -67,6 +68,7 @@ project(':ktor-features:ktor-velocity').projectDir = "$rootDir/ktor-features/kto
 project(':ktor-features:ktor-gson').projectDir = "$rootDir/ktor-features/ktor-gson" as File
 project(':ktor-features:ktor-jackson').projectDir = "$rootDir/ktor-features/ktor-jackson" as File
 project(':ktor-features:ktor-metrics').projectDir = "$rootDir/ktor-features/ktor-metrics" as File
+project(':ktor-features:ktor-server-ratelimits').projectDir = "$rootDir/ktor-features/ktor-server-ratelimits" as File
 project(':ktor-features:ktor-server-sessions').projectDir = "$rootDir/ktor-features/ktor-server-sessions" as File
 project(':ktor-features:ktor-locations').projectDir = "$rootDir/ktor-features/ktor-locations" as File
 project(':ktor-features:ktor-websockets').projectDir = "$rootDir/ktor-features/ktor-websockets" as File
