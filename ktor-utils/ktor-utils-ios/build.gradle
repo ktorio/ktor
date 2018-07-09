@@ -1,18 +1,4 @@
 
-konanArtifacts {
-    library('ktor_utils_ios') {
-        enableMultiplatform true
-
-        srcDir 'src'
-
-        dependencies {
-            artifactktor_utils_ios "org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutines_version"
-            artifactktor_utils_ios "org.jetbrains.kotlinx:kotlinx_io_native:$kotlinx_io_version"
-            artifactktor_utils_ios "org.jetbrains.kotlinx:kotlinx_coroutines_io_native:$kotlinx_io_version"
-        }
-    }
-}
-
 dependencies {
     expectedBy project(':ktor-utils')
 }

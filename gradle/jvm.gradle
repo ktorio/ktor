@@ -1,9 +1,14 @@
-apply plugin: 'kotlin-platform-jvm'
 
-apply plugin: 'maven'
-apply plugin: 'maven-publish'
-apply plugin: 'com.jfrog.bintray'
-apply plugin: 'java'
+sourceSets {
+    main {
+        kotlin.srcDir 'src'
+        resources.srcDir 'resources'
+    }
+    test {
+        kotlin.srcDir 'test'
+        resources.srcDir 'test-resources'
+    }
+}
 
 task jarTest(type: Jar, dependsOn: testClasses) {
     from sourceSets.test.output
@@ -34,50 +39,6 @@ artifacts.archives packageSources
 configurations {
     testOutput.extendsFrom(testCompile)
     boot
-}
-
-def skipDokka = project.path.contains("ktor-samples") || project == rootProject || project.name in dokkaExcludes
-if (!skipDokka) {
-    apply from: rootProject.file('gradle/dokka.gradle')
-}
-
-publishing {
-    if (publishLocal) {
-        repositories {
-            maven {
-                url globalM2
-            }
-        }
-    }
-
-    publications {
-        mavenProject(MavenPublication) {
-            from components.java
-            groupId project.group
-            artifactId project.name
-            version project.version
-
-            artifact packageSources {
-                classifier 'sources'
-            }
-
-            if (!skipDokka) {
-                artifact javadocJar {
-                    classifier 'javadoc'
-                }
-
-                artifact dokkaJar {
-                    classifier 'kdoc'
-                }
-            }
-        }
-    }
-}
-
-def skipUpload = project.path.contains("ktor-samples")
-
-if (!skipUpload) {
-    apply from: rootProject.file("gradle/bintray.gradle")
 }
 
 sourceCompatibility = 1.8

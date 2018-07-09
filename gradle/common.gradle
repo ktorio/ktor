@@ -1,4 +1,13 @@
-apply plugin: 'kotlin-platform-common'
+sourceSets {
+    main {
+        kotlin.srcDir 'src'
+        resources.srcDir 'resources'
+    }
+    test {
+        kotlin.srcDir 'test'
+        resources.srcDir 'test-resources'
+    }
+}
 
 dependencies {
     compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-common', version: kotlin_version

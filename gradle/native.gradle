@@ -1,16 +1,25 @@
-apply plugin: 'konan'
 
-konan.targets = ['ios_x64', 'ios_arm64']
-
-repositories {
-    maven { url = 'https://dl.bintray.com/e5l/kotlinx-io-test' }
+sourceSets {
+    main {
+        kotlin.srcDir 'src'
+        component {
+            target 'ios_arm64', 'ios_x64'
+            outputKinds = [KLIBRARY]
+            extraOpts '--disable', 'devirtualization'
+        }
+    }
+    test {
+        kotlin.srcDir 'test'
+        component {
+            target 'ios_arm64', 'ios_x64'
+            extraOpts '--disable', 'devirtualization'
+        }
+    }
 }
 
-//afterEvaluate {
-//    apply from: rootProject.file('gradle/publish.gradle')
-//}
-//
-//apply from: rootProject.file('gradle/bintray.gradle')
-//
-//
-//task test(dependsOn: run)
+dependencies {
+    implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-native', version: coroutines_version
+    implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-native', version: kotlinx_io_version
+    implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-native', version: kotlinx_io_version
+}
+

@@ -1,21 +1,6 @@
-konan.targets = ["ios_arm64", "ios_x64"]
-
-konanArtifacts {
-    library('ktor_http_ios') {
-        enableMultiplatform true
-
-        srcDir 'src'
-
-        libraries {
-            artifact project(':ktor-utils:ktor-utils-ios'), 'ktor_utils_ios'
-        }
-
-        dependencies {
-            artifactktor_http_ios "org.jetbrains.kotlinx:kotlinx_io_native:$kotlinx_io_version"
-        }
-    }
-}
 
 dependencies {
     expectedBy project(':ktor-http')
+
+    implementation project(':ktor-utils:ktor-utils-ios')
 }

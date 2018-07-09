@@ -1,19 +1,4 @@
-konan.targets = ["ios_arm64", "ios_x64"]
 
-konanArtifacts {
-    library('ktor_client_ios') {
-        enableMultiplatform true
-
-        srcDir 'src'
-
-        libraries {
-            artifact project(':ktor-client:ktor-client-core:ktor-client-core-ios'), 'ktor_client_core_ios'
-        }
-
-        dependencies {
-            artifactktor_client_ios "org.jetbrains.kotlinx:kotlinx-coroutines-core-native:$coroutines_version"
-            artifactktor_client_ios "org.jetbrains.kotlinx:kotlinx_io_native:$kotlinx_io_version"
-            artifactktor_client_ios "org.jetbrains.kotlinx:kotlinx_coroutines_io_native:$kotlinx_io_version"
-        }
-    }
+dependencies {
+    implementation project(':ktor-client:ktor-client-core:ktor-client-core-ios')
 }
