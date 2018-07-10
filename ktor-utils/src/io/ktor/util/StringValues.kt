@@ -126,7 +126,9 @@ open class StringValuesImpl(
     override fun names(): Set<String> = values.keys.unmodifiable()
     override fun isEmpty(): Boolean = values.isEmpty()
     override fun entries(): Set<Map.Entry<String, List<String>>> = values.entries.unmodifiable()
-    override fun forEach(body: (String, List<String>) -> Unit) = values.forEach(body)
+    override fun forEach(body: (String, List<String>) -> Unit) {
+        for ((key, value) in values) body(key, value)
+    }
 
     private fun listForKey(name: String): List<String>? = values[name]
     override fun toString() = "StringValues(case=${!caseInsensitiveName}) ${entries()}"

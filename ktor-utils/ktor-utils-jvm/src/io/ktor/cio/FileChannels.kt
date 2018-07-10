@@ -68,7 +68,7 @@ fun File.readChannel(
 
 fun File.writeChannel(pool: ObjectPool<ByteBuffer> = KtorDefaultPool): ByteWriteChannel = reader(Unconfined, autoFlush = true) {
     RandomAccessFile(this@writeChannel, "rw").use { file ->
-        pool.use { buffer ->
+        pool.useBorrowed { buffer ->
             while (!channel.isClosedForRead) {
                 buffer.clear()
                 channel.readAvailable(buffer)

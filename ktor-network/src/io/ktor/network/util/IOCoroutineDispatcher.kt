@@ -2,6 +2,7 @@ package io.ktor.network.util
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.internal.*
+import kotlinx.io.core.Closeable
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*

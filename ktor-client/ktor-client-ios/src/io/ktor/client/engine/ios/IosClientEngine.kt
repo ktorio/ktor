@@ -26,14 +26,17 @@ class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientE
         val request = DefaultHttpRequest(call, data)
 
         val delegate = object : NSObject(), NSURLSessionDataDelegateProtocol {
-            val chunks = Channel<NSData>(Channel.UNLIMITED)
+            val chunks = Channel<ByteArray>(Channel.UNLIMITED)
 
             override fun URLSession(session: NSURLSession, dataTask: NSURLSessionDataTask, didReceiveData: NSData) {
-                if (!chunks.offer(didReceiveData)) throw IosHttpRequestException()
+                val content = didReceiveData.toByteArray()
+                if (!chunks.offer(content)) throw IosHttpRequestException()
             }
 
             override fun URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError: NSError?) {
+                chunks.close()
                 val response = task.response as NSHTTPURLResponse
+
                 if (didCompleteWithError != null) {
                     continuation.resumeWithException(IosHttpRequestException(didCompleteWithError))
                 }
@@ -46,10 +49,10 @@ class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientE
                     headersDict.mapKeys { (key, value) -> append(key, value) }
                 }
 
-                val responseContext = writer(dispatcher) {
-                    while (chunks.isClosedForReceive) {
+                val responseContext = writer(dispatcher, autoFlush = true) {
+                    while (!chunks.isClosedForReceive) {
                         val chunk = chunks.receive()
-                        channel.writeFully(chunk.toByteArray())
+                        channel.writeFully(chunk)
                     }
                 }
 
@@ -63,10 +66,12 @@ class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientE
             delegate, delegateQueue = NSOperationQueue.mainQueue()
         )
 
-        val url = request.url.toString()
+        val url = URLBuilder().takeFrom(request.url).buildString()
         val nativeRequest = NSMutableURLRequest.requestWithURL(NSURL(string = url))
+        val headers = request.headers
+        val entries = headers.entries()
 
-        request.headers.forEach { key, values ->
+        entries.forEach { (key, values) ->
             values.forEach { nativeRequest.setValue(it, key) }
         }
 

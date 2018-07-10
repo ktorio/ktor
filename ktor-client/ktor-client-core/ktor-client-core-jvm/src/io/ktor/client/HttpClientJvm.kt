@@ -4,10 +4,10 @@ import io.ktor.client.engine.*
 import java.util.*
 
 
-fun HttpClient(
-    useDefaultTransformers: Boolean = true,
-    block: HttpClientConfig.() -> Unit = {}
-) = HttpClient(findAvailableFactory(), useDefaultTransformers, block)
+actual fun HttpClient(
+    useDefaultTransformers: Boolean,
+    block: HttpClientConfig.() -> Unit
+): HttpClient = HttpClient(findAvailableFactory(), useDefaultTransformers, block)
 
 interface HttpClientEngineContainer {
     val factory: HttpClientEngineFactory<*>
@@ -15,4 +15,3 @@ interface HttpClientEngineContainer {
 
 internal fun findAvailableFactory(): HttpClientEngineFactory<*> =
     ServiceLoader.load(HttpClientEngineContainer::class.java).toList().first().factory
-

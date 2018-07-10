@@ -91,7 +91,7 @@ internal fun endPointWriter(
         endPoint: EndPoint,
         pool: ObjectPool<ByteBuffer> = JettyWebSocketPool
 ): ByteWriteChannel = reader(Unconfined, autoFlush = true) {
-    pool.use { buffer ->
+    pool.useBorrowed { buffer ->
         endPoint.use { endPoint ->
             while (!channel.isClosedForRead) {
                 buffer.clear()

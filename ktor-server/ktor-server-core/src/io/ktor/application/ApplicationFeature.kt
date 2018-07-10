@@ -2,6 +2,7 @@ package io.ktor.application
 
 import io.ktor.pipeline.*
 import io.ktor.util.*
+import kotlinx.io.core.*
 
 /**
  * Defines an installable Application Feature
@@ -97,7 +98,7 @@ fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.uninstall(feature: Ap
 fun <A : Pipeline<*, ApplicationCall>, F : Any> A.uninstallFeature(key: AttributeKey<F>) {
     val registry = attributes.getOrNull(featureRegistryKey) ?: return
     val instance = registry.getOrNull(key) ?: return
-    if (instance is AutoCloseable)
+    if (instance is Closeable)
         instance.close()
     registry.remove(key)
 }

@@ -73,7 +73,7 @@ suspend fun encodeChunked(output: ByteWriteChannel, coroutineContext: CoroutineC
 
 suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
     val buffer = DefaultByteBufferPool.borrow()
-    val view = BufferView.Pool.borrow()
+    val view = IoBuffer.Pool.borrow()
     view.byteOrder = ByteOrder.BIG_ENDIAN
 
     try {
@@ -107,7 +107,7 @@ suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
     } finally {
         output.flush()
         DefaultByteBufferPool.recycle(buffer)
-        view.release(BufferView.Pool)
+        view.release(IoBuffer.Pool)
     }
 }
 

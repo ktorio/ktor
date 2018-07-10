@@ -3,11 +3,11 @@ package io.ktor.client.response
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.http.*
-import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
+import kotlinx.io.core.Closeable
 
 /**
  * A response for [HttpClient], second part of [HttpClientCall].
@@ -60,6 +60,8 @@ interface HttpResponse : HttpMessage, Closeable {
  *      So it just acts as a fallback, honoring the server preference.
  */
 suspend fun HttpResponse.readText(charset: Charset? = null): String {
-    val packet = content.readRemaining(Long.MAX_VALUE).readBytes()
-    return String(packet, charset = charset() ?: charset ?: Charset.forName("ISO_8859_1"))
+    val packet = content.readRemaining(Long.MAX_VALUE)
+    println("readText remaining: ${packet.remaining}")
+    val actualCharset = charset() ?: charset ?: Charset.forName("ISO_8859_1")
+    return packet.readText(charset = actualCharset)
 }

@@ -6,3 +6,5 @@ object Ios : HttpClientEngineFactory<HttpClientEngineConfig> {
     override fun create(block: HttpClientEngineConfig.() -> Unit): HttpClientEngine =
         IosClientEngine(HttpClientEngineConfig().apply(block))
 }
+
+fun IosClient(): HttpClientEngineFactory<HttpClientEngineConfig> = Ios

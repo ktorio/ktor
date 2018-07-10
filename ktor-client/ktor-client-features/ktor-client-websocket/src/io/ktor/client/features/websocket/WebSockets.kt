@@ -9,11 +9,12 @@ import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.io.core.*
 import kotlin.reflect.full.*
 
 class WebSockets(
     val maxFrameSize: Long = Int.MAX_VALUE.toLong()
-) : AutoCloseable {
+) : Closeable {
     val context = CompletableDeferred<Unit>()
 
     override fun close() {

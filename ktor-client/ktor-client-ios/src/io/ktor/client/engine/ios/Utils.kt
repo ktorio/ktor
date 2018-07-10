@@ -20,4 +20,4 @@ internal fun String.encode(encoding: NSStringEncoding = NSWindowsCP1251StringEnc
 internal fun NSData.decode(encoding: NSStringEncoding = NSWindowsCP1251StringEncoding): String =
     NSString.create(this, encoding)!! as String
 
-class IosHttpRequestException(val origin: NSError? = null) : IllegalStateException("Exception in http request: $origin")
+class IosHttpRequestException(val origin: NSError? = null) : Throwable("Exception in http request: $origin")

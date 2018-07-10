@@ -60,18 +60,16 @@ data class HttpStatusCode(val value: Int, val description: String) {
         val VersionNotSupported = HttpStatusCode(505, "HTTP Version Not Supported")
         val VariantAlsoNegotiates = HttpStatusCode(506, "Variant Also Negotiates")
 
-        private val byValue by lazy {
-            Array(1000) { idx ->
-                allStatusCodes.firstOrNull { it.value == idx }
-            }
+        val allStatusCodes: List<HttpStatusCode> = io.ktor.http.allStatusCodes()
+
+        private val byValue: Array<HttpStatusCode?> = Array(1000) { idx ->
+            allStatusCodes.firstOrNull { it.value == idx }
         }
 
         fun fromValue(value: Int): HttpStatusCode {
-            val knownStatus = if (value > 0 && value < 1000) byValue[value] else null
+            val knownStatus = if (value in 1 until 1000) byValue[value] else null
             return knownStatus ?: HttpStatusCode(value, "Unknown Status Code")
         }
-
-        val allStatusCodes: List<HttpStatusCode> by lazy { io.ktor.http.allStatusCodes() }
     }
 }
 

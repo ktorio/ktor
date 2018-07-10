@@ -2,7 +2,7 @@ package io.ktor.network.tls
 
 import io.ktor.http.cio.internals.*
 import kotlinx.io.core.*
-import java.io.*
+import kotlinx.io.core.Closeable
 import java.security.*
 
 internal fun ByteReadPacket.duplicate(): Pair<ByteReadPacket, ByteReadPacket> {

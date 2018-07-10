@@ -21,7 +21,9 @@ class AttributesIos : Attributes {
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T {
         map[key]?.let { return it as T }
-        return map.put(key, block()) as T
+        return block().also { result ->
+            map[key] = result
+        }
     }
 
     override val allKeys: List<AttributeKey<*>>

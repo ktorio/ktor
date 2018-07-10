@@ -16,7 +16,10 @@ actual val HTTP_CLIENT_DEFAULT_DISPATCHER: CoroutineDispatcher by lazy {
 /**
  * Singleton pool of [ByteBuffer] objects used for [HttpClient].
  */
-object HttpClientDefaultPool : DefaultPool<ByteBuffer>(DEFAULT_HTTP_POOL_SIZE) {
+
+val HttpClientDefaultPool = ByteBufferPool()
+
+class ByteBufferPool : DefaultPool<ByteBuffer>(DEFAULT_HTTP_POOL_SIZE) {
     override fun produceInstance(): ByteBuffer = ByteBuffer.allocate(DEFAULT_HTTP_BUFFER_SIZE)!!
 
     override fun clearInstance(instance: ByteBuffer): ByteBuffer = instance.apply { clear() }
