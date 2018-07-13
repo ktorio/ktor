@@ -70,7 +70,7 @@ internal class JettyResponseListener(
 
         onHeadersReceived.complete((frame.metaData as? MetaData.Response)?.let {
             val (status, reason) = it.status to it.reason
-            reason?.let { HttpStatusCode(status, reason) } ?: HttpStatusCode.fromValue(status)
+            reason?.let { HttpStatusCode(status, it) } ?: HttpStatusCode.fromValue(status)
         })
     }
 
