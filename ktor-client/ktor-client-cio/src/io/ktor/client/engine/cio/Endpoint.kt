@@ -52,7 +52,7 @@ internal class Endpoint(
                         makePipelineRequest(task)
                     }
                 } catch (cause: Throwable) {
-                    task.continuation.resumeWithException(cause)
+                    task.response.completeExceptionally(cause)
                     throw cause
                 }
             }
@@ -62,9 +62,11 @@ internal class Endpoint(
         }
     }
 
-    suspend fun execute(request: CIOHttpRequest): CIOHttpResponse = suspendCancellableCoroutine {
-        val task = RequestTask(request, it)
+    suspend fun execute(request: CIOHttpRequest): CIOHttpResponse {
+        val result = CompletableDeferred<CIOHttpResponse>()
+        val task = RequestTask(request, result)
         tasks.offer(task)
+        return result.await()
     }
 
     private suspend fun makePipelineRequest(task: RequestTask) {
@@ -75,7 +77,7 @@ internal class Endpoint(
             try {
                 createPipeline()
             } catch (cause: Throwable) {
-                task.continuation.resumeWithException(cause)
+                task.response.completeExceptionally(cause)
                 throw cause
             }
         }
@@ -89,7 +91,7 @@ internal class Endpoint(
         val output = connection.openWriteChannel()
         val requestTime = Date()
 
-        val (request, continuation) = task
+        val (request, response) = task
 
         fun closeConnection(cause: Throwable?) {
             try {
@@ -103,12 +105,12 @@ internal class Endpoint(
         try {
             request.write(output)
 
-            val response = parseResponse(input) ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
+            val rawResponse = parseResponse(input) ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
 
-            val status = response.status
-            val contentLength = response.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
-            val transferEncoding = response.headers[HttpHeaders.TransferEncoding]
-            val connectionType = ConnectionOptions.parse(response.headers[HttpHeaders.Connection])
+            val status = rawResponse.status
+            val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
+            val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
+            val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
 
             val body = when (status) {
                 HttpStatusCode.SwitchingProtocols.value -> {
@@ -131,9 +133,9 @@ internal class Endpoint(
                 }
             }
 
-            continuation.resume(CIOHttpResponse(request, requestTime, body, response))
+            response.complete(CIOHttpResponse(request, requestTime, body, rawResponse))
         } catch (cause: Throwable) {
-            continuation.resumeWithException(cause)
+            response.completeExceptionally(cause)
         }
     }
 

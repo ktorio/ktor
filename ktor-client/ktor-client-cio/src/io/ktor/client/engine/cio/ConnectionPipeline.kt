@@ -33,9 +33,9 @@ internal class ConnectionPipeline(
 
                 try {
                     requestLimit.enter()
-                    responseChannel.send(ConnectionResponseTask(Date(), task.continuation, task.request))
+                    responseChannel.send(ConnectionResponseTask(Date(), task.response, task.request))
                 } catch (cause: Throwable) {
-                    task.continuation.resumeWithException(cause)
+                    task.response.completeExceptionally(cause)
                     throw cause
                 }
 
@@ -67,7 +67,7 @@ internal class ConnectionPipeline(
                         parseHttpBody(contentLength, transferEncoding, connectionType, inputChannel, channel)
                     }
 
-                    task.continuation.resume(
+                    task.response.complete(
                         CIOHttpResponse(
                             task.request,
                             task.requestTime,
@@ -79,7 +79,7 @@ internal class ConnectionPipeline(
                 } catch (cause: ClosedChannelException) {
                     null
                 } catch (cause: Throwable) {
-                    task.continuation.resumeWithException(cause)
+                    task.response.completeExceptionally(cause)
                     null
                 }
 
