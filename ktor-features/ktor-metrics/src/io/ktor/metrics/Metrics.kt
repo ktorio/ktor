@@ -1,99 +1,136 @@
 package io.ktor.metrics
 
-import com.codahale.metrics.*
-import com.codahale.metrics.jvm.*
 import io.ktor.application.*
+import io.ktor.auth.AuthenticationRouteSelector
 import io.ktor.pipeline.*
+import io.ktor.request.httpMethod
 import io.ktor.routing.*
 import io.ktor.util.*
-import java.util.concurrent.*
+import io.micrometer.core.instrument.*
+import io.micrometer.core.instrument.binder.MeterBinder
+import io.micrometer.core.instrument.binder.jvm.*
+import io.micrometer.core.instrument.binder.system.*
+import java.util.concurrent.atomic.AtomicInteger
 
-class Metrics(val registry: MetricRegistry) {
-    val baseName: String = MetricRegistry.name("ktor.calls")
-    private val duration = registry.timer(MetricRegistry.name(baseName, "duration"))
-    private val active = registry.counter(MetricRegistry.name(baseName, "active"))
-    private val exceptions = registry.meter(MetricRegistry.name(baseName, "exceptions"))
-    private val httpStatus = ConcurrentHashMap<Int, Meter>()
+class Metrics(val registry: MeterRegistry) {
+	val baseName: String = "ktor.http.server"
+	private val active = registry.gauge("$baseName.requests.active", AtomicInteger(0))
 
-    class Configuration {
-        val registry = MetricRegistry()
-    }
+	class Configuration {
+		lateinit var registry: MeterRegistry
 
-    companion object Feature : ApplicationFeature<Application, Configuration, Metrics> {
-        override val key = AttributeKey<Metrics>("metrics")
+		var meterBinders: List<MeterBinder> = listOf(
+				ClassLoaderMetrics(),
+				JvmMemoryMetrics(),
+				JvmGcMetrics(),
+				ProcessorMetrics(),
+				JvmThreadMetrics(),
+				FileDescriptorMetrics()
+		)
+	}
 
-        private class RoutingMetrics(val name: String, val context: Timer.Context)
+	companion object Feature : ApplicationFeature<Application, Configuration, Metrics> {
+		override val key = AttributeKey<Metrics>("metrics")
 
-        private val routingMetricsKey = AttributeKey<RoutingMetrics>("metrics")
+		val Route.cleanPath: String get() = when {
+			parent == null -> "/"
+			else ->
+				if (selector is AuthenticationRouteSelector || selector is HttpMethodRouteSelector) {
+					"${(parent as Route).cleanPath}"
+				} else {
+					"${(parent as Route).cleanPath}/$selector".trim('/')
+				}
+		}
 
-        override fun install(pipeline: Application, configure: Configuration.() -> Unit): Metrics {
-            val configuration = Configuration().apply(configure)
-            val feature = Metrics(configuration.registry)
+		override fun install(pipeline: Application, configure: Configuration.() -> Unit): Metrics {
+			val configuration = Configuration().apply(configure)
+			val feature = Metrics(configuration.registry)
 
-            configuration.registry.register("jvm.memory", MemoryUsageGaugeSet())
-            configuration.registry.register("jvm.garbage", GarbageCollectorMetricSet())
-            configuration.registry.register("jvm.threads", ThreadStatesGaugeSet())
-            configuration.registry.register("jvm.files", FileDescriptorRatioGauge())
-            configuration.registry.register("jvm.attributes", JvmAttributeGaugeSet())
+			configuration.meterBinders.forEach { it.bindTo(configuration.registry) }
 
-            val phase = PipelinePhase("Metrics")
-            pipeline.insertPhaseBefore(ApplicationCallPipeline.Infrastructure, phase)
-            pipeline.intercept(phase) {
-                feature.before(call)
-                try {
-                    proceed()
-                } catch (e: Exception) {
-                    feature.exception(call, e)
-                    throw e
-                } finally {
-                    feature.after(call)
-                }
-            }
+			val phase = PipelinePhase("Metrics")
+			pipeline.insertPhaseBefore(ApplicationCallPipeline.Infrastructure, phase)
+			pipeline.intercept(phase) {
+				feature.before(call)
+				try {
+					proceed()
+				} catch (e: Exception) {
+					feature.exception(call, e)
+					throw e
+				} finally {
+					feature.after(call)
+				}
+			}
 
-            pipeline.environment.monitor.subscribe(Routing.RoutingCallStarted) { call ->
-                val name = call.route.toString()
-                val meter = feature.registry.meter(MetricRegistry.name(name, "meter"))
-                val timer = feature.registry.timer(MetricRegistry.name(name, "timer"))
-                meter.mark()
-                val context = timer.time()
-                call.attributes.put(routingMetricsKey, RoutingMetrics(name, context))
-            }
+			pipeline.environment.monitor.subscribe(Routing.RoutingCallStarted) { call ->
+				val path = "/" + call.route.cleanPath
 
-            pipeline.environment.monitor.subscribe(Routing.RoutingCallFinished) { call ->
-                val routingMetrics = call.attributes.take(routingMetricsKey)
-                val status = call.response.status()?.value ?: 0
-                val statusMeter = feature.registry.meter(MetricRegistry.name(routingMetrics.name, status.toString()))
-                statusMeter.mark()
-                routingMetrics.context.stop()
-            }
+				with(feature) {
+					recordRequest(call.getLocalAddr(), call.request.httpMethod.value, path)
+				}
+			}
 
-            return feature
-        }
-    }
+			return feature
+		}
+	}
 
 
-    private data class CallMeasure(val timer: Timer.Context)
+	private data class CallMeasure(val timer: Timer.Sample)
 
-    private val measureKey = AttributeKey<CallMeasure>("metrics")
+	private val measureKey = AttributeKey<CallMeasure>("metrics")
 
-    private fun before(call: ApplicationCall) {
-        active.inc()
-        call.attributes.put(measureKey, CallMeasure(duration.time()))
-    }
+	private fun ApplicationCall.getLocalAddr() = request.local.let { "${it.host}:${it.port}" }
 
-    private fun after(call: ApplicationCall) {
-        active.dec()
-        val meter = httpStatus.computeIfAbsent(call.response.status()?.value ?: 0) {
-            registry.meter(MetricRegistry.name(baseName, "status", it.toString()))
-        }
-        meter.mark()
-        call.attributes.getOrNull(measureKey)?.apply {
-            timer.stop()
-        }
-    }
+	private fun ApplicationCall.getStatusCode() =
+			response.status()?.value?.toString() ?: "Unknown"
 
-    @Suppress("UNUSED_PARAMETER")
-    private fun exception(call: ApplicationCall, e: Throwable) {
-        exceptions.mark()
-    }
+	private fun recordError(localAddr: String, errorClass: String) {
+		registry.counter("$baseName.errors",
+				"local", localAddr,
+				"class", errorClass)
+				.increment()
+	}
+
+	private fun Timer.Sample.recordDuration(localAddr: String) {
+		stop(registry.timer(
+				"$baseName.requests",
+				"local", localAddr
+		))
+	}
+
+	private fun recordRequest(localAddr: String, method: String, path: String) {
+		registry.counter("$baseName.requests",
+				"local", localAddr,
+				"method", method,
+				"path", path
+		).increment()
+	}
+
+	private fun recordResponse(localAddr: String, statusCode: String) {
+		registry.counter("$baseName.responses",
+				"local", localAddr,
+				"code", statusCode
+		).increment()
+	}
+
+	private fun before(call: ApplicationCall) {
+		active.incrementAndGet()
+
+		call.attributes.put(measureKey, CallMeasure(Timer.start(registry)))
+	}
+
+	private fun after(call: ApplicationCall) {
+		active.decrementAndGet()
+
+		recordResponse(call.getLocalAddr(), call.getStatusCode())
+
+		call.attributes.getOrNull(measureKey)?.apply {
+			timer.recordDuration(call.getLocalAddr())
+		}
+	}
+
+	@Suppress("UNUSED_PARAMETER")
+	private fun exception(call: ApplicationCall, e: Throwable) {
+		recordError(call.getLocalAddr(), e::class.java.simpleName)
+	}
 }
