@@ -1,8 +1,20 @@
+def commonModules = [
+        'ktor-client',
+        'ktor-client-core',
+        'ktor-client-json',
+        'ktor-utils',
+        'ktor-http'
+]
+
+def nativeModules = [
+        'ktor-client-ios',
+        'ktor-http-ios',
+        'ktor-utils-ios',
+        'ktor-client-core-ios',
+        'ktor-client-json-ios'
+]
 
 ext.platformOf = { Project project ->
-    def commonModules = ['ktor-client', 'ktor-client-core', 'ktor-utils', 'ktor-http']
-    def nativeModules = ['ktor-client-ios', 'ktor-http-ios', 'ktor-utils-ios', 'ktor-client-core-ios']
-
     if (project.name in commonModules) return 'common'
     if (project.name in nativeModules) return 'native'
     return 'jvm'
