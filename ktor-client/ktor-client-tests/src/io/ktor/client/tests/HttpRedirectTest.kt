@@ -12,7 +12,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
-import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlin.test.*
 

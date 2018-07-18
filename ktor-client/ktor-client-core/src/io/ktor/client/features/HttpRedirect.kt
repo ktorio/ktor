@@ -38,8 +38,8 @@ class HttpRedirect(
                         return@intercept
                     }
 
-                    val location = call.response.headers[HttpHeaders.Location]
-                    location?.let { context.url.takeFrom(it) }
+                    val location = call.response.headers[HttpHeaders.Location] ?: return@repeat
+                    context.url.takeFrom(location)
                 }
 
                 throw RedirectException(context.build(), "Redirect limit ${feature.maxJumps} exceeded")

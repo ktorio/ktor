@@ -2,10 +2,6 @@ package io.ktor.http
 
 import java.net.*
 
-fun URLBuilder.takeFrom(url: String) {
-    takeFrom(URI(url))
-}
-
 fun URLBuilder.takeFrom(uri: URI) {
     uri.scheme?.let {
         protocol = URLProtocol.createOrDefault(it)
