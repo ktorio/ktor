@@ -1,13 +1,14 @@
 package io.ktor.http
 
 import io.ktor.util.*
+import io.ktor.util.date.*
 
 data class Cookie(
     val name: String,
     val value: String,
     val encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
     val maxAge: Int = 0,
-    val expires: /* Temporal */String? = null,
+    val expires: GMTDate? = null,
     val domain: String? = null,
     val path: String? = null,
     val secure: Boolean = false,
@@ -31,7 +32,7 @@ fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
         value = decodeCookieValue(first.value, encoding),
         encoding = encoding,
         maxAge = loweredMap["max-age"]?.toInt() ?: 0,
-        expires = loweredMap["expires"]/*?.fromHttpDateString()*/,
+        expires = loweredMap["expires"]?.fromHttpToGmtDate(),
         domain = loweredMap["domain"],
         path = loweredMap["path"],
         secure = "secure" in loweredMap,
@@ -88,7 +89,7 @@ fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
 fun renderSetCookieHeader(
     name: String, value: String,
     encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-    maxAge: Int = 0, expires: /*Temporal?*/String? = null, domain: String? = null,
+    maxAge: Int = 0, expires: GMTDate? = null, domain: String? = null,
     path: String? = null,
     secure: Boolean = false, httpOnly: Boolean = false,
     extensions: Map<String, String?> = emptyMap()
@@ -98,7 +99,7 @@ fun renderSetCookieHeader(
         listOf(
             cookiePart(name.assertCookieName(), value, encoding),
             cookiePartUnencoded("Max-Age", if (maxAge > 0) maxAge else null),
-            cookiePartUnencoded("Expires", expires/*?.toHttpDateString()*/),
+            cookiePartUnencoded("Expires", expires?.toHttpDate()),
             cookiePart("Domain", domain, CookieEncoding.RAW),
             cookiePart("Path", path, CookieEncoding.RAW),
 

@@ -5,10 +5,10 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import java.text.*
 import java.time.*
 import java.time.format.*
-import java.time.temporal.*
 import kotlin.test.*
 import org.junit.Test as test
 
@@ -42,7 +42,7 @@ class CookiesTest {
 
     @test fun `decode dquotes encoded cookies`() {
         withRawCookies("SESSION=\"1 2\"") {
-            assertEquals("1 2", cookies.get("SESSION", CookieEncoding.DQUOTES))
+            assertEquals("1 2", cookies["SESSION", CookieEncoding.DQUOTES])
         }
     }
 
@@ -59,24 +59,32 @@ class CookiesTest {
     }
 
     @test fun `add cookies with expires`() {
-        val date = LocalDate.parse("20150818", DateTimeFormatter.ofPattern("yyyyMMdd")).atStartOfDay(ZoneId.of("GMT"))
+        val date = LocalDate
+            .parse("20150818", DateTimeFormatter.ofPattern("yyyyMMdd"))
+            .atStartOfDay(ZoneId.of("GMT"))!!
+            .toGMTDate()
+
         testSetCookies("SESSION=123; Expires=Tue, 18 Aug 2015 00:00:00 GMT") {
             cookies.append("SESSION", "123", expires = date)
         }
     }
 
     @test fun `add cookies old Date`() {
-        val date = SimpleDateFormat("yyyyMMdd z").parse("20150818 GMT")
+        val date = SimpleDateFormat("yyyyMMdd z")
+            .parse("20150818 GMT")
         testSetCookies("SESSION=123; Expires=Tue, 18 Aug 2015 00:00:00 GMT") {
-            cookies.append("SESSION", "123", expires = date.toInstant())
+            cookies.append("SESSION", "123", expires = date.toInstant().toGMTDate())
         }
     }
 
     @test fun `add cookies with expires at specified time zone`() {
         val zoneId = ZoneId.ofOffset("UTC", ZoneOffset.ofHours(3))
-        val date = LocalDate.parse("20150818", DateTimeFormatter.ofPattern("yyyyMMdd")).atStartOfDay(zoneId)
+        val date = LocalDate
+            .parse("20150818", DateTimeFormatter.ofPattern("yyyyMMdd"))
+            .atStartOfDay(zoneId)
+
         testSetCookies("SESSION=123; Expires=Mon, 17 Aug 2015 21:00:00 GMT") {
-            cookies.append("SESSION", "123", expires = date)
+            cookies.append("SESSION", "123", expires = date.toGMTDate())
         }
     }
 

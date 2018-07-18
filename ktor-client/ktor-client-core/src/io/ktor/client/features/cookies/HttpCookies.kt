@@ -2,7 +2,6 @@ package io.ktor.client.features.cookies
 
 import io.ktor.client.*
 import io.ktor.client.features.*
-import io.ktor.client.features.cookies.HttpCookies.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
@@ -21,8 +20,6 @@ class HttpCookies(private val storage: CookiesStorage) {
 
     suspend fun get(host: String, name: String): Cookie? = storage.get(host, name)
 
-    suspend fun forEach(host: String, block: (Cookie) -> Unit) = storage.forEach(host, block)
-
     class Config {
         private val defaults = mutableListOf<CookiesStorage.() -> Unit>()
 
@@ -40,14 +37,14 @@ class HttpCookies(private val storage: CookiesStorage) {
             defaults.add(block)
         }
 
-        fun build(): HttpCookies {
+        internal fun build(): HttpCookies {
             defaults.forEach { it.invoke(storage) }
 
             return HttpCookies(storage)
         }
     }
 
-    companion object Feature : HttpClientFeature<Config, HttpCookies> {
+    companion object : HttpClientFeature<Config, HttpCookies> {
         override fun prepare(block: Config.() -> Unit): HttpCookies = Config().apply(block).build()
 
         override val key: AttributeKey<HttpCookies> = AttributeKey("HttpCookies")
@@ -71,7 +68,6 @@ class HttpCookies(private val storage: CookiesStorage) {
                 val host = context.request.url.host.toLowerCase()
                 response.setCookie().forEach { feature.storage.addCookie(host, it) }
             }
-
         }
     }
 }

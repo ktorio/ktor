@@ -7,6 +7,7 @@ import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.core.*
 import kotlinx.io.pool.*
+import java.nio.*
 import javax.net.ssl.*
 import kotlin.coroutines.experimental.*
 
@@ -59,7 +60,7 @@ internal class TLSClientSession(
         }
     }
 
-    private suspend fun appDataOutputLoop(pipe: ByteReadChannel) = DefaultByteBufferPool.useBorrowed { buffer ->
+    private suspend fun appDataOutputLoop(pipe: ByteReadChannel) = DefaultByteBufferPool.useInstance { buffer: ByteBuffer ->
         while (true) {
             buffer.clear()
             val rc = pipe.readAvailable(buffer)

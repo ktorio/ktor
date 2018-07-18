@@ -2,6 +2,7 @@ package io.ktor.sessions
 
 import io.ktor.application.*
 import io.ktor.http.*
+import io.ktor.util.date.*
 import java.time.*
 import java.time.temporal.*
 
@@ -10,9 +11,10 @@ import java.time.temporal.*
  * for the specified cookie [name], and a specific cookie [configuration] after
  * applying/un-applying the specified transforms defined by [transformers].
  */
-class SessionTransportCookie(val name: String,
-                             val configuration: CookieConfiguration,
-                             val transformers: List<SessionTransportTransformer>
+class SessionTransportCookie(
+    val name: String,
+    val configuration: CookieConfiguration,
+    val transformers: List<SessionTransportTransformer>
 ) : SessionTransport {
 
     override fun receive(call: ApplicationCall): String? {
@@ -20,19 +22,20 @@ class SessionTransportCookie(val name: String,
     }
 
     override fun send(call: ApplicationCall, value: String) {
-        val now = LocalDateTime.now()
-        val expires = now.plus(configuration.duration)
+        val now = GMTDate()
         val maxAge = configuration.duration[ChronoUnit.SECONDS].toInt()
-        val cookie = Cookie(name,
-                transformers.transformWrite(value),
-                configuration.encoding,
-                maxAge,
-                expires?.toHttpDateString(),
-                configuration.domain,
-                configuration.path,
-                configuration.secure,
-                configuration.httpOnly,
-                configuration.extensions
+        val expires = now + (maxAge.toLong() * 1000)
+        val cookie = Cookie(
+            name,
+            transformers.transformWrite(value),
+            configuration.encoding,
+            maxAge,
+            expires,
+            configuration.domain,
+            configuration.path,
+            configuration.secure,
+            configuration.httpOnly,
+            configuration.extensions
         )
 
         call.response.cookies.append(cookie)

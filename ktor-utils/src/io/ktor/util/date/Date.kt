@@ -3,6 +3,7 @@ package io.ktor.util.date
 import kotlin.math.*
 
 /**
+ * According to:
  * http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/time.h.html
  */
 
@@ -21,6 +22,9 @@ enum class WeekDay(val value: String) {
 
     companion object {
         fun from(ordinal: Int): WeekDay = WeekDay.values()[ordinal]
+
+        fun from(value: String): WeekDay = WeekDay.values().find { it.value == value }
+            ?: error("Invalid day of week: $value")
     }
 }
 
@@ -44,6 +48,9 @@ enum class Month(val value: String) {
 
     companion object {
         fun from(ordinal: Int): Month = Month.values()[ordinal]
+
+        fun from(value: String): Month = Month.values().find { it.value == value }
+            ?: error("Invalid month: $value")
     }
 }
 
@@ -63,7 +70,12 @@ data class GMTDate(
     val year: Int,
 
     val timestamp: Long
-)
+) {
+
+    companion object {
+        val START = GMTDate(0)
+    }
+}
 
 /**
  * Create new gmt date from the [timestamp].
@@ -71,9 +83,7 @@ data class GMTDate(
  */
 expect fun GMTDate(timestamp: Long? = null): GMTDate
 
-expect fun GMTDate(
-    seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int
-): GMTDate
+expect fun GMTDate(seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int): GMTDate
 
 operator fun GMTDate.compareTo(other: GMTDate): Int = (timestamp - other.timestamp).sign
 operator fun GMTDate.plus(millis: Long): GMTDate = GMTDate(timestamp + millis)

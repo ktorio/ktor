@@ -4,7 +4,7 @@ import java.util.*
 
 private val GMT_TIMEZONE = TimeZone.getTimeZone("GMT")
 
-actual fun GMTDate(timestamp: Long?): GMTDate = Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!.toGMTDate(timestamp)
+actual fun GMTDate(timestamp: Long?): GMTDate = Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!.toDate(timestamp)
 
 actual fun GMTDate(
     seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int
@@ -17,12 +17,10 @@ actual fun GMTDate(
 
     set(Calendar.MONTH, month.ordinal)
     set(Calendar.YEAR, year)
-}.toGMTDate(timestamp = null)
+}.toDate(timestamp = null)
 
-/**
- * Convert [Callendar] instance
- */
-fun Calendar.toGMTDate(timestamp: Long?): GMTDate {
+
+private fun Calendar.toDate(timestamp: Long?): GMTDate {
     timestamp?.let { timeInMillis = it }
 
     val seconds = get(Calendar.SECOND)

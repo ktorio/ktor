@@ -1,5 +1,6 @@
 package io.ktor.client.engine.apache
 
+import io.ktor.client.engine.*
 import io.ktor.client.tests.*
 import org.junit.*
 
@@ -9,7 +10,9 @@ class ApacheCacheTest : CacheTest(Apache)
 
 class ApacheCookiesTest : CookiesTest(Apache)
 
-class ApachePostTest : PostTest(Apache)
+class ApachePostTest : PostTest(Apache.config {
+    socketTimeout = 100_000
+})
 
 class ApacheMultithreadedTest : MultithreadedTest(Apache)
 

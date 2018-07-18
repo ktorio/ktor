@@ -11,9 +11,9 @@ import java.nio.file.*
 import kotlin.coroutines.experimental.*
 
 fun File.readChannel(
-        start: Long = 0,
-        endInclusive: Long = -1,
-        coroutineContext: CoroutineContext = Unconfined
+    start: Long = 0,
+    endInclusive: Long = -1,
+    coroutineContext: CoroutineContext = Unconfined
 ): ByteReadChannel {
     val fileLength = length()
     val file = RandomAccessFile(this@readChannel, "r")
@@ -66,18 +66,19 @@ fun File.readChannel(
     }.channel
 }
 
-fun File.writeChannel(pool: ObjectPool<ByteBuffer> = KtorDefaultPool): ByteWriteChannel = reader(Unconfined, autoFlush = true) {
-    RandomAccessFile(this@writeChannel, "rw").use { file ->
-        pool.useBorrowed { buffer ->
-            while (!channel.isClosedForRead) {
-                buffer.clear()
-                channel.readAvailable(buffer)
-                buffer.flip()
-                file.write(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.limit())
+fun File.writeChannel(pool: ObjectPool<ByteBuffer> = KtorDefaultPool): ByteWriteChannel =
+    reader(Unconfined, autoFlush = true) {
+        RandomAccessFile(this@writeChannel, "rw").use { file ->
+            pool.useInstance { buffer: ByteBuffer ->
+                while (!channel.isClosedForRead) {
+                    buffer.clear()
+                    channel.readAvailable(buffer)
+                    buffer.flip()
+                    file.write(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.limit())
+                }
             }
         }
-    }
-}.channel
+    }.channel
 
 fun Path.readChannel(start: Long, endInclusive: Long): ByteReadChannel = toFile().readChannel(start, endInclusive)
 
