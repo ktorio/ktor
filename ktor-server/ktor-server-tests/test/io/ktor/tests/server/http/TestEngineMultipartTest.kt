@@ -5,6 +5,7 @@ import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import org.junit.Test
 import kotlin.test.*
 
@@ -46,6 +47,8 @@ class TestEngineMultipartTest {
 
     @Test
     fun testMultiPartsFileItem() {
+        val bytes = ByteArray(256) { it.toByte() }
+
         testMultiParts({
             assertNotNull(it, "it should be multipart data")
             if (it != null) {
@@ -55,21 +58,21 @@ class TestEngineMultipartTest {
                 val file = parts[0] as PartData.FileItem
 
                 assertEquals("fileField", file.name)
-                assertEquals("file.txt", file.originalFileName)
-                assertEquals("file content", file.streamProvider().reader().readText())
+                assertEquals("file.bin", file.originalFileName)
+                assertEquals(hex(bytes), hex(file.streamProvider().readBytes()))
 
                 file.dispose()
             }
         }, setup = {
             addHeader(HttpHeaders.ContentType, contentType.toString())
             setBody(boundary, listOf(PartData.FileItem(
-                    streamProvider = { "file content".toByteArray().inputStream() },
+                    streamProvider = { bytes.inputStream() },
                     dispose = {},
                     partHeaders = headersOf(
                             HttpHeaders.ContentDisposition,
                             ContentDisposition.File
                                     .withParameter(ContentDisposition.Parameters.Name, "fileField")
-                                    .withParameter(ContentDisposition.Parameters.FileName, "file.txt")
+                                    .withParameter(ContentDisposition.Parameters.FileName, "file.bin")
                                     .toString()
                     )
             )))
