@@ -88,7 +88,7 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
     fun testConstant(): Unit = clientTest(factory) {
         config {
             install(HttpCookies) {
-                storage = ConstantCookieStorage(Cookie("id", "1"))
+                storage = ConstantCookiesStorage(Cookie("id", "1"))
             }
         }
 
