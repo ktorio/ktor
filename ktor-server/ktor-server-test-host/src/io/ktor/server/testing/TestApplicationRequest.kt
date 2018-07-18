@@ -7,6 +7,7 @@ import io.ktor.request.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.io.core.*
 
 class TestApplicationRequest(
         call: ApplicationCall,
@@ -92,7 +93,7 @@ fun TestApplicationRequest.setBody(value: ByteArray) {
     bodyChannel = ByteReadChannel(value)
 }
 
-fun TestApplicationRequest.setBody(boundary: String, values: List<PartData>): Unit = setBody(buildString {
+fun TestApplicationRequest.setBody(boundary: String, values: List<PartData>): Unit = setBody(buildPacket {
     if (values.isEmpty()) return
 
     append("\r\n\r\n")
@@ -101,16 +102,11 @@ fun TestApplicationRequest.setBody(boundary: String, values: List<PartData>): Un
         it.headers.flattenForEach { key, value -> append("$key: $value\r\n") }
         append("\r\n")
         when (it) {
-            is PartData.FileItem -> {
-                val charset = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }?.charset()
-                        ?: Charsets.ISO_8859_1
-
-                append(it.streamProvider().reader(charset).readText())
-            }
+            is PartData.FileItem -> writeFully(it.streamProvider().readBytes()) // Not optimized since this is for tests and have to fit in memory anyway
             is PartData.FormItem -> append(it.value)
         }
         append("\r\n")
     }
 
     append("--$boundary--\r\n\r\n")
-})
+}.readBytes())
