@@ -33,7 +33,7 @@ class TestEngineMultipartTest {
 
     @Test
     fun testMultiPartsFileItemText() {
-        val string = "file content"
+        val string = "file content with unicode 🌀 : здороваться : 여보세요 : 你好 : ñç"
         testMultiPartsFileItemBase(
             filename = "file.txt",
             streamProvider = { string.toByteArray().inputStream() },
