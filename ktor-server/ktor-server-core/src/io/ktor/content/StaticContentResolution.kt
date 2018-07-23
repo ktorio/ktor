@@ -59,7 +59,7 @@ internal fun findContainingJarFile(url: String): File {
 }
 
 private fun String.extension(): String {
-    val indexOfName = lastIndexOf('/').takeIf { it != 1 } ?: lastIndexOf('\\').takeIf { it != 1 } ?: 0
+    val indexOfName = lastIndexOf('/').takeIf { it != -1 } ?: lastIndexOf('\\').takeIf { it != -1 } ?: 0
     val indexOfDot = indexOf('.', indexOfName)
     return if (indexOfDot >= 0) substring(indexOfDot) else ""
 }
