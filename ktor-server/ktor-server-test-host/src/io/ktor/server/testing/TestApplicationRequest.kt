@@ -3,10 +3,13 @@ package io.ktor.server.testing
 import io.ktor.application.*
 import io.ktor.content.*
 import io.ktor.http.*
+import io.ktor.network.util.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.experimental.io.jvm.javaio.*
+import java.nio.charset.*
 
 class TestApplicationRequest(
         call: ApplicationCall,
@@ -92,25 +95,28 @@ fun TestApplicationRequest.setBody(value: ByteArray) {
     bodyChannel = ByteReadChannel(value)
 }
 
-fun TestApplicationRequest.setBody(boundary: String, values: List<PartData>): Unit = setBody(buildString {
-    if (values.isEmpty()) return
+private suspend fun WriterScope.append(str: String, charset: Charset = Charsets.UTF_8) {
+    channel.writeFully(str.toByteArray(charset))
+}
 
-    append("\r\n\r\n")
-    values.forEach {
-        append("--$boundary\r\n")
-        it.headers.flattenForEach { key, value -> append("$key: $value\r\n") }
-        append("\r\n")
-        when (it) {
-            is PartData.FileItem -> {
-                val charset = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }?.charset()
-                        ?: Charsets.ISO_8859_1
-
-                append(it.streamProvider().reader(charset).readText())
+fun TestApplicationRequest.setBody(boundary: String, values: List<PartData>): Unit {
+    bodyChannel = writer(ioCoroutineDispatcher) {
+        if (!values.isEmpty()) {
+            append("\r\n\r\n")
+            values.forEach {
+                append("--$boundary\r\n")
+                for ((key, value) in it.headers.flattenEntries()) {
+                    append("$key: $value\r\n")
+                }
+                append("\r\n")
+                when (it) {
+                    is PartData.FileItem -> it.streamProvider().copyTo(channel.toOutputStream())
+                    is PartData.FormItem -> append(it.value)
+                }
+                append("\r\n")
             }
-            is PartData.FormItem -> append(it.value)
-        }
-        append("\r\n")
-    }
 
-    append("--$boundary--\r\n\r\n")
-})
+            append("--$boundary--\r\n\r\n")
+        }
+    }.channel
+}

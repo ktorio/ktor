@@ -5,6 +5,7 @@ import io.ktor.pipeline.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
+import java.lang.IllegalStateException
 import java.util.concurrent.*
 import javax.servlet.http.*
 
@@ -48,7 +49,12 @@ abstract class KtorServlet : HttpServlet() {
             try {
                 enginePipeline.execute(call)
             } finally {
-                asyncContext.complete()
+                try {
+                    asyncContext.complete()
+                } catch (alreadyCompleted: IllegalStateException) {
+                    application.log.debug("AsyncContext is already completed due to previous I/O error",
+                            alreadyCompleted)
+                }
             }
         }
     }

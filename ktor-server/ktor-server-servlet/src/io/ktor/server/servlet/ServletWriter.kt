@@ -49,7 +49,6 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
             onError(t)
         } finally {
             events.close()
-            output.close()
         }
     }
 

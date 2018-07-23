@@ -27,13 +27,19 @@ fun ApplicationCall.resolveResource(path: String,
         when (url.protocol) {
             "file" -> {
                 val file = File(decodeURLPart(url.path))
-                return if (file.exists()) LocalFileContent(file, mimeResolve(file.extension)) else null
+                return if (file.isFile) LocalFileContent(file, mimeResolve(file.extension)) else null
             }
             "jar" -> {
-                val zipFile = findContainingJarFile(url.toString())
-                return JarFileContent(zipFile, normalizedResource, mimeResolve(url.path.extension()))
+                return if (packagePath.endsWith("/")) {
+                    null
+                } else {
+                    val zipFile = findContainingJarFile(url.toString())
+                    JarFileContent(zipFile, normalizedResource, mimeResolve(url.path.extension()))
+                }
             }
-            "jrt" -> return URIFileContent(url, mimeResolve(url.path.extension()))
+            "jrt" -> {
+                return URIFileContent(url, mimeResolve(url.path.extension()))
+            }
             else -> {}
         }
     }
@@ -53,9 +59,9 @@ internal fun findContainingJarFile(url: String): File {
 }
 
 private fun String.extension(): String {
-    val indexOfName = lastIndexOf('/').takeIf { it != 1 } ?: lastIndexOf('\\').takeIf { it != 1 } ?: 0
+    val indexOfName = lastIndexOf('/').takeIf { it != -1 } ?: lastIndexOf('\\').takeIf { it != -1 } ?: 0
     val indexOfDot = indexOf('.', indexOfName)
-    return substring(indexOfDot)
+    return if (indexOfDot >= 0) substring(indexOfDot) else ""
 }
 
 private fun String.appendPathPart(part: String): String {

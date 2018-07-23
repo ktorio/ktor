@@ -5,7 +5,9 @@ import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import org.junit.Test
+import java.io.*
 import kotlin.test.*
 
 class TestEngineMultipartTest {
@@ -20,32 +22,29 @@ class TestEngineMultipartTest {
     }
 
     @Test
-    fun testMultiPartsPlainItem() {
-        testMultiParts({
-            assertNotNull(it, "it should be multipart data")
-            if (it != null) {
-                val parts = it.readAllParts()
+    fun testMultiPartsPlainItemBinary() {
+        val bytes = ByteArray(256) { it.toByte() }
+        testMultiPartsFileItemBase(
+            filename = "file.bin",
+            streamProvider = { bytes.inputStream() },
+            extraFileAssertions = { file -> assertEquals(hex(bytes), hex(file.streamProvider().readBytes())) }
+        )
+    }
 
-                assertEquals(1, parts.size)
-                assertEquals("field1", parts[0].name)
-                assertEquals("plain field", (parts[0] as PartData.FormItem).value)
-                parts[0].dispose()
-            }
-        }, setup = {
-            addHeader(HttpHeaders.ContentType, contentType.toString())
-            setBody(boundary, listOf(PartData.FormItem(
-                    "plain field",
-                    dispose = {},
-                    partHeaders = headersOf(
-                            HttpHeaders.ContentDisposition,
-                            ContentDisposition.File.withParameter(ContentDisposition.Parameters.Name, "field1").toString()
-                    )
-            )))
-        })
+    @Test
+    fun testMultiPartsFileItemText() {
+        val string = "file content with unicode 🌀 : здороваться : 여보세요 : 你好 : ñç"
+        testMultiPartsFileItemBase(
+            filename = "file.txt",
+            streamProvider = { string.toByteArray().inputStream() },
+            extraFileAssertions = { file -> assertEquals(string, file.streamProvider().reader().readText()) }
+        )
     }
 
     @Test
     fun testMultiPartsFileItem() {
+        val bytes = ByteArray(256) { it.toByte() }
+
         testMultiParts({
             assertNotNull(it, "it should be multipart data")
             if (it != null) {
@@ -55,21 +54,21 @@ class TestEngineMultipartTest {
                 val file = parts[0] as PartData.FileItem
 
                 assertEquals("fileField", file.name)
-                assertEquals("file.txt", file.originalFileName)
-                assertEquals("file content", file.streamProvider().reader().readText())
+                assertEquals("file.bin", file.originalFileName)
+                assertEquals(hex(bytes), hex(file.streamProvider().readBytes()))
 
                 file.dispose()
             }
         }, setup = {
             addHeader(HttpHeaders.ContentType, contentType.toString())
             setBody(boundary, listOf(PartData.FileItem(
-                    streamProvider = { "file content".toByteArray().inputStream() },
+                    streamProvider = { bytes.inputStream() },
                     dispose = {},
                     partHeaders = headersOf(
                             HttpHeaders.ContentDisposition,
                             ContentDisposition.File
                                     .withParameter(ContentDisposition.Parameters.Name, "fileField")
-                                    .withParameter(ContentDisposition.Parameters.FileName, "file.txt")
+                                    .withParameter(ContentDisposition.Parameters.FileName, "file.bin")
                                     .toString()
                     )
             )))
@@ -105,5 +104,40 @@ class TestEngineMultipartTest {
 
             handleRequest(HttpMethod.Post, "/", setup)
         }
+    }
+
+    private fun testMultiPartsFileItemBase(
+        filename: String,
+        streamProvider: () -> InputStream,
+        extraFileAssertions: (file: PartData.FileItem) -> Unit
+    ) {
+        testMultiParts({
+            assertNotNull(it, "it should be multipart data")
+            if (it != null) {
+                val parts = it.readAllParts()
+
+                assertEquals(1, parts.size)
+                val file = parts[0] as PartData.FileItem
+
+                assertEquals("fileField", file.name)
+                assertEquals(filename, file.originalFileName)
+                extraFileAssertions(file)
+
+                file.dispose()
+            }
+        }, setup = {
+            addHeader(HttpHeaders.ContentType, contentType.toString())
+            setBody(boundary, listOf(PartData.FileItem(
+                streamProvider = { streamProvider() },
+                dispose = {},
+                partHeaders = headersOf(
+                    HttpHeaders.ContentDisposition,
+                    ContentDisposition.File
+                        .withParameter(ContentDisposition.Parameters.Name, "fileField")
+                        .withParameter(ContentDisposition.Parameters.FileName, filename)
+                        .toString()
+                )
+            )))
+        })
     }
 }
