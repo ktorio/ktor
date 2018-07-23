@@ -30,15 +30,15 @@ fun ApplicationCall.resolveResource(path: String,
                 return if (file.exists()) LocalFileContent(file, mimeResolve(file.extension)) else null
             }
             "jar" -> {
-                val zipFile = findContainingJarFile(url.toString())
-                return url.path.extension()?.let { extension ->
-                    JarFileContent(zipFile, normalizedResource, mimeResolve(extension))
+                return if (packagePath.endsWith("/")) {
+                    null
+                } else {
+                    val zipFile = findContainingJarFile(url.toString())
+                    JarFileContent(zipFile, normalizedResource, mimeResolve(url.path.extension()))
                 }
             }
             "jrt" -> {
-                return url.path.extension()?.let { extension ->
-                    URIFileContent(url, mimeResolve(extension))
-                }
+                return URIFileContent(url, mimeResolve(url.path.extension()))
             }
             else -> {}
         }
@@ -58,10 +58,10 @@ internal fun findContainingJarFile(url: String): File {
     throw IllegalArgumentException("Only local jars are supported (jar:file:)")
 }
 
-private fun String.extension(): String? {
+private fun String.extension(): String {
     val indexOfName = lastIndexOf('/').takeIf { it != 1 } ?: lastIndexOf('\\').takeIf { it != 1 } ?: 0
     val indexOfDot = indexOf('.', indexOfName)
-    return if (indexOfDot >= 0) substring(indexOfDot) else null
+    return if (indexOfDot >= 0) substring(indexOfDot) else ""
 }
 
 private fun String.appendPathPart(part: String): String {
