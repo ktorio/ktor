@@ -27,7 +27,7 @@ fun ApplicationCall.resolveResource(path: String,
         when (url.protocol) {
             "file" -> {
                 val file = File(decodeURLPart(url.path))
-                return if (file.exists()) LocalFileContent(file, mimeResolve(file.extension)) else null
+                return if (file.isFile) LocalFileContent(file, mimeResolve(file.extension)) else null
             }
             "jar" -> {
                 val zipFile = findContainingJarFile(url.toString())
