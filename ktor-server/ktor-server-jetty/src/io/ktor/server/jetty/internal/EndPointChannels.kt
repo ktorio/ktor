@@ -1,6 +1,6 @@
 package io.ktor.server.jetty.internal
 
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.pool.*

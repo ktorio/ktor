@@ -1,6 +1,6 @@
 package io.ktor.http.cio.websocket
 
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.io.core.*

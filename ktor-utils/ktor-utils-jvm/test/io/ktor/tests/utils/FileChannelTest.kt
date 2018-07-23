@@ -1,11 +1,11 @@
 package io.ktor.tests.utils
 
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.experimental.io.jvm.javaio.*
 import org.junit.*
-import org.junit.Test
 import java.io.*
 import kotlin.test.*
+import kotlin.test.Test
 
 class FileChannelTest {
     private val sandbox = File("build/files")

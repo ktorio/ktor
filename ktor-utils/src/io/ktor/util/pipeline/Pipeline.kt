@@ -1,4 +1,4 @@
-package io.ktor.pipeline
+package io.ktor.util.pipeline
 
 import io.ktor.util.*
 //import kotlin.jvm.*

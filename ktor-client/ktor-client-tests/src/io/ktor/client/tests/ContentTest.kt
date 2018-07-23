@@ -1,7 +1,7 @@
 package io.ktor.client.tests
 
 import io.ktor.application.*
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
@@ -13,7 +13,6 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
-import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.io.core.*
 import org.junit.Assert.*

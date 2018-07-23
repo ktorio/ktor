@@ -6,6 +6,7 @@ import io.ktor.http.cio.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
 import io.ktor.network.tls.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
@@ -89,7 +90,7 @@ internal class Endpoint(
         val connection = connect()
         val input = connection.openReadChannel()
         val output = connection.openWriteChannel()
-        val requestTime = Date()
+        val requestTime = GMTDate()
 
         val (request, response) = task
 

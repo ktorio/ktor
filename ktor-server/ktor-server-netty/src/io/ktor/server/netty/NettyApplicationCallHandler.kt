@@ -1,7 +1,7 @@
 package io.ktor.server.netty
 
 import io.ktor.application.*
-import io.ktor.pipeline.*
+import io.ktor.util.pipeline.*
 import io.ktor.server.engine.*
 import io.netty.channel.*
 import kotlinx.coroutines.experimental.*

@@ -1,6 +1,6 @@
 package io.ktor.http.content
 
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import io.ktor.http.*
 import java.io.*
 import java.nio.file.*

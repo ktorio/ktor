@@ -1,11 +1,12 @@
 package io.ktor.client.engine.android
 
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.jvm.javaio.*
@@ -32,7 +33,7 @@ open class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpC
 
     private suspend fun AndroidHttpRequest.execute(): AndroidHttpResponse {
         val result = CompletableDeferred<AndroidHttpResponse>()
-        val requestTime = Date()
+        val requestTime = GMTDate()
 
         val url = URLBuilder().takeFrom(url).buildString()
         val contentLength = headers[HttpHeaders.ContentLength]?.toLong() ?: content.contentLength
@@ -74,7 +75,7 @@ open class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpC
         result.complete(
             AndroidHttpResponse(
                 call, content, Job(),
-                responseHeaders, requestTime, Date(),
+                responseHeaders, requestTime, GMTDate(),
                 HttpStatusCode.fromValue(connection.responseCode), HttpProtocolVersion.HTTP_1_1,
                 connection
             )

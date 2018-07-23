@@ -1,4 +1,4 @@
-package io.ktor.cio
+package io.ktor.util.cio
 
 import kotlinx.io.pool.*
 import java.nio.*

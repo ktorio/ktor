@@ -13,4 +13,4 @@ fun Date.toLocalDateTime(): LocalDateTime = LocalDateTime.ofInstant(toInstant(),
  */
 fun Date.toZonedDateTime(): ZonedDateTime = ZonedDateTime.ofInstant(toInstant(), GreenwichMeanTime)
 
-val GreenwichMeanTime = ZoneId.of("GMT")
+val GreenwichMeanTime = ZoneId.of("GMT")!!

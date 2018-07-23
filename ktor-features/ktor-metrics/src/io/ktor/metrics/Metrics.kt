@@ -3,7 +3,7 @@ package io.ktor.metrics
 import com.codahale.metrics.*
 import com.codahale.metrics.jvm.*
 import io.ktor.application.*
-import io.ktor.pipeline.*
+import io.ktor.util.pipeline.*
 import io.ktor.routing.*
 import io.ktor.util.*
 import java.util.concurrent.*

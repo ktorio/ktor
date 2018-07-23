@@ -286,7 +286,7 @@ private fun findBoundary(contentType: CharSequence): Int {
     return -1
 }
 
-internal fun parseBoundary(contentType: CharSequence): ByteBuffer {
+fun parseBoundary(contentType: CharSequence): ByteBuffer {
     val boundaryParameter = findBoundary(contentType)
 
     if (boundaryParameter == -1) throw IOException("Failed to parse multipart: Content-Type's boundary parameter is missing")

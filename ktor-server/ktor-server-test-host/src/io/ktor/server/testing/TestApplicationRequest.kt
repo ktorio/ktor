@@ -10,6 +10,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.jvm.javaio.*
 import kotlinx.io.charsets.*
+import kotlinx.io.core.*
 
 class TestApplicationRequest(
         call: ApplicationCall,
@@ -110,7 +111,9 @@ fun TestApplicationRequest.setBody(boundary: String, values: List<PartData>): Un
                 }
                 append("\r\n")
                 when (it) {
-                    is PartData.FileItem -> it.streamProvider().copyTo(channel.toOutputStream())
+                    is PartData.FileItem -> {
+                        it.streamProvider().asStream().copyTo(channel.toOutputStream())
+                    }
                     is PartData.FormItem -> append(it.value)
                 }
                 append("\r\n")

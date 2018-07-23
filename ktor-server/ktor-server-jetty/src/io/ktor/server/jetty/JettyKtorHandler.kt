@@ -1,7 +1,7 @@
 package io.ktor.server.jetty
 
 import io.ktor.http.*
-import io.ktor.pipeline.*
+import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
 import io.ktor.util.*

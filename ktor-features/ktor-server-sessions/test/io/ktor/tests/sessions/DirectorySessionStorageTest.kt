@@ -11,8 +11,8 @@ import java.util.*
 import kotlin.test.*
 
 class DirectorySessionStorageTest {
-    val dir = Files.createTempDirectory("ktor-tests-").toFile()
-    val storage = directorySessionStorage(dir, false)
+    private val dir = Files.createTempDirectory("ktor-tests-").toFile()!!
+    private val storage = directorySessionStorage(dir, false)
 
     @After
     fun tearDown() {

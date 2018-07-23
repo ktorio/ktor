@@ -114,7 +114,7 @@ class OAuth1aFlowTest {
         testClient = null
     }
 
-    val executor = Executors.newSingleThreadExecutor()
+    val executor = Executors.newSingleThreadExecutor()!!
     private val dispatcher = executor.asCoroutineDispatcher()
 
     private val settings = OAuthServerSettings.OAuth1aServerSettings(

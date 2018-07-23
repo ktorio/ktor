@@ -1,11 +1,11 @@
 package io.ktor.server.testing
 
 import io.ktor.application.*
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.network.util.*
-import io.ktor.pipeline.*
+import io.ktor.util.pipeline.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*

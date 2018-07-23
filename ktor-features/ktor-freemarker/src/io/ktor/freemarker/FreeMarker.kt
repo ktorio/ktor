@@ -2,7 +2,7 @@ package io.ktor.freemarker
 
 import freemarker.template.*
 import io.ktor.application.*
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.response.*

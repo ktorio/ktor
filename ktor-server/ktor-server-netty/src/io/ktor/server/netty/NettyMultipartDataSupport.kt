@@ -8,9 +8,15 @@ import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.multipart.*
 import io.netty.handler.codec.http.multipart.HttpPostRequestDecoder.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.io.core.*
+import kotlinx.io.streams.*
 import java.util.*
 
-internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestDecoder, val alloc: ByteBufAllocator, private val channel: ByteReadChannel) : MultiPartData {
+internal class NettyMultiPartData(
+    private val decoder: HttpPostMultipartRequestDecoder,
+    val alloc: ByteBufAllocator,
+    private val channel: ByteReadChannel
+) : MultiPartData {
     // netty's decoder doesn't provide us headers so we have to parse it or try to reconstruct
 
     private val all = ArrayList<PartData>()
@@ -47,10 +53,18 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
     }
 
     private fun decodeNextOrNull(): InterfaceHttpData? {
-        return try { decoder.next() } catch (t: EndOfDataDecoderException) { null }
+        return try {
+            decoder.next()
+        } catch (t: EndOfDataDecoderException) {
+            null
+        }
     }
 
-    private fun hasNextToDecode() = try { decoder.hasNext() } catch (t: EndOfDataDecoderException) { false }
+    private fun hasNextToDecode() = try {
+        decoder.hasNext()
+    } catch (t: EndOfDataDecoderException) {
+        false
+    }
 
     private suspend fun doDecode(): Boolean {
         val channel = this.channel
@@ -87,14 +101,14 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
 
     private fun convert(part: InterfaceHttpData) = when (part) {
         is FileUpload -> PartData.FileItem(
-                streamProvider = {
-                    when {
-                        part.isInMemory -> part.get().inputStream()
-                        else -> part.file.inputStream()
-                    }
-                },
-                dispose = { part.delete() },
-                partHeaders = part.headers()
+            streamProvider = {
+                when {
+                    part.isInMemory -> buildPacket { writeFully(part.get()) }
+                    else -> part.file.inputStream().asInput()
+                }
+            },
+            dispose = { part.delete() },
+            partHeaders = part.headers()
         )
         is Attribute -> PartData.FormItem(part.value, { part.delete() }, part.headers())
         else -> null
@@ -108,16 +122,23 @@ internal class NettyMultiPartData(private val decoder: HttpPostMultipartRequestD
             append(HttpHeaders.TransferEncoding, contentTransferEncoding)
         }
         if (filename != null) {
-            append(HttpHeaders.ContentDisposition, ContentDisposition.File.withParameters(listOf(
-                    HeaderValueParam(ContentDisposition.Parameters.Name, name),
-                    HeaderValueParam(ContentDisposition.Parameters.FileName, filename)
-            )).toString())
+            append(
+                HttpHeaders.ContentDisposition, ContentDisposition.File.withParameters(
+                    listOf(
+                        HeaderValueParam(ContentDisposition.Parameters.Name, name),
+                        HeaderValueParam(ContentDisposition.Parameters.FileName, filename)
+                    )
+                ).toString()
+            )
         }
         contentLength(length())
     }
 
     private fun Attribute.headers() = Headers.build {
         contentType(ContentType.MultiPart.Mixed)
-        append(HttpHeaders.ContentDisposition, ContentDisposition.Mixed.withParameter(ContentDisposition.Parameters.Name, name).toString())
+        append(
+            HttpHeaders.ContentDisposition,
+            ContentDisposition.Mixed.withParameter(ContentDisposition.Parameters.Name, name).toString()
+        )
     }
 }

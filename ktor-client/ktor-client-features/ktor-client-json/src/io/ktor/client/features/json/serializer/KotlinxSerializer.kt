@@ -9,7 +9,7 @@ import kotlinx.serialization.json.*
 import kotlin.reflect.*
 
 typealias ReadMapper<T> = (JsonElement) -> T
-typealias WriteMapper<T> = (Any) -> JsonElement
+typealias WriteMapper<T> = (T) -> JsonElement
 
 class KotlinxSerializer : JsonSerializer {
     private val readMappers = mutableMapOf<KClass<*>, ReadMapper<*>>()
@@ -24,12 +24,15 @@ class KotlinxSerializer : JsonSerializer {
     }
 
     override fun write(data: Any): OutgoingContent {
-        val mapper = writeMappers[data::class]!!
+        @Suppress("UNCHECKED_CAST")
+        val mapper = (writeMappers[data::class] as? (Any) -> JsonElement)
+            ?: error("There is no mapper for $data")
+
         return TextContent(mapper(data).toString(), ContentType.Application.Json)
     }
 
-    override suspend fun read(info: TypeInfo, response: HttpResponse): Any {
-        val mapper = readMappers[info.type]!!
+    override suspend fun read(type: TypeInfo, response: HttpResponse): Any {
+        val mapper = readMappers[type.type]!!
         val text = response.readText()
         return mapper(JsonTreeParser(text).readFully())!!
     }

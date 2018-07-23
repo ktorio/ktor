@@ -1,11 +1,13 @@
 package io.ktor.tests.server.http
 
 import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
+import kotlinx.io.core.*
+import kotlinx.io.streams.*
 import org.junit.Test
 import java.io.*
 import kotlin.test.*
@@ -37,7 +39,7 @@ class TestEngineMultipartTest {
         testMultiPartsFileItemBase(
             filename = "file.txt",
             streamProvider = { string.toByteArray().inputStream() },
-            extraFileAssertions = { file -> assertEquals(string, file.streamProvider().reader().readText()) }
+            extraFileAssertions = { file -> assertEquals(string, file.streamProvider().readText()) }
         )
     }
 
@@ -62,16 +64,18 @@ class TestEngineMultipartTest {
         }, setup = {
             addHeader(HttpHeaders.ContentType, contentType.toString())
             setBody(boundary, listOf(PartData.FileItem(
-                    streamProvider = { bytes.inputStream() },
+                    streamProvider = { bytes.inputStream().asInput() },
                     dispose = {},
                     partHeaders = headersOf(
                             HttpHeaders.ContentDisposition,
                             ContentDisposition.File
-                                    .withParameter(ContentDisposition.Parameters.Name, "fileField")
-                                    .withParameter(ContentDisposition.Parameters.FileName, "file.bin")
-                                    .toString()
+                                .withParameter(ContentDisposition.Parameters.Name, "fileField")
+                                .withParameter(ContentDisposition.Parameters.FileName, "file.bin")
+                                .toString()
+                        )
                     )
-            )))
+                )
+            )
         })
     }
 
@@ -128,7 +132,7 @@ class TestEngineMultipartTest {
         }, setup = {
             addHeader(HttpHeaders.ContentType, contentType.toString())
             setBody(boundary, listOf(PartData.FileItem(
-                streamProvider = { streamProvider() },
+                streamProvider = { streamProvider().asInput() },
                 dispose = {},
                 partHeaders = headersOf(
                     HttpHeaders.ContentDisposition,

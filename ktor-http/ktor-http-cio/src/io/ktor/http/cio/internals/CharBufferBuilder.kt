@@ -4,7 +4,7 @@ import kotlinx.io.pool.*
 import java.nio.*
 
 @Suppress("LoopToCallChain", "ReplaceRangeToWithUntil")
-internal class CharBufferBuilder(val pool: ObjectPool<CharBuffer> = CharBufferPool) : CharSequence, Appendable {
+class CharBufferBuilder(val pool: ObjectPool<CharBuffer> = CharBufferPool) : CharSequence, Appendable {
     private var buffers: MutableList<CharBuffer>? = null
     private var current: CharBuffer? = null
     private var stringified: String? = null

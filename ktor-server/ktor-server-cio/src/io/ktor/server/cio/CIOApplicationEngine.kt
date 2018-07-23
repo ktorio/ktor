@@ -2,7 +2,7 @@ package io.ktor.server.cio
 
 import io.ktor.application.*
 import io.ktor.network.util.*
-import io.ktor.pipeline.*
+import io.ktor.util.pipeline.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*

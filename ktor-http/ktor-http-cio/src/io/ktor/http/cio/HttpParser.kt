@@ -60,7 +60,7 @@ suspend fun parseResponse(input: ByteReadChannel): Response? {
     }
 }
 
-internal suspend fun parseHeaders(input: ByteReadChannel, builder: CharBufferBuilder, range: MutableRange = MutableRange(0, 0)): HttpHeadersMap? {
+suspend fun parseHeaders(input: ByteReadChannel, builder: CharBufferBuilder, range: MutableRange = MutableRange(0, 0)): HttpHeadersMap? {
     val headers = HttpHeadersMap(builder)
 
     try {

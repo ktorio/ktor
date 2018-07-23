@@ -1,7 +1,6 @@
 package io.ktor.tests.http
 
 import io.ktor.http.*
-import org.junit.Test
 import kotlin.test.*
 
 class QueryParametersTest {

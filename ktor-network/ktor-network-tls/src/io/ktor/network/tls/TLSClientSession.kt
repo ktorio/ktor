@@ -1,6 +1,5 @@
 package io.ktor.network.tls
 
-import io.ktor.cio.*
 import io.ktor.http.cio.internals.*
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.experimental.channels.*

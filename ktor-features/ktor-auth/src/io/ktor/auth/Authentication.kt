@@ -1,7 +1,7 @@
 package io.ktor.auth
 
 import io.ktor.application.*
-import io.ktor.pipeline.*
+import io.ktor.util.pipeline.*
 import io.ktor.routing.*
 import io.ktor.util.*
 

@@ -1,4 +1,4 @@
-package io.ktor.pipeline
+package io.ktor.util.pipeline
 
 /**
  * Represents a phase in a pipeline

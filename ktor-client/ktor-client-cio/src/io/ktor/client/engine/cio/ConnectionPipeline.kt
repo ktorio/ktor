@@ -1,16 +1,16 @@
 package io.ktor.client.engine.cio
 
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.network.sockets.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.nio.channels.*
-import java.util.*
 
 internal class ConnectionPipeline(
     dispatcher: CoroutineDispatcher,
@@ -33,7 +33,7 @@ internal class ConnectionPipeline(
 
                 try {
                     requestLimit.enter()
-                    responseChannel.send(ConnectionResponseTask(Date(), task.response, task.request))
+                    responseChannel.send(ConnectionResponseTask(GMTDate(), task.response, task.request))
                 } catch (cause: Throwable) {
                     task.response.completeExceptionally(cause)
                     throw cause
@@ -46,6 +46,9 @@ internal class ConnectionPipeline(
         } catch (cause: ClosedReceiveChannelException) {
         } finally {
             responseChannel.close()
+            /**
+             * Workaround bug with socket.close
+             */
 //            outputChannel.close()
         }
     }

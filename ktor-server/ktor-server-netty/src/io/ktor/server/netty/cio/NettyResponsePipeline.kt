@@ -1,6 +1,6 @@
 package io.ktor.server.netty.cio
 
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import io.ktor.http.*
 import io.ktor.server.netty.*
 import io.netty.buffer.*
@@ -11,7 +11,6 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.ByteReadChannel.*
 import java.io.*
 import java.util.*
 

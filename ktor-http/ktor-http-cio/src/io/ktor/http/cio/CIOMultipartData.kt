@@ -3,6 +3,8 @@ package io.ktor.http.cio
 import io.ktor.http.content.*
 import io.ktor.http.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.io.core.*
+import kotlinx.io.streams.*
 import java.io.*
 import java.nio.*
 import java.nio.channels.*
@@ -10,12 +12,12 @@ import java.nio.file.*
 import kotlin.coroutines.experimental.*
 
 open class CIOMultipartDataBase(
-        coroutineContext: CoroutineContext,
-        channel: ByteReadChannel,
-        contentType: CharSequence,
-        contentLength: Long?,
-        private val formFieldLimit: Int = 65536,
-        private val inMemoryFileUploadLimit: Int = formFieldLimit
+    coroutineContext: CoroutineContext,
+    channel: ByteReadChannel,
+    contentType: CharSequence,
+    contentLength: Long?,
+    private val formFieldLimit: Int = 65536,
+    private val inMemoryFileUploadLimit: Int = formFieldLimit
 ) : MultiPartData {
     private val events = parseMultipart(coroutineContext, channel, contentType, contentLength)
 
@@ -63,7 +65,12 @@ open class CIOMultipartDataBase(
 
             if (!completeRead) {
                 val tmp = Files.createTempFile("file-upload-", ".tmp")
-                FileChannel.open(tmp, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE).use { out ->
+                FileChannel.open(
+                    tmp,
+                    StandardOpenOption.CREATE,
+                    StandardOpenOption.TRUNCATE_EXISTING,
+                    StandardOpenOption.WRITE
+                ).use { out ->
                     while (true) {
                         while (buffer.hasRemaining()) {
                             out.write(buffer)
@@ -75,10 +82,14 @@ open class CIOMultipartDataBase(
                     }
                 }
 
-                return PartData.FileItem({ FileInputStream(tmp.toFile()) }, { Files.deleteIfExists(tmp); part.release() }, CIOHeaders(headers))
+                return PartData.FileItem(
+                    { FileInputStream(tmp.toFile()).asInput() },
+                    { Files.deleteIfExists(tmp); part.release() },
+                    CIOHeaders(headers)
+                )
             } else {
-                val bis = ByteArrayInputStream(buffer.array(), buffer.arrayOffset(), buffer.remaining())
-                return PartData.FileItem({ bis }, { part.release() }, CIOHeaders(headers))
+                val input = ByteArrayInputStream(buffer.array(), buffer.arrayOffset(), buffer.remaining()).asInput()
+                return PartData.FileItem({ input }, { part.release() }, CIOHeaders(headers))
             }
         } else {
             val packet = part.body.readRemaining(formFieldLimit.toLong()) // TODO fail if limit exceeded

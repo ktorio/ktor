@@ -2,7 +2,7 @@ package io.ktor.client.request
 
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.pipeline.*
+import io.ktor.util.pipeline.*
 
 /**
  * [HttpClient] Pipeline used for executing [HttpRequest].

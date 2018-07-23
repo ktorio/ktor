@@ -3,6 +3,7 @@ package io.ktor.client.response
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.http.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.charsets.*
@@ -33,12 +34,12 @@ interface HttpResponse : HttpMessage, Closeable {
     /**
      * [Date] of the request start.
      */
-//    val requestTime: Date
+    val requestTime: GMTDate
 
     /**
      * [Date] of the response start.
      */
-//    val responseTime: Date
+    val responseTime: GMTDate
 
     /**
      * A [Job] representing the process of this response.

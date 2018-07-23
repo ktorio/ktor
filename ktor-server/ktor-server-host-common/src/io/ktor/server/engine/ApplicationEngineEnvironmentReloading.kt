@@ -3,7 +3,7 @@ package io.ktor.server.engine
 import io.ktor.application.*
 import io.ktor.config.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
+import io.ktor.util.pipeline.*
 import org.slf4j.*
 import java.io.*
 import java.lang.reflect.*

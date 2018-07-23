@@ -1,7 +1,7 @@
 package io.ktor.http.content
 
 import io.ktor.http.*
-import java.io.*
+import kotlinx.io.core.*
 
 /**
  * Represents a multipart/form-data entry. Could be a [FormItem] or [FileItem]
@@ -9,7 +9,7 @@ import java.io.*
 sealed class PartData(val dispose: () -> Unit, val headers: Headers) {
     class FormItem(val value: String, dispose: () -> Unit, partHeaders: Headers) : PartData(dispose, partHeaders)
 
-    class FileItem(val streamProvider: () -> InputStream, dispose: () -> Unit, partHeaders: Headers) : PartData(dispose, partHeaders) {
+    class FileItem(val streamProvider: () -> Input, dispose: () -> Unit, partHeaders: Headers) : PartData(dispose, partHeaders) {
         val originalFileName = contentDisposition?.parameter(ContentDisposition.Parameters.FileName)
     }
 

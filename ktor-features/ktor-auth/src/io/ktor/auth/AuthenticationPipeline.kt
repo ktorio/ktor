@@ -1,7 +1,7 @@
 package io.ktor.auth
 
 import io.ktor.application.*
-import io.ktor.pipeline.*
+import io.ktor.util.pipeline.*
 
 /**
  * Represents authentication [Pipeline] for checking and requesting authentication

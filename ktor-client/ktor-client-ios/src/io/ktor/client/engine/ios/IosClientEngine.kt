@@ -6,6 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
@@ -24,6 +25,7 @@ class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientE
         data: HttpRequestData
     ): HttpEngineCall = suspendCancellableCoroutine { continuation ->
         val request = DefaultHttpRequest(call, data)
+        val requestTime = GMTDate()
 
         val delegate = object : NSObject(), NSURLSessionDataDelegateProtocol {
             val chunks = Channel<ByteArray>(Channel.UNLIMITED)
@@ -56,7 +58,11 @@ class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientE
                     }
                 }
 
-                val result = IosHttpResponse(call, status, headers, responseContext.channel, responseContext)
+                val result = IosHttpResponse(
+                    call, status, headers, requestTime,
+                    responseContext.channel, responseContext
+                )
+
                 continuation.resume(HttpEngineCall(request, result))
             }
         }
