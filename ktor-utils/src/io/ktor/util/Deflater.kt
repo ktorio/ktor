@@ -81,6 +81,7 @@ fun ByteReadChannel.deflated(
             channel.putGzipTrailer(crc, deflater)
         }
     } finally {
+        deflater.end()
         pool.recycle(input)
         pool.recycle(compressed)
     }
