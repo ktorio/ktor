@@ -63,7 +63,8 @@ class CommandLineTest {
     @Test
     fun testJar() {
         val (file, uri) = findContainingZipFileOrUri(
-                CommandLineTest::class.java.classLoader.getResources("java/util/ArrayList.class").nextElement().toURI())
+            CommandLineTest::class.java.classLoader.getResources("java/util/ArrayList.class").nextElement().toURI()
+        )
 
         val opt = if (file != null) file.absolutePath else uri!!.toASCIIString()
         val expectedUri = uri ?: file!!.toURI()
@@ -102,8 +103,9 @@ class CommandLineTest {
 
         private fun withIsolatedClassLoader(block: (ClassLoader) -> Unit) {
             val classLoader = IsolatedResourcesClassLoader(
-                    File("ktor-server/ktor-server-host-common/test-resources").absoluteFile,
-                    block::class.java.classLoader)
+                File("ktor-server/ktor-server-host-common/test-resources").absoluteFile,
+                block::class.java.classLoader
+            )
 
             val oldClassLoader = Thread.currentThread().contextClassLoader
             Thread.currentThread().contextClassLoader = classLoader
