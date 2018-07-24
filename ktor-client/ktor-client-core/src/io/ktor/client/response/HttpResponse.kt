@@ -61,7 +61,6 @@ interface HttpResponse : HttpMessage, Closeable {
  */
 suspend fun HttpResponse.readText(charset: Charset? = null): String {
     val packet = content.readRemaining(Long.MAX_VALUE)
-    println("readText remaining: ${packet.remaining}")
     val actualCharset = charset() ?: charset ?: Charset.forName("ISO_8859_1")
     return packet.readText(charset = actualCharset)
 }

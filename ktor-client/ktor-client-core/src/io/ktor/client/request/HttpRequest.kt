@@ -189,6 +189,8 @@ operator fun HttpRequestBuilder.Companion.invoke(
 ): HttpRequestBuilder = HttpRequestBuilder().apply { url(scheme, host, port, path, block) }
 
 /**
- * Sets the [HttpRequestBuilder.url] from [url].
+ * Sets the [HttpRequestBuilder.url] from [urlString].
  */
-fun HttpRequestBuilder.url(url: String): Unit = TODO("url parser") //this.url.takeFrom(java.net.URI(url))
+fun HttpRequestBuilder.url(urlString: String): Unit {
+    url.takeFrom(urlString)
+}

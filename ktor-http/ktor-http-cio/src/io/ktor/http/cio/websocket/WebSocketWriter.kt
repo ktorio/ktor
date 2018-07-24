@@ -23,7 +23,7 @@ class WebSocketWriter @Deprecated("Internal API") constructor(
     val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) {
     private val queue = actor(context, parent = parent, capacity = 8, start = CoroutineStart.LAZY) {
-        pool.useBorrowed { writeLoop(it) }
+        pool.useInstance { it: ByteBuffer -> writeLoop(it) }
     }
 
     /**
