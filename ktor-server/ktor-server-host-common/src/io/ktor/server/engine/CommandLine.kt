@@ -24,9 +24,9 @@ fun commandLineEnvironment(args: Array<String>): ApplicationEngineEnvironment {
     val commandLineMap = argsMap.filterKeys { it.startsWith("-P:") }.mapKeys { it.key.removePrefix("-P:") }
 
     val environmentConfig = ConfigFactory.systemProperties().withOnlyPath("ktor")
-    val fileConfig = configFile?.let { ConfigFactory.parseFile(it).resolve() } ?: ConfigFactory.load()
+    val fileConfig = configFile?.let { ConfigFactory.parseFile(it) } ?: ConfigFactory.load()
     val argConfig = ConfigFactory.parseMap(commandLineMap, "Command-line options")
-    val combinedConfig = argConfig.withFallback(fileConfig).withFallback(environmentConfig)
+    val combinedConfig = argConfig.withFallback(fileConfig).withFallback(environmentConfig).resolve()
 
     val applicationIdPath = "ktor.application.id"
 
