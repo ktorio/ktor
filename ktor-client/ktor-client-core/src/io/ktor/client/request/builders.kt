@@ -85,6 +85,7 @@ fun request(block: HttpRequestBuilder.() -> Unit): HttpRequestBuilder = HttpRequ
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+/*
 suspend inline fun <reified T> HttpClient.get(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -92,6 +93,7 @@ suspend inline fun <reified T> HttpClient.get(
     url.takeFrom(urlString)
     block()
 }
+*/
 
 /**
  * Executes a [HttpClient] POST request, with the specified [url] as URL and
@@ -99,6 +101,7 @@ suspend inline fun <reified T> HttpClient.get(
  *
  * Tries to receive a specific type [T], if fails, an exception is thrown.
  */
+/*
 suspend inline fun <reified T> HttpClient.post(
     urlString: String,
     block: HttpRequestBuilder.() -> Unit = {}
@@ -106,3 +109,4 @@ suspend inline fun <reified T> HttpClient.post(
     url.takeFrom(urlString)
     block()
 }
+*/
