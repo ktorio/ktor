@@ -28,6 +28,10 @@ fun HttpClient.defaultTransformers() {
     responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, response) ->
         if (response !is HttpResponse) return@intercept
         when (info.type) {
+            Unit::class -> {
+                response.close()
+                proceedWith(HttpResponseContainer(info, Unit))
+            }
             ByteArray::class -> proceedWith(HttpResponseContainer(info, response.content.toByteArray()))
             ByteReadChannel::class -> proceedWith(HttpResponseContainer(info, response.content))
             InputStream::class -> proceedWith(

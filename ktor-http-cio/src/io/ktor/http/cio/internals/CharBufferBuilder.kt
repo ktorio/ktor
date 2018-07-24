@@ -132,7 +132,7 @@ internal class CharBufferBuilder(val pool: ObjectPool<CharBuffer> = CharBufferPo
             if (other !is CharSequence) return false
             if (other.length != length) return false
 
-            return rangeEqualsImpl(start, this@CharBufferBuilder, 0, length)
+            return rangeEqualsImpl(start, other, 0, length)
         }
 
         override fun hashCode() = stringified?.hashCode() ?: hashCodeImpl(start, end)

@@ -5,28 +5,31 @@ import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
 
-fun expectHttpUpgrade(method: HttpMethod,
-                      upgrade: CharSequence?,
-                      connectionOptions: ConnectionOptions?): Boolean {
-    return method == HttpMethod.Get &&
-            upgrade != null &&
-            connectionOptions?.upgrade == true
-}
+fun expectHttpUpgrade(
+    method: HttpMethod,
+    upgrade: CharSequence?,
+    connectionOptions: ConnectionOptions?
+): Boolean = method == HttpMethod.Get &&
+        upgrade != null &&
+        connectionOptions?.upgrade == true
 
-fun expectHttpUpgrade(request: Request): Boolean {
-    return expectHttpUpgrade(request.method,
-            request.headers["Upgrade"],
-            ConnectionOptions.parse(request.headers["Connection"]))
-}
+fun expectHttpUpgrade(request: Request): Boolean = expectHttpUpgrade(
+    request.method,
+    request.headers["Upgrade"],
+    ConnectionOptions.parse(request.headers["Connection"])
+)
 
-fun expectHttpBody(method: HttpMethod,
-                   contentLength: Long,
-                   transferEncoding: CharSequence?,
-                   connectionOptions: ConnectionOptions?,
-                   contentType: CharSequence?): Boolean {
+fun expectHttpBody(
+    method: HttpMethod,
+    contentLength: Long,
+    transferEncoding: CharSequence?,
+    connectionOptions: ConnectionOptions?,
+    contentType: CharSequence?
+): Boolean {
     if (method == HttpMethod.Get ||
-            method == HttpMethod.Head ||
-            method == HttpMethod.Options) {
+        method == HttpMethod.Head ||
+        method == HttpMethod.Options
+    ) {
         return false
     }
 
@@ -41,20 +44,21 @@ fun expectHttpBody(method: HttpMethod,
     return false
 }
 
-fun expectHttpBody(request: Request): Boolean {
-    return expectHttpBody(request.method,
-            request.headers["Content-Length"]?.parseDecLong() ?: -1,
-            request.headers["Transfer-Encoding"],
-            ConnectionOptions.parse(request.headers["Connection"]),
-            request.headers["Content-Type"]
-            )
-}
+fun expectHttpBody(request: Request): Boolean = expectHttpBody(
+    request.method,
+    request.headers["Content-Length"]?.parseDecLong() ?: -1,
+    request.headers["Transfer-Encoding"],
+    ConnectionOptions.parse(request.headers["Connection"]),
+    request.headers["Content-Type"]
+)
 
-suspend fun parseHttpBody(contentLength: Long,
-                          transferEncoding: CharSequence?,
-                          connectionOptions: ConnectionOptions?,
-                          input: ByteReadChannel,
-                          out: ByteWriteChannel) {
+suspend fun parseHttpBody(
+    contentLength: Long,
+    transferEncoding: CharSequence?,
+    connectionOptions: ConnectionOptions?,
+    input: ByteReadChannel,
+    out: ByteWriteChannel
+) {
     if (transferEncoding != null) {
         if (transferEncoding.equalsLowerCase(other = "chunked")) {
             return decodeChunked(input, out)
@@ -76,16 +80,18 @@ suspend fun parseHttpBody(contentLength: Long,
         return
     }
 
-    out.close(IOException("Failed to parse request body: request body length should be specified, " +
-            "chunked transfer encoding should be used or " +
-            "keep-alive should be disabled (connection: close)"))
-}
-
-suspend fun parseHttpBody(headers: HttpHeadersMap, input: ByteReadChannel, out: ByteWriteChannel) {
-    return parseHttpBody(
-            headers["Content-Length"]?.parseDecLong() ?: -1,
-            headers["Transfer-Encoding"],
-            ConnectionOptions.parse(headers["Connection"]),
-            input, out
+    out.close(
+        IOException(
+            "Failed to parse request body: request body length should be specified, " +
+                    "chunked transfer encoding should be used or " +
+                    "keep-alive should be disabled (connection: close)"
+        )
     )
 }
+
+suspend fun parseHttpBody(headers: HttpHeadersMap, input: ByteReadChannel, out: ByteWriteChannel): Unit = parseHttpBody(
+    headers["Content-Length"]?.parseDecLong() ?: -1,
+    headers["Transfer-Encoding"],
+    ConnectionOptions.parse(headers["Connection"]),
+    input, out
+)

@@ -95,7 +95,6 @@ class HttpClient(
     init {
         runBlocking {
             config.install(HttpPlainText)
-            config.install(HttpIgnoreBody)
 
             if (useDefaultTransformers) {
                 config.install("DefaultTransformers") { defaultTransformers() }

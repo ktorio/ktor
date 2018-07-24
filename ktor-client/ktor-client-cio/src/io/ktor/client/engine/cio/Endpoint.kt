@@ -133,7 +133,7 @@ internal class Endpoint(
                 }
             }
 
-            response.complete(CIOHttpResponse(request, requestTime, body, rawResponse))
+            response.complete(CIOHttpResponse(request, requestTime, body, rawResponse, pipelined = false))
         } catch (cause: Throwable) {
             response.completeExceptionally(cause)
         }

@@ -57,22 +57,27 @@ internal class ConnectionPipeline(
                 requestLimit.leave()
                 val job: Job? = try {
                     val response = parseResponse(inputChannel)
-                            ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
+                        ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
                     val contentLength = response.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
                     val transferEncoding = response.headers[HttpHeaders.TransferEncoding]
+                    val chunked = transferEncoding == "chunked"
                     val connectionType = ConnectionOptions.parse(response.headers[HttpHeaders.Connection])
-                    shouldClose = connectionType == ConnectionOptions.Close
+                    shouldClose = (connectionType == ConnectionOptions.Close) || chunked
+                    val method = task.request.method
 
-                    val writerJob = writer(Unconfined, autoFlush = true) {
+                    val hasBody = (contentLength > 0 || chunked) && method != HttpMethod.Head
+
+                    val writerJob = if (hasBody) writer(Unconfined, autoFlush = true) {
                         parseHttpBody(contentLength, transferEncoding, connectionType, inputChannel, channel)
-                    }
+                    } else null
 
                     task.response.complete(
                         CIOHttpResponse(
                             task.request,
                             task.requestTime,
-                            writerJob.channel,
-                            response
+                            writerJob?.channel ?: EmptyByteReadChannel,
+                            response,
+                            pipelined = hasBody && !chunked
                         )
                     )
                     writerJob
