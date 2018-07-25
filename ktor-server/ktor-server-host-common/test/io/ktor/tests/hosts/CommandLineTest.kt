@@ -72,6 +72,13 @@ class CommandLineTest {
         assertEquals(expectedUri, urlClassLoader.urLs.single().toURI())
     }
 
+    @Test
+    fun configFileWithEnvironmentVariables() {
+        val configPath = CommandLineTest::class.java.classLoader.getResource("applicationWithEnv.conf").toURI().path
+        val port = commandLineEnvironment(arrayOf("-config=$configPath")).config.property("ktor.deployment.port").getString()
+        assertEquals("8080", port)
+    }
+
     private tailrec fun findContainingZipFileOrUri(uri: URI): Pair<File?, URI?> {
         if (uri.scheme == "file") {
             return Pair(File(uri.path.substringBefore("!")), null)
