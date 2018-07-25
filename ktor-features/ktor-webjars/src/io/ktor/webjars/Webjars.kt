@@ -53,8 +53,9 @@ class Webjars(val configuration: Configuration) {
             val partialPath = fullPath.replace(configuration.path, "")
             try {
                 val location = extractWebJar(partialPath)
-                val resource = Webjars::class.java.classLoader.getResourceAsStream(location).readBytes()
-                context.call.respondBytes(resource, ContentType.defaultForFilePath(fileName), HttpStatusCode.OK)
+                context.call.respondBytes(ContentType.defaultForFilePath(fileName), HttpStatusCode.OK) {
+                    Webjars::class.java.classLoader.getResourceAsStream(location).readBytes()
+                }
             }catch (multipleFiles: MultipleMatchesException){
                 context.call.respond(HttpStatusCode.BadRequest)
             }
