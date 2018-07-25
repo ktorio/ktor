@@ -3,12 +3,14 @@ package io.ktor.client.engine.jetty
 import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.future.*
 import kotlinx.coroutines.experimental.io.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.*
 import org.eclipse.jetty.http2.api.*
+import org.eclipse.jetty.http2.client.*
 import org.eclipse.jetty.http2.frames.*
 import org.eclipse.jetty.util.*
 import java.io.*
@@ -20,6 +22,7 @@ internal data class StatusWithHeaders(val statusCode: HttpStatusCode, val header
 private data class JettyResponseChunk(val buffer: ByteBuffer, val callback: Callback)
 
 internal class JettyResponseListener(
+    private val session: HTTP2ClientSession,
     private val channel: ByteWriteChannel,
     private val dispatcher: CoroutineDispatcher,
     private val context: CompletableDeferred<Unit>
@@ -52,7 +55,7 @@ internal class JettyResponseListener(
 
     override fun onData(stream: Stream, frame: DataFrame, callback: Callback) {
         val data = frame.data.copy()
-        if (data.remaining() > 0 && !backendChannel.offer(JettyResponseChunk(data, callback))) {
+        if (!backendChannel.offer(JettyResponseChunk(data, callback))) {
             val cause = IOException("backendChannel.offer() failed")
             backendChannel.close(cause)
             callback.failed(cause)
@@ -85,17 +88,21 @@ internal class JettyResponseListener(
             while (!backendChannel.isClosedForReceive) {
                 val (buffer, callback) = backendChannel.receiveOrNull() ?: break
                 try {
-                    channel.writeFully(buffer)
+                    if (buffer.remaining() > 0) channel.writeFully(buffer)
                     callback.succeeded()
+                } catch (cause: ClosedWriteChannelException) {
+                    callback.failed(cause)
+                    session.endPoint.close()
+                    break
                 } catch (cause: Throwable) {
                     callback.failed(cause)
+                    session.endPoint.close()
                     throw cause
                 }
             }
         } catch (cause: Throwable) {
             channel.close(cause)
             this@JettyResponseListener.context.completeExceptionally(cause)
-            return@launch
         } finally {
             channel.close()
             this@JettyResponseListener.context.complete(Unit)

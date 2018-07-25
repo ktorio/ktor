@@ -13,6 +13,7 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.api.*
+import org.eclipse.jetty.http2.client.*
 import org.eclipse.jetty.http2.frames.*
 import java.io.*
 import java.util.*
@@ -36,15 +37,15 @@ internal class JettyHttpRequest(
 
     internal suspend fun execute(): HttpResponse {
         val requestTime = Date()
-        val session = client.connect(url.host, url.port).apply {
-            this.settings(SettingsFrame(emptyMap(), true), org.eclipse.jetty.util.Callback.NOOP)
-        }
+        val session: HTTP2ClientSession = client.connect(url.host, url.port).apply {
+            settings(SettingsFrame(emptyMap(), true), org.eclipse.jetty.util.Callback.NOOP)
+        } as HTTP2ClientSession
 
         val headersFrame = prepareHeadersFrame(content)
 
         val bodyChannel = ByteChannel()
         val responseContext = CompletableDeferred<Unit>()
-        val responseListener = JettyResponseListener(bodyChannel, dispatcher, responseContext)
+        val responseListener = JettyResponseListener(session, bodyChannel, dispatcher, responseContext)
 
         val jettyRequest = withPromise<Stream> { promise ->
             session.newStream(headersFrame, promise, responseListener)
