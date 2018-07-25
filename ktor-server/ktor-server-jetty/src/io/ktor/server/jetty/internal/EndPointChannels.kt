@@ -104,7 +104,7 @@ private suspend fun EndPoint.write(buffer: ByteBuffer) = suspendCancellableCorou
         }
 
         override fun failed(cause: Throwable) {
-            continuation.resumeWithException(cause)
+            continuation.resumeWithException(ChannelWriteException(exception = cause))
         }
     }, buffer)
 }
