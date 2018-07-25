@@ -41,27 +41,31 @@ internal class JettyResponseListener(
     }
 
     override fun onReset(stream: Stream, frame: ResetFrame) {
-        when (frame.error) {
+        val error = when (frame.error) {
             0 -> null
             ErrorCode.CANCEL_STREAM_ERROR.code -> ClosedChannelException()
             else -> {
                 val code = ErrorCode.from(frame.error)
                 IOException("Connection reset ${code?.name ?: "with unknown error code ${frame.error}"}")
             }
-        }?.let { backendChannel.close(it) }
+        }
 
+        error?.let { backendChannel.close(it) }
         onHeadersReceived.complete(null)
     }
 
     override fun onData(stream: Stream, frame: DataFrame, callback: Callback) {
         val data = frame.data.copy()
-        if (!backendChannel.offer(JettyResponseChunk(data, callback))) {
-            val cause = IOException("backendChannel.offer() failed")
-            backendChannel.close(cause)
-            callback.failed(cause)
-        }
+        try {
+            if (!backendChannel.offer(JettyResponseChunk(data, callback))) {
+                throw IOException("backendChannel.offer() failed")
+            }
 
-        if (frame.isEndStream) backendChannel.close()
+            if (frame.isEndStream) backendChannel.close()
+        } catch (cause: Throwable) {
+            backendChannel.close(cause)
+            callback.succeeded()
+        }
     }
 
     override fun onHeaders(stream: Stream, frame: HeadersFrame) {
@@ -104,6 +108,9 @@ internal class JettyResponseListener(
             channel.close(cause)
             this@JettyResponseListener.context.completeExceptionally(cause)
         } finally {
+            backendChannel.close()
+            backendChannel.consumeEach { it.callback.succeeded() }
+
             channel.close()
             this@JettyResponseListener.context.complete(Unit)
         }
