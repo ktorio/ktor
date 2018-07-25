@@ -11,8 +11,10 @@ import io.ktor.http.defaultForFilePath
 import io.ktor.pipeline.PipelineContext
 import io.ktor.request.httpMethod
 import io.ktor.request.uri
+import io.ktor.response.defaultTextContentType
 import io.ktor.response.respond
 import io.ktor.response.respondBytes
+import io.ktor.response.respondWrite
 import io.ktor.util.AttributeKey
 import org.webjars.MultipleMatchesException
 import org.webjars.WebJarAssetLocator
@@ -33,14 +35,14 @@ class Webjars(val configuration: Configuration) {
     private val locator = WebJarAssetLocator()
 
     class Configuration {
-        var path = "/webjars"
+        var path = "/webjars/"
         set(value) {
             var buffer = StringBuilder(value)
             if(!value.startsWith("/")){
                 buffer.insert(0, "/")
             }
-            if(value.endsWith("/")){
-                buffer.deleteCharAt(buffer.length - 1)
+            if(!buffer.endsWith("/")){
+                buffer.append("/")
             }
             field = buffer.toString()
         }
@@ -50,10 +52,11 @@ class Webjars(val configuration: Configuration) {
         val fullPath = context.call.request.uri
         if(fullPath.startsWith(configuration.path) && context.call.request.httpMethod == HttpMethod.Get){
             val fileName = fileName(context.call.request.uri)
-            val partialPath = fullPath.replace(configuration.path, "")
+            val partialPath = fullPath.removePrefix(configuration.path)
             try {
                 val location = extractWebJar(partialPath)
-                context.call.respondBytes(ContentType.defaultForFilePath(fileName), HttpStatusCode.OK) {
+                context.call.defaultTextContentType(ContentType.defaultForFilePath(fileName))
+                context.call.respondBytes {
                     Webjars::class.java.classLoader.getResourceAsStream(location).readBytes()
                 }
             }catch (multipleFiles: MultipleMatchesException){
