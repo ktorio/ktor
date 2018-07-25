@@ -92,6 +92,8 @@ internal class TLSClientHandshake(
 
                 channel.send(TLSRecord(record.type, packet = packet))
             }
+        } catch (cause: ClosedReceiveChannelException) {
+            channel.close()
         } catch (cause: Throwable) {
             channel.close(cause)
             // Remote server closed connection
