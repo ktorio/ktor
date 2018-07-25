@@ -39,10 +39,13 @@ class HttpClientCall internal constructor(
         if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
 
         val subject = HttpResponseContainer(info, response)
-        val result = client.responsePipeline.execute(this, subject).response
-
-        if (!info.type.isInstance(result)) throw NoTransformationFound(result::class, info.type)
-        return result
+        try {
+            val result = client.responsePipeline.execute(this, subject).response
+            if (!info.type.isInstance(result)) throw NoTransformationFound(result::class, info.type)
+            return result
+        } catch (cause: Throwable) {
+            throw ReceivePipelineFail(response.call, info, cause)
+        }
     }
 
     /**
@@ -76,6 +79,16 @@ suspend inline fun <reified T> HttpClientCall.receive(): T = receive(typeInfo<T>
 class DoubleReceiveException(call: HttpClientCall) : IllegalStateException() {
     override val message: String = "Request already received: $call"
 }
+
+/**
+ * Exception representing fail of the response pipeline
+ * [cause] contains origin pipeline exception
+ */
+class ReceivePipelineFail(
+    val request: HttpClientCall,
+    val info: TypeInfo,
+    override val cause: Throwable
+): IllegalStateException()
 
 /**
  * Exception representing the no transformation was found.
