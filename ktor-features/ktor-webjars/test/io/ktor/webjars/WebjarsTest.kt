@@ -1,8 +1,10 @@
 package io.ktor.webjars
 
+import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.response.respondText
 import io.ktor.routing.get
 import io.ktor.routing.routing
 import io.ktor.server.testing.handleRequest
@@ -28,12 +30,14 @@ class WebjarsTest {
         withTestApplication {
             application.install(Webjars)
             application.routing {
-                get("/webjars-something/jquery") { call ->
-
+                get("/webjars-something/jquery") {
+                    call.respondText { "Something Else" }
                 }
             }
             handleRequest(HttpMethod.Get, "/webjars-something/jquery").let { call ->
-                assertEquals(HttpStatusCode.NotFound, call.response.status())
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("Something Else", call.response.content)
+
             }
         }
     }
@@ -55,12 +59,33 @@ class WebjarsTest {
     fun rootPath() {
         withTestApplication {
             application.install(Webjars){
-                path = ""
+                path = "/"
             }
             handleRequest(HttpMethod.Get, "/jquery/jquery.js").let { call ->
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("application/javascript", call.response.headers["Content-Type"])
             }
+        }
+    }
+
+    @Test
+    fun rootPath2() {
+        withTestApplication {
+            application.install(Webjars){
+                path = "/"
+            }
+            application.routing {
+                get("/") { call.respondText("Hello, World") }
+            }
+            handleRequest(HttpMethod.Get, "/").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("Hello, World", call.response.content)
+            }
+            handleRequest(HttpMethod.Get, "/jquery/jquery.js").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("application/javascript", call.response.headers["Content-Type"])
+            }
+
         }
     }
 

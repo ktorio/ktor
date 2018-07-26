@@ -11,10 +11,8 @@ import io.ktor.http.defaultForFilePath
 import io.ktor.pipeline.PipelineContext
 import io.ktor.request.httpMethod
 import io.ktor.request.uri
-import io.ktor.response.defaultTextContentType
 import io.ktor.response.respond
 import io.ktor.response.respondBytes
-import io.ktor.response.respondWrite
 import io.ktor.util.AttributeKey
 import org.webjars.MultipleMatchesException
 import org.webjars.WebJarAssetLocator
@@ -22,13 +20,13 @@ import java.nio.file.Paths
 
 class Webjars(val configuration: Configuration) {
 
-    private fun fileName(path: String) : String = Paths.get(path).fileName.toString()
+    private fun fileName(path: String) : String = Paths.get(path).fileName?.toString() ?: ""
 
     private fun extractWebJar(path : String) : String {
-        val firstSlash = if (path.startsWith("/")) 1 else 0
-        val nextSlash = path.indexOf("/", 1)
-        val webjar = if(nextSlash > -1) path.substring(firstSlash,  nextSlash) else ""
-        val partialPath = path.substring(nextSlash + 1)
+        val firstDelimiter = if (path.startsWith("/")) 1 else 0
+        val nextDelimiter = path.indexOf("/", 1)
+        val webjar = if(nextDelimiter > -1) path.substring(firstDelimiter,  nextDelimiter) else ""
+        val partialPath = path.substring(nextDelimiter + 1)
         return locator.getFullPath(webjar, partialPath)
     }
 
@@ -50,13 +48,12 @@ class Webjars(val configuration: Configuration) {
 
     private suspend fun intercept(context: PipelineContext<Unit, ApplicationCall>){
         val fullPath = context.call.request.uri
-        if(fullPath.startsWith(configuration.path) && context.call.request.httpMethod == HttpMethod.Get){
-            val fileName = fileName(context.call.request.uri)
-            val partialPath = fullPath.removePrefix(configuration.path)
+        val fileName = fileName(context.call.request.uri)
+        if(fullPath.startsWith(configuration.path) && context.call.request.httpMethod == HttpMethod.Get && fileName.isNotEmpty()){
+            val resourcePath = fullPath.removePrefix(configuration.path)
             try {
-                val location = extractWebJar(partialPath)
-                context.call.defaultTextContentType(ContentType.defaultForFilePath(fileName))
-                context.call.respondBytes {
+                val location = extractWebJar(resourcePath)
+                context.call.respondBytes(ContentType.defaultForFilePath(fileName), HttpStatusCode.OK) {
                     Webjars::class.java.classLoader.getResourceAsStream(location).readBytes()
                 }
             }catch (multipleFiles: MultipleMatchesException){
