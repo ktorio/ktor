@@ -8,8 +8,8 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlinx.io.core.*
 import kotlinx.io.streams.*
+import org.junit.Assert.assertArrayEquals
 import org.junit.Test
-import java.io.*
 import kotlin.test.*
 
 class TestEngineMultipartTest {
@@ -28,8 +28,8 @@ class TestEngineMultipartTest {
         val bytes = ByteArray(256) { it.toByte() }
         testMultiPartsFileItemBase(
             filename = "file.bin",
-            streamProvider = { bytes.inputStream() },
-            extraFileAssertions = { file -> assertEquals(hex(bytes), hex(file.streamProvider().readBytes())) }
+            provider = { buildPacket { writeFully(bytes) } },
+            extraFileAssertions = { file -> assertEquals(hex(bytes), hex(file.provider().readBytes())) }
         )
     }
 
@@ -38,8 +38,8 @@ class TestEngineMultipartTest {
         val string = "file content with unicode 🌀 : здороваться : 여보세요 : 你好 : ñç"
         testMultiPartsFileItemBase(
             filename = "file.txt",
-            streamProvider = { string.toByteArray().inputStream() },
-            extraFileAssertions = { file -> assertEquals(string, file.streamProvider().readText()) }
+            provider = { buildPacket { writeFully(string.toByteArray()) } },
+            extraFileAssertions = { file -> assertEquals(string, file.provider().readText()) }
         )
     }
 
@@ -57,14 +57,14 @@ class TestEngineMultipartTest {
 
                 assertEquals("fileField", file.name)
                 assertEquals("file.bin", file.originalFileName)
-                assertEquals(hex(bytes), hex(file.streamProvider().readBytes()))
+                assertEquals(hex(bytes), hex(file.provider().readBytes()))
 
                 file.dispose()
             }
         }, setup = {
             addHeader(HttpHeaders.ContentType, contentType.toString())
             setBody(boundary, listOf(PartData.FileItem(
-                    streamProvider = { bytes.inputStream().asInput() },
+                    provider = { bytes.inputStream().asInput() },
                     dispose = {},
                     partHeaders = headersOf(
                             HttpHeaders.ContentDisposition,
@@ -112,7 +112,7 @@ class TestEngineMultipartTest {
 
     private fun testMultiPartsFileItemBase(
         filename: String,
-        streamProvider: () -> InputStream,
+        provider: () -> Input,
         extraFileAssertions: (file: PartData.FileItem) -> Unit
     ) {
         testMultiParts({
@@ -132,7 +132,7 @@ class TestEngineMultipartTest {
         }, setup = {
             addHeader(HttpHeaders.ContentType, contentType.toString())
             setBody(boundary, listOf(PartData.FileItem(
-                streamProvider = { streamProvider().asInput() },
+                provider = provider,
                 dispose = {},
                 partHeaders = headersOf(
                     HttpHeaders.ContentDisposition,

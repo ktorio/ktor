@@ -9,14 +9,12 @@ actual fun GMTDate(timestamp: Long?): GMTDate = Calendar.getInstance(GMT_TIMEZON
 actual fun GMTDate(
     seconds: Int, minutes: Int, hours: Int, dayOfMonth: Int, month: Month, year: Int
 ): GMTDate = (Calendar.getInstance(GMT_TIMEZONE, Locale.ROOT)!!).apply {
-    set(Calendar.SECOND, seconds)
-    set(Calendar.MINUTE, minutes)
-    set(Calendar.HOUR, hours)
-
-    set(Calendar.DAY_OF_MONTH, dayOfMonth)
-
-    set(Calendar.MONTH, month.ordinal)
     set(Calendar.YEAR, year)
+    set(Calendar.MONTH, month.ordinal)
+    set(Calendar.DAY_OF_MONTH, dayOfMonth)
+    set(Calendar.HOUR_OF_DAY, hours)
+    set(Calendar.MINUTE, minutes)
+    set(Calendar.SECOND, seconds)
 }.toDate(timestamp = null)
 
 

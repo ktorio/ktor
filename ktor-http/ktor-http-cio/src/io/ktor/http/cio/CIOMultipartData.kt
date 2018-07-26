@@ -11,7 +11,9 @@ import java.nio.channels.*
 import java.nio.file.*
 import kotlin.coroutines.experimental.*
 
-open class CIOMultipartDataBase(
+typealias CIOMultipartData = CIOMultipartDataBase
+
+class CIOMultipartDataBase(
     coroutineContext: CoroutineContext,
     channel: ByteReadChannel,
     contentType: CharSequence,

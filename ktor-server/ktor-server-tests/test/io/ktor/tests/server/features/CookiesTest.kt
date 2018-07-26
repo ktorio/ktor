@@ -296,8 +296,9 @@ class ParserServerSetCookieTest {
 
         val expires = parsed.expires
         assertNotNull(expires)
-//        assertEquals(2016, expires!!.get(ChronoField.YEAR))
-//        assertEquals(1, expires.get(ChronoField.MONTH_OF_YEAR))
-//        assertEquals(16, expires.get(ChronoField.DAY_OF_MONTH))
+        expires!!
+        assertEquals(2016, expires.year)
+        assertEquals(io.ktor.util.date.Month.JANUARY, expires.month)
+        assertEquals(16, expires.dayOfMonth)
     }
 }

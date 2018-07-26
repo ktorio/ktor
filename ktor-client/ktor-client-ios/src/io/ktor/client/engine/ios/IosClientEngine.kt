@@ -37,11 +37,13 @@ class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientE
 
             override fun URLSession(session: NSURLSession, task: NSURLSessionTask, didCompleteWithError: NSError?) {
                 chunks.close()
-                val response = task.response as NSHTTPURLResponse
 
                 if (didCompleteWithError != null) {
                     continuation.resumeWithException(IosHttpRequestException(didCompleteWithError))
+                    return
                 }
+
+                val response = task.response as NSHTTPURLResponse
 
                 @Suppress("UNCHECKED_CAST")
                 val headersDict = response.allHeaderFields as Map<String, String>

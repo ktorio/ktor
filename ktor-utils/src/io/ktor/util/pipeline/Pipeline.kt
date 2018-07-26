@@ -1,7 +1,7 @@
 package io.ktor.util.pipeline
 
 import io.ktor.util.*
-//import kotlin.jvm.*
+import kotlin.jvm.*
 
 /**
  * Represents an execution pipeline for asynchronous extensible computations
@@ -58,7 +58,7 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
 
     private var interceptorsQuantity = 0
 
-//    @Volatile
+    @Volatile
     private var interceptors: ArrayList<PipelineInterceptor<TSubject, TContext>>? = null
 
     /**

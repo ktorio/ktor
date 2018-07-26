@@ -32,11 +32,12 @@ open class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpC
     }
 
     private suspend fun AndroidHttpRequest.execute(): AndroidHttpResponse {
-        val result = CompletableDeferred<AndroidHttpResponse>()
         val requestTime = GMTDate()
 
         val url = URLBuilder().takeFrom(url).buildString()
         val contentLength = headers[HttpHeaders.ContentLength]?.toLong() ?: content.contentLength
+
+        val context = Job()
 
         val connection = (URL(url).openConnection() as HttpURLConnection).apply {
             connectTimeout = config.connectTimeout
@@ -60,7 +61,7 @@ open class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpC
                 contentLength?.let { setFixedLengthStreamingMode(it) } ?: setChunkedStreamingMode(0)
                 doOutput = true
 
-                this@execute.content.writeTo(outputStream)
+                    this@execute.content.writeTo(outputStream)
             }
         }
 
@@ -72,29 +73,24 @@ open class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpC
             headerFields?.forEach { (key, values) -> key?.let { appendAll(it, values) } }
         }.build()
 
-        result.complete(
-            AndroidHttpResponse(
-                call, content, Job(),
-                responseHeaders, requestTime, GMTDate(),
-                HttpStatusCode.fromValue(connection.responseCode), HttpProtocolVersion.HTTP_1_1,
-                connection
-            )
+        return AndroidHttpResponse(
+            call, content, context,
+            responseHeaders, requestTime, GMTDate(),
+            HttpStatusCode.fromValue(connection.responseCode), HttpProtocolVersion.HTTP_1_1,
+            connection
         )
-        return result.await()
     }
 }
 
-internal fun OutgoingContent.writeTo(stream: OutputStream) {
+internal fun OutgoingContent.writeTo(stream: OutputStream): Unit = stream.use {
     when (this) {
-        is OutgoingContent.ByteArrayContent -> stream.write(bytes())
-        is OutgoingContent.ReadChannelContent -> readFrom().toInputStream().copyTo(stream)
+        is OutgoingContent.ByteArrayContent -> it.write(bytes())
+        is OutgoingContent.ReadChannelContent -> readFrom().toInputStream().copyTo(it)
         is OutgoingContent.WriteChannelContent -> {
-            writer(Unconfined) { writeTo(channel) }.channel.toInputStream().copyTo(stream)
+            writer(Unconfined) { writeTo(channel) }.channel.toInputStream().copyTo(it)
         }
         else -> throw UnsupportedContentTypeException(this)
     }
-
-    stream.close()
 }
 
 internal fun HttpURLConnection.content(dispatcher: CoroutineDispatcher): ByteReadChannel = try {

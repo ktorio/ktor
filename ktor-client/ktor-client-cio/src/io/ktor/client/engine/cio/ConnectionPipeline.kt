@@ -69,7 +69,6 @@ internal class ConnectionPipeline(
                     val connectionType = ConnectionOptions.parse(response.headers[HttpHeaders.Connection])
                     shouldClose = (connectionType == ConnectionOptions.Close)
 
-
                     val hasBody = (contentLength > 0 || chunked) && method != HttpMethod.Head
 
                     val writerJob = if (hasBody) writer(Unconfined, autoFlush = true) {

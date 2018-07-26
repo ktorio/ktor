@@ -7,7 +7,7 @@ private val BASE64_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvw
 private val BASE64_MASK: Byte = 0x3f
 private val BASE64_PAD = '='
 
-private val BASE64_INVERSE_ALPHABET = IntArray(255) {
+private val BASE64_INVERSE_ALPHABET = IntArray(256) {
     BASE64_ALPHABET.indexOf(it.toChar())
 }
 

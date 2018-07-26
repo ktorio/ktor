@@ -7,8 +7,7 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 
-class AndroidHttpRequest(override val call: HttpClientCall, data: HttpRequestData) :
-    HttpRequest {
+internal class AndroidHttpRequest(override val call: HttpClientCall, data: HttpRequestData) : HttpRequest {
     override val attributes: Attributes = Attributes()
 
     override val url: Url = data.url

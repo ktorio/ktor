@@ -3,7 +3,7 @@ package io.ktor.client.utils
 import kotlinx.coroutines.experimental.*
 
 /**
- * Number of threads used for http clients: A little less than the [cpuCount] and 2 at least.
+ * Ios http client use the main queue to execute request.
  */
 actual val HTTP_CLIENT_THREAD_COUNT: Int = 0
 

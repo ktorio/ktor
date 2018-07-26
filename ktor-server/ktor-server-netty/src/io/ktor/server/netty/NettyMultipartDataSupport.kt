@@ -101,7 +101,7 @@ internal class NettyMultiPartData(
 
     private fun convert(part: InterfaceHttpData) = when (part) {
         is FileUpload -> PartData.FileItem(
-            streamProvider = {
+            provider = {
                 when {
                     part.isInMemory -> buildPacket { writeFully(part.get()) }
                     else -> part.file.inputStream().asInput()

@@ -43,20 +43,18 @@ fun String.encodeURLQueryComponent(
  * Encode [this] in percent encoding specified here:
  * https://tools.ietf.org/html/rfc5849#section-3.6
  */
-fun String.encodeOAuth(): String = encodeURLParameter(encodePlus = true)
+fun String.encodeOAuth(): String = encodeURLParameter()
 
 /**
  * Encode [this] as query parameter
  */
 fun String.encodeURLParameter(
-    encodePlus: Boolean = true,
     spaceToPlus: Boolean = false
 ): String = buildString {
     val content = Charsets.UTF_8.newEncoder().encode(this@encodeURLParameter)
     content.forEach {
         when {
             it in URL_ALPHABET || it in OAUTH_SYMBOLS -> append(it.toChar())
-            !encodePlus && it == '+'.toByte() -> append('+')
             spaceToPlus && it == ' '.toByte() -> append('+')
             else -> append(it.percentEncode())
         }

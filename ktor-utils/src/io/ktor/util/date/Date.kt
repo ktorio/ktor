@@ -30,7 +30,7 @@ enum class WeekDay(val value: String) {
 
 /**
  * Month
- * [value] is 3 letter shortcut]
+ * [value] is 3 letter shortcut
  */
 enum class Month(val value: String) {
     JANUARY("Jan"),
@@ -56,6 +56,15 @@ enum class Month(val value: String) {
 
 /**
  * Date in GMT timezone
+ *
+ * [seconds]: seconds from 0 to 60(last is for leap second)
+ * [minutes]: minutes from 0 to 59
+ * [hours]: hours from 0 to 23
+ *
+ * [dayOfMonth]: day of month from 1 to 31
+ * [dayOfYear]: day of year from 1 to 366
+ *
+ * [year]: year in common era(CE: https://en.wikipedia.org/wiki/Common_Era)
  */
 data class GMTDate(
     val seconds: Int,

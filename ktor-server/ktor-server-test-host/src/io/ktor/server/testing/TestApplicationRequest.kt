@@ -112,7 +112,7 @@ fun TestApplicationRequest.setBody(boundary: String, values: List<PartData>): Un
                 append("\r\n")
                 when (it) {
                     is PartData.FileItem -> {
-                        it.streamProvider().asStream().copyTo(channel.toOutputStream())
+                        it.provider().asStream().copyTo(channel.toOutputStream())
                     }
                     is PartData.FormItem -> append(it.value)
                 }

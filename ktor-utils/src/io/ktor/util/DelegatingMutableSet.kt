@@ -46,7 +46,8 @@ internal open class DelegatingMutableSet<From, To>(
     override fun equals(other: Any?): Boolean {
         if (other == null || other !is Set<*>) return false
 
-        return other.containsAll(delegate.convertTo())
+        val elements = delegate.convertTo()
+        return other.containsAll(elements) && elements.containsAll(other)
     }
 
     override fun toString(): String = delegate.convertTo().toString()

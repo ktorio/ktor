@@ -622,7 +622,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                 call.receiveMultipart().readAllParts().sortedBy { it.name }.forEach { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
-                        is PartData.FileItem -> response.append("file:${part.name},${part.originalFileName},${part.streamProvider().readText()}\n")
+                        is PartData.FileItem -> response.append("file:${part.name},${part.originalFileName},${part.provider().readText()}\n")
                     }
 
                     part.dispose()
@@ -669,7 +669,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                 call.receiveMultipart().forEachPart { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
-                        is PartData.FileItem -> response.append("file:${part.name},${part.originalFileName},${part.streamProvider().asStream().bufferedReader().lineSequence().count()}\n")
+                        is PartData.FileItem -> response.append("file:${part.name},${part.originalFileName},${part.streamProvider().bufferedReader().lineSequence().count()}\n")
                     }
 
                     part.dispose()
@@ -824,7 +824,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     fun testReceiveInputStream() {
         createAndStartServer {
             post("/") {
-                call.respond(call.request.receiveChannel().toInputStream().reader().readText())
+                call.respond(call.receive<InputStream>().reader().readText())
             }
         }
 

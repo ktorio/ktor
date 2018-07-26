@@ -24,7 +24,7 @@ class ContentTypeLookupTest {
     @Test
     fun testEmpty() {
         assertEquals(emptyList(), ContentType.fromFileExtension(""))
-        assertEquals(emptyList(), ContentType.fromFileExtension(""))
+        assertEquals(emptyList(), ContentType.fromFileExtension("."))
     }
 
     @Test

@@ -27,8 +27,8 @@ fun List<Pair<String, String?>>.formUrlEncodeTo(out: Appendable) {
     filter { it.second != null }.joinTo(
         out, "&"
     ) {
-        val key = it.first.encodeURLParameter(encodePlus = true, spaceToPlus = true)
-        val value = it.second.toString().encodeURLParameter(encodePlus = true, spaceToPlus = true)
+        val key = it.first.encodeURLParameter(spaceToPlus = true)
+        val value = it.second.toString().encodeURLParameter(spaceToPlus = true)
 
         "$key=$value"
     }

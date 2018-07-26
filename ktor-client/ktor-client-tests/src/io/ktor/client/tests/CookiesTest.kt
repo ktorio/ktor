@@ -131,14 +131,7 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
         val client = HttpClient(factory)
         val a = client.config {
             install(HttpCookies) {
-                default {
-                    runBlocking {
-                        addCookie(
-                            "localhost",
-                            Cookie("id", "1")
-                        )
-                    }
-                }
+                default { runBlocking { addCookie("localhost", Cookie("id", "1")) } }
             }
         }
         val b = a.config {
