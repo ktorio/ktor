@@ -57,10 +57,9 @@ class Webjars(val configuration: Configuration) {
                     Webjars::class.java.classLoader.getResourceAsStream(location).readBytes()
                 }
             }catch (multipleFiles: MultipleMatchesException){
-                context.call.respond(HttpStatusCode.BadRequest)
+                context.call.respond(HttpStatusCode.InternalServerError)
             }
             catch (notFound: IllegalArgumentException){
-                context.call.respond(HttpStatusCode.NotFound)
             }
         }
     }

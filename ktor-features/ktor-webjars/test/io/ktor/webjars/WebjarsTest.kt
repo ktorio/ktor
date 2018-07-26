@@ -11,6 +11,7 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 
 class WebjarsTest {
@@ -20,7 +21,8 @@ class WebjarsTest {
         withTestApplication {
             application.install(Webjars)
             handleRequest(HttpMethod.Get, "/webjars/foo.js").let { call ->
-                assertEquals(HttpStatusCode.NotFound, call.response.status())
+                //Should be handled by some other routing
+                assertNull(call.response.status())
            }
         }
     }
