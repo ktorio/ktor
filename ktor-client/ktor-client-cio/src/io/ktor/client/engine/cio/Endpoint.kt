@@ -94,7 +94,7 @@ internal class Endpoint(
 
         val (request, response) = task
 
-        fun closeConnection(cause: Throwable?) {
+        fun closeConnection(cause: Throwable? = null) {
             try {
                 output.close(cause)
                 connection.close()
@@ -113,8 +113,8 @@ internal class Endpoint(
             val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
             val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
 
-            val body = when (status) {
-                HttpStatusCode.SwitchingProtocols.value -> {
+            val body = when {
+                status == HttpStatusCode.SwitchingProtocols.value -> {
                     val content = request.content as? ClientUpgradeContent
                             ?: error("Invalid content type: UpgradeContent required")
 
@@ -123,6 +123,10 @@ internal class Endpoint(
                     }.invokeOnCompletion(::closeConnection)
 
                     input
+                }
+                request.method == HttpMethod.Head -> {
+                    closeConnection()
+                    ByteReadChannel.Empty
                 }
                 else -> {
                     val httpBodyParser = writer(dispatcher, autoFlush = true) {
