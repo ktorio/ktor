@@ -1,5 +1,6 @@
 package io.ktor.client.features.json.test
 
+import com.fasterxml.jackson.annotation.*
 import io.ktor.application.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.features.json.*
@@ -37,6 +38,10 @@ class JsonTest : TestWithKtor() {
             get("/users") {
                 call.respond(Response(true, arrayOf(User("vasya", 10))))
             }
+            post("/jackson") {
+                assertEquals(Jackson("request", null), call.receive())
+                call.respond(Jackson("response", "not_ignored")) // encoded with GsonConverter
+            }
         }
     }
 
@@ -73,6 +78,25 @@ class JsonTest : TestWithKtor() {
             val users = customResponse.result!!
             assertEquals(1, users.size)
             assertEquals(User("vasya", 10), users[0])
+        }
+    }
+
+    data class Jackson(val value: String, @JsonIgnore val ignoredValue: String?)
+
+    @Test
+    fun testJackson() = clientTest(CIO) {
+        config {
+            install(JsonFeature) {
+                serializer = JacksonSerializer()
+            }
+        }
+
+        test { client ->
+            val response = client.post<Jackson>(port = serverPort, path = "jackson",  body = Jackson("request", "ignored")) {
+                contentType(ContentType.Application.Json)
+            }
+
+            assertEquals(Jackson("response", "not_ignored"), response) // encoded with GsonConverter
         }
     }
 }
