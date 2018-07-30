@@ -99,7 +99,13 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
             val delegate = LoggerFactory.getLogger("ktor.test")
             this.log = log ?: object : Logger by delegate {
                 override fun error(msg: String?, t: Throwable?) {
-                    t?.let { exceptions.add(it) }
+                    t?.let {
+                        exceptions.add(it)
+                        println("Critical test exception: $it")
+                        it.printStackTrace()
+                        println("From origin:")
+                        Exception().printStackTrace()
+                    }
                     delegate.error(msg, t)
                 }
             }
