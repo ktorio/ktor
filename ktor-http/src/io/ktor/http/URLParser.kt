@@ -26,12 +26,14 @@ private val domainLabel = alphaDigit or (alphaDigit then many(alphaDigit or "-")
 private val topLabel = alpha or (alpha then many(alphaDigit or "-") then alphaDigit)
 private val hostName = many(domainLabel then ".") then topLabel
 
-private val hostNumber = digits then "." then digits then "." then digits then "." then digits
+private val IPv4address = digits then "." then digits then "." then digits then "." then digits
+private val IPv6address = "[" then atLeastOne(hex or ":") then "]"
+
 private val credentialChar = urlChar or anyOf(";?&=")
 private val user = atLeastOne(credentialChar).named("user")
 private val password = atLeastOne(credentialChar).named("password")
 private val auth = user then maybe(":" then password) then "@"
-private val host = (hostName or hostNumber).named("host")
+private val host = (hostName or IPv4address or IPv6address).named("host")
 private val port = ":" then digits.named("port")
 private val pathSegment = many(urlChar or anyOf(";&="))
 private val parameters = pathSegment.named("parameters")

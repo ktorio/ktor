@@ -30,6 +30,7 @@ internal class OrGrammar(sourceGrammars: List<Grammar>) : Grammar(), ComplexGram
 }
 
 internal fun maybe(grammar: Grammar): Grammar = MaybeGrammar(grammar)
+internal fun maybe(value: String): Grammar = MaybeGrammar(StringGrammar(value))
 internal fun maybe(block: GrammarBuilder.() -> Unit): () -> Grammar = { maybe(GrammarBuilder().apply(block).build()) }
 
 internal infix fun String.then(grammar: Grammar): Grammar = StringGrammar(this) then grammar

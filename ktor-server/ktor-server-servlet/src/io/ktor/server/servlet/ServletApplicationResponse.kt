@@ -1,10 +1,10 @@
 package io.ktor.server.servlet
 
 import io.ktor.application.*
-import io.ktor.cio.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.experimental.io.*
 import javax.servlet.http.*
 
