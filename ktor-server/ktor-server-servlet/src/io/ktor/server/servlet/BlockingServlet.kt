@@ -51,8 +51,8 @@ private class BlockingServletApplicationResponse(
             try {
                 to.write(buffer, 0, n)
                 to.flush()
-            } catch (e: IOException) {
-                throw ChannelIOException("Failed to write to ServletOutputStream", e)
+            } catch (cause: Throwable) {
+                throw ChannelWriteException("Failed to write to ServletOutputStream", cause)
             }
         }
     }
