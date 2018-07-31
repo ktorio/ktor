@@ -9,6 +9,7 @@ import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
@@ -32,6 +33,22 @@ open class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWi
                 val content = call.request.receiveChannel().toByteArray()
                 val headers = call.request.headers
                 call.respond(content)
+            }
+            get("/news") {
+                val form = call.request.queryParameters
+
+                assertEquals("myuser", form["user"]!!)
+                assertEquals("10", form["page"]!!)
+
+                call.respond("100")
+            }
+            post("/sign") {
+                val form = call.receiveParameters()
+
+                assertEquals("myuser", form["user"]!!)
+                assertEquals("abcdefg", form["token"]!!)
+
+                call.respond("success")
             }
         }
     }
@@ -100,6 +117,38 @@ open class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWi
     fun localFileContentTest() {
         val response = requestWithBody<ByteArray>(LocalFileContent(File("build.gradle")))
         assertArrayEquals(File("build.gradle").readBytes(), response)
+    }
+
+    @Test
+    fun getFormDataTest() = clientTest(factory) {
+        test { client ->
+            val form = parametersOf(
+                "user" to listOf("myuser"),
+                "page" to listOf("10")
+            )
+
+            val response = client.submitForm<String>(
+                path = "news", port = serverPort, urlEncoded = true, formData = form
+            )
+
+            assertEquals("100", response)
+        }
+    }
+
+    @Test
+    fun postFormDataTest() = clientTest(factory) {
+        test { client ->
+            val form = parametersOf(
+                "user" to listOf("myuser"),
+                "token" to listOf("abcdefg")
+            )
+
+            val response = client.submitForm<String>(
+                path = "sign", port = serverPort, urlEncoded = false, formData = form
+            )
+
+            assertEquals("success", response)
+        }
     }
 
     private inline fun <reified Response : Any> requestWithBody(body: Any): Response = runBlocking {
