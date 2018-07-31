@@ -1,10 +1,7 @@
 package io.ktor.http.content
 
 import io.ktor.http.*
-import io.ktor.util.*
 import kotlinx.io.core.*
-import kotlinx.io.streams.*
-import java.io.*
 
 /**
  * Represents a multipart/form-data entry. Could be a [FormItem] or [FileItem]
@@ -16,6 +13,7 @@ sealed class PartData(val dispose: () -> Unit, val headers: Headers) {
         val originalFileName = contentDisposition?.parameter(ContentDisposition.Parameters.FileName)
     }
 
+    class BinaryItem(val provider: () -> Input, dispose: () -> Unit, partHeaders: Headers): PartData(dispose, partHeaders)
 
     /**
      * Parsed `Content-Disposition` header or `null` if missing
@@ -82,5 +80,3 @@ suspend fun MultiPartData.readAllParts(): List<PartData> {
 
     return parts
 }
-
-val PartData.FileItem.streamProvider: () -> InputStream get() = { provider().asStream() }
