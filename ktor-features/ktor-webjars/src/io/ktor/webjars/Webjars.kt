@@ -4,6 +4,10 @@ import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.ApplicationFeature
 import io.ktor.application.call
+import io.ktor.cio.toByteReadChannel
+import io.ktor.content.LastModifiedVersion
+import io.ktor.content.OutgoingContent
+import io.ktor.content.versions
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -14,9 +18,14 @@ import io.ktor.request.uri
 import io.ktor.response.respond
 import io.ktor.response.respondBytes
 import io.ktor.util.AttributeKey
+import kotlinx.coroutines.experimental.io.ByteReadChannel
 import org.webjars.MultipleMatchesException
 import org.webjars.WebJarAssetLocator
+import java.io.InputStream
 import java.nio.file.Paths
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.util.*
 
 class Webjars(val configuration: Configuration) {
 
@@ -31,6 +40,7 @@ class Webjars(val configuration: Configuration) {
     }
 
     private val locator = WebJarAssetLocator()
+    private val lastModified = ZonedDateTime.now(configuration.zone)
 
     class Configuration {
         var path = "/webjars/"
@@ -44,6 +54,7 @@ class Webjars(val configuration: Configuration) {
             }
             field = buffer.toString()
         }
+        var zone = ZoneId.systemDefault()
     }
 
     private suspend fun intercept(context: PipelineContext<Unit, ApplicationCall>){
@@ -53,9 +64,7 @@ class Webjars(val configuration: Configuration) {
             val resourcePath = fullPath.removePrefix(configuration.path)
             try {
                 val location = extractWebJar(resourcePath)
-                context.call.respondBytes(ContentType.defaultForFilePath(fileName), HttpStatusCode.OK) {
-                    Webjars::class.java.classLoader.getResourceAsStream(location).readBytes()
-                }
+                context.call.respond(InputStreamContent(Webjars::class.java.classLoader.getResourceAsStream(location), ContentType.defaultForFilePath(fileName), lastModified))
             }catch (multipleFiles: MultipleMatchesException){
                 context.call.respond(HttpStatusCode.InternalServerError)
             }
@@ -81,4 +90,13 @@ class Webjars(val configuration: Configuration) {
 
     }
 
+}
+
+class InputStreamContent(val input: InputStream, override val contentType: ContentType, val lastModified: ZonedDateTime) :  OutgoingContent.ReadChannelContent() {
+    init {
+        versions += LastModifiedVersion(lastModified)
+    }
+    override fun readFrom(): ByteReadChannel {
+        return input.toByteReadChannel()
+    }
 }

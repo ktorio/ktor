@@ -2,6 +2,7 @@ package io.ktor.webjars
 
 import io.ktor.application.call
 import io.ktor.application.install
+import io.ktor.features.ConditionalHeaders
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respondText
@@ -11,6 +12,7 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 
@@ -112,6 +114,20 @@ class WebjarsTest {
                 assertEquals(HttpStatusCode.OK, call.response.status())
                 assertEquals("application/javascript", call.response.headers["Content-Type"])
             }
+        }
+    }
+
+    @Test
+    fun withConditionalHeaders() {
+        withTestApplication {
+            application.install(Webjars)
+            application.install(ConditionalHeaders)
+            handleRequest(HttpMethod.Get, "/webjars/jquery/3.3.1/jquery.js").let { call ->
+                assertEquals(HttpStatusCode.OK, call.response.status())
+                assertEquals("application/javascript", call.response.headers["Content-Type"])
+                assertNotNull(call.response.headers["Last-Modified"])
+            }
+
         }
     }
 
