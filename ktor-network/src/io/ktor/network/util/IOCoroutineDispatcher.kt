@@ -27,12 +27,7 @@ class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), 
     }
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
-        val node: LockFreeLinkedListNode = if (block is LockFreeLinkedListNode && block.isFresh) {
-            tasks.addLast(block)
-            block
-        } else {
-            IODispatchedTask(block).also { tasks.addLast(it) }
-        }
+        val node = IODispatchedTask(block).also { tasks.addLast(it) }
         resumeAnyThread(node)
     }
 
