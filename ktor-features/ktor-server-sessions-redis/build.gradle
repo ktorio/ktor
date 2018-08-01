@@ -1,0 +1,9 @@
+description = ''
+
+repositories {
+    mavenLocal() // @TODO: Remove this once published
+}
+
+dependencies {
+    compile "io.ktor.client:ktor-client-redis:0.1.0"
+}
