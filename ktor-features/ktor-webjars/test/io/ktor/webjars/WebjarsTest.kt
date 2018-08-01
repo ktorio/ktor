@@ -25,7 +25,7 @@ class WebjarsTest {
             handleRequest(HttpMethod.Get, "/webjars/foo.js").let { call ->
                 //Should be handled by some other routing
                 assertNull(call.response.status())
-           }
+            }
         }
     }
 
@@ -47,9 +47,9 @@ class WebjarsTest {
     }
 
     @Test
-    fun nestedPath(){
+    fun nestedPath() {
         withTestApplication {
-            application.install(Webjars){
+            application.install(Webjars) {
                 path = "/assets/webjars"
             }
             handleRequest(HttpMethod.Get, "/assets/webjars/jquery/jquery.js").let { call ->
@@ -62,7 +62,7 @@ class WebjarsTest {
     @Test
     fun rootPath() {
         withTestApplication {
-            application.install(Webjars){
+            application.install(Webjars) {
                 path = "/"
             }
             handleRequest(HttpMethod.Get, "/jquery/jquery.js").let { call ->
@@ -75,7 +75,7 @@ class WebjarsTest {
     @Test
     fun rootPath2() {
         withTestApplication {
-            application.install(Webjars){
+            application.install(Webjars) {
                 path = "/"
             }
             application.routing {
