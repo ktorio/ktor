@@ -1,6 +1,7 @@
 package io.ktor.server.servlet
 
 import io.ktor.http.content.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.experimental.*
 import javax.servlet.http.*
 import kotlin.coroutines.experimental.*
@@ -21,7 +22,10 @@ object DefaultServletUpgrade : ServletUpgrade {
                                         userContext: CoroutineContext) {
 
         val handler = servletRequest.upgrade(ServletUpgradeHandler::class.java)
-        handler.up = UpgradeRequest(servletResponse, upgrade, engineContext, userContext)
+        val disableAsyncInput = servletRequest.servletContext?.serverInfo
+                ?.contains("tomcat", ignoreCase = true) == true
+
+        handler.up = UpgradeRequest(servletResponse, upgrade, engineContext, userContext, disableAsyncInput)
     }
 }
 
@@ -30,7 +34,8 @@ object DefaultServletUpgrade : ServletUpgrade {
 class UpgradeRequest(val response: HttpServletResponse,
                      val upgradeMessage: OutgoingContent.ProtocolUpgrade,
                      val engineContext: CoroutineContext,
-                     val userContext: CoroutineContext)
+                     val userContext: CoroutineContext,
+                     val disableAsyncInput: Boolean)
 
 class ServletUpgradeHandler : HttpUpgradeHandler {
     @Volatile
@@ -46,11 +51,12 @@ class ServletUpgradeHandler : HttpUpgradeHandler {
             webConnection.close()
         }
 
-        val servletReader = servletReader(webConnection.inputStream, parent = upgradeJob)
-        val servletWriter = servletWriter(webConnection.outputStream, parent = upgradeJob)
+        val inputChannel = when {
+            up.disableAsyncInput -> webConnection.inputStream.toByteReadChannel(context = up.userContext, parent = upgradeJob)
+            else -> servletReader(webConnection.inputStream, parent = upgradeJob).channel
+        }
 
-        val inputChannel = servletReader.channel
-        val outputChannel = servletWriter.channel
+        val outputChannel = servletWriter(webConnection.outputStream, parent = upgradeJob).channel
 
         launch(up.userContext, start = CoroutineStart.UNDISPATCHED) {
             val job = up.upgradeMessage.upgrade(inputChannel, outputChannel, up.engineContext, up.userContext)
