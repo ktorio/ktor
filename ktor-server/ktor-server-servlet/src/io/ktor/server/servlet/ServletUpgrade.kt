@@ -7,23 +7,27 @@ import javax.servlet.http.*
 import kotlin.coroutines.experimental.*
 
 interface ServletUpgrade {
-    suspend fun performUpgrade(upgrade: OutgoingContent.ProtocolUpgrade,
-                               servletRequest: HttpServletRequest,
-                               servletResponse: HttpServletResponse,
-                               engineContext: CoroutineContext,
-                               userContext: CoroutineContext)
+    suspend fun performUpgrade(
+        upgrade: OutgoingContent.ProtocolUpgrade,
+        servletRequest: HttpServletRequest,
+        servletResponse: HttpServletResponse,
+        engineContext: CoroutineContext,
+        userContext: CoroutineContext
+    )
 }
 
 object DefaultServletUpgrade : ServletUpgrade {
-    override suspend fun performUpgrade(upgrade: OutgoingContent.ProtocolUpgrade,
-                                        servletRequest: HttpServletRequest,
-                                        servletResponse: HttpServletResponse,
-                                        engineContext: CoroutineContext,
-                                        userContext: CoroutineContext) {
+    override suspend fun performUpgrade(
+        upgrade: OutgoingContent.ProtocolUpgrade,
+        servletRequest: HttpServletRequest,
+        servletResponse: HttpServletResponse,
+        engineContext: CoroutineContext,
+        userContext: CoroutineContext
+    ) {
 
         val handler = servletRequest.upgrade(ServletUpgradeHandler::class.java)
         val disableAsyncInput = servletRequest.servletContext?.serverInfo
-                ?.contains("tomcat", ignoreCase = true) == true
+            ?.contains("tomcat", ignoreCase = true) == true
 
         handler.up = UpgradeRequest(servletResponse, upgrade, engineContext, userContext, disableAsyncInput)
     }
@@ -31,11 +35,13 @@ object DefaultServletUpgrade : ServletUpgrade {
 
 // the following types need to be public as they are accessed through reflection
 
-class UpgradeRequest(val response: HttpServletResponse,
-                     val upgradeMessage: OutgoingContent.ProtocolUpgrade,
-                     val engineContext: CoroutineContext,
-                     val userContext: CoroutineContext,
-                     val disableAsyncInput: Boolean)
+class UpgradeRequest(
+    val response: HttpServletResponse,
+    val upgradeMessage: OutgoingContent.ProtocolUpgrade,
+    val engineContext: CoroutineContext,
+    val userContext: CoroutineContext,
+    val disableAsyncInput: Boolean
+)
 
 class ServletUpgradeHandler : HttpUpgradeHandler {
     @Volatile
@@ -52,7 +58,10 @@ class ServletUpgradeHandler : HttpUpgradeHandler {
         }
 
         val inputChannel = when {
-            up.disableAsyncInput -> webConnection.inputStream.toByteReadChannel(context = up.userContext, parent = upgradeJob)
+            up.disableAsyncInput -> webConnection.inputStream.toByteReadChannel(
+                context = up.userContext,
+                parent = upgradeJob
+            )
             else -> servletReader(webConnection.inputStream, parent = upgradeJob).channel
         }
 
