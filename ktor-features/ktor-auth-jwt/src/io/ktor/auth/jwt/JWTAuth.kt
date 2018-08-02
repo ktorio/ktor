@@ -116,11 +116,11 @@ private fun getVerifierNullableIssuer(jwkProvider: JwkProvider, issuer: String?,
             null
         } catch (ex: JWTDecodeException) {
             null
-        } ?: return null
-    }
+        }
+    } ?: return null
 
     val algorithm = try {
-        jwk?.makeAlgorithm()
+        jwk.makeAlgorithm()
     } catch (ex: IllegalArgumentException) {
         null
     } ?: return null
