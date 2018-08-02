@@ -407,6 +407,7 @@ class JWTAuthTest {
         }
         return mock {
             on { get(kid) } doReturn jwk
+            on { get("wrong") } doThrow(SigningKeyNotFoundException("Key not found", null))
         }
     }
 
@@ -415,8 +416,11 @@ class JWTAuthTest {
             on { algorithm } doReturn jwkAlgorithm.name
             on { publicKey } doReturn keyPair.public
         }
-        return mock {
-            on { get(kid) } doReturn jwk
+        return JwkProvider { tokenId ->
+            when (tokenId) {
+                kid -> jwk
+                else -> throw SigningKeyNotFoundException("Key not found", null)
+            }
         }
     }
 
