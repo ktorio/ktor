@@ -47,7 +47,7 @@ data class HttpStatusCode(val value: Int, val description: String) {
 
         val UnsupportedMediaType = HttpStatusCode(415, "Unsupported Media Type")
         val RequestedRangeNotSatisfiable = HttpStatusCode(416, "Requested Range Not Satisfiable")
-        val ExceptionFailed = HttpStatusCode(417, "Expectation Failed")
+        val ExpectationFailed = HttpStatusCode(417, "Expectation Failed")
         val UpgradeRequired = HttpStatusCode(426, "Upgrade Required")
         val TooManyRequests = HttpStatusCode(429, "Too Many Requests")
         val RequestHeaderFieldTooLarge = HttpStatusCode(431, "Request Header Fields Too Large")
@@ -72,6 +72,11 @@ data class HttpStatusCode(val value: Int, val description: String) {
         }
     }
 }
+
+@Suppress("UNUSED")
+@Deprecated("Use ExpectationFailed instead",
+        ReplaceWith("ExpectationFailed", "io.ktor.http.HttpStatusCode.Companion.ExpectationFailed"))
+inline val HttpStatusCode.Companion.ExceptionFailed: HttpStatusCode get() = ExpectationFailed
 
 internal expect fun allStatusCodes(): List<HttpStatusCode>
 
