@@ -37,8 +37,6 @@ open class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpC
         val url = URLBuilder().takeFrom(url).buildString()
         val outgoingContent = this@execute.content
         val contentLength = headers[HttpHeaders.ContentLength]?.toLong() ?: outgoingContent.contentLength
-        val contentType = headers[HttpHeaders.ContentType] ?: outgoingContent.contentType
-
         val context = Job()
 
         val connection = (URL(url).openConnection() as HttpURLConnection).apply {
@@ -49,15 +47,9 @@ open class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpC
             useCaches = false
             instanceFollowRedirects = false
 
-            headers.forEach { key, value ->
-                addRequestProperty(key, value.joinToString(";"))
+            mergeHeaders(headers, outgoingContent) { key, value ->
+                addRequestProperty(key, value)
             }
-
-            outgoingContent.headers.forEach { key, value ->
-                addRequestProperty(key, value.joinToString(";"))
-            }
-
-            addRequestProperty(HttpHeaders.ContentType, contentType.toString())
 
             if (outgoingContent !is OutgoingContent.NoContent) {
                 if (contentLength != null) {

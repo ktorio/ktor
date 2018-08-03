@@ -2,6 +2,7 @@ package io.ktor.client.engine.jetty
 
 import io.ktor.util.cio.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.utils.*
@@ -62,11 +63,7 @@ internal class JettyHttpRequest(
     private fun prepareHeadersFrame(content: OutgoingContent): HeadersFrame {
         val rawHeaders = HttpFields()
 
-        headers.flattenForEach { name, value ->
-            rawHeaders.add(name, value)
-        }
-
-        content.headers.flattenForEach { name, value ->
+        mergeHeaders(headers, content) { name, value ->
             rawHeaders.add(name, value)
         }
 
