@@ -11,6 +11,7 @@ internal actual fun allStatusCodes(): List<HttpStatusCode> = listOf(
     HttpStatusCode.NoContent,
     HttpStatusCode.ResetContent,
     HttpStatusCode.PartialContent,
+    HttpStatusCode.MultiStatus,
     HttpStatusCode.MultipleChoices,
     HttpStatusCode.MovedPermanently,
     HttpStatusCode.Found,
@@ -38,6 +39,9 @@ internal actual fun allStatusCodes(): List<HttpStatusCode> = listOf(
     HttpStatusCode.UnsupportedMediaType,
     HttpStatusCode.RequestedRangeNotSatisfiable,
     HttpStatusCode.ExceptionFailed,
+    HttpStatusCode.UnprocessableEntity,
+    HttpStatusCode.Locked,
+    HttpStatusCode.FailedDependency,
     HttpStatusCode.UpgradeRequired,
     HttpStatusCode.TooManyRequests,
     HttpStatusCode.RequestHeaderFieldTooLarge,
@@ -47,5 +51,6 @@ internal actual fun allStatusCodes(): List<HttpStatusCode> = listOf(
     HttpStatusCode.ServiceUnavailable,
     HttpStatusCode.GatewayTimeout,
     HttpStatusCode.VersionNotSupported,
-    HttpStatusCode.VariantAlsoNegotiates
+    HttpStatusCode.VariantAlsoNegotiates,
+    HttpStatusCode.InsufficientStorage
 )
