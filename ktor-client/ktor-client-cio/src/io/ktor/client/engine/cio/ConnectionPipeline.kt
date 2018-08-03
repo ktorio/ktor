@@ -9,6 +9,7 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.experimental.io.ByteReadChannel.*
 import java.io.*
 import java.nio.channels.*
 
@@ -79,7 +80,7 @@ internal class ConnectionPipeline(
                         CIOHttpResponse(
                             task.request,
                             task.requestTime,
-                            writerJob?.channel ?: EmptyByteReadChannel,
+                            writerJob?.channel ?: ByteReadChannel.Empty,
                             response,
                             pipelined = hasBody && !chunked
                         )

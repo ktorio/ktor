@@ -13,8 +13,8 @@ class GsonSerializer(block: GsonBuilder.() -> Unit = {}) : JsonSerializer {
 
     override fun write(data: Any): OutgoingContent = TextContent(backend.toJson(data), ContentType.Application.Json)
 
-    override suspend fun read(info: TypeInfo, response: HttpResponse): Any {
+    override suspend fun read(type: TypeInfo, response: HttpResponse): Any {
         val text= response.readText()
-        return backend.fromJson(text, info.reifiedType)
+        return backend.fromJson(text, type.reifiedType)
     }
 }

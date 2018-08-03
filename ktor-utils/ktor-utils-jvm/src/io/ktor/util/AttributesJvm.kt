@@ -26,8 +26,10 @@ class AttributesJvm : Attributes {
      * TODO: To be discussed. Workaround for android < API 24.
      */
     override fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T {
+        @Suppress("UNCHECKED_CAST")
         map[key]?.let { return it as T }
         val result = block()
+        @Suppress("UNCHECKED_CAST")
         return (map.putIfAbsent(key, result) ?: result) as T
     }
 
