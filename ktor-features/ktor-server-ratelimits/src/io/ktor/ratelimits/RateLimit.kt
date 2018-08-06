@@ -50,7 +50,7 @@ class RateLimit(val key: String, val uses: Int, val limit: Int, val reset: Tempo
      *
      * @return The copy of the RateLimit.
      */
-    fun incrementUses() = RateLimit(key, min(uses + 1, limit), limit, reset, uses >= limit)
+    internal fun incrementUses() = RateLimit(key, min(uses + 1, limit), limit, reset, uses >= limit)
 
     override fun toString() = toStringFormat.format(key, remaining, limit, reset.toString())
     override fun hashCode() = 31 * key.hashCode() + limit
