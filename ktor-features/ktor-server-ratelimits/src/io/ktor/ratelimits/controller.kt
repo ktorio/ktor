@@ -4,6 +4,7 @@ import io.ktor.application.ApplicationCall
 import io.ktor.features.origin
 import io.ktor.http.HttpStatusCode
 import io.ktor.response.respond
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A controller for [RateLimit] instances.
@@ -83,7 +84,7 @@ interface RateLimitController {
 
 // Simple concrete implementation storing rate-limits internally in a map
 internal class MapRateLimitController: RateLimitController {
-    private val rateLimits = mutableMapOf<String, RateLimit>()
+    private val rateLimits = ConcurrentHashMap<String, RateLimit>()
 
     override fun retrieve(call: ApplicationCall, key: String): RateLimit? {
         return rateLimits[key]
