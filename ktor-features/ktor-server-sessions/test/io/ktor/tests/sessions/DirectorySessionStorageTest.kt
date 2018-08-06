@@ -2,6 +2,7 @@ package io.ktor.tests.sessions
 
 import io.ktor.sessions.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.jvm.javaio.*
 import org.junit.*
 import org.junit.Test
@@ -11,8 +12,8 @@ import java.util.*
 import kotlin.test.*
 
 class DirectorySessionStorageTest {
-    val dir = Files.createTempDirectory("ktor-tests-").toFile()
-    val storage = directorySessionStorage(dir, false)
+    private val dir = Files.createTempDirectory("ktor-tests-").toFile()!!
+    private val storage = directorySessionStorage(dir, false)
 
     @After
     fun tearDown() {

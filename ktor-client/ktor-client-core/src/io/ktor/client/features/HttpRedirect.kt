@@ -4,7 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
+import io.ktor.util.pipeline.*
 import io.ktor.util.*
 
 /**
@@ -23,7 +23,7 @@ class HttpRedirect(
 
         private val Redirect = PipelinePhase("RedirectPhase")
 
-        override suspend fun prepare(block: Config.() -> Unit): HttpRedirect =
+        override fun prepare(block: Config.() -> Unit): HttpRedirect =
             HttpRedirect(Config().apply(block).maxJumps)
 
         override fun install(feature: HttpRedirect, scope: HttpClient) {
@@ -38,8 +38,8 @@ class HttpRedirect(
                         return@intercept
                     }
 
-                    val location = call.response.headers[HttpHeaders.Location]
-                    location?.let { context.url.takeFrom(it) }
+                    val location = call.response.headers[HttpHeaders.Location] ?: return@repeat
+                    context.url.takeFrom(location)
                 }
 
                 throw RedirectException(context.build(), "Redirect limit ${feature.maxJumps} exceeded")

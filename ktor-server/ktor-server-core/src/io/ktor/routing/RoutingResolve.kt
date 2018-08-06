@@ -63,7 +63,7 @@ class RoutingResolveContext(val routing: Route, val call: ApplicationCall, priva
                 beginSegment = nextSegment + 1
                 continue
             }
-            val segment = decodeURLPart(path, beginSegment, nextSegment)
+            val segment = path.decodeURLPart(beginSegment, nextSegment)
             segments.add(segment)
             beginSegment = nextSegment + 1
         }

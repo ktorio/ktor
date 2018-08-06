@@ -1,30 +1,34 @@
 package io.ktor.client.engine.jetty
 
 import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.io.*
 import org.eclipse.jetty.http2.api.*
 import org.eclipse.jetty.http2.frames.*
 import org.eclipse.jetty.util.*
+import java.nio.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
 
 private val EmptyByteBuffer = ByteBuffer.allocate(0)!!
 
 internal class JettyHttp2Request(private val stream: Stream) : Callback {
-    private val continuation = AtomicReference<Continuation<Unit>>()
+    private val deferred = AtomicReference<CompletableDeferred<Unit>>()
 
-    suspend fun write(src: ByteBuffer) = suspendCancellableCoroutine<Unit> { continuation ->
-        this.continuation.set(continuation)
+    suspend fun write(src: ByteBuffer) {
+        val result = CompletableDeferred<Unit>()
+        deferred.set(result)
+
         val frame = DataFrame(stream.id, src, false)
         stream.data(frame, this)
+
+        result.await()
     }
 
     override fun succeeded() {
-        continuation.getAndSet(null)!!.resume(Unit)
+        deferred.getAndSet(null)!!.complete(Unit)
     }
 
-    override fun failed(t: Throwable) {
-        continuation.getAndSet(null)!!.resumeWithException(t)
+    override fun failed(cause: Throwable) {
+        deferred.getAndSet(null)!!.completeExceptionally(cause)
     }
 
     fun endBody() {

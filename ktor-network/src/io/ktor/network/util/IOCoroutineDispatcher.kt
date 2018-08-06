@@ -2,12 +2,11 @@ package io.ktor.network.util
 
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.internal.*
-import kotlin.coroutines.experimental.intrinsics.*
-import java.io.Closeable
+import kotlinx.io.core.Closeable
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import kotlin.coroutines.experimental.*
-import kotlin.jvm.*
+import kotlin.coroutines.experimental.intrinsics.*
 
 class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), Closeable {
     private val dispatcherThreadGroup = ThreadGroup(ioThreadGroup, "io-pool-group-sub")
@@ -28,12 +27,7 @@ class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), 
     }
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
-        val node: LockFreeLinkedListNode = if (block is LockFreeLinkedListNode && block.isFresh) {
-            tasks.addLast(block)
-            block
-        } else {
-            IODispatchedTask(block).also { tasks.addLast(it) }
-        }
+        val node = IODispatchedTask(block).also { tasks.addLast(it) }
         resumeAnyThread(node)
     }
 

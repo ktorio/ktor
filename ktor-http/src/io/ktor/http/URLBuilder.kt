@@ -1,7 +1,5 @@
 package io.ktor.http
 
-import java.net.*
-
 class URLBuilder(
         var protocol: URLProtocol = URLProtocol.HTTP,
         var host: String = "localhost",
@@ -18,17 +16,17 @@ class URLBuilder(
     }
 
     fun path(components: List<String>) {
-        encodedPath = components.joinToString("/", prefix = "/") { encodeURLPart(it) }
+        encodedPath = components.joinToString("/", prefix = "/") { it.encodeURLQueryComponent() }
     }
 
     private fun <A : Appendable> appendTo(out: A): A {
         out.append(protocol.name)
         out.append("://")
-        user?.let { usr ->
-            out.append(encodeURLPart(usr))
-            password?.let { pwd ->
+        user?.let { user ->
+            out.append(user.encodeURLParameter())
+            password?.let { password ->
                 out.append(":")
-                out.append(encodeURLPart(pwd))
+                out.append(password.encodeURLParameter())
             }
             out.append("@")
         }
@@ -54,7 +52,7 @@ class URLBuilder(
 
         if (fragment.isNotEmpty()) {
             out.append('#')
-            out.append(encodeURLPart(fragment))
+            out.append(fragment.encodeURLQueryComponent())
         }
 
         return out
@@ -82,10 +80,6 @@ data class Url(
         val password: String?,
         val trailingQuery: Boolean
 ) {
-    companion object {
-        operator fun invoke(fullUrl: String): Url = URLBuilder().apply { takeFrom(URI(fullUrl)) }.build()
-    }
-
     override fun toString(): String = buildString {
         append(protocol.name)
         append("://")
@@ -108,6 +102,8 @@ data class Url(
             append(fragment)
         }
     }
+
+    companion object
 }
 
 

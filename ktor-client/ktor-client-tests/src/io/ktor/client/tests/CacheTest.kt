@@ -42,6 +42,7 @@ abstract class CacheTest(private val factory: HttpClientEngineFactory<*>) : Test
             get("/etag") {
                 val etag = if (counter.get() < 2) "0" else "1"
                 counter.incrementAndGet()
+                @Suppress("DEPRECATION")
                 call.withETag(etag) {
                     call.respondText(counter.get().toString())
                 }
@@ -52,7 +53,7 @@ abstract class CacheTest(private val factory: HttpClientEngineFactory<*>) : Test
     @Test
     fun testDisabled() = runBlocking {
         val client = HttpClient(factory) {
-            //            install(HttpCache)
+//            install(HttpCache)
         }
 
         val builder = HttpRequestBuilder(port = serverPort)
@@ -68,7 +69,7 @@ abstract class CacheTest(private val factory: HttpClientEngineFactory<*>) : Test
     @Test
     fun maxAge() = runBlocking {
         val client = HttpClient(factory) {
-            //            install(HttpCache)
+//            install(HttpCache)
         }
 
         val results = mutableListOf<String>()

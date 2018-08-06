@@ -1,6 +1,6 @@
 package io.ktor.client.request
 
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.http.*
 import kotlinx.coroutines.experimental.io.*
 

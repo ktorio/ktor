@@ -2,7 +2,7 @@ package io.ktor.request
 
 import io.ktor.features.*
 import io.ktor.http.*
-import java.nio.charset.*
+import kotlinx.io.charsets.*
 
 fun ApplicationRequest.header(name: String): String? = headers[name]
 fun ApplicationRequest.queryString(): String = origin.uri.substringAfter('?', "")

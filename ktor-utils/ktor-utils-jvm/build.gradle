@@ -1,0 +1,5 @@
+description = ''
+
+dependencies {
+    expectedBy project(":ktor-utils")
+}

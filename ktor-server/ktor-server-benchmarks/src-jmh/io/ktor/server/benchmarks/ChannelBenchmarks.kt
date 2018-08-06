@@ -1,6 +1,6 @@
 package io.ktor.server.benchmarks
 
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.jvm.javaio.*
@@ -9,6 +9,7 @@ import java.io.*
 import java.nio.ByteBuffer
 import java.nio.channels.*
 import java.nio.file.*
+import kotlin.coroutines.experimental.*
 
 @State(Scope.Benchmark)
 class ChannelBenchmarks {

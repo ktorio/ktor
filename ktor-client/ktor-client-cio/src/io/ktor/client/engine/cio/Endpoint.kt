@@ -6,6 +6,7 @@ import io.ktor.http.cio.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.Socket
 import io.ktor.network.tls.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
@@ -52,7 +53,7 @@ internal class Endpoint(
                         makePipelineRequest(task)
                     }
                 } catch (cause: Throwable) {
-                    task.continuation.resumeWithException(cause)
+                    task.response.completeExceptionally(cause)
                     throw cause
                 }
             }
@@ -62,9 +63,11 @@ internal class Endpoint(
         }
     }
 
-    suspend fun execute(request: CIOHttpRequest): CIOHttpResponse = suspendCancellableCoroutine {
-        val task = RequestTask(request, it)
+    suspend fun execute(request: DefaultHttpRequest): CIOHttpResponse {
+        val result = CompletableDeferred<CIOHttpResponse>()
+        val task = RequestTask(request, result)
         tasks.offer(task)
+        return result.await()
     }
 
     private suspend fun makePipelineRequest(task: RequestTask) {
@@ -75,7 +78,7 @@ internal class Endpoint(
             try {
                 createPipeline()
             } catch (cause: Throwable) {
-                task.continuation.resumeWithException(cause)
+                task.response.completeExceptionally(cause)
                 throw cause
             }
         }
@@ -87,11 +90,11 @@ internal class Endpoint(
         val connection = connect()
         val input = connection.openReadChannel()
         val output = connection.openWriteChannel()
-        val requestTime = Date()
+        val requestTime = GMTDate()
 
-        val (request, continuation) = task
+        val (request, response) = task
 
-        fun closeConnection(cause: Throwable?) {
+        fun closeConnection(cause: Throwable? = null) {
             try {
                 output.close(cause)
                 connection.close()
@@ -103,15 +106,15 @@ internal class Endpoint(
         try {
             request.write(output)
 
-            val response = parseResponse(input) ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
+            val rawResponse = parseResponse(input) ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
 
-            val status = response.status
-            val contentLength = response.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
-            val transferEncoding = response.headers[HttpHeaders.TransferEncoding]
-            val connectionType = ConnectionOptions.parse(response.headers[HttpHeaders.Connection])
+            val status = rawResponse.status
+            val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
+            val transferEncoding = rawResponse.headers[HttpHeaders.TransferEncoding]
+            val connectionType = ConnectionOptions.parse(rawResponse.headers[HttpHeaders.Connection])
 
-            val body = when (status) {
-                HttpStatusCode.SwitchingProtocols.value -> {
+            val body = when {
+                status == HttpStatusCode.SwitchingProtocols.value -> {
                     val content = request.content as? ClientUpgradeContent
                             ?: error("Invalid content type: UpgradeContent required")
 
@@ -120,6 +123,10 @@ internal class Endpoint(
                     }.invokeOnCompletion(::closeConnection)
 
                     input
+                }
+                request.method == HttpMethod.Head -> {
+                    closeConnection()
+                    ByteReadChannel.Empty
                 }
                 else -> {
                     val httpBodyParser = writer(dispatcher, autoFlush = true) {
@@ -131,9 +138,9 @@ internal class Endpoint(
                 }
             }
 
-            continuation.resume(CIOHttpResponse(request, requestTime, body, response))
+            response.complete(CIOHttpResponse(request, requestTime, body, rawResponse, pipelined = false))
         } catch (cause: Throwable) {
-            continuation.resumeWithException(cause)
+            response.completeExceptionally(cause)
         }
     }
 

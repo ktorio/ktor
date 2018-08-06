@@ -7,13 +7,16 @@ import java.net.*
 @State(Scope.Benchmark)
 class CodecsBenchmark {
     @Benchmark
-    fun decodeHex() = decodeURLPart("%2A~%21%40%23%24%25%5E%26%28%29+%7B%7D%22%5C%3B%3A%60%2C%2F%5B%5D")
+    fun decodeHex() = "%2A~%21%40%23%24%25%5E%26%28%29+%7B%7D%22%5C%3B%3A%60%2C%2F%5B%5D".decodeURLPart()
 
     @Benchmark
-    fun decodePlain() = decodeURLPart("simple")
+    fun decodePlain() = "simple".decodeURLPart()
 
     @Benchmark
-    fun decodeHexJava() = URLDecoder.decode("%2A~%21%40%23%24%25%5E%26%28%29+%7B%7D%22%5C%3B%3A%60%2C%2F%5B%5D".replace("+", "%2B"), Charsets.UTF_8.name())
+    fun decodeHexJava() = URLDecoder.decode(
+        "%2A~%21%40%23%24%25%5E%26%28%29+%7B%7D%22%5C%3B%3A%60%2C%2F%5B%5D".replace("+", "%2B")
+        , Charsets.UTF_8.name()
+    )
 
     @Benchmark
     fun decodePlainJava() = URLDecoder.decode("simple", Charsets.UTF_8.name())

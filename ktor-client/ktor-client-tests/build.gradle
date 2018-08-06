@@ -1,7 +1,7 @@
 description = "Common tests for client"
 
 dependencies {
-    compile project(":ktor-client:ktor-client-core")
+    compile project(":ktor-client:ktor-client-core:ktor-client-core-jvm")
     compile project(":ktor-server:ktor-server-jetty")
     compile project(":ktor-server:ktor-server-netty")
 

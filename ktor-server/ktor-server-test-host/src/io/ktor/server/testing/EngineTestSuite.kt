@@ -1,11 +1,11 @@
 package io.ktor.server.testing
 
 import io.ktor.application.*
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
@@ -17,6 +17,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.jvm.javaio.*
+import kotlinx.io.core.*
 import kotlinx.io.streams.*
 import org.junit.Test
 import org.junit.runners.model.*
@@ -31,7 +32,6 @@ import java.util.concurrent.atomic.*
 import java.util.zip.*
 import kotlin.concurrent.*
 import kotlin.coroutines.experimental.*
-import kotlin.system.*
 import kotlin.test.*
 
 abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
@@ -622,7 +622,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                 call.receiveMultipart().readAllParts().sortedBy { it.name }.forEach { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
-                        is PartData.FileItem -> response.append("file:${part.name},${part.originalFileName},${part.streamProvider().bufferedReader().readText()}\n")
+                        is PartData.FileItem -> response.append("file:${part.name},${part.originalFileName},${part.provider().readText()}\n")
                     }
 
                     part.dispose()

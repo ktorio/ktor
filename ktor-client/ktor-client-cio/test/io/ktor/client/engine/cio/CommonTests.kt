@@ -22,3 +22,5 @@ class CIORedirectTest : HttpRedirectTest(CIO)
 class CIOBuildersTest : BuildersTest(CIO)
 
 class CIOFeaturesTest : FeaturesTest(CIO)
+
+class CIOConnectionTest : ConnectionTest(CIO)

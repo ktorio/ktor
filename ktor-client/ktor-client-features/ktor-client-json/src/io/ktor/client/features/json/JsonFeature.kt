@@ -7,6 +7,12 @@ import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.util.*
 
+
+/**
+ * Platform default serializer
+ */
+expect fun defaultSerializer(): JsonSerializer
+
 /**
  * [HttpClient] feature that serializes/de-serializes as JSON custom objects
  * to request and from response bodies using a [serializer].
@@ -22,13 +28,13 @@ class JsonFeature(val serializer: JsonSerializer) {
          * Serialized that will be used for serializing requests bodies,
          * and de-serializing response bodies when Content-Type matches `application/json`.
          */
-        var serializer: JsonSerializer = GsonSerializer()
+        var serializer: JsonSerializer = defaultSerializer()
     }
 
     companion object Feature : HttpClientFeature<Config, JsonFeature> {
         override val key: AttributeKey<JsonFeature> = AttributeKey("Json")
 
-        override suspend fun prepare(block: Config.() -> Unit): JsonFeature =
+        override fun prepare(block: Config.() -> Unit): JsonFeature =
             Config().apply(block).let { JsonFeature(it.serializer) }
 
         override fun install(feature: JsonFeature, scope: HttpClient) {

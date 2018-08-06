@@ -1,12 +1,13 @@
 package io.ktor.client.engine.cio
 
+import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.experimental.*
-import java.util.*
 
 internal data class RequestTask(
-    val request: CIOHttpRequest,
-    val continuation: CancellableContinuation<CIOHttpResponse>
+    val request: DefaultHttpRequest,
+    val response: CompletableDeferred<CIOHttpResponse>
 )
 
 internal fun RequestTask.requiresDedicatedConnection(): Boolean = listOf(request.headers, request.content.headers).any {
@@ -15,7 +16,7 @@ internal fun RequestTask.requiresDedicatedConnection(): Boolean = listOf(request
 
 
 internal class ConnectionResponseTask(
-    val requestTime: Date,
-    val continuation: CancellableContinuation<CIOHttpResponse>,
-    val request: CIOHttpRequest
+    val requestTime: GMTDate,
+    val response: CompletableDeferred<CIOHttpResponse>,
+    val request: DefaultHttpRequest
 )

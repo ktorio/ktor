@@ -18,7 +18,6 @@ interface Headers : StringValues {
          */
         inline fun build(builder: HeadersBuilder.() -> Unit): Headers = HeadersBuilder().apply(builder).build()
     }
-
 }
 
 class HeadersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {

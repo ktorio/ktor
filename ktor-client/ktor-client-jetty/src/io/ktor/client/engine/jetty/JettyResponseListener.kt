@@ -3,15 +3,18 @@ package io.ktor.client.engine.jetty
 import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.future.*
 import kotlinx.coroutines.experimental.io.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.*
 import org.eclipse.jetty.http2.api.*
+import org.eclipse.jetty.http2.client.*
 import org.eclipse.jetty.http2.frames.*
 import org.eclipse.jetty.util.*
 import java.io.*
+import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.*
 
@@ -20,6 +23,7 @@ internal data class StatusWithHeaders(val statusCode: HttpStatusCode, val header
 private data class JettyResponseChunk(val buffer: ByteBuffer, val callback: Callback)
 
 internal class JettyResponseListener(
+    private val session: HTTP2ClientSession,
     private val channel: ByteWriteChannel,
     private val dispatcher: CoroutineDispatcher,
     private val context: CompletableDeferred<Unit>
@@ -38,27 +42,31 @@ internal class JettyResponseListener(
     }
 
     override fun onReset(stream: Stream, frame: ResetFrame) {
-        when (frame.error) {
+        val error = when (frame.error) {
             0 -> null
             ErrorCode.CANCEL_STREAM_ERROR.code -> ClosedChannelException()
             else -> {
                 val code = ErrorCode.from(frame.error)
                 IOException("Connection reset ${code?.name ?: "with unknown error code ${frame.error}"}")
             }
-        }?.let { backendChannel.close(it) }
+        }
 
+        error?.let { backendChannel.close(it) }
         onHeadersReceived.complete(null)
     }
 
     override fun onData(stream: Stream, frame: DataFrame, callback: Callback) {
         val data = frame.data.copy()
-        if (data.remaining() > 0 && !backendChannel.offer(JettyResponseChunk(data, callback))) {
-            val cause = IOException("backendChannel.offer() failed")
-            backendChannel.close(cause)
-            callback.failed(cause)
-        }
+        try {
+            if (!backendChannel.offer(JettyResponseChunk(data, callback))) {
+                throw IOException("backendChannel.offer() failed")
+            }
 
-        if (frame.isEndStream) backendChannel.close()
+            if (frame.isEndStream) backendChannel.close()
+        } catch (cause: Throwable) {
+            backendChannel.close(cause)
+            callback.succeeded()
+        }
     }
 
     override fun onHeaders(stream: Stream, frame: HeadersFrame) {
@@ -70,7 +78,7 @@ internal class JettyResponseListener(
 
         onHeadersReceived.complete((frame.metaData as? MetaData.Response)?.let {
             val (status, reason) = it.status to it.reason
-            reason?.let { HttpStatusCode(status, reason) } ?: HttpStatusCode.fromValue(status)
+            reason?.let { HttpStatusCode(status, it) } ?: HttpStatusCode.fromValue(status)
         })
     }
 
@@ -85,18 +93,25 @@ internal class JettyResponseListener(
             while (!backendChannel.isClosedForReceive) {
                 val (buffer, callback) = backendChannel.receiveOrNull() ?: break
                 try {
-                    channel.writeFully(buffer)
+                    if (buffer.remaining() > 0) channel.writeFully(buffer)
                     callback.succeeded()
+                } catch (cause: ClosedWriteChannelException) {
+                    callback.failed(cause)
+                    session.endPoint.close()
+                    break
                 } catch (cause: Throwable) {
                     callback.failed(cause)
+                    session.endPoint.close()
                     throw cause
                 }
             }
         } catch (cause: Throwable) {
             channel.close(cause)
             this@JettyResponseListener.context.completeExceptionally(cause)
-            return@launch
         } finally {
+            backendChannel.close()
+            backendChannel.consumeEach { it.callback.succeeded() }
+
             channel.close()
             this@JettyResponseListener.context.complete(Unit)
         }

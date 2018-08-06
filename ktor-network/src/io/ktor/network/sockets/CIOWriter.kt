@@ -6,15 +6,16 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.ByteChannel
 import kotlinx.io.pool.*
+import java.nio.*
 import java.nio.channels.*
 
 internal fun attachForWritingImpl(
-        channel: ByteChannel,
-        nioChannel: WritableByteChannel,
-        selectable: Selectable,
-        selector: SelectorManager,
-        pool: ObjectPool<ByteBuffer>,
-        parent: Job
+    channel: ByteChannel,
+    nioChannel: WritableByteChannel,
+    selectable: Selectable,
+    selector: SelectorManager,
+    pool: ObjectPool<ByteBuffer>,
+    parent: Job
 ): ReaderJob {
     val buffer = pool.borrow()
 
@@ -50,11 +51,11 @@ internal fun attachForWritingImpl(
 }
 
 internal fun attachForWritingDirectImpl(
-        channel: ByteChannel,
-        nioChannel: WritableByteChannel,
-        selectable: Selectable,
-        selector: SelectorManager,
-        parent: Job
+    channel: ByteChannel,
+    nioChannel: WritableByteChannel,
+    selectable: Selectable,
+    selector: SelectorManager,
+    parent: Job
 ): ReaderJob {
     return reader(ioCoroutineDispatcher, channel, parent) {
         selectable.interestOp(SelectInterest.WRITE, false)

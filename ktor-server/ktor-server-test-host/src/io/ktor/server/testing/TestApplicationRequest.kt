@@ -1,7 +1,7 @@
 package io.ktor.server.testing
 
 import io.ktor.application.*
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.network.util.*
 import io.ktor.request.*
@@ -9,7 +9,8 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.jvm.javaio.*
-import java.nio.charset.*
+import kotlinx.io.charsets.*
+import kotlinx.io.core.*
 
 class TestApplicationRequest(
         call: ApplicationCall,
@@ -43,7 +44,7 @@ class TestApplicationRequest(
     }
 
     @Volatile
-    var bodyChannel: ByteReadChannel = EmptyByteReadChannel
+    var bodyChannel: ByteReadChannel = ByteReadChannel.Empty
 
     @Deprecated("Use setBody() method instead", ReplaceWith("setBody()"))
     var bodyBytes: ByteArray
@@ -99,24 +100,28 @@ private suspend fun WriterScope.append(str: String, charset: Charset = Charsets.
     channel.writeFully(str.toByteArray(charset))
 }
 
-fun TestApplicationRequest.setBody(boundary: String, values: List<PartData>): Unit {
+fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>): Unit {
     bodyChannel = writer(ioCoroutineDispatcher) {
-        if (!values.isEmpty()) {
+        if (parts.isEmpty()) return@writer
+
+        try {
             append("\r\n\r\n")
-            values.forEach {
+            parts.forEach {
                 append("--$boundary\r\n")
-                for ((key, value) in it.headers.flattenEntries()) {
-                    append("$key: $value\r\n")
+                for ((key, values) in it.headers.entries()) {
+                    append("$key: ${values.joinToString(";")}\r\n")
                 }
                 append("\r\n")
                 when (it) {
-                    is PartData.FileItem -> it.streamProvider().copyTo(channel.toOutputStream())
+                    is PartData.FileItem -> it.provider().asStream().copyTo(channel.toOutputStream())
                     is PartData.FormItem -> append(it.value)
                 }
                 append("\r\n")
             }
 
             append("--$boundary--\r\n\r\n")
+        } finally {
+            parts.forEach { it.dispose() }
         }
     }.channel
 }

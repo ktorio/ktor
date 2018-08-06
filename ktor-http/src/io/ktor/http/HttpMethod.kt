@@ -23,6 +23,6 @@ data class HttpMethod(val value: String) {
             }
         }
 
-        val DefaultMethods = listOf(Get, Post, Put, Patch, Delete, Head, Options)
+        val DefaultMethods: List<HttpMethod> = listOf(Get, Post, Put, Patch, Delete, Head, Options)
     }
 }

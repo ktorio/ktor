@@ -1,7 +1,5 @@
 package io.ktor.http
 
-import java.util.*
-
 /**
  * Represents a value for a `Cache-Control` header
  *
@@ -40,7 +38,13 @@ sealed class CacheControl(val visibility: Visibility?) {
         }
     }
 
-    class MaxAge(val maxAgeSeconds: Int, val proxyMaxAgeSeconds: Int? = null, val mustRevalidate: Boolean = false, val proxyRevalidate: Boolean = false, visibility: Visibility? = null) : CacheControl(visibility) {
+    class MaxAge(
+        val maxAgeSeconds: Int,
+        val proxyMaxAgeSeconds: Int? = null,
+        val mustRevalidate: Boolean = false,
+        val proxyRevalidate: Boolean = false,
+        visibility: Visibility? = null
+    ) : CacheControl(visibility) {
         override fun toString(): String {
             val parts = ArrayList<String>(5)
             parts.add("max-age=$maxAgeSeconds")

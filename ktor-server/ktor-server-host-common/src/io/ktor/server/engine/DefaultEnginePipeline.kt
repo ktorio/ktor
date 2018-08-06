@@ -1,10 +1,10 @@
 package io.ktor.server.engine
 
 import io.ktor.application.*
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import io.ktor.features.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
+import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
 import java.nio.channels.*
@@ -39,24 +39,21 @@ fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
     return pipeline
 }
 
-private fun ApplicationEnvironment.logFailure(call: ApplicationCall, e: Throwable) {
+private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Throwable) {
     try {
         val status = call.response.status() ?: "Unhandled"
-        when (e) {
+        when (cause) {
             is CancellationException -> log.error("$status: ${call.request.toLogString()}, cancelled")
             is ClosedChannelException -> log.error("$status: ${call.request.toLogString()}, channel closed")
             is ChannelIOException -> log.error("$status: ${call.request.toLogString()}, channel failed")
-            else -> log.error("$status: ${call.request.toLogString()}", e)
+            else -> log.error("$status: ${call.request.toLogString()}", cause)
         }
     } catch (oom: OutOfMemoryError) {
         try {
-            log.error(e)
+            log.error(cause)
         } catch (oomAttempt2: OutOfMemoryError) {
             System.err.print("OutOfMemoryError: ")
-            System.err.println(e.message)
+            System.err.println(cause.message)
         }
     }
 }
-
-
-

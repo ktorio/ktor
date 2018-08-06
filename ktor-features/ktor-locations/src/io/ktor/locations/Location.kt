@@ -2,7 +2,7 @@ package io.ktor.locations
 
 import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
+import io.ktor.util.pipeline.*
 import io.ktor.routing.*
 import kotlin.reflect.*
 

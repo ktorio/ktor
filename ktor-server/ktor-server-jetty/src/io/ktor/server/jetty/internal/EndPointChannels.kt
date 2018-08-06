@@ -1,6 +1,6 @@
 package io.ktor.server.jetty.internal
 
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.pool.*
@@ -51,7 +51,7 @@ internal class EndPointReader(endpoint: EndPoint, context: CoroutineContext, pri
     override fun onIdleExpired() = false
 
     override fun onFillable() {
-        val handler = currentHandler.getAndSet(null)
+        val handler = currentHandler.getAndSet(null) ?: return
         buffer.flip()
         val count = try {
             endPoint.fill(buffer)
@@ -71,6 +71,13 @@ internal class EndPointReader(endpoint: EndPoint, context: CoroutineContext, pri
         currentHandler.getAndSet(null)?.resumeWithException(cause)
     }
 
+    override fun failedCallback(callback: Callback, cause: Throwable) {
+        super.failedCallback(callback, cause)
+
+        val handler = currentHandler.getAndSet(null) ?: return
+        handler.resumeWithException(ChannelWriteException(exception = cause))
+    }
+
     override fun onUpgradeTo(prefilled: ByteBuffer?) {
         if (prefilled != null && prefilled.hasRemaining()) {
             // println("Got prefilled ${prefilled.remaining()} bytes")
@@ -84,7 +91,7 @@ internal fun endPointWriter(
         endPoint: EndPoint,
         pool: ObjectPool<ByteBuffer> = JettyWebSocketPool
 ): ByteWriteChannel = reader(Unconfined, autoFlush = true) {
-    pool.use { buffer ->
+    pool.useInstance { buffer: ByteBuffer ->
         endPoint.use { endPoint ->
             while (!channel.isClosedForRead) {
                 buffer.clear()
@@ -104,7 +111,7 @@ private suspend fun EndPoint.write(buffer: ByteBuffer) = suspendCancellableCorou
         }
 
         override fun failed(cause: Throwable) {
-            continuation.resumeWithException(cause)
+            continuation.resumeWithException(ChannelWriteException(exception = cause))
         }
     }, buffer)
 }

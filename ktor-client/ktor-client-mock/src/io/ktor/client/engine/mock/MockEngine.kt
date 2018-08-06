@@ -3,7 +3,6 @@ package io.ktor.client.engine.mock
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import io.ktor.client.response.*
 import io.ktor.http.*
 import kotlinx.coroutines.experimental.*
 
@@ -29,7 +28,7 @@ class MockEngine(override val config: MockEngineConfig) : HttpClientEngine {
                 this.check = check
             })
 
-        val RESPONSE_OK: (HttpClientCall, HttpRequest) -> MockHttpResponse = { call, request ->
+        val RESPONSE_OK: (HttpClientCall, HttpRequest) -> MockHttpResponse = { call, _ ->
             MockHttpResponse(call, HttpStatusCode.OK)
         }
     }

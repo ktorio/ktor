@@ -4,14 +4,12 @@ import io.ktor.application.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
-import io.ktor.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
-import io.ktor.server.jetty.*
 import io.ktor.server.netty.*
-import sun.nio.ch.*
 import kotlin.test.*
 
 class CIORequestTest : TestWithKtor() {

@@ -1,14 +1,16 @@
 package io.ktor.client.tests
 
 import io.ktor.application.*
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
+import io.ktor.client.request.forms.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
@@ -32,8 +34,29 @@ open class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWi
                 val content = call.request.receiveChannel().toByteArray()
                 call.respond(content)
             }
+            get("/news") {
+                val form = call.request.queryParameters
+
+                assertEquals("myuser", form["user"]!!)
+                assertEquals("10", form["page"]!!)
+
+                call.respond("100")
+            }
+            post("/sign") {
+                val form = call.receiveParameters()
+
+                assertEquals("myuser", form["user"]!!)
+                assertEquals("abcdefg", form["token"]!!)
+
+                call.respond("success")
+            }
+            post("/upload") {
+                val parts = call.receiveMultipart().readAllParts()
+                call.respondText(parts.makeString())
+            }
         }
     }
+
 
     @Test
     fun byteArrayTest(): Unit = testSize.forEach { size ->
@@ -95,9 +118,61 @@ open class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWi
     }
 
     @Test
+    @Ignore
     fun localFileContentTest() {
         val response = requestWithBody<ByteArray>(LocalFileContent(File("build.gradle")))
         assertArrayEquals(File("build.gradle").readBytes(), response)
+    }
+
+    @Test
+    fun getFormDataTest() = clientTest(factory) {
+        test { client ->
+            val form = parametersOf(
+                "user" to listOf("myuser"),
+                "page" to listOf("10")
+            )
+
+            val response = client.submitForm<String>(
+                path = "news", port = serverPort, encodeInQuery = true, formData = form
+            )
+
+            assertEquals("100", response)
+        }
+    }
+
+    @Test
+    fun postFormDataTest() = clientTest(factory) {
+        test { client ->
+            val form = parametersOf(
+                "user" to listOf("myuser"),
+                "token" to listOf("abcdefg")
+            )
+
+            val response = client.submitForm<String>(
+                path = "sign", port = serverPort, formData = form
+            )
+
+            assertEquals("success", response)
+        }
+    }
+
+    @Test
+    fun multipartFormDataTest() = clientTest(factory) {
+        val data = {
+            formData {
+                append("name", "hello")
+                append("content") {
+                    writeStringUtf8("123456789")
+                }
+                append("hello", 5)
+            }
+        }
+
+        test { client ->
+            val response = client.submitFormWithBinaryData<String>(path = "upload", port = serverPort, formData =  data())
+            val contentString = data().makeString()
+            assertEquals(contentString, response)
+        }
     }
 
     private inline fun <reified Response : Any> requestWithBody(body: Any): Response = runBlocking {
@@ -108,6 +183,17 @@ open class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWi
         }
     }
 
-    private fun makeArray(size: Int): ByteArray = buildPacket { repeat(size) { writeByte(it.toByte()) } }.readBytes()
-    private fun makeString(size: Int): String = buildString { repeat(size) { append(it.toChar()) } }
+    private fun List<PartData>.makeString(): String = buildString {
+        val list = this@makeString
+        list.forEach {
+            appendln(it.name!!)
+            val content = when (it) {
+                is PartData.FileItem -> it.provider().readText()
+                is PartData.FormItem -> it.value
+                is PartData.BinaryItem -> it.provider().readText()
+            }
+
+            appendln(content)
+        }
+    }
 }

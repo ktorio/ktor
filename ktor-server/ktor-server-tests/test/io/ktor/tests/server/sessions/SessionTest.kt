@@ -96,7 +96,7 @@ class SessionTest {
             }
 
             handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(sessionParam)}")
+                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLQueryComponent()}")
             }.let { call ->
                 assertEquals("ok, id1", call.response.content)
             }
@@ -130,7 +130,7 @@ class SessionTest {
             }
 
             handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(sessionId)}")
+                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionId.encodeURLQueryComponent()}")
             }.let { call ->
                 assertEquals("ok, id2", call.response.content)
             }
@@ -143,7 +143,7 @@ class SessionTest {
 
             handleRequest(HttpMethod.Get, "/2") {
                 val brokenSession = flipLastHexDigit(sessionId)
-                addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(brokenSession)}")
+                addHeader(HttpHeaders.Cookie, "$cookieName=${brokenSession.encodeURLQueryComponent()}")
             }.let { call ->
                 assertEquals("ok, null", call.response.content)
             }
@@ -215,7 +215,7 @@ class SessionTest {
         }
 
         handleRequest(HttpMethod.Get, "/2") {
-            addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(sessionId)}")
+            addHeader(HttpHeaders.Cookie, "$cookieName=${sessionId.encodeURLQueryComponent()}")
         }.let { call ->
             assertEquals("ok, id2", call.response.content)
         }
@@ -228,14 +228,14 @@ class SessionTest {
 
         handleRequest(HttpMethod.Get, "/2") {
             val brokenSession = flipLastHexDigit(sessionId)
-            addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(brokenSession)}")
+            addHeader(HttpHeaders.Cookie, "$cookieName=${brokenSession.encodeURLQueryComponent()}")
         }.let { call ->
             assertEquals("ok, null", call.response.content)
         }
 
         handleRequest(HttpMethod.Get, "/2") {
             val invalidHex = sessionId.mapIndexed { i, c -> if (i == sessionId.lastIndex) 'x' else c }.joinToString("")
-            addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(invalidHex)}")
+            addHeader(HttpHeaders.Cookie, "$cookieName=${invalidHex.encodeURLQueryComponent()}")
         }.let { call ->
             assertEquals("ok, null", call.response.content)
         }
@@ -291,7 +291,7 @@ class SessionTest {
                 assertEquals("ok", call.response.content)
             }
             handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(sessionParam)}")
+                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLQueryComponent()}")
             }.let { call ->
                 assertEquals("ok, id1", call.response.content)
             }
@@ -344,7 +344,7 @@ class SessionTest {
                 assertEquals("ok", call.response.content)
             }
             handleRequest(HttpMethod.Get, "/a/2") {
-                addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(sessionParam)}")
+                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLQueryComponent()}")
             }.let { call ->
                 assertEquals("ok, id1", call.response.content)
             }
@@ -358,7 +358,7 @@ class SessionTest {
                 assertEquals("ok", call.response.content)
             }
             handleRequest(HttpMethod.Get, "/b/2") {
-                addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(sessionParam)}")
+                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionParam.encodeURLQueryComponent()}")
             }.let { call ->
                 assertEquals("ok, id2", call.response.content)
             }
@@ -455,7 +455,7 @@ class SessionTest {
             assertEquals("666/c2d4eaad4fe0bc6dbd0584cdf36929d79d52d7a748d1cc02835a71131a0963fb", sessionId)
 
             handleRequest(HttpMethod.Get, "/2") {
-                addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(sessionId)}")
+                addHeader(HttpHeaders.Cookie, "$cookieName=${sessionId.encodeURLQueryComponent()}")
             }.let { call ->
                 assertEquals("ok, id2", call.response.content)
             }
@@ -468,7 +468,7 @@ class SessionTest {
 
             handleRequest(HttpMethod.Get, "/2") {
                 val brokenSession = flipLastHexDigit(sessionId)
-                addHeader(HttpHeaders.Cookie, "$cookieName=${encodeURLQueryComponent(brokenSession)}")
+                addHeader(HttpHeaders.Cookie, "$cookieName=${brokenSession.encodeURLQueryComponent()}")
             }.let { call ->
                 assertEquals("ok, null", call.response.content)
             }

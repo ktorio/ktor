@@ -1,16 +1,14 @@
 package io.ktor.client.response
 
-import io.ktor.cio.*
 import io.ktor.client.*
 import io.ktor.client.call.*
-import io.ktor.client.utils.*
 import io.ktor.http.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.io.pool.*
-import java.io.*
-import java.nio.charset.*
-import java.util.*
+import kotlinx.io.charsets.*
+import kotlinx.io.core.*
+import kotlinx.io.core.Closeable
 
 /**
  * A response for [HttpClient], second part of [HttpClientCall].
@@ -36,12 +34,12 @@ interface HttpResponse : HttpMessage, Closeable {
     /**
      * [Date] of the request start.
      */
-    val requestTime: Date
+    val requestTime: GMTDate
 
     /**
      * [Date] of the response start.
      */
-    val responseTime: Date
+    val responseTime: GMTDate
 
     /**
      * A [Job] representing the process of this response.
@@ -62,10 +60,8 @@ interface HttpResponse : HttpMessage, Closeable {
  * Note that [charset] parameter will be ignored if the response already has a charset.
  *      So it just acts as a fallback, honoring the server preference.
  */
-suspend fun HttpResponse.readText(
-    charset: Charset? = null,
-    pool: ObjectPool<ByteBuffer> = HttpClientDefaultPool
-): String {
-    val length = headers[HttpHeaders.ContentLength]?.toInt() ?: 1
-    return content.toByteArray(length, pool).toString(charset() ?: charset ?: Charsets.ISO_8859_1)
+suspend fun HttpResponse.readText(charset: Charset? = null): String {
+    val packet = content.readRemaining(Long.MAX_VALUE)
+    val actualCharset = charset() ?: charset ?: Charset.forName("ISO_8859_1")
+    return packet.readText(charset = actualCharset)
 }

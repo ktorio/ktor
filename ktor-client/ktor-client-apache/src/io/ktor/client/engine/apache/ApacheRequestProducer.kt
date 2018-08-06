@@ -1,9 +1,10 @@
 package io.ktor.client.engine.apache
 
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
@@ -98,32 +99,23 @@ internal class ApacheRequestProducer(
             url.parameters.flattenForEach { key, value -> addParameter(key, value) }
         }.build()
 
-        headers.flattenForEach { key, value ->
-            if (HttpHeaders.CONTENT_LENGTH == key) return@flattenForEach
-            builder.addHeader(key, value)
-        }
-
         val content = this@ApacheRequestProducer.body
-        content.headers.flattenForEach { key, value ->
-            if (HttpHeaders.CONTENT_LENGTH == key) return@flattenForEach
-            builder.addHeader(key, value)
-        }
-
         val length = headers[io.ktor.http.HttpHeaders.ContentLength] ?: content.contentLength?.toString()
         val type = headers[io.ktor.http.HttpHeaders.ContentType] ?: content.contentType?.toString()
 
+        mergeHeaders(headers, content) { key, value ->
+            if (HttpHeaders.CONTENT_LENGTH == key) return@mergeHeaders
+            if (HttpHeaders.CONTENT_TYPE == key) return@mergeHeaders
+
+            builder.addHeader(key, value)
+        }
+
         if (body !is OutgoingContent.NoContent && body !is OutgoingContent.ProtocolUpgrade) {
             builder.entity = BasicHttpEntity().apply {
-                if (length == null) {
-                    isChunked = true
-                } else {
-                    contentLength = length.toLong()
-                }
-
+                if (length == null) isChunked = true else contentLength = length.toLong()
                 setContentType(type)
             }
         }
-
 
         with(config) {
             builder.config = RequestConfig.custom()

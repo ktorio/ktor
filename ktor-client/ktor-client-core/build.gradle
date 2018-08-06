@@ -1,9 +1,6 @@
 description = "Ktor http client"
 
 dependencies {
-    compile project(":ktor-http-cio")
-
-    testCompile project(":ktor-client:ktor-client-mock")
-    testCompile project(":ktor-client:ktor-client-tests")
+    compile project(":ktor-http")
+    compile project(":ktor-utils")
 }
-

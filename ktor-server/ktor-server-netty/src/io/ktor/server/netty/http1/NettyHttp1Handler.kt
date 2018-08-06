@@ -7,6 +7,7 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.experimental.io.ByteReadChannel.*
 import kotlin.coroutines.experimental.*
 
 @ChannelHandler.Sharable
@@ -34,10 +35,10 @@ internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,
         context.channel().config().isAutoRead = false
 
         val requestBodyChannel = when {
-            message is LastHttpContent && !message.content().isReadable -> EmptyByteReadChannel
+            message is LastHttpContent && !message.content().isReadable -> ByteReadChannel.Empty
             message.method() === HttpMethod.GET -> {
                 skipEmpty = true
-                EmptyByteReadChannel
+                ByteReadChannel.Empty
             }
             else -> content(context, message)
         }

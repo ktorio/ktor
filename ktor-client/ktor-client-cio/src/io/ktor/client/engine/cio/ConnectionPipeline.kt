@@ -1,16 +1,17 @@
 package io.ktor.client.engine.cio
 
-import io.ktor.client.cio.*
+import io.ktor.util.cio.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.network.sockets.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.experimental.io.ByteReadChannel.*
 import java.io.*
 import java.nio.channels.*
-import java.util.*
 
 internal class ConnectionPipeline(
     dispatcher: CoroutineDispatcher,
@@ -33,9 +34,9 @@ internal class ConnectionPipeline(
 
                 try {
                     requestLimit.enter()
-                    responseChannel.send(ConnectionResponseTask(Date(), task.continuation, task.request))
+                    responseChannel.send(ConnectionResponseTask(GMTDate(), task.response, task.request))
                 } catch (cause: Throwable) {
-                    task.continuation.resumeWithException(cause)
+                    task.response.completeExceptionally(cause)
                     throw cause
                 }
 
@@ -46,6 +47,9 @@ internal class ConnectionPipeline(
         } catch (cause: ClosedReceiveChannelException) {
         } finally {
             responseChannel.close()
+            /**
+             * Workaround bug with socket.close
+             */
 //            outputChannel.close()
         }
     }
@@ -57,29 +61,35 @@ internal class ConnectionPipeline(
                 requestLimit.leave()
                 val job: Job? = try {
                     val response = parseResponse(inputChannel)
-                            ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
+                        ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
+
+                    val method = task.request.method
                     val contentLength = response.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
                     val transferEncoding = response.headers[HttpHeaders.TransferEncoding]
+                    val chunked = transferEncoding == "chunked"
                     val connectionType = ConnectionOptions.parse(response.headers[HttpHeaders.Connection])
-                    shouldClose = connectionType == ConnectionOptions.Close
+                    shouldClose = (connectionType == ConnectionOptions.Close)
 
-                    val writerJob = writer(Unconfined, autoFlush = true) {
+                    val hasBody = (contentLength > 0 || chunked) && method != HttpMethod.Head
+
+                    val writerJob = if (hasBody) writer(Unconfined, autoFlush = true) {
                         parseHttpBody(contentLength, transferEncoding, connectionType, inputChannel, channel)
-                    }
+                    } else null
 
-                    task.continuation.resume(
+                    task.response.complete(
                         CIOHttpResponse(
                             task.request,
                             task.requestTime,
-                            writerJob.channel,
-                            response
+                            writerJob?.channel ?: ByteReadChannel.Empty,
+                            response,
+                            pipelined = hasBody && !chunked
                         )
                     )
                     writerJob
                 } catch (cause: ClosedChannelException) {
                     null
                 } catch (cause: Throwable) {
-                    task.continuation.resumeWithException(cause)
+                    task.response.completeExceptionally(cause)
                     null
                 }
 

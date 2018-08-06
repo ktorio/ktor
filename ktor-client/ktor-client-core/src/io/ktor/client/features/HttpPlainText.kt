@@ -3,10 +3,10 @@ package io.ktor.client.features
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.util.*
-import java.nio.charset.*
+import kotlinx.io.charsets.*
 
 /**
  * [HttpClient] feature that encodes [String] request bodies to [TextContent]
@@ -21,7 +21,7 @@ class HttpPlainText(var defaultCharset: Charset) {
     internal suspend fun read(response: HttpResponse): String = response.readText(charset = defaultCharset)
 
     class Config {
-        var defaultCharset: Charset = Charset.defaultCharset()
+        var defaultCharset: Charset = Charsets.UTF_8
 
         fun build(): HttpPlainText = HttpPlainText(defaultCharset)
     }
@@ -29,7 +29,7 @@ class HttpPlainText(var defaultCharset: Charset) {
     companion object Feature : HttpClientFeature<Config, HttpPlainText> {
         override val key = AttributeKey<HttpPlainText>("HttpPlainText")
 
-        override suspend fun prepare(block: Config.() -> Unit): HttpPlainText = Config().apply(block).build()
+        override fun prepare(block: Config.() -> Unit): HttpPlainText = Config().apply(block).build()
 
         override fun install(feature: HttpPlainText, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Render) { content ->

@@ -1,7 +1,5 @@
 package io.ktor.http
 
-import kotlin.reflect.full.*
-
 @Suppress("unused")
 data class HttpStatusCode(val value: Int, val description: String) {
     override fun toString(): String = "$value $description"
@@ -49,7 +47,7 @@ data class HttpStatusCode(val value: Int, val description: String) {
 
         val UnsupportedMediaType = HttpStatusCode(415, "Unsupported Media Type")
         val RequestedRangeNotSatisfiable = HttpStatusCode(416, "Requested Range Not Satisfiable")
-        val ExceptionFailed = HttpStatusCode(417, "Exception Failed")
+        val ExpectationFailed = HttpStatusCode(417, "Expectation Failed")
         val UpgradeRequired = HttpStatusCode(426, "Upgrade Required")
         val TooManyRequests = HttpStatusCode(429, "Too Many Requests")
         val RequestHeaderFieldTooLarge = HttpStatusCode(431, "Request Header Fields Too Large")
@@ -62,21 +60,24 @@ data class HttpStatusCode(val value: Int, val description: String) {
         val VersionNotSupported = HttpStatusCode(505, "HTTP Version Not Supported")
         val VariantAlsoNegotiates = HttpStatusCode(506, "Variant Also Negotiates")
 
-        val allStatusCodes = HttpStatusCode.Companion::class.memberProperties
-            .filter { it.returnType.classifier == HttpStatusCode::class }
-            .map { it.get(this) as HttpStatusCode }
+        val allStatusCodes: List<HttpStatusCode> = io.ktor.http.allStatusCodes()
 
-        private val byValue by lazy {
-            Array(1000) { idx ->
-                allStatusCodes.firstOrNull { it.value == idx }
-            }
+        private val byValue: Array<HttpStatusCode?> = Array(1000) { idx ->
+            allStatusCodes.firstOrNull { it.value == idx }
         }
 
         fun fromValue(value: Int): HttpStatusCode {
-            val knownStatus = if (value > 0 && value < 1000) byValue[value] else null
+            val knownStatus = if (value in 1 until 1000) byValue[value] else null
             return knownStatus ?: HttpStatusCode(value, "Unknown Status Code")
         }
     }
 }
+
+@Suppress("UNUSED")
+@Deprecated("Use ExpectationFailed instead",
+        ReplaceWith("ExpectationFailed", "io.ktor.http.HttpStatusCode.Companion.ExpectationFailed"))
+inline val HttpStatusCode.Companion.ExceptionFailed: HttpStatusCode get() = ExpectationFailed
+
+internal expect fun allStatusCodes(): List<HttpStatusCode>
 
 fun HttpStatusCode.isSuccess(): Boolean = value in (200 until 300)

@@ -1,45 +1,45 @@
 package io.ktor.http
 
 import io.ktor.util.*
-import java.net.*
 
-fun URLBuilder.takeFrom(url: String) {
-    takeFrom(URI(url))
-}
+/**
+ * Construct [Url] from [urlString]
+ */
+fun Url(urlString: String): Url = URLBuilder(urlString).build()
 
-fun URLBuilder.takeFrom(uri: URI) {
-    uri.scheme?.let { protocol = URLProtocol.createOrDefault(it) }
-    uri.host?.let { host = it }
+/**
+ * Construct [UrlBuilder] from [urlString]
+ */
+fun URLBuilder(urlString: String): URLBuilder = URLBuilder().takeFrom(urlString)
 
-    if (uri.userInfo != null && uri.userInfo.isNotEmpty()) {
-        val parts = uri.userInfo.split(":")
-        user = parts.first()
-        password = parts.getOrNull(1)
+/**
+ * Take url parts from [urlString]
+ */
+fun URLBuilder.takeFrom(urlString: String): URLBuilder {
+    val parts = urlString.urlParts()
+
+    parts["protocol"]?.let {
+        protocol = URLProtocol.createOrDefault(it)
+        port = protocol.defaultPort
     }
 
-    port = if (uri.port > 0) {
-        uri.port
-    } else if (uri.scheme != null) {
-        protocol.defaultPort
-    } else {
-        port
-    }
+    parts["host"]?.let { host = it }
+    parts["port"]?.let { port = it.toInt() }
 
-    uri.rawPath?.let {
-        encodedPath = when (it) {
-            "" -> "/"
-            else -> it
+    parts["encodedPath"]?.let { encodedPath = it }
+    parts["user"]?.let { user = it}
+    parts["password"]?.let { password = it}
+    parts["fragment"]?.let { fragment = it}
+
+    parts["parameters"]?.let { rawParams ->
+        val rawParameters = parseQueryString(rawParams)
+        rawParameters.forEach { key, values ->
+            parameters.appendAll(key, values)
         }
     }
-    uri.query?.let { parameters.appendAll(parseQueryString(it)) }
-    if (uri.query?.isEmpty() == true) {
-        trailingQuery = true
-    }
 
-    uri.fragment?.let { fragment = it }
+    return this
 }
-
-fun URLBuilder.takeFrom(url: java.net.URL) = takeFrom(url.toURI())
 
 fun URLBuilder.takeFrom(url: URLBuilder): URLBuilder {
     protocol = url.protocol
@@ -73,7 +73,7 @@ val Url.fullPath: String
     get() {
         val parameters = when {
             parameters.isEmpty() && trailingQuery -> "?"
-            !parameters.isEmpty() -> "?${decodeURLPart(parameters.formUrlEncode())}"
+            !parameters.isEmpty() -> "?${parameters.formUrlEncode().decodeURLPart()}" // TODO: make it clean
             else -> ""
         }
         val result = "$encodedPath$parameters".trim()

@@ -1,7 +1,6 @@
 package io.ktor.tests.http
 
 import io.ktor.http.*
-import org.junit.Test
 import kotlin.test.*
 
 class ContentTypeLookupTest {
@@ -24,8 +23,8 @@ class ContentTypeLookupTest {
 
     @Test
     fun testEmpty() {
-        assertEquals(emptyList(), ContentType.fromFileExtension("."))
         assertEquals(emptyList(), ContentType.fromFileExtension(""))
+        assertEquals(emptyList(), ContentType.fromFileExtension("."))
     }
 
     @Test

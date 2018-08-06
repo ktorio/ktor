@@ -9,10 +9,10 @@ import io.ktor.client.engine.jetty.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.features.*
-import io.ktor.network.tls.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
+import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import org.junit.*
 import org.junit.rules.*
@@ -99,7 +99,13 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
             val delegate = LoggerFactory.getLogger("ktor.test")
             this.log = log ?: object : Logger by delegate {
                 override fun error(msg: String?, t: Throwable?) {
-                    t?.let { exceptions.add(it) }
+                    t?.let {
+                        exceptions.add(it)
+                        println("Critical test exception: $it")
+                        it.printStackTrace()
+                        println("From origin:")
+                        Exception().printStackTrace()
+                    }
                     delegate.error(msg, t)
                 }
             }

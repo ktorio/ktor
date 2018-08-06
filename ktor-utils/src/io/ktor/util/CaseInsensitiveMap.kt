@@ -1,40 +1,72 @@
 package io.ktor.util
 
-import io.ktor.org.apache.commons.collections4.map.*
-
 /**
  * A map with case insensitive [String] keys
  */
-class CaseInsensitiveMap<V>(initialCapacity: Int = 16) : AbstractLinkedMap<String, V>(Math.max(2, initialCapacity)), MutableMap<String, V> {
-    override fun hash(key: Any?): Int {
-        if (key == null) return 0
-        if (key !is String) return key.hashCode()
+class CaseInsensitiveMap<Value> : MutableMap<String, Value> {
+    private val delegate = mutableMapOf<CaseInsensitiveString, Value>()
 
-        @Suppress("USELESS_CAST") // we actually need to declare a new String variable here
-        val s = key as String     // otherwise we get checkcast instruction for every charAt invocation
-        var hashCode = 0
+    override val size: Int get() = delegate.size
 
-        for (idx in 0 .. s.length - 1) {
-            hashCode = 31 * hashCode + s[idx].toLowerCase().toInt()
-        }
+    override fun containsKey(key: String): Boolean = delegate.containsKey(CaseInsensitiveString(key))
 
-        return hashCode
+    override fun containsValue(value: Value): Boolean = delegate.containsValue(value)
+
+    override fun get(key: String): Value? = delegate[key.caseInsensitive()]
+
+    override fun isEmpty(): Boolean = delegate.isEmpty()
+
+    override fun clear() {
+        delegate.clear()
     }
 
-    override fun isEqualKey(key1: Any?, key2: Any?): Boolean {
-        if (key1 is String && key2 is String) {
-            return key1.equals(key2, ignoreCase = true)
-        }
+    override fun put(key: String, value: Value): Value? = delegate.put(key.caseInsensitive(), value)
 
-        return super.isEqualKey(key1, key2)
+    override fun putAll(from: Map<out String, Value>) {
+        from.forEach { (key, value) -> put(key, value) }
     }
 
-    private fun Char.toLowerCase(): Char {
-        return when {
-            this < 'A' -> this
-            this <= 'Z' -> this + 32
-            this <= '~' -> this
-            else -> Character.toLowerCase(this)
-        }
+    override fun remove(key: String): Value? = delegate.remove(key.caseInsensitive())
+
+    override val keys: MutableSet<String>
+        get() = DelegatingMutableSet(
+            delegate.keys,
+            { content },
+            { caseInsensitive() })
+
+    override val entries: MutableSet<MutableMap.MutableEntry<String, Value>>
+        get() = DelegatingMutableSet<MutableMap.MutableEntry<CaseInsensitiveString, Value>, MutableMap.MutableEntry<String, Value>>(
+            delegate.entries,
+            { Entry(key.content, value) },
+            { Entry(key.caseInsensitive(), value) }
+        )
+
+    override val values: MutableCollection<Value> get() = delegate.values
+
+    override fun equals(other: Any?): Boolean {
+        if (other == null || other !is CaseInsensitiveMap<*>) return false
+        return other.delegate == delegate
     }
+
+    override fun hashCode(): Int = delegate.hashCode()
+}
+
+private class Entry<Key, Value>(
+    override val key: Key,
+    override var value: Value
+) : MutableMap.MutableEntry<Key, Value> {
+
+    override fun setValue(newValue: Value): Value {
+        value = newValue
+        return value
+    }
+
+    override fun hashCode(): Int = 17 * 31 + key!!.hashCode() + value!!.hashCode()
+
+    override fun equals(other: Any?): Boolean {
+        if (other == null || other !is Map.Entry<*, *>) return false
+        return other.key == key && other.value == value
+    }
+
+    override fun toString(): String = "$key=$value"
 }

@@ -1,21 +1,23 @@
 package io.ktor.client.engine.jetty
 
-import io.ktor.cio.*
+import io.ktor.util.cio.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.utils.*
-import io.ktor.content.*
 import io.ktor.http.*
 import io.ktor.http.HttpMethod
+import io.ktor.http.content.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.internal.*
 import kotlinx.coroutines.experimental.io.*
 import org.eclipse.jetty.http.*
-import org.eclipse.jetty.http2.api.*
+import org.eclipse.jetty.http2.client.*
 import org.eclipse.jetty.http2.frames.*
-import java.io.*
-import java.util.*
+import java.nio.*
 
 
 internal class JettyHttpRequest(
@@ -35,20 +37,20 @@ internal class JettyHttpRequest(
     override val content: OutgoingContent = requestData.body as OutgoingContent
 
     internal suspend fun execute(): HttpResponse {
-        val requestTime = Date()
-        val session = client.connect(url.host, url.port).apply {
-            this.settings(SettingsFrame(emptyMap(), true), org.eclipse.jetty.util.Callback.NOOP)
-        }
+        val requestTime = GMTDate()
+        val session: HTTP2ClientSession = client.connect(url.host, url.port).apply {
+            settings(SettingsFrame(emptyMap(), true), org.eclipse.jetty.util.Callback.NOOP)
+        } as HTTP2ClientSession
 
         val headersFrame = prepareHeadersFrame(content)
 
         val bodyChannel = ByteChannel()
         val responseContext = CompletableDeferred<Unit>()
-        val responseListener = JettyResponseListener(bodyChannel, dispatcher, responseContext)
+        val responseListener = JettyResponseListener(session, bodyChannel, dispatcher, responseContext)
 
-        val jettyRequest = withPromise<Stream> { promise ->
+        val jettyRequest = JettyHttp2Request(withPromise { promise ->
             session.newStream(headersFrame, promise, responseListener)
-        }.let { JettyHttp2Request(it) }
+        })
 
         sendRequestBody(jettyRequest, content)
 
@@ -61,11 +63,7 @@ internal class JettyHttpRequest(
     private fun prepareHeadersFrame(content: OutgoingContent): HeadersFrame {
         val rawHeaders = HttpFields()
 
-        headers.flattenForEach { name, value ->
-            rawHeaders.add(name, value)
-        }
-
-        content.headers.flattenForEach { name, value ->
+        mergeHeaders(headers, content) { name, value ->
             rawHeaders.add(name, value)
         }
 

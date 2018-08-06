@@ -3,8 +3,8 @@ package io.ktor.client.call
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import java.io.*
-import java.util.concurrent.atomic.*
+import kotlinx.atomicfu.*
+import kotlinx.io.core.*
 import kotlin.reflect.*
 
 /**
@@ -13,7 +13,7 @@ import kotlin.reflect.*
 class HttpClientCall internal constructor(
     private val client: HttpClient
 ) : Closeable {
-    private val received = AtomicBoolean(false)
+    private val received = atomic(0)
 
     /**
      * Represents the [request] sent by the client.
@@ -36,13 +36,16 @@ class HttpClientCall internal constructor(
      */
     suspend fun receive(info: TypeInfo): Any {
         if (info.type.isInstance(response)) return response
-        if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
+        if (!received.compareAndSet(0, 1)) throw DoubleReceiveException(this)
 
         val subject = HttpResponseContainer(info, response)
-        val result = client.responsePipeline.execute(this, subject).response
-
-        if (!info.type.isInstance(result)) throw NoTransformationFound(result::class, info.type)
-        return result
+        try {
+            val result = client.responsePipeline.execute(this, subject).response
+            if (!info.type.isInstance(result)) throw NoTransformationFound(result::class, info.type)
+            return result
+        } catch (cause: Throwable) {
+            throw ReceivePipelineFail(response.call, info, cause)
+        }
     }
 
     /**
@@ -76,6 +79,16 @@ suspend inline fun <reified T> HttpClientCall.receive(): T = receive(typeInfo<T>
 class DoubleReceiveException(call: HttpClientCall) : IllegalStateException() {
     override val message: String = "Request already received: $call"
 }
+
+/**
+ * Exception representing fail of the response pipeline
+ * [cause] contains origin pipeline exception
+ */
+class ReceivePipelineFail(
+    val request: HttpClientCall,
+    val info: TypeInfo,
+    override val cause: Throwable
+): IllegalStateException()
 
 /**
  * Exception representing the no transformation was found.

@@ -1,7 +1,7 @@
 package io.ktor.response
 
 import io.ktor.application.*
-import io.ktor.pipeline.*
+import io.ktor.util.pipeline.*
 
 open class ApplicationSendPipeline : Pipeline<Any, ApplicationCall>(Before, Transform, Render, ContentEncoding, TransferEncoding, After, Engine) {
     companion object Phases {

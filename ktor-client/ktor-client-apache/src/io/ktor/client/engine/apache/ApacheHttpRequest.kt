@@ -3,13 +3,13 @@ package io.ktor.client.engine.apache
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.experimental.*
 import org.apache.http.concurrent.*
 import org.apache.http.impl.nio.client.*
-import java.util.*
 import java.util.concurrent.atomic.*
 
 
@@ -39,42 +39,46 @@ private suspend fun CloseableHttpAsyncClient.sendRequest(
     call: HttpClientCall,
     request: ApacheRequestProducer,
     dispatcher: CoroutineDispatcher
-): ApacheHttpResponse = suspendCancellableCoroutine { continuation ->
+): ApacheHttpResponse {
+    val response = CompletableDeferred<ApacheHttpResponse>()
+
     val completed = AtomicBoolean(false)
-    val requestTime = Date()
+    val requestTime = GMTDate()
     val parent = CompletableDeferred<Unit>()
 
-    val consumer = ApacheResponseConsumer(dispatcher, parent) { response, body ->
+    val consumer = ApacheResponseConsumer(dispatcher, parent) { rawResponse, body ->
         if (completed.compareAndSet(false, true)) {
-            val result = ApacheHttpResponse(call, requestTime, parent, response, body)
-            continuation.resume(result)
+            val result = ApacheHttpResponse(call, requestTime, parent, rawResponse, body)
+            response.complete(result)
         }
     }
 
     val callback = object : FutureCallback<Unit> {
         override fun failed(exception: Exception) {
             parent.completeExceptionally(exception)
-            if (completed.compareAndSet(false, true)) continuation.resumeWithException(exception)
+            if (completed.compareAndSet(false, true)) response.completeExceptionally(exception)
         }
 
         override fun completed(result: Unit) {}
 
         override fun cancelled() {
             parent.cancel()
-            if (completed.compareAndSet(false, true)) continuation.cancel()
+            if (completed.compareAndSet(false, true)) response.cancel()
         }
     }
 
     val future = try {
         execute(request, consumer, callback)
     } catch (cause: Throwable) {
-        continuation.resumeWithException(cause)
+        response.completeExceptionally(cause)
         throw cause
     }
 
-    continuation.invokeOnCancellation { cause ->
-        cause ?: return@invokeOnCancellation
+    response.invokeOnCompletion { cause ->
+        cause ?: return@invokeOnCompletion
         future.cancel(true)
         parent.cancel(cause)
     }
+
+    return response.await()
 }

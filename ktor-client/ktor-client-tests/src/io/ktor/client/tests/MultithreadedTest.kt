@@ -6,7 +6,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
@@ -35,7 +35,7 @@ abstract class MultithreadedTest(private val factory: HttpClientEngineFactory<*>
     }
 
     @Test
-    fun numberTest() {
+    fun numberTest() = runBlocking {
         val client = HttpClient(factory)
         val result = withPool {
             val response = client.get<HttpResponse>("http://127.0.0.1:$serverPort")

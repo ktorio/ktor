@@ -3,7 +3,7 @@ package io.ktor.server.engine
 import io.ktor.application.*
 import io.ktor.config.*
 import io.ktor.http.*
-import io.ktor.pipeline.*
+import io.ktor.util.pipeline.*
 import org.slf4j.*
 import java.io.*
 import java.lang.reflect.*
@@ -141,7 +141,7 @@ class ApplicationEngineEnvironmentReloading(
         // because otherwise it loads two ApplicationEnvironment (and other) types which do not match
         val coreUrls = listOf(
                 ApplicationEnvironment::class.java, // ktor-server-core
-                Pipeline::class.java, // ktor-utils
+                Pipeline::class.java, // ktor-parsing
                 HttpStatusCode::class.java, // ktor-http
                 kotlin.jvm.functions.Function1::class.java // kotlin-stdlib
         ).mapTo(HashSet()) { it.protectionDomain.codeSource.location }

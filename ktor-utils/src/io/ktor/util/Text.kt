@@ -35,3 +35,15 @@ inline fun String.chomp(separator: String, onMissingDelimiter: () -> Pair<String
     }
 }
 
+internal fun String.caseInsensitive(): CaseInsensitiveString = CaseInsensitiveString(this)
+
+internal class CaseInsensitiveString(val content: String) {
+    private val hash = content.toLowerCase().hashCode()
+
+    override fun equals(other: Any?): Boolean =
+        (other as? CaseInsensitiveString)?.content?.equals(content, ignoreCase = true) == true
+
+    override fun hashCode(): Int {
+        return hash
+    }
+}

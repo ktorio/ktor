@@ -1,0 +1,5 @@
+dependencies {
+    compile project(":ktor-client:ktor-client-core:ktor-client-core-jvm")
+
+    testCompile project(":ktor-client:ktor-client-tests")
+}

@@ -3,17 +3,20 @@ package io.ktor.client.engine.cio
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
+import io.ktor.util.date.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import java.util.*
 
 internal class CIOHttpResponse(
     request: HttpRequest,
-    override val requestTime: Date,
+    override val requestTime: GMTDate,
     override val content: ByteReadChannel,
-    private val response: Response
+    private val response: Response,
+    private val pipelined: Boolean
 ) : HttpResponse {
     override val call: HttpClientCall = request.call
     override val status: HttpStatusCode = HttpStatusCode.fromValue(response.status)
@@ -25,11 +28,17 @@ internal class CIOHttpResponse(
         }
     }
 
-    override val responseTime: Date = Date()
+    override val responseTime: GMTDate = GMTDate()
 
     override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
 
     override fun close() {
+        if (pipelined) {
+            runBlocking {
+                val length = headers[HttpHeaders.ContentLength]!!.toLong()
+                content.discard(length - content.totalBytesRead)
+            }
+        }
         response.release()
         executionContext.complete(Unit)
     }

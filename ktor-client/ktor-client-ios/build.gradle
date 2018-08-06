@@ -1,0 +1,4 @@
+
+dependencies {
+    implementation project(':ktor-client:ktor-client-core:ktor-client-core-ios')
+}

@@ -1,15 +1,14 @@
 package io.ktor.http
 
-import java.net.*
-import java.time.temporal.*
-import java.util.*
+import io.ktor.util.*
+import io.ktor.util.date.*
 
 data class Cookie(
     val name: String,
     val value: String,
     val encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
     val maxAge: Int = 0,
-    val expires: Temporal? = null,
+    val expires: GMTDate? = null,
     val domain: String? = null,
     val path: String? = null,
     val secure: Boolean = false,
@@ -33,7 +32,7 @@ fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
         value = decodeCookieValue(first.value, encoding),
         encoding = encoding,
         maxAge = loweredMap["max-age"]?.toInt() ?: 0,
-        expires = loweredMap["expires"]?.fromHttpDateString(),
+        expires = loweredMap["expires"]?.fromHttpToGmtDate(),
         domain = loweredMap["domain"],
         path = loweredMap["path"],
         secure = "secure" in loweredMap,
@@ -90,16 +89,17 @@ fun renderCookieHeader(cookie: Cookie): String = with(cookie) {
 fun renderSetCookieHeader(
     name: String, value: String,
     encoding: CookieEncoding = CookieEncoding.URI_ENCODING,
-    maxAge: Int = 0, expires: Temporal? = null, domain: String? = null,
+    maxAge: Int = 0, expires: GMTDate? = null, domain: String? = null,
     path: String? = null,
     secure: Boolean = false, httpOnly: Boolean = false,
-    extensions: Map<String, String?> = emptyMap(),
+    extensions: Map<String, String?> = emptyMap()
+    ,
     includeEncoding: Boolean = true
 ): String = (
         listOf(
             cookiePart(name.assertCookieName(), value, encoding),
             cookiePartUnencoded("Max-Age", if (maxAge > 0) maxAge else null),
-            cookiePartUnencoded("Expires", expires?.toHttpDateString()),
+            cookiePartUnencoded("Expires", expires?.toHttpDate()),
             cookiePart("Domain", domain, CookieEncoding.RAW),
             cookiePart("Path", path, CookieEncoding.RAW),
 
@@ -121,8 +121,8 @@ fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (e
         value.any { it.shouldEscapeInCookies() } -> "\"$value\""
         else -> value
     }
-    CookieEncoding.BASE64_ENCODING -> Base64.getEncoder().encodeToString(value.toByteArray(Charsets.UTF_8))
-    CookieEncoding.URI_ENCODING -> URLEncoder.encode(value, "UTF-8")
+    CookieEncoding.BASE64_ENCODING -> value.encodeBase64()
+    CookieEncoding.URI_ENCODING -> value.encodeURLQueryComponent(encodeFull = true, spaceToPlus = true)
 }
 
 fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String = when (encoding) {
@@ -131,8 +131,8 @@ fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): String = 
             encodedValue.trim().removeSurrounding("\"")
         else -> encodedValue
     }
-    CookieEncoding.URI_ENCODING -> URLDecoder.decode(encodedValue, "UTF-8")
-    CookieEncoding.BASE64_ENCODING -> Base64.getDecoder().decode(encodedValue).toString(Charsets.UTF_8)
+    CookieEncoding.URI_ENCODING -> encodedValue.decodeURLQueryComponent(plusIsSpace = true)
+    CookieEncoding.BASE64_ENCODING -> encodedValue.decodeBase64()
 }
 
 private fun String.assertCookieName() = when {

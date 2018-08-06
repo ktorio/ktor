@@ -1,8 +1,8 @@
 package io.ktor.server.servlet
 
 import io.ktor.application.*
-import io.ktor.cio.*
-import io.ktor.content.*
+import io.ktor.util.cio.*
+import io.ktor.http.content.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
@@ -51,8 +51,8 @@ private class BlockingServletApplicationResponse(
             try {
                 to.write(buffer, 0, n)
                 to.flush()
-            } catch (e: IOException) {
-                throw ChannelIOException("Failed to write to ServletOutputStream", e)
+            } catch (cause: Throwable) {
+                throw ChannelWriteException("Failed to write to ServletOutputStream", cause)
             }
         }
     }

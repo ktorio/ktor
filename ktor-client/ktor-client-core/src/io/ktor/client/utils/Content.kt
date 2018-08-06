@@ -1,7 +1,7 @@
 package io.ktor.client.utils
 
-import io.ktor.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.io.*
 import kotlin.coroutines.experimental.*

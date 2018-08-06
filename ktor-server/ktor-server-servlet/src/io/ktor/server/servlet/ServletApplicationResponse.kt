@@ -4,6 +4,7 @@ import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.experimental.io.*
 import javax.servlet.http.*
 
@@ -49,7 +50,11 @@ abstract class ServletApplicationResponse(
                         join()
                     }
                 } else {
-                    servletResponse.flushBuffer()
+                    try {
+                        servletResponse.flushBuffer()
+                    } catch (cause: Throwable) {
+                        throw ChannelWriteException(exception = cause)
+                    }
                 }
             }
         }

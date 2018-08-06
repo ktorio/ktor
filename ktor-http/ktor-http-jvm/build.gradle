@@ -1,0 +1,6 @@
+
+dependencies {
+    expectedBy project(':ktor-http')
+
+    compile project(':ktor-utils:ktor-utils-jvm')
+}

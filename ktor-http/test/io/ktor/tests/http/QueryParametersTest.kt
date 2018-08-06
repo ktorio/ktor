@@ -1,7 +1,6 @@
 package io.ktor.tests.http
 
 import io.ktor.http.*
-import org.junit.Test
 import kotlin.test.*
 
 class QueryParametersTest {
@@ -37,11 +36,11 @@ class QueryParametersTest {
 
     @Test
     fun escapeSpaceTest() {
-        assertQuery("id=1&optional=ok+space") {
+        assertQuery("id=1&optional=ok%20space") {
             append("id", "1")
             append("optional", "ok space")
         }
-        assertQuery("id=1&optional=ok+") {
+        assertQuery("id=1&optional=ok%20") {
             append("id", "1")
             append("optional", "ok ")
         }
@@ -49,7 +48,7 @@ class QueryParametersTest {
 
     @Test
     fun skipSpaces() {
-        assertQuery(" id=1 & optional= ok+space") {
+        assertQuery(" id=1 & optional= ok%20space") {
             append("id", "1")
             append("optional", "ok space")
         }

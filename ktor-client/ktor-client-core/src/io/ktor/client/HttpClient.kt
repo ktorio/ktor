@@ -7,8 +7,12 @@ import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
-import java.io.*
-import java.util.*
+import kotlinx.io.core.*
+
+expect fun HttpClient(
+    useDefaultTransformers: Boolean = true,
+    block: HttpClientConfig.() -> Unit = {}
+): HttpClient
 
 /**
  * Asynchronous client to perform HTTP requests.
@@ -18,7 +22,7 @@ import java.util.*
 class HttpClient(
     private val engine: HttpClientEngine,
     private val useDefaultTransformers: Boolean = true,
-    block: suspend HttpClientConfig.() -> Unit = {}
+    block: HttpClientConfig.() -> Unit = {}
 ) : Closeable {
 
     /**
@@ -28,12 +32,8 @@ class HttpClient(
     constructor(
         engineFactory: HttpClientEngineFactory<*>,
         useDefaultTransformers: Boolean = true,
-        block: suspend HttpClientConfig.() -> Unit = {}
+        block: HttpClientConfig.() -> Unit = {}
     ) : this(engineFactory.create(), useDefaultTransformers, block)
-
-    constructor(
-        block: suspend HttpClientConfig.() -> Unit = {}
-    ) : this(findAvailableFactory(), block = block)
 
     /**
      * Pipeline used for processing all the requests sent by this client.
@@ -90,20 +90,17 @@ class HttpClient(
      */
     val engineConfig: HttpClientEngineConfig = engine.config
 
-    private val config = HttpClientConfig()
+    internal val config = HttpClientConfig()
 
     init {
-        runBlocking {
-            config.install(HttpPlainText)
-            config.install(HttpIgnoreBody)
+        config.install(HttpPlainText)
 
-            if (useDefaultTransformers) {
-                config.install("DefaultTransformers") { defaultTransformers() }
-            }
 
-            config.block()
+        if (useDefaultTransformers) {
+            config.install("DefaultTransformers") { defaultTransformers() }
         }
 
+        config.block()
         config.install(this)
     }
 
@@ -117,8 +114,7 @@ class HttpClient(
      * Returns a new [HttpClient] copying this client configuration,
      * and additionally configured by the [block] parameter.
      */
-    fun config(block: suspend HttpClientConfig.() -> Unit): HttpClient =
-        HttpClient(engine, useDefaultTransformers, block)
+    fun config(block: HttpClientConfig.() -> Unit): HttpClient = HttpClient(engine, useDefaultTransformers, block)
 
     /**
      * Closes the underlying [engine].
@@ -130,16 +126,9 @@ class HttpClient(
             @Suppress("UNCHECKED_CAST")
             val feature = attributes[key as AttributeKey<Any>]
 
-            if (feature is AutoCloseable) {
+            if (feature is Closeable) {
                 feature.close()
             }
         }
     }
 }
-
-interface HttpClientEngineContainer {
-    val factory: HttpClientEngineFactory<*>
-}
-
-internal fun findAvailableFactory(): HttpClientEngineFactory<*> =
-    ServiceLoader.load(HttpClientEngineContainer::class.java).toList().first().factory

@@ -1,8 +1,10 @@
 package io.ktor.util
 
-import java.util.*
 
-@Deprecated("ValuesMap was split into Headers and Parameters, please choose type appropriate for the context", level = DeprecationLevel.ERROR)
+@Deprecated(
+    "ValuesMap was split into Headers and Parameters, please choose type appropriate for the context",
+    level = DeprecationLevel.ERROR
+)
 interface ValuesMap
 
 /**
@@ -20,7 +22,8 @@ interface StringValues {
          * @param caseInsensitiveName specifies if map should have case-sensitive or case-insensitive names
          * @param builder specifies a function to build a map
          */
-        inline fun build(caseInsensitiveName: Boolean = false, builder: StringValuesBuilder.() -> Unit): StringValues = StringValuesBuilder(caseInsensitiveName).apply(builder).build()
+        inline fun build(caseInsensitiveName: Boolean = false, builder: StringValuesBuilder.() -> Unit): StringValues =
+            StringValuesBuilder(caseInsensitiveName).apply(builder).build()
     }
 
     /**
@@ -72,7 +75,11 @@ interface StringValues {
     fun isEmpty(): Boolean
 }
 
-open class StringValuesSingleImpl(override val caseInsensitiveName: Boolean, val name: String, val values: List<String>) : StringValues {
+open class StringValuesSingleImpl(
+    override val caseInsensitiveName: Boolean,
+    val name: String,
+    val values: List<String>
+) : StringValues {
     override fun getAll(name: String): List<String>? = if (this.name.equals(name, caseInsensitiveName)) values else null
     override fun entries(): Set<Map.Entry<String, List<String>>> = setOf(object : Map.Entry<String, List<String>> {
         override val key: String = name
@@ -93,25 +100,35 @@ open class StringValuesSingleImpl(override val caseInsensitiveName: Boolean, val
     }
 
     override fun forEach(body: (String, List<String>) -> Unit) = body(name, values)
-    override fun get(name: String): String? = if (name.equals(this.name, caseInsensitiveName)) values.firstOrNull() else null
+    override fun get(name: String): String? =
+        if (name.equals(this.name, caseInsensitiveName)) values.firstOrNull() else null
+
     override fun contains(name: String): Boolean = name.equals(this.name, caseInsensitiveName)
-    override fun contains(name: String, value: String): Boolean = name.equals(this.name, caseInsensitiveName) && values.contains(value)
+    override fun contains(name: String, value: String): Boolean =
+        name.equals(this.name, caseInsensitiveName) && values.contains(value)
 }
 
-open class StringValuesImpl(override val caseInsensitiveName: Boolean = false, values: Map<String, List<String>> = emptyMap()) : StringValues {
+open class StringValuesImpl(
+    override val caseInsensitiveName: Boolean = false,
+    values: Map<String, List<String>> = emptyMap()
+) : StringValues {
+
     protected val values: Map<String, List<String>> by lazy {
-        if (caseInsensitiveName) CaseInsensitiveMap<List<String>>().apply { putAll(values) } else values.toMap()
+        if (caseInsensitiveName) caseInsensitiveMap<List<String>>().apply { putAll(values) } else values.toMap()
     }
+
     override operator fun get(name: String) = listForKey(name)?.firstOrNull()
     override fun getAll(name: String): List<String>? = listForKey(name)
 
     override operator fun contains(name: String) = listForKey(name) != null
     override fun contains(name: String, value: String) = listForKey(name)?.contains(value) ?: false
 
-    override fun names(): Set<String> = Collections.unmodifiableSet(values.keys)
-    override fun isEmpty() = values.isEmpty()
-    override fun entries(): Set<Map.Entry<String, List<String>>> = Collections.unmodifiableSet(values.entries)
-    override fun forEach(body: (String, List<String>) -> Unit) = values.forEach(body)
+    override fun names(): Set<String> = values.keys.unmodifiable()
+    override fun isEmpty(): Boolean = values.isEmpty()
+    override fun entries(): Set<Map.Entry<String, List<String>>> = values.entries.unmodifiable()
+    override fun forEach(body: (String, List<String>) -> Unit) {
+        for ((key, value) in values) body(key, value)
+    }
 
     private fun listForKey(name: String): List<String>? = values[name]
     override fun toString() = "StringValues(case=${!caseInsensitiveName}) ${entries()}"
@@ -127,7 +144,8 @@ open class StringValuesImpl(override val caseInsensitiveName: Boolean = false, v
 }
 
 open class StringValuesBuilder(val caseInsensitiveName: Boolean = false, size: Int = 8) {
-    protected val values: MutableMap<String, MutableList<String>> = if (caseInsensitiveName) CaseInsensitiveMap(size) else LinkedHashMap(size)
+    protected val values: MutableMap<String, MutableList<String>> =
+        if (caseInsensitiveName) caseInsensitiveMap() else LinkedHashMap(size)
     protected var built = false
 
     fun getAll(name: String): List<String>? = values[name]
@@ -135,7 +153,7 @@ open class StringValuesBuilder(val caseInsensitiveName: Boolean = false, size: I
 
     fun names() = values.keys
     fun isEmpty() = values.isEmpty()
-    fun entries(): Set<Map.Entry<String, List<String>>> = Collections.unmodifiableSet(values.entries)
+    fun entries(): Set<Map.Entry<String, List<String>>> = values.entries.unmodifiable()
 
     operator fun set(name: String, value: String) {
         val list = ensureListForKey(name, 1)
@@ -220,13 +238,14 @@ fun valuesOf(map: Map<String, Iterable<String>>, caseInsensitiveKey: Boolean = f
         val entry = map.entries.single()
         return StringValuesSingleImpl(caseInsensitiveKey, entry.key, entry.value.toList())
     }
-    val values: MutableMap<String, List<String>> = if (caseInsensitiveKey) CaseInsensitiveMap(size) else LinkedHashMap(size)
+    val values: MutableMap<String, List<String>> =
+        if (caseInsensitiveKey) caseInsensitiveMap() else LinkedHashMap(size)
     map.entries.forEach { values.put(it.key, it.value.toList()) }
     return StringValuesImpl(caseInsensitiveKey, values)
 }
 
 fun StringValues.toMap(): Map<String, List<String>> =
-        entries().associateByTo(LinkedHashMap(), { it.key }, { it.value.toList() })
+    entries().associateByTo(LinkedHashMap(), { it.key }, { it.value.toList() })
 
 fun StringValues.flattenEntries(): List<Pair<String, String>> = entries().flatMap { e -> e.value.map { e.key to it } }
 
@@ -236,7 +255,8 @@ fun StringValues.flattenForEach(block: (String, String) -> Unit) = forEach { nam
 
 fun StringValues.filter(keepEmpty: Boolean = false, predicate: (String, String) -> Boolean): StringValues {
     val entries = entries()
-    val values: MutableMap<String, MutableList<String>> = if (caseInsensitiveName) CaseInsensitiveMap(entries.size) else LinkedHashMap(entries.size)
+    val values: MutableMap<String, MutableList<String>> =
+        if (caseInsensitiveName) caseInsensitiveMap() else LinkedHashMap(entries.size)
     entries.forEach { entry ->
         val list = entry.value.filterTo(ArrayList(entry.value.size)) { predicate(entry.key, it) }
         if (keepEmpty || list.isNotEmpty())
@@ -246,7 +266,11 @@ fun StringValues.filter(keepEmpty: Boolean = false, predicate: (String, String) 
     return StringValuesImpl(caseInsensitiveName, values)
 }
 
-fun StringValuesBuilder.appendFiltered(source: StringValues, keepEmpty: Boolean = false, predicate: (String, String) -> Boolean) {
+fun StringValuesBuilder.appendFiltered(
+    source: StringValues,
+    keepEmpty: Boolean = false,
+    predicate: (String, String) -> Boolean
+) {
     source.forEach { name, value ->
         val list = value.filterTo(ArrayList(value.size)) { predicate(name, it) }
         if (keepEmpty || list.isNotEmpty())

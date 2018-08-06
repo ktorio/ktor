@@ -2,6 +2,7 @@ package io.ktor.client.tests
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
@@ -67,7 +68,9 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
         config {
             install(HttpCookies) {
                 default {
-                    addCookie("localhost", Cookie("id", "1"))
+                    runBlocking {
+                        addCookie("localhost", Cookie("id", "1"))
+                    }
                 }
             }
         }
@@ -86,7 +89,7 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
     fun testConstant(): Unit = clientTest(factory) {
         config {
             install(HttpCookies) {
-                storage = ConstantCookieStorage(Cookie("id", "1"))
+                storage = ConstantCookiesStorage(Cookie("id", "1"))
             }
         }
 
@@ -104,14 +107,16 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
         config {
             install(HttpCookies) {
                 default {
-                    addCookie("localhost", Cookie("first", "first-cookie"))
-                    addCookie("localhost", Cookie("second", "second-cookie"))
+                    runBlocking {
+                        addCookie("localhost", Cookie("first", "first-cookie"))
+                        addCookie("localhost", Cookie("second", "second-cookie"))
+                    }
                 }
             }
         }
 
         test { client ->
-            val response = client.get<String>(port = serverPort, path="/multiple")
+            val response = client.get<String>(port = serverPort, path = "/multiple")
             assertEquals("Multiple done", response)
         }
     }
@@ -124,8 +129,15 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
          * c    d
          */
         val client = HttpClient(factory)
-        val a = client.config { install(HttpCookies) { default { addCookie("localhost", Cookie("id", "1")) } } }
-        val b = a.config { install(HttpCookies) { default { addCookie("localhost", Cookie("id", "10")) } } }
+        val a = client.config {
+            install(HttpCookies) {
+                default { runBlocking { addCookie("localhost", Cookie("id", "1")) } }
+            }
+        }
+        val b = a.config {
+            install(HttpCookies) { default { runBlocking { addCookie("localhost", Cookie("id", "10")) } } }
+        }
+
         val c = a.config { }
         val d = b.config { }
 

@@ -1,1 +1,5 @@
 description = ''
+
+dependencies {
+    compile project(":ktor-utils:ktor-utils-jvm")
+}

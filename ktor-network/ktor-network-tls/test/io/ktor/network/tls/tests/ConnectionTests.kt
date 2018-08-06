@@ -1,0 +1,36 @@
+package io.ktor.network.tls.tests
+
+import io.ktor.network.selector.*
+import io.ktor.network.sockets.*
+import io.ktor.network.tls.*
+import io.ktor.network.util.*
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.io.*
+import java.util.concurrent.*
+import org.junit.*
+import org.junit.Assert.*
+
+class ConnectionTests {
+
+    @Test
+    fun tlsWithoutCloseTest(): Unit = runBlocking {
+
+        val selectorManager = ActorSelectorManager(ioCoroutineDispatcher)
+        val socket = aSocket(selectorManager)
+            .tcp()
+            .connect("www.google.com", port = 443)
+            .tls()
+
+        val channel = socket.openWriteChannel()
+
+        channel.apply {
+            writeStringUtf8("GET / HTTP/1.1\r\n")
+            writeStringUtf8("Host: www.google.com\r\n")
+            writeStringUtf8("Connection: close\r\n\r\n")
+            flush()
+        }
+
+        socket.openReadChannel().readRemaining()
+        Unit
+    }
+}

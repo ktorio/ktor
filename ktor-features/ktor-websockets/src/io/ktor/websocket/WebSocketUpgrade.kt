@@ -1,7 +1,7 @@
 package io.ktor.websocket
 
 import io.ktor.application.*
-import io.ktor.content.*
+import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.http.websocket.*

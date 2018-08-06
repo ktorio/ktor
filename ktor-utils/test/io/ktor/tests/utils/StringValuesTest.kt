@@ -1,7 +1,6 @@
 package io.ktor.tests.utils
 
 import io.ktor.util.*
-import org.junit.Test
 import kotlin.test.*
 
 class StringValuesTest {
@@ -78,6 +77,8 @@ class StringValuesTest {
             append("Key1", "value2")
             append("Key1", "Value3")
         }.filter { _, value -> value.startsWith("V") }
+        val names = map.names()
+        setOf("Key1") == names
         assertEquals("Value3", map["key1"])
         assertEquals("Value3", map["keY1"])
         assertEquals(setOf("Key1"), map.names())

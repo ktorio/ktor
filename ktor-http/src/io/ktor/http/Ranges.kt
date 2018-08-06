@@ -1,7 +1,7 @@
 package io.ktor.http
 
 import io.ktor.util.*
-import java.util.*
+import kotlin.math.*
 
 enum class RangeUnits {
     Bytes,
@@ -66,7 +66,7 @@ internal fun List<LongRange>.mergeRangesKeepOrder(): List<LongRange> {
             acc.last().endInclusive < range.start - 1 -> acc.add(range)
             else -> {
                 val last = acc.last()
-                acc[acc.lastIndex] = last.start..Math.max(last.endInclusive, range.endInclusive)
+                acc[acc.lastIndex] = last.start..max(last.endInclusive, range.endInclusive)
             }
         }
         acc

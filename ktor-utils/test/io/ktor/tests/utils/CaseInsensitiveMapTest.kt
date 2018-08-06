@@ -1,7 +1,6 @@
-package io.ktor.tests.utils
+package io.ktor.util
 
 import io.ktor.util.*
-import org.junit.Test
 import kotlin.test.*
 
 class CaseInsensitiveMapTest {

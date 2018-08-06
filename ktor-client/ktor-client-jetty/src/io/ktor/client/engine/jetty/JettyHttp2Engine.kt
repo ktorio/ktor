@@ -28,10 +28,8 @@ internal class JettyHttp2Engine(override val config: JettyEngineConfig) : HttpCl
         return HttpEngineCall(request, response)
     }
 
-    internal suspend fun connect(host: String, port: Int): Session {
-        return withPromise { promise ->
-            jettyClient.connect(sslContextFactory, InetSocketAddress(host, port), Session.Listener.Adapter(), promise)
-        }
+    internal suspend fun connect(host: String, port: Int): Session = withPromise { promise ->
+        jettyClient.connect(sslContextFactory, InetSocketAddress(host, port), Session.Listener.Adapter(), promise)
     }
 
     override fun close() {

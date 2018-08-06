@@ -1,0 +1,22 @@
+
+apply plugin: 'kotlinx-atomicfu'
+
+dependencies {
+    compileOnly "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
+    testCompile "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
+}
+
+atomicFU {
+    inputFiles = sourceSets.main.output.classesDirs
+    outputDir = file("$buildDir/classes-atomicfu/main")
+    classPath = sourceSets.main.runtimeClasspath
+}
+
+jar {
+    mainSpec.sourcePaths.clear() // hack to clear existing paths
+    from files(atomicFU.outputs, sourceSets.main.output.resourcesDir)
+}
+
+atomicFU.dependsOn compileKotlin
+testClasses.dependsOn atomicFU
+jar.dependsOn atomicFU
