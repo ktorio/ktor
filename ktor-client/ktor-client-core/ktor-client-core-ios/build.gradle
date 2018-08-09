@@ -3,5 +3,4 @@ dependencies {
     expectedBy project(':ktor-client:ktor-client-core')
 
     implementation project(':ktor-http:ktor-http-ios')
-    implementation project(':ktor-http:ktor-http-ios')
 }

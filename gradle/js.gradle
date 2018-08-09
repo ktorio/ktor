@@ -1,0 +1,122 @@
+apply plugin: 'com.moowork.node'
+
+node {
+//    version = "$nodejs_version"
+//    npmVersion = "$npm_version"
+    download = false
+    nodeModulesDir = file(buildDir)
+}
+
+dependencies {
+    compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
+    compile "org.jetbrains.kotlin:kotlin-test-js:$kotlin_version"
+
+    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-js', version: coroutines_version
+    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-js', version: kotlinx_io_version
+    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-js', version: kotlinx_io_version
+}
+
+afterEvaluate {
+    task assembleWeb(type: Sync) {
+        configurations.compile.each { File file ->
+            from(zipTree(file.absolutePath), {
+                includeEmptyDirs = false
+                include { fileTreeElement ->
+                    def path = fileTreeElement.path
+                    (path.endsWith(".js") || path.endsWith(".js.map")) && (path.startsWith("META-INF/resources/") ||
+                        !path.startsWith("META-INF/"))
+                }
+            })
+        }
+        from compileKotlin2Js.destinationDir
+        into "${projectDir}/build/web"
+
+        dependsOn classes
+    }
+
+    assemble.dependsOn assembleWeb
+}
+
+sourceSets {
+    main {
+        kotlin.srcDir 'src'
+        resources.srcDir 'resources'
+    }
+    test {
+        kotlin.srcDir 'test'
+        resources.srcDir 'test-resources'
+    }
+}
+
+compileKotlin2Js {
+    kotlinOptions.metaInfo = true
+    kotlinOptions.sourceMap = true
+    kotlinOptions.moduleKind = 'umd'
+    kotlinOptions.main = "noCall"
+    kotlinOptions.sourceMapEmbedSources = 'always'
+    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental,io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI']
+}
+
+compileTestKotlin2Js {
+    kotlinOptions.metaInfo = true
+    kotlinOptions.sourceMap = true
+    kotlinOptions.moduleKind = 'umd'
+    kotlinOptions.main = "call"
+    kotlinOptions.sourceMapEmbedSources = 'always'
+    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental,io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI']
+}
+
+task installDependenciesMochaChrome(type: NpmTask, dependsOn: [npmInstall]) {
+    args = ['install',
+            "mocha@$mocha_version",
+            "mocha-headless-chrome@$mocha_headless_chrome_version",
+            '--no-save']
+    if (project.hasProperty("teamcity")) args += [
+        "mocha-teamcity-reporter@$mocha_teamcity_reporter_version"]
+}
+
+def mochaChromeTestPage = file("$buildDir/test-page.html")
+
+task prepareMochaChrome(dependsOn: [compileTestKotlin2Js, installDependenciesMochaChrome]) {
+    outputs.file(mochaChromeTestPage)
+}
+
+prepareMochaChrome.doLast {
+    mochaChromeTestPage.text = """<!DOCTYPE html>
+        <html>
+        <head>
+            <title>Mocha Tests</title>
+            <meta charset="utf-8">
+            <link rel="stylesheet" href="$node.nodeModulesDir/node_modules/mocha/mocha.css">
+        </head>
+        <body>
+        <div id="mocha"></div>
+        <script src="$node.nodeModulesDir/node_modules/mocha/mocha.js"></script>
+        <script>mocha.timeout(10000000);</script>
+        <script>mocha.setup('bdd');</script>
+        <script src="$projectDir/build/web/kotlin.js"></script>
+        <script src="$projectDir/build/web/kotlin-test.js"></script>
+        <script src="$projectDir/build/web/kotlinx-atomicfu.js"></script>
+        <script src="$projectDir/build/web/kotlinx-coroutines-core.js"></script>
+        <script src="$projectDir/build/web/kotlinx-io-js.js"></script>
+        <script src="$projectDir/build/web/kotlinx-coroutines-io-js.js"></script>
+        <script src="$projectDir/build/web/ktor-utils-js.js"></script>
+        <script src="$projectDir/build/web/ktor-http-js.js"></script>
+        <script src="$projectDir/build/web/ktor-client-core-js.js"></script>
+        <script src="$projectDir/build/web/ktor-client-js.js"></script>
+        <script src="$compileTestKotlin2Js.outputFile"></script>
+        <script>mocha.run();</script>
+        </body>
+        </html>
+    """
+}
+
+task testMochaChrome(type: NodeTask, dependsOn: prepareMochaChrome) {
+    script = file("$node.nodeModulesDir/node_modules/mocha-headless-chrome/bin/start")
+    args = [compileTestKotlin2Js.outputFile, '--file', mochaChromeTestPage]
+    if (project.hasProperty("teamcity")) args += ['--reporter', 'mocha-teamcity-reporter']
+    if (project.hasProperty("mochaTests")) args += ['--grep', "$mochaTests"]
+}
+
+test.dependsOn testMochaChrome
+

@@ -14,8 +14,16 @@ def nativeModules = [
         'ktor-client-json-ios'
 ]
 
+def jsModules = [
+        'ktor-client-js',
+        'ktor-client-core-js',
+        'ktor-http-js',
+        'ktor-utils-js'
+]
+
 ext.platformOf = { Project project ->
     if (project.name in commonModules) return 'common'
     if (project.name in nativeModules) return 'native'
+    if (project.name in jsModules) return 'js'
     return 'jvm'
 }

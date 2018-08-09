@@ -1,3 +1,12 @@
+pluginManagement {
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == "kotlin2js") {
+                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${requested.version}")
+            }
+        }
+    }
+}
 rootProject.name = 'ktor'
 enableFeaturePreview('GRADLE_METADATA')
 
@@ -20,6 +29,7 @@ includeEx ':ktor-server'
 includeEx ':ktor-client'
 includeEx ':ktor-client:ktor-client-core'
 includeEx ':ktor-client:ktor-client-core:ktor-client-core-jvm'
+includeEx ':ktor-client:ktor-client-core:ktor-client-core-js'
 includeEx ':ktor-client:ktor-client-core:ktor-client-core-ios'
 includeEx ':ktor-client:ktor-client-tests'
 includeEx ':ktor-client:ktor-client-apache'
@@ -27,6 +37,7 @@ includeEx ':ktor-client:ktor-client-android'
 includeEx ':ktor-client:ktor-client-cio'
 includeEx ':ktor-client:ktor-client-ios'
 includeEx ':ktor-client:ktor-client-jetty'
+includeEx ':ktor-client:ktor-client-js'
 includeEx ':ktor-client:ktor-client-mock'
 includeEx ':ktor-client:ktor-client-okhttp'
 includeEx ':ktor-client:ktor-client-features'
@@ -53,10 +64,12 @@ includeEx ':ktor-features:ktor-webjars'
 includeEx ':ktor-features'
 includeEx ':ktor-http'
 includeEx ':ktor-http:ktor-http-jvm'
+includeEx ':ktor-http:ktor-http-js'
 includeEx ':ktor-http:ktor-http-ios'
 includeEx ':ktor-http:ktor-http-cio'
 includeEx ':ktor-utils'
 includeEx ':ktor-utils:ktor-utils-jvm'
+includeEx ':ktor-utils:ktor-utils-js'
 includeEx ':ktor-utils:ktor-utils-ios'
 includeEx ':ktor-network'
 includeEx ':ktor-network:ktor-network-tls'
