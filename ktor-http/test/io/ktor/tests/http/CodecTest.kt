@@ -1,7 +1,6 @@
 package io.ktor.tests.http
 
 import io.ktor.http.*
-import io.ktor.util.*
 import kotlin.random.*
 import kotlin.test.*
 
@@ -100,7 +99,11 @@ class CodecTest {
     }
 
     private fun encodeAndDecodeTest(text: String) {
-        assertEquals(text, text.encodeURLQueryComponent().decodeURLQueryComponent())
-        assertEquals(text, text.encodeURLParameter().decodeURLPart())
+        val encode1 = text.encodeURLQueryComponent()
+        val decode1 = encode1.decodeURLQueryComponent()
+        assertEquals(text, decode1)
+        val encode2 = text.encodeURLParameter()
+        val decode2 = encode2.decodeURLPart()
+        assertEquals(text, decode2)
     }
 }

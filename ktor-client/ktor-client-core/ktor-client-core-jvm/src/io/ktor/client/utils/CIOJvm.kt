@@ -14,7 +14,7 @@ private val cpuCount: Int = Runtime.getRuntime().availableProcessors()
 actual val HTTP_CLIENT_THREAD_COUNT: Int = maxOf(2, (cpuCount * 2 / 3))
 
 @Deprecated(
-    "HTTP_CLIENT_DEFAULT_DISPATCHER is deprecated. Use HttpClient.coroutineContext instead.",
+    "HTTP_CLIENT_DEFAULT_DISPATCHER is deprecated. Use [HttpClient.coroutineContext] instead.",
     level = DeprecationLevel.ERROR
 )
 actual val HTTP_CLIENT_DEFAULT_DISPATCHER: CoroutineDispatcher get() = Dispatchers.IO
