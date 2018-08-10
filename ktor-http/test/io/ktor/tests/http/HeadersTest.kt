@@ -5,14 +5,14 @@ import kotlin.test.*
 
 class HeadersTest {
     @Test
-    fun `parse simple accept header`() {
+    fun parseSimpleAcceptHeader() {
         val items = parseAndSortContentTypeHeader("audio/basic")
         assertEquals(1, items.count())
         assertEquals("audio/basic", items.single().value)
     }
 
     @Test
-    fun `parse accept header with fallback`() {
+    fun parseAcceptHeaderWithFallback() {
         val items = parseAndSortContentTypeHeader("audio/*; q=0.2, audio/basic")
         assertEquals(2, items.count())
         assertEquals("audio/basic", items[0].value)
@@ -20,7 +20,7 @@ class HeadersTest {
     }
 
     @Test
-    fun `parse accept header with preference`() {
+    fun parseAcceptHeaderWithPreference() {
         val items = parseAndSortContentTypeHeader("text/plain; q=0.5, text/html,text/x-dvi; q=0.8, text/x-c")
         assertEquals(4, items.count())
         assertEquals(HeaderValue("text/html"), items[0])
@@ -30,7 +30,7 @@ class HeadersTest {
     }
 
     @Test
-    fun `parse accept header with extra parameters`() {
+    fun parseAcceptHeaderWithExtraParameters() {
         val items = parseAndSortContentTypeHeader("text/*, text/html, text/html;level=1, */*")
         val item0 = HeaderValue("text/html", listOf(HeaderValueParam("level", "1")))
         val item1 = HeaderValue("text/html")
@@ -40,7 +40,7 @@ class HeadersTest {
     }
 
     @Test
-    fun `parse accept header with extra parameters and fallback`() {
+    fun parseAcceptHeaderWithExtraParametersAndFallback() {
         val items = parseAndSortContentTypeHeader("text/*;q=0.3, text/html;q=0.7, text/html;level=1,text/html;level=2;q=0.4, */*;q=0.5")
         val item0 = HeaderValue("text/html", listOf(HeaderValueParam("level", "1")))
         val item1 = HeaderValue("text/html", listOf(HeaderValueParam("q", "0.7")))
@@ -56,27 +56,27 @@ class HeadersTest {
     }
 
     @Test
-    fun `parse single value`() {
+    fun parseSingleValue() {
         val headerValue = parseHeaderValue("justValue")
         assertEquals(listOf(HeaderValue("justValue")), headerValue)
     }
 
     @Test
-    fun `parse just value with single parameter with value`() {
+    fun parseJustValueWithSingleParameterWithValue() {
         val headerValue = parseHeaderValue("justValue;a=b")
         assertEquals(listOf(HeaderValue("justValue", listOf(HeaderValueParam("a", "b")))), headerValue
         )
     }
 
     @Test
-    fun `parse just value with single parameter`() {
+    fun parseJustValueWithSingleParameter() {
         val headerValue = parseHeaderValue("justValue;implicit")
         assertEquals(listOf(HeaderValue("justValue", listOf(HeaderValueParam("implicit", "")))), headerValue
         )
     }
 
     @Test
-    fun `parse just value with single parameter and spaces`() {
+    fun parseJustValueWithSingleParameterAndSpaces() {
         val expected = listOf(HeaderValue("justValue", listOf(HeaderValueParam("a", "b"))))
         assertEquals(expected, parseHeaderValue("justValue; a=b"))
         assertEquals(expected, parseHeaderValue("justValue ; a=b"))
@@ -85,7 +85,7 @@ class HeadersTest {
     }
 
     @Test
-    fun `parse just value with multiple parameters`() {
+    fun parseJustValueWithMultipleParameters() {
         val headerValue = parseHeaderValue("justValue; a=b; c=d")
         assertEquals(listOf(HeaderValue("justValue", listOf(
                 HeaderValueParam("a", "b"),
@@ -95,7 +95,7 @@ class HeadersTest {
     }
 
     @Test
-    fun `parse just value with quoted parameter`() {
+    fun parseJustValueWithQuotedParameter() {
         assertEquals(
                 listOf(HeaderValue("justValue", listOf(
                         HeaderValueParam("a", "quoted;=,\"value")
@@ -105,7 +105,7 @@ class HeadersTest {
     }
 
     @Test
-    fun `parse just value with quoted and simple parameters`() {
+    fun parseJustValueWithQuotedAndSimpleParameters() {
         assertEquals(
                 listOf(HeaderValue("justValue", listOf(
                         HeaderValueParam("a", "quoted;=,\"value"),
@@ -117,7 +117,7 @@ class HeadersTest {
     }
 
     @Test
-    fun `parse broken headers shouldnt fail`() {
+    fun parseBrokenHeadersShouldntFail() {
         assertEquals(listOf(HeaderValue("justValue")), parseHeaderValue("justValue;"))
         assertEquals(listOf(HeaderValue("justValue")), parseHeaderValue("justValue;;"))
         assertEquals(listOf(HeaderValue("justValue")), parseHeaderValue("justValue;="))
@@ -132,7 +132,7 @@ class HeadersTest {
     }
 
     @Test
-    fun `parse real life headers shouldnt fail`() {
+    fun parseRealLifeHeadersShouldntFail() {
         val examples = listOf(
                 "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
                 "ru,en-US;q=0.7,en;q=0.3",
@@ -148,7 +148,7 @@ class HeadersTest {
     }
 
     @Test
-    fun `parse parameters only`() {
+    fun parseParametersOnly() {
         assertEquals(listOf(HeaderValue("", listOf(HeaderValueParam("k", "v")))), parseHeaderValue("k=v", parametersOnly = true))
         assertEquals(listOf(HeaderValue("", listOf(HeaderValueParam("k", "v"), HeaderValueParam("k2", "v2")))), parseHeaderValue("k=v;k2=v2", parametersOnly = true))
         assertEquals(listOf(HeaderValue("", listOf(HeaderValueParam("k", "v"))),
@@ -181,7 +181,7 @@ class HeadersTest {
     }
 
     @Test
-    fun `headersOf should be case insensitive`() {
+    fun headersOfShouldBeCaseInsensitive() {
         val value = "world"
         assertEquals(value, headersOf("hello", value)["HELLO"])
         assertEquals(value, headersOf("hello", listOf(value))["HELLO"])
