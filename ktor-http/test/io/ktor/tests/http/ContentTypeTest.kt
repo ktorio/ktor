@@ -6,7 +6,7 @@ import kotlin.test.*
 class ContentTypeTest {
 
     @Test
-    fun `ContentType text-plain`() {
+    fun contentTypeTextPlain() {
         val ct = ContentType.Text.Plain
         assertEquals("text", ct.contentType)
         assertEquals("plain", ct.contentSubtype)
@@ -14,7 +14,7 @@ class ContentTypeTest {
     }
 
     @Test
-    fun `text-plain`() {
+    fun textPlain() {
         val ct = ContentType.parse("text/plain")
         assertEquals("text", ct.contentType)
         assertEquals("plain", ct.contentSubtype)
@@ -22,21 +22,21 @@ class ContentTypeTest {
     }
 
     @Test
-    fun `text-plain charset in quotes`() {
+    fun textPlainCharsetInQuotes() {
         val ct1 = ContentType.parse("text/plain; charset=us-ascii")
         val ct2 = ContentType.parse("text/plain; charset=\"us-ascii\"")
         assertEquals(ct1, ct2)
     }
 
     @Test
-    fun `text-plain charset case insensitive`() {
+    fun textPlainCharsetCaseInsensitive() {
         val ct1 = ContentType.parse("Text/plain; charset=UTF-8")
         val ct2 = ContentType.parse("text/Plain; CHARSET=utf-8")
         assertEquals(ct1, ct2)
     }
 
     @Test
-    fun `text-plain charset is utf-8`() {
+    fun textPlainCharsetIsUtf8() {
         val ct = ContentType.parse("text/plain ; charset = utf-8")
         assertEquals("text", ct.contentType)
         assertEquals("plain", ct.contentSubtype)
@@ -48,7 +48,7 @@ class ContentTypeTest {
     }
 
     @Test
-    fun `text-plain charset is utf-8 with parameter foo-bar`() {
+    fun textPlainCharsetIsUtf8WithParameterFooBar() {
         val ct = ContentType.parse("text/plain ; charset = utf-8;foo=bar")
 
         val toString = ct.toString()
@@ -56,20 +56,20 @@ class ContentTypeTest {
     }
 
     @Test
-    fun `text-plain-invalid`() {
+    fun textPlainInvalid() {
         assertFailsWith(BadContentTypeFormatException::class) {
             ContentType.parse("text/plain/something")
         }
     }
 
     @Test
-    fun `content type with empty parameters block`() {
+    fun contentTypeWithEmptyParametersBlock() {
         assertEquals(ContentType.Text.Plain, ContentType.parse("text/plain; "))
         assertEquals(ContentType.Text.Plain, ContentType.parse("text/plain;"))
     }
 
     @Test
-    fun `content type render works`() {
+    fun contentTypeRenderWorks() {
         // rendering tests are in [HeadersTest] so it is just a smoke test
         assertEquals("text/plain; p1=v1", ContentType.Text.Plain.withParameter("p1", "v1").toString())
     }
