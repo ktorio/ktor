@@ -1,7 +1,6 @@
 package io.ktor.client.features.json.test
 
 import com.fasterxml.jackson.annotation.*
-import com.fasterxml.jackson.module.kotlin.*
 import io.ktor.application.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.features.json.*
@@ -40,10 +39,8 @@ class JsonTest : TestWithKtor() {
                 call.respond(Response(true, arrayOf(User("vasya", 10))))
             }
             post("/jackson") {
-                val data = jacksonObjectMapper().readTree(call.receiveText())
-                assertFalse(data.at("/object").has("ignoredValue"))
-                assertFalse(data.at("/list/0").has("ignoredValue"))
-                call.respond(Jackson("response", "not_ignored")) // encoded with GsonConverter
+                assertEquals(Jackson("request", null), call.receive())
+                call.respond(Response(true, listOf(Jackson("response", "not_ignored")))) // encoded with GsonConverter
             }
         }
     }
@@ -95,12 +92,15 @@ class JsonTest : TestWithKtor() {
         }
 
         test { client ->
-            val body = mapOf(Pair("object", Jackson("request", "ignored")), Pair("list", listOf(Jackson("request", "ignored"))))
-            val response = client.post<Jackson>(port = serverPort, path = "jackson",  body = body) {
+            val response = client.post<Response<List<Jackson>>>(port = serverPort, path = "jackson",  body = Jackson("request", "ignored"))
+            {
                 contentType(ContentType.Application.Json)
             }
 
-            assertEquals(Jackson("response", "not_ignored"), response) // encoded with GsonConverter
+            assertTrue(response.ok)
+            val list = response.result!!
+            assertEquals(1, list.size)
+            assertEquals(Jackson("response", "not_ignored"), list[0]) // encoded with GsonConverter
         }
     }
 }
