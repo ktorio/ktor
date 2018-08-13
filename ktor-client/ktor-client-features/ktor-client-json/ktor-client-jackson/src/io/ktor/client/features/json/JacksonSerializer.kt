@@ -14,6 +14,6 @@ class JacksonSerializer(block: ObjectMapper.() -> Unit = {}) : JsonSerializer {
     override fun write(data: Any) = TextContent(backend.writeValueAsString(data), ContentType.Application.Json)
 
     override suspend fun read(type: TypeInfo, response: HttpResponse): Any {
-        return backend.readValue(response.readText(), backend.getTypeFactory().constructType(type.reifiedType))
+        return backend.readValue(response.readText(), backend.typeFactory.constructType(type.reifiedType))
     }
 }

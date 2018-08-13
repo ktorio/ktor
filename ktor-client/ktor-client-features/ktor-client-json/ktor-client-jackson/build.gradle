@@ -1,0 +1,10 @@
+
+dependencies {
+    compile group: 'com.fasterxml.jackson.module', name: 'jackson-module-kotlin', version: '2.9.2'
+
+    compile project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-json-jvm")
+
+    testCompile project(':ktor-client:ktor-client-cio')
+    testCompile project(':ktor-client:ktor-client-tests')
+    testCompile project(':ktor-features:ktor-gson')
+}

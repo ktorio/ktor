@@ -21,7 +21,7 @@ data class Widget(
     val tags: List<String> = emptyList()
 )
 
-class JsonTest : TestWithKtor() {
+class GsonTest : TestWithKtor() {
     val widget = Widget("Foo", 1000, listOf("bar", "baz", "qux"))
 
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {

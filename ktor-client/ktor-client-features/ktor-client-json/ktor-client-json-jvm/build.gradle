@@ -1,14 +1,15 @@
 dependencies {
     expectedBy project(':ktor-client:ktor-client-features:ktor-client-json')
 
-    compile group: 'com.google.code.gson', name: 'gson', version: gson_version
     compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-runtime', version: '0.6.0'
 
     compile project(':ktor-client:ktor-client-core:ktor-client-core-jvm')
     compile project(":ktor-client:ktor-client-core")
-    compile project(":ktor-features:ktor-jackson")
 
     testCompile project(':ktor-client:ktor-client-cio')
     testCompile project(':ktor-client:ktor-client-tests')
     testCompile project(':ktor-features:ktor-gson')
+
+    testCompile project(':ktor-client:ktor-client-features:ktor-client-json:ktor-client-gson')
+    testCompile project(':ktor-client:ktor-client-features:ktor-client-json:ktor-client-jackson')
 }
