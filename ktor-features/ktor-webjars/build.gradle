@@ -1,0 +1,5 @@
+description = ''
+dependencies {
+    compile group: 'org.webjars', name: 'webjars-locator-core', version: '0.35'
+    testCompile group: 'org.webjars', name: 'jquery', version: '3.3.1'
+}
