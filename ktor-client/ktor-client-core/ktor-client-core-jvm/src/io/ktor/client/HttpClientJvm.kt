@@ -6,7 +6,7 @@ import java.util.*
 
 actual fun HttpClient(
     useDefaultTransformers: Boolean,
-    block: HttpClientConfig.() -> Unit
+    block: HttpClientConfig<*>.() -> Unit
 ): HttpClient = HttpClient(findAvailableFactory(), useDefaultTransformers, block)
 
 interface HttpClientEngineContainer {

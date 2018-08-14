@@ -172,7 +172,7 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
         client.close()
     }
 
-    private fun HttpClient.config(block: HttpClientConfig.() -> Unit): HttpClient = TODO("$block")
+    private fun HttpClient.config(block: HttpClientConfig<*>.() -> Unit): HttpClient = TODO("$block")
 
     private suspend fun HttpClient.getId() = cookies("localhost")["id"]?.value?.toInt()!!
 }
