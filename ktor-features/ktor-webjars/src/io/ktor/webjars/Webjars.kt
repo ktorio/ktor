@@ -4,10 +4,9 @@ import io.ktor.application.ApplicationCall
 import io.ktor.application.ApplicationCallPipeline
 import io.ktor.application.ApplicationFeature
 import io.ktor.application.call
-import io.ktor.cio.toByteReadChannel
-import io.ktor.content.LastModifiedVersion
-import io.ktor.content.OutgoingContent
-import io.ktor.content.versions
+import io.ktor.http.content.LastModifiedVersion
+import io.ktor.http.content.OutgoingContent
+import io.ktor.http.content.versions
 import io.ktor.http.ContentType
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
@@ -16,8 +15,8 @@ import io.ktor.pipeline.PipelineContext
 import io.ktor.request.httpMethod
 import io.ktor.request.uri
 import io.ktor.response.respond
-import io.ktor.response.respondBytes
 import io.ktor.util.AttributeKey
+import io.ktor.util.cio.*
 import kotlinx.coroutines.experimental.io.ByteReadChannel
 import org.webjars.MultipleMatchesException
 import org.webjars.WebJarAssetLocator
@@ -25,7 +24,6 @@ import java.io.InputStream
 import java.nio.file.Paths
 import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.util.*
 
 class Webjars(val configuration: Configuration) {
 
