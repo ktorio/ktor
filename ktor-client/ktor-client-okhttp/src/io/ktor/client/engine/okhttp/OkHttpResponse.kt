@@ -51,6 +51,6 @@ private fun Protocol.fromOkHttp(): HttpProtocolVersion = when (this) {
     Protocol.HTTP_1_1 -> HttpProtocolVersion.HTTP_1_1
     Protocol.SPDY_3 -> HttpProtocolVersion.SPDY_3
     Protocol.HTTP_2 -> HttpProtocolVersion.HTTP_2_0
-    Protocol.H2_PRIOR_KNOWLEDGE -> HttpProtocolVersion.HTTP_2_0_H2
+    Protocol.H2_PRIOR_KNOWLEDGE -> HttpProtocolVersion.HTTP_2_0
     Protocol.QUIC -> HttpProtocolVersion.QUIC
 }
