@@ -33,6 +33,10 @@ abstract class HeaderValueWithParameters(
     }
 }
 
+fun StringValuesBuilder.append(name: String, value: HeaderValueWithParameters) {
+    append(name, value.toString())
+}
+
 private val CHARACTERS_SHOULD_BE_ESCAPED = "\"=;,\\/ ".toCharArray()
 fun String.escapeIfNeeded() = when {
     indexOfAny(CHARACTERS_SHOULD_BE_ESCAPED) != -1 -> quote()
