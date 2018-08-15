@@ -109,9 +109,9 @@ private suspend fun evaluate(token: HttpAuthHeader?, principal: Principal?, real
 }
 
 private fun getVerifierNullableIssuer(jwkProvider: JwkProvider, issuer: String?, token: HttpAuthHeader?, schemes: JWTAuthSchemes): JWTVerifier? {
-    val jwk = token.getBlob(schemes)?.let {
+    val jwk = token.getBlob(schemes)?.let { blob ->
         try {
-            jwkProvider.get(JWT.decode(it).keyId)
+            jwkProvider.get(JWT.decode(blob).keyId)
         } catch (ex: JwkException) {
             null
         } catch (ex: JWTDecodeException) {
