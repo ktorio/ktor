@@ -1,4 +1,4 @@
-package io.ktor.metrics
+package io.ktor.metrics.micrometer
 
 import io.ktor.application.*
 //import io.ktor.auth.AuthenticationRouteSelector
@@ -31,17 +31,6 @@ class MicrometerMetrics(val registry: MeterRegistry) {
 
 	companion object Feature : ApplicationFeature<Application, Configuration, MicrometerMetrics> {
 		override val key = AttributeKey<MicrometerMetrics>("metrics")
-
-//		val Route.cleanPath: String get() = when {
-//			parent == null -> "/"
-//			else ->
-//				if (selector is AuthenticationRouteSelector || selector is HttpMethodRouteSelector) {
-//					"${(parent as Route).cleanPath}"
-//				} else {
-//					"${(parent as Route).cleanPath}/$selector".trim('/')
-//				}
-//		}
-
 
         private val cleanRouteRegex = """\([)]+\)""".toRegex()
 
