@@ -260,6 +260,32 @@ class JWTAuthTest {
     }
 
     @Test
+    fun testJwkKidMismatch() {
+        withApplication {
+            application.configureServerJwk(mock = true)
+
+            val token = "Bearer " + JWT.create()
+                .withAudience(audience)
+                .withIssuer(issuer)
+                .withKeyId("wrong")
+                .sign(jwkAlgorithm)
+
+            val response = handleRequestWithToken(token)
+            verifyResponseUnauthorized(response)
+        }
+    }
+
+    @Test
+    fun testJwkInvalidToken() {
+        withApplication {
+            application.configureServerJwk(mock = true)
+            val token = "Bearer wrong"
+            val response = handleRequestWithToken(token)
+            verifyResponseUnauthorized(response)
+        }
+    }
+
+    @Test
     fun verifyWithMock() {
         val token = getJwkToken(prefix = false)
         val provider = getJwkProviderMock()
@@ -391,6 +417,7 @@ class JWTAuthTest {
         }
         return mock {
             on { get(kid) } doReturn jwk
+            on { get("wrong") } doThrow(SigningKeyNotFoundException("Key not found", null))
         }
     }
 
