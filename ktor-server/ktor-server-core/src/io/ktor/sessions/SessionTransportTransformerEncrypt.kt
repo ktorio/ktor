@@ -1,6 +1,7 @@
 package io.ktor.sessions
 
 import io.ktor.util.*
+import org.slf4j.*
 import java.security.*
 import javax.crypto.*
 import javax.crypto.spec.*
@@ -26,6 +27,10 @@ class SessionTransportTransformerEncrypt(
     val encryptAlgorithm: String = encryptionKeySpec.algorithm,
     val signAlgorithm: String = signKeySpec.algorithm
 ) : SessionTransportTransformer {
+    companion object {
+        private val log = LoggerFactory.getLogger(SessionTransportTransformerEncrypt::class.qualifiedName)
+    }
+
     private val charset = Charsets.UTF_8
     val encryptionKeySize get() = encryptionKeySpec.encoded.size
 
@@ -63,6 +68,9 @@ class SessionTransportTransformerEncrypt(
         } catch (e: Throwable) {
             // NumberFormatException // Invalid hex
             // InvalidAlgorithmParameterException // Invalid data
+            if (log.isDebugEnabled) {
+                log.debug(e.toString())
+            }
             return null
         }
     }
