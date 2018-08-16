@@ -1,11 +1,9 @@
 package io.ktor.sessions
 
-import io.ktor.util.hex
-import java.security.SecureRandom
-import javax.crypto.Cipher
-import javax.crypto.Mac
-import javax.crypto.spec.IvParameterSpec
-import javax.crypto.spec.SecretKeySpec
+import io.ktor.util.*
+import java.security.*
+import javax.crypto.*
+import javax.crypto.spec.*
 
 /**
  * Session transformer that encrypts/decrypts the input.
@@ -50,17 +48,23 @@ class SessionTransportTransformerEncrypt(
     )
 
     override fun transformRead(transportValue: String): String? {
-        val encrypedMac = transportValue.substringAfterLast('/', "")
-        val iv = hex(transportValue.substringBeforeLast('/'))
-        val encrypted = hex(encrypedMac.substringBeforeLast(':'))
-        val macHex = encrypedMac.substringAfterLast(':', "")
-        val decrypted = decrypt(iv, encrypted)
+        try {
+            val encrypedMac = transportValue.substringAfterLast('/', "")
+            val iv = hex(transportValue.substringBeforeLast('/'))
+            val encrypted = hex(encrypedMac.substringBeforeLast(':'))
+            val macHex = encrypedMac.substringAfterLast(':', "")
+            val decrypted = decrypt(iv, encrypted)
 
-        if (hex(mac(decrypted)) != macHex) {
+            if (hex(mac(decrypted)) != macHex) {
+                return null
+            }
+
+            return decrypted.toString(charset)
+        } catch (e: Throwable) {
+            // NumberFormatException // Invalid hex
+            // InvalidAlgorithmParameterException // Invalid data
             return null
         }
-
-        return decrypted.toString(charset)
     }
 
     override fun transformWrite(transportValue: String): String {
