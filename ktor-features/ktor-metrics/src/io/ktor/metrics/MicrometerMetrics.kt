@@ -12,7 +12,7 @@ import io.micrometer.core.instrument.binder.jvm.*
 import io.micrometer.core.instrument.binder.system.*
 import java.util.concurrent.atomic.AtomicInteger
 
-class Metrics(val registry: MeterRegistry) {
+class MicrometerMetrics(val registry: MeterRegistry) {
 	val baseName: String = "ktor.http.server"
 	private val active = registry.gauge("$baseName.requests.active", AtomicInteger(0))
 
@@ -29,8 +29,8 @@ class Metrics(val registry: MeterRegistry) {
 		)
 	}
 
-	companion object Feature : ApplicationFeature<Application, Configuration, Metrics> {
-		override val key = AttributeKey<Metrics>("metrics")
+	companion object Feature : ApplicationFeature<Application, Configuration, MicrometerMetrics> {
+		override val key = AttributeKey<MicrometerMetrics>("metrics")
 
 		val Route.cleanPath: String get() = when {
 			parent == null -> "/"
@@ -42,9 +42,9 @@ class Metrics(val registry: MeterRegistry) {
 				}
 		}
 
-		override fun install(pipeline: Application, configure: Configuration.() -> Unit): Metrics {
+		override fun install(pipeline: Application, configure: Configuration.() -> Unit): MicrometerMetrics {
 			val configuration = Configuration().apply(configure)
-			val feature = Metrics(configuration.registry)
+			val feature = MicrometerMetrics(configuration.registry)
 
 			configuration.meterBinders.forEach { it.bindTo(configuration.registry) }
 
