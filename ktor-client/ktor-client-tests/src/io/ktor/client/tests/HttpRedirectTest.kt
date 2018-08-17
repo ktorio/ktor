@@ -82,7 +82,7 @@ open class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>) : T
         test { client ->
             client.get<HttpResponse>(path = "/cookie", port = serverPort).use {
                 assertEquals("OK", it.readText())
-                val token = client.feature(HttpCookies)!!.get(it.call.request.url.host.toLowerCase(), "Token")!!
+                val token = client.feature(HttpCookies)!!.get(it.call.request.url)["Token"]!!
                 assertEquals("Hello", token.value)
             }
         }

@@ -64,6 +64,8 @@ class URLBuilder(
     companion object
 }
 
+fun URLBuilder.clone(): URLBuilder = URLBuilder().takeFrom(this)
+
 data class Url(
     val protocol: URLProtocol,
     val host: String,
