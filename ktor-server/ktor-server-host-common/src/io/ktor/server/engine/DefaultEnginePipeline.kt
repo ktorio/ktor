@@ -10,6 +10,7 @@ import io.ktor.util.*
 import java.nio.channels.*
 import java.util.concurrent.*
 
+@EngineAPI
 fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
     val pipeline = EnginePipeline()
 

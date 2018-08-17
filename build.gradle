@@ -64,6 +64,10 @@ allprojects {
 
     apply from: rootProject.file('gradle/publish.gradle')
 
+    if (project.parent != null && project.parent.name == 'ktor-server') {
+        apply from: rootProject.file('gradle/engines.gradle')
+    }
+
     task sourceJar(type: Jar, dependsOn: classes) {
         classifier 'sources'
         if (platform != 'native') {

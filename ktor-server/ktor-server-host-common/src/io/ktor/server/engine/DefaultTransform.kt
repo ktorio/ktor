@@ -15,6 +15,7 @@ import kotlinx.io.streams.*
 import java.io.*
 import java.nio.charset.*
 
+@EngineAPI
 fun ApplicationSendPipeline.installDefaultTransformations() {
     intercept(ApplicationSendPipeline.Render) { value ->
         val transformed = transformDefaultContent(value)
@@ -23,6 +24,7 @@ fun ApplicationSendPipeline.installDefaultTransformations() {
     }
 }
 
+@EngineAPI
 fun ApplicationReceivePipeline.installDefaultTransformations() {
     intercept(ApplicationReceivePipeline.Transform) { query ->
         val channel = query.value as? ByteReadChannel ?: return@intercept
