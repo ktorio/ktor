@@ -2,6 +2,8 @@ package io.ktor.http.parsing
 
 internal interface Parser {
     fun parse(input: String): ParseResult?
+
+    fun match(input: String): Boolean
 }
 
 class ParseResult(

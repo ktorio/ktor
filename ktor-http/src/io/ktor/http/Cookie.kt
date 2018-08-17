@@ -92,8 +92,7 @@ fun renderSetCookieHeader(
     maxAge: Int = 0, expires: GMTDate? = null, domain: String? = null,
     path: String? = null,
     secure: Boolean = false, httpOnly: Boolean = false,
-    extensions: Map<String, String?> = emptyMap()
-    ,
+    extensions: Map<String, String?> = emptyMap(),
     includeEncoding: Boolean = true
 ): String = (
         listOf(

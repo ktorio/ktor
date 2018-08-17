@@ -11,6 +11,11 @@ typealias URLParts = ParseResult
 fun String.urlParts(): URLParts = URL_PARSER.parse(this) ?: error("Invalid url format: $this")
 
 /**
+ * Check if [host] is IPv4 or IPv6 address.
+ */
+fun hostIsIp(host: String): Boolean = IP_PARSER.match(host)
+
+/**
  * According to https://tools.ietf.org/html/rfc1738
  */
 private val safe = anyOf("$-_.+")
@@ -46,3 +51,5 @@ private val URL_PARSER = grammar {
     +maybe(host then maybe(port))
     +maybe(encodedPath then maybe("?" then parameters) then maybe(fragment))
 }.buildRegexParser()
+
+private val IP_PARSER = (IPv4address or IPv6address).buildRegexParser()
