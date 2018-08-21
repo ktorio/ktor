@@ -38,6 +38,7 @@ internal class NettyHttp1ApplicationResponse(call: NettyApplicationCall,
             responseHeaders.add(name, value)
         }
 
+        override fun get(name: String): String? = responseHeaders.get(name)
         override fun getEngineHeaderNames(): List<String> = responseHeaders.map { it.key }
         override fun getEngineHeaderValues(name: String): List<String> = responseHeaders.getAll(name) ?: emptyList()
     }
