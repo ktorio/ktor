@@ -39,8 +39,8 @@ internal class NettyHttp2ApplicationResponse(call: NettyApplicationCall,
             responseHeaders.add(name.toLowerCase(), value)
         }
 
+        override fun get(name: String): String? = responseHeaders[name]?.toString()
         override fun getEngineHeaderNames(): List<String> = responseHeaders.names().map { it.toString() }
-
         override fun getEngineHeaderValues(name: String): List<String> = responseHeaders.getAll(name).map { it.toString() }
     }
 

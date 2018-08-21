@@ -3,8 +3,8 @@ package io.ktor.response
 import io.ktor.http.*
 
 abstract class ResponseHeaders {
-    operator fun contains(name: String): Boolean = getEngineHeaderValues(name).isNotEmpty()
-    operator fun get(name: String): String? = getEngineHeaderValues(name).firstOrNull()
+    operator fun contains(name: String): Boolean = get(name) != null
+    open operator fun get(name: String): String? = getEngineHeaderValues(name).firstOrNull()
     fun values(name: String): List<String> = getEngineHeaderValues(name)
     fun allValues(): Headers = Headers.build {
         getEngineHeaderNames().forEach {
