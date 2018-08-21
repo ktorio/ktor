@@ -143,18 +143,7 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
      * Merges another pipeline into this pipeline, maintaining relative phases order
      */
     fun merge(from: Pipeline<TSubject, TContext>) {
-        if (from.phases.isEmpty())
-            return
-        if (phases.isEmpty()) {
-            val fromPhases = from.phases
-            @Suppress("LoopToCallChain")
-            for (index in 0..fromPhases.lastIndex) {
-                val fromContent = fromPhases[index]
-                val interceptors = ArrayList<PipelineInterceptor<TSubject, TContext>>(fromContent.interceptors)
-                phases.add(PhaseContent(fromContent.phase, fromContent.relation, interceptors))
-            }
-            interceptorsQuantity += from.interceptorsQuantity
-            interceptors = null
+        if (fastPathMerge(from)) {
             return
         }
 
@@ -175,10 +164,34 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
                 }
                 phases.first { it.phase == fromContent.phase }
             }
-            phaseContent.interceptors.addAll(fromContent.interceptors)
-            interceptorsQuantity += fromContent.interceptors.size
+
+            // addAll triggers allocations even for empty collections
+            if (fromContent.interceptors.size != 0) {
+                phaseContent.interceptors.addAll(fromContent.interceptors)
+                interceptorsQuantity += fromContent.interceptors.size
+            }
         }
+
         interceptors = null
+    }
+
+    private fun fastPathMerge(from: Pipeline<TSubject, TContext>): Boolean {
+        if (from.phases.isEmpty())
+            return true
+
+        if (phases.isEmpty()) {
+            val fromPhases = from.phases
+            @Suppress("LoopToCallChain")
+            for (index in 0..fromPhases.lastIndex) {
+                val fromContent = fromPhases[index]
+                val interceptors = ArrayList(fromContent.interceptors)
+                phases.add(PhaseContent(fromContent.phase, fromContent.relation, interceptors))
+            }
+            interceptorsQuantity += from.interceptorsQuantity
+            interceptors = null
+            return true
+        }
+        return false
     }
 }
 
