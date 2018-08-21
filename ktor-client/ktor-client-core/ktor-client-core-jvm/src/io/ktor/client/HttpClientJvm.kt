@@ -7,11 +7,13 @@ import java.util.*
 actual fun HttpClient(
     useDefaultTransformers: Boolean,
     block: HttpClientConfig<*>.() -> Unit
-): HttpClient = HttpClient(findAvailableFactory(), useDefaultTransformers, block)
+): HttpClient = HttpClient(FACTORY, useDefaultTransformers, block)
 
 interface HttpClientEngineContainer {
     val factory: HttpClientEngineFactory<*>
 }
 
-internal fun findAvailableFactory(): HttpClientEngineFactory<*> =
-    ServiceLoader.load(HttpClientEngineContainer::class.java).toList().first().factory
+private val FACTORY = ServiceLoader.load(HttpClientEngineContainer::class.java)
+    .toList()
+    .firstOrNull()
+    ?.factory ?: error("Failed to find HttpClientEngineContainer in classpath via ServiceLoader")
