@@ -18,6 +18,7 @@ data class HttpStatusCode(val value: Int, val description: String) {
         val NoContent = HttpStatusCode(204, "No Content")
         val ResetContent = HttpStatusCode(205, "Reset Content")
         val PartialContent = HttpStatusCode(206, "Partial Content")
+        val MultiStatus = HttpStatusCode(207, "Multi-Status")
 
         val MultipleChoices = HttpStatusCode(300, "Multiple Choices")
         val MovedPermanently = HttpStatusCode(301, "Moved Permanently")
@@ -48,6 +49,9 @@ data class HttpStatusCode(val value: Int, val description: String) {
         val UnsupportedMediaType = HttpStatusCode(415, "Unsupported Media Type")
         val RequestedRangeNotSatisfiable = HttpStatusCode(416, "Requested Range Not Satisfiable")
         val ExpectationFailed = HttpStatusCode(417, "Expectation Failed")
+        val UnprocessableEntity = HttpStatusCode(422, "Unprocessable Entity")
+        val Locked = HttpStatusCode(423, "Locked")
+        val FailedDependency = HttpStatusCode(424, "Failed Dependency")
         val UpgradeRequired = HttpStatusCode(426, "Upgrade Required")
         val TooManyRequests = HttpStatusCode(429, "Too Many Requests")
         val RequestHeaderFieldTooLarge = HttpStatusCode(431, "Request Header Fields Too Large")
@@ -59,6 +63,7 @@ data class HttpStatusCode(val value: Int, val description: String) {
         val GatewayTimeout = HttpStatusCode(504, "Gateway Timeout")
         val VersionNotSupported = HttpStatusCode(505, "HTTP Version Not Supported")
         val VariantAlsoNegotiates = HttpStatusCode(506, "Variant Also Negotiates")
+        val InsufficientStorage = HttpStatusCode(507, "Insufficient Storage")
 
         val allStatusCodes: List<HttpStatusCode> = io.ktor.http.allStatusCodes()
 
