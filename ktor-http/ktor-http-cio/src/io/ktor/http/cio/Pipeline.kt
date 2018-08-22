@@ -100,8 +100,16 @@ fun startConnectionPipeline(input: ByteReadChannel,
                 }
 
                 try {
+                    val contentLengthIndex = request.headers.find("Content-Length")
                     connectionOptions = ConnectionOptions.parse(request.headers["Connection"])
-                    contentLength = request.headers["Content-Length"]?.parseDecLong() ?: -1
+                    if (contentLengthIndex != -1) {
+                        contentLength = request.headers.valueAt(contentLengthIndex).parseDecLong()
+                        if (request.headers.find("Content-Length", contentLengthIndex + 1) != -1) {
+                            throw ParserException("Duplicate Content-Length header")
+                        }
+                    } else {
+                        contentLength = -1
+                    }
                     expectedHttpBody = expectHttpBody(request.method, contentLength, transferEncoding, connectionOptions, contentType)
                     expectedHttpUpgrade = !expectedHttpBody && expectHttpUpgrade(request.method, upgrade, connectionOptions)
                 } catch (t: Throwable) {
