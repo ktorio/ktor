@@ -149,6 +149,8 @@ open class StringValuesBuilder(val caseInsensitiveName: Boolean = false, size: I
     protected var built = false
 
     fun getAll(name: String): List<String>? = values[name]
+
+    operator fun contains(name: String): Boolean = name in values
     fun contains(name: String, value: String) = values[name]?.contains(value) ?: false
 
     fun names() = values.keys

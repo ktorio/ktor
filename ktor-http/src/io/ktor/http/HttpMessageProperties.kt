@@ -2,10 +2,14 @@ package io.ktor.http
 
 import kotlinx.io.charsets.*
 
-
 fun HttpMessageBuilder.contentType(type: ContentType) = headers.set(HttpHeaders.ContentType, type.toString())
+
+@Deprecated("Content-Length is controlled by underlying engine. Don't specify it explicitly.")
 fun HttpMessageBuilder.contentLength(length: Int) = headers.set(HttpHeaders.ContentLength, length.toString())
+
+@Deprecated("Use content with particular content type and charset instead")
 fun HttpMessageBuilder.charset(charset: Charset) = contentType()?.let { contentType(it.withCharset(charset)) }
+
 fun HttpMessageBuilder.maxAge(seconds: Int) = headers.append(HttpHeaders.CacheControl, "max-age:$seconds")
 fun HttpMessageBuilder.ifNoneMatch(value: String) = headers.set(HttpHeaders.IfNoneMatch, value)
 fun HttpMessageBuilder.userAgent(content: String) = headers.set(HttpHeaders.UserAgent, content)
