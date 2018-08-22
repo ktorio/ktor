@@ -13,7 +13,7 @@ abstract class ResponseHeaders {
     }
 
     fun append(name: String, value: String, safeOnly: Boolean = true) {
-        if (safeOnly && name.isUnsafe())
+        if (safeOnly && HttpHeaders.isUnsafe(name))
             throw UnsafeHeaderException(name)
         engineAppendHeader(name, value)
     }
@@ -23,13 +23,3 @@ abstract class ResponseHeaders {
     protected abstract fun getEngineHeaderValues(name: String): List<String>
 }
 
-private fun String.isUnsafe(): Boolean = unsafeHeaders.any { it.equals(this, ignoreCase = true) }
-
-private val unsafeHeaders = setOf(
-        HttpHeaders.ContentLength,
-        HttpHeaders.ContentType,
-        HttpHeaders.TransferEncoding,
-        HttpHeaders.Upgrade
-)
-
-class UnsafeHeaderException(header: String) : IllegalArgumentException("Header $header is controlled by the engine and cannot be set explicitly")

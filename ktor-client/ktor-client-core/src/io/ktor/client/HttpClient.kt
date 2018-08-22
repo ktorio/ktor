@@ -5,6 +5,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
+import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.io.core.*
@@ -64,6 +65,8 @@ class HttpClient(
                 takeFrom(context)
                 body = content
             }.build()
+
+            validateHeaders(requestData)
 
             val (request, response) = engine.execute(call, requestData)
             call.request = request
@@ -131,6 +134,19 @@ class HttpClient(
             if (feature is Closeable) {
                 feature.close()
             }
+        }
+    }
+
+}
+
+/**
+ * Validates request headers and fails if there are unsafe headers supplied
+ */
+private fun validateHeaders(request: HttpRequestData) {
+    val requestHeaders = request.headers
+    for (header in HttpHeaders.UnsafeHeaders) {
+        if (header in requestHeaders) {
+            throw UnsafeHeaderException(header)
         }
     }
 }
