@@ -8,7 +8,6 @@ import org.slf4j.*
 import java.io.*
 import java.lang.reflect.*
 import java.net.*
-import java.net.URL
 import java.nio.file.*
 import java.nio.file.StandardWatchEventKinds.*
 import java.nio.file.attribute.*
@@ -323,7 +322,12 @@ class ApplicationEngineEnvironmentReloading(
     }
 
     private fun <R> List<KFunction<R>>.bestFunction(): KFunction<R>? {
-        return sortedWith(compareBy({ it.parameters.count { !it.isOptional } }, { it.parameters.size })).lastOrNull()
+        return sortedWith(
+            compareBy(
+                { isApplication(it.parameters[0]) },
+                { it.parameters.count { !it.isOptional } },
+                { it.parameters.size }))
+            .lastOrNull()
     }
 
     private fun <R> callFunctionWithInjection(instance: Any?, entryPoint: KFunction<R>, application: Application): R {
@@ -339,8 +343,10 @@ class ApplicationEngineEnvironmentReloading(
                             if (p.type.toString().contains("Application")) {
                                 // It is possible that type is okay, but classloader is not
                                 val classLoader = (p.type.javaType as? Class<*>)?.classLoader
-                                throw IllegalArgumentException("Parameter type ${p.type}:{$classLoader} is not supported. Application is loaded as ${ApplicationClassInstance}:{${ApplicationClassInstance.classLoader}}")
+                                throw IllegalArgumentException("Parameter type ${p.type}:{$classLoader} is not supported." +
+                                        "Application is loaded as $ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}")
                             }
+
                             throw IllegalArgumentException("Parameter type '${p.type}' of parameter '${p.name ?: "<receiver>"}' is not supported")
                         }
                     }
