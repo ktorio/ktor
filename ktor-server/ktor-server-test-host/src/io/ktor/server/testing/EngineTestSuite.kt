@@ -161,8 +161,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
         withUrl("/", {
             method = HttpMethod.Post
-            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-            body = parametersOf("a", "1").formUrlEncode()
+            body = TextContent(parametersOf("a", "1").formUrlEncode(), ContentType.Application.FormUrlEncoded)
         }) {
             assertEquals(200, status.value)
             assertEquals("a=1", readText())
@@ -558,8 +557,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
         withUrl("/?urlp=1", {
             method = HttpMethod.Post
-            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-            body = ByteArrayContent("formp=2".toByteArray())
+            body = ByteArrayContent("formp=2".toByteArray(), ContentType.Application.FormUrlEncoded)
         }) {
             assertEquals(HttpStatusCode.OK.value, status.value)
             assertEquals("1,2", readText())
@@ -604,7 +602,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
         withUrl("/", {
             method = HttpMethod.Post
-            header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
+//            header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
             body = ByteArrayContent("POST content".toByteArray())
         }) {
             assertEquals(200, status.value)
@@ -863,8 +861,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
         withUrl("/", {
             method = HttpMethod.Post
-            header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
-            body = ByteArrayContent("Hello".toByteArray())
+            body = ByteArrayContent("Hello".toByteArray(), ContentType.Text.Plain)
         }) {
             assertEquals(200, status.value)
             assertEquals("Hello", readText())
@@ -1505,7 +1502,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                                 append(HttpHeaders.ContentLength, doubleSize)
                             }
 
-                        suspend override fun writeTo(channel: ByteWriteChannel) {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
                             channel.writeFully(data)
                             channel.close()
                         }

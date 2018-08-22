@@ -22,8 +22,8 @@ fun mergeHeaders(
         block(key, values.joinToString(";"))
     }
 
-    val type = requestHeaders[HttpHeaders.ContentType] ?: content.contentType?.toString()
-    val length = requestHeaders[HttpHeaders.ContentLength] ?: content.contentLength?.toString()
+    val type = content.contentType?.toString() ?: content.headers[HttpHeaders.ContentType]
+    val length = content.contentLength?.toString() ?: content.headers[HttpHeaders.ContentLength]
 
     type?.let { block(HttpHeaders.ContentType, it) }
     length?.let { block(HttpHeaders.ContentLength, it) }

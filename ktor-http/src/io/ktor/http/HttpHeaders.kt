@@ -1,5 +1,7 @@
 package io.ktor.http
 
+import io.ktor.util.*
+
 @Suppress("unused")
 object HttpHeaders {
     // Permanently registered standard HTTP headers
@@ -104,5 +106,15 @@ object HttpHeaders {
     val XForwardedServer = "X-Forwarded-Server"
     val XForwardedProto = "X-Forwarded-Proto"
     val XForwardedFor = "X-Forwarded-For"
+
+    fun isUnsafe(header: String): Boolean = UnsafeHeaders.any { it.equals(header, ignoreCase = true) }
+
+    val UnsafeHeaders: Array<String> = arrayOf(
+            HttpHeaders.ContentLength,
+            HttpHeaders.ContentType,
+            HttpHeaders.TransferEncoding,
+            HttpHeaders.Upgrade
+    )
 }
 
+class UnsafeHeaderException(header: String) : IllegalArgumentException("Header $header is controlled by the engine and cannot be set explicitly")
