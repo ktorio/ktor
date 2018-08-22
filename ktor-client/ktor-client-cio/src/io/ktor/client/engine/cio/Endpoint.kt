@@ -87,26 +87,27 @@ internal class Endpoint(
     }
 
     private fun makeDedicatedRequest(task: RequestTask) = launch(dispatcher) {
-        val connection = connect()
-        val input = connection.openReadChannel()
-        val output = connection.openWriteChannel()
-        val requestTime = GMTDate()
-
         val (request, response) = task
-
-        fun closeConnection(cause: Throwable? = null) {
-            try {
-                output.close(cause)
-                connection.close()
-                releaseConnection()
-            } catch (_: Throwable) {
-            }
-        }
-
         try {
+            val connection = connect()
+            val input = connection.openReadChannel()
+            val output = connection.openWriteChannel()
+            val requestTime = GMTDate()
+
+
+            fun closeConnection(cause: Throwable? = null) {
+                try {
+                    output.close(cause)
+                    connection.close()
+                    releaseConnection()
+                } catch (_: Throwable) {
+                }
+            }
+
             request.write(output)
 
-            val rawResponse = parseResponse(input) ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
+            val rawResponse =
+                parseResponse(input) ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
 
             val status = rawResponse.status
             val contentLength = rawResponse.headers[HttpHeaders.ContentLength]?.toString()?.toLong() ?: -1L
@@ -116,7 +117,7 @@ internal class Endpoint(
             val body = when {
                 status == HttpStatusCode.SwitchingProtocols.value -> {
                     val content = request.content as? ClientUpgradeContent
-                            ?: error("Invalid content type: UpgradeContent required")
+                        ?: error("Invalid content type: UpgradeContent required")
 
                     launch(dispatcher) {
                         content.pipeTo(output)
@@ -163,14 +164,26 @@ internal class Endpoint(
 
         Connections.incrementAndGet(this)
 
-        repeat(retryAttempts) {
-            val connection = withTimeoutOrNull(connectTimeout) { connectionFactory.connect(address) } ?: return@repeat
+        try {
+            repeat(retryAttempts) {
+                val connection = withTimeoutOrNull(connectTimeout) { connectionFactory.connect(address) }
+                    ?: return@repeat
 
-            if (!secure) return@connect connection
+                if (!secure) return@connect connection
 
-            with(config.https) {
-                return@connect connection.tls(trustManager, randomAlgorithm, cipherSuites, address.hostName, dispatcher)
+                with(config.https) {
+                    return@connect connection.tls(
+                        trustManager,
+                        randomAlgorithm,
+                        cipherSuites,
+                        address.hostName,
+                        dispatcher
+                    )
+                }
             }
+        } catch (cause: Throwable) {
+            Connections.decrementAndGet(this)
+            throw cause
         }
 
         throw ConnectException()

@@ -31,12 +31,12 @@ open class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpC
     override fun close() {
     }
 
-    private suspend fun AndroidHttpRequest.execute(): AndroidHttpResponse {
+    private fun AndroidHttpRequest.execute(): AndroidHttpResponse {
         val requestTime = GMTDate()
 
         val url = URLBuilder().takeFrom(url).buildString()
-        val contentLength = headers[HttpHeaders.ContentLength]?.toLong() ?: content.contentLength
-
+        val outgoingContent = this@execute.content
+        val contentLength = headers[HttpHeaders.ContentLength]?.toLong() ?: outgoingContent.contentLength
         val context = Job()
 
         val connection = (URL(url).openConnection() as HttpURLConnection).apply {
@@ -47,21 +47,21 @@ open class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpC
             useCaches = false
             instanceFollowRedirects = false
 
-            headers.forEach { key, value ->
-                addRequestProperty(key, value.joinToString(";"))
+            mergeHeaders(headers, outgoingContent) { key, value ->
+                addRequestProperty(key, value)
             }
 
-            if (this@execute.content !is OutgoingContent.NoContent) {
+            if (outgoingContent !is OutgoingContent.NoContent) {
                 if (contentLength != null) {
                     addRequestProperty(HttpHeaders.ContentLength, contentLength.toString())
                 } else {
                     addRequestProperty(HttpHeaders.TransferEncoding, "chunked")
                 }
 
-                contentLength?.let { setFixedLengthStreamingMode(it) } ?: setChunkedStreamingMode(0)
+                contentLength?.let { setFixedLengthStreamingMode(it.toInt()) } ?: setChunkedStreamingMode(0)
                 doOutput = true
 
-                    this@execute.content.writeTo(outputStream)
+                outgoingContent.writeTo(outputStream)
             }
         }
 

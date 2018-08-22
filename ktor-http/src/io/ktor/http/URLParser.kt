@@ -35,7 +35,7 @@ private val password = atLeastOne(credentialChar).named("password")
 private val auth = user then maybe(":" then password) then "@"
 private val host = (hostName or IPv4address or IPv6address).named("host")
 private val port = ":" then digits.named("port")
-private val pathSegment = many(urlChar or anyOf(";&="))
+private val pathSegment = many(urlChar or anyOf(";&=:@"))
 private val parameters = pathSegment.named("parameters")
 private val encodedPath = atLeastOne("/" then pathSegment).named("encodedPath")
 private val fragment = ("#" then maybe(pathSegment).named("fragment"))

@@ -100,26 +100,28 @@ private suspend fun WriterScope.append(str: String, charset: Charset = Charsets.
     channel.writeFully(str.toByteArray(charset))
 }
 
-fun TestApplicationRequest.setBody(boundary: String, values: List<PartData>): Unit {
+fun TestApplicationRequest.setBody(boundary: String, parts: List<PartData>): Unit {
     bodyChannel = writer(ioCoroutineDispatcher) {
-        if (!values.isEmpty()) {
+        if (parts.isEmpty()) return@writer
+
+        try {
             append("\r\n\r\n")
-            values.forEach {
+            parts.forEach {
                 append("--$boundary\r\n")
-                for ((key, value) in it.headers.flattenEntries()) {
-                    append("$key: $value\r\n")
+                for ((key, values) in it.headers.entries()) {
+                    append("$key: ${values.joinToString(";")}\r\n")
                 }
                 append("\r\n")
                 when (it) {
-                    is PartData.FileItem -> {
-                        it.provider().asStream().copyTo(channel.toOutputStream())
-                    }
+                    is PartData.FileItem -> it.provider().asStream().copyTo(channel.toOutputStream())
                     is PartData.FormItem -> append(it.value)
                 }
                 append("\r\n")
             }
 
             append("--$boundary--\r\n\r\n")
+        } finally {
+            parts.forEach { it.dispose() }
         }
     }.channel
 }

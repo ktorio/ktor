@@ -1,5 +1,6 @@
 package io.ktor.client
 
+import io.ktor.client.engine.*
 import io.ktor.client.features.*
 import io.ktor.util.*
 import kotlin.collections.set
@@ -7,9 +8,19 @@ import kotlin.collections.set
 /**
  * Mutable configuration used by [HttpClient].
  */
-class HttpClientConfig {
+class HttpClientConfig<T : HttpClientEngineConfig> {
     private val features = mutableMapOf<AttributeKey<*>, (HttpClient) -> Unit>()
     private val customInterceptors = mutableMapOf<String, (HttpClient) -> Unit>()
+
+    internal var engineConfig: T.()->Unit = {}
+
+    fun engine(block: T.() -> Unit) {
+        val oldConfig = engineConfig
+        engineConfig = {
+            oldConfig()
+            block()
+        }
+    }
 
     /**
      * Installs a specific [feature] and optionally [configure] it.
@@ -48,10 +59,11 @@ class HttpClientConfig {
     /**
      * Clones this [HttpClientConfig] duplicating all the [features] and [customInterceptors].
      */
-    fun clone(): HttpClientConfig {
-        val result = HttpClientConfig()
+    fun clone(): HttpClientConfig<T> {
+        val result = HttpClientConfig<T>()
         result.features.putAll(features)
         result.customInterceptors.putAll(customInterceptors)
+        result.engineConfig = engineConfig
 
         return result
     }

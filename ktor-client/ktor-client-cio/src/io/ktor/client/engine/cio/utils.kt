@@ -1,6 +1,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.content.*
 import io.ktor.http.*
@@ -25,22 +26,9 @@ internal suspend fun DefaultHttpRequest.write(output: ByteWriteChannel) {
             builder.headerLine("User-Agent", "CIO/ktor")
         }
 
-        headers.flattenForEach { name, value ->
-            if (HttpHeaders.ContentLength == name) return@flattenForEach // set later
-            if (HttpHeaders.ContentType == name) return@flattenForEach // set later
-            builder.headerLine(name, value)
+        mergeHeaders(headers, content) { key, value ->
+            builder.headerLine(key, value)
         }
-
-        content.headers.flattenForEach { name, value ->
-            if (HttpHeaders.ContentLength == name) return@flattenForEach // TODO: throw exception for unsafe header?
-            if (HttpHeaders.ContentType == name) return@flattenForEach
-            builder.headerLine(name, value)
-        }
-
-        val contentType = headers[HttpHeaders.ContentType] ?: content.contentType?.toString()
-
-        contentLength?.let { builder.headerLine(HttpHeaders.ContentLength, it) }
-        contentType?.let { builder.headerLine(HttpHeaders.ContentType, it) }
 
         if (chunked && contentEncoding == null && responseEncoding == null && content !is OutgoingContent.NoContent) {
             builder.headerLine(HttpHeaders.TransferEncoding, "chunked")

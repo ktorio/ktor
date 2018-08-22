@@ -1,0 +1,56 @@
+package io.ktor.client.engine.okhttp
+
+import io.ktor.client.call.*
+import io.ktor.client.response.*
+import io.ktor.http.*
+import io.ktor.http.Headers
+import io.ktor.util.cio.*
+import io.ktor.util.date.*
+import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.experimental.io.jvm.javaio.*
+import okhttp3.*
+
+internal class OkHttpResponse(
+    private val response: Response,
+    override val call: HttpClientCall,
+    override val requestTime: GMTDate
+) : HttpResponse {
+    override val executionContext: Job = Job()
+
+    override val headers: Headers = object : Headers {
+        override val caseInsensitiveName: Boolean = false
+        private val instance = response.headers()!!
+
+        override fun getAll(name: String): List<String>? = instance.values(name)
+
+        override fun names(): Set<String> = instance.names()
+
+        override fun entries(): Set<Map.Entry<String, List<String>>> = instance.toMultimap().entries
+
+        override fun isEmpty(): Boolean = instance.size() == 0
+    }
+
+    override val content: ByteReadChannel get() {
+        val body = response.body() ?: return ByteReadChannel.Empty
+        return body.byteStream().toByteReadChannel()
+    }
+
+    override val status: HttpStatusCode = HttpStatusCode.fromValue(response.code())
+
+    override val version: HttpProtocolVersion = response.protocol().fromOkHttp()
+
+    override val responseTime: GMTDate = GMTDate()
+
+    override fun close() {}
+}
+
+@Suppress("DEPRECATION")
+private fun Protocol.fromOkHttp(): HttpProtocolVersion = when (this) {
+    Protocol.HTTP_1_0 -> HttpProtocolVersion.HTTP_1_0
+    Protocol.HTTP_1_1 -> HttpProtocolVersion.HTTP_1_1
+    Protocol.SPDY_3 -> HttpProtocolVersion.SPDY_3
+    Protocol.HTTP_2 -> HttpProtocolVersion.HTTP_2_0
+    Protocol.H2_PRIOR_KNOWLEDGE -> HttpProtocolVersion.HTTP_2_0
+    Protocol.QUIC -> HttpProtocolVersion.QUIC
+}

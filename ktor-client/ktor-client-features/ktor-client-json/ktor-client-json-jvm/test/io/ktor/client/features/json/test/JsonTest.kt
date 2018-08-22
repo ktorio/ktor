@@ -57,22 +57,4 @@ class JsonTest : TestWithKtor() {
 
     data class Response<T>(val ok: Boolean, val result: T?)
     data class User(val name: String, val age: Int)
-
-    @Test
-    fun testGeneric() = clientTest(CIO) {
-        config {
-            install(JsonFeature) {
-                serializer = GsonSerializer()
-            }
-        }
-
-        test { client ->
-            val customResponse = client.get<Response<Array<User>>>(path = "users", port = serverPort)
-
-            assertTrue(customResponse.ok)
-            val users = customResponse.result!!
-            assertEquals(1, users.size)
-            assertEquals(User("vasya", 10), users[0])
-        }
-    }
 }

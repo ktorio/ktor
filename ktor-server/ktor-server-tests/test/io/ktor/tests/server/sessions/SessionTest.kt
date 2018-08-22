@@ -182,6 +182,9 @@ class SessionTest {
                     call.sessions.set(TestUserSession("id2", emptyList()))
                     call.respondText("ok")
                 }
+                get("/4") {
+                    call.respondText("ok:" + call.sessions.get<TestUserSession>()?.userId)
+                }
             }
 
             handleRequest(HttpMethod.Get, "/3").let { call ->
@@ -190,6 +193,18 @@ class SessionTest {
                     "00112233445566778899aabbccddeeff/c3850fc1ddc62f71ec5eaad6d393b91fa809fe32a1cf0cb4730788c5a489daef:51a5e9fcd1c91418f9a623bafa5022a524348e44244265dc0cab2cebacc28a5d",
                     sessionCookie!!.value
                 )
+            }
+
+            handleRequest(HttpMethod.Get, "/4") {
+                addHeader(HttpHeaders.Cookie, "$cookieName=INVALID")
+            }.let { call ->
+                assertEquals("ok:null", call.response.content)
+            }
+
+            handleRequest(HttpMethod.Get, "/4") {
+                addHeader(HttpHeaders.Cookie, "$cookieName=abc/abc:abc")
+            }.let { call ->
+                assertEquals("ok:null", call.response.content)
             }
 
             commonSignedChecks()

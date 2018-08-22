@@ -39,6 +39,24 @@ suspend inline fun <reified T> HttpClient.post(builder: HttpRequestBuilder): T {
 }
 
 /**
+ * Executes a [HttpClient] PUT request, with the information from the [builder]
+ * and tries to receive a specific type [T], if fails, an exception is thrown.
+ */
+suspend inline fun <reified T> HttpClient.put(builder: HttpRequestBuilder): T {
+    builder.method = HttpMethod.Put
+    return request(builder)
+}
+
+/**
+ * Executes a [HttpClient] DELETE request, with the information from the [builder]
+ * and tries to receive a specific type [T], if fails, an exception is thrown.
+ */
+suspend inline fun <reified T> HttpClient.delete(builder: HttpRequestBuilder): T {
+    builder.method = HttpMethod.Delete
+    return request(builder)
+}
+
+/**
  * Executes a [HttpClient] GET request, with the specified [scheme], [host], [port], [path] and [body].
  * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
  *
@@ -73,6 +91,43 @@ suspend inline fun <reified T> HttpClient.post(
     this.body = body
     apply(block)
 }
+
+/**
+ * Executes a [HttpClient] PUT request, with the specified [scheme], [host], [port], [path] and [body].
+ * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
+ *
+ * Tries to receive a specific type [T], if fails, an exception is thrown.
+ */
+suspend inline fun <reified T> HttpClient.put(
+    scheme: String = "http", host: String = "localhost", port: Int = 80,
+    path: String = "/",
+    body: Any = EmptyContent,
+    block: HttpRequestBuilder.() -> Unit = {}
+): T = request {
+    url(scheme, host, port, path)
+    method = HttpMethod.Put
+    this.body = body
+    apply(block)
+}
+
+/**
+ * Executes a [HttpClient] DELETE request, with the specified [scheme], [host], [port], [path] and [body].
+ * And allows to further configure the request, using a [block] receiving an [HttpRequestBuilder].
+ *
+ * Tries to receive a specific type [T], if fails, an exception is thrown.
+ */
+suspend inline fun <reified T> HttpClient.delete(
+    scheme: String = "http", host: String = "localhost", port: Int = 80,
+    path: String = "/",
+    body: Any = EmptyContent,
+    block: HttpRequestBuilder.() -> Unit = {}
+): T = request {
+    url(scheme, host, port, path)
+    method = HttpMethod.Delete
+    this.body = body
+    apply(block)
+}
+
 
 /**
  * Creates a [HttpRequestBuilder] and configures it with a [block] of code.

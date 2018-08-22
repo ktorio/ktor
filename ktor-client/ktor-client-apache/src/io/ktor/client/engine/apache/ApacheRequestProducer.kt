@@ -1,10 +1,12 @@
 package io.ktor.client.engine.apache
 
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.content.*
 import io.ktor.util.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
@@ -29,7 +31,10 @@ internal class ApacheRequestProducer(
     private var requestJob: Job? = null
     private val requestChannel = Channel<ByteBuffer>(1)
     private val request: HttpUriRequest = setupRequest()
-    private val host = URIUtils.extractHost(request.uri)
+    private val host = URIUtils.extractHost(request.uri)!!
+
+    private val ioControl: AtomicRef<IOControl?> = atomic(null)
+    private val currentBuffer: AtomicRef<ByteBuffer?> = atomic(null)
 
     init {
         when (body) {
@@ -40,9 +45,9 @@ internal class ApacheRequestProducer(
             is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
             is OutgoingContent.NoContent -> requestChannel.close()
             is OutgoingContent.ReadChannelContent -> prepareBody(body.readFrom())
-            is OutgoingContent.WriteChannelContent -> writer(Unconfined, autoFlush = true) {
+            is OutgoingContent.WriteChannelContent -> prepareBody(writer(Unconfined, autoFlush = true) {
                 body.writeTo(channel)
-            }.channel.let { prepareBody(it) }
+            }.channel)
         }
     }
 
@@ -61,29 +66,55 @@ internal class ApacheRequestProducer(
         requestChannel.close(cause)
         requestJob?.cancel(cause)
         context.complete(Unit)
+
+        try {
+            requestChannel.poll()?.recycle()
+        } catch (_: Throwable) {
+        }
     }
 
     override fun produceContent(encoder: ContentEncoder, ioctrl: IOControl) {
-        val buffer = runBlocking { requestChannel.receiveOrNull() }
+        var buffer = currentBuffer.getAndSet(null) ?: requestChannel.poll()
+
         if (buffer == null) {
-            encoder.complete()
-            return
+            if (requestChannel.isClosedForReceive) {
+                encoder.complete()
+                return
+            }
+
+            ioctrl.suspendOutput()
+
+            ioControl.value = ioctrl
+            buffer = requestChannel.poll() ?: return
+
+            ioControl.value = null
+            try {
+                ioctrl.requestOutput()
+            } catch(cause: Throwable) {
+                buffer.recycle()
+                throw cause
+            }
         }
 
         try {
-            while (buffer.hasRemaining()) {
-                encoder.write(buffer)
-            }
-        } finally {
-            if (body is OutgoingContent.WriteChannelContent || body is OutgoingContent.ReadChannelContent) {
-                HttpClientDefaultPool.recycle(buffer)
-            }
+            encoder.write(buffer)
+        } catch (cause: Throwable) {
+            buffer.recycle()
+            throw cause
+        }
+
+        if (buffer.hasRemaining()) {
+            currentBuffer.value = buffer
+        } else {
+            buffer.recycle()
         }
     }
 
     override fun close() {
         requestChannel.close()
         context.complete(Unit)
+
+        currentBuffer.value?.recycle()
     }
 
     private fun setupRequest(): HttpUriRequest = with(requestData) {
@@ -98,32 +129,23 @@ internal class ApacheRequestProducer(
             url.parameters.flattenForEach { key, value -> addParameter(key, value) }
         }.build()
 
-        headers.flattenForEach { key, value ->
-            if (HttpHeaders.CONTENT_LENGTH == key) return@flattenForEach
-            builder.addHeader(key, value)
-        }
-
         val content = this@ApacheRequestProducer.body
-        content.headers.flattenForEach { key, value ->
-            if (HttpHeaders.CONTENT_LENGTH == key) return@flattenForEach
-            builder.addHeader(key, value)
-        }
-
         val length = headers[io.ktor.http.HttpHeaders.ContentLength] ?: content.contentLength?.toString()
         val type = headers[io.ktor.http.HttpHeaders.ContentType] ?: content.contentType?.toString()
 
+        mergeHeaders(headers, content) { key, value ->
+            if (HttpHeaders.CONTENT_LENGTH == key) return@mergeHeaders
+            if (HttpHeaders.CONTENT_TYPE == key) return@mergeHeaders
+
+            builder.addHeader(key, value)
+        }
+
         if (body !is OutgoingContent.NoContent && body !is OutgoingContent.ProtocolUpgrade) {
             builder.entity = BasicHttpEntity().apply {
-                if (length == null) {
-                    isChunked = true
-                } else {
-                    contentLength = length.toLong()
-                }
-
+                if (length == null) isChunked = true else contentLength = length.toLong()
                 setContentType(type)
             }
         }
-
 
         with(config) {
             builder.config = RequestConfig.custom()
@@ -149,8 +171,11 @@ internal class ApacheRequestProducer(
                     requestChannel.send(buffer)
                 } catch (cause: Throwable) {
                     HttpClientDefaultPool.recycle(buffer)
+                    currentBuffer.getAndSet(null)?.recycle()
                     throw cause
                 }
+
+                ioControl.getAndSet(null)?.requestOutput()
             }
         }
 
@@ -158,8 +183,16 @@ internal class ApacheRequestProducer(
             requestChannel.close(cause)
             if (cause != null) context.completeExceptionally(cause)
             else context.complete(Unit)
+            ioControl.getAndSet(null)?.requestOutput()
         }
 
         return result
     }
+
+    private fun ByteBuffer.recycle() {
+        if (body is OutgoingContent.WriteChannelContent || body is OutgoingContent.ReadChannelContent) {
+            HttpClientDefaultPool.recycle(this)
+        }
+    }
+
 }

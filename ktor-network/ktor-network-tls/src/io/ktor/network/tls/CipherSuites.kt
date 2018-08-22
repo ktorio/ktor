@@ -83,10 +83,7 @@ object CIOCipherSuites {
     ).filter { it.isSupported() }
 }
 
-internal fun CipherSuite.isSupported(): Boolean {
-    when (platformVersion.major) {
-        "1.8.0" -> if (platformVersion.minor < 161 && keyStrength > 128) return false
-    }
-
-    return true
+internal fun CipherSuite.isSupported(): Boolean = when (platformVersion.major) {
+    "1.8.0" -> platformVersion.minor >= 161 || keyStrength <= 128
+    else -> keyStrength <= 128
 }

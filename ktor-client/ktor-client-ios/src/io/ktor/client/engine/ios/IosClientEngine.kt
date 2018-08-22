@@ -76,11 +76,9 @@ class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientE
 
         val url = URLBuilder().takeFrom(request.url).buildString()
         val nativeRequest = NSMutableURLRequest.requestWithURL(NSURL(string = url))
-        val headers = request.headers
-        val entries = headers.entries()
 
-        entries.forEach { (key, values) ->
-            values.forEach { nativeRequest.setValue(it, key) }
+        mergeHeaders(request.headers, request.content) { key, value ->
+            nativeRequest.setValue(value, key)
         }
 
         nativeRequest.setHTTPMethod(request.method.value)

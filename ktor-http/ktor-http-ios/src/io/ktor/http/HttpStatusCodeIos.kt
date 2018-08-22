@@ -38,7 +38,7 @@ internal actual fun allStatusCodes(): List<HttpStatusCode> = listOf(
     HttpStatusCode.RequestURITooLong,
     HttpStatusCode.UnsupportedMediaType,
     HttpStatusCode.RequestedRangeNotSatisfiable,
-    HttpStatusCode.ExceptionFailed,
+    HttpStatusCode.ExpectationFailed,
     HttpStatusCode.UnprocessableEntity,
     HttpStatusCode.Locked,
     HttpStatusCode.FailedDependency,

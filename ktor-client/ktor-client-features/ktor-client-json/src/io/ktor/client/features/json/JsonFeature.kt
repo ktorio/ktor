@@ -9,7 +9,12 @@ import io.ktor.util.*
 
 
 /**
- * Platform default serializer
+ * Platform default serializer.
+ *
+ * Uses service loader on jvm.
+ * Consider to add one of the following dependencies:
+ * - ktor-client-gson
+ * - ktor-client-json
  */
 expect fun defaultSerializer(): JsonSerializer
 
@@ -27,15 +32,17 @@ class JsonFeature(val serializer: JsonSerializer) {
         /**
          * Serialized that will be used for serializing requests bodies,
          * and de-serializing response bodies when Content-Type matches `application/json`.
+         *
+         * Default value is [defultSerializer]
          */
-        var serializer: JsonSerializer = defaultSerializer()
+        var serializer: JsonSerializer? = null
     }
 
     companion object Feature : HttpClientFeature<Config, JsonFeature> {
         override val key: AttributeKey<JsonFeature> = AttributeKey("Json")
 
         override fun prepare(block: Config.() -> Unit): JsonFeature =
-            Config().apply(block).let { JsonFeature(it.serializer) }
+            Config().apply(block).let { JsonFeature(it.serializer ?: defaultSerializer()) }
 
         override fun install(feature: JsonFeature, scope: HttpClient) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { payload ->

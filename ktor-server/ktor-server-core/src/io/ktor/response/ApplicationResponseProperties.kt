@@ -35,4 +35,3 @@ fun ApplicationResponse.contentRange(range: LongRange?, fullLength: Long? = null
 fun ApplicationResponse.contentRange(range: LongRange?, fullLength: Long? = null, unit: String = RangeUnits.Bytes.unitToken) {
     header(HttpHeaders.ContentRange, contentRangeHeaderValue(range, fullLength, unit))
 }
-

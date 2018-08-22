@@ -32,6 +32,8 @@ suspend fun HttpClient.webSocketRaw(
 ): Unit {
     val session = webSocketRawSession(method, host, port, path) {
         url.protocol = URLProtocol.WS
+        url.port = port
+
         request()
     }
 
@@ -50,6 +52,7 @@ suspend fun HttpClient.webSocket(
 ): Unit {
     val session = webSocketSession(method, host, port, path) {
         url.protocol = URLProtocol.WS
+        url.port = port
         request()
     }
 
@@ -72,6 +75,7 @@ suspend fun HttpClient.wssRaw(
     request: HttpRequestBuilder.() -> Unit = {}, block: suspend ClientWebSocketSession.() -> Unit
 ): Unit = webSocketRaw(method, host, port, path, request = {
     url.protocol = URLProtocol.WSS
+    url.port = port
 
     request()
 }, block = block)
@@ -86,5 +90,7 @@ suspend fun HttpClient.wss(
     request: HttpRequestBuilder.() -> Unit = {}, block: suspend DefaultClientWebSocketSession.() -> Unit
 ): Unit = webSocket(method, host, port, path, request = {
     url.protocol = URLProtocol.WSS
+    url.port = port
+
     request()
 }, block = block)

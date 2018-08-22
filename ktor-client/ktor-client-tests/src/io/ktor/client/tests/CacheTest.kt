@@ -42,6 +42,7 @@ abstract class CacheTest(private val factory: HttpClientEngineFactory<*>) : Test
             get("/etag") {
                 val etag = if (counter.get() < 2) "0" else "1"
                 counter.incrementAndGet()
+                @Suppress("DEPRECATION")
                 call.withETag(etag) {
                     call.respondText(counter.get().toString())
                 }

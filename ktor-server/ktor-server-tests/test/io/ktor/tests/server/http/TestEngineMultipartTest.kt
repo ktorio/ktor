@@ -8,7 +8,6 @@ import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlinx.io.core.*
 import kotlinx.io.streams.*
-import org.junit.Assert.assertArrayEquals
 import org.junit.Test
 import kotlin.test.*
 
@@ -63,7 +62,8 @@ class TestEngineMultipartTest {
             }
         }, setup = {
             addHeader(HttpHeaders.ContentType, contentType.toString())
-            setBody(boundary, listOf(PartData.FileItem(
+            setBody(boundary, listOf(
+                PartData.FileItem(
                     provider = { bytes.inputStream().asInput() },
                     dispose = {},
                     partHeaders = headersOf(
@@ -131,7 +131,8 @@ class TestEngineMultipartTest {
             }
         }, setup = {
             addHeader(HttpHeaders.ContentType, contentType.toString())
-            setBody(boundary, listOf(PartData.FileItem(
+            setBody(boundary, listOf(
+                PartData.FileItem(
                 provider = provider,
                 dispose = {},
                 partHeaders = headersOf(

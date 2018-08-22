@@ -11,8 +11,23 @@ import kotlinx.io.core.*
 
 expect fun HttpClient(
     useDefaultTransformers: Boolean = true,
-    block: HttpClientConfig.() -> Unit = {}
+    block: HttpClientConfig<*>.() -> Unit = {}
 ): HttpClient
+
+/**
+ * Constructs an asynchronous [HttpClient] using the specified [engineFactory]
+ * and an optional [block] for configuring this client.
+ */
+fun <T : HttpClientEngineConfig> HttpClient(
+    engineFactory: HttpClientEngineFactory<T>,
+    useDefaultTransformers: Boolean = true,
+    block: HttpClientConfig<T>.() -> Unit = {}
+): HttpClient {
+    val config: HttpClientConfig<T> = HttpClientConfig<T>().apply(block)
+    val engine = engineFactory.create(config.engineConfig)
+
+    return HttpClient(engine, useDefaultTransformers, config)
+}
 
 /**
  * Asynchronous client to perform HTTP requests.
@@ -22,19 +37,8 @@ expect fun HttpClient(
 class HttpClient(
     private val engine: HttpClientEngine,
     private val useDefaultTransformers: Boolean = true,
-    block: HttpClientConfig.() -> Unit = {}
+    private val config: HttpClientConfig<*> = HttpClientConfig<HttpClientEngineConfig>()
 ) : Closeable {
-
-    /**
-     * Constructs an asynchronous [HttpClient] using the specified [engineFactory]
-     * and an optional [block] for configuring this client.
-     */
-    constructor(
-        engineFactory: HttpClientEngineFactory<*>,
-        useDefaultTransformers: Boolean = true,
-        block: HttpClientConfig.() -> Unit = {}
-    ) : this(engineFactory.create(), useDefaultTransformers, block)
-
     /**
      * Pipeline used for processing all the requests sent by this client.
      */
@@ -90,17 +94,13 @@ class HttpClient(
      */
     val engineConfig: HttpClientEngineConfig = engine.config
 
-    internal val config = HttpClientConfig()
-
     init {
         config.install(HttpPlainText)
-
 
         if (useDefaultTransformers) {
             config.install("DefaultTransformers") { defaultTransformers() }
         }
 
-        config.block()
         config.install(this)
     }
 
@@ -114,7 +114,9 @@ class HttpClient(
      * Returns a new [HttpClient] copying this client configuration,
      * and additionally configured by the [block] parameter.
      */
-    fun config(block: HttpClientConfig.() -> Unit): HttpClient = HttpClient(engine, useDefaultTransformers, block)
+    fun config(block: HttpClientConfig<*>.() -> Unit): HttpClient = HttpClient(
+        engine, useDefaultTransformers, HttpClientConfig<HttpClientEngineConfig>().apply(block)
+    )
 
     /**
      * Closes the underlying [engine].

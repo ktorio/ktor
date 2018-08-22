@@ -71,4 +71,22 @@ class UrlTest {
         assertEquals(false, url.trailingQuery)
         assertEquals("http://$urlString", url.toString())
     }
+
+    /**
+     * https://tools.ietf.org/html/rfc1738#section-5
+     * hsegment = *[ uchar | ";" | ":" | "@" | "&" | "=" ]
+     */
+    @Test
+    fun testPath() {
+        val cases = listOf(';', ':', '@', '&', '=')
+        cases.forEach { case ->
+            val url = Url("http://localhost/foo${case}bar")
+            assertEquals("http", url.protocol.name)
+            assertNull(url.user)
+            assertNull(url.password)
+            assertEquals("/foo${case}bar", url.encodedPath)
+
+            assertEquals("http://localhost/foo${case}bar", url.toString())
+        }
+    }
 }

@@ -28,7 +28,7 @@ class MockEngine(override val config: MockEngineConfig) : HttpClientEngine {
                 this.check = check
             })
 
-        val RESPONSE_OK: (HttpClientCall, HttpRequest) -> MockHttpResponse = { call, request ->
+        val RESPONSE_OK: (HttpClientCall, HttpRequest) -> MockHttpResponse = { call, _ ->
             MockHttpResponse(call, HttpStatusCode.OK)
         }
     }
