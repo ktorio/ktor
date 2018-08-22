@@ -45,6 +45,18 @@ class HttpHeadersMap internal constructor(private val builder: CharBufferBuilder
         size++
     }
 
+    fun find(name: String, fromIndex: Int = 0): Int {
+        val nameHash = name.hashCodeLowerCase()
+        for (i in fromIndex until size) {
+            val offset = i * HEADER_SIZE
+            if (indexes[offset] == nameHash) {
+                return i
+            }
+        }
+
+        return -1
+    }
+
     operator fun get(name: String): CharSequence? {
         val nameHash = name.hashCodeLowerCase()
         for (i in 0 until size) {
