@@ -779,7 +779,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         }.toByteArray()
 
         s.connect(InetSocketAddress(port))
-        s.use {
+        s.use { _ ->
             s.getOutputStream().apply {
                 write(impudent)
                 flush()
@@ -1161,11 +1161,13 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                 try {
                     call.respond(object : OutgoingContent.WriteChannelContent() {
                         override suspend fun writeTo(channel: ByteWriteChannel) {
-                            val bb = ByteBuffer.allocate(100)
+                            val bb = ByteBuffer.allocate(512)
                             for (i in 1L..1000L) {
                                 delay(100)
                                 bb.clear()
-                                bb.putLong(i)
+                                while (bb.hasRemaining()) {
+                                    bb.putLong(i)
+                                }
                                 bb.flip()
                                 channel.writeFully(bb)
                                 channel.flush()
@@ -1191,9 +1193,60 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             outputStream.flush()
 
             inputStream.read(ByteArray(100))
-            shutdownInput()
-            shutdownOutput()
+        } // send FIN
+
+        runBlocking {
+            withTimeout(1000L, TimeUnit.SECONDS) {
+                completed.join()
+            }
         }
+    }
+
+    @Test
+    fun testConnectionReset() {
+        val completed = Job()
+
+        createAndStartServer {
+            get("/file") {
+                try {
+                    call.respond(object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            val bb = ByteBuffer.allocate(512)
+                            for (i in 1L..1000L) {
+                                delay(100)
+                                bb.clear()
+                                while (bb.hasRemaining()) {
+                                    bb.putLong(i)
+                                }
+                                bb.flip()
+                                channel.writeFully(bb)
+                                channel.flush()
+                            }
+
+                            channel.close()
+                        }
+                    })
+                } finally {
+                    completed.cancel()
+                }
+            }
+        }
+
+        socket {
+            // to ensure immediate RST at close it is very important to set SO_LINGER = 0
+            setSoLinger(true, 0)
+
+            outputStream.writePacket(RequestResponseBuilder().apply {
+                requestLine(HttpMethod.Get, "/file", "HTTP/1.1")
+                headerLine("Host", "localhost:$port")
+                headerLine("Connection", "keep-alive")
+                emptyLine()
+            }.build())
+
+            outputStream.flush()
+
+            inputStream.read(ByteArray(100))
+        }  // send FIN + RST
 
         runBlocking {
             withTimeout(1000L, TimeUnit.SECONDS) {
