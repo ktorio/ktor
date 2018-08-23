@@ -22,11 +22,11 @@ class StaticContentTest {
     fun testStaticContentBuilder() = withTestApplication {
         application.routing {
             static("files") {
-                files(basedir)
+                fileTree(basedir)
             }
             static("selected") {
                 staticRootFolder = basedir
-                files("features")
+                fileTree("features")
                 file("routing/RoutingBuildTest.kt")
                 route("virtual") {
                     default("features/StaticContentTest.kt")
@@ -103,9 +103,9 @@ class StaticContentTest {
                     staticBasePackage = "java.util"
                     resource("ArrayList.class")
                 }
-                files(basedir)
+                fileTree(basedir)
                 route("f") {
-                    files(basedir)
+                    fileTree(basedir)
                 }
             }
         }
@@ -134,7 +134,7 @@ class StaticContentTest {
     fun testStaticContentWrongPath() = withTestApplication {
         application.routing {
             static {
-                files(basedir)
+                fileTree(basedir)
             }
         }
 

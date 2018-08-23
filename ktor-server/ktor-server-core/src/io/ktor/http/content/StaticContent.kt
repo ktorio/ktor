@@ -74,16 +74,28 @@ fun Route.file(remotePath: String, localPath: File): Route {
 /**
  * Sets up routing to serve all files from [folder]
  */
-fun Route.files(folder: String): Route = files(File(folder))
+@Deprecated("Use fileTree instead", ReplaceWith("fileTree(folder)"))
+fun Route.files(folder: String): Route = fileTree(folder)
 
 /**
  * Sets up routing to serve all files from [folder]
  */
-fun Route.files(folder: File): Route {
-    val dir = staticRootFolder.combine(folder)
+@Deprecated("Use fileTree instead", ReplaceWith("fileTree(folder)"))
+fun Route.files(folder: File): Route = fileTree(folder)
+
+/**
+ * Sets up routing to serve all files from [dir]
+ */
+fun Route.fileTree(dir: String): Route  = fileTree(File(dir))
+
+/**
+ * Sets up routing to serve all files from [dir]
+ */
+fun Route.fileTree(dir: File): Route {
+    val parent = staticRootFolder.combine(dir)
     return get("{$pathParameterName...}") {
         val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
-        val file = dir.combineSafe(relativePath)
+        val file = parent.combineSafe(relativePath)
         if (file.isFile) {
             call.respond(LocalFileContent(file))
         }

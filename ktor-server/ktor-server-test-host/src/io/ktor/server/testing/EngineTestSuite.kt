@@ -319,7 +319,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
         createAndStartServer {
             static("/files") {
-                files(targetClasses.path)
+                fileTree(targetClasses.path)
             }
         }
 
