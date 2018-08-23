@@ -6,7 +6,6 @@ import kotlinx.coroutines.experimental.*
 import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.channels.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.ByteReadChannel.*
 import java.io.*
 import kotlin.coroutines.experimental.*
 
@@ -64,20 +63,22 @@ fun startConnectionPipeline(input: ByteReadChannel,
         val thisJob = coroutineContext[Job]!!
 
         try {
-            while (true) {
+            while (true) {  // parse requests loop
                 val request = try {
                     parseRequest(input) ?: break
                 } catch (io: IOException) {
                     throw io
                 } catch (cancelled: CancellationException) {
                     throw cancelled
-                } catch (t: Throwable) {
+                } catch (parseFailed: Throwable) { // try to write 400 Bad Request
+                    // TODO log parseFailed?
                     val bc = ByteChannel()
                     if (outputsActor.offer(bc)) {
                         bc.writePacket(BadRequestPacket.copy())
                         bc.close()
                     }
-                    throw t
+                    outputsActor.close()
+                    break // end pipeline loop
                 }
 
                 val response = ByteChannel()
