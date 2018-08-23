@@ -131,6 +131,49 @@ class StaticContentTest {
     }
 
     @Test
+    fun testStaticContentWithDefault() = withTestApplication {
+        application.routing {
+            trace { trace ->
+                println(trace.buildText())
+            }
+            static("assets") {
+                fileTree(basedir) { dir ->
+                    val indexFile = dir.resolve("StaticContentTest.kt")
+                    if (indexFile.isFile) {
+                        call.respondFile(indexFile)
+                    } else {
+                        call.respondText("Directory listing goes here")
+                    }
+                }
+            }
+        }
+
+        handleRequest(HttpMethod.Get, "/assets/features/StaticContentTest.kt").let { result ->
+            assertTrue(result.requestHandled)
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals(basedir.resolve("features/StaticContentTest.kt").readText(), result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/assets/features").let { result ->
+            assertTrue(result.requestHandled)
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals(basedir.resolve("features/StaticContentTest.kt").readText(), result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/assets/features/").let { result ->
+            assertTrue(result.requestHandled)
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals(basedir.resolve("features/StaticContentTest.kt").readText(), result.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/assets/application/").let { result ->
+            assertTrue(result.requestHandled)
+            assertEquals(HttpStatusCode.OK, result.response.status())
+            assertEquals("Directory listing goes here", result.response.content)
+        }
+    }
+
+    @Test
     fun testStaticContentWrongPath() = withTestApplication {
         application.routing {
             static {

@@ -4,6 +4,7 @@ import io.ktor.application.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import java.io.*
 
 private const val pathParameterName = "static-content-path-parameter"
@@ -83,21 +84,27 @@ fun Route.files(folder: String): Route = fileTree(folder)
 @Deprecated("Use fileTree instead", ReplaceWith("fileTree(folder)"))
 fun Route.files(folder: File): Route = fileTree(folder)
 
-/**
- * Sets up routing to serve all files from [dir]
- */
-fun Route.fileTree(dir: String): Route  = fileTree(File(dir))
+typealias IndexHandler = suspend PipelineContext<Unit, ApplicationCall>.(File) -> Unit;
 
 /**
- * Sets up routing to serve all files from [dir]
+ * Sets up routing to serve all files from [dir].
+ * If a request points to a directory then it will call [indexHandler] with resolved directory argument.
  */
-fun Route.fileTree(dir: File): Route {
+fun Route.fileTree(dir: String, indexHandler: IndexHandler? = null): Route  = fileTree(File(dir), indexHandler)
+
+/**
+ * Sets up routing to serve all files from [dir].
+ * If a request points to a directory then it will call [indexHandler] with resolved directory argument.
+ */
+fun Route.fileTree(dir: File, indexHandler: IndexHandler? = null): Route {
     val parent = staticRootFolder.combine(dir)
     return get("{$pathParameterName...}") {
         val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
         val file = parent.combineSafe(relativePath)
         if (file.isFile) {
             call.respond(LocalFileContent(file))
+        } else if (indexHandler != null && file.isDirectory) {
+            indexHandler(file)
         }
     }
 }
