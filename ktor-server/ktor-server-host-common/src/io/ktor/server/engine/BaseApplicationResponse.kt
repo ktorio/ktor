@@ -139,7 +139,11 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         responseChannel().use {
             // Call user code to send data
 //            val before = totalBytesWritten
-            content.writeTo(this)
+            try {
+                content.writeTo(this)
+            } catch (closed: ClosedWriteChannelException) {
+                throw ChannelWriteException(exception = closed)
+            }
 
             // TODO currently we can't ensure length like that
             // because a joined channel doesn't increment totalBytesWritten
