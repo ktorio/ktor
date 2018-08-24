@@ -55,9 +55,7 @@ allprojects {
     apply from: rootProject.file("gradle/${platform}.gradle")
 
     if (platform == 'jvm') {
-        afterEvaluate {
-            apply from: rootProject.file("gradle/atomicfu-${platform}.gradle")
-        }
+        apply from: rootProject.file("gradle/atomicfu-${platform}.gradle")
     } else {
         apply from: rootProject.file("gradle/atomicfu-${platform}.gradle")
     }
