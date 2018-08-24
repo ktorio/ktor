@@ -136,15 +136,16 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         }
     }
 
-    private fun processUpgrade(responseMessage: Any) {
-        dst.write(responseMessage)
+    private fun processUpgrade(responseMessage: Any): ChannelFuture {
+        val future = dst.write(responseMessage)
         encapsulation.upgrade(dst)
         encapsulation = WriterEncapsulation.Raw
         dst.flush()
+        return future
     }
 
     @Suppress("NOTHING_TO_INLINE")
-    private suspend inline fun finishCall(call: NettyApplicationCall, lastMessage: Any?) {
+    private suspend inline fun finishCall(call: NettyApplicationCall, lastMessage: Any?, lastFuture: ChannelFuture) {
         val close = !call.request.keepAlive
         val doNotFlush = hasNextResponseMessage() && !close
 
@@ -161,11 +162,12 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
             else -> dst.writeAndFlush(lastMessage)
         }
 
-        f?.suspendAwait()
+        f?.suspendWriteAwait()
 
         if (close) {
-            requestQueue.cancel()
             dst.flush()
+            lastFuture.suspendWriteAwait()
+            requestQueue.cancel()
         }
     }
 
@@ -174,7 +176,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         val responseMessage = call.response.responseMessage.await()
         val response = call.response
 
-        if (response.isUpgradeResponse()) {
+        val requestMessageFuture = if (response.isUpgradeResponse()) {
             processUpgrade(responseMessage)
         } else {
             dst.write(responseMessage)
@@ -183,7 +185,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         tryFill()
 
         if (responseMessage is FullHttpResponse) {
-            return finishCall(call, null)
+            return finishCall(call, null, requestMessageFuture)
         }
 
         val responseChannel = response.responseChannel
@@ -194,15 +196,15 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         }
 
         when (knownSize) {
-            0 -> processEmpty(call)
+            0 -> processEmpty(call, requestMessageFuture)
             in 1..65536 -> processSmallContent(call, response, knownSize)
-            -1 -> processBodyFlusher(call, response)
-            else -> processBodyGeneral(call, response)
+            -1 -> processBodyFlusher(call, response, requestMessageFuture)
+            else -> processBodyGeneral(call, response, requestMessageFuture)
         }
     }
 
-    private suspend fun processEmpty(call: NettyApplicationCall) {
-        return finishCall(call, encapsulation.endOfStream(false))
+    private suspend fun processEmpty(call: NettyApplicationCall, lastFuture: ChannelFuture) {
+        return finishCall(call, encapsulation.endOfStream(false), lastFuture)
     }
 
     private suspend fun processSmallContent(call: NettyApplicationCall, response: NettyApplicationResponse, size: Int) {
@@ -214,15 +216,16 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         buffer.writerIndex(start + size)
 
         val encapsulation = encapsulation
-        dst.write(encapsulation.transform(buffer, true))
-        finishCall(call, encapsulation.endOfStream(true))
+        val future = dst.write(encapsulation.transform(buffer, true))
+        finishCall(call, encapsulation.endOfStream(true), future)
     }
 
-    private suspend fun processBodyGeneral(call: NettyApplicationCall, response: NettyApplicationResponse) {
+    private suspend fun processBodyGeneral(call: NettyApplicationCall, response: NettyApplicationResponse, requestMessageFuture: ChannelFuture) {
         val channel = response.responseChannel
         val encapsulation = encapsulation
 
         var unflushedBytes = 0
+        var lastFuture: ChannelFuture = requestMessageFuture
 
         channel.lookAheadSuspend {
             while (true) {
@@ -245,22 +248,25 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
                 if (unflushedBytes >= UNFLUSHED_LIMIT) {
                     tryFill()
-                    dst.writeAndFlush(message).suspendAwait()
+                    val future = dst.writeAndFlush(message)
+                    lastFuture = future
+                    future.suspendAwait()
                     unflushedBytes = 0
                 } else {
-                    dst.write(message)
+                    lastFuture = dst.write(message)
                 }
             }
         }
 
-        finishCall(call, encapsulation.endOfStream(false))
+        finishCall(call, encapsulation.endOfStream(false), lastFuture)
     }
 
-    private suspend fun processBodyFlusher(call: NettyApplicationCall, response: NettyApplicationResponse) {
+    private suspend fun processBodyFlusher(call: NettyApplicationCall, response: NettyApplicationResponse, requestMessageFuture: ChannelFuture) {
         val channel = response.responseChannel
         val encapsulation = encapsulation
 
         var unflushedBytes = 0
+        var lastFuture: ChannelFuture = requestMessageFuture
 
         channel.lookAheadSuspend {
             while (true) {
@@ -283,15 +289,17 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
 
                 if (unflushedBytes >= UNFLUSHED_LIMIT || channel.availableForRead == 0) {
                     tryFill()
-                    dst.writeAndFlush(message).suspendAwait()
+                    val future = dst.writeAndFlush(message)
+                    lastFuture = future
+                    future.suspendAwait()
                     unflushedBytes = 0
                 } else {
-                    dst.write(message)
+                    lastFuture = dst.write(message)
                 }
             }
         }
 
-        finishCall(call, encapsulation.endOfStream(false))
+        finishCall(call, encapsulation.endOfStream(false), lastFuture)
     }
 }
 
