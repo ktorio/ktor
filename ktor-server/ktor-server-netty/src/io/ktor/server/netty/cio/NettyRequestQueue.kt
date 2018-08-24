@@ -39,7 +39,7 @@ internal class NettyRequestQueue(internal val readLimit: Int, internal val runni
     fun canRequestMoreEvents(): Boolean = incomingQueue.isEmpty
 
     internal class CallElement(val call: NettyApplicationCall) : LockFreeLinkedListNode() {
-        @Volatile
+        @kotlin.jvm.Volatile
         private var scheduled: Int = 0
 
         fun ensureRunning(): Boolean {
