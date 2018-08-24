@@ -27,7 +27,7 @@ class WeakTimeoutQueue(
 ) {
     private val head = LockFreeLinkedListHead()
 
-    @Volatile
+    @kotlin.jvm.Volatile
     private var cancelled = false
 
     fun register(r: Job): DisposableHandle {

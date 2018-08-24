@@ -57,7 +57,7 @@ class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), 
             private val tasks: LockFreeLinkedListHead,
             dispatcherThreadGroup: ThreadGroup) : Thread(dispatcherThreadGroup, "io-thread-$number") {
 
-        @Volatile
+        @kotlin.jvm.Volatile
         private var cont: Continuation<Unit>? = null
 
         init {
