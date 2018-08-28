@@ -32,12 +32,12 @@ interface HttpResponse : HttpMessage, Closeable {
     val version: HttpProtocolVersion
 
     /**
-     * [Date] of the request start.
+     * [GMTDate] of the request start.
      */
     val requestTime: GMTDate
 
     /**
-     * [Date] of the response start.
+     * [GMTDate] of the response start.
      */
     val responseTime: GMTDate
 
