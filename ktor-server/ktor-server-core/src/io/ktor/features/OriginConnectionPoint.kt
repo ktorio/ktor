@@ -27,9 +27,9 @@ class MutableOriginConnectionPoint(delegate: RequestConnectionPoint) : RequestCo
     override var remoteHost by AssignableWithDelegate { delegate.remoteHost }
 }
 
-object XForwardedHeadersSupport : ApplicationFeature<ApplicationCallPipeline, XForwardedHeadersSupport.Config, XForwardedHeadersSupport.Config> {
+object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, XForwardedHeaderSupport.Config, XForwardedHeaderSupport.Config> {
 
-    override val key = AttributeKey<Config>("XForwardedHeadersSupport")
+    override val key = AttributeKey<Config>("XForwardedHeaderSupport")
 
     override fun install(pipeline: ApplicationCallPipeline, configure: Config.() -> Unit): Config {
         val config = Config()
@@ -90,6 +90,9 @@ object XForwardedHeadersSupport : ApplicationFeature<ApplicationCallPipeline, XF
         val httpsFlagHeaders = arrayListOf("X-Forwarded-SSL", "Front-End-Https")
     }
 }
+
+@Deprecated("", replaceWith = ReplaceWith("XForwardedHeaderSupport"))
+typealias XForwardedHeadersSupport = XForwardedHeaderSupport
 
 /**
  * Forwarded header support. See RFC 7239 https://tools.ietf.org/html/rfc7239
