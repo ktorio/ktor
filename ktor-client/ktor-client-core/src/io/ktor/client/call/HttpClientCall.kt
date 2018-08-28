@@ -13,7 +13,7 @@ import kotlin.reflect.*
 class HttpClientCall internal constructor(
     private val client: HttpClient
 ) : Closeable {
-    private val received = atomic(0)
+    private val received = atomic(false)
 
     /**
      * Represents the [request] sent by the client.
@@ -36,7 +36,7 @@ class HttpClientCall internal constructor(
      */
     suspend fun receive(info: TypeInfo): Any {
         if (info.type.isInstance(response)) return response
-        if (!received.compareAndSet(0, 1)) throw DoubleReceiveException(this)
+        if (!received.compareAndSet(false, true)) throw DoubleReceiveException(this)
 
         val subject = HttpResponseContainer(info, response)
         try {
@@ -72,6 +72,14 @@ suspend fun HttpClient.call(block: HttpRequestBuilder.() -> Unit = {}): HttpClie
  * @throws DoubleReceiveException If already called [receive].
  */
 suspend inline fun <reified T> HttpClientCall.receive(): T = receive(typeInfo<T>()) as T
+
+/**
+ * Tries to receive the payload of the [response] as an specific type [T].
+ *
+ * @throws NoTransformationFound If no transformation is found for the type [T].
+ * @throws DoubleReceiveException If already called [receive].
+ */
+suspend inline fun <reified T> HttpResponse.receive(): T = call.receive(typeInfo<T>()) as T
 
 /**
  * Exception representing that the response payload has already been received.
