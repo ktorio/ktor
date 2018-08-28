@@ -1,0 +1,4 @@
+description = ''
+dependencies {
+    compile project(':ktor-features:ktor-html-builder')
+}
