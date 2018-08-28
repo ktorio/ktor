@@ -5,12 +5,20 @@ import io.ktor.http.*
 /**
  * Gets the associated URL's host.
  */
-val HttpRequestBuilder.host: String get() = url.host
+var HttpRequestBuilder.host: String
+    get() = url.host
+    set(value) {
+        url.host = value
+    }
 
 /**
  * Gets the associated URL's port.
  */
-val HttpRequestBuilder.port: Int get() = url.port
+var HttpRequestBuilder.port: Int
+    get() = url.port
+    set(value) {
+        url.port = value
+    }
 
 /**
  * Sets a single header of [key] with a specific [value].
@@ -25,4 +33,5 @@ fun HttpRequestBuilder.parameter(key: String, value: String): Unit = url.paramet
 /**
  * Sets the `Accept` header with a specific [contentType].
  */
-fun HttpRequestBuilder.accept(contentType: ContentType): Unit = headers.append(HttpHeaders.Accept, contentType.toString())
+fun HttpRequestBuilder.accept(contentType: ContentType): Unit =
+    headers.append(HttpHeaders.Accept, contentType.toString())

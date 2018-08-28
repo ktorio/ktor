@@ -1,7 +1,9 @@
 package io.ktor.client.tests
 
 import io.ktor.application.*
+import io.ktor.client.*
 import io.ktor.client.engine.*
+import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.response.*
@@ -15,6 +17,9 @@ open class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor(
         routing {
             get("/empty") {
                 call.respondText("")
+            }
+            get("/hello") {
+                call.respondText("hello")
             }
         }
     }
@@ -34,4 +39,20 @@ open class BuildersTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor(
             assertEquals("", response)
         }
     }
+
+    @Test
+    fun testDefaultRequest() = clientTest(factory) {
+        test { rawClient ->
+
+            val client = rawClient.config {
+                defaultRequest {
+                    port = serverPort
+                }
+            }
+
+            assertEquals("hello", client.get<String>(path = "hello"))
+        }
+    }
 }
+
+
