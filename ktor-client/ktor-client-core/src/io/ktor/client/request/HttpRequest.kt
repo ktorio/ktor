@@ -56,7 +56,7 @@ open class DefaultHttpRequest(override val call: HttpClientCall, data: HttpReque
 
     override val headers: Headers = data.headers
 
-    override val attributes: Attributes = Attributes()
+    override val attributes: Attributes = data.attributes
 }
 
 /**
@@ -96,7 +96,7 @@ class HttpRequestBuilder : HttpMessageBuilder {
      * Create immutable [HttpRequestData]
      */
     fun build(): HttpRequestData = HttpRequestData(
-        url.build(), method, headers.build(), body, executionContext, attributesBuilder
+        url.build(), method, headers.build(), body, executionContext, Attributes().apply(attributesBuilder)
     )
 
     /**
@@ -120,7 +120,7 @@ class HttpRequestData(
     val headers: Headers,
     val body: Any,
     val executionContext: CompletableDeferred<Unit>,
-    val attributes: Attributes.() -> Unit
+    val attributes: Attributes
 )
 
 /**

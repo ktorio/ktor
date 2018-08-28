@@ -18,6 +18,6 @@ class MockHttpRequest(
 ) : HttpRequest
 
 fun HttpRequestData.toRequest(call: HttpClientCall): HttpRequest = io.ktor.client.engine.mock.MockHttpRequest(
-    call, method, url, Attributes().apply(attributes), executionContext, body as OutgoingContent, headers
+    call, method, url, attributes, executionContext, body as OutgoingContent, headers
 )
 
