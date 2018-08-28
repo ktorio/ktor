@@ -12,7 +12,7 @@ class TestHttpClientRequest(
     private val engine: TestHttpClientEngine,
     requestData: HttpRequestData
 ) : HttpRequest {
-    override val attributes: Attributes = Attributes()
+    override val attributes: Attributes = requestData.attributes
 
     override val method: HttpMethod = requestData.method
     override val url: Url = requestData.url

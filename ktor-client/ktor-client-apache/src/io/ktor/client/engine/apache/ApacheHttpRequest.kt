@@ -20,7 +20,7 @@ internal class ApacheHttpRequest(
     private val requestData: HttpRequestData,
     private val dispatcher: CoroutineDispatcher
 ) : HttpRequest {
-    override val attributes: Attributes = Attributes()
+    override val attributes: Attributes = requestData.attributes
 
     override val method: HttpMethod = requestData.method
     override val url: Url = requestData.url
