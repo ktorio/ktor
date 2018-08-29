@@ -49,11 +49,11 @@ abstract class NettyApplicationResponse(call: NettyApplicationCall,
 
         if (!responseMessageSent) {
             val message = responseMessage(chunked, bytes)
-            responseMessage.complete(message)
             responseChannel = when (message) {
                 is LastHttpContent -> ByteReadChannel.Empty
                 else -> ByteReadChannel(bytes)
             }
+            responseMessage.complete(message)
             responseMessageSent = true
         }
     }
