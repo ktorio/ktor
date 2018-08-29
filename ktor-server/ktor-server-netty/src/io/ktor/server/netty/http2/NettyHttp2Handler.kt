@@ -89,9 +89,9 @@ internal class NettyHttp2Handler(private val enginePipeline: EnginePipeline,
                 parameters.build().formUrlEncodeTo(this)
             }
 
-            scheme(builder.url.protocol.name)
             method(builder.method.value)
             authority(builder.url.host + ":" + builder.url.port)
+            scheme(builder.url.protocol.name)
             path(pathAndQuery)
         }
 
