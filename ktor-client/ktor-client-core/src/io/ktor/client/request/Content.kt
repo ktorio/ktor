@@ -10,7 +10,7 @@ abstract class ClientUpgradeContent : OutgoingContent.NoContent() {
     val output: ByteWriteChannel get() = content
 
     suspend fun pipeTo(output: ByteWriteChannel) {
-        content.joinTo(output, closeOnEnd = true)
+        content.copyAndClose(output)
     }
 
     abstract fun verify(headers: Headers)

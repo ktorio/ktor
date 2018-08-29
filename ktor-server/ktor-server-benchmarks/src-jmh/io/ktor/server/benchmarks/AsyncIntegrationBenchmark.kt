@@ -73,6 +73,9 @@ abstract class AsyncIntegrationBenchmark<TEngine : ApplicationEngine> {
             }
         }
         server.start()
+
+        httpClient.setup()
+
         Thread.sleep(500)
     }
 
@@ -81,17 +84,8 @@ abstract class AsyncIntegrationBenchmark<TEngine : ApplicationEngine> {
 
     @TearDown
     fun shutdownServer() {
-        server.stop(100, 5000, TimeUnit.MILLISECONDS)
-    }
-
-    @Setup
-    fun configureClient() {
-        httpClient.setup()
-    }
-
-    @TearDown
-    fun shutdownClient() {
         httpClient.shutdown()
+        server.stop(100, 5000, TimeUnit.MILLISECONDS)
     }
 
     @Benchmark

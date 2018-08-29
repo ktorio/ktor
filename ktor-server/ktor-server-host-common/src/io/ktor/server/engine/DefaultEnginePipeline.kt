@@ -44,9 +44,9 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
     try {
         val status = call.response.status() ?: "Unhandled"
         when (cause) {
-            is CancellationException -> log.error("$status: ${call.request.toLogString()}, cancelled")
-            is ClosedChannelException -> log.error("$status: ${call.request.toLogString()}, channel closed")
-            is ChannelIOException -> log.error("$status: ${call.request.toLogString()}, channel failed")
+            is CancellationException -> log.info("$status: ${call.request.toLogString()}, cancelled")
+            is ClosedChannelException -> log.info("$status: ${call.request.toLogString()}, channel closed")
+            is ChannelIOException -> log.info("$status: ${call.request.toLogString()}, channel failed")
             else -> log.error("$status: ${call.request.toLogString()}", cause)
         }
     } catch (oom: OutOfMemoryError) {
