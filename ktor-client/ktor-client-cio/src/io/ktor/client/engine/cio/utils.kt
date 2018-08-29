@@ -52,7 +52,7 @@ internal suspend fun DefaultHttpRequest.write(output: ByteWriteChannel) {
         when (content) {
             is OutgoingContent.NoContent -> return
             is OutgoingContent.ByteArrayContent -> channel.writeFully(content.bytes())
-            is OutgoingContent.ReadChannelContent -> content.readFrom().joinTo(channel, closeOnEnd = false)
+            is OutgoingContent.ReadChannelContent -> content.readFrom().copyAndClose(channel)
             is OutgoingContent.WriteChannelContent -> content.writeTo(channel)
             is OutgoingContent.ProtocolUpgrade -> UnsupportedContentTypeException(content)
         }
