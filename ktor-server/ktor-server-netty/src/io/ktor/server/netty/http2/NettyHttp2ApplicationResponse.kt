@@ -25,6 +25,10 @@ internal class NettyHttp2ApplicationResponse(call: NettyApplicationCall,
     }
 
     override fun responseMessage(chunked: Boolean, last: Boolean): Any {
+        // transfer encoding should be never set for HTTP/2
+        // so we simply remove header
+        // it should be lower case
+        responseHeaders.remove("transfer-encoding")
         return DefaultHttp2HeadersFrame(responseHeaders, false)
         // endStream should be false
         // as response pipeline is always sending at least one data frame
