@@ -92,7 +92,7 @@ object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, XFo
 }
 
 @Deprecated("", replaceWith = ReplaceWith("XForwardedHeaderSupport"))
-typealias XForwardedHeadersSupport = XForwardedHeaderSupport
+val XForwardedHeadersSupport: XForwardedHeaderSupport get() = XForwardedHeaderSupport
 
 /**
  * Forwarded header support. See RFC 7239 https://tools.ietf.org/html/rfc7239
