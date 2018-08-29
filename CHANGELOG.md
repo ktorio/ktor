@@ -1,3 +1,34 @@
+# 0.9.4
+> Published 29 Aug 2018
+
+* Added multiplatform client support (android and ios)
+* Added `Android` client engine (`UrlConnection`)
+* Added `OkHttp` client engine (Android support)
+* Added `Jackson` feature support
+* Added `Ios` client engine
+* Deprecated `response.contentType` and `response.contentLength`
+* Strengthened `IncomingContent` deprecation
+* Upgraded Jetty ALPN, Tomcat
+* Fixed config evaluation issues (#488)
+* Disabled async incoming upgrade stream at Tomcat
+* Prohibited appending unsafe headers to request headers
+* Renamed `XForwardedHeadersSupport` to `XForwardedHeaderSupport` (#547)
+* Added `HttpResponse.receive<T>` method to run response pipeline on raw response
+* Introduced kotlin multiplatform url-parser
+* Supported client form data and multipart 
+* Added missing client builders for `post` and `put` methods
+* Simplify client configuration API
+* Fixed several compression issues
+* Fixed client attributes evaluation
+* Fixed CIO engine random algorithm selection
+* Fixed url parsing (#511)
+* Fixed ambiguity in writing client `Content-Type` and `Content-Length` headers
+* Minor performance fixes
+* Netty HTTP/2 fixes
+* Fixed IOOBE in satic resource resolution (#493)
+* Fixed JWT error handling
+* Kotlin 1.2.61, kotlinx.coroutines 0.25.0
+
 # 0.9.3
 > Published 26 Jun 2018
 
