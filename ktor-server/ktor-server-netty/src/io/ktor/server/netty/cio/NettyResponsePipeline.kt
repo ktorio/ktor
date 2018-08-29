@@ -192,6 +192,7 @@ internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
         val knownSize = when {
             responseChannel === ByteReadChannel.Empty -> 0
             responseMessage is HttpResponse -> responseMessage.headers().getInt("Content-Length", -1)
+            responseMessage is Http2HeadersFrame -> responseMessage.headers().getInt("content-length", -1)
             else -> -1
         }
 
