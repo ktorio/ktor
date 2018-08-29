@@ -916,7 +916,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     @Test
     fun testProxyHeaders() {
         createAndStartServer {
-            install(XForwardedHeadersSupport)
+            install(XForwardedHeaderSupport)
             get("/") {
                 call.respond(call.url { })
             }
