@@ -2,7 +2,7 @@ package io.ktor.server.netty.http2
 
 import io.netty.buffer.*
 import io.netty.handler.codec.http2.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.experimental.io.*
 
 internal suspend fun ReceiveChannel<Http2DataFrame>.http2frameLoop(bc: ByteWriteChannel) {

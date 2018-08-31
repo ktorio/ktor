@@ -4,7 +4,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 
 
 class MockEngine(override val config: MockEngineConfig) : HttpClientEngine {

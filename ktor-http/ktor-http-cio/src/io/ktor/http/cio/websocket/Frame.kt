@@ -1,7 +1,7 @@
 package io.ktor.http.cio.websocket
 
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.io.core.*
 import kotlinx.io.core.ByteOrder
 import java.nio.*

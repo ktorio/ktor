@@ -1,19 +1,21 @@
 package io.ktor.velocity
 
 import io.ktor.application.*
-import io.ktor.util.cio.*
-import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.util.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.experimental.io.*
 import org.apache.velocity.*
 import org.apache.velocity.app.*
 
-class VelocityContent(val template: String,
-                      val model: Map<String, Any>,
-                      val etag: String? = null,
-                      val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8))
+class VelocityContent(
+    val template: String,
+    val model: Map<String, Any>,
+    val etag: String? = null,
+    val contentType: ContentType = ContentType.Text.Html.withCharset(Charsets.UTF_8)
+)
 
 class Velocity(private val engine: VelocityEngine) {
     init {
@@ -37,13 +39,20 @@ class Velocity(private val engine: VelocityEngine) {
     }
 
     private fun process(content: VelocityContent): VelocityOutgoingContent {
-        return VelocityOutgoingContent(engine.getTemplate(content.template), content.model, content.etag, content.contentType)
+        return VelocityOutgoingContent(
+            engine.getTemplate(content.template),
+            content.model,
+            content.etag,
+            content.contentType
+        )
     }
 
-    private class VelocityOutgoingContent(val template: Template,
-                                          val model: Map<String, Any>,
-                                          etag: String?,
-                                          override val contentType: ContentType) : OutgoingContent.WriteChannelContent() {
+    private class VelocityOutgoingContent(
+        val template: Template,
+        val model: Map<String, Any>,
+        etag: String?,
+        override val contentType: ContentType
+    ) : OutgoingContent.WriteChannelContent() {
         override suspend fun writeTo(channel: ByteWriteChannel) {
             channel.bufferedWriter(contentType.charset() ?: Charsets.UTF_8).use {
                 template.merge(VelocityContext(model), it)

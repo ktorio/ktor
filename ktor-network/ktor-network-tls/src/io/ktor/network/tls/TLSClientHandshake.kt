@@ -2,7 +2,7 @@ package io.ktor.network.tls
 
 import io.ktor.network.tls.SecretExchangeType.*
 import io.ktor.network.tls.extensions.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.core.*
 import java.security.*
@@ -13,7 +13,7 @@ import java.security.spec.*
 import javax.crypto.*
 import javax.crypto.spec.*
 import javax.net.ssl.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 private data class EncryptionInfo(
     val serverPublic: PublicKey,

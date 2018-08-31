@@ -7,8 +7,9 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlin.coroutines.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.core.*
 import platform.Foundation.*
@@ -81,6 +82,7 @@ class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientE
             nativeRequest.setValue(value, key)
         }
 
+        nativeRequest.setCachePolicy(NSURLRequestReloadIgnoringCacheData)
         nativeRequest.setHTTPMethod(request.method.value)
 
         launch(dispatcher) {

@@ -5,15 +5,23 @@ import io.ktor.server.jetty.internal.*
 import io.ktor.server.servlet.*
 import org.eclipse.jetty.server.*
 import javax.servlet.http.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
-class JettyApplicationResponse(call: AsyncServletApplicationCall,
-                               servletRequest: HttpServletRequest,
-                               servletResponse: HttpServletResponse,
-                               engineContext: CoroutineContext,
-                               userContext: CoroutineContext,
-                               private val baseRequest: Request)
-    : AsyncServletApplicationResponse(call, servletRequest, servletResponse, engineContext, userContext, JettyUpgradeImpl) {
+class JettyApplicationResponse(
+    call: AsyncServletApplicationCall,
+    servletRequest: HttpServletRequest,
+    servletResponse: HttpServletResponse,
+    engineContext: CoroutineContext,
+    userContext: CoroutineContext,
+    private val baseRequest: Request
+) : AsyncServletApplicationResponse(
+    call,
+    servletRequest,
+    servletResponse,
+    engineContext,
+    userContext,
+    JettyUpgradeImpl
+) {
 
     override fun push(builder: ResponsePushBuilder) {
         if (baseRequest.isPushSupported) {

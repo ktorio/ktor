@@ -6,7 +6,7 @@ import kotlinx.coroutines.experimental.io.*
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.server.*
 import javax.servlet.http.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 object JettyUpgradeImpl : ServletUpgrade {
     override suspend fun performUpgrade(

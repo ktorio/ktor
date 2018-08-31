@@ -1,8 +1,9 @@
 package io.ktor.client.engine.okhttp
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import okhttp3.*
 import java.io.*
+import kotlin.coroutines.*
 
 internal suspend fun OkHttpClient.execute(request: Request): Response = suspendCancellableCoroutine {
     val call = newCall(request)

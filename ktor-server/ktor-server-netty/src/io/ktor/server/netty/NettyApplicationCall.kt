@@ -4,7 +4,7 @@ import io.ktor.application.*
 import io.ktor.server.engine.*
 import io.netty.channel.*
 import io.netty.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 
 abstract class NettyApplicationCall(application: Application,
                                     val context: ChannelHandlerContext,

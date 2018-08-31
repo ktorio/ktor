@@ -8,11 +8,11 @@ import io.ktor.network.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.experimental.io.*
 import java.util.concurrent.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 class TestApplicationEngine(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),

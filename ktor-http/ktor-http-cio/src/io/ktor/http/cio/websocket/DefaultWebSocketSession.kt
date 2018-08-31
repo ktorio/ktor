@@ -1,6 +1,6 @@
 package io.ktor.http.cio.websocket
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import java.time.*
 
 /**

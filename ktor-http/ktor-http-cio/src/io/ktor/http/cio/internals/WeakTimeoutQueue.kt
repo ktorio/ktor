@@ -1,11 +1,10 @@
 package io.ktor.http.cio.internals
 
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.internal.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.internal.*
 import java.time.*
-import kotlin.coroutines.experimental.*
-import kotlin.coroutines.experimental.intrinsics.*
-import kotlin.jvm.*
+import kotlin.coroutines.*
+import kotlin.coroutines.intrinsics.*
 
 /**
  * It provides ability to cancel jobs and schedule coroutine with timeout. Unlike regular withTimeout
@@ -58,11 +57,12 @@ class WeakTimeoutQueue(
     }
 
     suspend fun <T> withTimeout(block: suspend CoroutineScope.() -> T): T {
-        return suspendCoroutineOrReturn { c ->
-            val wrapped = WeakTimeoutCoroutine(c.context, c)
+        return suspendCoroutineUninterceptedOrReturn { rawContinuation ->
+            val continuation = rawContinuation.intercepted()
+            val wrapped = WeakTimeoutCoroutine(continuation.context, continuation)
             val handle = register(wrapped)
 
-//            wrapped.initParentJob(c.context[Job])
+//            wrapped.initParentJob(continuation.context[Job])
             wrapped.disposeOnCompletion(handle)
 
             val result = try {
