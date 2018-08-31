@@ -8,7 +8,7 @@ import io.ktor.client.response.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import org.junit.Test
 import java.io.*
 import java.net.*

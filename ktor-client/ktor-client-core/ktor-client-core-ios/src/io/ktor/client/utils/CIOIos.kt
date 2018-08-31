@@ -1,6 +1,6 @@
 package io.ktor.client.utils
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 
 /**
  * Ios http client use the main queue to execute request.

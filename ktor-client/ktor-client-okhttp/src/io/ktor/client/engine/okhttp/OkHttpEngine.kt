@@ -1,15 +1,13 @@
 package io.ktor.client.engine.okhttp
-
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.content.*
-import io.ktor.util.*
+import io.ktor.util.cio.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
 import okhttp3.*
-import java.io.*
 
 class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngine {
     private val engine = OkHttpClient.Builder()
@@ -38,7 +36,12 @@ class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngine {
 
         val response = engine.execute(builder.build())
 
-        return HttpEngineCall(request, OkHttpResponse(response, call, requestTime))
+        val responseContent = withContext(dispatcher) {
+            val body = response.body()
+            body?.byteStream()?.toByteReadChannel(context = dispatcher) ?: ByteReadChannel.Empty
+        }
+
+        return HttpEngineCall(request, OkHttpResponse(response, call, requestTime, responseContent))
     }
 
     override fun close() {}

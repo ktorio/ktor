@@ -1,15 +1,19 @@
 package io.ktor.network.util
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 private class TrackingContinuation<in T>(private val delegate: CancellableContinuation<T>) : CancellableContinuation<T> by delegate {
     private val suspensionPoint = Exception("Suspension point").apply {
         fillInStackTrace()
     }
 
-    override fun resumeWithException(exception: Throwable) {
-        suspensionPoint.initCause(exception)
-        delegate.resumeWithException(suspensionPoint)
+    override fun resumeWith(result: SuccessOrFailure<T>) {
+        if (result.isSuccess) delegate.resumeWith(result)
+        else {
+            suspensionPoint.initCause(result.exceptionOrNull())
+            delegate.resumeWithException(suspensionPoint)
+        }
     }
 
     override fun tryResumeWithException(exception: Throwable): Any? {

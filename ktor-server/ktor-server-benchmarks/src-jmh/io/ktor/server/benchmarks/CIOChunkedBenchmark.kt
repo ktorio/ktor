@@ -1,12 +1,12 @@
 package io.ktor.server.benchmarks
 
 import io.ktor.http.cio.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
 import org.openjdk.jmh.annotations.*
 import java.nio.ByteBuffer
 import java.util.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 @State(Scope.Benchmark)
 class CIOChunkedBenchmark {

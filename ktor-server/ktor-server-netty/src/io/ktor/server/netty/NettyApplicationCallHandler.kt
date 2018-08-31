@@ -4,8 +4,8 @@ import io.ktor.application.*
 import io.ktor.util.pipeline.*
 import io.ktor.server.engine.*
 import io.netty.channel.*
-import kotlinx.coroutines.experimental.*
-import kotlin.coroutines.experimental.*
+import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 internal class NettyApplicationCallHandler(userCoroutineContext: CoroutineContext,
                                            private val enginePipeline: EnginePipeline) : ChannelInboundHandlerAdapter() {

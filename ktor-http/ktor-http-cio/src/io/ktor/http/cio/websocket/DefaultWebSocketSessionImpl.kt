@@ -1,14 +1,14 @@
 package io.ktor.http.cio.websocket
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.io.core.*
 import kotlinx.io.pool.*
 import java.nio.*
 import java.time.*
 import java.util.concurrent.atomic.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 import kotlin.properties.*
 
 class DefaultWebSocketSessionImpl(

@@ -2,12 +2,12 @@ package io.ktor.http.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.CancellationException
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 fun lastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boolean {
     return when {

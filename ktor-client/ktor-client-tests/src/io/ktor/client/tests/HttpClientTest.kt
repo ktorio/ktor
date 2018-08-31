@@ -1,26 +1,19 @@
 package io.ktor.client.tests
 
-import io.ktor.application.call
-import io.ktor.client.HttpClient
-import io.ktor.client.call.call
-import io.ktor.client.engine.HttpClientEngineFactory
-import io.ktor.client.features.DefaultRequest
-import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.port
-import io.ktor.client.tests.utils.TestWithKtor
-import io.ktor.http.HttpMethod
-import io.ktor.http.fullPath
-import io.ktor.response.respondText
-import io.ktor.routing.get
-import io.ktor.routing.routing
-import io.ktor.server.engine.ApplicationEngine
-import io.ktor.server.engine.embeddedServer
-import io.ktor.server.netty.Netty
-import io.ktor.util.AttributeKey
-import kotlinx.coroutines.experimental.runBlocking
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import io.ktor.application.*
+import io.ktor.client.*
+import io.ktor.client.engine.*
+import io.ktor.client.features.*
+import io.ktor.client.request.*
+import io.ktor.client.tests.utils.*
+import io.ktor.http.*
+import io.ktor.response.*
+import io.ktor.routing.*
+import io.ktor.server.engine.*
+import io.ktor.server.netty.*
+import io.ktor.util.*
+import kotlinx.coroutines.*
+import kotlin.test.*
 
 open class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {

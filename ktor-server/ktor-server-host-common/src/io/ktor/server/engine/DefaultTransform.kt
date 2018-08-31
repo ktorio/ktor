@@ -8,7 +8,7 @@ import io.ktor.http.cio.*
 import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.jvm.javaio.*
 import kotlinx.io.streams.*

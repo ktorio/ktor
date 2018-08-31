@@ -1,9 +1,9 @@
 package io.ktor.util.cio
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import java.util.concurrent.*
-import kotlin.coroutines.experimental.*
-import kotlin.coroutines.experimental.intrinsics.*
+import kotlin.coroutines.*
+import kotlin.coroutines.intrinsics.*
 
 fun <T> runSync(block: suspend () -> T): T {
     val result = block.startCoroutineUninterceptedOrReturn(NoopContinuation)
@@ -19,7 +19,7 @@ fun CoroutineContext.executor(): Executor = Executor {
 }
 
 object NoopContinuation : Continuation<Any?> {
+    override fun resumeWith(result: SuccessOrFailure<Any?>) {}
+
     override val context: CoroutineContext = EmptyCoroutineContext
-    override fun resume(value: Any?) {}
-    override fun resumeWithException(exception: Throwable) {}
 }

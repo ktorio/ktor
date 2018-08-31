@@ -8,7 +8,7 @@ import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.io.core.*
 import kotlin.reflect.full.*
 

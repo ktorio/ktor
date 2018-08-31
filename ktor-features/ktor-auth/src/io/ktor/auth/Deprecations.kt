@@ -2,7 +2,7 @@ package io.ktor.auth
 
 import io.ktor.application.*
 import io.ktor.client.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import java.security.*
 
 @Deprecated("Use DSL builder form", replaceWith = ReplaceWith("basic { this.realm = realm\n validate(validate)}"))

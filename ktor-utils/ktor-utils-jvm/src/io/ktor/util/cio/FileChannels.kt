@@ -1,14 +1,14 @@
 package io.ktor.util.cio
 
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.pool.*
 import java.io.*
 import java.nio.*
 import java.nio.channels.*
 import java.nio.file.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 fun File.readChannel(
     start: Long = 0,

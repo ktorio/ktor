@@ -8,11 +8,10 @@ import io.ktor.http.*
 import io.ktor.network.util.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.ByteReadChannel.*
 import java.util.concurrent.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngine {
     private val app: TestApplicationEngine = config.app

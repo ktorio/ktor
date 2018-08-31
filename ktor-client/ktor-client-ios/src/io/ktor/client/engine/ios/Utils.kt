@@ -6,7 +6,7 @@ import platform.Foundation.*
 fun ByteArray.toNSData(): NSData = NSMutableData().apply {
     if (isEmpty()) return@apply
     this@toNSData.usePinned {
-        appendBytes(it.addressOf(0), size.toLong())
+        appendBytes(it.addressOf(0), size.toULong())
     }
 }
 

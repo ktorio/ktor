@@ -1,7 +1,7 @@
 description = "Ktor client JSON support"
 
 dependencies {
-    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-runtime-jsonparser', version: '0.6.0'
+    compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serialization_version"
 
     compile project(':ktor-client:ktor-client-core')
 }
