@@ -2,12 +2,13 @@ package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.experimental.io.ByteChannel
 import java.net.*
 import java.nio.channels.*
 import java.util.concurrent.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 // this is only suitable for tests, do not use in production
 internal fun testHttpServer(port: Int = 9096, ioCoroutineContext: CoroutineContext, callDispatcher: CoroutineContext, handler: HttpRequestHandler): Pair<Job, Deferred<ServerSocketChannel>> {

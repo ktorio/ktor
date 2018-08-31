@@ -1,7 +1,7 @@
 package io.ktor.http.content
 
-import io.ktor.util.cio.*
 import io.ktor.http.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
 

@@ -2,7 +2,6 @@ package io.ktor.client.tests
 
 import io.ktor.client.*
 import io.ktor.client.engine.*
-import io.ktor.client.features.*
 import io.ktor.client.features.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
@@ -11,7 +10,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 

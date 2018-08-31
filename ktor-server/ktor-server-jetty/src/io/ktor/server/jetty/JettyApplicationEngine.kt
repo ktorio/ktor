@@ -2,7 +2,7 @@ package io.ktor.server.jetty
 
 import io.ktor.server.engine.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import java.util.concurrent.*
 
 /**

@@ -1,7 +1,7 @@
 package io.ktor.http.cio.websocket
 
-import kotlinx.coroutines.experimental.channels.*
-import kotlin.coroutines.experimental.*
+import kotlinx.coroutines.channels.*
+import kotlin.coroutines.*
 
 interface WebSocketSession {
     /**

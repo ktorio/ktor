@@ -4,10 +4,10 @@ import io.ktor.util.cio.*
 import io.netty.channel.*
 import io.netty.util.concurrent.*
 import io.netty.util.concurrent.Future
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import java.io.*
 import java.util.concurrent.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 private val identityErrorHandler = { t: Throwable, c: Continuation<*> ->
     c.resumeWithException(t)

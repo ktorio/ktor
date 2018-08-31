@@ -6,9 +6,9 @@ import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.http.websocket.*
 import io.ktor.request.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 /**
  * An [OutgoingContent] response object that could be used to `respond()`: it will cause application engine to

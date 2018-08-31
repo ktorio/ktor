@@ -1,7 +1,7 @@
 package io.ktor.client.tests.cio
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import org.junit.Test
 import java.util.concurrent.atomic.*
 import kotlin.test.*

@@ -5,7 +5,7 @@ import io.ktor.client.request.*
 import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 
 class TestHttpClientRequest(
     override val call: HttpClientCall,

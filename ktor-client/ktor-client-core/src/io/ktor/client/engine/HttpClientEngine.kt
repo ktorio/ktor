@@ -2,7 +2,7 @@ package io.ktor.client.engine
 
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.io.core.*
 
 /**

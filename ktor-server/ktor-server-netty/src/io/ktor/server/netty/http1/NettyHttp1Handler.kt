@@ -7,8 +7,7 @@ import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.concurrent.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.ByteReadChannel.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 @ChannelHandler.Sharable
 internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,

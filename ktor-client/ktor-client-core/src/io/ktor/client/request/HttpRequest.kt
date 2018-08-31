@@ -6,7 +6,7 @@ import io.ktor.client.utils.*
 import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 
 /**
  * A request for [HttpClient], first part of [HttpClientCall].
