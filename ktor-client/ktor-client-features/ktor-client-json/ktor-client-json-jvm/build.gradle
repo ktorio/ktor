@@ -1,7 +1,7 @@
 dependencies {
     expectedBy project(':ktor-client:ktor-client-features:ktor-client-json')
 
-    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-runtime', version: '0.6.0'
+    compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version"
 
     compile project(':ktor-client:ktor-client-core:ktor-client-core-jvm')
     compile project(":ktor-client:ktor-client-core")
