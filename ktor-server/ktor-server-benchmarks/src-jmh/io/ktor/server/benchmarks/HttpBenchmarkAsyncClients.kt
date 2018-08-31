@@ -6,7 +6,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.utils.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import org.openjdk.jmh.infra.*
 import java.nio.*
 import java.util.concurrent.atomic.*

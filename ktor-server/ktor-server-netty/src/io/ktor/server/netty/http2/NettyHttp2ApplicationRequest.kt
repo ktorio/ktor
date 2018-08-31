@@ -9,8 +9,8 @@ import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.HttpMethod
 import io.netty.handler.codec.http.multipart.*
 import io.netty.handler.codec.http2.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.experimental.io.*
 import java.net.*
 
@@ -23,7 +23,9 @@ internal class NettyHttp2ApplicationRequest(
 
     override val headers: Headers by lazy { Headers.build { nettyHeaders.forEach { append(it.key.toString(), it.value.toString()) } } }
 
-    val contentActor = actor<Http2DataFrame>(Unconfined, kotlinx.coroutines.experimental.channels.Channel.UNLIMITED) {
+    val contentActor = actor<Http2DataFrame>(
+        Unconfined, kotlinx.coroutines.channels.Channel.UNLIMITED
+    ) {
         http2frameLoop(contentByteChannel)
     }
 

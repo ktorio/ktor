@@ -1,12 +1,11 @@
 package io.ktor.http.cio
 
-import io.ktor.*
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.core.*
 import kotlinx.io.core.ByteOrder
 import kotlinx.io.pool.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 private const val MAX_CHUNK_SIZE_LENGTH = 128
 private const val CHUNK_BUFFER_POOL_SIZE = 2048

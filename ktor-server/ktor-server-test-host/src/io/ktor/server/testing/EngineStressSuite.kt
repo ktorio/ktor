@@ -9,7 +9,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.tests.http.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.streams.*
 import org.junit.*
@@ -21,7 +21,7 @@ import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.*
 import kotlin.concurrent.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 import kotlin.test.*
 
 @RunWith(StressSuiteRunner::class)

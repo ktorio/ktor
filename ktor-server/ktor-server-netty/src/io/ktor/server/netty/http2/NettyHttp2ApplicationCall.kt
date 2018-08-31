@@ -4,7 +4,7 @@ import io.ktor.application.*
 import io.ktor.server.netty.*
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 internal class NettyHttp2ApplicationCall(application: Application,
                                          context: ChannelHandlerContext,

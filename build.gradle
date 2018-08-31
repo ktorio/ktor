@@ -44,7 +44,7 @@ allprojects {
     version = configuredVersion
 
     repositories {
-//        mavenLocal()
+        mavenLocal()
         maven { url 'https://dl.bintray.com/kotlin/kotlinx/' }
         maven { url kotlin_repository }
         jcenter()
@@ -82,8 +82,6 @@ allprojects {
     }
 
     tasks.build.dependsOn(['sourceJar', 'emptyJar'])
-
-    kotlin.experimental.coroutines 'enable'
 }
 
 release {

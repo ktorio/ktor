@@ -1,7 +1,7 @@
 package io.ktor.server.jetty.internal
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.pool.*
 import org.eclipse.jetty.io.*
@@ -9,8 +9,7 @@ import org.eclipse.jetty.util.*
 import java.nio.ByteBuffer
 import java.nio.channels.*
 import java.util.concurrent.atomic.*
-import kotlin.coroutines.experimental.*
-
+import kotlin.coroutines.*
 
 private const val JETTY_WEBSOCKET_POOL_SIZE = 2000
 

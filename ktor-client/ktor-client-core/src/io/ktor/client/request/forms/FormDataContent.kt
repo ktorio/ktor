@@ -2,10 +2,10 @@ package io.ktor.client.request.forms
 
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
+import kotlin.random.*
 
 /**
  * [OutgoingContent] with [formData] for application/x-www-form-urlencoded formatted request.
@@ -63,6 +63,6 @@ class MultiPartFormDataContent(
 
 private fun generateBoundary(): String = buildString {
     repeat(32) {
-        append(random().toString(16))
+        append(Random.nextInt().toString(16))
     }
 }.take(70)

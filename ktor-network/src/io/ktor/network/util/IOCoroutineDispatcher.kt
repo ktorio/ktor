@@ -1,12 +1,12 @@
 package io.ktor.network.util
 
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.internal.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.internal.*
 import kotlinx.io.core.Closeable
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
-import kotlin.coroutines.experimental.*
-import kotlin.coroutines.experimental.intrinsics.*
+import kotlin.coroutines.*
+import kotlin.coroutines.intrinsics.*
 
 class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), Closeable {
     private val dispatcherThreadGroup = ThreadGroup(ioThreadGroup, "io-pool-group-sub")
@@ -111,18 +111,19 @@ class IOCoroutineDispatcher(private val nThreads: Int) : CoroutineDispatcher(), 
             } while (true)
         }
 
-        private val awaitSuspendBlock = { c: Continuation<Unit>? ->
+        private val awaitSuspendBlock = { raw: Continuation<Unit>? ->
+            val continuation = raw?.intercepted()
             // nullable param is to avoid null check
             // we know that it is always non-null
             // and it will never crash if it is actually null
             val threadCont = ThreadCont
-            if (!threadCont.compareAndSet(this, null, c)) throw IllegalStateException("Failed to set continuation")
-            if (tasks.next !== tasks && threadCont.compareAndSet(this, c, null)) Unit
+            if (!threadCont.compareAndSet(this, null, continuation)) throw IllegalStateException("Failed to set continuation")
+            if (tasks.next !== tasks && threadCont.compareAndSet(this, continuation, null)) Unit
             else COROUTINE_SUSPENDED
         }
 
         private suspend fun waitForTasks() {
-            return suspendCoroutineOrReturn(awaitSuspendBlock)
+            return suspendCoroutineUninterceptedOrReturn(awaitSuspendBlock)
         }
 
         companion object {

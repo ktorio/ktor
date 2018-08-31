@@ -9,7 +9,7 @@ import kotlinx.coroutines.experimental.io.*
 import java.io.*
 import java.lang.reflect.*
 import javax.servlet.http.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 open class AsyncServletApplicationCall(
     application: Application,
@@ -33,7 +33,7 @@ class AsyncServletApplicationRequest(
 
     private val copyJob by lazy { servletReader(servletRequest.inputStream) }
 
-    override fun receiveChannel() = copyJob.channel
+    override fun receiveChannel(): ByteReadChannel = copyJob.channel
 }
 
 open class AsyncServletApplicationResponse(

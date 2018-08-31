@@ -1,7 +1,7 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import java.net.*
 import java.nio.channels.*
 

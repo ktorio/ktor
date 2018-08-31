@@ -2,7 +2,7 @@ package io.ktor.websocket
 
 import io.ktor.application.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import java.time.*
 
 /**

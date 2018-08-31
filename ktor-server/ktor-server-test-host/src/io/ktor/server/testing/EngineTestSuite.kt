@@ -14,7 +14,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.coroutines.experimental.io.jvm.javaio.*
 import kotlinx.io.core.*
@@ -31,7 +31,7 @@ import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 import java.util.zip.*
 import kotlin.concurrent.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 import kotlin.test.*
 
 abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(

@@ -1,8 +1,9 @@
 package io.ktor.util.cio
 
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.sync.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.sync.*
 import java.util.*
+import kotlin.coroutines.*
 
 /**
  * Asynchronous Semaphore.

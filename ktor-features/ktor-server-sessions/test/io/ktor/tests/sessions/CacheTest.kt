@@ -1,6 +1,6 @@
 package io.ktor.tests.sessions
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import io.ktor.sessions.*
 import org.junit.Test
 import java.util.concurrent.*

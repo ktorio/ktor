@@ -2,9 +2,9 @@ package io.ktor.http.content
 
 import io.ktor.http.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 /**
  * Information about the content to be sent to the peer, recognized by an [ApplicationEngine]

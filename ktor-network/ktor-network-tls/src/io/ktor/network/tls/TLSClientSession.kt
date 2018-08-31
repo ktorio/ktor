@@ -2,13 +2,13 @@ package io.ktor.network.tls
 
 import io.ktor.http.cio.internals.*
 import io.ktor.network.sockets.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.core.*
 import kotlinx.io.pool.*
 import java.nio.*
 import javax.net.ssl.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 internal class TLSClientSession(
     rawInput: ByteReadChannel,

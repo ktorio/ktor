@@ -6,9 +6,8 @@ import io.ktor.http.*
 import io.ktor.http.Headers
 import io.ktor.util.cio.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.jvm.javaio.*
 import okhttp3.*
 
 internal class OkHttpResponse(
@@ -31,7 +30,8 @@ internal class OkHttpResponse(
         override fun isEmpty(): Boolean = instance.size() == 0
     }
 
-    override val content: ByteReadChannel get() {
+    override val content: ByteReadChannel
+        get() {
         val body = response.body() ?: return ByteReadChannel.Empty
         return body.byteStream().toByteReadChannel()
     }
