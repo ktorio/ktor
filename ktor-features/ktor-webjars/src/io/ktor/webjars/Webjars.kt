@@ -17,7 +17,7 @@ import io.ktor.request.uri
 import io.ktor.response.respond
 import io.ktor.util.AttributeKey
 import io.ktor.util.cio.*
-import kotlinx.coroutines.experimental.io.ByteReadChannel
+import kotlinx.coroutines.experimental.io.*
 import org.webjars.MultipleMatchesException
 import org.webjars.WebJarAssetLocator
 import java.io.InputStream

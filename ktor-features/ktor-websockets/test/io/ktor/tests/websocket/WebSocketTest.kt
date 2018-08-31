@@ -8,8 +8,8 @@ import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.io.core.*
 import kotlinx.io.core.ByteOrder
 import org.junit.*

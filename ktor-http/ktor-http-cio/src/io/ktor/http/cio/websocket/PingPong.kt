@@ -1,9 +1,9 @@
 package io.ktor.http.cio.websocket
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
-import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.channels.Channel
 import io.ktor.util.*
 import kotlinx.io.pool.*
 import java.nio.*
@@ -11,7 +11,7 @@ import java.nio.charset.*
 import java.time.*
 import java.util.concurrent.*
 import java.util.concurrent.CancellationException
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 /**
  * Launch a ponger actor job on the [coroutineContext] for websocket [session].

@@ -1,6 +1,6 @@
 package io.ktor.network.selector
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import java.util.concurrent.atomic.*
 
 class InterestSuspensionsMap {

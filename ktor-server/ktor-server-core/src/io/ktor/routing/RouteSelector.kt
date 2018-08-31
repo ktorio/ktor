@@ -17,6 +17,31 @@ data class RouteSelectorEvaluation(val succeeded: Boolean,
                                    val segmentIncrement: Int = 0) {
     companion object {
         /**
+         * Quality of [RouteSelectorEvaluation] when a constant value has matched
+         */
+        const val qualityConstant = 1.0
+
+        /**
+         * Quality of [RouteSelectorEvaluation] when a parameter has matched
+         */
+        const val qualityParameter = 0.8
+
+        /**
+         * Quality of [RouteSelectorEvaluation] when a wildcard has matched
+         */
+        const val qualityWildcard = 0.5
+
+        /**
+         * Quality of [RouteSelectorEvaluation] when an optional parameter was missing
+         */
+        const val qualityMissing = 0.2
+
+        /**
+         * Quality of [RouteSelectorEvaluation] when a tailcard match has occurred
+         */
+        const val qualityTailcard = 0.1
+
+        /**
          * Route evaluation failed to succeed, route doesn't match a context
          */
         val Failed = RouteSelectorEvaluation(false, 0.0)
@@ -40,31 +65,6 @@ data class RouteSelectorEvaluation(val succeeded: Boolean,
          * Route evaluation succeeded for a wildcard path segment
          */
         val WildcardPath = RouteSelectorEvaluation(true, RouteSelectorEvaluation.qualityWildcard, segmentIncrement = 1)
-
-        /**
-         * Quality of [RouteSelectorEvaluation] when a constant value has matched
-         */
-        val qualityConstant = 1.0
-
-        /**
-         * Quality of [RouteSelectorEvaluation] when a parameter has matched
-         */
-        val qualityParameter = 0.8
-
-        /**
-         * Quality of [RouteSelectorEvaluation] when a wildcard has matched
-         */
-        val qualityWildcard = 0.5
-
-        /**
-         * Quality of [RouteSelectorEvaluation] when an optional parameter was missing
-         */
-        val qualityMissing = 0.2
-
-        /**
-         * Quality of [RouteSelectorEvaluation] when a tailcard match has occurred
-         */
-        val qualityTailcard = 0.1
     }
 }
 

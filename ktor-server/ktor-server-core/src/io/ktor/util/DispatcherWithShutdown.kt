@@ -1,8 +1,8 @@
 package io.ktor.util
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import java.util.concurrent.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 class DispatcherWithShutdown(delegate: CoroutineDispatcher) : CoroutineDispatcher() {
     private var delegate: CoroutineDispatcher? = delegate

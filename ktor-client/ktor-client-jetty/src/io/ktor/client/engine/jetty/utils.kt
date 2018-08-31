@@ -1,8 +1,8 @@
 package io.ktor.client.engine.jetty
 
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import org.eclipse.jetty.util.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 internal suspend fun <R> withPromise(block: (Promise<R>) -> Unit): R {
     return suspendCancellableCoroutine { continuation ->

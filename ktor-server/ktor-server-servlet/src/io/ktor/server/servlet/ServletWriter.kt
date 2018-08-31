@@ -1,14 +1,14 @@
 package io.ktor.server.servlet
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.pool.*
 import java.io.*
 import java.util.concurrent.TimeoutException
 import javax.servlet.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 internal fun servletWriter(output: ServletOutputStream, parent: CoroutineContext? = null) : ReaderJob {
     val writer = ServletWriter(output)

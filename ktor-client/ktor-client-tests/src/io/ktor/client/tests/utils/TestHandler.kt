@@ -7,7 +7,7 @@ import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
 
 internal class TestHandler(

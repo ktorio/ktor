@@ -4,10 +4,9 @@ import io.ktor.client.call.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
 import java.net.*
-import java.util.*
 
 class AndroidHttpResponse(
     override val call: HttpClientCall,

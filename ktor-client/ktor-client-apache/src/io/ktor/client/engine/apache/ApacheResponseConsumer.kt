@@ -1,8 +1,8 @@
 package io.ktor.client.engine.apache
 
 import io.ktor.client.utils.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.experimental.io.*
 import org.apache.http.*
 import org.apache.http.entity.*
@@ -10,7 +10,7 @@ import org.apache.http.nio.*
 import org.apache.http.nio.protocol.*
 import org.apache.http.protocol.*
 import java.nio.ByteBuffer
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 
 private const val MAX_QUEUE_LENGTH: Int = 65 * 1024 / DEFAULT_HTTP_BUFFER_SIZE

@@ -7,8 +7,8 @@ import io.ktor.client.utils.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import kotlinx.atomicfu.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.experimental.io.*
 import org.apache.http.*
 import org.apache.http.HttpRequest

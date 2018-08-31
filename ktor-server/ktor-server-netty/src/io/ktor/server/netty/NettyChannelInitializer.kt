@@ -14,7 +14,7 @@ import io.netty.util.concurrent.*
 import java.nio.channels.*
 import java.security.*
 import java.security.cert.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 internal class NettyChannelInitializer(
     private val enginePipeline: EnginePipeline,

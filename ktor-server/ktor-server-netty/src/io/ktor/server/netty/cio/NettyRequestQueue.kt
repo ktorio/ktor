@@ -1,8 +1,8 @@
 package io.ktor.server.netty.cio
 
 import io.ktor.server.netty.*
-import kotlinx.coroutines.experimental.channels.*
-import kotlinx.coroutines.experimental.internal.*
+import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.internal.*
 import java.util.concurrent.atomic.*
 
 internal class NettyRequestQueue(internal val readLimit: Int, internal val runningLimit: Int) {

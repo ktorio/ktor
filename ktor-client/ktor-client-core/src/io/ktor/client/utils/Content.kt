@@ -2,9 +2,9 @@ package io.ktor.client.utils
 
 import io.ktor.http.*
 import io.ktor.http.content.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 /**
  * Concrete [OutgoingContent] without a payload.

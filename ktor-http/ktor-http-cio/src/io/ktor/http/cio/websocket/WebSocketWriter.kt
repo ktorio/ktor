@@ -1,12 +1,12 @@
 package io.ktor.http.cio.websocket
 
 import io.ktor.util.cio.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.pool.*
 import java.nio.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 /**
  * Class that processes written [outgoing] Websocket [Frame],

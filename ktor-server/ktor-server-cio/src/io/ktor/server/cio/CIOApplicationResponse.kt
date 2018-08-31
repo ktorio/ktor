@@ -5,9 +5,9 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 class CIOApplicationResponse(call: CIOApplicationCall,
                              private val output: ByteWriteChannel,

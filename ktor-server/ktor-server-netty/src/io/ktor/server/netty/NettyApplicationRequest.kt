@@ -11,11 +11,11 @@ import kotlinx.coroutines.experimental.io.*
 import java.io.*
 
 abstract class NettyApplicationRequest(
-        call: ApplicationCall,
-        protected val context: ChannelHandlerContext,
-        private val requestBodyChannel: ByteReadChannel,
-        protected val uri: String,
-        internal val keepAlive: Boolean) : BaseApplicationRequest(call) {
+    call: ApplicationCall,
+    protected val context: ChannelHandlerContext,
+    private val requestBodyChannel: ByteReadChannel,
+    protected val uri: String,
+    internal val keepAlive: Boolean) : BaseApplicationRequest(call) {
 
     final override val queryParameters = object : Parameters {
         private val decoder = QueryStringDecoder(uri)
