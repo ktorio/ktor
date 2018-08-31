@@ -11,7 +11,7 @@ import io.ktor.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.testing.client.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import org.json.simple.*
 import org.junit.*
 import org.junit.Test

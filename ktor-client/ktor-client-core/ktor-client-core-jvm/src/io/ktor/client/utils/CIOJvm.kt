@@ -1,7 +1,7 @@
 package io.ktor.client.utils
 
 import io.ktor.network.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.io.pool.*
 import java.nio.*
 

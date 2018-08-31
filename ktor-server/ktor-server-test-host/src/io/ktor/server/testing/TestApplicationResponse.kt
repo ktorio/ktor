@@ -1,13 +1,13 @@
 package io.ktor.server.testing
 
-import io.ktor.util.cio.*
 import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.network.util.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
-import kotlinx.coroutines.experimental.*
+import io.ktor.util.cio.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
 import java.time.*
 import java.util.concurrent.*

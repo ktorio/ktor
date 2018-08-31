@@ -2,9 +2,9 @@ package io.ktor.server.servlet
 
 import io.ktor.http.content.*
 import io.ktor.util.cio.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import javax.servlet.http.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 interface ServletUpgrade {
     suspend fun performUpgrade(

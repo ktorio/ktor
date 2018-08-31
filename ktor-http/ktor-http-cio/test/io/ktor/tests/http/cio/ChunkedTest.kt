@@ -1,13 +1,13 @@
 package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.streams.*
 import org.junit.Test
 import java.io.*
 import java.nio.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 import kotlin.test.*
 
 class ChunkedTest {

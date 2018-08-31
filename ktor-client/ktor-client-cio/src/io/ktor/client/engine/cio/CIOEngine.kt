@@ -6,7 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.network.selector.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 

@@ -3,5 +3,5 @@ dependencies {
     expectedBy project(':ktor-client:ktor-client-features:ktor-client-json')
     implementation project(':ktor-client:ktor-client-core:ktor-client-core-ios')
 
-    implementation 'org.jetbrains.kotlinx:jsonparser-native:0.6.0'
+    implementation "org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serialization_version"
 }

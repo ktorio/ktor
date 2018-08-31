@@ -6,8 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
-import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
 
 internal suspend fun DefaultHttpRequest.write(output: ByteWriteChannel) {

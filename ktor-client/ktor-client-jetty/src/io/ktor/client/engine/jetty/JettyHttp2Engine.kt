@@ -4,7 +4,7 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import org.eclipse.jetty.http2.api.*
 import org.eclipse.jetty.http2.client.*
 import org.eclipse.jetty.util.ssl.*

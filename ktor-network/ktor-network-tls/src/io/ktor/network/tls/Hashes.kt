@@ -5,7 +5,7 @@ import kotlinx.coroutines.experimental.io.*
 import kotlinx.io.core.*
 import java.security.*
 import javax.crypto.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 internal suspend fun hashMessages(
     messages: List<ByteReadPacket>,

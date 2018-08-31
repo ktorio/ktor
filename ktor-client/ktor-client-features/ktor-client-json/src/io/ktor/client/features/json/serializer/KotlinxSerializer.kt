@@ -5,35 +5,29 @@ import io.ktor.client.features.json.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import kotlin.reflect.*
 
-typealias ReadMapper<T> = (JsonElement) -> T
-typealias WriteMapper<T> = (T) -> JsonElement
-
 class KotlinxSerializer : JsonSerializer {
-    private val readMappers = mutableMapOf<KClass<*>, ReadMapper<*>>()
-    private val writeMappers = mutableMapOf<KClass<*>, WriteMapper<*>>()
+    private val mappers = mutableMapOf<KClass<Any>, KSerializer<Any>>()
 
-    fun <T : Any> setReadMapper(type: KClass<T>, block: ReadMapper<T>) {
-        readMappers[type] = block
-    }
-
-    fun <T : Any> setWriteMapper(type: KClass<T>, block: WriteMapper<T>) {
-        writeMappers[type] = block
+    /**
+     * Set mapping from [type] to generated [KSerializer].
+     */
+    fun <T : Any> setMapper(type: KClass<T>, serializer: KSerializer<T>) {
+        mappers[type as KClass<Any>] = serializer as KSerializer<Any>
     }
 
     override fun write(data: Any): OutgoingContent {
         @Suppress("UNCHECKED_CAST")
-        val mapper = (writeMappers[data::class] as? (Any) -> JsonElement)
-            ?: error("There is no mapper for $data")
-
-        return TextContent(mapper(data).toString(), ContentType.Application.Json)
+        val content = JSON.stringify(mappers[data::class]!!, data)
+        return TextContent(content, ContentType.Application.Json)
     }
 
     override suspend fun read(type: TypeInfo, response: HttpResponse): Any {
-        val mapper = readMappers[type.type]!!
+        val mapper = mappers[type.type]!!
         val text = response.readText()
-        return mapper(JsonTreeParser(text).readFully())!!
+        return JSON.parse(mapper, text)
     }
 }

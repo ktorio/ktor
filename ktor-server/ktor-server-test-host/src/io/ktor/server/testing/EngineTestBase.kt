@@ -13,7 +13,7 @@ import io.ktor.network.tls.certificates.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import org.junit.*
 import org.junit.rules.*
 import org.junit.runners.model.*

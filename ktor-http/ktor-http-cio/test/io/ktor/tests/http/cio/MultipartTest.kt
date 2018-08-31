@@ -1,10 +1,9 @@
 package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.*
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.channels.*
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.experimental.io.*
-import kotlin.math.*
 import kotlin.test.*
 
 class MultipartTest {

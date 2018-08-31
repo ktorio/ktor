@@ -4,7 +4,7 @@ import io.ktor.network.sockets.*
 import io.ktor.network.util.*
 import kotlinx.coroutines.experimental.io.*
 import javax.net.ssl.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 suspend fun Socket.tls(
     trustManager: X509TrustManager? = null,

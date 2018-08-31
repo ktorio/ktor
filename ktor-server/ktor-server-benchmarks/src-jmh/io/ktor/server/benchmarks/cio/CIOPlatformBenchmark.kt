@@ -5,7 +5,7 @@ import io.ktor.http.cio.*
 import io.ktor.server.benchmarks.*
 import io.ktor.server.cio.*
 import io.netty.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
 
 class CIOPlatformBenchmark : PlatformBenchmark() {

@@ -1,9 +1,9 @@
 package io.ktor.network.selector
 
-import kotlinx.coroutines.experimental.*
-import kotlinx.coroutines.experimental.NonCancellable.invokeOnCompletion
+import kotlinx.coroutines.*
 import java.nio.channels.*
 import java.nio.channels.spi.*
+import kotlin.coroutines.*
 
 abstract class SelectorManagerSupport internal constructor() : SelectorManager {
     final override val provider: SelectorProvider = SelectorProvider.provider()

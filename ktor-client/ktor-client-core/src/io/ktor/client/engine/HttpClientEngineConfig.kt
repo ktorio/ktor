@@ -1,7 +1,7 @@
 package io.ktor.client.engine
 
-import io.ktor.client.response.HttpResponseConfig
-import kotlinx.coroutines.experimental.*
+import io.ktor.client.response.*
+import kotlinx.coroutines.*
 
 /**
  * Base configuration for [HttpClientEngine].

@@ -4,17 +4,16 @@ import io.ktor.client.call.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.Headers
-import io.ktor.util.cio.*
 import io.ktor.util.date.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.jvm.javaio.*
 import okhttp3.*
 
 internal class OkHttpResponse(
     private val response: Response,
     override val call: HttpClientCall,
-    override val requestTime: GMTDate
+    override val requestTime: GMTDate,
+    override val content: ByteReadChannel
 ) : HttpResponse {
     override val executionContext: Job = Job()
 
@@ -29,11 +28,6 @@ internal class OkHttpResponse(
         override fun entries(): Set<Map.Entry<String, List<String>>> = instance.toMultimap().entries
 
         override fun isEmpty(): Boolean = instance.size() == 0
-    }
-
-    override val content: ByteReadChannel get() {
-        val body = response.body() ?: return ByteReadChannel.Empty
-        return body.byteStream().toByteReadChannel()
     }
 
     override val status: HttpStatusCode = HttpStatusCode.fromValue(response.code())
