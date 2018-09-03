@@ -118,7 +118,7 @@ class HttpClient(
      * and additionally configured by the [block] parameter.
      */
     fun config(block: HttpClientConfig<*>.() -> Unit): HttpClient = HttpClient(
-        engine, useDefaultTransformers, HttpClientConfig<HttpClientEngineConfig>().apply(block)
+        engine, useDefaultTransformers, config.clone().apply(block)
     )
 
     /**
