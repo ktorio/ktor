@@ -20,3 +20,5 @@ class OkHttpBuildersTest : BuildersTest(OkHttp)
 class OkHttpFeaturesTest : FeaturesTest(OkHttp)
 
 class OkHttpConnectionTest : ConnectionTest(OkHttp)
+
+class OkHttpHttpClientTest : HttpClientTest(OkHttp)

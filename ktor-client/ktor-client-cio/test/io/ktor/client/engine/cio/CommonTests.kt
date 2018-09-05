@@ -24,3 +24,5 @@ class CIOBuildersTest : BuildersTest(CIO)
 class CIOFeaturesTest : FeaturesTest(CIO)
 
 class CIOConnectionTest : ConnectionTest(CIO)
+
+class CIOHttpClientTest : HttpClientTest(CIO)

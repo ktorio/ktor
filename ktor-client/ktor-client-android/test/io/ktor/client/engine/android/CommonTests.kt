@@ -20,3 +20,5 @@ class AndroidContentTest : ContentTest(Android)
 class AndroidRedirectTest : HttpRedirectTest(Android)
 
 class AndroidBuildersTest : BuildersTest(Android)
+
+class AndroidHttpClientTest : HttpClientTest(Android)
