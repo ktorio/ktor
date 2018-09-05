@@ -3,6 +3,7 @@ package io.ktor.client.tests
 import io.ktor.application.call
 import io.ktor.client.HttpClient
 import io.ktor.client.call.call
+import io.ktor.client.engine.HttpClientEngineFactory
 import io.ktor.client.features.DefaultRequest
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.port
@@ -21,7 +22,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class HttpClientTest : TestWithKtor() {
+open class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
     override val server: ApplicationEngine = embeddedServer(Netty, serverPort) {
         routing {
             get("/empty") {
@@ -38,7 +39,7 @@ class HttpClientTest : TestWithKtor() {
         val customFeatureKey = AttributeKey<Boolean>("customFeature")
         val anotherCustomFeatureKey = AttributeKey<Boolean>("anotherCustomFeature")
 
-        val originalClient = HttpClient(useDefaultTransformers = false) {
+        val originalClient = HttpClient(factory, useDefaultTransformers = false) {
             install(DefaultRequest) {
                 port = serverPort
                 url.path("empty")
