@@ -27,3 +27,5 @@ class ApacheBuildersTest : BuildersTest(Apache)
 class ApacheFeaturesTest : FeaturesTest(Apache)
 
 class ApacheConnectionTest : ConnectionTest(Apache)
+
+class ApacheHttpClientTest : HttpClientTest(Apache)
