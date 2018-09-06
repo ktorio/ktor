@@ -107,6 +107,9 @@ object HttpHeaders {
     val XForwardedProto = "X-Forwarded-Proto"
     val XForwardedFor = "X-Forwarded-For"
 
+    val XRequestId = "X-Request-ID"
+    val XCorrelationId = "X-Correlation-ID"
+
     fun isUnsafe(header: String): Boolean = UnsafeHeaders.any { it.equals(header, ignoreCase = true) }
 
     val UnsafeHeaders: Array<String> = arrayOf(
