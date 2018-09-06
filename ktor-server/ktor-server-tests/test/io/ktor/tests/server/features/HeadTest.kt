@@ -9,6 +9,7 @@ import io.ktor.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.experimental.io.*
 import org.junit.Test
+import java.lang.IllegalStateException
 import kotlin.test.*
 
 class HeadTest {
@@ -113,6 +114,66 @@ class HeadTest {
                 assertEquals("2", call.response.headers["M"])
                 assertEquals("2", call.response.headers["m"])
             }
+        }
+    }
+
+    @Test
+    fun testWithStatusPages() = withHeadApplication {
+        application.install(StatusPages) {
+            exception<IllegalStateException> { call.respondText("ISE: ${it.message}", status = HttpStatusCode.InternalServerError) }
+            status(HttpStatusCode.NotFound) { call.respondText("Not found", status = HttpStatusCode.NotFound) }
+        }
+
+        application.routing {
+            get("/page1") {
+                call.respondText("page1 OK")
+            }
+            get("/page2") {
+                throw IllegalStateException("page2 failed")
+            }
+        }
+
+        application.intercept(ApplicationCallPipeline.Fallback) {
+            if (call.response.status() == null) {
+                call.respond(HttpStatusCode.NotFound)
+            }
+        }
+
+        // ensure with GET
+        handleRequest(HttpMethod.Get, "/page1").let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals("page1 OK", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/page2").let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals(500, call.response.status()?.value)
+            assertEquals("ISE: page2 failed", call.response.content)
+        }
+
+        handleRequest(HttpMethod.Get, "/page3").let { call ->
+            assertEquals(404, call.response.status()?.value)
+            assertEquals("Not found", call.response.content)
+        }
+
+        // test HEAD itself
+        handleRequest(HttpMethod.Head, "/page1").let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals("page1 OK".length.toString(), call.response.headers[HttpHeaders.ContentLength])
+            assertNull(call.response.content)
+        }
+
+        handleRequest(HttpMethod.Head, "/page2").let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals(500, call.response.status()?.value)
+            assertEquals("ISE: page2 failed".length.toString(), call.response.headers[HttpHeaders.ContentLength])
+            assertNull(call.response.content)
+        }
+
+        handleRequest(HttpMethod.Head, "/page3").let { call ->
+            assertEquals(404, call.response.status()?.value)
+            assertEquals("Not found".length.toString(), call.response.headers[HttpHeaders.ContentLength])
+            assertNull(call.response.content)
         }
     }
 
