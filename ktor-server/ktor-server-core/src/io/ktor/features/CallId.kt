@@ -86,7 +86,7 @@ class CallId private constructor(
                     providers = (configuration.retrievers + configuration.generators).toTypedArray()
             )
 
-            pipeline.insertPhaseBefore(ApplicationCallPipeline.Infrastructure, phase)
+            pipeline.insertPhaseBefore(ApplicationCallPipeline.CallPreparation, phase)
 
             if (instance.providers.isEmpty()) {
                 logger.warn("CallId feature is not configured: neither retrievers nor generators were configured")

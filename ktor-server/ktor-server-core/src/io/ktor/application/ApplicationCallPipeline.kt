@@ -7,7 +7,7 @@ import io.ktor.response.*
 /**
  * Pipeline configuration for executing [ApplicationCall] instances
  */
-open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(Infrastructure, Call, Fallback) {
+open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(CallPreparation, CallLifecycle, Infrastructure, Call, Fallback) {
     /**
      * Pipeline for receiving content
      */
@@ -22,6 +22,16 @@ open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(Infrastruct
      * Standard phases for application call pipelines
      */
     companion object ApplicationPhase {
+        /**
+         * Phase for preparing call and it's attributes for processing
+         */
+        val CallPreparation = PipelinePhase("CallPreparation")
+
+        /**
+         * Phase for tracking call lifecycle, useful for logging, metrics, error handling and so on
+         */
+        val CallLifecycle = PipelinePhase("CallLifecycle")
+
         /**
          * Phase for setting up infrastructure for processing a call
          */
