@@ -132,6 +132,13 @@ fun CallId.Configuration.generate(length: Int = 64, dictionary: String = CALL_ID
     generate { Random().nextString(length, dictionaryCharacters) }
 }
 
+/**
+ * Put call id into MDC (diagnostic context value) with [name]
+ */
+fun CallLogging.Configuration.callIdMdc(name: String = "CallId") {
+    mdc(name) { it.callId }
+}
+
 private fun String.duplicates() = toCharArray().groupBy { it }.filterValues { it.size > 1 }.keys.sorted()
 private fun Random.nextString(length: Int, dictionary: CharArray): String {
     val chars = CharArray(length)

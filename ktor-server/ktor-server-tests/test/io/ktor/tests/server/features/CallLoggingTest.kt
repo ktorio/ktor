@@ -3,7 +3,11 @@ package io.ktor.tests.server.features
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.request.*
+import io.ktor.response.*
+import io.ktor.routing.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.experimental.*
 import org.junit.*
 import org.junit.Test
 import org.slf4j.*
@@ -17,9 +21,19 @@ class CallLoggingTest {
         override fun trace(message: String?) = add("TRACE: $message")
         override fun debug(message: String?) = add("DEBUG: $message")
         override fun info(message: String?) = add("INFO: $message")
+
         private fun add(message: String?) {
             if (message != null) {
-                messages.add(message)
+                val mdcText = MDC.getCopyOfContextMap()?.let { mdc ->
+                    if (mdc.isNotEmpty()) {
+                        mdc.entries.sortedBy { it.key }
+                                .joinToString(prefix = " [", postfix = "]") { "${it.key}=${it.value}"}
+                    } else {
+                        ""
+                    }
+                } ?: ""
+
+                messages.add(message + mdcText)
             }
         }
     }
@@ -123,4 +137,44 @@ class CallLoggingTest {
 
         assertTrue("DEBUG: 404 Not Found: GET - /" in messages)
     }
+
+    @Test
+    fun `can fill MDC and survive context switch`() {
+        var counter = 0
+
+        val environment = createTestEnvironment {
+            module {
+                install(CallLogging) {
+                    mdc("mdc-uri") { it.request.uri }
+                    callIdMdc("mdc-call-id")
+                }
+                install(CallId) {
+                    generate { "generated-call-id-${counter++}" }
+                }
+            }
+            log = logger
+        }
+
+        withApplication(environment) {
+            newSingleThreadContext("mdc-test-ctx").use { dispatcher ->
+                application.routing {
+                    get("/*") {
+                        withContext(dispatcher) {
+                            application.log.info("test message")
+                        }
+                        call.respond("OK")
+                    }
+                }
+
+                handleRequest(HttpMethod.Get, "/uri1").let { call ->
+                    assertTrue { call.requestHandled }
+
+                    println(messages.joinToString("\n"))
+                    assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
+                    assertTrue { "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
+                }
+            }
+        }
+    }
+
 }
