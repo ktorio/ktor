@@ -81,7 +81,7 @@ class StatusPages(config: Configuration) {
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): StatusPages {
             val configuration = Configuration().apply(configure)
             val feature = StatusPages(configuration)
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { feature.intercept(this) }
+            pipeline.intercept(ApplicationCallPipeline.CallLifecycle) { feature.intercept(this) }
             return feature
         }
     }
