@@ -1,36 +1,16 @@
 
-sourceSets {
-    main {
-        kotlin.srcDir 'src'
-        resources.srcDir 'resources'
+kotlin.sourceSets {
+    commonMain.dependencies {
+        api 'org.jetbrains.kotlin:kotlin-stdlib-common'
+        api group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-common', version: kotlin_version
+        api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-common', version: coroutines_version
+        api group: 'org.jetbrains.kotlinx', name: 'kotlinx-io', version: kotlinx_io_version
+        api group: 'org.jetbrains.kotlinx', name: 'atomicfu', version: atomic_fu_version
+
+        api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io', version: kotlinx_io_version
     }
-    test {
-        kotlin.srcDir 'test'
-        resources.srcDir 'test-resources'
+    commonTest.dependencies {
+        api "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"
+        api "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version"
     }
-}
-
-
-compileKotlinCommon {
-    kotlinOptions.freeCompilerArgs += [ experimentalAnnotations ]
-}
-
-compileTestKotlinCommon {
-    kotlinOptions.freeCompilerArgs += [ experimentalAnnotations ]
-}
-
-dependencies {
-    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-common', version: kotlin_version
-    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-common', version: coroutines_version
-
-    compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-io', version: kotlinx_io_version) {
-        exclude(module: 'kotlin-stdlib-common')
-    }
-
-    compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io', version: kotlinx_io_version) {
-        exclude(module: 'kotlin-stdlib-common')
-    }
-
-    testCompile "org.jetbrains.kotlin:kotlin-test-annotations-common:$kotlin_version"
-    testCompile "org.jetbrains.kotlin:kotlin-test-common:$kotlin_version"
 }

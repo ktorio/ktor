@@ -1,8 +1,10 @@
 
 apply plugin: 'kotlinx-serialization'
 
-dependencies {
-    compile project(':ktor-client:ktor-client-core:ktor-client-core-js')
-
-    compile project(':ktor-client:ktor-client-features:ktor-client-json:ktor-client-json-js')
+kotlin {
+    sourceSets.commonMain {
+        dependencies {
+            api project(':ktor-client:ktor-client-core')
+        }
+    }
 }

@@ -1,9 +1,25 @@
 description = "Ktor client JSON support"
 
-apply plugin: 'kotlinx-serialization'
+apply plugin: "kotlinx-serialization"
 
-dependencies {
-    compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serialization_version"
-
-    compile project(':ktor-client:ktor-client-core')
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            api "org.jetbrains.kotlinx:kotlinx-serialization-runtime-common:$serialization_version"
+            api project(':ktor-client:ktor-client-core')
+        }
+        jvmMain.dependencies {
+            api project(':ktor-client:ktor-client-tests')
+            api "org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serialization_version"
+        }
+        jsMain.dependencies {
+            api "org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:$serialization_version"
+        }
+        jsTest.dependencies {
+            api project(":ktor-client:ktor-client-js")
+        }
+        nativeMain.dependencies {
+            api "org.jetbrains.kotlinx:kotlinx-serialization-runtime-native:$serialization_version"
+        }
+    }
 }

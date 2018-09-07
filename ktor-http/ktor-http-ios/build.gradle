@@ -1,6 +1,0 @@
-
-dependencies {
-    expectedBy project(':ktor-http')
-
-    implementation project(':ktor-utils:ktor-utils-ios')
-}

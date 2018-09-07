@@ -1,88 +1,114 @@
+//task jarTest(type: Jar, dependsOn: testClasses) {
+//    from sourceSets.test.output
+//    classifier = 'test'
+//}
+//
+//test {
+//    ignoreFailures = true
+//    maxHeapSize = "2g"
+//    exclude("**/*StressTest*")
+//}
+//
+//task stressTest(type: Test, dependsOn: testClasses) {
+//    ignoreFailures = true
+//    maxHeapSize = "2g"
+//    forkEvery = 1
+//    include("**/*StressTest*")
+//    systemProperty "enable.stress.tests", "true"
+//}
+//
+//task packageSources(type: Jar) {
+//    classifier = 'sources'
+//    from sourceSets.main.allSource
+//}
+//
+//artifacts.archives packageSources
+//
+//configurations {
+//    testOutput.extendsFrom(testCompile)
+//    boot
+//}
+//
+//sourceCompatibility = 1.8
+//targetCompatibility = 1.8
+//
+//tasks.withType(JavaCompile) {
+//    options.encoding = 'UTF-8'
+//}
+//
+//dependencies {
+//    compile group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlin_version
+//    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlin_version
+//    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk7', version: kotlin_version
+//    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: kotlin_version
+//    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: coroutines_version
+//    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-jdk8', version: coroutines_version
+//
+//    compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-jvm', version: kotlinx_io_version) {
+//        exclude(module: 'kotlin-stdlib-jvm')
+//    }
+//
+//    compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-jvm', version: kotlinx_io_version) {
+//        exclude(module: 'kotlin-stdlib-jvm')
+//    }
+//
+//    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+//    compile group: 'com.typesafe', name: 'config', version: '1.3.1'
+//    testCompile group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
+//    testCompile group: 'junit', name: 'junit', version: junit_version
+//}
+//
+//jar {
+//    manifest {
+//        attributes("Implementation-Title": project.name, "Implementation-Version": configuredVersion)
+//    }
+//}
+//
+//compileKotlin {
+//    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental,io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI']
+//}
+//
+//compileTestKotlin {
+//    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental,io.ktor.util.KtorExperimentalAPI,io.ktor.util.InternalAPI']
+//}
 
-sourceSets {
-    main {
-        kotlin.srcDir 'src'
-        resources.srcDir 'resources'
+kotlin {
+    targets {
+        fromPreset(presets.jvm, 'jvm')
     }
-    test {
-        kotlin.srcDir 'test'
-        resources.srcDir 'test-resources'
-    }
-}
 
-task jarTest(type: Jar, dependsOn: testClasses) {
-    from sourceSets.test.output
-    classifier = 'test'
-}
-
-test {
-    ignoreFailures = true
-    maxHeapSize = "2g"
-    exclude("**/*StressTest*")
-}
-
-task stressTest(type: Test, dependsOn: testClasses) {
-    ignoreFailures = true
-    maxHeapSize = "2g"
-    forkEvery = 1
-    include("**/*StressTest*")
-    systemProperty "enable.stress.tests", "true"
-}
-
-task packageSources(type: Jar) {
-    classifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-artifacts.archives packageSources
-
-configurations {
-    testOutput.extendsFrom(testCompile)
-    boot
-}
-
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
-tasks.withType(JavaCompile) {
-    options.encoding = 'UTF-8'
-}
-
-dependencies {
-    compile group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlin_version
-    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlin_version
-    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk7', version: kotlin_version
-    compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: kotlin_version
-    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: coroutines_version
-    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-jdk8', version: coroutines_version
-
-    compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-jvm', version: kotlinx_io_version) {
-        exclude(module: 'kotlin-stdlib-jvm')
+    task jarTest(type: Jar, dependsOn: jvmTestClasses) {
+//    from kotlin.targets.jvm.compilations.test.output
+        classifier 'test'
     }
 
-    compile(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-jvm', version: kotlinx_io_version) {
-        exclude(module: 'kotlin-stdlib-jvm')
+    sourceSets {
+        jvmMain.dependencies {
+            api 'org.jetbrains.kotlin:kotlin-stdlib'
+            api group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: kotlin_version
+            api group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib', version: kotlin_version
+            api group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk7', version: kotlin_version
+            api group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-jdk8', version: kotlin_version
+            api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core', version: coroutines_version
+            api group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-jdk8', version: coroutines_version
+
+            api(group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-jvm', version: kotlinx_io_version)
+            api(group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-jvm', version: kotlinx_io_version)
+            api("org.jetbrains.kotlinx:atomicfu:$atomic_fu_version")
+
+            api group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+            api group: 'com.typesafe', name: 'config', version: '1.3.1'
+        }
+
+        jvmTest.dependencies {
+            api 'org.jetbrains.kotlin:kotlin-test'
+            api 'org.jetbrains.kotlin:kotlin-test-junit'
+            api "junit:junit:$junit_version"
+
+            api group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
+            api group: 'junit', name: 'junit', version: junit_version
+
+            api "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
+        }
     }
-
-    compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
-    compile group: 'com.typesafe', name: 'config', version: '1.3.1'
-    testCompile group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
-    testCompile group: 'junit', name: 'junit', version: junit_version
-}
-
-jar {
-    manifest {
-        attributes("Implementation-Title": project.name, "Implementation-Version": configuredVersion)
-    }
-}
-
-compileKotlin {
-    kotlinOptions.freeCompilerArgs += [ experimentalAnnotations ]
-    
-    // dump declarations from main JVM module for binary-compatibility-validator
-    kotlinOptions.freeCompilerArgs += ["-Xdump-declarations-to=${buildDir}/visibilities.json"]
-}
-
-compileTestKotlin {
-    kotlinOptions.freeCompilerArgs += [ experimentalAnnotations ]
 }

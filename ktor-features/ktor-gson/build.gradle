@@ -1,6 +1,16 @@
 description = ''
-dependencies {
-    compile group: 'com.google.code.gson', name: 'gson', version: gson_version
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api project(':ktor-utils')
+            }
 
-    compile project(":ktor-utils:ktor-utils-jvm")
+        }
+        jvmMain {
+            dependencies {
+                api group: 'com.google.code.gson', name: 'gson', version: gson_version
+            }
+        }
+    }
 }

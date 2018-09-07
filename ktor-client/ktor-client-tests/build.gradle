@@ -1,14 +1,19 @@
-description = "Common tests for client"
+description = 'Common tests for client'
 
-dependencies {
-    compile project(":ktor-client:ktor-client-core:ktor-client-core-jvm")
-    compile project(":ktor-server:ktor-server-jetty")
-    compile project(":ktor-server:ktor-server-netty")
-
-    runtime project(":ktor-client:ktor-client-apache")
-    runtime project(":ktor-client:ktor-client-cio")
-
-    compile group: 'ch.qos.logback', name: 'logback-classic', version: logback_version
-    compile group: 'junit', name: 'junit', version: junit_version
-    compile group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
+kotlin.sourceSets {
+    commonMain.dependencies {
+        api project(':ktor-client:ktor-client-core')
+        api project(':ktor-server:ktor-server-jetty')
+        api project(':ktor-server:ktor-server-netty')
+    }
+    jvmMain.dependencies {
+        api group: 'ch.qos.logback', name: 'logback-classic', version: logback_version
+        api group: 'junit', name: 'junit', version: junit_version
+        api group: 'org.jetbrains.kotlin', name: 'kotlin-test-junit', version: kotlin_version
+    }
+    jvmTest.dependencies {
+        runtimeOnly project(':ktor-client:ktor-client-apache')
+        runtimeOnly project(':ktor-client:ktor-client-cio')
+    }
 }
+
