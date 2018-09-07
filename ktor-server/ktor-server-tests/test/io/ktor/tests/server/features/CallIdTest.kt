@@ -40,7 +40,7 @@ class CallIdTest {
     @Test
     fun headerRetriever(): Unit = withTestApplication {
         application.install(CallId) {
-            header(HttpHeaders.XRequestId)
+            retrieveFromHeader(HttpHeaders.XRequestId)
         }
         handle {
             call.respond(call.callId.toString())
@@ -60,7 +60,7 @@ class CallIdTest {
     @Test
     fun headerRetrieverWithGenerator(): Unit = withTestApplication {
         application.install(CallId) {
-            header(HttpHeaders.XRequestId)
+            retrieveFromHeader(HttpHeaders.XRequestId)
             generate {
                 "generated-id"
             }
@@ -86,7 +86,7 @@ class CallIdTest {
         val length = 64
 
         application.install(CallId) {
-            header(HttpHeaders.XRequestId)
+            retrieveFromHeader(HttpHeaders.XRequestId)
             generate(length, dictionary)
         }
         handle {
@@ -116,7 +116,7 @@ class CallIdTest {
         val length = 64
 
         application.install(CallId) {
-            header(HttpHeaders.XRequestId)
+            retrieveFromHeader(HttpHeaders.XRequestId)
             generate(length = length)
         }
         handle {
@@ -137,6 +137,32 @@ class CallIdTest {
             assertEquals(length, generatedId.length)
             assertTrue(message = "It should be no non-dictionary characters") { generatedId.toCharArray().none { it !in dictionary } }
         }
+    }
+
+    @Test
+    fun replyToHeader(): Unit = withTestApplication {
+        application.install(CallId) {
+            header(HttpHeaders.XRequestId)
+            generate { "generated-call-id" }
+        }
+        handle {
+            call.respond(call.callId.toString())
+        }
+
+        // call id is provided by client
+        handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "client-id") }.let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals("client-id", call.response.content)
+            assertEquals("client-id", call.response.headers[HttpHeaders.XRequestId])
+        }
+
+        // call id is generated
+        handleRequest(HttpMethod.Get, "/").let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals("generated-call-id", call.response.content)
+            assertEquals("generated-call-id", call.response.headers[HttpHeaders.XRequestId])
+        }
+
     }
 
     private fun TestApplicationEngine.handle(block: PipelineInterceptor<Unit, ApplicationCall>) {
