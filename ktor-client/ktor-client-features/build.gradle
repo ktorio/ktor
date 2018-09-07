@@ -1,7 +1,13 @@
-description = "Ktor client features"
+description = 'Ktor client features'
 
 apply plugin: 'kotlinx-serialization'
 
-dependencies {
-    compile project(":ktor-client:ktor-client-core:ktor-client-core-jvm")
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api project(':ktor-client:ktor-client-core')
+            }
+        }
+    }
 }

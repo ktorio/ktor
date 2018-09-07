@@ -1,7 +1,17 @@
 description = ''
-dependencies {
-    compile project(':ktor-server:ktor-server-core')
-    compile project(':ktor-server:ktor-server-test-host')
-    testCompile project(':ktor-server:ktor-server-core')
-    testCompile project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api project(':ktor-server:ktor-server-core')
+                api project(':ktor-server:ktor-server-test-host')
+            }
+        }
+        commonTest {
+            dependencies {
+                api project(':ktor-server:ktor-server-core')
+//                api project(path: ':ktor-server:ktor-server-core', configuration: 'testOutput')
+            }
+        }
+    }
 }

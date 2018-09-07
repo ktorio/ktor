@@ -1,8 +1,17 @@
-description = "Apache backend for ktor http client"
+description = 'Apache backend for ktor http client'
 
-dependencies {
-    compile project(":ktor-client:ktor-client-core:ktor-client-core-jvm")
-    compile group: "org.apache.httpcomponents", "name": "httpasyncclient", version: "4.1.3"
-
-    testCompile project(":ktor-client:ktor-client-tests")
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api project(':ktor-client:ktor-client-core')
+                api group: 'org.apache.httpcomponents', name: 'httpasyncclient', version: '4.1.3'
+            }
+        }
+        commonTest {
+            dependencies {
+                api project(':ktor-client:ktor-client-tests')
+            }
+        }
+    }
 }

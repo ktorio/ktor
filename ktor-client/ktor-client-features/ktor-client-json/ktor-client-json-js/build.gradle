@@ -1,8 +1,0 @@
-apply plugin: 'kotlinx-serialization'
-
-dependencies {
-    expectedBy project(':ktor-client:ktor-client-features:ktor-client-json')
-
-    compile project(':ktor-client:ktor-client-core:ktor-client-core-js')
-    compile "org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:$serialization_version"
-}

@@ -1,13 +1,33 @@
 description = ''
-dependencies {
-    compile project(':ktor-server:ktor-server-host-common')
-    compile group: 'io.netty', name: 'netty-codec-http2', version: netty_version
-    compile group: 'org.eclipse.jetty.alpn', name: 'alpn-api', version: jetty_alpn_api_version
-    testCompile project(':ktor-server:ktor-server-test-host')
-    testCompile project(':ktor-server:ktor-server-core')
-    testCompile group: 'io.netty', name: 'netty-tcnative', version: netty_tcnative_version
-    testCompile group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: netty_tcnative_version
+
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api project(':ktor-server:ktor-server-host-common')
+            }
+        }
+        commonTest {
+            dependencies {
+                api project(':ktor-server:ktor-server-test-host')
+                api project(':ktor-server:ktor-server-core')
+            }
+        }
+        jvmMain {
+            dependencies {
+                api group: 'io.netty', name: 'netty-codec-http2', version: netty_version
+                api group: 'org.eclipse.jetty.alpn', name: 'alpn-api', version: jetty_alpn_api_version
+            }
+        }
+        jvmTest {
+            dependencies {
+                api group: 'io.netty', name: 'netty-tcnative', version: netty_tcnative_version
+                api group: 'io.netty', name: 'netty-tcnative-boringssl-static', version: netty_tcnative_version
+            }
+        }
+    }
 }
+
 
 def enableAlpnProp = project.hasProperty('enableAlpn')
 if (enableAlpnProp) {
