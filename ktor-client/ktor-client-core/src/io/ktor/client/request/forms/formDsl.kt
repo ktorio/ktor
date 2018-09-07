@@ -53,5 +53,12 @@ class FormBuilder {
         append(FormPart(key, buildPacket { block() }, headers))
     }
 
+    fun append(key: String, filename: String, block: BytePacketBuilder.() -> Unit) {
+        val filenameHeader: Headers = headersOf(
+            HttpHeaders.ContentDisposition, "filename=$filename"
+        )
+        append(key, filenameHeader, block)
+    }
+
     internal fun build(): List<FormPart<*>> = parts
 }
