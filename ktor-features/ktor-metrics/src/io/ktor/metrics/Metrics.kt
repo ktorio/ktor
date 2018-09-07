@@ -37,7 +37,7 @@ class Metrics(val registry: MetricRegistry) {
             configuration.registry.register("jvm.attributes", JvmAttributeGaugeSet())
 
             val phase = PipelinePhase("Metrics")
-            pipeline.insertPhaseBefore(ApplicationCallPipeline.CallLifecycle, phase)
+            pipeline.insertPhaseBefore(ApplicationCallPipeline.Monitoring, phase)
             pipeline.intercept(phase) {
                 feature.before(call)
                 try {

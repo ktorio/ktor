@@ -98,7 +98,7 @@ class CallLogging private constructor(private val log: Logger,
                     configuration.mdcEntries.toList()
             )
 
-            pipeline.insertPhaseBefore(ApplicationCallPipeline.CallLifecycle, loggingPhase)
+            pipeline.insertPhaseBefore(ApplicationCallPipeline.Monitoring, loggingPhase)
 
             if (feature.mdcEntries.isNotEmpty()) {
                 pipeline.intercept(loggingPhase) {

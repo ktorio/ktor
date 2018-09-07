@@ -45,7 +45,7 @@ class PartialContent(private val maxRangeCount: Int) {
 
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): PartialContent {
             val feature = PartialContent(Configuration().apply(configure).maxRangeCount)
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { feature.intercept(this) }
+            pipeline.intercept(ApplicationCallPipeline.Features) { feature.intercept(this) }
             return feature
         }
     }
