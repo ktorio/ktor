@@ -52,6 +52,9 @@ open class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWi
             }
             post("/upload") {
                 val parts = call.receiveMultipart().readAllParts()
+                parts.forEach { part ->
+                    assertEquals(part.contentDisposition?.disposition, "form-data")
+                }
                 call.respondText(parts.makeString())
             }
         }
@@ -164,12 +167,17 @@ open class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWi
                 append("content") {
                     writeStringUtf8("123456789")
                 }
+                append("file", "urlencoded_name.jpg") {
+                    for (i in 1..4096) {
+                        writeByte(i.toByte())
+                    }
+                }
                 append("hello", 5)
             }
         }
 
         test { client ->
-            val response = client.submitFormWithBinaryData<String>(path = "upload", port = serverPort, formData =  data())
+            val response = client.submitFormWithBinaryData<String>(path = "upload", port = serverPort, formData = data())
             val contentString = data().makeString()
             assertEquals(contentString, response)
         }
@@ -183,14 +191,22 @@ open class ContentTest(private val factory: HttpClientEngineFactory<*>) : TestWi
         }
     }
 
+    private fun filenameAndContentString(provider: () -> Input, headers: Headers): String {
+        val dispHeader: String = headers.getAll(HttpHeaders.ContentDisposition)!!.joinToString(";")
+        val disposition: ContentDisposition = ContentDisposition.parse(dispHeader)
+        val filename: String = disposition.parameter("filename") ?: ""
+        val content: String = provider().readText(Charsets.ISO_8859_1)
+        return "$filename$content"
+    }
+
     private fun List<PartData>.makeString(): String = buildString {
         val list = this@makeString
         list.forEach {
             appendln(it.name!!)
             val content = when (it) {
-                is PartData.FileItem -> it.provider().readText()
+                is PartData.FileItem -> filenameAndContentString(it.provider, it.headers)
                 is PartData.FormItem -> it.value
-                is PartData.BinaryItem -> it.provider().readText()
+                is PartData.BinaryItem -> filenameAndContentString(it.provider, it.headers)
             }
 
             appendln(content)
