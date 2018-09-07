@@ -1,6 +1,7 @@
 description = ''
-dependencies {
-    compile project(':ktor-server:ktor-server-host-common')
-    compile project(':ktor-http:ktor-http-cio')
+kotlin.sourceSets.jvmMain.dependencies {
+    api project(':ktor-server:ktor-server-host-common')
+    api project(':ktor-http:ktor-http-cio')
+
     compileOnly group: 'javax.servlet', name: 'javax.servlet-api', version: '4.0.0-b07'
 }

@@ -1,6 +1,7 @@
-ext.experimentalAnnotations = "-Xuse-experimental=" +
-    "kotlin.Experimental," +
-    "io.ktor.util.KtorExperimentalAPI," +
-    "io.ktor.util.InternalAPI," +
-    "kotlinx.coroutines.ExperimentalCoroutinesApi," +
+ext.experimentalAnnotations = [
+    "kotlin.Experimental",
+    "io.ktor.util.KtorExperimentalAPI",
+    "io.ktor.util.InternalAPI",
+    "kotlinx.coroutines.ExperimentalCoroutinesApi",
     "kotlinx.io.core.ExperimentalIoApi"
+]

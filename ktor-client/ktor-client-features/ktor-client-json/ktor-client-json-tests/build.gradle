@@ -1,22 +1,16 @@
-buildscript {
-    repositories {
-        maven { url "https://kotlin.bintray.com/kotlin-eap" }
-        maven { url "https://kotlin.bintray.com/kotlin-dev" }
-    }
-
-    dependencies {
-        classpath "org.jetbrains.kotlin:kotlin-serialization:$kotlin_version"
-    }
-}
-
+description = 'Common tests for client-json'
 apply plugin: 'kotlinx-serialization'
 
-description = 'Common tests for client-json'
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api project(":ktor-client:ktor-client-features:ktor-client-json")
 
-dependencies {
-    compile project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-json-jvm")
-
-    compile project(':ktor-client:ktor-client-cio')
-    compile project(':ktor-client:ktor-client-tests')
-    compile project(':ktor-features:ktor-gson')
+                api project(':ktor-client:ktor-client-cio')
+                api project(':ktor-client:ktor-client-tests')
+                api project(':ktor-features:ktor-gson')
+            }
+        }
+    }
 }

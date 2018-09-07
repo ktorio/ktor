@@ -1,5 +1,6 @@
 description = ''
-dependencies {
-    compile project(':ktor-http:ktor-http-jvm')
-    compile project(':ktor-network')
+
+kotlin.sourceSets.commonMain.dependencies {
+    api project(':ktor-http')
+    api project(':ktor-network')
 }

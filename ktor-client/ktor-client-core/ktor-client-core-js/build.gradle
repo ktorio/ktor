@@ -1,7 +1,0 @@
-
-dependencies {
-    expectedBy project(':ktor-client:ktor-client-core')
-
-    compile project(':ktor-http:ktor-http-js')
-    compile project(":ktor-utils:ktor-utils-js")
-}

@@ -1,4 +1,0 @@
-
-dependencies {
-    compile "org.jetbrains.kotlinx:atomicfu-common:$atomic_fu_version"
-}

@@ -1,4 +1,10 @@
 description = ''
-dependencies {
-    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-html-jvm', version: '0.6.11'
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api group: 'org.jetbrains.kotlinx', name: 'kotlinx-html-jvm', version: '0.6.11'
+            }
+        }
+    }
 }

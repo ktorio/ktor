@@ -1,10 +1,14 @@
 description = ''
-dependencies {
-    compile project(':ktor-server:ktor-server-host-common')
-    compile project(':ktor-http:ktor-http-cio')
-    compile project(':ktor-network')
 
-    testCompile project(':ktor-server:ktor-server-test-host')
-    testCompile project(':ktor-server:ktor-server-core')
-    testCompile project(':ktor-client:ktor-client-cio')
+kotlin.sourceSets {
+    jvmMain.dependencies {
+        api project(':ktor-server:ktor-server-host-common')
+        api project(':ktor-http:ktor-http-cio')
+        api project(':ktor-network')
+    }
+    jvmTest.dependencies {
+        api project(':ktor-server:ktor-server-test-host')
+        api project(':ktor-server:ktor-server-core')
+        api project(':ktor-client:ktor-client-cio')
+    }
 }
