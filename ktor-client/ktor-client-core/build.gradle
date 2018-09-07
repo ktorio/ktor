@@ -1,6 +1,17 @@
-description = "Ktor http client"
+description = 'Ktor http client'
 
-dependencies {
-    compile project(":ktor-http")
-    compile project(":ktor-utils")
+kotlin {
+    sourceSets {
+        commonMain.dependencies {
+            api project(':ktor-http')
+            api project(':ktor-utils')
+        }
+        jvmMain.dependencies {
+            api project(':ktor-network')
+        }
+        jvmTest.dependencies {
+            api project(':ktor-client:ktor-client-mock')
+            api project(':ktor-client:ktor-client-tests')
+        }
+    }
 }

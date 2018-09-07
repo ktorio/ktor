@@ -1,5 +1,10 @@
-
-dependencies {
-    compile project(":ktor-http:ktor-http-cio")
-    compile project(":ktor-client:ktor-client-core:ktor-client-core-jvm")
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api project(':ktor-http:ktor-http-cio')
+                api project(':ktor-client:ktor-client-core')
+            }
+        }
+    }
 }

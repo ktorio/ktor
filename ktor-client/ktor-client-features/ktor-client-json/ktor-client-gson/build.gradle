@@ -1,9 +1,21 @@
-dependencies {
-    compile project(":ktor-client:ktor-client-features:ktor-client-json:ktor-client-json-jvm")
-
-    compile group: 'com.google.code.gson', name: 'gson', version: gson_version
-
-    testCompile project(':ktor-client:ktor-client-cio')
-    testCompile project(':ktor-client:ktor-client-features:ktor-client-json:ktor-client-json-tests')
-    testCompile project(':ktor-features:ktor-gson')
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api project(':ktor-client:ktor-client-features:ktor-client-json')
+            }
+        }
+        jvmMain {
+            dependencies {
+                api group: 'com.google.code.gson', name: 'gson', version: gson_version
+            }
+        }
+        commonTest {
+            dependencies {
+                api project(':ktor-client:ktor-client-cio')
+                api project(':ktor-client:ktor-client-features:ktor-client-json:ktor-client-json-tests')
+                api project(':ktor-features:ktor-gson')
+            }
+        }
+    }
 }

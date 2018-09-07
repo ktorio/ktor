@@ -1,7 +1,0 @@
-
-apply plugin: 'kotlinx-atomicfu'
-
-dependencies {
-    compileOnly "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
-    testCompile "org.jetbrains.kotlinx:atomicfu:$atomic_fu_version"
-}

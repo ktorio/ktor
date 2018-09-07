@@ -1,4 +1,0 @@
-
-dependencies {
-    expectedBy project(':ktor-utils')
-}

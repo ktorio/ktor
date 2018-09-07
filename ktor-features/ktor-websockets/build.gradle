@@ -1,9 +1,18 @@
 description = ''
-dependencies {
-    compile project(':ktor-http:ktor-http-cio')
-
-    testCompile project(':ktor-server:ktor-server-jetty')
-    testCompile project(':ktor-server:ktor-server-netty')
-    testCompile project(':ktor-server:ktor-server-tomcat')
-    testCompile project(':ktor-server:ktor-server-cio')
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api project(':ktor-http:ktor-http-cio')
+            }
+        }
+        commonTest {
+            dependencies {
+                api project(':ktor-server:ktor-server-jetty')
+                api project(':ktor-server:ktor-server-netty')
+                api project(':ktor-server:ktor-server-tomcat')
+                api project(':ktor-server:ktor-server-cio')
+            }
+        }
+    }
 }

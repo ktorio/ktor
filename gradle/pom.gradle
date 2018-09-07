@@ -1,0 +1,29 @@
+def pomConfig = {
+    licenses {
+        license {
+            name "The Apache Software License, Version 2.0"
+            url "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            distribution "repo"
+        }
+    }
+    developers {
+        developer {
+            id "JetBrains"
+            name "JetBrains Team"
+            organization "JetBrains"
+            organizationUrl "http://www.jetbrains.com"
+        }
+    }
+
+    scm {
+        url "https://github.com/ktorio/ktor.git"
+    }
+}
+
+project.ext.configureMavenCentralMetadata = { pom ->
+    def root = asNode()
+    root.appendNode('name', project.name)
+    root.appendNode('description', 'Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.')
+    root.appendNode('url', 'https://github.com/ktorio/ktor')
+    root.children().last() + pomConfig
+}

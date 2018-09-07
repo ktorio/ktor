@@ -1,9 +1,18 @@
-description = "CIO backend for ktor http client"
+description = 'CIO backend for ktor http client'
 
-dependencies {
-    compile project(":ktor-client:ktor-client-core:ktor-client-core-jvm")
-    compile project(":ktor-http:ktor-http-cio")
-    compile project(":ktor-network:ktor-network-tls")
-
-    testCompile project(":ktor-client:ktor-client-tests")
+kotlin {
+    sourceSets {
+        commonMain {
+            dependencies {
+                api project(':ktor-client:ktor-client-core')
+                api project(':ktor-http:ktor-http-cio')
+                api project(':ktor-network:ktor-network-tls')
+            }
+        }
+        commonTest {
+            dependencies {
+                api project(':ktor-client:ktor-client-tests')
+            }
+        }
+    }
 }
