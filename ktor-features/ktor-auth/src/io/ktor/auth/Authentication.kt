@@ -78,7 +78,7 @@ class Authentication(config: Configuration) {
             }
         }
 
-        pipeline.insertPhaseAfter(ApplicationCallPipeline.Infrastructure, authenticationPhase)
+        pipeline.insertPhaseAfter(ApplicationCallPipeline.Features, authenticationPhase)
         pipeline.insertPhaseAfter(authenticationPhase, challengePhase)
 
         pipeline.intercept(authenticationPhase) {

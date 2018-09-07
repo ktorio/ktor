@@ -26,7 +26,7 @@ class Sessions(val providers: List<SessionProvider>) {
 
             // For each call, call each provider and retrieve session data if needed.
             // Capture data in the attribute's value
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
+            pipeline.intercept(ApplicationCallPipeline.Features) {
                 val providerData = sessions.providers.associateBy({ it.name }) {
                     val receivedValue = it.transport.receive(call)
                     val unwrapped = it.tracker.load(call, receivedValue)

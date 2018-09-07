@@ -79,7 +79,7 @@ class DefaultHeaders(config: Configuration) {
             }
 
             val feature = DefaultHeaders(config)
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { feature.intercept(call) }
+            pipeline.intercept(ApplicationCallPipeline.Features) { feature.intercept(call) }
             return feature
         }
     }

@@ -79,7 +79,7 @@ class Webjars(val configuration: Configuration) {
 
             val feature = Webjars(configuration)
 
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
+            pipeline.intercept(ApplicationCallPipeline.Features) {
                 feature.intercept(this)
             }
             return feature

@@ -164,7 +164,7 @@ class RoutingProcessingTest {
             }
 
             route("user") {
-                intercept(ApplicationCallPipeline.Infrastructure) {
+                intercept(ApplicationCallPipeline.Features) {
                     userIntercepted = true
                     routingInterceptorWrapped = wrappedWithInterceptor
                 }
@@ -194,7 +194,7 @@ class RoutingProcessingTest {
         var routingInterceptorWrapped = false
 
         application.routing {
-            intercept(ApplicationCallPipeline.Infrastructure) {
+            intercept(ApplicationCallPipeline.Features) {
                 wrappedWithInterceptor = true
                 rootIntercepted = true
                 proceed()
@@ -232,7 +232,7 @@ class RoutingProcessingTest {
         var routingInterceptorWrapped = false
 
         application.routing {
-            intercept(ApplicationCallPipeline.Infrastructure) {
+            intercept(ApplicationCallPipeline.Features) {
                 wrappedWithInterceptor = true
                 rootIntercepted = true
                 proceed()
@@ -240,7 +240,7 @@ class RoutingProcessingTest {
             }
 
             route("user") {
-                intercept(ApplicationCallPipeline.Infrastructure) {
+                intercept(ApplicationCallPipeline.Features) {
                     userIntercepted = true
                     routingInterceptorWrapped = wrappedWithInterceptor
                 }
