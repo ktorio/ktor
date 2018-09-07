@@ -55,7 +55,7 @@ class ContentNegotiation(val registrations: List<ConverterRegistration>) {
             val feature = ContentNegotiation(configuration.registrations)
 
             // Respond with "415 Unsupported Media Type" if content cannot be transformed on receive
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
+            pipeline.intercept(ApplicationCallPipeline.Features) {
                 try {
                     proceed()
                 } catch (e: UnsupportedMediaTypeException) {

@@ -222,7 +222,7 @@ class StaticContentTest {
 
     @Test
     fun testInterceptCacheControl() = withTestApplication {
-        application.intercept(ApplicationCallPipeline.Infrastructure) {
+        application.intercept(ApplicationCallPipeline.Features) {
             if (call.request.httpMethod == HttpMethod.Get ||
                     call.request.httpMethod == HttpMethod.Head) {
                 call.response.cacheControl(CacheControl.MaxAge(300))

@@ -15,7 +15,7 @@ object AutoHeadResponse : ApplicationFeature<ApplicationCallPipeline, Unit, Unit
     override fun install(pipeline: ApplicationCallPipeline, configure: Unit.() -> Unit) {
         Unit.configure()
 
-        pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
+        pipeline.intercept(ApplicationCallPipeline.Features) {
             if (call.request.local.method == HttpMethod.Head) {
                 call.response.pipeline.insertPhaseBefore(ApplicationSendPipeline.TransferEncoding, HeadPhase)
                 call.response.pipeline.intercept(HeadPhase) { message ->
