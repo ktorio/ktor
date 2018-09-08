@@ -1,6 +1,7 @@
 package io.ktor.tests.http
 
 import io.ktor.http.*
+import io.ktor.util.random
 import kotlin.test.*
 
 class UrlTest {
@@ -92,9 +93,11 @@ class UrlTest {
 
     @Test
     fun testEncoding() {
-        val urlBuilder = { URLBuilder("http://httpbin.org/response-headers").apply {
-            parameters.append("message", "foo%bar")
-        } }
+        val urlBuilder = {
+            URLBuilder("http://httpbin.org/response-headers").apply {
+                parameters.append("message", "foo%bar")
+            }
+        }
 
         val url = urlBuilder().build()
 
@@ -123,5 +126,22 @@ class UrlTest {
             assertEquals("", encodedPath)
             assertEquals("https://www.test.com/?test=ok&authtoken=testToken", url.toString())
         }
+    }
+
+    @Test
+    fun testPortRange() {
+        fun testPort(n: Int) {
+            assertEquals(n, Url(URLProtocol.HTTP, "localhost", n, "/", parametersOf(), "", null, null, false).port)
+        }
+
+        // smallest port value
+        testPort(0)
+        // largest port value 2^16
+        testPort(65535)
+
+        // Test a random port in the range
+        testPort(random(65535).coerceAtLeast(0))
+
+        assertFails { testPort(-2) }
     }
 }

@@ -5,7 +5,7 @@ import java.net.*
 import kotlin.test.*
 
 
-class URLBuilderTest {
+class URLBuilderJvmTest {
     private val urlString = "http://localhost:8080/path"
 
     @Test

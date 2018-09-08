@@ -1,11 +1,11 @@
 package io.ktor.http
 
-import kotlin.properties.Delegates.observable
+const val UNKNOWN_PORT = 0
 
 class URLBuilder(
-    protocol: URLProtocol = URLProtocol.HTTP,
+    var protocol: URLProtocol = URLProtocol.HTTP,
     var host: String = "localhost",
-    var port: Int = protocol.defaultPort,
+    var port: Int = UNKNOWN_PORT,
     var user: String? = null,
     var password: String? = null,
     var encodedPath: String = "/",
@@ -13,9 +13,7 @@ class URLBuilder(
     var fragment: String = "",
     var trailingQuery: Boolean = false
 ) {
-    var protocol: URLProtocol by observable(protocol) { _, _, value ->
-        port = value.defaultPort
-    }
+    private inline val portOrProtocolPort get() = port.takeUnless { it == UNKNOWN_PORT } ?: protocol.defaultPort
 
     fun path(vararg components: String) {
         path(components.asList())
@@ -38,7 +36,7 @@ class URLBuilder(
         }
         out.append(host)
 
-        if (port != protocol.defaultPort) {
+        if (port != UNKNOWN_PORT && port != protocol.defaultPort) {
             out.append(":")
             out.append(port.toString())
         }
@@ -57,7 +55,7 @@ class URLBuilder(
     fun buildString(): String = appendTo(StringBuilder(256)).toString()
 
     fun build(): Url = Url(
-        protocol, host, port, encodedPath, parameters.build(), fragment, user, password, trailingQuery
+        protocol, host, portOrProtocolPort, encodedPath, parameters.build(), fragment, user, password, trailingQuery
     )
 
     // Required to write external extension function
@@ -77,6 +75,10 @@ data class Url(
     val password: String?,
     val trailingQuery: Boolean
 ) {
+    init {
+        require(port in 1..65536 || port == UNKNOWN_PORT) { "port must be between 1 and 65536, or $UNKNOWN_PORT if not set" }
+    }
+
     override fun toString(): String = buildString {
         append(protocol.name)
         append("://")
@@ -88,7 +90,7 @@ data class Url(
             }
             append('@')
         }
-        if (port == protocol.defaultPort) {
+        if (port == UNKNOWN_PORT || port == protocol.defaultPort) {
             append(host)
         } else {
             append(hostWithPort)
