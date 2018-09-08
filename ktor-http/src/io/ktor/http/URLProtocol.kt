@@ -16,7 +16,7 @@ data class URLProtocol(val name: String, val defaultPort: Int) {
         val byName = listOf(HTTP, HTTPS, WS, WSS).associateBy { it.name }
 
         fun createOrDefault(name: String): URLProtocol = name.toLowerCase().let {
-            byName[it] ?: URLProtocol(it, -1)
+            byName[it] ?: URLProtocol(it, UNKNOWN_PORT)
         }
     }
 }
