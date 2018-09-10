@@ -82,6 +82,7 @@ class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientE
             nativeRequest.setValue(value, key)
         }
 
+        nativeRequest.setCachePolicy(NSURLRequestReloadIgnoringCacheData)
         nativeRequest.setHTTPMethod(request.method.value)
 
         launch(dispatcher) {
