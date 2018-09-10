@@ -82,7 +82,7 @@ class CallIdTest {
 
     @Test
     fun headerRetrieverWithTextGenerator(): Unit = withTestApplication {
-        val dictionary = "ABC"
+        val dictionary = "abc"
         val length = 64
 
         application.install(CallId) {
@@ -163,6 +163,80 @@ class CallIdTest {
             assertEquals("generated-call-id", call.response.headers[HttpHeaders.XRequestId])
         }
 
+    }
+
+    @Test
+    fun testDefaultVerifierForRetrieve(): Unit = withTestApplication {
+        application.install(CallId) {
+            header(HttpHeaders.XRequestId)
+        }
+        handle {
+            call.respond(call.callId.toString())
+        }
+
+        // valid call id
+        handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, CALL_ID_DEFAULT_DICTIONARY) }.let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals(CALL_ID_DEFAULT_DICTIONARY, call.response.content)
+            assertEquals(CALL_ID_DEFAULT_DICTIONARY, call.response.headers[HttpHeaders.XRequestId])
+        }
+
+        // invalid call id
+        handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "\u0000")}.let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals("null", call.response.content)
+        }
+    }
+
+    @Test
+    fun testDefaultVerifierForGenerate(): Unit = withTestApplication {
+        application.install(CallId) {
+            generate { if (it.request.uri == "/valid") CALL_ID_DEFAULT_DICTIONARY else "\u0000" }
+        }
+        handle {
+            call.respond(call.callId.toString())
+        }
+
+        // valid call id
+        handleRequest(HttpMethod.Get, "/valid").let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals(CALL_ID_DEFAULT_DICTIONARY, call.response.content)
+        }
+
+        // invalid call id
+        handleRequest(HttpMethod.Get, "/invalid").let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals("null", call.response.content)
+        }
+    }
+
+    @Test
+    fun testCustomVerifier(): Unit = withTestApplication {
+        application.install(CallId) {
+            header(HttpHeaders.XRequestId)
+            verify { if (it.length < 3) throw RejectedCallIdException(it); it.length > 4 }
+        }
+        handle {
+            call.respond(call.callId.toString())
+        }
+
+        // valid call id
+        handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "12345") }.let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals("12345", call.response.content)
+        }
+
+        // invalid call id that should be ignored
+        handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "123") }.let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals("null", call.response.content)
+        }
+
+        // invalid call id that should be rejected with error
+        handleRequest(HttpMethod.Get, "/") { addHeader(HttpHeaders.XRequestId, "1") }.let { call ->
+            assertTrue { call.requestHandled }
+            assertEquals(HttpStatusCode.BadRequest.value, call.response.status()?.value)
+        }
     }
 
     private fun TestApplicationEngine.handle(block: PipelineInterceptor<Unit, ApplicationCall>) {
