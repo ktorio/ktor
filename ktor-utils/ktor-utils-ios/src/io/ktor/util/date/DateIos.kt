@@ -47,7 +47,7 @@ actual fun GMTDate(
         tm_isdst = 0
     }
 
-    val timestamp: Long = mktime(dateInfo.ptr)
+    val timestamp: Long = timegm(dateInfo.ptr)
 
     return GMTDate(timestamp)
 }
