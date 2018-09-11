@@ -49,5 +49,5 @@ actual fun GMTDate(
 
     val timestamp: Long = timegm(dateInfo.ptr)
 
-    return GMTDate(timestamp)
+    return GMTDate(timestamp * 1000)
 }
