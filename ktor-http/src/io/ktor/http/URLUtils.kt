@@ -73,7 +73,7 @@ val Url.fullPath: String
     get() {
         val parameters = when {
             parameters.isEmpty() && trailingQuery -> "?"
-            !parameters.isEmpty() -> "?${parameters.formUrlEncode().decodeURLPart()}" // TODO: make it clean
+            !parameters.isEmpty() -> "?${parameters.formUrlEncode()}"
             else -> ""
         }
         val result = "$encodedPath$parameters".trim()
