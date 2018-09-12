@@ -22,3 +22,11 @@ dependencies {
     implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-io-native', version: kotlinx_io_version
     implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-io-native', version: kotlinx_io_version
 }
+
+if (project.hasProperty("teamcity")) {
+    afterEvaluate {
+        tasks.withType(Class.forName("org.gradle.nativeplatform.test.tasks.RunTestExecutable_Decorated")) {
+            args '--ktest_logger=TEAMCITY'
+        }
+    }
+}

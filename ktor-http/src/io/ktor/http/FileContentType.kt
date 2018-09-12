@@ -34,10 +34,6 @@ fun ContentType.fileExtensions() = extensionsByContentType[this]
     ?: extensionsByContentType[this.withoutParameters()]
     ?: emptyList()
 
-internal expect fun loadMimes(): List<Pair<String, ContentType>>
-
-private val mimes: List<Pair<String, ContentType>> = loadMimes()
-
 private val contentTypesByExtensions: Map<String, List<ContentType>> =
     caseInsensitiveMap<List<ContentType>>().apply { putAll(mimes.asSequence().groupByPairs()) }
 

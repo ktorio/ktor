@@ -1,3 +1,7 @@
+package io.ktor.http
+
+private val rawMimes: String
+    get() = """
 .123,application/vnd.lotus-1-2-3
 .3dmf,x-world/x-3dmf
 .3dml,text/vnd.in3d.3dml
@@ -486,7 +490,7 @@
 .mbk,application/vnd.mobius.mbk
 .mbox,application/mbox
 .mc1,application/vnd.medcalcdata
-.mc$,application/x-magic-cap-package-1.0
+.mc${'$'},application/x-magic-cap-package-1.0
 .mcd,application/mcad
 .mcd,application/vnd.mcd
 .mcd,application/x-mathcad
@@ -1199,3 +1203,19 @@ N/A,application/andrew-inset
 .zmm,application/vnd.handheld-entertainment+xml
 .zoo,application/octet-stream
 .zsh,text/x-script.zsh
+"""
+
+internal fun loadMimes(): List<Pair<String, ContentType>> {
+    return rawMimes.lineSequence().mapNotNull {
+        val line = it.trim()
+        if (line.isEmpty()) return@mapNotNull null
+
+        val index = line.indexOf(',')
+        val extension = line.substring(0, index)
+        val mime = line.substring(index + 1)
+
+        extension.removePrefix(".").toLowerCase() to mime.toContentType()
+    }.toList()
+}
+
+internal val mimes: List<Pair<String, ContentType>> get() = loadMimes()
