@@ -49,7 +49,7 @@ class HSTS(config: Configuration) {
         override val key = AttributeKey<HSTS>("HSTS")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): HSTS {
             val feature = HSTS(Configuration().apply(configure))
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { feature.intercept(call) }
+            pipeline.intercept(ApplicationCallPipeline.Features) { feature.intercept(call) }
             return feature
         }
     }

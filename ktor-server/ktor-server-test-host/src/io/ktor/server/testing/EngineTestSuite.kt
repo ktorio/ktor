@@ -220,7 +220,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     @Test
     fun testRedirectFromInterceptor() {
         createAndStartServer {
-            application.intercept(ApplicationCallPipeline.Infrastructure) {
+            application.intercept(ApplicationCallPipeline.Features) {
                 call.respondRedirect("/2", true)
             }
         }

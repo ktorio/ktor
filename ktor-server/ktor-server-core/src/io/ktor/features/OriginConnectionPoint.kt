@@ -35,7 +35,7 @@ object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, XFo
         val config = Config()
         configure(config)
 
-        pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
+        pipeline.intercept(ApplicationCallPipeline.Features) {
             call.forEachHeader(config.protoHeaders) { value ->
                 call.mutableOriginConnectionPoint.let { route ->
                     route.scheme = value
@@ -104,7 +104,7 @@ object ForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, Unit
     override fun install(pipeline: ApplicationCallPipeline, configure: Unit.() -> Unit) {
         configure(Unit)
 
-        pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
+        pipeline.intercept(ApplicationCallPipeline.Features) {
             val forwarded = call.request.forwarded()
             if (forwarded != null) {
                 call.attributes.put(ForwardedParsedKey, forwarded)

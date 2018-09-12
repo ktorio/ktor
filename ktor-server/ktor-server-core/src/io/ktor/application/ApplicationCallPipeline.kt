@@ -7,7 +7,7 @@ import io.ktor.response.*
 /**
  * Pipeline configuration for executing [ApplicationCall] instances
  */
-open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(Infrastructure, Call, Fallback) {
+open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(Setup, Monitoring, Features, Call, Fallback) {
     /**
      * Pipeline for receiving content
      */
@@ -23,9 +23,27 @@ open class ApplicationCallPipeline : Pipeline<Unit, ApplicationCall>(Infrastruct
      */
     companion object ApplicationPhase {
         /**
+         * Phase for preparing call and it's attributes for processing
+         */
+        val Setup = PipelinePhase("Setup")
+
+        /**
+         * Phase for tracing calls, useful for logging, metrics, error handling and so on
+         */
+        val Monitoring = PipelinePhase("Monitoring")
+
+        /**
+         * Phase for features. Most features should intercept this phase.
+         */
+        val Features = PipelinePhase("Features")
+
+        /**
          * Phase for setting up infrastructure for processing a call
          */
-        val Infrastructure = PipelinePhase("Infrastructure")
+        @Deprecated("Infrastructure phase has been split into Features and Monitoring phases",
+                ReplaceWith("ApplicationCallPipeline.Features", "io.ktor.application.ApplicationCallPipeline"),
+                level = DeprecationLevel.ERROR)
+        val Infrastructure: PipelinePhase get() = Features
 
         /**
          * Phase for processing a call and sending a response

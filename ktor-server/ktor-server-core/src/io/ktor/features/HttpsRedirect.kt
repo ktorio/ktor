@@ -18,7 +18,7 @@ class HttpsRedirect(config: Configuration) {
         override val key = AttributeKey<HttpsRedirect>("HttpsRedirect")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): HttpsRedirect {
             val feature = HttpsRedirect(Configuration().apply(configure))
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) {
+            pipeline.intercept(ApplicationCallPipeline.Features) {
                 if (call.request.origin.scheme == "http") {
                     val redirectUrl = call.url { protocol = URLProtocol.HTTPS; port = feature.redirectPort }
                     call.respondRedirect(redirectUrl, feature.permanent)

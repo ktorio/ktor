@@ -252,7 +252,7 @@ class CORS(configuration: Configuration) {
         override val key = AttributeKey<CORS>("CORS")
         override fun install(pipeline: ApplicationCallPipeline, configure: Configuration.() -> Unit): CORS {
             val cors = CORS(Configuration().apply(configure))
-            pipeline.intercept(ApplicationCallPipeline.Infrastructure) { cors.intercept(this) }
+            pipeline.intercept(ApplicationCallPipeline.Features) { cors.intercept(this) }
             return cors
         }
     }
