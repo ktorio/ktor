@@ -107,6 +107,19 @@ class HttpRequestBuilder : HttpMessageBuilder {
         attributesBuilder = { old(); block() }
     }
 
+    /**
+     * Mutates [this] copying all the data from another [builder] using it as base.
+     */
+    fun takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
+        method = builder.method
+        body = builder.body
+        url.takeFrom(builder.url)
+        headers.appendAll(builder.headers)
+        attributesBuilder = builder.attributesBuilder
+
+        return this
+    }
+
     companion object
 }
 
@@ -128,17 +141,6 @@ class HttpRequestData(
  */
 fun HttpRequestBuilder.headers(block: HeadersBuilder.() -> Unit): HeadersBuilder = headers.apply(block)
 
-/**
- * Mutates [this] copying all the data from another [builder] using it as base.
- */
-fun HttpRequestBuilder.takeFrom(builder: HttpRequestBuilder): HttpRequestBuilder {
-    method = builder.method
-    body = builder.body
-    url.takeFrom(builder.url)
-    headers.appendAll(builder.headers)
-
-    return this
-}
 
 /**
  * Executes a [block] that configures the [URLBuilder] associated to this request.

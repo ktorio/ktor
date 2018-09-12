@@ -9,6 +9,8 @@ class CIOCacheTest : CacheTest(CIO)
 
 class CIOCookiesTest : CookiesTest(CIO)
 
+class CIOAttributesTest : AttributesTest(CIO)
+
 class CIOPostTest : PostTest(CIO)
 
 class CIOFullFormTest : FullFormTest(CIO)

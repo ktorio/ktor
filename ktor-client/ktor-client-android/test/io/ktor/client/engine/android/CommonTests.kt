@@ -9,6 +9,8 @@ class AndroidCacheTest : CacheTest(Android)
 
 class AndroidCookiesTest : CookiesTest(Android)
 
+class AndroidAttributesTest : AttributesTest(Android)
+
 class AndroidPostTest : PostTest(Android)
 
 class AndroidMultithreadedTest : MultithreadedTest(Android)
