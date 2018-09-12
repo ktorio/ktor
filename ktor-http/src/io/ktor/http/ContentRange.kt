@@ -16,4 +16,3 @@ fun contentRangeHeaderValue(range: LongRange?, fullLength: Long? = null, unit: S
     append('/')
     append(fullLength ?: "*")
 }
-

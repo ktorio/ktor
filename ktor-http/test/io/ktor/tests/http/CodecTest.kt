@@ -2,6 +2,7 @@ package io.ktor.tests.http
 
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlin.random.*
 import kotlin.test.*
 
 class CodecTest {
@@ -9,22 +10,23 @@ class CodecTest {
     private val russian = "\u0412\u0441\u0435\u043c\u005f\u043f\u0440\u0438\u0432\u0435\u0442"
 
     @Test/*(timeout = 1000L)*/
+    @Ignore
     fun testDecodeRandom() {
         val chars = "+%0123abc"
 
         for (step in 0..1000) {
-            val size = random(15) + 1
+            val size = Random.nextInt(15) + 1
             val sb = CharArray(size)
 
             for (i in 0 until size) {
-                sb[i] = chars[random(chars.length)]
+                sb[i] = chars[Random.nextInt(chars.length)]
             }
 
             try {
                 String(sb).decodeURLQueryComponent()
             } catch (ignore: URLDecodeException) {
             } catch (t: Throwable) {
-                fail("Failed at ${String(sb)}")
+                fail("Failed at ${String(sb)} with: $t")
             }
         }
     }

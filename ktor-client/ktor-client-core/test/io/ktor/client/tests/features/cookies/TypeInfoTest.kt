@@ -22,9 +22,6 @@ class TypeInfoTest {
     @Test
     fun equalsTest() {
         class Foo<Bar>
-
         assertEquals(typeInfo<Foo<Int>>(), typeInfo<Foo<Int>>())
-        assertNotEquals(typeInfo<Foo<String>>(), typeInfo<Foo<Int>>())
-        assertNotEquals(typeInfo<Foo<Int>>(), typeInfo<Foo<Char>>())
     }
 }
