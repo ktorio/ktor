@@ -10,6 +10,8 @@ class ApacheCacheTest : CacheTest(Apache)
 
 class ApacheCookiesTest : CookiesTest(Apache)
 
+class ApacheAttributesTest : AttributesTest(Apache)
+
 class ApachePostTest : PostTest(Apache.config {
     socketTimeout = 100_000
 })

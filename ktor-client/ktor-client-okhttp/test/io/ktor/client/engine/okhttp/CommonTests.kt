@@ -9,6 +9,8 @@ class OkHttpCacheTest : CacheTest(OkHttp)
 
 class OkHttpCookiesTest : CookiesTest(OkHttp)
 
+class OkHttpAttributesTest : AttributesTest(OkHttp)
+
 class OkHttpPostTest : PostTest(OkHttp)
 
 class OkHttpMultithreadedTest : MultithreadedTest(OkHttp)
