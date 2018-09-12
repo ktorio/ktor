@@ -89,4 +89,18 @@ class UrlTest {
             assertEquals("http://localhost/foo${case}bar", url.toString())
         }
     }
+
+    @Test
+    fun testEncoding() {
+        val urlBuilder = { URLBuilder("http://httpbin.org/response-headers").apply {
+            parameters.append("message", "foo%bar")
+        } }
+
+        val url = urlBuilder().build()
+
+        assertEquals("http://httpbin.org/response-headers?message=foo%25bar", urlBuilder().buildString())
+        assertEquals("http://httpbin.org/response-headers?message=foo%25bar", url.toString())
+        assertEquals("/response-headers", url.encodedPath)
+        assertEquals("/response-headers?message=foo%25bar", url.fullPath)
+    }
 }
