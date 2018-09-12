@@ -43,18 +43,7 @@ class URLBuilder(
             out.append(port.toString())
         }
 
-        if (!encodedPath.startsWith("/")) {
-            out.append('/')
-        }
-
-        out.append(encodedPath)
-
-        val queryParameters = parameters.build()
-        if (!queryParameters.isEmpty() || trailingQuery) {
-            out.append("?")
-        }
-
-        queryParameters.formUrlEncodeTo(out)
+        out.appendUrlFullPath(encodedPath, parameters.build(), trailingQuery)
 
         if (fragment.isNotEmpty()) {
             out.append('#')
@@ -111,5 +100,3 @@ data class Url(
 
     companion object
 }
-
-

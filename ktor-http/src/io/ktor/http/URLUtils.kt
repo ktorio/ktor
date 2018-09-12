@@ -70,14 +70,24 @@ fun URLBuilder.takeFrom(url: Url): URLBuilder {
 }
 
 val Url.fullPath: String
-    get() {
-        val parameters = when {
-            parameters.isEmpty() && trailingQuery -> "?"
-            !parameters.isEmpty() -> "?${parameters.formUrlEncode()}"
-            else -> ""
-        }
-        val result = "$encodedPath$parameters".trim()
-        return if (!result.startsWith("/")) "/$result" else result
-    }
+    get() = buildString { appendUrlFullPath(encodedPath, parameters, trailingQuery) }
 
 val Url.hostWithPort: String get() = "$host:$port"
+
+internal fun Appendable.appendUrlFullPath(
+    encodedPath: String,
+    queryParameters: Parameters,
+    trailingQuery: Boolean
+) {
+    if (!encodedPath.startsWith("/")) {
+        append('/')
+    }
+
+    append(encodedPath)
+
+    if (!queryParameters.isEmpty() || trailingQuery) {
+        append("?")
+    }
+
+    queryParameters.formUrlEncodeTo(this)
+}
