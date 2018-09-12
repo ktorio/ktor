@@ -11,7 +11,7 @@ import org.junit.Assert.*
 class CookiesTest {
 
     @Test
-    fun compatibilityTest() = clientTest(MockEngine { call ->
+    fun compatibilityTest() = clientTest(MockEngine {
         assertEquals("*/*", headers[HttpHeaders.Accept])
         val rawCookies = headers[HttpHeaders.Cookie]!!
         assertFalse(rawCookies.contains("x-enc"))
@@ -23,7 +23,7 @@ class CookiesTest {
         assertEquals("1,2,3,4".encodeURLParameter(), cookies["first"])
         assertEquals("abc", cookies["second"])
 
-        MockEngine.RESPONSE_OK(call, this)
+        responseOk()
     }) {
 
         config {

@@ -72,9 +72,10 @@ class HttpClient(
             validateHeaders(requestData)
 
             val (request, response) = engine.execute(call, requestData)
-
-            call.request = request
-            call.response = response
+            call.apply { InternalHttpClientCall.apply {
+                setRequestInternal(request)
+                setResponseInternal(response)
+            } }
 
             response.coroutineContext[Job]!!.invokeOnCompletion { cause ->
                 @Suppress("UNCHECKED_CAST")
