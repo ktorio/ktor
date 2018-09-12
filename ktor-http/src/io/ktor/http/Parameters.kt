@@ -10,6 +10,7 @@ interface Parameters : StringValues {
         /**
          * Empty [Parameters] instance
          */
+        @Suppress("DEPRECATION")
         val Empty: Parameters = EmptyParameters
 
         /**
@@ -29,6 +30,7 @@ class ParametersBuilder(size: Int = 8) : StringValuesBuilder(true, size) {
     }
 }
 
+@Deprecated("Empty parameters is internal", replaceWith = ReplaceWith("Parameters.Empty"))
 object EmptyParameters : Parameters {
     override val caseInsensitiveName: Boolean get() = true
     override fun getAll(name: String): List<String>? = null
@@ -36,6 +38,8 @@ object EmptyParameters : Parameters {
     override fun entries(): Set<Map.Entry<String, List<String>>> = emptySet()
     override fun isEmpty(): Boolean = true
     override fun toString() = "Parameters ${entries()}"
+
+    override fun equals(other: Any?): Boolean = other is Parameters && other.isEmpty()
 }
 
 fun parametersOf(): Parameters = Parameters.Empty

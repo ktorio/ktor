@@ -20,6 +20,6 @@ class GMTDateTest {
         )
 
         assertEquals(first, second)
-        assertEquals(first, third)
+        assertEquals(first.timestamp / 1000 , third.timestamp / 1000)
     }
 }
