@@ -64,3 +64,5 @@ interface Attributes {
      */
     val allKeys: List<AttributeKey<*>>
 }
+
+operator fun <T : Any> Attributes.set(key: AttributeKey<T>, value: T) = put(key, value)

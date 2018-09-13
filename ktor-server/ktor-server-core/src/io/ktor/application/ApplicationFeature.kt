@@ -43,6 +43,8 @@ fun <A : Pipeline<*, ApplicationCall>, B : Any, F : Any> A.featureOrNull(feature
     return attributes.getOrNull(featureRegistryKey)?.getOrNull(feature.key)
 }
 
+private val <P : Pipeline<*, ApplicationCall>> P.featureRegistry get() = attributes.computeIfAbsent(featureRegistryKey) { Attributes() }
+
 /**
  * Installs [feature] into this pipeline, if it is not yet installed
  */
@@ -50,7 +52,7 @@ fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
     feature: ApplicationFeature<P, B, F>,
     configure: B.() -> Unit = {}
 ): F {
-    val registry = attributes.computeIfAbsent(featureRegistryKey) { Attributes() }
+    val registry = featureRegistry
     val installedFeature = registry.getOrNull(feature.key)
     when (installedFeature) {
         null -> {
@@ -74,6 +76,16 @@ fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.install(
         }
     }
 }
+
+fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.installed(
+    feature: ApplicationFeature<P, B, F>
+): Boolean = featureRegistry.getOrNull(feature.key) != null
+
+
+fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.installOrGet(
+    feature: ApplicationFeature<P, B, F>,
+    configure: B.() -> Unit = {}
+): F = featureRegistry.getOrNull(feature.key) ?: install(feature, configure)
 
 /**
  * Uninstalls all features from the pipeline
