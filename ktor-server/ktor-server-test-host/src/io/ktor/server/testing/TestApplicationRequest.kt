@@ -70,9 +70,11 @@ class TestApplicationRequest(
 
     private var headersMap: MutableMap<String, MutableList<String>>? = hashMapOf()
 
-    fun addHeader(name: String, value: String) {
+    fun addHeader(name: String, value: String) = addHeaders(name, listOf(value))
+
+    fun addHeaders(name: String, value: List<String>) {
         val map = headersMap ?: throw Exception("Headers were already acquired for this request")
-        map.getOrPut(name, { arrayListOf() }).add(value)
+        map.getOrPut(name) { arrayListOf() }.addAll(value)
     }
 
     override val headers: Headers by lazy(LazyThreadSafetyMode.NONE) {
