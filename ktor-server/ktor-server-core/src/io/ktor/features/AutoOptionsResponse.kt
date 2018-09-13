@@ -34,21 +34,28 @@ object AutoOptionsResponse : ApplicationFeature<Application, Unit, Unit> {
             routing, call, listOf(),
             shortCircuitByQuality = false
         ) { context, segmentIndex ->
-            if (selector is HttpMethodRouteSelector) {
-                if (children.isEmpty() && handlers.isNotEmpty()) {
-                    // Leaf!
-                    if (segmentIndex >= context.segments.size) {
-                        leafMethods += selector.method
-                    } else {
-                        otherMethods += selector.method
-                    }
-                }
-
+            val result = if (selector is HttpMethodRouteSelector) {
                 // Accept all methods
                 RouteSelectorEvaluation.Constant
             } else {
                 selector.evaluate(context, segmentIndex)
             }
+
+            if (result.succeeded && children.isEmpty() && handlers.isNotEmpty()) {
+                val method = tryGetMethodSelectorInAncestors()
+                if (method != null) {
+                    val finalSegmentIndex = segmentIndex + result.segmentIncrement
+
+                    if (finalSegmentIndex >= context.segments.size) {
+                        leafMethods += method
+                    } else {
+                        otherMethods += method
+                    }
+                } else {
+                }
+            }
+
+            result
         }
         val result = resolveContext.resolve()
         return if (result is RoutingResolveResult.Success) {
@@ -56,5 +63,11 @@ object AutoOptionsResponse : ApplicationFeature<Application, Unit, Unit> {
         } else {
             setOf()
         }
+    }
+
+    private fun Route?.tryGetMethodSelectorInAncestors(): HttpMethod? = when {
+        this == null -> null
+        this.selector is HttpMethodRouteSelector -> this.selector.method
+        else -> this.parent.tryGetMethodSelectorInAncestors()
     }
 }
