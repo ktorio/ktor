@@ -29,6 +29,19 @@ class Metrics(val registry: MetricRegistry) {
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): Metrics {
             val configuration = Configuration().apply(configure)
             val feature = Metrics(configuration.registry)
+            pipeline.installOrGet(CallMeasurer) {
+                addHandler {
+                    val call = call as? RoutingApplicationCall?
+                    if (call != null) {
+                        val routeDesc = call.route.toString()
+                        val registry = feature.registry
+                        val meter = registry.meter(MetricRegistry.name(routeDesc, "${it.name}.meter"))
+                        val timer = registry.timer(MetricRegistry.name(routeDesc, "${it.name}.timer"))
+                        meter.mark()
+                        timer.update(it.time, TimeUnit.MILLISECONDS)
+                    }
+                }
+            }
 
             configuration.registry.register("jvm.memory", MemoryUsageGaugeSet())
             configuration.registry.register("jvm.garbage", GarbageCollectorMetricSet())
@@ -69,12 +82,12 @@ class Metrics(val registry: MetricRegistry) {
 
             return feature
         }
+
+        val measureKey = AttributeKey<CallMeasure>("metrics")
     }
 
 
-    private data class CallMeasure(val timer: Timer.Context)
-
-    private val measureKey = AttributeKey<CallMeasure>("metrics")
+    data class CallMeasure(val timer: Timer.Context)
 
     private fun before(call: ApplicationCall) {
         active.inc()
