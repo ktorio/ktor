@@ -14,12 +14,22 @@ import io.ktor.util.*
 class Routing(val application: Application) : Route(parent = null, selector = RootRouteSelector) {
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 
+    private var evaluateHook: Route.(context: RoutingResolveContext, segmentIndex: Int) -> RouteSelectorEvaluation = { context, segmentIndex ->
+        selector.evaluate(context, segmentIndex)
+    }
+
+    object Internal
+
+    @Suppress("unused")
+    fun Internal.setEvaluateHook(hook: Route.(context: RoutingResolveContext, segmentIndex: Int) -> RouteSelectorEvaluation) {
+        this@Routing.evaluateHook = hook
+    }
     fun trace(block: (RoutingResolveTrace) -> Unit) {
         tracers.add(block)
     }
 
     private suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
-        val resolveContext = RoutingResolveContext(this, context.call, tracers)
+        val resolveContext = RoutingResolveContext(this, context.call, tracers, evaluateHook)
         val resolveResult = resolveContext.resolve()
         if (resolveResult is RoutingResolveResult.Success) {
             executeResult(context, resolveResult.route, resolveResult.parameters)

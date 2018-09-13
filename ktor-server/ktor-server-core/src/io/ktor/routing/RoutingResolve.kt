@@ -37,7 +37,14 @@ sealed class RoutingResolveResult(val route: Route) {
  * @param routing root node for resolution to start at
  * @param call instance of [ApplicationCall] to use during resolution
  */
-class RoutingResolveContext(val routing: Route, val call: ApplicationCall, private val tracers: List<(RoutingResolveTrace) -> Unit>) {
+class RoutingResolveContext(
+    val routing: Route,
+    val call: ApplicationCall,
+    private val tracers: List<(RoutingResolveTrace) -> Unit>,
+    val evaluateHook: Route.(context: RoutingResolveContext, segmentIndex: Int) -> RouteSelectorEvaluation = { context, segmentIndex ->
+        selector.evaluate(context, segmentIndex)
+    }
+) {
 
     /**
      * List of path segments parsed out of a [call]
@@ -92,7 +99,7 @@ class RoutingResolveContext(val routing: Route, val call: ApplicationCall, priva
         // iterate using indices to avoid creating iterator
         for (childIndex in 0..entry.children.lastIndex) {
             val child = entry.children[childIndex]
-            val selectorResult = child.selector.evaluate(this, segmentIndex)
+            val selectorResult = evaluateHook(child, this, segmentIndex)
             if (!selectorResult.succeeded) {
                 trace?.skip(child, segmentIndex, RoutingResolveResult.Failure(child, "Selector didn't match"))
                 continue // selector didn't match, skip entire subtree
