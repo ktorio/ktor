@@ -41,6 +41,7 @@ class RoutingResolveContext(
     val routing: Route,
     val call: ApplicationCall,
     private val tracers: List<(RoutingResolveTrace) -> Unit>,
+    var shortCircuitByQuality: Boolean = true,
     val evaluateHook: Route.(context: RoutingResolveContext, segmentIndex: Int) -> RouteSelectorEvaluation = { context, segmentIndex ->
         selector.evaluate(context, segmentIndex)
     }
@@ -107,12 +108,12 @@ class RoutingResolveContext(
 
             val immediateSelectQuality = selectorResult.quality
 
-            if (immediateSelectQuality < bestQuality) {
+            if (immediateSelectQuality < bestQuality && shortCircuitByQuality) {
                 trace?.skip(child, segmentIndex, RoutingResolveResult.Failure(child, "Better match was already found"))
                 continue
             }
 
-            if (immediateSelectQuality == bestQuality) {
+            if (immediateSelectQuality == bestQuality && shortCircuitByQuality) {
                 // ambiguity, compare immediate child quality
                 if (bestChild!!.selector.quality >= child.selector.quality) {
                     trace?.skip(child, segmentIndex, RoutingResolveResult.Failure(child, "Lost in ambiguity tie"))

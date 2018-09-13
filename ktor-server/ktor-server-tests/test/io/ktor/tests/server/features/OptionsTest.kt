@@ -27,6 +27,19 @@ class OptionsTest {
         }
     }
 
+    @Test
+    fun testParameter() {
+        withOptionsApplication {
+            application.routing {
+                get("/hello/world") { }
+                post("/hello/{name}") { }
+            }
+
+            checkRoute("/", "")
+            checkRoute("/hello/world", "GET, POST")
+        }
+    }
+
     private fun TestApplicationEngine.checkRoute(path: String, allow: String) {
         handleRequest(HttpMethod.Options, path).let { call ->
             assertEquals(HttpStatusCode.OK, call.response.status())

@@ -30,8 +30,10 @@ object AutoOptionsResponse : ApplicationFeature<Application, Unit, Unit> {
         val otherMethods = LinkedHashSet<HttpMethod>()
         val leafMethods = LinkedHashSet<HttpMethod>()
         val routing = call.application.routing { }
-        val resolveContext = RoutingResolveContext(routing, call, listOf()) { context, segmentIndex ->
-            //println("+$this: ${selector::class} : $selector : $segmentIndex : ${context.segments.size}")
+        val resolveContext = RoutingResolveContext(
+            routing, call, listOf(),
+            shortCircuitByQuality = false
+        ) { context, segmentIndex ->
             if (selector is HttpMethodRouteSelector) {
                 if (children.isEmpty() && handlers.isNotEmpty()) {
                     // Leaf!

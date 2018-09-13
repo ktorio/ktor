@@ -29,7 +29,7 @@ class Routing(val application: Application) : Route(parent = null, selector = Ro
     }
 
     private suspend fun interceptor(context: PipelineContext<Unit, ApplicationCall>) {
-        val resolveContext = RoutingResolveContext(this, context.call, tracers, evaluateHook)
+        val resolveContext = RoutingResolveContext(this, context.call, tracers, evaluateHook = evaluateHook)
         val resolveResult = resolveContext.resolve()
         if (resolveResult is RoutingResolveResult.Success) {
             executeResult(context, resolveResult.route, resolveResult.parameters)
