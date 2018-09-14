@@ -308,7 +308,9 @@ class LastModifiedVersionTest {
 
     @Test
     fun lastModifiedHeaderFromDateIsIndependentOfLocalTimezone() {
-        checkLastModifiedHeaderIsIndependentOfLocalTimezone { input : Date -> LastModifiedVersion(input) }
+        checkLastModifiedHeaderIsIndependentOfLocalTimezone { input : Date ->
+            LastModifiedVersion(input)
+        }
     }
 
     @Test

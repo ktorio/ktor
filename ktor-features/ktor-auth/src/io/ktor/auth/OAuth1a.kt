@@ -164,7 +164,10 @@ private suspend fun simpleOAuth1aStep2(
         header(HttpHeaders.Authorization, authHeader.render(HeaderValueEncoding.URI_ENCODE))
         header(HttpHeaders.Accept, "*/*")
 
-        body = WriterContent({ params.formUrlEncodeTo(this) }, ContentType.Application.FormUrlEncoded)
+        body = WriterContent(
+            { params.formUrlEncodeTo(this) },
+            ContentType.Application.FormUrlEncoded
+        )
     }.response
 
     val body = response.readText()

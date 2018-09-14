@@ -13,9 +13,9 @@ import java.util.jar.*
  * @param resourcePath is an instance of a resource inside a Jar file
  */
 class JarFileContent(
-        val jarFile: File,
-        val resourcePath: String,
-        override val contentType: ContentType
+    val jarFile: File,
+    val resourcePath: String,
+    override val contentType: ContentType
 ) : OutgoingContent.ReadChannelContent() {
 
     private val normalized = Paths.get(resourcePath).normalize().toString().replace(File.separatorChar, '/')
@@ -33,5 +33,5 @@ class JarFileContent(
     override val contentLength: Long? get() = jarEntry?.size
 
     override fun readFrom() = jar.getInputStream(jarEntry)?.toByteReadChannel()
-            ?: throw IOException("Resource $normalized not found")
+        ?: throw IOException("Resource $normalized not found")
 }

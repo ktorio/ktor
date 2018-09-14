@@ -14,43 +14,46 @@ import kotlinx.coroutines.experimental.io.*
  * Compression feature configuration
  */
 data class CompressionOptions(
-        /**
-         * Map of encoder configurations
-         */
-        val encoders: Map<String, CompressionEncoderConfig> = emptyMap(),
-        /**
-         * Conditions for all encoders
-         */
-        val conditions: List<ApplicationCall.(OutgoingContent) -> Boolean> = emptyList()
+    /**
+     * Map of encoder configurations
+     */
+    val encoders: Map<String, CompressionEncoderConfig> = emptyMap(),
+    /**
+     * Conditions for all encoders
+     */
+    val conditions: List<ApplicationCall.(OutgoingContent) -> Boolean> = emptyList()
 )
 
 /**
  * Configuration for an encoder
  */
 data class CompressionEncoderConfig(
-        /**
-         * Name of the encoder, matched against entry in `Accept-Encoding` header
-         */
-        val name: String,
-        /**
-         * Encoder implementation
-         */
-        val encoder: CompressionEncoder,
-        /**
-         * Conditions for the encoder
-         */
-        val conditions: List<ApplicationCall.(OutgoingContent) -> Boolean>,
-        /**
-         * Priority of the encoder
-         */
-        val priority: Double)
+    /**
+     * Name of the encoder, matched against entry in `Accept-Encoding` header
+     */
+    val name: String,
+    /**
+     * Encoder implementation
+     */
+    val encoder: CompressionEncoder,
+    /**
+     * Conditions for the encoder
+     */
+    val conditions: List<ApplicationCall.(OutgoingContent) -> Boolean>,
+    /**
+     * Priority of the encoder
+     */
+    val priority: Double
+)
 
 /**
  * Feature to compress a response based on conditions and ability of client to decompress it
  */
 class Compression(compression: Configuration) {
     private val options = compression.build()
-    private val comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>({ it.second.quality }, { it.first.priority }).reversed()
+    private val comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>(
+        { it.second.quality }, { it.first.priority }
+    ).reversed()
 
     private suspend fun interceptor(context: PipelineContext<Any, ApplicationCall>) {
         val call = context.call
@@ -60,24 +63,24 @@ class Compression(compression: Configuration) {
             return
 
         val encoders = parseHeaderValue(acceptEncodingRaw)
-                .filter { it.value == "*" || it.value in options.encoders }
-                .flatMap { header ->
-                    when (header.value) {
-                        "*" -> options.encoders.values.map { it to header }
-                        else -> options.encoders[header.value]?.let { listOf(it to header) } ?: emptyList()
-                    }
+            .filter { it.value == "*" || it.value in options.encoders }
+            .flatMap { header ->
+                when (header.value) {
+                    "*" -> options.encoders.values.map { it to header }
+                    else -> options.encoders[header.value]?.let { listOf(it to header) } ?: emptyList()
                 }
-                .sortedWith(comparator)
-                .map { it.first }
+            }
+            .sortedWith(comparator)
+            .map { it.first }
 
         if (!encoders.isNotEmpty())
             return
 
         if (message is OutgoingContent
-                && message !is CompressedResponse
-                && options.conditions.all { it(call, message) }
-                && !call.isCompressionSuppressed()
-                && message.headers[HttpHeaders.ContentEncoding].let { it == null || it != "identity" }
+            && message !is CompressedResponse
+            && options.conditions.all { it(call, message) }
+            && !call.isCompressionSuppressed()
+            && message.headers[HttpHeaders.ContentEncoding].let { it == null || it != "identity" }
         ) {
             val encoderOptions = encoders.firstOrNull { encoder -> encoder.conditions.all { it(call, message) } }
 
@@ -103,10 +106,12 @@ class Compression(compression: Configuration) {
         }
     }
 
-    private class CompressedResponse(val original: OutgoingContent,
-                                     val delegateChannel: () -> ByteReadChannel,
-                                     val encoding: String,
-                                     val encoder: CompressionEncoder) : OutgoingContent.ReadChannelContent() {
+    private class CompressedResponse(
+        val original: OutgoingContent,
+        val delegateChannel: () -> ByteReadChannel,
+        val encoding: String,
+        val encoder: CompressionEncoder
+    ) : OutgoingContent.ReadChannelContent() {
         override fun readFrom() = encoder.compress(delegateChannel())
         override val headers by lazy(LazyThreadSafetyMode.NONE) {
             Headers.build {
@@ -121,9 +126,11 @@ class Compression(compression: Configuration) {
         override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
     }
 
-    private class CompressedWriteResponse(val original: WriteChannelContent,
-                                          val encoding: String,
-                                          val encoder: CompressionEncoder) : OutgoingContent.WriteChannelContent() {
+    private class CompressedWriteResponse(
+        val original: WriteChannelContent,
+        val encoding: String,
+        val encoder: CompressionEncoder
+    ) : OutgoingContent.WriteChannelContent() {
         override val headers by lazy(LazyThreadSafetyMode.NONE) {
             Headers.build {
                 appendFiltered(original.headers) { name, _ -> !name.equals(HttpHeaders.ContentLength, true) }
@@ -195,8 +202,8 @@ class Compression(compression: Configuration) {
          * Builds `CompressionOptions`
          */
         fun build() = CompressionOptions(
-                encoders = encoders.mapValues { it.value.build() },
-                conditions = conditions.toList()
+            encoders = encoders.mapValues { it.value.build() },
+            conditions = conditions.toList()
         )
     }
 
@@ -253,7 +260,9 @@ interface ConditionsHolderBuilder {
 /**
  * Builder for compression encoder configuration
  */
-class CompressionEncoderBuilder internal constructor(val name: String, val encoder: CompressionEncoder) : ConditionsHolderBuilder {
+class CompressionEncoderBuilder internal constructor(
+    val name: String, val encoder: CompressionEncoder
+) : ConditionsHolderBuilder {
     /**
      * List of conditions for this encoder
      */
