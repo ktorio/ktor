@@ -36,8 +36,7 @@ class CachingHeaders(private val optionsProviders: List<(OutgoingContent) -> Cac
                 options.forEach {
                     if (it.cacheControl != null)
                         append(HttpHeaders.CacheControl, it.cacheControl.toString())
-                    if (it.expires != null)
-                        append(HttpHeaders.Expires, it.expires.toHttpDateString())
+                    it.expires?.let { expires -> append(HttpHeaders.Expires, expires.toHttpDate()) }
                 }
             }
 

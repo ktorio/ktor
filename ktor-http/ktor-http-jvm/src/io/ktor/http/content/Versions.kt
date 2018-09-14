@@ -1,8 +1,6 @@
 package io.ktor.http.content
 
-import io.ktor.application.*
 import io.ktor.http.*
-import io.ktor.request.*
 import io.ktor.util.*
 import java.nio.file.attribute.*
 import java.time.*
@@ -27,9 +25,9 @@ var OutgoingContent.versions: List<Version>
  */
 interface Version {
     /**
-     * Checks [call] against this version and returns [VersionCheckResult]
+     * Checks [requestHeaders] against this version and returns [VersionCheckResult]
      */
-    fun check(call: ApplicationCall): VersionCheckResult
+    fun check(requestHeaders: Headers): VersionCheckResult
 
     /**
      * Appends relevant headers to the builder
@@ -78,10 +76,10 @@ data class LastModifiedVersion(val lastModified: ZonedDateTime) : Version {
      *  [VersionCheckResult.NOT_MODIFIED] for If-Modified-Since,
      *  [VersionCheckResult.PRECONDITION_FAILED] for If-Unmodified*Since
      */
-    override fun check(call: ApplicationCall): VersionCheckResult {
+    override fun check(requestHeaders: Headers): VersionCheckResult {
         val normalized = lastModified.withNano(0) // we need this because of the http date format that only has seconds
-        val ifModifiedSince = call.request.headers[HttpHeaders.IfModifiedSince]?.fromHttpDateString()
-        val ifUnmodifiedSince = call.request.headers[HttpHeaders.IfUnmodifiedSince]?.fromHttpDateString()
+        val ifModifiedSince = requestHeaders[HttpHeaders.IfModifiedSince]?.fromHttpDateString()
+        val ifUnmodifiedSince = requestHeaders[HttpHeaders.IfUnmodifiedSince]?.fromHttpDateString()
 
         if (ifModifiedSince != null) {
             if (normalized <= ifModifiedSince) {
@@ -118,9 +116,10 @@ data class LastModifiedVersion(val lastModified: ZonedDateTime) : Version {
  * [VersionCheckResult.PRECONDITION_FAILED] for failed If-Match
  */
 data class EntityTagVersion(val etag: String) : Version {
-    override fun check(call: ApplicationCall): VersionCheckResult {
-        val givenNoneMatchEtags = call.request.header(HttpHeaders.IfNoneMatch)?.parseMatchTag()
-        val givenMatchEtags = call.request.header(HttpHeaders.IfMatch)?.parseMatchTag()
+
+    override fun check(requestHeaders: Headers): VersionCheckResult {
+        val givenNoneMatchEtags = requestHeaders[HttpHeaders.IfNoneMatch]?.parseMatchTag()
+        val givenMatchEtags = requestHeaders[HttpHeaders.IfMatch]?.parseMatchTag()
 
         if (givenNoneMatchEtags != null && etag in givenNoneMatchEtags && "*" !in givenNoneMatchEtags) {
             return VersionCheckResult.NOT_MODIFIED
@@ -139,4 +138,3 @@ data class EntityTagVersion(val etag: String) : Version {
         builder.etag(etag)
     }
 }
-

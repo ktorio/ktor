@@ -2,7 +2,6 @@ package io.ktor.http.content
 
 import io.ktor.util.cio.*
 import io.ktor.http.*
-import io.ktor.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.experimental.io.*
 import java.io.*
@@ -14,8 +13,8 @@ import java.nio.file.*
  * @param file specifies the File to be served to a client
  */
 class LocalFileContent(
-        val file: File,
-        override val contentType: ContentType = ContentType.defaultForFile(file)
+    val file: File,
+    override val contentType: ContentType = ContentType.defaultForFile(file)
 ) : OutgoingContent.ReadChannelContent() {
 
     override val contentLength: Long get() = file.length()
@@ -34,15 +33,15 @@ class LocalFileContent(
 /**
  * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
  */
-fun LocalFileContent(baseDir: File, relativePath: String,
-                     contentType: ContentType = ContentType.defaultForFilePath(relativePath)): LocalFileContent {
-    return LocalFileContent(baseDir.combineSafe(relativePath), contentType)
-}
+fun LocalFileContent(
+    baseDir: File, relativePath: String,
+    contentType: ContentType = ContentType.defaultForFilePath(relativePath)
+): LocalFileContent = LocalFileContent(baseDir.combineSafe(relativePath), contentType)
 
 /**
  * Creates an instance of [LocalFileContent] for a file designated by [relativePath] in a [baseDir]
  */
-fun LocalFileContent(baseDir: Path, relativePath: Path,
-                     contentType: ContentType = ContentType.defaultForFile(relativePath)): LocalFileContent {
-    return LocalFileContent(baseDir.combineSafe(relativePath), contentType)
-}
+fun LocalFileContent(
+    baseDir: Path, relativePath: Path,
+    contentType: ContentType = ContentType.defaultForFile(relativePath)
+): LocalFileContent = LocalFileContent(baseDir.combineSafe(relativePath), contentType)

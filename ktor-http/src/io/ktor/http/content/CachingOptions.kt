@@ -2,7 +2,7 @@ package io.ktor.http.content
 
 import io.ktor.http.*
 import io.ktor.util.*
-import java.time.*
+import io.ktor.util.date.*
 
 /**
  * Specifies a key for CacheControl extension property for [OutgoingContent]
@@ -19,5 +19,4 @@ var OutgoingContent.caching: CachingOptions?
 /**
  * Specifies caching properties for an [OutgoingContent] such as Cache-Control or Expires
  */
-data class CachingOptions(val cacheControl: CacheControl? = null, val expires: ZonedDateTime? = null)
-
+data class CachingOptions(val cacheControl: CacheControl? = null, val expires: GMTDate? = null)
