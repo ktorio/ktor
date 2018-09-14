@@ -142,12 +142,12 @@ fun TestApplicationEngine.cookiesSession(callback: () -> Unit) {
 
     hookRequests(
         processRequest = { setup ->
-            val cookieValue = trackedCookies.map { (it.name).encodeURLParameter() + "=" + (it.value).encodeURLParameter() }.joinToString("; ")
-            addHeader("Cookie", cookieValue)
+            val cookieValue = trackedCookies.joinToString("; ") { (it.name).encodeURLParameter() + "=" + (it.value).encodeURLParameter() }
+            addHeader(HttpHeaders.Cookie, cookieValue)
             setup() // setup after setting the cookie so the user can override cookies
         },
         processResponse = {
-            trackedCookies = response.headers.values("Set-Cookie").map { parseServerSetCookieHeader(it) }
+            trackedCookies = response.headers.values(HttpHeaders.SetCookie).map { parseServerSetCookieHeader(it) }
         }
     ) {
         callback()
