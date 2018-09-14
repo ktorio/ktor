@@ -6,6 +6,7 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.sessions.*
 import kotlinx.coroutines.experimental.*
 import org.junit.Test
 import java.util.concurrent.*
@@ -109,6 +110,45 @@ class TestApplicationEngineTest {
 
             assertFailsWith<IllegalStateException> {
                 handleRequest(HttpMethod.Get, "/fail")
+            }
+        }
+    }
+
+    @Test
+    fun testCookiesSession() {
+        data class CountSession(val count: Int)
+
+        withTestApplication {
+            application.install(Sessions) {
+                cookie<CountSession>("MY_SESSION")
+            }
+            application.routing {
+                get("/") {
+                    val session = call.sessions.getOrSet { CountSession(0) }
+                    call.sessions.set(session.copy(count = session.count + 1))
+                    call.respond(HttpStatusCode.OK, "${session.count}")
+                }
+            }
+
+            fun doRequestAndCheckResponse(expected: String) {
+                handleRequest(HttpMethod.Get, "/").apply { assertEquals(expected, response.content) }
+            }
+
+            // By defaul it doesn't preserve cookies
+            doRequestAndCheckResponse("0")
+            doRequestAndCheckResponse("0")
+
+            // Inside a cookiesSession block cookies are preserved.
+            cookiesSession {
+                doRequestAndCheckResponse("0")
+                doRequestAndCheckResponse("1")
+            }
+
+            // Starting another cookiesSession block, doesn't preserve cookies from previous blocks.
+            cookiesSession {
+                doRequestAndCheckResponse("0")
+                doRequestAndCheckResponse("1")
+                doRequestAndCheckResponse("2")
             }
         }
     }
