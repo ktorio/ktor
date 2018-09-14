@@ -1,55 +1,133 @@
 package io.ktor.http
 
-import io.ktor.http.parsing.*
-import io.ktor.http.parsing.regex.*
+import io.ktor.util.*
 
-typealias URLParts = ParseResult
 
 /**
- * Extract [URLParts] from [String]
+ * Take url parts from [urlString]
+ * throws [URLParserException]
  */
-fun String.urlParts(): URLParts = URL_PARSER.parse(this) ?: error("Invalid url format: $this")
+fun URLBuilder.takeFrom(urlString: String): URLBuilder {
+    return try {
+        takeFromUnsafe(urlString)
+    } catch (cause: Throwable) {
+        throw URLParserException(urlString, cause)
+    }
+}
 
-/**
- * Check if [host] is IPv4 or IPv6 address.
- */
-fun hostIsIp(host: String): Boolean = IP_PARSER.match(host)
+class URLParserException(urlString: String, cause: Throwable) : IllegalStateException(
+    "Fail to parse url: $urlString", cause
+)
 
-/**
- * According to https://tools.ietf.org/html/rfc1738
- */
-private val safe = anyOf("$-_.+")
-private val extra = anyOf("!*'(),")
-private val escape = "%" then hex then hex
+internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
+    var startIndex = urlString.indexOfFirst { !it.isWhitespace() }
+    val endIndex = urlString.indexOfLast { !it.isWhitespace() } + 1
 
-private val unreserved = alphaDigit or safe or extra
-private val urlChar = unreserved or escape
-private val protocolChar = lowAlpha or digit or anyOf("+-.")
+    val schemeLength = findScheme(urlString, startIndex, endIndex)
+    if (schemeLength > 0) {
+        val scheme = urlString.substring(startIndex, startIndex + schemeLength)
 
-private val protocol = atLeastOne(protocolChar).named("protocol")
-private val domainLabel = alphaDigit or (alphaDigit then many(alphaDigit or "-") then alphaDigit)
-private val topLabel = alpha or (alpha then many(alphaDigit or "-") then alphaDigit)
-private val hostName = many(domainLabel then ".") then topLabel
+        protocol = URLProtocol.createOrDefault(scheme)
+        startIndex += schemeLength + 1
+    }
 
-private val IPv4address = digits then "." then digits then "." then digits then "." then digits
-private val IPv6address = "[" then atLeastOne(hex or ":") then "]"
+    // Auth & Host
+    val slashCount = count(urlString, startIndex, endIndex, '/')
+    startIndex += slashCount
 
-private val credentialChar = urlChar or anyOf(";?&=")
-private val user = atLeastOne(credentialChar).named("user")
-private val password = atLeastOne(credentialChar).named("password")
-private val auth = user then maybe(":" then password) then "@"
-private val host = (hostName or IPv4address or IPv6address).named("host")
-private val port = ":" then digits.named("port")
-private val pathSegment = many(urlChar or anyOf(";&=:@"))
-private val parameters = pathSegment.named("parameters")
-private val encodedPath = atLeastOne("/" then pathSegment).named("encodedPath")
-private val fragment = ("#" then maybe(pathSegment).named("fragment"))
+    if (slashCount >= 2) {
+        loop@ while (true) {
+            val delimiter = urlString.indexOfAny("@/\\?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
 
-private val URL_PARSER = grammar {
-    +maybe(protocol then "://")
-    +maybe(auth)
-    +maybe(host then maybe(port))
-    +maybe(encodedPath then maybe("?" then parameters) then maybe(fragment))
-}.buildRegexParser()
+            if (delimiter < endIndex && urlString[delimiter] == '@') {
+                // user and password check
+                val passwordIndex = urlString.indexOfColonInHostPort(startIndex, delimiter)
+                if (passwordIndex != -1) {
+                    user = urlString.substring(startIndex, passwordIndex)
+                    password = urlString.substring(passwordIndex + 1, delimiter)
+                } else {
+                    user = urlString.substring(startIndex, delimiter)
+                }
+                startIndex = delimiter + 1
+            } else {
+                fillHost(urlString, startIndex, delimiter)
+                startIndex = delimiter
+                break@loop
+            }
 
-private val IP_PARSER = (IPv4address or IPv6address).buildRegexParser()
+        }
+    }
+
+    // Path
+    if (startIndex >= endIndex) return this
+    val pathEnd = urlString.indexOfAny("?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
+    encodedPath = urlString.substring(startIndex, pathEnd)
+    startIndex = pathEnd
+
+    // Query
+    if (startIndex < endIndex && urlString[startIndex] == '?') {
+        if (startIndex + 1 == endIndex) {
+            trailingQuery = true
+            return this
+        }
+
+        val fragmentStart = urlString.indexOf('#', startIndex + 1).takeIf { it > 0 } ?: endIndex
+
+        val rawParameters = parseQueryString(urlString.substring(startIndex + 1, fragmentStart))
+        rawParameters.forEach { key, values ->
+            parameters.appendAll(key, values)
+        }
+
+        startIndex = fragmentStart
+    }
+
+    // Fragment
+    if (startIndex < endIndex && urlString[startIndex] == '#') {
+        fragment = urlString.substring(startIndex + 1, endIndex)
+    }
+
+    return this
+}
+
+private fun URLBuilder.fillHost(urlString: String, startIndex: Int, endIndex: Int) {
+    val colonIndex = urlString.indexOfColonInHostPort(startIndex, endIndex).takeIf { it > 0 } ?: endIndex
+
+    host = urlString.substring(startIndex, colonIndex)
+
+    if (colonIndex + 1 < endIndex) {
+        port = urlString.substring(colonIndex + 1, endIndex).toInt()
+    }
+}
+
+private fun findScheme(urlString: String, startIndex: Int, endIndex: Int): Int {
+    var current = startIndex
+    while (current < endIndex) {
+        if (urlString[current] == ':') return current
+
+        ++current
+    }
+    return -1
+}
+
+private fun count(urlString: String, startIndex: Int, endIndex: Int, char: Char): Int {
+    var result = 0
+    while (startIndex + result < endIndex) {
+        if (urlString[startIndex + result] != char) break
+        result++
+    }
+
+    return result
+}
+
+private fun String.indexOfColonInHostPort(startIndex: Int, endIndex: Int): Int {
+    var skip = false
+    for (index in startIndex until endIndex) {
+        when(this[index]) {
+            '[' -> skip = true
+            ']' -> skip = false
+            ':' -> if (!skip) return index
+        }
+    }
+
+    return -1
+}

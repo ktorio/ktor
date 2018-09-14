@@ -60,7 +60,7 @@ class UrlTest {
 
     @Test
     fun testIpV4() {
-        val urlString = "127.0.0.1/hello"
+        val urlString = "//127.0.0.1/hello"
         val url = Url(urlString)
 
         assertEquals("http", url.protocol.name)
@@ -69,7 +69,7 @@ class UrlTest {
         assertEquals(null, url.user)
         assertEquals(null, url.password)
         assertEquals(false, url.trailingQuery)
-        assertEquals("http://$urlString", url.toString())
+        assertEquals("http:$urlString", url.toString())
     }
 
     /**
@@ -102,5 +102,26 @@ class UrlTest {
         assertEquals("http://httpbin.org/response-headers?message=foo%25bar", url.toString())
         assertEquals("/response-headers", url.encodedPath)
         assertEquals("/response-headers?message=foo%25bar", url.fullPath)
+    }
+
+    @Test
+    fun testHugeUrl() {
+        val parts = (0 until 100).map { "this is a very long string" }
+        val url = "http://127.0.0.1:8080?a=${parts.joinToString("\n") { it }}"
+
+        Url(url)
+    }
+
+    @Test
+    fun testMissingSlash() {
+        val urlString = "https://www.test.com?test=ok&authtoken=testToken"
+        val url = Url(urlString)
+
+        with(url) {
+            assertEquals(URLProtocol.HTTPS, protocol)
+            assertEquals("www.test.com", host)
+            assertEquals("", encodedPath)
+            assertEquals("https://www.test.com/?test=ok&authtoken=testToken", url.toString())
+        }
     }
 }
