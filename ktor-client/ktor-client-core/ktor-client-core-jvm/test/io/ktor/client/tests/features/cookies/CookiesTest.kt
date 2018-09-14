@@ -32,8 +32,8 @@ class CookiesTest {
             install(HttpCookies) {
                 default {
                     runBlocking {
-                        addCookie("localhost", Cookie("first", "1,2,3,4"))
-                        addCookie("localhost", Cookie("second", "abc"))
+                        addCookie("//localhost", Cookie("first", "1,2,3,4"))
+                        addCookie("http://localhost", Cookie("second", "abc"))
                     }
                 }
             }
