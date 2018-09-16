@@ -1,7 +1,19 @@
+buildscript {
+    ext.serialization_version = '0.6.1'
+    repositories {
+        jcenter()
+        maven { url "https://kotlin.bintray.com/kotlinx" }
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlinx:kotlinx-gradle-serialization-plugin:$serialization_version"
+    }
+}
+apply plugin: 'kotlinx-serialization'
 description = "Ktor client JSON support"
 
 dependencies {
-    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-runtime-jsonparser', version: '0.6.0'
+    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-runtime-common', version: '0.6.1'
+    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-runtime-jsonparser', version: '0.6.1'
 
     compile project(':ktor-client:ktor-client-core')
 }

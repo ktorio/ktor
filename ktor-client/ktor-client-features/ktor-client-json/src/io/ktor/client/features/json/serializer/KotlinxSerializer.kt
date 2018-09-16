@@ -5,35 +5,65 @@ import io.ktor.client.features.json.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import kotlinx.serialization.*
 import kotlinx.serialization.json.*
-import kotlin.reflect.*
+import kotlin.reflect.KClass
 
-typealias ReadMapper<T> = (JsonElement) -> T
-typealias WriteMapper<T> = (T) -> JsonElement
+internal expect fun serializerForPlatform(type: TypeInfo): KSerializer<*>
 
-class KotlinxSerializer : JsonSerializer {
-    private val readMappers = mutableMapOf<KClass<*>, ReadMapper<*>>()
-    private val writeMappers = mutableMapOf<KClass<*>, WriteMapper<*>>()
+typealias SerializerMapper<T> = () -> KSerializer<T>
 
-    fun <T : Any> setReadMapper(type: KClass<T>, block: ReadMapper<T>) {
-        readMappers[type] = block
+class KotlinxSerializer(
+    val json: JSON = JSON(
+        unquoted = false,
+        indented = false,
+        nonstrict = false,
+        context = SerialContext()
+    ),
+    block: SerialContext.() -> Unit = {}
+) : JsonSerializer {
+    init {
+        json.context?.apply {
+            block()
+        }
     }
 
-    fun <T : Any> setWriteMapper(type: KClass<T>, block: WriteMapper<T>) {
-        writeMappers[type] = block
+    private val serializerMap = mutableMapOf<KClass<*>, MutableList<SerializerMapper<*>>>()
+    //TODO: Use Type instead of KClass once TypeInfo is accessible in write
+    fun <T : Any> serializer(type: KClass<T>, block: SerializerMapper<T>) {
+        serializerMap.getOrPut(type) { mutableListOf() } += block
     }
 
     override fun write(data: Any): OutgoingContent {
         @Suppress("UNCHECKED_CAST")
-        val mapper = (writeMappers[data::class] as? (Any) -> JsonElement)
-            ?: error("There is no mapper for $data")
-
-        return TextContent(mapper(data).toString(), ContentType.Application.Json)
+        val clazz: KClass<Any> = data::class as KClass<Any>
+        var serializer: KSerializer<Any>? = null
+        val serializers = serializerMap[clazz] ?: mutableListOf()
+        for(serializerFunction in serializers) {
+            serializer = try {
+                @Suppress("UNCHECKED_CAST")
+                serializerFunction() as KSerializer<Any>
+            } catch(e: Exception) {
+                continue
+            }
+            break
+        }
+        if(serializer == null) serializer = clazz.serializer()
+        return TextContent(json.stringify(serializer, data), ContentType.Application.Json)
     }
 
     override suspend fun read(type: TypeInfo, response: HttpResponse): Any {
-        val mapper = readMappers[type.type]!!
-        val text = response.readText()
-        return mapper(JsonTreeParser(text).readFully())!!
+        var serializer: KSerializer<*>? = null
+        val serializers = serializerMap[type.type] ?: mutableListOf()
+        for(serializerFunction in serializers) {
+            serializer = try {
+                serializerFunction()
+            } catch(e: Exception) {
+                continue
+            }
+            break
+        }
+        if(serializer == null) serializer = serializerForPlatform(type)
+        return json.parse(serializer, response.readText())!!
     }
 }
