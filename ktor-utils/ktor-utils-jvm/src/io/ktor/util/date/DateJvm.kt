@@ -15,6 +15,7 @@ actual fun GMTDate(
     set(Calendar.HOUR_OF_DAY, hours)
     set(Calendar.MINUTE, minutes)
     set(Calendar.SECOND, seconds)
+    set(Calendar.MILLISECOND, 0)
 }.toDate(timestamp = null)
 
 

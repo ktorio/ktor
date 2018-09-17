@@ -66,7 +66,7 @@ enum class Month(val value: String) {
  *
  * [year]: year in common era(CE: https://en.wikipedia.org/wiki/Common_Era)
  */
-data class GMTDate(
+data class GMTDate internal constructor(
     val seconds: Int,
     val minutes: Int,
     val hours: Int,
