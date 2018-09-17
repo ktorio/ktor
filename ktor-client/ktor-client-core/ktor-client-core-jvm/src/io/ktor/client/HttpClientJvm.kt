@@ -13,7 +13,12 @@ interface HttpClientEngineContainer {
     val factory: HttpClientEngineFactory<*>
 }
 
-private val FACTORY = ServiceLoader.load(HttpClientEngineContainer::class.java)
-    .toList()
-    .firstOrNull()
-    ?.factory ?: error("Failed to find HttpClientEngineContainer in classpath via ServiceLoader")
+/**
+ * Workaround for dummy android [ClassLoader].
+ */
+private val engines: List<HttpClientEngineContainer> = HttpClientEngineContainer::class.java.let {
+    ServiceLoader.load(it, it.classLoader).toList()
+}
+
+private val FACTORY = engines.firstOrNull()?.factory
+    ?: error("Failed to find HttpClientEngineContainer in classpath via ServiceLoader")
