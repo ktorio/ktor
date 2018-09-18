@@ -5,7 +5,7 @@ import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import kotlinx.coroutines.future.*
 import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.*

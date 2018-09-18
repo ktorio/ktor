@@ -1,7 +1,7 @@
 package io.ktor.util.cio
 
-import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.jvm.javaio.*
+import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.jvm.javaio.*
 import java.io.*
 import java.nio.charset.*
 

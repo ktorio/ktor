@@ -2,7 +2,7 @@ package io.ktor.client.features
 
 import io.ktor.client.*
 import io.ktor.client.response.*
-import kotlinx.coroutines.experimental.io.jvm.javaio.*
+import kotlinx.coroutines.io.jvm.javaio.*
 import java.io.*
 
 internal actual fun HttpClient.platformDefaultTransformers() {

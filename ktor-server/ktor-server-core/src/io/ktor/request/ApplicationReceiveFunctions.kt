@@ -4,7 +4,7 @@ import io.ktor.application.*
 import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.util.pipeline.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import java.io.*
 import kotlin.reflect.*
 

@@ -8,7 +8,7 @@ private class TrackingContinuation<in T>(private val delegate: CancellableContin
         fillInStackTrace()
     }
 
-    override fun resumeWith(result: SuccessOrFailure<T>) {
+    override fun resumeWith(result: Result<T>) {
         if (result.isSuccess) delegate.resumeWith(result)
         else {
             suspensionPoint.initCause(result.exceptionOrNull())

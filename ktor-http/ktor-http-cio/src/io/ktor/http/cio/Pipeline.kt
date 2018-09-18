@@ -5,7 +5,7 @@ import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import java.io.*
 import kotlin.coroutines.*
 

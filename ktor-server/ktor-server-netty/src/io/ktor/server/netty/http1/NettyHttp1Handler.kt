@@ -6,7 +6,7 @@ import io.ktor.server.netty.cio.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.concurrent.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import kotlin.coroutines.*
 
 @ChannelHandler.Sharable

@@ -8,7 +8,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import org.junit.*
 import org.junit.Test
 import org.slf4j.*

@@ -1,8 +1,8 @@
 package io.ktor.tests.http
 
 import io.ktor.features.*
-import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.jvm.javaio.*
+import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.jvm.javaio.*
 import org.junit.Test
 import kotlin.test.*
 

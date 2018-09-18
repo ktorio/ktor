@@ -2,7 +2,7 @@ package io.ktor.sessions
 
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import java.util.concurrent.*
 
 /**

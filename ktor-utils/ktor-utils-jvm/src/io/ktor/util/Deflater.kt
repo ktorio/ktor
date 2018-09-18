@@ -2,7 +2,7 @@ package io.ktor.util
 
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import kotlinx.io.core.ByteOrder
 import kotlinx.io.pool.*
 import java.nio.ByteBuffer

@@ -3,8 +3,8 @@ package io.ktor.network.sockets
 import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.ByteChannel
+import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.ByteChannel
 import kotlinx.io.nio.*
 import kotlinx.io.pool.*
 import java.nio.*

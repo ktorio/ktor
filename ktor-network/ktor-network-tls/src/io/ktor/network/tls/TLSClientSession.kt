@@ -3,7 +3,7 @@ package io.ktor.network.tls
 import io.ktor.http.cio.internals.*
 import io.ktor.network.sockets.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 import kotlinx.io.pool.*
 import java.nio.*

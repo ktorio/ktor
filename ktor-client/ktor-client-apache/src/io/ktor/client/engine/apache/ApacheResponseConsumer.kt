@@ -3,7 +3,7 @@ package io.ktor.client.engine.apache
 import io.ktor.client.utils.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import org.apache.http.*
 import org.apache.http.entity.*
 import org.apache.http.nio.*

@@ -3,7 +3,7 @@ package io.ktor.tests.http.cio
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import org.junit.*
 import org.junit.Test
 import java.net.*

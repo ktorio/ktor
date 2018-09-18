@@ -9,7 +9,7 @@ import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import org.junit.Test
 import kotlin.test.*
 
