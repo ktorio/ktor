@@ -102,8 +102,8 @@ class CallLogging private constructor(private val log: Logger,
 
             if (feature.mdcEntries.isNotEmpty()) {
                 pipeline.intercept(loggingPhase) {
+                    feature.setupMdc(call)
                     withContext(MDCSurvivalElement()) {
-                        feature.setupMdc(call)
                         try {
                             proceed()
                             feature.logSuccess(call)
