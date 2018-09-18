@@ -28,7 +28,7 @@ class FreeMarkerTest {
 
             handleRequest(HttpMethod.Get, "/").response.let { response ->
                 assertNotNull(response.content)
-                @Suppress("DEPRECATION")
+                @Suppress("DEPRECATION_ERROR")
                 assert(response.content!!.lines()) {
                     shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
                 }
@@ -51,7 +51,7 @@ class FreeMarkerTest {
 
             handleRequest(HttpMethod.Get, "/").response.let { response ->
                 assertNotNull(response.content)
-                @Suppress("DEPRECATION")
+                @Suppress("DEPRECATION_ERROR")
                 assert(response.content!!.lines()) {
                     shouldBe(listOf("<p>Hello, Anonymous</p>", "<h1>Hi!</h1>"))
                 }
@@ -81,7 +81,7 @@ class FreeMarkerTest {
                 addHeader(HttpHeaders.AcceptEncoding, "gzip")
             }.response.let { response ->
                 val content = GZIPInputStream(response.byteContent!!.inputStream()).reader().readText()
-                @Suppress("DEPRECATION")
+                @Suppress("DEPRECATION_ERROR")
                 assert(content.lines()) {
                     shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
                 }
@@ -108,7 +108,7 @@ class FreeMarkerTest {
 
             handleRequest(HttpMethod.Get, "/").response.let { response ->
                 assertNotNull(response.content)
-                @Suppress("DEPRECATION")
+                @Suppress("DEPRECATION_ERROR")
                 assert(response.content!!.lines()) {
                     shouldBe(listOf("<p>Hello, 1</p>", "<h1>Hello, World!</h1>"))
                 }

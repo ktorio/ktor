@@ -206,7 +206,7 @@ class PartialContentTest {
             assertNull(result.response.headers[HttpHeaders.ContentLength])
 
             assertMultipart(result) { parts ->
-                @Suppress("DEPRECATION")
+                @Suppress("DEPRECATION_ERROR")
                 (kotlin.test.assert(parts) {
                     sizeShouldBe(2)
                     elementAtShouldBe(0, "p")
