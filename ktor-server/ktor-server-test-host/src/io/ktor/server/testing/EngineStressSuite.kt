@@ -243,7 +243,7 @@ abstract class EngineStressSuite<TEngine : ApplicationEngine, TConfiguration : A
     fun `test respond write`() {
         createAndStartServer {
             get("/") {
-                call.respondWrite {
+                call.respondTextWriter {
                     append(endMarker)
                     flush()
                     append("\r\n")

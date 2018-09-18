@@ -66,7 +66,7 @@ class HeadTest {
         withHeadApplication {
             application.routing {
                 get("/") {
-                    call.respondWrite {
+                    call.respondTextWriter {
                         write("Hello")
                     }
                 }
