@@ -9,7 +9,7 @@ import io.ktor.util.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import org.apache.http.*
 import org.apache.http.HttpRequest
 import org.apache.http.client.config.*

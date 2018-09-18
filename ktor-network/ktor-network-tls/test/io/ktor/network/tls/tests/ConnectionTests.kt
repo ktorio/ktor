@@ -5,7 +5,7 @@ import io.ktor.network.sockets.*
 import io.ktor.network.tls.*
 import io.ktor.network.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import org.junit.*
 
 class ConnectionTests {

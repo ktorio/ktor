@@ -10,7 +10,7 @@ import io.ktor.util.date.*
 import kotlin.coroutines.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 import platform.Foundation.*
 import platform.darwin.*

@@ -2,7 +2,7 @@ package io.ktor.features
 
 import io.ktor.http.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 
 private val NEWLINE = "\r\n".toByteArray(Charsets.ISO_8859_1)
 private val FIXED_HEADERS_PART_LENGTH = 14 + HttpHeaders.ContentLength.length + HttpHeaders.ContentRange.length

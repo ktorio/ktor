@@ -2,7 +2,7 @@ package io.ktor.client.request.forms
 
 import io.ktor.http.*
 import io.ktor.http.content.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 import kotlin.random.*

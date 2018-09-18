@@ -14,7 +14,7 @@ import io.ktor.server.testing.handleRequest
 import io.ktor.server.testing.withTestApplication
 import io.ktor.sessions.*
 import io.ktor.util.hex
-import kotlinx.coroutines.experimental.io.jvm.javaio.*
+import kotlinx.coroutines.io.jvm.javaio.*
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 import java.time.Duration

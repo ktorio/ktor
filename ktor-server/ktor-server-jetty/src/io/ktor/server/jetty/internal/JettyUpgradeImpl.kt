@@ -2,7 +2,7 @@ package io.ktor.server.jetty.internal
 
 import io.ktor.http.content.*
 import io.ktor.server.servlet.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.server.*
 import javax.servlet.http.*

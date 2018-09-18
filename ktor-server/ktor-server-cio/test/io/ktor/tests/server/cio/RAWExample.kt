@@ -5,7 +5,7 @@ import io.ktor.http.cio.*
 import io.ktor.server.cio.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import java.time.*
 
 @Volatile

@@ -2,7 +2,7 @@ package io.ktor.util.cio
 
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import kotlinx.io.pool.*
 import java.io.*
 import java.nio.*

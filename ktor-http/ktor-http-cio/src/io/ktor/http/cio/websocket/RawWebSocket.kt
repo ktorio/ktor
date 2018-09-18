@@ -4,7 +4,7 @@ import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import kotlinx.io.pool.*
 import java.nio.*
 import kotlin.coroutines.*

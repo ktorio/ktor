@@ -8,7 +8,7 @@ import io.ktor.server.engine.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import kotlin.coroutines.*
 
 abstract class NettyApplicationResponse(call: NettyApplicationCall,
