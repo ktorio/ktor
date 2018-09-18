@@ -84,7 +84,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     fun testStream() {
         createAndStartServer {
             handle {
-                call.respondWrite {
+                call.respondTextWriter {
                     write("ABC")
                     flush()
                     write("123")
@@ -99,6 +99,25 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         }
     }
 
+    @Test
+    fun testBinary() {
+        createAndStartServer {
+            handle {
+                call.respondOutputStream {
+                    write(25)
+                    write(37)
+                    write(42)
+                }
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(200, status.value)
+            assertEquals(ContentType.Application.OctetStream, contentType())
+            assertTrue(Arrays.equals(byteArrayOf(25, 37, 42), readBytes()))
+        }
+    }
+    
     @Test
     fun testLoggerOnError() {
         val message = "expected, ${nextNonce()}"
@@ -117,7 +136,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                 throw ExpectedException(message)
             }
             get("/respondWrite") {
-                call.respondWrite {
+                call.respondTextWriter {
                     throw ExpectedException(message)
                 }
             }
@@ -176,7 +195,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     fun testStreamNoFlush() {
         createAndStartServer {
             handle {
-                call.respondWrite {
+                call.respondTextWriter {
                     write("ABC")
                     write("123")
                 }
@@ -1034,7 +1053,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         createAndStartServer {
             get("/{index}") {
                 val index = call.parameters["index"]!!.toInt()
-                call.respondWrite {
+                call.respondTextWriter {
                     //print("[$index] ")
                     try {
                         append("OK:$index\n")
@@ -1260,7 +1279,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         createAndStartServer {
             application.install(StatusPages) {
                 status(HttpStatusCode.NotFound) {
-                    call.respondWrite(ContentType.parse("text/html"), HttpStatusCode.NotFound) {
+                    call.respondTextWriter(ContentType.parse("text/html"), HttpStatusCode.NotFound) {
                         write("Error string")
                     }
                 }
@@ -1277,7 +1296,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     open fun testBlockingDeadlock() {
         createAndStartServer {
             get("/") {
-                call.respondWrite(ContentType.Text.Plain.withCharset(Charsets.ISO_8859_1)) {
+                call.respondTextWriter(ContentType.Text.Plain.withCharset(Charsets.ISO_8859_1)) {
                     TimeUnit.SECONDS.sleep(1)
                     this.write("Deadlock ?")
                 }

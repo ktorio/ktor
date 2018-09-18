@@ -34,7 +34,7 @@ class MultipleDispatchOnTimeout {
                     val timeout = Math.max((call.request as ServletApplicationRequest).servletRequest.asyncContext.timeout, 0)
                     //                    println("Timeout is: $timeout")
                     Thread.sleep(timeout + 1000)
-                    call.respondWrite {
+                    call.respondTextWriter {
                         write("A ok!")
 
                     }

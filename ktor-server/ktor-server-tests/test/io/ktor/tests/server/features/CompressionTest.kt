@@ -417,7 +417,7 @@ class CompressionTest {
             application.install(Compression)
             application.routing {
                 get("/") {
-                    call.respondWrite {
+                    call.respondTextWriter {
                         write("test ")
                         write("me")
                     }

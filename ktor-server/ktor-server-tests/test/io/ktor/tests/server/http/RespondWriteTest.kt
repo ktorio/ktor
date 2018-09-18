@@ -16,7 +16,7 @@ class RespondWriteTest {
         withTestApplication {
             application.routing {
                 get("/") {
-                    call.respondWrite { write("OK") }
+                    call.respondTextWriter { write("OK") }
                 }
             }
 
@@ -31,7 +31,7 @@ class RespondWriteTest {
         withTestApplication {
             application.routing {
                 get("/") {
-                    call.respondWrite {
+                    call.respondTextWriter {
                         throw IllegalStateException("expected")
                     }
                 }
@@ -50,7 +50,7 @@ class RespondWriteTest {
             environment.monitor.subscribe(ApplicationStopped) { executor.shutdown() }
             application.routing {
                 get("/") {
-                    call.respondWrite {
+                    call.respondTextWriter {
                         withContext(executor.asCoroutineDispatcher()) {
                             write("OK")
                         }
@@ -70,7 +70,7 @@ class RespondWriteTest {
         withTestApplication {
             application.routing {
                 get("/") {
-                    call.respondWrite {
+                    call.respondTextWriter {
                         close() // after that point the main pipeline is going to continue since the channel is closed
                         // so we can't simply bypass an exception
                         // the workaround is to hold pipeline on channel pipe until commit rather than just close
