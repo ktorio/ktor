@@ -8,6 +8,7 @@ import io.ktor.server.netty.cio.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
+import kotlinx.coroutines.experimental.CancellationException
 import kotlinx.coroutines.experimental.io.*
 import kotlin.coroutines.experimental.*
 
