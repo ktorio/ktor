@@ -1,3 +1,16 @@
+# 0.9.5
+> Published 19 Sept 2018
+
+* Added shorthand client functions for HEAD, OPTIONS, PATCH and DELETE methods (#562)
+* URLBuilder's parser improved (#553, #567)
+* Improved client's cookie matching and processing
+* Introduced CallId feature
+* Added MDC support to CallLogging feature
+* Fixed setting charset encoding for non-text content types
+* Added `respondOutputStream { }` response function
+* Migrated to Kotlin 1.2.70
+* Split Infrastructure phase into Monitoring and Features phases
+
 # 0.9.4
 > Published 29 Aug 2018
 
