@@ -3,6 +3,7 @@ package io.ktor.tests.server.features
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.network.util.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.routing.*
@@ -157,6 +158,45 @@ class CallLoggingTest {
 
         withApplication(environment) {
             newSingleThreadContext("mdc-test-ctx").use { dispatcher ->
+                application.routing {
+                    get("/*") {
+                        withContext(dispatcher) {
+                            application.log.info("test message")
+                        }
+                        call.respond("OK")
+                    }
+                }
+
+                handleRequest(HttpMethod.Get, "/uri1").let { call ->
+                    assertTrue { call.requestHandled }
+
+                    println(messages.joinToString("\n"))
+                    assertTrue { "INFO: test message [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
+                    assertTrue { "TRACE: 200 OK: GET - /uri1 [mdc-call-id=generated-call-id-0, mdc-uri=/uri1]" in messages }
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `can fill MDC and survive context switch in IOCoroutineDispatcher`() {
+        var counter = 0
+
+        val environment = createTestEnvironment {
+            module {
+                install(CallLogging) {
+                    mdc("mdc-uri") { it.request.uri }
+                    callIdMdc("mdc-call-id")
+                }
+                install(CallId) {
+                    generate { "generated-call-id-${counter++}" }
+                }
+            }
+            log = logger
+        }
+
+        withApplication(environment) {
+            IOCoroutineDispatcher(1).use { dispatcher ->
                 application.routing {
                     get("/*") {
                         withContext(dispatcher) {
