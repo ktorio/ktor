@@ -24,8 +24,7 @@ abstract class KtorServlet : HttpServlet() {
 
     override fun service(request: HttpServletRequest, response: HttpServletResponse) {
         if (response.isCommitted) return
-        response.characterEncoding = "UTF-8"
-        request.characterEncoding = "UTF-8"
+
         try {
             if (request.isAsyncSupported) {
                 asyncService(request, response)
