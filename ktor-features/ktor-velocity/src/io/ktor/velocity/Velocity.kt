@@ -6,7 +6,7 @@ import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import org.apache.velocity.*
 import org.apache.velocity.app.*
 

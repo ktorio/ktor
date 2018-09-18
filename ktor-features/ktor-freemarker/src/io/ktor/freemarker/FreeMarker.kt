@@ -7,7 +7,7 @@ import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 
 class FreeMarkerContent(
     val template: String,

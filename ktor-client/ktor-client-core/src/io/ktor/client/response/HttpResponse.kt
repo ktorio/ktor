@@ -5,7 +5,7 @@ import io.ktor.client.call.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 import kotlinx.io.core.Closeable

@@ -3,8 +3,8 @@ package io.ktor.tests.http.cio
 import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.ByteChannel
+import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.ByteChannel
 import java.net.*
 import java.nio.channels.*
 import java.util.concurrent.*

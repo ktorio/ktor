@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 
 internal class TestHandler(
     private val resource: (cause: Throwable?) -> Unit

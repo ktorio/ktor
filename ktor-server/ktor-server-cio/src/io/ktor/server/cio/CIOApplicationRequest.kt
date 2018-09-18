@@ -5,7 +5,7 @@ import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 
 class CIOApplicationRequest(call: ApplicationCall,
                             private val input: ByteReadChannel,

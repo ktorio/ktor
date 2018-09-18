@@ -19,7 +19,7 @@ fun CoroutineContext.executor(): Executor = Executor {
 }
 
 object NoopContinuation : Continuation<Any?> {
-    override fun resumeWith(result: SuccessOrFailure<Any?>) {}
+    override fun resumeWith(result: Result<Any?>) {}
 
     override val context: CoroutineContext = EmptyCoroutineContext
 }

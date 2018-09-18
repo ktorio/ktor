@@ -10,7 +10,7 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.tests.http.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import kotlinx.io.streams.*
 import org.junit.*
 import org.junit.Test

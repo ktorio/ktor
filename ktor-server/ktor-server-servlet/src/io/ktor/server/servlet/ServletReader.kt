@@ -3,7 +3,7 @@ package io.ktor.server.servlet
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import java.io.*
 import java.util.concurrent.TimeoutException
 import javax.servlet.*

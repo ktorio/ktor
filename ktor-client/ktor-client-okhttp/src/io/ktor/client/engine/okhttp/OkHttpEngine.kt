@@ -6,7 +6,7 @@ import io.ktor.http.content.*
 import io.ktor.util.cio.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import okhttp3.*
 
 class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngine {

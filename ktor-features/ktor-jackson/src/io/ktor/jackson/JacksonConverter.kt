@@ -9,8 +9,8 @@ import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.request.*
-import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.jvm.javaio.*
+import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.jvm.javaio.*
 
 /**
  *    install(ContentNegotiation) {

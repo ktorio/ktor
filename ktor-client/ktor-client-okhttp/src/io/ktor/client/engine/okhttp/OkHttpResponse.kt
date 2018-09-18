@@ -6,7 +6,7 @@ import io.ktor.http.*
 import io.ktor.http.Headers
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import okhttp3.*
 
 internal class OkHttpResponse(

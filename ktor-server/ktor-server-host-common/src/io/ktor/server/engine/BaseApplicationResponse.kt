@@ -7,7 +7,8 @@ import io.ktor.features.*
 import io.ktor.http.*
 import io.ktor.response.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.jvm.javaio.*
 import kotlinx.io.pool.*
 import java.nio.*
 
@@ -170,7 +171,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         responseChannel().use {
             val length = headers[HttpHeaders.ContentLength]?.toLong()
             val copied = withContext(Unconfined) {
-                readChannel.copyTo(this, length ?: Long.MAX_VALUE)
+                readChannel.copyTo(this@use, length ?: Long.MAX_VALUE)
             }
 
             length ?: return@use

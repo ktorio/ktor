@@ -8,8 +8,8 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.jvm.javaio.*
+import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.jvm.javaio.*
 import java.io.*
 import java.net.*
 import java.util.concurrent.*

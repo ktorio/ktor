@@ -9,7 +9,7 @@ import io.ktor.network.util.*
 import io.ktor.server.testing.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
 

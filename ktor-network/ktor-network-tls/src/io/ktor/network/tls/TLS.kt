@@ -2,7 +2,7 @@ package io.ktor.network.tls
 
 import io.ktor.network.sockets.*
 import io.ktor.network.util.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import javax.net.ssl.*
 import kotlin.coroutines.*
 

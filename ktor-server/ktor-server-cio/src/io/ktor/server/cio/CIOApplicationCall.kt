@@ -4,7 +4,7 @@ import io.ktor.application.*
 import io.ktor.http.cio.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import kotlin.coroutines.*
 
 class CIOApplicationCall(
