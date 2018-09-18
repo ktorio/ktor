@@ -6,7 +6,7 @@ import io.ktor.http.cio.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import kotlin.coroutines.*
 
 class CIOApplicationResponse(call: CIOApplicationCall,

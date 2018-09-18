@@ -7,7 +7,7 @@ import io.ktor.server.engine.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.multipart.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import java.io.*
 
 abstract class NettyApplicationRequest(

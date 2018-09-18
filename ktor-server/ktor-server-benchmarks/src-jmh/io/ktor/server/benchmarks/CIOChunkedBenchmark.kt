@@ -2,7 +2,7 @@ package io.ktor.server.benchmarks
 
 import io.ktor.http.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import org.openjdk.jmh.annotations.*
 import java.nio.ByteBuffer
 import java.util.*

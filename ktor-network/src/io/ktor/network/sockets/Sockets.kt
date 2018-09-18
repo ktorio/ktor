@@ -1,7 +1,7 @@
 package io.ktor.network.sockets
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import java.io.*
 import java.net.*
 

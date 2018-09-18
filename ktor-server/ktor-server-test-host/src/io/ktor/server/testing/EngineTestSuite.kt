@@ -15,8 +15,8 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
-import kotlinx.coroutines.experimental.io.jvm.javaio.*
+import kotlinx.coroutines.io.*
+import kotlinx.coroutines.io.jvm.javaio.*
 import kotlinx.io.core.*
 import kotlinx.io.streams.*
 import org.junit.Test

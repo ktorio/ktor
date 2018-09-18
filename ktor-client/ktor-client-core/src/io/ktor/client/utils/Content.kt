@@ -3,7 +3,7 @@ package io.ktor.client.utils
 import io.ktor.http.*
 import io.ktor.http.content.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import kotlin.coroutines.*
 
 /**

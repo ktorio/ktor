@@ -1,6 +1,6 @@
 package io.ktor.client.response
 
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 
 /**

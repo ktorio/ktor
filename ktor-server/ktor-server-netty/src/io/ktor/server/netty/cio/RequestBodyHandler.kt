@@ -6,7 +6,7 @@ import io.netty.handler.codec.http.*
 import io.netty.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 
 internal class RequestBodyHandler(val context: ChannelHandlerContext,
                                   private val requestQueue: NettyRequestQueue) : ChannelInboundHandlerAdapter() {

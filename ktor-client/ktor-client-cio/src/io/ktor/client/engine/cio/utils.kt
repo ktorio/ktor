@@ -7,7 +7,7 @@ import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.experimental.io.*
+import kotlinx.coroutines.io.*
 
 internal suspend fun DefaultHttpRequest.write(output: ByteWriteChannel) {
     val builder = RequestResponseBuilder()
