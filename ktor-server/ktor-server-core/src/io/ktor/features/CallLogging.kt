@@ -5,19 +5,21 @@ import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.util.*
-import kotlinx.coroutines.experimental.*
+import kotlinx.coroutines.*
 import org.slf4j.*
 import org.slf4j.event.*
-import kotlin.coroutines.experimental.*
+import kotlin.coroutines.*
 
 /**
  * Logs application lifecycle and call events.
  */
-class CallLogging private constructor(private val log: Logger,
-                  private val monitor: ApplicationEvents,
-                  private val level: Level,
-                  private val filters: List<(ApplicationCall) -> Boolean>,
-                  private val mdcEntries: List<MDCEntry>) {
+class CallLogging private constructor(
+    private val log: Logger,
+    private val monitor: ApplicationEvents,
+    private val level: Level,
+    private val filters: List<(ApplicationCall) -> Boolean>,
+    private val mdcEntries: List<MDCEntry>
+) {
 
     internal class MDCEntry(val name: String, val provider: (ApplicationCall) -> String?)
 
@@ -96,10 +98,11 @@ class CallLogging private constructor(private val log: Logger,
         override fun install(pipeline: Application, configure: Configuration.() -> Unit): CallLogging {
             val loggingPhase = PipelinePhase("Logging")
             val configuration = Configuration().apply(configure)
-            val feature = CallLogging(pipeline.log, pipeline.environment.monitor,
-                    configuration.level,
-                    configuration.filters.toList(),
-                    configuration.mdcEntries.toList()
+            val feature = CallLogging(
+                pipeline.log, pipeline.environment.monitor,
+                configuration.level,
+                configuration.filters.toList(),
+                configuration.mdcEntries.toList()
             )
 
             pipeline.insertPhaseBefore(ApplicationCallPipeline.Monitoring, loggingPhase)
