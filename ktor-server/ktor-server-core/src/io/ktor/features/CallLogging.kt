@@ -70,12 +70,16 @@ class CallLogging private constructor(private val log: Logger,
         monitor.subscribe(ApplicationStopped, stopped)
     }
 
-    private fun setupMdc(call: ApplicationCall) {
+    private fun setupMdc(call: ApplicationCall): Map<String, String> {
+        val result = HashMap<String, String>()
+
         mdcEntries.forEach { entry ->
             entry.provider(call)?.let { mdcValue ->
-                MDC.put(entry.name, mdcValue)
+                result[entry.name] = mdcValue
             }
         }
+
+        return result
     }
 
     private fun cleanupMdc() {
@@ -102,8 +106,8 @@ class CallLogging private constructor(private val log: Logger,
 
             if (feature.mdcEntries.isNotEmpty()) {
                 pipeline.intercept(loggingPhase) {
-                    feature.setupMdc(call)
-                    withContext(MDCSurvivalElement()) {
+                    val mdc = feature.setupMdc(call)
+                    withContext(MDCSurvivalElement(mdc)) {
                         try {
                             proceed()
                             feature.logSuccess(call)
@@ -147,27 +151,25 @@ class CallLogging private constructor(private val log: Logger,
  */
 fun ApplicationRequest.toLogString() = "${httpMethod.value} - ${path()}"
 
-private class MDCSurvivalElement : ThreadContextElement<Map<String, String>> {
+private class MDCSurvivalElement(mdc: Map<String, String>) : ThreadContextElement<Map<String, String>> {
     override val key: CoroutineContext.Key<*> get() = Key
 
-    @Volatile
-    private var current: Map<String, String> = emptyMap()
+    private val snapshot = copyMDC() + mdc
 
     override fun restoreThreadContext(context: CoroutineContext, oldState: Map<String, String>) {
-        current = copyMDC()
-        MDC.clear()
         putMDC(oldState)
     }
 
     override fun updateThreadContext(context: CoroutineContext): Map<String, String> {
         val mdcCopy = copyMDC()
-        putMDC(current)
+        putMDC(snapshot)
         return mdcCopy
     }
 
     private fun copyMDC() = MDC.getCopyOfContextMap()?.toMap() ?: emptyMap()
 
     private fun putMDC(oldState: Map<String, String>) {
+        MDC.clear()
         oldState.entries.forEach { (k, v) ->
             MDC.put(k, v)
         }
