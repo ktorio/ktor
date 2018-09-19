@@ -22,7 +22,8 @@ class WebSocketWriter @Deprecated("Internal API") constructor(
     var masking: Boolean = false,
     val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) {
-    private val queue = actor(context, parent = parent, capacity = 8, start = CoroutineStart.LAZY) {
+    @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
+    private val queue = actor<Any>(context, parent = parent, capacity = 8, start = CoroutineStart.LAZY) {
         pool.useInstance { it: ByteBuffer -> writeLoop(it) }
     }
 
