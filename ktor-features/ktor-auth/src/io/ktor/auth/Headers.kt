@@ -150,7 +150,7 @@ sealed class HttpAuthHeader(val authScheme: String) {
         /**
          * Copies this [Parameterized] appending a new parameter [name] [value].
          */
-        fun withParameter(name: String, value: String) = Parameterized(authScheme, this.parameters + HeaderValueParam(name, value))
+        fun withParameter(name: String, value: String) = Parameterized(authScheme, this.parameters + HeaderValueParam(name, value), encoding)
 
         override fun render(encoding: HeaderValueEncoding) = parameters.joinToString(", ", prefix = "$authScheme ") { "${it.name}=${it.value.encode(encoding)}" }
 
