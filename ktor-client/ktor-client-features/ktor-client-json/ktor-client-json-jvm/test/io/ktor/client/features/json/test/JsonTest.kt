@@ -31,6 +31,7 @@ class JsonTest : TestWithKtor() {
     val usersList = listOf(User("vasya", 10))
     val usersSet = setOf(User("vasya", 10))
     val userMap = mapOf("baz" to User("vasya", 10))
+    val nested = arrayOf(mapOf("baz" to listOf(User("vasya", 10))))
 
     @Serializable
     data class Response<T>(val ok: Boolean, val result: T?)
@@ -47,6 +48,14 @@ class JsonTest : TestWithKtor() {
                 val received = call.receive<Widget>()
                 assertEquals(widget, received)
                 call.respond(received)
+            }
+            post("/post/users") {
+                val received = call.receive<Array<User>>()
+                Arrays.deepEquals(usersArray, received)
+                call.respond(received)
+            }
+            get("/nested") {
+                call.respond(nested)
             }
             get("/users") {
                 call.respond(Response(true, arrayOf(User("vasya", 10))))
@@ -121,19 +130,18 @@ class JsonTest : TestWithKtor() {
     }
 
     @Test
-    fun testKotlinxSerializationList() = clientTest(CIO) {
+    fun testKotlinxSerializationArrayPost() = clientTest(CIO) {
         config {
-            install(JsonFeature) {
-                serializer = KotlinxSerializer()
-            }
+            install(JsonFeature)
         }
 
         test { client ->
-            val result = client.get<List<User>>(path = "/usersList", body = widget, port = serverPort) {
+            val result = client.post<Array<User>>(path = "/post/users", port = serverPort) {
+                body = usersArray
                 contentType(ContentType.Application.Json)
             }
 
-            assertEquals(usersList, result)
+            assert(Arrays.deepEquals(usersArray, result)) { "expected: [${usersArray.joinToString()}] , actual: [${result.joinToString()}]" }
         }
     }
 
@@ -146,11 +154,45 @@ class JsonTest : TestWithKtor() {
         }
 
         test { client ->
-            val result = client.get<Set<User>>(path = "/usersSet", body = widget, port = serverPort) {
+            val result = client.get<Set<User>>(path = "/usersList", port = serverPort)
+            assertEquals(usersSet, result)
+        }
+    }
+
+    @Test
+    fun testKotlinxSerializationList() = clientTest(CIO) {
+        config {
+            install(JsonFeature) {
+                serializer = KotlinxSerializer()
+            }
+        }
+
+        test { client ->
+            val result = client.get<List<User>>(path = "/usersList", port = serverPort)
+
+            assertEquals(usersList, result)
+        }
+    }
+
+    //fails
+    // kotlinx-serialization serializes type data into list because its a List<*>
+    // ktor does not offer TypeInfo of body when serializing to json, therefore it has to be
+    // obtained from the `::class` of `data: Any` which ends up being `List<*>`
+//    @Test
+    fun testKotlinxSerializationListPost() = clientTest(CIO) {
+        config {
+            install(JsonFeature){
+                serializer = KotlinxSerializer()
+            }
+        }
+
+        test { client ->
+            val result = client.post<List<User>>(path = "/post/users", port = serverPort) {
+                body = usersList
                 contentType(ContentType.Application.Json)
             }
 
-            assertEquals(usersSet, result)
+            assertEquals(usersList, result)
         }
     }
 
@@ -163,11 +205,24 @@ class JsonTest : TestWithKtor() {
         }
 
         test { client ->
-            val result = client.get<Map<String, User>>(path = "/userMap", body = widget, port = serverPort) {
-                contentType(ContentType.Application.Json)
-            }
+            val result = client.get<Map<String, User>>(path = "/userMap", port = serverPort)
 
             assertEquals(userMap, result)
+        }
+    }
+
+    @Test
+    fun testKotlinxSerializationNestedArrayGenerics() = clientTest(CIO) {
+        config {
+            install(JsonFeature) {
+                serializer = KotlinxSerializer()
+            }
+        }
+
+        test { client ->
+            val result = client.get<Array<Map<String, List<User>>>>(path = "/nested", port = serverPort)
+
+            assert(Arrays.deepEquals(nested, result)) { "expected: [${nested.joinToString()}] , actual: [${result.joinToString()}]" }
         }
     }
 }

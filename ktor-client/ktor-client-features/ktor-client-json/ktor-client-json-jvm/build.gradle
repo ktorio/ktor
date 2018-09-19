@@ -2,7 +2,7 @@ apply plugin: 'kotlinx-serialization'
 dependencies {
     expectedBy project(':ktor-client:ktor-client-features:ktor-client-json')
 
-    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-runtime', version: '0.6.0'
+    compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-runtime', version: serialization_version
 
     compile project(':ktor-client:ktor-client-core:ktor-client-core-jvm')
     compile project(":ktor-client:ktor-client-core")

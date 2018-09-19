@@ -9,3 +9,5 @@ import java.lang.reflect.ParameterizedType
 import java.lang.reflect.WildcardType
 
 internal actual fun serializerForPlatform(type: TypeInfo): KSerializer<*> = type.type.serializer()
+
+internal actual fun serializerForObject(element: Any): KSerializer<Any>? = null

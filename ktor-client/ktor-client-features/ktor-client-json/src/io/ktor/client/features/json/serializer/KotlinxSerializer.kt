@@ -10,6 +10,7 @@ import kotlinx.serialization.json.*
 import kotlin.reflect.KClass
 
 internal expect fun serializerForPlatform(type: TypeInfo): KSerializer<*>
+internal expect fun serializerForObject(element: Any): KSerializer<Any>?
 
 typealias SerializerMapper<T> = () -> KSerializer<T>
 
@@ -39,31 +40,34 @@ class KotlinxSerializer(
         val clazz: KClass<Any> = data::class as KClass<Any>
         var serializer: KSerializer<Any>? = null
         val serializers = serializerMap[clazz] ?: mutableListOf()
-        for(serializerFunction in serializers) {
+        for (serializerBuilder in serializers) {
             serializer = try {
                 @Suppress("UNCHECKED_CAST")
-                serializerFunction() as KSerializer<Any>
-            } catch(e: Exception) {
+                serializerBuilder() as KSerializer<Any>
+            } catch (e: Exception) {
                 continue
             }
             break
         }
-        if(serializer == null) serializer = clazz.serializer()
-        return TextContent(json.stringify(serializer, data), ContentType.Application.Json)
+        serializer = serializer ?: serializerForObject(data) ?: clazz.serializer()
+        return TextContent(
+            json.stringify(serializer, data),
+            ContentType.Application.Json
+        )
     }
 
     override suspend fun read(type: TypeInfo, response: HttpResponse): Any {
         var serializer: KSerializer<*>? = null
         val serializers = serializerMap[type.type] ?: mutableListOf()
-        for(serializerFunction in serializers) {
+        for (serializerFunction in serializers) {
             serializer = try {
                 serializerFunction()
-            } catch(e: Exception) {
+            } catch (e: Exception) {
                 continue
             }
             break
         }
-        if(serializer == null) serializer = serializerForPlatform(type)
+        if (serializer == null) serializer = serializerForPlatform(type)
         return json.parse(serializer, response.readText())!!
     }
 }
