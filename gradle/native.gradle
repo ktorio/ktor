@@ -25,8 +25,8 @@ dependencies {
 
 if (project.hasProperty("teamcity")) {
     afterEvaluate {
-//        tasks.withType(Class.forName("org.gradle.nativeplatform.test.tasks.RunTestExecutable_Decorated")) {
-//            args '--ktest_logger=TEAMCITY'
-//        }
+        tasks.withType(Class.forName("org.gradle.nativeplatform.test.tasks.RunTestExecutable")) {
+            args '--ktest_logger=TEAMCITY'
+        }
     }
 }
