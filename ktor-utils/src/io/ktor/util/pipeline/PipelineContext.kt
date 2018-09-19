@@ -1,5 +1,8 @@
 package io.ktor.util.pipeline
 
+import kotlinx.coroutines.*
+import kotlin.coroutines.*
+
 /**
  * Represents running execution of a pipeline
  * @param context object representing context in which pipeline executes
@@ -7,11 +10,12 @@ package io.ktor.util.pipeline
  * @param subject object representing subject that goes along the pipeline
  */
 @ContextDsl
-class PipelineContext<TSubject : Any, out TContext : Any>(
+class PipelineContext<TSubject : Any, out TContext : Any> constructor(
     val context: TContext,
     private val interceptors: List<PipelineInterceptor<TSubject, TContext>>,
-    subject: TSubject
-) {
+    subject: TSubject,
+    override val coroutineContext: CoroutineContext
+) : CoroutineScope {
     /**
      * Subject of this pipeline execution
      */

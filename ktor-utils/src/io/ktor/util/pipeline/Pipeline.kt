@@ -1,6 +1,7 @@
 package io.ktor.util.pipeline
 
 import io.ktor.util.*
+import kotlin.coroutines.*
 import kotlin.jvm.*
 
 /**
@@ -20,7 +21,7 @@ open class Pipeline<TSubject : Any, TContext : Any>(vararg phases: PipelinePhase
      * Executes this pipeline in the given [context] and with the given [subject]
      */
     suspend fun execute(context: TContext, subject: TSubject): TSubject =
-        PipelineContext(context, interceptors(), subject).proceed()
+            PipelineContext(context, interceptors(), subject, coroutineContext).proceed()
 
     private class PhaseContent<TSubject : Any, Call : Any>(
         val phase: PipelinePhase,
