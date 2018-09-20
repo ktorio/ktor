@@ -39,7 +39,7 @@ class TestApplicationEngineTest {
                     }
                 },
                 configure = {
-                    dispatcher = Unconfined.withDelay(object : Delay {
+                    dispatcher = Dispatchers.Unconfined.withDelay(object : Delay {
                         override fun scheduleResumeAfterDelay(
                                 time: Long,
                                 unit: TimeUnit,

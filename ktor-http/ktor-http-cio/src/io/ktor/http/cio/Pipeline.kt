@@ -9,23 +9,37 @@ import kotlinx.coroutines.io.*
 import java.io.*
 import kotlin.coroutines.*
 
+@Deprecated("")
+@Suppress("KDocMissingDocumentation")
 fun lastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boolean {
-    return when {
-        connectionOptions == null -> !http11
-        connectionOptions.keepAlive -> false
-        connectionOptions.close -> true
-        else -> false
-    }
+    return isLastHttpRequest(http11, connectionOptions)
 }
 
-typealias HttpRequestHandler = suspend (request: Request,
-                                        input: ByteReadChannel,
-                                        output: ByteWriteChannel,
-                                        upgraded: CompletableDeferred<Boolean>?) -> Unit
+/**
+ * HTTP request handler function
+ */
+typealias HttpRequestHandler = suspend CoroutineScope.(request: Request,
+                                                       input: ByteReadChannel,
+                                                       output: ByteWriteChannel,
+                                                       upgraded: CompletableDeferred<Boolean>?) -> Unit
 
-val HttpPipelineCoroutine = CoroutineName("http-pipeline")
-val HttpPipelineWriterCoroutine = CoroutineName("http-pipeline-writer")
+/**
+ * HTTP pipeline coroutine name
+ */
+val HttpPipelineCoroutine: CoroutineName = CoroutineName("http-pipeline")
 
+/**
+ * HTTP pipeline writer coroutine name
+ */
+val HttpPipelineWriterCoroutine: CoroutineName = CoroutineName("http-pipeline-writer")
+
+/**
+ * HTTP request handler coroutine name
+ */
+val RequestHandlerCoroutine: CoroutineName = CoroutineName("request-handler")
+
+@Suppress("KDocMissingDocumentation")
+@Deprecated("Use startConnectionPipeline with CoroutineScope receiver")
 fun startConnectionPipeline(input: ByteReadChannel,
                             output: ByteWriteChannel,
                             parentJob: CoroutineContext?,
@@ -33,10 +47,36 @@ fun startConnectionPipeline(input: ByteReadChannel,
                             callContext: CoroutineContext,
                             timeout: WeakTimeoutQueue,
                             handler: HttpRequestHandler): Job {
+    return CoroutineScope(ioContext + (parentJob ?: EmptyCoroutineContext))
+            .startConnectionPipeline(input, output, timeout) { request: Request,
+                                                              _input: ByteReadChannel,
+                                                              _output: ByteWriteChannel,
+                                                              upgraded: CompletableDeferred<Boolean>?  ->
+                withContext(callContext) {
+                    handler(request, _input, _output, upgraded)
+                }
+            }
+}
 
-    return launch(ioContext + HttpPipelineCoroutine + (parentJob ?: EmptyCoroutineContext)) {
+/**
+ * Start connection HTTP pipeline invoking [handler] for every request.
+ * Note that [handler] could be invoked multiple times concurrently due to HTTP pipeline nature
+ *
+ * @param input incoming channel
+ * @param output outgoing bytes channel
+ * @param timeout number of IDLE seconds after the connection will be closed
+ * @param handler to be invoked for every incoming request
+ *
+ * @return pipeline job
+ */
+fun CoroutineScope.startConnectionPipeline(input: ByteReadChannel,
+                                           output: ByteWriteChannel,
+                                           timeout: WeakTimeoutQueue,
+                                           handler: HttpRequestHandler): Job {
+
+    return launch(HttpPipelineCoroutine) {
         val outputsActor = actor<ByteReadChannel>(
-                context = coroutineContext + HttpPipelineWriterCoroutine,
+                context = HttpPipelineWriterCoroutine,
                 capacity = 3,
                 start = CoroutineStart.UNDISPATCHED) {
             try {
@@ -60,7 +100,7 @@ fun startConnectionPipeline(input: ByteReadChannel,
             }
         }
 
-        val thisJob = coroutineContext[Job]!!
+        val requestContext = RequestHandlerCoroutine + Dispatchers.Unconfined
 
         try {
             while (true) {  // parse requests loop
@@ -123,7 +163,7 @@ fun startConnectionPipeline(input: ByteReadChannel,
                 val requestBody = if (expectedHttpBody || expectedHttpUpgrade) ByteChannel(true) else ByteReadChannel.Empty
                 val upgraded = if (expectedHttpUpgrade) CompletableDeferred<Boolean>() else null
 
-                launch(callContext + thisJob + CoroutineName("request-handler")) {
+                launch(requestContext, start = CoroutineStart.UNDISPATCHED) {
                     try {
                         handler(request, requestBody, response, upgraded)
                     } catch (t: Throwable) {
@@ -137,9 +177,8 @@ fun startConnectionPipeline(input: ByteReadChannel,
 
                 if (upgraded != null) {
                     if (upgraded.await()) { // suspend pipeline until we know if upgrade performed?
-                        launch(Unconfined) {
-                            input.copyAndClose(requestBody as ByteChannel)
-                        }
+                        outputsActor.close()
+                        input.copyAndClose(requestBody as ByteChannel)
                         break
                     } else if (!expectedHttpBody && requestBody is ByteChannel) { // not upgraded, for example 404
                         requestBody.close()
@@ -157,7 +196,7 @@ fun startConnectionPipeline(input: ByteReadChannel,
                     }
                 }
 
-                if (lastHttpRequest(http11, connectionOptions)) break
+                if (isLastHttpRequest(http11, connectionOptions)) break
             }
         } catch (t: IOException) { // already handled
             coroutineContext.cancel()
@@ -169,6 +208,7 @@ fun startConnectionPipeline(input: ByteReadChannel,
     }
 }
 
+@Suppress("KDocMissingDocumentation")
 @Deprecated("Use startConnectionPipeline instead",
         ReplaceWith("startConnectionPipeline(input, output, ioCoroutineContext, callContext, timeouts, handler).join()"))
 suspend fun handleConnectionPipeline(input: ByteReadChannel,
@@ -177,6 +217,7 @@ suspend fun handleConnectionPipeline(input: ByteReadChannel,
                                      callContext: CoroutineContext,
                                      timeouts: WeakTimeoutQueue,
                                      handler: HttpRequestHandler) {
+    @Suppress("DEPRECATION")
     startConnectionPipeline(input, output, null, ioCoroutineContext, callContext, timeouts, handler).join()
 }
 
@@ -186,6 +227,15 @@ private val BadRequestPacket =
             headerLine("Connection", "close")
             emptyLine()
         }.build()
+
+private fun isLastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boolean {
+    return when {
+        connectionOptions == null -> !http11
+        connectionOptions.keepAlive -> false
+        connectionOptions.close -> true
+        else -> false
+    }
+}
 
 @Suppress("NOTHING_TO_INLINE")
 private inline fun <S, R> suspendLambda(noinline block: suspend S.() -> R): suspend S.() -> R = block

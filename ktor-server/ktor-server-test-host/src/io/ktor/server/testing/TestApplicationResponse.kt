@@ -11,10 +11,11 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import java.time.*
 import java.util.concurrent.*
+import kotlin.coroutines.*
 
 class TestApplicationResponse(
-        call: TestApplicationCall, val readResponse: Boolean = false
-) : BaseApplicationResponse(call) {
+    call: TestApplicationCall, val readResponse: Boolean = false
+) : BaseApplicationResponse(call), CoroutineScope by call {
 
     val content: String?
         get() {
@@ -81,9 +82,10 @@ class TestApplicationResponse(
     private val webSocketCompleted: CompletableDeferred<Unit> = CompletableDeferred()
 
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
-        upgrade.upgrade(call.receiveChannel(), responseChannel(), CommonPool, Unconfined).invokeOnCompletion {
-            webSocketCompleted.complete(Unit)
-        }
+        upgrade.upgrade(call.receiveChannel(), responseChannel(), Dispatchers.Default, Dispatchers.Unconfined)
+            .invokeOnCompletion {
+                webSocketCompleted.complete(Unit)
+            }
     }
 
     fun awaitWebSocket(duration: Duration) = runBlocking {

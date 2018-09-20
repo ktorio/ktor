@@ -9,11 +9,12 @@ import java.nio.ByteBuffer
 import kotlin.coroutines.*
 import kotlin.test.*
 
+@UseExperimental(WebSocketInternalAPI::class)
 class WriterTest {
     @Test
     fun testWriteBigThenClose() = runBlocking {
         val out = ByteChannel()
-        val writer = @Suppress("DEPRECATION") WebSocketWriter(out, Job(), coroutineContext)
+        val writer = WebSocketWriter(out, coroutineContext)
 
         val body = ByteBuffer.allocate(65535)
         while (body.hasRemaining()) {
@@ -35,7 +36,7 @@ class WriterTest {
     @Test
     fun testWriteDataAfterClose() = runBlocking {
         val out = ByteChannel()
-        val writer = @Suppress("DEPRECATION") (WebSocketWriter(out, Job(), coroutineContext))
+        val writer = WebSocketWriter(out, coroutineContext)
 
         writer.send(Frame.Close(CloseReason(CloseReason.Codes.NORMAL, "")))
         writer.send(Frame.Text("Yo"))

@@ -6,7 +6,6 @@ import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.network.sockets.ServerSocket
 import io.ktor.network.sockets.Socket
-import io.ktor.network.util.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.slf4j.*
@@ -25,22 +24,42 @@ data class HttpServerSettings(
         val connectionIdleTimeoutSeconds: Long = 45
 )
 
-fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, callDispatcher: CoroutineContext? = null, handler: HttpRequestHandler): HttpServer {
+@Deprecated("Use httpServer with CoroutineScope receiver")
+fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, handler: HttpRequestHandler): HttpServer {
+    val parent = parentJob ?: EmptyCoroutineContext
+    val scope = CoroutineScope(GlobalScope.newCoroutineContext(parent))
+
+    return scope.httpServer(settings, handler = handler)
+}
+
+@Deprecated("Use httpServer with CoroutineScope receiver")
+fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, callDispatcher: CoroutineContext?, handler: HttpRequestHandler): HttpServer {
+    if (callDispatcher != null) {
+        throw UnsupportedOperationException()
+    }
+
+    @Suppress("DEPRECATION")
+    return httpServer(settings, parentJob, handler)
+}
+
+/**
+ * Start an http server with [settings] invoking [handler] for every request
+ */
+fun CoroutineScope.httpServer(settings: HttpServerSettings,
+                              handler: HttpRequestHandler): HttpServer {
     val socket = CompletableDeferred<ServerSocket>()
-    val cpuCount = Runtime.getRuntime().availableProcessors()
-    val dispatcher = IOCoroutineDispatcher((cpuCount * 2 / 3).coerceAtLeast(2))
 
     val serverLatch = CompletableDeferred<Unit>()
-    val serverJob = launch(dispatcher + CoroutineName("server-root-${settings.port}") + (parentJob ?: EmptyCoroutineContext)) {
+    val serverJob = launch(CoroutineName("server-root-${settings.port}")) {
         serverLatch.await()
     }
 
-    val selector = ActorSelectorManager(dispatcher)
+    val selector = ActorSelectorManager(coroutineContext)
     val timeout = WeakTimeoutQueue(TimeUnit.SECONDS.toMillis(settings.connectionIdleTimeoutSeconds),
             Clock.systemUTC(),
             { TimeoutCancellationException("Connection IDLE") })
 
-    val acceptJob = launch(dispatcher + serverJob + CoroutineName("accept-${settings.port}")) {
+    val acceptJob = launch(serverJob + CoroutineName("accept-${settings.port}")) {
         aSocket(selector).tcp().bind(InetSocketAddress(settings.host, settings.port)).use { server ->
             socket.complete(server)
 
@@ -49,13 +68,11 @@ fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, callDispatc
 
                 while (true) {
                     val client: Socket = server.accept()
+                    val connectionScope = CoroutineScope(parentAndHandler)
 
-                    val clientJob = startConnectionPipeline(
+                    val clientJob = connectionScope.startConnectionPipeline(
                             input = client.openReadChannel(),
                             output = client.openWriteChannel(),
-                            parentJob = parentAndHandler,
-                            ioContext = dispatcher,
-                            callContext = callDispatcher ?: dispatcher,
                             timeout = timeout,
                             handler = handler
                     )
@@ -84,7 +101,6 @@ fun httpServer(settings: HttpServerSettings, parentJob: Job? = null, callDispatc
     }
     serverJob.invokeOnCompletion {
         selector.close()
-        dispatcher.close()
     }
 
     return HttpServer(serverJob, acceptJob, socket)

@@ -1,15 +1,22 @@
 package io.ktor.server.cio
 
 import io.ktor.application.*
-import io.ktor.network.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.scheduling.*
 import java.util.concurrent.*
 
+/**
+ * Engine that based on CIO backend
+ */
 class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure: Configuration.() -> Unit) :
     BaseApplicationEngine(environment) {
+
+    /**
+     * CIO-based server configuration
+     */
     class Configuration : BaseApplicationEngine.Configuration() {
         /**
          * Number of seconds that the server will keep HTTP IDLE connections open.
@@ -20,17 +27,18 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
 
     private val configuration = Configuration().apply(configure)
 
-    private val hostDispatcher = ioCoroutineDispatcher
+    private val corePoolSize: Int = maxOf(
+            configuration.connectionGroupSize + configuration.workerGroupSize,
+            environment.connectors.size + 1 // number of selectors + 1
+    )
 
-    private val callExecutor = Executors.newFixedThreadPool(configuration.callGroupSize) { r ->
-        Thread(r, "engine-thread")
-    }
-
-    private val userDispatcher = DispatcherWithShutdown(callExecutor.asCoroutineDispatcher())
+    private val engineDispatcher = ExperimentalCoroutineDispatcher(corePoolSize)
+    private val userDispatcher = DispatcherWithShutdown(engineDispatcher.blocking(configuration.callGroupSize))
 
     private val stopRequest = CompletableDeferred<Unit>()
+    private val scope: CoroutineScope get() = CoroutineScope(engineDispatcher + serverJob)
 
-    private val serverJob = launch(ioCoroutineDispatcher, start = CoroutineStart.LAZY) {
+    private val serverJob = CoroutineScope(engineDispatcher).launch(start = CoroutineStart.LAZY) {
         // starting
         withContext(userDispatcher) {
             environment.start()
@@ -81,6 +89,14 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
+        try {
+            shutdownServer(gracePeriod, timeout, timeUnit)
+        } finally {
+            engineDispatcher.close()
+        }
+    }
+
+    private fun shutdownServer(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
         stopRequest.complete(Unit)
 
         runBlocking {
@@ -112,12 +128,12 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
             connectionIdleTimeoutSeconds = configuration.connectionIdleTimeoutSeconds.toLong()
         )
 
-        val hostContext = hostDispatcher + serverJob
-        val userContext = userDispatcher + serverJob
-
-        return httpServer(settings, serverJob, userDispatcher) { request, input, output, upgraded ->
-            val call = CIOApplicationCall(application, request, input, output, hostContext, userContext, upgraded)
-            pipeline.execute(call)
+        return scope.httpServer(settings) { request, input, output, upgraded ->
+            withContext(userDispatcher) {
+                val call = CIOApplicationCall(application, request, input, output,
+                        engineDispatcher, userDispatcher, upgraded)
+                pipeline.execute(call)
+            }
         }
     }
 }

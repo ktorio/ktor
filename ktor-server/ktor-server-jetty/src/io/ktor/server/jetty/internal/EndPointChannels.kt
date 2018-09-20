@@ -19,8 +19,9 @@ private object JettyWebSocketPool : DefaultPool<ByteBuffer>(JETTY_WEBSOCKET_POOL
     override fun clearInstance(instance: ByteBuffer): ByteBuffer = instance.apply { clear() }
 }
 
-internal class EndPointReader(endpoint: EndPoint, context: CoroutineContext, private val channel: ByteWriteChannel)
-    : AbstractConnection(endpoint, context.executor()), Connection.UpgradeTo {
+internal class EndPointReader(endpoint: EndPoint,
+                              override val coroutineContext: CoroutineContext, private val channel: ByteWriteChannel)
+    : AbstractConnection(endpoint, coroutineContext.executor()), Connection.UpgradeTo, CoroutineScope {
     private val currentHandler = AtomicReference<Continuation<Unit>>()
     private val buffer = JettyWebSocketPool.borrow()
 
@@ -28,7 +29,7 @@ internal class EndPointReader(endpoint: EndPoint, context: CoroutineContext, pri
         runReader()
     }
 
-    private fun runReader() = launch(Unconfined) {
+    private fun runReader() = launch(Dispatchers.Unconfined) {
         try {
             while (true) {
                 buffer.clear()
@@ -86,10 +87,10 @@ internal class EndPointReader(endpoint: EndPoint, context: CoroutineContext, pri
     }
 }
 
-internal fun endPointWriter(
+internal fun CoroutineScope.endPointWriter(
         endPoint: EndPoint,
         pool: ObjectPool<ByteBuffer> = JettyWebSocketPool
-): ByteWriteChannel = reader(Unconfined, autoFlush = true) {
+): ByteWriteChannel = reader(Dispatchers.Unconfined, autoFlush = true) {
     pool.useInstance { buffer: ByteBuffer ->
         endPoint.use { endPoint ->
             while (!channel.isClosedForRead) {

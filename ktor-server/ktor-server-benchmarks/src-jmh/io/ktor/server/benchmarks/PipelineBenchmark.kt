@@ -5,6 +5,7 @@ import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
 import io.ktor.server.testing.*
 import org.openjdk.jmh.annotations.*
+import kotlin.coroutines.*
 
 @State(Scope.Benchmark)
 class BaselinePipeline {
@@ -28,7 +29,7 @@ class BaselinePipeline {
 abstract class PipelineBenchmark {
     val environment = createTestEnvironment()
     val host = TestApplicationEngine(environment).apply { start() }
-    val call = TestApplicationCall(host.application)
+    val call = TestApplicationCall(host.application, coroutineContext = EmptyCoroutineContext)
 
     val callPhase = PipelinePhase("Call")
     fun pipeline(): Pipeline<String, ApplicationCall> = Pipeline(callPhase)

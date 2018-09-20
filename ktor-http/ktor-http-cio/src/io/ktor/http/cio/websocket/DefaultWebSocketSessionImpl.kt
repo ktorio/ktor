@@ -8,16 +8,29 @@ import kotlinx.io.pool.*
 import java.nio.*
 import java.time.*
 import java.util.concurrent.atomic.*
-import kotlin.coroutines.*
 import kotlin.properties.*
 
 class DefaultWebSocketSessionImpl(
     private val raw: WebSocketSession,
-    parent: Job,
     pingInterval: Duration? = null,
     override var timeout: Duration = Duration.ofSeconds(15),
     private val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : DefaultWebSocketSession, WebSocketSession by raw {
+
+    @Deprecated(
+        "You can't specify parent anymore. " +
+            "Use goingAway function instead. Note that raw session is CoroutineScope itself",
+        level = DeprecationLevel.ERROR,
+        replaceWith = ReplaceWith("DefaultWebSocketSessionImpl(raw, pingInterval, timeout, pool)")
+    )
+    constructor(
+        raw: WebSocketSession,
+        @Suppress("UNUSED_PARAMETER") parent: Job,
+        pingInterval: Duration? = null,
+        timeout: Duration = Duration.ofSeconds(15),
+        pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+    ) : this(raw, pingInterval, timeout, pool)
+
     private val pinger = AtomicReference<SendChannel<Frame.Pong>?>(null)
     private val closeReasonRef = CompletableDeferred<CloseReason>()
     private val filtered = Channel<Frame>(8)
@@ -27,33 +40,24 @@ class DefaultWebSocketSessionImpl(
     override val incoming: ReceiveChannel<Frame> get() = filtered
     override val outgoing: SendChannel<Frame> get() = outgoingToBeProcessed
 
-    override val dispatcher: CoroutineContext = raw.dispatcher
-
     override val closeReason: Deferred<CloseReason?> = closeReasonRef
 
     override var pingInterval: Duration? by Delegates.observable(pingInterval) { _, _, newValue ->
         newValue ?: return@observable
-        runPinger()
+        runOrCancelPinger()
     }
 
     init {
-        runPinger()
-
-        val ponger = ponger(dispatcher, this, pool)
-
-        runIncomingProcessor(ponger).invokeOnCompletion {
-            ponger.close()
-        }
-
+        runOrCancelPinger()
+        runIncomingProcessor(ponger(outgoing, pool))
         runOutgoingProcessor()
+    }
 
-        parent.invokeOnCompletion {
-            launch(dispatcher, start = CoroutineStart.UNDISPATCHED) {
-                outgoingToBeProcessed.send(
-                    Frame.Close(CloseReason(CloseReason.Codes.GOING_AWAY, "Server is going down"))
-                )
-            }
-        }
+    /**
+     * Close session with GOING_AWAY reason
+     */
+    suspend fun goingAway(message: String = "Server is going down") {
+        sendCloseSequence(CloseReason(CloseReason.Codes.GOING_AWAY, message))
     }
 
     override suspend fun close(cause: Throwable?) {
@@ -66,7 +70,7 @@ class DefaultWebSocketSessionImpl(
         sendCloseSequence(reason)
     }
 
-    private fun runIncomingProcessor(ponger: SendChannel<Frame.Ping>): Job = launch(Unconfined) {
+    private fun runIncomingProcessor(ponger: SendChannel<Frame.Ping>): Job = launch(Dispatchers.Unconfined) {
         var last: BytePacketBuilder? = null
         try {
             raw.incoming.consumeEach { frame ->
@@ -96,14 +100,16 @@ class DefaultWebSocketSessionImpl(
             }
         } catch (ignore: ClosedSendChannelException) {
         } catch (t: Throwable) {
+            ponger.close(t)
             filtered.close(t)
         } finally {
+            ponger.close()
             last?.release()
             filtered.close()
         }
     }
 
-    private fun runOutgoingProcessor(): Job = launch(Unconfined) {
+    private fun runOutgoingProcessor(): Job = launch(Dispatchers.Unconfined, start = CoroutineStart.UNDISPATCHED) {
         try {
             outgoingToBeProcessed.consumeEach { frame ->
                 when (frame) {
@@ -129,29 +135,31 @@ class DefaultWebSocketSessionImpl(
 
         val reasonToSend = reason ?: CloseReason(CloseReason.Codes.NORMAL, "")
         try {
-            cancelPinger()
+            runOrCancelPinger()
             send(Frame.Close(reasonToSend))
         } finally {
             closeReasonRef.complete(reasonToSend)
         }
     }
 
-    private fun runPinger() {
-        if (closed.get()) {
-            cancelPinger()
-            return
+    private fun runOrCancelPinger() {
+        val interval = pingInterval
+        val newPinger: SendChannel<Frame.Pong>? = when {
+            closed.get() -> null
+            interval != null -> pinger(raw.outgoing, interval, timeout, pool)
+            else -> null
         }
 
-        val newPinger = pingInterval?.let { interval ->
-            pinger(dispatcher, raw, interval, timeout, raw.outgoing, pool)
-        }
-
+        // pinger is always lazy so we publish it first and then start it by sending EmptyPong
+        // otherwise it may send ping before it get published so corresponding pong will not be dispatched to pinger
+        // that will cause it to terminate connection on timeout
         pinger.getAndSet(newPinger)?.close()
-        newPinger?.offer(EmptyPong)
-    }
 
-    private fun cancelPinger() {
-        pinger.getAndSet(null)?.close()
+        newPinger?.offer(EmptyPong) // it is safe here to send dummy pong because pinger will ignore it
+
+        if (closed.get() && newPinger != null) {
+            runOrCancelPinger()
+        }
     }
 
     companion object {

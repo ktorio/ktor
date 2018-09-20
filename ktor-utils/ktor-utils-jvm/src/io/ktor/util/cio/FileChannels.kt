@@ -13,11 +13,11 @@ import kotlin.coroutines.*
 fun File.readChannel(
     start: Long = 0,
     endInclusive: Long = -1,
-    coroutineContext: CoroutineContext = Unconfined
+    coroutineContext: CoroutineContext = Dispatchers.Unconfined
 ): ByteReadChannel {
     val fileLength = length()
     val file = RandomAccessFile(this@readChannel, "r")
-    return writer(coroutineContext, autoFlush = false) {
+    return CoroutineScope(coroutineContext).writer(coroutineContext, autoFlush = false) {
         require(start >= 0L) { "start position shouldn't be negative but it is $start" }
         require(endInclusive <= fileLength - 1) { "endInclusive points to the position out of the file: file size = ${file.length()}, endInclusive = $endInclusive" }
 
@@ -67,7 +67,7 @@ fun File.readChannel(
 }
 
 fun File.writeChannel(pool: ObjectPool<ByteBuffer> = KtorDefaultPool): ByteWriteChannel =
-    reader(Unconfined, autoFlush = true) {
+    reader(Dispatchers.Unconfined, autoFlush = true) {
         RandomAccessFile(this@writeChannel, "rw").use { file ->
             pool.useInstance { buffer: ByteBuffer ->
                 while (!channel.isClosedForRead) {

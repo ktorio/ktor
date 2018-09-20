@@ -57,7 +57,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
             val contentType = fields.getAll(HttpHeaders.ContentType)?.single()
             fields.remove(HttpHeaders.ContentType)
             assertNotNull(contentType) // Content-Type should be present
-            val parsedContentType = ContentType.parse(contentType!!) // It should parse
+            val parsedContentType = ContentType.parse(contentType) // It should parse
             assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), parsedContentType)
 
             assertEquals("4", headers[HttpHeaders.ContentLength])
@@ -711,7 +711,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                 append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\r\n")
                 append("Content-Type: text/plain\r\n")
                 append("\r\n")
-                withContext(CommonPool) {
+                withContext(Dispatchers.Default) {
                     repeat(numberOfLines) {
                         append("File content goes here\r\n")
                     }

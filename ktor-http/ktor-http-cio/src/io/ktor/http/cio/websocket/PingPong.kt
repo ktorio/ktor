@@ -17,14 +17,26 @@ import kotlin.coroutines.*
  * Launch a ponger actor job on the [coroutineContext] for websocket [session].
  * It is acting for every client's ping frame and replying with corresponding pong
  */
+@Deprecated(
+    "Use ponger with CoroutineScope receiver",
+    ReplaceWith("session.ponger(session.outgoing, pool)")
+)
 fun ponger(
-    coroutineContext: CoroutineContext,
     session: WebSocketSession,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-): SendChannel<Frame.Ping> = actor(coroutineContext, 5, CoroutineStart.LAZY) {
+): SendChannel<Frame.Ping> = session.ponger(session.outgoing, pool)
+
+/**
+ * Launch a ponger actor job on the [CoroutineScope] sending pongs to [outgoing] channel.
+ * It is acting for every client's ping frame and replying with corresponding pong
+ */
+fun CoroutineScope.ponger(
+    outgoing: SendChannel<Frame.Pong>,
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+): SendChannel<Frame.Ping> = actor(capacity = 5, start = CoroutineStart.LAZY) {
     consumeEach { frame ->
         val buffer = frame.buffer.copy(pool)
-        session.send(Frame.Pong(buffer, object : DisposableHandle {
+        outgoing.send(Frame.Pong(buffer, object : DisposableHandle {
             override fun dispose() {
                 pool.recycle(buffer)
             }
@@ -37,14 +49,29 @@ fun ponger(
  * waiting for and verifying client's pong frames. It is also handling [timeout] and sending timeout close frame
  * to the dedicated [out] channel in case of failure
  */
+@Deprecated(
+    "Use pinger on CoroutineScope",
+    ReplaceWith("session.pinger(session.outgoing, period, timeout, out, pool)")
+)
 fun pinger(
-    coroutineContext: CoroutineContext,
     session: WebSocketSession,
     period: Duration,
     timeout: Duration,
     out: SendChannel<Frame>,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-): SendChannel<Frame.Pong> = actor(coroutineContext, Channel.UNLIMITED, CoroutineStart.LAZY) {
+): SendChannel<Frame.Pong> = session.pinger(session.outgoing, period, timeout, pool)
+
+/**
+ * Launch pinger coroutine on [CoroutineScope] that is sending ping every specified [period] to [outgoing] channel,
+ * waiting for and verifying client's pong frames. It is also handling [timeout] and sending timeout close frame
+ */
+fun CoroutineScope.pinger(
+    outgoing: SendChannel<Frame>,
+    period: Duration,
+    timeout: Duration,
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+): SendChannel<Frame.Pong> = actor(capacity = Channel.UNLIMITED, start = CoroutineStart.LAZY) {
+    // note that this coroutine need to be lazy
     val buffer = pool.borrow()
     val periodMillis = period.toMillis()
     val timeoutMillis = timeout.toMillis()
@@ -63,7 +90,7 @@ fun pinger(
             val pingMessage = "[ping ${nextNonce()} ping]"
 
             val rc = withTimeoutOrNull(timeoutMillis, TimeUnit.MILLISECONDS) {
-                session.sendPing(buffer, encoder, pingMessage)
+                outgoing.sendPing(buffer, encoder, pingMessage)
 
                 // wait for valid pong message
                 while (true) {
@@ -78,7 +105,7 @@ fun pinger(
                 // so we are triggering close sequence (if already started then the following close frame could be ignored)
 
                 val closeFrame = Frame.Close(CloseReason(CloseReason.Codes.UNEXPECTED_CONDITION, "Ping timeout"))
-                out.send(closeFrame)
+                outgoing.send(closeFrame)
                 break
             }
         }
@@ -90,7 +117,7 @@ fun pinger(
     }
 }
 
-private suspend fun WebSocketSession.sendPing(
+private suspend fun SendChannel<Frame.Ping>.sendPing(
     buffer: ByteBuffer,
     encoder: CharsetEncoder,
     content: String

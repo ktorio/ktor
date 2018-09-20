@@ -1,13 +1,18 @@
 package io.ktor.tests.http
 
 import io.ktor.features.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
 import org.junit.Test
+import kotlin.coroutines.*
 import kotlin.test.*
 
 
-class ByteRangesChannelTest {
+class ByteRangesChannelTest : CoroutineScope {
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Unconfined
+
     @Test
     fun testAscendingNoLength() {
         val source = asyncOf("0123456789abcdef")

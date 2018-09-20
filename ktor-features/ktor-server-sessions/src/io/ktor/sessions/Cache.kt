@@ -6,6 +6,7 @@ import java.util.*
 import java.util.concurrent.*
 import java.util.concurrent.locks.*
 import kotlin.concurrent.*
+import kotlin.coroutines.*
 
 interface Cache<in K : Any, V : Any> {
     suspend fun getOrCompute(key: K): V
@@ -22,8 +23,10 @@ internal interface CacheReference<out K> {
 internal class BaseCache<in K : Any, V : Any>(val calc: suspend (K) -> V) : Cache<K, V> {
     private val container = ConcurrentHashMap<K, Deferred<V>>()
 
-    override suspend fun getOrCompute(key: K): V =
-            container.computeIfAbsent(key) { async(Unconfined) { calc(key) } }.await()
+    override suspend fun getOrCompute(key: K): V {
+        val coroutineContext = coroutineContext
+        return container.computeIfAbsent(key) { CoroutineScope(coroutineContext).async(Dispatchers.Unconfined) { calc(key) } }.await()
+    }
 
     override fun peek(key: K): V? = container[key]?.let { if (!it.isActive) it.getCompleted() else null }
 

@@ -16,10 +16,17 @@ import java.nio.channels.*
 import kotlin.coroutines.*
 
 @ChannelHandler.Sharable
-internal class NettyHttp2Handler(private val enginePipeline: EnginePipeline,
-                                 private val application: Application,
-                                 private val callEventGroup: EventExecutorGroup,
-                                 private val userCoroutineContext: CoroutineContext) : ChannelInboundHandlerAdapter() {
+internal class NettyHttp2Handler(
+    private val enginePipeline: EnginePipeline,
+    private val application: Application,
+    private val callEventGroup: EventExecutorGroup,
+    private val userCoroutineContext: CoroutineContext
+) : ChannelInboundHandlerAdapter(), CoroutineScope {
+    private val handlerJob = Job()
+
+    override val coroutineContext: CoroutineContext
+        get() = handlerJob
+
     override fun channelRead(context: ChannelHandlerContext, message: Any?) {
         when (message) {
             is Http2HeadersFrame -> {
@@ -53,14 +60,27 @@ internal class NettyHttp2Handler(private val enginePipeline: EnginePipeline,
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
+        handlerJob.cancel(cause)
         ctx.close()
+    }
+
+    override fun handlerRemoved(ctx: ChannelHandlerContext?) {
+        super.handlerRemoved(ctx)
+        handlerJob.cancel()
     }
 
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
         val requestQueue = NettyRequestQueue(1, 1)
-        val responseWriter = NettyResponsePipeline(context, WriterEncapsulation.Http2, requestQueue)
+        val responseWriter = NettyResponsePipeline(context, WriterEncapsulation.Http2, requestQueue, handlerJob)
 
-        val call = NettyHttp2ApplicationCall(application, context, headers, this, Unconfined, userCoroutineContext)
+        val call = NettyHttp2ApplicationCall(
+            application,
+            context,
+            headers,
+            this,
+            handlerJob + Dispatchers.Unconfined,
+            userCoroutineContext
+        )
         context.applicationCall = call
 
         requestQueue.schedule(call)
