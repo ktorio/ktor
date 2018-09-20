@@ -32,7 +32,7 @@ class CacheTest {
         val cache = BaseCache<Int, String> { if (it == 0) latch.await(); it.toString() }
 
         assertEquals("1", cache.getOrCompute(1))
-        val th = launch(CommonPool) {
+        val th = launch(Dispatchers.Default) {
             ref.set(cache.getOrCompute(0))
         }
 

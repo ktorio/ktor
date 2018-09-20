@@ -1,7 +1,6 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import io.ktor.network.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.ByteChannel
@@ -9,17 +8,17 @@ import kotlinx.io.nio.*
 import kotlinx.io.pool.*
 import java.nio.*
 import java.nio.channels.*
+import kotlin.coroutines.*
 
-internal fun attachForReadingImpl(
+internal fun CoroutineScope.attachForReadingImpl(
     channel: ByteChannel,
     nioChannel: ReadableByteChannel,
     selectable: Selectable,
     selector: SelectorManager,
-    pool: ObjectPool<ByteBuffer>,
-    parent: Job
+    pool: ObjectPool<ByteBuffer>
 ): WriterJob {
     val buffer = pool.borrow()
-    return writer(ioCoroutineDispatcher, channel, parent) {
+    return writer(EmptyCoroutineContext, channel) {
         try {
             while (true) {
                 val rc = nioChannel.read(buffer)
@@ -49,14 +48,13 @@ internal fun attachForReadingImpl(
     }
 }
 
-internal fun attachForReadingDirectImpl(
+internal fun CoroutineScope.attachForReadingDirectImpl(
     channel: ByteChannel,
     nioChannel: ReadableByteChannel,
     selectable: Selectable,
-    selector: SelectorManager,
-    parent: Job
+    selector: SelectorManager
 ): WriterJob {
-    return writer(ioCoroutineDispatcher, channel, parent) {
+    return writer(EmptyCoroutineContext, channel) {
         try {
             selectable.interestOp(SelectInterest.READ, false)
 

@@ -2,6 +2,7 @@ package io.ktor.http.cio
 
 import io.ktor.http.content.*
 import io.ktor.http.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 import kotlinx.io.streams.*
@@ -14,14 +15,14 @@ import kotlin.coroutines.*
 typealias CIOMultipartData = CIOMultipartDataBase
 
 class CIOMultipartDataBase(
-    coroutineContext: CoroutineContext,
+    override val coroutineContext: CoroutineContext,
     channel: ByteReadChannel,
     contentType: CharSequence,
     contentLength: Long?,
     private val formFieldLimit: Int = 65536,
     private val inMemoryFileUploadLimit: Int = formFieldLimit
-) : MultiPartData {
-    private val events = parseMultipart(coroutineContext, channel, contentType, contentLength)
+) : MultiPartData, CoroutineScope {
+    private val events = parseMultipart(channel, contentType, contentLength)
 
     override suspend fun readPart(): PartData? {
         while (true) {

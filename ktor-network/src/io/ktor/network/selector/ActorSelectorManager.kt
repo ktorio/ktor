@@ -10,7 +10,8 @@ import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
 import kotlin.jvm.*
 
-class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSupport(), Closeable {
+@Suppress("BlockingMethodInNonBlockingContext")
+class ActorSelectorManager(dispatcher: CoroutineContext) : SelectorManagerSupport(), Closeable, CoroutineScope {
     @Volatile
     private var selectorRef: Selector? = null
 
@@ -26,8 +27,10 @@ class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSup
 
     private val mb = LockFreeMPSCQueue<Selectable>()
 
+    override val coroutineContext: CoroutineContext = dispatcher + CoroutineName("selector")
+
     init {
-        launch(dispatcher) {
+        launch {
             provider.openSelector()!!.use { selector ->
                 selectorRef = selector
                 try {

@@ -1,23 +1,23 @@
 package io.ktor.server.testing
 
-import io.ktor.application.*
-import io.ktor.http.content.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.network.util.*
 import io.ktor.request.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
 import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 
-class TestApplicationRequest(
-        call: ApplicationCall,
+class TestApplicationRequest constructor(
+        call: TestApplicationCall,
         var method: HttpMethod = HttpMethod.Get,
         var uri: String = "/",
         var version: String = "HTTP/1.1"
-) : BaseApplicationRequest(call) {
+) : BaseApplicationRequest(call), CoroutineScope by call {
     var protocol: String = "http"
 
     override val local = object : RequestConnectionPoint {

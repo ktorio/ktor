@@ -13,18 +13,36 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import java.net.*
+import kotlin.coroutines.*
 
 internal class NettyHttp2ApplicationRequest(
-        call: ApplicationCall,
-        context: ChannelHandlerContext,
-        val nettyHeaders: Http2Headers,
-        val contentByteChannel: ByteChannel = ByteChannel())
-    : NettyApplicationRequest(call, context, contentByteChannel, nettyHeaders[":path"]?.toString() ?: "/", keepAlive = true) {
+    call: ApplicationCall,
+    coroutineContext: CoroutineContext,
+    context: ChannelHandlerContext,
+    val nettyHeaders: Http2Headers,
+    val contentByteChannel: ByteChannel = ByteChannel()
+) : NettyApplicationRequest(
+    call,
+    coroutineContext,
+    context,
+    contentByteChannel,
+    nettyHeaders[":path"]?.toString() ?: "/",
+    keepAlive = true
+) {
 
-    override val headers: Headers by lazy { Headers.build { nettyHeaders.forEach { append(it.key.toString(), it.value.toString()) } } }
+    override val headers: Headers by lazy {
+        Headers.build {
+            nettyHeaders.forEach {
+                append(
+                    it.key.toString(),
+                    it.value.toString()
+                )
+            }
+        }
+    }
 
     val contentActor = actor<Http2DataFrame>(
-        Unconfined, kotlinx.coroutines.channels.Channel.UNLIMITED
+        Dispatchers.Unconfined, kotlinx.coroutines.channels.Channel.UNLIMITED
     ) {
         http2frameLoop(contentByteChannel)
     }

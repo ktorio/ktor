@@ -4,12 +4,15 @@ import io.ktor.application.*
 import io.ktor.util.pipeline.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import java.lang.IllegalStateException
 import java.util.concurrent.*
+import java.util.concurrent.CancellationException
 import javax.servlet.http.*
+import kotlin.coroutines.*
 
-abstract class KtorServlet : HttpServlet() {
+abstract class KtorServlet : HttpServlet(), CoroutineScope {
     private val asyncDispatchers = lazy { AsyncDispatchers() }
 
     abstract val application: Application
@@ -17,7 +20,11 @@ abstract class KtorServlet : HttpServlet() {
 
     abstract val upgrade: ServletUpgrade
 
+    private val servletJob = Job()
+    override val coroutineContext: CoroutineContext by lazy { servletJob + ServletExceptionHandler(application) }
+
     override fun destroy() {
+        servletJob.cancel()
         // Note: container will not call service again, so asyncDispatcher cannot get initialized if it was not yet
         if (asyncDispatchers.isInitialized()) asyncDispatchers.value.destroy()
     }
@@ -41,10 +48,17 @@ abstract class KtorServlet : HttpServlet() {
         val asyncContext = request.startAsync()!!.apply {
             timeout = 0L
         }
-        val ad = asyncDispatchers.value
-        val call = AsyncServletApplicationCall(application, request, response,
-            engineContext = ad.engineDispatcher, userContext = ad.dispatcher, upgrade = upgrade)
-        launch(ad.dispatcher) {
+
+        val asyncDispatchers = asyncDispatchers.value
+
+        launch(asyncDispatchers.dispatcher) {
+            val call = AsyncServletApplicationCall(application, request, response,
+                engineContext = asyncDispatchers.engineDispatcher,
+                userContext = asyncDispatchers.dispatcher,
+                upgrade = upgrade,
+                coroutineContext = coroutineContext
+            )
+
             try {
                 enginePipeline.execute(call)
             } finally {
@@ -59,9 +73,21 @@ abstract class KtorServlet : HttpServlet() {
     }
 
     private fun blockingService(request: HttpServletRequest, response: HttpServletResponse) {
-        runBlocking {
-            val call = BlockingServletApplicationCall(application, request, response)
+        runBlocking(coroutineContext) {
+            val call = BlockingServletApplicationCall(application, request, response, coroutineContext)
             enginePipeline.execute(call)
+        }
+    }
+
+    private class ServletExceptionHandler(val application: Application): CoroutineExceptionHandler {
+        override val key = object  : CoroutineContext.Key<CoroutineExceptionHandler> {}
+
+        override fun handleException(context: CoroutineContext, exception: Throwable) {
+            when (exception) {
+                is CancellationException -> {}
+                is ChannelIOException -> {}
+                else -> application.log.error("Request handling coroutine failed", exception)
+            }
         }
     }
 }

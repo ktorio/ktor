@@ -21,6 +21,7 @@ import java.util.*
 import java.util.concurrent.*
 import kotlin.test.*
 
+@UseExperimental(WebSocketInternalAPI::class)
 class WebSocketTest {
     @get:Rule
     val timeout = Timeout(30, TimeUnit.DAYS)
@@ -215,9 +216,10 @@ class WebSocketTest {
             }.let { call ->
                 runBlocking {
                     withTimeout(Duration.ofSeconds(10).toMillis()) {
-                        val reader = @Suppress("DEPRECATION") WebSocketReader(
-                            call.response.websocketChannel()!!, Int.MAX_VALUE.toLong(),
-                            Job(), DefaultDispatcher
+                        val reader = WebSocketReader(
+                            call.response.websocketChannel()!!,
+                            coroutineContext,
+                            Int.MAX_VALUE.toLong()
                         )
 
                         val frame = reader.incoming.receive()

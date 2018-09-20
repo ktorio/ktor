@@ -49,7 +49,10 @@ class WebSocketUpgrade(
             dispatcher = engineContext
         )
 
-        return launch(userContext, parent = feature.context) {
+        // TODO !!!!
+        val scope = CoroutineScope(coroutineContext)
+
+        return webSocket.launch {
             try {
                 webSocket.start(handle)
             } catch (cause: Throwable) {

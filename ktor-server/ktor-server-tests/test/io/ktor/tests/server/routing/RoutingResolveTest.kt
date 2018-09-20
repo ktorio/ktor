@@ -18,7 +18,7 @@ private object RootRouteSelector : RouteSelector(RouteSelectorEvaluation.quality
 fun routing() = Route(parent = null, selector = RootRouteSelector)
 fun resolve(routing: Route, path: String, parameters: Parameters = Parameters.Empty, headers: Headers = Headers.Empty): RoutingResolveResult {
     return withTestApplication {
-        RoutingResolveContext(routing, TestApplicationCall(application).apply {
+        RoutingResolveContext(routing, TestApplicationCall(application, coroutineContext = coroutineContext).apply {
             request.method = HttpMethod.Get
             request.uri = path + buildString {
                 if (!parameters.isEmpty()) {

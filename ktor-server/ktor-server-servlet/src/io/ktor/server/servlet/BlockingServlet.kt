@@ -10,14 +10,17 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import javax.servlet.*
 import javax.servlet.http.*
+import kotlin.coroutines.*
 
-class BlockingServletApplicationCall(
+internal class BlockingServletApplicationCall(
     application: Application,
     servletRequest: HttpServletRequest,
-    servletResponse: HttpServletResponse
-) : BaseApplicationCall(application) {
+    servletResponse: HttpServletResponse,
+    override val coroutineContext: CoroutineContext
+) : BaseApplicationCall(application), CoroutineScope {
     override val request: ApplicationRequest = BlockingServletApplicationRequest(this, servletRequest)
-    override val response: ApplicationResponse = BlockingServletApplicationResponse(this, servletResponse)
+    override val response: ApplicationResponse =
+        BlockingServletApplicationResponse(this, servletResponse, coroutineContext)
 }
 
 private class BlockingServletApplicationRequest(
@@ -30,10 +33,11 @@ private class BlockingServletApplicationRequest(
 
 private class BlockingServletApplicationResponse(
     call: ApplicationCall,
-    servletResponse: HttpServletResponse
-) : ServletApplicationResponse(call, servletResponse) {
+    servletResponse: HttpServletResponse,
+    override val coroutineContext: CoroutineContext
+) : ServletApplicationResponse(call, servletResponse), CoroutineScope {
     override fun createResponseJob(): ReaderJob =
-        reader(Unconfined) {
+        reader(Dispatchers.Unconfined, autoFlush = false) {
             val buffer = ArrayPool.borrow()
             try {
                 writeLoop(buffer, channel, servletResponse.outputStream)
