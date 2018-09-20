@@ -2,17 +2,16 @@ package io.ktor.server.servlet
 
 import io.ktor.util.cio.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import java.io.*
 import java.util.concurrent.TimeoutException
 import javax.servlet.*
-import kotlin.coroutines.*
 
-internal fun servletReader(input: ServletInputStream, parent: CoroutineContext? = null): WriterJob {
+internal fun CoroutineScope.servletReader(input: ServletInputStream): WriterJob {
     val reader = ServletReader(input)
 
-    return writer(if (parent != null) Unconfined + parent else Unconfined, reader.channel) {
+    return writer(Dispatchers.Unconfined, reader.channel) {
         reader.run()
     }
 }
@@ -33,11 +32,13 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
         } catch (t: Throwable) {
             onError(t)
         } finally {
-            input.close()
+            @Suppress("BlockingMethodInNonBlockingContext")
+            input.close() // ServletInputStream is in non-blocking mode
             ArrayPool.recycle(buffer)
         }
     }
 
+    @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun loop(buffer: ByteArray) {
         while (true) {
             if (input.isReady) {
@@ -69,9 +70,7 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
     override fun onDataAvailable() {
         try {
             if (!events.offer(Unit)) {
-                runBlocking(Unconfined) {
-                    events.send(Unit)
-                }
+                events.sendBlocking(Unit)
             }
         } catch (ignore: Throwable) {
         }

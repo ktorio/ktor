@@ -13,14 +13,23 @@ import kotlin.coroutines.*
 /**
  * Class that continuously reads a [byteChannel] and
  * converts into Websocket [Frame] exposing them in [incoming].
+ *
+ * @param maxFrameSize maximum frame size that could be read
  */
-class WebSocketReader @Deprecated("Internal API") constructor(
-    private val byteChannel: ByteReadChannel,
-    var maxFrameSize: Long,
-    parent: Job,
-    context: CoroutineContext,
-    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-) {
+@WebSocketInternalAPI
+class WebSocketReader(
+        private val byteChannel: ByteReadChannel,
+        override val coroutineContext: CoroutineContext,
+        var maxFrameSize: Long,
+        pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+) : CoroutineScope {
+
+    @Deprecated("Pass parent through the coroutine context",
+            replaceWith = ReplaceWith("WebSocketReader(byteChannel, coroutineContext, maxFrameSize, pool)"))
+    constructor(byteChannel: ByteReadChannel, maxFrameSize: Long,
+                parent: Job?, coroutineContext: CoroutineContext, pool: ObjectPool<ByteBuffer> = KtorDefaultPool)
+            : this(byteChannel, coroutineContext, maxFrameSize, pool)
+
     private var state = State.HEADER
     @Suppress("DEPRECATION")
     private val frameParser = FrameParser()
@@ -29,7 +38,7 @@ class WebSocketReader @Deprecated("Internal API") constructor(
 
     private val queue = Channel<Frame>(8)
 
-    private val readerJob = launch(context, parent = parent, start = CoroutineStart.LAZY) {
+    private val readerJob = launch(start = CoroutineStart.LAZY) {
         val buffer = pool.borrow()
         try {
             readLoop(buffer)
@@ -101,6 +110,10 @@ class WebSocketReader @Deprecated("Internal API") constructor(
         }
     }
 
+    /**
+     * Raised when the frame is bigger than allowed in a current websocket session
+     * @param frameSize size of received or posted frame that is too big
+     */
     class FrameTooBigException(val frameSize: Long) : Exception() {
         override val message: String
             get() = "Frame is too big: $frameSize"

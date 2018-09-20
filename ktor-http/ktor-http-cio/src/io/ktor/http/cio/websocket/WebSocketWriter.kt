@@ -12,18 +12,27 @@ import kotlin.coroutines.*
  * Class that processes written [outgoing] Websocket [Frame],
  * serializes them and writes the bits into the [writeChannel].
  */
-class WebSocketWriter @Deprecated("Internal API") constructor(
-    private val writeChannel: ByteWriteChannel,
-    private val parent: Job,
-    context: CoroutineContext,
-    /**
-     * Whether it will mask serialized frames.
-     */
-    var masking: Boolean = false,
-    val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-) {
+@WebSocketInternalAPI
+class WebSocketWriter(
+        private val writeChannel: ByteWriteChannel,
+        override val coroutineContext: CoroutineContext,
+        /**
+         * Whether it will mask serialized frames.
+         */
+        var masking: Boolean = false,
+        val pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+) : CoroutineScope {
+
+    @Deprecated("Specify parent through coroutineContext",
+            replaceWith = ReplaceWith("WebSocketWriter(writeChannel, coroutineContext, masking, pool)"))
+    constructor(writeChannel: ByteWriteChannel,
+                parent: Job?,
+                coroutineContext: CoroutineContext,
+                masking: Boolean, pool: ObjectPool<ByteBuffer> = KtorDefaultPool) : this(writeChannel, coroutineContext + (parent
+            ?: EmptyCoroutineContext), masking, pool)
+
     @Suppress("RemoveExplicitTypeArguments") // workaround for new kotlin inference issue
-    private val queue = actor<Any>(context, parent = parent, capacity = 8, start = CoroutineStart.LAZY) {
+    private val queue = actor<Any>(capacity = 8, start = CoroutineStart.LAZY) {
         pool.useInstance { it: ByteBuffer -> writeLoop(it) }
     }
 
@@ -51,10 +60,13 @@ class WebSocketWriter @Deprecated("Internal API") constructor(
 
         consumeEach { message ->
             when (message) {
-                is Frame.Close -> {} // ignore
-                is Frame.Ping, is Frame.Pong -> {} // ignore
+                is Frame.Close -> {
+                } // ignore
+                is Frame.Ping, is Frame.Pong -> {
+                } // ignore
                 is FlushRequest -> message.complete()
-                is Frame.Text, is Frame.Binary -> {} // discard
+                is Frame.Text, is Frame.Binary -> {
+                } // discard
                 else -> throw IllegalArgumentException("unknown message $message")
             }
         }
@@ -121,7 +133,7 @@ class WebSocketWriter @Deprecated("Internal API") constructor(
     /**
      * Ensures all enqueued messages has been written
      */
-    suspend fun flush() = FlushRequest(parent).also { queue.send(it) }.await()
+    suspend fun flush(): Unit = FlushRequest(coroutineContext[Job]).also { queue.send(it) }.await()
 
     /**
      * Closes the message queue
@@ -130,7 +142,7 @@ class WebSocketWriter @Deprecated("Internal API") constructor(
         queue.close()
     }
 
-    private class FlushRequest(parent: Job) {
+    private class FlushRequest(parent: Job?) {
         private val done = CompletableDeferred<Unit>(parent)
         fun complete() = done.complete(Unit)
         suspend fun await() = done.await()

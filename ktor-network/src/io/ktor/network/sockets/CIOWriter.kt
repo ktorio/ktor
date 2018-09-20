@@ -1,25 +1,24 @@
 package io.ktor.network.sockets
 
 import io.ktor.network.selector.*
-import io.ktor.network.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.ByteChannel
 import kotlinx.io.pool.*
 import java.nio.*
 import java.nio.channels.*
+import kotlin.coroutines.*
 
-internal fun attachForWritingImpl(
+internal fun CoroutineScope.attachForWritingImpl(
     channel: ByteChannel,
     nioChannel: WritableByteChannel,
     selectable: Selectable,
     selector: SelectorManager,
-    pool: ObjectPool<ByteBuffer>,
-    parent: Job
+    pool: ObjectPool<ByteBuffer>
 ): ReaderJob {
     val buffer = pool.borrow()
 
-    return reader(ioCoroutineDispatcher, channel, parent) {
+    return reader(EmptyCoroutineContext, channel) {
         try {
             while (true) {
                 buffer.clear()
@@ -50,14 +49,13 @@ internal fun attachForWritingImpl(
     }
 }
 
-internal fun attachForWritingDirectImpl(
+internal fun CoroutineScope.attachForWritingDirectImpl(
     channel: ByteChannel,
     nioChannel: WritableByteChannel,
     selectable: Selectable,
-    selector: SelectorManager,
-    parent: Job
+    selector: SelectorManager
 ): ReaderJob {
-    return reader(ioCoroutineDispatcher, channel, parent) {
+    return reader(EmptyCoroutineContext, channel) {
         selectable.interestOp(SelectInterest.WRITE, false)
         try {
             channel.lookAheadSuspend {

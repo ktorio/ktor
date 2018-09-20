@@ -5,6 +5,7 @@ import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
+import kotlinx.coroutines.*
 
 suspend fun HttpClient.webSocketRawSession(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = 80, path: String = "/",
@@ -21,7 +22,11 @@ suspend fun HttpClient.webSocketSession(
 ): DefaultClientWebSocketSession {
     val feature = feature(WebSockets) ?: error("WebSockets feature should be installed")
     val session = webSocketRawSession(method, host, port, path, block)
-    val origin = DefaultWebSocketSessionImpl(session, feature.context)
+    val origin = DefaultWebSocketSessionImpl(session)
+
+    feature.context.invokeOnCompletion {
+        session.launch { origin.goingAway("Client is closed") }
+    }
 
     return DefaultClientWebSocketSession(session.call, origin)
 }

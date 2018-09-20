@@ -43,10 +43,13 @@ class UpgradeRequest(
     val disableAsyncInput: Boolean
 )
 
-class ServletUpgradeHandler : HttpUpgradeHandler {
+class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
     @Volatile
     lateinit var up: UpgradeRequest
     private val upgradeJob = Job()
+
+    override val coroutineContext: CoroutineContext
+        get() = upgradeJob
 
     override fun init(webConnection: WebConnection?) {
         if (webConnection == null) {
@@ -62,10 +65,10 @@ class ServletUpgradeHandler : HttpUpgradeHandler {
                 context = up.userContext,
                 parent = upgradeJob
             )
-            else -> servletReader(webConnection.inputStream, parent = upgradeJob).channel
+            else -> servletReader(webConnection.inputStream).channel
         }
 
-        val outputChannel = servletWriter(webConnection.outputStream, parent = upgradeJob).channel
+        val outputChannel = servletWriter(webConnection.outputStream).channel
 
         launch(up.userContext, start = CoroutineStart.UNDISPATCHED) {
             val job = up.upgradeMessage.upgrade(inputChannel, outputChannel, up.engineContext, up.userContext)

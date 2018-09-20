@@ -15,7 +15,9 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.junit.*
+import org.junit.internal.runners.statements.*
 import org.junit.rules.*
+import org.junit.runner.*
 import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
@@ -23,12 +25,15 @@ import java.net.*
 import java.security.*
 import java.util.concurrent.*
 import javax.net.ssl.*
+import kotlin.coroutines.*
 import kotlin.test.*
 
 
 abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
-) {
+) : CoroutineScope {
+    private val testJob = Job()
+
     protected val isUnderDebugger: Boolean =
         java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.orEmpty()
             .any { "-agentlib:jdwp" in it }
@@ -53,6 +58,9 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     @Target(AnnotationTarget.FUNCTION)
     @Retention
     protected annotation class NoHttp2
+
+    override val coroutineContext: CoroutineContext
+        get() = testJob
 
     @get:Rule
     val test = TestName()
@@ -85,11 +93,15 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
 
     @After
     fun tearDownBase() {
-        allConnections.forEach { it.disconnect() }
-        testLog.trace("Disposing server on port $port (SSL $sslPort)")
-        (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
-        if (exceptions.isNotEmpty()) {
-            fail("Server exceptions logged, consult log output for more information")
+        try {
+            allConnections.forEach { it.disconnect() }
+            testLog.trace("Disposing server on port $port (SSL $sslPort)")
+            (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+            if (exceptions.isNotEmpty()) {
+                fail("Server exceptions logged, consult log output for more information")
+            }
+        } finally {
+            testJob.cancel()
         }
     }
 
@@ -168,13 +180,13 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         val l = CountDownLatch(1)
         val failures = CopyOnWriteArrayList<Throwable>()
 
-        val starting = launch(CommonPool + CoroutineExceptionHandler { _, _ -> }) {
+        val starting = launch(Dispatchers.Default + CoroutineExceptionHandler { _, _ -> }) {
             l.countDown()
             server.start()
         }
         l.await()
 
-        val waitForPorts = launch(CommonPool) {
+        val waitForPorts = launch(Dispatchers.Default) {
             server.environment.connectors.forEach { connector ->
                 waitForPort(connector.port)
             }

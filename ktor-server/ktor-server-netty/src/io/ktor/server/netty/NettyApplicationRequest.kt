@@ -7,17 +7,20 @@ import io.ktor.server.engine.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.handler.codec.http.multipart.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import java.io.*
+import kotlin.coroutines.*
 
 abstract class NettyApplicationRequest(
     call: ApplicationCall,
-    protected val context: ChannelHandlerContext,
+    override val coroutineContext: CoroutineContext,
+    val context: ChannelHandlerContext,
     private val requestBodyChannel: ByteReadChannel,
     protected val uri: String,
-    internal val keepAlive: Boolean) : BaseApplicationRequest(call) {
+    internal val keepAlive: Boolean) : BaseApplicationRequest(call), CoroutineScope {
 
-    final override val queryParameters = object : Parameters {
+    final override val queryParameters: Parameters = object : Parameters {
         private val decoder = QueryStringDecoder(uri)
         override val caseInsensitiveName: Boolean get() = true
         override fun getAll(name: String) = decoder.parameters()[name]
@@ -28,7 +31,7 @@ abstract class NettyApplicationRequest(
 
     override val cookies: RequestCookies = NettyApplicationRequestCookies(this)
 
-    override fun receiveChannel() = requestBodyChannel
+    override fun receiveChannel(): ByteReadChannel = requestBodyChannel
 
     private val contentMultipart = lazy {
         if (!isMultipart())

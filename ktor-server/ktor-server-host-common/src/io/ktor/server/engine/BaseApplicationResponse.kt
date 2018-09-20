@@ -161,7 +161,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
         }
 
         responseChannel().use {
-            withContext(Unconfined) {
+            withContext(Dispatchers.Unconfined) {
                 writeFully(bytes)
             }
         }
@@ -170,7 +170,7 @@ abstract class BaseApplicationResponse(override val call: ApplicationCall) : App
     protected open suspend fun respondFromChannel(readChannel: ByteReadChannel) {
         responseChannel().use {
             val length = headers[HttpHeaders.ContentLength]?.toLong()
-            val copied = withContext(Unconfined) {
+            val copied = withContext(Dispatchers.Unconfined) {
                 readChannel.copyTo(this@use, length ?: Long.MAX_VALUE)
             }
 

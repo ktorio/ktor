@@ -1,9 +1,11 @@
 package io.ktor.websocket
 
 import io.ktor.application.*
+import io.ktor.response.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import java.time.*
+import kotlin.coroutines.*
 
 /**
  * WebSockets support feature. It is required to be installed first before binding any websocket endpoints
@@ -23,8 +25,18 @@ class WebSockets(
     val timeout: Duration,
     val maxFrameSize: Long,
     val masking: Boolean
-) {
-    val context = CompletableDeferred<Unit>()
+): CoroutineScope {
+    private val parent = CompletableDeferred<Unit>()
+
+    override val coroutineContext: CoroutineContext
+        get() = parent
+
+    @Deprecated("Use websockets feature instance as CoroutineScope instead")
+    val context: CompletableDeferred<Unit> get() = parent
+
+    private fun shutdown() {
+        parent.complete(Unit)
+    }
 
     class WebSocketOptions {
         var pingPeriod: Duration? = null
@@ -42,7 +54,13 @@ class WebSockets(
                 val webSockets = WebSockets(pingPeriod, timeout, maxFrameSize, masking)
 
                 pipeline.environment.monitor.subscribe(ApplicationStopPreparing) {
-                    webSockets.context.complete(Unit)
+                    webSockets.shutdown()
+                }
+
+                pipeline.sendPipeline.intercept(ApplicationSendPipeline.Transform) {
+                    if (it is WebSocketUpgrade) {
+                        it.call
+                    }
                 }
 
                 return webSockets

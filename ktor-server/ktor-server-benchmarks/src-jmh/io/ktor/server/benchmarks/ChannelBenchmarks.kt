@@ -50,12 +50,12 @@ class ChannelBenchmarks {
     }
 
     @Benchmark
-    fun readChannelReadPacket() = runBlocking(Unconfined) {
+    fun readChannelReadPacket() = runBlocking(Dispatchers.Unconfined) {
         file.readChannel().readRemaining().let { val size = it.remaining; it.release(); size }
     }
 
     @Benchmark
-    fun readChannelReads(): Int = runBlocking(Unconfined) {
+    fun readChannelReads(): Int = runBlocking(Dispatchers.Unconfined) {
         val ch = file.readChannel(coroutineContext = coroutineContext)
         try {
             val baos = ByteArrayOutputStream(maxOf(8192, ch.availableForRead)) // similar to readBytes
@@ -75,7 +75,7 @@ class ChannelBenchmarks {
     }
 
     @Benchmark
-    fun readChannelReadsSingleRead(): Int = runBlocking(Unconfined) {
+    fun readChannelReadsSingleRead(): Int = runBlocking(Dispatchers.Unconfined) {
         val fileSize = file.length().toInt()
         val array = ByteArray(fileSize)
         val ch = file.readChannel(coroutineContext = coroutineContext)

@@ -13,14 +13,16 @@ class JettyApplicationResponse(
     servletResponse: HttpServletResponse,
     engineContext: CoroutineContext,
     userContext: CoroutineContext,
-    private val baseRequest: Request
+    private val baseRequest: Request,
+    coroutineContext: CoroutineContext
 ) : AsyncServletApplicationResponse(
     call,
     servletRequest,
     servletResponse,
     engineContext,
     userContext,
-    JettyUpgradeImpl
+    JettyUpgradeImpl,
+    coroutineContext
 ) {
 
     override fun push(builder: ResponsePushBuilder) {

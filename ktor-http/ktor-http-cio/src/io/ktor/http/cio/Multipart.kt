@@ -116,15 +116,29 @@ fun expectMultipart(headers: HttpHeadersMap): Boolean {
 
 private val headerParameterEndChars = charArrayOf(' ', ';', ',')
 
+@Deprecated("Specify CoroutineScope explicitly")
 fun parseMultipart(coroutineContext: CoroutineContext, input: ByteReadChannel, headers: HttpHeadersMap): ReceiveChannel<MultipartEvent> {
+    return CoroutineScope(coroutineContext).parseMultipart(input, headers)
+}
+
+fun CoroutineScope.parseMultipart(input: ByteReadChannel, headers: HttpHeadersMap): ReceiveChannel<MultipartEvent> {
     val contentType = headers["Content-Type"] ?: throw IOException("Failed to parse multipart: no Content-Type header")
     val contentLength = headers["Content-Length"]?.parseDecLong()
 
-    return parseMultipart(coroutineContext, input, contentType, contentLength)
+    return parseMultipart(input, contentType, contentLength)
 }
 
+@Deprecated("Specify coroutine scope excplicitly")
 fun parseMultipart(
-        coroutineContext: CoroutineContext,
+    coroutineContext: CoroutineContext,
+    input: ByteReadChannel,
+    contentType: CharSequence,
+    contentLength: Long?
+): ReceiveChannel<MultipartEvent> {
+    return CoroutineScope(coroutineContext).parseMultipart(input, contentType, contentLength)
+}
+
+fun CoroutineScope.parseMultipart(
         input: ByteReadChannel,
         contentType: CharSequence,
         contentLength: Long?
@@ -134,14 +148,26 @@ fun parseMultipart(
 
     // TODO fail if contentLength = 0 and content subtype is wrong
 
-    return parseMultipart(coroutineContext, boundaryBytes, input, contentLength)
+    return parseMultipart(boundaryBytes, input, contentLength)
 }
 
 private val CrLf = ByteBuffer.wrap("\r\n".toByteArray())!!
 private val BoundaryTrailingBuffer = ByteBuffer.allocate(8192)!!
 
-fun parseMultipart(coroutineContext: CoroutineContext, boundaryPrefixed: ByteBuffer, input: ByteReadChannel, totalLength: Long?): ReceiveChannel<MultipartEvent> {
-    return produce(coroutineContext) {
+@Deprecated(
+    "Use parseMultipart with coroutine scope specified"
+)
+fun parseMultipart(
+    coroutineContext: CoroutineContext,
+    boundaryPrefixed: ByteBuffer,
+    input: ByteReadChannel,
+    totalLength: Long?
+): ReceiveChannel<MultipartEvent> {
+    return CoroutineScope(coroutineContext).parseMultipart(boundaryPrefixed, input, totalLength)
+}
+
+fun CoroutineScope.parseMultipart(boundaryPrefixed: ByteBuffer, input: ByteReadChannel, totalLength: Long?): ReceiveChannel<MultipartEvent> {
+    return produce {
         val readBeforeParse = input.totalBytesRead
         val firstBoundary = boundaryPrefixed.duplicate()!!.apply {
             position(2)

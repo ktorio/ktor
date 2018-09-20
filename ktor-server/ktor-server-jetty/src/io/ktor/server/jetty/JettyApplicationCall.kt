@@ -13,10 +13,12 @@ class JettyApplicationCall(
     servletRequest: HttpServletRequest,
     servletResponse: HttpServletResponse,
     engineContext: CoroutineContext,
-    userContext: CoroutineContext
+    userContext: CoroutineContext,
+    coroutineContext: CoroutineContext
 ) : AsyncServletApplicationCall(
     application, servletRequest, servletResponse,
-    engineContext, userContext, JettyUpgradeImpl
+    engineContext, userContext, JettyUpgradeImpl,
+    coroutineContext
 ) {
 
     override val response: JettyApplicationResponse = JettyApplicationResponse(
@@ -25,7 +27,8 @@ class JettyApplicationCall(
             servletResponse,
             engineContext,
             userContext,
-            request
+            request,
+            coroutineContext
         )
 
 }
