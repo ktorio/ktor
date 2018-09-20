@@ -23,17 +23,23 @@ class KotlinxSerializer : JsonSerializer {
         writeMappers[type] = block
     }
 
-    override fun write(data: Any): OutgoingContent {
-        @Suppress("UNCHECKED_CAST")
-        val mapper = (writeMappers[data::class] as? (Any) -> JsonElement)
-            ?: error("There is no mapper for $data")
-
-        return TextContent(mapper(data).toString(), ContentType.Application.Json)
+    override fun write(data: Any?): OutgoingContent {
+        val text = if (data != null) {
+            @Suppress("UNCHECKED_CAST")
+            val mapper = (writeMappers[data::class] as? (Any) -> JsonElement)
+                    ?: error("There is no mapper for $data")
+            mapper(data).toString()
+        } else {
+            "null"
+        }
+        return TextContent(text, ContentType.Application.Json)
     }
 
-    override suspend fun read(type: TypeInfo, response: HttpResponse): Any {
+    override suspend fun read(type: TypeInfo, response: HttpResponse): Any? {
         val mapper = readMappers[type.type]!!
         val text = response.readText()
-        return mapper(JsonTreeParser(text).readFully())!!
+        val jsonElement = JsonTreeParser(text).readFully()
+        // TODO: Can we expect all readmappers to handle null ? Seems a bit redundant so handle it here.
+        return if (jsonElement.isNull) null else mapper(jsonElement)
     }
 }

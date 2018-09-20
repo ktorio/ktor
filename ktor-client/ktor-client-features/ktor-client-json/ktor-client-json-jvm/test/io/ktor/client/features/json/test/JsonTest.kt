@@ -1,10 +1,12 @@
 package io.ktor.client.features.json.test
 
 import io.ktor.application.*
+import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.features.json.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
+import io.ktor.content.*
 import io.ktor.features.*
 import io.ktor.gson.*
 import io.ktor.http.*
@@ -22,39 +24,69 @@ data class Widget(
 )
 
 class JsonTest : TestWithKtor() {
-    val widget = Widget("Foo", 1000, listOf("bar", "baz", "qux"))
 
     override val server: ApplicationEngine = embeddedServer(Jetty, serverPort) {
-        install(ContentNegotiation) {
-            register(ContentType.Application.Json, GsonConverter())
-        }
+//        Disabled until server supports null
+//        install(ContentNegotiation) {
+//            register(ContentType.Application.Json, GsonConverter())
+//        }
         routing {
             post("/") {
-                val received = call.receive<Widget>()
-                assertEquals(widget, received)
-                call.respond(received)
-            }
-            get("/users") {
-                call.respond(Response(true, arrayOf(User("vasya", 10))))
+                val received = call.receiveText()
+                call.respondWrite(ContentType.Application.Json, HttpStatusCode.OK) {
+                    append(received)
+                }
             }
         }
     }
 
-    @Test
-    fun testSerialize() = clientTest(CIO) {
+    private inline fun <T, reified R : JsonContent<T>> testJson(jsonValue: T) = clientTest(CIO) {
         config {
             install(JsonFeature)
         }
 
         test { client ->
-            val result = client.post<Widget>(body = widget, port = serverPort) {
+            val result = client.jsonPost<R>(body = jsonValue, port = serverPort) {
                 contentType(ContentType.Application.Json)
             }
 
-            assertEquals(widget, result)
+            assertEquals(jsonValue, result.value)
         }
     }
 
-    data class Response<T>(val ok: Boolean, val result: T?)
-    data class User(val name: String, val age: Int)
+    @Test
+    fun testSerializeObject() = testJson(Widget("Foo", 1000, listOf("bar", "baz", "qux")))
+
+    @Test
+    fun testSerializeNull() = testJson<Widget?, JsonContent<Widget?>>(null)
+
+    @Test
+    fun testSerializeFalse() = testJson(false)
+
+    @Test
+    fun testSerializeString() = testJson("JsonJSONJsON")
+
+    @Test
+    fun testSerializeNumber() = testJson(42)
+
+    @Test
+    fun testManuallySerializedJson() = clientTest(CIO) {
+        config {
+            install(JsonFeature)
+        }
+
+        test { client ->
+            val result = client.post<JsonContent<String>>(body = TextContent("\"String\"", ContentType.Application.Json), port = serverPort)
+
+            assertEquals("String", result.value)
+        }
+    }
+
 }
+
+private suspend inline fun <reified T> HttpClient.jsonPost(
+        scheme: String = "http", host: String = "localhost", port: Int = 80,
+        path: String = "/",
+        body: Any? = null,
+        block: HttpRequestBuilder.() -> Unit = {}
+): T = post(scheme, host, port, path, JsonContent(body), block)

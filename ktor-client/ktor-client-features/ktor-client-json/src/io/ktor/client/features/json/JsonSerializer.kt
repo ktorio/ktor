@@ -5,7 +5,7 @@ import io.ktor.client.response.*
 import io.ktor.http.content.*
 
 interface JsonSerializer {
-    fun write(data: Any): OutgoingContent
+    fun write(data: Any?): OutgoingContent
 
-    suspend fun read(type: TypeInfo, response: HttpResponse): Any
+    suspend fun read(type: TypeInfo, response: HttpResponse): Any?
 }

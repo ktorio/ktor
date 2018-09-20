@@ -1,11 +1,14 @@
 package io.ktor.client.features.json
 
 import io.ktor.client.*
+import io.ktor.client.call.TypeInfo
 import io.ktor.client.features.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.http.*
 import io.ktor.util.*
+import kotlinx.coroutines.experimental.io.ByteReadChannel
+import kotlinx.io.charsets.Charsets
 
 
 /**
@@ -17,6 +20,11 @@ import io.ktor.util.*
  * - ktor-client-json
  */
 expect fun defaultSerializer(): JsonSerializer
+
+/**
+ * Platform support for unwrapping generic parameters of JsonContent
+ */
+internal expect fun unwrapJsonContent(typeInfo: TypeInfo) : TypeInfo
 
 /**
  * [HttpClient] feature that serializes/de-serializes as JSON custom objects
@@ -48,21 +56,34 @@ class JsonFeature(val serializer: JsonSerializer) {
             scope.requestPipeline.intercept(HttpRequestPipeline.Transform) { payload ->
 
                 context.accept(ContentType.Application.Json)
-                if (context.contentType()?.match(ContentType.Application.Json) != true) {
+                // Only transform if payload is JsonContent.. ie. let manual json serialized pass through
+                if (context.contentType()?.match(ContentType.Application.Json) != true || payload !is JsonContent<*>) {
                     return@intercept
                 }
 
                 context.headers.remove(HttpHeaders.ContentType)
-                proceedWith(feature.serializer.write(payload))
+                proceedWith(feature.serializer.write(payload.value))
             }
 
             scope.responsePipeline.intercept(HttpResponsePipeline.Transform) { (info, response) ->
-                if (response !is HttpResponse
-                    || context.response.contentType()?.match(ContentType.Application.Json) != true
-                ) return@intercept
-
-                proceedWith(HttpResponseContainer(info, feature.serializer.read(info, response)))
+                if (context.response.contentType()?.match(ContentType.Application.Json) == true){
+                    val responseToParse = when (response){
+                        is HttpResponse -> response
+                        is String -> ResponseWithContent(context.response, response) // Undo HttpPlainText feature
+                        else -> return@intercept
+                    }
+                    val unwrappedInfo = unwrapJsonContent(info)
+                    proceedWith(HttpResponseContainer(unwrappedInfo, JsonContent(feature.serializer.read(unwrappedInfo, responseToParse))))
+                } else {
+                    return@intercept
+                }
             }
         }
     }
 }
+
+private class ResponseWithContent(response: HttpResponse, string: String) : HttpResponse by response {
+    override val content: ByteReadChannel by lazy { ByteReadChannel(string, Charsets.UTF_8) }
+}
+
+data class JsonContent<T>(val value: T)
