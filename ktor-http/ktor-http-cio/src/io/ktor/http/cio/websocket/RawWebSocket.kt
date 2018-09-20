@@ -1,3 +1,5 @@
+@file:UseExperimental(WebSocketInternalAPI::class)
+
 package io.ktor.http.cio.websocket
 
 import io.ktor.util.cio.*
@@ -10,14 +12,17 @@ import java.nio.*
 import kotlin.coroutines.*
 import kotlin.properties.*
 
+@UseExperimental(WebSocketInternalAPI::class)
 class RawWebSocket(
     input: ByteReadChannel, output: ByteWriteChannel,
     maxFrameSize: Long = Int.MAX_VALUE.toLong(),
     masking: Boolean = false,
-    override val dispatcher: CoroutineContext,
+    dispatcher: CoroutineContext,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : WebSocketSession {
     private val socketJob = Job()
+
+    override val coroutineContext: CoroutineContext = dispatcher + socketJob
 
     override val incoming: ReceiveChannel<Frame> get() = reader.incoming
     override val outgoing: SendChannel<Frame> get() = writer.outgoing
@@ -30,13 +35,10 @@ class RawWebSocket(
         writer.masking = newValue
     }
 
-    internal val writer =
-        @Suppress("DEPRECATION") WebSocketWriter(output, socketJob, dispatcher, masking, pool)
+    internal val writer = WebSocketWriter(output, coroutineContext, masking, pool)
+    internal val reader: WebSocketReader = WebSocketReader(input, coroutineContext, maxFrameSize, pool)
 
-    internal val reader =
-        @Suppress("DEPRECATION") WebSocketReader(input, maxFrameSize, socketJob, dispatcher, pool)
-
-    override suspend fun flush() = writer.flush()
+    override suspend fun flush(): Unit = writer.flush()
 
     override fun terminate() {
         socketJob.cancel(CancellationException("WebSockedHandler terminated normally"))

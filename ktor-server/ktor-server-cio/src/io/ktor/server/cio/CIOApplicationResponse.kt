@@ -100,7 +100,7 @@ class CIOApplicationResponse(call: CIOApplicationCall,
     override suspend fun respondFromBytes(bytes: ByteArray) {
         sendResponseMessage(contentReady = true)
         val channel = preparedBodyChannel()
-        return withContext<Unit>(Unconfined) {
+        return withContext<Unit>(Dispatchers.Unconfined) {
             channel.writeFully(bytes)
             channel.close()
         }
@@ -143,7 +143,7 @@ class CIOApplicationResponse(call: CIOApplicationCall,
         val chunked = headers[HttpHeaders.TransferEncoding] == "chunked"
         if (!chunked) return output
 
-        val encoderJob = encodeChunked(output, engineDispatcher)
+        val encoderJob = encodeChunked(output, Dispatchers.Unconfined)
         val chunkedOutput = encoderJob.channel
 
         chunkedChannel = chunkedOutput

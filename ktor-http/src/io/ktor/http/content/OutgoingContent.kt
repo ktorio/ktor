@@ -7,7 +7,7 @@ import kotlinx.coroutines.io.*
 import kotlin.coroutines.*
 
 /**
- * Information about the content to be sent to the peer, recognized by an [ApplicationEngine]
+ * Information about the content to be sent to the peer, recognized by a client or server engine
  */
 sealed class OutgoingContent {
     /**
@@ -70,14 +70,13 @@ sealed class OutgoingContent {
         /**
          * Provides [ByteReadChannel] for the given range of the content
          */
-        open fun readFrom(range: LongRange): ByteReadChannel = writer(Unconfined, autoFlush = true) {
-            if (range.isEmpty()) return@writer
-
-            val source = readFrom()
-            source.discard(range.start)
-            val limit = range.endInclusive - range.start + 1
-            source.copyTo(channel, limit)
-        }.channel
+        open fun readFrom(range: LongRange): ByteReadChannel = if (range.isEmpty()) ByteReadChannel.Empty else
+            GlobalScope.writer(Dispatchers.Unconfined, autoFlush = true) {
+                val source = readFrom()
+                source.discard(range.start)
+                val limit = range.endInclusive - range.start + 1
+                source.copyTo(channel, limit)
+            }.channel
     }
 
     /**

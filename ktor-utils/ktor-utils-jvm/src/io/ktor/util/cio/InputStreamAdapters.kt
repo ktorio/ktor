@@ -9,9 +9,9 @@ import kotlin.coroutines.*
 
 fun InputStream.toByteReadChannel(
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
-    context: CoroutineContext = Unconfined,
+    context: CoroutineContext = Dispatchers.Unconfined,
     parent: Job = Job()
-): ByteReadChannel = writer(context, parent = parent, autoFlush = true) {
+): ByteReadChannel = CoroutineScope(context).writer(parent, autoFlush = true) {
     val buffer = pool.borrow()
     try {
         while (true) {

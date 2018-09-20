@@ -75,3 +75,11 @@ jar {
         attributes("Implementation-Title": project.name, "Implementation-Version": configuredVersion)
     }
 }
+
+compileKotlin {
+    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental']
+}
+
+compileTestKotlin {
+    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental']
+}

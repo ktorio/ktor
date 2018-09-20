@@ -13,13 +13,15 @@ import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import java.io.*
 import java.util.*
+import kotlin.coroutines.*
 
 private const val UNFLUSHED_LIMIT = 65536
 
 internal class NettyResponsePipeline(private val dst: ChannelHandlerContext,
                                      initialEncapsulation: WriterEncapsulation,
-                                     private val requestQueue: NettyRequestQueue
-) {
+                                     private val requestQueue: NettyRequestQueue,
+                                     override val coroutineContext: CoroutineContext
+) : CoroutineScope {
     private val readyQueueSize = requestQueue.readLimit
     private val runningQueueSize = requestQueue.runningLimit
 

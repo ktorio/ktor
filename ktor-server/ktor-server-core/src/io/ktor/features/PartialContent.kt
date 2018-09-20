@@ -7,11 +7,10 @@ import io.ktor.util.pipeline.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
+import kotlin.coroutines.*
 import kotlin.properties.*
-
-@Deprecated("Please use PartialContent instead", replaceWith = ReplaceWith("PartialContent"))
-typealias PartialContentSupport = PartialContent
 
 /**
  * Feature to support requests to specific content ranges.
@@ -64,7 +63,8 @@ class PartialContent(private val maxRangeCount: Int) {
         }
 
         if (!call.isGetOrHead()) {
-            val message = HttpStatusCode.MethodNotAllowed.description("Method ${call.request.local.method.value} is not allowed with range request")
+            val message =
+                HttpStatusCode.MethodNotAllowed.description("Method ${call.request.local.method.value} is not allowed with range request")
             call.respond(message)
             context.finish()
             return
@@ -72,7 +72,7 @@ class PartialContent(private val maxRangeCount: Int) {
 
         call.response.pipeline.registerPhase()
         call.attributes.put(Compression.SuppressionAttribute, true)
-        call.response.pipeline.intercept(PartialContentPhase) response@ { message ->
+        call.response.pipeline.intercept(PartialContentPhase) response@{ message ->
             if (message is OutgoingContent.ReadChannelContent && message !is PartialOutgoingContent) {
                 val length = message.contentLength ?: return@response
                 tryProcessRange(message, call, rangeSpecifier, length)
@@ -85,10 +85,10 @@ class PartialContent(private val maxRangeCount: Int) {
     }
 
     private suspend fun PipelineContext<Any, ApplicationCall>.tryProcessRange(
-            content: OutgoingContent.ReadChannelContent,
-            call: ApplicationCall,
-            rangesSpecifier: RangesSpecifier,
-            length: Long
+        content: OutgoingContent.ReadChannelContent,
+        call: ApplicationCall,
+        rangesSpecifier: RangesSpecifier,
+        length: Long
     ) {
         if (checkIfRangeHeader(content, call)) {
             processRange(content, rangesSpecifier, length)
@@ -97,7 +97,10 @@ class PartialContent(private val maxRangeCount: Int) {
         }
     }
 
-    private suspend fun checkIfRangeHeader(content: OutgoingContent.ReadChannelContent, call: ApplicationCall): Boolean {
+    private suspend fun checkIfRangeHeader(
+        content: OutgoingContent.ReadChannelContent,
+        call: ApplicationCall
+    ): Boolean {
         val conditionalHeadersFeature = call.application.featureOrNull(ConditionalHeaders)
         val versions = conditionalHeadersFeature?.versionsFor(content) ?: content.defaultVersions
         val ifRange = call.request.header(HttpHeaders.IfRange)
@@ -112,15 +115,19 @@ class PartialContent(private val maxRangeCount: Int) {
     }
 
     private suspend fun PipelineContext<Any, ApplicationCall>.processRange(
-            content: OutgoingContent.ReadChannelContent,
-            rangesSpecifier: RangesSpecifier,
-            length: Long
+        content: OutgoingContent.ReadChannelContent,
+        rangesSpecifier: RangesSpecifier,
+        length: Long
     ) {
         require(length >= 0L)
         val merged = rangesSpecifier.merge(length, maxRangeCount)
         if (merged.isEmpty()) {
-            call.response.contentRange(range = null, fullLength = length) // https://tools.ietf.org/html/rfc7233#section-4.4
-            val statusCode = HttpStatusCode.RequestedRangeNotSatisfiable.description("Couldn't satisfy range request $rangesSpecifier: it should comply with the restriction [0; $length)")
+            call.response.contentRange(
+                range = null,
+                fullLength = length
+            ) // https://tools.ietf.org/html/rfc7233#section-4.4
+            val statusCode =
+                HttpStatusCode.RequestedRangeNotSatisfiable.description("Couldn't satisfy range request $rangesSpecifier: it should comply with the restriction [0; $length)")
             proceedWith(HttpStatusCodeContent(statusCode))
             return
         }
@@ -135,19 +142,28 @@ class PartialContent(private val maxRangeCount: Int) {
         }
     }
 
-    private suspend fun PipelineContext<Any, ApplicationCall>.processSingleRange(content: OutgoingContent.ReadChannelContent, range: LongRange, length: Long) {
+    private suspend fun PipelineContext<Any, ApplicationCall>.processSingleRange(
+        content: OutgoingContent.ReadChannelContent,
+        range: LongRange,
+        length: Long
+    ) {
         proceedWith(PartialOutgoingContent.Single(call.isGet(), content, range, length))
     }
 
-    private suspend fun PipelineContext<Any, ApplicationCall>.processMultiRange(content: OutgoingContent.ReadChannelContent, ranges: List<LongRange>, length: Long) {
+    private suspend fun PipelineContext<Any, ApplicationCall>.processMultiRange(
+        content: OutgoingContent.ReadChannelContent,
+        ranges: List<LongRange>,
+        length: Long
+    ) {
         val boundary = "ktor-boundary-" + nextNonce()
 
         call.attributes.put(Compression.SuppressionAttribute, true) // multirange with compression is not supported yet
 
-        proceedWith(PartialOutgoingContent.Multiple(call.isGet(), content, ranges, length, boundary))
+        proceedWith(PartialOutgoingContent.Multiple(coroutineContext, call.isGet(), content, ranges, length, boundary))
     }
 
-    private sealed class PartialOutgoingContent(val original: ReadChannelContent) : OutgoingContent.ReadChannelContent() {
+    private sealed class PartialOutgoingContent(val original: ReadChannelContent) :
+        OutgoingContent.ReadChannelContent() {
         override val status: HttpStatusCode? get() = original.status
         override val contentType: ContentType? get() = original.contentType
         override fun <T : Any> getProperty(key: AttributeKey<T>) = original.getProperty(key)
@@ -164,7 +180,12 @@ class PartialContent(private val maxRangeCount: Int) {
             }
         }
 
-        class Single(val get: Boolean, original: OutgoingContent.ReadChannelContent, val range: LongRange, val fullLength: Long) : PartialOutgoingContent(original) {
+        class Single(
+            val get: Boolean,
+            original: OutgoingContent.ReadChannelContent,
+            val range: LongRange,
+            val fullLength: Long
+        ) : PartialOutgoingContent(original) {
             override val status: HttpStatusCode?
                 get() = if (get) HttpStatusCode.PartialContent else original.status
             override val contentLength: Long? get() = null
@@ -180,14 +201,25 @@ class PartialContent(private val maxRangeCount: Int) {
             }
         }
 
-        class Multiple(val get: Boolean, original: OutgoingContent.ReadChannelContent, val ranges: List<LongRange>, val length: Long, val boundary: String) : PartialOutgoingContent(original) {
+        class Multiple(
+            override val coroutineContext: CoroutineContext,
+            val get: Boolean,
+            original: OutgoingContent.ReadChannelContent,
+            val ranges: List<LongRange>,
+            val length: Long,
+            val boundary: String
+        ) : PartialOutgoingContent(original), CoroutineScope {
             override val status: HttpStatusCode?
                 get() = if (get) HttpStatusCode.PartialContent else original.status
             override val contentLength: Long? get() = null
-            override val contentType: ContentType? get() = ContentType.MultiPart.ByteRanges.withParameter("boundary", boundary)
+            override val contentType: ContentType?
+                get() = ContentType.MultiPart.ByteRanges.withParameter(
+                    "boundary",
+                    boundary
+                )
 
             override fun readFrom() = writeMultipleRanges(
-                    { range -> original.readFrom(range) }, ranges, length, boundary, contentType.toString()
+                { range -> original.readFrom(range) }, ranges, length, boundary, contentType.toString()
             )
 
             override val headers by lazy(LazyThreadSafetyMode.NONE) {
@@ -209,7 +241,9 @@ class PartialContent(private val maxRangeCount: Int) {
 
     private fun ApplicationCall.isGet() = request.local.method == HttpMethod.Get
     private fun ApplicationCall.isGetOrHead() = isGet() || request.local.method == HttpMethod.Head
-    private fun String.parseMatchTag() = split("\\s*,\\s*".toRegex()).map { it.removePrefix("W/") }.filter { it.isNotEmpty() }.toSet()
+    private fun String.parseMatchTag() =
+        split("\\s*,\\s*".toRegex()).map { it.removePrefix("W/") }.filter { it.isNotEmpty() }.toSet()
 }
 
-private fun List<LongRange>.isAscending(): Boolean = fold(true to 0L) { acc, e -> (acc.first && acc.second <= e.start) to e.start }.first
+private fun List<LongRange>.isAscending(): Boolean =
+    fold(true to 0L) { acc, e -> (acc.first && acc.second <= e.start) to e.start }.first

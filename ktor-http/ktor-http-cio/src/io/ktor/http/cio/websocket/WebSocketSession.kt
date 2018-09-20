@@ -1,9 +1,10 @@
 package io.ktor.http.cio.websocket
 
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlin.coroutines.*
 
-interface WebSocketSession {
+interface WebSocketSession : CoroutineScope {
     /**
      * Incoming frames channel
      */
@@ -29,7 +30,8 @@ interface WebSocketSession {
     /**
      * Dispatcher to handle io operations
      */
-    val dispatcher: CoroutineContext
+    @Deprecated("Use coroutineContext instead", ReplaceWith("coroutineContext"))
+    val dispatcher: CoroutineContext get() = coroutineContext
 
     /**
      * Flush all outstanding messages and suspend until all earlier sent messages will be written. Could be called

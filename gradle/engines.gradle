@@ -1,7 +1,7 @@
 
 if (project.name != 'ktor-server-core') {
     compileKotlin {
-        kotlinOptions.freeCompilerArgs = ['-Xuse-experimental=kotlin.Experimental,io.ktor.server.engine.EngineAPI']
+        kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental,io.ktor.server.engine.EngineAPI']
     }
 }
 

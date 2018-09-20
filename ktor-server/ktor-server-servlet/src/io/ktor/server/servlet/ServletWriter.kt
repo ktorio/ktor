@@ -8,11 +8,10 @@ import kotlinx.io.pool.*
 import java.io.*
 import java.util.concurrent.TimeoutException
 import javax.servlet.*
-import kotlin.coroutines.*
 
-internal fun servletWriter(output: ServletOutputStream, parent: CoroutineContext? = null) : ReaderJob {
+internal fun CoroutineScope.servletWriter(output: ServletOutputStream) : ReaderJob {
     val writer = ServletWriter(output)
-    return reader(if (parent != null) Unconfined + parent else Unconfined, writer.channel) {
+    return reader(Dispatchers.Unconfined, writer.channel) {
         writer.run()
     }
 }
@@ -97,9 +96,7 @@ private class ServletWriter(val output: ServletOutputStream) : WriteListener {
     override fun onWritePossible() {
         try {
             if (!events.offer(Unit)) {
-                launch(Unconfined) {
-                    events.send(Unit)
-                }
+                events.sendBlocking(Unit)
             }
         } catch (ignore: Throwable) {
         }

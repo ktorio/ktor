@@ -17,7 +17,12 @@ import kotlin.coroutines.*
 class TestApplicationEngine(
     environment: ApplicationEngineEnvironment = createTestEnvironment(),
     configure: Configuration.() -> Unit = {}
-) : BaseApplicationEngine(environment, EnginePipeline()) {
+) : BaseApplicationEngine(environment, EnginePipeline()), CoroutineScope {
+
+    private val testEngineJob = Job()
+
+    override val coroutineContext: CoroutineContext
+        get() = testEngineJob
 
     class Configuration : BaseApplicationEngine.Configuration() {
         var dispatcher: CoroutineContext = ioCoroutineDispatcher
@@ -37,8 +42,12 @@ class TestApplicationEngine(
     }
 
     override fun stop(gracePeriod: Long, timeout: Long, timeUnit: TimeUnit) {
-        environment.monitor.raise(ApplicationStopPreparing, environment)
-        environment.stop()
+        try {
+            environment.monitor.raise(ApplicationStopPreparing, environment)
+            environment.stop()
+        } finally {
+            testEngineJob.cancel()
+        }
     }
 
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
@@ -74,6 +83,7 @@ class TestApplicationEngine(
         return call
     }
 
+    @UseExperimental(WebSocketInternalAPI::class)
     fun handleWebSocketConversation(
         uri: String, setup: TestApplicationRequest.() -> Unit = {},
         callback: suspend TestApplicationCall.(incoming: ReceiveChannel<Frame>, outgoing: SendChannel<Frame>) -> Unit
@@ -85,12 +95,12 @@ class TestApplicationEngine(
         }
 
         val pool = KtorDefaultPool
-        val engineContext = Unconfined
+        val engineContext = Dispatchers.Unconfined
         val job = Job()
-        val writer = @Suppress("DEPRECATION") WebSocketWriter(websocketChannel, job, engineContext, pool = pool)
-        val reader = @Suppress("DEPRECATION") WebSocketReader(
-            call.response.websocketChannel()!!, Int.MAX_VALUE.toLong(), job, engineContext, pool
-        )
+        val webSocketContext = engineContext + job
+
+        val writer = WebSocketWriter(websocketChannel, webSocketContext, pool = pool)
+        val reader = WebSocketReader(call.response.websocketChannel()!!, webSocketContext, Int.MAX_VALUE.toLong(), pool)
 
         runBlocking(configuration.dispatcher) {
             call.callback(reader.incoming, writer.outgoing)
@@ -102,5 +112,5 @@ class TestApplicationEngine(
     }
 
     fun createCall(readResponse: Boolean = false, setup: TestApplicationRequest.() -> Unit): TestApplicationCall =
-        TestApplicationCall(application, readResponse).apply { setup(request) }
+        TestApplicationCall(application, readResponse, EmptyCoroutineContext).apply { setup(request) }
 }
