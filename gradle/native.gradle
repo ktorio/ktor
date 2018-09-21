@@ -3,7 +3,7 @@ sourceSets {
     main {
         kotlin.srcDir 'src'
         component {
-            target 'ios_arm64', 'ios_x64', 'macos_x64'
+            targets = ['ios_arm64', 'ios_x64', 'macos_x64']
             outputKinds = [KLIBRARY]
             extraOpts '--disable', 'devirtualization'
         }
@@ -11,7 +11,7 @@ sourceSets {
     test {
         kotlin.srcDir 'test'
         component {
-            target 'ios_arm64', 'ios_x64', 'macos_x64'
+            targets = ['ios_arm64', 'ios_x64', 'macos_x64']
             extraOpts '--disable', 'devirtualization'
         }
     }
