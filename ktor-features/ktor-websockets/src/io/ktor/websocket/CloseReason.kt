@@ -4,6 +4,7 @@ import io.ktor.http.cio.websocket.CloseReason
 
 @Deprecated(
     "Use io.ktor.http.cio.websocket.CloseReason instead",
-    replaceWith = ReplaceWith("CloseReason", "io.ktor.http.cio.websocket.*")
+    replaceWith = ReplaceWith("CloseReason", "io.ktor.http.cio.websocket.*"),
+    level = DeprecationLevel.ERROR
 )
 typealias CloseReason = CloseReason

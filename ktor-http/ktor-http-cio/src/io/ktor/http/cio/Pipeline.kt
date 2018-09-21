@@ -9,7 +9,7 @@ import kotlinx.coroutines.io.*
 import java.io.*
 import kotlin.coroutines.*
 
-@Deprecated("")
+@Deprecated("This is going to become private")
 @Suppress("KDocMissingDocumentation")
 fun lastHttpRequest(http11: Boolean, connectionOptions: ConnectionOptions?): Boolean {
     return isLastHttpRequest(http11, connectionOptions)
@@ -206,19 +206,6 @@ fun CoroutineScope.startConnectionPipeline(input: ByteReadChannel,
             outputsActor.close()
         }
     }
-}
-
-@Suppress("KDocMissingDocumentation")
-@Deprecated("Use startConnectionPipeline instead",
-        ReplaceWith("startConnectionPipeline(input, output, ioCoroutineContext, callContext, timeouts, handler).join()"))
-suspend fun handleConnectionPipeline(input: ByteReadChannel,
-                                     output: ByteWriteChannel,
-                                     ioCoroutineContext: CoroutineContext,
-                                     callContext: CoroutineContext,
-                                     timeouts: WeakTimeoutQueue,
-                                     handler: HttpRequestHandler) {
-    @Suppress("DEPRECATION")
-    startConnectionPipeline(input, output, null, ioCoroutineContext, callContext, timeouts, handler).join()
 }
 
 private val BadRequestPacket =

@@ -184,7 +184,7 @@ private fun DecodedJWT.parsePayload(): Payload {
         "        this.realm = realm\n" +
         "        this.verifier(jwtVerifier)\n" +
         "        this.validate(validate)\n" +
-        "    }\n"))
+        "    }\n"), level = DeprecationLevel.ERROR)
 fun Authentication.Configuration.jwtAuthentication(jwtVerifier: JWTVerifier, realm: String, validate: suspend (JWTCredential) -> Principal?) {
     jwt {
         this.realm = realm
@@ -197,7 +197,7 @@ fun Authentication.Configuration.jwtAuthentication(jwtVerifier: JWTVerifier, rea
         "        this.realm = realm\n" +
         "        this.verifier(jwkProvider, issuer)\n" +
         "        this.validate(validate)\n" +
-        "    }\n"))
+        "    }\n"), level = DeprecationLevel.ERROR)
 fun Authentication.Configuration.jwtAuthentication(jwkProvider: JwkProvider, issuer: String, realm: String, validate: suspend (JWTCredential) -> Principal?) {
     jwt {
         this.realm = realm
