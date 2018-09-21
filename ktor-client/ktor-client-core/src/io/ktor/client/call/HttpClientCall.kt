@@ -62,8 +62,8 @@ data class HttpEngineCall(val request: HttpRequest, val response: HttpResponse)
  * Constructs a [HttpClientCall] from this [HttpClient] and with the specified [HttpRequestBuilder]
  * configured inside the [block].
  */
-suspend fun HttpClient.call(block: HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
-    execute(HttpRequestBuilder().apply(block))
+suspend fun HttpClient.call(block: suspend HttpRequestBuilder.() -> Unit = {}): HttpClientCall =
+    execute(HttpRequestBuilder().apply { block() })
 
 /**
  * Tries to receive the payload of the [response] as an specific type [T].
@@ -96,7 +96,7 @@ class ReceivePipelineFail(
     val request: HttpClientCall,
     val info: TypeInfo,
     override val cause: Throwable
-): IllegalStateException()
+) : IllegalStateException()
 
 /**
  * Exception representing the no transformation was found.

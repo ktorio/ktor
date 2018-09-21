@@ -21,14 +21,16 @@ var HttpRequestBuilder.port: Int
     }
 
 /**
- * Sets a single header of [key] with a specific [value].
+ * Sets a single header of [key] with a specific [value] if the value is not null.
  */
-fun HttpRequestBuilder.header(key: String, value: String): Unit = headers.append(key, value)
+fun HttpRequestBuilder.header(key: String, value: Any?): Unit =
+    value?.let { headers.append(key, it.toString()) } ?: Unit
 
 /**
- * Sets a single parameter of [key] with a specific [value].
+ * Sets a single parameter of [key] with a specific [value] if the value is not null.
  */
-fun HttpRequestBuilder.parameter(key: String, value: String): Unit = url.parameters.append(key, value)
+fun HttpRequestBuilder.parameter(key: String, value: Any?): Unit =
+    value?.let { url.parameters.append(key, it.toString()) } ?: Unit
 
 /**
  * Sets the `Accept` header with a specific [contentType].
