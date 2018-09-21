@@ -18,7 +18,7 @@ private fun withLocationsApplication(test: TestApplicationEngine.() -> Unit) = w
 }
 
 class CustomLocationRouteService : LocationRouteService {
-    override fun findRoute(klass: KClass<*>): String? = klass.simpleName
+    override fun findRoute(locationClass: KClass<*>): String? = locationClass.simpleName
 }
 
 object CustomLocationsFeature : ApplicationFeature<Application, Locations, Locations> {

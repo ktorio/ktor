@@ -125,7 +125,7 @@ class LocationsTest {
                 assertEquals(123, items.container.id)
                 call.respond(HttpStatusCode.OK)
             }
-            assertFailsWith(RoutingException::class) {
+            assertFailsWith(LocationRoutingException::class) {
                 get<pathContainer.badItems> { }
             }
         }
@@ -148,7 +148,7 @@ class LocationsTest {
                 assertEquals(123, items.container.id)
                 call.respond(HttpStatusCode.OK)
             }
-            assertFailsWith(RoutingException::class) {
+            assertFailsWith(LocationRoutingException::class) {
                 get<queryContainer.badItems> { }
             }
         }

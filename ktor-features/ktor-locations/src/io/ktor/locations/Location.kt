@@ -8,12 +8,9 @@ import kotlin.reflect.*
 
 /**
  * Annotation for classes that will act as typed routes.
- * [path] is the route path, including class property names wrapped with curly braces.
+ * @property path the route path, including class property names wrapped with curly braces.
  */
 annotation class Location(val path: String)
-
-@Deprecated("Use Location instead", replaceWith = ReplaceWith("Location"))
-typealias location = Location
 
 /**
  * Gets the [Application.locations] feature
