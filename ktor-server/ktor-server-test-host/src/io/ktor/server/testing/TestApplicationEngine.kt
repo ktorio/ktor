@@ -1,13 +1,13 @@
 package io.ktor.server.testing
 
 import io.ktor.application.*
-import io.ktor.util.cio.*
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.network.util.*
-import io.ktor.util.pipeline.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
+import io.ktor.util.cio.*
+import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
@@ -53,15 +53,18 @@ class TestApplicationEngine(
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createCall(readResponse = true, setup = setup)
 
-        val pipelineJob = launch(configuration.dispatcher) {
+        val scope = SupervisedScope("handleRequest", this)
+        val pipelineJob = scope.launch(configuration.dispatcher) {
             pipeline.execute(call)
         }
 
-        runBlocking {
+        runBlocking(coroutineContext) {
             pipelineJob.join()
-            pipelineJob.getCancellationException().cause?.let { throw it }
             call.response.flush()
+            scope.cancel()
         }
+
+        pipelineJob.getCancellationException().cause?.let { throw it }
 
         return call
     }

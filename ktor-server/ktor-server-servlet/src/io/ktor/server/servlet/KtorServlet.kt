@@ -4,11 +4,9 @@ import io.ktor.application.*
 import io.ktor.util.pipeline.*
 import io.ktor.server.engine.*
 import io.ktor.util.*
-import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import java.lang.IllegalStateException
 import java.util.concurrent.*
-import java.util.concurrent.CancellationException
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
@@ -20,11 +18,11 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
 
     abstract val upgrade: ServletUpgrade
 
-    private val servletJob = Job()
-    override val coroutineContext: CoroutineContext by lazy { servletJob + ServletExceptionHandler(application) }
+    private val servletScope = SupervisedScope("servlet", CoroutineScope(EmptyCoroutineContext))
+    override val coroutineContext: CoroutineContext get() = servletScope.coroutineContext
 
     override fun destroy() {
-        servletJob.cancel()
+        servletScope.cancel()
         // Note: container will not call service again, so asyncDispatcher cannot get initialized if it was not yet
         if (asyncDispatchers.isInitialized()) asyncDispatchers.value.destroy()
     }
@@ -76,18 +74,6 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
         runBlocking(coroutineContext) {
             val call = BlockingServletApplicationCall(application, request, response, coroutineContext)
             enginePipeline.execute(call)
-        }
-    }
-
-    private class ServletExceptionHandler(val application: Application): CoroutineExceptionHandler {
-        override val key = object  : CoroutineContext.Key<CoroutineExceptionHandler> {}
-
-        override fun handleException(context: CoroutineContext, exception: Throwable) {
-            when (exception) {
-                is CancellationException -> {}
-                is ChannelIOException -> {}
-                else -> application.log.error("Request handling coroutine failed", exception)
-            }
         }
     }
 }
