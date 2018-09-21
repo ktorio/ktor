@@ -1,9 +1,17 @@
 package io.ktor.http
 
+/**
+ * Represents an HTTP status code and description. 
+ * @param value is a numeric code. 
+ * @param description is free form description of a status. 
+ */
 @Suppress("unused")
 data class HttpStatusCode(val value: Int, val description: String) {
     override fun toString(): String = "$value $description"
 
+    /**
+     * Returns a copy of `this` code with a description changed to [value].
+     */
     fun description(value: String) = copy(description = value)
 
     companion object {
@@ -71,6 +79,9 @@ data class HttpStatusCode(val value: Int, val description: String) {
             allStatusCodes.firstOrNull { it.value == idx }
         }
 
+        /**
+         * Creates an instance of [HttpStatusCode] with the given numeric value.
+         */
         fun fromValue(value: Int): HttpStatusCode {
             val knownStatus = if (value in 1 until 1000) byValue[value] else null
             return knownStatus ?: HttpStatusCode(value, "Unknown Status Code")
@@ -85,4 +96,9 @@ inline val HttpStatusCode.Companion.ExceptionFailed: HttpStatusCode get() = Expe
 
 internal expect fun allStatusCodes(): List<HttpStatusCode>
 
+/**
+ * Checks if a given status code is a success code according to HTTP standards.
+ * 
+ * Codes from 200 to 299 are considered to be successful.
+ */
 fun HttpStatusCode.isSuccess(): Boolean = value in (200 until 300)
