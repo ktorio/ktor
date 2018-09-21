@@ -68,6 +68,9 @@ class JsonTest : TestWithKtor() {
     fun testSerializeNumber() = testJson(42)
 
     @Test
+    fun testSerializeGenericList() = testJson(listOf(""))
+
+    @Test
     fun testManuallySerializedJson() = clientTest(CIO) {
         config {
             install(JsonFeature)

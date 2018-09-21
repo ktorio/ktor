@@ -61,11 +61,11 @@ class JsonTest : TestWithKtor() {
         }
 
         test { client ->
-            val result = client.post<Widget>(body = widget, port = serverPort) {
+            val result = client.post<JsonContent<Widget>>(body = JsonContent(widget), port = serverPort) {
                 contentType(ContentType.Application.Json)
             }
 
-            assertEquals(widget, result)
+            assertEquals(widget, result.value)
         }
     }
 
@@ -82,14 +82,10 @@ class JsonTest : TestWithKtor() {
         }
 
         test { client ->
-            val response = client.post<Response<List<Jackson>>>(port = serverPort, path = "jackson",  body = Jackson(
-                "request",
-                "ignored"
-            )
-            )
-            {
+            val body = JsonContent(Jackson("request", "ignored"))
+            val response = client.post<JsonContent<Response<List<Jackson>>>>(port = serverPort, path = "jackson",  body = body) {
                 contentType(ContentType.Application.Json)
-            }
+            }.value
 
             assertTrue(response.ok)
             val list = response.result!!

@@ -47,11 +47,11 @@ class GsonTest : TestWithKtor() {
         }
 
         test { client ->
-            val result = client.post<Widget>(body = widget, port = serverPort) {
+            val result = client.post<JsonContent<Widget>>(body = JsonContent(widget), port = serverPort) {
                 contentType(ContentType.Application.Json)
             }
 
-            assertEquals(widget, result)
+            assertEquals(widget, result.value)
         }
     }
 
