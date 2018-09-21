@@ -31,7 +31,7 @@ class WebSockets(
     override val coroutineContext: CoroutineContext
         get() = parent
 
-    @Deprecated("Use websockets feature instance as CoroutineScope instead")
+    @Deprecated("Use websockets feature instance as CoroutineScope instead", level = DeprecationLevel.ERROR)
     val context: CompletableDeferred<Unit> get() = parent
 
     private fun shutdown() {

@@ -80,7 +80,11 @@ sealed class FormAuthChallenge {
      * @property url is a function receiving [ApplicationCall] and [UserPasswordCredential] and returning an URL to redirect to.
      */
     class Redirect(val url: ApplicationCall.(UserPasswordCredential?) -> String) : FormAuthChallenge() {
-        @Deprecated("Call is passed as receiver", ReplaceWith("FormAuthChallenge.Redirect { c -> oldUrl(c) }"))
+        @Deprecated(
+            "Call is passed as receiver",
+            ReplaceWith("FormAuthChallenge.Redirect { c -> oldUrl(c) }"),
+            level = DeprecationLevel.ERROR
+        )
         @Suppress("UNUSED_PARAMETER")
         constructor(forMigration: Unit = Unit, url: (ApplicationCall, UserPasswordCredential?) -> String) : this(url)
     }

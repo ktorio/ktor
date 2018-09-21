@@ -46,13 +46,13 @@ class TestApplicationRequest constructor(
     @Volatile
     var bodyChannel: ByteReadChannel = ByteReadChannel.Empty
 
-    @Deprecated("Use setBody() method instead", ReplaceWith("setBody()"))
+    @Deprecated("Use setBody() method instead", ReplaceWith("setBody()"), level = DeprecationLevel.ERROR)
     var bodyBytes: ByteArray
         @Deprecated("TestApplicationEngine no longer supports bodyBytes.get()", level = DeprecationLevel.ERROR)
         get() = error("TestApplicationEngine no longer supports bodyBytes.get()")
         set(value) { setBody(value) }
 
-    @Deprecated("Use setBody() method instead", ReplaceWith("setBody()"))
+    @Deprecated("Use setBody() method instead", ReplaceWith("setBody()"), level = DeprecationLevel.ERROR)
     var body: String
         @Deprecated("TestApplicationEngine no longer supports body.get()", level = DeprecationLevel.ERROR)
         get() = error("TestApplicationEngine no longer supports body.get()")

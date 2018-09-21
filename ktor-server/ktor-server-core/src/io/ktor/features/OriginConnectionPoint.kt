@@ -91,7 +91,9 @@ object XForwardedHeaderSupport : ApplicationFeature<ApplicationCallPipeline, XFo
     }
 }
 
-@Deprecated("", replaceWith = ReplaceWith("XForwardedHeaderSupport"))
+@Deprecated("Use XForwardedHeaderSupport instead",
+    replaceWith = ReplaceWith("XForwardedHeaderSupport"),
+    level = DeprecationLevel.ERROR)
 val XForwardedHeadersSupport: XForwardedHeaderSupport get() = XForwardedHeaderSupport
 
 /**
