@@ -135,7 +135,7 @@ suspend fun ApplicationCall.withETag(etag: String, putHeader: Boolean = true, bl
  * See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.28 and
  *  https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.25
  */
-@Deprecated("Use configuration for ConditionalHeaders")
+@Deprecated("Use configuration for ConditionalHeaders", level = DeprecationLevel.ERROR)
 suspend fun ApplicationCall.withLastModified(
     lastModified: ZonedDateTime,
     putHeader: Boolean = true,
