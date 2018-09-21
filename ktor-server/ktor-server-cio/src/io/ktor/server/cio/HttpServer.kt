@@ -50,7 +50,10 @@ fun CoroutineScope.httpServer(settings: HttpServerSettings,
     val socket = CompletableDeferred<ServerSocket>()
 
     val serverLatch = CompletableDeferred<Unit>()
-    val serverJob = launch(CoroutineName("server-root-${settings.port}")) {
+    val serverJob = launch(
+        context = CoroutineName("server-root-${settings.port}"),
+        start = CoroutineStart.UNDISPATCHED
+    ) {
         serverLatch.await()
     }
 

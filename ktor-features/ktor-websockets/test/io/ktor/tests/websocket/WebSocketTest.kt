@@ -192,7 +192,6 @@ class WebSocketTest {
         @Suppress("DEPRECATION")
         Serializer().apply {
             enqueue(Frame.Binary(true, ByteBuffer.wrap(content)))
-            enqueue(Frame.Close())
             serialize(sendBuffer)
 
             sendBuffer.flip()
