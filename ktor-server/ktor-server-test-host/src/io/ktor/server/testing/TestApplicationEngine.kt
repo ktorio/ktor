@@ -137,13 +137,19 @@ class TestApplicationEngine(
         TestApplicationCall(application, readResponse).apply { setup(request) }
 }
 
+/**
+ * Keep cookies between requests inside the [callback].
+ *
+ * This processes [HttpHeaders.SetCookie] from the responses and produce [HttpHeaders.Cookie] in subsequent requests.
+ */
 fun TestApplicationEngine.cookiesSession(callback: () -> Unit) {
     var trackedCookies: List<Cookie> = listOf()
 
     hookRequests(
         processRequest = { setup ->
-            val cookieValue = trackedCookies.joinToString("; ") { (it.name).encodeURLParameter() + "=" + (it.value).encodeURLParameter() }
-            addHeader(HttpHeaders.Cookie, cookieValue)
+            addHeader(HttpHeaders.Cookie, trackedCookies.joinToString("; ") {
+                (it.name).encodeURLParameter() + "=" + (it.value).encodeURLParameter()
+            })
             setup() // setup after setting the cookie so the user can override cookies
         },
         processResponse = {
