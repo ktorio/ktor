@@ -180,7 +180,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         val l = CountDownLatch(1)
         val failures = CopyOnWriteArrayList<Throwable>()
 
-        val starting = launch(Dispatchers.Default + CoroutineExceptionHandler { _, _ -> }) {
+        val starting = GlobalScope.launch(Dispatchers.Default) {
             l.countDown()
             server.start()
         }
