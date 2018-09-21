@@ -31,9 +31,7 @@ class WebSocketReader(
             : this(byteChannel, coroutineContext, maxFrameSize, pool)
 
     private var state = State.HEADER
-    @Suppress("DEPRECATION")
     private val frameParser = FrameParser()
-    @Suppress("DEPRECATION")
     private val collector = SimpleFrameCollector()
 
     private val queue = Channel<Frame>(8)

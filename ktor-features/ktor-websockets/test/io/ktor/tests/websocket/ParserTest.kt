@@ -6,11 +6,11 @@ import org.junit.Test
 import java.nio.*
 import kotlin.test.*
 
+@UseExperimental(WebSocketInternalAPI::class)
 class ParserTest {
     @Test
     fun testParserSimpleFrame() {
         val buffer = bufferOf("0x81 0x05 0x48 0x65 0x6c 0x6c 0x6f")
-        @Suppress("DEPRECATION")
         val parser = FrameParser()
         parser.frame(buffer)
 
@@ -26,7 +26,6 @@ class ParserTest {
     @Test
     fun testParserU16Frame() {
         val buffer = bufferOf("0x81 0x7e 0x00 0x06")
-        @Suppress("DEPRECATION")
         val parser = FrameParser()
         parser.frame(buffer)
 
@@ -40,7 +39,6 @@ class ParserTest {
     @Test
     fun testParserU64Frame() {
         val buffer = bufferOf("0x81 0x7f 0x12 0x34 0x56 0x78 0x9a 0xab 0xcd 0xef")
-        @Suppress("DEPRECATION")
         val parser = FrameParser()
         parser.frame(buffer)
 
@@ -54,7 +52,6 @@ class ParserTest {
     @Test
     fun testParserMasking() {
         val buffer = bufferOf("0x81 0x85 0x37 0xfa 0x21 0x3d 0x7f 0x9f 0x4d 0x51 0x58")
-        @Suppress("DEPRECATION")
         val parser = FrameParser()
         parser.frame(buffer)
 
@@ -69,7 +66,6 @@ class ParserTest {
     @Test
     fun testParserFragmentation() {
         val buffer = bufferOf("0x01 0x01 0x31 0x00 0x01 0x32 0x80 0x01 0x33")
-        @Suppress("DEPRECATION")
         val parser = FrameParser()
         parser.frame(buffer)
 

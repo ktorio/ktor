@@ -41,7 +41,7 @@ class WebSocketWriter(
      */
     val outgoing: SendChannel<Frame> get() = queue
 
-    private val serializer = @Suppress("DEPRECATION") Serializer()
+    private val serializer = Serializer()
 
     private suspend fun ActorScope<Any>.writeLoop(buffer: ByteBuffer) {
         buffer.clear()
