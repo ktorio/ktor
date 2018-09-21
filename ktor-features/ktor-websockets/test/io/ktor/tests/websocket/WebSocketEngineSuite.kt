@@ -136,7 +136,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 assertEquals(true, frame.fin)
                 assertTrue { frame.buffer.hasRemaining() }
 
-                @Suppress("DEPRECATION")
                 Serializer().apply {
                     enqueue(Frame.Pong(frame.buffer.copy()))
                     val buffer = ByteArray(1024)
@@ -292,7 +291,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
 
         val sendBuffer = ByteBuffer.allocate(content.size + 100)
 
-        @Suppress("DEPRECATION")
         Serializer().apply {
             enqueue(Frame.Binary(true, ByteBuffer.wrap(content)))
             serialize(sendBuffer)
@@ -353,7 +351,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             }
 
             getOutputStream().apply {
-                @Suppress("DEPRECATION")
                 Serializer().apply {
                     enqueue(Frame.Close())
                     sendBuffer.clear()
@@ -421,7 +418,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             outputStream.apply {
                 for (i in 1L..expectedCount) {
                     sendBuffer.clear()
-                    @Suppress("DEPRECATION")
+
                     Serializer().apply {
                         enqueue(Frame.Text(true, ByteBuffer.wrap(i.toString().toByteArray())))
                         serialize(sendBuffer)
@@ -433,7 +430,6 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 }
 
                 sendBuffer.clear()
-                @Suppress("DEPRECATION")
                 Serializer().apply {
                     enqueue(Frame.Close())
                     sendBuffer.clear()
