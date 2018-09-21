@@ -1,5 +1,3 @@
-@file:UseExperimental(WebSocketInternalAPI::class)
-
 package io.ktor.http.cio.websocket
 
 import io.ktor.util.cio.*
@@ -49,6 +47,7 @@ class RawWebSocket(
     }
 }
 
+@UseExperimental(WebSocketInternalAPI::class)
 suspend fun RawWebSocket.start(handler: suspend WebSocketSession.() -> Unit) {
     handler()
     writer.flush()

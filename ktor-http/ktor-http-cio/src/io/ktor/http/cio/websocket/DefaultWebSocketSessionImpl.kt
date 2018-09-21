@@ -115,7 +115,7 @@ class DefaultWebSocketSessionImpl(
                 when (frame) {
                     is Frame.Close -> {
                         sendCloseSequence(frame.readReason())
-                        return@launch
+                        return@consumeEach
                     }
                     else -> raw.outgoing.send(frame)
                 }

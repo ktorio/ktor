@@ -4,7 +4,8 @@ import io.ktor.util.*
 import java.nio.*
 import java.util.concurrent.*
 
-class Serializer @Deprecated("Internal Api") constructor() {
+@WebSocketInternalAPI
+class Serializer {
     private val q = ArrayBlockingQueue<Frame>(1024)
 
     private var frameBody: ByteBuffer? = null
