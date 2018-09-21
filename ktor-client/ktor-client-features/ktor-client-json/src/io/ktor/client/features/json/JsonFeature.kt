@@ -24,7 +24,7 @@ expect fun defaultSerializer(): JsonSerializer
 /**
  * Platform support for unwrapping generic parameters of JsonContent
  */
-internal expect fun unwrapJsonContent(typeInfo: TypeInfo) : TypeInfo
+internal expect fun safeUnwrapJsonContent(typeInfo: TypeInfo) : TypeInfo?
 
 /**
  * [HttpClient] feature that serializes/de-serializes as JSON custom objects
@@ -72,8 +72,12 @@ class JsonFeature(val serializer: JsonSerializer) {
                         is String -> ResponseWithContent(context.response, response) // Undo HttpPlainText feature
                         else -> return@intercept
                     }
-                    val unwrappedInfo = unwrapJsonContent(info)
-                    proceedWith(HttpResponseContainer(unwrappedInfo, JsonContent(feature.serializer.read(unwrappedInfo, responseToParse))))
+                    val unwrappedInfo = safeUnwrapJsonContent(info)
+                    if (unwrappedInfo != null) {
+                        proceedWith(HttpResponseContainer(unwrappedInfo, JsonContent(feature.serializer.read(unwrappedInfo, responseToParse))))
+                    } else {
+                        return@intercept
+                    }
                 } else {
                     return@intercept
                 }

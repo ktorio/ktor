@@ -46,9 +46,7 @@ class JsonTest : TestWithKtor() {
         }
 
         test { client ->
-            val result = client.jsonPost<R>(body = jsonValue, port = serverPort) {
-                contentType(ContentType.Application.Json)
-            }
+            val result = client.jsonPost<R>(body = jsonValue, port = serverPort)
 
             assertEquals(jsonValue, result.value)
         }
@@ -82,6 +80,19 @@ class JsonTest : TestWithKtor() {
         }
     }
 
+    @Test
+    fun testReceiveJsonAsStringForManualDeserialization() = clientTest(CIO) {
+        config {
+            install(JsonFeature)
+        }
+
+        test { client ->
+            val result = client.jsonPost<String>(body = "Str", port = serverPort)
+
+            assertEquals("\"Str\"", result)
+        }
+    }
+
 }
 
 private suspend inline fun <reified T> HttpClient.jsonPost(
@@ -89,4 +100,7 @@ private suspend inline fun <reified T> HttpClient.jsonPost(
         path: String = "/",
         body: Any? = null,
         block: HttpRequestBuilder.() -> Unit = {}
-): T = post(scheme, host, port, path, JsonContent(body), block)
+): T = post(scheme, host, port, path, JsonContent(body)){
+    contentType(ContentType.Application.Json)
+    block()
+}
