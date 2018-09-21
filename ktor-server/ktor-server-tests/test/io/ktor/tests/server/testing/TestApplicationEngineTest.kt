@@ -6,6 +6,7 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.testing.*
+import io.ktor.sessions.*
 import kotlinx.coroutines.*
 import org.junit.Test
 import java.util.concurrent.*
