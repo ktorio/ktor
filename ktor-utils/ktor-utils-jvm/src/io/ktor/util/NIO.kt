@@ -57,110 +57,46 @@ fun ByteBuffer.copy(pool: ObjectPool<ByteBuffer>, size: Int = remaining()): Byte
 /**
  * Helper class for building [ByteBuffer] with the specific content
  */
-@Deprecated("Use BytePacketBuilder instead")
+@Deprecated("Use BytePacketBuilder instead", level = DeprecationLevel.ERROR)
 class ByteBufferBuilder(order: ByteOrder = ByteOrder.BIG_ENDIAN) {
     companion object {
-        @Deprecated("Use buildPacket instead",
-                ReplaceWith("buildPacket(block).readByteBuffer()",
+        @Deprecated("Use buildPacket instead", level = DeprecationLevel.ERROR,
+                replaceWith = ReplaceWith("buildPacket(block).readByteBuffer()",
                         "kotlinx.io.core.buildPacket", "kotlinx.io.core.readByteBuffer"))
-        @Suppress("DEPRECATION")
+        @Suppress("DEPRECATION_ERROR")
         inline fun build(order: ByteOrder = ByteOrder.BIG_ENDIAN, block: ByteBufferBuilder.() -> Unit): ByteBuffer {
             return ByteBufferBuilder(order).apply(block).build()
         }
     }
 
-    private var buffer: ByteBuffer = ByteBuffer.allocate(16).also { it.order(order) }
-
     /**
      * Puts bytes from [other] [ByteBuffer] into this builder
      */
-    fun put(other: ByteBuffer) {
-        ensureBufferSize(other.remaining())
-
-        buffer.put(other)
-    }
+    fun put(other: ByteBuffer): Unit = TODO()
 
     /**
      * Puts [byte] value into this builder
      */
-    fun put(byte: Byte) {
-        ensureBufferSize(1)
-        buffer.put(byte)
-    }
+    fun put(byte: Byte): Unit = TODO()
 
     /**
      * Puts [short] value into this builder
      */
-    fun putShort(short: Short) {
-        ensureBufferSize(2)
-        buffer.putShort(short)
-    }
+    fun putShort(short: Short): Unit = TODO()
 
     /**
      * Puts [integer] value into this builder
      */
-    fun putInt(integer: Int) {
-        ensureBufferSize(4)
-        buffer.putInt(integer)
-    }
+    fun putInt(integer: Int): Unit = TODO()
 
     /**
      * Puts [String] value into this builder using specified [charset]
      */
-    fun putString(string: String, charset: Charset) {
-        val cb = CharBuffer.wrap(string)
-        val encoder = charset.newEncoder()
-
-        while (cb.hasRemaining()) {
-            ensureBufferSize(cb.remaining())
-            val result = encoder.encode(cb, buffer, false)
-
-            when {
-                result.isError -> result.throwException()
-                result.isOverflow -> ensureBufferSize((cb.remaining() * encoder.maxBytesPerChar()).toInt())
-            }
-        }
-
-        finish@ do {
-            val result = encoder.encode(cb, buffer, true)
-
-            when {
-                result.isError -> result.throwException()
-                result.isOverflow -> ensureBufferSize(encoder.maxBytesPerChar().toInt())
-                else -> break@finish
-            }
-        } while (true)
-    }
+    fun putString(string: String, charset: Charset): Unit = TODO()
 
     /**
      * Builds a [ByteBuffer] from the accumulated data
      */
-    fun build(): ByteBuffer {
-        val src = buffer.duplicate()
-        src.flip()
-        return src.copy(buffer.position())
-    }
-
-    private fun ensureBufferSize(size: Int) {
-        if (buffer.remaining() < size) {
-            val used = buffer.position()
-            var newSize = buffer.capacity()
-
-            while (newSize != Int.MAX_VALUE && newSize - used < size) {
-                newSize = newSize shl 1
-            }
-
-            grow(newSize)
-        }
-    }
-
-    private fun grow(newSize: Int) {
-        if (newSize != buffer.capacity()) {
-            val oldPosition = buffer.position()
-            buffer.flip()
-            buffer = buffer.copy(newSize)
-            buffer.position(oldPosition)
-        }
-    }
+    fun build(): ByteBuffer = TODO()
 }
 
