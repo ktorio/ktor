@@ -7,6 +7,7 @@ import io.ktor.http.cio.websocket.*
 import io.ktor.http.websocket.*
 import io.ktor.request.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.io.*
 import kotlin.coroutines.*
 
@@ -43,20 +44,22 @@ class WebSocketUpgrade(
         userContext: CoroutineContext
     ): Job {
         val feature = call.application.feature(WebSockets)
+
         val webSocket = RawWebSocket(
             input, output,
             feature.maxFrameSize, feature.masking,
-            dispatcher = engineContext
+            coroutineContext = engineContext + (coroutineContext[Job] ?: EmptyCoroutineContext)
         )
 
-        // TODO !!!!
-        val scope = CoroutineScope(coroutineContext)
-
-        return webSocket.launch {
+        return webSocket.launch(WebSocketHandlerCoroutineName) {
             try {
                 webSocket.start(handle)
             } catch (cause: Throwable) {
             }
         }
+    }
+
+    companion object {
+        private val WebSocketHandlerCoroutineName = CoroutineName("raw-ws-handler")
     }
 }
