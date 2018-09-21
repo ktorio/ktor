@@ -12,7 +12,10 @@ import kotlin.reflect.*
  */
 annotation class Location(val path: String)
 
-@Deprecated("Use Location instead", replaceWith = ReplaceWith("Location"))
+@Deprecated(
+    "Use Location instead",
+    replaceWith = ReplaceWith("Location"), level = DeprecationLevel.ERROR
+)
 typealias location = Location
 
 /**
