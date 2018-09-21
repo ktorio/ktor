@@ -12,7 +12,7 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.experimental.*
 import kotlin.test.*
 
 open class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
@@ -64,7 +64,7 @@ open class HttpClientTest(private val factory: HttpClientEngineFactory<*>) : Tes
         }
 
         // check the custom feature remained installed
-        // and that we overrode the DefaultRequest
+        // and that we override the DefaultRequest
         val newRequest = runBlocking {
             newClient.execute(HttpRequestBuilder())
         }.request
