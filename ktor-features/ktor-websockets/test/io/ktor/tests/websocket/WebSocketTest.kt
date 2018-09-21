@@ -24,7 +24,7 @@ import kotlin.test.*
 @UseExperimental(WebSocketInternalAPI::class)
 class WebSocketTest {
     @get:Rule
-    val timeout = Timeout(30, TimeUnit.DAYS)
+    val timeout = Timeout(30, TimeUnit.SECONDS)
 
     @Test
     fun testSingleEcho() {
@@ -114,7 +114,7 @@ class WebSocketTest {
 
                 val bb = ByteBuffer.wrap(call.response.byteContent!!)
                 assertEquals(11, bb.remaining())
-                @Suppress("DEPRECATION")
+
                 val parser = FrameParser()
                 parser.frame(bb)
 
@@ -122,7 +122,6 @@ class WebSocketTest {
                 assertTrue { parser.mask }
                 val key = parser.maskKey!!
 
-                @Suppress("DEPRECATION")
                 val collector = SimpleFrameCollector()
                 collector.start(parser.length.toInt(), bb)
 
@@ -166,7 +165,6 @@ class WebSocketTest {
 
             handleWebSocket("/aaa") {}.let { call ->
                 call.response.awaitWebSocket(Duration.ofSeconds(10))
-                @Suppress("DEPRECATION")
                 val p = FrameParser()
                 val bb = ByteBuffer.wrap(call.response.byteContent)
                 p.frame(bb)
@@ -189,7 +187,6 @@ class WebSocketTest {
 
         val sendBuffer = ByteBuffer.allocate(content.size + 100)
 
-        @Suppress("DEPRECATION")
         Serializer().apply {
             enqueue(Frame.Binary(true, ByteBuffer.wrap(content)))
             serialize(sendBuffer)
@@ -240,7 +237,6 @@ class WebSocketTest {
     fun testFragmentation() {
         val sendBuffer = ByteBuffer.allocate(1024)
 
-        @Suppress("DEPRECATION")
         Serializer().apply {
             enqueue(Frame.Text(false, ByteBuffer.wrap("ABC".toByteArray())))
             enqueue(Frame.Ping(ByteBuffer.wrap("ping".toByteArray()))) // ping could be interleaved
