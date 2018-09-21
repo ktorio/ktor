@@ -120,8 +120,6 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
         } catch (cause: Throwable) {
             application.log.error("Websocket handler failed", cause)
             throw cause
-        } finally {
-            session.goingAway()
         }
     }
 }

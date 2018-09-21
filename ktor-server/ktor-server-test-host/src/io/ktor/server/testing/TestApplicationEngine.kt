@@ -10,6 +10,7 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.future.*
 import kotlinx.coroutines.io.*
 import java.util.concurrent.*
 import kotlin.coroutines.*
@@ -104,10 +105,20 @@ class TestApplicationEngine(
             processRequest(setup)
         }
 
-        runBlocking(configuration.dispatcher) {
-            pipeline.execute(call)
+        // we can't simply do runBlocking here because runBlocking is not completing
+        // until all children completion (writer is the most dangerous example that can cause deadlock here)
+        val pipelineExecuted = CompletableDeferred<Unit>(coroutineContext[Job])
+        launch(configuration.dispatcher) {
+            try {
+                pipeline.execute(call)
+                pipelineExecuted.complete(Unit)
+            } catch (cause: Throwable) {
+                pipelineExecuted.completeExceptionally(cause)
+            }
         }
         processResponse(call)
+
+        pipelineExecuted.asCompletableFuture().join()
 
         return call
     }
