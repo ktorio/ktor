@@ -66,12 +66,12 @@ fun CoroutineScope.httpServer(settings: HttpServerSettings,
         aSocket(selector).tcp().bind(InetSocketAddress(settings.host, settings.port)).use { server ->
             socket.complete(server)
 
-            try {
-                val parentAndHandler = serverJob + KtorUncaughtExceptionHandler()
+            val connectionScope =
+                SupervisedScope("request", CoroutineScope(serverJob + KtorUncaughtExceptionHandler()))
 
+            try {
                 while (true) {
                     val client: Socket = server.accept()
-                    val connectionScope = CoroutineScope(parentAndHandler)
 
                     val clientJob = connectionScope.startConnectionPipeline(
                             input = client.openReadChannel(),
@@ -89,6 +89,7 @@ fun CoroutineScope.httpServer(settings: HttpServerSettings,
             } finally {
                 server.close()
                 server.awaitClosed()
+                connectionScope.cancel()
             }
         }
     }
