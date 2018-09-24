@@ -2,11 +2,19 @@ package io.ktor.http
 
 import kotlinx.io.charsets.*
 
+/**
+ * Represents a value for a `Content-Type` header.
+ * @property contentType represents a type part of the media type.
+ * @property contentSubtype represents a subtype part of the media type.
+ */
 class ContentType private constructor(val contentType: String, val contentSubtype: String, existingContent: String, parameters: List<HeaderValueParam> = emptyList())
     : HeaderValueWithParameters(existingContent, parameters) {
 
     constructor(contentType: String, contentSubtype: String, parameters: List<HeaderValueParam> = emptyList()) : this(contentType, contentSubtype, "$contentType/$contentSubtype", parameters)
 
+    /**
+     * Creates a copy of `this` type with the added parameter with the [name] and [value].
+     */
     fun withParameter(name: String, value: String): ContentType {
         if (hasParameter(name, value)) return this
 
@@ -19,8 +27,14 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         else -> parameters.any { it.name.equals(name, ignoreCase = true) && it.value.equals(value, ignoreCase = true) }
     }
 
+    /**
+     * Creates a copy of `this` type without any parameters
+     */
     fun withoutParameters() = ContentType(contentType, contentSubtype)
 
+    /**
+     * Checks if `this` type matches a [pattern] type taking into account placeholder symbols `*` and parameters. 
+     */
     fun match(pattern: ContentType): Boolean {
         if (pattern.contentType != "*" && !pattern.contentType.equals(contentType, ignoreCase = true))
             return false
@@ -48,6 +62,9 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         return true
     }
 
+    /**
+     * Checks if `this` type matches a [pattern] type taking into account placeholder symbols `*` and parameters.
+     */
     fun match(pattern: String): Boolean = match(ContentType.parse(pattern))
 
     override fun equals(other: Any?): Boolean =
@@ -64,6 +81,9 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
     }
 
     companion object {
+        /**
+         * Parses a string representing a `Content-Type` header into a [ContentType] instance.
+         */
         fun parse(value: String): ContentType = HeaderValueWithParameters.parse(value) { parts, parameters ->
             val slash = parts.indexOf('/')
             if (slash == -1) {
@@ -80,11 +100,20 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
             ContentType(type, subtype, parameters)
         }
 
+        /**
+         * Represents a pattern `* / *` to match any content type.
+         */
         val Any = ContentType("*", "*")
     }
 
+    /**
+     * Provides a list of standard subtypes of an `application` content type.
+     */
     @Suppress("unused")
     object Application {
+        /**
+         * Represents a pattern `application / *` to match any application content type.
+         */
         val Any = ContentType("application", "*")
         val Atom = ContentType("application", "atom+xml")
         val Json = ContentType("application", "json")
@@ -99,6 +128,9 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         val FormUrlEncoded = ContentType("application", "x-www-form-urlencoded")
     }
 
+    /**
+     * Provides a list of standard subtypes of an `audio` content type.
+     */
     @Suppress("unused")
     object Audio {
         val Any = ContentType("audio", "*")
@@ -107,6 +139,9 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         val OGG = ContentType("audio", "ogg")
     }
 
+    /**
+     * Provides a list of standard subtypes of an `image` content type.
+     */
     @Suppress("unused")
     object Image {
         val Any = ContentType("image", "*")
@@ -117,12 +152,18 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         val XIcon = ContentType("image", "x-icon")
     }
 
+    /**
+     * Provides a list of standard subtypes of a `message` content type.
+     */
     @Suppress("unused")
     object Message {
         val Any = ContentType("message", "*")
         val Http = ContentType("message", "http")
     }
 
+    /**
+     * Provides a list of standard subtypes of a `multipart` content type.
+     */
     @Suppress("unused")
     object MultiPart {
         val Any = ContentType("multipart", "*")
@@ -135,6 +176,9 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         val ByteRanges = ContentType("multipart", "byteranges")
     }
 
+    /**
+     * Provides a list of standard subtypes of a `text` content type.
+     */
     @Suppress("unused")
     object Text {
         val Any = ContentType("text", "*")
@@ -146,6 +190,9 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         val Xml = ContentType("text", "xml")
     }
 
+    /**
+     * Provides a list of standard subtypes of a `video` content type.
+     */
     @Suppress("unused")
     object Video {
         val Any = ContentType("video", "*")
@@ -156,7 +203,17 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
     }
 }
 
+/**
+ * Exception thrown when a content type string is malformed.
+ */
 class BadContentTypeFormatException(value: String) : Exception("Bad Content-Type format: $value")
 
+/**
+ * Creates a copy of `this` type with the added charset parameter with [charset] value.
+ */
 fun ContentType.withCharset(charset: Charset) = withParameter("charset", charset.name)
+
+/**
+ * Extracts a [Charset] value from the given `Content-Type`, `Content-Disposition` or similar header value.  
+ */
 fun HeaderValueWithParameters.charset() = parameter("charset")?.let { Charset.forName(it) }
