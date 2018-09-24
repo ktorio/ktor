@@ -243,6 +243,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
                 https.also {
                     it.trustManager = trustManager
                 }
+                dispatcher = testDispatcher
             }).use { client ->
                 client.call(url, builder).response.use { response ->
                     block(response, port)
