@@ -25,6 +25,7 @@ import java.net.*
 import java.security.*
 import java.util.concurrent.*
 import javax.net.ssl.*
+import kotlin.concurrent.*
 import kotlin.coroutines.*
 import kotlin.test.*
 
@@ -33,6 +34,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : CoroutineScope {
     private val testJob = Job()
+    private val testDispatcher by lazy { newFixedThreadPoolContext(32, "dispatcher-${test.methodName}") }
 
     protected val isUnderDebugger: Boolean =
         java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.orEmpty()
@@ -60,7 +62,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     protected annotation class NoHttp2
 
     override val coroutineContext: CoroutineContext
-        get() = testJob
+        get() = testJob + testDispatcher
 
     @get:Rule
     val test = TestName()
@@ -102,6 +104,13 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
             }
         } finally {
             testJob.cancel()
+            val closeThread = thread(start = false, name = "shutdown-test-${test.methodName}") {
+                testDispatcher.close()
+            }
+            testJob.invokeOnCompletion {
+                closeThread.start()
+            }
+            closeThread.join(timeout.seconds * 1000)
         }
     }
 
@@ -179,7 +188,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
 
         // we start it on the global scope because we don't want it to fail the whole test
         // as far as we have retry loop on call side
-        val starting = GlobalScope.launch(Dispatchers.Default) {
+        val starting = GlobalScope.launch(testDispatcher) {
             server.start(wait = false)
 
             withTimeout(minOf(10, timeout.seconds), TimeUnit.SECONDS) {
