@@ -711,7 +711,7 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
                 append("Content-Disposition: form-data; name=\"attachment\"; filename=\"original.txt\"\r\n")
                 append("Content-Type: text/plain\r\n")
                 append("\r\n")
-                withContext(Dispatchers.Default) {
+                withContext(coroutineContext) {
                     repeat(numberOfLines) {
                         append("File content goes here\r\n")
                     }
