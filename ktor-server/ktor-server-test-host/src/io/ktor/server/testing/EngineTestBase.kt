@@ -177,33 +177,28 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     private fun startServer(server: TEngine): List<Throwable> {
         this.server = server
 
-        val l = CountDownLatch(1)
-        val failures = CopyOnWriteArrayList<Throwable>()
-
+        // we start it on the global scope because we don't want it to fail the whole test
+        // as far as we have retry loop on call side
         val starting = GlobalScope.launch(Dispatchers.Default) {
-            l.countDown()
-            server.start()
-        }
-        l.await()
+            server.start(wait = false)
 
-        val waitForPorts = launch(Dispatchers.Default) {
-            server.environment.connectors.forEach { connector ->
-                waitForPort(connector.port)
+            withTimeout(minOf(10, timeout.seconds), TimeUnit.SECONDS) {
+                server.environment.connectors.forEach { connector ->
+                    waitForPort(connector.port)
+                }
             }
         }
 
-        starting.invokeOnCompletion { cause ->
-            if (cause != null) {
-                failures.add(cause)
-                waitForPorts.cancel()
+        return try {
+            runBlocking {
+                starting.join()
+                if (starting.isCancelled) listOf(starting.getCancellationException().let { it.cause ?: it })
+                else emptyList()
             }
+        } catch (t: Throwable) { // InterruptedException?
+            starting.cancel()
+            listOf(t)
         }
-
-        runBlocking {
-            waitForPorts.join()
-        }
-
-        return failures
     }
 
     protected fun findFreePort() = ServerSocket(0).use { it.localPort }
