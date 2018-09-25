@@ -82,6 +82,18 @@ inline fun <reified T> CurrentSession.set(value: T?) = set(findName(T::class), v
 inline fun <reified T> CurrentSession.get(): T? = get(findName(T::class)) as T?
 inline fun <reified T> CurrentSession.clear() = clear(findName(T::class))
 
+inline fun <reified T> CurrentSession.getOrSet(name: String = findName(T::class), generator: () -> T): T {
+    val result = get<T>()
+
+    if (result != null) {
+        return result
+    }
+
+    return generator().apply {
+        set(name, this)
+    }
+}
+
 private data class SessionData(val sessions: Sessions,
                                val providerData: Map<String, SessionProviderData>) : CurrentSession {
 

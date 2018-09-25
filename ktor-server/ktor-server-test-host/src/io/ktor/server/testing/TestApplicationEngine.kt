@@ -41,8 +41,35 @@ class TestApplicationEngine(
         environment.stop()
     }
 
+    private var processRequest: TestApplicationRequest.(setup: TestApplicationRequest.() -> Unit) -> Unit = { it() }
+    private var processResponse: TestApplicationCall.() -> Unit = { }
+
+    fun hookRequests(
+        processRequest: TestApplicationRequest.(setup: TestApplicationRequest.() -> Unit) -> Unit,
+        processResponse: TestApplicationCall.() -> Unit,
+        block: () -> Unit
+    ) {
+        val oldProcessRequest = processRequest
+        val oldProcessResponse = processResponse
+        this.processRequest = {
+            oldProcessRequest {
+                processRequest(it)
+            }
+        }
+        this.processResponse = {
+            oldProcessResponse()
+            processResponse()
+        }
+        try {
+            block()
+        } finally {
+            this.processResponse = oldProcessResponse
+            this.processRequest = oldProcessRequest
+        }
+    }
+
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
-        val call = createCall(readResponse = true, setup = setup)
+        val call = createCall(readResponse = true, setup = { processRequest(setup) })
 
         val pipelineJob = launch(configuration.dispatcher) {
             pipeline.execute(call)
@@ -53,6 +80,7 @@ class TestApplicationEngine(
             pipelineJob.getCancellationException().cause?.let { throw it }
             call.response.flush()
         }
+        processResponse(call)
 
         return call
     }
@@ -64,12 +92,13 @@ class TestApplicationEngine(
             addHeader(HttpHeaders.Upgrade, "websocket")
             addHeader(HttpHeaders.SecWebSocketKey, encodeBase64("test".toByteArray()))
 
-            setup()
+            processRequest(setup)
         }
 
         runBlocking(configuration.dispatcher) {
             pipeline.execute(call)
         }
+        processResponse(call)
 
         return call
     }
@@ -80,7 +109,7 @@ class TestApplicationEngine(
     ): TestApplicationCall {
         val websocketChannel = ByteChannel(true)
         val call = handleWebSocket(uri) {
-            setup()
+            processRequest(setup)
             bodyChannel = websocketChannel
         }
 
@@ -98,9 +127,35 @@ class TestApplicationEngine(
             writer.close()
             job.cancelAndJoin()
         }
+
+        processResponse(call)
+
         return call
     }
 
     fun createCall(readResponse: Boolean = false, setup: TestApplicationRequest.() -> Unit): TestApplicationCall =
         TestApplicationCall(application, readResponse).apply { setup(request) }
+}
+
+/**
+ * Keep cookies between requests inside the [callback].
+ *
+ * This processes [HttpHeaders.SetCookie] from the responses and produce [HttpHeaders.Cookie] in subsequent requests.
+ */
+fun TestApplicationEngine.cookiesSession(callback: () -> Unit) {
+    var trackedCookies: List<Cookie> = listOf()
+
+    hookRequests(
+        processRequest = { setup ->
+            addHeader(HttpHeaders.Cookie, trackedCookies.joinToString("; ") {
+                (it.name).encodeURLParameter() + "=" + (it.value).encodeURLParameter()
+            })
+            setup() // setup after setting the cookie so the user can override cookies
+        },
+        processResponse = {
+            trackedCookies = response.headers.values(HttpHeaders.SetCookie).map { parseServerSetCookieHeader(it) }
+        }
+    ) {
+        callback()
+    }
 }
