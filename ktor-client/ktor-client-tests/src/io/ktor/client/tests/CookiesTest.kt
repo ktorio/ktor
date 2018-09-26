@@ -150,6 +150,23 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
     }
 
     @Test
+    fun testWithLeadingDot() = clientTest(factory) {
+        config {
+            install(HttpCookies)
+        }
+
+        test { client ->
+            client.get<Unit>("https://m.vk.com")
+            assert(client.cookies("https://.vk.com").isNotEmpty())
+            assert(client.cookies("https://vk.com").isNotEmpty())
+            assert(client.cookies("https://m.vk.com").isNotEmpty())
+            assert(client.cookies("https://m.vk.com").isNotEmpty())
+
+            assert(client.cookies("https://google.com").isEmpty())
+        }
+    }
+
+    @Test
     @Ignore
     fun multipleClients() = runBlocking {
         /* a -> b
@@ -199,7 +216,6 @@ abstract class CookiesTest(private val factory: HttpClientEngineFactory<*>) : Te
 
         client.close()
     }
-
 
     private suspend fun HttpClient.getId() = cookies(hostname)["id"]!!.value.toInt()
 }
