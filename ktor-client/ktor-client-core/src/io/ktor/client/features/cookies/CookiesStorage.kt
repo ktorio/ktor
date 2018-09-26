@@ -22,7 +22,7 @@ suspend fun CookiesStorage.addCookie(urlString: String, cookie: Cookie) {
 }
 
 internal fun Cookie.matches(requestUrl: Url): Boolean {
-    val domain = domain?.toLowerCase() ?: error("Domain field should have the default value")
+    val domain = domain?.toLowerCase()?.trimStart('.') ?: error("Domain field should have the default value")
     val path = with(path) {
         val current = path?.toLowerCase() ?: error("Path field should have the default value")
         if (current.endsWith("/")) current else "$path/"
