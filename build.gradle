@@ -1,7 +1,7 @@
 buildscript {
     ext.kotlin_repository = {
         if (kotlin_version.endsWith('-SNAPSHOT')) return 'https://oss.sonatype.org/content/repositories/snapshots'
-        return 'http://dl.bintray.com/kotlin/kotlin-dev'
+        return 'http://dl.bintray.com/kotlin/kotlin-eap'
     }()
 
     repositories {
