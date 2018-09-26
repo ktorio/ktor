@@ -4,6 +4,7 @@ import kotlinx.io.charsets.*
 import kotlinx.io.core.*
 
 private val URL_ALPHABET = (('a'..'z') + ('A'..'Z') + ('0'..'9')).map { it.toByte() }
+private val HEX_ALPHABET = ('a'..'f') + ('A'..'F') + ('0'..'9')
 
 /**
  * https://tools.ietf.org/html/rfc3986#section-2
@@ -14,6 +15,14 @@ private val URL_PROTOCOL_PART = listOf(
     '-', '.', '_', '~', '+' // unreserved
 ).map { it.toByte() }
 
+/**
+ * from [pchar] in https://tools.ietf.org/html/rfc3986#section-2
+ */
+private val VALID_PATH_PART = listOf(
+    ':', '@',
+    '!', '$', '&', '\'', '(', ')', '*', '+', ',', ';', '=',
+    '-', '.', '_', '~'
+)
 /**
  * Oauth specific percent encoding
  * https://tools.ietf.org/html/rfc5849#section-3.6
@@ -36,6 +45,34 @@ fun String.encodeURLQueryComponent(
             it in URL_ALPHABET || (!encodeFull && it in URL_PROTOCOL_PART) -> append(it.toChar())
             else -> append(it.percentEncode())
         }
+    }
+}
+
+fun String.encodeURLPath(): String = buildString {
+    var index = 0
+    while (index < this@encodeURLPath.length) {
+        val current = this@encodeURLPath[index]
+        if (current == '/' || current.toByte() in URL_ALPHABET || current in VALID_PATH_PART) {
+            append(current)
+            index++
+            continue
+        }
+
+        if (current == '%' &&
+            index + 2 < this@encodeURLPath.length &&
+            this@encodeURLPath[index + 1] in HEX_ALPHABET &&
+            this@encodeURLPath[index + 2] in HEX_ALPHABET
+        ) {
+            append(current)
+            append(this@encodeURLPath[index + 1])
+            append(this@encodeURLPath[index + 2])
+
+            index += 3
+            continue
+        }
+
+        append(current.toByte().percentEncode())
+        index++
     }
 }
 
