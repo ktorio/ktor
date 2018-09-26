@@ -61,7 +61,8 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
     // Path
     if (startIndex >= endIndex) return this
     val pathEnd = urlString.indexOfAny("?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
-    encodedPath = urlString.substring(startIndex, pathEnd)
+    val rawPath = urlString.substring(startIndex, pathEnd)
+    encodedPath = rawPath.encodeURLPath()
     startIndex = pathEnd
 
     // Query
@@ -122,7 +123,7 @@ private fun count(urlString: String, startIndex: Int, endIndex: Int, char: Char)
 private fun String.indexOfColonInHostPort(startIndex: Int, endIndex: Int): Int {
     var skip = false
     for (index in startIndex until endIndex) {
-        when(this[index]) {
+        when (this[index]) {
             '[' -> skip = true
             ']' -> skip = false
             ':' -> if (!skip) return index
