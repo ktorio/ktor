@@ -87,4 +87,27 @@ open class HttpRedirectTest(private val factory: HttpClientEngineFactory<*>) : T
             }
         }
     }
+
+    @Test
+    fun customUrlsTest() = clientTest(factory) {
+        val urls = listOf(
+            "https://files.forgecdn.net/files/2574/880/BiblioCraft[v2.4.5][MC1.12.2].jar",
+            "https://files.forgecdn.net/files/2611/560/Botania r1.10-356.jar",
+            "https://files.forgecdn.net/files/2613/730/Toast Control-1.12.2-1.7.1.jar"
+        )
+
+        config {
+            install(HttpRedirect)
+        }
+
+        test { client ->
+            urls.forEach { url ->
+                client.get<HttpResponse>(url).use {
+                    println(it.call.request.url)
+                    assertTrue(it.status.isSuccess())
+                }
+            }
+        }
+
+    }
 }
