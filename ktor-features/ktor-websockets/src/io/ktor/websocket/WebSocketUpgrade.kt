@@ -43,14 +43,12 @@ class WebSocketUpgrade(
         userContext: CoroutineContext
     ): Job {
         val feature = call.application.feature(WebSockets)
+        val webSocketContext = engineContext + (coroutineContext[Job] ?: EmptyCoroutineContext)
         val webSocket = RawWebSocket(
             input, output,
             feature.maxFrameSize, feature.masking,
-            dispatcher = engineContext
+            coroutineContext = webSocketContext
         )
-
-        // TODO !!!!
-        val scope = CoroutineScope(coroutineContext)
 
         return webSocket.launch {
             try {

@@ -46,7 +46,7 @@ class WebSockets(
                 val raw = RawWebSocket(
                     response.content, content.output,
                     feature.maxFrameSize,
-                    dispatcher = scope.dispatcher
+                    coroutineContext = scope.dispatcher
                 )
 
                 val session = object : ClientWebSocketSession, WebSocketSession by raw {
