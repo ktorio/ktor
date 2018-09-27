@@ -13,18 +13,4 @@ object CIO : ApplicationEngineFactory<CIOApplicationEngine, CIOApplicationEngine
     override fun create(environment: ApplicationEngineEnvironment, configure: CIOApplicationEngine.Configuration.() -> Unit): CIOApplicationEngine {
         return CIOApplicationEngine(environment, configure)
     }
-
-    @JvmStatic
-    fun main(args: Array<String>) {
-        embeddedServer(CIO, port = 8080) {
-            routing {
-                get("/") {
-                    call.respond("Yo")
-                }
-                get("/fail") {
-                    throw Exception("hehe")
-                }
-            }
-        }.start(true)
-    }
 }
