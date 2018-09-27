@@ -53,41 +53,39 @@ internal fun CoroutineScope.attachForReadingDirectImpl(
     nioChannel: ReadableByteChannel,
     selectable: Selectable,
     selector: SelectorManager
-): WriterJob {
-    return writer(EmptyCoroutineContext, channel) {
-        try {
-            selectable.interestOp(SelectInterest.READ, false)
+): WriterJob = writer(EmptyCoroutineContext, channel) {
+    try {
+        selectable.interestOp(SelectInterest.READ, false)
 
-            channel.writeSuspendSession {
-                while (true) {
-                    val buffer = request(1)
-                    if (buffer == null) {
-                        if (channel.isClosedForWrite) break
-                        channel.flush()
-                        tryAwait(1)
-                        continue
-                    }
+        channel.writeSuspendSession {
+            while (true) {
+                val buffer = request(1)
+                if (buffer == null) {
+                    if (channel.isClosedForWrite) break
+                    channel.flush()
+                    tryAwait(1)
+                    continue
+                }
 
-                    val rc = nioChannel.read(buffer)
-                    if (rc == -1) {
-                        break
-                    } else if (rc == 0) {
-                        channel.flush()
-                        selectable.interestOp(SelectInterest.READ, true)
-                        selector.select(selectable, SelectInterest.READ)
-                    } else {
-                        written(rc)
-                    }
+                val rc = nioChannel.read(buffer)
+                if (rc == -1) {
+                    break
+                } else if (rc == 0) {
+                    channel.flush()
+                    selectable.interestOp(SelectInterest.READ, true)
+                    selector.select(selectable, SelectInterest.READ)
+                } else {
+                    written(rc)
                 }
             }
+        }
 
-            channel.close()
-        } finally {
-            if (nioChannel is SocketChannel) {
-                try {
-                    nioChannel.shutdownInput()
-                } catch (ignore: ClosedChannelException) {
-                }
+        channel.close()
+    } finally {
+        if (nioChannel is SocketChannel) {
+            try {
+                nioChannel.shutdownInput()
+            } catch (ignore: ClosedChannelException) {
             }
         }
     }
