@@ -1,0 +1,8 @@
+description = ''
+dependencies {
+    compile "com.graphql-java:graphql-java:9.0"
+    compile 'com.fasterxml.jackson.module:jackson-module-kotlin:2.9.4.1'
+    testCompile "com.graphql-java:graphql-java-tools:3.2.0"
+    compile project(":ktor-utils:ktor-utils-jvm")
+
+}
