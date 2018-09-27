@@ -478,7 +478,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
             assertEquals("websocket", headers[HttpHeaders.Upgrade])
 
             // it should be close frame immediately
-            assertCloseFrame(CloseReason.Codes.TRY_AGAIN_LATER.code, false)
+            assertCloseFrame(CloseReason.Codes.TRY_AGAIN_LATER.code, replyCloseFrame = false)
 
             // we should be able to write close frame back
             val sendBuffer = ByteBuffer.allocate(64)
@@ -497,7 +497,8 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
-    private fun Socket.assertCloseFrame(closeCode: Short = CloseReason.Codes.NORMAL.code, close: Boolean = true) {
+    private fun Socket.assertCloseFrame(closeCode: Short = CloseReason.Codes.NORMAL.code,
+                                        replyCloseFrame: Boolean = true) {
         loop@
         while (true) {
             val frame = getInputStream().readFrame()
@@ -506,7 +507,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
                 is Frame.Ping -> continue@loop
                 is Frame.Close -> {
                     assertEquals(closeCode, frame.readReason()?.code)
-                    if (close) close()
+                    if (replyCloseFrame) close()
                     break@loop
                 }
                 else -> fail("Unexpected frame $frame: \n${hex(frame.buffer.moveToByteArray())}")
