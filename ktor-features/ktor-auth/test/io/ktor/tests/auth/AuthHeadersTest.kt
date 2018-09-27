@@ -8,9 +8,7 @@ class AuthHeadersTest {
     @Test
     fun testWithParameterParameterBehaviour() {
         val header = HttpAuthHeader.Parameterized("authScheme", mapOf("a" to "a"))
-        // It uses singleOrNull, and since withParameter appends, it would be twice and would return null.
-        // Verify if this is the expected behaviour.
-        assertEquals(null, header.withParameter("a", "A").parameter("a"))
+        assertEquals("a", header.withParameter("a", "A").parameter("a"), "The first value should be returned")
         assertEquals("B", header.withParameter("b", "B").parameter("b"))
     }
 

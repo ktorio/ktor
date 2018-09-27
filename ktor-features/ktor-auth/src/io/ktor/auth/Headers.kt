@@ -155,9 +155,9 @@ sealed class HttpAuthHeader(val authScheme: String) {
         override fun render(encoding: HeaderValueEncoding) = parameters.joinToString(", ", prefix = "$authScheme ") { "${it.name}=${it.value.encode(encoding)}" }
 
         /**
-         * Tries to extract the value a parameter [name]. Returns null when not found.
+         * Tries to extract the first value of a parameter [name]. Returns null when not found.
          */
-        fun parameter(name: String) = parameters.singleOrNull { it.name == name }?.value
+        fun parameter(name: String) = parameters.firstOrNull { it.name == name }?.value
 
         private fun String.encode(encoding: HeaderValueEncoding) = when (encoding) {
             HeaderValueEncoding.QUOTED_WHEN_REQUIRED -> escapeIfNeeded()
