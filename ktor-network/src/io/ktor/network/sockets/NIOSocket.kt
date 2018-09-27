@@ -8,15 +8,23 @@ import kotlinx.io.pool.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.atomic.*
+import kotlin.coroutines.*
 
-internal abstract class NIOSocketImpl<out S>(override val channel: S, val selector: SelectorManager, val pool: ObjectPool<ByteBuffer>?) : ReadWriteSocket, SelectableBase(channel)
+internal abstract class NIOSocketImpl<out S>(
+    override val channel: S,
+    val selector: SelectorManager,
+    val pool: ObjectPool<ByteBuffer>?
+) : ReadWriteSocket, SelectableBase(channel), CoroutineScope
         where S : java.nio.channels.ByteChannel, S : java.nio.channels.SelectableChannel {
 
-    protected val closeFlag = AtomicBoolean()
+    private val closeFlag = AtomicBoolean()
     private val readerJob = AtomicReference<ReaderJob?>()
     private val writerJob = AtomicReference<WriterJob?>()
 
     override val socketContext = CompletableDeferred<Unit>()
+
+    override val coroutineContext: CoroutineContext
+        get() = socketContext
 
     // NOTE: it is important here to use different versions of attachForReadingImpl
     // because it is not always valid to use channel's internal buffer for NIO read/write:
@@ -27,16 +35,16 @@ internal abstract class NIOSocketImpl<out S>(override val channel: S, val select
     final override fun attachForReading(channel: ByteChannel): WriterJob {
         return attachFor("reading", channel, writerJob) {
             if (pool != null) {
-                attachForReadingImpl(channel, this.channel, this, selector, pool, socketContext)
+                attachForReadingImpl(channel, this.channel, this, selector, pool)
             } else {
-                attachForReadingDirectImpl(channel, this.channel, this, selector, socketContext)
+                attachForReadingDirectImpl(channel, this.channel, this, selector)
             }
         }
     }
 
     final override fun attachForWriting(channel: ByteChannel): ReaderJob {
         return attachFor("writing", channel, readerJob) {
-            attachForWritingDirectImpl(channel, this.channel, this, selector, socketContext)
+            attachForWritingDirectImpl(channel, this.channel, this, selector)
         }
     }
 
@@ -72,6 +80,8 @@ internal abstract class NIOSocketImpl<out S>(override val channel: S, val select
             channel.close(e)
             throw e
         }
+
+        channel.attachJob(j)
 
         j.invokeOnCompletion {
             checkChannels()

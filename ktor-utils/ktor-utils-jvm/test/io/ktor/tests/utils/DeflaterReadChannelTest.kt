@@ -5,12 +5,21 @@ import io.ktor.util.cio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
+import kotlinx.coroutines.test.*
 import java.io.*
 import java.nio.ByteBuffer
 import java.util.zip.*
+import kotlin.coroutines.*
 import kotlin.test.*
 
-class DeflaterReadChannelTest {
+class DeflaterReadChannelTest : CoroutineScope {
+    private val testJob = Job()
+    override val coroutineContext get() = testJob + Dispatchers.Unconfined
+
+    @AfterTest
+    fun after() {
+        testJob.cancel()
+    }
 
     @Test
     fun testWithRealFile() {
@@ -88,7 +97,7 @@ class DeflaterReadChannelTest {
 
     private fun testWriteChannel(expected: String, src: ByteReadChannel) {
         val channel = ByteChannel()
-        launch(Unconfined) {
+        launch {
             src.copyAndClose((channel as ByteWriteChannel).deflated())
         }
 

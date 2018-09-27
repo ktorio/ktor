@@ -5,6 +5,7 @@ import io.ktor.util.cio.*
 import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import java.io.*
 import java.lang.reflect.*
@@ -17,19 +18,22 @@ open class AsyncServletApplicationCall(
     servletResponse: HttpServletResponse,
     engineContext: CoroutineContext,
     userContext: CoroutineContext,
-    upgrade: ServletUpgrade
-) : BaseApplicationCall(application) {
+    upgrade: ServletUpgrade,
+    override val coroutineContext: CoroutineContext
+) : BaseApplicationCall(application), CoroutineScope {
 
-    override val request: ServletApplicationRequest = AsyncServletApplicationRequest(this, servletRequest)
+    override val request: ServletApplicationRequest =
+        AsyncServletApplicationRequest(this, servletRequest, coroutineContext + engineContext)
 
     override val response: ServletApplicationResponse = AsyncServletApplicationResponse(
-        this, servletRequest, servletResponse, engineContext, userContext, upgrade
+        this, servletRequest, servletResponse, engineContext, userContext, upgrade, coroutineContext + engineContext
     )
 }
 
 class AsyncServletApplicationRequest(
-    call: ApplicationCall, servletRequest: HttpServletRequest
-) : ServletApplicationRequest(call, servletRequest) {
+    call: ApplicationCall, servletRequest: HttpServletRequest,
+    override val coroutineContext: CoroutineContext
+) : ServletApplicationRequest(call, servletRequest), CoroutineScope {
 
     private val copyJob by lazy { servletReader(servletRequest.inputStream) }
 
@@ -42,8 +46,9 @@ open class AsyncServletApplicationResponse(
     servletResponse: HttpServletResponse,
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
-    private val servletUpgradeImpl: ServletUpgrade
-) : ServletApplicationResponse(call, servletResponse) {
+    private val servletUpgradeImpl: ServletUpgrade,
+    override val coroutineContext: CoroutineContext
+) : ServletApplicationResponse(call, servletResponse), CoroutineScope {
     override fun createResponseJob(): ReaderJob =
         servletWriter(servletResponse.outputStream)
 

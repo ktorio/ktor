@@ -15,7 +15,9 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import org.junit.*
+import org.junit.internal.runners.statements.*
 import org.junit.rules.*
+import org.junit.runner.*
 import org.junit.runners.model.*
 import org.slf4j.*
 import java.io.*
@@ -23,12 +25,17 @@ import java.net.*
 import java.security.*
 import java.util.concurrent.*
 import javax.net.ssl.*
+import kotlin.concurrent.*
+import kotlin.coroutines.*
 import kotlin.test.*
 
 
 abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
-) {
+) : CoroutineScope {
+    private val testJob = Job()
+    private val testDispatcher by lazy { newFixedThreadPoolContext(32, "dispatcher-${test.methodName}") }
+
     protected val isUnderDebugger: Boolean =
         java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.orEmpty()
             .any { "-agentlib:jdwp" in it }
@@ -53,6 +60,9 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     @Target(AnnotationTarget.FUNCTION)
     @Retention
     protected annotation class NoHttp2
+
+    override val coroutineContext: CoroutineContext
+        get() = testJob + testDispatcher
 
     @get:Rule
     val test = TestName()
@@ -85,11 +95,22 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
 
     @After
     fun tearDownBase() {
-        allConnections.forEach { it.disconnect() }
-        testLog.trace("Disposing server on port $port (SSL $sslPort)")
-        (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
-        if (exceptions.isNotEmpty()) {
-            fail("Server exceptions logged, consult log output for more information")
+        try {
+            allConnections.forEach { it.disconnect() }
+            testLog.trace("Disposing server on port $port (SSL $sslPort)")
+            (server as? ApplicationEngine)?.stop(1000, 5000, TimeUnit.MILLISECONDS)
+            if (exceptions.isNotEmpty()) {
+                fail("Server exceptions logged, consult log output for more information")
+            }
+        } finally {
+            testJob.cancel()
+            val closeThread = thread(start = false, name = "shutdown-test-${test.methodName}") {
+                testDispatcher.close()
+            }
+            testJob.invokeOnCompletion {
+                closeThread.start()
+            }
+            closeThread.join(timeout.seconds * 1000)
         }
     }
 
@@ -165,33 +186,28 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     private fun startServer(server: TEngine): List<Throwable> {
         this.server = server
 
-        val l = CountDownLatch(1)
-        val failures = CopyOnWriteArrayList<Throwable>()
+        // we start it on the global scope because we don't want it to fail the whole test
+        // as far as we have retry loop on call side
+        val starting = GlobalScope.launch(testDispatcher) {
+            server.start(wait = false)
 
-        val starting = launch(CommonPool + CoroutineExceptionHandler { _, _ -> }) {
-            l.countDown()
-            server.start()
-        }
-        l.await()
-
-        val waitForPorts = launch(CommonPool) {
-            server.environment.connectors.forEach { connector ->
-                waitForPort(connector.port)
+            withTimeout(minOf(10, timeout.seconds), TimeUnit.SECONDS) {
+                server.environment.connectors.forEach { connector ->
+                    waitForPort(connector.port)
+                }
             }
         }
 
-        starting.invokeOnCompletion { cause ->
-            if (cause != null) {
-                failures.add(cause)
-                waitForPorts.cancel()
+        return try {
+            runBlocking {
+                starting.join()
+                if (starting.isCancelled) listOf(starting.getCancellationException().let { it.cause ?: it })
+                else emptyList()
             }
+        } catch (t: Throwable) { // InterruptedException?
+            starting.cancel()
+            listOf(t)
         }
-
-        runBlocking {
-            waitForPorts.join()
-        }
-
-        return failures
     }
 
     protected fun findFreePort() = ServerSocket(0).use { it.localPort }
@@ -227,6 +243,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
                 https.also {
                     it.trustManager = trustManager
                 }
+                dispatcher = testDispatcher
             }).use { client ->
                 client.call(url, builder).response.use { response ->
                     block(response, port)

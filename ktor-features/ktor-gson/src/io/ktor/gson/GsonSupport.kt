@@ -28,7 +28,11 @@ import kotlinx.coroutines.io.jvm.javaio.*
  *        }
  *    }
  */
-@Deprecated("GsonSupport is deprecated in favor of generic ContentNegotiation Feature")
+@Suppress("DEPRECATION_ERROR")
+@Deprecated(
+    "GsonSupport is deprecated in favor of generic ContentNegotiation Feature",
+    level = DeprecationLevel.ERROR
+)
 class GsonSupport(val gson: Gson) {
     @Suppress("DEPRECATION")
     companion object Feature : ApplicationFeature<ApplicationCallPipeline, GsonBuilder, GsonSupport> {

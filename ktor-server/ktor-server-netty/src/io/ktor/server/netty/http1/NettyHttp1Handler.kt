@@ -6,6 +6,7 @@ import io.ktor.server.netty.cio.*
 import io.netty.channel.*
 import io.netty.handler.codec.http.*
 import io.netty.util.concurrent.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlin.coroutines.*
 
@@ -15,9 +16,13 @@ internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,
                                  private val callEventGroup: EventExecutorGroup,
                                  private val engineContext: CoroutineContext,
                                  private val userContext: CoroutineContext,
-                                 private val requestQueue: NettyRequestQueue) : ChannelInboundHandlerAdapter() {
+                                 private val requestQueue: NettyRequestQueue) : ChannelInboundHandlerAdapter(), CoroutineScope {
+    private val handlerJob = Job()
+
     private var configured = false
     private var skipEmpty = false
+
+    override val coroutineContext: CoroutineContext get() = handlerJob
 
     override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
         if (msg is HttpRequest) {
@@ -64,7 +69,7 @@ internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,
         if (!configured) {
             configured = true
             val requestBodyHandler = RequestBodyHandler(ctx, requestQueue)
-            val responseWriter = NettyResponsePipeline(ctx, WriterEncapsulation.Http1, requestQueue)
+            val responseWriter = NettyResponsePipeline(ctx, WriterEncapsulation.Http1, requestQueue, coroutineContext)
 
             ctx.pipeline().apply {
                 addLast(requestBodyHandler)
@@ -93,6 +98,7 @@ internal class NettyHttp1Handler(private val enginePipeline: EnginePipeline,
     }
 
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
+        handlerJob.cancel(cause)
         requestQueue.cancel()
         ctx.close()
     }

@@ -10,7 +10,8 @@ import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
 import kotlin.jvm.*
 
-class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSupport(), Closeable {
+@Suppress("BlockingMethodInNonBlockingContext")
+class ActorSelectorManager(dispatcher: CoroutineContext) : SelectorManagerSupport(), Closeable, CoroutineScope {
     @Volatile
     private var selectorRef: Selector? = null
 
@@ -26,8 +27,10 @@ class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSup
 
     private val mb = LockFreeMPSCQueue<Selectable>()
 
+    override val coroutineContext: CoroutineContext = dispatcher + CoroutineName("selector")
+
     init {
-        launch(dispatcher) {
+        launch {
             provider.openSelector()!!.use { selector ->
                 selectorRef = selector
                 try {
@@ -75,8 +78,9 @@ class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSup
         }
     }
 
-    private fun select(selector: Selector): Int {
+    private suspend fun select(selector: Selector): Int {
         inSelect = true
+        dispatchIfNeeded()
         return if (wakeup.get() == 0L) {
             val count = selector.select(500L)
             inSelect = false
@@ -86,6 +90,12 @@ class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSup
             wakeup.set(0)
             selector.selectNow()
         }
+    }
+
+    private suspend inline fun dispatchIfNeeded() {
+        yield() // it will always redispatch it to the right thread
+        // it is very important here because we do _unintercepted_ resume that may lead to blocking on a wrong thread
+        // that may cause deadlock
     }
 
     private fun selectWakeup() {
@@ -157,7 +167,7 @@ class ActorSelectorManager(dispatcher: CoroutineDispatcher) : SelectorManagerSup
         fun resume(value: R): Boolean {
             val continuation = ref.getAndSet(null)
             if (continuation != null) {
-                continuation.resume(value)
+                continuation.resume(value) /** we resume unintercepted, see [dispatchIfNeeded] */
                 return true
             }
 

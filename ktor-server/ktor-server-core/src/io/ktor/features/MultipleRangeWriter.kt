@@ -7,13 +7,13 @@ import kotlinx.coroutines.io.*
 private val NEWLINE = "\r\n".toByteArray(Charsets.ISO_8859_1)
 private val FIXED_HEADERS_PART_LENGTH = 14 + HttpHeaders.ContentLength.length + HttpHeaders.ContentRange.length
 
-fun writeMultipleRanges(
+fun CoroutineScope.writeMultipleRanges(
     channelProducer: (LongRange) -> ByteReadChannel,
     ranges: List<LongRange>,
     fullLength: Long?,
     boundary: String,
     contentType: String
-): ByteReadChannel = writer(Unconfined, autoFlush = true) {
+): ByteReadChannel = writer(Dispatchers.Unconfined, autoFlush = true) {
     for (range in ranges) {
         val current = channelProducer(range)
         channel.writeHeaders(range, boundary, contentType, fullLength)

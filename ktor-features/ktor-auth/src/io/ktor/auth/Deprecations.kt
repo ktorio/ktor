@@ -5,7 +5,11 @@ import io.ktor.client.*
 import kotlinx.coroutines.*
 import java.security.*
 
-@Deprecated("Use DSL builder form", replaceWith = ReplaceWith("basic { this.realm = realm\n validate(validate)}"))
+@Deprecated(
+    "Use DSL builder form",
+    replaceWith = ReplaceWith("basic { this.realm = realm\n validate(validate)}"),
+    level = DeprecationLevel.ERROR
+)
 fun Authentication.Configuration.basicAuthentication(realm: String, validate: suspend (UserPasswordCredential) -> Principal?) {
     basic {
         this.realm = realm
@@ -18,7 +22,7 @@ fun Authentication.Configuration.basicAuthentication(realm: String, validate: su
         "        this.realm = realm\n" +
         "        this.digester = digesterProvider(digestAlgorithm)\n" +
         "        this.userNameRealmPasswordDigestProvider = userNameRealmPasswordDigestProvider\n" +
-        "    }"))
+        "    }"), level = DeprecationLevel.ERROR)
 fun Authentication.Configuration.digestAuthentication(
         realm: String = "ktor",
         digestAlgorithm: String = "MD5",
@@ -38,7 +42,7 @@ fun Authentication.Configuration.digestAuthentication(
         "        this.passwordParamName = passwordParamName\n" +
         "        this.challenge = challenge\n" +
         "        this.validate(validate)\n" +
-        "    }"))
+        "    }"), level = DeprecationLevel.ERROR)
 fun Authentication.Configuration.formAuthentication(userParamName: String = "user",
                                                     passwordParamName: String = "password",
                                                     challenge: FormAuthChallenge = FormAuthChallenge.Unauthorized,
@@ -56,7 +60,7 @@ fun Authentication.Configuration.formAuthentication(userParamName: String = "use
         "        this.client = client\n" +
         "        this.providerLookup = providerLookup\n" +
         "        this.urlProvider = urlProvider\n" +
-        "    }"))
+        "    }"), level = DeprecationLevel.ERROR)
 fun Authentication.Configuration.oauth(client: HttpClient, @Suppress("UNUSED_PARAMETER") dispatcher: CoroutineDispatcher,
                                        providerLookup: ApplicationCall.() -> OAuthServerSettings?,
                                        urlProvider: ApplicationCall.(OAuthServerSettings) -> String) {

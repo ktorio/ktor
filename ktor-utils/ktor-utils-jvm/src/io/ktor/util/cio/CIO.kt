@@ -1,6 +1,7 @@
 package io.ktor.util.cio
 
 import kotlinx.coroutines.*
+import java.lang.Runnable
 import java.util.concurrent.*
 import kotlin.coroutines.*
 import kotlin.coroutines.intrinsics.*
@@ -14,8 +15,13 @@ fun <T> runSync(block: suspend () -> T): T {
     return result as T
 }
 
-fun CoroutineContext.executor(): Executor = Executor {
-    launch(this) { it.run() }
+fun CoroutineContext.executor(): Executor = object : Executor, CoroutineScope {
+    override val coroutineContext: CoroutineContext
+        get() = this@executor
+
+    override fun execute(command: Runnable?) {
+        launch { command?.run() }
+    }
 }
 
 object NoopContinuation : Continuation<Any?> {

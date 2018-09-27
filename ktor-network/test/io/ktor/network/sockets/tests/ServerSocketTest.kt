@@ -12,13 +12,15 @@ import java.nio.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.CancellationException
 import kotlin.concurrent.*
+import kotlin.coroutines.*
 import kotlin.jvm.*
 import kotlin.test.*
 
-class ServerSocketTest {
+class ServerSocketTest : CoroutineScope {
+    private val testJob = Job()
     private val exec = Executors.newCachedThreadPool()
     private var tearDown = false
-    private val selector = ActorSelectorManager(exec.asCoroutineDispatcher())
+    private val selector = ActorSelectorManager(exec.asCoroutineDispatcher() + testJob)
     private var client: Pair<java.net.Socket, Thread>? = null
     private var serverSocket = CompletableDeferred<ServerSocket>()
     @Volatile
@@ -26,11 +28,15 @@ class ServerSocketTest {
     private var failure: Throwable? = null
     private val bound = CountDownLatch(1)
 
+    override val coroutineContext: CoroutineContext
+        get() = testJob
+
     @get:Rule
     val timeout = Timeout(15L, TimeUnit.SECONDS)
 
     @After
     fun tearDown() {
+        testJob.cancel()
         tearDown = true
 
         client?.let { (s, t) ->
@@ -82,7 +88,7 @@ class ServerSocketTest {
     }
 
     private fun server(block: suspend (Socket) -> Unit) {
-        val job = launch(CommonPool, start = CoroutineStart.LAZY) {
+        val job = launch(Dispatchers.Default, start = CoroutineStart.LAZY) {
             try {
                 val server = aSocket(selector).tcp().bind(null)
                 this@ServerSocketTest.serverSocket.complete(server)

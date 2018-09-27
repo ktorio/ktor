@@ -22,7 +22,7 @@ internal suspend fun assertFailsSuspend(block: suspend () -> Unit): Throwable {
     }
 
     assertNotNull(exception)
-    return exception!!
+    return exception
 }
 
 fun TestApplicationResponse.contentType(): ContentType {

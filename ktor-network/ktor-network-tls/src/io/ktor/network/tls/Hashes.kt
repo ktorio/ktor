@@ -1,20 +1,19 @@
 package io.ktor.network.tls
 
 import io.ktor.http.cio.internals.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 import java.security.*
 import javax.crypto.*
-import kotlin.coroutines.*
 
-internal suspend fun hashMessages(
+internal suspend fun CoroutineScope.hashMessages(
     messages: List<ByteReadPacket>,
-    baseHash: String,
-    coroutineContext: CoroutineContext
+    baseHash: String
 ): ByteArray {
     val messageDigest = MessageDigest.getInstance(baseHash)
     val digestBytes = ByteArray(messageDigest.digestLength)
-    val digest = digest(messageDigest, coroutineContext, digestBytes)
+    val digest = digest(messageDigest, digestBytes)
     for (packet in messages) {
         digest.channel.writePacket(packet)
     }
@@ -23,11 +22,10 @@ internal suspend fun hashMessages(
     return digestBytes
 }
 
-private fun digest(
+private fun CoroutineScope.digest(
     digest: MessageDigest,
-    coroutineContext: CoroutineContext,
     result: ByteArray
-): ReaderJob = reader(coroutineContext) {
+): ReaderJob = reader(coroutineContext, autoFlush = false) {
     digest.reset()
     val buffer = DefaultByteBufferPool.borrow()
     try {

@@ -3,7 +3,8 @@ package io.ktor.http.cio.websocket
 import io.ktor.util.*
 import java.nio.*
 
-class SimpleFrameCollector @Deprecated("Internal Api") constructor() {
+@WebSocketInternalAPI
+class SimpleFrameCollector {
     private var remaining: Int = 0
     private var buffer: ByteBuffer? = null
     private val maskBuffer = ByteBuffer.allocate(4)

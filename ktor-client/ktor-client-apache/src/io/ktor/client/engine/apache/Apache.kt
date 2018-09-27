@@ -4,7 +4,7 @@ import io.ktor.client.*
 import io.ktor.client.engine.*
 
 
-@Deprecated("Use Apache instead", ReplaceWith("Apache"))
+@Deprecated("Use Apache instead", ReplaceWith("Apache"), level = DeprecationLevel.ERROR)
 typealias ApacheBackend = Apache
 
 /**
