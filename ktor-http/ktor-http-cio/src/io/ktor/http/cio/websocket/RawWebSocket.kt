@@ -50,6 +50,9 @@ class RawWebSocket(
 @UseExperimental(WebSocketInternalAPI::class)
 suspend fun RawWebSocket.start(handler: suspend WebSocketSession.() -> Unit) {
     handler()
-    writer.flush()
-    terminate()
+    try {
+        writer.flush()
+    } finally {
+        terminate()
+    }
 }
