@@ -16,6 +16,7 @@ class KotlinxSerializer : JsonSerializer {
      * Set mapping from [type] to generated [KSerializer].
      */
     fun <T : Any> setMapper(type: KClass<T>, serializer: KSerializer<T>) {
+        @Suppress("UNCHECKED_CAST")
         mappers[type as KClass<Any>] = serializer as KSerializer<Any>
     }
 

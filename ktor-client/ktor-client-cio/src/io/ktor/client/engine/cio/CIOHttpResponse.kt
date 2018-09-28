@@ -8,13 +8,15 @@ import io.ktor.http.cio.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
+import kotlin.coroutines.*
 
 internal class CIOHttpResponse(
     request: HttpRequest,
     override val requestTime: GMTDate,
     override val content: ByteReadChannel,
     private val response: Response,
-    private val pipelined: Boolean
+    private val pipelined: Boolean,
+    override val coroutineContext: CoroutineContext
 ) : HttpResponse {
     override val call: HttpClientCall = request.call
     override val status: HttpStatusCode = HttpStatusCode.fromValue(response.status)
@@ -28,9 +30,8 @@ internal class CIOHttpResponse(
 
     override val responseTime: GMTDate = GMTDate()
 
-    override val executionContext: CompletableDeferred<Unit> = CompletableDeferred()
-
     override fun close() {
+        super.close()
         if (pipelined) {
             runBlocking {
                 val length = headers[HttpHeaders.ContentLength]!!.toLong()
@@ -38,6 +39,5 @@ internal class CIOHttpResponse(
             }
         }
         response.release()
-        executionContext.complete(Unit)
     }
 }

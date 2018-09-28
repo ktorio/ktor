@@ -66,19 +66,20 @@ fun File.readChannel(
     }.channel
 }
 
-fun File.writeChannel(pool: ObjectPool<ByteBuffer> = KtorDefaultPool): ByteWriteChannel =
-    reader(Dispatchers.Unconfined, autoFlush = true) {
-        RandomAccessFile(this@writeChannel, "rw").use { file ->
-            pool.useInstance { buffer: ByteBuffer ->
-                while (!channel.isClosedForRead) {
-                    buffer.clear()
-                    channel.readAvailable(buffer)
-                    buffer.flip()
-                    file.write(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.limit())
-                }
+fun File.writeChannel(
+    pool: ObjectPool<ByteBuffer> = KtorDefaultPool
+): ByteWriteChannel = GlobalScope.reader(Dispatchers.Unconfined, autoFlush = true) {
+    RandomAccessFile(this@writeChannel, "rw").use { file ->
+        pool.useInstance { buffer: ByteBuffer ->
+            while (!channel.isClosedForRead) {
+                buffer.clear()
+                channel.readAvailable(buffer)
+                buffer.flip()
+                file.write(buffer.array(), buffer.arrayOffset() + buffer.position(), buffer.limit())
             }
         }
-    }.channel
+    }
+}.channel
 
 fun Path.readChannel(start: Long, endInclusive: Long): ByteReadChannel = toFile().readChannel(start, endInclusive)
 

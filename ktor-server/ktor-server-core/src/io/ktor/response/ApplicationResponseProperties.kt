@@ -4,12 +4,15 @@ import io.ktor.http.*
 import java.time.*
 import java.time.temporal.*
 
+@Suppress("UNUSED_PARAMETER")
 @Deprecated("Use respondText/respondBytes with content type or send respond object with the specified content type", level = DeprecationLevel.ERROR)
 fun ApplicationResponse.contentType(value: ContentType): Unit = throw UnsafeHeaderException(HttpHeaders.ContentType)
 
+@Suppress("UNUSED_PARAMETER")
 @Deprecated("Use respondText/respondBytes with content type or send respond object with the specified content type", level = DeprecationLevel.ERROR)
 fun ApplicationResponse.contentType(value: String): Unit = throw UnsafeHeaderException(HttpHeaders.ContentType)
 
+@Suppress("UNUSED_PARAMETER")
 @Deprecated("Use respondText/respondBytes or send respond object with the specified content length", level = DeprecationLevel.ERROR)
 fun ApplicationResponse.contentLength(length: Long): Unit = throw UnsafeHeaderException(HttpHeaders.ContentType)
 

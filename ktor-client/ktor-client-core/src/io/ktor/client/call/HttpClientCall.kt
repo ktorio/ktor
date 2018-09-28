@@ -4,7 +4,9 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import kotlinx.atomicfu.*
+import kotlinx.coroutines.*
 import kotlinx.io.core.*
+import kotlin.coroutines.*
 import kotlin.reflect.*
 
 /**
@@ -12,8 +14,10 @@ import kotlin.reflect.*
  */
 class HttpClientCall internal constructor(
     private val client: HttpClient
-) : Closeable {
+) : CoroutineScope, Closeable {
     private val received = atomic(false)
+
+    override val coroutineContext: CoroutineContext get() = response.coroutineContext
 
     /**
      * Represents the [request] sent by the client.

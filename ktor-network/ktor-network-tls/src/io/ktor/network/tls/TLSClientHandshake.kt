@@ -2,6 +2,7 @@ package io.ktor.network.tls
 
 import io.ktor.network.tls.SecretExchangeType.*
 import io.ktor.network.tls.extensions.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
@@ -24,12 +25,12 @@ private data class EncryptionInfo(
 internal class TLSClientHandshake(
     rawInput: ByteReadChannel,
     rawOutput: ByteWriteChannel,
-    coroutineContext: CoroutineContext,
     private val trustManager: X509TrustManager? = null,
     randomAlgorithm: String = "NativePRNGNonBlocking",
     private val cipherSuites: List<CipherSuite>,
-    private val serverName: String? = null
-) {
+    private val serverName: String? = null,
+    override val coroutineContext: CoroutineContext
+) : CoroutineScope {
     private val digest = Digest()
     private val random = SecureRandom.getInstance(randomAlgorithm)!!
     private val clientSeed: ByteArray = random.generateClientSeed()
@@ -180,8 +181,8 @@ internal class TLSClientHandshake(
 
         return clientExchanges.firstOrNull { it in serverExchanges } ?: throw TLSException(
             "No sign algorithms in common. \n" +
-                    "Server candidates: $serverExchanges \n" +
-                    "Client candidates: $clientExchanges"
+                "Server candidates: $serverExchanges \n" +
+                "Client candidates: $clientExchanges"
         )
     }
 
@@ -255,8 +256,8 @@ internal class TLSClientHandshake(
                                 SupportedSignatureAlgorithms.indexOf(signatureAlgorithm)
                             ) throw TLSException(
                                 "Selected algorithms doesn't match with server previously negotiated:" +
-                                        " expected $signatureAlgorithm," +
-                                        " actual $hashAndSign"
+                                    " expected $signatureAlgorithm," +
+                                    " actual $hashAndSign"
                             )
 
                             val params = buildPacket {

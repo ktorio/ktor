@@ -5,19 +5,20 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
-import kotlinx.coroutines.*
 
 class MockHttpRequest(
     override val call: HttpClientCall,
     override val method: HttpMethod,
     override val url: Url,
     override val attributes: Attributes,
-    override val executionContext: Job,
     override val content: OutgoingContent,
     override val headers: Headers
 ) : HttpRequest
 
-fun HttpRequestData.toRequest(call: HttpClientCall): HttpRequest = io.ktor.client.engine.mock.MockHttpRequest(
-    call, method, url, attributes, executionContext, body as OutgoingContent, headers
+/**
+ * Convert [HttpRequestData] to [MockHttpRequest]
+ */
+fun HttpRequestData.toRequest(call: HttpClientCall): HttpRequest = MockHttpRequest(
+    call, method, url, attributes, body as OutgoingContent, headers
 )
 

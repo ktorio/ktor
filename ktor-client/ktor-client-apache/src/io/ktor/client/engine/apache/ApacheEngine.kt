@@ -3,29 +3,30 @@ package io.ktor.client.engine.apache
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
-import kotlinx.coroutines.*
 import org.apache.http.impl.nio.client.*
 import org.apache.http.impl.nio.reactor.*
 
 private const val MAX_CONNECTIONS_COUNT = 1000
 private const val IO_THREAD_COUNT_DEFAULT = 4
 
-internal class ApacheEngine(override val config: ApacheEngineConfig) : HttpClientEngine {
+internal class ApacheEngine(override val config: ApacheEngineConfig) : HttpClientJvmEngine("ktor-apache") {
+
     private val engine: CloseableHttpAsyncClient = prepareClient().apply { start() }
-    override val dispatcher: CoroutineDispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
 
     override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
-        val request = ApacheHttpRequest(call, engine, config, data, dispatcher)
-        val response = request.execute()
+        val callContext = createCallContext()
+        val engineRequest = ApacheHttpRequest(call, data)
+        val apacheRequest = ApacheRequestProducer(data, config, engineRequest.content, callContext)
+        val engineResponse = engine.sendRequest(call, apacheRequest, callContext)
 
-        return HttpEngineCall(request, response)
+        return HttpEngineCall(engineRequest, engineResponse)
     }
 
     override fun close() {
+        super.close()
         try {
             engine.close()
-        } catch (cause: Throwable) {
+        } catch (_: Throwable) {
         }
     }
 

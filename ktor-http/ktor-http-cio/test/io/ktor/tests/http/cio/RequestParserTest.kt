@@ -15,7 +15,7 @@ class RequestParserTest {
 
         val request = parseRequest(ch)
         assertNotNull(request)
-        assertEquals(HttpMethod.Get, request!!.method)
+        assertEquals(HttpMethod.Get, request.method)
         assertEquals("/", request.uri.toString())
         assertEquals("HTTP/1.1", request.version.toString())
 
@@ -31,7 +31,7 @@ class RequestParserTest {
 
         val request = parseRequest(ch)
         assertNotNull(request)
-        assertEquals(HttpMethod.Get, request!!.method)
+        assertEquals(HttpMethod.Get, request.method)
         assertEquals("/", request.uri.toString())
         assertEquals("HTTP/1.1", request.version.toString())
 

@@ -1,6 +1,7 @@
 package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
 import kotlinx.io.core.ByteOrder
@@ -10,17 +11,16 @@ import kotlin.coroutines.*
 private const val MAX_CHUNK_SIZE_LENGTH = 128
 private const val CHUNK_BUFFER_POOL_SIZE = 2048
 
-private val ChunkSizeBufferPool: ObjectPool<StringBuilder> = object : DefaultPool<StringBuilder>(CHUNK_BUFFER_POOL_SIZE) {
-    override fun produceInstance(): StringBuilder = StringBuilder(MAX_CHUNK_SIZE_LENGTH)
-    override fun clearInstance(instance: StringBuilder) = instance.apply { clear() }
-}
+private val ChunkSizeBufferPool: ObjectPool<StringBuilder> =
+    object : DefaultPool<StringBuilder>(CHUNK_BUFFER_POOL_SIZE) {
+        override fun produceInstance(): StringBuilder = StringBuilder(MAX_CHUNK_SIZE_LENGTH)
+        override fun clearInstance(instance: StringBuilder) = instance.apply { clear() }
+    }
 
 typealias DecoderJob = WriterJob
 
-suspend fun decodeChunked(input: ByteReadChannel, coroutineContext: CoroutineContext): DecoderJob {
-    return writer(coroutineContext) {
-        decodeChunked(input, channel)
-    }
+suspend fun CoroutineScope.decodeChunked(input: ByteReadChannel): DecoderJob = writer(coroutineContext) {
+    decodeChunked(input, channel)
 }
 
 suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
@@ -36,8 +36,8 @@ suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
             }
 
             val chunkSize =
-                    if (chunkSizeBuffer.length == 1 && chunkSizeBuffer[0] == '0') 0
-                    else chunkSizeBuffer.parseHexLong()
+                if (chunkSizeBuffer.length == 1 && chunkSizeBuffer[0] == '0') 0
+                else chunkSizeBuffer.parseHexLong()
 
             if (chunkSize > 0) {
                 input.copyTo(out, chunkSize)
@@ -65,10 +65,12 @@ suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
 
 typealias EncoderJob = ReaderJob
 
-suspend fun encodeChunked(output: ByteWriteChannel, coroutineContext: CoroutineContext): EncoderJob =
-        reader(coroutineContext) {
-            encodeChunked(output, channel)
-        }
+suspend fun encodeChunked(
+    output: ByteWriteChannel,
+    coroutineContext: CoroutineContext
+): EncoderJob = GlobalScope.reader(coroutineContext, autoFlush = false) {
+    encodeChunked(output, channel)
+}
 
 suspend fun encodeChunked(output: ByteWriteChannel, input: ByteReadChannel) {
     val buffer = DefaultByteBufferPool.borrow()

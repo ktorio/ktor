@@ -7,6 +7,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import kotlinx.io.charsets.*
+import kotlinx.io.core.*
 
 /**
  * [HttpClient] feature that encodes [String] request bodies to [TextContent]
@@ -18,7 +19,9 @@ import kotlinx.io.charsets.*
  */
 class HttpPlainText(var defaultCharset: Charset) {
 
-    internal suspend fun read(response: HttpResponse): String = response.readText(charset = defaultCharset)
+    internal suspend fun read(response: HttpResponse): String = response.use {
+        it.readText(charset = defaultCharset)
+    }
 
     class Config {
         var defaultCharset: Charset = Charsets.UTF_8

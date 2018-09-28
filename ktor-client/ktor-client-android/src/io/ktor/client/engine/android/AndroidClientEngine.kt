@@ -1,42 +1,48 @@
 package io.ktor.client.engine.android
 
-import io.ktor.util.cio.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.*
+import io.ktor.util.cio.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
 import kotlinx.coroutines.io.jvm.javaio.*
 import java.io.*
 import java.net.*
-import java.util.concurrent.*
+import kotlin.coroutines.*
 
-open class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientEngine {
-    override val dispatcher: CoroutineDispatcher by lazy {
-        config.dispatcher ?: Executors.newCachedThreadPool().asCoroutineDispatcher()
-    }
+/**
+ * Android client engine
+ */
+@UseExperimental(InternalAPI::class)
+class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientJvmEngine("ktor-android") {
 
     override suspend fun execute(
         call: HttpClientCall, data: HttpRequestData
-    ): HttpEngineCall = withContext(dispatcher) {
+    ): HttpEngineCall = withContext(coroutineContext) {
+        val callContext = createCallContext()
+
+        @Suppress("UNCHECKED_CAST")
+        val userContext = data.executionContext as CompletableDeferred<Unit>
+        callContext[Job]!!.invokeOnCompletion {
+            if (it == null) userContext.complete(Unit) else userContext.cancel(it)
+        }
+
         val request = AndroidHttpRequest(call, data)
-        val response = request.execute()
+        val response = request.execute(callContext)
         HttpEngineCall(request, response)
     }
 
-    override fun close() {
-    }
-
-    private fun AndroidHttpRequest.execute(): AndroidHttpResponse {
+    private fun AndroidHttpRequest.execute(callContext: CoroutineContext): AndroidHttpResponse {
         val requestTime = GMTDate()
 
         val url = URLBuilder().takeFrom(url).buildString()
         val outgoingContent = this@execute.content
         val contentLength = headers[HttpHeaders.ContentLength]?.toLong() ?: outgoingContent.contentLength
-        val context = Job()
 
         val connection = (URL(url).openConnection() as HttpURLConnection).apply {
             connectTimeout = config.connectTimeout
@@ -60,12 +66,12 @@ open class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpC
                 contentLength?.let { setFixedLengthStreamingMode(it.toInt()) } ?: setChunkedStreamingMode(0)
                 doOutput = true
 
-                outgoingContent.writeTo(outputStream)
+                outgoingContent.writeTo(outputStream, callContext)
             }
         }
 
         connection.connect()
-        val content = connection.content(dispatcher)
+        val content = connection.content(callContext)
         val headerFields = connection.headerFields
 
         val responseHeaders = HeadersBuilder().apply {
@@ -73,27 +79,30 @@ open class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpC
         }.build()
 
         return AndroidHttpResponse(
-            call, content, context,
+            call, content,
             responseHeaders, requestTime, GMTDate(),
             HttpStatusCode.fromValue(connection.responseCode), HttpProtocolVersion.HTTP_1_1,
+            callContext,
             connection
         )
     }
 }
 
-internal fun OutgoingContent.writeTo(stream: OutputStream): Unit = stream.use {
+internal fun OutgoingContent.writeTo(
+    stream: OutputStream, callContext: CoroutineContext
+): Unit = stream.use {
     when (this) {
         is OutgoingContent.ByteArrayContent -> it.write(bytes())
-        is OutgoingContent.ReadChannelContent -> readFrom().toInputStream().copyTo(it)
+        is OutgoingContent.ReadChannelContent -> readFrom().toInputStream(callContext[Job]).copyTo(it)
         is OutgoingContent.WriteChannelContent -> {
-            writer(Unconfined) { writeTo(channel) }.channel.toInputStream().copyTo(it)
+            GlobalScope.writer(callContext) { writeTo(channel) }.channel.toInputStream(callContext[Job]).copyTo(it)
         }
         else -> throw UnsupportedContentTypeException(this)
     }
 }
 
-internal fun HttpURLConnection.content(dispatcher: CoroutineDispatcher): ByteReadChannel = try {
+internal fun HttpURLConnection.content(callScope: CoroutineContext): ByteReadChannel = try {
     inputStream?.buffered()
 } catch (_: IOException) {
     errorStream?.buffered()
-}?.toByteReadChannel(context = dispatcher) ?: ByteReadChannel.Empty
+}?.toByteReadChannel(context = callScope) ?: ByteReadChannel.Empty

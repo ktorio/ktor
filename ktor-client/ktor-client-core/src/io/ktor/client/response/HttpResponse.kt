@@ -13,7 +13,7 @@ import kotlinx.io.core.Closeable
 /**
  * A response for [HttpClient], second part of [HttpClientCall].
  */
-interface HttpResponse : HttpMessage, Closeable {
+interface HttpResponse : HttpMessage, CoroutineScope, Closeable {
     /**
      * The associated [HttpClientCall] containing both
      * the underlying [HttpClientCall.request] and [HttpClientCall.response].
@@ -44,12 +44,22 @@ interface HttpResponse : HttpMessage, Closeable {
     /**
      * A [Job] representing the process of this response.
      */
-    val executionContext: Job
+    @Deprecated(
+        "executionContext is deprecated. Use coroutineContext instead.",
+        replaceWith = ReplaceWith("coroutineContext"),
+        level = DeprecationLevel.ERROR
+    )
+    val executionContext: Job get() = coroutineContext[Job]!!
 
     /**
      * [ByteReadChannel] with the payload of the response.
      */
     val content: ByteReadChannel
+
+    override fun close() {
+        @Suppress("UNCHECKED_CAST")
+        (coroutineContext[Job] as CompletableDeferred<Unit>).complete(Unit)
+    }
 }
 
 /**

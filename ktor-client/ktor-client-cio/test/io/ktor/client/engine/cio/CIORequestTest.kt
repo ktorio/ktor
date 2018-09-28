@@ -1,6 +1,7 @@
 package io.ktor.client.engine.cio
 
 import io.ktor.application.*
+import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.response.*
 import io.ktor.client.tests.utils.*
@@ -10,6 +11,7 @@ import io.ktor.response.*
 import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class CIORequestTest : TestWithKtor() {
@@ -22,6 +24,9 @@ class CIORequestTest : TestWithKtor() {
                 call.respond(object : OutgoingContent.NoContent() {
                     override val headers: Headers = headersOf("LongHeader", longHeader)
                 })
+            }
+            get("/echo") {
+                call.respond("OK")
             }
         }
     }
@@ -37,5 +42,16 @@ class CIORequestTest : TestWithKtor() {
 
             assertEquals(headerValue, response.headers["LongHeader"])
         }
+    }
+
+    @Test
+    @Ignore
+    fun testClose() = runBlocking {
+        val client = HttpClient(CIO)
+        client.get<String>(path = "/echo", port = serverPort)
+        client.close()
+
+        client.coroutineContext[Job]?.join()
+        Unit
     }
 }

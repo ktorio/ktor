@@ -26,10 +26,10 @@ apply plugin: 'net.researchgate.release'
 
 ext.configuredVersion = project.hasProperty('releaseVersion') ? project.releaseVersion : project.version
 ext.dokkaExcludes = [
-        'ktor-server',
-        'ktor-samples',
-        'ktor-features',
-        'ktor-client'
+    'ktor-server',
+    'ktor-samples',
+    'ktor-features',
+    'ktor-client'
 ]
 
 ext.globalM2 = "$buildDir/m2"
@@ -47,7 +47,6 @@ allprojects {
         mavenLocal()
         maven { url 'https://dl.bintray.com/kotlin/kotlinx/' }
         maven { url kotlin_repository }
-        maven { url "https://dl.bintray.com/sandwwraith/libs-preview/"}
         jcenter()
     }
 
@@ -83,6 +82,7 @@ allprojects {
     }
 
     tasks.build.dependsOn(['sourceJar', 'emptyJar'])
+
 }
 
 release {

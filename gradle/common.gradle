@@ -9,6 +9,15 @@ sourceSets {
     }
 }
 
+
+compileKotlinCommon {
+    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental']
+}
+
+compileTestKotlinCommon {
+    kotlinOptions.freeCompilerArgs += ['-Xuse-experimental=kotlin.Experimental']
+}
+
 dependencies {
     compile group: 'org.jetbrains.kotlin', name: 'kotlin-stdlib-common', version: kotlin_version
     compile group: 'org.jetbrains.kotlinx', name: 'kotlinx-coroutines-core-common', version: coroutines_version

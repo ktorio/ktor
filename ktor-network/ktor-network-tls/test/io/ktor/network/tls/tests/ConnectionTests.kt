@@ -17,7 +17,7 @@ class ConnectionTests {
         val socket = aSocket(selectorManager)
             .tcp()
             .connect("www.google.com", port = 443)
-            .tls()
+            .tls(Dispatchers.Default)
 
         val channel = socket.openWriteChannel()
 

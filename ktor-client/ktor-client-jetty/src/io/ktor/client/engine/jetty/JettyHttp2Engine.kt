@@ -11,8 +11,9 @@ import org.eclipse.jetty.util.ssl.*
 import java.net.*
 
 
-internal class JettyHttp2Engine(override val config: JettyEngineConfig) : HttpClientEngine {
-    override val dispatcher: CoroutineDispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
+internal class JettyHttp2Engine(
+    override val config: JettyEngineConfig
+) : HttpClientJvmEngine("ktor-jetty") {
 
     private val sslContextFactory: SslContextFactory = config.sslContextFactory
 
@@ -22,7 +23,8 @@ internal class JettyHttp2Engine(override val config: JettyEngineConfig) : HttpCl
     }
 
     override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
-        val request = JettyHttpRequest(call, this, dispatcher, data)
+        val callContext = createCallContext()
+        val request = JettyHttpRequest(call, this, data, callContext)
         val response = request.execute()
 
         return HttpEngineCall(request, response)
@@ -33,6 +35,8 @@ internal class JettyHttp2Engine(override val config: JettyEngineConfig) : HttpCl
     }
 
     override fun close() {
+        super.close()
+
         jettyClient.stop()
     }
 }

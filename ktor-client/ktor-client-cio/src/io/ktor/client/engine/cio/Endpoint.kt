@@ -13,16 +13,18 @@ import kotlinx.coroutines.io.*
 import java.io.*
 import java.net.*
 import java.util.concurrent.atomic.*
+import kotlin.coroutines.*
 
 internal class Endpoint(
     host: String,
     port: Int,
     private val secure: Boolean,
-    private val dispatcher: CoroutineDispatcher,
     private val config: CIOEngineConfig,
     private val connectionFactory: ConnectionFactory,
+    override val coroutineContext: CoroutineContext,
+    private val createCallContext: () -> CoroutineContext,
     private val onDone: () -> Unit
-) : Closeable {
+) : CoroutineScope, Closeable {
     private val tasks: Channel<RequestTask> = Channel(Channel.UNLIMITED)
     private val deliveryPoint: Channel<RequestTask> = Channel()
     private val maxEndpointIdleTime = 2 * config.endpoint.connectTimeout
@@ -32,7 +34,7 @@ internal class Endpoint(
 
     private val address = InetSocketAddress(host, port)
 
-    private val postman = launch(dispatcher, start = CoroutineStart.LAZY) {
+    private val postman = launch(start = CoroutineStart.LAZY) {
         try {
             while (true) {
                 val task = withTimeoutOrNull(maxEndpointIdleTime) {
@@ -85,13 +87,14 @@ internal class Endpoint(
         deliveryPoint.send(task)
     }
 
-    private fun makeDedicatedRequest(task: RequestTask) = launch(dispatcher) {
+    private fun makeDedicatedRequest(task: RequestTask): Job = launch {
         val (request, response) = task
         try {
             val connection = connect()
             val input = connection.openReadChannel()
             val output = connection.openWriteChannel()
             val requestTime = GMTDate()
+            val callContext = createCallContext()
 
 
             fun closeConnection(cause: Throwable? = null) {
@@ -103,7 +106,7 @@ internal class Endpoint(
                 }
             }
 
-            request.write(output)
+            request.write(output, callContext)
 
             val rawResponse =
                 parseResponse(input) ?: throw EOFException("Failed to parse HTTP response: unexpected EOF")
@@ -118,7 +121,7 @@ internal class Endpoint(
                     val content = request.content as? ClientUpgradeContent
                         ?: error("Invalid content type: UpgradeContent required")
 
-                    launch(dispatcher) {
+                    launch {
                         content.pipeTo(output)
                     }.invokeOnCompletion(::closeConnection)
 
@@ -129,7 +132,7 @@ internal class Endpoint(
                     ByteReadChannel.Empty
                 }
                 else -> {
-                    val httpBodyParser = writer(dispatcher, autoFlush = true) {
+                    val httpBodyParser = writer(EmptyCoroutineContext, autoFlush = true) {
                         parseHttpBody(contentLength, transferEncoding, connectionType, input, channel)
                     }
 
@@ -138,7 +141,12 @@ internal class Endpoint(
                 }
             }
 
-            response.complete(CIOHttpResponse(request, requestTime, body, rawResponse, pipelined = false))
+            response.complete(
+                CIOHttpResponse(
+                    request, requestTime, body, rawResponse,
+                    pipelined = false, coroutineContext = callContext
+                )
+            )
         } catch (cause: Throwable) {
             response.cancel(cause)
         }
@@ -148,10 +156,11 @@ internal class Endpoint(
         val socket = connect()
 
         val pipeline = ConnectionPipeline(
-            dispatcher,
             config.endpoint.keepAliveTime, config.endpoint.pipelineMaxSize,
             socket,
-            deliveryPoint
+            deliveryPoint,
+            createCallContext,
+            coroutineContext
         )
 
         pipeline.pipelineContext.invokeOnCompletion { releaseConnection() }
@@ -172,11 +181,11 @@ internal class Endpoint(
 
                 with(config.https) {
                     return@connect connection.tls(
+                        coroutineContext,
                         trustManager,
                         randomAlgorithm,
                         cipherSuites,
-                        address.hostName,
-                        dispatcher
+                        address.hostName
                     )
                 }
             }
@@ -202,8 +211,8 @@ internal class Endpoint(
     }
 
     companion object {
-        private val Connections =
-            AtomicIntegerFieldUpdater.newUpdater(Endpoint::class.java, Endpoint::connectionsHolder.name)
+        private val Connections = AtomicIntegerFieldUpdater
+            .newUpdater(Endpoint::class.java, Endpoint::connectionsHolder.name)
     }
 }
 
