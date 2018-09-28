@@ -4,10 +4,10 @@ import kotlinx.coroutines.*
 import org.eclipse.jetty.util.*
 import kotlin.coroutines.*
 
-internal suspend fun <R> withPromise(block: (Promise<R>) -> Unit): R {
-    return suspendCancellableCoroutine { continuation ->
-        block(PromiseContinuation(continuation))
-    }
+internal suspend fun <R> withPromise(
+    block: (Promise<R>) -> Unit
+): R = suspendCancellableCoroutine { continuation ->
+    block(PromiseContinuation(continuation))
 }
 
 internal class PromiseContinuation<R>(private val continuation: Continuation<R>) : Promise<R> {

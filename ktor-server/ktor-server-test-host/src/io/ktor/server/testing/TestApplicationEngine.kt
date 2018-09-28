@@ -78,6 +78,7 @@ class TestApplicationEngine(
         }
     }
 
+    @UseExperimental(InternalAPI::class)
     fun handleRequest(setup: TestApplicationRequest.() -> Unit): TestApplicationCall {
         val call = createCall(readResponse = true, setup = { processRequest(setup) })
 

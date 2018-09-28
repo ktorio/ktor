@@ -9,6 +9,7 @@ import io.ktor.http.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
 import kotlinx.io.core.*
+import kotlin.coroutines.*
 
 expect fun HttpClient(
     useDefaultTransformers: Boolean = true,
@@ -39,7 +40,9 @@ class HttpClient(
     private val engine: HttpClientEngine,
     private val useDefaultTransformers: Boolean = true,
     private val config: HttpClientConfig<*> = HttpClientConfig<HttpClientEngineConfig>()
-) : Closeable {
+) : CoroutineScope, Closeable {
+    override val coroutineContext: CoroutineContext get() = engine.coroutineContext
+
     /**
      * Pipeline used for processing all the requests sent by this client.
      */
@@ -69,8 +72,15 @@ class HttpClient(
             validateHeaders(requestData)
 
             val (request, response) = engine.execute(call, requestData)
+
             call.request = request
             call.response = response
+
+            response.coroutineContext[Job]!!.invokeOnCompletion { cause ->
+                @Suppress("UNCHECKED_CAST")
+                val childContext = requestData.executionContext as CompletableDeferred<Unit>
+                if (cause == null) childContext.complete(Unit) else childContext.cancel(cause)
+            }
 
             val receivedCall = receivePipeline.execute(call, call.response).call
             proceedWith(receivedCall)
@@ -90,7 +100,11 @@ class HttpClient(
     /**
      * Dispatcher handles io operations
      */
-    val dispatcher: CoroutineDispatcher = engine.dispatcher
+    @Deprecated(
+        "[dispatcher] is deprecated. Use coroutineContext instead.",
+        replaceWith = ReplaceWith("coroutineContext")
+    )
+    val dispatcher: CoroutineDispatcher get() = TODO()
 
     /**
      * Client engine config
@@ -125,8 +139,6 @@ class HttpClient(
      * Closes the underlying [engine].
      */
     override fun close() {
-        engine.close()
-
         attributes.allKeys.forEach { key ->
             @Suppress("UNCHECKED_CAST")
             val feature = attributes[key as AttributeKey<Any>]
@@ -135,6 +147,8 @@ class HttpClient(
                 feature.close()
             }
         }
+
+        engine.close()
     }
 
 }

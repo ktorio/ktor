@@ -1,25 +1,26 @@
 package io.ktor.network.tls
 
 import io.ktor.network.sockets.*
-import io.ktor.network.util.*
 import kotlinx.coroutines.io.*
 import javax.net.ssl.*
 import kotlin.coroutines.*
 
+/**
+ * Make [Socket] connection secure with TLS.
+ */
 suspend fun Socket.tls(
+    coroutineContext: CoroutineContext,
     trustManager: X509TrustManager? = null,
     randomAlgorithm: String = "NativePRNGNonBlocking",
     cipherSuites: List<CipherSuite> = CIOCipherSuites.SupportedSuites,
-    serverName: String? = null,
-    coroutineContext: CoroutineContext = ioCoroutineDispatcher
+    serverName: String? = null
 ): Socket {
     val reader = openReadChannel()
     val writer = openWriteChannel()
 
     val session = try {
         TLSClientSession(
-            reader, writer, coroutineContext,
-            trustManager, randomAlgorithm, cipherSuites, serverName
+            reader, writer, trustManager, randomAlgorithm, cipherSuites, serverName, coroutineContext
         ).also { it.start() }
     } catch (cause: Throwable) {
         reader.cancel(cause)

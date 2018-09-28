@@ -58,6 +58,7 @@ fun ByteBuffer.copy(pool: ObjectPool<ByteBuffer>, size: Int = remaining()): Byte
  * Helper class for building [ByteBuffer] with the specific content
  */
 @Deprecated("Use BytePacketBuilder instead", level = DeprecationLevel.ERROR)
+@Suppress("UNUSED_PARAMETER")
 class ByteBufferBuilder(order: ByteOrder = ByteOrder.BIG_ENDIAN) {
     companion object {
         @Deprecated("Use buildPacket instead", level = DeprecationLevel.ERROR,

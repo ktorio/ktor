@@ -16,7 +16,7 @@ internal fun testHttpServer(port: Int = 9096, ioCoroutineContext: CoroutineConte
     val j = Job()
 
     // blocking acceptor
-    launch(ioCoroutineContext) {
+    GlobalScope.launch(ioCoroutineContext) {
         val server = ServerSocketChannel.open()!!
         server.bind(InetSocketAddress(port))
         deferred.complete(server)
@@ -55,7 +55,7 @@ private suspend fun client(socket: SocketChannel, ioCoroutineContext: CoroutineC
     val incoming = ByteChannel(true)
     val outgoing = ByteChannel()
 
-    launch(ioCoroutineContext) {
+    GlobalScope.launch(ioCoroutineContext) {
         val buffer = DefaultByteBufferPool.borrow()
 
         try {
@@ -74,7 +74,7 @@ private suspend fun client(socket: SocketChannel, ioCoroutineContext: CoroutineC
         }
     }
 
-    launch(ioCoroutineContext) {
+    GlobalScope.launch(ioCoroutineContext) {
         val buffer = DefaultByteBufferPool.borrow()
 
         try {
@@ -96,6 +96,7 @@ private suspend fun client(socket: SocketChannel, ioCoroutineContext: CoroutineC
     }
 
     val timeouts = WeakTimeoutQueue(TimeUnit.HOURS.toMillis(1000))
+    @Suppress("DEPRECATION")
     startConnectionPipeline(incoming, outgoing, null, ioCoroutineContext, callDispatcher, timeouts, handler).invokeOnCompletion {
         incoming.close()
         outgoing.close()

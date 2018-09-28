@@ -5,6 +5,9 @@ package io.ktor.http
  * that has [headers] associated.
  */
 interface HttpMessage {
+    /**
+     * Message [Headers]
+     */
     val headers: Headers
 }
 
@@ -13,5 +16,8 @@ interface HttpMessage {
  * that has a [headers] builder associated.
  */
 interface HttpMessageBuilder {
+    /**
+     * MessageBuilder [HeadersBuilder]
+     */
     val headers: HeadersBuilder
 }

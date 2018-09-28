@@ -2,6 +2,7 @@ package io.ktor.network.tls
 
 import io.ktor.http.cio.internals.*
 import io.ktor.network.sockets.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.io.*
 import kotlinx.io.core.*
@@ -13,16 +14,16 @@ import kotlin.coroutines.*
 internal class TLSClientSession(
     rawInput: ByteReadChannel,
     rawOutput: ByteWriteChannel,
-    private val coroutineContext: CoroutineContext,
     trustManager: X509TrustManager?,
     randomAlgorithm: String,
     cipherSuites: List<CipherSuite>,
-    serverName: String?
-) : AReadable, AWritable {
+    serverName: String?,
+    override val coroutineContext: CoroutineContext
+) : CoroutineScope, AReadable, AWritable {
     private val handshaker = TLSClientHandshake(
         rawInput, rawOutput,
-        coroutineContext,
-        trustManager, randomAlgorithm, cipherSuites, serverName
+        trustManager, randomAlgorithm, cipherSuites, serverName,
+        coroutineContext
     )
 
     private val input = handshaker.input
@@ -59,7 +60,9 @@ internal class TLSClientSession(
         }
     }
 
-    private suspend fun appDataOutputLoop(pipe: ByteReadChannel) = DefaultByteBufferPool.useInstance { buffer: ByteBuffer ->
+    private suspend fun appDataOutputLoop(
+        pipe: ByteReadChannel
+    ): Unit = DefaultByteBufferPool.useInstance { buffer: ByteBuffer ->
         while (true) {
             buffer.clear()
             val rc = pipe.readAvailable(buffer)

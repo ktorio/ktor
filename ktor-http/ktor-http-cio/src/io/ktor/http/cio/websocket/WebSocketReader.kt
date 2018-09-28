@@ -24,6 +24,7 @@ class WebSocketReader(
         pool: ObjectPool<ByteBuffer> = KtorDefaultPool
 ) : CoroutineScope {
 
+    @Suppress("UNUSED_PARAMETER")
     @Deprecated("Pass parent through the coroutine context",
             replaceWith = ReplaceWith("WebSocketReader(byteChannel, coroutineContext, maxFrameSize, pool)"))
     constructor(byteChannel: ByteReadChannel, maxFrameSize: Long,

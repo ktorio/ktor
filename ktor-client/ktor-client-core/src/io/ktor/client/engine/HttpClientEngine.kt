@@ -8,7 +8,7 @@ import kotlinx.io.core.*
 /**
  * Base interface use to define engines for [HttpClient].
  */
-interface HttpClientEngine : Closeable {
+interface HttpClientEngine : CoroutineScope, Closeable {
 
     /**
      * [CoroutineDispatcher] specified for io operations.

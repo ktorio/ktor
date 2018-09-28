@@ -3,18 +3,15 @@ package io.ktor.client.engine.cio
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.network.selector.*
 import kotlinx.coroutines.channels.*
 import java.util.concurrent.*
 import java.util.concurrent.atomic.*
 
-private val selectorManager by lazy { ActorSelectorManager(HTTP_CLIENT_DEFAULT_DISPATCHER) }
-
-internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientEngine {
-    override val dispatcher = config.dispatcher ?: HTTP_CLIENT_DEFAULT_DISPATCHER
+internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientJvmEngine("ktor-cio") {
     private val endpoints = ConcurrentHashMap<String, Endpoint>()
+    private val selectorManager by lazy { ActorSelectorManager(coroutineContext) }
 
     private val connectionFactory = ConnectionFactory(selectorManager, config.maxConnectionsCount)
     private val closed = AtomicBoolean()
@@ -34,9 +31,12 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientEngin
                 val address = "$host:$port:$protocol"
                 endpoints.computeIfAbsent(address) {
                     val secure = (protocol.isSecure())
-                    Endpoint(host, port, secure, dispatcher, config, connectionFactory) {
-                        endpoints.remove(address)
-                    }
+                    Endpoint(
+                        host, port, secure,
+                        config,
+                        connectionFactory, coroutineContext,
+                        createCallContext = { createCallContext() }, onDone = { endpoints.remove(address) }
+                    )
                 }
             }
 
@@ -57,6 +57,9 @@ internal class CIOEngine(override val config: CIOEngineConfig) : HttpClientEngin
         endpoints.forEach { (_, endpoint) ->
             endpoint.close()
         }
+
+        selectorManager.close()
+        super.close()
     }
 }
 

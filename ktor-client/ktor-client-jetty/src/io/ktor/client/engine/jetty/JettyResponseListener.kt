@@ -17,6 +17,7 @@ import java.io.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.*
+import kotlin.coroutines.*
 
 internal data class StatusWithHeaders(val statusCode: HttpStatusCode, val headers: Headers)
 
@@ -25,8 +26,7 @@ private data class JettyResponseChunk(val buffer: ByteBuffer, val callback: Call
 internal class JettyResponseListener(
     private val session: HTTP2ClientSession,
     private val channel: ByteWriteChannel,
-    private val dispatcher: CoroutineDispatcher,
-    private val context: CompletableDeferred<Unit>
+    private val callContext: CoroutineContext
 ) : Stream.Listener {
     private val headersBuilder: HeadersBuilder = HeadersBuilder()
     private val onHeadersReceived: CompletableFuture<HttpStatusCode?> = CompletableFuture()
@@ -88,7 +88,7 @@ internal class JettyResponseListener(
         return StatusWithHeaders(statusCode, headersBuilder.build())
     }
 
-    private fun runResponseProcessing() = launch(dispatcher) {
+    private fun runResponseProcessing() = GlobalScope.launch(callContext) {
         try {
             while (!backendChannel.isClosedForReceive) {
                 val (buffer, callback) = backendChannel.receiveOrNull() ?: break
@@ -107,13 +107,11 @@ internal class JettyResponseListener(
             }
         } catch (cause: Throwable) {
             channel.close(cause)
-            this@JettyResponseListener.context.cancel(cause)
+            this@JettyResponseListener.callContext.cancel(cause)
         } finally {
             backendChannel.close()
             backendChannel.consumeEach { it.callback.succeeded() }
-
             channel.close()
-            this@JettyResponseListener.context.complete(Unit)
         }
     }
 

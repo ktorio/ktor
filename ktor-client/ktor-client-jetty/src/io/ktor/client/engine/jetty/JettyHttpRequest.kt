@@ -18,21 +18,20 @@ import org.eclipse.jetty.http.*
 import org.eclipse.jetty.http2.client.*
 import org.eclipse.jetty.http2.frames.*
 import java.nio.*
+import kotlin.coroutines.*
 
 
 internal class JettyHttpRequest(
     override val call: HttpClientCall,
     private val client: JettyHttp2Engine,
-    private val dispatcher: CoroutineDispatcher,
-    requestData: HttpRequestData
+    requestData: HttpRequestData,
+    override val coroutineContext: CoroutineContext
 ) : HttpRequest {
     override val attributes: Attributes = requestData.attributes
 
     override val method: HttpMethod = requestData.method
     override val url: Url = requestData.url
     override val headers: Headers = requestData.headers
-
-    override val executionContext: CompletableDeferred<Unit> = requestData.executionContext
 
     override val content: OutgoingContent = requestData.body as OutgoingContent
 
@@ -45,8 +44,7 @@ internal class JettyHttpRequest(
         val headersFrame = prepareHeadersFrame(content)
 
         val bodyChannel = ByteChannel()
-        val responseContext = CompletableDeferred<Unit>()
-        val responseListener = JettyResponseListener(session, bodyChannel, dispatcher, responseContext)
+        val responseListener = JettyResponseListener(session, bodyChannel, coroutineContext)
 
         val jettyRequest = JettyHttp2Request(withPromise { promise ->
             session.newStream(headersFrame, promise, responseListener)
@@ -56,7 +54,7 @@ internal class JettyHttpRequest(
 
         val (status, headers) = responseListener.awaitHeaders()
         val origin = Closeable { bodyChannel.close() }
-        return JettyHttpResponse(call, status, headers, requestTime, responseContext, bodyChannel, origin)
+        return JettyHttpResponse(call, status, headers, requestTime, bodyChannel, origin, coroutineContext)
     }
 
 
@@ -89,24 +87,18 @@ internal class JettyHttpRequest(
             }
             is OutgoingContent.ReadChannelContent -> content.readFrom().writeResponse(request)
             is OutgoingContent.WriteChannelContent -> {
-                val source = writer(dispatcher + executionContext) { content.writeTo(channel) }.channel
+                val source = GlobalScope.writer(coroutineContext) { content.writeTo(channel) }.channel
                 source.writeResponse(request)
             }
             is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(content)
         }
     }
 
-    private fun ByteReadChannel.writeResponse(request: JettyHttp2Request) = launch(dispatcher + executionContext) {
+    private fun ByteReadChannel.writeResponse(request: JettyHttp2Request): Job = launch {
         val buffer = HttpClientDefaultPool.borrow()
         pass(buffer) { request.write(it) }
         HttpClientDefaultPool.recycle(buffer)
         request.endBody()
-    }.invokeOnCompletion { cause ->
-        if (cause != null) {
-            executionContext.cancel(cause)
-        } else {
-            executionContext.complete(Unit)
-        }
     }
 }
 

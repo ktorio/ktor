@@ -14,18 +14,20 @@ import java.util.concurrent.*
 import kotlin.coroutines.*
 
 class TestHttpClientEngine(override val config: TestHttpClientConfig) : HttpClientEngine {
+    override val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    override val coroutineContext: CoroutineContext = dispatcher
+
     private val app: TestApplicationEngine = config.app
 
-    override val dispatcher: CoroutineDispatcher = ioCoroutineDispatcher
-
     override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
+        val callContext = coroutineContext + CompletableDeferred<Unit>()
         val request = TestHttpClientRequest(call, this, data)
         val responseData = with(request) {
             runRequest(method, url.fullPath, headers, content).response
         }
 
         val clientResponse = TestHttpClientResponse(
-            call, responseData.status()!!, responseData.headers.allValues(), responseData.byteContent!!
+            call, responseData.status()!!, responseData.headers.allValues(), responseData.byteContent!!, callContext
         )
 
         return HttpEngineCall(request, clientResponse)
