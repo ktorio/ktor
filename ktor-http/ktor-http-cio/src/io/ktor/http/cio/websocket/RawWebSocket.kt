@@ -33,8 +33,8 @@ class RawWebSocket(
         writer.masking = newValue
     }
 
-    internal val writer = WebSocketWriter(output, coroutineContext, masking, pool)
-    internal val reader: WebSocketReader = WebSocketReader(input, coroutineContext, maxFrameSize, pool)
+    internal val writer = WebSocketWriter(output, this.coroutineContext, masking, pool)
+    internal val reader: WebSocketReader = WebSocketReader(input, this.coroutineContext, maxFrameSize, pool)
 
     override suspend fun flush(): Unit = writer.flush()
 
@@ -49,8 +49,8 @@ class RawWebSocket(
 
 @UseExperimental(WebSocketInternalAPI::class)
 suspend fun RawWebSocket.start(handler: suspend WebSocketSession.() -> Unit) {
-    handler()
     try {
+        handler()
         writer.flush()
     } finally {
         terminate()

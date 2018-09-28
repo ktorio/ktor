@@ -48,14 +48,18 @@ class WebSocketUpgrade(
         val webSocket = RawWebSocket(
             input, output,
             feature.maxFrameSize, feature.masking,
-            coroutineContext = engineContext
+            coroutineContext = engineContext + (coroutineContext[Job] ?: EmptyCoroutineContext)
         )
 
-        return webSocket.launch {
+        return webSocket.launch(WebSocketHandlerCoroutineName) {
             try {
                 webSocket.start(handle)
             } catch (cause: Throwable) {
             }
         }
+    }
+
+    companion object {
+        private val WebSocketHandlerCoroutineName = CoroutineName("raw-ws-handler")
     }
 }
