@@ -16,3 +16,9 @@ release.properties
 .video
 .attach_pid*
 apidoc
+
+
+bin/
+.settings
+.project
+.classpath
