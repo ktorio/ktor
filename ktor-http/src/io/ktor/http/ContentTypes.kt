@@ -184,6 +184,7 @@ class ContentType private constructor(val contentType: String, val contentSubtyp
         val Any = ContentType("text", "*")
         val Plain = ContentType("text", "plain")
         val CSS = ContentType("text", "css")
+        val Csv = ContentType("text", "csv")
         val Html = ContentType("text", "html")
         val JavaScript = ContentType("text", "javascript")
         val VCard = ContentType("text", "vcard")
