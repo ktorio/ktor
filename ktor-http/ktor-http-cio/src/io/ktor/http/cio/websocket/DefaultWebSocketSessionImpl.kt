@@ -10,6 +10,10 @@ import java.time.*
 import java.util.concurrent.atomic.*
 import kotlin.properties.*
 
+/**
+ * Default web socket session implementation that handles ping-pongs, close sequence and frame fragmentation
+ */
+@WebSocketInternalAPI
 class DefaultWebSocketSessionImpl(
     private val raw: WebSocketSession,
     pingInterval: Duration? = null,
