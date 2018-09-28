@@ -47,7 +47,7 @@ class MultipartTest {
 
         val ch = ByteReadChannel(body.toByteArray())
         val request = parseRequest(ch)!!
-        val mp = parseMultipart(CommonPool, ch, request.headers)
+        val mp = parseMultipart(ch, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
         mp.consumeEach { allEvents.add(it) }

@@ -79,7 +79,7 @@ class IntegrationTest {
                 rr.release()
             }
 
-            val chunked = encodeChunked(o, CommonPool)
+            val chunked = encodeChunked(o, Dispatchers.Default)
             input.copyAndClose(chunked.channel)
             chunked.join()
         }
