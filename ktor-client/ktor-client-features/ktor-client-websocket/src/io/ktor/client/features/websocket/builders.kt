@@ -16,6 +16,7 @@ suspend fun HttpClient.webSocketRawSession(
     block()
 }
 
+@UseExperimental(WebSocketInternalAPI::class)
 suspend fun HttpClient.webSocketSession(
     method: HttpMethod = HttpMethod.Get, host: String = "localhost", port: Int = 80, path: String = "/",
     block: HttpRequestBuilder.() -> Unit = {}
