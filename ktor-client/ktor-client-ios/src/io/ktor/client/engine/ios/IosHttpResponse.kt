@@ -6,6 +6,7 @@ import io.ktor.http.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.io.*
+import kotlin.coroutines.*
 
 class IosHttpResponse(
     override val call: HttpClientCall,
@@ -13,11 +14,9 @@ class IosHttpResponse(
     override val headers: Headers,
     override val requestTime: GMTDate,
     override val content: ByteReadChannel,
-    override val executionContext: Job,
+    override val coroutineContext: CoroutineContext,
     override val version: HttpProtocolVersion = HttpProtocolVersion.HTTP_1_1
 ) : HttpResponse {
 
     override val responseTime: GMTDate = GMTDate()
-
-    override fun close() {}
 }
