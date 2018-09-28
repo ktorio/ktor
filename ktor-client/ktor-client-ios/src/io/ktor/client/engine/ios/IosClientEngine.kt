@@ -6,6 +6,7 @@ import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlin.coroutines.*
 import kotlinx.coroutines.*
@@ -19,12 +20,15 @@ class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientE
     private val context: Job = Job()
 
     // TODO: replace with UI dispatcher
-    override val dispatcher: CoroutineDispatcher = config.dispatcher ?: Unconfined
+    override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
+
+    override val coroutineContext: CoroutineContext = dispatcher + SupervisorJob()
 
     override suspend fun execute(
         call: HttpClientCall,
         data: HttpRequestData
     ): HttpEngineCall = suspendCancellableCoroutine { continuation ->
+        val callContext = coroutineContext + CompletableDeferred<Unit>()
         val request = DefaultHttpRequest(call, data)
         val requestTime = GMTDate()
 
@@ -54,7 +58,7 @@ class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientE
                     headersDict.mapKeys { (key, value) -> append(key, value) }
                 }
 
-                val responseContext = writer(dispatcher, autoFlush = true) {
+                val responseContext = writer(coroutineContext, autoFlush = true) {
                     while (!chunks.isClosedForReceive) {
                         val chunk = chunks.receive()
                         channel.writeFully(chunk)
@@ -63,7 +67,7 @@ class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientE
 
                 val result = IosHttpResponse(
                     call, status, headers, requestTime,
-                    responseContext.channel, responseContext
+                    responseContext.channel, callContext
                 )
 
                 continuation.resume(HttpEngineCall(request, result))
@@ -85,7 +89,7 @@ class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientE
         nativeRequest.setCachePolicy(NSURLRequestReloadIgnoringCacheData)
         nativeRequest.setHTTPMethod(request.method.value)
 
-        launch(dispatcher) {
+        launch(callContext) {
             val content = request.content
             val body = when (content) {
                 is OutgoingContent.ByteArrayContent -> content.bytes().toNSData()
@@ -103,7 +107,7 @@ class IosClientEngine(override val config: HttpClientEngineConfig) : HttpClientE
     }
 
     override fun close() {
-        context.cancel()
+        coroutineContext.cancel()
     }
 }
 

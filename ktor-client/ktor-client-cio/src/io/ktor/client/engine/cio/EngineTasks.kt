@@ -4,6 +4,7 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 internal data class RequestTask(
     val request: DefaultHttpRequest,
@@ -18,5 +19,6 @@ internal fun RequestTask.requiresDedicatedConnection(): Boolean = listOf(request
 internal class ConnectionResponseTask(
     val requestTime: GMTDate,
     val response: CompletableDeferred<CIOHttpResponse>,
-    val request: DefaultHttpRequest
+    val request: DefaultHttpRequest,
+    val callContext: CoroutineContext
 )

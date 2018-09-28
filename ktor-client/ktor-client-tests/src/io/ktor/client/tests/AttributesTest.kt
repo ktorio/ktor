@@ -10,6 +10,7 @@ import io.ktor.routing.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.util.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 open class AttributesTest(val factory: HttpClientEngineFactory<*>) : TestWithKtor() {
@@ -46,5 +47,3 @@ open class AttributesTest(val factory: HttpClientEngineFactory<*>) : TestWithKto
         }
     }
 }
-
-

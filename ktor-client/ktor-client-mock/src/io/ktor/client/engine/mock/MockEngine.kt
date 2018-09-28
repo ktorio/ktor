@@ -5,11 +5,13 @@ import io.ktor.client.engine.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
+import kotlin.coroutines.*
 
 
 class MockEngine(override val config: MockEngineConfig) : HttpClientEngine {
-    override val dispatcher: CoroutineDispatcher =
-        Unconfined
+    override val dispatcher: CoroutineDispatcher = Dispatchers.Unconfined
+
+    override val coroutineContext: CoroutineContext = dispatcher + CompletableDeferred<Unit>()
 
     override suspend fun execute(call: HttpClientCall, data: HttpRequestData): HttpEngineCall {
         val request = data.toRequest(call)

@@ -3,13 +3,13 @@ package io.ktor.client.engine.cio
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
-import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
-import kotlinx.coroutines.*
+import io.ktor.http.content.*
 import kotlinx.coroutines.io.*
+import kotlin.coroutines.*
 
-internal suspend fun DefaultHttpRequest.write(output: ByteWriteChannel) {
+internal suspend fun DefaultHttpRequest.write(output: ByteWriteChannel, callContext: CoroutineContext) {
     val builder = RequestResponseBuilder()
 
     val contentLength = headers[HttpHeaders.ContentLength] ?: content.contentLength?.toString()
@@ -44,7 +44,7 @@ internal suspend fun DefaultHttpRequest.write(output: ByteWriteChannel) {
     if (content is OutgoingContent.NoContent)
         return
 
-    val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, Unconfined) else null
+    val chunkedJob: EncoderJob? = if (chunked) encodeChunked(output, callContext) else null
     val channel = chunkedJob?.channel ?: output
 
     try {
@@ -57,11 +57,9 @@ internal suspend fun DefaultHttpRequest.write(output: ByteWriteChannel) {
         }
     } catch (cause: Throwable) {
         channel.close(cause)
-        executionContext.cancel(cause)
     } finally {
         channel.flush()
         chunkedJob?.channel?.close()
         chunkedJob?.join()
-        executionContext.complete(Unit)
     }
 }

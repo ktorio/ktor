@@ -84,11 +84,11 @@ class SessionTest {
                 assertNull(call.response.cookies[cookieName], "There should be no session set by default")
             }
 
-            var sessionParam: String = ""
+            var sessionParam: String
             handleRequest(HttpMethod.Get, "/1").let { call ->
                 val sessionCookie = call.response.cookies[cookieName]
                 assertNotNull(sessionCookie, "No session cookie found")
-                sessionParam = sessionCookie!!.value
+                sessionParam = sessionCookie.value
                 assertEquals("foo.bar", sessionCookie.domain)
                 assertEquals(3600, sessionCookie.maxAge)
 
@@ -122,11 +122,11 @@ class SessionTest {
                 }
             }
 
-            var sessionId = ""
+            var sessionId: String
             handleRequest(HttpMethod.Get, "/1").let { call ->
                 val sessionCookie = call.response.cookies[cookieName]
                 assertNotNull(sessionCookie, "No session cookie found")
-                sessionId = sessionCookie!!.value
+                sessionId = sessionCookie.value
             }
 
             handleRequest(HttpMethod.Get, "/2") {
@@ -226,7 +226,7 @@ class SessionTest {
         handleRequest(HttpMethod.Get, "/1").let { call ->
             val sessionCookie = call.response.cookies[cookieName]
             assertNotNull(sessionCookie, "No session cookie found")
-            sessionId = sessionCookie!!.value
+            sessionId = sessionCookie.value
         }
 
         handleRequest(HttpMethod.Get, "/2") {
@@ -300,7 +300,7 @@ class SessionTest {
             handleRequest(HttpMethod.Get, "/1").let { call ->
                 val sessionCookie = call.response.cookies[cookieName]
                 assertNotNull(sessionCookie, "No session cookie found")
-                sessionParam = sessionCookie!!.value
+                sessionParam = sessionCookie.value
 
                 assertEquals(TestUserSession("id1", emptyList()), autoSerializerOf<TestUserSession>().deserialize(sessionParam))
                 assertEquals("ok", call.response.content)
@@ -353,7 +353,7 @@ class SessionTest {
             handleRequest(HttpMethod.Get, "/a/1").let { call ->
                 val sessionCookie = call.response.cookies[cookieName]
                 assertNotNull(sessionCookie, "No session cookie found")
-                sessionParam = sessionCookie!!.value
+                sessionParam = sessionCookie.value
 
                 assertEquals(sessionA, autoSerializerOf<TestUserSession>().deserialize(sessionParam))
                 assertEquals("ok", call.response.content)
@@ -367,7 +367,7 @@ class SessionTest {
             handleRequest(HttpMethod.Get, "/b/1").let { call ->
                 val sessionCookie = call.response.cookies[cookieName]
                 assertNotNull(sessionCookie, "No session cookie found")
-                sessionParam = sessionCookie!!.value
+                sessionParam = sessionCookie.value
 
                 assertEquals(sessionB, autoSerializerOf<TestUserSessionB>().deserialize(sessionParam))
                 assertEquals("ok", call.response.content)
@@ -417,7 +417,7 @@ class SessionTest {
             handleRequest(HttpMethod.Get, "/1").let { response ->
                 val sessionCookie = response.response.cookies[cookieName]
                 assertNotNull(sessionCookie, "No session id cookie found")
-                sessionId = sessionCookie!!.value
+                sessionId = sessionCookie.value
                 assertTrue { sessionId.matches("[A-Za-z0-9]+".toRegex()) }
             }
             val serializedSession = runBlocking {
@@ -464,7 +464,7 @@ class SessionTest {
             handleRequest(HttpMethod.Get, "/1").let { call ->
                 val sessionCookie = call.response.cookies[cookieName]
                 assertNotNull(sessionCookie, "No session cookie found")
-                sessionId = sessionCookie!!.value
+                sessionId = sessionCookie.value
             }
 
             assertEquals("666/c2d4eaad4fe0bc6dbd0584cdf36929d79d52d7a748d1cc02835a71131a0963fb", sessionId)
@@ -522,7 +522,7 @@ class SessionTest {
             handleRequest(HttpMethod.Get, "/1").let { call ->
                 val header = call.response.headers[cookieName]
                 assertNotNull(header, "No session cookie found")
-                sessionId = header!!
+                sessionId = header
             }
 
             handleRequest(HttpMethod.Get, "/2") {

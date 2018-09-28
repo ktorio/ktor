@@ -52,7 +52,7 @@ private suspend fun ByteWriteChannel.deflateWhile(deflater: Deflater, buffer: By
 fun ByteReadChannel.deflated(
         gzip: Boolean = true,
         pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-): ByteReadChannel = writer(Unconfined, autoFlush = true) {
+): ByteReadChannel = GlobalScope.writer(Dispatchers.Unconfined, autoFlush = true) {
     channel.writeByteOrder = ByteOrder.LITTLE_ENDIAN
     val crc = CRC32()
     val deflater = Deflater(Deflater.BEST_COMPRESSION, true)
@@ -90,6 +90,6 @@ fun ByteReadChannel.deflated(
 fun ByteWriteChannel.deflated(
         gzip: Boolean = true,
         pool: ObjectPool<ByteBuffer> = KtorDefaultPool
-): ByteWriteChannel = reader(Unconfined, autoFlush = true) {
+): ByteWriteChannel = GlobalScope.reader(Dispatchers.Unconfined, autoFlush = true) {
     channel.deflated(gzip, pool).joinTo(this@deflated, closeOnEnd = true)
 }.channel

@@ -10,6 +10,7 @@ import java.util.concurrent.*
 import javax.servlet.http.*
 import kotlin.coroutines.*
 
+@UseExperimental(InternalAPI::class)
 abstract class KtorServlet : HttpServlet(), CoroutineScope {
     private val asyncDispatchers = lazy { AsyncDispatchers() }
 
@@ -49,7 +50,6 @@ abstract class KtorServlet : HttpServlet(), CoroutineScope {
         val asyncDispatchers = asyncDispatchers.value
 
         launch(asyncDispatchers.dispatcher) {
-
             val call = AsyncServletApplicationCall(application, request, response,
                 engineContext = asyncDispatchers.engineDispatcher,
                 userContext = asyncDispatchers.dispatcher,

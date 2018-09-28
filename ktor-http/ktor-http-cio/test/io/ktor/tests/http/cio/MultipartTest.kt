@@ -117,7 +117,7 @@ class MultipartTest {
 
         val ch = ByteReadChannel(body.toByteArray())
         val request = parseRequest(ch)!!
-        val mp = parseMultipart(CommonPool, ch, request.headers)
+        val mp = parseMultipart(ch, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
         mp.consumeEach { allEvents.add(it) }
@@ -171,8 +171,8 @@ class MultipartTest {
 
         val ch = ByteReadChannel(body.toByteArray())
         val request = parseRequest(ch)!!
-        val decoded = decodeChunked(ch, CommonPool)
-        val mp = parseMultipart(CommonPool, decoded.channel, request.headers)
+        val decoded = GlobalScope.decodeChunked(ch)
+        val mp = GlobalScope.parseMultipart(decoded.channel, request.headers)
 
         val allEvents = ArrayList<MultipartEvent>()
         mp.consumeEach { allEvents.add(it) }

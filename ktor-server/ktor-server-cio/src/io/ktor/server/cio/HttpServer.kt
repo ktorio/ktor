@@ -50,6 +50,7 @@ fun httpServer(
 /**
  * Start an http server with [settings] invoking [handler] for every request
  */
+@UseExperimental(InternalAPI::class)
 fun CoroutineScope.httpServer(
     settings: HttpServerSettings,
     handler: HttpRequestHandler
@@ -66,8 +67,8 @@ fun CoroutineScope.httpServer(
 
     val selector = ActorSelectorManager(coroutineContext)
     val timeout = WeakTimeoutQueue(TimeUnit.SECONDS.toMillis(settings.connectionIdleTimeoutSeconds),
-        Clock.systemUTC(),
-        { TimeoutCancellationException("Connection IDLE") })
+        Clock.systemUTC()
+       ) { TimeoutCancellationException("Connection IDLE") }
 
     val acceptJob = launch(serverJob + CoroutineName("accept-${settings.port}")) {
         aSocket(selector).tcp().bind(InetSocketAddress(settings.host, settings.port)).use { server ->

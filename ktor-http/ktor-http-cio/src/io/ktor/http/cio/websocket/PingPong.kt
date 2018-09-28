@@ -53,6 +53,7 @@ fun CoroutineScope.ponger(
     "Use pinger on CoroutineScope",
     ReplaceWith("session.pinger(session.outgoing, period, timeout, out, pool)")
 )
+@Suppress("UNUSED_PARAMETER")
 fun pinger(
     session: WebSocketSession,
     period: Duration,
