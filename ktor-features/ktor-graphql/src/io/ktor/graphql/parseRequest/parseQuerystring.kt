@@ -8,7 +8,7 @@ import io.ktor.graphql.mapper
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 
-internal fun parseQueststring(params: Parameters): GraphQLRequest {
+internal fun parseQueryString(params: Parameters): GraphQLRequest {
     val query = params["query"]
     val operationName = operationNameFromParams(params)
     val variables = variablesFromParams(params)

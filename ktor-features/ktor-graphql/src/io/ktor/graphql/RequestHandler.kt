@@ -1,6 +1,7 @@
 package io.ktor.graphql
 
 import graphql.*
+import graphql.execution.UnknownOperationException
 import graphql.language.Document
 import graphql.language.OperationDefinition
 import graphql.parser.Parser
@@ -173,7 +174,13 @@ internal class RequestHandler(
         return false
     }
 
-    private fun getOperation(document: Document): OperationDefinition.Operation = getOperation(document, request.operationName)
+    private fun getOperation(document: Document): OperationDefinition.Operation {
+        return try {
+            getOperation(document, request.operationName)
+        } catch (exception: UnknownOperationException) {
+            throw HttpException(HttpStatusCode.BadRequest, HttpGraphQLError(exception.message ?: "Unknown operation name"))
+        }
+    }
 
     private fun parseException(exception: Exception): HttpException {
         return when (exception) {

@@ -133,7 +133,7 @@ class GraphQLRouteGetTest {
               """))
             method = HttpMethod.Get
         }) {
-            assertEquals(expected = HttpStatusCode.InternalServerError, actual = response.status())
+            assertEquals(expected = HttpStatusCode.BadRequest, actual = response.status())
             assertEquals(
                     expected = removeWhitespace("""
                         {

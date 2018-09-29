@@ -31,7 +31,7 @@ private suspend fun parseRequest(call: ApplicationCall): GraphQLRequest {
 
 
     val parameters = call.parameters
-    val urlRequest = parseQueststring(parameters)
+    val urlRequest = parseQueryString(parameters)
 
     val query = urlRequest.query ?: bodyRequest.query
     val variables = urlRequest.variables ?: bodyRequest.variables
