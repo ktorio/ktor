@@ -132,7 +132,11 @@ class CIOApplicationEngine(environment: ApplicationEngineEnvironment, configure:
             withContext(userDispatcher) {
                 val call = CIOApplicationCall(application, request, input, output,
                         engineDispatcher, userDispatcher, upgraded)
-                pipeline.execute(call)
+                try {
+                    pipeline.execute(call)
+                } finally {
+                    call.release()
+                }
             }
         }
     }

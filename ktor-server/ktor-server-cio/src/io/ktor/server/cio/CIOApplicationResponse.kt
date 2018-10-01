@@ -1,8 +1,8 @@
 package io.ktor.server.cio
 
-import io.ktor.http.content.*
 import io.ktor.http.*
 import io.ktor.http.cio.*
+import io.ktor.http.content.*
 import io.ktor.response.*
 import io.ktor.server.engine.*
 import kotlinx.coroutines.*
@@ -24,12 +24,6 @@ class CIOApplicationResponse(call: CIOApplicationCall,
 
     @Volatile
     private var chunkedJob: Job? = null
-
-    init {
-        pipeline.intercept(ApplicationSendPipeline.Engine) {
-            call.release()
-        }
-    }
 
     override val headers = object : ResponseHeaders() {
         override fun engineAppendHeader(name: String, value: String) {
