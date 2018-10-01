@@ -70,5 +70,8 @@ interface WebSocketSession : CoroutineScope {
  */
 suspend fun WebSocketSession.close(reason: CloseReason) {
     send(Frame.Close(reason))
-    flush()
+    try {
+        flush()
+    } catch (ignore: ClosedSendChannelException) {
+    }
 }

@@ -133,7 +133,14 @@ class WebSocketWriter(
     /**
      * Ensures all enqueued messages has been written
      */
-    suspend fun flush(): Unit = FlushRequest(coroutineContext[Job]).also { queue.send(it) }.await()
+    suspend fun flush(): Unit = FlushRequest(coroutineContext[Job]).also {
+        try {
+            queue.send(it)
+        } catch (sendFailure: Throwable) {
+            it.complete()
+            throw sendFailure
+        }
+    }.await()
 
     /**
      * Closes the message queue
