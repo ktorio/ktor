@@ -1,6 +1,7 @@
 package io.ktor.http.cio.internals
 
 import kotlinx.io.pool.*
+import java.lang.IllegalStateException
 import java.nio.*
 
 @Suppress("LoopToCallChain", "ReplaceRangeToWithUntil")
@@ -8,6 +9,7 @@ class CharBufferBuilder(val pool: ObjectPool<CharBuffer> = CharBufferPool) : Cha
     private var buffers: MutableList<CharBuffer>? = null
     private var current: CharBuffer? = null
     private var stringified: String? = null
+    private var released = false
 
     override var length: Int = 0
         private set
@@ -65,6 +67,7 @@ class CharBufferBuilder(val pool: ObjectPool<CharBuffer> = CharBufferPool) : Cha
         length = 0
         val list = buffers
         buffers = null
+        released = true
 
         if (list != null) {
             current = null
@@ -161,7 +164,10 @@ class CharBufferBuilder(val pool: ObjectPool<CharBuffer> = CharBufferPool) : Cha
         return list[index / CHAR_BUFFER_LENGTH]
     }
 
-    private fun throwSingleBuffer(index: Int): Nothing = throw IndexOutOfBoundsException("$index is not in range [0; ${current?.position() ?: 0})")
+    private fun throwSingleBuffer(index: Int): Nothing {
+        if (released) throw IllegalStateException("Buffer is already released")
+        throw IndexOutOfBoundsException("$index is not in range [0; ${current?.position() ?: 0})")
+    }
 
     private fun nonFullBuffer(): CharBuffer {
         return current?.takeIf { it.hasRemaining() } ?: appendNewBuffer()
@@ -171,6 +177,7 @@ class CharBufferBuilder(val pool: ObjectPool<CharBuffer> = CharBufferPool) : Cha
         val newBuffer = pool.borrow()
         val existing = current
         current = newBuffer
+        released = false
 
         if (existing != null) {
             val list = buffers ?: ArrayList<CharBuffer>().also {
