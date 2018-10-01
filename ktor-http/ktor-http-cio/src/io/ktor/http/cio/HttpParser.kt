@@ -51,7 +51,7 @@ suspend fun parseResponse(input: ByteReadChannel): Response? {
         val statusText = builder.subSequence(range.start, range.end)
         range.start = range.end
 
-        val headers = parseHeaders(input, builder, range) ?: return null
+        val headers = parseHeaders(input, builder, range) ?: HttpHeadersMap(builder)
 
         return Response(version, statusCode, statusText, headers, builder)
     } catch (t: Throwable) {
