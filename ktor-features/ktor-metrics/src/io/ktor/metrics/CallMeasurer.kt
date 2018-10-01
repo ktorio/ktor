@@ -28,7 +28,7 @@ class CallMeasurer {
         override fun install(pipeline: ApplicationCallPipeline, configure: CallMeasurer.() -> Unit): CallMeasurer {
             val feature = CallMeasurer().apply(configure)
             val phase = PipelinePhase("CallMeasurer")
-            pipeline.insertPhaseBefore(ApplicationCallPipeline.Infrastructure, phase)
+            pipeline.insertPhaseBefore(ApplicationCallPipeline.Monitoring, phase)
             pipeline.intercept(phase) {
                 call.attributes[CALL_START_TIME_KEY] = System.currentTimeMillis()
                 proceed()
