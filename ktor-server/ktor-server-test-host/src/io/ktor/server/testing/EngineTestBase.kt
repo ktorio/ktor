@@ -34,7 +34,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
     val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : CoroutineScope {
     private val testJob = Job()
-    private val testDispatcher by lazy { newFixedThreadPoolContext(32, "dispatcher-${test.methodName}") }
+    protected val testDispatcher by lazy { newFixedThreadPoolContext(32, "dispatcher-${test.methodName}") }
 
     protected val isUnderDebugger: Boolean =
         java.lang.management.ManagementFactory.getRuntimeMXBean().inputArguments.orEmpty()
@@ -225,7 +225,7 @@ abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration : Appl
         }
     }
 
-    protected fun socket(block: Socket.() -> Unit) {
+    protected inline fun socket(block: Socket.() -> Unit) {
         Socket("localhost", port).use { socket ->
             socket.tcpNoDelay = true
             socket.soTimeout = socketReadTimeout

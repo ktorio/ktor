@@ -28,7 +28,9 @@ private class BlockingServletApplicationRequest(
     servletRequest: HttpServletRequest
 ) : ServletApplicationRequest(call, servletRequest) {
 
-    override fun receiveChannel() = servletRequest.inputStream.toByteReadChannel()
+    private val inputStreamChannel by lazy { servletRequest.inputStream.toByteReadChannel() }
+
+    override fun receiveChannel() = inputStreamChannel
 }
 
 private class BlockingServletApplicationResponse(

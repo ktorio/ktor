@@ -2,11 +2,18 @@ package io.ktor.http.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
+import java.io.*
 
-abstract class HttpMessage internal constructor(val headers: HttpHeadersMap, private val builder: CharBufferBuilder) {
+abstract class HttpMessage internal constructor(val headers: HttpHeadersMap, private val builder: CharBufferBuilder) :
+    Closeable {
+
     fun release() {
         builder.release()
         headers.release()
+    }
+
+    override fun close() {
+        release()
     }
 }
 
