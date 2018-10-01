@@ -7,8 +7,9 @@ import io.ktor.http.*
 import io.ktor.util.pipeline.*
 import io.ktor.response.*
 import io.ktor.util.*
+import kotlinx.coroutines.io.*
 import java.nio.channels.*
-import java.util.concurrent.*
+import java.util.concurrent.CancellationException
 
 @EngineAPI
 fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
@@ -26,9 +27,11 @@ fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
             if (call.response.status() == null) {
                 call.respond(HttpStatusCode.NotFound)
             }
+            call.request.receiveChannel().discard()
         } catch (error: ChannelIOException) {
             call.application.environment.logFailure(call, error)
         } catch (error: Throwable) {
+            call.request.receiveChannel().discard()
             call.application.environment.logFailure(call, error)
             try {
                 call.respond(HttpStatusCode.InternalServerError)
