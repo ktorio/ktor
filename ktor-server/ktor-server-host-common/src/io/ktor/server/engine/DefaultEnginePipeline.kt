@@ -27,15 +27,19 @@ fun defaultEnginePipeline(environment: ApplicationEnvironment): EnginePipeline {
             if (call.response.status() == null) {
                 call.respond(HttpStatusCode.NotFound)
             }
-            call.request.receiveChannel().discard()
         } catch (error: ChannelIOException) {
             call.application.environment.logFailure(call, error)
         } catch (error: Throwable) {
-            call.request.receiveChannel().discard()
             call.application.environment.logFailure(call, error)
             try {
                 call.respond(HttpStatusCode.InternalServerError)
             } catch (ignore: BaseApplicationResponse.ResponseAlreadySentException) {
+            }
+        } finally {
+            try {
+                call.request.receiveChannel().discard()
+            } catch (ignore: Throwable) {
+            } finally {
             }
         }
     }

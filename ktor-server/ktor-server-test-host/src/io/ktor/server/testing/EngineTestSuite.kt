@@ -1627,13 +1627,6 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
     @Test
     fun testIgnorePostContent(): Unit = runBlocking<Unit> {
         createAndStartServer {
-            application.intercept(ApplicationCallPipeline.Call) {
-                try {
-                    proceed()
-                } finally {
-                    call.request.receiveChannel().discard()
-                }
-            }
             post("/") {
                 call.respondText("OK")
             }
@@ -1641,39 +1634,38 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
 
         socket {
             val bodySize = 65536
+            val repeatCount = 10
             val body = "X".repeat(bodySize).toByteArray()
 
             coroutineScope {
                 launch(CoroutineName("writer") + testDispatcher) {
                     RequestResponseBuilder().apply {
                         requestLine(HttpMethod.Post, "/", HttpProtocolVersion.HTTP_1_1.toString())
+                        headerLine(HttpHeaders.Host, "localhost:$port")
+                        headerLine(HttpHeaders.Connection, "keep-alive")
                         headerLine(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
                         headerLine(HttpHeaders.ContentLength, body.size.toString())
                         emptyLine()
                     }.build().use { request ->
-                        getOutputStream().writePacket(request.copy())
-                        getOutputStream().write(body)
-                        getOutputStream().flush()
-
-                        getOutputStream().writePacket(request.copy())
-                        getOutputStream().write(body)
-                        getOutputStream().flush()
+                        repeat(repeatCount) {
+                            getOutputStream().writePacket(request.copy())
+                            getOutputStream().write(body)
+                            getOutputStream().flush()
+                        }
                     }
                 }
 
                 launch(CoroutineName("reader") + testDispatcher) {
                     try {
-                        val channel = getInputStream().toByteReadChannel(context = testDispatcher, parent = coroutineContext[Job]!!)
-                        parseResponse(channel)?.use { response ->
-                            val contentLength = response.headers[HttpHeaders.ContentLength].toString().toLong()
-                            channel.discardExact(contentLength)
-                            response.release()
-                        }
+                        val channel = getInputStream().toByteReadChannel(context = testDispatcher)
 
-                        parseResponse(channel)?.use { response ->
-                            val contentLength = response.headers[HttpHeaders.ContentLength].toString().toLong()
-                            channel.discardExact(contentLength)
-                            response.release()
+                        repeat(repeatCount) { requestNumber ->
+                            parseResponse(channel)?.use { response ->
+                                assertEquals(200, response.status)
+                                val contentLength = response.headers[HttpHeaders.ContentLength].toString().toLong()
+                                channel.discardExact(contentLength)
+                                response.release()
+                            } ?: fail("No response found for request #$requestNumber")
                         }
                     } finally {
                         close() // close socket
