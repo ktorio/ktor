@@ -82,10 +82,10 @@ fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.installed(
 ): Boolean = featureRegistry.getOrNull(feature.key) != null
 
 
-fun <P : Pipeline<*, ApplicationCall>, B : Any, F : Any> P.installOrGet(
-    feature: ApplicationFeature<P, B, F>,
-    configure: B.() -> Unit = {}
-): F = featureRegistry.getOrNull(feature.key) ?: install(feature, configure)
+fun <P : Pipeline<*, ApplicationCall>, FB : Any> P.installOrGet(
+    feature: ApplicationFeature<P, FB, FB>,
+    configure: FB.() -> Unit = {}
+): FB = featureRegistry.getOrNull(feature.key)?.apply(configure) ?: install(feature, configure)
 
 /**
  * Uninstalls all features from the pipeline
