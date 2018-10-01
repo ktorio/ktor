@@ -8,6 +8,7 @@ import io.ktor.client.response.*
 import io.ktor.http.content.*
 import io.ktor.features.*
 import io.ktor.http.*
+import io.ktor.http.Headers
 import io.ktor.http.cio.*
 import io.ktor.request.*
 import io.ktor.response.*
@@ -1619,6 +1620,65 @@ abstract class EngineTestSuite<TEngine : ApplicationEngine, TConfiguration : App
         assertFails {
             withUrl("/write-less") {
                 call.receive<String>()
+            }
+        }
+    }
+
+    @Test
+    fun testIgnorePostContent(): Unit = runBlocking<Unit> {
+        createAndStartServer {
+            application.intercept(ApplicationCallPipeline.Call) {
+                try {
+                    proceed()
+                } finally {
+                    call.request.receiveChannel().discard()
+                }
+            }
+            post("/") {
+                call.respondText("OK")
+            }
+        }
+
+        socket {
+            val bodySize = 65536
+            val body = "X".repeat(bodySize).toByteArray()
+
+            coroutineScope {
+                launch(CoroutineName("writer") + testDispatcher) {
+                    RequestResponseBuilder().apply {
+                        requestLine(HttpMethod.Post, "/", HttpProtocolVersion.HTTP_1_1.toString())
+                        headerLine(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
+                        headerLine(HttpHeaders.ContentLength, body.size.toString())
+                        emptyLine()
+                    }.build().use { request ->
+                        getOutputStream().writePacket(request.copy())
+                        getOutputStream().write(body)
+                        getOutputStream().flush()
+
+                        getOutputStream().writePacket(request.copy())
+                        getOutputStream().write(body)
+                        getOutputStream().flush()
+                    }
+                }
+
+                launch(CoroutineName("reader") + testDispatcher) {
+                    try {
+                        val channel = getInputStream().toByteReadChannel(context = testDispatcher, parent = coroutineContext[Job]!!)
+                        parseResponse(channel)?.use { response ->
+                            val contentLength = response.headers[HttpHeaders.ContentLength].toString().toLong()
+                            channel.discardExact(contentLength)
+                            response.release()
+                        }
+
+                        parseResponse(channel)?.use { response ->
+                            val contentLength = response.headers[HttpHeaders.ContentLength].toString().toLong()
+                            channel.discardExact(contentLength)
+                            response.release()
+                        }
+                    } finally {
+                        close() // close socket
+                    }
+                }
             }
         }
     }
