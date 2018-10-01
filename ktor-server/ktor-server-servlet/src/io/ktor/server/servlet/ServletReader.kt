@@ -24,6 +24,14 @@ private class ServletReader(val input: ServletInputStream) : ReadListener {
         val buffer = ArrayPool.borrow()
         try {
             input.setReadListener(this)
+            if (input.isFinished) {
+                // setting read listener on already completed stream could cause it to hang
+                // it is not by Servlet API spec but it actually works like this
+                // it is relatively dangerous to touch isFinished due to async processing
+                // if the servlet container call us onAllDataRead then it we will close events again that is safe
+                events.close()
+                return
+            }
             events.receiveOrNull() ?: return
             loop(buffer)
 
