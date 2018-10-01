@@ -39,5 +39,8 @@ interface ApplicationRequest {
      */
     val cookies: RequestCookies
 
+    /**
+     * Request's body channel (for content only)
+     */
     fun receiveChannel(): ByteReadChannel
 }
