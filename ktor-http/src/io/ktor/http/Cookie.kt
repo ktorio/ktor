@@ -16,9 +16,22 @@ data class Cookie(
     val extensions: Map<String, String?> = emptyMap()
 )
 
+enum class CookieSameSite {
+    STRICT, LAX;
+
+    companion object {
+        val KEY = "SameSite"
+    }
+}
+
 enum class CookieEncoding {
     RAW, DQUOTES, URI_ENCODING, BASE64_ENCODING
 }
+
+val Cookie.sameSite: CookieSameSite?
+    get() = extensions[CookieSameSite.KEY]?.run {
+        CookieSameSite.values().firstOrNull { it.name.equals(this, ignoreCase = true) }
+    }
 
 private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "secure", "httponly", "\$x-enc")
 fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {

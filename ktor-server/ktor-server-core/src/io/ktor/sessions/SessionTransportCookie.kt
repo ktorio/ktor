@@ -22,23 +22,10 @@ class SessionTransportCookie(
     }
 
     override fun send(call: ApplicationCall, value: String) {
-        val now = GMTDate()
-        val maxAge = configuration.duration[ChronoUnit.SECONDS].toInt()
-        val expires = now + (maxAge.toLong() * 1000)
-        val cookie = Cookie(
-            name,
-            transformers.transformWrite(value),
-            configuration.encoding,
-            maxAge,
-            expires,
-            configuration.domain,
-            configuration.path,
-            configuration.secure,
-            configuration.httpOnly,
-            configuration.extensions
-        )
-
-        call.response.cookies.append(cookie)
+        call.response.cookies.append(configuration.buildCookie(
+            name = name,
+            value = transformers.transformWrite(value)
+        ))
     }
 
     override fun clear(call: ApplicationCall) {
@@ -55,21 +42,28 @@ class CookieConfiguration {
     var httpOnly: Boolean = false
     val extensions: MutableMap<String, String?> = mutableMapOf()
 
-    enum class SameSite { STRICT, LAX }
-
-    companion object {
-        private val SameSiteExt = "SameSite"
-    }
-
-    var sameSite: SameSite?
-        get() = extensions[SameSiteExt]?.run {
-            SameSite.values().firstOrNull { it.name.equals(this, ignoreCase = true) }
+    var sameSite: CookieSameSite?
+        get() = extensions[CookieSameSite.KEY]?.run {
+            CookieSameSite.values().firstOrNull { it.name.equals(this, ignoreCase = true) }
         }
         set(value) {
             if (value == null) {
-                extensions.remove(SameSiteExt)
+                extensions.remove(CookieSameSite.KEY)
             } else {
-                extensions[SameSiteExt] = value.name.toLowerCase()
+                extensions[CookieSameSite.KEY] = value.name.toLowerCase()
             }
         }
+
+    fun buildCookie(name: String, value: String) : Cookie {
+        val now = GMTDate()
+        val maxAge = duration[ChronoUnit.SECONDS].toInt()
+        val expires = now + (maxAge.toLong() * 1000)
+        return Cookie(
+            name, value,
+            encoding, maxAge, expires,
+            domain, path,
+            secure, httpOnly,
+            extensions
+        )
+    }
 }
